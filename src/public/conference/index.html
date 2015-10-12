@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html ng-app="vertoApp" ng-controller="MainController" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <meta name="description" content="Verto (VER-to) RTC is a FreeSWITCH endpoint that implements a subset of a JSON-RPC connection designed for use over secure websockets.">
+    <meta name="author" content="FreeSWITCH">
+    <link rel="icon" href="favicon.ico">
+
+    <title ng-bind="'[' + title + '] ' + 'FreeSWITCH Verto&trade; Video Transcoding'"></title>
+
+    <link rel="stylesheet" href="css/vendor.cdd1e40b.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/verto.56f0df80.css">
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+
+    <div ng-include="'partials/menu.html'"></div>
+
+    <div id="wrapper" class="toggled">
+      <!-- Sidebar -->
+      <div id="sidebar-wrapper">
+        <div ng-include="'partials/chat.html'"></div>
+      </div>
+      <!-- /#sidebar-wrapper -->
+
+      <!-- Page Content -->
+      <div id="page-content-wrapper">
+        <div class="container-fluid">
+          <div class="row" ng-view>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <video class="hide" id="webcam" autoplay="autoplay" style="width:100%; height:100%; object-fit:inherit;"></video>
+
+   
+    <!--<script type="text/javascript" src="js/jquery/jquery.mobile.min.js"></script>-->
+
+    <script src="scripts/vendor.a5447b8d.js"></script>
+
+    <script src="scripts/scripts.e6f31edc.js"></script>
+
+  </body>
+</html>
+
