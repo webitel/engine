@@ -1,8 +1,8 @@
 {
     "ssl": {
         "enabled": false,
-        "ssl_key": "./cert/wss.pem",
-        "ssl_cert": "./cert/wss.pem"
+        "ssl_key": "/cert/wss.pem",
+        "ssl_cert": "/cert/wss.pem"
     },
     "server": {
         "host": "0.0.0.0",
@@ -12,7 +12,7 @@
         }
     },
     "mongodb": {
-        "uri": "mongodb://pre.webitel.com:27017/webitel",
+        "uri": "mongodb://mongodb:27017/webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",
@@ -30,20 +30,20 @@
         "collectionConference": "conference"
     },
     "webitelServer": {
-        "host": "pre.webitel.com",
+        "host": "wconsole",
         "port": "6873",
         "account": "root",
         "secret": "ROOT_PASSWORD",
         "reconnect": 5
     },
     "freeSWITCH": {
-        "host": "10.10.10.200",
+        "host": "freeswitch",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
     },
     "cdrServer": {
-        "host": "https://pre.webitel.com:10023",
+        "host": "http://cdr:10021",
         "useProxy": false
     },
     "application": {
@@ -51,7 +51,7 @@
         "callcenter": true,
         "logstash": {
             "enabled": false,
-            "host": "LOGSTASH_HOST",
+            "host": "logstash",
             "port": 28777,
             "node_name": "core"
         },
@@ -83,7 +83,7 @@
             "scheduleLogoutSec": 60
         },
         "mailReport": {
-            "from": "webitel@webitel.ru",
+            "from": "support@webitel.com",
             "to": [],
             "smtp": {
                
@@ -94,6 +94,6 @@
         "enable": false,
         "domain": "meeting",
         "validateMail": true,
-        "validateUri": "https://igor.webitel.com:10022/"
+        "validateUri": "https://webitel.com:10022/"
     }
 }
