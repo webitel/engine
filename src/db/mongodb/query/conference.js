@@ -108,6 +108,27 @@ function addQuery(db) {
                         .findOne({"_id": new ObjectID(_id)}, cb)
                 }
             );
+        },
+        
+        _getDeleteAgents: function (date, cb) {
+            return db
+                .collection(conferenceCollectionName)
+                .find({
+                    "_createdOn": {
+                        "$lte": date
+                    }
+                })
+                .toArray(cb);
+        },
+        
+        _deleteExpiresAgents: function (date, cb) {
+            return db
+                .collection(conferenceCollectionName)
+                .remove({
+                    "_createdOn": {
+                        "$lte": date
+                    }
+                }, cb);
         }
     }
 }

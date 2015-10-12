@@ -1,11 +1,11 @@
 {
     "ssl": {
-        "enabled": false,
+        "enabled": true,
         "ssl_key": "./cert/wss.pem",
         "ssl_cert": "./cert/wss.pem"
     },
     "server": {
-        "host": "0.0.0.0",
+        "host": "::",
         "port": 10022,
         "socket": {
             "originHost": false
@@ -86,14 +86,15 @@
             "from": "webitel@webitel.ru",
             "to": [],
             "smtp": {
-                
             }
         }
     },
     "conference": {
-        "enable": false,
+        "enable": true,
         "domain": "meeting",
-        "validateMail": true,
-        "validateUri": "https://igor.webitel.com:10022/"
+        "validateMail": false,
+        "validateUri": "https://igor.webitel.com:10022/",
+        "aliveUserHour": 24,
+        "scheduleHour": 5
     }
 }
