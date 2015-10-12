@@ -1,0 +1,109 @@
+{
+    "ssl": {
+        "enabled": true,
+        "ssl_key": "./cert/wss.pem",
+        "ssl_cert": "./cert/wss.pem"
+    },
+    "server": {
+        "host": "::",
+        "port": 10022,
+        "socket": {
+            "originHost": false
+        }
+    },
+    "mongodb": {
+        "uri": "mongodb://pre.webitel.com:27017/webitel",
+        "collectionPublic": "public",
+        "collectionDefault": "default",
+        "collectionSystem": "global",
+        "collectionExtension": "extension",
+        "collectionDomainVar": "domainVariables",
+        "collectionAuth": "authToken",
+        "collectionCalendar": "calendar",
+        "collectionCDR": "cdr",
+        "collectionFile": "cdrFile",
+        "collectionEmail": "emailConfig",
+        "collectionBlackList": "blackList",
+        "collectionContactBook": "contactBook",
+        "collectionOutboundQueue": "outboundQueue",
+        "collectionAgentStatus": "agentStatus",
+        "collectionConference": "conference"
+    },
+    "webitelServer": {
+        "host": "pre.webitel.com",
+        "port": "6873",
+        "account": "root",
+        "secret": "ROOT_PASSWORD",
+        "reconnect": 5
+    },
+    "freeSWITCH": {
+        "host": "10.10.10.200",
+        "port": 8021,
+        "pwd": "ClueCon",
+        "reconnect": 5
+    },
+    "cdrServer": {
+        "host": "https://pre.webitel.com:10023",
+        "useProxy": false
+    },
+    "application": {
+        "loglevel": "trace",
+        "callcenter": true,
+        "logstash": {
+            "enabled": false,
+            "host": "LOGSTASH_HOST",
+            "port": 28777,
+            "node_name": "core"
+        },
+        "auth": {
+            "tokenSecretKey": "g6Yhdb8jUm!hJ78Jhsw4EEc",
+            "expiresDays": 7
+        },
+        "socketTimeUnauthorized": 5,
+        "sleepConnectToWebitel": 1000,
+        "freeSWITCHEvents": [
+            "CHANNEL_CREATE",
+            "CHANNEL_DESTROY",
+            "CHANNEL_CALLSTATE",
+            "CHANNEL_ANSWER",
+            "CHANNEL_HANGUP_COMPLETE",
+            "CHANNEL_HANGUP",
+            "CHANNEL_HOLD",
+            "CHANNEL_UNHOLD",
+            "CHANNEL_BRIDGE",
+            "CHANNEL_UNBRIDGE",
+            "CHANNEL_UUID",
+            "DTMF",
+            "CHANNEL_DATA",
+            "CHANNEL_PROGRESS_MEDIA",
+            "CUSTOM callcenter::info"
+        ],
+        "callCentre": {
+            "diffAgentLogoutTimeSec": 60,
+            "scheduleLogoutSec": 60
+        },
+        "mailReport": {
+            "from": "webitel@webitel.ru",
+            "to": [],
+            "smtp": {
+                "host" : "mail.it-sfera.com.ua",
+                "port" : 465,
+                "secure" : true,
+                "debug" : false,
+                "tls" : {
+                    "rejectUnauthorized" : false
+                },
+                "auth" : {
+                    "user" : "igor.navrotskiy@it-sfera.com.ua",
+                    "pass" : "23EWds-89"
+                }
+            }
+        }
+    },
+    "conference": {
+        "enable": false,
+        "domain": "meeting",
+        "validateMail": true,
+        "validateUri": "https://igor.webitel.com:10022/"
+    }
+}

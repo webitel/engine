@@ -1,0 +1,34 @@
+{
+  "name": "webitel",
+  "version": "2.0.1",
+  "description": "Webitel WSS & HTTP server",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -t 5000 test/testEngine.js"
+  },
+  "author": "Navrotskyj Igor",
+  "license": "ISC",
+  "dependencies": {
+    "acl": "^0.4.8",
+    "async": "^1.4.0",
+    "body-parser": "^1.13.3",
+    "crypto": "0.0.3",
+    "eventemitter2": "^0.4.14",
+    "express": "^4.13.3",
+    "jwt-simple": "^0.3.0",
+    "mongodb": "^2.0.39",
+    "nconf": "^0.7.1",
+    "node-uuid": "^1.4.3",
+    "nodemailer": "^1.4.0",
+    "nodemailer-smtp-pool": "^1.1.1",
+    "prettysize": "0.0.3",
+    "winston": "^1.0.1",
+    "winston-logstash": "^0.2.11",
+    "ws": "^0.8.0"
+  },
+  "devDependencies": {
+    "chai": "^3.2.0",
+    "mocha": "^2.3.0",
+    "supertest": "^1.1.0"
+  }
+}
