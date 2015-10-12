@@ -3,7 +3,7 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
 
 var HashCollection = module.exports = function() {
     this.collection = {};
-
+ 
     var length = 0;
     EventEmitter2.call(this, {
         wildcard: true,
