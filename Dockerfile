@@ -9,5 +9,5 @@ COPY src /core
 WORKDIR /core
 RUN npm install && npm cache clear
 
-EXPOSE 10020
+EXPOSE 10022
 ENTRYPOINT ["node", "app.js"]
