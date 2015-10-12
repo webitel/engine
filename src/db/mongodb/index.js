@@ -12,6 +12,8 @@ function initConnect (server) {
             server.stop(err);
         };
 
+        require('./query/initCollections')(db);
+
         db._query = {
             email: require('./query/email').addQuery(db),
             auth: require('./query/auth').addQuery(db),

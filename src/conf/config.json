@@ -12,7 +12,7 @@
         }
     },
     "mongodb": {
-        "uri": "mongodb://mongodb:27017/webitel",
+        "uri": "mongodb://10.10.10.25:27017/webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",
@@ -27,23 +27,24 @@
         "collectionContactBook": "contactBook",
         "collectionOutboundQueue": "outboundQueue",
         "collectionAgentStatus": "agentStatus",
-        "collectionConference": "conference"
+        "collectionConference": "conference",
+        "collectionLocation": "location"
     },
     "webitelServer": {
-        "host": "wconsole",
+        "host": "pre.webitel.com",
         "port": "6873",
         "account": "root",
         "secret": "ROOT_PASSWORD",
         "reconnect": 5
     },
     "freeSWITCH": {
-        "host": "freeswitch",
+        "host": "pre.webitel.com",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
     },
     "cdrServer": {
-        "host": "http://cdr:10021",
+        "host": "http://pre.webitel.com:10021",
         "useProxy": false
     },
     "application": {

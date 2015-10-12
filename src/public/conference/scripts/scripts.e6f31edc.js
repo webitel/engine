@@ -7020,7 +7020,7 @@ vertoService.service('config', ['$rootScope', '$http', '$location', 'storage', '
       if (verto.data.password) {
           //url += '&password=' + verto.data.password;
       };
-        debugger
+
       var _requestData = {
           "email": verto.data.email,
           "join": $location.search().join || verto.data.join,
