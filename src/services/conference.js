@@ -16,7 +16,7 @@ var CodeError = require(__appRoot + '/lib/error'),
     MAIL_TEMPLATE = fs.readFileSync(__appRoot + '/conf/conferenceMailTemplate.html', {encoding: "utf8"}),
     CONFERENCE_DOMAIN = conf.get('conference:domain'),
     VALIDATE_URI = conf.get('conference:validateUri'),
-    VALIDATE_MAIL = conf.get('conference:validateMail'),
+    VALIDATE_MAIL = conf.get('conference:validateMail').toString() === 'true',
     ALIVE_USER_HOUR = conf.get('conference:aliveUserHour'),
     SCHEDULE_USER_HOUR = conf.get('conference:scheduleHour'),
     ENABLE_CONFERENCE = conf.get('conference:enable')
