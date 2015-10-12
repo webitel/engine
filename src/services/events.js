@@ -4,7 +4,7 @@
 
 'use strict';
 
-var HashCollection = require(__appRoot + '/lib/Collection'),
+var HashCollection = require(__appRoot + '/lib/collection'),
     eventsCollection = new HashCollection('id'),
     log = require(__appRoot + '/lib/log')(module)
     ;

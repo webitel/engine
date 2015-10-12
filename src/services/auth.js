@@ -10,7 +10,7 @@ var conf = require('../conf'),
     crypto = require('crypto'),
     ACCOUNT_ROLE = require( __appRoot + '/const').ACCOUNT_ROLE,
     generateUuid = require('node-uuid'),
-    CodeError = require(__appRoot + '/lib/Error')
+    CodeError = require(__appRoot + '/lib/error')
     ;
 
 

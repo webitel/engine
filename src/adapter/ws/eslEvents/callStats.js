@@ -5,7 +5,7 @@
 'use strict';
 
 var log = require(__appRoot + '/lib/log')(module),
-    HashCollection = require(__appRoot + '/lib/Collection'),
+    HashCollection = require(__appRoot + '/lib/collection'),
     eventsService = require(__appRoot + '/services/events');
 
 const _EVENTS = {
