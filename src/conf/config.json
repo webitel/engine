@@ -94,6 +94,8 @@
         "enable": false,
         "domain": "meeting",
         "validateMail": true,
-        "validateUri": "https://webitel.com:10022/"
+        "validateUri": "https://webitel.com:10022/",
+        "aliveUserHour": 24,
+        "scheduleHour": 5
     }
 }
