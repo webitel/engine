@@ -16,11 +16,20 @@ var CodeError = require(__appRoot + '/lib/error'),
     MAIL_TEMPLATE = fs.readFileSync(__appRoot + '/conf/conferenceMailTemplate.html', {encoding: "utf8"}),
     CONFERENCE_DOMAIN = conf.get('conference:domain'),
     VALIDATE_URI = conf.get('conference:validateUri'),
-    VALIDATE_MAIL = conf.get('conference:validateMail')
+    VALIDATE_MAIL = conf.get('conference:validateMail'),
+    ALIVE_USER_HOUR = conf.get('conference:aliveUserHour'),
+    SCHEDULE_USER_HOUR = conf.get('conference:scheduleHour'),
+    ENABLE_CONFERENCE = conf.get('conference:enable')
     ;
 
 
 var Service = {
+    /**
+     *
+     * @param option
+     * @param cb
+     * @returns {*}
+     */
     getConfig: function (option, cb) {
         let eMail = option['email'],
             password = option['password'],
@@ -60,7 +69,15 @@ var Service = {
 
         });
     },
-    
+
+    /**
+     *
+     * @param id
+     * @param data
+     * @param join
+     * @returns {*}
+     * @private
+     */
     _getMailTemplate: function (id, data, join) {
         var _link  = VALIDATE_URI + 'validate?_id=' + id;
         if (join)
@@ -78,6 +95,14 @@ var Service = {
         return _t;
     },
 
+    /**
+     *
+     * @param config
+     * @param valid
+     * @param join
+     * @returns {*}
+     * @private
+     */
     _setConfigAttribute: function (config, valid, join) {
         config['valid'] = valid || false;
         config['hostname'] = CONFERENCE_DOMAIN;
@@ -86,7 +111,15 @@ var Service = {
         config['autocall'] = join || config['meetingId'];
         return config;
     },
-    
+
+    /**
+     *
+     * @param email
+     * @param password
+     * @param userData
+     * @param cb
+     * @returns {*}
+     */
     register: function (email, password, userData, cb) {
         if (!email || !password) {
             return cb(new CodeError(400, "EMail and password is required."));
@@ -153,7 +186,14 @@ var Service = {
             });
         });
     },
-    
+
+    /**
+     *
+     * @param login
+     * @param password
+     * @param cb
+     * @returns {*|Suite|Object|number}
+     */
     createLogin: function (login, password, cb) {
         var option = {
             "login": login,
@@ -164,6 +204,11 @@ var Service = {
         return accountService.create(Service.CALLER, option, cb);
     },
 
+    /**
+     *
+     * @param id
+     * @param cb
+     */
     validate: function (id, cb) {
         let dbConference = application.DB._query.conference;
         dbConference.setConfirmed(id, true, function (err, data) {
@@ -179,6 +224,38 @@ var Service = {
             var password = data['password'];
             return Service.createLogin(login, password, cb);
         });
+    },
+
+    _runAutoDeleteUser: function (app) {
+        if (ENABLE_CONFERENCE.toString() == 'true') {
+            let _time = SCHEDULE_USER_HOUR * 60 * 60 * 1000;
+            app.Schedule(_time, function () {
+                log.debug('Schedule conference delete user.');
+                let dbConference = application.DB._query.conference,
+                    date = Date.now() - (ALIVE_USER_HOUR * 60 * 60 * 1000)
+                ;
+
+                dbConference._getDeleteAgents(date, function (err, result) {
+                    if (err)
+                        return log.error(err);
+                    if (result && result.length > 0) {
+                        result.forEach(function (item) {
+                            var _o = {
+                                "name": item['login'],
+                                "domain": item['domain']
+                            }
+                            accountService.remove(Service.CALLER, _o, function(){});
+                        });
+
+                        dbConference._deleteExpiresAgents(date, function (err) {
+                            if (err)
+                                return log.error(err)
+                            ;
+                        });
+                    };
+                });
+            });
+        };
     },
 
     // TODO create systemRole

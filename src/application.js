@@ -15,6 +15,7 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     httpSrv = (conf.get('ssl:enabled').toString() == 'true') ? require('https') : require('http'),
     initDb = require('./db'),
     emailService = require('./services/email'),
+    conferenceService = require('./services/conference'),
     plainTableToJSONArray = require('./utils/parse').plainTableToJSONArray,
     outQueryService = require('./services/outboundQueue');
 
@@ -83,6 +84,7 @@ APPLICATION.prototype.connectDb = function() {
 
     this.once('sys::connectEsl', function () {
         scope.configureExpress();
+        conferenceService._runAutoDeleteUser(scope);
         /**
          * Init outbound
          */
