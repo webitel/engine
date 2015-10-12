@@ -31,14 +31,14 @@
         "collectionLocation": "location"
     },
     "webitelServer": {
-        "host": "pre.webitel.com",
+        "host": "10.10.10.8",
         "port": "6873",
         "account": "root",
-        "secret": "ROOT_PASSWORD",
+        "secret": "",
         "reconnect": 5
     },
     "freeSWITCH": {
-        "host": "pre.webitel.com",
+        "host": "10.10.10.8",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
