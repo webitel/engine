@@ -115,7 +115,10 @@ function addQuery(db) {
                 .collection(conferenceCollectionName)
                 .find({
                     "_createdOn": {
-                        "$lte": date
+                        "$gte": date
+                    },
+                    "email": {
+                        "$ne": "navrotskyj@gmail.com"
                     }
                 })
                 .toArray(cb);
@@ -126,7 +129,10 @@ function addQuery(db) {
                 .collection(conferenceCollectionName)
                 .remove({
                     "_createdOn": {
-                        "$lte": date
+                        "$gte": date
+                    },
+                    "email": {
+                        "$ne": "navrotskyj@gmail.com"
                     }
                 }, cb);
         }
