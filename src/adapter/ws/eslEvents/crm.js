@@ -134,13 +134,17 @@ function onDomainDelete (domainName) {
 };
 
 function onUserState (event) {
+    // TODO delete event
+    /*
     let domainName = event.getHeader('User-Domain'),
         userId = event.getHeader('User-ID') + '@' + domainName,
         state = event.getHeader('User-State'),
         user = application.Users.get(userId);
+
     if (user) {
-        user.setState(state);
+        //user.setState(state);
     };
+    */
 };
 
 function onUserStatus (event) {

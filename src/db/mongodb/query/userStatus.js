@@ -41,19 +41,6 @@ function addQuery(db) {
             return 1;
         },
         
-        setDuration: function (userId, duration, cb) {
-            db
-                .collection(statusCollectionName)
-                .findAndModify(
-                    {"userId": userId},
-                    {"date": -1},
-                    {"$set": {"duration": duration}},
-                    cb
-                );
-
-            return 1;
-        },
-        
         _removeByUserId: function (domain, userId, cb) {
             db
                 .collection(statusCollectionName)

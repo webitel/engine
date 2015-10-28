@@ -105,7 +105,7 @@ function checkUser (login, password, cb) {
             return
         };
 
-        application.WConsole.userDara(login, 'global', ['a1-hash', 'account_role', 'cc-agent'], function (res) {
+        application.WConsole.userDara(login, 'global', ['a1-hash', 'account_role', 'cc-agent', 'status', 'state', 'description'], function (res) {
             try {
                 var resJson = JSON.parse(res['body']);
             } catch (e) {
@@ -119,6 +119,8 @@ function checkUser (login, password, cb) {
                 cb(null, {
                     'role': ACCOUNT_ROLE.getRoleFromName(resJson['account_role']),
                     'roleName': resJson['account_role'],
+                    'status': resJson['status'],
+                    'state': resJson['state'],
                     'domain': login.split('@')[1],
                     'cc-agent': resJson['cc-agent']
                 });

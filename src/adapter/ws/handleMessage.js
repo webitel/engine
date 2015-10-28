@@ -45,6 +45,8 @@ function Handler(wss, application) {
                     'login': id,
                     'role': params.role.name,
                     'domain': params.domain,
+                    'state': params.state,
+                    'status': params.status,
                     'cc-agent': params['cc-agent'],
                     'session': sessionId,
                     'ws-count': caller.getSessionLength()
