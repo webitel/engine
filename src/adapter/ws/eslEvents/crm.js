@@ -141,17 +141,6 @@ function onUserState (event) {
     if (user) {
         user.setState(state);
     };
-
-    let _caller = {
-        "userId": userId,
-        "domain": domainName,
-        "state": state,
-        "online": !!user
-    };
-
-    statusService.insert(_caller, function (err, res) {
-
-    });
 };
 
 function onUserStatus (event) {
