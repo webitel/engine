@@ -218,6 +218,7 @@ APPLICATION.prototype.connectToWConsole = function () {
 
     wconsole.on('webitel::event::auth::success', function () {
         log.info('Connect Webitel: %s:%s', this.host, this.port);
+        scope.emit('sys::connectEsl');
         wconsole.subscribe('all');
     });
 

@@ -44,6 +44,8 @@ module.exports = function (event) {
     var _e = event.serialize('json', 1);
     _e['webitel-event-name'] = _e['Event-Name'];
     application.broadcastInDomain(_e, event.getHeader('Event-Domain'));
+    // TODO
+    application.broadcast(_e);
 };
 
 function onUserDelete (userId, domain) {

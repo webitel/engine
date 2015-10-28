@@ -9,10 +9,12 @@ var log = require(__appRoot + '/lib/log')(module),
 module.exports = handleEslEvent;
 
 function handleEslEvent(application) {
-    return application.on('sys::eslConnect', function () {
-
+    application.on('sys::wConsoleConnect', function () {
         // TODO переделать на ивент свича...
         application.WConsole.on('webitel::event::event::**', crm);
+    });
+
+    return application.on('sys::eslConnect', function () {
 
         var activeUsers = application.Users.getKeys();
         activeUsers.forEach(function (userName) {

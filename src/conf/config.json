@@ -12,7 +12,7 @@
         }
     },
     "mongodb": {
-        "uri": "mongodb://10.10.10.25:27017/webitel",
+        "uri": "mongodb://pre.webitel.com:27017/webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",
@@ -31,14 +31,14 @@
         "collectionLocation": "location"
     },
     "webitelServer": {
-        "host": "10.10.10.8",
+        "host": "pre.webitel.com",
         "port": "6873",
         "account": "root",
-        "secret": "",
+        "secret": "ROOT_PASSWORD",
         "reconnect": 5
     },
     "freeSWITCH": {
-        "host": "10.10.10.8",
+        "host": "pre.webitel.com",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
@@ -92,9 +92,9 @@
         }
     },
     "conference": {
-        "enable": false,
+        "enable": true,
         "domain": "meeting",
-        "validateMail": true,
+        "validateMail": false,
         "validateUri": "https://webitel.com:10022/",
         "aliveUserHour": 24,
         "scheduleHour": 5
