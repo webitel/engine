@@ -9,31 +9,23 @@ var CodeError = require(__appRoot + '/lib/error'),
     ;
 
 var Service = {
-    insert: function (option, cb) {
+    insert: function (option) {
         let status = option['status'];
         let state = option['state'];
-        let userId = option['userId'];
+        let userId = option['account'];
 
-        if (!state && !status) {
-            return cb(new CodeError(500, 'Caller %s status or state undefined.', option['userId']));
+        if (!state || !status || !userId) {
+            return log.error('Caller %s status or state undefined.', userId);
         };
 
         let data = option;
-        data['date'] = new Date().getTime();
-
-        // TODO agent, logged, count session...
-
+        data['date'] = Date.now();
         let dbUserStatus = application.DB._query.userStatus;
-        dbUserStatus.setDuration(
-            userId,
-            option['prevDate'],
-            function (err) {
-                if (err)
-                    log.error(err);
 
-                return dbUserStatus.create(data, cb);
-            }
-        );
+        dbUserStatus.create(data, (err) => {
+            if (err)
+                log.error(err);
+        });
     },
     
     _removeByUserId: function (userId, domain, cb) {

@@ -144,24 +144,27 @@ function onUserState (event) {
 };
 
 function onUserStatus (event) {
-    let domainName = event.getHeader('Account-Domain'),
-        userId = event.getHeader('Account-User') + '@' + domainName,
-        status = event.getHeader('Account-Status'),
+    var jsonEvent = event.serialize('json', true);
+    let domainName = jsonEvent['Account-Domain'],
+        userId = jsonEvent['Account-User'] + '@' + domainName,
+        status = jsonEvent['Account-Status'],
+        state = jsonEvent['Account-User-State'],
         user = application.Users.get(userId);
     if (user) {
-        user.setState(null, status);
+        user.setState(state, status);
     };
 
-    let _caller = {
-        "userId": userId,
+    var data = {
         "domain": domainName,
+        "account": jsonEvent['Account-User'],
         "status": status,
+        "state": state,
+        // TODO
+        "description": jsonEvent['Account-Status-Descript'] ? decodeURI(decodeURI(jsonEvent['Account-Status-Descript'])) : '',
         "online": !!user
     };
 
-    statusService.insert(_caller, function (err, res) {
-
-    });
+    statusService.insert(data);
 };
 
 // @private

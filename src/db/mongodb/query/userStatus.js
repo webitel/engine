@@ -15,16 +15,28 @@ module.exports = {
 function addQuery(db) {
     return {
         create: function (data, cb) {
-            db
-                .collection(statusCollectionName)
-                .insert(data, function (err, res) {
-                    var result = res && res['ops'];
-                    if (result instanceof Array) {
-                        result = result[0];
-                    }
-                    ;
-                    cb(err, result);
-                });
+            var collection = db
+                .collection(statusCollectionName);
+
+            collection
+                .findAndModify(
+                {"account": data['account'], "domain": data['domain']},
+                {"date": -1},
+                {"$set": {"endDate": data['date']}},
+                {limit: 1},
+                (err) => {
+                    if (err)
+                        return cb(err);
+
+                    collection
+                        .insert(data, (err) => {
+                            if (err)
+                                return cb(err);
+
+                            return cb(null);
+                        });
+                }
+            );
 
             return 1;
         },
