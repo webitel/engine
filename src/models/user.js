@@ -69,7 +69,7 @@ User.prototype.removeSession = function (sessionId) {
     if (this.ws[sessionId]) {
         delete this.ws[sessionId];
         this.sessionLength --;
-        //log.trace('Pear disconnect: %s [%s]', this.id, sessionId);
+        log.trace('Pear disconnect: %s [%s]', this.id, sessionId);
         return this.sessionLength;
     } else {
         return false;
