@@ -11,18 +11,13 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     conf = require('./conf'),
     Esl = require('./lib/modesl'),
     Collection = require('./lib/collection'),
-    api = require('./adapter/rest'),
-    Acl = require('acl'),
-    ACL_CONF = require('./conf/acl'),
-    ws = require('./adapter/ws'),
     httpSrv = (conf.get('ssl:enabled').toString() == 'true') ? require('https') : require('http'),
     initDb = require('./db'),
-    emailService = require('./services/email'),
-    conferenceService = require('./services/conference'),
-    plainTableToJSONArray = require('./utils/parse').plainTableToJSONArray,
-    outQueryService = require('./services/outboundQueue');
+    plainTableToJSONArray = require('./utils/parse').plainTableToJSONArray
+    //outQueryService = require('./services/outboundQueue')
+    ;
 
-class APPLICATION extends EventEmitter2 {
+class Application extends EventEmitter2 {
     constructor () {
         super();
         this.DB = null;
@@ -33,8 +28,7 @@ class APPLICATION extends EventEmitter2 {
         this.Agents = new Collection('id');
         this.OutboundQuery = new Collection('id');
         this.loggedOutAgent = new Collection('id');
-
-        this.connectDb();
+        process.nextTick(this.connectDb.bind(this));
     }
 
     Schedule (time, fn, arg) {
@@ -45,6 +39,8 @@ class APPLICATION extends EventEmitter2 {
     }
 
     initAcl (cb) {
+        var Acl = require('acl'),
+            ACL_CONF = require('./conf/acl');
         var acl;
 
         this.acl = acl = new Acl(new Acl.memoryBackend());
@@ -69,6 +65,7 @@ class APPLICATION extends EventEmitter2 {
     }
 
     connectDb() {
+        var conferenceService = require('./services/conference');
         var scope = this;
         scope.once('sys::connectDb', function (db) {
             scope.DB = db;
@@ -248,11 +245,13 @@ class APPLICATION extends EventEmitter2 {
     }
 
     configureExpress () {
+        var api = require('./adapter/rest');
         this.startServer(api);
     }
 
     startServer (api) {
         try {
+            var ws = require('./adapter/ws');
             var scope = this,
                 server;
 
@@ -303,6 +302,7 @@ class APPLICATION extends EventEmitter2 {
 process.on('uncaughtException', function (err) {
     log.error('UncaughtException:', err.message);
     log.error(err.stack);
+    var emailService = require('./services/email');
 
     var _fnStop = function() {
         if (application) {
@@ -316,4 +316,5 @@ process.on('uncaughtException', function (err) {
     });
 });
 
-module.exports = APPLICATION;
+var application = new Application();
+module.exports = application;
