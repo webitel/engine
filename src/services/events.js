@@ -127,6 +127,7 @@ var _eventsModule = {
             if (!user.sendSessionObject(event, key)) {
                 delete _domain[key];
             } else {
+                log.debug('Emit server event %s --> %s [%s]', eventName, user.id, key);
                 _iterator++;
             };
         };

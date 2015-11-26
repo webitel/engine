@@ -8,6 +8,7 @@ var conf = require('../../conf'),
     Controller = require('./controllers'),
     ACCOUNT_EVENTS = require(__appRoot + '/const').ACCOUNT_EVENTS,
     User = require(__appRoot + '/models/user'),
+    handleStatusDb = require(__appRoot + '/services/userStatus').insert,
     DIFF_AGENT_LOGOUT_SEC = conf.get('application:callCentre:diffAgentLogoutTimeSec') || 60,
     SCHEDULE_TIME_SEC = conf.get('application:callCentre:scheduleLogoutSec') || 60
     ;
@@ -49,7 +50,8 @@ function Handler(wss, application) {
                     'status': params.status,
                     'cc-agent': params['cc-agent'],
                     'session': sessionId,
-                    'ws-count': caller.getSessionLength()
+                    'ws-count': caller.getSessionLength(),
+                    'cc-logged': !!caller['cc-logged']
                 }
             };
             caller.sendSessionObject(response, sessionId);
@@ -168,7 +170,7 @@ function Handler(wss, application) {
         log.debug('Schedule logout agents.');
         if (application.loggedOutAgent.length() > 0) {
             var collection = application.loggedOutAgent.collection,
-                currentTime = new Date().getTime();
+                currentTime = Date.now();
             for (let key in collection) {
                 if (collection[key] < currentTime) {
                     application.loggedOutAgent.remove(key);
@@ -218,6 +220,7 @@ function Handler(wss, application) {
                 };
             };
 
+            insertSession (_id[0], user.domain, user.state, user.status, user.description, false);
         } catch (e) {
             log.warn('On remove domain error: ', e.message);
         }
@@ -253,6 +256,7 @@ function Handler(wss, application) {
             } catch (e) {
                 log.warn('Broadcast account event: ', domain);
             }
+            insertSession (_id[0], user.domain, user.state, user.status, user.description, true);
         } catch (e) {
             log.warn('On add domain error: ', e.message);
         }
@@ -271,6 +275,23 @@ var getJSONUserEvent = function (eventName, domainName, userId) {
     };
 };
 
+function insertSession (account, domain, state, status, description, online) {
+    if (account != 'root') {
+        handleStatusDb({
+            "domain": domain,
+            "account": account,
+            "status": (status || "").toUpperCase(),
+            "state": (state || "").toUpperCase(),
+            "description": (description || ""),
+            "online": online,
+            "date": Date.now()
+        }, (err) => {
+            if (err)
+                log.error(err);
+        })
+    }
+};
+
 function addMinutes(diff) {
-    return new Date().getTime() + diff * 1000;
+    return Date.now() + diff * 1000;
 };

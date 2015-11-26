@@ -167,7 +167,7 @@ var Service = {
                     return cb(err);
 
                 try {
-                    return plainTableToJSON(res, domain, cb);
+                    return parseAccount(res, domain, cb);
                 } catch (e) {
                     log.error(e);
                     cb(e);
@@ -240,3 +240,45 @@ var Service = {
 };
 
 module.exports = Service;
+
+const const_DataSeparator = '=================================================================================================';
+
+function parseAccount (data, domain, cb) {
+    if (!data) {
+        cb('Data is undefined!');
+        return
+    };
+    try {
+        domain = domain || '_undef_';
+        var _line,
+            _head,
+            _json = {},
+            _id,
+            _user;
+
+        _line = data.match(/[^\r\n]+/g);
+        _head = _line[0].match(/[^\t]+/g).map((a) => a.trim());
+        for (var i = 2; i < _line.length && _line[i] != const_DataSeparator; i++) {
+            _id = '';
+            _line[i].split('\t').forEach( (a, i) => {
+                if (i == 0) {
+                    _id = a.trim();
+                    _json[_id] = {
+                        id: _id
+                    }
+                } else {
+                    if (_head[i] == 'online') {
+                        _user = application.Users.get(_json[_id]['id'] + '@' + domain);
+                        _json[_id]['online'] = !!((_user && _user.logged));
+                        _json[_id]['cc_logged'] = !!((_user && _user['cc-logged']));
+                    } else {
+                        _json[_id][_head[i]] = a.trim();
+                    }
+                }
+            });
+        };
+        cb(null, _json);
+    } catch (e) {
+        cb(e);
+    };
+};

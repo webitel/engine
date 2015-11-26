@@ -6,12 +6,14 @@
 
 var eventsService = require(__appRoot + '/services/events'),
     log = require(__appRoot + '/lib/log')(module),
-    getDomainFromStr = require(__appRoot + '/utils/parse').getDomainFromStr
+    getDomainFromStr = require(__appRoot + '/utils/parse').getDomainFromStr,
+    application = require(__appRoot + '/application')
     ;
 
 var _srvEvents = [
     'agent-offering',
     'bridge-agent-start',
+    'member-queue-resume',
     'bridge-agent-end',
     'bridge-agent-fail',
     'members-count',
@@ -27,11 +29,22 @@ for (var i = 0, len = _srvEvents.length; i < len; i++) {
 
 module.exports = function (event) {
     try {
-        var domain = getDomainFromStr(event['CC-Queue']),
+        var eventFrom = event['CC-Queue'] || event['CC-Agent'],
+            domain = getDomainFromStr(eventFrom),
             eventName = "CC::" + event['CC-Action'].toUpperCase()
             ;
         event['Event-Name'] = eventName;
-        eventsService.fire(eventName, domain, event);
+        eventsService.fire(eventName, domain, event, null, (user, _e) => {
+            try {
+                if (user._subscribeEvent[eventName] || user.id == eventFrom) return true;
+
+                var queues = application.Agents.get(user.id);
+                return queues && queues[eventFrom];
+            } catch (e) {
+                log.error(e);
+                return false;
+            }
+        });
         // TODO
         eventsService.fire(eventName, 'root', event);
     } catch(e) {

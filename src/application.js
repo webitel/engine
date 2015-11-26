@@ -121,12 +121,15 @@ class Application extends EventEmitter2 {
                         };
                         scope.Agents.removeAll();
                         if (result instanceof Array) {
+                            let _tmp;
                             result.forEach(function (item) {
                                 let agent = scope.Agents.get(item['agent']);
                                 if (!agent) {
-                                    scope.Agents.add(item['agent'], [item]);
+                                    _tmp = {};
+                                    _tmp[item['queue']] = item;
+                                    scope.Agents.add(item['agent'], _tmp);
                                 } else {
-                                    agent.push(item);
+                                    agent[item['queue']] = item;
                                 };
                             });
                         };
@@ -149,7 +152,6 @@ class Application extends EventEmitter2 {
 
             var ev = conf.get('application:freeSWITCHEvents');
             esl.subscribe(ev);
-            esl.filter('Event-Name', 'CHANNEL_PROGRESS_MEDIA');
             //for (var key in ev) {
             //    esl.filter('Event-Name', ev[key]);
             //};

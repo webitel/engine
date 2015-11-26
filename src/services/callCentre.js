@@ -362,9 +362,11 @@ var Service = {
                     if (!err) {
                         let agent = application.Agents.get(_agentId);
                         if (!agent) {
-                            application.Agents.add(_agentId, [_tier])
+                            let _tmp = {};
+                            _tmp[_tier.queue] = _tier;
+                            application.Agents.add(_agentId, _tmp)
                         } else {
-                            agent.push(_tier)
+                            agent[_tier.queue] = _tier
                         };
                     };
                     return cb(err, res);
@@ -463,13 +465,8 @@ var Service = {
                 function (err, res) {
                     if (!err) {
                         let agent = application.Agents.get(agentId);
-                        if (agent instanceof Array) {
-                            for (let key in agent) {
-                                if (agent.hasOwnProperty(key) && agent[key].queue == queueId) {
-                                    agent.splice(key, 1);
-                                    break;
-                                };
-                            };
+                        if (agent && agent.hasOwnProperty(queueId)) {
+                            delete agent[queueId];
                         };
                     };
                     return cb(err, res);

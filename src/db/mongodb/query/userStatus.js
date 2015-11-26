@@ -24,9 +24,15 @@ function addQuery(db) {
                 {"date": -1},
                 {"$set": {"endDate": data['date']}},
                 {limit: 1},
-                (err) => {
+                (err, result) => {
                     if (err)
                         return cb(err);
+
+                    if ((!data['status'] || !data['state']) && result && result['status'] && result['state']) {
+                        data['status'] = result['status'];
+                        data['state'] = result['state'];
+                        data['description'] = result['description'] || "";
+                    };
 
                     collection
                         .insert(data, (err) => {
@@ -45,7 +51,7 @@ function addQuery(db) {
             db
                 .collection(statusCollectionName)
                 .remove({
-                    "userId": userId,
+                    "account": userId,
                     "domain": domain
                 }, function (err, res) {
                     return cb(err, res && res.result);

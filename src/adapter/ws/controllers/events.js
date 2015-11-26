@@ -20,19 +20,33 @@ function eventsCtrl () {
 };
 
 function subscribe (caller, execId, args, ws) {
-    eventService.addListener(args['event'], caller, caller.getSession(ws), function (err, result) {
-        var _result = {
-            "body": (err && err.message) || result
+    var _all = args.all,
+        eventName = args['event'];
+    eventService.addListener(eventName, caller, caller.getSession(ws), function (err, result) {
+        let _result = {
+            "body": ""
         };
+        if (err) {
+            _result.body = err.message
+        } else {
+            _result.body = result;
+            if (_all)
+                caller._subscribeEvent[eventName] = true;
+        }
+
         getCommandResponseJSON(ws, execId, _result);
     });
 };
 
 function unSubscribe (caller, execId, args, ws) {
-    eventService.removeListener(args['event'], caller, caller.getSession(ws), function (err, result) {
+    var eventName = args['event'];
+    eventService.removeListener(eventName, caller, caller.getSession(ws), function (err, result) {
         var _result = {
             "body": (err && err.message) || result
         };
+        if (caller._subscribeEvent.hasOwnProperty(eventName))
+            delete caller._subscribeEvent[eventName];
+
         getCommandResponseJSON(ws, execId, _result);
     });
 };

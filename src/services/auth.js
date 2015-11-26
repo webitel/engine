@@ -122,7 +122,8 @@ function checkUser (login, password, cb) {
                     'status': resJson['status'],
                     'state': resJson['state'],
                     'domain': login.split('@')[1],
-                    'cc-agent': resJson['cc-agent']
+                    'cc-agent': resJson['cc-agent'],
+                    'description': decodeURI(resJson['description'] || "")
                 });
             } else {
                 cb(new CodeError(401, 'Bad password.'));

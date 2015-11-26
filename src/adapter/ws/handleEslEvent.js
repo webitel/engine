@@ -4,6 +4,8 @@ var log = require(__appRoot + '/lib/log')(module),
     ccEvents = require('./eslEvents/callCentre'),
     callStatsEvents = require('./eslEvents/callStats'),
     crm = require('./eslEvents/crm')
+    //Trigger = require(__appRoot + '/services/trigger'),
+    //trigger = new Trigger()
     ;
 
 module.exports = handleEslEvent;
@@ -58,7 +60,7 @@ function handleEslEvent(application) {
                             "variable_w_jsclient_originate_number": jsonEvent["variable_w_jsclient_originate_number"],
                             "Call-Info": jsonEvent["Call-Info"],
                             "Other-Leg-Unique-ID": jsonEvent["Other-Leg-Unique-ID"],
-                            "variable_hangup_cause": jsonEvent["variable_hangup_cause"],
+                            "variable_hangup_cause": jsonEvent["variable_hangup_cause"] || jsonEvent["Hangup-Cause"],
                             "Caller-Channel-Created-Time": jsonEvent["Caller-Channel-Created-Time"],
                             "Caller-Channel-Answered-Time": jsonEvent["Caller-Channel-Answered-Time"],
                             "Caller-Channel-Hangup-Time": jsonEvent["Caller-Channel-Hangup-Time"],

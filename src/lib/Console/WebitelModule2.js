@@ -431,7 +431,7 @@ Webitel.prototype.userCreate = function(_caller, args, cb) {
         parameters.push(VARIABLE_EXTENSION_NAME + '=' + number);
 
         if (parameters instanceof Array) {
-            _str += '[' + parameters.join(',') + ']';
+            _str += '[' + encodeURI(parameters) + ']';
         }
         ;
         if (variables  instanceof Array) {
@@ -504,7 +504,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
             };
 
             if (variables instanceof Array && variables.length > 0) {
-                cmd += '{' + variables.join(',') + '}';
+                cmd += '{' + encodeURI(variables) + '}';
             };
 
             scope.api(WebitelCommandTypes.Account.Change, [
@@ -1080,7 +1080,7 @@ Webitel.prototype.createSipGateway = function (_caller, gateway, cb) {
     };
 
     if (typeof gateway['profile'] == 'string') {
-        _commandsLine = _commandsLine.concat(' ', 'up external');
+        _commandsLine = _commandsLine.concat(' ', 'up ', gateway['profile']);
     };
 
     this.api(WebitelCommandTypes.Gateway.Index, [

@@ -34,7 +34,7 @@ module.exports = function (event) {
             break;
 
         case "USER_STATE":
-            onUserState(event);
+            //onUserState(event);
             break;
 
         case "ACCOUNT_STATUS":
@@ -153,9 +153,20 @@ function onUserStatus (event) {
         userId = jsonEvent['Account-User'] + '@' + domainName,
         status = jsonEvent['Account-Status'],
         state = jsonEvent['Account-User-State'],
-        user = application.Users.get(userId);
+        description = jsonEvent['Account-Status-Descript'] || "",
+        user = application.Users.get(userId)
+        ;
+
+    if (description)
+        description = decodeURI(decodeURI(description));
+
     if (user) {
-        user.setState(state, status);
+        user.setState(state, status, description);
+        event.addHeader('Account-Online', true);
+        event.addHeader('cc_logged', !!user['cc-logged']);
+    } else {
+        event.addHeader('Account-Online', false);
+        event.addHeader('cc_logged', false);
     };
 
     var data = {
@@ -164,8 +175,9 @@ function onUserStatus (event) {
         "status": status,
         "state": state,
         // TODO
-        "description": jsonEvent['Account-Status-Descript'] ? decodeURI(decodeURI(jsonEvent['Account-Status-Descript'])) : '',
-        "online": !!user
+        "description":  description,
+        "online": !!user,
+        "date": Date.now()
     };
 
     statusService.insert(data);

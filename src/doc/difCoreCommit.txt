@@ -1,0 +1,3 @@
+new parameters "routes" in create gateway 8c0699a86efe0c8a0e416a7d853ea2bd43787e10
+add originate parameters rtp_secure_media 4fbb6ffd6bdcc74c628c9a09e5c98fd5ddcbee04
+add profile name in getewayUp 0e1d36717bf7f6fa7950c8e2edd1da3689a4fd75

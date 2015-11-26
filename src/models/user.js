@@ -19,6 +19,8 @@ var User = function (id, sessionId, ws, params) {
     this.ws[sessionId] = ws;
     this.state = '';
     this.status = '';
+    this._subscribeEvent = {};
+
     var variable = params;
     for (var key in variable) {
         if (variable.hasOwnProperty(key) && !this[key]) {
@@ -142,7 +144,7 @@ User.prototype.disconnect = function () {
     }
 };
 
-User.prototype.setState = function (state, status) {
+User.prototype.setState = function (state, status, description) {
     if (status) {
         this.status = status;
     };
@@ -150,6 +152,10 @@ User.prototype.setState = function (state, status) {
     if (state) {
         this.state = state;
     };
+
+    if (description) {
+        this.description = description;
+    }
     log.debug('User %s status: %s, state: %s', this.id, this.status, this.state);
 
 /**
