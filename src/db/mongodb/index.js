@@ -9,7 +9,7 @@ function initConnect (server) {
     mongoClient.connect(config.get('mongodb:uri') ,function(err, db) {
         if (err) {
             log.error('Connect db error: %s', err.message);
-            server.stop(err);
+            return server.emit('sys::connectDbError', err);
         };
 
         require('./query/initCollections')(db);

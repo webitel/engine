@@ -32,8 +32,10 @@ function list(caller, execId, args, ws) {
     gatewayService.listGateway(caller, domain, function (err, result) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
+        // TODO new Response
+        //getCommandResponseJSON(ws, execId, result);
 
-        getCommandResponseJSON(ws, execId, result);
+        return getCommandResponseJSON(ws, execId, {response: result});
     }, 'plain');
 };
 
@@ -41,8 +43,11 @@ function create(caller, execId, args, ws) {
     gatewayService.createGateway(caller, args, function (err, result) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
+        // TODO parse json ?
+        //getCommandResponseJSON(ws, execId, result);
 
-        getCommandResponseJSON(ws, execId, result);
+        // TODO new Response
+        return getCommandResponseJSON(ws, execId, JSON.stringify({status: 'OK', gateway: result}));
     });
 };
 
@@ -60,7 +65,10 @@ function change(caller, execId, args, ws) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
 
-        getCommandResponseJSON(ws, execId, result);
+        // TODO new Response
+        //getCommandResponseJSON(ws, execId, result);
+
+        return getCommandResponseJSON(ws, execId, {response: result});
     }, 'plain');
 };
 
@@ -69,7 +77,9 @@ function up(caller, execId, args, ws) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
 
-        getCommandResponseJSON(ws, execId, result);
+        // TODO new Response
+        //getCommandResponseJSON(ws, execId, result);
+        return getCommandResponseJSON(ws, execId, {response: result});
     });
 };
 
@@ -78,7 +88,9 @@ function down(caller, execId, args, ws) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
 
-        getCommandResponseJSON(ws, execId, result);
+        // TODO new Response
+        //getCommandResponseJSON(ws, execId, result);
+        return getCommandResponseJSON(ws, execId, {response: result});
     });
 };
 

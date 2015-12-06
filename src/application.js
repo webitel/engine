@@ -66,7 +66,8 @@ class Application extends EventEmitter2 {
 
     connectDb() {
         var conferenceService = require('./services/conference');
-        var scope = this;
+        var scope = this,
+            ret = 0;
         scope.once('sys::connectDb', function (db) {
             scope.DB = db;
             scope.connectToEsl();
@@ -81,6 +82,12 @@ class Application extends EventEmitter2 {
              * Init outbound
              */
             //outQueryService._init(scope);
+        });
+
+        scope.on('sys::connectDbError', (err) => {
+            if (++ret > 10) return this.stop(err);
+            log.warn('Retry connect to DB');
+            initDb(scope);
         });
 
         initDb(scope);

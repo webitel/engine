@@ -31,7 +31,10 @@ function accountList(caller, execId, args, ws) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
 
-        getCommandResponseJSON(ws, execId, result);
+        // TODO new Response
+        //getCommandResponseJSON(ws, execId, result);
+
+        return getCommandResponseJSON(ws, execId, {response: JSON.stringify(result)});
     });
 };
 

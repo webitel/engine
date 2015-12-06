@@ -30,8 +30,11 @@ function list(caller, execId, args, ws) {
     domainService.list(caller, args, function (err, result) {
         if (err)
             return getCommandResponseJSONError(ws, execId, err);
+        // TODO new Response
+        //return getCommandResponseJSON(ws, execId, result);
 
-        getCommandResponseJSON(ws, execId, result);
+        // Delete after update lib;
+        return getCommandResponseJSON(ws, execId, {response: result});
     });
 };
 
