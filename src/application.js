@@ -70,6 +70,7 @@ class Application extends EventEmitter2 {
             ret = 0;
         scope.once('sys::connectDb', function (db) {
             scope.DB = db;
+            scope.attachProcess();
             scope.connectToEsl();
             scope.connectToWConsole();
             scope.initAcl();
@@ -306,7 +307,19 @@ class Application extends EventEmitter2 {
 
         process.exit(1);
     }
-}
+
+    attachProcess () {
+        process.on('message', (msg) => {
+            log.debug('msg: ', msg);
+        });
+    }
+
+    broadcastWorkers (msg) {
+        process.send({
+            msg: msg
+        });
+    }
+};
 
 process.on('uncaughtException', function (err) {
     log.error('UncaughtException:', err.message);
