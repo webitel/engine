@@ -100,7 +100,16 @@ function validateRequestV1(req, res, next) {
         return authService.baseAuth({
             "username": username,
             "password": password
-        }, next);
+        }, (err) => {
+            if (err) return next(err);
+            req['webitelUser'] = {
+                id: 'root',
+                domain: null,
+                role: 'root',
+                roleName: 'root'
+            };
+            return next();
+        });
 
     } catch (err) {
         res.status(500);

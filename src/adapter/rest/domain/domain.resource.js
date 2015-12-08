@@ -19,6 +19,50 @@ function addRoutes(api) {
     api.get('/api/v2/domains/:name', item);
     api.put('/api/v2/domains/:name/:type', update);
     api.delete('/api/v2/domains/:name', remove);
+
+    // V1
+    api.post('/api/v1/domains?', createV1);
+    api.delete('/api/v1/domains?/:name', removeV1);
+};
+
+function createV1 (req, res, next) {
+    var option = {
+        "name": req.body['domain_name'],
+        "customerId": req.body['customer_id'],
+        "parameters": req.body['parameters'],
+        "variables": req.body['variables']
+    };
+
+    domainService.create(req.webitelUser, option, function (err, result) {
+        if (err) {
+            return res
+                .status(200)
+                .send(err.message);
+        };
+
+        return res
+            .status(200)
+            .send(result)
+            ;
+    });
+};
+
+function removeV1 (req, res, next) {
+    var option = {
+        "name": req.params['name']
+    };
+
+    domainService.remove(req.webitelUser, option, function (err, result) {
+        if (err) {
+            return res
+                .status(200)
+                .send(err.message);
+        };
+
+        return res
+            .status(200)
+            .send(result);
+    });
 };
 
 function create (req, res, next) {

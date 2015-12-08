@@ -22,7 +22,7 @@ var Service = {
             if (err)
                 return cb(err);
 
-            if (!option || !option['name']) {
+            if (!option || !option['name'] || !option['customerId']) {
                 return cb(new CodeError(400, 'Bad request.'));
             };
 

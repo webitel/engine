@@ -47,7 +47,7 @@ module.exports = function (event) {
     // TODO
     application.broadcast(_e);
 };
-
+// TODO move to response command
 function onUserDelete (userId, domain) {
     var user = application.Users.get(userId);
     if (user) {
@@ -76,6 +76,7 @@ function onUserDelete (userId, domain) {
     });
 };
 
+// TODO move to response command
 function onUserCreate (login, domain) {
     var userId = login + '@' + domain;
     var extension = getTemplateExtension(login, domain);
@@ -89,6 +90,7 @@ function onUserCreate (login, domain) {
 
 };
 
+// TODO move to response command
 function onDomainDelete (domainName) {
     blackListService._removeByDomain(domainName, function (err, result) {
         if (err) {
