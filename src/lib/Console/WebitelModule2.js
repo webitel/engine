@@ -1005,7 +1005,14 @@ Webitel.prototype.reloadAgents = function (_caller, cb) {
 };
 
 Webitel.prototype.reloadXml = function (_caller, cb) {
-    this.api(WebitelCommandTypes.ReloadXml, cb);
+    this.api(WebitelCommandTypes.ReloadXml, (res) => {
+        if (res['body'].indexOf('-ERR') == 0) {
+            cb(new CodeError(500, res.body));
+            return;
+        };
+
+        cb(null, res.body);
+    });
 };
 
 Webitel.prototype.showSipGateway = function (_caller, domain, cb) {

@@ -23,7 +23,8 @@ module.exports = [{
             'outbound/list',
             'gateway', 'gateway/profile',
             'domain', 'domain/item',
-            'account'
+            'account',
+            'system/reload'
         ],
         permissions: '*'
     }]
