@@ -11,7 +11,8 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    api.get('/api/location/:number', getLocationNumber);
+    // TODO delete ??
+    //api.get('/api/v2/location/:number', getLocationNumber);
 };
 
 function getLocationNumber (req, res, next) {
