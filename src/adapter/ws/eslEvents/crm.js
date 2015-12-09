@@ -160,7 +160,7 @@ function onUserStatus (event) {
         ;
 
     if (description)
-        description = decodeURI(decodeURI(description));
+        description = decodeURI(description);
 
     if (user) {
         user.setState(state, status, description);

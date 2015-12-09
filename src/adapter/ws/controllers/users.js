@@ -30,7 +30,10 @@ function whoami(caller, execId, args, ws) {
         "domain": caller['domain'],
         "logged": caller['logged'],
         "sessionLength": caller['sessionLength'],
-        "roleName": caller['roleName']
+        "roleName": caller['roleName'],
+        "state": caller['state'],
+        "status": caller['status'],
+        "description": caller['description']
     })});
 };
 

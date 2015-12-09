@@ -126,7 +126,7 @@ function checkUser (login, password, cb) {
                     'description': decodeURI(resJson['description'] || "")
                 });
             } else {
-                cb(new CodeError(401, 'Bad password.'));
+                cb(new CodeError(401, 'secret incorrect'));
             };
         });
 
