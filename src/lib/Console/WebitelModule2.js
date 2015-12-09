@@ -1397,3 +1397,16 @@ Webitel.prototype._parsePlainCollectionToJSON = function (data, cb) {
         cb(e['message']);
     }
 };
+
+function parseArrayVariables (arr) {
+    var _a = arr instanceof Array ? arr : [];
+    return _a.map( (i) => {
+        return /^.+='.*'$/.test(i) ? i : i.replace("=", "='") + "'"
+    });
+}
+
+/*
+    [].map( (i) => {
+        return /^.+='.*'$/.test(i) ? i : i.replace("=", "='") + "'"
+    })
+*/

@@ -25,14 +25,18 @@ var Service = {
     },
 
     makeCall: function (caller, options, cb) {
-        var _originatorParam = new Array('w_jsclient_originate_number=' + options['extension']);
+        var _extension = options && options['extension'];
+        if (!_extension)
+            return cb(new Error('Bad parameters'));
+
+        var _originatorParam = new Array('w_jsclient_originate_number=' + _extension);
         if (options['params'] instanceof Array) {
             _originatorParam = _originatorParam.concat(options['params']);
         };
 
         var _autoAnswerParam = [].concat( options['auto_answer_param'] || []),
             _param = '[' + _originatorParam.concat(_autoAnswerParam).join(',') + ']',
-            dialString = ('originate ' + _param + 'user/' + options['user'] + ' ' + options['extension']
+            dialString = ('originate ' + _param + 'user/' + options['user'] + ' ' + _extension
                 + ' xml default ' + options['user'] + ' ' + options['user'])
             ;
 
@@ -228,6 +232,26 @@ var Service = {
             };
             return cb(null, data);
         });
+    },
+
+    /**
+     *
+     * @param caller
+     * @param options
+     * @param cb
+     * @returns {*}
+     */
+    hupAll: function (caller, options, cb) {
+        var _domain = validateCallerParameters(caller, options['domain']),
+            _api = 'hupall ' + (options['cause'] || "MANAGER_REQUEST")
+        ;
+
+        // hupall normal_clearing  domain_name  10.10.10.144
+        if (_domain) {
+            _api += ' domain_name ' + _domain;
+        };
+
+        return Service.bgApi(_api, cb);
     }
 };
 

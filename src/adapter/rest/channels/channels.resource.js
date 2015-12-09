@@ -24,7 +24,46 @@ function addRoutes(api) {
 
     api.put('/api/v2/channels/:id', changeState);
     api.path('/api/v2/channels/:id', changeState);
+
+    // V1
+    api.post('/api/v1/channels', originateV1);
+    api.post('/api/v1/fake', fakeCall);
+
+    api.delete('/api/v1/channels', killChannelsFromDomain);
+    api.delete('/api/v1/channels/domain/:domain', killChannelsFromDomain);
+
+    api.delete('/api/v1/channels/:id', killUuid);
+    api.put('/api/v1/channels/:id', changeState);
+    api.path('/api/v1/channels/:id', changeState);
 };
+
+function originateV1 (req, res, next) {
+    var extension = req.body.calledId, // CALLE
+        user = req.body.callerId || '', //CALLER
+        auto_answer_param = req.body.auto_answer_param;
+
+    var option = {
+        "auto_answer_param": auto_answer_param,
+        "extension": extension,
+        "user": user || req.webitelUser.id
+    };
+
+    channelService.makeCall(req.webitelUser, option,
+        function (err, result) {
+            if (err) {
+                return next(err);
+            };
+
+            return res
+                .status(200)
+                .json({
+                    "status": "OK",
+                    "info": result['body']
+                });
+        }
+    );
+};
+
 
 function getChannels (req, res, next) {
     var option = {
@@ -142,41 +181,22 @@ function eavesdrop (req, res, next) {
 
 function killChannelsFromDomain (req, res, next) {
     var option = {
-        "domain": req.params['domain']
+        "domain": req.params['domain'],
+        "cause": req.query['cause']
     };
-    var cause = req.query['cause'] || '',
-        caller = req.webitelUser;
 
-    channelService.channelsList(caller, option,
-        function (err, parsed) {
+    channelService.hupAll(req.webitelUser, option,
+        function (err, result) {
             if (err) {
                 return next(err);
             };
-            if (parsed && parsed['rows'] && parsed['rows'].length > 0) {
-                var uuid = [];
-                for (var i = 0, len = parsed['rows'].length; i < len; i++) {
-                    uuid.push(parsed['rows'][i]['uuid']);
-                    channelService.hangup(caller, {
-                        "channel-uuid": parsed['rows'][i]['uuid'],
-                        "cause": cause
-                    }, function () {});
-                };
-                res
-                    .status(200)
-                    .json({
-                        "status": "OK",
-                        "data": "Command send.",
-                        "channels": uuid
-                    });
-            } else {
-                res
-                    .status(200)
-                    .json({
-                        "status": "OK",
-                        "data": "No channels."
-                    })
-                ;
-            };
+
+            return res
+                .status(200)
+                .json({
+                    "status": "OK",
+                    "info": result['body']
+                });
         }
     );
 };
