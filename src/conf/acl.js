@@ -14,7 +14,8 @@
 module.exports = [{
     roles: 'root',
     allows: [{
-        resources: ['blacklist',
+        resources: [
+            'blacklist',
             'rotes/default', 'rotes/public', 'rotes/extension', 'rotes/domain',
             'channels',
             'cc/tiers', 'cc/members', 'cc/queue',
@@ -31,7 +32,8 @@ module.exports = [{
 }, {
     roles: 'admin',
     allows: [{
-        resources: ['blacklist',
+        resources: [
+            'blacklist',
             'rotes/default', 'rotes/public', 'rotes/extension', 'rotes/domain',
             'channels',
             'cc/tiers', 'cc/members', 'cc/queue',

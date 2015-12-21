@@ -76,7 +76,6 @@
             "CHANNEL_UUID",
             "DTMF",
             "CHANNEL_DATA",
-            "CHANNEL_PROGRESS_MEDIA",
             "CUSTOM callcenter::info"
         ],
         "callCentre": {
