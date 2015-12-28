@@ -95,6 +95,12 @@ var Indexes = {
         "sysOrder": 1,
         "sysLength": 1,
         "code": 1
+    }],
+    "collectionAclPermissions": [{
+        "_unique": true,
+        "_": {
+            "roles": 1
+        }
     }]
 };
 

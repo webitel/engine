@@ -32,7 +32,7 @@ function addQuery(db) {
          */
         existsExtension: function (number, domain, cb) {
             let _numberArray;
-            // TODO проверка на пробелы
+            // TODO пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             if (number instanceof Array) {
                 _numberArray = number;
             } else {
@@ -58,7 +58,6 @@ function addQuery(db) {
                     }
                 );
         },
-
         updateOrInsertExtension: function (userId, domain, userExtension, cb) {
             try {
                 var collection = db.collection(extensionCollectionName);

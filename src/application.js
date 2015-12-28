@@ -39,28 +39,7 @@ class Application extends EventEmitter2 {
     }
 
     initAcl (cb) {
-        var Acl = require('acl'),
-            ACL_CONF = require('./conf/acl');
-        var acl;
-
-        this.acl = acl = new Acl(new Acl.memoryBackend());
-        this.acl.allow(ACL_CONF, function (err) {
-            if (err)
-                return cb(err);
-        });
-
-        ACL_CONF.forEach(function (item) {
-            acl.addUserRoles(item.roles, item.roles, function (err) {
-                if (err) {
-                    return cb(err);
-                };
-                log.debug('Register role %s', item.roles);
-            });
-        });
-        log.info('Load roles.');
-        if (cb) {
-            cb();
-        };
+        require('./services/acl')._init(this, cb);
         return 1;
     }
 
@@ -71,9 +50,9 @@ class Application extends EventEmitter2 {
         scope.once('sys::connectDb', function (db) {
             scope.DB = db;
             scope.attachProcess();
-            scope.connectToEsl();
             scope.connectToWConsole();
             scope.initAcl();
+            scope.connectToEsl();
         });
 
         this.once('sys::connectEsl', function () {
@@ -338,5 +317,5 @@ process.on('uncaughtException', function (err) {
     });
 });
 
-var application = new Application();
-module.exports = application;
+var _application = new Application();
+module.exports = _application;

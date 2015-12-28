@@ -10,7 +10,8 @@ var conf = require('../conf'),
     crypto = require('crypto'),
     ACCOUNT_ROLE = require( __appRoot + '/const').ACCOUNT_ROLE,
     generateUuid = require('node-uuid'),
-    CodeError = require(__appRoot + '/lib/error')
+    CodeError = require(__appRoot + '/lib/error'),
+    acl = require('./acl')
     ;
 
 
@@ -95,9 +96,12 @@ function checkUser (login, password, cb) {
         password = password || '';
         if (login === RootName) {
             if (password === RootPassword) {
-                cb(null, {
-                    'role': ACCOUNT_ROLE.ROOT,
-                    'roleName': 'root'
+                acl._whatResources(RootName, (e, aclResource) => {
+                    cb(null, {
+                        'role': ACCOUNT_ROLE.ROOT,
+                        'roleName': 'root',
+                        'acl': aclResource
+                    });
                 });
             } else {
                 cb(new CodeError(401, 'secret incorrect'));
@@ -116,14 +120,17 @@ function checkUser (login, password, cb) {
             var registered = (a1Hash == resJson['a1-hash']);
 
             if (registered) {
-                cb(null, {
-                    'role': ACCOUNT_ROLE.getRoleFromName(resJson['account_role']),
-                    'roleName': resJson['account_role'],
-                    'status': resJson['status'],
-                    'state': resJson['state'],
-                    'domain': login.split('@')[1],
-                    'cc-agent': resJson['cc-agent'],
-                    'description': decodeURI(resJson['description'] || "")
+                acl._whatResources(resJson['account_role'], (e, aclResource) => {
+                    cb(null, {
+                        'role': ACCOUNT_ROLE.getRoleFromName(resJson['account_role']),
+                        'roleName': resJson['account_role'],
+                        'status': resJson['status'],
+                        'acl': aclResource,
+                        'state': resJson['state'],
+                        'domain': login.split('@')[1],
+                        'cc-agent': resJson['cc-agent'],
+                        'description': decodeURI(resJson['description'] || "")
+                    });
                 });
             } else {
                 cb(new CodeError(401, 'secret incorrect'));
@@ -141,7 +148,8 @@ function validate (username, password, _id, cb) {
             return cb(err);
         };
 
-        var tokenObj = genToken(username),
+        var tokenObj = genToken(username, user.acl),
+            acl = user.acl,
             userObj = {
                 "key": _id,
                 "domain": user.domain,
@@ -149,10 +157,12 @@ function validate (username, password, _id, cb) {
                 "expires": tokenObj.expires,
                 "token": tokenObj.token,
                 "role": user.role.val,
-                "roleName": user.role.name
+                "roleName": user.role.name,
+                //"acl": user.acl
             };
         var authDb = application.DB._query.auth;
         authDb.add(userObj, function (err) {
+            userObj['acl'] = acl;
             return cb(err, userObj)
         });
 
@@ -222,11 +232,24 @@ var md5 = function (str) {
     return hash.digest('hex');
 };
 
-function genToken(user) {
-    var expires = expiresIn(conf.get('application:auth:expiresDays'));
-    var token = jwt.encode({
-        exp: expires
-    }, conf.get('application:auth:tokenSecretKey'));
+
+const EXPIRES_DAYS = conf.get('application:auth:expiresDays'),
+      TOKEN_SECRET_KEY = conf.get('application:auth:tokenSecretKey')
+    ;
+
+function genToken(user, aclList) {
+    let expires = expiresIn(EXPIRES_DAYS),
+        payload = {};
+
+    // TODO save cdr acl in token ???
+    payload['exp'] = expires;
+    if (aclList instanceof Object) {
+        if (aclList.hasOwnProperty('cdr')) {
+            payload.cdr = aclList.cdr;
+        }
+    };
+
+    var token = jwt.encode(payload, TOKEN_SECRET_KEY);
 
     return {
         token: token,

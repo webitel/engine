@@ -1087,6 +1087,110 @@ describe("REST API", function () {
             });
         });
 
+
+        /**
+         * ACL
+         */
+        
+        describe('ACL', function () {
+
+            describe('Roles', function () {
+                var newRole = {
+                        "roles": "ENGINE",
+                        "allows": {
+                            "account": ["r"]
+                        }
+                    },
+                    newPerm = ["u", "d"]
+                ;
+
+                it('GET [/api/v2/acl/roles]', function (done) {
+                    request
+                        .get('/api/v2/acl/roles')
+                        .expect('Content-Type', /json/)
+                        .set('x-key', rootCredentials.key)
+                        .set('x-access-token', rootCredentials.token)
+                        .expect(200)
+                        .end(function (err, res) {
+                            if (err) return done(err);
+                            var result = res.body;
+                            assert.equal(result['status'], "OK");
+                            assert.ok(result.info, 'Bad response data.');
+                            done();
+                        });
+                });
+
+                it('POST [/api/v2/acl/roles]', function (done) {
+                    request
+                        .post('/api/v2/acl/roles/')
+                        .expect('Content-Type', /json/)
+                        .set('x-key', rootCredentials.key)
+                        .set('x-access-token', rootCredentials.token)
+                        .send(newRole)
+                        .expect(200)
+                        .end(function (err, res) {
+                            if (err) return done(err);
+                            var result = res.body;
+                            assert.equal(result['status'], "OK");
+                            assert.equal(result.info, 'Created');
+                            done();
+                        });
+                });
+
+                it('GET [/api/v2/acl/roles/:name]', function (done) {
+                    request
+                        .get('/api/v2/acl/roles/' + newRole.roles)
+                        .expect('Content-Type', /json/)
+                        .set('x-key', rootCredentials.key)
+                        .set('x-access-token', rootCredentials.token)
+                        .expect(200)
+                        .end(function (err, res) {
+                            if (err) return done(err);
+                            var result = res.body;
+                            assert.equal(result['status'], "OK");
+                            assert.ok(result.info, 'Bad response data.');
+                            assert.deepEqual(result.info.account, newRole.allows.account);
+                            done();
+                        });
+                });
+
+                it('PUT [/api/v2/acl/roles/:name]', function (done) {
+                    request
+                        .put('/api/v2/acl/roles/' + newRole.roles)
+                        .expect('Content-Type', /json/)
+                        .set('x-key', rootCredentials.key)
+                        .set('x-access-token', rootCredentials.token)
+                        .send({"account": newPerm})
+                        .expect(200)
+                        .end(function (err, res) {
+                            if (err) return done(err);
+                            var result = res.body;
+                            assert.equal(result['status'], "OK");
+                            assert.ok(result.info, 'Bad response data.');
+                            assert.deepEqual(result.info.account, newPerm);
+                            done();
+                        });
+                });
+
+                it('DELETE [/api/v2/acl/roles/:name]', function (done) {
+                    request
+                        .delete('/api/v2/acl/roles/' + newRole.roles)
+                        .expect('Content-Type', /json/)
+                        .set('x-key', rootCredentials.key)
+                        .set('x-access-token', rootCredentials.token)
+                        .expect(200)
+                        .end(function (err, res) {
+                            if (err) return done(err);
+                            var result = res.body;
+                            assert.equal(result['status'], "OK");
+                            assert.ok(result.info, 'Bad response data.');
+                            assert.equal(result.info, "Destroyed");
+                            done();
+                        });
+                });
+            });
+        });
+
     });
 
     describe("ERROR", function() {

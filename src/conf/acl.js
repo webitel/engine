@@ -9,59 +9,125 @@
     u = update element;
     r = read element;
     d = delete element;
+    <x>o - only user element;
  */
 
-module.exports = [{
-    roles: 'root',
-    allows: [{
-        resources: [
-            'blacklist',
-            'rotes/default', 'rotes/public', 'rotes/extension', 'rotes/domain',
-            'channels',
-            'cc/tiers', 'cc/members', 'cc/queue',
-            'book',
-            'cdr',
-            'outbound/list',
-            'gateway', 'gateway/profile',
-            'domain', 'domain/item',
-            'account',
-            'system/reload'
-        ],
-        permissions: '*'
-    }]
-}, {
-    roles: 'admin',
-    allows: [{
-        resources: [
-            'blacklist',
-            'rotes/default', 'rotes/public', 'rotes/extension', 'rotes/domain',
-            'channels',
-            'cc/tiers', 'cc/members', 'cc/queue',
-            'book',
-            'cdr',
-            'outbound/list',
-            'gateway',
-            'domain/item',
-            'account'
-        ],
-        permissions: ['*']
-    }]
-}, {
-    roles: 'user',
-    allows: [{
-        resources: 'blacklist',
-        permissions: ['c', 'u', 'r']
-    }, {
-        resources: 'channels',
-        permissions: ['*']
-    }, {
-        resources: 'book',
-        permissions: ['c', 'u', 'r']
-    }, {
-        resources: 'cdr',
-        permissions: ['r']
-    }, {
-        resources: 'cc/tiers',
-        permissions: ['r']
-    }]
-}];
+const RESOURCES = [
+    'acl/roles',
+    'acl/resource',
+
+    'blacklist',
+
+    'rotes/default',
+    'rotes/public',
+    'rotes/extension',
+    'rotes/domain',
+
+    'channels',
+
+    'cc/tiers',
+    'cc/members',
+    'cc/queue',
+
+    'book',
+
+    'cdr',
+    'cdr/files',
+    'cdr/media',
+
+    'outbound/list',
+
+    'gateway',
+    'gateway/profile',
+
+    'domain',
+    'domain/item',
+
+    'account',
+
+    'system/reload'
+];
+
+module.exports = [
+    {
+        roles: 'root',
+        allows: {
+            'acl/roles': ["*"],
+            'acl/resource': ["*"],
+
+            'blacklist': ["*"],
+
+            'rotes/default': ["*"],
+            'rotes/public': ["*"],
+            'rotes/extension': ["*"],
+            'rotes/domain': ["*"],
+
+            'channels': ["*"],
+
+            'cc/tiers': ["*"],
+            'cc/members': ["*"],
+            'cc/queue': ["*"],
+
+            'book': ["*"],
+
+            'cdr': ["*"],
+            'cdr/files': ["*"],
+            'cdr/media': ["*"],
+
+            'outbound/list': ["*"],
+
+            'gateway': ["*"],
+            'gateway/profile': ["*"],
+
+            'domain': ["*"],
+            'domain/item': ["*"],
+
+            'account': ["*"],
+
+            'system/reload': ["*"]
+        }
+    },
+    {
+        roles: 'user',
+        allows: {
+            'account': ['r', 'uo'],
+            'blacklist': ['c', 'u', 'r'],
+            'channels': ['*'],
+            'book': ['c', 'u', 'r'],
+            'cdr': ['ro'],
+            'cdr/files': ['ro']
+        }
+    },
+    {
+        roles: 'admin',
+        parents: 'user',
+        allows: {
+            'blacklist': ["*"],
+
+            'rotes/default': ["*"],
+            'rotes/public': ["*"],
+            'rotes/extension': ["*"],
+            'rotes/domain': ["*"],
+
+            'channels': ["*"],
+
+            'cc/tiers': ["*"],
+            'cc/members': ["*"],
+            'cc/queue': ["*"],
+
+            'book': ["*"],
+
+            'cdr': ["*"],
+            'cdr/files': ["*"],
+            'cdr/media': ["*"],
+
+            'outbound/list': ["*"],
+
+            'gateway': ["*"],
+
+            'domain/item': ["*"],
+
+            'account': ["*"]
+        }
+    }
+];

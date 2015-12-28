@@ -22,6 +22,7 @@ api.use('/', express.static(path.join(__appRoot, '/public/static')));
 require('./cors').addRoutes(api);
 
 require('./auth/auth.resource').addRoutes(api);
+require('./acl/acl.resource').addRoutes(api);
 
 require('./domain/domain.resource').addRoutes(api);
 require('./account/account.resource').addRoutes(api);

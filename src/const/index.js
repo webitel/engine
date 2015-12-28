@@ -385,7 +385,7 @@ var ACCOUNT_ROLE = module.exports.ACCOUNT_ROLE = {
 };
 
 ACCOUNT_ROLE.getRoleFromName = function (name) {
-    switch (name.toLowerCase()) {
+    switch (('' + name).toLowerCase()) {
         case this.USER.name:
             return this.USER;
         case this.ADMIN.name:
@@ -393,7 +393,11 @@ ACCOUNT_ROLE.getRoleFromName = function (name) {
         case this.ROOT.name:
             return this.ROOT;
         default:
-            return null;
+            // Custom
+            return {
+                "name": name,
+                "val": -1
+            };
     }
 };
 

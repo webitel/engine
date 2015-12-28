@@ -51,7 +51,8 @@ function Handler(wss, application) {
                     'cc-agent': params['cc-agent'],
                     'session': sessionId,
                     'ws-count': caller.getSessionLength(),
-                    'cc-logged': !!caller['cc-logged']
+                    'cc-logged': !!caller['cc-logged'],
+                    'acl': user.acl
                 }
             };
             caller.sendSessionObject(response, sessionId);

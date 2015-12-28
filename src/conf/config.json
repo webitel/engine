@@ -28,7 +28,8 @@
         "collectionOutboundQueue": "outboundQueue",
         "collectionAgentStatus": "agentStatusEngine",
         "collectionConference": "conference",
-        "collectionLocation": "location"
+        "collectionLocation": "location",
+        "collectionAclPermissions": "aclPermissions"
     },
     "webitelServer": {
         "host": "pre.webitel.com",

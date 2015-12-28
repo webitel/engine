@@ -113,7 +113,7 @@ var Service = {
 
         var _userExtension = getTemplateExtension(userId, number, domain);
         var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.updateOrInsertExtension(number, domain, _userExtension, cb);
+        dbDialplan.updateOrInsertExtension(userId, domain, _userExtension, cb);
     },
 
     /**

@@ -13,7 +13,7 @@ module.exports = function (caller, resource, action, cb) {
             log.error('Bad caller.');
             return cb(new CodeError(403, 'Permission denied!'), false);
         };
-        application.acl.isAllowed(caller.roleName, resource, action, function (err, res) {
+        application.acl.areAnyRolesAllowed(caller.roleName, resource, action, function (err, res) {
             if (err) {
                 return cb(new CodeError(500, err.message));
             };

@@ -1,3 +1,5 @@
+'use strict';
+
 var EventEmitter2 = require('eventemitter2').EventEmitter2,
     util = require('util'),
     Parser = require('./Parser'),
@@ -6,6 +8,7 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     PERMISSION_DENIED = '-ERR permission denied!',
     ACCOUNT_ROLE = require('../../const').ACCOUNT_ROLE,
     Controller = require(__appRoot + '/services/dialplan'), //{} ,//require('../mod/dialplan/controller'),
+    authServices = require(__appRoot + '/services/auth'),
     async = require('async'),
     CodeError = require(__appRoot + '/lib/error'),
     COMMAND_TYPES = require('../../const').WebitelCommandTypes;
@@ -490,6 +493,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
         var variables = option['variables'];
         var extensions;
         var scope = this;
+        var roleName;
 
         if (!_domain || ( !(params instanceof Array) && !(variables instanceof Array) )) {
             cb(new CodeError(400, "Bad request."));
@@ -551,20 +555,49 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
             });
         };
 
+        var resetToken = function (callback) {
+            try {
+                log.debug('Reset token');
+                authServices.removeFromUserName(user + '@' + _domain, _domain, callback);
+                if (roleName) {
+                    let _user = application.Users.get(user + '@' + _domain);
+                    if (_user) {
+                        _user.roleName = roleName;
+                    };
+                }
+            } catch (e) {
+                log.error(e);
+            };
+        };
+
         var task = [];
 
-        if (params) {
-            var _ext;
-            for (var key in params) {
-                _ext = params[key];
-                if (_ext && _ext.indexOf(VARIABLE_EXTENSION_NAME + '=') == 0) {
-                    extensions = _ext.replace(VARIABLE_EXTENSION_NAME + '=', '');
+        if (params instanceof Array) {
+            var _pushExt = false,
+                _pushRole = false,
+                _pushPass = false;
+            for (let item of params) {
+                if (_pushExt && _pushRole && _pushPass) break;
+
+                if (!_pushRole && /^role=/.test(item)) {
+                    _pushRole = true;
+                    roleName = item.replace('role=', '');
+                    if (!~task.indexOf(resetToken))
+                        task.push(resetToken);
+
+                } else if (!_pushPass && /^password=/.test(item)) {
+                    _pushPass = true;
+                    if (!~task.indexOf(resetToken))
+                        task.push(resetToken);
+
+                } else if (!_pushExt && /^webitel-extensions=/.test(item)) {
+                    _pushExt = true;
+                    extensions = item.replace(VARIABLE_EXTENSION_NAME + '=', '');
                     if (extensions == '') {
                         cb(new CodeError(400, "Bad request (webitel-extensions)."));
                         return;
                     }
                     task.push(setExtensions);
-                    break;
                 }
             };
         };

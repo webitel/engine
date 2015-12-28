@@ -186,7 +186,9 @@ var Service = {
      * @param cb
      */
     update: function (caller, userName, domain, option, cb) {
-        checkPermissions(caller, 'account', 'u', function (err) {
+        let perm = caller.id !== userName + '@' + domain ? 'u' : 'uo';
+
+        checkPermissions(caller, 'account', perm, function (err) {
             if (err)
                 return cb(err);
 
