@@ -26,19 +26,20 @@ function whoami(caller, execId, args, ws) {
         return getCommandResponseJSON(ws, execId, {body: "-ERR: user not auth."});
     };
     return getCommandResponseJSON(ws, execId, {body: JSON.stringify({
-        "id": caller['id'],
-        "domain": caller['domain'],
-        "logged": caller['logged'],
-        "sessionLength": caller['sessionLength'],
-        "roleName": caller['roleName'],
-        "state": caller['state'],
-        "status": caller['status'],
-        "description": caller['description']
+        "id": caller.id,
+        "domain": caller.domain,
+        "logged": caller.logged,
+        "sessionLength": caller.sessionLength,
+        "roleName": caller.roleName,
+        "state": caller.state,
+        "status": caller.status,
+        "description": caller.description,
+        "acl": caller.acl
     })});
 };
 
 function generateToken (caller, execId, args, ws) {
-    var diff = 24 * 60 * 60 * 1000; // + day
+    var diff = 86400000; // + day
     authService.getTokenMaxExpires(caller, diff, function (err, res) {
         try {
             if (err)

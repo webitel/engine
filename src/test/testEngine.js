@@ -39,6 +39,7 @@ describe("REST API", function () {
                     assert.equal(res.body.username, rootName);
                     assert.ok(res.body.key, 'Bad key response');
                     assert.ok(res.body.token, 'Bad token response');
+                    assert.ok(res.body.acl, 'Bad ACL response');
                     rootCredentials = res.body;
                     done();
                 });
@@ -1313,6 +1314,12 @@ describe('WSS', function () {
         };
         exec(uuid.v4(), _login, function (res) {
             if (res['exec-complete'] === '+OK') {
+                var r = res['exec-response'];
+                assert.ok(r, 'Bad response');
+                assert.ok(r.acl, 'Bad response acl');
+                assert.ok(r['ws-count'], 'Bad response ws-count');
+                assert.ok(r['session'], 'Bad response session');
+                assert.ok(r['role'], 'Bad response role');
                 done();
             } else {
                 done(res['exec-response']);
@@ -1329,6 +1336,9 @@ describe('WSS', function () {
         };
         exec(uuid.v4(), _e, function (res) {
             if (res['exec-complete'] === '+OK') {
+                var r = res['exec-response'];
+                assert.ok(r, 'Bad response');
+                assert.ok(r.response, 'Bad response');
                 done();
             } else {
                 done(res['exec-response']);
@@ -1346,7 +1356,9 @@ describe('WSS', function () {
         };
         exec(uuid.v4(), _e, function (res) {
             if (res['exec-complete'] === '+OK') {
-                done();
+                var r = res['exec-response'];
+                assert.ok(r, 'Bad response');
+                done(r.indexOf('+OK') !== 0 ? new Error('Bad response') : null);
             } else {
                 done(res['exec-response']);
             };
@@ -1364,7 +1376,9 @@ describe('WSS', function () {
         };
         exec(uuid.v4(), _e, function (res) {
             if (res['exec-complete'] === '+OK') {
-                done();
+                var r = res['exec-response'];
+                assert.ok(r, 'Bad response');
+                done(r.indexOf('+OK') !== 0 ? new Error('Bad response') : null);
             } else {
                 done(res['exec-response']);
             };
@@ -1380,7 +1394,9 @@ describe('WSS', function () {
         };
         exec(uuid.v4(), _e, function (res) {
             if (res['exec-complete'] === '+OK') {
-                done();
+                var r = res['exec-response'];
+                assert.ok(r, 'Bad response');
+                done(r.indexOf('+OK') !== 0 ? new Error('Bad response') : null);
             } else {
                 done(res['exec-response']);
             };
