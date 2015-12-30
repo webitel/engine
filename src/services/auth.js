@@ -244,9 +244,17 @@ function genToken(user, aclList) {
     // TODO save cdr acl in token ???
     payload['exp'] = expires;
     if (aclList instanceof Object) {
+        payload.acl = {};
         if (aclList.hasOwnProperty('cdr')) {
-            payload.cdr = aclList.cdr;
-        }
+            payload.acl['cdr'] = aclList.cdr;
+        };
+        if (aclList.hasOwnProperty('cdr/files')) {
+            payload.acl['cdr/files'] = aclList['cdr/files'];
+        };
+        if (aclList.hasOwnProperty('cdr/media')) {
+            payload.acl['cdr/media'] = aclList['cdr/media'];
+        };
+
     };
 
     var token = jwt.encode(payload, TOKEN_SECRET_KEY);

@@ -77,10 +77,7 @@ var Service = {
                 return cb(err);
 
             var domain = validateCallerParameters(caller, options['domain']);
-
-            if (!domain) {
-                return cb(new CodeError(400, 'Domain is required.'));
-            };
+            
             options['domain'] = domain;
             application.WConsole.createSipGateway(caller, options, cb)
         });
