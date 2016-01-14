@@ -1,7 +1,7 @@
 FROM node:slim
 MAINTAINER Vitaly Kovalyshyn "v.kovalyshyn@webitel.com"
 
-ENV VERSION 4
+ENV VERSION 3
 ENV NODE_TLS_REJECT_UNAUTHORIZED 0
 
 COPY src /engine
