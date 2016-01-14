@@ -45,7 +45,7 @@
         "reconnect": 5
     },
     "cdrServer": {
-        "host": "http://cdr-server:10021",
+        "host": "https://pre.webitel.com:10023",
         "useProxy": false
     },
     "application": {
