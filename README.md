@@ -1,6 +1,6 @@
 # engine
 
-[![Build Status](https://dev.webitel.com/buildStatus/icon?job=build_engine)](https://dev.webitel.com/job/build_engine)
+[![Build Status](https://dev.webitel.com/buildStatus/icon?job=build_engine)](https://dev.webitel.com/job/build_engine) [![ImageLayers Size](https://img.shields.io/imagelayers/image-size/webitel/engine/latest.svg)](https://hub.docker.com/r/webitel/engine/) [![Documentation Status](https://readthedocs.org/projects/webitel/badge/?version=latest)](http://api.webitel.com/en/latest/?badge=latest)
 
 ## Default ports
 
