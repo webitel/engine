@@ -12,7 +12,7 @@
         }
     },
     "mongodb": {
-        "uri": "mongodb://pre.webitel.com:27017/webitel",
+        "uri": "mongodb://MONGODB_HOST:27017/webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",
@@ -32,14 +32,14 @@
         "collectionAclPermissions": "aclPermissions"
     },
     "webitelServer": {
-        "host": "10.10.10.200",
+        "host": "CONSOLE_HOST",
         "port": "6873",
         "account": "root",
         "secret": "ROOT_PASSWORD",
         "reconnect": 5
     },
     "freeSWITCH": {
-        "host": "10.10.10.200",
+        "host": "172.17.0.1",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
