@@ -1,5 +1,5 @@
 .idea/
-src/node_modules/ws
+src/node_modules/
 cert/wss.pem
 /utils/saveJSONDB.js
 /utils/location.js
