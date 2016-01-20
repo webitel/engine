@@ -117,7 +117,7 @@ var Service = {
             return cb(null, '+OK');
         };
 
-        application.Esl.bgapi('callcenter_config agent set status ' + caller['id'] + status, function (res) {
+        application.Esl.bgapi('callcenter_config agent set status ' + caller['id'] + ' ' + status, function (res) {
             if (getResponseOK(res)) {
                 caller['cc-logged'] = true;
                 application.loggedOutAgent.remove(caller.id);

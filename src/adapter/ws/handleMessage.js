@@ -52,7 +52,7 @@ function Handler(wss, application) {
                     'session': sessionId,
                     'ws-count': caller.getSessionLength(),
                     'cc-logged': !!caller['cc-logged'],
-                    'acl': user.acl
+                    'acl': params.acl
                 }
             };
             caller.sendSessionObject(response, sessionId);
