@@ -188,7 +188,13 @@ var Service = {
 
     eavesdrop: function (caller, options, cb) {
         var user = options['user'] || caller.id,
-            side = options['side'];
+            side = options['side'],
+            displayValue = options['display'],
+            variables = ''
+        ;
+        if (displayValue) {
+            variables = `[origination_callee_id_number=${displayValue},origination_caller_id_name=${displayValue}]`
+        }
         if (options['channel-uuid'] == 'all' && caller.id != 'root') {
             return cb(new Error('Permission denied.'));
         };
@@ -201,7 +207,7 @@ var Service = {
         };
 
         Service.bgApi(
-            'originate user/' + user + ' &eavesdrop(' + (options['channel-uuid'] || '')
+            'originate ' + variables + 'user/' + user + ' &eavesdrop(' + (options['channel-uuid'] || '')
                 + ') XML default ' + side + ' ' + side,
             cb
         );
