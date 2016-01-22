@@ -6,6 +6,8 @@
 
 var handleWebSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
     log = require(__appRoot + '/lib/log')(module),
+    authServices = require(__appRoot + '/services/auth'),
+    aclServices = require(__appRoot + '/services/acl'),
     outQueryService = require(__appRoot + '/services/outboundQueue')
     ;
 
@@ -176,6 +178,19 @@ User.prototype.setState = function (state, status, description) {
     };
 
 **/
+};
+
+User.prototype.changeRole = function (role) {
+    if (!role)
+        return log.error('Bad set role %s', this.id);
+
+    aclServices._whatResources(role, (e, aclResource) => {
+        if (e)
+            return log.error(e);
+
+        this.roleName = role;
+        this.acl = aclResource;
+    });
 };
 
 module.exports = User;

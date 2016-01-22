@@ -562,7 +562,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
                 if (roleName) {
                     let _user = application.Users.get(user + '@' + _domain);
                     if (_user) {
-                        _user.roleName = roleName;
+                        _user.changeRole(roleName);
                     };
                 }
             } catch (e) {
@@ -574,18 +574,13 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
 
         if (params instanceof Array) {
             var _pushExt = false,
-                _pushRole = false,
-                _pushPass = false;
+                _pushPass = false
+            ;
+
             for (let item of params) {
-                if (_pushExt && _pushRole && _pushPass) break;
+                if (_pushExt && _pushPass) break;
 
-                if (!_pushRole && /^role=/.test(item)) {
-                    _pushRole = true;
-                    roleName = item.replace('role=', '');
-                    if (!~task.indexOf(resetToken))
-                        task.push(resetToken);
-
-                } else if (!_pushPass && /^password=/.test(item)) {
+                if (!_pushPass && /^password=/.test(item)) {
                     _pushPass = true;
                     if (!~task.indexOf(resetToken))
                         task.push(resetToken);
@@ -601,6 +596,17 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
                 }
             };
         };
+
+        if (variables instanceof Array) {
+            for (let item of variables) {
+                if (/^account_role=/.test(item)) {
+                    roleName = item.replace('account_role=', '');
+                    if (!~task.indexOf(resetToken))
+                        task.push(resetToken);
+                    break;
+                }
+            }
+        }
 
         if (variables || params) {
             task.push(setParamsOrVars);

@@ -94,9 +94,9 @@ var Service = {
             if (err)
                 return cb(err);
 
-            var domain = validateCallerParameters(caller, domain);
+            var _domain = validateCallerParameters(caller, domain);
 
-            application.WConsole.showSipGateway(caller, domain, function (err, res) {
+            application.WConsole.showSipGateway(caller, _domain, function (err, res) {
                 if (err)
                     return cb(err);
                 // todo DEL

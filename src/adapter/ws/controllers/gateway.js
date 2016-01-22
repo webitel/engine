@@ -109,8 +109,7 @@ function kill(caller, execId, args, ws) {
 };
 
 function listProfile(caller, execId, args, ws) {
-    var option = {
-    };
+    var option = args['domain'];
 
     gatewayService.listSipProfile(caller, option, function (err, result) {
         if (err)
