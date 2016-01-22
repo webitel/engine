@@ -36,6 +36,7 @@ function getResult (freeSwitchStatus) {
         "Process up time": formatTime(process.uptime()),
         "OS": getOsInfo(),
         "Users_Session": application.Users.length(),
+        "Max_Users_Session": application.Users._maxSession,
         "Domain_Session": application.Domains.length(),
         "CRASH_WORKER_COUNT": process.env['CRASH_WORKER_COUNT'] || 0,
         "freeSWITCH": (freeSwitchStatus) ? freeSwitchStatus['body'] : 'Connect server error.'

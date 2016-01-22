@@ -226,12 +226,15 @@ function Handler(wss, application) {
             log.warn('On remove domain error: ', e.message);
         }
     });
-
+    application.Users._maxSession = 0;
     application.Users.on('added', function (user) {
         try {
             application.Esl.filter('Channel-Presence-ID', user.id, function (res) {
                 log.debug(res.getHeader('Modesl-Reply-OK'));
             });
+
+            if (this._maxSession < this.length())
+                this._maxSession = this.length();
 
             var _id = user.id.split('@'),
                 _domain = _id[1] || _id[0],
