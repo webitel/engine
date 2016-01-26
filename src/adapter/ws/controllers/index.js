@@ -16,6 +16,7 @@ var cdr = require('./cdr');
 var blackList = require('./blackList');
 var callCentre = require('./callCentre');
 var gateway = require('./gateway');
+var license = require('./license');
 
 module.exports = function (application) {
     var controller  = {};
@@ -29,6 +30,7 @@ module.exports = function (application) {
     registerController(blackList, controller, application);
     registerController(callCentre, controller, application);
     registerController(gateway, controller, application);
+    registerController(license, controller, application);
 
     return controller;
 };

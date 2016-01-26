@@ -45,7 +45,9 @@ const RESOURCES = [
 
     'account',
 
-    'system/reload'
+    'system/reload',
+
+    'license'
 ];
 
 module.exports = [
@@ -84,7 +86,8 @@ module.exports = [
 
             'account': ["*"],
 
-            'system/reload': ["*"]
+            'system/reload': ["*"],
+            'license': ["*"]
         }
     },
     {

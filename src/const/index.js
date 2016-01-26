@@ -359,6 +359,21 @@ module.exports.WebitelCommandTypes = {
         Search: {
             name: "blacklist_search"
         }
+    },
+
+    License: {
+        List: {
+            name: 'license_list'
+        },
+        Item: {
+            name: 'license_item'
+        },
+        Upload: {
+            name: 'license_upload'
+        },
+        Remove: {
+            name: 'license_remove'
+        }
     }
 };
 

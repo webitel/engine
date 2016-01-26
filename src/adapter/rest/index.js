@@ -38,6 +38,7 @@ require('./contactBook/contactBook.resource').addRoutes(api);
 require('./location/number.resource').addRoutes(api);
 require('./gateway/gateway.resource').addRoutes(api);
 require('./configure/configure.resource').addRoutes(api);
+require('./license/license.resource').addRoutes(api);
 
 // Error handle
 require('./error').addRoutes(api);

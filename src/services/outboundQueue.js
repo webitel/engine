@@ -88,7 +88,7 @@ var Service = {
                 );
             }
         });
-
+        // TODO add reconnect
         application.Esl.on('esl::event::CHANNEL_HANGUP_COMPLETE::*', function (event) {
             let uuid = event.getHeader('variable_uuid');
             let call = application.OutboundQuery.get(uuid);
