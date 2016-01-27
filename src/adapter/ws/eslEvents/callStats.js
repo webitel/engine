@@ -2,6 +2,7 @@
  * Created by Igor Navrotskyj on 04.09.2015.
  */
 
+// TODO: Delete me
 'use strict';
 
 var log = require(__appRoot + '/lib/log')(module),
@@ -9,7 +10,7 @@ var log = require(__appRoot + '/lib/log')(module),
     eventsService = require(__appRoot + '/services/events');
 
 const _EVENTS = {
-    CALL_EVENT_COUNT_NAME: 'SERVER::CALL-INFO',
+    //CALL_EVENT_COUNT_NAME: 'SERVER::CALL-INFO',
     //CHANNEL_CREATE: 'CALL::CHANNEL_CREATE',
     //CHANNEL_DESTROY: 'CALL::CHANNEL_DESTROY'
 };

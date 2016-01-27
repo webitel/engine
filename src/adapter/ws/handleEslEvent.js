@@ -2,7 +2,6 @@
 
 var log = require(__appRoot + '/lib/log')(module),
     ccEvents = require('./eslEvents/callCentre'),
-    callStatsEvents = require('./eslEvents/callStats'),
     crm = require('./eslEvents/crm')
     //Trigger = require(__appRoot + '/services/trigger'),
     //trigger = new Trigger()
@@ -80,9 +79,6 @@ function handleEslEvent(application) {
                     log.debug(jsonEvent['Event-Name'] + ' -> ' + (jsonEvent["Unique-ID"] || "Other ESL event.") + ' -> '
                         + jsonEvent['Channel-Presence-ID']);
                 };
-
-                // TODO (delete) for 1ec.
-                callStatsEvents(jsonEvent);
 
             } catch (e) {
                 log.error(e.message);
