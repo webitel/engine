@@ -4,7 +4,7 @@
 
 'use strict';
 var WebitelCommandTypes = require(__appRoot + '/const').WebitelCommandTypes,
-    getCommandResponseJSON = require('./responceTemplate').getCommandResponseJSON,
+    getCommandResponseJSON = require('./responseTemplate').getCommandResponseJSON,
     log = require(__appRoot +  '/lib/log')(module),
     blacklistService = require(__appRoot + '/services/blacklist');
 

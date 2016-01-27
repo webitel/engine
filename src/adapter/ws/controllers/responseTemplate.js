@@ -22,11 +22,7 @@ module.exports = {
                 response = res;
             }
 
-            _ws.send(JSON.stringify({
-                'exec-uuid': id,
-                'exec-complete': complete,
-                'exec-response': response
-            }));
+            _ws.send(_getCommandResponseStr(id, complete, response));
         } catch (e) {
             handleSocketError(_ws);
             log.warn('Error send response');
@@ -35,14 +31,17 @@ module.exports = {
     
     getCommandResponseJSONError: function (_ws, id, err) {
         try {
-            _ws.send(JSON.stringify({
-                'exec-uuid': id,
-                'exec-complete': "-ERR",
-                'exec-response': err && err.message
-            }));
+            _ws.send(_getCommandResponseStr(id, "-ERR", err && err.message));
         } catch (e) {
             handleSocketError(_ws);
             log.warn('Error send response');
         };
     }
 };
+function _getCommandResponseStr (id, complete, args) {
+    return JSON.stringify({
+        'exec-uuid': id,
+        'exec-complete': complete,
+        'exec-response': args
+    });
+}

@@ -4,8 +4,8 @@
 'use strict';
 
 var WebitelCommandTypes = require(__appRoot + '/const').WebitelCommandTypes,
-    getCommandResponseJSON = require('./responceTemplate').getCommandResponseJSON,
-    getCommandResponseJSONError = require('./responceTemplate').getCommandResponseJSONError,
+    getCommandResponseJSON = require('./responseTemplate').getCommandResponseJSON,
+    getCommandResponseJSONError = require('./responseTemplate').getCommandResponseJSONError,
     licenseService = require(__appRoot + '/services/license'),
     log = require(__appRoot +  '/lib/log')(module);
 
