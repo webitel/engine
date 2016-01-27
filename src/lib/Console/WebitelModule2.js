@@ -37,7 +37,7 @@ var Webitel = module.exports = function (parameters) {
 
 util.inherits(Webitel, EventEmitter2);
 
-Webitel.prototype.version = '3.0.1';
+Webitel.prototype.version = '3.2.0';
 
 Webitel.prototype.connect = function () {
     log.trace("Host: " + this.host);

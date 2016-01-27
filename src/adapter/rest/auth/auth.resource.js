@@ -19,6 +19,7 @@ module.exports = {
 function addRoutes(api) {
     api.all('/api/v1/*', validateRequestV1);
     api.all('/api/v2/*', validateRequestV2);
+    api.get('/api/v2/whoami', whoami);
     api.post('/login', login);
     api.post('/logout', logout);
 };
@@ -143,10 +144,11 @@ function validateRequestV2(req, res, next) {
             authService.validateUser(key, function (err, dbUser) {
                 if (dbUser && dbUser.token == token) {
                     req['webitelUser'] = {
-                        id: dbUser['username'],
-                        domain: dbUser['domain'],
-                        role: dbUser['role'],
-                        roleName: dbUser['roleName'],
+                        id: dbUser.username,
+                        domain: dbUser.domain,
+                        role: dbUser.role,
+                        roleName: dbUser.roleName,
+                        epxires: dbUser.expires
                         //testLeak: new Array(1e6).join('X')
                     };
                     next(); // To move to next middleware
@@ -179,3 +181,7 @@ function validateRequestV2(req, res, next) {
             });
     };
 };
+
+function whoami(req, res, next) {
+    return res.json(req.webitelUser)
+}
