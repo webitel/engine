@@ -199,16 +199,12 @@ class Application extends EventEmitter2 {
         wconsole.on('webitel::event::auth::success', function () {
             log.info('Connect Webitel: %s:%s', this.host, this.port);
             scope.emit('sys::wConsoleConnect');
-            wconsole.subscribe('all');
+            // TODO move to conf
+            wconsole.subscribe(["USER_CREATE", "USER_DESTROY", "DOMAIN_CREATE", "DOMAIN_DESTROY", "ACCOUNT_STATUS"]);
         });
 
         wconsole.on('webitel::event::auth::fail', function () {
-            wconsole.authed = false;
-            log.error('webitel::event::auth::fail');
-            log.trace('Reconnect to webitel...');
-            setTimeout(function () {
-                scope.connectToWConsole();
-            }, waitTimeReconnectConsole);
+            return scope.stop(new Error('webitel::event::auth::fail -> Bad credential config webitelServer:secret'))
         });
 
         wconsole.on('webitel::end', function () {

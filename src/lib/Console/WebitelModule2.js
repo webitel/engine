@@ -192,7 +192,7 @@ Webitel.prototype.api = function (command, args, cb) {
 
 Webitel.prototype.subscribe = function (param) {
     try {
-        this.sendRecv('event json ' + param, function (res) {
+        this.sendRecv('event json ' + (param instanceof Array ? param.join(' ') : param), function (res) {
             if (res.getHeader('Webitel-Reply-OK')) {
                 log.debug(res.getHeader('Reply-Text'));
             } else if (res.getHeader('Webitel-Reply-ERR')) {
