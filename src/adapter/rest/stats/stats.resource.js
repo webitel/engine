@@ -38,6 +38,7 @@ function getResult (freeSwitchStatus) {
         "Users_Session": application.Users.length(),
         "Max_Users_Session": application.Users._maxSession,
         "Domain_Session": application.Domains.length(),
+        "Webitel": getWConsoleInfo(),
         "CRASH_WORKER_COUNT": process.env['CRASH_WORKER_COUNT'] || 0,
         "freeSWITCH": (freeSwitchStatus) ? freeSwitchStatus['body'] : 'Connect server error.'
     }
@@ -58,9 +59,8 @@ function formatTime(seconds){
     }
     var hours = Math.floor(seconds / (60*60));
     var minutes = Math.floor(seconds % (60*60) / 60);
-    var seconds = Math.floor(seconds % 60);
 
-    return pad(hours) + ':' + pad(minutes) + ':' + pad(seconds);
+    return pad(hours) + ':' + pad(minutes) + ':' + pad(Math.floor(seconds % 60));
 };
 
 function getOsInfo () {
@@ -87,3 +87,16 @@ function getCpuInfo () {
     };
     return res;
 };
+
+function getWConsoleInfo () {
+    var wConsole = application.WConsole;
+    if (!wConsole)
+        return {status: "Internal Error"};
+
+    return {
+        "Status": wConsole._status == 1 ? "Connected": "Offline",
+        "ApiQueue": wConsole.apiCallbackQueue.length,
+        "CmdQueue": wConsole.cmdCallbackQueue.length,
+        "Version": wConsole.version || ''
+    }
+}
