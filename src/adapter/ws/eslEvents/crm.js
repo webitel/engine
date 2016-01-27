@@ -34,6 +34,7 @@ module.exports = function (event) {
             break;
 
         case "USER_STATE":
+            // TODO: Delete me
             //onUserState(event);
             break;
 

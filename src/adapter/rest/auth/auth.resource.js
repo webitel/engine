@@ -6,6 +6,7 @@
 
 var jwt = require('jwt-simple'),
     config = require(__appRoot + '/conf'),
+    CodeError = require(__appRoot + '/lib/error'),
     authService = require(__appRoot + '/services/auth'),
     tokenSecretKey = config.get('application:auth:tokenSecretKey');
 
@@ -129,56 +130,34 @@ function validateRequestV2(req, res, next) {
     if (token && key) {
         try {
             var decoded = jwt.decode(token, tokenSecretKey);
-
-            if (decoded.exp <= Date.now()) {
-                return res
-                    .status(400)
-                    .json({
-                        "status": 400,
-                        "message": "Token Expired"
-                    });
-            };
-
-            // Authorize the user to see if s/he can access our resources
-
-            authService.validateUser(key, function (err, dbUser) {
-                if (dbUser && dbUser.token == token) {
-                    req['webitelUser'] = {
-                        id: dbUser.username,
-                        domain: dbUser.domain,
-                        role: dbUser.role,
-                        roleName: dbUser.roleName,
-                        epxires: dbUser.expires
-                        //testLeak: new Array(1e6).join('X')
-                    };
-                    next(); // To move to next middleware
-                } else {
-                    // No user with this name exists, respond back with a 401
-                    return res
-                        .status(401)
-                        .json({
-                            "status": 401,
-                            "message": "Invalid User"
-                        });
-                }
-            });
-
-        } catch (err) {
-            return res
-                .status(500)
-                .json({
-                    "status": 500,
-                    "message": "Oops something went wrong",
-                    "error": err
-                });
+        } catch (e) {
+            return next(new CodeError(401, "Invalid Token or Key"));
         };
+
+        if (decoded.exp <= Date.now()) {
+            return next(new CodeError(400, "Token Expired"));
+        };
+
+        // Authorize the user to see if s/he can access our resources
+
+        authService.validateUser(key, function (err, dbUser) {
+            if (dbUser && dbUser.token == token) {
+                req['webitelUser'] = {
+                    id: dbUser.username,
+                    domain: dbUser.domain,
+                    role: dbUser.role,
+                    roleName: dbUser.roleName,
+                    epxires: dbUser.expires
+                    //testLeak: new Array(1e6).join('X')
+                };
+                next(); // To move to next middleware
+            } else {
+                // No user with this name exists, respond back with a 401
+                return next(new CodeError(401, "Invalid User"));
+            }
+        });
     } else {
-        return res
-            .status(401)
-            .json({
-                "status": 401,
-                "message": "Invalid Token or Key"
-            });
+        return next(new CodeError(401, "Invalid Token or Key"));
     };
 };
 
