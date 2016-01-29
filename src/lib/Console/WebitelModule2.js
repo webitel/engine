@@ -11,6 +11,7 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     authServices = require(__appRoot + '/services/auth'),
     async = require('async'),
     CodeError = require(__appRoot + '/lib/error'),
+    Event = require('./Event'),
     COMMAND_TYPES = require('../../const').WebitelCommandTypes;
 
 var VARIABLE_EXTENSION_NAME = 'webitel-extensions';
@@ -178,6 +179,8 @@ Webitel.prototype.api = function (command, args, cb) {
         cb = args;
         args = '';
     }
+    if (!this.socket || this.socket.destroyed)
+        return cb(new Event({}, "-ERR: Console connect error"));
 
     if(args instanceof Array)
         args = args.join(' ');

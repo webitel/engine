@@ -33,11 +33,6 @@ module.exports = function (event) {
             onDomainDelete(event.getHeader('Domain-Name'));
             break;
 
-        case "USER_STATE":
-            // TODO: Delete me
-            //onUserState(event);
-            break;
-
         case "ACCOUNT_STATUS":
             onUserStatus(event);
             break;
