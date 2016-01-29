@@ -8,6 +8,7 @@ var jwt = require('jwt-simple'),
     config = require(__appRoot + '/conf'),
     CodeError = require(__appRoot + '/lib/error'),
     authService = require(__appRoot + '/services/auth'),
+    aclService = require(__appRoot + '/services/acl'),
     tokenSecretKey = config.get('application:auth:tokenSecretKey');
 
 module.exports = {
@@ -147,7 +148,7 @@ function validateRequestV2(req, res, next) {
                     domain: dbUser.domain,
                     role: dbUser.role,
                     roleName: dbUser.roleName,
-                    epxires: dbUser.expires
+                    expires: dbUser.expires
                     //testLeak: new Array(1e6).join('X')
                 };
                 next(); // To move to next middleware
@@ -162,5 +163,17 @@ function validateRequestV2(req, res, next) {
 };
 
 function whoami(req, res, next) {
-    return res.json(req.webitelUser)
+    aclService._whatResources(req.webitelUser.roleName, (e, acl) => {
+        if (e)
+            return next(e);
+
+        var _user = req.webitelUser;
+        return res.json({
+            'acl': acl,
+            'id': _user.id,
+            'domain': _user.domain,
+            'roleName': _user.roleName,
+            'expires': _user.expires
+        });
+    });
 }
