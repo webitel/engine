@@ -260,8 +260,9 @@ Webitel.prototype.domainCreate = function(_caller, name, customerId, option, cb)
         param + name,
         customerId || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -278,8 +279,9 @@ Webitel.prototype.domainItem = function (_caller, name, cb) {
     this.api(WebitelCommandTypes.Domain.Item, [
         name || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -292,8 +294,9 @@ Webitel.prototype.domainList = function(_caller, customerId, cb) {
     this.api(WebitelCommandTypes.Domain.List, [
         customerId || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -311,8 +314,9 @@ Webitel.prototype.domainRemove = function(_caller, name, cb) {
     this.api(WebitelCommandTypes.Domain.Remove, [
         name || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -348,8 +352,9 @@ Webitel.prototype.updateDomain = function(_caller, name, option, cb) {
         name || '',
         param
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -362,8 +367,9 @@ Webitel.prototype.list_users = function(_caller, domain, cb, format) {
     this.api(WebitelCommandTypes.ListUsers, [
         domain || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -380,8 +386,9 @@ Webitel.prototype.userList = function(_caller, domain, cb) {
     this.api(WebitelCommandTypes.Account.List, [
         domain || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -463,8 +470,9 @@ Webitel.prototype.userCreate = function(_caller, args, cb) {
                     role,
                     _id
                 ], function (res) {
-                    if (res['body'].indexOf('-ERR') == 0) {
-                        cb(new CodeError(500, res.body));
+                    var err = checkBodyError(res);
+                    if (err) {
+                        cb(err);
                         return;
                     };
 
@@ -703,8 +711,9 @@ Webitel.prototype.userRemove = function(_caller, user, cb) {
     this.api(WebitelCommandTypes.Account.Remove, [
             user || ''
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -718,8 +727,9 @@ Webitel.prototype.userItem = function (_caller, user, domain, cb) {
     this.api(WebitelCommandTypes.Account.Change, [
         _id
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -746,8 +756,9 @@ Webitel.prototype.queueList = function (_caller, args, cb) {
     this.api(WebitelCommandTypes.CallCenter.Root, [
         _params
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(res);
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
         self._parsePlainTableToJSONArray(res.getBody(), function (err, resJSON) {
@@ -774,8 +785,10 @@ Webitel.prototype.queueCreate = function (_caller, args, cb) {
 
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
         var body = res.getBody() || '';
-        if (body.indexOf('-ERR')> -1 || body.indexOf('-USAGE') > -1) {
-            return cb(new CodeError(500, body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
         };
         return cb(null, body);
     });
@@ -787,8 +800,9 @@ Webitel.prototype.queueItem = function (_caller, args, cb) {
         self = this
         ;
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res['body']));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -816,8 +830,9 @@ Webitel.prototype.queueUpdateItem = function (_caller, args, cb) {
     };
 
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -853,8 +868,9 @@ Webitel.prototype.queueUpdateItemState = function (_caller, args, cb) {
     var _params = 'queue ' + args['state'] + ' ' + args['name'] + '@' + args['domain']
         ;
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -874,8 +890,9 @@ Webitel.prototype.tierCreate = function (_caller, args, cb) {
         _params += ' ' + args['position']
         ;
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -889,8 +906,9 @@ Webitel.prototype.tierSetLvl = function (_caller, args, cb) {
         '@', args['domain'], ' ', args['level']);
 
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -903,8 +921,9 @@ Webitel.prototype.tierSetPos = function (_caller, args, cb) {
         '@', args['domain'], ' ', args['position']);
 
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -917,8 +936,9 @@ Webitel.prototype.tierRemove = function (_caller, args, cb) {
         '@', args['domain']);
 
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1048,8 +1068,9 @@ Webitel.prototype.reloadAgents = function (_caller, cb) {
 
 Webitel.prototype.reloadXml = function (_caller, cb) {
     this.api(WebitelCommandTypes.ReloadXml, (res) => {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1066,8 +1087,9 @@ Webitel.prototype.showSipGateway = function (_caller, domain, cb) {
     this.api(WebitelCommandTypes.Gateway.Index, [
         _t
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1135,10 +1157,11 @@ Webitel.prototype.createSipGateway = function (_caller, gateway, cb) {
     this.api(WebitelCommandTypes.Gateway.Index, [
         _commandsLine
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
-            return;
-        };
+            var err = checkBodyError(res);
+            if (err) {
+                cb(err);
+                return;
+            };
 
         cb(null, res.body);
     }
@@ -1173,8 +1196,9 @@ Webitel.prototype.changeSipGateway = function (_caller, gateway_id, type, params
     this.api(WebitelCommandTypes.Gateway.Index, [
         _cl
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1186,8 +1210,9 @@ Webitel.prototype.removeSipGateway = function (_caller, gateway_id, cb) {
     this.api(WebitelCommandTypes.Gateway.Index, [
         'remove ' + gateway_id
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1202,8 +1227,9 @@ Webitel.prototype.upSipGateway = function (_caller, gateway_id, profile, cb) {
     this.api(WebitelCommandTypes.Gateway.Index, [
         gateway_id + ' up ' + (profile || 'external')
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1218,8 +1244,9 @@ Webitel.prototype.downSipGateway = function (_caller, gateway_id, cb) {
     this.api(WebitelCommandTypes.Gateway.Index, [
         gateway_id + ' down'
     ], function (res) {
-        if (res['body'].indexOf('-ERR') == 0) {
-            cb(new CodeError(500, res.body));
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
             return;
         };
 
@@ -1442,6 +1469,19 @@ Webitel.prototype._parsePlainCollectionToJSON = function (data, cb) {
         cb(null, _json);
     } catch (e) {
         cb(e['message']);
+    }
+};
+
+function checkBodyError(response) {
+    try {
+        if (!response || !response.body)
+            return new CodeError(500, "Bad response console server.");
+        if (response.body.indexOf('-USAGE:') === 0 || response.body.indexOf('-USAGE:') === 0) {
+            return new CodeError(500, response.body);
+        }
+        return null;
+    } catch (e) {
+        return e;
     }
 };
 

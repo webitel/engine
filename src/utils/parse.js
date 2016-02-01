@@ -21,7 +21,7 @@ var Parser = {
         return cb(null, res);
     },
 
-    plainTableToJSON: function (data, domain, cb) {
+    plainTableToJSON: function (data, domain, cb, indexPosition) {
         if (!data) {
             cb('Data is undefined!');
             return
@@ -30,23 +30,18 @@ var Parser = {
             var _line,
                 _head,
                 _json = {},
-                _id;
+                _tJson
+                ;
 
             _line = data.split('\n');
-            _head = _line[0].split('\t');
+            _head = _line[0].split('\t').map( e => e.trim());
+            var _indexPosition = indexPosition || 0;
             for (var i = 2; i < _line.length && _line[i] != const_DataSeparator; i++) {
-                _id = '';
-                _line[i].split('\t').reduce(function (_json, line, index) {
-                    if (index == 0) {
-                        _id = line.trim(); // + '@' + domain;
-                        _json[_id] = {
-                            id: _id
-                        };
-                    } else {
-                        _json[_id][_head[index].trim()] = line.trim();
-                    };
-                    return _json;
-                }, _json);
+                _tJson = {};
+                _line[i].split('\t').forEach((value, key) => {
+                    _tJson[_head[key]] = value.trim();
+                });
+                _json[_tJson[_head[_indexPosition]]] = _tJson;
             };
             cb(null, _json);
         } catch (e) {

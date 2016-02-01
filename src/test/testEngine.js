@@ -25,9 +25,9 @@ var rootCredentials = {};
 var token144 = 'eyJjaWQiOiIxMC4xMC4xMC4xNDQiLCJjdHJsIjpbeyJuYmYiOjEwLCJleHAiOjk5OTk5OTk5OTksInVzciI6MTAwfV0sImlhdCI6MTQ1MzcyNDA3OX0/VMM50msJiZjT5FYTIom16NYqi9LnN31ePU3uoRtaJ1o';
 
 var defDataDomain = {
-    "domain_name": "testEngine2",
+    "domain_name": "example.com",
     "customer_id": "testEngine2",
-    "token": "eyJjaWQiOiJ0ZXN0RW5naW5lMiIsImN0cmwiOlt7Im5iZiI6MTAsImV4cCI6OTk5OTk5OTk5OSwidXNyIjoxMDB9XSwiaWF0IjoxNDUzNzIyOTg3fQ/Cu4fDD89MJtbV-HJergnEgwvDojqqkv6kZICZa6ixfM",
+    "token": "eyJjaWQiOiJ0ZXN0RW5naW5lMiIsInNpZCI6IjAwODBiYWEyLWJmNDctZGE0NS0yMzU4LWVmYmVlNDEzNDg2MyIsImlhdCI6MTQ1NDMxNjE3NSwibmJmIjoxNDU0MzE2MTc1LCJleHAiOjk5OTk5OTk5OTksInVzciI6OTk5OX0/MQNg97xF2GMTTzW_YZqLjKcU0F64sOsa_4mKiVYlYoo",
     "parameters": ["ASD=1"],
     "variables": ["XCV=2"]
 };
@@ -38,12 +38,12 @@ var sharedCredentials = {
 };
 
 var shareConf = {
-    "domain_name": "shareDomain",
+    "domain_name": "sub.example.com",
     "customer_id": "shareDomain",
-    "token": "eyJjaWQiOiJzaGFyZURvbWFpbiIsImN0cmwiOlt7Im5iZiI6MTAsImV4cCI6OTk5OTk5OTk5OSwidXNyIjoxMDB9XSwiaWF0IjoxNDUzNzI1NzAxfQ/Z9QId6i3ByqWfMVmJZ18iZq_oR1nXodJXOF_21l6XXU",
+    "token": "eyJjaWQiOiJzaGFyZURvbWFpbiIsInNpZCI6IjAwODBiYWEyLWJmNDctZGE0NS0yMzU4LWVmYmVlNDEzNDg2MyIsImlhdCI6MTQ1NDMxNjIxMSwibmJmIjoxNDU0MzE2MjExLCJleHAiOjk5OTk5OTk5OTksInVzciI6OTk5OX0/UJMAC_wv8UiHIViO2a3dsm6b9kfllY5fLRCQfQo5_M8",
     "login": "1009",
     "password": "100",
-    "domain": "shareDomain",
+    "domain": "sub.example.com",
     "role": "admin",
     "parameters": ["webitel-extension=100", "foo=bar", "cc-agent=true"]
 };
@@ -179,9 +179,12 @@ it("REST API", function () {
     });
 
     describe('Root exec API', function () {
+        // region license
         /**
+         * // TODO
          * Licenses
          */
+        /*
         describe('License', function () {
             it('PUT [/api/v2/license]', function (done) {
                 var updateDef = {
@@ -302,6 +305,9 @@ it("REST API", function () {
                     });
             });
         });
+        */
+
+        // end region license
 
         /** Domain
          *
@@ -1465,11 +1471,12 @@ it("REST API", function () {
                     .get('/api/v2/status')
                     .set('x-key', 'asda')
                     .set('x-access-token', 'ddddddd')
-                    .expect(500)
+                    .expect(401)
                     .end(function(err, res){
                         if (err) return done(err);
-                        assert.equal(res.status, 500);
-                        assert.equal(res.body.message, 'Oops something went wrong');
+                        assert.equal(res.status, 401);
+                        assert.equal(res.body.info, 'Invalid Token or Key');
+                        assert.equal(res.body.status, 'error');
                         done()
                     });
             });
@@ -1481,7 +1488,8 @@ it("REST API", function () {
                     .end(function(err, res){
                         if (err) return done(err);
                         assert.equal(res.status, 401);
-                        assert.equal(res.body.message, 'Invalid Token or Key');
+                        assert.equal(res.body.info, 'Invalid Token or Key');
+                        assert.equal(res.body.status, 'error');
                         done();
                     })
             });
