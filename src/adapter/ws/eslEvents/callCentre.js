@@ -34,7 +34,11 @@ module.exports = function (event) {
             eventName = "CC::" + event['CC-Action'].toUpperCase()
             ;
         event['Event-Name'] = eventName;
-        eventsService.fire(eventName, domain, event, null, (user, _e) => {
+        log.trace(eventName);
+        eventsService.fire(eventName, domain, event, function (err) {
+            if (err)
+                log.error(err.message);
+        }, (user, _e) => {
             try {
                 if (user._subscribeEvent[eventName] || user.id == eventFrom) return true;
 

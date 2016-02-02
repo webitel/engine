@@ -19,6 +19,7 @@ function handleEslEvent(application) {
 
         var activeUsers = application.Users.getKeys();
         activeUsers.forEach(function (userName) {
+            //TODO bug
             application.Esl.filter('Channel-Presence-ID', userName, function (res) {
                 log.debug(res.getHeader('Modesl-Reply-OK'));
             });
@@ -26,9 +27,11 @@ function handleEslEvent(application) {
 
         return application.Esl.on('esl::event::**', function (e) {
             try {
+
                 if (!e.type) {
                     return 0;
                 } else if (e.subclass == 'callcenter::info') {
+                    //log.trace(e.serialize('json', 1))
                     return ccEvents(e.serialize('json', 1))
                 };
 

@@ -98,7 +98,8 @@ module.exports = [
             'channels': ['*'],
             'book': ['c', 'u', 'r'],
             'cdr': ['ro'],
-            'cdr/files': ['ro']
+            'cdr/files': ['ro'],
+            'cc/tiers': ["r"]
         }
     },
     {

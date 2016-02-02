@@ -1,6 +1,7 @@
 var EventEmitter2 = require('eventemitter2').EventEmitter2,
     util = require('util'),
     Buffer = require('buffer').Buffer,
+    log = require('../log')(module),
     Event = require('./Event');
 
 var Parser = module.exports = function(socket) {
@@ -197,7 +198,7 @@ Parser.prototype._parseEvent = function(headers, body) {
         event = new Event(data);
     else
         event = new Event(headers, body);
-
+    log.trace(event.getHeader('Content-Type'))
     var reply = event.getHeader('Reply-Text');
     if(reply) {
         if(reply.indexOf('-ERR') === 0) {
