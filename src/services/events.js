@@ -34,6 +34,7 @@ var _eventsModule = {
 
         var _event = eventsCollection.get(eventName);
         if (!_event) {
+            log.error('-ERR: Event unregistered');
             if (cb)
                 cb(new Error('-ERR: Event unregistered'));
             return;
@@ -45,13 +46,16 @@ var _eventsModule = {
         if (!domainSubscribes) {
             var _user = {};
             _user[sessionId] = caller.id;
+            log.trace('subscribe', sessionId, eventName);
             _event.domains.add(_domainId, _user);
         } else {
             if (domainSubscribes.hasOwnProperty(sessionId)) {
+                log.error('subscribe', sessionId, eventName);
                 if (cb)
                     cb(new Error('-ERR: event subscribed!'));
                 return;
             } else {
+                log.trace('subscribe', sessionId, eventName);
                 domainSubscribes[sessionId] = caller.id;
             };
         };
@@ -87,6 +91,7 @@ var _eventsModule = {
     },
     // TODO existsCb переделать
     fire: function (eventName, domainId, event, cb, existsFn) {
+        log.trace('fire', eventName, domainId);
         if (typeof eventName != 'string' || !(event instanceof Object)) {
             if (cb)
                 cb(new Error('-ERR: Bad parameters'));
@@ -115,6 +120,7 @@ var _eventsModule = {
         for (var key in _domain) {
             user = application.Users.get(_domain[key]);
             if (!user) {
+                log.warn('REMOVE DOMAIN session', key);
                 delete _domain[key];
                 continue;
             };
@@ -125,6 +131,7 @@ var _eventsModule = {
             //};
 
             if (!user.sendSessionObject(event, key)) {
+                log.warn('REMOVE DOMAIN session', key);
                 delete _domain[key];
             } else {
                 log.debug('Emit server event %s --> %s [%s]', eventName, user.id, key);
@@ -132,9 +139,12 @@ var _eventsModule = {
             };
         };
         if (_iterator == 0) {
+            log.warn('REMOVE DOMAIN', domainId);
             _event.domains.remove(domainId);
             log.trace('[%s] Remove subscribed domain %s', eventName, domainId);
-        };
+        } else {
+            log.trace('send: ', _iterator)
+        }
     }
 };
 
