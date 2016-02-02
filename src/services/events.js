@@ -120,9 +120,9 @@ var _eventsModule = {
             };
 
             // TODO !!!
-            if (existsFn && !existsFn(user, event)) {
-                return;
-            };
+            //if (existsFn && !existsFn(user, event)) {
+            //    return;
+            //};
 
             if (!user.sendSessionObject(event, key)) {
                 delete _domain[key];
