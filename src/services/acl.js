@@ -67,6 +67,7 @@ var Service = {
                 dataRoles = data && data.meta.roles,
                 resultRoles = [];
 
+
             if (dataRoles instanceof Array)
                 dataRoles.forEach((i) => {
                     if (i == 'root') return;
@@ -119,7 +120,8 @@ var Service = {
                             return cb(e);
                         }
                         ;
-                        if (typeof parents === 'string') {
+
+                        if (typeof parents === 'string' && parents.length > 0) {
                             acl.addRoleParents(data.roles, parents, (e) => {
                                 if (e)
                                     return log.error(e);
@@ -212,6 +214,7 @@ var Service = {
             var acl = application.acl,
                 aclQuery = application.DB._query.acl
             ;
+            // TODO parent destroy;
             acl.removeRole(roleName, (e) => {
                 if (e) {
                     log.error(e);

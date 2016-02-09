@@ -389,7 +389,7 @@ var Service = {
      * @param cb
      */
     getDomainVariable: function (caller, domain, cb) {
-        checkPermissions(caller, 'rotes/extension', 'r', function (err) {
+        checkPermissions(caller, 'rotes/domain', 'r', function (err) {
             if (err)
                 return cb(err);
 
@@ -412,7 +412,7 @@ var Service = {
      * @returns {*}
      */
     insertOrUpdateDomainVariable: function (caller, domain, variables, cb) {
-        checkPermissions(caller, 'rotes/extension', 'c', function (err) {
+        checkPermissions(caller, 'rotes/domain', 'c', function (err) {
             if (err)
                 return cb(err);
 

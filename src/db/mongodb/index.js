@@ -6,7 +6,11 @@ var MongoClient = require("mongodb").MongoClient,
 module.exports = initConnect;
 
 function initConnect (server) {
-    mongoClient.connect(config.get('mongodb:uri') ,function(err, db) {
+    var options = {
+        connectionTimeout: 30000,
+        keepAlive: true
+    };
+    mongoClient.connect(config.get('mongodb:uri'), options, function(err, db) {
         if (err) {
             log.error('Connect db error: %s', err.message);
             return server.emit('sys::connectDbError', err);

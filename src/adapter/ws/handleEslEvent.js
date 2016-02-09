@@ -10,6 +10,8 @@ var log = require(__appRoot + '/lib/log')(module),
 module.exports = handleEslEvent;
 
 function handleEslEvent(application) {
+
+    // TODO MOVE TO NEW SCRIPT!!! WTEL
     application.on('sys::wConsoleConnect', function () {
         // TODO переделать на ивент свича...
         application.WConsole.on('webitel::event::event::**', crm);

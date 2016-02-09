@@ -48,11 +48,12 @@ class Application extends EventEmitter2 {
         var scope = this,
             ret = 0;
         scope.once('sys::connectDb', function (db) {
+            //TODO bug!! account event prior connectToEsl
             scope.DB = db;
-            scope.attachProcess();
-            scope.connectToWConsole();
             scope.initAcl();
             scope.connectToEsl();
+            scope.attachProcess();
+            scope.connectToWConsole();
         });
 
         this.once('sys::connectEsl', function () {
@@ -214,10 +215,6 @@ class Application extends EventEmitter2 {
 
         wconsole.on('webitel::event::disconnect::notice', function () {
             log.error('webitel::event::disconnect::notice');
-        });
-
-        wconsole.on('webitel::event::event::**', function () {
-
         });
 
         if (conf.get('application:sleepConnectToWebitel')) {

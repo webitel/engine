@@ -59,6 +59,7 @@ module.exports = [
 
             'blacklist': ["*"],
 
+            // TODO rename !!!
             'rotes/default': ["*"],
             'rotes/public': ["*"],
             'rotes/extension': ["*"],

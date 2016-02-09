@@ -15,6 +15,8 @@ module.exports = {
  */
 function addRoutes(api) {
     api.get('/api/v2/routes/extensions', getExtensions);
+    // TODO get by ID !!
+    // api.get
     api.put('/api/v2/routes/extensions/:id', putExtension);
 
     api.get('/api/v2/routes/variables', getDomainVariables);

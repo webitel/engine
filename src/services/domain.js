@@ -26,7 +26,9 @@ var Service = {
                 return cb(new CodeError(400, 'Bad request.'));
             };
 
-            if (!/(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+[a-zA-Z]{2,63}$)/.test(option.name))
+            //if (!/(?=^.{4,253}$)(^((?!-)[a-zA-Z0-9-]{0,62}[a-zA-Z0-9]\.)+[a-zA-Z]{2,63}$)/.test(option.name))
+            // TODO
+            if (/\//.test(option.name))
                 return cb(new CodeError(400, "Bad domain name."));
 
             application.WConsole.domainCreate(caller, option['name'], option['customerId'], option, function (err, res) {

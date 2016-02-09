@@ -598,7 +598,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
 
                 } else if (!_pushExt && /^webitel-extensions=/.test(item)) {
                     _pushExt = true;
-                    extensions = item.replace(VARIABLE_EXTENSION_NAME + '=', '');
+                    extensions = item.replace(VARIABLE_EXTENSION_NAME + '=', '').replace(/\D/g, '');
                     if (extensions == '') {
                         cb(new CodeError(400, "Bad request (webitel-extensions)."));
                         return;
@@ -1476,7 +1476,7 @@ function checkBodyError(response) {
     try {
         if (!response || !response.body)
             return new CodeError(500, "Bad response console server.");
-        if (response.body.indexOf('-USAGE:') === 0 || response.body.indexOf('-USAGE:') === 0) {
+        if (response.body.indexOf('-ERR') === 0 || response.body.indexOf('-USAGE:') === 0) {
             return new CodeError(500, response.body);
         }
         return null;

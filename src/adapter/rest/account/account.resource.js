@@ -117,7 +117,7 @@ function list (req, res, next) {
         "domain": req.query['domain']
     };
 
-    accountService.list(req.webitelUser, option,
+    accountService.accountList(req.webitelUser, option,
         function (err, result) {
             if (err) {
                 return next(err);
