@@ -35,6 +35,7 @@ var cdrHostInfo = url.parse(CDR_SERVER_HOST);
 var client = cdrHostInfo.protocol == 'http:' ? http.request : https.request;
 
 var CDR_SERVER = {
+    path: cdrHostInfo.path.length == 1 ? '' : cdrHostInfo.path,
     hostName: cdrHostInfo.hostname,
     port: parseInt(cdrHostInfo.port)
 };
@@ -48,7 +49,7 @@ function proxyToCdr(request, response, next) {
     var options = {
         hostname: CDR_SERVER.hostName,
         port: CDR_SERVER.port,
-        path: request.originalUrl,
+        path: CDR_SERVER.path + request.originalUrl,
         headers: {
             //'x-forward-for': request.connection.remoteAddress || request.socket.remoteAddress,
             //'x-forward-port': getPort(request),

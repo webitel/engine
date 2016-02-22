@@ -203,6 +203,13 @@ class Application extends EventEmitter2 {
             // TODO move to conf
             wconsole.subscribe(["USER_CREATE", "USER_DESTROY", "DOMAIN_CREATE", "DOMAIN_DESTROY", "ACCOUNT_STATUS"]);
             require('./adapter/ws/handleWConsoleEvent')(scope);
+
+            wconsole._getServerId((err, res) => {
+                if (err)
+                    return log.error(err);
+
+                wconsole._serverId = res;
+            });
         });
 
         wconsole.on('webitel::event::auth::fail', function () {

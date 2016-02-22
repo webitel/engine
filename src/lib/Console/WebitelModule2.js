@@ -1274,6 +1274,18 @@ Webitel.prototype.userDara = function (userId, type, paramsArray, cb) {
     this.api(WebitelCommandTypes.UserData, [].concat(userId, type || 'global', paramsArray.join(','), 'as json'), cb);
 };
 
+Webitel.prototype._getServerId = function (cb) {
+    this.api('global_getvar server_uuid', (res) => {
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        };
+
+        cb(null, res.body);
+    });
+};
+
 function parseArrayToCommandLine (_arr, _cl, direction) {
     var _d = direction
         ? '[direction=' + direction + ']'

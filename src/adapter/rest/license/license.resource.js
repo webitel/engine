@@ -12,20 +12,27 @@ module.exports = {
 
 function addRoutes (api) {
     api.get('/api/v2/license', list);
+    api.get('/api/v2/license/', list);
     api.get('/api/v2/license/:id', item);
     api.put('/api/v2/license/', upload);
     api.delete('/api/v2/license/:id', remove);
 };
 
 function list (req, res, next) {
+    var addSid = req.query['sid'] === "true";
     licenseService.list(req.webitelUser, (e, data) => {
         if (e)
             return next(e);
 
-        return res.json({
+        let json = {
             "status": "OK",
             "info": data
-        })
+        };
+        if (addSid)
+            json.sid = application.WConsole._serverId
+        ;
+
+        return res.json(json)
     });
 };
 
