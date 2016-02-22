@@ -1,0 +1,13 @@
+--- 
+version: '2'
+
+services:
+  engine:
+    build: .
+    ports:
+      - "10022:10022"
+    networks:
+      - dev-tier
+     
+networks:
+  dev-tier:
