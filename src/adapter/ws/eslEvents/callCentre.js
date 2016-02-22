@@ -29,21 +29,20 @@ for (var i = 0, len = _srvEvents.length; i < len; i++) {
 
 module.exports = function (event) {
     try {
-        var eventFrom = event['CC-Queue'] || event['CC-Agent'],
+        var eventQueue = event['CC-Queue'],
+            eventAgent = event['CC-Agent'],
+            eventFrom = eventQueue || eventAgent,
             domain = getDomainFromStr(eventFrom),
             eventName = "CC::" + event['CC-Action'].toUpperCase()
             ;
         event['Event-Name'] = eventName;
         log.trace(eventName);
-        eventsService.fire(eventName, domain, event, function (err) {
-            if (err)
-                log.error(err.message);
-        }, (user, _e) => {
+        eventsService.fire(eventName, domain, event, null, (user, _e) => {
             try {
-                if (user._subscribeEvent[eventName] || user.id == eventFrom) return true;
+                if (user._subscribeEvent[eventName] || user.id === eventAgent) return true;
 
                 var queues = application.Agents.get(user.id);
-                return queues && queues[eventFrom];
+                return queues && queues[eventQueue];
             } catch (e) {
                 log.error(e);
                 return false;

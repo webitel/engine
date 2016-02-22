@@ -3,7 +3,6 @@
 var WebSocketServer = require('ws').Server,
     conf = require('../../conf'),
     handleMessage = require('./handleMessage'),
-    handleEslEvent = require('./handleEslEvent'),
     wsOriginAllow = conf.get('server:socket:originHost').toString() != 'false';
 
 module.exports = createWSS;
@@ -19,7 +18,6 @@ function createWSS(express, application) {
     var wss = new WebSocketServer(option);
 
     handleMessage(wss, application);
-    handleEslEvent(application);
 };
 
 // @private

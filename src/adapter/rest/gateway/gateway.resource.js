@@ -23,7 +23,29 @@ function addRoutes(api) {
     api.put('/api/v2/gateway/:name/down', downGateway);
 
     api.put('/api/v2/gateway/:name/:type', changeGateway);
+    api.get('/api/v2/gateway/:name/:type', varGateway);
     api.delete('/api/v2/gateway/:name', deleteGateway);
+};
+
+function varGateway (req, res, next) {
+    var option = {
+        name: req.params['name'],
+        direction: req.params['type']
+    };
+    gatewayService.varGateway(req.webitelUser, option,
+        function (err, result) {
+            if (err) {
+                return next(err);
+            };
+
+            return res
+                .status(200)
+                .json({
+                    "status": "OK",
+                    "info": result
+                });
+        }
+    );
 };
 
 function createGateway (req, res, next) {

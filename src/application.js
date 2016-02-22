@@ -137,14 +137,14 @@ class Application extends EventEmitter2 {
 
         esl.on('esl::event::auth::success', function () {
             esl.connected = true;
-
+            console.log('>>> esl::event::auth::success');
             var ev = conf.get('application:freeSWITCHEvents');
             esl.subscribe(ev);
             //for (var key in ev) {
             //    esl.filter('Event-Name', ev[key]);
             //};
             esl.filter('Event-Subclass', 'callcenter::info');
-
+            require('./adapter/ws/handleEslEvent')(scope);
             scope.emit('sys::connectEsl');
         });
 
@@ -199,9 +199,10 @@ class Application extends EventEmitter2 {
 
         wconsole.on('webitel::event::auth::success', function () {
             log.info('Connect Webitel: %s:%s', this.host, this.port);
-            scope.emit('sys::wConsoleConnect');
+            //scope.emit('sys::wConsoleConnect');
             // TODO move to conf
             wconsole.subscribe(["USER_CREATE", "USER_DESTROY", "DOMAIN_CREATE", "DOMAIN_DESTROY", "ACCOUNT_STATUS"]);
+            require('./adapter/ws/handleWConsoleEvent')(scope);
         });
 
         wconsole.on('webitel::event::auth::fail', function () {

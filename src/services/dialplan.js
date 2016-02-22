@@ -57,7 +57,7 @@ var Service = {
                         "$set": {}
                     };
 
-                if (!_id || option['destination_number'] || option['domain'] || option['userRef'] || option['version']) {
+                if (!_id || option['domain'] || option['userRef'] || option['version']) {
                     return cb(new CodeError(400, 'Bad request.'));
                 }
                 ;

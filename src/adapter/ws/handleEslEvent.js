@@ -1,24 +1,12 @@
 'use strict';
 
 var log = require(__appRoot + '/lib/log')(module),
-    ccEvents = require('./eslEvents/callCentre'),
-    crm = require('./eslEvents/crm')
-    //Trigger = require(__appRoot + '/services/trigger'),
-    //trigger = new Trigger()
+    ccEvents = require('./eslEvents/callCentre')
     ;
 
 module.exports = handleEslEvent;
 
 function handleEslEvent(application) {
-
-    // TODO MOVE TO NEW SCRIPT!!! WTEL
-    application.on('sys::wConsoleConnect', function () {
-        // TODO переделать на ивент свича...
-        application.WConsole.on('webitel::event::event::**', crm);
-    });
-
-    return application.on('sys::eslConnect', function () {
-
         var activeUsers = application.Users.getKeys();
         activeUsers.forEach(function (userName) {
             //TODO bug
@@ -29,7 +17,7 @@ function handleEslEvent(application) {
 
         return application.Esl.on('esl::event::**', function (e) {
             try {
-
+                //console.info(`event: ${e.type}`);
                 if (!e.type) {
                     return 0;
                 } else if (e.subclass == 'callcenter::info') {
@@ -89,5 +77,4 @@ function handleEslEvent(application) {
                 log.error(e.message);
             };
         });
-    });
 };

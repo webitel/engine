@@ -126,9 +126,9 @@ var _eventsModule = {
             };
 
             // TODO !!!
-            //if (existsFn && !existsFn(user, event)) {
-            //    return;
-            //};
+            if (existsFn && !existsFn(user, event)) {
+                continue
+            };
 
             if (!user.sendSessionObject(event, key)) {
                 log.warn('REMOVE DOMAIN session', key);

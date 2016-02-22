@@ -179,7 +179,7 @@ Webitel.prototype.api = function (command, args, cb) {
         cb = args;
         args = '';
     }
-    if (!this.socket || this.socket.destroyed)
+    if (!this.socket || this.socket.destroyed || this._status !== ConnectionStatus.Connected)
         return cb(new Event({}, "-ERR: Console connect error"));
 
     if(args instanceof Array)
@@ -1150,7 +1150,7 @@ Webitel.prototype.createSipGateway = function (_caller, gateway, cb) {
         _commandsLine = _commandsLine.concat('@', gateway['realm'].replace(/\s/g,''));
     };
 
-    if (typeof gateway['profile'] == 'string') {
+    if (typeof gateway['profile'] == 'string' && gateway['profile']) {
         _commandsLine = _commandsLine.concat(' ', 'up ', gateway['profile']);
     };
 
@@ -1166,6 +1166,21 @@ Webitel.prototype.createSipGateway = function (_caller, gateway, cb) {
         cb(null, res.body);
     }
     );
+};
+
+Webitel.prototype.gatewayVars = function (id, varName, cb) {
+    this.api(WebitelCommandTypes.Gateway.Index, [
+        id,
+        varName
+    ], function (res) {
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        };
+
+        cb(null, res.body);
+    });
 };
 
 Webitel.prototype.changeSipGateway = function (_caller, gateway_id, type, params, cb) {

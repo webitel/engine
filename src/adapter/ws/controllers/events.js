@@ -22,6 +22,9 @@ function eventsCtrl () {
 function subscribe (caller, execId, args, ws) {
     var _all = args.all,
         eventName = args['event'];
+    // TODO add ACL commands
+    if (!caller)
+        return getCommandResponseJSON(ws, execId, {"body": "-ERR: Authentication required!"});
     eventService.addListener(eventName, caller, caller.getSession(ws), function (err, result) {
         let _result = {
             "body": ""
@@ -40,6 +43,9 @@ function subscribe (caller, execId, args, ws) {
 
 function unSubscribe (caller, execId, args, ws) {
     var eventName = args['event'];
+    // TODO add ACL commands
+    if (!caller)
+        return getCommandResponseJSON(ws, execId, {"body": "-ERR: Authentication required!"});
     eventService.removeListener(eventName, caller, caller.getSession(ws), function (err, result) {
         var _result = {
             "body": (err && err.message) || result

@@ -140,6 +140,30 @@ var Service = {
     /**
      *
      * @param caller
+     * @param option
+     * @param cb
+     */
+    varGateway: function (caller, option, cb) {
+        checkPermissions(caller, 'gateway', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            if (!option || !option.name) {
+                return cb(new CodeError(400, 'Gateway name is required.'));
+            };
+
+            return application.WConsole.gatewayVars(option.name, option.direction, function (err, res) {
+                if (err)
+                    return cb(err);
+
+                return plainCollectionToJSON(res, cb);
+            });
+        });
+    },
+
+    /**
+     *
+     * @param caller
      * @param gatewayName
      * @param cb
      */

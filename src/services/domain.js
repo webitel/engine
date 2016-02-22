@@ -61,7 +61,7 @@ var Service = {
                 if (option['type'] == 'plain') {
                     return cb(null, res);
                 }
-                return plainTableToJSON(res, null, cb);
+                return plainTableToJSON(res, null, cb, 0);
             });
         });
     },

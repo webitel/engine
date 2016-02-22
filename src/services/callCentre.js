@@ -17,6 +17,7 @@ var Service = {
      * @param option
      * @param cb
      */
+    // TODO rename to getAgents
     getTiers: function (caller, option, cb) {
         checkPermissions(caller, 'cc/tiers', 'r', function (err) {
             if (err)
@@ -28,6 +29,34 @@ var Service = {
                 return cb(new CodeError(400, "Bad request."));
 
             application.Esl.bgapi('callcenter_config queue list agents ' + option['queue'] + '@' + domain,
+                function (res) {
+                    var err = checkEslError(res);
+                    if (err)
+                        return cb(err);
+
+                    parsePlainTableToJSONArray(res['body'], function (err, arr) {
+                        if (err)
+                            return cb(err);
+
+                        return cb(null, arr);
+                    }, '|');
+                }
+            );
+
+        });
+    },
+    // TODO rename to getTiers
+    getTiersByQueue: function (caller, option, cb) {
+        checkPermissions(caller, 'cc/tiers', 'r', function (err) {
+            if (err)
+                return cb(err);
+            option = option || {};
+            var domain = validateCallerParameters(caller, option['domain']);
+
+            if (!option['queue'] || !domain)
+                return cb(new CodeError(400, "Bad request."));
+
+            application.Esl.bgapi('callcenter_config queue list tiers ' + option['queue'] + '@' + domain,
                 function (res) {
                     var err = checkEslError(res);
                     if (err)

@@ -11,7 +11,10 @@ module.exports = {
 };
 
 function addRoutes(api) {
+    // TODO rename to /api/v2/callcenter/queues/:queue/agents (Kibana usage api)
     api.get('/api/v2/callcenter/queues/:queue/tiers', getTiers);
+    // TODO error...
+    api.get('/api/v2/callcenter/queues/:queue/tiers_', getTiersByQueue);
     api.get('/api/v2/callcenter/queues/:queue/members', getMembers);
     api.get('/api/v2/callcenter/queues/:queue/members/count', getMembersCount);
 
@@ -36,6 +39,24 @@ function addRoutes(api) {
     api.put('/api/v2/callcenter/queues/:queue/tiers/:agent/position', setTierPosition);
 
     api.delete('/api/v2/callcenter/queues/:queue/tiers/:agent', deleteTier);
+};
+
+function getTiersByQueue (req, res, next) {
+    var options = {
+        "domain": req.query['domain'],
+        "queue": req.params['queue']
+    };
+    ccServices.getTiersByQueue(req.webitelUser, options, function (err, arr) {
+        if (err)
+            return next(err);
+
+        res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": arr
+            })
+    });
 };
 
 function getTiers (req, res, next) {
