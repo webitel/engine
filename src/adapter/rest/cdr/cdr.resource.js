@@ -81,7 +81,10 @@ function proxyToCdr(request, response, next) {
             res.on('end', function () {
                 res.destroy();
             });
-
+            console.dir('-------------------------- RESPONSE --------------------------');
+            console.dir(res.statusCode);
+            console.dir(res.headers);
+            console.dir('-------------------------- END RESPONSE --------------------------');
             response.writeHead(res.statusCode, res.headers);
 
             res.pipe(response);
@@ -97,6 +100,9 @@ function proxyToCdr(request, response, next) {
 
 // write data to request body
     if (request._body) {
+        console.dir('-------------- POST BODY !!!---------------');
+        console.dir(postData);
+
         req.write(postData);
     };
     request.on('end', function () {
