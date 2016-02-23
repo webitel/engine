@@ -4,6 +4,7 @@
 'use strict';
 
 var os = require('os'),
+    conf = require(__appRoot + '/conf'),
     pretty = require('prettysize');
 
 module.exports = {
@@ -15,8 +16,14 @@ module.exports = {
  */
 function addRoutes(api) {
     api.get('/api/v2/status', applicationStatus);
+    api.get('/api/v2/status/config', applicationStatusConfig);
     api.get('/api/v1/status', applicationStatus);
 };
+
+function applicationStatusConfig (req, res) {
+    // TODO add config
+    res.status(200).end();
+}
 
 function applicationStatus(req, res) {
     if (application.Esl && !application.Esl['connecting']) {

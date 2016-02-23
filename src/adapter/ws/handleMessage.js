@@ -10,7 +10,8 @@ var conf = require('../../conf'),
     User = require(__appRoot + '/models/user'),
     handleStatusDb = require(__appRoot + '/services/userStatus').insert,
     DIFF_AGENT_LOGOUT_SEC = conf.get('application:callCentre:diffAgentLogoutTimeSec') || 60,
-    SCHEDULE_TIME_SEC = conf.get('application:callCentre:scheduleLogoutSec') || 60
+    SCHEDULE_TIME_SEC = conf.get('application:callCentre:scheduleLogoutSec') || 60,
+    getIp = require(__appRoot + '/utils/ip')
     ;
 
 module.exports = Handler;
@@ -56,7 +57,7 @@ function Handler(wss, application) {
                 }
             };
             caller.sendSessionObject(response, sessionId);
-            log.trace('New pear %s [%s]', caller && caller.id, ws.upgradeReq.connection.remoteAddress);
+            log.trace('New pear %s [%s]', caller && caller.id, getIp(ws.upgradeReq));
         };
 
         ws.once('webitelAuth', onAuth);
