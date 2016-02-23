@@ -51,40 +51,25 @@ function proxyToCdr(request, response, next) {
         port: CDR_SERVER.port,
         path: CDR_SERVER.path + request.originalUrl,
         headers: {
-            //'x-forward-for': request.connection.remoteAddress || request.socket.remoteAddress,
-            //'x-forward-port': getPort(request),
-            //'x-forward-proto': request.connection.pair ? 'https' : 'http'
         },
         method: request.method,
         rejectUnauthorized: false
     };
 
-    if (request.headers.hasOwnProperty('content-type')) {
-        options.headers['content-type'] = request.headers['content-type']
-    };
+    for (let key in request.headers)
+        options.headers[key] = request.headers[key]
+
     if (request.headers.hasOwnProperty('content-length')) {
         options.headers['content-length'] = request._body
-                ? Buffer.byteLength(postData)
-                : request.headers['content-length'];
+            ? Buffer.byteLength(postData)
+            : request.headers['content-length'];
     };
-    if (request.headers.hasOwnProperty('x-access-token')) {
-        options.headers['x-access-token'] = request.headers['x-access-token']
-    };
-    if (request.headers.hasOwnProperty('x-key')) {
-        options.headers['x-key'] = request.headers['x-key']
-    };
-    // TODO debug
-    console.dir(options);
 
     var req = client(options, function(res) {
         try {
             res.on('end', function () {
                 res.destroy();
             });
-            console.dir('-------------------------- RESPONSE --------------------------');
-            console.dir(res.statusCode);
-            console.dir(res.headers);
-            console.dir('-------------------------- END RESPONSE --------------------------');
             response.writeHead(res.statusCode, res.headers);
 
             res.pipe(response);
@@ -100,9 +85,6 @@ function proxyToCdr(request, response, next) {
 
 // write data to request body
     if (request._body) {
-        console.dir('-------------- POST BODY !!!---------------');
-        console.dir(postData);
-
         req.write(postData);
     };
     request.on('end', function () {
