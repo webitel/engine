@@ -16,7 +16,7 @@
     "eventemitter2": "^0.4.14",
     "express": "^4.13.3",
     "jwt-simple": "^0.3.0",
-    "mongodb": "^2.1.6",
+    "mongodb": "^2.1.7",
     "nconf": "^0.7.1",
     "node-uuid": "^1.4.3",
     "nodemailer": "^1.4.0",

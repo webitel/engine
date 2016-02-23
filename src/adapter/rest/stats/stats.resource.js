@@ -97,6 +97,7 @@ function getWConsoleInfo () {
         "Status": wConsole._status == 1 ? "Connected": "Offline",
         "ApiQueue": wConsole.apiCallbackQueue.length,
         "CmdQueue": wConsole.cmdCallbackQueue.length,
-        "Version": wConsole.version || ''
+        "Version": wConsole.version || '',
+        "Sid": wConsole._serverId
     }
 }

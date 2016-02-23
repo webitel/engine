@@ -73,6 +73,8 @@ function proxyToCdr(request, response, next) {
     if (request.headers.hasOwnProperty('x-key')) {
         options.headers['x-key'] = request.headers['x-key']
     };
+    // TODO debug
+    console.dir(options);
 
     var req = client(options, function(res) {
         try {
