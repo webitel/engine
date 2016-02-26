@@ -46,30 +46,27 @@ var Service = {
         });
     },
     // TODO rename to getTiers
-    getTiersByQueue: function (caller, option, cb) {
+    getTiersByFilter: function (caller, option, cb) {
         checkPermissions(caller, 'cc/tiers', 'r', function (err) {
             if (err)
                 return cb(err);
             option = option || {};
             var domain = validateCallerParameters(caller, option['domain']);
 
-            if (!option['queue'] || !domain)
+            if ((!option['queue'] && !option['agent'])|| !domain)
                 return cb(new CodeError(400, "Bad request."));
 
-            application.Esl.bgapi('callcenter_config queue list tiers ' + option['queue'] + '@' + domain,
-                function (res) {
-                    var err = checkEslError(res);
+            application.WConsole.tierList(caller, {data: option['queue'] || option['agent'], domain: domain, type: option.type}, (e, res) => {
+                if (err)
+                    return cb(err);
+
+                parsePlainTableToJSONArray(res, function (err, arr) {
                     if (err)
                         return cb(err);
 
-                    parsePlainTableToJSONArray(res['body'], function (err, arr) {
-                        if (err)
-                            return cb(err);
-
-                        return cb(null, arr);
-                    }, '|');
-                }
-            );
+                    return cb(null, arr);
+                });
+            });
 
         });
     },

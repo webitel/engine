@@ -44,53 +44,18 @@ function redirectToCdr(request, response, next) {
     response.redirect(307, CDR_SERVER_HOST + request.originalUrl);
 };
 
-function proxyToCdr(request, response, next) {
-    var postData = JSON.stringify(request.body);
-    var options = {
-        hostname: CDR_SERVER.hostName,
-        port: CDR_SERVER.port,
-        path: CDR_SERVER.path + request.originalUrl,
-        headers: {
-        },
-        method: request.method,
-        rejectUnauthorized: false
-    };
+var httpProxy = require('http-proxy');
+var proxy = httpProxy.createProxyServer({});
+proxy.on('error', (e) => {
+    log.error(e);
+});
 
-    for (let key in request.headers)
-        options.headers[key] = request.headers[key]
-
-    if (request.headers.hasOwnProperty('content-length')) {
-        options.headers['content-length'] = request._body
-            ? Buffer.byteLength(postData)
-            : request.headers['content-length'];
-    };
-
-    var req = client(options, function(res) {
-        try {
-            res.on('end', function () {
-                res.destroy();
-            });
-            response.writeHead(res.statusCode, res.headers);
-
-            res.pipe(response);
-        } catch (e){
+function proxyToCdr(req, res, next) {
+    proxy.web(req, res, { target: CDR_SERVER_HOST}, (e) => {
+        if (e) {
             log.error(e);
         }
     });
-
-    req.on('error', function(e) {
-        log.error(e);
-        next(e);
-    });
-
-// write data to request body
-    if (request._body) {
-        req.write(postData);
-    };
-    request.on('end', function () {
-        req.end();
-    });
-    request.pipe(req);
 };
 
 function getRedirectUrl(req, res, next) {

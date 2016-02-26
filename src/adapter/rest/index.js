@@ -9,9 +9,13 @@ var path = require('path');
 var conf = require(__appRoot + '/conf');
 
 api.use(favicon(__appRoot + '/public/static/favicon.ico'));
-api.use(bodyParser.json());
 
 require('./logger').addRoutes(api);
+require('./cdr/cdr.resource').addRoutes(api);
+
+api.use(bodyParser.json());
+
+
 if (conf.get('conference:enable').toString() == 'true') {
     api.use('/', express.static(path.join(__appRoot, '/public/conference')));
     require('./verto/verto.resource').addRoutes(api);

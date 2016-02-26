@@ -878,6 +878,24 @@ Webitel.prototype.queueUpdateItemState = function (_caller, args, cb) {
     });
 };
 
+Webitel.prototype.tierList = function (_caller, args, cb) {
+        /// callcenter_config tiers list @domain
+    var _params = [
+        'tier list',
+        (args.type == 'agent' ? 'agent' : 'queue') + ':' + args['data'] + '@' + args['domain']
+    ];
+
+    this.api(WebitelCommandTypes.CallCenter.Root, _params, function (res) {
+        var err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        };
+
+        cb(null, res.body);
+    });
+};
+
 Webitel.prototype.tierCreate = function (_caller, args, cb) {
 
     var _params = 'tier add '.concat(args['queue'], '@', args['domain'], ' ', args['agent'],
@@ -1504,7 +1522,7 @@ function checkBodyError(response) {
         if (!response || !response.body)
             return new CodeError(500, "Bad response console server.");
         if (response.body.indexOf('-ERR') === 0 || response.body.indexOf('-USAGE:') === 0) {
-            return new CodeError(500, response.body);
+            return new CodeError(/not found/.test(response.body) ? 404 : 500, response.body);
         }
         return null;
     } catch (e) {

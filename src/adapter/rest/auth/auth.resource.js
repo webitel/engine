@@ -9,6 +9,7 @@ var jwt = require('jwt-simple'),
     CodeError = require(__appRoot + '/lib/error'),
     authService = require(__appRoot + '/services/auth'),
     aclService = require(__appRoot + '/services/acl'),
+    cdrSrv = config.get('cdrServer'),
     tokenSecretKey = config.get('application:auth:tokenSecretKey');
 
 module.exports = {
@@ -48,6 +49,7 @@ function login (req, res, next) {
         };
 
         if (result) {
+            result.cdr = cdrSrv;
             return res
                 .json(result);
         };
@@ -173,7 +175,8 @@ function whoami(req, res, next) {
             'id': _user.id,
             'domain': _user.domain,
             'roleName': _user.roleName,
-            'expires': _user.expires
+            'expires': _user.expires,
+            'cdr': cdrSrv
         });
     });
-}
+};

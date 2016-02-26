@@ -432,8 +432,8 @@ function addQuery(db) {
         getDomainVariable: function (domain, cb) {
             db
                 .collection(domainVariableCollectionName)
-                .find({"domain": domain})
-                .toArray(cb);
+                .findOne({"domain": domain}, cb);
+                //.toArray(cb);
             return 1;
         },
 

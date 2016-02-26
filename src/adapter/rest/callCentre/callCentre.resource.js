@@ -46,7 +46,7 @@ function getTiersByQueue (req, res, next) {
         "domain": req.query['domain'],
         "queue": req.params['queue']
     };
-    ccServices.getTiersByQueue(req.webitelUser, options, function (err, arr) {
+    ccServices.getTiersByFilter(req.webitelUser, options, function (err, arr) {
         if (err)
             return next(err);
 

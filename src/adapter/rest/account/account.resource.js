@@ -3,7 +3,8 @@
  */
 'use strict';
 
-var accountService = require(__appRoot + '/services/account');
+var accountService = require(__appRoot + '/services/account'),
+    ccService = require(__appRoot + '/services/callCentre');
 
 module.exports = {
     addRoutes: addRoutes
@@ -15,6 +16,7 @@ module.exports = {
 function addRoutes(api) {
     api.post('/api/v2/accounts', create);
     api.get('/api/v2/accounts/:name', item);
+    api.get('/api/v2/accounts/:name/tiers', tiers);
     api.get('/api/v2/accounts?:domain', list);
     api.put('/api/v2/accounts/:name', update);
     api.delete('/api/v2/accounts/:name', remove);
@@ -23,6 +25,7 @@ function addRoutes(api) {
     api.post('/api/v1/accounts?', createV1);
     api.delete('/api/v1/accounts?/:name', removeV1);
 };
+
 
 function createV1 (req, res, next) {
     let option = req.body || {};
@@ -97,6 +100,29 @@ function item (req, res, next) {
     };
 
     accountService.item(req.webitelUser, option,
+        function (err, result) {
+            if (err) {
+                return next(err);
+            };
+
+            return res
+                    .status(200)
+                    .json({
+                        "status": "OK",
+                        "info": result
+                    });
+        }
+    );
+};
+
+function tiers (req, res, next) {
+    let option = {
+        "agent": req.params['name'],
+        "type": "agent",
+        "domain": req.query['domain']
+    };
+
+    ccService.getTiersByFilter(req.webitelUser, option,
         function (err, result) {
             if (err) {
                 return next(err);

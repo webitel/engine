@@ -12,7 +12,7 @@ module.exports = function (eslResponse) {
 
     if (eslResponse && typeof eslResponse['body'] == 'string')
         if (eslResponse['body'].indexOf('-ERR') == 0 || eslResponse['body'].indexOf('-USAGE') == 0)
-            return new CodeError(200, eslResponse['body']);
+            return new CodeError(500, eslResponse['body']);
 
     return false;
 };
