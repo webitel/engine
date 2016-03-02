@@ -39,6 +39,10 @@ function addRoutes(api) {
     api.put('/api/v2/callcenter/queues/:queue/tiers/:agent/position', setTierPosition);
 
     api.delete('/api/v2/callcenter/queues/:queue/tiers/:agent', deleteTier);
+
+    // WTEL-323
+    api.post('/api/v2/callcenter/agent/:id/status', agentSetStatus);
+    api.post('/api/v2/callcenter/agent/:id/state', agentSetState)
 };
 
 function getTiersByQueue (req, res, next) {
@@ -300,6 +304,46 @@ function deleteTier (req, res, next) {
     };
 
     ccServices.tierDelete(req.webitelUser, option, function (err, result) {
+        if (err)
+            return next(err);
+
+        res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            })
+    });
+};
+
+function agentSetStatus(req, res, next) {
+    let options = {
+        domain: req.query['domain'],
+        agent: req.params['id'],
+        status: req.body.status
+    };
+
+    ccServices.setAgentStatus(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            })
+    });
+};
+
+function agentSetState(req, res, next) {
+    let options = {
+        domain: req.query['domain'],
+        agent: req.params['id'],
+        state: req.body.state
+    };
+
+    ccServices.setAgentState(req.webitelUser, options, (err, result) => {
         if (err)
             return next(err);
 

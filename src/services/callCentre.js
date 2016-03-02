@@ -134,6 +134,82 @@ var Service = {
      * @param option
      * @param cb
      */
+    setAgentStatus: function (caller, option, cb) {
+        checkPermissions(caller, 'cc/tiers', 'u', function (err) {
+            if (err)
+                return cb(err);
+            option = option || {};
+            var domain = validateCallerParameters(caller, option['domain']);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            };
+
+            if (!option.agent) {
+                return cb(new CodeError(400, 'Agent is required.'))
+            };
+            let status = option['status']
+                    ? " '" + option['status'] + "'"
+                    : " 'Available'"
+                ;
+
+            application.Esl.bgapi('callcenter_config agent set status ' + option.agent + '@' + domain + ' ' + status, function (res) {
+                if (getResponseOK(res)) {
+                    return cb(null, res.body);
+                } else {
+                    // TODO new fn parse error
+                    let body = (res && res.body) || '';
+                    let status = /not\sfound!/.test(body) ? 404 : 400;
+                    return cb(new CodeError(status, body));
+                }
+            });
+        });
+    },
+
+    /**
+     *
+     * @param caller
+     * @param option
+     * @param cb
+     */
+    setAgentState: function (caller, option, cb) {
+        checkPermissions(caller, 'cc/tiers', 'u', function (err) {
+            if (err)
+                return cb(err);
+            option = option || {};
+            var domain = validateCallerParameters(caller, option['domain']);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            };
+
+            if (!option.agent) {
+                return cb(new CodeError(400, 'Agent is required.'))
+            };
+            let state = option.state
+                    ? " '" + option.state + "'"
+                    : " 'Waiting'"
+                ;
+
+            application.Esl.bgapi('callcenter_config agent set state ' + option.agent + '@' + domain + ' ' + state, function (res) {
+                if (getResponseOK(res)) {
+                    return cb(null, res.body);
+                } else {
+                    // TODO new fn parse error
+                    let body = (res && res.body) || '';
+                    let status = /not\sfound!/.test(body) ? 404 : 400;
+                    return cb(new CodeError(status, body));
+                }
+            });
+        });
+    },
+    
+    /**
+     *
+     * @param caller
+     * @param option
+     * @param cb
+     */
     login: function (caller, option, cb) {
         let status = option['status']
             ? " '" + option['status'] + "'"
