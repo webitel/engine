@@ -4,7 +4,9 @@
 'use strict';
 
 var accountService = require(__appRoot + '/services/account'),
-    ccService = require(__appRoot + '/services/callCentre');
+    ccService = require(__appRoot + '/services/callCentre'),
+    channelService = require(__appRoot + '/services/channel')
+    ;
 
 module.exports = {
     addRoutes: addRoutes
@@ -24,6 +26,9 @@ function addRoutes(api) {
     // V1
     api.post('/api/v1/accounts?', createV1);
     api.delete('/api/v1/accounts?/:name', removeV1);
+
+    // Channel actions
+    api.post('/api/v2/accounts/:id/spy', spy);
 };
 
 
@@ -196,5 +201,25 @@ function update (req, res, next) {
                             "info": result
                         });
             }
+    );
+};
+
+function spy (req, res, next) {
+    let option = req.body;
+    option.spy = req.params.id;
+    option.domain = req.query.domain;
+
+    channelService.spy(req.webitelUser, option, (err, result) => {
+            if (err) {
+                return next(err);
+            };
+
+            return res
+                .status(200)
+                .json({
+                    "status": "OK",
+                    "info": result.body
+                });
+        }
     );
 };

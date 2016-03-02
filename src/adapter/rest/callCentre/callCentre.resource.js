@@ -42,7 +42,7 @@ function addRoutes(api) {
 
     // WTEL-323
     api.post('/api/v2/callcenter/agent/:id/status', agentSetStatus);
-    api.post('/api/v2/callcenter/agent/:id/state', agentSetState)
+    api.post('/api/v2/callcenter/agent/:id/state', agentSetState);
 };
 
 function getTiersByQueue (req, res, next) {

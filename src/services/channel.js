@@ -6,6 +6,7 @@
 
 var log = require(__appRoot + '/lib/log')(module),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
+    CodeError = require(__appRoot + '/lib/error'),
     checkEslError = require(__appRoot + '/middleware/checkEslError');
 
 var Service = {
@@ -221,6 +222,39 @@ var Service = {
 
         Service.bgApi(
             'uuid_displace ' + options['channel-uuid'] + ' ' + _play,
+            cb
+        );
+    },
+
+    spy: function (caller, options, cb) {
+        var user = options['user'] || caller.id,
+            spy = options.spy,
+            side = options['side'],
+            displayValue = options['display'],
+            domain = validateCallerParameters(caller, options['domain']),
+            variables = ''
+            ;
+        if (!spy) {
+            return cb(new CodeError(400, "Bad spy user"));
+        };
+        if (!domain)
+            return cb(new CodeError(400, "Bad domain name"));
+
+
+        if (displayValue) {
+            variables = `[origination_callee_id_number=${displayValue},origination_caller_id_name=${displayValue}]`
+        };
+
+        user = (user + '').split('@')[0] + '@' + domain;
+        spy = (spy + '').split('@')[0] + '@' + domain;
+
+        if (!side) {
+            side = user;
+        };
+
+        Service.bgApi(
+            'originate ' + variables + 'user/' + user + ' &userspy(' + spy
+            + ') XML default ' + side + ' ' + side,
             cb
         );
     },
