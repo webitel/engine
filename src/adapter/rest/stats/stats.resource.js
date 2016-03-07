@@ -42,12 +42,13 @@ function getResult (freeSwitchStatus) {
         "Process ID": process.pid,
         "Process up time": formatTime(process.uptime()),
         "OS": getOsInfo(),
-        "Users_Session": application.Users.length(),
-        "Max_Users_Session": application.Users._maxSession,
-        "Domain_Session": application.Domains.length(),
+        "Users session": application.Users.length(),
+        "Max users session": application.Users._maxSession,
+        "Domain session": application.Domains.length(),
         "Webitel": getWConsoleInfo(),
         "CRASH_WORKER_COUNT": process.env['CRASH_WORKER_COUNT'] || 0,
-        "freeSWITCH": (freeSwitchStatus) ? freeSwitchStatus['body'] : 'Connect server error.'
+        "freeSWITCH": (freeSwitchStatus) ? freeSwitchStatus['body'] : 'Connect server error.',
+        "Node version": process.version
     }
 }
 
