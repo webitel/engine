@@ -48,23 +48,43 @@ var Indexes = {
             "variables.uuid" : 1
         },
         {
-            "_name": "cdrFields",
-            "_": {
-                "callflow.times.created_time" : -1,
-                "variables.uuid" : 1,
-                "callflow.caller_profile.caller_id_name" : 1,
-                "callflow.caller_profile.caller_id_number" : 1,
-                "callflow.caller_profile.callee_id_number" : 1,
-                "callflow.caller_profile.callee_id_name" : 1,
-                "callflow.caller_profile.destination_number" : 1,
-                "callflow.times.answered_time" : 1,
-                "callflow.times.bridged_time" : 1,
-                "callflow.times.hangup_time" : 1,
-                "variables.duration" : 1,
-                "variables.hangup_cause" : 1,
-                "variables.billsec" : 1,
-                "variables.direction" : 1
-            }
+            "callflow.times.created_time" : 1
+        },
+        {
+            "callflow.caller_profile.caller_id_name" : 1
+        },
+        {
+            "callflow.caller_profile.caller_id_number" : 1
+        },
+        {
+            "callflow.caller_profile.callee_id_number" : 1
+        },
+        {
+            "callflow.caller_profile.callee_id_name" : 1
+        },
+        {
+            "callflow.caller_profile.destination_number" : 1
+        },
+        {
+            "callflow.times.answered_time" : 1
+        },
+        {
+            "callflow.times.bridged_time" : 1
+        },
+        {
+            "callflow.times.hangup_time" : 1
+        },
+        {
+            "variables.duration" : 1
+        },
+        {
+            "variables.hangup_cause" : 1
+        },
+        {
+            "variables.billsec" : 1
+        },
+        {
+            "variables.direction" : 1
         }
     ],
     "collectionFile": [{

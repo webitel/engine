@@ -95,6 +95,7 @@ module.exports = [
         roles: 'user',
         allows: {
             'account': ['r', 'uo'],
+            'acl/roles': ['r'],
             'blacklist': ['c', 'u', 'r'],
             'channels': ['*'],
             'book': ['c', 'u', 'r'],
