@@ -84,7 +84,7 @@ var Indexes = {
             "variables.billsec" : 1
         },
         {
-            "variables.direction" : 1
+            "variables.webitel_direction" : 1
         }
     ],
     "collectionFile": [{
