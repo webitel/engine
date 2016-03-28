@@ -150,7 +150,8 @@ function validateRequestV2(req, res, next) {
                     domain: dbUser.domain,
                     role: dbUser.role,
                     roleName: dbUser.roleName,
-                    expires: dbUser.expires
+                    expires: dbUser.expires,
+                    acl: dbUser.acl
                     //testLeak: new Array(1e6).join('X')
                 };
                 next(); // To move to next middleware

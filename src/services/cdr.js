@@ -7,7 +7,7 @@
 var CodeError = require(__appRoot + '/lib/error'),
     authService = require('./auth'),
     conf = require(__appRoot + '/conf'),
-    CDR_SERVER_URL = conf.get("cdrServer:host"),
+    CDR_SERVER_URL = conf.get("cdrServer:host").replace(/\/$/, ''),
     CDR_GET_FILE_API = '/api/v2/files/',
     checkPermissions = require(__appRoot + '/middleware/checkPermissions')
     ;

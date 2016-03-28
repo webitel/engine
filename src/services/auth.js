@@ -158,7 +158,7 @@ function validate (username, password, _id, cb) {
                 "token": tokenObj.token,
                 "role": user.role.val,
                 "roleName": user.role.name,
-                //"acl": user.acl
+                "acl": user.acl
             };
         var authDb = application.DB._query.auth;
         authDb.add(userObj, function (err) {
@@ -189,7 +189,7 @@ function getTokenMaxExpires (caller, diff, cb) {
 
         try {
             var _id = generateUuid.v4();
-            var tokenObj = genToken(caller['id']),
+            var tokenObj = genToken(caller['id'], caller.acl),
                 userObj = {
                     "key": _id,
                     "domain": caller['domain'],
@@ -197,7 +197,8 @@ function getTokenMaxExpires (caller, diff, cb) {
                     "expires": tokenObj.expires,
                     "token": tokenObj.token,
                     "role": caller['role'] && caller['role']['val'],
-                    "roleName": caller['roleName']
+                    "roleName": caller['roleName'],
+                    "acl": caller.acl
                 };
             var authDb = application.DB._query.auth;
             authDb.add(userObj, function (err) {

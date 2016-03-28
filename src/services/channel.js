@@ -18,9 +18,9 @@ var Service = {
             function (res) {
                 var err = checkEslError(res);
                 if (err)
-                    return cb(err, res);
+                    return cb && cb(err, res);
 
-                return cb(null, res);
+                return cb && cb(null, res);
             }
         );
     },
@@ -152,9 +152,19 @@ var Service = {
     },
 
     attXferBridge: function (caller, options, cb) {
+        Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-d'] + ' w_transfer_result confirmed');
+        Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-a'] + ' w_transfer_result confirmed');
+
         Service.bgApi(
             'uuid_bridge ' + options['channel-uuid-leg-c'] + ' ' + options['channel-uuid-leg-b'],
-            cb
+            (err, res) => {
+                if (err) {
+                    Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-d'] + ' w_transfer_result error');
+                    Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-a'] + ' w_transfer_result error');
+                };
+
+                return cb && cb(err, res);
+            }
         );
     },
 
