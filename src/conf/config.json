@@ -67,6 +67,7 @@
             "CHANNEL_CREATE",
             "CHANNEL_DESTROY",
             "CHANNEL_STATE",
+            "CHANNEL_CALLSTATE",
             "CHANNEL_ANSWER",
             "CHANNEL_HANGUP_COMPLETE",
             "CHANNEL_HANGUP",
