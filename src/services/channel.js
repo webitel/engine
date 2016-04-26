@@ -156,7 +156,7 @@ var Service = {
         Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-a'] + ' w_transfer_result confirmed');
 
         Service.bgApi(
-            'uuid_bridge ' + options['channel-uuid-leg-c'] + ' ' + options['channel-uuid-leg-b'],
+            'uuid_bridge ' + options['channel-uuid-leg-b'] + ' ' + options['channel-uuid-leg-c'],
             (err, res) => {
                 if (err) {
                     Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-d'] + ' w_transfer_result error');
