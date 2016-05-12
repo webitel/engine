@@ -8,8 +8,13 @@ var CodeError = require(__appRoot + '/lib/error'),
     log = require(__appRoot + '/lib/log')(module)
     ;
 
+const noWriteStatus = String(conf.get('application:writeUserStatus')) !== 'true';
+
 var Service = {
     insert: function (option) {
+
+        if (noWriteStatus) return;
+
         let status = option['status'];
         let state = option['state'];
         let userId = option['account'];

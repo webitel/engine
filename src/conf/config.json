@@ -51,6 +51,7 @@
     "application": {
         "loglevel": "trace",
         "callcenter": true,
+        "writeUserStatus": false,
         "logstash": {
             "enabled": false,
             "host": "logstash",
