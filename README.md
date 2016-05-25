@@ -1,6 +1,6 @@
 # engine
 
-[![Build Status](https://travis-ci.org/webitel/engine.svg?branch=3.2.2)](https://travis-ci.org/webitel/engine) [![Docker Pulls](https://img.shields.io/docker/pulls/webitel/engine.svg?maxAge=2592000)](https://hub.docker.com/r/webitel/engine) [![Documentation Status](https://readthedocs.org/projects/webitel/badge/?version=latest)](http://api.webitel.com/en/latest/?badge=latest)
+[![Build Status](https://travis-ci.org/webitel/engine.svg?branch=master)](https://travis-ci.org/webitel/engine) [![Docker Pulls](https://img.shields.io/docker/pulls/webitel/engine.svg?maxAge=2592000)](https://hub.docker.com/r/webitel/engine) [![Documentation Status](https://readthedocs.org/projects/webitel/badge/?version=latest)](http://api.webitel.com/en/latest/?badge=latest)
 
 ## Default ports
 
