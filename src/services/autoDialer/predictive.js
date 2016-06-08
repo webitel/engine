@@ -53,10 +53,10 @@ module.exports = class Predictive extends Dialer {
         application.Esl.subscribe([ 'CHANNEL_HANGUP_COMPLETE', 'CHANNEL_ANSWER']);
 
         //
-        for (let i = 99950; i <= 99999; i++) {
-            application.Esl.bgapi(`callcenter_config agent set status ${i}@10.10.10.144 Available`);
-            application.Esl.bgapi(`callcenter_config agent set state ${i}@10.10.10.144 Waiting`);
-        }
+        // for (let i = 99950; i <= 99999; i++) {
+        //     application.Esl.bgapi(`callcenter_config agent set status ${i}@10.10.10.144 Available`);
+        //     application.Esl.bgapi(`callcenter_config agent set state ${i}@10.10.10.144 Waiting`);
+        // }
 
         let dial = (member, cb) => {
             let ds = member._ds;
