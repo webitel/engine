@@ -29,7 +29,16 @@
         "collectionAgentStatus": "agentStatusEngine",
         "collectionConference": "conference",
         "collectionLocation": "location",
-        "collectionAclPermissions": "aclPermissions"
+        "collectionAclPermissions": "aclPermissions",
+        "collectionHook": "hook",
+        "collectionDialer": "dialer",
+        "collectionDialerMembers": "members"
+    },
+    "freeSWITCH": {
+        "host": "172.17.0.1",
+        "port": 8021,
+        "pwd": "ClueCon",
+        "reconnect": 5
     },
     "webitelServer": {
         "host": "CONSOLE_HOST",
@@ -38,49 +47,20 @@
         "secret": "ROOT_PASSWORD",
         "reconnect": 5
     },
-    "freeSWITCH": {
-        "host": "172.17.0.1",
-        "port": 8021,
-        "pwd": "ClueCon",
-        "reconnect": 5
-    },
     "cdrServer": {
-        "host": "https://pre.webitel.com:10023",
+        "host": "http://cdr:10023",
         "useProxy": false
     },
     "application": {
         "loglevel": "trace",
         "callcenter": true,
         "writeUserStatus": false,
-        "logstash": {
-            "enabled": false,
-            "host": "logstash",
-            "port": 28777,
-            "node_name": "core"
-        },
         "auth": {
             "tokenSecretKey": "g6Yhdb8jUm!hJ78Jhsw4EEc",
             "expiresDays": 7
         },
         "socketTimeUnauthorized": 5,
         "sleepConnectToWebitel": 1000,
-        "freeSWITCHEvents": [
-            "CHANNEL_CREATE",
-            "CHANNEL_DESTROY",
-            "CHANNEL_STATE",
-            "CHANNEL_CALLSTATE",
-            "CHANNEL_ANSWER",
-            "CHANNEL_HANGUP_COMPLETE",
-            "CHANNEL_HANGUP",
-            "CHANNEL_HOLD",
-            "CHANNEL_UNHOLD",
-            "CHANNEL_BRIDGE",
-            "CHANNEL_UNBRIDGE",
-            "CHANNEL_UUID",
-            "DTMF",
-            "CHANNEL_DATA",
-            "CUSTOM callcenter::info"
-        ],
         "callCentre": {
             "diffAgentLogoutTimeSec": 60,
             "scheduleLogoutSec": 60
@@ -97,8 +77,22 @@
         "enable": false,
         "domain": "meeting",
         "validateMail": false,
-        "validateUri": "https://webitel.com:10022/",
+        "validateUri": "https://webitel.com/",
         "aliveUserHour": 24,
         "scheduleHour": 5
+    },
+    "broker": {
+        "connectionString": "amqp://webitel:ROOT_PASSWORD@172.17.0.1:5672?heartbeat=0",
+        "config": {
+            "eventsExchange": {
+                "channel": "TAP.Events",
+                "cc": "TAP.CC-Events",
+                "commands": "TAP.Commands"
+            },
+            "exchange": {
+                "type": "topic",
+                "name": "Engine"
+            }
+        }
     }
 }

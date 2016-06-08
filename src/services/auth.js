@@ -32,7 +32,7 @@ function logout(option, cb) {
 
     if (key == '') {
         return cb(new CodeError(400, 'Bad key.'));
-    };
+    }
 
     validateUser(key, function (err, user) {
         if (err) {
@@ -43,9 +43,9 @@ function logout(option, cb) {
             return removeKey(key, cb);
         } else {
             return cb(new CodeError(401, 'Invalid credentials.'));
-        };
+        }
     });
-};
+}
 
 function login (option, cb) {
     var username = option['username'] || '',
@@ -54,10 +54,10 @@ function login (option, cb) {
 
     if (username == '') {
         return cb(new CodeError(401, 'Invalid credentials'));
-    };
+    }
 
     return getTokenObject(username, password, cb);
-};
+}
 
 function baseAuth(option, cb) {
     var username = option['username'] || '',
@@ -69,17 +69,17 @@ function baseAuth(option, cb) {
     } else {
         return cb();
     }
-};
+}
 
 function getTokenObject (username, password, cb) {
     var _id = generateUuid.v4();
     return validate(username, password, _id, cb);
-};
+}
 
 function removeKey(key, cb) {
     var authDb = application.DB._query.auth;
     authDb.remove(key, cb);
-};
+}
 
 function validateUser(key, cb) {
     try {
@@ -87,8 +87,8 @@ function validateUser(key, cb) {
         authDb.getByKey(key, cb);
     } catch (e){
         cb(e);
-    };
-};
+    }
+}
 
 function checkUser (login, password, cb) {
     try {
@@ -105,9 +105,9 @@ function checkUser (login, password, cb) {
                 });
             } else {
                 cb(new CodeError(401, 'secret incorrect'));
-            };
+            }
             return
-        };
+        }
 
         application.WConsole.userDara(login, 'global', ['a1-hash', 'account_role', 'cc-agent', 'status', 'state', 'description'], function (res) {
             try {
@@ -115,7 +115,7 @@ function checkUser (login, password, cb) {
             } catch (e) {
                 cb(new CodeError(401, res['body'] || e.message));
                 return;
-            };
+            }
             var a1Hash = md5(login.replace('@', ':') + ':' + password);
             var registered = (a1Hash == resJson['a1-hash']);
 
@@ -134,19 +134,19 @@ function checkUser (login, password, cb) {
                 });
             } else {
                 cb(new CodeError(401, 'secret incorrect'));
-            };
+            }
         });
 
     } catch (e) {
         cb(e);
-    };
-};
+    }
+}
 
 function validate (username, password, _id, cb) {
     checkUser(username, password, function (err, user) {
         if (err) {
             return cb(err);
-        };
+        }
 
         var tokenObj = genToken(username, user.acl),
             acl = user.acl,
@@ -167,7 +167,7 @@ function validate (username, password, _id, cb) {
         });
 
     });
-};
+}
 
 function getTokenMaxExpires (caller, diff, cb) {
     if (!caller) {
@@ -209,20 +209,20 @@ function getTokenMaxExpires (caller, diff, cb) {
         }
 
     });
-};
+}
 
 function removeFromUserName (username, domain, cb) {
     if (!username) {
         return cb(new CodeError(400, 'User name is required.'));
-    };
+    }
     var authDb = application.DB._query.auth;
     return authDb.removeUserTokens(username, domain, cb);
-};
+}
 
 function _removeDomainsTokens (domain, cb) {
     if (!domain) {
         return cb(new CodeError(400, 'Domain is required.'));
-    };
+    }
     var authDb = application.DB._query.auth;
     return authDb.removeDomainTokens(domain, cb);
 }
@@ -248,15 +248,15 @@ function genToken(user, aclList) {
         payload.acl = {};
         if (aclList.hasOwnProperty('cdr')) {
             payload.acl['cdr'] = aclList.cdr;
-        };
+        }
         if (aclList.hasOwnProperty('cdr/files')) {
             payload.acl['cdr/files'] = aclList['cdr/files'];
-        };
+        }
         if (aclList.hasOwnProperty('cdr/media')) {
             payload.acl['cdr/media'] = aclList['cdr/media'];
-        };
+        }
 
-    };
+    }
 
     var token = jwt.encode(payload, TOKEN_SECRET_KEY);
 
@@ -265,9 +265,9 @@ function genToken(user, aclList) {
         expires: expires,
         user: user
     };
-};
+}
 
 function expiresIn(numDays) {
     var dateObj = new Date();
     return dateObj.setDate(dateObj.getDate() + numDays);
-};
+}

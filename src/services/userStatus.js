@@ -13,7 +13,6 @@ const noWriteStatus = String(conf.get('application:writeUserStatus')) !== 'true'
 
 var Service = {
     insert: function (option) {
-
         if (noWriteStatus) return;
 
         let status = option['status'];

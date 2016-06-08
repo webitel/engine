@@ -390,7 +390,7 @@ Webitel.prototype.userList = function(_caller, domain, cb) {
         if (err) {
             cb(err);
             return;
-        };
+        }
 
         cb(null, res.body);
     });
@@ -637,6 +637,16 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
     };
 };
 
+Webitel.prototype.setAccountStatus = function (id, status, cb) {
+    if (!id || !status)
+        return cb && cb(new Error('Bad parameters'));
+
+    this.api(WebitelCommandTypes.Account.Change, [
+        id,
+        `status ${status}`
+    ], cb);
+};
+
 Webitel.prototype.userUpdate = function(_caller, user, paramName, paramValue, cb) {
     var _domain = user.split('@')[1];
 
@@ -796,7 +806,7 @@ Webitel.prototype.queueCreate = function (_caller, args, cb) {
 
 Webitel.prototype.queueItem = function (_caller, args, cb) {
 
-    var _params = 'queue ' + args['name'] + '@' + args['domain'],
+    var _params = 'queue ' + `'${args['name']}` + '@' + args['domain'] + '\'',
         self = this
         ;
     this.api(WebitelCommandTypes.CallCenter.Root, [_params], function (res) {

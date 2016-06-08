@@ -143,11 +143,11 @@ var Service = {
 
             if (!domain) {
                 return cb(new CodeError(400, 'Domain is required.'));
-            };
+            }
 
             if (!option.agent) {
                 return cb(new CodeError(400, 'Agent is required.'))
-            };
+            }
             let status = option['status']
                     ? " '" + option['status'] + "'"
                     : " 'Available'"
@@ -574,6 +574,36 @@ var Service = {
                     return cb(err, res);
                 }
             );
+        });
+    },
+    
+    _getAgentParams: function (agentId, cb) {
+        application.Esl.bgapi(`callcenter_config agent list ${agentId}`,
+            function (res) {
+                var err = checkEslError(res);
+                if (err)
+                    return cb(err);
+
+                parsePlainTableToJSONArray(res['body'], function (err, arr) {
+                    if (err)
+                        return cb(err);
+
+                    return cb(null, arr);
+                }, '|');
+            }
+        );
+    },
+
+    _setAgentState: function (agentId, state, cb) {
+        application.Esl.api(`callcenter_config agent set state ${agentId} ${state}`, function (res) {
+            if (getResponseOK(res)) {
+                return cb(null, res.body);
+            } else {
+                // TODO new fn parse error
+                let body = (res && res.body) || '';
+                let status = /not\sfound!/.test(body) ? 404 : 400;
+                return cb(new CodeError(status, body));
+            }
         });
     }
 

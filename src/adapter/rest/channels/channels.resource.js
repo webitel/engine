@@ -115,8 +115,8 @@ function fakeCall (req, res, next) {
         domainName = number.split('@')[1] || '',
         dialString =  ''.concat('originate ', '{presence_data=@', domainName, '}[sip_h_X-Test=', number.split('@')[0], ',origination_callee_id_number=',displayNumber,
             ',origination_caller_id_number=', displayNumber, ']', 'user/', number,
-            ' &bridge(sofia/external/test_terrasoft@switch-d1.webitel.com)')
-        ;
+            ' &bridge(sofia/external/test_terrasoft@switch-d1.webitel.com)');
+    ;
 
     channelService.bgApi(dialString,
         function (err, result) {

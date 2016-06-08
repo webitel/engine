@@ -9,5 +9,7 @@ var crm = require('./eslEvents/crm'),
 module.exports = handleWConsoleEvent;
 
 function handleWConsoleEvent (application) {
-    application.WConsole.on('webitel::event::event::**', crm);
+
+    application.Broker.on(`webitelEvent`, crm);
+
 };

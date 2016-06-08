@@ -38,7 +38,7 @@ function login (req, res, next) {
             "message": "Invalid credentials"
         });
         return;
-    };
+    }
 
     authService.login({
         username: username,
@@ -46,13 +46,13 @@ function login (req, res, next) {
     }, function (err, result) {
         if (err) {
             return next(err);
-        };
+        }
 
         if (result) {
             result.cdr = cdrSrv;
             return res
                 .json(result);
-        };
+        }
 
         return res
             .status(500)

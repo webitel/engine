@@ -40,6 +40,7 @@ function getResult (freeSwitchStatus) {
         "Version": process.env['VERSION'] || '',
         "Node memory": getMemoryUsage(),
         "Process ID": process.pid,
+        "Socket sessions": application._getWSocketSessions(),
         "Process up time": formatTime(process.uptime()),
         "OS": getOsInfo(),
         "Users session": application.Users.length(),

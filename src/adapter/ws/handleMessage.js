@@ -133,6 +133,10 @@ function Handler(wss, application) {
         });
     });
     
+    application._getWSocketSessions = function () {
+        return wss.clients.length
+    };
+    
     application.broadcast = function (event, user) {
         if (user) {
             user.broadcastInDomain(event);
@@ -186,9 +190,13 @@ function Handler(wss, application) {
     
     application.Users.on('removed', function (user) {
         try {
-            application.Esl.filterDelete('Channel-Presence-ID', user.id, function (res) {
-                log.debug(res.getHeader('Modesl-Reply-OK'));
-            });
+            application.Broker.unBindChannelEvents(
+                user,
+                (e) => {
+                    if (e)
+                        log.error(e);
+                }
+            );
 
             var _id = user.id.split('@'),
                 _domain = _id[1] || _id[0],
@@ -230,9 +238,15 @@ function Handler(wss, application) {
     application.Users._maxSession = 0;
     application.Users.on('added', function (user) {
         try {
-            application.Esl.filter('Channel-Presence-ID', user.id, function (res) {
-                log.debug(res.getHeader('Modesl-Reply-OK'));
-            });
+
+            application.Broker.bindChannelEvents(
+                user,
+                (e) => {
+                    if (e)
+                        log.error(e);
+                }
+            );
+
 
             if (this._maxSession < this.length())
                 this._maxSession = this.length();

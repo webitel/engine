@@ -13,8 +13,11 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     Collection = require('./lib/collection'),
     httpSrv = (conf.get('ssl:enabled').toString() == 'true') ? require('https') : require('http'),
     initDb = require('./db'),
-    plainTableToJSONArray = require('./utils/parse').plainTableToJSONArray
-    //outQueryService = require('./services/outboundQueue')
+    plainTableToJSONArray = require('./utils/parse').plainTableToJSONArray,
+    Broker = require('./lib/broker/index'),
+    Hooks = require('./services/hook/hookClass'),
+    checkEslError = require('./middleware/checkEslError'),
+    AutoDialer = require('./services/autoDialer')
     ;
 
 class Application extends EventEmitter2 {
@@ -28,6 +31,9 @@ class Application extends EventEmitter2 {
         this.Agents = new Collection('id');
         this.OutboundQuery = new Collection('id');
         this.loggedOutAgent = new Collection('id');
+        this.Broker = new Broker(conf.get('broker'), this);
+        new Hooks(this);
+        this.AutoDialer = new AutoDialer(this);
         process.nextTick(this.connectDb.bind(this));
     }
 
@@ -47,22 +53,21 @@ class Application extends EventEmitter2 {
         var conferenceService = require('./services/conference');
         var scope = this,
             ret = 0;
+
+
         scope.once('sys::connectDb', function (db) {
             //TODO bug!! account event prior connectToEsl
             scope.DB = db;
+            // TODO dialer init
             scope.initAcl();
             scope.connectToEsl();
             scope.attachProcess();
             scope.connectToWConsole();
         });
 
-        this.once('sys::connectEsl', function () {
+        this.once('sys::connectFsApi', function () {
             scope.configureExpress();
             conferenceService._runAutoDeleteUser(scope);
-            /**
-             * Init outbound
-             */
-            //outQueryService._init(scope);
         });
 
         scope.on('sys::connectDbError', (err) => {
@@ -78,15 +83,16 @@ class Application extends EventEmitter2 {
                 gc();
                 console.log('----------------- GC -----------------');
             }, 5000);
-        };
+        }
     }
 
     connectToEsl() {
+
         var waitTimeReconnectFreeSWITCH = conf.get('freeSWITCH:reconnect') * 1000,
             scope = this;
         if (this.Esl && this.Esl.connected) {
             return;
-        };
+        }
 
         var esl = this.Esl = new Esl.Connection(conf.get('freeSWITCH:host'),
             conf.get('freeSWITCH:port'),
@@ -96,17 +102,16 @@ class Application extends EventEmitter2 {
                 this.apiCallbackQueue.length = 0;
                 scope.emit('sys::eslConnect');
 
-                //TODO
                 log.info('Load tiers');
                 this.bgapi('callcenter_config tier list', function (res) {
                     let body = res && res['body'];
                     if (!body) {
                         return log.error('Load tiers response undefined !!!');
-                    };
+                    }
                     plainTableToJSONArray(body, function (err, result) {
                         if (err) {
                             return log.error(err);
-                        };
+                        }
                         scope.Agents.removeAll();
                         if (result instanceof Array) {
                             let _tmp;
@@ -118,9 +123,9 @@ class Application extends EventEmitter2 {
                                     scope.Agents.add(item['agent'], _tmp);
                                 } else {
                                     agent[item['queue']] = item;
-                                };
+                                }
                             });
-                        };
+                        }
 
                     }, '|')
                 });
@@ -129,7 +134,7 @@ class Application extends EventEmitter2 {
         esl.on('error', function(e) {
             log.error('freeSWITCH connect error:', e);
             esl.connected = false;
-
+            scope.emit('sys::errorConnectFsApi');
             setTimeout(function () {
                 scope.connectToEsl();
             }, waitTimeReconnectFreeSWITCH);
@@ -138,14 +143,7 @@ class Application extends EventEmitter2 {
         esl.on('esl::event::auth::success', function () {
             esl.connected = true;
             console.log('>>> esl::event::auth::success');
-            var ev = conf.get('application:freeSWITCHEvents');
-            esl.subscribe(ev);
-            //for (var key in ev) {
-            //    esl.filter('Event-Name', ev[key]);
-            //};
-            esl.filter('Event-Subclass', 'callcenter::info');
-            require('./adapter/ws/handleEslEvent')(scope);
-            scope.emit('sys::connectEsl');
+            scope.emit('sys::connectFsApi', esl);
         });
 
         esl.on('esl::event::auth::fail', function () {
@@ -173,7 +171,51 @@ class Application extends EventEmitter2 {
                 scope.connectToEsl();
             }, waitTimeReconnectFreeSWITCH);
         });
-    }
+
+        /** TODO check FS-9096 !!!
+        this.Esl = this.Broker;
+
+        let scope = this;
+
+        function loadTiers() {
+            scope.Broker.bgapi('callcenter_config tier list', function (res) {
+
+                if (checkEslError(res)) {
+                    setTimeout(loadTiers, 5000);
+                    return log.error('Load tiers response undefined !!!');
+                };
+
+                let body = res['body'];
+
+                scope.emit('sys::connectFsApi');
+
+                plainTableToJSONArray(body, function (err, result) {
+                    if (err) {
+                        return log.error(err);
+                    };
+                    scope.Agents.removeAll();
+                    if (result instanceof Array) {
+                        let _tmp;
+                        result.forEach(function (item) {
+                            let agent = scope.Agents.get(item['agent']);
+                            if (!agent) {
+                                _tmp = {};
+                                _tmp[item['queue']] = item;
+                                scope.Agents.add(item['agent'], _tmp);
+                            } else {
+                                agent[item['queue']] = item;
+                            };
+                        });
+                    };
+
+                }, '|')
+            });
+        };
+
+        loadTiers();
+
+         **/
+    };
 
     connectToWConsole () {
         var scope = this,
@@ -188,6 +230,7 @@ class Application extends EventEmitter2 {
 
         wconsole.on('webitel::socket::close', function (e) {
             log.error('Webitel error:', e.toString());
+            scope.emit('sys::wConsoleConnectError');
             setTimeout(function () {
                 scope.connectToWConsole();
             }, waitTimeReconnectConsole);
@@ -199,10 +242,7 @@ class Application extends EventEmitter2 {
 
         wconsole.on('webitel::event::auth::success', function () {
             log.info('Connect Webitel: %s:%s', this.host, this.port);
-            //scope.emit('sys::wConsoleConnect');
-            // TODO move to conf
-            wconsole.subscribe(["USER_CREATE", "USER_DESTROY", "DOMAIN_CREATE", "DOMAIN_DESTROY", "ACCOUNT_STATUS"]);
-            require('./adapter/ws/handleWConsoleEvent')(scope);
+            scope.emit('sys::wConsoleConnect');
 
             wconsole._getServerId((err, res) => {
                 if (err)
@@ -231,7 +271,7 @@ class Application extends EventEmitter2 {
             }, conf.get('application:sleepConnectToWebitel'));
         } else {
             wconsole.connect();
-        };
+        }
     }
 
     configureExpress () {
@@ -259,7 +299,7 @@ class Application extends EventEmitter2 {
                     log.info('Server (http) listening on port ' + this.address().port);
                     scope.emit('sys::serverStart', this, false);
                 });
-            };
+            }
             ws(server, this);
 
         } catch (e) {
@@ -273,17 +313,17 @@ class Application extends EventEmitter2 {
         if (this.DB) {
             this.DB.close();
             log.info('Disconnect DB...');
-        };
+        }
 
         if (this.Esl) {
             this.Esl.disconnect();
             log.info('Disconnect ESL...');
-        };
+        }
 
         if (this.WConsole) {
             this.WConsole.disconnect();
             log.info('Disconnect WConsole...');
-        };
+        }
 
         process.exit(1);
     }
@@ -294,12 +334,12 @@ class Application extends EventEmitter2 {
         });
     }
 
-    broadcastWorkers (msg) {
-        process.send({
-            msg: msg
-        });
-    }
-};
+    //broadcastWorkers (msg) {
+    //    process.send({
+    //        msg: msg
+    //    });
+    //}
+}
 
 process.on('uncaughtException', function (err) {
     log.error('UncaughtException:', err.message);

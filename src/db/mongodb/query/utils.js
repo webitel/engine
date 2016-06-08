@@ -6,7 +6,7 @@
 
 var ObjectId = require('mongodb').ObjectId;
 
-module.exports = {
+let Utils = module.exports = {
     buildFilterQuery: function (filter) {
         var filterArray = [];
         if (filter) {
@@ -38,5 +38,60 @@ module.exports = {
             return true;
         };
         return false;
+    },
+
+    searchInCollection: function (db, collectionName, options, cb) {
+        let filter = options['filter'],
+            columns = options['columns'] || {},
+            limit = parseInt(options['limit'], 10) || 40,
+            sort = options['sort'] || {},
+            pageNumber = parseInt(options['pageNumber'], 10),
+            domain = options.domain;
+
+        let query = Utils.buildFilterQuery(filter);
+
+        if (domain) {
+            query['$and'].push({
+                "domain": domain
+            });
+        }
+        try {
+
+            db
+                .collection(collectionName)
+                .find(query['$and'].length == 0 ? {} : query, columns)
+                .sort(sort)
+                .skip(pageNumber > 0 ? ((pageNumber - 1) * limit) : 0)
+                .limit(limit)
+                .toArray(cb);
+
+            return 1;
+        } catch (e) {
+            cb(e);
+        }
+    },
+
+    countInCollection: function (db, collectionName, options, cb) {
+        let filter = options['filter'],
+            domain = options.domain;
+
+        let query = Utils.buildFilterQuery(filter);
+
+        if (domain) {
+            query['$and'].push({
+                "domain": domain
+            });
+        }
+        try {
+
+            db
+                .collection(collectionName)
+                .find(query['$and'].length == 0 ? {} : query)
+                .count(cb);
+
+            return 1;
+        } catch (e) {
+            cb(e);
+        }
     }
 };

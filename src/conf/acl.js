@@ -17,6 +17,7 @@ const RESOURCES = [
     'acl/resource',
 
     'blacklist',
+    'calendar',
 
     'rotes/default',
     'rotes/public',
@@ -29,7 +30,11 @@ const RESOURCES = [
     'cc/members',
     'cc/queue',
 
+    'dialer',
+    'dialer/members',
+
     'book',
+    'hook',
 
     'cdr',
     'cdr/files',
@@ -58,6 +63,7 @@ module.exports = [
             'acl/resource': ["*"],
 
             'blacklist': ["*"],
+            'calendar': ["*"],
 
             // TODO rename !!!
             'rotes/default': ["*"],
@@ -71,7 +77,11 @@ module.exports = [
             'cc/members': ["*"],
             'cc/queue': ["*"],
 
+            'dialer': ["*"],
+            'dialer/members': ["*"],
+
             'book': ["*"],
+            'hook': ["*"],
 
             'cdr': ["*"],
             'cdr/files': ["*"],
@@ -109,6 +119,7 @@ module.exports = [
         parents: 'user',
         allows: {
             'blacklist': ["*"],
+            'calendar': ["*"],
 
             'rotes/default': ["*"],
             'rotes/public': ["*"],
@@ -121,7 +132,11 @@ module.exports = [
             'cc/members': ["*"],
             'cc/queue': ["*"],
 
+            'dialer': ["*"],
+            'dialer/members': ["*"],
+
             'book': ["*"],
+            'hook': ["*"],
 
             'cdr': ["*"],
             'cdr/files': ["*"],

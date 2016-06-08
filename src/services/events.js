@@ -91,7 +91,7 @@ var _eventsModule = {
     },
     // TODO existsCb переделать
     fire: function (eventName, domainId, event, cb, existsFn) {
-        log.trace('fire', eventName, domainId);
+        //log.trace('fire', eventName, domainId);
         if (typeof eventName != 'string' || !(event instanceof Object)) {
             if (cb)
                 cb(new Error('-ERR: Bad parameters'));

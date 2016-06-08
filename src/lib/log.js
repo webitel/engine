@@ -1,58 +1,50 @@
-var winston = require('winston');
-var conf = require('../conf');
-require('winston-logstash');
+let winston = require('winston');
+let conf = require('../conf');
 
 function getLogger(module) {
-    var pathDirectory = module.filename.split('//').slice(-2).join('//').split('\\');
-    var path = pathDirectory.slice(pathDirectory.length - 3).join('\\') + '(' + process.pid + ')';
+    let pathDirectory = module.filename.split(/\/+/).slice(-3);
+    let path = pathDirectory.join('\\') + '(' + process.pid + ')';
 
-    var logLevels = {
+    let logLevels = {
         levels: {
-            trace: 0,
-            debug: 1,
+            trace: 4,
+            debug: 3,
             warn: 2,
-            error: 3,
-            info: 4
+            error: 1,
+            info: 0
         },
         colors: {
-            trace: 'yellow',
-            debug: 'yellow',
+            trace: 'cyan',
+            debug: 'white',
             info: 'green',
             warn: 'yellow',
             error: 'red'
         }
     };
-    winston.addColors(logLevels.colors);
-    var logger = new (winston.Logger)({
+
+    let log = new (winston.Logger)({
         levels: logLevels.levels,
+        colors: logLevels.colors,
+        filters: [(l, msg, meta) => {
+            return maskSecrets(msg, meta);
+        }],
         transports: [
             new winston.transports.Console({
-                colorize: true,
+                colorize: 'all',
                 level: conf.get('application:loglevel'),
                 label: path,
-                'timestamp': true
+                timestamp: false
             })
         ]
     });
-    if (conf.get('application:logstash:enabled').toString() == 'true') {
-        logger.add(winston.transports.Logstash, {
-            port: conf.get('application:logstash:port'),
-            node_name: conf.get('application:logstash:node_name'),
-            host: conf.get('application:logstash:host'),
-            level: conf.get('application:loglevel')
-        });
-    };
-    //(\"secret\"\:\"[^\"]*\")|(password=[^,|"]*)|(\bauth\b[^.]*)
-    logger.addFilter(function (msg, meta) {
-        return maskSecrets(msg, meta);
-    });
-    return logger;
+
+    return log;
 };
 
 function maskSecrets(msg, meta) {
     if (/secret|password|\bauth\b/) {
         msg = msg.replace(/(\"secret\"\:\"[^\"]*\")|(password=[^,|"]*)|(\sauth\s[^.]*)|("password","value":"[^"]*)/g, '*****');
-    };
+    }
 
     return {
         msg: msg,

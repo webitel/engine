@@ -6,9 +6,11 @@ var MongoClient = require("mongodb").MongoClient,
 module.exports = initConnect;
 
 function initConnect (server) {
-    let options = {
+    var options = option = {
         server: {
-            auto_reconnect: true
+            auto_reconnect: true,
+            socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 },
+            replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
         }
     };
     mongoClient.connect(config.get('mongodb:uri'), options, function(err, db) {
@@ -16,7 +18,7 @@ function initConnect (server) {
             log.error('Connect db error: %s', err.message);
             return server.emit('sys::connectDbError', err);
         };
-
+        log.info('Connected db %s ', config.get('mongodb:uri'));
         require('./query/initCollections')(db);
 
         db._query = {
@@ -30,17 +32,26 @@ function initConnect (server) {
             userStatus: require('./query/userStatus').addQuery(db),
             location: require('./query/location').addQuery(db),
             conference: require('./query/conference').addQuery(db),
-            acl: require('./query/acl').addQuery(db)
+            acl: require('./query/acl').addQuery(db),
+            hook: require('./query/hook').addQuery(db),
+            calendar: require('./query/calendar').addQuery(db),
+            dialer: require('./query/dialer').addQuery(db)
         };
 
         server.emit('sys::connectDb', db);
-        log.info('Connected db %s ', config.get('mongodb:uri'));
+
         db.on('close', function () {
             log.warn('close MongoDB');
+            server.emit('sys::closeDb', db);
+        });
+        db.on('reconnect', function () {
+            log.info('Reconnect MongoDB');
+            server.emit('sys::reconnectDb', db);
         });
 
         db.on('error', function (err) {
             log.error('close MongoDB: ', err);
         });
     });
-};
+
+}

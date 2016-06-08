@@ -11,11 +11,12 @@ var HashCollection = module.exports = function() {
     });
     this.add = function(key, element) {
         if (this.collection[key]) {
+            console.error(new Error('Key ' + key + ' already defined!'));
             //throw new Error('Key ' + key + ' already defined!');
         } else {
             this.collection[key] = element;
             length++;
-            this.emit('added', element);
+            this.emit('added', element, key);
         };
         return this.collection[key];
     };
@@ -38,7 +39,9 @@ var HashCollection = module.exports = function() {
             delete this.collection[key];
             length--;
             this.emit('removed', removedElement, key);
+            return true;
         };
+        return false;
     };
 
     this.removeAll = function () {

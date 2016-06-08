@@ -30,7 +30,9 @@ var Service = {
                     setup(null, ACL_CONF);
                 });
             } else {
-                setup(null, r);
+                // TODO skip root role;
+                let _r = r.map( (i) => i.roles === 'root' ? ACL_CONF[0] : i );
+                setup(null, _r);
             }
         });
 

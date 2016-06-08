@@ -1,3 +1,36 @@
+for (var i = 99950; i <= 99989; i++) {
+    var a = {
+        "username": "" + i,
+        "name": "" + i,
+        "password": "" + i,
+        "realm": "10.10.10.144",
+        "profile": "nonreg",
+        "domain": "10.10.10.144",
+        "params": [
+            {
+                "name": "register",
+                "value": "true"
+            },
+            {
+                "name": "extension-in-contact",
+                "value": "true"
+            },
+            {
+                "name": "register-proxy",
+                "value": "pre.webitel.com:5070"
+            }
+        ],
+        "var": [],
+        "ivar": [],
+        "ovar": []
+    };
+
+    webitel.httpApi('POST', '/api/v2/gateway',  a, (e)=> {if (e) console.error(e)})
+}
+
+
+
+
 /**
  * "Включить шлюз"
  * gwName{String} - название шлюза

@@ -14,34 +14,32 @@ var log = require(__appRoot + '/lib/log')(module),
     ;
 
 module.exports = function (event) {
-    log.debug(event.type);
-    switch (event.type) {
-        case "USER_CREATE":
-            onUserCreate(event.getHeader('User-ID'), event.getHeader('User-Domain'));
-            break;
 
+    switch (event['Event-Name']) {
+        case "USER_CREATE":
+            onUserCreate(event['User-ID'], event['User-Domain']);
+            break;
         case "USER_DESTROY":
-            var userDomain = event.getHeader('User-Domain');
-            var userId = event.getHeader('User-ID') + '@' + userDomain;
+            let userDomain = event['User-Domain'],
+                userId = event['User-ID'] + '@' + userDomain
+                ;
             onUserDelete(userId, userDomain);
             break;
-
         case "DOMAIN_CREATE":
             break;
-
+        case "USER_MANAGED":
+            // TODO
+            return;
         case "DOMAIN_DESTROY":
-            onDomainDelete(event.getHeader('Domain-Name'));
+            onDomainDelete(event['Domain-Name']);
             break;
-
         case "ACCOUNT_STATUS":
             onUserStatus(event);
             break;
-    };
-    var _e = event.serialize('json', 1);
-    _e['webitel-event-name'] = _e['Event-Name'];
-    application.broadcastInDomain(_e, event.getHeader('Event-Domain'));
-    // TODO
-    application.broadcast(_e);
+    }
+    event['webitel-event-name'] = event['Event-Name'];
+    application.broadcastInDomain(event, event['Event-Domain']);
+    application.broadcast(event);
 };
 // TODO move to response command
 function onUserDelete (userId, domain) {
@@ -132,21 +130,11 @@ function onDomainDelete (domainName) {
 };
 
 function onUserState (event) {
-    // TODO delete event
-    /*
-    let domainName = event.getHeader('User-Domain'),
-        userId = event.getHeader('User-ID') + '@' + domainName,
-        state = event.getHeader('User-State'),
-        user = application.Users.get(userId);
 
-    if (user) {
-        //user.setState(state);
-    };
-    */
 };
 
-function onUserStatus (event) {
-    var jsonEvent = event.serialize('json', true);
+function onUserStatus (jsonEvent) {
+
     let domainName = jsonEvent['Account-Domain'],
         userId = jsonEvent['Account-User'] + '@' + domainName,
         status = jsonEvent['Account-Status'],
@@ -160,11 +148,11 @@ function onUserStatus (event) {
 
     if (user) {
         user.setState(state, status, description);
-        event.addHeader('Account-Online', true);
-        event.addHeader('cc_logged', !!user['cc-logged']);
+        jsonEvent['Account-Online'] = true;
+        jsonEvent['cc_logged'] = !!user['cc-logged'];
     } else {
-        event.addHeader('Account-Online', false);
-        event.addHeader('cc_logged', false);
+        jsonEvent['Account-Online'] = false;
+        jsonEvent['cc_logged'] = false;
     };
 
     var data = {
@@ -172,7 +160,6 @@ function onUserStatus (event) {
         "account": jsonEvent['Account-User'],
         "status": status,
         "state": state,
-        // TODO
         "description":  description,
         "online": !!user,
         "date": Date.now()

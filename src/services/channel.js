@@ -33,7 +33,7 @@ var Service = {
         var _originatorParam = new Array('w_jsclient_originate_number=' + _extension);
         if (options['params'] instanceof Array) {
             _originatorParam = _originatorParam.concat(options['params']);
-        };
+        }
 
         var _autoAnswerParam = [].concat( options['auto_answer_param'] || []),
             _param = '[' + _originatorParam.concat(_autoAnswerParam).join(',') + ']',
@@ -154,15 +154,13 @@ var Service = {
     attXferBridge: function (caller, options, cb) {
         Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-d'] + ' w_transfer_result confirmed');
         Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-a'] + ' w_transfer_result confirmed');
-
         Service.bgApi(
             'uuid_bridge ' + options['channel-uuid-leg-b'] + ' ' + options['channel-uuid-leg-c'],
             (err, res) => {
                 if (err) {
                     Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-d'] + ' w_transfer_result error');
                     Service.bgApi('uuid_setvar ' + options['channel-uuid-leg-a'] + ' w_transfer_result error');
-                };
-
+                }
                 return cb && cb(err, res);
             }
         );

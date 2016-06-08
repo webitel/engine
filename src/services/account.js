@@ -6,6 +6,7 @@
 var CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     plainTableToJSON = require(__appRoot + '/utils/parse').plainTableToJSON,
+    plainTableToJSONArray = require(__appRoot + '/utils/parse').plainTableToJSONArray,
     plainCollectionToJSON = require(__appRoot + '/utils/parse').plainCollectionToJSON,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     log = require(__appRoot + '/lib/log')(module)
@@ -81,7 +82,7 @@ var Service = {
 
             if (!option) {
                 return cb(new CodeError(400, 'Bad request.'));
-            };
+            }
 
             let name = option['name'],
                 domain = validateCallerParameters(caller, option['domain'])
@@ -89,7 +90,7 @@ var Service = {
 
             if (!domain || !name) {
                 return cb(new CodeError(400, "Domain, login is require."));
-            };
+            }
 
             application.WConsole.userItem(caller, name, domain, function (err, res) {
                 if (err)
@@ -99,7 +100,7 @@ var Service = {
                 } catch (e) {
                     log.error(e);
                     cb(e);
-                };
+                }
             });
 
         });
@@ -118,13 +119,13 @@ var Service = {
 
             if (!option) {
                 return cb(new CodeError(400, 'Bad request.'));
-            };
+            }
 
             let domain = validateCallerParameters(caller, option['domain']);
 
             if (!domain) {
                 return cb(new CodeError(400, "Domain is require."));
-            };
+            }
 
             application.WConsole.list_users(caller, domain, function (err, res) {
                 if (err)
@@ -135,7 +136,7 @@ var Service = {
                 } catch (e) {
                     log.error(e);
                     cb(e);
-                };
+                }
             });
 
         });
@@ -154,13 +155,13 @@ var Service = {
 
             if (!option) {
                 return cb(new CodeError(400, 'Bad request.'));
-            };
+            }
 
             let domain = validateCallerParameters(caller, option['domain']);
 
             if (!domain) {
                 return cb(new CodeError(400, "Domain is require."));
-            };
+            }
 
             return application.WConsole.userList(caller, domain, function (err, res) {
                 if (err)
@@ -171,7 +172,7 @@ var Service = {
                 } catch (e) {
                     log.error(e);
                     cb(e);
-                };
+                }
             });
 
         });
@@ -194,13 +195,13 @@ var Service = {
 
             if (!option ||!userName) {
                 return cb(new CodeError(400, 'Bad request.'));
-            };
+            }
 
             let _domain = validateCallerParameters(caller, domain);
 
             if (!_domain) {
                 return cb(new CodeError(400, "Domain is require."));
-            };
+            }
 
             application.WConsole.userUpdateV2(caller, userName, _domain, option, cb);
 
@@ -220,7 +221,7 @@ var Service = {
 
             if (!option) {
                 return cb(new CodeError(400, 'Bad request.'));
-            };
+            }
 
             let name = option['name'],
                 domain = validateCallerParameters(caller, option['domain'])
@@ -228,15 +229,30 @@ var Service = {
 
             if (!domain || !name) {
                 return cb(new CodeError(400, "Domain, login is require."));
-            };
+            }
 
             let _id = name + '@' + domain;
 
             if (_id == caller.id) {
                 return cb(new CodeError(400, "Easy! it's YOU !!!"));
-            };
+            }
 
             application.WConsole.userRemove(caller, _id, cb);
+        });
+    },
+    
+    
+    _listByDomain: function (domainName, cb) {
+        application.WConsole.userList({}, domainName, function (err, res) {
+            if (err)
+                return cb(err);
+
+            try {
+                return parseAccount(res, domainName, cb);
+            } catch (e) {
+                log.error(e);
+                cb(e);
+            }
         });
     }
 };

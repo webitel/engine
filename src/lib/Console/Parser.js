@@ -29,7 +29,7 @@ Parser.prototype._onData = function(data) {
 
     this.buffer = Buffer.concat([this.buffer, data], this.buffer.length + data.length);
 
-    //require('../log')(module).error(this.buffer.toString(this.encoding));
+    // console.log(this.buffer.toString(this.encoding));
 
     //if we have found a Content-Length header, parse as body
     if(this.bodyLen > 0)

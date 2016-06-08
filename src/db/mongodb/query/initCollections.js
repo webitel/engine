@@ -116,12 +116,66 @@ var Indexes = {
         "sysLength": 1,
         "code": 1
     }],
+    "collectionHook": [
+        {
+            "_id": 1,
+            "domain": 1
+        },
+        {
+            "enable": 1,
+            "domain": 1,
+            "event": 1
+        }
+    ],
     "collectionAclPermissions": [{
         "_unique": true,
         "_": {
             "roles": 1
         }
-    }]
+    }],
+    "collectionDialerMembers": [
+        {
+            "_probeCount" : 1
+        },
+        {
+            "_endCause" : 1
+        },
+        {
+            "_nextTryTime" : 1
+        },
+        {
+            "dialer" : 1,
+            "_lock" : 1
+        },
+        {
+            "name" : 1
+        },
+        {
+            "priority" : 1
+        },
+        {
+            "_unique": true,
+            "_name": "number_unique",
+            "_": {
+                "communications.number" : 1,
+                "dialer": 1
+            }
+        },
+        {
+            "_name": "hunting",
+            "_": {
+                _nextTryTime: -1,
+                priority: -1,
+                _id: -1,
+                dialer: 1,
+                _endCause: 1,
+                _lock: 1,
+                "communications.state": 1,
+                "communications.gatewayPositionMap": 1
+            }
+
+        }
+    ]
 };
 
 function Init (db) {
