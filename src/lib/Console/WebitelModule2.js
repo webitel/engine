@@ -570,10 +570,10 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
             try {
                 log.debug('Reset token');
                 authServices.removeFromUserName(user + '@' + _domain, _domain, callback);
-                if (roleName) {
+                if (typeof roleName == 'string') {
                     let _user = application.Users.get(user + '@' + _domain);
                     if (_user) {
-                        _user.changeRole(roleName);
+                        _user.changeRole(roleName.replace(/'/g, ''));
                     };
                 }
             } catch (e) {
