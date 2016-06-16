@@ -6220,6 +6220,26 @@
                 }
             }
         };
+        // new ficha!!!
+        $.verto.dialog.prototype._autoAnsverDialogs = [];
+        $.verto.dialog.prototype.getAutoAnswerDialog = function (id) {
+            var dialogId = ~this._autoAnsverDialogs.indexOf(id);
+            if (dialogId) {
+                this._autoAnsverDialogs.slice(dialogId, 1);
+                return true;
+            }
+
+            return false;
+        };
+        $.verto.dialog.prototype.setAutoAnswerDialog = function (id) {
+            // TODO && no answer call
+            if (~this._autoAnsverDialogs.indexOf(id)) {
+                return false;
+            }
+
+            return this._autoAnsverDialogs.push(id);
+        };
+        
 
         $.verto.dialog.prototype.invite = function() {
             var dialog = this;

@@ -9,16 +9,14 @@ class Gw {
         this.activeLine = 0;
         // TODO link regex...
         this.regex = regex;
-        this.maxLines = conf.limit || 0;
+        this.maxLines = conf.limit || Infinity;
         this.gwName = conf.gwName;
-        this._vars = [];
+
+        this._vars = [`origination_caller_id_number=${conf.callerIdNumber}`];
 
         if (variables) {
-            let arr = [];
             for (let key in variables)
-                arr.push(`${key}=${variables[key]}`);
-
-            this._vars = arr;
+                this._vars.push(`${key}=${variables[key]}`);
         }
 
         this.dialString = conf.gwProto == 'sip' && conf.gwName ? `sofia/gateway/${conf.gwName}/${conf.dialString}` : conf.dialString;
@@ -55,7 +53,7 @@ class Gw {
 
             vars.push(
                 `origination_uuid=${member.sessionId}`,
-                `origination_caller_id_number='${member.queueNumber}'`,
+                // `origination_caller_id_number='${member.queueNumber}'`,
                 `origination_caller_id_name='${member.queueName}'`,
                 `origination_callee_id_number='${member.number}'`,
                 `origination_callee_id_name='${member.name}'`

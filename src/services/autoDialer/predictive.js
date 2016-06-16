@@ -45,10 +45,11 @@ module.exports = class Predictive extends Dialer {
             this._limit = this._agents.length;
 
         // start with available count
-        if (this._limit > this._router._limit) {
+        if (this._limit > this._router._limit && this._router._limit > 0) {
             log.warn(`skip dialer limit, max resources ${this._router._limit}`);
             this._limit = this._router._limit;
         }
+
 
         application.Esl.subscribe([ 'CHANNEL_HANGUP_COMPLETE', 'CHANNEL_ANSWER']);
 

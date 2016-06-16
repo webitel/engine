@@ -283,6 +283,11 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     checkSleep () {
+        if (this._calendar.expire) {
+            this.cause = DIALER_CAUSE.ProcessExpire;
+            this.emit('end', this);
+            return;
+        }
         if (Date.now() >= this._calendar.deadLineTime) {
             if (this.state !== DIALER_STATES.Sleep) {
                 this.reCalcCalendar();

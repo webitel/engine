@@ -20,7 +20,7 @@ module.exports = class VoiceBroadcast extends Dialer {
         });
         this._router = new Router(config.resources, this._variables);
 
-        if (this._limit > this._router._limit) {
+        if (this._limit > this._router._limit && this._router._limit > 0) {
             log.warn(`skip dialer limit, max resources ${this._router._limit}`);
             this._limit = this._router._limit;
         }

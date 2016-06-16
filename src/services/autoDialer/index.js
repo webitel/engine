@@ -246,7 +246,7 @@ class AutoDialer extends EventEmitter2 {
                 DIALER_CAUSE.ProcessStop,
                 false,
                 null,
-                (err) => {
+                (err, c) => {
                     if (err)
                         return cb(err);
 

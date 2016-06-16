@@ -42,7 +42,7 @@ var Service = {
                     return cb(null, {
                         "body": "+OK: Not found."
                     });
-                };
+                }
             });
         });
     }
