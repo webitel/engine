@@ -14,13 +14,14 @@ var CodeError = require(__appRoot + '/lib/error'),
 
 var Service = {
     getRecordFile: function (caller, uuid, cb) {
-        checkPermissions(caller, 'cdr', 'r', function (err) {
+
+        if (!uuid)
+            return cb(new CodeError(403, "UUID is required."));
+
+        let callback = (err) => {
             if (err)
                 return cb(err);
 
-            if (!uuid)
-                return cb(new CodeError(403, "UUID is required."));
-            
             existsRecordFile(uuid, function (err, exists) {
                 if (err)
                     return cb(err);
@@ -44,6 +45,14 @@ var Service = {
                     });
                 }
             });
+        };
+
+        checkPermissions(caller, 'cdr', 'r', function (err) {
+            if (err) {
+                return checkPermissions(caller, 'cdr', 'ro', callback);
+            }
+
+            return callback(null);
         });
     }
 };
