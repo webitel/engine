@@ -14,8 +14,12 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     Collection = require(__appRoot + '/lib/collection'),
     VoiceDialer = require('./voice'),
     ProgressiveDialer = require('./progressive'),
-    PredictiveDialer = require('./predictive')
+    PredictiveDialer = require('./predictive'),
+    eventsService = require(__appRoot + '/services/events')
     ;
+
+const EVENT_CHANGE_STATE = `DC::CHANGE_STATE`;
+eventsService.registered(EVENT_CHANGE_STATE);
 
 class AutoDialer extends EventEmitter2 {
 
@@ -77,6 +81,8 @@ class AutoDialer extends EventEmitter2 {
                 this.dbDialer._updateDialer(d._objectId, d.state, d.cause, true, null, (err) => {
                     if (err)
                         log.error(err);
+                    this.sendEvent(d, true, 'ready');
+
                 });
             });
 
@@ -95,6 +101,8 @@ class AutoDialer extends EventEmitter2 {
                 });
                 if (sleepTime)
                     this.addTask(d._id, d._domain, dialer._calendar.sleepTime);
+
+                this.sendEvent(d, d.state === DIALER_STATES.Sleep, 'end');
             });
 
             // // TODO Remove event;
@@ -133,6 +141,7 @@ class AutoDialer extends EventEmitter2 {
                 this.agentManager.removeDialerInAgents(dialer._agents, dialer._id);
 
             log.info(`Remove active dialer ${dialer.nameDialer} : ${dialer._id} - ${dialer.cause}`);
+            this.sendEvent(dialer, dialer.state === DIALER_STATES.Sleep, 'removed');
         });
     }
 
@@ -144,6 +153,24 @@ class AutoDialer extends EventEmitter2 {
         } else if (e['CC-Action'] === 'agent-state-change') {
             agent.setState(e['CC-Agent-State']);
         }
+    }
+
+    sendEvent (d, active, callingName) {
+        let e = {
+            "Event-Name": EVENT_CHANGE_STATE,
+            "Dialer-Id": d._id,
+            "Dialer-Name": d.nameDialer,
+            "Active": active,
+            "Cause": d.cause,
+            "State": d.state,
+            "Event-Calling-Function": callingName,
+            "Type": d.type,
+            "Members-Count": d.countMembers,
+            "Event-Domain": d._domain
+        };
+        log.trace(`fire event ${EVENT_CHANGE_STATE} ${d._domain} ${d._id} ${callingName}`);
+        eventsService.fire(EVENT_CHANGE_STATE, d._domain, e);
+        eventsService.fire(EVENT_CHANGE_STATE, 'root', e);
     }
 
     sendAgentToDialer (agent) {

@@ -57,7 +57,7 @@
         "writeUserStatus": false,
         "auth": {
             "tokenSecretKey": "g6Yhdb8jUm!hJ78Jhsw4EEc",
-            "expiresDays": 7
+            "expiresDays": 100
         },
         "socketTimeUnauthorized": 5,
         "sleepConnectToWebitel": 1000,

@@ -37,8 +37,7 @@ module.exports = class Progressive extends Dialer {
             if (m && --m.channelsCount === 0) {
 
                 this._am.taskUnReserveAgent(m._agent, m._agent.wrapUpTime);
-                log.trace(`End channels ${m.sessionId}`);
-                m.end(e.getHeader('variable_hangup_cause'), e);
+                this.addMemberCallbackQueue(m, e, m._agent.wrapUpTime);
             }
         };
 

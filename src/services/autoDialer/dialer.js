@@ -46,6 +46,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._maxTryCount = 5,
             this._intervalTryCount = 5,
             this._minBillSec = 0,
+            this._waitingForResultStatus = false,
+            this._wrapUpTime = 60,
             this.lockId = `my best lock`,
             this._skills = []
         ] = [
@@ -53,9 +55,12 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.maxTryCount,
             parameters.intervalTryCount,
             parameters.minBillSec,
+            parameters.waitingForResultStatus,
+            parameters.wrapUpTime,
             config.lockId,
             config.skills
         ];
+
         this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
 
 
@@ -111,8 +116,11 @@ module.exports = class Dialer extends EventEmitter2 {
             // Close member session
             member.once('end', (m) => {
                 let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, _endCause: m.endCause, variables: m.variables, _probeCount: m.currentProbe};
-                if (m._currentNumber)
+                if (m._currentNumber) {
                     $set[`communications.${m._currentNumber._id}`] = m._currentNumber;
+                    $set._lastNumberId = m._currentNumber._id;
+                    $set._waitingForResultStatus = this._waitingForResultStatus;
+                }
 
                 dialerService.members._updateById(
                     m._id,
@@ -144,6 +152,18 @@ module.exports = class Dialer extends EventEmitter2 {
             if (!this.checkLimit())
                 this.huntingMember();
         });
+    }
+
+    addMemberCallbackQueue (m, e, wrapTime) {
+        log.trace(`End channels ${m.sessionId}`);
+
+        if (this._waitingForResultStatus) {
+            m.log('check callback');
+            m.nextTrySec += (wrapTime || this._wrapUpTime);
+            m.end(null, e);
+        } else {
+            m.end(e.getHeader('variable_hangup_cause'), e);
+        }
     }
 
     huntingMember () {

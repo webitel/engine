@@ -48,6 +48,9 @@ var Indexes = {
             "variables.uuid" : 1
         },
         {
+            "variables.loopback_leg" : 1
+        },
+        {
             "callflow.times.created_time" : 1
         },
         {
@@ -149,6 +152,9 @@ var Indexes = {
         },
         {
             "name" : 1
+        },
+        {
+            "_waitingForResultStatus" : 1
         },
         {
             "priority" : 1

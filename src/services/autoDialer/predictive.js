@@ -50,7 +50,6 @@ module.exports = class Predictive extends Dialer {
             this._limit = this._router._limit;
         }
 
-
         application.Esl.subscribe([ 'CHANNEL_HANGUP_COMPLETE', 'CHANNEL_ANSWER']);
 
         //
@@ -109,8 +108,7 @@ module.exports = class Predictive extends Dialer {
                 if (e.getHeader('variable_hangup_cause') != 'NORMAL_CLEARING') {
                     this._gotCallCount--;
                 }
-                log.trace(`End channels ${member.sessionId}`);
-                member.end(e.getHeader('variable_hangup_cause'), e);
+                this.addMemberCallbackQueue(member, e, member._agent && member._agent.wrapUpTime);
                 cb();
             };
 

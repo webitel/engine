@@ -419,6 +419,74 @@ let Service = {
             });
         },
 
+        setCallback: (caller, options = {}, cb) => {
+
+            if (!options.dialer)
+                return cb(new CodeError(400, "Dialer id is required."));
+
+            if (!options.member)
+                return cb(new CodeError(400, "Member id is required."));
+
+            if (!(options.callback instanceof Object))
+                return cb(new CodeError(400, "Bad callback options"));
+
+            let dbDialer = application.DB._query.dialer;
+
+            dbDialer.memberById(options.member, options.dialer, (err, memberDb) => {
+                if (err)
+                    return cb(err);
+
+                if (!memberDb)
+                    return cb(new CodeError(404, `Not found ${options.member} in dialer ${options.dialer}`));
+
+                let callback = options.callback;
+
+                if (callback.success === true) {
+                    memberDb._endCause = "NORMAL_CLEARING";
+                    memberDb._nextTryTime = null;
+                } else {
+                    memberDb._endCause = null;
+                    if (+callback.next_after_sec > 0) {
+                        memberDb._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
+                    }
+
+                    if (callback.reset_retries === true) {
+                        memberDb._probeCount = 0;
+                        for (let key in memberDb.communications) {
+                            memberDb.communications[key]._probe = 0;
+                        }
+                    }
+
+                    if (callback.stop_communications && memberDb.communications) {
+                        let all = callback.stop_communications === 'all',
+                            arrNumbers = callback.stop_communications instanceof Array ? callback.stop_communications : [];
+
+                        for (let i = 0, len = memberDb.communications.length; i < len; i++) {
+                            if (memberDb.communications[i] && (all || ~arrNumbers.indexOf(memberDb.communications[i].number))) {
+                                memberDb.communications[i].state = 2;
+                            }
+                        }
+                    }
+
+                    if (callback.next_communication && memberDb.communications) {
+                        memberDb.communications.push({
+                            number: callback.next_communication,
+                            // TODO
+                            priority: 100,
+                            status: 0,
+                            state: 0
+                        });
+                    }
+                }
+
+                dbDialer._updateMember(
+                    {_id: memberDb._id},
+                    memberDb,
+                    {},
+                    cb
+                );
+            })
+        },
 
         _updateById: (id, doc, cb) => {
             let db = application.DB._query.dialer;

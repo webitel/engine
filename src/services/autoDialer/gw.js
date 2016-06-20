@@ -12,7 +12,7 @@ class Gw {
         this.maxLines = conf.limit || Infinity;
         this.gwName = conf.gwName;
 
-        this._vars = [`origination_caller_id_number=${conf.callerIdNumber}`];
+        this._vars = [];
 
         if (variables) {
             for (let key in variables)
@@ -63,8 +63,9 @@ class Gw {
             if (park) {
                 return `originate {${vars}}${gwString} &park()`;
             } else {
-                vars.push(`dlr_queue=${member._queueId}`);
-                return `originate {${vars}}${gwString} ` +  '&socket($${acr_srv})';
+                return `originate {${vars}}loopback/${member.number}/default 'set:dlr_queue=${member._queueId},socket:` + '$${acr_srv}' + `' inline`;
+                // vars.push(`dlr_queue=${member._queueId}`);
+                // return `originate {${vars}}${gwString} ` +  '&socket($${acr_srv})';
             }
 
         };

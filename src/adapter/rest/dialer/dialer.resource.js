@@ -27,7 +27,9 @@ function addRoutes (api) {
     api.get('/api/v2/dialer/:dialer/members/:id', itemMember);
     api.delete('/api/v2/dialer/:dialer/members/:id', removeMember);
     api.put('/api/v2/dialer/:dialer/members/:id', updateMember);
-};
+    api.put('/api/v2/dialer/:dialer/members/:id/status', setStatusMember);
+}
+
 
 function list (req, res, next) {
     let options = {
@@ -309,3 +311,22 @@ function createMember (req, res, next) {
         });
     });
 };
+
+function setStatusMember(req, res, next) {
+    let options = {
+        dialer: req.params.dialer,
+        member: req.params.id,
+        domain: req.query.domain,
+        callback: req.body
+    };
+
+    dialerService.members.setCallback(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "info": "success"
+        });
+    });
+}
