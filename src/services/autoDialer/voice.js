@@ -48,7 +48,8 @@ module.exports = class VoiceBroadcast extends Dialer {
 
         application.Esl.bgapi(ds, (res) => {
             if (/^-ERR/.test(res.body)) {
-                member.offEslEvent();
+                if (typeof member.offEslEvent === 'function')
+                    member.offEslEvent();
                 let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                 member.end(error);
             }
