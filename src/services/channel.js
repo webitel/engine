@@ -268,11 +268,11 @@ var Service = {
     },
 
     channelsList: function (caller, options, cb) {
-        var _domain = validateCallerParameters(caller['domain'], options['domain']),
+        var _domain = validateCallerParameters(caller, options['domain']),
             _item = '';
         if (_domain) {
             _item = ' like ' + _domain;
-        };
+        }
 
         application.Esl.show('channels' + _item, 'json', function (err, data) {
             if (err) {
