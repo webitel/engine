@@ -13,6 +13,7 @@ let generateUuid = require('node-uuid'),
     CODE_RESPONSE_OK = require('./const').CODE_RESPONSE_OK,
     CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
     CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
+    CODE_RESPONSE_MINUS_PROBE = require('./const').CODE_RESPONSE_MINUS_PROBE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE
     ;
@@ -153,6 +154,15 @@ module.exports = class Member extends EventEmitter2 {
                 this.setRecordSession(recordSec);
 
             this.setCallUUID(e.getHeader('variable_uuid'))
+        }
+
+        if (~CODE_RESPONSE_MINUS_PROBE.indexOf(endCause)) {
+            this.minusProbe();
+            this.log(`end cause ${endCause}`);
+            this.nextTime = Date.now() + (this.nextTrySec * 1000);
+            this._setStateCurrentNumber(MEMBER_STATE.Idle);
+            this.emit('end', this);
+            return;
         }
 
         if (~CODE_RESPONSE_OK.indexOf(endCause)) {
