@@ -132,6 +132,9 @@ class WebitelEsl extends EventEmitter2 {
         });
     };
 
+    bindDomainEvent() {}
+    unBindDomainEvent() {}
+
     bgapi () {
         this[_esl].bgapi.apply(this[_esl], [].slice.call(arguments));
     };

@@ -17,7 +17,7 @@ function eventsCtrl () {
     controller[WebitelCommandTypes.Event.On.name] = subscribe;
     controller[WebitelCommandTypes.Event.Off.name] = unSubscribe;
     return controller;
-};
+}
 
 function subscribe (caller, execId, args, ws) {
     var _all = args.all,
@@ -25,7 +25,7 @@ function subscribe (caller, execId, args, ws) {
     // TODO add ACL commands
     if (!caller)
         return getCommandResponseJSON(ws, execId, {"body": "-ERR: Authentication required!"});
-    eventService.addListener(eventName, caller, caller.getSession(ws), function (err, result) {
+    eventService.addListener(eventName, caller, caller.getSession(ws), args, (err, result) => {
         let _result = {
             "body": ""
         };
@@ -33,13 +33,14 @@ function subscribe (caller, execId, args, ws) {
             _result.body = err.message
         } else {
             _result.body = result;
+            application.emit(`subscribe::${eventName}`, args, caller, eventName);
             if (_all)
                 caller._subscribeEvent[eventName] = true;
         }
 
         getCommandResponseJSON(ws, execId, _result);
     });
-};
+}
 
 function unSubscribe (caller, execId, args, ws) {
     var eventName = args['event'];
@@ -52,7 +53,7 @@ function unSubscribe (caller, execId, args, ws) {
         };
         if (caller._subscribeEvent.hasOwnProperty(eventName))
             delete caller._subscribeEvent[eventName];
-
+        application.emit(`unsubscribe::${eventName}`, args, caller, eventName);
         getCommandResponseJSON(ws, execId, _result);
     });
-};
+}

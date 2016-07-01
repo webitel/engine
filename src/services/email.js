@@ -93,7 +93,7 @@ var emailService = {
     
     _report: function (err, cb) {
         let option = conf.get('application:mailReport');
-        if (!option) {
+        if (!option || !option['smtp']) {
             return cb(new Error('Not config.'));
         };
 

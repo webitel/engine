@@ -643,7 +643,7 @@ Webitel.prototype.setAccountStatus = function (id, status, cb) {
 
     this.api(WebitelCommandTypes.Account.Change, [
         id,
-        `status ${status}`
+        `[status=${status}]`
     ], cb);
 };
 

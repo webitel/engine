@@ -129,7 +129,6 @@ function Handler(wss, application) {
 
         ws.on('error', function(e) {
             log.error('Socket error:', e);
-
         });
     });
     

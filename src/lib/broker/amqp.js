@@ -9,7 +9,8 @@ var log = require(__appRoot + '/lib/log')(module),
     generateUuid = require('node-uuid'),
     Amqp = require('amqplib/callback_api');
 
-const HOOK_QUEUE = 'hooks';
+const HOOK_QUEUE = 'hooks',
+    TELEGRAM_QUEUE = 'telegram-notification';
 
 const _onReturnedMessage = Symbol('onReturnedMessage'),
       _onRequestFsApi = Symbol('onRequestFsApi'),
@@ -25,6 +26,7 @@ class WebitelAmqp extends EventEmitter2 {
         this.app = app;
         this.connect();
         this.queue = null;
+        this.customChannelQueue = null;
         this.channel = null;
         this._instanceId = generateUuid.v4();
         this[_stackCb] = {};
@@ -128,6 +130,25 @@ class WebitelAmqp extends EventEmitter2 {
         }
     };
 
+    bindDomainEvent (eventName, domainName, cb) {
+        let ch = this.channel;
+        if (!ch || !this.customChannelQueue) return cb && cb(new Error('No connect.'));
+        try {
+            ch.bindQueue(this.customChannelQueue, this.Exchange.FS_EVENT, `*.${encodeRK(eventName)}.*.*.${encodeRK(domainName)}`, {}, cb);
+        } catch (e) {
+            log.error(e);
+        }
+    }
+
+    unBindDomainEvent(eventName, domainName) {
+        try {
+            if (this.channel && this.customChannelQueue)
+                this.channel.unbindQueue(this.customChannelQueue, this.Exchange.FS_EVENT, `*.${encodeRK(eventName)}.*.*.${encodeRK(domainName)}`)
+        } catch (e) {
+            log.error(e);
+        }
+    }
+
     _parseHookEventName (eventName) {
         let _e = eventName.split('->').map((value) => encodeRK(value) );
 
@@ -221,6 +242,42 @@ class WebitelAmqp extends EventEmitter2 {
                         return cb(null, null);
                     });
                 },
+                //init custom channel queue
+                function (_, cb) {
+                    log.debug('Try init custom channel event queue');
+                    channel.assertQueue('IGOR', {autoDelete: true, durable: false, exclusive: true}, (err, qok) => {
+                        scope.customChannelQueue = qok.queue;
+                        channel.consume(scope.customChannelQueue, (msg) => {
+                            try {
+                                let json = JSON.parse(msg.content.toString());
+                                // TODO https://freeswitch.org/jira/browse/FS-8817
+                                if (json['Event-Name'] == 'CUSTOM') return;
+                                scope.emit('callDomainEvent', json);
+                            } catch (e) {
+                                log.error(e);
+                            }
+                        }, {noAck: true});
+                        return cb(null, null);
+                    });
+                },
+                // function (_, cb) {
+                //     log.debug('Try init telegram events queue');
+                //     channel.assertQueue(TELEGRAM_QUEUE, {autoDelete: false, durable: false, exclusive: false}, (err, qok) => {
+                //         channel.bindQueue(qok.queue, scope.Exchange.FS_CC_EVENT, "*.webitel%3A%3Atelegram.*.*.*");
+                //         channel.consume(qok.queue, (msg) => {
+                //             try {
+                //                 let e = JSON.parse(msg.content.toString());
+                //
+                //                 scope.emit('telegramEvent', e);
+                //             } catch (e) {
+                //                 log.error(e);
+                //             }
+                //         }, {noAck: true});
+                //
+                //
+                //         return cb(null, null);
+                //     });
+                // },
 
                 // init call center events
                 function (_, cb) {

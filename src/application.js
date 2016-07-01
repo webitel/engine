@@ -63,6 +63,7 @@ class Application extends EventEmitter2 {
             scope.connectToEsl();
             scope.attachProcess();
             scope.connectToWConsole();
+            scope.initTelegram();
         });
 
         this.once('sys::connectFsApi', function () {
@@ -84,6 +85,10 @@ class Application extends EventEmitter2 {
                 console.log('----------------- GC -----------------');
             }, 5000);
         }
+    }
+
+    initTelegram () {
+        // require('./adapter/telegram')(this);
     }
 
     connectToEsl() {

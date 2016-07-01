@@ -14,10 +14,28 @@ var _eventsModule = {
     registered: function (eventName) {
         if (!eventName || eventName == '')
             return;
-        eventsCollection.add(eventName, {
-            domains: new HashCollection('id')
+        let e = eventsCollection.add(eventName, {
+            domains: new HashCollection('id'),
+            name: eventName
         });
         log.info('Registered event %s', eventName);
+        return e;
+    },
+    
+    checkNoSubscribersDomain: function (eventName, domainName) {
+        let e = eventsCollection.get(eventName);
+        if (!e || !e.domains)
+            return true;
+
+        let domain = e.domains.get(domainName);
+        if (!domain)
+            return true;
+
+        for (let key in domain)
+            if (domain.hasOwnProperty(key))
+                return false;
+
+        return true;
     },
 
     unRegistered: function (eventName) {
@@ -25,12 +43,12 @@ var _eventsModule = {
         log.trace('Unregistered event %s', eventName);
     },
 
-    addListener: function (eventName, caller, sessionId, cb) {
+    addListener: function (eventName, caller, sessionId, options, cb) {
         if (typeof eventName != 'string' || !caller || !sessionId) {
             if (cb)
                 cb(new Error('-ERR: Bad parameters.'));
             return;
-        };
+        }
 
         var _event = eventsCollection.get(eventName);
         if (!_event) {
@@ -38,7 +56,7 @@ var _eventsModule = {
             if (cb)
                 cb(new Error('-ERR: Event unregistered'));
             return;
-        };
+        }
 
         var _domainId = caller.domain || 'root',
             domainSubscribes = _event.domains.get(_domainId);
@@ -57,8 +75,8 @@ var _eventsModule = {
             } else {
                 log.trace('subscribe', sessionId, eventName);
                 domainSubscribes[sessionId] = caller.id;
-            };
-        };
+            }
+        }
 
         if (cb)
             cb(null, '+OK: subscribe ' + eventName);
@@ -136,8 +154,8 @@ var _eventsModule = {
             } else {
                 log.debug('Emit server event %s --> %s [%s]', eventName, user.id, key);
                 _iterator++;
-            };
-        };
+            }
+        }
         if (_iterator == 0) {
             log.warn('REMOVE DOMAIN', domainId);
             _event.domains.remove(domainId);

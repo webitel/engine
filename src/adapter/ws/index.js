@@ -10,18 +10,18 @@ var WebSocketServer = require('ws').Server,
 module.exports = createWSS;
 
 function createWSS(express, application) {
-    var option = {
+    let option = {
         server: express
     };
     if (wsOriginAllow) {
         option['origin'] = conf.get('server:socket:originHost').toString()
-    };
+    }
 
-    var wss = new WebSocketServer(option);
+    let wss = new WebSocketServer(option);
 
     handleMessage(wss, application);
     handleEsl(application);
     handleConsole(application);
-};
+}
 
 // @private

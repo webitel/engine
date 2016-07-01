@@ -6,7 +6,7 @@ var MongoClient = require("mongodb").MongoClient,
 module.exports = initConnect;
 
 function initConnect (server) {
-    var options = option = {
+    var options = {
         server: {
             auto_reconnect: true,
             socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 },
@@ -17,7 +17,7 @@ function initConnect (server) {
         if (err) {
             log.error('Connect db error: %s', err.message);
             return server.emit('sys::connectDbError', err);
-        };
+        }
         log.info('Connected db %s ', config.get('mongodb:uri'));
         require('./query/initCollections')(db);
 
@@ -35,7 +35,8 @@ function initConnect (server) {
             acl: require('./query/acl').addQuery(db),
             hook: require('./query/hook').addQuery(db),
             calendar: require('./query/calendar').addQuery(db),
-            dialer: require('./query/dialer').addQuery(db)
+            dialer: require('./query/dialer').addQuery(db),
+            telegram: require('./query/telegram').addQuery(db)
         };
 
         server.emit('sys::connectDb', db);
@@ -53,5 +54,4 @@ function initConnect (server) {
             log.error('close MongoDB: ', err);
         });
     });
-
 }

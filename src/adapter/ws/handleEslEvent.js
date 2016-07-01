@@ -8,6 +8,8 @@ module.exports = handleEslEvent;
 
 function handleEslEvent(application) {
 
+        require('./eslEvents/calls')(application);
+
         application.Broker.on('callEvent', (jsonEvent) => {
             try {
                 if (jsonEvent['Channel-Presence-ID']) {
