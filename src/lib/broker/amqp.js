@@ -245,7 +245,7 @@ class WebitelAmqp extends EventEmitter2 {
                 //init custom channel queue
                 function (_, cb) {
                     log.debug('Try init custom channel event queue');
-                    channel.assertQueue('IGOR', {autoDelete: true, durable: false, exclusive: true}, (err, qok) => {
+                    channel.assertQueue('', {autoDelete: true, durable: false, exclusive: true}, (err, qok) => {
                         scope.customChannelQueue = qok.queue;
                         channel.consume(scope.customChannelQueue, (msg) => {
                             try {
