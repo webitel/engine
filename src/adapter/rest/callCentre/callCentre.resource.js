@@ -43,7 +43,8 @@ function addRoutes(api) {
     // WTEL-323
     api.post('/api/v2/callcenter/agent/:id/status', agentSetStatus);
     api.post('/api/v2/callcenter/agent/:id/state', agentSetState);
-};
+    api.get('/api/v2/callcenter/agent/:id', agentGetParams);
+}
 
 function getTiersByQueue (req, res, next) {
     var options = {
@@ -61,7 +62,7 @@ function getTiersByQueue (req, res, next) {
                 "info": arr
             })
     });
-};
+}
 
 function getTiers (req, res, next) {
     var options = {
@@ -79,7 +80,7 @@ function getTiers (req, res, next) {
                 "info": arr
             })
     });
-};
+}
 
 function getMembers (req, res, next) {
     var options = {
@@ -97,7 +98,7 @@ function getMembers (req, res, next) {
                 "info": arr
             })
     });
-};
+}
 
 function getMembersCount (req, res, next) {
     var options = {
@@ -116,7 +117,7 @@ function getMembersCount (req, res, next) {
                 "info": parseInt(count)
             })
     });
-};
+}
 
 function queuesList (req, res, next) {
     var option = {
@@ -133,7 +134,7 @@ function queuesList (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function queueCreate (req, res, next) {
     var option = req.body;
@@ -152,7 +153,7 @@ function queueCreate (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function queueItem (req, res, next) {
     var option = {
@@ -171,7 +172,7 @@ function queueItem (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function queueUpdate (req, res, next) {
     var option = {
@@ -191,7 +192,7 @@ function queueUpdate (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function queueSetState (req, res, next) {
     var option = {
@@ -211,7 +212,7 @@ function queueSetState (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function queueDelete (req, res, next) {
     var option = {
@@ -230,7 +231,7 @@ function queueDelete (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function createTier (req, res, next) {
     var option = {
@@ -252,7 +253,7 @@ function createTier (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function setTierLevel (req, res, next) {
     var option = {
@@ -273,7 +274,7 @@ function setTierLevel (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function setTierPosition (req, res, next) {
     var option = {
@@ -294,7 +295,7 @@ function setTierPosition (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function deleteTier (req, res, next) {
     var option = {
@@ -314,7 +315,7 @@ function deleteTier (req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function agentSetStatus(req, res, next) {
     let options = {
@@ -334,7 +335,7 @@ function agentSetStatus(req, res, next) {
                 "info": result
             })
     });
-};
+}
 
 function agentSetState(req, res, next) {
     let options = {
@@ -354,4 +355,23 @@ function agentSetState(req, res, next) {
                 "info": result
             })
     });
-};
+}
+
+function agentGetParams(req, res, next) {
+    let options = {
+        domain: req.query['domain'],
+        id: req.params['id']
+    };
+
+    ccServices.getAgentParams(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            })
+    });
+}

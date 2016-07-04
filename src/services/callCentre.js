@@ -248,6 +248,27 @@ var Service = {
     },
 
 
+    getAgentParams: function (caller, options, cb) {
+        checkPermissions(caller, 'cc/tiers', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            if (!options)
+                return cb(new CodeError(400, 'Bad options'));
+
+            if (!options.id)
+                return cb(new CodeError(400, 'Bad options: agent id is required.'));
+
+            let domain = validateCallerParameters(caller, options['domain']);
+
+            if (!domain)
+                return cb(new CodeError(400, 'Bad options: domain is required.'));
+
+            Service._getAgentParams(`${options.id}@${domain}`, cb);
+        });
+    },
+
+
 
     // TODO Deprecated (update to mod_crm)
     /**
