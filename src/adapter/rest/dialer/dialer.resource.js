@@ -26,6 +26,7 @@ function addRoutes (api) {
     api.post('/api/v2/dialer/:dialer/members', createMember);
     api.get('/api/v2/dialer/:dialer/members/:id', itemMember);
     api.delete('/api/v2/dialer/:dialer/members/:id', removeMember);
+    api.delete('/api/v2/dialer/:dialer/members', removeMembers);
     api.put('/api/v2/dialer/:dialer/members/:id', updateMember);
     api.put('/api/v2/dialer/:dialer/members/:id/status', setStatusMember);
 }
@@ -52,7 +53,7 @@ function list (req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function item (req, res, next) {
     let options = {
@@ -69,7 +70,7 @@ function item (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function remove (req, res, next) {
     let options = {
@@ -86,7 +87,7 @@ function remove (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function update (req, res, next) {
     let options = {
@@ -104,7 +105,7 @@ function update (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function setState (req, res, next) {
     let options = {
@@ -122,7 +123,7 @@ function setState (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function create (req, res, next) {
     let options = req.body;
@@ -139,7 +140,7 @@ function create (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function listMembers (req, res, next) {
     let options = {
@@ -160,7 +161,7 @@ function listMembers (req, res, next) {
         let _s = req.query.sort.split('=');
         if (_s.length == 2)
             options.sort[_s[0]] = parseInt(_s[1]);
-    };
+    }
 
     // TODO
     if (req.query.filter) {
@@ -175,7 +176,7 @@ function listMembers (req, res, next) {
                 } else options.filter[_f[0]] = isNaN(parseInt(_f[1])) ?_f[1] : parseInt(_f[1]);
             }
         });
-    };
+    }
 
     dialerService.members.list(req.webitelUser, options, (err, result) => {
         if (err)
@@ -186,9 +187,7 @@ function listMembers (req, res, next) {
             "data": result
         });
     })
-};
-
-
+}
 
 function countMembers (req, res, next) {
     let options = {
@@ -208,7 +207,7 @@ function countMembers (req, res, next) {
                 else options.filter[_f[0]] = isNaN(parseInt(_f[1])) ?_f[1] : parseInt(_f[1]);
             }
         });
-    };
+    }
 
     dialerService.members.count(req.webitelUser, options, (err, result) => {
         if (err)
@@ -219,7 +218,7 @@ function countMembers (req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function aggregateMembers (req, res, next) {
     let options = {
@@ -237,7 +236,7 @@ function aggregateMembers (req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function itemMember (req, res, next) {
     let options = {
@@ -255,7 +254,7 @@ function itemMember (req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function updateMember (req, res, next) {
     let options = {
@@ -274,7 +273,7 @@ function updateMember (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function removeMember (req, res, next) {
     let options = {
@@ -292,7 +291,25 @@ function removeMember (req, res, next) {
             "data": result
         });
     });
-};
+}
+
+function removeMembers (req, res, next) {
+    let options = {
+        filter: req.body,
+        dialer: req.params.dialer,
+        domain: req.query.domain
+    };
+    console.log(req.body);
+    dialerService.members.removeByFilter(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
 
 function createMember (req, res, next) {
     let options = {
@@ -310,7 +327,7 @@ function createMember (req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function setStatusMember(req, res, next) {
     let options = {

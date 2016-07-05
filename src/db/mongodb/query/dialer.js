@@ -99,6 +99,14 @@ function addQuery (db) {
                 .removeOne({_id: new ObjectID(_id), dialer: dialerId}, cb);
         },
 
+        removeMemberByFilter: function (dialerId, filter, cb) {
+            let _f = filter || {};
+            _f.dialer = dialerId;
+            return db
+                .collection(memberCollectionName)
+                .remove(_f, {multi: true}, cb);
+        },
+
         removeMemberByDialerId: function (dialerId, cb) {
             return db
                 .collection(memberCollectionName)

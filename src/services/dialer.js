@@ -383,10 +383,38 @@ let Service = {
                 let domain = validateCallerParameters(caller, option['domain']);
                 if (!domain) {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
-                };
+                }
 
                 let db = application.DB._query.dialer;
                 return db.removeMemberById(option.id, option.dialer, cb);
+
+            });
+        },
+
+        removeByFilter: function (caller, option, cb) {
+            checkPermissions(caller, 'dialer/members', 'd', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!option)
+                    return cb(new CodeError(400, "Bad request options"));
+
+
+                if (!option.filter)
+                    return cb(new CodeError(400, 'Bad request: filter is required.'));
+
+                if (!option.dialer)
+                    return cb(new CodeError(400, 'Bad request: dialer id is required.'));
+
+
+                // TODO check dialer in domain
+                let domain = validateCallerParameters(caller, option['domain']);
+                if (!domain) {
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+                }
+
+                let db = application.DB._query.dialer;
+                return db.removeMemberByFilter(option.dialer, option.filter, cb);
 
             });
         },
