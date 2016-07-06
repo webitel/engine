@@ -9,8 +9,16 @@ function initConnect (server) {
     var options = {
         server: {
             auto_reconnect: true,
-            socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 },
-            replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
+            slaveOk: true,
+            replset: {
+                socketOptions: {
+                    keepAlive: 1,
+                    connectTimeoutMS : 30000 ,
+                    socketTimeoutMS: 90000
+                }
+            }
+            // socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 },
+            // replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
         }
     };
     mongoClient.connect(config.get('mongodb:uri'), options, function(err, db) {

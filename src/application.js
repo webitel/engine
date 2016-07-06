@@ -72,7 +72,7 @@ class Application extends EventEmitter2 {
         });
 
         scope.on('sys::connectDbError', (err) => {
-            if (++ret > 10) return this.stop(err);
+            if (++ret > 1000) return this.stop(err);
             log.warn('Retry connect to DB');
             initDb(scope);
         });
