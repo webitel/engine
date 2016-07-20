@@ -172,7 +172,7 @@ let Service = {
                         if (err)
                             log.error(err);
                     });
-                };
+                }
                 return cb && cb(err, res);
             });
         });
@@ -202,7 +202,7 @@ let Service = {
             let domain = validateCallerParameters(caller, option['domain']);
             if (!domain) {
                 return cb(new CodeError(400, 'Bad request: domain is required.'));
-            };
+            }
 
             let db = application.DB._query.dialer;
             return db.update(option.id, domain, option.data, cb);
@@ -226,7 +226,7 @@ let Service = {
 
                 if (!domain) {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
-                };
+                }
 
                 // TODO  before select dialer
                 option.domain = null;
@@ -256,7 +256,7 @@ let Service = {
 
                 if (!domain) {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
-                };
+                }
 
                 // TODO  before select dialer
                 option.domain = null;
@@ -289,7 +289,7 @@ let Service = {
 
                 if (!domain) {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
-                };
+                }
 
                 // TODO  before select dialer
                 option.domain = null;
@@ -317,7 +317,7 @@ let Service = {
                 let domain = validateCallerParameters(caller, option['domain']);
                 if (!domain) {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
-                };
+                }
 
                 let member = option.data;
                 member.dialer = option.dialer;
@@ -325,7 +325,23 @@ let Service = {
                 member._score = member.createdOn + (member.priority || 0);
 
                 let db = application.DB._query.dialer;
-                return db.createMember(member, cb);
+                return db.createMember(member, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (option.autoRun === 'true') {
+                        try {
+                            application.AutoDialer.runDialerById(option.dialer, domain, (e) => {
+                                if (e)
+                                    log.error(e);
+                            });
+                        } catch (e) {
+                            log.error(e);
+                        }
+                    }
+
+                    return cb(null, res);
+                });
 
             });
         },

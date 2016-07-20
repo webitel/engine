@@ -315,7 +315,8 @@ function createMember (req, res, next) {
     let options = {
         dialer: req.params.dialer,
         domain: req.query.domain,
-        data: req.body
+        data: req.body,
+        autoRun: req.query.autoRun
     };
 
     dialerService.members.create(req.webitelUser, options, (err, result) => {
