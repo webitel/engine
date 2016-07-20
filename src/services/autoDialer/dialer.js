@@ -5,6 +5,7 @@
 let DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
+    END_CAUSE = require('./const').END_CAUSE,
     Member = require('./member'),
     Calendar = require('./calendar'),
     Collection = require(__appRoot + '/lib/collection'),
@@ -139,7 +140,13 @@ module.exports = class Dialer extends EventEmitter2 {
                     }
                 )
             });
-            this.dialMember(member);
+
+            if (member.checkExpire()) {
+                member.endCause = END_CAUSE.MEMBER_EXPIRED;
+                member.end(END_CAUSE.MEMBER_EXPIRED)
+            } else {
+                this.dialMember(member);
+            }
         });
 
         this.members.on('removed', () => {

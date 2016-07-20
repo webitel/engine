@@ -38,6 +38,7 @@ module.exports = class Member extends EventEmitter2 {
         let lockedGws = option.lockedGateways;
 
         this._id = config._id;
+        this.expire = config.expire;
         this.channelsCount = 0;
 
         this.sessionId = generateUuid.v4();
@@ -95,6 +96,10 @@ module.exports = class Member extends EventEmitter2 {
         }
     }
 
+    checkExpire () {
+        return this.expire && Date.now() >= this.expire;
+    }
+
     minusProbe () {
         if (this._currentNumber)
             this._currentNumber._probe--;
@@ -127,6 +132,10 @@ module.exports = class Member extends EventEmitter2 {
         this._log.recordSessionSec = sec;
     }
 
+    setProbeEndCause (cause) {
+        this._log.cause = cause;
+    }
+
     setCallUUID (uuid) {
         this.log(`set uuid ${uuid}`);
         this._log.callUUID = uuid;
@@ -142,6 +151,7 @@ module.exports = class Member extends EventEmitter2 {
         
         if (this.processEnd) return;
         this.processEnd = true;
+        this.setProbeEndCause(endCause);
 
         log.trace(`end member ${this._id} cause: ${this.endCause || endCause || ''}`) ;
 
