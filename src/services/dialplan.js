@@ -63,7 +63,7 @@ var Service = {
                 ;
 
                 for (var key in option) {
-                    if (key == 'callflow')
+                    if (key == 'callflow' || key == 'onDisconnect')
                         replaceExpression(option[key]);
                     if (option[key])
                         extension.$set[key] = option[key];
