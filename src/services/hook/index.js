@@ -94,7 +94,9 @@ var Service = {
                 action: doc.action,
                 fields: doc.fields,
                 map: doc.map,
-                filter: doc.filter
+                filter: doc.filter,
+                headers: doc.headers,
+                auth: doc.auth
             };
 
             var db = application.DB._query.hook;
@@ -165,7 +167,9 @@ var Service = {
                 action: doc.action,
                 fields: doc.fields,
                 map: doc.map,
-                filter: doc.filter
+                filter: doc.filter,
+                headers: doc.headers,
+                auth: doc.auth
             };
 
             var db = application.DB._query.hook;

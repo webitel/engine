@@ -8,6 +8,7 @@ var Collection = require(__appRoot + '/lib/collection'),
     http = require('http'),
     request = require('request'),
     _ = require('underscore'),
+    async = require('async'),
     log = require(__appRoot + '/lib/log')(module);
 
 class Hook {
@@ -17,7 +18,9 @@ class Hook {
         this.domain = option.domain;
         this.action = option.action;
         this.fields = option.fields;
+        this.headers = option.headers;
         this.map = option.map;
+        this.auth = option.auth;
         this._filters = {};
         this._fields = [];
         for (let key in filter) {
@@ -26,8 +29,41 @@ class Hook {
                 "operation": filter[key].operation || null,
                 "value": filter[key].value || null
             }
-        };
+        }
     };
+
+    useAuth () {
+        return this.auth && this.auth.enabled && this.auth.url;
+    }
+
+    useCookie () {
+        return this.auth && this.auth.cookie;
+    }
+
+    toAuthRequest (e) {
+        let auth = {};
+        [
+            auth.method = 'GET',
+            auth.url = ''
+        ] = [
+            this.auth.method && this.auth.method.toUpperCase(),
+            this.auth.url
+        ];
+
+        let request = {
+            method: auth.method,
+            uri: auth.url,
+            headers: _setHeadersFromEvent(this.auth.headers, e)
+        };
+
+        if ( request.method == 'GET') {
+            request.qs = _setHeadersFromEvent(this.auth.map, e);
+        } else {
+            request.json = _setHeadersFromEvent(this.auth.map, e);
+        }
+
+        return request;
+    }
 
     getId () {
         return this.domain + '/' + this.event;
@@ -40,7 +76,7 @@ class Hook {
             if (!Operations.hasOwnProperty(this._filters[key].operation)
                 || !Operations[this._filters[key].operation](obj[key], this._filters[key].value))
                 return false;
-        };
+        }
         return true;
     };
 }
@@ -90,23 +126,33 @@ const Operations = {
 class Message {
     constructor(eventName, message, fields, map) {
         this.action = eventName;
-        this.data = fields ? _.pick(message, fields) : message;
+        this.data = fields && fields.length > 0 ? _.pick(message, fields) : message;
         if (map instanceof Object) {
             for (let key in map)
                 if (this.data.hasOwnProperty(key)) {
                     this.data[map[key]] = this.data[key];
                     delete this.data[key];
                 }
-        };
+        }
         this.id = generateUuid.v4();
     };
 
-    toRequest (uri, method) {
+    toRequest (uri, method, eventObj, hook) {
         let _method = method && method.toUpperCase();
         let request = {
             method: _method,
-            uri: uri
+            uri: uri,
+            headers: {}
         };
+
+        if (hook && hook.headers) {
+            request.headers = _setHeadersFromEvent(hook.headers, eventObj);
+        }
+
+        if (hook.useCookie() && eventObj['auth:header:set-cookie']) {
+            request.headers.Cookie = eventObj['auth:header:set-cookie'];
+        }
+
         if ( _method == 'GET') {
             request.qs = this.data;
         } else {
@@ -172,7 +218,7 @@ class Trigger {
                     result.push(new Hook(item));
                 });
                 return cb(null, result);
-            };
+            }
             return cb(null, []);
         });
     };
@@ -239,19 +285,58 @@ class Trigger {
             });
         } catch (e) {
             log.error(e);
-        };
+        }
     };
 
     send (hook, name, e) {
-        let message = new Message(name, e, hook.fields, hook.map);
-
-        log.trace(`Try send message: ${message.id}`);
-        let id = message.id;
         switch (hook.action.type) {
             case TYPES.WEB:
-                request(
-                    message.toRequest(hook.action.url, hook.action.method),
-                    (err, response) => {
+                async.waterfall(
+                    [
+                        (cb) => {
+                            if (hook.useAuth()) {
+                                request(
+                                    hook.toAuthRequest(e),
+                                    (err, res) => {
+                                        if (err)
+                                            return cb(err);
+
+                                        if (res.statusCode !== 200) {
+                                            return cb(new Error(`Bad auth status code ${res.statusCode}`));
+                                        }
+
+                                        for (let k in res.body) {
+                                            if (res.body.hasOwnProperty(k) && typeof res.body[k] == 'string')
+                                                e[`auth:body:${k}`] = res.body[k];
+                                        }
+
+                                        for (let h in res.headers) {
+                                            if (res.headers.hasOwnProperty(h))
+                                                e[`auth:header:${h}`] = res.headers[h] instanceof Array ? res.headers[h].join(';') : res.headers[h];
+                                        }
+                                        return cb(null);
+                                    }
+                                )
+                            } else {
+                                cb(null)
+                            }
+                        },
+
+                        (cb) => {
+                            let message = new Message(name, e, hook.fields, hook.map);
+
+                            log.trace(`Try send message: ${message.id}`);
+                            let id = message.id;
+
+                            request(
+                                message.toRequest(hook.action.url, hook.action.method, e, hook),
+                                (err, res) => {
+                                    cb(err, res, id);
+                                }
+                            );
+                        }
+                    ],
+                    (err, response, id) => {
                         if (err)
                             return log.warn(err);
 
@@ -261,14 +346,27 @@ class Trigger {
                     }
                 );
 
+
                 break;
             default:
                 log.warn('Bad hook action: ', hook);
-        };
+        }
 
     };
 
-};
+}
+
+function _setHeadersFromEvent(mapHeaders, eventObj) {
+    let headers = {};
+    for (let head in mapHeaders) {
+        if (mapHeaders.hasOwnProperty(head) && typeof mapHeaders[head] == 'string' && eventObj) {
+            headers[head] = mapHeaders[head].replace(/\$\{([\s\S]*?)\}/gi, (a, b) => {
+                return eventObj[b] || ""
+            });
+        }
+    }
+    return headers;
+}
 
 const TYPES = {
     WEB: 'web'
