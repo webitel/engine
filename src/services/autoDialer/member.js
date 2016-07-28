@@ -159,10 +159,14 @@ module.exports = class Member extends EventEmitter2 {
             "currentNumber": this._currentNumber && this._currentNumber.number,
             "currentProbe": this.currentProbe,
             "session": this.sessionId,
-            "endCause": this._endCause
+            "endCause": this._endCause || this.endCause
         };
         if (this.expire)
             e.expire = this.expire;
+
+        if (this._agent) {
+            e.agentId = this._agent.id;
+        }
 
         for (let key in this.variables) {
             if (this.variables.hasOwnProperty(key))
