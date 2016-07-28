@@ -111,6 +111,26 @@ class WebitelAmqp extends EventEmitter2 {
         start();
     };
 
+    publish (exchange, rk, content, cb) {
+        let ch = this.channel;
+        if (!ch)
+            return cb && cb(new Error(`No live connect.`));
+
+        try {
+            if (!exchange || !content)
+                return cb && cb(new Error(`Bad parameters.`));
+
+            if (content instanceof Object) {
+                content = new Buffer(JSON.stringify(content));
+            }
+            log.trace(`publish ${rk}`);
+            ch.publish(exchange, rk, content, {contentType: "text/json"});
+            return cb && cb();
+        } catch (e) {
+            log.error(e);
+        }
+    };
+
     bindChannelEvents (caller, cb) {
         let ch = this.channel;
         if (!ch || !this.queue) return cb && cb(new Error('No connect.'));

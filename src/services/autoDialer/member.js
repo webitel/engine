@@ -147,6 +147,34 @@ module.exports = class Member extends EventEmitter2 {
         this._currentNumber.state = state;
     }
 
+    toJSON () {
+        let e = {
+            "Event-Name": "CUSTOM",
+            "Event-Subclass": "engine::dialer_member_end",
+            "variable_domain_name": this._domain,
+            "dialerId": this._queueId,
+            "dialerName": this.queueName,
+            "id": this._id.toString(),
+            "name": this.name,
+            "currentNumber": this._currentNumber && this._currentNumber.number,
+            "currentProbe": this.currentProbe,
+            "session": this.sessionId,
+            "endCause": this._endCause
+        };
+        if (this.expire)
+            e.expire = this.expire;
+
+        for (let key in this.variables) {
+            if (this.variables.hasOwnProperty(key))
+                e[`variable_${key}`] = this.variables[key]
+        }
+        return e;
+    }
+
+    broadcast () {
+        application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, this.toJSON());
+    }
+
     end (endCause, e) {
         
         if (this.processEnd) return;

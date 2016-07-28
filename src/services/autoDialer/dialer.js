@@ -138,7 +138,11 @@ module.exports = class Dialer extends EventEmitter2 {
                         if (!this.members.remove(m._id))
                             log.error(new Error(m));
                     }
-                )
+                );
+
+                if (m.endCause) {
+                    m.broadcast();
+                }
             });
 
             if (member.checkExpire()) {
