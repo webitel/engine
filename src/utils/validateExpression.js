@@ -75,6 +75,9 @@ module.exports = function (expression) {
         .replace(/\&time_of_day\(([\s\S]*?)\)/gi, function (f, param) {
             return 'sys.time_of_day(\"' + param + '\")';
         })
+        .replace(/\&limit\(([\s\S]*?)\)/gi, function (f, param) {
+            return 'sys.limit(\"' + param + '\")';
+        })
         // END COMMANDS
         .replace(/\0B(\d+)\0/g, function(m, i) {
             return all[i];

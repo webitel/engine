@@ -88,6 +88,9 @@ var Indexes = {
         },
         {
             "variables.webitel_direction" : 1
+        },
+        {
+            "_elasticExportError" : 1
         }
     ],
     "collectionFile": [{
