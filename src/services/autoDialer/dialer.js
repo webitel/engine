@@ -6,6 +6,12 @@ let DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE,
+
+    CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
+    CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
+    CODE_RESPONSE_OK = require('./const').CODE_RESPONSE_OK,
+    CODE_RESPONSE_MINUS_PROBE = require('./const').CODE_RESPONSE_MINUS_PROBE,
+
     Member = require('./member'),
     Calendar = require('./calendar'),
     Collection = require(__appRoot + '/lib/collection'),
@@ -37,6 +43,11 @@ module.exports = class Dialer extends EventEmitter2 {
         this.cause = DIALER_CAUSE.Init;
 
         this._calendar = new Calendar(calendarConfig);
+
+        this._memberErrorCauses = config.causesError instanceof Array ? config.causesError : CODE_RESPONSE_ERRORS;
+        this._memberMinusCauses = config.causesMinus instanceof Array ? config.causesMinus : CODE_RESPONSE_MINUS_PROBE;
+        this._memberOKCauses = config.causesOK instanceof Array ? config.causesOK : CODE_RESPONSE_OK;
+        this._memberRetryCauses = config.causesRetry instanceof Array ? config.causesRetry : CODE_RESPONSE_RETRY;
 
         this.countMembers = 0;
         this._countRequestHunting = 0;
@@ -219,7 +230,12 @@ module.exports = class Dialer extends EventEmitter2 {
                 queueName: this.nameDialer,
                 queueNumber: this.number,
                 minCallDuration: this._minBillSec,
-                domain: this._domain
+                domain: this._domain,
+
+                causesOK: this._memberOKCauses,
+                causesRetry: this._memberRetryCauses,
+                causesError: this._memberErrorCauses,
+                causesMinus: this._memberMinusCauses
             };
             let m = new Member(res.value, option);
             this.members.add(m._id, m);

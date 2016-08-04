@@ -22,8 +22,6 @@ module.exports = class Member extends EventEmitter2 {
 
     constructor (config, option) {
         super();
-        if (config._lock)
-            throw config;
 
         this.tryCount = option.maxTryCount;
         this.nextTrySec = option.intervalTryCount;
@@ -36,6 +34,11 @@ module.exports = class Member extends EventEmitter2 {
         this.queueNumber = option.queueNumber || option.queueName;
 
         let lockedGws = option.lockedGateways;
+
+        this.causesOK = option.causesOK;
+        this.causesRetry = option.causesRetry;
+        this.causesError = option.causesError;
+        this.causesMinus = option.causesMinus;
 
         this._id = config._id;
         this.expire = config.expire;
@@ -197,8 +200,8 @@ module.exports = class Member extends EventEmitter2 {
 
             this.setCallUUID(e.getHeader('variable_uuid'))
         }
-
-        if (~CODE_RESPONSE_MINUS_PROBE.indexOf(endCause)) {
+        
+        if (~this.causesMinus.indexOf(endCause)) {
             this.minusProbe();
             this.log(`end cause ${endCause}`);
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
@@ -207,7 +210,7 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (~CODE_RESPONSE_OK.indexOf(endCause)) {
+        if (~this.causesOK.indexOf(endCause)) {
             if (billSec >= this.minCallDuration) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
@@ -221,7 +224,7 @@ module.exports = class Member extends EventEmitter2 {
 
         }
 
-        if (~CODE_RESPONSE_RETRY.indexOf(endCause) || skipOk) {
+        if (~this.causesRetry.indexOf(endCause) || skipOk) {
             if (this.currentProbe >= this.tryCount) {
                 this.log(`max try count`);
                 this.endCause = END_CAUSE.MAX_TRY;
@@ -237,7 +240,7 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (~CODE_RESPONSE_ERRORS.indexOf(endCause)) {
+        if (~this.causesError.indexOf(endCause)) {
             this.log(`fatal: ${endCause}`);
             this._setStateCurrentNumber(MEMBER_STATE.End);
         }
