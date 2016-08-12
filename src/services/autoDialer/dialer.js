@@ -127,9 +127,21 @@ module.exports = class Dialer extends EventEmitter2 {
             // });
             // Close member session
             member.once('end', (m) => {
-                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, _endCause: m.endCause, variables: m.variables, _probeCount: m.currentProbe};
+                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, _endCause: m.endCause, variables: m.variables, _probeCount: m.currentProbe, callSuccessful: m.callSuccessful};
                 if (m._currentNumber) {
-                    $set[`communications.${m._currentNumber._id}`] = m._currentNumber;
+                    let communications = m._communications;
+                    if (communications instanceof Array) {
+                        for (let i = 0, len = communications.length; i < len; i++) {
+                            if (i == m._currentNumber._id) {
+                                communications[i] = m._currentNumber;
+                            } else {
+                                if (m.endCause) {
+                                    communications[i].state = MEMBER_STATE.End;
+                                }
+                            }
+                        }
+                    }
+                    $set[`communications`] = communications;
                     $set._lastNumberId = m._currentNumber._id;
                     $set._waitingForResultStatus = this._waitingForResultStatus;
                 }

@@ -9,11 +9,6 @@ let generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     dynamicSort = require(__appRoot + '/utils/sort').dynamicSort,
-
-    CODE_RESPONSE_OK = require('./const').CODE_RESPONSE_OK,
-    CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
-    CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
-    CODE_RESPONSE_MINUS_PROBE = require('./const').CODE_RESPONSE_MINUS_PROBE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE
     ;
@@ -26,6 +21,7 @@ module.exports = class Member extends EventEmitter2 {
         this.tryCount = option.maxTryCount;
         this.nextTrySec = option.intervalTryCount;
         this.minCallDuration = option.minCallDuration;
+        this.callSuccessful = false;
 
         this.score = option._score;
         this.queueName = option.queueName ;
@@ -47,7 +43,13 @@ module.exports = class Member extends EventEmitter2 {
         this.sessionId = generateUuid.v4();
         this._log = {
             session: this.sessionId,
-            callUUid: null,
+            callTime: Date.now(),
+            callState: 0,
+            callPriority: 0,
+            callNumber: null, //+
+            cause: null, //+
+            callAttempt: null, // +
+            callUUID: null,
             recordSessionSec: 0,
             steps: []
         };
@@ -65,10 +67,12 @@ module.exports = class Member extends EventEmitter2 {
         }
 
         this.log(`create probe ${this.currentProbe}`);
+        this.setCurrentAttempt(this.currentProbe);
 
         this.number = "";
         this._currentNumber = null;
         this._countActiveNumbers = 0;
+        this._communications = config.communications;
         if (config.communications instanceof Array) {
             let n = config.communications.filter( (communication, position) => {
                 let isOk = communication && communication.state === MEMBER_STATE.Idle;
@@ -87,6 +91,7 @@ module.exports = class Member extends EventEmitter2 {
                 return false;
             });
             this._currentNumber = n.sort(dynamicSort('-_score'))[0];
+            this.setCurrentNumber(this._currentNumber);
 
             if (this._currentNumber) {
                 this._currentNumber._probe++;
@@ -97,6 +102,18 @@ module.exports = class Member extends EventEmitter2 {
             }
 
         }
+    }
+
+    setCurrentAttempt (attempt) {
+        this._log.callAttempt = attempt;
+    }
+
+    setCurrentNumber (communication) {
+        if (!communication)
+            return log.warn(`No communication in ${this._id}`);
+
+        this._log.callNumber = communication.number;
+        this._log.callPriority = communication.priority || 0;
     }
 
     checkExpire () {
@@ -148,6 +165,7 @@ module.exports = class Member extends EventEmitter2 {
         if (!this._currentNumber)
             return;
         this._currentNumber.state = state;
+        this._log.callState = state;
     }
 
     toJSON () {
@@ -214,6 +232,7 @@ module.exports = class Member extends EventEmitter2 {
             if (billSec >= this.minCallDuration) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
+                this.callSuccessful = true;
                 this._setStateCurrentNumber(MEMBER_STATE.End);
                 this.emit('end', this);
                 return;
