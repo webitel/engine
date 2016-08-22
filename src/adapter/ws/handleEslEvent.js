@@ -9,6 +9,7 @@ module.exports = handleEslEvent;
 function handleEslEvent(application) {
 
         require('./eslEvents/calls')(application);
+        require('./eslEvents/heartbeat')(application);
 
         application.Broker.on('callEvent', (jsonEvent) => {
             try {
@@ -76,4 +77,4 @@ function handleEslEvent(application) {
                 log.error(e.message);
             }
         });
-};
+}

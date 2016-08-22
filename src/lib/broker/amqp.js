@@ -219,8 +219,45 @@ class WebitelAmqp extends EventEmitter2 {
         }
     };
 
+    isConnect () {
+        return !!this.channel;
+    };
+
     // TODO
     disconnect () {};
+
+    subscribe (queueName = '', params = {autoDelete: true, durable: false, exclusive: true}, handler, cb) {
+        if (!this.channel)
+            return cb(new Error(`No connect to amqp`));
+
+        this.channel.assertQueue(queueName, params, (err, qok) => {
+            if (err)
+                return cb(err);
+            this.channel.consume(qok.queue, handler, {noAck: true});
+            return cb(null, qok.queue);
+        });
+    };
+
+    bind (queueName, exchange, rk, cb) {
+        if (!this.channel)
+            return cb(new Error(`No connect to amqp`));
+
+        if (!queueName || !exchange || !rk)
+            return cb(new Error(`Bad parameters`));
+
+        this.channel.bindQueue(queueName, exchange, rk);
+        return cb()
+    };
+
+    unbind (queueName, exchange, rk, cb) {
+        if (!this.channel)
+            return cb(new Error(`No connect to amqp`));
+
+        if (!queueName || !exchange || !rk)
+            return cb(new Error(`Bad parameters`));
+
+        this.channel.unbindQueue(queueName, exchange, rk, {}, cb);
+    }
 
     init (channel) {
         let scope = this;
@@ -388,6 +425,7 @@ class WebitelAmqp extends EventEmitter2 {
                 log.info('Init AMQP: OK');
 
                 scope.channel = channel;
+                scope.emit(`init:broker`);
             });
     };
 

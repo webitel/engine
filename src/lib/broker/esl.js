@@ -163,7 +163,11 @@ class WebitelEsl extends EventEmitter2 {
     // TODO
     bindHook () {};
     unBindHook () {};
+    isConnect () {};
+    subscribe () {};
+    bind () {};
+    unbind () {};
 
-};
+}
 
 module.exports = WebitelEsl;

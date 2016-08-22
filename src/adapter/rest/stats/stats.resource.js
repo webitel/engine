@@ -1,11 +1,11 @@
 /**
  * Created by Admin on 03.08.2015.
  */
+
 'use strict';
 
 var os = require('os'),
-    conf = require(__appRoot + '/conf'),
-    pretty = require('prettysize');
+    conf = require(__appRoot + '/conf');
 
 module.exports = {
     addRoutes: addRoutes
@@ -18,7 +18,7 @@ function addRoutes(api) {
     api.get('/api/v2/status', applicationStatus);
     api.get('/api/v2/status/config', applicationStatusConfig);
     api.get('/api/v1/status', applicationStatus);
-};
+}
 
 function applicationStatusConfig (req, res) {
     // TODO add config
@@ -32,55 +32,45 @@ function applicationStatus(req, res) {
         });
     } else {
         res.json(getResult(false));
-    };
-};
+    }
+}
 
 function getResult (freeSwitchStatus) {
     return {
-        "Version": process.env['VERSION'] || '',
-        "Node memory": getMemoryUsage(),
-        "Process ID": process.pid,
-        "Socket sessions": application._getWSocketSessions(),
-        "Process up time": formatTime(process.uptime()),
-        "OS": getOsInfo(),
-        "Users session": application.Users.length(),
-        "Max users session": application.Users._maxSession,
-        "Domain session": application.Domains.length(),
-        "Webitel": getWConsoleInfo(),
-        "CRASH_WORKER_COUNT": process.env['CRASH_WORKER_COUNT'] || 0,
+        "version": process.env['VERSION'] || '',
+        "nodeMemory": getMemoryUsage(),
+        "processId": process.pid,
+        "socketSessions": application._getWSocketSessions(),
+        "userSessions": application.Users.length(),
+        "maxUserSessions": application.Users._maxSession,
+        "domainSessions": application.Domains.length(),
+        "processUpTimeSec": process.uptime(),
+        "wConsole": getWConsoleInfo(),
+        "system": getOsInfo(),
+        "crashCount": process.env['CRASH_WORKER_COUNT'] || 0,
         "freeSWITCH": (freeSwitchStatus) ? freeSwitchStatus['body'] : 'Connect server error.',
-        "Node version": process.version
+        "nodeVersion": process.version
     }
 }
 
 function getMemoryUsage () {
     var memory = process.memoryUsage();
     return {
-        "rss": pretty(memory['rss']),
-        "heapTotal": pretty(memory['heapTotal']),
-        "heapUsed": pretty(memory['heapUsed'])
+        "rss": memory['rss'],
+        "heapTotal": memory['heapTotal'],
+        "heapUsed": memory['heapUsed']
     }
-};
-
-function formatTime(seconds){
-    function pad(s){
-        return (s < 10 ? '0' : '') + s;
-    }
-    var hours = Math.floor(seconds / (60*60));
-    var minutes = Math.floor(seconds % (60*60) / 60);
-
-    return pad(hours) + ':' + pad(minutes) + ':' + pad(Math.floor(seconds % 60));
-};
+}
 
 function getOsInfo () {
     return {
-        "Total memory": pretty(os.totalmem()),
-        "Free memory": pretty(os.freemem()),
-        "Platform": os.platform(),
-        "Name": os.type(),
-        "Architecture": os.arch()
+        "totalMemory": os.totalmem(),
+        "freeMemory": os.freemem(),
+        "platform": os.platform(),
+        "name": os.type(),
+        "architecture": os.arch()
     };
-};
+}
 
 function getCpuInfo () {
     var res = {};
@@ -93,9 +83,9 @@ function getCpuInfo () {
 
         for(type in cpu.times)
             res['CPU' + i][type] = Math.round(100 * cpu.times[type] / total)
-    };
+    }
     return res;
-};
+}
 
 function getWConsoleInfo () {
     var wConsole = application.WConsole;
@@ -103,10 +93,11 @@ function getWConsoleInfo () {
         return {status: "Internal Error"};
 
     return {
-        "Status": wConsole._status == 1 ? "Connected": "Offline",
-        "ApiQueue": wConsole.apiCallbackQueue.length,
-        "CmdQueue": wConsole.cmdCallbackQueue.length,
-        "Version": wConsole.version || '',
-        "Sid": wConsole._serverId
+        "status": wConsole._status == 1 ? "Connected": "Offline",
+        "apiQueue": wConsole.apiCallbackQueue.length,
+        "cmdQueue": wConsole.cmdCallbackQueue.length,
+        // move package
+        "version": wConsole.version || '',
+        "sid": wConsole._serverId
     }
 }
