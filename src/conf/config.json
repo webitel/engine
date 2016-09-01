@@ -32,7 +32,8 @@
         "collectionAclPermissions": "aclPermissions",
         "collectionHook": "hook",
         "collectionDialer": "dialer",
-        "collectionDialerMembers": "members"
+        "collectionDialerMembers": "members",
+        "collectionMedia": "mediaFile"
     },
     "freeSWITCH": {
         "host": "172.17.0.1",

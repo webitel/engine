@@ -139,6 +139,14 @@ var Indexes = {
             "roles": 1
         }
     }],
+    "collectionMedia": [{
+        "_unique": true,
+        "_": {
+            "name": 1,
+            "domain": 1,
+            "type": 1
+        }
+    }],
     "collectionDialerMembers": [
         {
             "_probeCount" : 1
