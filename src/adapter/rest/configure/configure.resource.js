@@ -10,11 +10,12 @@ module.exports = {
 };
 
 function addRoutes (api) {
-    api.get('/api/v2/reloadxml', reloadXml);
+    api.put('/api/v2/system/reload/xml', reloadXml);
+    api.put('/api/v2/system/reload/:modName', reloadFsModule);
 
     //  V1
     api.get('/api/v1/reloadxml', reloadXml);
-};
+}
 
 function reloadXml (req, res, next) {
     configureService.reloadXml(req.webitelUser, (err, result) => {
@@ -28,4 +29,18 @@ function reloadXml (req, res, next) {
                 "info": result
             })
     });
-};
+}
+
+function reloadFsModule(req, res, next) {
+    configureService.reloadMod(req.webitelUser, req.params.modName,  (err, result) => {
+        if (err)
+            return next(err);
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            })
+    });
+}
