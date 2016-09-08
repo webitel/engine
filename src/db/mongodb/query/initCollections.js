@@ -96,7 +96,17 @@ var Indexes = {
     "collectionFile": [{
         "uuid": 1,
         "domain": 1
+    }, {
+        "createdOn": 1
     }],
+    "collectionDomain": [
+        {
+            "_unique": true,
+            "_": {
+                "name" : 1
+            }
+        }
+    ],
     "collectionEmail": [{
         "domain": 1,
         "provider": 1

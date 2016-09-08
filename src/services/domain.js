@@ -17,7 +17,7 @@ var Service = {
      * @param option
      * @param cb
      */
-    create: function (caller, option, cb) {
+    create: (caller, option, cb) => {
         checkPermissions(caller, 'domain', 'c', function (err) {
             if (err)
                 return cb(err);
@@ -46,7 +46,7 @@ var Service = {
      * @param option
      * @param cb
      */
-    list: function (caller, option, cb) {
+    list: (caller, option, cb) => {
         checkPermissions(caller, 'domain', 'r', function (err) {
             if (err)
                 return cb(err);
@@ -72,7 +72,7 @@ var Service = {
      * @param options
      * @param cb
      */
-    item: function (caller, options, cb) {
+    item: (caller, options, cb) => {
         checkPermissions(caller, 'domain/item', 'r', function (err) {
             if (err)
                 return cb(err);
@@ -98,7 +98,7 @@ var Service = {
      * @param options
      * @param cb
      */
-    update: function (caller, options, cb) {
+    update: (caller, options, cb) => {
         checkPermissions(caller, 'domain/item', 'u', function (err) {
             if (err)
                 return cb(err);
@@ -124,7 +124,7 @@ var Service = {
      * @param options
      * @param cb
      */
-    remove: function (caller, options, cb) {
+    remove: (caller, options, cb) => {
         checkPermissions(caller, 'domain', 'd', function (err) {
             if (err)
                 return cb(err);
@@ -140,6 +140,35 @@ var Service = {
                 return cb(null, res)
             });
         });
+    },
+
+    settings: {
+        get: (caller, options, cb) => {
+            checkPermissions(caller, 'domain', 'r', (err) => {
+                if (err)
+                    return cb(err);
+
+                let domain = validateCallerParameters(caller, options && options.name);
+                if (!domain)
+                    return cb(400, 'Domain is required.');
+
+                application.DB._query.domain.getByName(domain, cb);
+            })
+        },
+
+        updateOrInsert: (caller, options, cb) => {
+            checkPermissions(caller, 'domain', 'u', (err) => {
+                if (err)
+                    return cb(err);
+
+                let domain = validateCallerParameters(caller, options && options.name);
+                if (!domain)
+                    return cb(400, 'Domain is required.');
+
+                delete options.domain;
+                application.DB._query.domain.updateOrInserParams(domain, options, cb);
+            })
+        }
     }
 };
 

@@ -44,7 +44,8 @@ function initConnect (server) {
             hook: require('./query/hook').addQuery(db),
             calendar: require('./query/calendar').addQuery(db),
             dialer: require('./query/dialer').addQuery(db),
-            telegram: require('./query/telegram').addQuery(db)
+            telegram: require('./query/telegram').addQuery(db),
+            domain: require('./query/domain').addQuery(db)
         };
 
         server.emit('sys::connectDb', db);
@@ -59,7 +60,7 @@ function initConnect (server) {
         });
 
         db.on('error', function (err) {
-            log.error('close MongoDB: ', err);
+            log.error('err MongoDB: ', err);
         });
     });
 }

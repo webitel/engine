@@ -17,13 +17,15 @@ function addRoutes(api) {
     api.post('/api/v2/domains', create);
     api.get('/api/v2/domains', list);
     api.get('/api/v2/domains/:name', item);
+    api.get('/api/v2/domains/:name/settings', getSettings);
+    api.put('/api/v2/domains/:name/settings', updateOrInsert);
     api.put('/api/v2/domains/:name/:type', update);
     api.delete('/api/v2/domains/:name', remove);
 
     // V1
     api.post('/api/v1/domains?', createV1);
     api.delete('/api/v1/domains?/:name', removeV1);
-};
+}
 
 function createV1 (req, res, next) {
     var option = {
@@ -45,7 +47,7 @@ function createV1 (req, res, next) {
             .send(result)
             ;
     });
-};
+}
 
 function removeV1 (req, res, next) {
     var option = {
@@ -63,7 +65,7 @@ function removeV1 (req, res, next) {
             .status(200)
             .send(result);
     });
-};
+}
 
 function create (req, res, next) {
     var option = {
@@ -85,7 +87,7 @@ function create (req, res, next) {
                 "info": result
             });
     });
-};
+}
 
 function list (req, res, next) {
     var option = {
@@ -104,7 +106,7 @@ function list (req, res, next) {
                 "info": result
             });
     });
-};
+}
 
 function item (req, res, next) {
     var option = {
@@ -123,7 +125,7 @@ function item (req, res, next) {
                 "info": result
             });
     });
-};
+}
 
 function update (req, res, next) {
     var option = {
@@ -144,7 +146,7 @@ function update (req, res, next) {
                 "info": result
             });
     });
-};
+}
 
 function remove (req, res, next) {
     var option = {
@@ -163,4 +165,45 @@ function remove (req, res, next) {
                 "info": result
             });
     });
-};
+}
+
+function getSettings(req, res, next) {
+    let option = {
+        "name": req.params['name']
+    };
+
+    domainService.settings.get(req.webitelUser, option, function (err, result) {
+        if (err)
+            return next(err);
+
+        if (!result) //code error 404
+            return next();
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    });
+}
+
+function updateOrInsert(req, res, next) {
+    let option = req.body;
+    option.name = req.params.name;
+
+    domainService.settings.updateOrInsert(req.webitelUser, option, function (err, result) {
+        if (err)
+            return next(err);
+
+        if (!result) //code error 404
+            return next();
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    });
+}

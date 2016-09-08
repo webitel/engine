@@ -18,6 +18,7 @@
         "collectionSystem": "global",
         "collectionExtension": "extension",
         "collectionDomainVar": "domainVariables",
+        "collectionDomain": "domains",
         "collectionAuth": "authToken",
         "collectionCalendar": "calendar",
         "collectionCDR": "cdr",
