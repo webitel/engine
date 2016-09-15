@@ -324,6 +324,15 @@ let Service = {
                 member.createdOn = Date.now();
                 member._score = member.createdOn + (member.priority || 0);
 
+                if (!(member.communications instanceof Array) || member.communications.length == 0)
+                    return cb(new CodeError(400, 'Bad communications (must array)'));
+
+                for (let comm of member.communications) {
+                    if (!comm.number)
+                        return cb(new CodeError(400, `Bad communication number`));
+                    comm.state = 0;
+                }
+
                 let db = application.DB._query.dialer;
                 return db.createMember(member, (err, res) => {
                     if (err)
