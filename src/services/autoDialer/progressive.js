@@ -69,7 +69,7 @@ module.exports = class Progressive extends Dialer {
             member.inCall = true;
             application.Esl.bgapi(ds, (res) => {
                 log.trace(`fs response: ${res && res.body}`);
-                if (/^-ERR/.test(res.body)) {
+                if (/^-ERR|^-USAGE/.test(res.body)) {
                     let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                     member.log(`agent: ${error}`);
                     member.minusProbe();
