@@ -34,9 +34,13 @@ class Gw {
                 vars = vars.concat(sysVars);
             }
 
+            var webitelData = {};
             for (let key of member.getVariableKeys()) {
+                webitelData[key] = member.getVariable(key);
                 vars.push(`${key}='${member.getVariable(key)}'`);
             }
+
+            vars.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
 
             if (agent) {
                 vars.push(
