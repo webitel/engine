@@ -47,6 +47,7 @@ module.exports = class Member extends EventEmitter2 {
             callState: 0,
             callPriority: 0,
             callNumber: null, //+
+            callPositionIndex: 0, //+
             cause: null, //+
             callAttempt: null, // +
             callUUID: null,
@@ -91,7 +92,7 @@ module.exports = class Member extends EventEmitter2 {
                 return false;
             });
             this._currentNumber = n.sort(dynamicSort('-_score'))[0];
-            this.setCurrentNumber(this._currentNumber);
+            this.setCurrentNumber(this._currentNumber, config.communications);
 
             if (this._currentNumber) {
                 this._currentNumber._probe++;
@@ -108,12 +109,14 @@ module.exports = class Member extends EventEmitter2 {
         this._log.callAttempt = attempt;
     }
 
-    setCurrentNumber (communication) {
+    setCurrentNumber (communication, all) {
         if (!communication)
             return log.warn(`No communication in ${this._id}`);
 
         this._log.callNumber = communication.number;
         this._log.callPriority = communication.priority || 0;
+        if (all instanceof Array)
+            this._log.callPositionIndex = all.indexOf(communication);
     }
 
     checkExpire () {
