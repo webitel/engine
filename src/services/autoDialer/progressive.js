@@ -35,7 +35,9 @@ module.exports = class Progressive extends Dialer {
         let onChannelDestroy = (e) => {
             let m = getMembersFromEvent(e);
             if (m && --m.channelsCount === 0) {
-
+                if (m._agentNoAnswer !== true) {
+                    m._agent._noAnswerCallCount = 0;
+                }
                 this._am.taskUnReserveAgent(m._agent, m._agent.wrapUpTime);
                 this.addMemberCallbackQueue(m, e, m._agent.wrapUpTime);
             }
@@ -74,8 +76,11 @@ module.exports = class Progressive extends Dialer {
                     member.log(`agent: ${error}`);
                     member.minusProbe();
                     this.nextTrySec = 0;
+                    if (error == 'NO_ANSWER') {
+                        agent._noAnswerCallCount++;
+                        member._agentNoAnswer = true;
+                    }
                     member.end();
-
                     this._am.taskUnReserveAgent(agent, agent.rejectDelayTime);
                 }
             });

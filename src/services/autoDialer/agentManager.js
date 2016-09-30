@@ -53,6 +53,7 @@ class AgentManager extends EventEmitter2 {
         this.tick = () => {
             let time = Date.now(),
                 availableCount = 0;
+
             for (let key of this._keys) {
                 let agent = this.agents.get(key);
                 //console.log(agent)
@@ -117,13 +118,28 @@ class AgentManager extends EventEmitter2 {
     taskUnReserveAgent (agent, timeSec) {
         if (agent.lock === true) {
             agent.lock = false;
-            let wrapTime = Date.now() + (timeSec * 1000);
+
+            let wrapTime = Date.now() + (timeSec * 1000),
+                agentId = agent.id
+                ;
+
             agent.lockTime = wrapTime + DIFF_CHANGE_MSEC;
             // TODO
             if (agent.availableTime > agent.lockTime)
                 agent.availableTime = 0;
 
             agent.unIdleTime = wrapTime;
+
+
+            if (agent.maxNoAnswer != 0 && agent._noAnswerCallCount >= agent.maxNoAnswer) {
+                this.setNoAnswerAgent(agent, (err) => {
+                    if (err)
+                        return log.error(err);
+                    agent.lockTime = 0;
+                    agent._noAnswerCallCount = 0;
+                    return log.trace(`change  ${agentId} status to no answer`);
+                });
+            }
         }
     }
 
@@ -143,6 +159,16 @@ class AgentManager extends EventEmitter2 {
         // TODO if err remove agent ??
         log.trace(`try set new state ${agent.id} -> ${status}`);
         ccService._setAgentState(agent.id, status, cb);
+    }
+
+    setNoAnswerAgent (agent, cb) {
+        ccService._setAgentStatus(agent.id, AGENT_STATUS.OnBreak, (err) => {
+            if (err) {
+                return log.error(err);
+            }
+
+            return this.setAgentStatus(agent, AGENT_STATE.Waiting, cb);
+        })
     }
 
     initAgents (dialer, callback) {

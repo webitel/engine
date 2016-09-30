@@ -626,6 +626,19 @@ var Service = {
                 return cb(new CodeError(status, body));
             }
         });
+    },
+
+    _setAgentStatus: function (agentId, status, cb) {
+        application.Esl.api(`callcenter_config agent set status ${agentId} '${status}'`, function (res) {
+            if (getResponseOK(res)) {
+                return cb(null, res.body);
+            } else {
+                // TODO new fn parse error
+                let body = (res && res.body) || '';
+                let status = /not\sfound!/.test(body) ? 404 : 400;
+                return cb(new CodeError(status, body));
+            }
+        });
     }
 
 };
