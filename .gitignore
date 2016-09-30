@@ -1,5 +1,6 @@
 .idea/
 src/node_modules/
+src/patch/
 cert/wss.pem
 /utils/saveJSONDB.js
 /utils/location.js

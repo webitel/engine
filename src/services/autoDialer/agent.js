@@ -50,6 +50,11 @@ class Agent {
 
     setStatus (status = '') {
         this.status = status;
+        if (this.state === AGENT_STATE.Waiting && (this.status === AGENT_STATUS.Available || this.status === AGENT_STATUS.AvailableOnDemand)) {
+            log.info(`new time agent`);
+            this.availableTime = Date.now()
+            ;
+        }
         log.trace(`Change agent status ${this.id} ${this.state} ${this.status} ${this.lock}`);
     }
 
