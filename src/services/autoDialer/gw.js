@@ -34,6 +34,10 @@ class Gw {
                 vars = vars.concat(sysVars);
             }
 
+            if (member._currentNumber && member._currentNumber.description) {
+                vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
+            }
+
             var webitelData = {};
             for (let key of member.getVariableKeys()) {
                 webitelData[key] = member.getVariable(key);
