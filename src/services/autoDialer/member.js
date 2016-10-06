@@ -181,6 +181,7 @@ module.exports = class Member extends EventEmitter2 {
             "id": this._id.toString(),
             "name": this.name,
             "currentNumber": this._currentNumber && this._currentNumber.number,
+            "dlr_member_number_description": this._currentNumber && this._currentNumber.description,
             "currentProbe": this.currentProbe,
             "session": this.sessionId,
             "endCause": this._endCause || this.endCause
