@@ -145,6 +145,8 @@ var _eventsModule = {
 
             // TODO !!!
             if (existsFn && !existsFn(user, event)) {
+                _iterator++;
+                log.trace(`Skip fire ${key} - exists false`);
                 continue
             };
 
