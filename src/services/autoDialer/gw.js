@@ -28,7 +28,7 @@ class Gw {
 
     fnDialString (member) {
         return (agent, sysVars, park) => {
-            let vars = [`dlr_member_id=${member._id.toString()}`, `cc_queue='${member.queueName}'`].concat(this._vars);
+            let vars = [`dlr_member_id=${member._id.toString()}`, `dlr_id=${member._queueId}`, `cc_queue='${member.queueName}'`].concat(this._vars);
 
             if (sysVars instanceof Array) {
                 vars = vars.concat(sysVars);
