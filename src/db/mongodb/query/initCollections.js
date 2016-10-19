@@ -93,12 +93,22 @@ var Indexes = {
             "_elasticExportError" : 1
         }
     ],
-    "collectionFile": [{
-        "uuid": 1,
-        "domain": 1
-    }, {
-        "createdOn": 1
-    }],
+    "collectionFile": [
+        {
+            "uuid": 1,
+            "domain": 1
+        },
+        {
+            "createdOn": 1
+        },
+        {
+            "_unique": true,
+            "_": {
+                "domain": 1,
+                "path": 1
+            }
+        }
+    ],
     "collectionDomain": [
         {
             "_unique": true,
