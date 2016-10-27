@@ -29,8 +29,10 @@ module.exports = class Progressive extends Dialer {
 
         let onChannelCreate = (e) => {
             let m = getMembersFromEvent(e);
-            if (m)
+            if (m) {
                 m.channelsCount++;
+                m.setCallUUID(e.getHeader('variable_uuid'));
+            }
         };
         let onChannelDestroy = (e) => {
             let m = getMembersFromEvent(e);
