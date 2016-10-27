@@ -38,7 +38,10 @@ class Gw {
                 vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
             }
 
-            var webitelData = {};
+            var webitelData = {
+                dlr_member_id: member._id.toString(),
+                dlr_id: member._queueId
+            };
             for (let key of member.getVariableKeys()) {
                 webitelData[key] = member.getVariable(key);
                 vars.push(`${key}='${member.getVariable(key)}'`);
