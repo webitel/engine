@@ -127,7 +127,7 @@ module.exports = class Dialer extends EventEmitter2 {
             // });
             // Close member session
             member.once('end', (m) => {
-                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, _endCause: m.endCause, variables: m.variables, _probeCount: m.currentProbe, callSuccessful: m.callSuccessful};
+                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, variables: m.variables, _probeCount: m.currentProbe, callSuccessful: m.callSuccessful};
                 if (m._currentNumber) {
                     let communications = m._communications;
                     if (communications instanceof Array) {
@@ -146,7 +146,11 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set._waitingForResultStatus = this._waitingForResultStatus;
                 }
 
-                dialerService.members._updateById(
+                if (m.endCause) {
+                    $set._endCause = m.endCause;
+                }
+
+                dialerService.members._updateByIdFix(
                     m._id,
                     {
                         $push: {_log: m._log},
@@ -155,7 +159,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     },
                     (err) => {
                         if (err)
-                            return log.error(err);
+                            log.error(err);
 
                         log.trace(`removed ${m.sessionId}`);
                         if (!this.members.remove(m._id))

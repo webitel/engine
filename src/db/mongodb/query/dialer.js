@@ -198,6 +198,16 @@ function addQuery (db) {
                     cb
                 )
         },
+
+        _updateMemberFix: (id, data, cb) => {
+            return db
+                .collection(memberCollectionName)
+                .update(
+                    {_id: id},
+                    data,
+                    cb
+                )
+        },
         
         _aggregateMembers: function (agg, cb) {
             return db

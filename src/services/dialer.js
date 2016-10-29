@@ -546,6 +546,11 @@ let Service = {
             return db._updateMember({_id: id}, doc, null, cb);
         },
 
+        _updateByIdFix: (id, doc, cb) => {
+            let db = application.DB._query.dialer;
+            return db._updateMemberFix(id, doc, cb);
+        },
+
         _updateMember (filter, doc, sort, cb) {
             let db = application.DB._query.dialer;
             return db._updateMember(filter, doc, sort, cb);
