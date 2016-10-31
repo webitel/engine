@@ -102,6 +102,12 @@ var Indexes = {
             "createdOn": 1
         },
         {
+            "size": 1
+        },
+        {
+            "domain": 1
+        },
+        {
             "_unique": true,
             "_": {
                 "domain": 1,

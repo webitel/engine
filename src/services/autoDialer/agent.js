@@ -27,7 +27,7 @@ class Agent {
         this.dialers = [];
         this.lockTime = 0;
         this.unIdleTime = 0;
-        this.availableTime = 1;
+        this.availableTime = Infinity;
         this.lock = false;
         this.timerId = null;
 
@@ -41,7 +41,8 @@ class Agent {
         this.state = state;
         if (this.state === AGENT_STATE.Waiting && (this.status === AGENT_STATUS.Available || this.status === AGENT_STATUS.AvailableOnDemand)) {
             log.info(`new time agent`);
-            this.availableTime = Date.now()
+            if (!this.lock)
+                this.availableTime = Date.now()
             ;
         }
 
@@ -52,7 +53,8 @@ class Agent {
         this.status = status;
         if (this.state === AGENT_STATE.Waiting && (this.status === AGENT_STATUS.Available || this.status === AGENT_STATUS.AvailableOnDemand)) {
             log.info(`new time agent`);
-            this.availableTime = Date.now()
+            if (!this.lock)
+                this.availableTime = Date.now()
             ;
         }
         log.trace(`Change agent status ${this.id} ${this.state} ${this.status} ${this.lock}`);

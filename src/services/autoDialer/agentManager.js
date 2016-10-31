@@ -57,16 +57,23 @@ class AgentManager extends EventEmitter2 {
             for (let key of this._keys) {
                 let agent = this.agents.get(key);
                 //console.log(agent)
-                if (agent.state === AGENT_STATE.Reserved && agent.unIdleTime != 0 && agent.unIdleTime <= time) {
+                if (agent.unIdleTime != 0 && agent.unIdleTime <= time) {
                     agent.unIdleTime = 0;
-                    this.setAgentStatus(agent, AGENT_STATE.Waiting, (err) => {
-                        if (err)
-                            return log.error(err);
-                        log.trace(`Ok set Waiting ${agent.id}`);
-                    });
+
+                    if (agent.state === AGENT_STATE.Reserved ) {
+                        this.setAgentStatus(agent, AGENT_STATE.Waiting, (err) => {
+                            if (err)
+                                return log.error(err);
+                            // TODO...
+                            agent.availableTime = Infinity;
+                            log.trace(`Ok set Waiting ${agent.id}`);
+                        });
+                    } else {
+                        agent.availableTime = Infinity;
+                    }
                 }
                 // TODO agent.availableTime + 3000
-                if (agent && agent.state === AGENT_STATE.Waiting && agent.status === AGENT_STATUS.Available && !agent.lock && agent.lockTime <= agent.availableTime + DIFF_CHANGE_MSEC + 500) {
+                if (agent && agent.state === AGENT_STATE.Waiting && agent.status === AGENT_STATUS.Available && !agent.lock && (agent.lockTime <= agent.availableTime + DIFF_CHANGE_MSEC + 500)) {
                     // log.debug(`send free agent ${agent.id}`);
                     availableCount++;
                     this.emit('unReserveHookAgent', agent);
@@ -126,7 +133,7 @@ class AgentManager extends EventEmitter2 {
             agent.lockTime = wrapTime + DIFF_CHANGE_MSEC;
             // TODO
             if (agent.availableTime > agent.lockTime)
-                agent.availableTime = 0;
+                agent.availableTime = Infinity;
 
             agent.unIdleTime = wrapTime;
 
