@@ -1164,7 +1164,7 @@ Webitel.prototype.createSipGateway = function (_caller, gateway, cb) {
         _commandsLine = _commandsLine.concat(gateway['template'].replace(/\s/g,''), "::");
     };
 
-    _commandsLine = _commandsLine.concat(`'${gateway['name']}'`);
+    _commandsLine = _commandsLine.concat(gateway['name']);
     if (_domain) {
         _commandsLine = _commandsLine.concat('@',_domain.replace(/\s/g,''));
     };
