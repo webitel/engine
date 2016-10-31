@@ -136,7 +136,7 @@ class AgentManager extends EventEmitter2 {
                 agent.availableTime = Infinity;
 
             agent.unIdleTime = wrapTime;
-
+            log.trace(`Set agent lock time ${timeSec} sec`);
 
             if (agent.maxNoAnswer != 0 && agent._noAnswerCallCount >= agent.maxNoAnswer) {
                 this.setNoAnswerAgent(agent, (err) => {

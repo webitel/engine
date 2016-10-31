@@ -19,6 +19,7 @@ class Agent {
         this.skills = params.skills;
         // this.bigData = new Array(1e6).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
         this.maxNoAnswer = +(params.max_no_answer || 0);
+        this.noAnswerDelayTime = +(params.no_answer_delay_time || 0);
         this.wrapUpTime = +(params.wrap_up_time || 10);
         this.rejectDelayTime = +(params.reject_delay_time || 0);
         let cTimeout = params.contact && /originate_timeout=([^,|}]*)/.exec(params.contact);
