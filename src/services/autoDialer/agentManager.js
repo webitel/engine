@@ -359,7 +359,7 @@ class AgentManager extends EventEmitter2 {
                 a.removeDialer(dialerId);
                 if (a.dialers.length === 0) {
                     this.agents.remove(i);
-                    if (a.state === AGENT_STATE.Reserved)
+                    if (a.state === AGENT_STATE.Reserved && a.unIdleTime !== 0)
                         this.setAgentStatus(a, AGENT_STATE.Waiting, (err) => {
                             if (err)
                                 log.error(err);
