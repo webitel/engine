@@ -202,12 +202,14 @@ class AgentManager extends EventEmitter2 {
             }
     }
 
-    taskUnReserveAgent (agent, timeSec) {
+    taskUnReserveAgent (agent, timeSec, gotAgentCall) {
         if (agent.lock === true) {
             agent.lock = false;
             let wrapTime = Date.now() + (timeSec * 1000);
             agent.lockTime = wrapTime + DIFF_CHANGE_MSEC;
             agent.unIdleTime = wrapTime;
+            if (gotAgentCall)
+                agent.callCount++;
         }
     }
 

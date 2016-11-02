@@ -39,7 +39,7 @@ module.exports = class Progressive extends Dialer {
             if (m && --m.channelsCount === 0) {
                 if (m._agentNoAnswer !== true) {
                     m._agent._noAnswerCallCount = 0;
-                    this._am.taskUnReserveAgent(m._agent, m._agent.wrapUpTime);
+                    this._am.taskUnReserveAgent(m._agent, m._agent.wrapUpTime, true);
                 } else {
                     this._am.taskUnReserveAgent(m._agent, m._agent.noAnswerDelayTime);
                 }
@@ -88,6 +88,8 @@ module.exports = class Progressive extends Dialer {
                     }
                     member.end();
                     this._am.taskUnReserveAgent(agent, delayTime);
+                } else {
+                    agent.lastBridgeCallTimeStart = Date.now();
                 }
             });
         });
@@ -110,7 +112,7 @@ module.exports = class Progressive extends Dialer {
     }
 
     findAvailAgents (cb) {
-        var a = this._am.getFreeAgent(this._agents);
+        var a = this._am.getFreeAgent(this._agents, this.agentStrategy);
         if (a) {
             this._am.reserveAgent(a, (err) => {
                 if (err) {

@@ -73,6 +73,7 @@ module.exports = class Dialer extends EventEmitter2 {
             config.skills
         ];
 
+        this.agentStrategy = config.agentStrategy;
         this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
 
 

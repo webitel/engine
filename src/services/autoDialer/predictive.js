@@ -63,7 +63,7 @@ module.exports = class Predictive extends Dialer {
 
             let onChannelAnswer = (e) => {
                 member.log(`answer`);
-                let agent = this._am.getFreeAgent(this._agents);
+                let agent = this._am.getFreeAgent(this._agents, this.agentStrategy);
                 if (agent) {
                     this._am.reserveAgent(agent, () => {
                         member._agent = agent;
@@ -156,7 +156,7 @@ module.exports = class Predictive extends Dialer {
             this._skipAgents.push(agent);
         } else {
             if (this._callRequestCount != 0) return;
-            this._skipAgents = this._am.getFreeAgents(this._agents);
+            this._skipAgents = this._am.getFreeAgents(this._agents, this.agentStrategy);
             aC = this._skipAgents.length;
         }
 

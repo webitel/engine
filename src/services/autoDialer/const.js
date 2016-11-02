@@ -69,6 +69,14 @@ const DIALER_TYPES = {
     PredictiveDialer: "Predictive Dialer"
 };
 
+const AGENT_STRATEGY = {
+    RANDOM: "random", //в случайном порядке.
+    WITH_FEWEST_CALLS: "with_fewest_calls", //сначала на оператора с наименьшим количеством звонков.
+    WITH_LEAST_TALK_TIME: "with_least_talk_time", //сначала на оператора с наименьшим временем в разговоре.
+    LONGEST_IDLE_AGENT: "longest_idle_agent", //сначала на оператора с наибольшим временем в ожидание.
+    TOP_DOWN: "top-down" //всегда сверху-вниз.
+};
+
 module.exports = {
     DIALER_STATES: DIALER_STATES,
     DIALER_CAUSE: DIALER_CAUSE,
@@ -82,5 +90,6 @@ module.exports = {
     MAX_MEMBER_RETRY: MAX_MEMBER_RETRY,
     CODE_RESPONSE_MINUS_PROBE: CODE_RESPONSE_MINUS_PROBE,
     DIALER_TYPES: DIALER_TYPES,
-    MEMBER_STATE: MEMBER_STATE
+    MEMBER_STATE: MEMBER_STATE,
+    AGENT_STRATEGY: AGENT_STRATEGY
 };

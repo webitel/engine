@@ -11,7 +11,7 @@ let log = require(__appRoot + '/lib/log')(module),
 
 class Agent {
 
-    constructor (key, params, skills) {
+    constructor (key, params, skills, position) {
         this.id = key;
         this.number = key.split('@')[0];
         this.state = params.state;
@@ -31,6 +31,12 @@ class Agent {
         this.availableTime = Infinity;
         this.lock = false;
         this.timerId = null;
+        this.callCount = 0;
+        this.lastBridgeCallTimeStart = null;
+        this.lastBridgeCallTimeEnd = null;
+        this.callTimeMs = 0;
+
+        this.position = position;
 
         this._noAnswerCallCount = 0;
     }
