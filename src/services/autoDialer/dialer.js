@@ -128,21 +128,25 @@ module.exports = class Dialer extends EventEmitter2 {
             // });
             // Close member session
             member.once('end', (m) => {
-                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, variables: m.variables, _probeCount: m.currentProbe, callSuccessful: m.callSuccessful};
+                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, variables: m.variables, _probeCount: m.currentProbe, callSuccessful: m.callSuccessful},
+                    $max = {};
+
                 if (m._currentNumber) {
                     let communications = m._communications;
                     if (communications instanceof Array) {
                         for (let i = 0, len = communications.length; i < len; i++) {
                             if (i == m._currentNumber._id) {
-                                communications[i] = m._currentNumber;
+                                $max[`communications.${i}.state`] = m._currentNumber.state;
+                                $set[`communications.${i}._id`] = m._currentNumber._id;
+                                $set[`communications.${i}._probe`] = m._currentNumber._probe;
+                                $set[`communications.${i}._score`] = m._currentNumber._score;
                             } else {
                                 if (m.endCause) {
-                                    communications[i].state = MEMBER_STATE.End;
+                                    $set[`communications.${i}.state`] = MEMBER_STATE.End;
                                 }
                             }
                         }
                     }
-                    $set[`communications`] = communications;
                     $set._lastNumberId = m._currentNumber._id;
                     $set._waitingForResultStatus = this._waitingForResultStatus;
                 }
@@ -156,6 +160,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     {
                         $push: {_log: m._log},
                         $set,
+                        $max,
                         $unset: {_lock: 1}//, $inc: {_probeCount: 1}
                     },
                     (err) => {

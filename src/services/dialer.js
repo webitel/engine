@@ -474,6 +474,8 @@ let Service = {
 
         setCallback: (caller, options = {}, cb) => {
 
+            log.debug(`Set callback: %j, from: %s`, options, caller.id);
+
             if (!options.dialer)
                 return cb(new CodeError(400, "Dialer id is required."));
 
@@ -492,21 +494,24 @@ let Service = {
                 if (!memberDb)
                     return cb(new CodeError(404, `Not found ${options.member} in dialer ${options.dialer}`));
 
-                let callback = options.callback;
+                let callback = options.callback,
+                    $push;
+
+                const $set = {};
 
                 if (callback.success === true) {
-                    memberDb._endCause = "NORMAL_CLEARING";
-                    memberDb._nextTryTime = null;
+                    $set._endCause = "NORMAL_CLEARING";
+                    $set._nextTryTime = null;
                 } else {
-                    memberDb._endCause = null;
+                    $set._endCause = null;
                     if (+callback.next_after_sec > 0) {
-                        memberDb._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
+                        $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
                     }
 
                     if (callback.reset_retries === true) {
-                        memberDb._probeCount = 0;
+                        $set._probeCount = 0;
                         for (let key in memberDb.communications) {
-                            memberDb.communications[key]._probe = 0;
+                            $set[`communications.${key}._probe`] = 0;
                         }
                     }
 
@@ -516,27 +521,49 @@ let Service = {
 
                         for (let i = 0, len = memberDb.communications.length; i < len; i++) {
                             if (memberDb.communications[i] && (all || ~arrNumbers.indexOf(memberDb.communications[i].number))) {
-                                memberDb.communications[i].state = 2;
+                                $set[`communications.${i}.state`] = 2;
                             }
                         }
                     }
 
                     if (callback.next_communication && memberDb.communications) {
-                        memberDb.communications.push({
-                            number: callback.next_communication,
-                            // TODO
-                            priority: 100,
-                            status: 0,
-                            state: 0
-                        });
+                        $push = {
+                            "communications": {
+                                number: callback.next_communication,
+                                // TODO
+                                priority: 100,
+                                status: 0,
+                                state: 0
+                            }
+                        };
                     }
                 }
 
+                const q = {
+                    $set: $set,
+                    $push: {
+                        '_callback': {
+                            from: caller.id,
+                            time: Date.now(),
+                            data: callback
+                        }
+                    }
+                };
+
                 dbDialer._updateMember(
                     {_id: memberDb._id},
-                    memberDb,
+                    q,
                     {},
-                    cb
+                    (e, r) => {
+                        if (e)
+                            return cb(e);
+
+                        if ($push) {
+                            dbDialer._updateMember({_id: memberDb._id}, {$push}, {}, cb);
+                        } else {
+                            return cb(null, r);
+                        }
+                    }
                 );
             })
         },
