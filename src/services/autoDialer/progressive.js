@@ -100,11 +100,14 @@ module.exports = class Progressive extends Dialer {
         this.checkSleep();
         if (this._agentReserveCallback.length === 0 || !this.isReady())
             return false;
+
+        const fn = this._agentReserveCallback.shift();
         this._am.reserveAgent(agent, (err) => {
             if (err) {
+                this._agentReserveCallback.push(fn);
                 return log.error(err);
-            };
-            var fn = this._agentReserveCallback.shift();
+            }
+
             if(typeof fn === 'function')
                 fn(agent);
         });
