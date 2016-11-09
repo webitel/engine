@@ -128,8 +128,10 @@ module.exports = class Dialer extends EventEmitter2 {
             // });
             // Close member session
             member.once('end', (m) => {
-                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, variables: m.variables, _probeCount: m.currentProbe, callSuccessful: m.callSuccessful},
-                    $max = {};
+                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
+                    $max = {
+                        _probeCount: m.currentProbe
+                    };
 
                 if (m._currentNumber) {
                     let communications = m._communications;
@@ -148,12 +150,16 @@ module.exports = class Dialer extends EventEmitter2 {
                         }
                     }
                     $set._lastNumberId = m._currentNumber._id;
-                    $set._waitingForResultStatus = this._waitingForResultStatus;
                 }
 
                 if (m.endCause) {
                     $set._endCause = m.endCause;
                 }
+
+                if (m._minusProbe && this._waitingForResultStatus)
+                    $set._waitingForResultStatus = false;
+
+                $set._lastMinusProbe = m._minusProbe;
 
                 dialerService.members._updateByIdFix(
                     m._id,
@@ -203,7 +209,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         if (this._waitingForResultStatus) {
             m.log('check callback');
-            m.nextTrySec += (wrapTime || this._wrapUpTime);
+            m.nextTrySec += (this._wrapUpTime || wrapTime);
             m.end(null, e);
         } else {
             m.end(e.getHeader('variable_hangup_cause'), e);
@@ -253,6 +259,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 queueNumber: this.number,
                 minCallDuration: this._minBillSec,
                 domain: this._domain,
+                _waitingForResultStatus: this._waitingForResultStatus,
 
                 causesOK: this._memberOKCauses,
                 causesRetry: this._memberRetryCauses,
@@ -269,7 +276,7 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     reserveMember (cb) {
-        let communications = {
+        const communications = {
             $elemMatch: {
                 $or: [{state: MEMBER_STATE.Idle}, {state: null}]
             }
@@ -280,7 +287,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 $nin: this._lockedGateways
             };
 
-        let filter = {
+        const filter = {
             dialer: this._id,
             _endCause: null,
             _lock: null,
@@ -288,10 +295,19 @@ module.exports = class Dialer extends EventEmitter2 {
             $or: [{_nextTryTime: {$lte: Date.now()}}, {_nextTryTime: null}]
         };
 
+        const $set = {
+            _lock: this.lockId
+        };
+
+        if (this._waitingForResultStatus) {
+            $set._waitingForResultStatus = true;
+            $set._maxTryCount = this._maxTryCount;
+        }
+
         dialerService.members._updateMember(
             filter,
             {
-                $set: {_lock: this.lockId}
+                $set
             },
             {sort: [["_nextTryTime", -1],["priority", -1], ["_id", -1]]},
             cb
@@ -365,7 +381,7 @@ module.exports = class Dialer extends EventEmitter2 {
             }
         }
         if (this.state === DIALER_STATES.Sleep) {
-            this.closeNoChannelsMembers();
+            this.closeNoChannelsMembers(DIALER_STATES.Sleep);
             if (this.members.length() === 0) {
                 this.emit('sleep', this);
                 this.emit('end', this);
@@ -413,19 +429,21 @@ module.exports = class Dialer extends EventEmitter2 {
                 this.cause = DIALER_CAUSE.ProcessStop;
                 this.emit('end', this)
             } else {
-                this.closeNoChannelsMembers();
+                this.closeNoChannelsMembers(DIALER_STATES.ProcessStop);
             }
         }
     }
 
-    closeNoChannelsMembers () {
+    closeNoChannelsMembers (cause) {
         let mKeys = this.members.getKeys();
         for (let key of mKeys) {
             let m = this.members.get(key);
             // TODO error...
             if (m && m.channelsCount === 0) {
-                if (m.currentProbe > 0)
+                if (m.currentProbe > 0) {
                     m.minusProbe();
+                }
+                m.log(`Stop dialer cause ${cause || 'empty'}`);
                 m.end();
             }
         }

@@ -39,6 +39,7 @@ module.exports = class Member extends EventEmitter2 {
         this._id = config._id;
         this.expire = config.expire;
         this.channelsCount = 0;
+        this._minusProbe = false;
 
         this.sessionId = generateUuid.v4();
         this._log = {
@@ -54,7 +55,16 @@ module.exports = class Member extends EventEmitter2 {
             recordSessionSec: 0,
             steps: []
         };
+
+        this._waitingForResultStatus = option._waitingForResultStatus;
+
         this.currentProbe = (config._probeCount || 0) + 1;
+        if (config._waitingForResultStatus && !config._lastMinusProbe) {
+            // minus prev probe (no callback)
+            this.log(`No prev call result status`);
+            this.currentProbe--;
+        }
+
         this.endCause = null;
         // this.bigData = new Array(1e4).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
         this.variables = {};
@@ -127,6 +137,7 @@ module.exports = class Member extends EventEmitter2 {
         if (this._currentNumber)
             this._currentNumber._probe--;
         this.currentProbe--;
+        this._minusProbe = true;
         this.log(`minus probe: ${this.currentProbe}`);
     }
 
@@ -269,7 +280,7 @@ module.exports = class Member extends EventEmitter2 {
         }
 
 
-        if (this.currentProbe >= this.tryCount) {
+        if (this.currentProbe >= this.tryCount && !this._waitingForResultStatus) {
             this.log(`max try count`);
             this.endCause = endCause || END_CAUSE.MAX_TRY;
             this._setStateCurrentNumber(MEMBER_STATE.End)

@@ -7,7 +7,8 @@
 var CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     log = require(__appRoot + '/lib/log')(module),
-    checkPermissions = require(__appRoot + '/middleware/checkPermissions')
+    checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
+    END_CAUSE = require('./autoDialer/const').END_CAUSE
     ;
 
 let Service = {
@@ -494,24 +495,34 @@ let Service = {
                 if (!memberDb)
                     return cb(new CodeError(404, `Not found ${options.member} in dialer ${options.dialer}`));
 
+                if (!memberDb._waitingForResultStatus || memberDb._lastMinusProbe)
+                    return cb(new CodeError(400, `Member ${options.member}: result status false`));
+
                 let callback = options.callback,
                     $push;
 
-                const $set = {};
+                const $set = {
+                    _waitingForResultStatus: false
+                };
 
                 if (callback.success === true) {
                     $set._endCause = "NORMAL_CLEARING";
                     $set._nextTryTime = null;
                 } else {
-                    $set._endCause = null;
-                    if (+callback.next_after_sec > 0) {
+                    if (+callback.next_after_sec >= 0) {
                         $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
                     }
 
                     if (callback.reset_retries === true) {
                         $set._probeCount = 0;
+                        $set._endCause = null;
                         for (let key in memberDb.communications) {
                             $set[`communications.${key}._probe`] = 0;
+                        }
+                    } else if (memberDb._probeCount >= memberDb._maxTryCount) {
+                        $set._endCause = END_CAUSE.MAX_TRY;
+                        for (let key in memberDb.communications) {
+                            $set[`communications.${key}.state`] = 2;
                         }
                     }
 
