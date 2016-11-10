@@ -513,28 +513,44 @@ let Service = {
                         $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
                     }
 
+                    const communications = memberDb.communications || [];
+
+                    if (callback.stop_communications) {
+                        let all = callback.stop_communications === 'all',
+                            arrNumbers = callback.stop_communications instanceof Array ? callback.stop_communications : [callback.stop_communications];
+
+                        for (let i = 0, len = communications.length; i < len; i++) {
+                            if (all || ~arrNumbers.indexOf(communications[i].number)) {
+                                $set[`communications.${i}.state`] = 2;
+                                communications[i].state = 2;
+                            }
+                        }
+                    }
+
                     if (callback.reset_retries === true) {
                         $set._probeCount = 0;
                         $set._endCause = null;
-                        for (let key in memberDb.communications) {
+                        for (let key in communications) {
                             $set[`communications.${key}._probe`] = 0;
                         }
                     } else if (memberDb._probeCount >= memberDb._maxTryCount) {
                         $set._endCause = END_CAUSE.MAX_TRY;
-                        for (let key in memberDb.communications) {
+                        for (let key in communications) {
                             $set[`communications.${key}.state`] = 2;
                         }
                     }
 
-                    if (callback.stop_communications && memberDb.communications) {
-                        let all = callback.stop_communications === 'all',
-                            arrNumbers = callback.stop_communications instanceof Array ? callback.stop_communications : [];
-
-                        for (let i = 0, len = memberDb.communications.length; i < len; i++) {
-                            if (memberDb.communications[i] && (all || ~arrNumbers.indexOf(memberDb.communications[i].number))) {
-                                $set[`communications.${i}.state`] = 2;
+                    if (!$set._endCause) {
+                        let noCommunications = true;
+                        for (let comm of communications) {
+                            if (comm.state === 0) {
+                                noCommunications = false;
+                                break;
                             }
                         }
+
+                        if (noCommunications)
+                            $set._endCause = END_CAUSE.NO_COMMUNICATIONS;
                     }
 
                     if (callback.next_communication && memberDb.communications) {
