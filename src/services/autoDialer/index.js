@@ -296,6 +296,9 @@ class AutoDialer extends EventEmitter2 {
             if (err)
                 return cb(err);
 
+            if (!res)
+                return cb(`Not found dialer ${id}@${domain}`);
+
             let error = this.addDialerFromDb(res);
             if (error)
                 return cb(error);
