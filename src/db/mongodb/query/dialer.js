@@ -75,13 +75,28 @@ function addQuery (db) {
             return utils.countInCollection(db, memberCollectionName, options, cb);
         },
         
-        memberById: function (_id, dialerName, cb) {
-            if (!ObjectID.isValid(_id))
+        memberById: function (_id, dialerName, cb, addDialer) {
+            if (!ObjectID.isValid(_id) || !ObjectID.isValid(dialerName))
                 return cb(new CodeError(400, 'Bad objectId.'));
+            // TODO...
 
             return db
                 .collection(memberCollectionName)
-                .findOne({_id: new ObjectID(_id), dialer: dialerName}, cb);
+                .findOne({_id: new ObjectID(_id), dialer: dialerName}, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (addDialer) {
+                        db
+                            .collection(dialerCollectionName)
+                            .findOne({_id: new ObjectID(dialerName)}, (err, resDialer) => {
+                                return cb(err, res, resDialer);
+                            });
+                    } else {
+                        return cb(err, res)
+                    }
+
+                });
         },
         
         createMember: function (doc, cb) {

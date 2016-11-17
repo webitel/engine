@@ -488,7 +488,7 @@ let Service = {
 
             let dbDialer = application.DB._query.dialer;
 
-            dbDialer.memberById(options.member, options.dialer, (err, memberDb) => {
+            dbDialer.memberById(options.member, options.dialer, (err, memberDb, dialerDb) => {
                 if (err)
                     return cb(err);
 
@@ -592,7 +592,41 @@ let Service = {
                         }
                     }
                 );
-            })
+
+                if ($set._endCause) {
+                    const lastNumber = isFinite(memberDb._lastNumberId) && memberDb.communications[memberDb._lastNumberId]
+                        ? memberDb.communications[memberDb._lastNumberId]
+                        : {}
+                        ;
+
+                    const event = {
+                        "Event-Name": "CUSTOM",
+                        "Event-Subclass": "engine::dialer_member_end",
+                        // TODO
+                        "variable_domain_name": dialerDb.domain,
+                        "dialerId": memberDb.dialer,
+                        "dialerName": dialerDb.name,
+                        "id": memberDb._id.toString(),
+                        "name": memberDb.name,
+                        "currentProbe": memberDb._probeCount,
+                        "endCause": $set._endCause,
+                        "reason": "callback",
+                        "callback_user_id": caller.id
+                    };
+
+                    if (lastNumber) {
+                        event.currentNumber = lastNumber.number;
+                        event.dlr_member_number_description = lastNumber.description
+                    }
+
+                    for (let key in memberDb.variables) {
+                        if (memberDb.variables.hasOwnProperty(key))
+                            event[`variable_${key}`] = memberDb.variables[key]
+                    }
+                    application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
+
+                }
+            }, true); //TODO...
         },
 
         _updateById: (id, doc, cb) => {
