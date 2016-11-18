@@ -583,41 +583,45 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
 
         var task = [];
 
+        let _resetToken = false;
+
         if (params instanceof Array) {
-            var _pushExt = false,
-                _pushPass = false
-            ;
 
             for (let item of params) {
-                if (_pushExt && _pushPass) break;
+                // if (_pushExt && _pushPass) break;
 
-                if (!_pushPass && /^password=/.test(item)) {
-                    _pushPass = true;
-                    if (!~task.indexOf(resetToken))
-                        task.push(resetToken);
-
-                } else if (!_pushExt && /^webitel-extensions=/.test(item)) {
-                    _pushExt = true;
+                if (/^password=/.test(item)) {
+                    _resetToken = true;
+                } else if (/^webitel-extensions=/.test(item)) {
                     extensions = item.replace(VARIABLE_EXTENSION_NAME + '=', '').replace(/\D/g, '');
                     if (extensions == '') {
                         cb(new CodeError(400, "Bad request (webitel-extensions)."));
                         return;
                     }
                     task.push(setExtensions);
+                } else if (/^role=/.test(item)) {
+                    _resetToken = true;
                 }
-            };
-        };
+            }
+        }
 
         if (variables instanceof Array) {
             for (let item of variables) {
                 if (/^account_role=/.test(item)) {
                     roleName = item.replace('account_role=', '');
-                    if (!~task.indexOf(resetToken))
-                        task.push(resetToken);
+                    _resetToken = true;
                     break;
                 }
             }
         }
+
+        if (_resetToken) {
+            if (_caller.id === `${user}@${domain}`) {
+                return cb(new CodeError(400, `Woow! Slow down!`))
+            }
+            task.push(resetToken);
+        }
+
 
         if (variables || params) {
             task.push(setParamsOrVars);
