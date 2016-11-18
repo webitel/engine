@@ -505,6 +505,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
         var extensions;
         var scope = this;
         var roleName;
+        let _resultWConsole = null;
 
         if (!_domain || ( !(params instanceof Array) && !(variables instanceof Array) )) {
             cb(new CodeError(400, "Bad request."));
@@ -534,6 +535,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
                             callback(err);
                             return;
                         };
+                        _resultWConsole = resJSON;
                         callback(null, resJSON);
                     });
                 } else {
@@ -583,7 +585,8 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
 
         var task = [];
 
-        let _resetToken = false;
+        let _resetToken = false,
+            changedRole = false;
 
         if (params instanceof Array) {
 
@@ -600,7 +603,7 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
                     }
                     task.push(setExtensions);
                 } else if (/^role=/.test(item)) {
-                    _resetToken = true;
+                    changedRole = _resetToken = true;
                 }
             }
         }
@@ -609,16 +612,17 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
             for (let item of variables) {
                 if (/^account_role=/.test(item)) {
                     roleName = item.replace('account_role=', '');
-                    _resetToken = true;
+                    changedRole = _resetToken = true;
                     break;
                 }
             }
         }
 
+        if (changedRole && _caller.id === `${user}@${domain}`) {
+            return cb(new CodeError(400, `Woow! Slow down!`))
+        }
+
         if (_resetToken) {
-            if (_caller.id === `${user}@${domain}`) {
-                return cb(new CodeError(400, `Woow! Slow down!`))
-            }
             task.push(resetToken);
         }
 
@@ -627,13 +631,13 @@ Webitel.prototype.userUpdateV2 = function (_caller, user, domain, option, cb) {
             task.push(setParamsOrVars);
         };
 
-        async.series(task, function (err, res) {
+        async.series(task, function (err) {
             if (err) {
                 cb(err);
                 return;
             };
 
-            cb(null, (res[0] instanceof Object) ? res[0] : res[1])
+            cb(null, _resultWConsole || {})
         });
 
     } catch (e) {
