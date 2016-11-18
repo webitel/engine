@@ -289,8 +289,12 @@ class AutoDialer extends EventEmitter2 {
     runDialerById(id, domain, cb) {
 
         let ad = this.activeDialer.get(id);
-        if (ad)
+        if (ad) {
+            if (ad.state === DIALER_STATES.Work)
+                ad.huntingMember();
+            
             return cb && cb(null, {active: true});
+        }
 
         this.dbDialer._getDialerById(id, domain, (err, res) => {
             if (err)

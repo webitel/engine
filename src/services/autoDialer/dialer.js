@@ -209,7 +209,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         if (this._waitingForResultStatus) {
             m.log('check callback');
-            m.nextTrySec += (this._wrapUpTime || wrapTime);
+            m.nextTrySec += (this._wrapUpTime || 0);
             m.end(null, e);
         } else {
             m.end(e.getHeader('variable_hangup_cause'), e);
@@ -508,6 +508,10 @@ module.exports = class Dialer extends EventEmitter2 {
                 let nextTime = res.nextTryTime - Date.now();
                 if (nextTime < 1)
                     nextTime = 1000;
+
+                if (nextTime > 2147483647)
+                    nextTime = 2147483647;
+
                 console.log(nextTime);
 
                 this._timerId = setTimeout(() => {

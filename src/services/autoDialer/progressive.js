@@ -41,6 +41,7 @@ module.exports = class Progressive extends Dialer {
                     m._agent._noAnswerCallCount = 0;
                     this._am.taskUnReserveAgent(m._agent, m._agent.wrapUpTime, true);
                 } else {
+                    m.nextTrySec = 1;
                     this._am.taskUnReserveAgent(m._agent, m._agent.noAnswerDelayTime);
                 }
                 this.addMemberCallbackQueue(m, e, m._agent.wrapUpTime);
@@ -79,6 +80,8 @@ module.exports = class Progressive extends Dialer {
                     let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                     member.log(`agent: ${error}`);
                     member.minusProbe();
+                    member.nextTrySec = 1;
+                    // TODO ??
                     this.nextTrySec = 0;
                     let delayTime = agent.rejectDelayTime;
                     if (error == 'NO_ANSWER') {
