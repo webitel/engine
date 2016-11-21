@@ -1,6 +1,7 @@
 'use strict';
 
 var express = require('express');
+var morgan = require('morgan');
 var api = express();
 var log = require(__appRoot + '/lib/log')(module);
 var bodyParser = require('body-parser');
@@ -10,7 +11,25 @@ var conf = require(__appRoot + '/conf');
 
 api.use(favicon(__appRoot + '/public/static/favicon.ico'));
 
-require('./logger').addRoutes(api);
+morgan.token('webitelUser', req => (req.webitelUser && req.webitelUser.id) || 'NOT REGISTER');
+morgan.token('colorStatus', (req, res) => {
+    const status = res._header
+        ? res.statusCode
+        : undefined;
+
+    const color = status >= 500 ? 31 // red
+        : status >= 400 ? 33 // yellow
+        : status >= 300 ? 36 // cyan
+        : status >= 200 ? 32 // green
+        : 0 // no color
+
+    return `\x1b[${color}m${status}\x1b[0m`
+});
+
+api.use(morgan('api: [:webitelUser] > [:colorStatus] :remote-addr :method :url :response-time ms :res[content-length] ":user-agent"', {
+    skip: req => req.method === 'OPTIONS'
+}));
+
 require('./cdr/cdr.resource').addRoutes(api);
 
 api.use(bodyParser.json());
@@ -18,7 +37,7 @@ api.use(bodyParser.json());
 if (conf.get('conference:enable').toString() == 'true') {
     api.use('/', express.static(path.join(__appRoot, '/public/conference')));
     require('./verto/verto.resource').addRoutes(api);
-};
+}
 
 api.use('/', express.static(path.join(__appRoot, '/public/static')));
 

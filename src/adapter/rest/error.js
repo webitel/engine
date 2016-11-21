@@ -20,13 +20,11 @@ function addRoutes(api) {
     });
 
     api.use(function(err, req, res, next){
-        log.warn('Api status: %s, message: %s', err.status, err.message);
         res.status(err.status || 500);
-        res.json({
+        return res.json({
             "status": "error",
             "info": err.message,
             "code": err.code
         });
-        return;
     });
 };
