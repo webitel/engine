@@ -198,7 +198,7 @@ Parser.prototype._parseEvent = function(headers, body) {
         event = new Event(data);
     else
         event = new Event(headers, body);
-    log.trace(event.getHeader('Content-Type'))
+    // log.trace(event.getHeader('Content-Type'))
     var reply = event.getHeader('Reply-Text');
     if(reply) {
         if(reply.indexOf('-ERR') === 0) {

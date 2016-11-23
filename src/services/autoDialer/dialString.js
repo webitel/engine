@@ -12,7 +12,7 @@ module.exports = class DialString {
     }
 
     get (member, agent) {
-        let vars = [`dlr_member_id=${member._id.toString()}`, `cc_queue='${member.queueName}'`].concat(this._vars);
+        let vars = [`dlr_member_id=${member._id.toString()}`, `presence_data='${member._domain}'`, `cc_queue='${member.queueName}'`].concat(this._vars);
 
         for (let key of member.getVariableKeys()) {
             vars.push(`${key}='${member.getVariable(key)}'`);

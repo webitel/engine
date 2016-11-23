@@ -24,11 +24,12 @@ class Gw {
 
     dialAgent (agent) {
         return `originate user/${agent.id} &park()`;
+        //originate {dlr_member_id=58187332446277017bc8227b,dlr_id=573dd6bb578ee6e832b47fd6,presence_data='10.10.10.144',cc_queue='Igor',domain_name=10.10.10.144,gatewayPositionMap='0>0',origination_uuid=a185f1b1-2d1e-4f0f-8549-3d18a4a62501,origination_caller_id_name='Igor',origination_callee_id_number='84908031329',origination_callee_id_name='LE VAN GIAL'}sofia/nonreg/sip:AutoDialerTest@pre.webitel.com:5080 &park()
     }
 
     fnDialString (member) {
         return (agent, sysVars, park) => {
-            let vars = [`dlr_member_id=${member._id.toString()}`, `dlr_id=${member._queueId}`, `cc_queue='${member.queueName}'`].concat(this._vars);
+            let vars = [`dlr_member_id=${member._id.toString()}`, `dlr_id=${member._queueId}`, `presence_data='${member._domain}'`, `cc_queue='${member.queueName}'`].concat(this._vars);
 
             if (sysVars instanceof Array) {
                 vars = vars.concat(sysVars);
@@ -66,9 +67,9 @@ class Gw {
             vars.push(
                 `origination_uuid=${member.sessionId}`,
                 // `origination_caller_id_number='${member.queueNumber}'`,
-                `origination_caller_id_name='${member.queueName}'`,
-                `origination_callee_id_number='${member.number}'`,
-                `origination_callee_id_name='${member.name}'`
+                `origination_callee_id_name='${member.queueName}'`,
+                `origination_caller_id_number='${member.number}'`,
+                `origination_caller_id_name='${member.name}'`
             );
 
             let gwString = member.number.replace(this.regex, this.dialString);

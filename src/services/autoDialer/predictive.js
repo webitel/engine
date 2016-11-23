@@ -68,11 +68,11 @@ module.exports = class Predictive extends Dialer {
                     this._am.reserveAgent(agent, () => {
                         member._agent = agent;
                         member.log(`set agent: ${agent.id}`);
-                        application.Esl.bgapi(`uuid_transfer ${member.sessionId} ${agent.number}`, (res) => {
+                        application.Esl.bgapi(`uuid_transfer  ${member.sessionId} -both ${agent.number}`, (res) => {
                             member.log(res.body);
                             if (/^-ERR/.test(res.body)) {
                                 this._badCallCount++;
-                                application.Esl.bgapi(`uuid_kill ${member.sessionId}`);
+                                application.Esl.bgapi(`uuid_kill ${member.sessionId} CHAN_NOT_IMPLEMENTED`);
                                 member.end('BAD', e);
                                 return;
                             }
