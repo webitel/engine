@@ -28,7 +28,7 @@ class Gw {
     }
 
     fnDialString (member) {
-        return (agent, sysVars, park) => {
+        return (agent, sysVars, park, agentParams = {}) => {
             let vars = [`dlr_member_id=${member._id.toString()}`, `dlr_id=${member._queueId}`, `presence_data='${member._domain}'`, `cc_queue='${member.queueName}'`].concat(this._vars);
 
             if (sysVars instanceof Array) {
@@ -58,7 +58,7 @@ class Gw {
                     `origination_caller_id_number='${member.number}'`,
                     `origination_caller_id_name='${member.name}'`,
                     `destination_number='${member.number}'`,
-                    `originate_timeout=${agent.callTimeout}`,
+                    `originate_timeout=${isFinite(agentParams.callTimeout) ? agentParams.callTimeout :  agent.callTimeout}`,
                     'webitel_direction=outbound'
                 );
                 return `originate {${vars}}user/${agent.id} 'set_user:${agent.id},transfer:${member.number}' inline`;
@@ -72,8 +72,8 @@ class Gw {
                 `origination_caller_id_name='${member.name}'`
             );
 
-            let gwString = member.number.replace(this.regex, this.dialString);
             if (park) {
+                let gwString = member.number.replace(this.regex, this.dialString);
                 return `originate {${vars}}${gwString} &park()`;
             } else {
                 return `originate {${vars}}loopback/${member.number}/default 'set:dlr_queue=${member._queueId},socket:` + '$${acr_srv}' + `' inline`;

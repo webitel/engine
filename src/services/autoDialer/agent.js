@@ -41,6 +41,14 @@ class Agent {
         this._noAnswerCallCount = 0;
     }
 
+    getTime (name = '', dialerParams = {}) {
+        if (isFinite(dialerParams[name])) {
+            return dialerParams[name]
+        } else {
+            return this[name]
+        }
+    }
+
     getSkills () {}
     setSkills () {}
 

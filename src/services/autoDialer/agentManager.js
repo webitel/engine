@@ -210,7 +210,7 @@ class AgentManager extends EventEmitter2 {
         return c;
     }
 
-    taskUnReserveAgent (agent, timeSec, gotAgentCall) {
+    taskUnReserveAgent (agent, timeSec, gotAgentCall, dilerAgentParams = {}) {
         if (agent.lock === true) {
             agent.lock = false;
 
@@ -232,7 +232,8 @@ class AgentManager extends EventEmitter2 {
             agent.unIdleTime = wrapTime;
             log.trace(`Set agent lock time ${timeSec} sec`);
 
-            if (agent.maxNoAnswer != 0 && agent._noAnswerCallCount >= agent.maxNoAnswer) {
+            let maxNoAnswer = isFinite(dilerAgentParams.maxNoAnswer) ? dilerAgentParams.maxNoAnswer : agent.maxNoAnswer;
+            if (maxNoAnswer != 0 && agent._noAnswerCallCount >= maxNoAnswer) {
                 this.setNoAnswerAgent(agent, (err) => {
                     if (err)
                         return log.error(err);

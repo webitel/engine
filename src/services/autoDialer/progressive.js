@@ -39,12 +39,12 @@ module.exports = class Progressive extends Dialer {
             if (m && --m.channelsCount === 0) {
                 if (m._agentNoAnswer !== true) {
                     m._agent._noAnswerCallCount = 0;
-                    this._am.taskUnReserveAgent(m._agent, m._agent.wrapUpTime, true);
+                    this._am.taskUnReserveAgent(m._agent, m._agent.getTime('wrapUpTime', this.defaultAgentParams), true, this.defaultAgentParams);
                 } else {
                     m.nextTrySec = 1;
-                    this._am.taskUnReserveAgent(m._agent, m._agent.noAnswerDelayTime);
+                    this._am.taskUnReserveAgent(m._agent, m._agent.getTime('noAnswerDelayTime', this.defaultAgentParams), false, this.defaultAgentParams);
                 }
-                this.addMemberCallbackQueue(m, e, m._agent.wrapUpTime);
+                this.addMemberCallbackQueue(m, e, m._agent.getTime('wrapUpTime', this.defaultAgentParams));
             }
         };
 
@@ -67,7 +67,7 @@ module.exports = class Progressive extends Dialer {
 
         this.findAvailAgents( (agent) => {
             member.log(`set agent: ${agent.id}`);
-            let ds = gw(agent);
+            let ds = gw(agent, null, null, this.defaultAgentParams);
             member._gw = gw;
             member._agent = agent;
 
@@ -83,14 +83,14 @@ module.exports = class Progressive extends Dialer {
                     member.nextTrySec = 1;
                     // TODO ??
                     this.nextTrySec = 0;
-                    let delayTime = agent.rejectDelayTime;
+                    let delayTime = agent.getTime('rejectDelayTime', this.defaultAgentParams);
                     if (error == 'NO_ANSWER') {
                         agent._noAnswerCallCount++;
                         member._agentNoAnswer = true;
-                        delayTime = agent.noAnswerDelayTime;
+                        delayTime = agent.getTime('noAnswerDelayTime', this.defaultAgentParams);
                     }
                     member.end();
-                    this._am.taskUnReserveAgent(agent, delayTime);
+                    this._am.taskUnReserveAgent(agent, delayTime, false, this.defaultAgentParams);
                 } else {
                     agent.lastBridgeCallTimeStart = Date.now();
                 }

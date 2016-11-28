@@ -23,6 +23,10 @@ var Service = {
                 return cb(new CodeError(400, 'Bad request: domain, name or number is required.'));
             };
             option['number'] = option['number'].toString();
+
+            // if (/\/|\\/.test(option['number']) || /\/|\\/.test(option['name']))
+            //     return cb(new CodeError(400, `Bad symbol \.`));
+
             var dbBlacklist = application.DB._query.blacklist;
             return dbBlacklist.createOrUpdate(option, cb);
         });
