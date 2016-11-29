@@ -10,7 +10,6 @@ var Indexes = {
     "collectionPublic": [{
         "_unique": true,
         "_": {
-            "domain" : 1,
             "destination_number" : 1
         }
     }],
