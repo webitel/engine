@@ -5,7 +5,7 @@
 let log = require(__appRoot + '/lib/log')(module);
 
 class Gw {
-    constructor (conf, regex, variables) {
+    constructor (conf = {}, regex, variables) {
         this.activeLine = 0;
         // TODO link regex...
         this.regex = regex;
@@ -18,6 +18,8 @@ class Gw {
             for (let key in variables)
                 this._vars.push(`${key}=${variables[key]}`);
         }
+        if (regex)
+            this._callerIdNumber = conf.callerIdNumber;
 
         this.dialString = conf.gwProto == 'sip' && conf.gwName ? `sofia/gateway/${conf.gwName}/${conf.dialString}` : conf.dialString;
     }
@@ -67,10 +69,17 @@ class Gw {
             vars.push(
                 `origination_uuid=${member.sessionId}`,
                 // `origination_caller_id_number='${member.queueNumber}'`,
-                `origination_callee_id_name='${member.queueName}'`,
-                `origination_caller_id_number='${member.number}'`,
-                `origination_caller_id_name='${member.name}'`
+                `origination_callee_id_name='${member.queueName}'`
             );
+
+            if (this._callerIdNumber) {
+                vars.push(`origination_caller_id_number='${this._callerIdNumber}'`)
+            } else {
+                vars.push(
+                    `origination_caller_id_number='${member.number}'`,
+                    `origination_caller_id_name='${member.name}'`
+                )
+            }
 
             if (park) {
                 let gwString = member.number.replace(this.regex, this.dialString);
