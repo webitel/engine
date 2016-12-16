@@ -61,7 +61,10 @@ module.exports = class Dialer extends EventEmitter2 {
             this._waitingForResultStatus = false,
             this._wrapUpTime = 60,
             this.lockId = `my best lock`,
-            this._skills = []
+            this._skills = [],
+            this._amd = {
+                enabled: false
+            }
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -70,8 +73,42 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.waitingForResultStatus,
             parameters.wrapUpTime,
             config.lockId,
-            config.skills
+            config.skills,
+            config.amd
         ];
+
+        if (this._amd.enabled) {
+            const amdParams = [];
+            if (this._amd.hasOwnProperty('silenceThreshold')) {
+                amdParams.push(`silence_threshold=${this._amd.silenceThreshold}`);
+            }
+            if (this._amd.hasOwnProperty('maximumWordLength')) {
+                amdParams.push(`maximum_word_length=${this._amd.maximumWordLength}`);
+            }
+            if (this._amd.hasOwnProperty('maximumNumberOfWords')) {
+                amdParams.push(`maximum_number_of_words=${this._amd.maximumNumberOfWords}`);
+            }
+            if (this._amd.hasOwnProperty('betweenWordsSilence')) {
+                amdParams.push(`between_words_silence=${this._amd.betweenWordsSilence}`);
+            }
+            if (this._amd.hasOwnProperty('minWordLength')) {
+                amdParams.push(`min_word_length=${this._amd.minWordLength}`);
+            }
+            if (this._amd.hasOwnProperty('totalAnalysisTime')) {
+                amdParams.push(`total_analysis_time=${this._amd.totalAnalysisTime}`);
+            }
+            if (this._amd.hasOwnProperty('afterGreetingSilence')) {
+                amdParams.push(`after_greeting_silence=${this._amd.afterGreetingSilence}`);
+            }
+            if (this._amd.hasOwnProperty('greeting')) {
+                amdParams.push(`greeting=${this._amd.greeting}`);
+            }
+            if (this._amd.hasOwnProperty('initialSilence')) {
+                amdParams.push(`initial_silence=${this._amd.initialSilence}`);
+            }
+
+            this._amd._string = amdParams.join(' ');
+        }
 
         this.agentStrategy = config.agentStrategy;
         this.defaultAgentParams = config.agentParams || {};

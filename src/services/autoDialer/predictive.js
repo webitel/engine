@@ -50,7 +50,7 @@ module.exports = class Predictive extends Dialer {
             this._limit = this._router._limit;
         }
 
-        application.Esl.subscribe([ 'CHANNEL_HANGUP_COMPLETE', 'CHANNEL_ANSWER']);
+        application.Esl.subscribe([ 'CHANNEL_HANGUP_COMPLETE', 'CHANNEL_PARK']);
 
         //
         // for (let i = 99950; i <= 99999; i++) {
@@ -62,6 +62,22 @@ module.exports = class Predictive extends Dialer {
             let ds = member._ds;
 
             let onChannelAnswer = (e) => {
+
+                if (this._amd.enabled === true) {
+                    let amdResult = e.getHeader('variable_amd_result');
+                    member.log(`amd_result=${amdResult}`);
+                    if (amdResult !== 'HUMAN') {
+                        application.Esl.bgapi(`uuid_kill ${member.sessionId} USER_BUSY`);
+                        return;
+                    } else {
+                        // TODO add playback file
+                        //${regex($${cdr_url}|^(http)?s?(.*)$|http_cache%2)}/sys/media/wav/rus.wav?stream=false&domain=10.10.10.144&.wav
+                        // uuid_broadcast 336889f2-1868-11de-81a9-3f4acc8e505e playback!user_busy::sorry.wav aleg
+                        console.log('uuid_broadcast');
+                        application.Esl.bgapi(`uuid_broadcast ${member.sessionId} ` + 'playback::voicemail/vm-not_available_no_voicemail.wav' + ' aleg')
+                    }
+                }
+                
                 member.log(`answer`);
                 let agent = this._am.getFreeAgent(this._agents, this.agentStrategy);
                 if (agent) {
@@ -98,7 +114,7 @@ module.exports = class Predictive extends Dialer {
                     member.log(`minus line`);
                     member.channelsCount--;
                     this._activeCallCount--;
-                    application.Esl.off(`esl::event::CHANNEL_ANSWER::${member.sessionId}`, onChannelAnswer);
+                    application.Esl.off(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelAnswer);
                     application.Esl.off(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelDestroy);
                 }
             };
@@ -112,7 +128,7 @@ module.exports = class Predictive extends Dialer {
                 cb();
             };
 
-            application.Esl.once(`esl::event::CHANNEL_ANSWER::${member.sessionId}`, onChannelAnswer);
+            application.Esl.once(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelAnswer);
             application.Esl.once(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelDestroy);
 
             this._activeCallCount++;
@@ -212,7 +228,7 @@ module.exports = class Predictive extends Dialer {
 
         if (gw.found) {
             if (gw.dialString) {
-                let ds = gw.dialString(null, null, true);
+                let ds = gw.dialString(null, null, true, null, this._amd);
                 member._ds = ds;
                 member.log(`dialString: ${ds}`);
                 log.trace(`Call ${ds}`);

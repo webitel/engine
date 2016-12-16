@@ -30,7 +30,7 @@ class Gw {
     }
 
     fnDialString (member) {
-        return (agent, sysVars, park, agentParams = {}) => {
+        return (agent, sysVars, park, agentParams = {}, amdConfig = {}) => {
             let vars = [`dlr_member_id=${member._id.toString()}`, `dlr_id=${member._queueId}`, `presence_data='${member._domain}'`, `cc_queue='${member.queueName}'`].concat(this._vars);
 
             if (sysVars instanceof Array) {
@@ -83,7 +83,12 @@ class Gw {
 
             if (park) {
                 let gwString = member.number.replace(this.regex, this.dialString);
-                return `originate {${vars}}${gwString} &park()`;
+                if (amdConfig.enabled) {
+                    vars.push('ignore_early_media=true');
+                    return `originate {${vars}}${gwString} '^^^amd:${amdConfig._string}^park:' inline`;
+                } else {
+                    return `originate {${vars}}${gwString} &park()`;
+                }
             } else {
                 return `originate {${vars}}loopback/${member.number}/default 'set:dlr_queue=${member._queueId},socket:` + '$${acr_srv}' + `' inline`;
                 // vars.push(`dlr_queue=${member._queueId}`);

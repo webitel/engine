@@ -8,7 +8,8 @@ var CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     log = require(__appRoot + '/lib/log')(module),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
-    END_CAUSE = require('./autoDialer/const').END_CAUSE
+    END_CAUSE = require('./autoDialer/const').END_CAUSE,
+    expVal = require(__appRoot + '/utils/validateExpression')
     ;
 
 let Service = {
@@ -138,6 +139,10 @@ let Service = {
 
             let db = application.DB._query.dialer;
 
+            if (dialer._cf) {
+                replaceExpression(dialer._cf)
+            }
+
             return db.create(dialer, cb);
         });
     },
@@ -203,6 +208,10 @@ let Service = {
             let domain = validateCallerParameters(caller, option['domain']);
             if (!domain) {
                 return cb(new CodeError(400, 'Bad request: domain is required.'));
+            }
+
+            if (option.data._cf) {
+                replaceExpression(option.data._cf)
             }
 
             let db = application.DB._query.dialer;
@@ -652,3 +661,15 @@ let Service = {
 };
 
 module.exports = Service;
+
+function replaceExpression(obj) {
+    if (obj)
+        for (var key in obj) {
+            if (typeof obj[key] == "object")
+                replaceExpression(obj[key]);
+            else if (typeof obj[key] != "function" && key == "expression") {
+                obj["sysExpression"] = expVal(obj[key]);
+            };
+        };
+    return;
+};
