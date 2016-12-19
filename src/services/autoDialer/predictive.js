@@ -31,6 +31,8 @@ module.exports = class Predictive extends Dialer {
         this._skipAgents = [];
         this._minPredictWaitingAgents = 0;
 
+        this._broadcastPlaybackUri = config.playbackFile && config.playbackFile.uri;
+
         this._queueCall = [];
 
         this._predictAdjust = 150; // Determines how aggressively to dial. The minimum value is 0, which disables over-dialing; the maximum is 1000; the default is 150
@@ -69,22 +71,31 @@ module.exports = class Predictive extends Dialer {
                     if (amdResult !== 'HUMAN') {
                         application.Esl.bgapi(`uuid_kill ${member.sessionId} USER_BUSY`);
                         return;
-                    } else {
-                        // TODO add playback file
-                        //${regex($${cdr_url}|^(http)?s?(.*)$|http_cache%2)}/sys/media/wav/rus.wav?stream=false&domain=10.10.10.144&.wav
-                        // uuid_broadcast 336889f2-1868-11de-81a9-3f4acc8e505e playback!user_busy::sorry.wav aleg
-                        // console.log('uuid_broadcast');
-                        // application.Esl.bgapi(`uuid_broadcast ${member.sessionId} ` + 'playback::voicemail/vm-not_available_no_voicemail.wav' + ' aleg')
                     }
                 }
-                
+
+                if (this._broadcastPlaybackUri)
+                    application.Esl.bgapi(`uuid_broadcast ${member.sessionId} playback::${this._broadcastPlaybackUri} aleg`);
+
                 member.log(`answer`);
                 let agent = this._am.getFreeAgent(this._agents, this.agentStrategy);
                 if (agent) {
                     this._am.reserveAgent(agent, () => {
                         member._agent = agent;
-                        member.log(`set agent: ${agent.id}`);
-                        application.Esl.bgapi(`uuid_transfer  ${member.sessionId} -both ${agent.number}`, (res) => {
+                        member.log(`set agent: ${agent.id}`); //intercept_unbridged_only=true
+
+                        let agentVars = [
+                            `origination_callee_id_number='${agent.id}'`,
+                            `origination_callee_id_name='${agent.id}'`,
+                            `origination_caller_id_number='${member.number}'`,
+                            `origination_caller_id_name='${member.name}'`,
+                            `destination_number='${member.number}'`,
+                            `effective_caller_id_number='${agent.number}'`,
+                            `effective_callee_id_number='${member.number}'`
+                        ];
+                        application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.id}`);
+                        
+                        application.Esl.bgapi(`originate {${agentVars}}user/${agent.id} &eval('` + '${uuid_bridge(' + member.sessionId + ' ${uuid}' +  `)}')`, (res) => {
                             member.log(res.body);
                             if (/^-ERR/.test(res.body)) {
                                 this._badCallCount++;

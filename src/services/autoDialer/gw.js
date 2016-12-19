@@ -66,7 +66,13 @@ class Gw {
                 return `originate {${vars}}user/${agent.id} 'set_user:${agent.id},transfer:${member.number}' inline`;
             }
 
+            let exportVars = [];
+            vars.forEach( i => {
+                exportVars.push(i.split('=')[0]);
+            });
+
             vars.push(
+                `export_vars='${exportVars}'`,
                 `origination_uuid=${member.sessionId}`,
                 // `origination_caller_id_number='${member.queueNumber}'`,
                 `origination_callee_id_name='${member.queueName}'`
@@ -83,8 +89,8 @@ class Gw {
 
             if (park) {
                 let gwString = member.number.replace(this.regex, this.dialString);
+                vars.push('ignore_early_media=true');
                 if (amdConfig.enabled) {
-                    vars.push('ignore_early_media=true');
                     return `originate {${vars}}${gwString} '^^^amd:${amdConfig._string}^park:' inline`;
                 } else {
                     return `originate {${vars}}${gwString} &park()`;
