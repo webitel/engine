@@ -30,7 +30,7 @@ class Gw {
     }
 
     fnDialString (member) {
-        return (agent, sysVars, park, agentParams = {}, amdConfig = {}) => {
+        return (agent, sysVars, park, agentParams = {}, dialer = {}) => {
             let vars = [`dlr_member_id=${member._id.toString()}`, `dlr_id=${member._queueId}`, `presence_data='${member._domain}'`, `cc_queue='${member.queueName}'`].concat(this._vars);
 
             if (sysVars instanceof Array) {
@@ -88,17 +88,35 @@ class Gw {
             }
 
             if (park) {
-                let gwString = member.number.replace(this.regex, this.dialString);
-                vars.push('ignore_early_media=true');
-                if (amdConfig.enabled) {
-                    return `originate {${vars}}${gwString} '^^^amd:${amdConfig._string}^park:' inline`;
-                } else {
-                    return `originate {${vars}}${gwString} &park()`;
+                const apps = [];
+
+                if (dialer._recordSession) {
+                    vars.push(
+                        `RECORD_MIN_SEC=2`,
+                        `RECORD_STEREO=true`,
+                        `RECORD_BRIDGE_REQ=true`,
+                        `recording_follow_transfer=true`
+                    );
+
+                    let sessionUri = 'http_cache://$${cdr_url}' +
+                        encodeURI(`/sys/formLoadFile?domain=${member._domain}&id=${member.sessionId}&type=mp3&email=none&name=recordSession&.mp3`);
+
+                    apps.push(`record_session:${sessionUri}`)
                 }
+
+                if (dialer._amd && dialer._amd.enabled) {
+                    apps.push(`amd:${dialer._amd._string}`);
+                }
+
+                vars.push('ignore_early_media=true');
+
+                apps.push(`park:`);
+
+                let gwString = member.number.replace(this.regex, this.dialString);
+
+                return `originate {${vars}}${gwString} '${apps.join(',')}' inline`;
             } else {
                 return `originate {${vars}}loopback/${member.number}/default 'set:dlr_queue=${member._queueId},socket:` + '$${acr_srv}' + `' inline`;
-                // vars.push(`dlr_queue=${member._queueId}`);
-                // return `originate {${vars}}${gwString} ` +  '&socket($${acr_srv})';
             }
 
         };

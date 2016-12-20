@@ -94,7 +94,7 @@ module.exports = class Predictive extends Dialer {
                             `effective_callee_id_number='${member.number}'`
                         ];
                         application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.id}`);
-                        
+
                         application.Esl.bgapi(`originate {${agentVars}}user/${agent.id} &eval('` + '${uuid_bridge(' + member.sessionId + ' ${uuid}' +  `)}')`, (res) => {
                             member.log(res.body);
                             if (/^-ERR/.test(res.body)) {
@@ -239,7 +239,7 @@ module.exports = class Predictive extends Dialer {
 
         if (gw.found) {
             if (gw.dialString) {
-                let ds = gw.dialString(null, null, true, null, this._amd);
+                let ds = gw.dialString(null, null, true, null, this);
                 member._ds = ds;
                 member.log(`dialString: ${ds}`);
                 log.trace(`Call ${ds}`);

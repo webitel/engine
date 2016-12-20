@@ -62,6 +62,7 @@ module.exports = class Dialer extends EventEmitter2 {
             this._wrapUpTime = 60,
             this.lockId = `my best lock`,
             this._skills = [],
+            this._recordSession = true,
             this._amd = {
                 enabled: false
             }
@@ -74,6 +75,7 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.wrapUpTime,
             config.lockId,
             config.skills,
+            parameters.recordSession,
             config.amd
         ];
 
