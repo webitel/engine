@@ -257,6 +257,9 @@ module.exports = class Predictive extends Dialer {
                 });
 
                 this._queueCall.push(member);
+                if (this._queueCall.length === 1) {
+                    this.calcLimit();
+                }
 
             } else {
                 member.minusProbe();

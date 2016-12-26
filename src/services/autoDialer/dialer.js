@@ -42,7 +42,11 @@ module.exports = class Dialer extends EventEmitter2 {
         this.state = DIALER_STATES.Idle;
         this.cause = DIALER_CAUSE.Init;
 
-        this._calendar = new Calendar(calendarConfig);
+        this._calendar = new Calendar(calendarConfig, config.communications);
+
+        this.once('end', () => {
+            this._calendar.stop();
+        });
 
         this._memberErrorCauses = config.causesError instanceof Array ? config.causesError : CODE_RESPONSE_ERRORS;
         this._memberMinusCauses = config.causesMinus instanceof Array ? config.causesMinus : CODE_RESPONSE_MINUS_PROBE;
@@ -183,6 +187,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                 $set[`communications.${i}._id`] = m._currentNumber._id;
                                 $set[`communications.${i}._probe`] = m._currentNumber._probe;
                                 $set[`communications.${i}._score`] = m._currentNumber._score;
+                                $set[`communications.${i}._range`] = m._currentNumber._range;
                             } else {
                                 if (m.endCause) {
                                     $set[`communications.${i}.state`] = MEMBER_STATE.End;
@@ -229,7 +234,11 @@ module.exports = class Dialer extends EventEmitter2 {
                 member.endCause = END_CAUSE.MEMBER_EXPIRED;
                 member.end(END_CAUSE.MEMBER_EXPIRED)
             } else {
-                this.dialMember(member);
+                if (member._currentNumber) {
+                    this.dialMember(member)
+                } else {
+                    member.end();
+                }
             }
         });
 
@@ -307,7 +316,8 @@ module.exports = class Dialer extends EventEmitter2 {
                 causesError: this._memberErrorCauses,
                 causesMinus: this._memberMinusCauses
             };
-            let m = new Member(res.value, option);
+            // TODO remove options
+            let m = new Member(res.value, option, this);
             this.members.add(m._id, m);
 
             if (!this.checkLimit()) {
@@ -319,9 +329,50 @@ module.exports = class Dialer extends EventEmitter2 {
     reserveMember (cb) {
         const communications = {
             $elemMatch: {
-                $or: [{state: MEMBER_STATE.Idle}, {state: null}]
+                state: {
+                    $in: [MEMBER_STATE.Idle, null]
+                },
+                type: {
+                    $in: [].concat(this._calendar.getCommunicationCodes(), null)
+                }
             }
         };
+
+        let codeFilter = [
+            {
+                type: {$nin: this._calendar.getCommunicationCodes()}
+            }
+        ];
+
+        for (let type of this._calendar._currentCommunicationsRanges) {
+            codeFilter.push({
+                $or: [
+                    {
+                        "type": type.code,
+                        $or: [
+                            {
+                                "_range.attempts": {
+                                    "$lt": type.range.attempts
+                                }
+                            },
+                            {
+                                "_range.rangeId": {
+                                    "$ne": type.rangeId
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "type": type.code,
+                        "_range": null
+                    }
+                ]
+            })
+        }
+
+        if (codeFilter.length > 0) {
+            communications.$elemMatch.$or = codeFilter;
+        }
 
         if (this._lockedGateways && this._lockedGateways.length > 0)
             communications.$elemMatch.gatewayPositionMap = {
@@ -344,6 +395,8 @@ module.exports = class Dialer extends EventEmitter2 {
             $set._waitingForResultStatus = true;
             $set._maxTryCount = this._maxTryCount;
         }
+
+        //console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,

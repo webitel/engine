@@ -8,14 +8,13 @@
 let generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
-    dynamicSort = require(__appRoot + '/utils/sort').dynamicSort,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE
     ;
 
 module.exports = class Member extends EventEmitter2 {
 
-    constructor (config, option) {
+    constructor (config, option, dialer) {
         super();
 
         this.tryCount = option.maxTryCount;
@@ -85,27 +84,77 @@ module.exports = class Member extends EventEmitter2 {
         this._countActiveNumbers = 0;
         this._communications = config.communications;
         if (config.communications instanceof Array) {
-            let n = config.communications.filter( (communication, position) => {
-                let isOk = communication && communication.state === MEMBER_STATE.Idle;
-                if (isOk)
-                    this._countActiveNumbers++;
 
-                if (isOk && (!lockedGws || ~lockedGws.indexOf(communication.gatewayPositionMap))) {
-                    if (!communication._probe)
-                        communication._probe = 0;
-                    if (!communication.priority)
-                        communication.priority = 0;
-                    communication._score = communication.priority - (communication._probe + 1);
-                    communication._id = position;
-                    return true;
+            let typeCodes = dialer._calendar.getCommunicationCodes();
+
+            const communications = config.communications.map( (i, key) => {
+                i._id = key;
+                if (!i._probe)
+                    i._probe = 0;
+
+                if (!i._score)
+                    i._score = 0;
+
+                i._codeFound = dialer._calendar.checkCommunicationInAllCode(i.type) ? true : false;
+                let idx = typeCodes.indexOf(i.type);
+
+                if (~idx) {
+                    i._codeWorkPrior = idx;
+                    let rangeProperty = dialer._calendar.getCommunicationByPosition(i._codeWorkPrior);
+                    if (rangeProperty) {
+                        if (i._range && i._range.rangeId === rangeProperty.rangeId) {
+
+                            if (i._range.attempts >= rangeProperty.range.attempts) {
+                                i._skipByAttempt = 1;
+                                i._codeWorkPrior = 1002;
+                            }
+
+                        } else {
+                            i._range = {
+                                attempts: 0,
+                                rangeId: rangeProperty.rangeId || null
+                            }
+                        }
+                    }
+                } else {
+                    i._codeWorkPrior = i._codeFound ? 1001 : 1000;
                 }
-                return false;
+                i._score = i._codeWorkPrior + i._probe;
+                return i;
+            }).keySort({
+                state: "asc",
+                // _skipByAttempt: "desc",
+                _codeWorkPrior: "asc",
+                _score: "asc",
+                priority: "desc"
             });
-            this._currentNumber = n.sort(dynamicSort('-_score'))[0];
+
+            let currentNumber = communications[0];
+
+            if (currentNumber.state !== MEMBER_STATE.Idle) {
+                // end call... ?? Error: must no find
+                console.error(`TODO currentNumber.state !== MEMBER_STATE.Idle`);
+                this.nextTrySec = 5;
+                return;
+            } else if (currentNumber._codeFound === true && !currentNumber._range || currentNumber._skipByAttempt) {
+                // no current range: sleep to next range
+                console.error(`TODO sleep number`);
+                this.nextTrySec = 5;
+                return;
+            }
+
+            this._currentNumber = currentNumber;
+
+           // console.dir(communications, {depth: 10, colors: true});
+
             this.setCurrentNumber(this._currentNumber, config.communications);
 
             if (this._currentNumber) {
                 this._currentNumber._probe++;
+
+                if (this._currentNumber._range)
+                    this._currentNumber._range.attempts++;
+
                 this.number = this._currentNumber.number.replace(/\D/g, '');
                 this.log(`set number: ${this.number}`);
             } else {
@@ -134,8 +183,13 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     minusProbe () {
-        if (this._currentNumber)
+        if (this._currentNumber) {
             this._currentNumber._probe--;
+            if (isFinite(this._currentNumber._range && this._currentNumber._range.attempts)) {
+                this._currentNumber._range.attempts--;
+            }
+        }
+
         this.currentProbe--;
         this._minusProbe = true;
         this.log(`minus probe: ${this.currentProbe}`);
@@ -292,4 +346,51 @@ module.exports = class Member extends EventEmitter2 {
         this.log(`end cause: ${endCause || ''}`);
         this.emit('end', this);
     }
+};
+
+
+Array.prototype.keySort = function(keys) {
+
+    keys = keys || {};
+
+    const obIx = function(obj, ix){
+        return Object.keys(obj)[ix];
+    };
+
+    const keySort = function(a, b, d) {
+        d = d !== null ? d : 1;
+        // a = a.toLowerCase(); // this breaks numbers
+        // b = b.toLowerCase();
+        if (a == b)
+            return 0;
+        return a > b ? 1 * d : -1 * d;
+    };
+
+    const KL = Object.keys(keys).length;
+
+    if (!KL)
+        return this.sort(keySort);
+
+    for ( let k in keys) {
+        // asc unless desc or skip
+        keys[k] =
+            keys[k] == 'desc' || keys[k] == -1  ? -1
+                : (keys[k] == 'skip' || keys[k] === 0 ? 0
+                : 1);
+    }
+
+    this.sort(function(a, b) {
+        let sorted = 0, ix = 0;
+
+        while (sorted === 0 && ix < KL) {
+            let k = obIx(keys, ix);
+            if (k) {
+                let dir = keys[k];
+                sorted = keySort(a[k], b[k], dir);
+                ix++;
+            }
+        }
+        return sorted;
+    });
+    return this;
 };

@@ -163,7 +163,7 @@ function listMembers (req, res, next) {
             options.sort[_s[0]] = parseInt(_s[1]);
     }
 
-    // TODO
+    // TODO JSON.parse(decodeURIComponent("%7B%22c%22%3A1%2C%22type%22%3A%7B%22%24gte%22%3A2%7D%2C%22d%22%3Atrue%7D")) ?
     if (req.query.filter) {
         let _s = req.query.filter.split(',');
         _s.forEach( (item) => {

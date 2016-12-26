@@ -216,6 +216,30 @@ var Indexes = {
                 "communications.gatewayPositionMap": 1
             }
 
+        },
+        {
+            "_name": "communicationsRangeId",
+            "_unique": false,
+            "_": {
+                "communications._range.rangeId" : 1
+            }
+
+        },
+        {
+            "_name": "communicationsType",
+            "_unique": false,
+            "_": {
+                "communications.type" : 1
+            }
+
+        },
+        {
+            "_name": "communicationsAttempts",
+            "_unique": false,
+            "_": {
+                "communications._range.attempts" : 1
+            }
+
         }
     ]
 };
@@ -231,7 +255,7 @@ function Init (db) {
                 ;
                 db
                     .collection(Collections[key])
-                    .ensureIndex(_index, {unique: item['_'] ? true : false, name: item['_name']}, function (err, res) {
+                    .ensureIndex(_index, {unique: item['_'] && item['_unique'] !== false ? true : false, name: item['_name']}, function (err, res) {
                         if (err)
                             return log.error(err);
                         return log.debug("Ensure index %s [%s]", res, Collections[key]);

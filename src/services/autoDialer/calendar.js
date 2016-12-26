@@ -13,13 +13,22 @@ const CALENDAR_TYPE_REAPET = {
 
 module.exports = class Calendar {
 
-    constructor (conf) {
+    constructor (conf, communications) {
         this._calendar = conf;
 
         this.expire = false;
         this.sleepTime = 0;
         this.deadLineTime = 0;
-        
+        this._timezone = conf.timeZone && conf.timeZone.id;
+
+        this._timer = null;
+        this._currentTimeOfDay = 0;
+        this._initTimer();
+
+        this._currentCommunicationsRanges = [];
+        this._communications = [];
+        this._communicationsTypeCodes = [];
+        this._initCommunications(communications);
 
         this._calendarMap = {
             deadLineTime: 0,
@@ -28,6 +37,85 @@ module.exports = class Calendar {
 
         };
         this.reCalc();
+    }
+
+    _initCommunications (communications) {
+        if (communications && communications.types instanceof Array) {
+            this._communications = communications.types
+                .sort( (i,p) => {
+                    return i.priority > p.priority
+                })
+                .filter( i => {
+                    if (!(i.ranges instanceof Array)) {
+                        return false
+                    }
+
+                    this._communicationsTypeCodes.push(i.code);
+                    return true;
+                })
+            ;
+            this._reCalcCommunications();
+        }
+    }
+
+    _reCalcCommunications () {
+        this._currentCommunicationsRanges = [];
+        this._communications.forEach( communication => {
+
+            for (let range of communication.ranges) {
+                if (this._currentTimeOfDay >= range.startTime && this._currentTimeOfDay < range.endTime) {
+                    this._currentCommunicationsRanges.push({
+                        code: communication.code,
+                        priority: communication.priority,
+                        range: range,
+                        rangeId: `${new Date().getDate()}_${range.startTime}_${range.endTime}`
+                    });
+                    break;
+                }
+
+            }
+        });
+        console.log(this.getCurrentTimeOfDay(), this.getCommunicationCodes());
+    }
+
+    getCommunicationCodes () {
+        return this._currentCommunicationsRanges.map( i => i.code)
+    }
+
+    checkCommunicationInAllCode (code) {
+        return !!~this._communicationsTypeCodes.indexOf(code)
+    }
+
+    getCommunicationByPosition (position) {
+        return this._currentCommunicationsRanges[position]
+    }
+
+    getCurrentTimeOfDay () {
+        return this._currentTimeOfDay;
+    }
+
+    _initTimer () {
+        this._currentTimeOfDay = this.calcCurrentTimeOfDay();
+        this._timer = setInterval(() => {
+            if (++this._currentTimeOfDay > 1440)
+                this._currentTimeOfDay = 1;
+
+            this._reCalcCommunications();
+        }, 60000);
+    }
+
+    stop () {
+        clearInterval(this._timer);
+    }
+
+    calcCurrentTimeOfDay () {
+        let current;
+
+        if (this._timezone)
+            current = moment().tz(this._timezone);
+        else current = moment();
+
+        return current.get('hours') * 60 + current.get('minutes')
     }
 
     reCalc () {
