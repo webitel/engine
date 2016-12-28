@@ -185,7 +185,7 @@ module.exports = class Member extends EventEmitter2 {
     minusProbe () {
         if (this._currentNumber) {
             this._currentNumber._probe--;
-            if (isFinite(this._currentNumber._range && this._currentNumber._range.attempts)) {
+            if (this._currentNumber._range && isFinite(this._currentNumber._range && this._currentNumber._range.attempts)) {
                 this._currentNumber._range.attempts--;
             }
         }

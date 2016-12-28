@@ -206,14 +206,15 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set._waitingForResultStatus = false;
 
                 $set._lastMinusProbe = m._minusProbe;
+                $set._lock = null;
 
                 dialerService.members._updateByIdFix(
                     m._id,
                     {
                         $push: {_log: m._log},
                         $set,
-                        $max,
-                        $unset: {_lock: 1}//, $inc: {_probeCount: 1}
+                        $max
+                        // $unset: {_lock: 1}//, $inc: {_probeCount: 1}
                     },
                     (err) => {
                         if (err)
