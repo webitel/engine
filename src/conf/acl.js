@@ -52,7 +52,9 @@ const RESOURCES = [
 
     'system/reload',
 
-    'license'
+    'license',
+
+    'vmail'
 ];
 
 module.exports = [
@@ -82,6 +84,7 @@ module.exports = [
 
             'book': ["*"],
             'hook': ["*"],
+            'vmail': ["*"],
 
             'cdr': ["*"],
             'cdr/files': ["*"],
@@ -109,6 +112,7 @@ module.exports = [
             'blacklist': ['c', 'u', 'r'],
             'channels': ['*'],
             'book': ['c', 'u', 'r'],
+            'vmail': ['ro'],
             'cdr': ['ro'],
             'cdr/files': ['ro'],
             'cc/tiers': ["r"]
@@ -137,6 +141,7 @@ module.exports = [
 
             'book': ["*"],
             'hook': ["*"],
+            'vmail': ["*"],
 
             'cdr': ["*"],
             'cdr/files': ["*"],
