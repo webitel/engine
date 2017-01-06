@@ -17,9 +17,9 @@ function addRoutes(api) {
     api.post('/api/v2/gateway', createGateway);
     api.get('/api/v2/gateway', listGateway);
     api.get('/api/v2/gateway/:name', itemGateway);
-    api.path('/api/v2/gateway/:name/up', upGateway);
+    api.patch('/api/v2/gateway/:name/up', upGateway);
     api.put('/api/v2/gateway/:name/up', upGateway);
-    api.path('/api/v2/gateway/:name/down', downGateway);
+    api.patch('/api/v2/gateway/:name/down', downGateway);
     api.put('/api/v2/gateway/:name/down', downGateway);
 
     api.put('/api/v2/gateway/:name/:type', changeGateway);

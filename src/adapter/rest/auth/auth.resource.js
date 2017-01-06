@@ -25,7 +25,7 @@ function addRoutes(api) {
     api.get('/api/v2/whoami', whoami);
     api.post('/login', login);
     api.post('/logout', logout);
-};
+}
 
 function login (req, res, next) {
     var username = req.body.username || '';
@@ -60,7 +60,7 @@ function login (req, res, next) {
                 "status": "error"
             });
     });
-};
+}
 
 function logout (req, res, next) {
     try {
@@ -91,7 +91,7 @@ function logout (req, res, next) {
     } catch (e) {
         next(e);
     }
-};
+}
 
 function validateRequestV1(req, res, next) {
     try {
@@ -124,22 +124,52 @@ function validateRequestV1(req, res, next) {
             "error": err
         });
     }
-};
+}
+
+function decodeToken(token) {
+    try {
+        return jwt.decode(token, tokenSecretKey);
+    } catch (e) {
+        return null
+    }
+}
 
 function validateRequestV2(req, res, next) {
-    var token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token'];
-    var key = (req.body && req.body.x_key) || (req.query && req.query.x_key) || req.headers['x-key'];
+    const token = (req.body && req.body.access_token) || (req.query && req.query.access_token) || req.headers['x-access-token'];
+    const key = (req.body && req.body.x_key) || (req.query && req.query.x_key) || req.headers['x-key'];
 
-    if (token && key) {
-        try {
-            var decoded = jwt.decode(token, tokenSecretKey);
-        } catch (e) {
-            return next(new CodeError(401, "Invalid Token or Key"));
-        };
+    if (!token)
+        return next(new CodeError(401, "Invalid token"));
 
-        if (decoded.exp <= Date.now()) {
-            return next(new CodeError(400, "Token Expired"));
-        };
+    const decoded = decodeToken(token);
+
+    if (!decoded)
+        return next(new CodeError(401, "Invalid token"));
+
+    if (decoded.exp <= Date.now()) {
+        return next(new CodeError(400, "Token Expired"));
+    }
+
+    if (decoded.v === 2 && decoded.t === 'domain') {
+        authService.validateDomainKey(decoded.d, decoded.id, (err, data) => {
+            if (err)
+                return next(err);
+
+            const tokenDb = data && data.tokens && data.tokens[0];
+
+            if (!tokenDb)
+                return next(new CodeError(401, "Not found token"));
+
+            req['webitelUser'] = {
+                id: `${decoded.id}@${decoded.d}`,
+                domain: decoded.d,
+                role: tokenDb.roleName,
+                roleName: tokenDb.roleName
+            };
+            next(); // To move to next middleware
+        });
+
+    } else if (key) {
 
         // Authorize the user to see if s/he can access our resources
 
@@ -162,8 +192,8 @@ function validateRequestV2(req, res, next) {
         });
     } else {
         return next(new CodeError(401, "Invalid Token or Key"));
-    };
-};
+    }
+}
 
 function whoami(req, res, next) {
     aclService._whatResources(req.webitelUser.roleName, (e, acl) => {
@@ -180,4 +210,4 @@ function whoami(req, res, next) {
             'cdr': cdrSrv
         });
     });
-};
+}

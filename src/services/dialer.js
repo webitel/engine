@@ -518,6 +518,7 @@ let Service = {
                     $set._endCause = "NORMAL_CLEARING";
                     $set._nextTryTime = null;
                 } else {
+                    // TODO bug if 0 - set default
                     if (+callback.next_after_sec >= 0) {
                         $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
                     }

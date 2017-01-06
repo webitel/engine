@@ -5,6 +5,7 @@
 'use strict';
 var CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
+    authService = require(__appRoot + '/services/auth'),
     plainTableToJSON = require(__appRoot + '/utils/parse').plainTableToJSON,
     plainCollectionToJSON = require(__appRoot + '/utils/parse').plainCollectionToJSON,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions')
@@ -144,7 +145,7 @@ var Service = {
 
     settings: {
         get: (caller, options, cb) => {
-            checkPermissions(caller, 'domain', 'r', (err) => {
+            checkPermissions(caller, 'domain', 'ro', (err) => {
                 if (err)
                     return cb(err);
 
@@ -156,8 +157,69 @@ var Service = {
             })
         },
 
+        genToken: (caller, options = {}, cb) => {
+            checkPermissions(caller, 'domain', 'uo', (err) => {
+                if (err)
+                    return cb(err);
+
+                let domain = validateCallerParameters(caller, options && options.name);
+                if (!domain)
+                    return cb(new CodeError(400, 'Domain is required.'));
+
+                if (!options.expire || options.expire <= Date.now())
+                    return cb(new CodeError(400, 'Bad expire date.'));
+
+                if (!options.role)
+                    return cb(new CodeError(400, 'Bad role name.'));
+
+                const {data, token} = authService.genDomainToken(caller.id, domain, {exp: options.expire, roleName: options.role});
+
+                application.DB._query.domain.addToken(domain, data, (err) => {
+                    if (err)
+                        return cb(err);
+
+                    return cb(null, {data,token});
+                });
+            })
+        },
+
+        removeToken: (caller, options = {}, cb) => {
+            checkPermissions(caller, 'domain', 'uo', (err) => {
+                if (err)
+                    return cb(err);
+
+                let domain = validateCallerParameters(caller, options && options.name);
+                if (!domain)
+                    return cb(400, 'Domain is required.');
+
+                if (!options.uuid)
+                    return cb(400, 'Token id is required.');
+
+                application.DB._query.domain.removeToken(domain, options.uuid, cb);
+            })
+        },
+
+        setStateToken: (caller, options = {}, cb) => {
+            checkPermissions(caller, 'domain', 'uo', (err) => {
+                if (err)
+                    return cb(err);
+
+                let domain = validateCallerParameters(caller, options && options.name);
+                if (!domain)
+                    return cb(400, 'Domain is required.');
+
+                if (!options.uuid)
+                    return cb(400, 'Token id is required.');
+
+                if (typeof options.state !== 'boolean')
+                    return cb(400, 'Bad state token.');
+
+                application.DB._query.domain.setStateToken(domain, options.uuid, options.state, cb);
+            })
+        },
+
         updateOrInsert: (caller, options, cb) => {
-            checkPermissions(caller, 'domain', 'u', (err) => {
+            checkPermissions(caller, 'domain', 'uo', (err) => {
                 if (err)
                     return cb(err);
 

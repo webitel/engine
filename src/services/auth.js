@@ -19,6 +19,8 @@ module.exports = {
     checkUser: checkUser,
     validateUser: validateUser,
     baseAuth: baseAuth,
+    genDomainToken: genDomainToken,
+    validateDomainKey: validateDomainKey,
     login: login,
     logout: logout,
     getTokenMaxExpires: getTokenMaxExpires,
@@ -88,6 +90,10 @@ function validateUser(key, cb) {
     } catch (e){
         cb(e);
     }
+}
+
+function validateDomainKey(domain, uuid, cb) {
+    application.DB._query.domain.getTokenByKey(domain, uuid, cb);
 }
 
 function checkUser (login, password, cb) {
@@ -265,6 +271,29 @@ function genToken(user, aclList) {
         expires: expires,
         user: user
     };
+}
+
+function genDomainToken(callerName, domainName, params = {}) {
+    const data = {
+        uuid: generateUuid.v4(),
+        expire: params.exp,
+        roleName: params.roleName,
+        createdBy: callerName,
+        createdOn: Date.now(),
+        enabled: true
+    };
+
+    const payload = {
+        id: data.uuid,
+        exp: data.expire,
+        d: domainName,
+        t: 'domain',
+        v: 2
+    };
+    return {
+        data,
+        token: jwt.encode(payload, TOKEN_SECRET_KEY)
+    }
 }
 
 function expiresIn(numDays) {

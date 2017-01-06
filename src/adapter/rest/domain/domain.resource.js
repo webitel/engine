@@ -19,6 +19,11 @@ function addRoutes(api) {
     api.get('/api/v2/domains/:name', item);
     api.get('/api/v2/domains/:name/settings', getSettings);
     api.put('/api/v2/domains/:name/settings', updateOrInsert);
+
+    api.post('/api/v2/domains/:name/settings/token', genToken);
+    api.delete('/api/v2/domains/:name/settings/token/:uuid', removeToken);
+    api.patch('/api/v2/domains/:name/settings/token/:uuid', setStateToken);
+
     api.put('/api/v2/domains/:name/:type', update);
     api.delete('/api/v2/domains/:name', remove);
 
@@ -193,6 +198,73 @@ function updateOrInsert(req, res, next) {
     option.name = req.params.name;
 
     domainService.settings.updateOrInsert(req.webitelUser, option, function (err, result) {
+        if (err)
+            return next(err);
+
+        if (!result) //code error 404
+            return next();
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    });
+}
+
+function genToken (req, res, next) {
+    const option = {
+        "name": req.params['name'],
+        "expire": req.body.expire,
+        "role": req.body.role
+    };
+
+    domainService.settings.genToken(req.webitelUser, option, function (err, result) {
+        if (err)
+            return next(err);
+
+        if (!result) //code error 404
+            return next();
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    });
+}
+function removeToken (req, res, next) {
+    const option = {
+        name: req.params.name,
+        uuid: req.params.uuid
+    };
+
+    domainService.settings.removeToken(req.webitelUser, option, function (err, result) {
+        if (err)
+            return next(err);
+
+        if (!result) //code error 404
+            return next();
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    });
+}
+
+function setStateToken(req, res, next) {
+    const option = {
+        name: req.params.name,
+        uuid: req.params.uuid,
+        state: req.body.state === true
+    };
+
+    domainService.settings.setStateToken(req.webitelUser, option, function (err, result) {
         if (err)
             return next(err);
 

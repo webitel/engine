@@ -23,7 +23,7 @@ function addRoutes(api) {
     api.delete('/api/v2/channels/domain/:domain', killChannelsFromDomain);
 
     api.put('/api/v2/channels/:id', changeState);
-    api.path('/api/v2/channels/:id', changeState);
+    api.patch('/api/v2/channels/:id', changeState);
 
     // V1
     api.post('/api/v1/channels', originateV1);
@@ -34,7 +34,7 @@ function addRoutes(api) {
 
     api.delete('/api/v1/channels/:id', killUuid);
     api.put('/api/v1/channels/:id', changeState);
-    api.path('/api/v1/channels/:id', changeState);
+    api.patch('/api/v1/channels/:id', changeState);
 };
 
 function originateV1 (req, res, next) {

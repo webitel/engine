@@ -14,7 +14,7 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    api.post('/api/v2/outbound/:name', postItem);
+    //api.post('/api/v2/outbound/:name', postItem);
 };
 
 function postItem(req, res, next) {
