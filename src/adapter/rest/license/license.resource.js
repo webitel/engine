@@ -3,8 +3,22 @@
  */
 'use strict';
 
-var licenseService = require(__appRoot + '/services/license')
+const licenseService = require(__appRoot + '/services/license'),
+    conf = require(__appRoot + '/conf'),
+    url = require('url'),
+    log = require(__appRoot + '/lib/log')(module),
+    LICENSE_HOST = conf.get('licenseServer:host'),
+    USE_LICENSE_API = `${conf.get('licenseServer:enabled')}` === 'true'
     ;
+
+
+let licenseHostInfo,
+    http;
+
+if (USE_LICENSE_API) {
+    licenseHostInfo = url.parse(LICENSE_HOST);
+    http = (licenseHostInfo.protocol === 'http:') ? require('http') : require('https')
+}
 
 module.exports = {
     addRoutes: addRoutes
@@ -16,7 +30,10 @@ function addRoutes (api) {
     api.get('/api/v2/license/:id', item);
     api.put('/api/v2/license/', upload);
     api.delete('/api/v2/license/:id', remove);
-};
+
+    if (USE_LICENSE_API)
+        api.patch('/api/license/:cid/:sid', genLicense);
+}
 
 function list (req, res, next) {
     var addSid = req.query['sid'] === "true";
@@ -80,3 +97,26 @@ function remove (req, res, next) {
         })
     });
 };
+
+function genLicense(req, res, next) {
+    let option = {
+        'cid': req.params.cid,
+        'sid': req.params.sid
+    };
+
+    const request = http.request({
+        method: "PATCH",
+        host: licenseHostInfo.hostname,
+        port: licenseHostInfo.port,
+        path: `/api/v1/license/${option.cid}/${option.sid}`
+    }, result => {
+        res.status(result.statusCode);
+        result.pipe(res);
+    });
+
+    request.on('error', (e) => {
+        log.error(e);
+    });
+
+    request.end();
+}

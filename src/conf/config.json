@@ -53,6 +53,10 @@
         "host": "http://cdr:10023",
         "useProxy": false
     },
+    "licenseServer": {
+        "enabled": true,
+        "host": "http://10.10.10.25:1234/"
+    },
     "application": {
         "loglevel": "trace",
         "callcenter": true,
