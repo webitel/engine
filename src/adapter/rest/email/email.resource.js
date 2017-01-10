@@ -16,7 +16,7 @@ module.exports = {
 function addRoutes(api) {
     api.get('/api/v2/email/settings', getEmailSettings);
     api.post('/api/v2/email/settings', postEmailSettings);
-    api.post('/api/v2/email/settings/test/:to', sendTestEmail);
+    api.post('/api/v2/email/settings/test/:to?', sendTestEmail);
     api.put('/api/v2/email/settings', putEmailSettings);
     api.delete('/api/v2/email/settings', deleteEmailSettings);
 };
@@ -108,7 +108,7 @@ function sendTestEmail (req, res, next) {
             "html": "<h1>Helo from <img href=\"webitel.com\" src=\"cid:logoID\"/> </h1>",
             "attachments": [{
                 "filename": "logo768.png",
-                "path": "/core/resource/img/logo.png",
+                "path": __appRoot + "/public/static/logo1024.png",
                 "cid": "logoID"
             }]
         },
