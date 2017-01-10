@@ -73,8 +73,9 @@ var Service = {
      * @param options
      * @param cb
      */
-    item: (caller, options, cb) => {
-        checkPermissions(caller, 'domain/item', 'r', function (err) {
+    item: (caller = {}, options, cb) => {
+        const perm = caller.domain ? 'ro' : 'r';
+        checkPermissions(caller, 'domain', perm, function (err) {
             if (err)
                 return cb(err);
 
@@ -99,8 +100,9 @@ var Service = {
      * @param options
      * @param cb
      */
-    update: (caller, options, cb) => {
-        checkPermissions(caller, 'domain/item', 'u', function (err) {
+    update: (caller = {}, options, cb) => {
+        const perm = caller.domain ? 'uo' : 'u';
+        checkPermissions(caller, 'domain', perm, function (err) {
             if (err)
                 return cb(err);
 
@@ -145,7 +147,8 @@ var Service = {
 
     settings: {
         get: (caller, options, cb) => {
-            checkPermissions(caller, 'domain', 'ro', (err) => {
+            const perm = caller.domain ? 'ro' : 'r';
+            checkPermissions(caller, 'domain', perm, (err) => {
                 if (err)
                     return cb(err);
 
@@ -158,7 +161,8 @@ var Service = {
         },
 
         genToken: (caller, options = {}, cb) => {
-            checkPermissions(caller, 'domain', 'uo', (err) => {
+            const perm = caller.domain ? 'uo' : 'u';
+            checkPermissions(caller, 'domain', perm, (err) => {
                 if (err)
                     return cb(err);
 
@@ -184,7 +188,8 @@ var Service = {
         },
 
         removeToken: (caller, options = {}, cb) => {
-            checkPermissions(caller, 'domain', 'uo', (err) => {
+            const perm = caller.domain ? 'uo' : 'u';
+            checkPermissions(caller, 'domain', perm, (err) => {
                 if (err)
                     return cb(err);
 
@@ -200,7 +205,8 @@ var Service = {
         },
 
         setStateToken: (caller, options = {}, cb) => {
-            checkPermissions(caller, 'domain', 'uo', (err) => {
+            const perm = caller.domain ? 'uo' : 'u';
+            checkPermissions(caller, 'domain', perm, (err) => {
                 if (err)
                     return cb(err);
 
@@ -219,7 +225,8 @@ var Service = {
         },
 
         updateOrInsert: (caller, options, cb) => {
-            checkPermissions(caller, 'domain', 'uo', (err) => {
+            const perm = caller.domain ? 'uo' : 'u';
+            checkPermissions(caller, 'domain', perm, (err) => {
                 if (err)
                     return cb(err);
 

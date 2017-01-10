@@ -7,6 +7,7 @@ var log = require(__appRoot + '/lib/log')(module),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     plainTableToJSONArray = require(__appRoot + '/utils/parse').plainTableToJSONArray,
     validateEslResponse = require(__appRoot + '/utils/parse').validateEslResponse,
+    domainService = require('./domain'),
     CodeError = require(__appRoot + '/lib/error')
     ;
 
@@ -21,12 +22,26 @@ var Service = {
             if (e)
                 return cb(e);
 
-            _exec('status', '', (e, txt) => {
-                if (e)
-                    return cb(e);
+            if (caller.domain) {
+                domainService.item(caller, {name: caller.domain}, (err, res) => {
+                    if (err)
+                        return cb(err);
 
-                return plainTableToJSONArray(txt, cb);
-            });
+                    _exec('status', `${res.variable_customer_id}`, (e, txt) => {
+                        if (e)
+                            return cb(e);
+
+                        return plainTableToJSONArray(txt, cb);
+                    });
+                })
+            } else {
+                _exec('status', '', (e, txt) => {
+                    if (e)
+                        return cb(e);
+
+                    return plainTableToJSONArray(txt, cb);
+                });
+            }
         });
     },
 
