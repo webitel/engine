@@ -55,7 +55,8 @@
     },
     "licenseServer": {
         "enabled": true,
-        "host": "http://10.10.10.25:1234/"
+        "master": true,
+        "host": "http://10.10.10.25:1234"
     },
     "application": {
         "loglevel": "trace",

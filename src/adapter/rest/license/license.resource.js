@@ -8,6 +8,7 @@ const licenseService = require(__appRoot + '/services/license'),
     url = require('url'),
     log = require(__appRoot + '/lib/log')(module),
     LICENSE_HOST = conf.get('licenseServer:host'),
+    IS_MASTER = `${conf.get('licenseServer:master')}` === 'true',
     USE_LICENSE_API = `${conf.get('licenseServer:enabled')}` === 'true'
     ;
 
@@ -31,8 +32,45 @@ function addRoutes (api) {
     api.put('/api/v2/license/', upload);
     api.delete('/api/v2/license/:id', remove);
 
-    if (USE_LICENSE_API)
+    if (IS_MASTER && USE_LICENSE_API) {
+        api.get('/api/v2/customers', proxyCustomers);
+        api.get('/api/v2/customers/:cid', proxyCustomers);
+        api.post('/api/v2/customers', proxyCustomers);
+        api.put('/api/v2/customers/:cid', proxyCustomers);
+        api.delete('/api/v2/customers/:cid', proxyCustomers);
+    }
+
+    if (USE_LICENSE_API) {
         api.patch('/api/license/:cid/:sid', genLicense);
+        api.get('/api/license/:cid', getLicenseInfo);
+    }
+}
+
+function proxyCustomers(req, res, next) {
+    const request = http.request({
+        method: req.method,
+        host: licenseHostInfo.hostname,
+        port: licenseHostInfo.port,
+        path: req.url,
+        headers: {
+            "content-type": req.headers['content-type']
+        }
+    }, result => {
+        _setHeader(result, res);
+
+        res.status(result.statusCode);
+        result.pipe(res);
+    });
+
+    request.on('error', (e) => {
+        log.error(e);
+    });
+
+    if (req.method !== 'GET' && +req.headers['content-length'] > 0 && Object.keys(req.body).length > 0 ) {
+        request.write(JSON.stringify(req.body))
+    }
+
+    request.end();
 }
 
 function list (req, res, next) {
@@ -108,8 +146,11 @@ function genLicense(req, res, next) {
         method: "PATCH",
         host: licenseHostInfo.hostname,
         port: licenseHostInfo.port,
-        path: `/api/v1/license/${option.cid}/${option.sid}`
+        path: `/api/license/${option.cid}/${option.sid}`
     }, result => {
+
+        _setHeader(result, res);
+
         res.status(result.statusCode);
         result.pipe(res);
     });
@@ -119,4 +160,41 @@ function genLicense(req, res, next) {
     });
 
     request.end();
+}
+
+function getLicenseInfo(req, res, next) {
+    let option = {
+        'cid': req.params.cid
+    };
+
+    const request = http.request({
+        method: "GET",
+        host: licenseHostInfo.hostname,
+        port: licenseHostInfo.port,
+        path: `/api/license/${option.cid}`
+    }, result => {
+        
+        _setHeader(result, res);
+
+        res.status(result.statusCode);
+        result.pipe(res);
+    });
+
+    request.on('error', (e) => {
+        log.error(e);
+    });
+
+    request.end();
+}
+
+
+function _setHeader(result, res) {
+    if (result.headers.hasOwnProperty('content-type'))
+        res.header('content-type', result.headers['content-type']);
+
+    if (result.headers.hasOwnProperty('content-length'))
+        res.header('content-length', result.headers['content-length']);
+
+    if (result.headers.hasOwnProperty('transfer-encoding'))
+        res.header('transfer-encoding', result.headers['transfer-encoding']);
 }
