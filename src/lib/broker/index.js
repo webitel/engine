@@ -32,9 +32,12 @@ class Broker {
             let parseUri = url.parse(conf.connectionString);
             configBroker = {
                 "host": parseUri.hostname,
-                "port": +parseUri.port,
-                "pwd": parseUri.auth.split(':')[1]
+                "port": +parseUri.port
             };
+
+            if (parseUri.auth)
+                configBroker.pwd = parseUri.auth.split(':')[1];
+            
             return new WebitelEsl(configBroker, app);
         } else {
             app.stop(new Error("Broker config require."));

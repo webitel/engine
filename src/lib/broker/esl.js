@@ -6,15 +6,40 @@
 var log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     Esl = require(__appRoot + '/lib/modesl'),
+    Collection = require(__appRoot + '/lib/collection'),
+    uuid = require('node-uuid'),
     Amqp = require('amqplib');
 
 const _connect = Symbol('connect'),
-      _esl = Symbol('esl')
+      _esl = Symbol('esl'),
+    bindCollection = new Collection('id')
     ;
+
+
+//TODO
+const FS_ROUTING = 'FreeSWITCH-Hostname,Event-Name,Event-Subclass,Channel-Presence-ID,Channel-Presence-Data';
 
 const waitTimeReconnectFreeSWITCH = 5000;
 
 class WebitelEsl extends EventEmitter2 {
+
+    constructor (configBroker, application = {}) {
+        super();
+        this.configBroker = configBroker;
+        this[_connect](application);
+
+        application.on('sys::wConsoleConnect', () => {
+            let wConsole = application.WConsole,
+                scope = this
+                ;
+            wConsole.subscribe(["USER_CREATE", "USER_DESTROY", "DOMAIN_CREATE", "DOMAIN_DESTROY", "ACCOUNT_STATUS", "USER_MANAGED"]);
+            wConsole.on('webitel::event::event::**', (e) => scope.emit('webitelEvent', e.serialize('json', 1)));
+        });
+    };
+
+    get Exchange () {
+        return {}
+    }
 
     [_connect] (app) {
         let scope = this,
@@ -109,20 +134,6 @@ class WebitelEsl extends EventEmitter2 {
 
     };
 
-    constructor (configBroker, application) {
-        super();
-        this.configBroker = configBroker;
-        this[_connect](application);
-
-        application.on('sys::wConsoleConnect', () => {
-            let wConsole = application.WConsole,
-                scope = this
-                ;
-            wConsole.subscribe(["USER_CREATE", "USER_DESTROY", "DOMAIN_CREATE", "DOMAIN_DESTROY", "ACCOUNT_STATUS", "USER_MANAGED"]);
-            wConsole.on('webitel::event::event::**', (e) => scope.emit('webitelEvent', e.serialize('json', 1)));
-        });
-    };
-
     bindChannelEvents (caller, cb) {
         let esl = this[_esl];
         if (!esl) return cb && cb(new Error("No connect"));
@@ -161,11 +172,33 @@ class WebitelEsl extends EventEmitter2 {
     };
 
     // TODO
+    publish () {};
     bindHook () {};
     unBindHook () {};
-    isConnect () {};
-    subscribe () {};
-    bind () {};
+    isConnect () {
+        return true
+    };
+    subscribe (queueName = '', params = {}, handler, cb) {
+        return;
+        // const id = uuid.v4();
+        // bindCollection.add(id, handler);
+        // return cb(null, id);
+    };
+    bind (id, ex, rk = "", cb) {
+        return;
+        // const esl = this[_esl];
+        // if (!esl) return;
+        //
+        // let fn = bindCollection.get(id);
+        // if (typeof fn !== 'function')
+        //     return ;//TODO ERROR
+        //
+        // esl.subscribe('HEARTBEAT');
+        // esl.on('esl::event::HEARTBEAT::*', (e) => {
+        //     console.log(e);
+        //     fn;
+        // });
+    };
     unbind () {};
 
 }

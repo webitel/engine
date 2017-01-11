@@ -352,7 +352,7 @@ process.on('uncaughtException', function (err) {
     var emailService = require('./services/email');
 
     var _fnStop = function() {
-        if (application) {
+        if (typeof application === 'object') {
             application.stop();
         }
         process.exit(1);
