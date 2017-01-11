@@ -18,6 +18,7 @@ let licenseHostInfo,
 
 if (USE_LICENSE_API) {
     licenseHostInfo = url.parse(LICENSE_HOST);
+    licenseHostInfo.pathname = licenseHostInfo.pathname.replace(/^\/|\/$/g,'');
     http = (licenseHostInfo.protocol === 'http:') ? require('http') : require('https')
 }
 
@@ -51,7 +52,7 @@ function proxyCustomers(req, res, next) {
         method: req.method,
         host: licenseHostInfo.hostname,
         port: licenseHostInfo.port,
-        path: req.url,
+        path: licenseHostInfo.pathname + req.url,
         headers: {
             "content-type": req.headers['content-type']
         }
@@ -146,7 +147,7 @@ function genLicense(req, res, next) {
         method: "PATCH",
         host: licenseHostInfo.hostname,
         port: licenseHostInfo.port,
-        path: `/api/license/${option.cid}/${option.sid}`
+        path: `${licenseHostInfo.pathname}/api/license/${option.cid}/${option.sid}`
     }, result => {
 
         _setHeader(result, res);
@@ -171,7 +172,7 @@ function getLicenseInfo(req, res, next) {
         method: "GET",
         host: licenseHostInfo.hostname,
         port: licenseHostInfo.port,
-        path: `/api/license/${option.cid}`
+        path: `${licenseHostInfo.pathname}/api/license/${option.cid}`
     }, result => {
         
         _setHeader(result, res);
