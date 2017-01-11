@@ -7,6 +7,7 @@ const licenseService = require(__appRoot + '/services/license'),
     conf = require(__appRoot + '/conf'),
     url = require('url'),
     log = require(__appRoot + '/lib/log')(module),
+    CodeError = require(__appRoot + '/lib/error'),
     LICENSE_HOST = conf.get('licenseServer:host'),
     IS_MASTER = `${conf.get('licenseServer:master')}` === 'true',
     USE_LICENSE_API = `${conf.get('licenseServer:enabled')}` === 'true'
@@ -48,6 +49,10 @@ function addRoutes (api) {
 }
 
 function proxyCustomers(req, res, next) {
+
+    if (req.webitelUser.id !== 'root')
+        return next(new CodeError(401, "Forbidden."));
+
     const request = http.request({
         method: req.method,
         host: licenseHostInfo.hostname,
