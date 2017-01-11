@@ -20,6 +20,8 @@ let licenseHostInfo,
 if (USE_LICENSE_API) {
     licenseHostInfo = url.parse(LICENSE_HOST);
     licenseHostInfo.pathname = '/' + licenseHostInfo.pathname.replace(/^\/|\/$/g,'');
+    if (licenseHostInfo.pathname.length === 1)
+        licenseHostInfo.pathname = "";
     http = (licenseHostInfo.protocol === 'http:') ? require('http') : require('https')
 }
 
