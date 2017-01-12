@@ -55,8 +55,8 @@
     },
     "licenseServer": {
         "enabled": true,
-        "master": true,
-        "host": "http://10.10.10.25:1234"
+        "master": false,
+        "host": "https://srv.webitel.com/engine"
     },
     "application": {
         "loglevel": "trace",
