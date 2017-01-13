@@ -426,6 +426,8 @@ Webitel.prototype.userCreate = function(_caller, args, cb) {
 
         var _ext;
         for (var key in parameters) {
+            if (!parameters.hasOwnProperty(key))
+                continue;
             _ext = parameters[key];
             if (_ext && _ext.indexOf(VARIABLE_EXTENSION_NAME + '=') == 0) {
                 extensions = _ext.replace(VARIABLE_EXTENSION_NAME + '=', '');

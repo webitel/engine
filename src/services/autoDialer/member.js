@@ -87,7 +87,7 @@ module.exports = class Member extends EventEmitter2 {
 
             let typeCodes = dialer._calendar.getCommunicationCodes();
 
-            const communications = config.communications.map( (i, key) => {
+            const communicationsMap = config.communications.map( (i, key) => {
                 i._id = key;
                 if (!i._probe)
                     i._probe = 0;
@@ -121,7 +121,9 @@ module.exports = class Member extends EventEmitter2 {
                 }
                 i._score = i._codeWorkPrior + i._probe;
                 return i;
-            }).keySort({
+            });
+
+            const communications = keySort(communicationsMap, {
                 state: "asc",
                 // _skipByAttempt: "desc",
                 _codeWorkPrior: "asc",
@@ -349,15 +351,29 @@ module.exports = class Member extends EventEmitter2 {
 };
 
 
-Array.prototype.keySort = function(keys) {
+const keySort = function(arr = [], keys) {
 
     keys = keys || {};
+
+    const sortFn = function(a, b) {
+        let sorted = 0, ix = 0;
+
+        while (sorted === 0 && ix < KL) {
+            let k = obIx(keys, ix);
+            if (k) {
+                let dir = keys[k];
+                sorted = _keySort(a[k], b[k], dir);
+                ix++;
+            }
+        }
+        return sorted;
+    };
 
     const obIx = function(obj, ix){
         return Object.keys(obj)[ix];
     };
 
-    const keySort = function(a, b, d) {
+    const _keySort = function(a, b, d) {
         d = d !== null ? d : 1;
         // a = a.toLowerCase(); // this breaks numbers
         // b = b.toLowerCase();
@@ -369,7 +385,7 @@ Array.prototype.keySort = function(keys) {
     const KL = Object.keys(keys).length;
 
     if (!KL)
-        return this.sort(keySort);
+        return arr.sort(sortFn);
 
     for ( let k in keys) {
         // asc unless desc or skip
@@ -378,19 +394,6 @@ Array.prototype.keySort = function(keys) {
                 : (keys[k] == 'skip' || keys[k] === 0 ? 0
                 : 1);
     }
-
-    this.sort(function(a, b) {
-        let sorted = 0, ix = 0;
-
-        while (sorted === 0 && ix < KL) {
-            let k = obIx(keys, ix);
-            if (k) {
-                let dir = keys[k];
-                sorted = keySort(a[k], b[k], dir);
-                ix++;
-            }
-        }
-        return sorted;
-    });
-    return this;
+    arr = arr.sort(sortFn);
+    return arr;
 };
