@@ -173,8 +173,9 @@ module.exports = class Dialer extends EventEmitter2 {
             // });
             // Close member session
             member.once('end', (m) => {
-                let $set = {_nextTryTime: m.nextTime, _lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
+                let $set = {_lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
                     $max = {
+                        _nextTryTime: m.nextTime,
                         _probeCount: m.currentProbe
                     };
 

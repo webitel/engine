@@ -152,6 +152,7 @@ module.exports = [
             'gateway': ["*"],
 
             'domain/item': ["*"],
+            'domain': ["ro", "uo"],
 
             'account': ["*"]
         }
