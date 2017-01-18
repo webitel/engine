@@ -73,6 +73,10 @@ class WebitelEsl extends EventEmitter2 {
             esl.connected = true;
             log.info('ESL socket connected.');
 
+            esl.api(`unload`, `mod_amqp`, res =>  {
+                log.info(`Unload mod amqp response: ${res.body}`);
+            });
+
             esl.subscribe([
                 "CHANNEL_CREATE",
                 "CHANNEL_DESTROY",
