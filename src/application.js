@@ -17,7 +17,8 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     Broker = require('./lib/broker/index'),
     Hooks = require('./services/hook/hookClass'),
     checkEslError = require('./middleware/checkEslError'),
-    AutoDialer = require('./services/autoDialer')
+    AutoDialer = require('./services/autoDialer'),
+    gatewayService = require('./services/gateway')
     ;
 
 class Application extends EventEmitter2 {
@@ -255,6 +256,8 @@ class Application extends EventEmitter2 {
 
                 wconsole._serverId = res;
             });
+
+            gatewayService._reloadGatewayToDb();
         });
 
         wconsole.on('webitel::event::auth::fail', function () {

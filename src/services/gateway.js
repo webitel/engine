@@ -9,6 +9,7 @@ var parsePlainTableToJSON = require(__appRoot + '/utils/parse').plainTableToJSON
     plainCollectionToJSON = require(__appRoot + '/utils/parse').plainCollectionToJSON,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
+    log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error')
     ;
 
@@ -76,10 +77,16 @@ var Service = {
             if (err)
                 return cb(err);
 
-            var domain = validateCallerParameters(caller, options['domain']);
+            const domain = validateCallerParameters(caller, options['domain']);
             
             options['domain'] = domain;
-            application.WConsole.createSipGateway(caller, options, cb)
+            application.WConsole.createSipGateway(caller, options, (err, res) => {
+                if (err)
+                    return cb(err);
+
+                Service._updateOrInsertItemByName(options.name, options.domain);
+                return cb(null, res);
+            })
         });
     },
 
@@ -96,15 +103,19 @@ var Service = {
 
             var _domain = validateCallerParameters(caller, domain);
 
-            application.WConsole.showSipGateway(caller, _domain, function (err, res) {
-                if (err)
-                    return cb(err);
-                // todo DEL
-                if (type == 'plain') {
-                    return cb(null, res);
-                }
-                return plainTableToJSONArray(res, cb);
-            });
+            Service._listGateway(_domain, type, cb);
+        });
+    },
+    
+    _listGateway: function (domain, type, cb) {
+        application.WConsole.showSipGateway(null, domain, function (err, res) {
+            if (err)
+                return cb(err);
+            // todo DEL
+            if (type == 'plain') {
+                return cb(null, res);
+            }
+            return plainTableToJSONArray(res, cb);
         });
     },
 
@@ -132,7 +143,13 @@ var Service = {
                 if (typeResponce == 'plain')
                     return cb(null, res);
 
-                return plainCollectionToJSON(res, cb);
+                plainCollectionToJSON(res, (err, data) => {
+                    if (err)
+                        return cb(err);
+
+                    Service._updateOrInsert(gatewayName, null, data);
+                    return cb(null, data);
+                });
             });
         });
     },
@@ -174,9 +191,14 @@ var Service = {
 
             if (!gatewayName) {
                 return cb(new CodeError(400, 'Gateway name is required.'));
-            };
+            }
 
-            return Service.changeGateway(caller, gatewayName, 'params', {}, cb);
+            application.WConsole.changeSipGateway(caller, gatewayName, 'params', {}, function (err, res) {
+                if (err)
+                    return cb(err);
+
+                return plainCollectionToJSON(res, cb);
+            });
         });
     },
 
@@ -195,7 +217,19 @@ var Service = {
                 return cb(new CodeError(400, 'Gateway name is required.'));
             };
 
-            application.WConsole.removeSipGateway(caller, gatewayName, cb);
+            application.WConsole.removeSipGateway(caller, gatewayName, (err, res) => {
+                if (err)
+                    return cb(err);
+
+
+                const db = application.DB._query.gateway;
+                db.removeByName(gatewayName, e => {
+                    if (e)
+                        return log.error(e);
+                    log.trace(`remove gateway ${gatewayName} - success`);
+                });
+                return cb(null, res);
+            });
         });
     },
 
@@ -236,6 +270,73 @@ var Service = {
 
             application.WConsole.downSipGateway(caller, gatewayName, cb);
         });
+    },
+    
+    
+    _reloadGatewayToDb: function () {
+        Service._listGateway('', null, (err, res) => {
+            if (err)
+                return log.error(err);
+
+            log.trace(`Start upgrade gateway list`);
+            const gws = [];
+            if (res instanceof Array) {
+                res.forEach( i => {
+                    const name = i.Gateway.split('::').pop();
+                    const domain = i.Domain;
+                    gws.push(name);
+                    Service._updateOrInsertItemByName(name, domain);
+                })
+            }
+
+            if (gws.length > 0) {
+                const db = application.DB._query.gateway;
+                db.removeNotNames(gws, (err) => {
+                    if (err)
+                        log.error(err);
+                    log.trace(`removed old gateways success`);
+                })
+            }
+        });
+    },
+
+    _updateOrInsertItemByName: (name, domain) => {
+        application.WConsole.changeSipGateway(null, name, "params", {}, function (err, res) {
+            if (err)
+                return log.error(err);
+
+            plainCollectionToJSON(res, (err, gw) => {
+                if (err)
+                    return log.error(err);
+
+                Service._updateOrInsert(name, domain, gw)
+            });
+        });
+    },
+
+    _updateOrInsert: (name, domain, params = {}) => {
+        const q = {
+            name: name,
+            params
+        };
+
+        if (domain)
+            q.domain = domain;
+
+        const db = application.DB._query.gateway;
+
+        db.insertOrUpdate(name, {$set: q}, (err, res) => {
+            if (err)
+                return log.error(err);
+
+            if (res.result.upserted) {
+                log.trace(`insert gateway ${name} - success`);
+            } else if (res.result.nModified > 0) {
+                log.trace(`updated gateway ${name} - success`);
+            } else {
+                log.trace(`no changes gateway ${name}`);
+            }
+        })
     }
 };
 
