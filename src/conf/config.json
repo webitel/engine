@@ -34,7 +34,8 @@
         "collectionHook": "hook",
         "collectionDialer": "dialer",
         "collectionDialerMembers": "members",
-        "collectionMedia": "mediaFile"
+        "collectionMedia": "mediaFile",
+        "collectionGateway": "gateway"
     },
     "freeSWITCH": {
         "host": "172.17.0.1",

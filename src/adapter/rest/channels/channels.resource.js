@@ -13,6 +13,8 @@ module.exports = {
 
 function addRoutes(api) {
     api.get('/api/v2/channels', getChannels);
+    api.get('/api/v2/calls', getCalls);
+
     api.post('/api/v2/channels', originate);
     api.post('/api/v2/channels/fake', fakeCall);
     api.delete('/api/v2/channels/:id', killUuid);
@@ -81,6 +83,23 @@ function getChannels (req, res, next) {
         }
     );
 };
+
+function getCalls (req, res, next) {
+    var option = {
+        domain: req.query['domain']
+    };
+    channelService.callList(req.webitelUser, option,
+        function (err, result) {
+            if (err) {
+                return next(err);
+            }
+
+            return res
+                .status(200)
+                .json(result);
+        }
+    );
+}
 
 function originate (req, res, next) {
     var extension = req.body.calledId, // CALLE

@@ -244,21 +244,21 @@ var Service = {
             ;
         if (!spy) {
             return cb(new CodeError(400, "Bad spy user"));
-        };
+        }
         if (!domain)
             return cb(new CodeError(400, "Bad domain name"));
 
 
         if (displayValue) {
             variables = `[origination_callee_id_number=${displayValue},origination_caller_id_name=${displayValue}]`
-        };
+        }
 
         user = (user + '').split('@')[0] + '@' + domain;
         spy = (spy + '').split('@')[0] + '@' + domain;
 
         if (!side) {
             side = user;
-        };
+        }
 
         Service.bgApi(
             'originate ' + variables + 'user/' + user + ' &userspy(' + spy
@@ -275,6 +275,21 @@ var Service = {
         }
 
         application.Esl.show('channels' + _item, 'json', function (err, data) {
+            if (err) {
+                return cb(err);
+            };
+            return cb(null, data);
+        });
+    },
+
+    callList: function (caller, options, cb) {
+        let _domain = validateCallerParameters(caller, options['domain']),
+            _item = '';
+        if (_domain) {
+            _item = ' like ' + _domain;
+        }
+
+        application.Esl.show('calls' + _item, 'json', function (err, data) {
             if (err) {
                 return cb(err);
             };
@@ -300,6 +315,10 @@ var Service = {
         };
 
         return Service.bgApi(_api, cb);
+    },
+
+    _countChannels: function (cb) {
+        Service.bgApi('show channels count', cb)
     }
 };
 

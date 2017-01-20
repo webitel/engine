@@ -7,9 +7,11 @@ var log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     async = require('async'),
     generateUuid = require('node-uuid'),
+    gatewayService = require(__appRoot + '/services/gateway'),
     Amqp = require('amqplib/callback_api');
 
 const HOOK_QUEUE = 'hooks',
+    GATEWAY_QUEUE = 'engine.gateway',
     TELEGRAM_QUEUE = 'telegram-notification';
 
 const _onReturnedMessage = Symbol('onReturnedMessage'),
@@ -378,6 +380,27 @@ class WebitelAmqp extends EventEmitter2 {
                         }, {noAck: true});
 
                         scope.emit(`init:hook`);
+
+                        return cb(null, null);
+                    });
+                },
+
+                //init gateway queue
+                function (_, cb) {
+                    log.debug('Try init gateway events queue');
+                    channel.assertQueue(GATEWAY_QUEUE, {autoDelete: false, durable: true, exclusive: false}, (err, qok) => {
+
+                        channel.consume(qok.queue, (msg) => {
+                            try {
+                                gatewayService._onChannel(JSON.parse(msg.content.toString()));
+                                channel.ack(msg);
+                            } catch (e) {
+                                log.error(e);
+                            }
+                        }, {noAck: false});
+
+                        channel.bindQueue(qok.queue, scope.Exchange.FS_EVENT, `*.${encodeRK('CHANNEL_CREATE')}.*.*.*`);
+                        channel.bindQueue(qok.queue, scope.Exchange.FS_EVENT, `*.${encodeRK('CHANNEL_DESTROY')}.*.*.*`);
 
                         return cb(null, null);
                     });

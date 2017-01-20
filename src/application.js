@@ -61,6 +61,7 @@ class Application extends EventEmitter2 {
             scope.DB = db;
             // TODO dialer init
             scope.initAcl();
+            gatewayService._initGatewayLineCounter(scope);
             scope.connectToEsl();
             scope.attachProcess();
             scope.connectToWConsole();
@@ -256,8 +257,6 @@ class Application extends EventEmitter2 {
 
                 wconsole._serverId = res;
             });
-
-            gatewayService._reloadGatewayToDb();
         });
 
         wconsole.on('webitel::event::auth::fail', function () {

@@ -37,6 +37,41 @@ function addQuery(db) {
             db
                 .collection(gatewayCollectionName)
                 .remove({name: {$nin: names}}, {multi: true}, cb)
+        },
+
+        incrementLineByName: (name, inc, direction, cb) => {
+            const $inc = {
+                "stats.active": inc
+            };
+
+            if (inc === -1) {
+                $inc[`stats.${direction === 'inbound' ? 'callsIn' : 'callsOut'}`] = 1
+            }
+
+            db
+                .collection(gatewayCollectionName)
+                .update({name: name}, {$inc}, {upsert: true}, cb)
+        },
+
+
+        incrementLineByRealm: (realm, inc, direction, cb) => {
+            const $inc = {
+                "stats.active": inc
+            };
+
+            if (inc === -1) {
+                $inc[`stats.${direction === 'inbound' ? 'callsIn' : 'callsOut'}`] = 1
+            }
+
+            db
+                .collection(gatewayCollectionName)
+                .update({"params.realm": realm}, {$inc}, {upsert: false}, cb)
+        },
+
+        cleanActiveChannels: (cb) => {
+            db
+                .collection(gatewayCollectionName)
+                .update({}, {$set: {"stats.active": 0}}, {multi: true}, cb)
         }
     }
 }

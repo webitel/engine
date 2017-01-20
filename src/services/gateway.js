@@ -10,7 +10,8 @@ var parsePlainTableToJSON = require(__appRoot + '/utils/parse').plainTableToJSON
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     log = require(__appRoot + '/lib/log')(module),
-    CodeError = require(__appRoot + '/lib/error')
+    CodeError = require(__appRoot + '/lib/error'),
+    channelService = require('./channel')
     ;
 
 var Service = {
@@ -271,7 +272,35 @@ var Service = {
             application.WConsole.downSipGateway(caller, gatewayName, cb);
         });
     },
-    
+
+    _initGatewayLineCounter: function (app) {
+
+        const checkCleanActiveChannels = () => {
+            channelService._countChannels((err, res) => {
+                if (err)
+                    return log.error(err);
+
+                if (parseInt(res.body) === 0) {
+                    log.debug(`clean active lines`);
+                    application.DB._query.gateway.cleanActiveChannels();
+                }
+            });
+        };
+
+        app.once('sys::wConsoleConnect', Service._reloadGatewayToDb);
+
+        app.on('sys::errorConnectFsApi', () => {
+            application.DB._query.gateway.cleanActiveChannels();
+        });
+
+        app.on('sys::connectFsApi', checkCleanActiveChannels);
+
+        app.Schedule(5 * 60 * 1000, function () {
+            log.debug('Schedule active channels.');
+            checkCleanActiveChannels()
+        });
+
+    },
     
     _reloadGatewayToDb: function () {
         Service._listGateway('', null, (err, res) => {
@@ -325,7 +354,7 @@ var Service = {
 
         const db = application.DB._query.gateway;
 
-        db.insertOrUpdate(name, {$set: q}, (err, res) => {
+        db.insertOrUpdate(name, {$set: q, $max: {stats: {callsIn: 0, callsOut: 0, active: 0}}}, (err, res) => {
             if (err)
                 return log.error(err);
 
@@ -337,6 +366,51 @@ var Service = {
                 log.trace(`no changes gateway ${name}`);
             }
         })
+    },
+
+    _onChannel: (e) => {
+        // console.log(e);
+        if (!e['variable_sofia_profile_name'] || e['variable_sofia_profile_name'] === 'internal')
+            return;
+
+        if (e['variable_sip_gateway_name']) {
+            Service._changeGatewayLineByName(e['variable_sip_gateway_name'], e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
+        } else {
+            Service._changeGatewayLineByRealm(e['variable_sip_from_host'] + ':' + e['variable_sip_from_port'],
+                e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
+        }
+    },
+
+    _changeGatewayLineByName: (gatewayName, direction, isNew) => {
+        if (isNew) {
+            application.DB._query.gateway.incrementLineByName(gatewayName, 1, direction, e => {
+                if (e)
+                    return log.error(e);
+                log.trace(`Add line to gateway ${gatewayName}`);
+            })
+        } else {
+            application.DB._query.gateway.incrementLineByName(gatewayName, -1, direction, e => {
+                if (e)
+                    return log.error(e);
+                log.trace(`Minus line to gateway ${gatewayName}`);
+            })
+        }
+    },
+
+    _changeGatewayLineByRealm: (realm, direction, isNew) => {
+        if (isNew) {
+            application.DB._query.gateway.incrementLineByRealm(realm, 1, direction, e => {
+                if (e)
+                    return log.error(e);
+                log.trace(`Add line to gateway ${realm}`);
+            })
+        } else {
+            application.DB._query.gateway.incrementLineByRealm(realm, -1, direction, e => {
+                if (e)
+                    return log.error(e);
+                log.trace(`Minus line to gateway ${realm}`);
+            })
+        }
     }
 };
 
