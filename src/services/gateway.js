@@ -369,12 +369,15 @@ var Service = {
     },
 
     _onChannel: (e) => {
-        // console.log(e);
         if (!e['variable_sofia_profile_name'] || e['variable_sofia_profile_name'] === 'internal')
             return;
 
-        if (e['variable_sip_gateway_name']) {
-            Service._changeGatewayLineByName(e['variable_sip_gateway_name'], e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
+        // console.log(e);
+
+        const sipGatewayName = e['variable_sip_gateway'] || e['variable_sip_gateway_name'];
+
+        if (sipGatewayName) {
+            Service._changeGatewayLineByName(sipGatewayName, e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
         } else {
             Service._changeGatewayLineByRealm(e['variable_sip_from_host'] + ':' + e['variable_sip_from_port'],
                 e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
