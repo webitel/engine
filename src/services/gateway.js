@@ -377,22 +377,23 @@ var Service = {
         const sipGatewayName = e['variable_sip_gateway'] || e['variable_sip_gateway_name'];
 
         if (sipGatewayName) {
-            Service._changeGatewayLineByName(sipGatewayName, e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
+            Service._changeGatewayLineByName(sipGatewayName, e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE', e['Channel-Call-UUID']);
         } else {
             Service._changeGatewayLineByRealm(e['variable_sip_from_host'] + ':' + e['variable_sip_from_port'],
-                e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE');
+                e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE', e['Channel-Call-UUID']);
         }
     },
 
-    _changeGatewayLineByName: (gatewayName, direction, isNew) => {
+    _changeGatewayLineByName: (gatewayName, direction, isNew, uuid) => {
         if (isNew) {
-            application.DB._query.gateway.incrementLineByName(gatewayName, 1, direction, e => {
+            setupChannelGatewayName(uuid, {name: gatewayName});
+            application.DB._query.gateway.incrementLineByName(gatewayName, 1, direction, (e, res) => {
                 if (e)
                     return log.error(e);
                 log.trace(`Add line to gateway ${gatewayName}`);
             })
         } else {
-            application.DB._query.gateway.incrementLineByName(gatewayName, -1, direction, e => {
+            application.DB._query.gateway.incrementLineByName(gatewayName, -1, direction, (e, res) => {
                 if (e)
                     return log.error(e);
                 log.trace(`Minus line to gateway ${gatewayName}`);
@@ -400,17 +401,20 @@ var Service = {
         }
     },
 
-    _changeGatewayLineByRealm: (realm, direction, isNew) => {
+    _changeGatewayLineByRealm: (realm, direction, isNew, uuid) => {
         if (isNew) {
-            application.DB._query.gateway.incrementLineByRealm(realm, 1, direction, e => {
+            application.DB._query.gateway.incrementLineByRealm(realm, 1, direction, (e, res) => {
                 if (e)
                     return log.error(e);
+
+                setupChannelGatewayName(uuid, res && res.value);
                 log.trace(`Add line to gateway ${realm}`);
             })
         } else {
-            application.DB._query.gateway.incrementLineByRealm(realm, -1, direction, e => {
+            application.DB._query.gateway.incrementLineByRealm(realm, -1, direction, (e, res) => {
                 if (e)
                     return log.error(e);
+
                 log.trace(`Minus line to gateway ${realm}`);
             })
         }
@@ -418,3 +422,10 @@ var Service = {
 };
 
 module.exports = Service;
+
+function setupChannelGatewayName(uuid, gw) {
+    if (!gw)
+        return;
+
+    channelService.bgApi(`uuid_setvar ${uuid} webitel_gateway ${gw.name}`);
+}

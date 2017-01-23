@@ -50,7 +50,7 @@ function addQuery(db) {
 
             db
                 .collection(gatewayCollectionName)
-                .update({name: name}, {$inc}, {upsert: true}, cb)
+                .findAndModify({name: name}, {}, {$inc}, {upsert: true, new: true}, cb)
         },
 
 
@@ -65,7 +65,7 @@ function addQuery(db) {
 
             db
                 .collection(gatewayCollectionName)
-                .update({"params.realm": realm}, {$inc}, {upsert: false}, cb)
+                .findAndModify({"params.realm": realm}, {}, {$inc}, {upsert: false, new: true}, cb)
         },
 
         cleanActiveChannels: (cb) => {
