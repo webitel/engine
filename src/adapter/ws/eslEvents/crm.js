@@ -205,6 +205,9 @@ function getTemplateExtension(number, domain) {
                 "voicemail": {
                     "user": number
                 }
+            },
+            {
+                "hangup": ""
             }
         ]
     }

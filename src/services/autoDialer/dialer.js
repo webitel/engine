@@ -221,11 +221,12 @@ module.exports = class Dialer extends EventEmitter2 {
                         if (err)
                             log.error(err);
 
-                        log.trace(`removed ${m.sessionId}`);
-                        if (!this.members.remove(m._id))
-                            log.error(new Error(m));
                     }
                 );
+
+                log.trace(`removed ${m.sessionId}`);
+                if (!this.members.remove(m._id))
+                    log.error(new Error(m));
 
                 if (m.endCause) {
                     m.broadcast();

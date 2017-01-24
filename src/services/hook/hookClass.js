@@ -227,7 +227,7 @@ class Trigger {
         let scope = this;
         this.Db.list({enable: true}, (err, res) => {
             if (err)
-                return scope.stop(err);
+                return scope._app.stop(err);
 
             if (res.length > 0) {
                 res.forEach((item) => {
