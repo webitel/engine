@@ -5,6 +5,7 @@
 'use strict';
 
 var conf = require(__appRoot + '/conf'),
+    log = require(__appRoot + '/lib/log')(module),
     statusCollectionName = conf.get('mongodb:collectionAgentStatus')
     ;
 
@@ -20,20 +21,32 @@ function addQuery(db) {
 
             collection
                 .findAndModify(
-                {"account": data['account'], "domain": data['domain']},
+                {"account": data['account'], "domain": data['domain'], "endDate": null},
                 {"date": -1},
                 {"$set": {"endDate": data['date']}},
-                {limit: 1},
+                {limit: 1, new: true},
                 (err, result) => {
                     if (err)
                         return cb(err);
 
-                    if ((!data['status'] || !data['state']) && result && result['status'] && result['state']) {
-                        data['status'] = result['status'];
-                        data['state'] = result['state'];
-                        data['description'] = result['description'] || "";
-                    };
+                    const dbStatus = result && result.value;
 
+                    if ((!data['status'] || !data['state']) && dbStatus && dbStatus['status'] && dbStatus['state']) {
+                        data['status'] = dbStatus['status'];
+                        data['state'] = dbStatus['state'];
+                        data['description'] = dbStatus['description'] || "";
+                    }
+
+                    if (dbStatus) {
+                        dbStatus.timeSec = Math.round((dbStatus.endDate - dbStatus.date) / 1000);
+                        application.Broker.publish(application.Broker.Exchange.STORAGE_COMMANDS, 'storage.commands.inbound',
+                            {'exec-api': 'userStatus.saveToElastic', 'exec-args': result.value}, e => {
+                                if (e)
+                                    return log.error(e)
+                            }
+                        );
+                    }
+                    
                     collection
                         .insert(data, (err) => {
                             if (err)

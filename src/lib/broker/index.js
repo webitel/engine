@@ -24,7 +24,8 @@ class Broker {
             configBroker = {
                 "uri": conf.connectionString,
                 "eventsExchange": conf.config.eventsExchange,
-                "exchange": conf.config.exchange
+                "exchange": conf.config.exchange,
+                "storageExchange": conf.config.storageExchange
             };
             return new WebitelAmqp(configBroker, app);
 

@@ -241,6 +241,40 @@ var Indexes = {
             }
 
         }
+    ],
+    "collectionAgentStatus": [
+        {
+            "domain" : 1
+        },
+        {
+            "account" : 1
+        },
+        {
+            "status" : 1
+        },
+        {
+            "state" : 1
+        },
+        {
+            "online" : 1
+        },
+        {
+            "date" : 1
+        },
+        {
+            "endDate" : 1
+        }
+    ],
+    "collectionGateway": [
+        {
+            "name" : 1
+        },
+        {
+            "params.realm" : 1
+        },
+        {
+            "domain" : 1
+        }
     ]
 };
 

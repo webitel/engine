@@ -12,6 +12,7 @@ var log = require(__appRoot + '/lib/log')(module),
 
 const HOOK_QUEUE = 'hooks',
     GATEWAY_QUEUE = 'engine.gateway',
+    STORAGE_QUEUE = 'engine-storage',
     TELEGRAM_QUEUE = 'telegram-notification';
 
 const _onReturnedMessage = Symbol('onReturnedMessage'),
@@ -38,7 +39,8 @@ class WebitelAmqp extends EventEmitter2 {
         return {
             FS_EVENT: this.config.eventsExchange.channel,
             FS_CC_EVENT: this.config.eventsExchange.cc,
-            FS_COMMANDS: this.config.eventsExchange.commands
+            FS_COMMANDS: this.config.eventsExchange.commands,
+            STORAGE_COMMANDS: this.config.storageExchange.commands
         };
     };
 
@@ -275,6 +277,11 @@ class WebitelAmqp extends EventEmitter2 {
                 function (_, cb) {
                     log.debug('Try init custom event exchange');
                     channel.assertExchange(scope.Exchange.FS_CC_EVENT, 'topic', {durable: true}, cb);
+                },
+                // init storage exchange
+                function (_, cb) {
+                    log.debug('Try init storage exchange');
+                    channel.assertExchange(scope.Exchange.STORAGE_COMMANDS, 'topic', {durable: true}, cb);
                 },
 
                 //init channel queue

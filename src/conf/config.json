@@ -33,6 +33,8 @@
         "collectionAclPermissions": "aclPermissions",
         "collectionHook": "hook",
         "collectionDialer": "dialer",
+        "collectionDialerAgents": "_agents",
+        "collectionAgentsInDialer": "_agentsIsDialer",
         "collectionDialerMembers": "members",
         "collectionMedia": "mediaFile",
         "collectionGateway": "gateway"
@@ -64,7 +66,7 @@
         "callcenter": true,
         "writeUserStatus": false,
         "auth": {
-            "tokenSecretKey": "g6Yhdb8jUm!hJ78Jhsw4EEc",
+            "tokenSecretKey": "myDevKey",
             "expiresDays": 100
         },
         "socketTimeUnauthorized": 5,
@@ -92,6 +94,10 @@
     "broker": {
         "connectionString": "amqp://webitel:ROOT_PASSWORD@172.17.0.1:5672?heartbeat=0",
         "config": {
+            "storageExchange": {
+                "commands": "Storage.Commands",
+                "type": "topic"
+            },
             "eventsExchange": {
                 "channel": "TAP.Events",
                 "cc": "TAP.CC-Events",
