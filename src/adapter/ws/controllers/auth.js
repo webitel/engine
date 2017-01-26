@@ -9,7 +9,7 @@ var WebitelCommandTypes = require(__appRoot + '/const').WebitelCommandTypes,
     getCommandResponseJSONError = require('./responseTemplate').getCommandResponseJSONError,
     aclService = require(__appRoot + '/services/acl'),
     jwt = require('jwt-simple'),
-    tokenSecretKey = require(__appRoot + '/conf').get('application:auth:tokenSecretKey'),
+    tokenSecretKey = require(__appRoot + '/utils/token'),
     log = require(__appRoot +  '/lib/log')(module);
 
 

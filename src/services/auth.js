@@ -241,7 +241,7 @@ var md5 = function (str) {
 
 
 const EXPIRES_DAYS = conf.get('application:auth:expiresDays'),
-      TOKEN_SECRET_KEY = conf.get('application:auth:tokenSecretKey')
+      TOKEN_SECRET_KEY = require(__appRoot + '/utils/token')
     ;
 
 function genToken(user, aclList) {

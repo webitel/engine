@@ -1,8 +1,8 @@
 {
     "ssl": {
         "enabled": false,
-        "ssl_key": "/cert/wss.pem",
-        "ssl_cert": "/cert/wss.pem"
+        "ssl_key": "/ssl/wss.pem",
+        "ssl_cert": "/ssl/wss.pem"
     },
     "server": {
         "host": "0.0.0.0",
@@ -64,9 +64,9 @@
     "application": {
         "loglevel": "trace",
         "callcenter": true,
-        "writeUserStatus": false,
+        "writeUserStatus": true,
         "auth": {
-            "tokenSecretKey": "myDevKey",
+            "tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100
         },
         "socketTimeUnauthorized": 5,

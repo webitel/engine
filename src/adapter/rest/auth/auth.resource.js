@@ -10,7 +10,7 @@ var jwt = require('jwt-simple'),
     authService = require(__appRoot + '/services/auth'),
     aclService = require(__appRoot + '/services/acl'),
     cdrSrv = config.get('cdrServer'),
-    tokenSecretKey = config.get('application:auth:tokenSecretKey');
+    tokenSecretKey = require(__appRoot + '/utils/token');
 
 module.exports = {
     addRoutes: addRoutes
