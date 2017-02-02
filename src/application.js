@@ -24,6 +24,8 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
 class Application extends EventEmitter2 {
     constructor () {
         super();
+        const id = parseInt(process.env['WORKER_ID']);
+        this._instanceId = `${conf.get('server:host')}-${isNaN(id) ? 0 : id}`;
         this.DB = null;
         this.WConsole = null;
         this.Esl = null;

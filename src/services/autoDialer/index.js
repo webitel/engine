@@ -10,12 +10,16 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     DIALER_TYPES = require('./const').DIALER_TYPES,
     DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
+    AGENT_STATE = require('./const').AGENT_STATE,
+    AGENT_STATUS = require('./const').AGENT_STATUS,
     END_CAUSE = require('./const').END_CAUSE,
     Collection = require(__appRoot + '/lib/collection'),
     VoiceDialer = require('./voice'),
     ProgressiveDialer = require('./progressive'),
     PredictiveDialer = require('./predictive'),
-    eventsService = require(__appRoot + '/services/events')
+    eventsService = require(__appRoot + '/services/events'),
+    ObjectID = require('mongodb').ObjectID,
+    encodeRK = require(__appRoot + '/utils/helper').encodeRK
     ;
 
 const EVENT_CHANGE_STATE = `DC::CHANGE_STATE`;
@@ -30,6 +34,7 @@ class AutoDialer extends EventEmitter2 {
         this.connectDb = false;
         this.connectWConsole = false;
         this.connectFs = false;
+        this.connectBroker = false;
 
         this.activeDialer = new Collection('id');
         this.agentManager = new AgentManager();
@@ -58,8 +63,10 @@ class AutoDialer extends EventEmitter2 {
         app.on('sys::connectFsApi', this.onConnectFs.bind(this));
         app.on('sys::errorConnectFsApi', this.onConnectFsError.bind(this));
 
+        app.Broker.on('error:close', this.onConnectBrokerError.bind(this));
+        app.Broker.on('init:broker', this.onConnectBrokerSuccessful.bind(this));
 
-        app.Broker.on('ccEvent', this.onAgentStatusChange.bind(this));
+        // app.Broker.on('ccEvent', this.onAgentStatusChange.bind(this));
         // app.Broker.on('webitelEvent', (e) => {
         //
         //     // TODO replace skills;
@@ -78,42 +85,43 @@ class AutoDialer extends EventEmitter2 {
             dialer.on('ready', (d) => {
                 log.debug(`Ready dialer ${d.nameDialer} - ${d._id}`);
 
-                this.dbDialer._updateDialer(d._objectId, d.state, d.cause, true, null, (err) => {
-                    if (err)
-                        log.error(err);
-                    this.sendEvent(d, true, 'ready');
-
-                });
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: d._objectId},
+                    {
+                        $set: {state: d.state, _cause: d.cause, active: true, nextTick: null},
+                        $addToSet: {"stats.process": this._app._instanceId}
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+                        this.sendEvent(d, true, 'ready');
+                    }
+                );
             });
 
             dialer.once('end', (d) => {
                 log.debug(`End dialer ${d.nameDialer} - ${d._id} - ${d.cause}`);
 
-                if (dialer._agents instanceof Array && (dialer.type === DIALER_TYPES.ProgressiveDialer || dialer.type === DIALER_TYPES.PredictiveDialer))
-                    this.agentManager.removeDialerInAgents(dialer._agents, dialer._id);
-
                 let sleepTime = (d.state === DIALER_STATES.Sleep) ? (new Date(Date.now() + dialer._calendar.sleepTime)) : null;
-                this.dbDialer._updateDialer(d._objectId, d.state, d.cause, d.state === DIALER_STATES.Sleep, sleepTime, (err) => {
-                    if (err)
-                        log.error(err);
 
-                    this.activeDialer.remove(dialer._id);
-                });
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: d._objectId},
+                    {
+                        $set: {state: d.state, _cause: d.cause, active: d.state === DIALER_STATES.Sleep, nextTick: sleepTime},
+                        $pull: {"stats.process": this._app._instanceId}
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+                        this.activeDialer.remove(dialer._id);
+                    }
+                );
+
                 if (sleepTime)
                     this.addTask(d._id, d._domain, dialer._calendar.sleepTime);
 
                 this.sendEvent(d, d.state === DIALER_STATES.Sleep, 'end');
             });
-
-            // // TODO Remove event;
-            // dialer.on('sleep', (d) => {
-            //
-            //     this.dbDialer._updateDialer(d._objectId, d.cause, true, new Date(Date.now() + dialer._sleepNextTry), (err) => {
-            //         if (err)
-            //             log.error(err);
-            //     });
-            //     this.addTask(d._id, d._domain, dialer._sleepNextTry);
-            // });
 
             dialer.on('error', (d) => {
                 log.warn(`remove dialer ${d.nameDialer}`);
@@ -126,8 +134,6 @@ class AutoDialer extends EventEmitter2 {
                     if (err)
                         return log.error(err);
 
-                    this.agentManager.addDialerInAgents(dialer._agents, dialer._id);
-
                     dialer.setReady();
                 });
 
@@ -137,22 +143,10 @@ class AutoDialer extends EventEmitter2 {
         });
 
         this.activeDialer.on('removed', (dialer) => {
-            if (dialer.type === DIALER_TYPES.ProgressiveDialer && dialer._agents instanceof Array)
-                this.agentManager.removeDialerInAgents(dialer._agents, dialer._id);
 
             log.info(`Remove active dialer ${dialer.nameDialer} : ${dialer._id} - ${dialer.cause}`);
             this.sendEvent(dialer, dialer.state === DIALER_STATES.Sleep, 'removed');
         });
-    }
-
-    onAgentStatusChange (e) {
-        let agent = this.agentManager.getAgentById(e['CC-Agent']);
-        if (!agent) return;
-        if (e['CC-Action'] === 'agent-status-change') {
-            agent.setStatus(e['CC-Agent-Status']);
-        } else if (e['CC-Action'] === 'agent-state-change') {
-            agent.setState(e['CC-Agent-State']);
-        }
     }
 
     sendEvent (d, active, callingName) {
@@ -173,17 +167,6 @@ class AutoDialer extends EventEmitter2 {
         eventsService.fire(EVENT_CHANGE_STATE, 'root', e);
     }
 
-    sendAgentToDialer (agent) {
-        for (let key of agent.dialers) {
-            let d = this.activeDialer.get(key);
-            if (d && d.setAgent(agent)) {
-                break;
-            } else  {
-                log.debug('skip')
-            }
-        }
-    }
-
     onConnectFs (esl) {
         log.debug(`On init esl`);
         this.connectFs = true;
@@ -198,6 +181,128 @@ class AutoDialer extends EventEmitter2 {
     }
     onConnectWConsoleError () {
         this.connectWConsole = false;
+        this.emit('changeConnection');
+    }
+
+    onConnectBrokerSuccessful () {
+        this.connectBroker = true;
+        const channel = application.Broker.channel;
+
+        channel.assertQueue('', {autoDelete: true, durable: true, exclusive: true}, (err, qok) => {
+            if (err)
+                return log.error(err);
+
+            channel.consume(qok.queue, (msg) => {
+                try {
+                    this.onBrokerMessage(msg);
+                } catch (e) {
+                    log.error(e);
+                }
+            }, {noAck: true});
+
+            /*
+            {
+                "action": stop | start | sleep ?
+                "args": {}
+            }
+             */
+            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.system");
+            log.debug(`Init queue - successful`);
+            this.emit('changeConnection');
+        });
+
+        channel.assertQueue('engine.agents', {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
+            if (err)
+                return log.error(err);
+
+            channel.consume(qok.queue, (msg) => {
+                try {
+                    this.onAgentStatusChange(msg);
+                } catch (e) {
+                    log.error(e);
+                }
+            }, {noAck: true});
+            //#FreeSWITCH-Hostname,Event-Subclass,CC-Action,CC-Queue,Unique-ID
+            channel.bindQueue(qok.queue, application.Broker.Exchange.FS_CC_EVENT, "*.callcenter%3A%3Ainfo.agent-status-change.*.*");
+            channel.bindQueue(qok.queue, application.Broker.Exchange.FS_CC_EVENT, "*.callcenter%3A%3Ainfo.agent-state-change.*.*");
+            log.debug(`Init queue agents - successful`);
+        });
+    }
+
+    onAgentStatusChange (msg) {
+        if (!msg)
+            return;
+
+        const e = JSON.parse(msg.content.toString());
+        
+        if (e['CC-Action'] === 'agent-status-change') {
+            this.dbDialer._setAgentStatus(e['CC-Agent'], e['CC-Agent-Status'], (err, res) => {
+                if (err)
+                    return log.error(err);
+
+                if (res.value) {
+                    this.sendAgentToDialer(res.value);
+                }
+            });
+        } else if (e['CC-Action'] === 'agent-state-change') {
+            this.dbDialer._setAgentState(e['CC-Agent'], e['CC-Agent-State'], (err, res) => {
+                if (err)
+                    return log.error(err);
+
+                if (res.value) {
+                    this.sendAgentToDialer(res.value);
+                }
+            })
+        }
+    }
+
+    sendAgentToDialer (agent = {}) {
+        if (agent.state === AGENT_STATE.Waiting &&
+            (agent.status === AGENT_STATUS.Available || agent.status === AGENT_STATUS.AvailableOnDemand) &&
+            agent.dialer instanceof Array) {
+
+            for (let agentDialer of agent.dialer) {
+                let dialer = this.activeDialer.get('' + agentDialer._id);
+                if (dialer) {
+                    if (dialer.emit('availableAgent', agent))
+                        return;
+                }
+            }
+        }
+    }
+
+    onBrokerMessage (msg) {
+        const {action, args = {}} = JSON.parse(msg.content.toString());
+        switch (action) {
+            case "start":
+                this._runDialerById(args.id, args.domain, (err, res) => {
+                    if (err)
+                        log.error(err);
+                });
+                break;
+            case "stop":
+                this._stopDialerById(args.id, args.domain, (err, res) => {
+                    if (err)
+                        log.error(err);
+                });
+                break;
+
+            default:
+                return log.warn(`bad action: `, content);
+        }
+        // console.dir(content);
+    }
+
+    sendToBroker (data = {}, cb) {
+        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.system`, data, e => {
+            if (e)
+                log.error(e);
+            return cb && cb(e);
+        })
+    }
+
+    onConnectBrokerError () {
+        this.connectBroker = false;
         this.emit('changeConnection');
     }
 
@@ -223,7 +328,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     isReady () {
-        return this.connectDb === true && this.connectFs === true && this.connectWConsole === true;
+        return this.connectDb === true && this.connectFs === true && this.connectWConsole === true && this.connectBroker === true;
     }
 
     addTask (dialerId, domain, time) {
@@ -249,7 +354,17 @@ class AutoDialer extends EventEmitter2 {
             if (res instanceof Array) {
                 log.info(`Found ${res.length} dialer`);
                 res.forEach((dialer) => {
-                    this.recoveryCrashDialer(dialer);
+                    if (dialer.stats && dialer.stats.process instanceof Array && ~dialer.stats.process.indexOf(this._app._instanceId)) {
+                        log.warn(`recovery members by lock id ${this._app._instanceId}`);
+                        this.recoveryCrashDialer(dialer, (e) => {
+                            if (e)
+                                return log.error(e);
+
+                            this.runDialerById(dialer._id, dialer.domain);
+                        })
+                    } else {
+                        this.runDialerById(dialer._id, dialer.domain);
+                    }
                 })
             } else {
                 log.debug('Not found dialer');
@@ -265,6 +380,15 @@ class AutoDialer extends EventEmitter2 {
     }
 
     stopDialerById (id, domain, cb) {
+        this.sendToBroker({
+            action: "stop",
+            args: {
+                id,
+                domain
+            }
+        }, cb);
+    }
+    _stopDialerById (id, domain, cb) {
         let dialer = this.activeDialer.get(id);
         if (!dialer) {
             this.dbDialer._updateDialer(
@@ -288,11 +412,21 @@ class AutoDialer extends EventEmitter2 {
 
     runDialerById(id, domain, cb) {
 
+        this.sendToBroker({
+            action: "start",
+            args: {
+                id,
+                domain
+            }
+        }, cb);
+    }
+    _runDialerById(id, domain, cb) {
+
         let ad = this.activeDialer.get(id);
         if (ad) {
             if (ad.state === DIALER_STATES.Work)
                 ad.huntingMember();
-            
+
             return cb && cb(null, {active: true});
         }
 
@@ -337,24 +471,40 @@ class AutoDialer extends EventEmitter2 {
         switch (dialerDb.type) {
             case DIALER_TYPES.ProgressiveDialer:
                 dialerDb.agentManager = this.agentManager;
-                return new ProgressiveDialer(dialerDb, calendarDb);
+                return new ProgressiveDialer(dialerDb, calendarDb, this);
             case DIALER_TYPES.VoiceBroadcasting:
-                return new VoiceDialer(dialerDb, calendarDb);
+                return new VoiceDialer(dialerDb, calendarDb, this);
             case  DIALER_TYPES.PredictiveDialer:
                 dialerDb.agentManager = this.agentManager;
-                return new PredictiveDialer(dialerDb, calendarDb);
+                return new PredictiveDialer(dialerDb, calendarDb, this);
         }
     }
 
-    recoveryCrashDialer (dialer) {
+    recoveryCrashDialer (dialer, cb) {
         this.dbDialer._updateLockedMembers(
             dialer._id.toString(),
-            this.id,
+            this._app._instanceId,
             END_CAUSE.PROCESS_CRASH,
-            (err) => {
+            (err, res) => {
                 if (err)
                     return log.error(err);
-                this.addDialerFromDb(dialer);
+
+                if (res.result.nModified) {
+                    log.info(`Minus active call ${res.result.nModified}`);
+                    this.dbDialer._dialerCollection.findAndModify(
+                        {_id: dialer._id, "stats.active": {$gt: 0}},
+                        {},
+                        {
+                            $currentDate: {lastModified: true},
+                            $inc: {"stats.active": 0 - res.result.nModified}
+                        },
+                        {},
+                        cb
+                    );
+                } else {
+                    log.warn(`No found my lock`);
+                    return cb && cb();
+                }
             }
         );
     }

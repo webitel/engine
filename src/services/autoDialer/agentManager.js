@@ -7,208 +7,20 @@
 let EventEmitter2 = require('eventemitter2').EventEmitter2,
     ccService = require(__appRoot + '/services/callCentre'),
     accountService = require(__appRoot + '/services/account'),
-    Agent = require('./agent'),
     async = require('async'),
     log = require(__appRoot + '/lib/log')(module),
     AGENT_STATE = require('./const').AGENT_STATE,
     AGENT_STATUS = require('./const').AGENT_STATUS,
     DIFF_CHANGE_MSEC = require('./const').DIFF_CHANGE_MSEC,
-    AGENT_STRATEGY = require('./const').AGENT_STRATEGY,
-    Collection = require(__appRoot + '/lib/collection')
+    AGENT_STRATEGY = require('./const').AGENT_STRATEGY
     ;
 
 class AgentManager extends EventEmitter2 {
 
     constructor () {
-
         super();
-        this.agents = new Collection('id');
-        this.availableCount = 0;
-
-        this._keys = [];
-
-        this.agents.on('added', (a, key) => {
-            if (!~this._keys.indexOf(key))
-                this._keys.push(key);
-
-            log.trace('add agent: ', a.id);
-            if (this.agents.length() == 1 && !this.timerId) {
-                this.tick();
-                log.debug('Start agent manager timer');
-            }
-        });
-        this.agents.on('removed', (a, key) => {
-            let i = this._keys.indexOf(key);
-            if (~i) {
-                this._keys.splice(i, 1);
-            }
-
-            if (this.agents.length() === 0 && this.timerId) {
-                clearTimeout(this.timerId);
-                this.timerId = null;
-                log.debug('Stop agent manager timer');
-            }
-        });
-        this.timerId = null;
-
-        this.tick = () => {
-            let time = Date.now(),
-                availableCount = 0,
-                agents = [];
-
-            for (let key of this._keys) {
-                let agent = this.agents.get(key);
-                //console.log(agent)
-                if (agent.unIdleTime != 0 && agent.unIdleTime <= time) {
-                    agent.unIdleTime = 0;
-
-                    if (agent.state === AGENT_STATE.Reserved ) {
-                        this.setAgentStatus(agent, AGENT_STATE.Waiting, (err) => {
-                            if (err)
-                                return log.error(err);
-                            // TODO...
-                            agent.availableTime = Infinity;
-                            log.trace(`Ok set Waiting ${agent.id}`);
-                        });
-                    } else {
-                        agent.availableTime = Infinity;
-                    }
-                }
-                // TODO agent.availableTime + 3000
-                if (agent && agent.state === AGENT_STATE.Waiting && agent.status === AGENT_STATUS.Available && !agent.lock && (agent.lockTime <= agent.availableTime + DIFF_CHANGE_MSEC + 500)) {
-                    // log.debug(`send free agent ${agent.id}`);
-                    availableCount++;
-                    agents.push(agent);
-                }
-            }
-
-            agents = this.sortAgents(agents);
-
-            for (let a of agents) {
-                // console.log(a.id, a.callCount, a.callTimeMs);
-                this.emit('unReserveHookAgent', a);
-            }
-
-            this.availableCount = availableCount;
-            this.timerId = setTimeout(this.tick, 1500);
-        };
     }
 
-    sortAgents (agents, type = AGENT_STRATEGY.WITH_LEAST_TALK_TIME) {
-        switch (type) {
-            case AGENT_STRATEGY.RANDOM:
-                let curIndex = agents.length,
-                    randIndex
-                    ;
-
-                while (0 != curIndex) {
-                    randIndex = Math.floor(Math.random() * curIndex);
-                    curIndex --;
-                    [agents[curIndex],  agents[randIndex]] = [agents[randIndex], agents[curIndex]];
-                }
-                return agents;
-                break;
-
-            case AGENT_STRATEGY.WITH_FEWEST_CALLS:
-                return agents.sort( (a, b) => {
-                    const d = a.callCount - b.callCount;
-                    if (!d) {
-                        if (a.id < b.id)
-                            return -1;
-
-                        if (a.id > b.id)
-                            return 1;
-
-                        return 0;
-
-                    }
-                    return d;
-                });
-
-            case AGENT_STRATEGY.WITH_LEAST_TALK_TIME:
-                return agents.sort( (a, b) => {
-                    const d = a.callTimeMs - b.callTimeMs;
-                    if (!d) {
-                        if (a.id < b.id)
-                            return -1;
-
-                        if (a.id > b.id)
-                            return 1;
-
-                        return 0;
-
-                    }
-                    return d;
-                });
-
-            case AGENT_STRATEGY.LONGEST_IDLE_AGENT:
-                return agents.sort( (a, b) => {
-                    const d = a.lastBridgeCallTimeEnd - b.lastBridgeCallTimeEnd;
-                    if (!d) {
-                        if (a.id < b.id)
-                            return -1;
-
-                        if (a.id > b.id)
-                            return 1;
-
-                        return 0;
-
-                    }
-                    return d;
-                });
-
-            case AGENT_STRATEGY.TOP_DOWN: // ERROR need cursor
-                return agents.sort( (a, b) => {
-                    // TODO add position ui
-                    // const d = a.position - b.position;
-                    if (a.id < b.id)
-                        return -1;
-
-                    if (a.id > b.id)
-                        return 1;
-
-                    return 0;
-                });
-
-            default:
-                return agents;
-        }
-        
-    }
-
-    getFreeAgent (agents, strategy) {
-        if (agents) {
-            let a = this.getFreeAgents(agents, strategy);
-            return a && a[0]
-        }
-    }
-    getFreeAgents (agents, strategy) {
-        let resAvailable = [],
-            countNotLogged = 0;
-        if (agents)
-            for (let key of agents) {
-                let a = this.getAgentById(key);
-                if (a && a.state === AGENT_STATE.Waiting && a.status === AGENT_STATUS.Available && !a.lock &&  a.lockTime <= a.availableTime + DIFF_CHANGE_MSEC + 500) {
-                    resAvailable.push(a);
-                } else if (a && a.status !== AGENT_STATUS.LoggedOut) {
-                    countNotLogged++
-                }
-            }
-        countNotLogged += resAvailable.length;
-        return this.sortAgents(resAvailable, strategy);
-    }
-
-    getFreeCount (agents) {
-        let c = 0;
-        if (agents)
-            for (let key of agents) {
-                let a = this.getAgentById(key);
-                if (a && a.state === AGENT_STATE.Waiting && a.status === AGENT_STATUS.Available && !a.lock &&  a.lockTime <= a.availableTime + DIFF_CHANGE_MSEC + 500) {
-                    c++;
-                }
-            }
-        return c;
-    }
 
     taskUnReserveAgent (agent, timeSec, gotAgentCall, dilerAgentParams = {}) {
         if (agent.lock === true) {
@@ -245,22 +57,10 @@ class AgentManager extends EventEmitter2 {
         }
     }
 
-    reserveAgent (agent, cb) {
-        agent.lock = true;
-        this.setAgentStatus(agent, AGENT_STATE.Reserved, (err, res) => {
-            if (err) {
-                log.error(err);
-                agent.lock = false;
-                return cb(err)
-            }
-            return cb()
-        })
-    }
-
     setAgentStatus (agent, status, cb) {
         // TODO if err remove agent ??
-        log.trace(`try set new state ${agent.id} -> ${status}`);
-        ccService._setAgentState(agent.id, status, cb);
+        log.trace(`try set new state ${agent.agentId} -> ${status}`);
+        ccService._setAgentState(agent.agentId, status, cb);
     }
 
     setNoAnswerAgent (agent, cb) {
@@ -283,34 +83,22 @@ class AgentManager extends EventEmitter2 {
 
                 (agents, cb) => {
                     let _agents = [];
-                    if (dialer._skills.length > 0) {
-                        for (let key in agents) {
-                            if (~dialer._agents.indexOf(key) || dialer.checkSkill(agents[key].skills))
-                            _agents.push(agents[key]);
-                        }
-                    } else {
-                        for (let agent of dialer._agents) {
-                            if (agents.hasOwnProperty(agent))
-                                _agents.push(agents[agent]);
-                        }
+
+                    for (let agent in agents) {
+                        if (agents.hasOwnProperty(agent) && agents[agent].agent === 'true')
+                            _agents.push(agents[agent]);
                     }
+
                     cb(null, _agents)
                 }
             ],
             (err, agents) => {
                 if (err)
                     return log.error(err);
-                dialer._agents = [];
-                let availableCount = 0,
-                    position = 0;
 
                 async.eachSeries(agents,
                     (agent, cb) => {
                         let agentId = `${agent.id}@${agent.domain}`;
-                        if (this.agents.existsKey(agentId)) {
-                            dialer._agents.push(agentId);
-                            return cb();
-                        }
 
                         ccService._getAgentParams(agentId, (err, res) => {
                             if (err)
@@ -321,19 +109,19 @@ class AgentManager extends EventEmitter2 {
                                 return cb();
                             }
                             if (agentParams) {
-                                dialer._agents.push(agentId);
-                                this.agents.add(agentId, new Agent(agentId, agentParams, agent.skills, position++));
+                                log.debug(`Upsert agent parameters - ${agentId}`);
+                                application.DB._query.dialer._initAgent(agentId,  agentParams, agent.skills ? agent.skills.split(',') : [], (e, res) => {
+                                    if (e)
+                                        return cb(e);
+
+                                    application.DB._query.dialer._initAgentInDialer(agentId, dialer._objectId, cb);
+                                });
+                            } else {
+                                return cb();
                             }
-                            if (agentParams.state === AGENT_STATE.Waiting &&
-                                (agentParams.status === AGENT_STATUS.Available || agentParams.status === AGENT_STATUS.AvailableOnDemand)) {
-                                availableCount++;
-                            }
-                            // TODO SKIP???
-                            return cb();
                         });
                     },
                     (err, res) => {
-                        this.availableCount = availableCount;
                         callback(err, res);
                     }
                 );
@@ -342,38 +130,156 @@ class AgentManager extends EventEmitter2 {
         );
     }
 
-    addDialerInAgents (agentsArray, dialerId) {
-        agentsArray.forEach( (i) => {
-            let a = this.getAgentById(i);
-            if (a) {
-                a.addDialer(dialerId)
-            } else {
-                log.warn(`Bad agent id ${i}`)
-            }
-        })
+    getAvailableCount (dialerId, agents, skills, cb) {
+        application.DB._query.dialer._getAgentCount({
+            status: {
+                $in: [AGENT_STATUS.Available, AGENT_STATUS.AvailableOnDemand]
+            },
+            state: AGENT_STATE.Waiting,
+            dialer: {$elemMatch: {_id: dialerId}},
+            "dialer.process": {$ne: "active"},
+            "dialer.setAvailableTime": null,
+            $or: [
+                {
+                    agentId: {$in: agents}
+                },
+                {
+                    skills: {$in: skills}
+                }
+            ]
+
+        }, cb);
     }
 
-    removeDialerInAgents (agentsArray, dialerId) {
-        agentsArray.forEach( (i) => {
-            let a = this.getAgentById(i);
-            if (a) {
-                a.removeDialer(dialerId);
-                if (a.dialers.length === 0) {
-                    this.agents.remove(i);
-                    if (a.state === AGENT_STATE.Reserved && a.unIdleTime !== 0)
-                        this.setAgentStatus(a, AGENT_STATE.Waiting, (err) => {
-                            if (err)
-                                log.error(err);
-                        })
+    rollbeckAgent (agentId, dialerId, cb) {
+        application.DB._query.dialer._findAndModifyAgent(
+            {
+                agentId: agentId,
+                dialer: {$elemMatch: {_id: dialerId}}
+            },
+            {},
+            {
+                $set: {"dialer.$.process": null, "dialer.$.setAvailableTime": null},
+                $currentDate: { lastModified: true }
+            },
+            cb
+        )
+    }
+
+    huntingAgent (dialerId, agents, skills, strategy, cb) {
+        const filter = {
+            status: {
+                $in: [AGENT_STATUS.Available, AGENT_STATUS.AvailableOnDemand]
+            },
+            state: AGENT_STATE.Waiting,
+            dialer: {$elemMatch: {_id: dialerId}},
+            "dialer.process": {$ne: "active"},
+            $or: [
+                {
+                    agentId: {$in: agents}
+                },
+                {
+                    skills: {$in: skills}
                 }
-            } else {
-                log.warn(`Bad agent id ${i}`)
+            ]
+        };
+
+        const sort = {};
+
+        switch (strategy) {
+            case AGENT_STRATEGY.RANDOM:
+                filter.randomPoint = { $near : [Math.random(), 0] };
+                break;
+            case AGENT_STRATEGY.WITH_FEWEST_CALLS:
+                sort["dialer.callCount"] = 0;
+                break;
+            case AGENT_STRATEGY.WITH_LEAST_TALK_TIME:
+                sort["dialer.callTimeMs"] = 0;
+                break;
+
+            case AGENT_STRATEGY.TOP_DOWN:
+                //TODO
+                // break;
+            default:
+                sort["dialer.callCount"] = 0;
+        }
+        application.DB._query.dialer._findAndModifyAgent(
+                filter,
+                sort,
+                {
+                    $set: {"dialer.$.process": "active"},
+                    $currentDate: { lastModified: true }
+                },
+                (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (!res.value)
+                        return cb();
+
+                    const agent = res.value;
+                    this.setAgentStatus(agent, AGENT_STATE.Reserved, err => {
+                        if (err) {
+                            log.error(err);
+                            this.rollbeckAgent(agent.agentId, dialerId, e => {
+                                if (e) {
+                                    log.error(`bad rollback agent ${agent.agentId}`);
+                                    return cb(e);
+                                } else {
+                                    return cb();
+                                }
+                            })
+                        } else {
+                            return cb(null, agent)
+                        }
+
+                    })
+                }
+            )
+    }
+
+    flushAgentProcess (agentId, dialerId, wrap, cb) {
+        application.DB._query.dialer._findAndModifyAgent(
+            {
+                agentId: agentId,
+                dialer: {$elemMatch: {_id: dialerId}}
+            },
+            {},
+            {
+                $set: {"dialer.$.process": null, "dialer.$.setAvailableTime": wrap},
+                $currentDate: { lastModified: true }
+            },
+            (err, res) => {
+                if (err)
+                    return cb(err);
+
+                if (!res.value)
+                    throw res;
+
+                return cb(err, res);
+
+                // const agent = res.value;
+                // this.setAgentStatus(agent, AGENT_STATE.Waiting, err => {
+                //     if (err) {
+                //         log.error(err);
+                //         this.rollbeckAgent(agent.agentId, dialerId, e => {
+                //             if (e) {
+                //                 log.error(`bad rollback agent ${agent.agentId}`);
+                //                 return cb(e);
+                //             } else {
+                //                 return cb();
+                //             }
+                //         })
+                //     } else {
+                //         return cb(null, agent)
+                //     }
+                //
+                // })
             }
-        })
+        )
     }
 
     getAgentById (id) {
-        return this.agents.get(id);
     }
 }
 

@@ -37,6 +37,7 @@ class WebitelAmqp extends EventEmitter2 {
 
     get Exchange () {
         return {
+            ENGINE: 'engine',
             FS_EVENT: this.config.eventsExchange.channel,
             FS_CC_EVENT: this.config.eventsExchange.cc,
             FS_COMMANDS: this.config.eventsExchange.commands,
@@ -60,7 +61,7 @@ class WebitelAmqp extends EventEmitter2 {
 
             let closeChannel = function() {
                 scope.queue = null;
-
+                scope.emit('error:close');
                 if (scope.channel) {
                     //scope.channel.close();
                     scope.channel.removeAllListeners('return');
@@ -270,6 +271,12 @@ class WebitelAmqp extends EventEmitter2 {
             [
                 // init channel event exchange
                 function (cb) {
+                    log.debug('Try init engine exchange');
+                    channel.assertExchange(scope.Exchange.ENGINE, 'topic', {durable: true}, cb);
+                },
+
+                // init channel event exchange
+                function (_, cb) {
                     log.debug('Try init channel event exchange');
                     channel.assertExchange(scope.Exchange.FS_EVENT, 'topic', {durable: true}, cb);
                 },

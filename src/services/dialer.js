@@ -654,6 +654,12 @@ let Service = {
             return db._updateMember(filter, doc, sort, cb);
         },
 
+
+        _lockCount (dialerId, cb) {
+            let db = application.DB._query.dialer;
+            return db._lockCount(dialerId, cb);
+        },
+
         _aggregate (agg, cb) {
             let db = application.DB._query.dialer;
             return db._aggregateMembers(agg, cb);

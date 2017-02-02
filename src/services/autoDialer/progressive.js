@@ -8,8 +8,8 @@ let Dialer = require('./dialer'),
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 module.exports = class Progressive extends Dialer {
-    constructor (config, calendarConf) {
-        super(DIALER_TYPES.ProgressiveDialer, config, calendarConf);
+    constructor (config, calendarConf, dialerManager) {
+        super(DIALER_TYPES.ProgressiveDialer, config, calendarConf, dialerManager);
 
         this._am = config.agentManager;
         this._gw = new Gw({}, null, this._variables);
@@ -17,7 +17,31 @@ module.exports = class Progressive extends Dialer {
         this._agents = [];
 
         if (config.agents instanceof Array)
-            this._agents = [].concat(config.agents); //.map( (i)=> `${i}@${this._domain}`);
+            this._agents = config.agents.map( (i)=> `${i}@${this._domain}`);
+
+        this.on('ready', () => {
+            console.log('RWADY');
+            const test = (e) => {
+                if (e)
+                    throw e;
+
+                dialerManager.agentManager.huntingAgent(config._id, this._agents, [], 'random', (err, agent) => {
+                    if (err)
+                        throw err;
+
+                    if (agent) {
+                        dialerManager.agentManager.flushAgentProcess(agent.agentId, config._id, null, test);
+                    } else {
+                        test()
+                    }
+
+                });
+            };
+
+            test();
+        });
+
+        this.on('availableAgent', a => console.log(a));
 
 
         if (this._limit > this._agents.length && this._skills.length === 0  )

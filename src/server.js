@@ -13,11 +13,14 @@ if (cluster.isMaster === true) {
     var clusterMap = {},
         crashCount = 0;
 
-    var forkWorker = function (port, crashCount) {
+    var forkWorker = function (port, crashCount, id) {
         var worker = cluster.fork({
             "server:port": port,
-            "CRASH_WORKER_COUNT": crashCount
+            "CRASH_WORKER_COUNT": crashCount,
+            "WORKER_ID": id
         });
+        worker.processId = id;
+
         worker.on('message', handleMessage);
         clusterMap[worker.id] = {
             port: port,
@@ -37,7 +40,7 @@ if (cluster.isMaster === true) {
     };
 
     for (let i = 0; i < count; i++)
-        forkWorker(startPort++, crashCount);
+        forkWorker(startPort++, crashCount, i);
 
     // Listen for dying workers
     cluster.on('exit', function (worker) {
@@ -48,11 +51,11 @@ if (cluster.isMaster === true) {
         let port = clusterMap[worker.id].port;
         console.log('Close port: ' + port);
         delete clusterMap[worker.id];
-        forkWorker(port, ++crashCount);
+        forkWorker(port, ++crashCount, worker.processId);
     });
 
 // Code to run if we're in a worker process
 } else {
     require('./worker');
     log.info('Worker ' + cluster.worker.id + ' running!');
-};
+}

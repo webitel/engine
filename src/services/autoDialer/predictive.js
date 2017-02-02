@@ -13,8 +13,8 @@ let Dialer = require('./dialer'),
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 module.exports = class Predictive extends Dialer {
-    constructor (config, calendarConf) {
-        super(DIALER_TYPES.PredictiveDialer, config, calendarConf);
+    constructor (config, calendarConf, dialerManager) {
+        super(DIALER_TYPES.PredictiveDialer, config, calendarConf, dialerManager);
 
         this._am = config.agentManager;
 

@@ -9,6 +9,7 @@ var conf = require(__appRoot + '/conf'),
     CodeError = require(__appRoot + '/lib/error'),
     dialerCollectionName = conf.get('mongodb:collectionDialer'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
+    agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     ObjectID = require('mongodb').ObjectID,
     utils = require('./utils')
     ;
@@ -19,6 +20,9 @@ module.exports = {
 
 function addQuery (db) {
     return {
+        //TODO del collection
+        _dialerCollection: db.collection(dialerCollectionName),
+
         search: function (options, cb) {
             return utils.searchInCollection(db, dialerCollectionName, options, cb);
         },
@@ -193,7 +197,7 @@ function addQuery (db) {
                 .findOne({_id: new ObjectID(id), domain: domain}, cb);
         },
         
-        _updateLockedMembers: function (id, lockId, cause, cb) {
+        _updateLockedMembers: (id, lockId, cause, cb) => {
             return db
                 .collection(memberCollectionName)
                 .update(
@@ -231,6 +235,108 @@ function addQuery (db) {
                     agg,
                     cb
                 )
+        },
+
+        _lockCount: function (dialerId, cb) {
+            return db
+                .collection(memberCollectionName)
+                .find({dialer: dialerId, _lock: true})
+                .count(cb)
+                
+        },
+
+        _initAgentInDialer: function (id, dialerId, cb) {
+            return db
+                .collection(agentsCollectionName)
+                .update({agentId: id, "dialer._id": {$ne: dialerId}}, {
+                    $push: {
+                        dialer: {
+                            _id: dialerId,
+                            callCount: 0,
+                            callTimeMs: 0,
+                            lastBridgeCallTimeStart: 0,
+                            lastBridgeCallTimeEnd: 0,
+                            connectedTime: 0,
+                            process: null,
+                            setAvailableTime: null
+                        }
+                    },
+                    $currentDate: { lastModified: true }
+                }, {upsert: false}, cb)
+        },
+
+        _initAgent: function (agentId, params = {}, skills, cb) {
+            return db
+                .collection(agentsCollectionName)
+                .update({agentId: agentId}, {
+                    $set: {
+                        state: params.state,
+                        status: params.status,
+                        busyDelayTime: +params.busy_delay_time,
+                        lastStatusChange: +params.last_status_change * 1000,
+                        maxNoAnswer: +params.max_no_answer,
+                        noAnswerDelayTime: +params.no_answer_delay_time,
+                        rejectDelayTime: +params.reject_delay_time,
+                        wrapUpTime: +params.reject_delay_time,
+                        skills: skills,
+                        randomPoint: [Math.random(), 0]
+                    },
+                    $max: {
+                        noAnswerCount: +params.no_answer_count
+                    },
+                    $currentDate: { lastModified: true }
+                }, {upsert: true}, cb)
+        },
+
+        _setAgentState: function (agentId, state, cb) {
+            return db
+                .collection(agentsCollectionName)
+                .findAndModify(
+                    {agentId: agentId},
+                    {},
+                    {
+                        $set: {
+                            state,
+                            randomPoint: [Math.random(), 0],
+                            lastStatusChange: Date.now()
+                        },
+                        $currentDate: { lastModified: true }
+                    },
+                    {upsert: true, new: true},
+                    cb
+                )
+        },
+
+        _setAgentStatus: function (agentId, status, cb) {
+            return db
+                .collection(agentsCollectionName)
+                .findAndModify(
+                    {agentId: agentId},
+                    {},
+                    {
+                        $set: {
+                            status,
+                            randomPoint: [Math.random(), 0],
+                            lastStatusChange: Date.now()
+                        },
+                        $currentDate: { lastModified: true }
+                    },
+                    {upsert: true, new: true},
+                    cb
+                )
+        },
+
+        _getAgentCount: (filter = {}, cb) => {
+            return db
+                .collection(agentsCollectionName)
+                .find(filter)
+                .count(cb);
+        },
+
+        _findAndModifyAgent: (filter, sort, update, cb) => {
+            return db
+                .collection(agentsCollectionName)
+                .findAndModify(filter, sort, update, {new: true}, cb)
         }
     }
 }

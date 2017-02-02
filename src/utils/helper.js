@@ -2,6 +2,8 @@
  * Created by igor on 27.06.16.
  */
 
+const log = require(__appRoot + '/lib/log')(module);
+
 
 module.exports.getDomainFromSwitchEvent = (data) => {
     if (!data)
@@ -21,4 +23,16 @@ module.exports.getDomainFromSwitchEvent = (data) => {
 
     if (data['variable_presence_id'])
         return data['variable_presence_id'].substring(data['variable_presence_id'].indexOf('@') + 1);
+};
+
+module.exports.encodeRK = (rk) => {
+    try {
+        if (rk)
+            return encodeURIComponent(rk)
+                .replace(/\./g, '%2E')
+                .replace(/\:/g, '%3A')
+    } catch(e) {
+        log.error(e);
+        return null;
+    }
 };

@@ -27,11 +27,23 @@ module.exports = class Dialer extends EventEmitter2 {
         return this._skillsReg.test(skills)
     }
 
-    constructor (type, config, calendarConfig) {
+    constructor (type, config, calendarConfig, dialerManager) {
         super();
         this.type = type;
         this._id = config._id.toString();
         this._objectId = config._id;
+        this._instanceId = application._instanceId;
+        this._active = 0;
+
+        this.consumerTag = null;
+        this.queueName = `engine.dialer.${this._id}`;
+
+        this._dbDialer = application.DB.collection('dialer');
+
+        this._dbDialer.update({_id: this._objectId, "stats.active": null}, {
+            $currentDate: {lastModified: true},
+            $set: {"stats.active": 0}
+        });
 
         // this.bigData = new Array(1e6).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
@@ -46,84 +58,12 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this.once('end', () => {
             this._calendar.stop();
+            this.closeChannel();
         });
 
-        this._memberErrorCauses = config.causesError instanceof Array ? config.causesError : CODE_RESPONSE_ERRORS;
-        this._memberMinusCauses = config.causesMinus instanceof Array ? config.causesMinus : CODE_RESPONSE_MINUS_PROBE;
-        this._memberOKCauses = config.causesOK instanceof Array ? config.causesOK : CODE_RESPONSE_OK;
-        this._memberRetryCauses = config.causesRetry instanceof Array ? config.causesRetry : CODE_RESPONSE_RETRY;
+        this._setConfig(config);
 
         this.countMembers = 0;
-        this._countRequestHunting = 0;
-
-        let parameters = (config && config.parameters) || {};
-        [
-            this._limit = 999,
-            this._maxTryCount = 5,
-            this._intervalTryCount = 5,
-            this._minBillSec = 0,
-            this._waitingForResultStatus = false,
-            this._wrapUpTime = 60,
-            this.lockId = `my best lock`,
-            this._skills = [],
-            this._recordSession = true,
-            this._amd = {
-                enabled: false
-            }
-        ] = [
-            parameters.limit,
-            parameters.maxTryCount,
-            parameters.intervalTryCount,
-            parameters.minBillSec,
-            parameters.waitingForResultStatus,
-            parameters.wrapUpTime,
-            config.lockId,
-            config.skills,
-            parameters.recordSession,
-            config.amd
-        ];
-
-        if (this._amd.enabled) {
-            const amdParams = [];
-            if (this._amd.hasOwnProperty('silenceThreshold')) {
-                amdParams.push(`silence_threshold=${this._amd.silenceThreshold}`);
-            }
-            if (this._amd.hasOwnProperty('maximumWordLength')) {
-                amdParams.push(`maximum_word_length=${this._amd.maximumWordLength}`);
-            }
-            if (this._amd.hasOwnProperty('maximumNumberOfWords')) {
-                amdParams.push(`maximum_number_of_words=${this._amd.maximumNumberOfWords}`);
-            }
-            if (this._amd.hasOwnProperty('betweenWordsSilence')) {
-                amdParams.push(`between_words_silence=${this._amd.betweenWordsSilence}`);
-            }
-            if (this._amd.hasOwnProperty('minWordLength')) {
-                amdParams.push(`min_word_length=${this._amd.minWordLength}`);
-            }
-            if (this._amd.hasOwnProperty('totalAnalysisTime')) {
-                amdParams.push(`total_analysis_time=${this._amd.totalAnalysisTime}`);
-            }
-            if (this._amd.hasOwnProperty('afterGreetingSilence')) {
-                amdParams.push(`after_greeting_silence=${this._amd.afterGreetingSilence}`);
-            }
-            if (this._amd.hasOwnProperty('greeting')) {
-                amdParams.push(`greeting=${this._amd.greeting}`);
-            }
-            if (this._amd.hasOwnProperty('initialSilence')) {
-                amdParams.push(`initial_silence=${this._amd.initialSilence}`);
-            }
-
-            this._amd._string = amdParams.join(' ');
-        }
-
-        this.agentStrategy = config.agentStrategy;
-        this.defaultAgentParams = config.agentParams || {};
-        
-        this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
-
-
-        this._variables = config.variables || {};
-        this._variables.domain_name = this._domain;
 
         log.debug(`
             Init dialer: ${this.nameDialer}@${this._domain}
@@ -138,40 +78,9 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this.members = new Collection('id');
 
-        // this.membersQueue = async.queue((member, cb) => {
-        //     member.once('end', cb);
-        //     this.dialMember(member);
-        // }, this._limit);
-        //
-        // this.membersQueue.drain = (e) => {
-        //     console.log('drain', e);
-        // };
-
         this.members.on('added', (member) => {
             log.trace(`Members length ${this.members.length()}`);
-            // this.membersQueue.push(member, () => {
-            //     let $set = {_nextTryTime: member.nextTime, _lastSession: member.sessionId, _endCause: member.endCause, variables: member.variables, _probeCount: member.currentProbe};
-            //     if (member._currentNumber)
-            //         $set[`communications.${member._currentNumber._id}`] = member._currentNumber;
-            //
-            //     dialerService.members._updateById(
-            //         member._id,
-            //         {
-            //             $push: {_log: member._log},
-            //             $set,
-            //             $unset: {_lock: 1}//, $inc: {_probeCount: 1}
-            //         },
-            //         (err) => {
-            //             if (err)
-            //                 return log.error(err);
-            //
-            //             log.trace(`removed ${member.sessionId}`);
-            //             if (!this.members.remove(member._id))
-            //                 log.error(new Error(member));
-            //         }
-            //     );
-            // });
-            // Close member session
+
             member.once('end', (m) => {
                 let $set = {_lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
                     $max = {
@@ -217,7 +126,7 @@ module.exports = class Dialer extends EventEmitter2 {
                         $max
                         // $unset: {_lock: 1}//, $inc: {_probeCount: 1}
                     },
-                    (err) => {
+                    (err, res) => {
                         if (err)
                             log.error(err);
 
@@ -245,16 +154,119 @@ module.exports = class Dialer extends EventEmitter2 {
             }
         });
 
-        this.members.on('removed', () => {
+        this.members.on('removed', (m) => {
             log.trace(`Members length ${this.members.length()}`);
+
             this.countMembers--;
             this.checkSleep();
             if (!this.isReady() || this.members.length() === 0)
                 return this.tryStop();
-
-            if (!this.checkLimit())
-                this.huntingMember();
         });
+    }
+
+    initChannel (cb) {
+        this.channel = application.Broker.channel;
+        this.channel.assertQueue(this.queueName, {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
+            if (err)
+                throw err; // TODO set log
+
+            this.channel.consume(qok.queue, (msg) => {
+                try {
+                    this._huntingMember();
+                } catch (e) {
+                    log.error(e);
+                }
+            }, {noAck: true}, (e, res) => {
+                if (e)
+                    throw e; //TODO set log
+                this.consumerTag = res.consumerTag;
+                return cb(e)
+            });
+        });
+    }
+
+    closeChannel () {
+        if (this.consumerTag) {
+            this.channel.cancel(this.consumerTag)
+        }
+    }
+
+    _setConfig (config) {
+        this._memberErrorCauses = config.causesError instanceof Array ? config.causesError : CODE_RESPONSE_ERRORS;
+        this._memberMinusCauses = config.causesMinus instanceof Array ? config.causesMinus : CODE_RESPONSE_MINUS_PROBE;
+        this._memberOKCauses = config.causesOK instanceof Array ? config.causesOK : CODE_RESPONSE_OK;
+        this._memberRetryCauses = config.causesRetry instanceof Array ? config.causesRetry : CODE_RESPONSE_RETRY;
+
+        let parameters = (config && config.parameters) || {};
+        [
+            this._limit = 999,
+            this._maxTryCount = 5,
+            this._intervalTryCount = 5,
+            this._minBillSec = 0,
+            this._waitingForResultStatus = false,
+            this._wrapUpTime = 60,
+            this._originateTimeout = 60,
+            this.lockId = `my best lock`,
+            this._skills = [],
+            this._recordSession = true,
+            this._amd = {
+                enabled: false
+            }
+        ] = [
+            parameters.limit,
+            parameters.maxTryCount,
+            parameters.intervalTryCount,
+            parameters.minBillSec,
+            parameters.waitingForResultStatus,
+            parameters.wrapUpTime,
+            parameters.originateTimeout,
+            config.lockId,
+            config.skills,
+            parameters.recordSession,
+            config.amd
+        ];
+
+        if (this._amd.enabled) {
+            const amdParams = [];
+            if (this._amd.hasOwnProperty('silenceThreshold')) {
+                amdParams.push(`silence_threshold=${this._amd.silenceThreshold}`);
+            }
+            if (this._amd.hasOwnProperty('maximumWordLength')) {
+                amdParams.push(`maximum_word_length=${this._amd.maximumWordLength}`);
+            }
+            if (this._amd.hasOwnProperty('maximumNumberOfWords')) {
+                amdParams.push(`maximum_number_of_words=${this._amd.maximumNumberOfWords}`);
+            }
+            if (this._amd.hasOwnProperty('betweenWordsSilence')) {
+                amdParams.push(`between_words_silence=${this._amd.betweenWordsSilence}`);
+            }
+            if (this._amd.hasOwnProperty('minWordLength')) {
+                amdParams.push(`min_word_length=${this._amd.minWordLength}`);
+            }
+            if (this._amd.hasOwnProperty('totalAnalysisTime')) {
+                amdParams.push(`total_analysis_time=${this._amd.totalAnalysisTime}`);
+            }
+            if (this._amd.hasOwnProperty('afterGreetingSilence')) {
+                amdParams.push(`after_greeting_silence=${this._amd.afterGreetingSilence}`);
+            }
+            if (this._amd.hasOwnProperty('greeting')) {
+                amdParams.push(`greeting=${this._amd.greeting}`);
+            }
+            if (this._amd.hasOwnProperty('initialSilence')) {
+                amdParams.push(`initial_silence=${this._amd.initialSilence}`);
+            }
+
+            this._amd._string = amdParams.join(' ');
+        }
+
+        this.agentStrategy = config.agentStrategy;
+        this.defaultAgentParams = config.agentParams || {};
+
+        this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
+
+
+        this._variables = config.variables || {};
+        this._variables.domain_name = this._domain;
     }
 
     addMemberCallbackQueue (m, e, wrapTime) {
@@ -269,64 +281,117 @@ module.exports = class Dialer extends EventEmitter2 {
         }
     }
 
+    rollback (params = {}, cb) {
+        let $inc = {"stats.active": -1, "stats.callCount": 1};
+
+        if (params.callSuccessful) {
+            $inc["stats.successCall"] = 1;
+        } else {
+            $inc["stats.errorCall"] = 1;
+        }
+
+        this._dbDialer.findAndModify(
+            {_id: this._objectId, "stats.active": {$gt: 0}},
+            {},
+            {
+                $currentDate: {lastModified: true},
+                $inc
+            },
+            {},
+            (e, r) => {
+                if (e)
+                    log.error(e);
+                if (r.lastErrorObject.n !== 1 || r.lastErrorObject.updatedExisting !== true)
+                    throw r;
+                return cb && cb(e)
+            }
+        );
+    }
+
     huntingMember () {
-
-        if (this.checkLimit())
-            return;
-
         if (!this.isReady())
             return;
 
-        log.trace(`hunting on member ${this.nameDialer} - members queue: ${this.members.length()} state: ${this.state}`);
+        this.channel.sendToQueue(this.queueName, new Buffer(JSON.stringify({action: "call"})));
+    }
 
-        this._countRequestHunting++;
-        this.reserveMember((err, res) => {
-            this._countRequestHunting--;
+    _huntingMember () {
+        if (!this.isReady())
+            return;
 
-            if (err)
-                return log.error(err);
+        log.trace(`hunting on member ${this.nameDialer} - members queue: ${this._active} state: ${this.state}`);
 
-            if (!res || !res.value) {
-                if (this.members.length() === 0)
-                    this.tryStop();
-                return log.debug (`Not found members in ${this.nameDialer}`);
+        this._dbDialer.findAndModify(
+            {_id: this._objectId, "stats.active": {$lt: this._limit}},
+            {},
+            {
+                $currentDate: {lastModified: true},
+                $inc: {"stats.active": 1}
+            },
+            {new: true},
+            (err, res) => {
+                if (err)
+                    return log.error(err);
+
+                if (res.value) {
+                    this._setConfig(res.value);
+                    this._active = res.value.stats.active;
+
+                    this.reserveMember((err, member) => {
+                        if (err) {
+                            log.error(err);
+                            return this.rollback();
+                        }
+
+                        if (!member || !member.value) {
+                            if (this.members.length() === 0)
+                                this.tryStop();
+                            this.rollback();
+                            return log.debug (`Not found members in ${this.nameDialer}`);
+                        }
+
+                        if (!this.isReady()) {
+                            this.rollback();
+                            return this.unReserveMember(member.value._id, (err) => {
+                                if (err)
+                                    return log.error(err);
+                            });
+                        }
+
+                        // if (this._active < this._limit)
+                        //     this.huntingMember();
+
+                        // this.rollback({}, () => {
+                        //     return this.unReserveMember(member.value._id, (err) => {
+                        //         if (err)
+                        //             return log.error(err);
+                        //     });
+                        // });
+                        // return;
+
+                        let option = {
+                            maxTryCount: this._maxTryCount,
+                            intervalTryCount: this._intervalTryCount,
+                            lockedGateways: this._lockedGateways,
+                            queueId: this._id,
+                            queueName: this.nameDialer,
+                            queueNumber: this.number,
+                            minCallDuration: this._minBillSec,
+                            domain: this._domain,
+                            _waitingForResultStatus: this._waitingForResultStatus,
+
+                            causesOK: this._memberOKCauses,
+                            causesRetry: this._memberRetryCauses,
+                            causesError: this._memberErrorCauses,
+                            causesMinus: this._memberMinusCauses
+                        };
+                        // TODO remove options
+                        let m = new Member(member.value, option, this);
+                        this.members.add(m._id, m);
+                    });
+                }
             }
-
-            if (!this.isReady()) {
-                return this.unReserveMember(res.value._id, (err) => {
-                    if (err)
-                        return log.error(err);
-                });
-            }
-            
-            if (this.members.existsKey(res.value._id)) {
-                return log.warn(`Member in queue ${this.nameDialer} : ${res.value._id}`);
-            }
-
-            let option = {
-                maxTryCount: this._maxTryCount,
-                intervalTryCount: this._intervalTryCount,
-                lockedGateways: this._lockedGateways,
-                queueId: this._id,
-                queueName: this.nameDialer,
-                queueNumber: this.number,
-                minCallDuration: this._minBillSec,
-                domain: this._domain,
-                _waitingForResultStatus: this._waitingForResultStatus,
-
-                causesOK: this._memberOKCauses,
-                causesRetry: this._memberRetryCauses,
-                causesError: this._memberErrorCauses,
-                causesMinus: this._memberMinusCauses
-            };
-            // TODO remove options
-            let m = new Member(res.value, option, this);
-            this.members.add(m._id, m);
-
-            if (!this.checkLimit()) {
-                this.huntingMember();
-            }
-        });
+        );
     }
 
     reserveMember (cb) {
@@ -391,7 +456,7 @@ module.exports = class Dialer extends EventEmitter2 {
         };
 
         const $set = {
-            _lock: this.lockId
+            _lock: this._instanceId
         };
 
         if (this._waitingForResultStatus) {
@@ -399,12 +464,13 @@ module.exports = class Dialer extends EventEmitter2 {
             $set._maxTryCount = this._maxTryCount;
         }
 
-        //console.dir(filter, {depth: 10, colors: true});
+        console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,
             {
-                $set
+                $set,
+                $currentDate: {lastModified: true}
             },
             {sort: [["_nextTryTime", -1],["priority", -1], ["_id", -1]]},
             cb
@@ -442,10 +508,6 @@ module.exports = class Dialer extends EventEmitter2 {
                 return cb(null, (res && res[0]) || {});
             }
         )
-    }
-
-    checkLimit () {
-        return (this._countRequestHunting + this.members.length() >= this._limit || this.members.length()  >= this._limit);
     }
 
     reCalcCalendar () {
@@ -570,8 +632,9 @@ module.exports = class Dialer extends EventEmitter2 {
             return
         }
 
-        if (this._processTryStop || this.checkLimit())
+        if (this._processTryStop)
             return;
+
         this._processTryStop = true;
         console.log('Try END -------------');
 
@@ -641,9 +704,14 @@ module.exports = class Dialer extends EventEmitter2 {
 
             if (this.state === DIALER_STATES.Work) {
                 this.countMembers = count;
-                this.emit('ready', this);
-                log.trace(`found in ${this.nameDialer} ${count} members. run hunting...`);
-                this.huntingMember();
+                this.initChannel((e, res) => {
+                    if (e) {
+                        this.cause = `${err.message}`;
+                        return this.emit('end', this);
+                    }
+                    this.emit('ready', this);
+                    log.trace(`found in ${this.nameDialer} ${count} members. run hunting...`);
+                });
             }
         });
     }

@@ -157,7 +157,7 @@ module.exports = class Member extends EventEmitter2 {
                 if (this._currentNumber._range)
                     this._currentNumber._range.attempts++;
 
-                this.number = this._currentNumber.number.replace(/\D/g, '');
+                this.number = (this._currentNumber.number + '').replace(/\D/g, '');
                 this.log(`set number: ${this.number}`);
             } else {
                 console.log('ERROR', this);

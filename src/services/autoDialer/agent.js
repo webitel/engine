@@ -41,6 +41,29 @@ class Agent {
         this._noAnswerCallCount = 0;
     }
 
+    toJson() {
+        return {
+            id: this.id,
+            number: this.number,
+            state: this.state,
+            status: this.status,
+            skills: this.skills,
+            maxNoAnswer: this.maxNoAnswer,
+            noAnswerDelayTime: this.noAnswerDelayTime,
+            wrapUpTime: this.wrapUpTime,
+            rejectDelayTime: this.rejectDelayTime,
+            callTimeout: this.callTimeout,
+            dialers: this.dialers,
+            unIdleTime: this.unIdleTime,
+            callCount: this.callCount,
+            lastBridgeCallTimeStart: this.lastBridgeCallTimeStart,
+            lastBridgeCallTimeEnd: this.lastBridgeCallTimeEnd,
+            callTimeMs: this.callTimeMs,
+            position: this.position,
+            _noAnswerCallCount: this.position
+        }
+    }
+
     getTime (name = '', dialerParams = {}) {
         if (isFinite(dialerParams[name])) {
             return dialerParams[name]
