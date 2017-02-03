@@ -23,10 +23,6 @@ let DIALER_STATES = require('./const').DIALER_STATES,
 
 module.exports = class Dialer extends EventEmitter2 {
 
-    checkSkill (skills) {
-        return this._skillsReg.test(skills)
-    }
-
     constructor (type, config, calendarConfig, dialerManager) {
         super();
         this.type = type;

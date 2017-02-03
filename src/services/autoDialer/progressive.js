@@ -21,7 +21,7 @@ module.exports = class Progressive extends Dialer {
                 return;
             }
 
-            dialerManager.agentManager.huntingAgent(config._id, this._agents, [], this.agentStrategy, (err, agent) => {
+            dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, (err, agent) => {
                 if (err)
                     throw err;
 
@@ -52,7 +52,7 @@ module.exports = class Progressive extends Dialer {
             async.parallel(
                 {
                     agents: (cb) => {
-                        dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, [], cb);
+                        dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, this._skills, cb);
                     },
                     members: (cb) => {
                         this.countAvailableMembers(this._limit, cb);
