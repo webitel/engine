@@ -13,7 +13,6 @@ module.exports = class VoiceBroadcast extends Dialer {
         super(DIALER_TYPES.VoiceBroadcasting, config, calendarConf, dialerManager);
 
         const engine = () => {
-            return this.huntingMember();
             if (this._active < this._limit) {
                 this.countAvailableMembers(this._limit, (e, count) => {
                     if (e) {
@@ -22,19 +21,23 @@ module.exports = class VoiceBroadcast extends Dialer {
                     }
                     return this.huntingMember();
                     
-                    let i = count - this._active;
-
-                    if (i < 1)
-                        return;
-
-                    while (i--) {
-                        this.huntingMember();
-                    }
+                    // let i = count - this._active;
+                    //
+                    // if (i < 1)
+                    //     return;
+                    //
+                    // while (i--) {
+                    //     this.huntingMember();
+                    // }
                 })
             }
         };
 
         this.on('ready', () => {
+            engine()
+        });
+
+        this.on('wakeUp', () => {
             engine()
         });
 

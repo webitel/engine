@@ -6,7 +6,6 @@ let Dialer = require('./dialer'),
     log = require(__appRoot + '/lib/log')(module),
     async = require('async'),
     END_CAUSE = require('./const').END_CAUSE,
-    Gw = require('./gw'),
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 module.exports = class Progressive extends Dialer {
@@ -74,6 +73,10 @@ module.exports = class Progressive extends Dialer {
             engine();
         });
 
+        this.on('wakeUp', () => {
+            engine()
+        });
+
 
         let getMembersFromEvent = (e) => {
             return this.members.get(e.getHeader('variable_dlr_member_id'))
@@ -94,20 +97,15 @@ module.exports = class Progressive extends Dialer {
                 this._am.setAgentStats(m.agentId, this._objectId, {
                     call: true,
                     gotCall: true, //TODO
+                    clearNoAnswer: true,
                     lastBridgeCallTimeEnd: Date.now(),
-                    // callTimeSec: Math.round(( Date.now() - m._agent.lastBridgeCallTimeStart) / 1000),
+                    callTimeSec: Math.round(( Date.now() - m.startCall) / 1000),
                     lastStatus: `end -> ${m._id}`,
+                    setAvailableTime: Date.now() + (m.wrapUpTime * 1000),
                     process: null
                 }, (e, res) => {
                     if (e)
                         return log.error(e);
-
-                    // TODO
-                    this._am.setAgentStatus({agentId: m.agentId}, 'Waiting', e => {
-                        if (e)
-                            throw e;
-                    })
-
                 });
 
             }
@@ -179,7 +177,8 @@ module.exports = class Progressive extends Dialer {
         log.trace(`Call ${ds}`);
 
         // connectedTime = Date
-        const start = Date.now();
+        const start = member.startCall = Date.now();
+        member.wrapUpTime = agent.wrapUpTime;
 
         application.Esl.bgapi(ds, (res) => {
             log.trace(`fs response: ${res && res.body}`);
@@ -193,11 +192,37 @@ module.exports = class Progressive extends Dialer {
                 member.end();
 
                 if (error === 'NO_ANSWER') {
+                    if (agent.maxNoAnswer <= ++agent.noAnswerCount) {
+                        return this._am.setNoAnswerAgent(agent, (e) => {
+                            this._am.setAgentStats(agent.agentId, this._objectId, {
+                                clearNoAnswer: true,
+                                setAvailableTime: null,
+                                connectedTimeSec: Math.round( (date - start) / 1000),
+                                lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
+                                process: null
+                            }, (e, res) => {
+                                if (e)
+                                    return log.error(e);
+                            });
+                        });
+                    }
+
                     this._am.setAgentStats(agent.agentId, this._objectId, {
                         noAnswer: true,
                         connectedTimeSec: Math.round( (date - start) / 1000),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
-                        process: null
+                        setAvailableTime: date + (agent.rejectDelayTime * 1000),
+                        process: "checkState"
+                    }, (e, res) => {
+                        if (e)
+                            return log.error(e);
+                    });
+                } else {
+                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                        connectedTimeSec: Math.round( (date - start) / 1000),
+                        lastStatus: `REJECT -> ${member._id} -> ${error}`,
+                        setAvailableTime: date + (agent.rejectDelayTime * 1000),
+                        process: "checkState"
                     }, (e, res) => {
                         if (e)
                             return log.error(e);

@@ -11,7 +11,6 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     log = require(__appRoot + '/lib/log')(module),
     AGENT_STATE = require('./const').AGENT_STATE,
     AGENT_STATUS = require('./const').AGENT_STATUS,
-    DIFF_CHANGE_MSEC = require('./const').DIFF_CHANGE_MSEC,
     AGENT_STRATEGY = require('./const').AGENT_STRATEGY
     ;
 
@@ -19,42 +18,57 @@ class AgentManager extends EventEmitter2 {
 
     constructor () {
         super();
+
+        setInterval(() => {
+            this.checkSetAvailableTime(e => {
+                if (e)
+                    throw e
+            })
+        }, 1000);
+
     }
 
+    checkSetAvailableTime (cb) {
+        application.DB._query.dialer._getAgentCount(
+            {
+                setAvailableTime: {$lte: Date.now()}
+            },
+            (err, res) => {
+                if (err)
+                    return cb(err);
 
-    taskUnReserveAgent (agent, timeSec, gotAgentCall, dilerAgentParams = {}) {
-        if (agent.lock === true) {
-            agent.lock = false;
+                if (res > 0) {
+                    return async.times(res, (n, next) => {
+                        this.setAvailableTime(next)
+                    }, cb);
+                }
 
-            let wrapTime = Date.now() + (timeSec * 1000),
-                agentId = agent.id
-                ;
-
-            agent.lockTime = wrapTime + DIFF_CHANGE_MSEC;
-            // TODO
-            if (agent.availableTime > agent.lockTime)
-                agent.availableTime = Infinity;
-
-            if (gotAgentCall) {
-                agent.callCount++;
-                agent.lastBridgeCallTimeEnd = Date.now();
-                agent.callTimeMs += agent.lastBridgeCallTimeEnd - agent.lastBridgeCallTimeStart;
+                return cb();
             }
+        )
+    }
 
-            agent.unIdleTime = wrapTime;
-            log.trace(`Set agent lock time ${timeSec} sec`);
+    setAvailableTime (cb) {
+        application.DB._query.dialer._findAndModifyAgent(
+            {"setAvailableTime": {$lte: Date.now()}},
+            {},
+            {$set: {setAvailableTime: null}},
+            (err, res) => {
+                if (err)
+                    return cb(err);
 
-            let maxNoAnswer = isFinite(dilerAgentParams.maxNoAnswer) ? dilerAgentParams.maxNoAnswer : agent.maxNoAnswer;
-            if (maxNoAnswer != 0 && agent._noAnswerCallCount >= maxNoAnswer) {
-                this.setNoAnswerAgent(agent, (err) => {
-                    if (err)
-                        return log.error(err);
-                    agent.lockTime = 0;
-                    agent._noAnswerCallCount = 0;
-                    return log.trace(`change  ${agentId} status to no answer`);
-                });
+                const {value: agent} = res;
+
+                if (agent && agent.state === AGENT_STATE.Reserved) {
+                    this.setAgentStatus(agent, AGENT_STATE.Waiting, e => {
+                        if (e)
+                            log.error(e);
+                    });
+                    return cb(null, true)
+                }
+                return cb(null, false)
             }
-        }
+        )
     }
 
     setAgentStatus (agent, status, cb) {
@@ -64,7 +78,7 @@ class AgentManager extends EventEmitter2 {
     }
 
     setNoAnswerAgent (agent, cb) {
-        ccService._setAgentStatus(agent.id, AGENT_STATUS.OnBreak, (err) => {
+        ccService._setAgentStatus(agent.agentId, AGENT_STATUS.OnBreak, (err) => {
             if (err) {
                 return log.error(err);
             }
@@ -208,7 +222,7 @@ class AgentManager extends EventEmitter2 {
                 }
             )
     }
-
+    
     setAgentStats (agentId, dialerId, params = {}, cb) {
         const $set = {};
         const $inc = {};
@@ -220,7 +234,7 @@ class AgentManager extends EventEmitter2 {
             $set["dialer.$.lastStatus"] = params.lastStatus;
 
         if (params.hasOwnProperty('setAvailableTime'))
-            $set["dialer.$.setAvailableTime"] = params.setAvailableTime;
+            $set["setAvailableTime"] = params.setAvailableTime;
 
         if (params.hasOwnProperty('lastBridgeCallTimeStart'))
             $set["dialer.$.lastBridgeCallTimeStart"] = params.lastBridgeCallTimeStart;
@@ -242,6 +256,11 @@ class AgentManager extends EventEmitter2 {
 
         if (params.noAnswer === true)
             $inc["noAnswerCount"] = 1;
+
+        if (params.clearNoAnswer === true)
+            $set["noAnswerCount"] = 0;
+
+        
 
         const update = {
             $set,
@@ -292,9 +311,6 @@ class AgentManager extends EventEmitter2 {
                 return cb(err, res);
             }
         )
-    }
-
-    getAgentById (id) {
     }
 }
 

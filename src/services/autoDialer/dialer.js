@@ -365,11 +365,11 @@ module.exports = class Dialer extends EventEmitter2 {
                                     return log.error(err);
                             });
                         }
-                        this.unReserveMember(member.value._id, (err) => {
-                            if (err)
-                                return log.error(err);
-                        });
-                        return this.rollback({}, () => this.huntingMember());
+                        // this.unReserveMember(member.value._id, (err) => {
+                        //     if (err)
+                        //         return log.error(err);
+                        // });
+                        // return this.rollback({}, () => this.huntingMember());
                         let option = {
                             maxTryCount: this._maxTryCount,
                             intervalTryCount: this._intervalTryCount,
@@ -687,7 +687,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
                 this._timerId = setTimeout(() => {
                     clearTimeout(this._timerId);
-                    this.huntingMember()
+                    this.emit('wakeUp')
                 }, nextTime);
             }
 

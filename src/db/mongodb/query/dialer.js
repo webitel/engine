@@ -259,7 +259,6 @@ function addQuery (db) {
                             lastBridgeCallTimeEnd: 0,
                             connectedTimeSec: 0,
                             process: null,
-                            setAvailableTime: null,
                             lastStatus: ""
                         }
                     },
@@ -286,6 +285,7 @@ function addQuery (db) {
                     $max: {
                         noAnswerCount: +params.no_answer_count
                     },
+                    // $addToSet: {setAvailableTime: null},
                     $currentDate: { lastModified: true }
                 }, {upsert: true}, cb)
         },
@@ -339,6 +339,12 @@ function addQuery (db) {
             return db
                 .collection(agentsCollectionName)
                 .findAndModify(filter, sort, update, {new: true}, cb)
+        },
+
+        _updateAgentMulti: (filter, update, cb) => {
+            return db
+                .collection(agentsCollectionName)
+                .findAndModify(filter, sort, update, {new: true, multi: true}, cb)
         }
     }
 }
