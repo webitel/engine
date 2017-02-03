@@ -476,7 +476,7 @@ module.exports = class Dialer extends EventEmitter2 {
         }
 
         // console.dir(this.getFilterAvailableMembers(), {depth: 10, colors: true});
-        
+
         dialerService.members._updateMember(
             this.getFilterAvailableMembers(),
             {

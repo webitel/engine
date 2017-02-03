@@ -12,7 +12,7 @@
         }
     },
     "mongodb": {
-        "uri": "mongodb://MONGODB_HOST:27017/webitel",
+        "uri": "mongodb://10.10.10.8:27017,10.10.10.202:27017,pre.webitel.com:27017/webitel?replicaSet=webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",
@@ -40,33 +40,34 @@
         "collectionGateway": "gateway"
     },
     "freeSWITCH": {
-        "host": "172.17.0.1",
+        "host": "pre.webitel.com",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
     },
     "webitelServer": {
-        "host": "CONSOLE_HOST",
+        "host": "pre.webitel.com",
         "port": "6873",
         "account": "root",
-        "secret": "ROOT_PASSWORD",
+        "secret": "secret",
         "reconnect": 5
     },
     "cdrServer": {
-        "host": "http://cdr:10023",
+        "host": "https://pre.webitel.com/cdr",
         "useProxy": false
     },
     "licenseServer": {
         "enabled": true,
-        "master": false,
-        "host": "https://srv.webitel.com/engine"
+        "master": true,
+        "host": "http://10.10.10.25:1234"
     },
     "application": {
         "loglevel": "trace",
         "callcenter": true,
-        "writeUserStatus": true,
+        "writeUserStatus": false,
         "auth": {
-            "tokenSecretKey": "/ssl/token.key",
+            "tokenSecretKey": "/home/igor/token.key",
+            "#tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100
         },
         "socketTimeUnauthorized": 5,
@@ -92,7 +93,8 @@
         "scheduleHour": 5
     },
     "broker": {
-        "connectionString": "amqp://webitel:ROOT_PASSWORD@172.17.0.1:5672?heartbeat=0",
+        "connectionString": "amqp://webitel:secret@pre.webitel.com:5672?heartbeat=0",
+        "#connectionString": "esl://ClueCon:ClueCon@pre.webitel.com:8021",
         "config": {
             "storageExchange": {
                 "commands": "Storage.Commands",
