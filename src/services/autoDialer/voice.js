@@ -4,7 +4,7 @@
 
 let Dialer = require('./dialer'),
     log = require(__appRoot + '/lib/log')(module),
-
+    END_CAUSE = require('./const').END_CAUSE,
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 module.exports = class VoiceBroadcast extends Dialer {
@@ -12,13 +12,45 @@ module.exports = class VoiceBroadcast extends Dialer {
     constructor (config, calendarConf, dialerManager) {
         super(DIALER_TYPES.VoiceBroadcasting, config, calendarConf, dialerManager);
 
+        const engine = () => {
+            return this.huntingMember();
+            if (this._active < this._limit) {
+                this.countAvailableMembers(this._limit, (e, count) => {
+                    if (e) {
+                        log.error(e);
+
+                    }
+                    return this.huntingMember();
+                    
+                    let i = count - this._active;
+
+                    if (i < 1)
+                        return;
+
+                    while (i--) {
+                        this.huntingMember();
+                    }
+                })
+            }
+        };
+
         this.on('ready', () => {
-            this.huntingMember();
+            engine()
         });
 
-        this.members.on('added', (m) => {
-            if (this._active < this._limit)
-                this.huntingMember();
+        this.members.on('added', (member) => {
+            if (member.checkExpire()) {
+                member.endCause = END_CAUSE.MEMBER_EXPIRED;
+                member.end(END_CAUSE.MEMBER_EXPIRED)
+            } else {
+                if (member._currentNumber) {
+                    this.dialMember(member)
+                } else {
+                    member.end();
+                }
+            }
+
+            engine();
         });
 
         this.members.on('removed', (m) => {

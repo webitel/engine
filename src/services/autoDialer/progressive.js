@@ -4,6 +4,8 @@
 
 let Dialer = require('./dialer'),
     log = require(__appRoot + '/lib/log')(module),
+    async = require('async'),
+    END_CAUSE = require('./const').END_CAUSE,
     Gw = require('./gw'),
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
@@ -12,40 +14,66 @@ module.exports = class Progressive extends Dialer {
         super(DIALER_TYPES.ProgressiveDialer, config, calendarConf, dialerManager);
 
         this._am = config.agentManager;
-        this._gw = new Gw({}, null, this._variables);
-        this._agentReserveCallback = [];
-        this._agents = [];
 
-        if (config.agents instanceof Array)
-            this._agents = config.agents.map( (i)=> `${i}@${this._domain}`);
+        this.members.on('added', (member) => {
+            if (member.checkExpire()) {
+                member.endCause = END_CAUSE.MEMBER_EXPIRED;
+                member.end(END_CAUSE.MEMBER_EXPIRED);
+                return;
+            }
 
-        this.on('ready', () => {
-            console.log('RWADY');
-            const test = (e) => {
-                if (e)
-                    throw e;
+            dialerManager.agentManager.huntingAgent(config._id, this._agents, [], this.agentStrategy, (err, agent) => {
+                if (err)
+                    throw err;
 
-                dialerManager.agentManager.huntingAgent(config._id, this._agents, [], 'random', (err, agent) => {
-                    if (err)
-                        throw err;
+                if (agent) {
+                    this.dialMember(member, agent);
+                } else {
+                    member.end(); //TODO
+                }
+            });
 
-                    if (agent) {
-                        dialerManager.agentManager.flushAgentProcess(agent.agentId, config._id, null, test);
-                    } else {
-                        test()
-                    }
-
-                });
-            };
-
-            test();
+            engine();
         });
 
-        this.on('availableAgent', a => console.log(a));
+        this.members.on('removed', (m) => {
+            this.rollback({
+                callSuccessful: m.callSuccessful
+            }, e => {
+                if (!e)
+                    engine();
+            });
+        });
 
+        this.on('availableAgent', a => {
+            this.huntingMember();
+        });
 
-        if (this._limit > this._agents.length && this._skills.length === 0  )
-            this._limit = this._agents.length;
+        const engine = () => {
+            async.parallel(
+                {
+                    agents: (cb) => {
+                        dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, [], cb);
+                    },
+                    members: (cb) => {
+                        this.countAvailableMembers(this._limit, cb);
+                    }
+                },
+                (err, res) => {
+                    if (err)
+                        return log.error(err);
+
+                    if (this._active < this._limit && res.agents > 0 && res.members > 0) {
+                        this.huntingMember();
+                    }
+                }
+            );
+        };
+
+        this.on('ready', () => {
+            engine();
+        });
+
 
         let getMembersFromEvent = (e) => {
             return this.members.get(e.getHeader('variable_dlr_member_id'))
@@ -61,14 +89,27 @@ module.exports = class Progressive extends Dialer {
         let onChannelDestroy = (e) => {
             let m = getMembersFromEvent(e);
             if (m && --m.channelsCount === 0) {
-                if (m._agentNoAnswer !== true) {
-                    m._agent._noAnswerCallCount = 0;
-                    this._am.taskUnReserveAgent(m._agent, m._agent.getTime('wrapUpTime', this.defaultAgentParams), true, this.defaultAgentParams);
-                } else {
-                    m.nextTrySec = 1;
-                    this._am.taskUnReserveAgent(m._agent, m._agent.getTime('noAnswerDelayTime', this.defaultAgentParams), false, this.defaultAgentParams);
-                }
-                this.addMemberCallbackQueue(m, e, m._agent.getTime('wrapUpTime', this.defaultAgentParams));
+                m.end(e);
+
+                this._am.setAgentStats(m.agentId, this._objectId, {
+                    call: true,
+                    gotCall: true, //TODO
+                    lastBridgeCallTimeEnd: Date.now(),
+                    // callTimeSec: Math.round(( Date.now() - m._agent.lastBridgeCallTimeStart) / 1000),
+                    lastStatus: `end -> ${m._id}`,
+                    process: null
+                }, (e, res) => {
+                    if (e)
+                        return log.error(e);
+
+                    // TODO
+                    this._am.setAgentStatus({agentId: m.agentId}, 'Waiting', e => {
+                        if (e)
+                            throw e;
+                    })
+
+                });
+
             }
         };
 
@@ -82,11 +123,103 @@ module.exports = class Progressive extends Dialer {
         application.Esl.on('esl::event::CHANNEL_DESTROY::*', onChannelDestroy);
         application.Esl.on('esl::event::CHANNEL_CREATE::*', onChannelCreate);
 
+        this.getDialString = (member, agent) => {
+            let vars = [
+                `dlr_member_id=${member._id.toString()}`,
+                `dlr_id=${member._queueId}`,
+                `presence_data='${member._domain}'`,
+                `cc_queue='${member.queueName}'`
+            ];
+
+            for (let key in this._variables) {
+                if (this._variables.hasOwnProperty(key)) {
+                    vars.push(`${key}='${this._variables[key]}'`);
+                }
+            }
+
+            if (member._currentNumber && member._currentNumber.description) {
+                vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
+            }
+
+            const webitelData = {
+                dlr_member_id: member._id.toString(),
+                dlr_id: member._queueId
+            };
+
+            for (let key of member.getVariableKeys()) {
+                webitelData[key] = member.getVariable(key);
+                vars.push(`${key}='${member.getVariable(key)}'`);
+            }
+
+            vars.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
+
+            vars.push(
+                `origination_callee_id_number='${agent.agentId}'`,
+                `origination_callee_id_name='${agent.agentId}'`,
+                `origination_caller_id_number='${member.number}'`,
+                `origination_caller_id_name='${member.name}'`,
+                `destination_number='${member.number}'`,
+                `originate_timeout=10`, // TODO
+                'webitel_direction=outbound'
+            );
+            return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},transfer:${member.number}' inline`;
+        }
+
     }
 
-    dialMember (member) {
-        log.trace(`try call ${member.sessionId}`);
+    dialMember (member, agent) {
+        log.trace(`try call ${member.sessionId} to ${agent.agentId}`);
+        member.log(`set agent: ${agent.agentId}`);
+       // member._agent = agent;
+        member.agentId = agent.agentId;
 
+        const ds = this.getDialString(member, agent);
+
+        member.log(`dialString: ${ds}`);
+        log.trace(`Call ${ds}`);
+
+        // connectedTime = Date
+        const start = Date.now();
+
+        application.Esl.bgapi(ds, (res) => {
+            log.trace(`fs response: ${res && res.body}`);
+            const date = Date.now();
+
+            if (/^-ERR|^-USAGE/.test(res.body)) {
+                let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
+                member.log(`agent: ${error}`);
+                member.minusProbe();
+                member.nextTrySec = 1;
+                member.end();
+
+                if (error === 'NO_ANSWER') {
+                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                        noAnswer: true,
+                        connectedTimeSec: Math.round( (date - start) / 1000),
+                        lastStatus: `NO_ANSWER -> ${member._id}`,
+                        process: null
+                    }, (e, res) => {
+                        if (e)
+                            return log.error(e);
+                    });
+                }
+            } else {
+                this._am.setAgentStats(agent.agentId, this._objectId, {
+                    lastBridgeCallTimeStart: date,
+                    connectedTimeSec: Math.round( (date - start) / 1000),
+                    lastStatus: `active -> ${member._id}`
+                }, (e, res) => {
+                    if (e)
+                        return log.error(e);
+
+                    if (res && res.value) {
+                        //member._agent = res.value
+                    }
+                });
+            }
+        });
+
+        return;
         let gw = this._gw.fnDialString(member);
 
         this.findAvailAgents( (agent) => {
@@ -121,39 +254,5 @@ module.exports = class Progressive extends Dialer {
             });
         });
 
-    }
-
-    setAgent (agent) {
-        this.checkSleep();
-        if (this._agentReserveCallback.length === 0 || !this.isReady())
-            return false;
-
-        const fn = this._agentReserveCallback.shift();
-        this._am.reserveAgent(agent, (err) => {
-            if (err) {
-                this._agentReserveCallback.push(fn);
-                return log.error(err);
-            }
-
-            if(typeof fn === 'function')
-                fn(agent);
-        });
-        return true;
-    }
-
-    findAvailAgents (cb) {
-        var a = this._am.getFreeAgent(this._agents, this.agentStrategy);
-        if (a) {
-            this._am.reserveAgent(a, (err) => {
-                if (err) {
-                    log.error(err);
-                    return this._agentReserveCallback.push(cb);
-                }
-                cb(a)
-            })
-        } else {
-            this._agentReserveCallback.push(cb);
-            console.log(`find agent... queue length ${this._agentReserveCallback.length}`);
-        }
     }
 };

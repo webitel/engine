@@ -253,12 +253,14 @@ function addQuery (db) {
                         dialer: {
                             _id: dialerId,
                             callCount: 0,
-                            callTimeMs: 0,
+                            gotCallCount: 0,
+                            callTimeSec: 0,
                             lastBridgeCallTimeStart: 0,
                             lastBridgeCallTimeEnd: 0,
-                            connectedTime: 0,
+                            connectedTimeSec: 0,
                             process: null,
-                            setAvailableTime: null
+                            setAvailableTime: null,
+                            lastStatus: ""
                         }
                     },
                     $currentDate: { lastModified: true }

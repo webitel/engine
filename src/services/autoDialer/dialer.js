@@ -34,6 +34,7 @@ module.exports = class Dialer extends EventEmitter2 {
         this._objectId = config._id;
         this._instanceId = application._instanceId;
         this._active = 0;
+        this._agents = [];
 
         this.consumerTag = null;
         this.queueName = `engine.dialer.${this._id}`;
@@ -142,16 +143,6 @@ module.exports = class Dialer extends EventEmitter2 {
                 }
             });
 
-            if (member.checkExpire()) {
-                member.endCause = END_CAUSE.MEMBER_EXPIRED;
-                member.end(END_CAUSE.MEMBER_EXPIRED)
-            } else {
-                if (member._currentNumber) {
-                    this.dialMember(member)
-                } else {
-                    member.end();
-                }
-            }
         });
 
         this.members.on('removed', (m) => {
@@ -261,8 +252,10 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this.agentStrategy = config.agentStrategy;
         this.defaultAgentParams = config.agentParams || {};
+        if (config.agents instanceof Array)
+            this._agents = config.agents.map( (i)=> `${i}@${this._domain}`);
 
-        this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
+        // this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
 
 
         this._variables = config.variables || {};
@@ -315,6 +308,21 @@ module.exports = class Dialer extends EventEmitter2 {
         this.channel.sendToQueue(this.queueName, new Buffer(JSON.stringify({action: "call"})));
     }
 
+    countAvailableMembers (limit = 1, cb) {
+        dialerService.members._aggregate([
+                {$match: this.getFilterAvailableMembers()},
+                {$limit: limit},
+                {$count: "availableMembers"}
+            ],
+            (err, res) => {
+                if (err)
+                    return cb(err);
+
+                return cb(err, (res[0] && res[0].availableMembers) || 0);
+            }
+        );
+    }
+
     _huntingMember () {
         if (!this.isReady())
             return;
@@ -357,18 +365,11 @@ module.exports = class Dialer extends EventEmitter2 {
                                     return log.error(err);
                             });
                         }
-
-                        // if (this._active < this._limit)
-                        //     this.huntingMember();
-
-                        // this.rollback({}, () => {
-                        //     return this.unReserveMember(member.value._id, (err) => {
-                        //         if (err)
-                        //             return log.error(err);
-                        //     });
-                        // });
-                        // return;
-
+                        this.unReserveMember(member.value._id, (err) => {
+                            if (err)
+                                return log.error(err);
+                        });
+                        return this.rollback({}, () => this.huntingMember());
                         let option = {
                             maxTryCount: this._maxTryCount,
                             intervalTryCount: this._intervalTryCount,
@@ -394,7 +395,7 @@ module.exports = class Dialer extends EventEmitter2 {
         );
     }
 
-    reserveMember (cb) {
+    getFilterAvailableMembers () {
         const communications = {
             $elemMatch: {
                 state: {
@@ -447,14 +448,24 @@ module.exports = class Dialer extends EventEmitter2 {
                 $nin: this._lockedGateways
             };
 
-        const filter = {
+        return {
             dialer: this._id,
             _endCause: null,
             _lock: null,
             communications,
             $or: [{_nextTryTime: {$lte: Date.now()}}, {_nextTryTime: null}]
         };
+    }
 
+    getSortAvailableMembers () {
+        return [
+                ["_nextTryTime", -1],
+                ["priority", -1],
+                ["_id", -1]
+            ]
+    }
+
+    reserveMember (cb) {
         const $set = {
             _lock: this._instanceId
         };
@@ -464,15 +475,15 @@ module.exports = class Dialer extends EventEmitter2 {
             $set._maxTryCount = this._maxTryCount;
         }
 
-        console.dir(filter, {depth: 10, colors: true});
-
+        // console.dir(this.getFilterAvailableMembers(), {depth: 10, colors: true});
+        
         dialerService.members._updateMember(
-            filter,
+            this.getFilterAvailableMembers(),
             {
                 $set,
                 $currentDate: {lastModified: true}
             },
-            {sort: [["_nextTryTime", -1],["priority", -1], ["_id", -1]]},
+            {sort: this.getSortAvailableMembers()},
             cb
         );
     }

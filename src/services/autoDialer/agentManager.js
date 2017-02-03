@@ -131,24 +131,7 @@ class AgentManager extends EventEmitter2 {
     }
 
     getAvailableCount (dialerId, agents, skills, cb) {
-        application.DB._query.dialer._getAgentCount({
-            status: {
-                $in: [AGENT_STATUS.Available, AGENT_STATUS.AvailableOnDemand]
-            },
-            state: AGENT_STATE.Waiting,
-            dialer: {$elemMatch: {_id: dialerId}},
-            "dialer.process": {$ne: "active"},
-            "dialer.setAvailableTime": null,
-            $or: [
-                {
-                    agentId: {$in: agents}
-                },
-                {
-                    skills: {$in: skills}
-                }
-            ]
-
-        }, cb);
+        application.DB._query.dialer._getAgentCount(getAvailableAgentFilter(dialerId, agents, skills), cb);
     }
 
     rollbeckAgent (agentId, dialerId, cb) {
@@ -167,22 +150,9 @@ class AgentManager extends EventEmitter2 {
     }
 
     huntingAgent (dialerId, agents, skills, strategy, cb) {
-        const filter = {
-            status: {
-                $in: [AGENT_STATUS.Available, AGENT_STATUS.AvailableOnDemand]
-            },
-            state: AGENT_STATE.Waiting,
-            dialer: {$elemMatch: {_id: dialerId}},
-            "dialer.process": {$ne: "active"},
-            $or: [
-                {
-                    agentId: {$in: agents}
-                },
-                {
-                    skills: {$in: skills}
-                }
-            ]
-        };
+        const filter = getAvailableAgentFilter(dialerId, agents, skills);
+
+        // console.dir(filter, {depth: 10, colors: true});
 
         const sort = {};
 
@@ -191,18 +161,19 @@ class AgentManager extends EventEmitter2 {
                 filter.randomPoint = { $near : [Math.random(), 0] };
                 break;
             case AGENT_STRATEGY.WITH_FEWEST_CALLS:
-                sort["dialer.callCount"] = 0;
+                sort["dialer.callCount"] = 1;
                 break;
             case AGENT_STRATEGY.WITH_LEAST_TALK_TIME:
-                sort["dialer.callTimeMs"] = 0;
+                sort["dialer.callTimeSec"] = 1;
                 break;
 
             case AGENT_STRATEGY.TOP_DOWN:
                 //TODO
                 // break;
             default:
-                sort["dialer.callCount"] = 0;
+                sort["dialer.callCount"] = 1;
         }
+
         application.DB._query.dialer._findAndModifyAgent(
                 filter,
                 sort,
@@ -238,6 +209,68 @@ class AgentManager extends EventEmitter2 {
             )
     }
 
+    setAgentStats (agentId, dialerId, params = {}, cb) {
+        const $set = {};
+        const $inc = {};
+
+        if (params.hasOwnProperty('process'))
+            $set["dialer.$.process"] = params.process;
+
+        if (params.hasOwnProperty('lastStatus'))
+            $set["dialer.$.lastStatus"] = params.lastStatus;
+
+        if (params.hasOwnProperty('setAvailableTime'))
+            $set["dialer.$.setAvailableTime"] = params.setAvailableTime;
+
+        if (params.hasOwnProperty('lastBridgeCallTimeStart'))
+            $set["dialer.$.lastBridgeCallTimeStart"] = params.lastBridgeCallTimeStart;
+
+        if (params.hasOwnProperty('lastBridgeCallTimeEnd'))
+            $set["dialer.$.lastBridgeCallTimeEnd"] = params.lastBridgeCallTimeEnd;
+
+        if (params.gotCall === true)
+            $inc["dialer.$.gotCallCount"] = 1;
+
+        if (params.call === true)
+            $inc["dialer.$.callCount"] = 1;
+
+        if (params.hasOwnProperty('callTimeSec'))
+            $inc["dialer.$.callTimeSec"] = params.callTimeSec;
+
+        if (params.hasOwnProperty('connectedTimeSec'))
+            $inc["dialer.$.connectedTimeSec"] = params.connectedTimeSec;
+
+        if (params.noAnswer === true)
+            $inc["noAnswerCount"] = 1;
+
+        const update = {
+            $set,
+            $currentDate: { lastModified: true }
+        };
+
+        if (Object.keys($inc).length > 0) {
+            update.$inc = $inc;
+        }
+
+        application.DB._query.dialer._findAndModifyAgent(
+            {
+                agentId: agentId,
+                dialer: {$elemMatch: {_id: dialerId}}
+            },
+            {},
+            update,
+            (err, res) => {
+                if (err)
+                    return cb(err);
+
+                if (!res.value)
+                    throw res;
+
+                return cb(err, res);
+            }
+        )
+    }
+
     flushAgentProcess (agentId, dialerId, wrap, cb) {
         application.DB._query.dialer._findAndModifyAgent(
             {
@@ -257,24 +290,6 @@ class AgentManager extends EventEmitter2 {
                     throw res;
 
                 return cb(err, res);
-
-                // const agent = res.value;
-                // this.setAgentStatus(agent, AGENT_STATE.Waiting, err => {
-                //     if (err) {
-                //         log.error(err);
-                //         this.rollbeckAgent(agent.agentId, dialerId, e => {
-                //             if (e) {
-                //                 log.error(`bad rollback agent ${agent.agentId}`);
-                //                 return cb(e);
-                //             } else {
-                //                 return cb();
-                //             }
-                //         })
-                //     } else {
-                //         return cb(null, agent)
-                //     }
-                //
-                // })
             }
         )
     }
@@ -284,3 +299,22 @@ class AgentManager extends EventEmitter2 {
 }
 
 module.exports = AgentManager;
+
+function getAvailableAgentFilter(dialerId, agents, skills) {
+    return {
+        status: {
+            $in: [AGENT_STATUS.Available, AGENT_STATUS.AvailableOnDemand]
+        },
+        state: AGENT_STATE.Waiting,
+        dialer: {$elemMatch: {_id: dialerId}},
+        "dialer.process": {$ne: "active"},
+        $or: [
+            {
+                agentId: {$in: agents}
+            },
+            {
+                skills: {$in: skills}
+            }
+        ]
+    };
+}
