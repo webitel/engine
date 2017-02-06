@@ -14,36 +14,48 @@ let generateUuid = require('node-uuid'),
 
 module.exports = class Member extends EventEmitter2 {
 
-    constructor (config, option, dialer) {
+    constructor (config, dialer = {}) {
         super();
-
-        this.tryCount = option.maxTryCount;
-        this.nextTrySec = option.intervalTryCount;
-        this.minCallDuration = option.minCallDuration;
-        this.callSuccessful = false;
-
-        this.score = option._score;
-        this.queueName = option.queueName ;
-        this._queueId = option.queueId;
-        this._domain = option.domain;
-        this.queueNumber = option.queueNumber || option.queueName;
-
-        let lockedGws = option.lockedGateways;
-
-        this.causesOK = option.causesOK;
-        this.causesRetry = option.causesRetry;
-        this.causesError = option.causesError;
-        this.causesMinus = option.causesMinus;
 
         this._id = config._id;
         this.expire = config.expire;
+        this.timezone = config.timezone; //TODO
+        this.sessionId = generateUuid.v4();
+        this.currentProbe = (config._probeCount || 0) + 1;
+        this.callSuccessful = false;
+
+        this.name = (config.name || "_undef_").replace(/'/g, '_');
+        this.variables = {};
+
+        for (let key in config.variables) {
+            this.setVariable(key, config.variables[key]);
+        }
+
+        this.getMaxAttemptsCount = () => dialer._maxTryCount;
+        this.getIntervalAttemptSec = () => dialer._intervalTryCount;
+        this.getMinBillSec = () => dialer._minBillSec;
+
+        this.nextTrySec = dialer._intervalTryCount;
+
+        this.getQueueName = () => dialer.nameDialer;
+        this.getQueueNumber = () => dialer.number || this.getQueueName();
+        this.getQueueId = () => dialer._id;
+        this.getDomain = () => dialer._domain;
+
+        // let lockedGws = option.lockedGateways; // TODO
+
+        this.getCausesSuccessful = (cause) => dialer._memberOKCauses.indexOf(cause);
+        this.getCausesRetry = (cause) => dialer._memberRetryCauses.indexOf(cause);
+        this.getCausesError = (cause) => dialer._memberErrorCauses.indexOf(cause);
+        this.getCausesMinus = (cause) => dialer._memberMinusCauses.indexOf(cause);
+
         this.channelsCount = 0;
         this._minusProbe = false;
 
-        this.sessionId = generateUuid.v4();
         this._log = {
             session: this.sessionId,
             callTime: Date.now(),
+            callSuccessful: false,
             callState: 0,
             callPriority: 0,
             callNumber: null, //+
@@ -55,26 +67,16 @@ module.exports = class Member extends EventEmitter2 {
             steps: []
         };
 
-        this._waitingForResultStatus = option._waitingForResultStatus;
+        this._waitingForResultStatus = dialer._waitingForResultStatus;
 
-        this.currentProbe = (config._probeCount || 0) + 1;
-        if (config._waitingForResultStatus && !config._lastMinusProbe) {
-            // minus prev probe (no callback)
-            this.log(`No prev call result status`);
-            this.currentProbe--;
-        }
+        // if (config._waitingForResultStatus && !config._lastMinusProbe) {
+        //     // minus prev probe (no callback)
+        //     this.log(`No prev call result status`);
+        //     this.currentProbe--;
+        // }
 
         this.endCause = null;
-        // this.bigData = new Array(1e4).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
-        this.variables = {};
-
-        this._data = config;
-        this.name = (config.name || "_undef_").replace(/'/g, '_');
-
-
-        for (let key in config.variables) {
-            this.setVariable(key, config.variables[key]);
-        }
+        // this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
         this.log(`create probe ${this.currentProbe}`);
         this.setCurrentAttempt(this.currentProbe);
@@ -170,6 +172,26 @@ module.exports = class Member extends EventEmitter2 {
         this._log.callAttempt = attempt;
     }
 
+    setAmdResult (result, cause) {
+        console.log(`set amd ${result} - ${cause}`);
+        this._log.amdResult = result;
+        this._log.amdCause = cause;
+    }
+
+    getAmdResult () {
+        if (this._log.amdResult) {
+            return {
+                result: this._log.amdResult,
+                cause: this._log.amdCause
+            }
+        }
+        return null;
+    }
+
+    setAgent (agent = {}) {
+
+    }
+
     setCurrentNumber (communication, all) {
         if (!communication)
             return log.warn(`No communication in ${this._id}`);
@@ -242,9 +264,9 @@ module.exports = class Member extends EventEmitter2 {
         let e = {
             "Event-Name": "CUSTOM",
             "Event-Subclass": "engine::dialer_member_end",
-            "variable_domain_name": this._domain,
+            "variable_domain_name": this.getDomain(),
             "dialerId": this._queueId,
-            "dialerName": this.queueName,
+            "dialerName": this.getQueueName(),
             "id": this._id.toString(),
             "name": this.name,
             "currentNumber": this._currentNumber && this._currentNumber.number,
@@ -287,10 +309,13 @@ module.exports = class Member extends EventEmitter2 {
             if (recordSec)
                 this.setRecordSession(recordSec);
 
+            if (e.getHeader('variable_amd_result'))
+                this.setAmdResult(e.getHeader('variable_amd_result'), e.getHeader('variable_amd_cause'));
+
             this.setCallUUID(e.getHeader('variable_uuid'))
         }
         
-        if (~this.causesMinus.indexOf(endCause)) {
+        if (~this.getCausesMinus(endCause)) {
             this.minusProbe();
             this.log(`end cause ${endCause}`);
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
@@ -299,8 +324,8 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (~this.causesOK.indexOf(endCause)) {
-            if (billSec >= this.minCallDuration) {
+        if (~this.getCausesSuccessful(endCause)) {
+            if (billSec >= this.getMinBillSec()) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
                 this.callSuccessful = true;
@@ -314,8 +339,8 @@ module.exports = class Member extends EventEmitter2 {
 
         }
 
-        if (~this.causesRetry.indexOf(endCause) || skipOk) {
-            if (this.currentProbe >= this.tryCount) {
+        if (~this.getCausesRetry(endCause) || skipOk) {
+            if (this.currentProbe >= this.getMaxAttemptsCount()) {
                 this.log(`max try count`);
                 this.endCause = END_CAUSE.MAX_TRY;
                 this._setStateCurrentNumber(MEMBER_STATE.End);
@@ -330,13 +355,13 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (~this.causesError.indexOf(endCause)) {
+        if (~this.getCausesError(endCause)) {
             this.log(`fatal: ${endCause}`);
             this._setStateCurrentNumber(MEMBER_STATE.End);
         }
 
 
-        if (this.currentProbe >= this.tryCount && !this._waitingForResultStatus) {
+        if (this.currentProbe >= this.getMaxAttemptsCount() && !this._waitingForResultStatus) {
             this.log(`max try count`);
             this.endCause = endCause || END_CAUSE.MAX_TRY;
             this._setStateCurrentNumber(MEMBER_STATE.End)

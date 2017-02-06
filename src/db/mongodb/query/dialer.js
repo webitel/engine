@@ -279,6 +279,7 @@ function addQuery (db) {
                         noAnswerDelayTime: +params.no_answer_delay_time,
                         rejectDelayTime: +params.reject_delay_time,
                         wrapUpTime: +params.reject_delay_time,
+                        callTimeout: 10, // TODO
                         skills: skills,
                         randomPoint: [Math.random(), 0]
                     },

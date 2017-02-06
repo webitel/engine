@@ -62,16 +62,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this.countMembers = 0;
 
-        log.debug(`
-            Init dialer: ${this.nameDialer}@${this._domain}
-            Config:
-                type: ${this.type},
-                limit: ${this._limit},
-                minBillSec: ${this._minBillSec},
-                maxTryCount: ${this._maxTryCount},
-                intervalTryCount: ${this._intervalTryCount},
-                deadLine: ${new Date(this._calendar.deadLineTime)}
-        `);
+        log.debug(`Init dialer: ${this.nameDialer}@${this._domain}`);
 
         this.members = new Collection('id');
 
@@ -251,23 +242,8 @@ module.exports = class Dialer extends EventEmitter2 {
         if (config.agents instanceof Array)
             this._agents = config.agents.map( (i)=> `${i}@${this._domain}`);
 
-        // this._skillsReg = this._skills.length > 0 ? new RegExp('\\b' + this._skills.join('\\b|\\b') + '\\b', 'i') : /.*/;
-
-
         this._variables = config.variables || {};
         this._variables.domain_name = this._domain;
-    }
-
-    addMemberCallbackQueue (m, e, wrapTime) {
-        log.trace(`End channels ${m.sessionId}`);
-
-        if (this._waitingForResultStatus) {
-            m.log('check callback');
-            m.nextTrySec += (this._wrapUpTime || 0);
-            m.end(null, e);
-        } else {
-            m.end(e.getHeader('variable_hangup_cause'), e);
-        }
     }
 
     rollback (params = {}, cb) {
@@ -366,24 +342,8 @@ module.exports = class Dialer extends EventEmitter2 {
                         //         return log.error(err);
                         // });
                         // return this.rollback({}, () => this.huntingMember());
-                        let option = {
-                            maxTryCount: this._maxTryCount,
-                            intervalTryCount: this._intervalTryCount,
-                            lockedGateways: this._lockedGateways,
-                            queueId: this._id,
-                            queueName: this.nameDialer,
-                            queueNumber: this.number,
-                            minCallDuration: this._minBillSec,
-                            domain: this._domain,
-                            _waitingForResultStatus: this._waitingForResultStatus,
-
-                            causesOK: this._memberOKCauses,
-                            causesRetry: this._memberRetryCauses,
-                            causesError: this._memberErrorCauses,
-                            causesMinus: this._memberMinusCauses
-                        };
-                        // TODO remove options
-                        let m = new Member(member.value, option, this);
+                        
+                        let m = new Member(member.value, this);
                         this.members.add(m._id, m);
                     });
                 }

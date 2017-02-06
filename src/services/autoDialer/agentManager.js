@@ -19,6 +19,7 @@ class AgentManager extends EventEmitter2 {
     constructor () {
         super();
 
+        //TODO move to dialer
         setInterval(() => {
             this.checkSetAvailableTime(e => {
                 if (e)
@@ -260,8 +261,10 @@ class AgentManager extends EventEmitter2 {
         if (params.clearNoAnswer === true)
             $set["noAnswerCount"] = 0;
 
-        
+        if (params.hasOwnProperty('minNextCallTime'))
+            $set.minNextCallTime = params.minNextCallTime;
 
+        
         const update = {
             $set,
             $currentDate: { lastModified: true }

@@ -66,7 +66,7 @@ module.exports = class VoiceBroadcast extends Dialer {
         });
         
         this.getDialString = (member) => {
-            const vars = [`presence_data='${member._domain}'`, `cc_queue='${member.queueName}'`, `originate_timeout=${this._originateTimeout}`];
+            const vars = [`presence_data='${member.getDomain()}'`, `cc_queue='${member.getQueueName()}'`, `originate_timeout=${this._originateTimeout}`];
 
             for (let key in this._variables) {
                 if (this._variables.hasOwnProperty(key)) {
@@ -79,18 +79,19 @@ module.exports = class VoiceBroadcast extends Dialer {
             }
             vars.push(
                 // `origination_uuid=${member.sessionId}`,
-                `origination_caller_id_number='${member.queueNumber}'`,
-                `origination_caller_id_name='${member.queueName}'`,
+                `origination_caller_id_number='${member.getQueueNumber()}'`,
+                `origination_caller_id_name='${member.getQueueName()}'`,
                 `origination_callee_id_number='${member.number}'`,
                 `origination_callee_id_name='${member.name}'`,
                 `loopback_bowout_on_execute=true`
             );
-            return `originate {${vars}}loopback/${member.number}/default 'set:dlr_member_id=${member._id.toString()},set:dlr_queue=${member._queueId},socket:` + '$${acr_srv}' + `' inline`;
+            return `originate {${vars}}loopback/${member.number}/default 'set:dlr_member_id=${member._id.toString()},set:dlr_queue=${member.getQueueId()},socket:` + '$${acr_srv}' + `' inline`;
         };
 
-        let handleHangupEvent = (e) => {
+        const handleHangupEvent = (e) => {
             let member = this.members.get(e.getHeader('variable_dlr_member_id'));
             if (member) {
+                console.log(e.getHeader('variable_uuid'));
                 member.channelsCount--;
                 member.end(e.getHeader('variable_hangup_cause'), e);
             }
@@ -98,6 +99,7 @@ module.exports = class VoiceBroadcast extends Dialer {
 
         application.Esl.on(`esl::event::CHANNEL_HANGUP_COMPLETE::*`, handleHangupEvent);
 
+        application.Esl.subscribe(['CHANNEL_HANGUP_COMPLETE']);
         this.once('end', () => {
             application.Esl.off(`esl::event::CHANNEL_HANGUP_COMPLETE::*`, handleHangupEvent);
         });
@@ -112,10 +114,7 @@ module.exports = class VoiceBroadcast extends Dialer {
 
         application.Esl.bgapi(ds, (res) => {
             if (/^-ERR/.test(res.body)) {
-                if (typeof member.offEslEvent === 'function')
-                    member.offEslEvent();
-                let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
-                member.end(error);
+                member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
             }
             member.channelsCount++;
         });

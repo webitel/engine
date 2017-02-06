@@ -89,6 +89,7 @@ module.exports = class Progressive extends Dialer {
                 m.setCallUUID(e.getHeader('variable_uuid'));
             }
         };
+        
         let onChannelDestroy = (e) => {
             let m = getMembersFromEvent(e);
             if (m && --m.channelsCount === 0) {
@@ -116,6 +117,7 @@ module.exports = class Progressive extends Dialer {
             application.Esl.off('esl::event::CHANNEL_DESTROY::*', onChannelDestroy);
             application.Esl.off('esl::event::CHANNEL_CREATE::*', onChannelCreate);
         });
+
         application.Esl.subscribe(['CHANNEL_CREATE', 'CHANNEL_DESTROY']);
 
         application.Esl.on('esl::event::CHANNEL_DESTROY::*', onChannelDestroy);
@@ -124,9 +126,9 @@ module.exports = class Progressive extends Dialer {
         this.getDialString = (member, agent) => {
             let vars = [
                 `dlr_member_id=${member._id.toString()}`,
-                `dlr_id=${member._queueId}`,
-                `presence_data='${member._domain}'`,
-                `cc_queue='${member.queueName}'`
+                `dlr_id=${member.getQueueId()}`,
+                `presence_data='${member.getDomain()}'`,
+                `cc_queue='${member.getQueueName()}'`
             ];
 
             for (let key in this._variables) {
@@ -141,7 +143,7 @@ module.exports = class Progressive extends Dialer {
 
             const webitelData = {
                 dlr_member_id: member._id.toString(),
-                dlr_id: member._queueId
+                dlr_id: member.getQueueId()
             };
 
             for (let key of member.getVariableKeys()) {
@@ -157,7 +159,7 @@ module.exports = class Progressive extends Dialer {
                 `origination_caller_id_number='${member.number}'`,
                 `origination_caller_id_name='${member.name}'`,
                 `destination_number='${member.number}'`,
-                `originate_timeout=10`, // TODO
+                `originate_timeout=${agent.callTimeout}`, // TODO
                 'webitel_direction=outbound'
             );
             return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},transfer:${member.number}' inline`;
@@ -168,15 +170,16 @@ module.exports = class Progressive extends Dialer {
     dialMember (member, agent) {
         log.trace(`try call ${member.sessionId} to ${agent.agentId}`);
         member.log(`set agent: ${agent.agentId}`);
-       // member._agent = agent;
+
+        // TODO
         member.agentId = agent.agentId;
+        member.setAgent(agent);
 
         const ds = this.getDialString(member, agent);
 
         member.log(`dialString: ${ds}`);
         log.trace(`Call ${ds}`);
 
-        // connectedTime = Date
         const start = member.startCall = Date.now();
         member.wrapUpTime = agent.wrapUpTime;
 
@@ -186,18 +189,25 @@ module.exports = class Progressive extends Dialer {
 
             if (/^-ERR|^-USAGE/.test(res.body)) {
                 let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
-                member.log(`agent: ${error}`);
+                member.log(`agent error: ${error}`);
+                
+                
                 member.minusProbe();
                 member.nextTrySec = 1;
                 member.end();
 
                 if (error === 'NO_ANSWER') {
                     if (agent.maxNoAnswer <= ++agent.noAnswerCount) {
-                        return this._am.setNoAnswerAgent(agent, (e) => {
+                        return this._am.setNoAnswerAgent(agent, e => {
+                            if (e)
+                                log.error(e);
+
                             this._am.setAgentStats(agent.agentId, this._objectId, {
+                                call: true,
+                                gotCall: false,
                                 clearNoAnswer: true,
                                 setAvailableTime: null,
-                                connectedTimeSec: Math.round( (date - start) / 1000),
+                                connectedTimeSec: timeToSec(date, start),
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
                                 process: null
                             }, (e, res) => {
@@ -208,8 +218,10 @@ module.exports = class Progressive extends Dialer {
                     }
 
                     this._am.setAgentStats(agent.agentId, this._objectId, {
+                        call: true,
+                        gotCall: false,
                         noAnswer: true,
-                        connectedTimeSec: Math.round( (date - start) / 1000),
+                        connectedTimeSec: timeToSec(date, start),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
                         setAvailableTime: date + (agent.rejectDelayTime * 1000),
                         process: "checkState"
@@ -219,7 +231,9 @@ module.exports = class Progressive extends Dialer {
                     });
                 } else {
                     this._am.setAgentStats(agent.agentId, this._objectId, {
-                        connectedTimeSec: Math.round( (date - start) / 1000),
+                        call: true,
+                        gotCall: false,
+                        connectedTimeSec: timeToSec(date, start),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
                         setAvailableTime: date + (agent.rejectDelayTime * 1000),
                         process: "checkState"
@@ -231,7 +245,7 @@ module.exports = class Progressive extends Dialer {
             } else {
                 this._am.setAgentStats(agent.agentId, this._objectId, {
                     lastBridgeCallTimeStart: date,
-                    connectedTimeSec: Math.round( (date - start) / 1000),
+                    connectedTimeSec: timeToSec(date, start),
                     lastStatus: `active -> ${member._id}`
                 }, (e, res) => {
                     if (e)
@@ -239,45 +253,15 @@ module.exports = class Progressive extends Dialer {
 
                     if (res && res.value) {
                         //member._agent = res.value
+                        //TODO
                     }
                 });
             }
         });
 
-        return;
-        let gw = this._gw.fnDialString(member);
-
-        this.findAvailAgents( (agent) => {
-            member.log(`set agent: ${agent.id}`);
-            let ds = gw(agent, null, null, this.defaultAgentParams);
-            member._gw = gw;
-            member._agent = agent;
-
-            member.log(`dialString: ${ds}`);
-            log.trace(`Call ${ds}`);
-            member.inCall = true;
-            application.Esl.bgapi(ds, (res) => {
-                log.trace(`fs response: ${res && res.body}`);
-                if (/^-ERR|^-USAGE/.test(res.body)) {
-                    let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
-                    member.log(`agent: ${error}`);
-                    member.minusProbe();
-                    member.nextTrySec = 1;
-                    // TODO ??
-                    this.nextTrySec = 0;
-                    let delayTime = agent.getTime('rejectDelayTime', this.defaultAgentParams);
-                    if (error == 'NO_ANSWER') {
-                        agent._noAnswerCallCount++;
-                        member._agentNoAnswer = true;
-                        delayTime = agent.getTime('noAnswerDelayTime', this.defaultAgentParams);
-                    }
-                    member.end();
-                    this._am.taskUnReserveAgent(agent, delayTime, false, this.defaultAgentParams);
-                } else {
-                    agent.lastBridgeCallTimeStart = Date.now();
-                }
-            });
-        });
-
     }
 };
+
+function timeToSec(current, start) {
+    return Math.round( (current - start) / 1000 )
+}
