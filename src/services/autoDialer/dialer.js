@@ -260,6 +260,13 @@ module.exports = class Dialer extends EventEmitter2 {
         this._variables.domain_name = this._domain;
     }
 
+    getAgentParam (paramName, agent = {}) {
+        if (this.defaultAgentParams[paramName])
+            return this.defaultAgentParams[paramName];
+
+        return agent[paramName]
+    }
+
     rollback (params = {}, cb) {
         let $inc = {"stats.active": -1, "stats.callCount": 1};
 

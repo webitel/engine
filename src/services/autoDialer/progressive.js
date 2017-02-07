@@ -107,7 +107,7 @@ module.exports = class Progressive extends Dialer {
                     callTimeSec: +e.getHeader('variable_billsec') || 0,
                     lastStatus: `end -> ${m._id}`,
                     setAvailableTime:
-                        agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (agent.wrapUpTime * 1000),
+                        agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                     process: null
                 }, (e, res) => {
                     if (e)
@@ -164,7 +164,7 @@ module.exports = class Progressive extends Dialer {
                 `origination_caller_id_number='${member.number}'`,
                 `origination_caller_id_name='${member.name}'`,
                 `destination_number='${member.number}'`,
-                `originate_timeout=${agent.callTimeout}`, // TODO
+                `originate_timeout=${this.getAgentParam('callTimeout', agent)}`, // TODO
                 'webitel_direction=outbound'
             );
             return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},transfer:${member.number}' inline`;
@@ -197,7 +197,7 @@ module.exports = class Progressive extends Dialer {
                 member.end();
 
                 if (error === 'NO_ANSWER') {
-                    if (agent.maxNoAnswer <= ++agent.noAnswerCount) {
+                    if (this.getAgentParam('maxNoAnswer', agent) <= (this.getAgentParam('noAnswerCount', agent) + 1)) {
                         return this._am.setNoAnswerAgent(agent, e => {
                             if (e)
                                 log.error(e);
@@ -223,7 +223,7 @@ module.exports = class Progressive extends Dialer {
                         noAnswer: true,
                         connectedTimeSec: timeToSec(date, start),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
-                        setAvailableTime: date + (agent.rejectDelayTime * 1000),
+                        setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
                         process: "checkState"
                     }, (e, res) => {
                         if (e)
@@ -235,7 +235,7 @@ module.exports = class Progressive extends Dialer {
                         gotCall: false,
                         connectedTimeSec: timeToSec(date, start),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
-                        setAvailableTime: date + (agent.rejectDelayTime * 1000),
+                        setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
                         process: "checkState"
                     }, (e, res) => {
                         if (e)
