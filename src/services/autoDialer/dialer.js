@@ -5,7 +5,6 @@
 let DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
-    END_CAUSE = require('./const').END_CAUSE,
 
     CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
     CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
@@ -70,21 +69,43 @@ module.exports = class Dialer extends EventEmitter2 {
             log.trace(`Members length ${this.members.length()}`);
 
             member.once('end', (m) => {
-                let $set = {_lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
+                const $set = {_lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
                     $max = {
                         _nextTryTime: m.nextTime
                     };
+
+                const update = {
+                    $push: {_log: m._log},
+                    $set,
+                    $max
+                };
 
                 if (m._currentNumber) {
                     let communications = m._communications;
                     if (communications instanceof Array) {
                         for (let i = 0, len = communications.length; i < len; i++) {
-                            if (i == m._currentNumber._id) {
+                            if (i === m._currentNumber._id) {
                                 $max[`communications.${i}.state`] = m._currentNumber.state;
+
                                 $set[`communications.${i}._id`] = m._currentNumber._id;
                                 $set[`communications.${i}._probe`] = m._currentNumber._probe;
                                 $set[`communications.${i}._score`] = m._currentNumber._score;
-                                $set[`communications.${i}._range`] = m._currentNumber._range;
+                                $set[`communications.${i}.rangeId`] = m._currentNumber.rangeId;
+                                $set[`communications.${i}.rangeAttempts`] = m._currentNumber.rangeAttempts;
+
+                                if (this._waitingForResultStatus) {
+                                    if (m._minusProbe) {
+                                        $set._waitingForResultStatusCb = null;
+                                        $set._waitingForResultStatus = null;
+                                    } else {
+                                        update.$min = {
+                                            _waitingForResultStatusCb: 1
+                                        };
+                                        $max._waitingForResultStatus =  Date.now() + (this._wrapUpTime * 1000);
+                                        $set[`communications.${i}.checkResult`] = 1
+                                    }
+                                }
+
                             } else {
                                 if (m.endCause) {
                                     $set[`communications.${i}.state`] = MEMBER_STATE.End;
@@ -103,28 +124,11 @@ module.exports = class Dialer extends EventEmitter2 {
                 $set._lastMinusProbe = m._minusProbe;
                 $set._lock = null;
 
-                const update = {
-                    $push: {_log: m._log},
-                    $set,
-                    $max
-                };
-
-                if (this._waitingForResultStatus) {
-                    if (m._minusProbe) {
-                        $set._waitingForResultStatusCb = null;
-                        $set._waitingForResultStatus = null;
-                    } else {
-                        update.$min = {
-                            _waitingForResultStatusCb: 1,
-                            _waitingForResultStatus: Date.now() + (this._wrapUpTime * 1000)
-                        };
-                    }
-                }
-
                 if (m._minusProbe) {
                     update.$inc = {_probeCount: -1}
                 }
 
+                // console.log(update);
                 dialerService.members._updateByIdFix(
                     m._id,
                     update,
@@ -397,12 +401,12 @@ module.exports = class Dialer extends EventEmitter2 {
                         "type": type.code,
                         $or: [
                             {
-                                "_range.attempts": {
+                                "rangeAttempts": {
                                     "$lt": type.range.attempts
                                 }
                             },
                             {
-                                "_range.rangeId": {
+                                "rangeId": {
                                     "$ne": type.rangeId
                                 }
                             }
@@ -410,7 +414,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     },
                     {
                         "type": type.code,
-                        "_range": null
+                        "rangeId": null
                     }
                 ]
             })
@@ -427,7 +431,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         return {
             dialer: this._id,
-            _waitingForResultStatus: null,
+            _waitingForResultStatusCb: null,
             _endCause: null,
             _lock: null,
             communications,

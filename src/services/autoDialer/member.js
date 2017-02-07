@@ -105,18 +105,14 @@ module.exports = class Member extends EventEmitter2 {
                     i._codeWorkPrior = idx;
                     let rangeProperty = dialer._calendar.getCommunicationByPosition(i._codeWorkPrior);
                     if (rangeProperty) {
-                        if (i._range && i._range.rangeId === rangeProperty.rangeId) {
-
-                            if (i._range.attempts >= rangeProperty.range.attempts) {
+                        if (i.rangeId && i.rangeId === rangeProperty.rangeId) {
+                            if (i.rangeAttempts >= rangeProperty.range.attempts) {
                                 i._skipByAttempt = 1;
                                 i._codeWorkPrior = 1002;
                             }
-
                         } else {
-                            i._range = {
-                                attempts: 0,
-                                rangeId: rangeProperty.rangeId || null
-                            }
+                            i.rangeId = rangeProperty.rangeId || null;
+                            i.rangeAttempts = 0;
                         }
                     }
                 } else {
@@ -141,7 +137,7 @@ module.exports = class Member extends EventEmitter2 {
                 console.error(`TODO currentNumber.state !== MEMBER_STATE.Idle`);
                 this.nextTrySec = 5;
                 return;
-            } else if (currentNumber._codeFound === true && !currentNumber._range || currentNumber._skipByAttempt) {
+            } else if (currentNumber._codeFound === true && !currentNumber.rangeId || currentNumber._skipByAttempt) {
                 // no current range: sleep to next range
                 console.error(`TODO sleep number`);
                 this.nextTrySec = 5;
@@ -157,8 +153,8 @@ module.exports = class Member extends EventEmitter2 {
             if (this._currentNumber) {
                 this._currentNumber._probe++;
 
-                if (this._currentNumber._range)
-                    this._currentNumber._range.attempts++;
+                if (this._currentNumber.rangeId)
+                    this._currentNumber.rangeAttempts++;
 
                 this.number = (this._currentNumber.number + '').replace(/\D/g, '');
                 this.log(`set number: ${this.number}`);
@@ -224,8 +220,8 @@ module.exports = class Member extends EventEmitter2 {
     minusProbe () {
         if (this._currentNumber) {
             this._currentNumber._probe--;
-            if (this._currentNumber._range && isFinite(this._currentNumber._range && this._currentNumber._range.attempts)) {
-                this._currentNumber._range.attempts--;
+            if (this._currentNumber.rangeId && isFinite(this._currentNumber.rangeAttempts)) {
+                this._currentNumber.rangeAttempts--;
             }
         }
 

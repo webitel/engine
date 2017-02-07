@@ -527,6 +527,8 @@ let Service = {
                     // TODO bug if 0 - set default
                     if (+callback.next_after_sec >= 0) {
                         $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
+                    } else {
+                        $set._nextTryTime = (dialerDb.parameters && dialerDb.parameters.wrapUpTime) * 1000 + Date.now()
                     }
 
                     if (callback.stop_communications) {
