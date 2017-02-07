@@ -504,26 +504,30 @@ let Service = {
                 if (!memberDb)
                     return cb(new CodeError(404, `Not found ${options.member} in dialer ${options.dialer}`));
 
-                if (!memberDb._waitingForResultStatus || memberDb._lastMinusProbe)
+                if (memberDb._waitingForResultStatusCb !== 1)
                     return cb(new CodeError(400, `Member ${options.member}: result status false`));
 
                 let callback = options.callback,
                     $push;
 
                 const $set = {
-                    _waitingForResultStatus: false
+                    _waitingForResultStatus: null,
+                    _waitingForResultStatusCb: null
                 };
+
+                const communications = memberDb.communications || [];
 
                 if (callback.success === true) {
                     $set._endCause = "NORMAL_CLEARING";
                     $set._nextTryTime = null;
+                    for (let i = 0, len = communications.length; i < len; i++) {
+                        $set[`communications.${i}.state`] = 2;
+                    }
                 } else {
                     // TODO bug if 0 - set default
                     if (+callback.next_after_sec >= 0) {
                         $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);
                     }
-
-                    const communications = memberDb.communications || [];
 
                     if (callback.stop_communications) {
                         let all = callback.stop_communications === 'all',
@@ -652,6 +656,11 @@ let Service = {
         _updateMember (filter, doc, sort, cb) {
             let db = application.DB._query.dialer;
             return db._updateMember(filter, doc, sort, cb);
+        },
+        
+        _updateMultiMembers (filter, update, cb) {
+            let db = application.DB._query.dialer;
+            return db._updateMultiMembers(filter, update, cb);
         },
 
 

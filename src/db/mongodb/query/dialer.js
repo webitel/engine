@@ -207,6 +207,17 @@ function addQuery (db) {
                     cb
                 )
         },
+
+        _updateMultiMembers: (filter, update, cb) => {
+            return db
+                .collection(memberCollectionName)
+                .update(
+                    filter,
+                    update,
+                    {multi: true},
+                    cb
+                )
+        },
         
         _updateMember: function (filter, doc, sort, cb) {
             return db

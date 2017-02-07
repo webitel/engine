@@ -316,6 +316,11 @@ module.exports = class Member extends EventEmitter2 {
 
         log.trace(`end member ${this._id} cause: ${this.endCause || endCause || ''}`) ;
 
+        if (this._waitingForResultStatus) {
+            this.log(`Check callback`);
+            this.emit('end', this);
+        }
+
         let skipOk = false,
             billSec = e && +e.getHeader('variable_billsec');
 

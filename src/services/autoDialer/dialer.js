@@ -72,8 +72,7 @@ module.exports = class Dialer extends EventEmitter2 {
             member.once('end', (m) => {
                 let $set = {_lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
                     $max = {
-                        _nextTryTime: m.nextTime,
-                        _probeCount: m.currentProbe
+                        _nextTryTime: m.nextTime
                     };
 
                 if (m._currentNumber) {
@@ -96,24 +95,39 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set._lastNumberId = m._currentNumber._id;
                 }
 
-                if (m.endCause) {
+                if (m.endCause && !this._waitingForResultStatus) {
                     $set._endCause = m.endCause;
                 }
 
-                if (m._minusProbe && this._waitingForResultStatus)
-                    $set._waitingForResultStatus = false;
 
                 $set._lastMinusProbe = m._minusProbe;
                 $set._lock = null;
 
+                const update = {
+                    $push: {_log: m._log},
+                    $set,
+                    $max
+                };
+
+                if (this._waitingForResultStatus) {
+                    if (m._minusProbe) {
+                        $set._waitingForResultStatusCb = null;
+                        $set._waitingForResultStatus = null;
+                    } else {
+                        update.$min = {
+                            _waitingForResultStatusCb: 1,
+                            _waitingForResultStatus: Date.now() + (this._wrapUpTime * 1000)
+                        };
+                    }
+                }
+
+                if (m._minusProbe) {
+                    update.$inc = {_probeCount: -1}
+                }
+
                 dialerService.members._updateByIdFix(
                     m._id,
-                    {
-                        $push: {_log: m._log},
-                        $set,
-                        $max
-                        // $unset: {_lock: 1}//, $inc: {_probeCount: 1}
-                    },
+                    update,
                     (err, res) => {
                         if (err)
                             log.error(err);
@@ -181,7 +195,7 @@ module.exports = class Dialer extends EventEmitter2 {
             this._maxTryCount = 5,
             this._intervalTryCount = 5,
             this._minBillSec = 0,
-            this._waitingForResultStatus = false,
+            this._waitingForResultStatus = null,
             this._wrapUpTime = 60,
             this._originateTimeout = 60,
             this.lockId = `my best lock`,
@@ -406,6 +420,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         return {
             dialer: this._id,
+            _waitingForResultStatus: null,
             _endCause: null,
             _lock: null,
             communications,
@@ -427,7 +442,8 @@ module.exports = class Dialer extends EventEmitter2 {
         };
 
         if (this._waitingForResultStatus) {
-            $set._waitingForResultStatus = true;
+            $set._waitingForResultStatus = Date.now() + (this._wrapUpTime * 1000);
+            $set._waitingForResultStatusCb = 1;
             $set._maxTryCount = this._maxTryCount;
         }
 
@@ -437,6 +453,7 @@ module.exports = class Dialer extends EventEmitter2 {
             this.getFilterAvailableMembers(),
             {
                 $set,
+                $inc: {_probeCount: 1},
                 $currentDate: {lastModified: true}
             },
             {sort: this.getSortAvailableMembers()},

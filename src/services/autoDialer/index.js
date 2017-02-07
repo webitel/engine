@@ -19,6 +19,7 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     PredictiveDialer = require('./predictive'),
     eventsService = require(__appRoot + '/services/events'),
     ObjectID = require('mongodb').ObjectID,
+    dialerService = require(__appRoot + '/services/dialer'),
     encodeRK = require(__appRoot + '/utils/helper').encodeRK
     ;
 
@@ -37,7 +38,7 @@ class AutoDialer extends EventEmitter2 {
         this.connectBroker = false;
 
         this.activeDialer = new Collection('id');
-        this.agentManager = new AgentManager();
+        this.agentManager = new AgentManager(this);
 
         this.agentManager.on('unReserveHookAgent', this.sendAgentToDialer.bind(this));
 
@@ -506,6 +507,31 @@ class AutoDialer extends EventEmitter2 {
                     return cb && cb();
                 }
             }
+        );
+    }
+
+    clearAttemptOnDeadlineResultStatus (cb) {
+        dialerService.members._updateMultiMembers(
+            {
+                _waitingForResultStatus: {$lte: Date.now()},
+                _waitingForResultStatusCb: 1,
+                _lock: null
+            },
+            {
+                $set : {
+                    _waitingForResultStatus: null,
+                    _waitingForResultStatusCb: null
+                },
+                $inc: {_probeCount: -1},
+                $push: {
+                    _log: {
+                        time: Date.now(),
+                        text: `Schedule no response result status`
+                    }
+                },
+                $currentDate: {lastModified: true}
+            },
+            cb
         );
     }
 }

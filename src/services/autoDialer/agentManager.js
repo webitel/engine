@@ -16,7 +16,7 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
 
 class AgentManager extends EventEmitter2 {
 
-    constructor () {
+    constructor (dialer) {
         super();
 
         //TODO move to dialer
@@ -24,6 +24,12 @@ class AgentManager extends EventEmitter2 {
             this.checkSetAvailableTime(e => {
                 if (e)
                     throw e
+            });
+
+
+            dialer.clearAttemptOnDeadlineResultStatus(e => {
+                if (e)
+                    throw e;
             })
         }, 1000);
 

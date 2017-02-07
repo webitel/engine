@@ -65,6 +65,8 @@ module.exports = class Progressive extends Dialer {
 
                     if (this._active < this._limit && res.agents > 0 && res.members > 0) {
                         this.huntingMember();
+                    } else if (this.members.length() === 0) {
+                        this.tryStop();
                     }
                 }
             );
