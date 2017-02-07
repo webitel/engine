@@ -6,6 +6,7 @@ let Dialer = require('./dialer'),
     log = require(__appRoot + '/lib/log')(module),
     async = require('async'),
     END_CAUSE = require('./const').END_CAUSE,
+    AGENT_STATUS = require('./const').AGENT_STATUS,
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 module.exports = class Progressive extends Dialer {
@@ -93,16 +94,18 @@ module.exports = class Progressive extends Dialer {
         let onChannelDestroy = (e) => {
             let m = getMembersFromEvent(e);
             if (m && --m.channelsCount === 0) {
-                m.end(e);
+                m.end(e.getHeader('variable_hangup_cause'), e);
+                const agent = m.getAgent();
 
-                this._am.setAgentStats(m.agentId, this._objectId, {
+                this._am.setAgentStats(agent.agentId, this._objectId, {
                     call: true,
                     gotCall: true, //TODO
                     clearNoAnswer: true,
                     lastBridgeCallTimeEnd: Date.now(),
-                    callTimeSec: Math.round(( Date.now() - m.startCall) / 1000),
+                    callTimeSec: +e.getHeader('variable_billsec') || 0,
                     lastStatus: `end -> ${m._id}`,
-                    setAvailableTime: Date.now() + (m.wrapUpTime * 1000),
+                    setAvailableTime:
+                        agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (agent.wrapUpTime * 1000),
                     process: null
                 }, (e, res) => {
                     if (e)
@@ -169,10 +172,6 @@ module.exports = class Progressive extends Dialer {
 
     dialMember (member, agent) {
         log.trace(`try call ${member.sessionId} to ${agent.agentId}`);
-        member.log(`set agent: ${agent.agentId}`);
-
-        // TODO
-        member.agentId = agent.agentId;
         member.setAgent(agent);
 
         const ds = this.getDialString(member, agent);
@@ -180,8 +179,7 @@ module.exports = class Progressive extends Dialer {
         member.log(`dialString: ${ds}`);
         log.trace(`Call ${ds}`);
 
-        const start = member.startCall = Date.now();
-        member.wrapUpTime = agent.wrapUpTime;
+        const start = Date.now();
 
         application.Esl.bgapi(ds, (res) => {
             log.trace(`fs response: ${res && res.body}`);

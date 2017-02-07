@@ -350,8 +350,8 @@ class Application extends EventEmitter2 {
     //}
 }
 
-process.on('uncaughtException', function (err) {
-    log.error('UncaughtException:', err.message);
+process.on('uncaughtException', function (err = {}) {
+    log.error('UncaughtException:', err.message || err);
     log.error(err.stack);
     var emailService = require('./services/email');
 

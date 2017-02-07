@@ -51,6 +51,7 @@ module.exports = class Member extends EventEmitter2 {
 
         this.channelsCount = 0;
         this._minusProbe = false;
+        this.agent = {};
 
         this._log = {
             session: this.sessionId,
@@ -189,7 +190,21 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     setAgent (agent = {}) {
+        this.log(`set agent: ${agent.agentId}`);
+        this.agent = {
+            agentId: agent.agentId,
+            state: agent.state,
+            status: agent.status,
+            wrapUpTime: agent.wrapUpTime,
+            rejectDelayTime: agent.rejectDelayTime,
+            noAnswerDelayTime: agent.noAnswerDelayTime,
+            maxNoAnswer: agent.maxNoAnswer,
+            busyDelayTime: agent.busyDelayTime
+        }
+    }
 
+    getAgent () {
+        return this.agent;
     }
 
     setCurrentNumber (communication, all) {

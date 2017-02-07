@@ -342,7 +342,7 @@ module.exports = class Dialer extends EventEmitter2 {
                         //         return log.error(err);
                         // });
                         // return this.rollback({}, () => this.huntingMember());
-                        
+
                         let m = new Member(member.value, this);
                         this.members.add(m._id, m);
                     });
@@ -455,7 +455,7 @@ module.exports = class Dialer extends EventEmitter2 {
     getCountAndNextTryTime (cb) {
         dialerService.members._aggregate(
             [
-                {$match: {dialer: this._id, _lock: null, _endCause: null, "communications.state": 0}},
+                {$match: {dialer: this._id, _endCause: null, "communications.state": 0}},
                 {
                     $group: {
                         _id: '',
@@ -539,10 +539,8 @@ module.exports = class Dialer extends EventEmitter2 {
             let ms = this.members.getKeys();
             ms.forEach((key) => {
                 let m = this.members.get(key);
+                //TODO
                 m.removeAllListeners();
-                if (typeof m.offEslEvent == 'function') {
-                    m.offEslEvent();
-                }
                 this.members.remove(key)
             });
 

@@ -10,6 +10,7 @@ var conf = require(__appRoot + '/conf'),
     dialerCollectionName = conf.get('mongodb:collectionDialer'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
+    AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
     ObjectID = require('mongodb').ObjectID,
     utils = require('./utils')
     ;
@@ -320,7 +321,7 @@ function addQuery (db) {
                         $set: {
                             status,
                             randomPoint: [Math.random(), 0],
-                            lastStatusChange: Date.now()
+                            lastStatusChange: Date.now() // todo ?
                         },
                         $currentDate: { lastModified: true }
                     },
