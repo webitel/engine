@@ -2,7 +2,7 @@
  * Created by igor on 25.05.16.
  */
 
-let DIALER_STATES = require('./const').DIALER_STATES,
+const DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
 
@@ -10,6 +10,8 @@ let DIALER_STATES = require('./const').DIALER_STATES,
     CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
     CODE_RESPONSE_OK = require('./const').CODE_RESPONSE_OK,
     CODE_RESPONSE_MINUS_PROBE = require('./const').CODE_RESPONSE_MINUS_PROBE,
+
+    NUMBER_STRATEGY = require('./const').NUMBER_STRATEGY,
 
     Member = require('./member'),
     Calendar = require('./calendar'),
@@ -93,20 +95,30 @@ module.exports = class Dialer extends EventEmitter2 {
                                 $set[`communications.${i}.rangeId`] = m._currentNumber.rangeId;
                                 $set[`communications.${i}.rangeAttempts`] = m._currentNumber.rangeAttempts;
 
+                                $set[`communications.${i}.lastCall`] = m._minusProbe ? 0 : Date.now();
+
                                 if (this._waitingForResultStatus) {
                                     if (m._minusProbe) {
                                         $set._waitingForResultStatusCb = null;
                                         $set._waitingForResultStatus = null;
+                                        $set[`communications.${i}.checkResult`] = null;
                                     } else {
                                         update.$min = {
                                             _waitingForResultStatusCb: 1
                                         };
+                                        update.$min[`communications.${i}.checkResult`] = 1;
+
                                         $max._waitingForResultStatus =  Date.now() + (this._wrapUpTime * 1000);
-                                        $set[`communications.${i}.checkResult`] = 1
                                     }
                                 }
 
                             } else {
+                                // TODO option strategy X2 = set false
+                                if (false && m._currentNumber.type === communications[i].type) {
+                                    $set[`communications.${i}.rangeId`] = m._currentNumber.rangeId;
+                                    $set[`communications.${i}.rangeAttempts`] = m._currentNumber.rangeAttempts;
+                                }
+
                                 if (m.endCause) {
                                     $set[`communications.${i}.state`] = MEMBER_STATE.End;
                                 }
@@ -193,6 +205,10 @@ module.exports = class Dialer extends EventEmitter2 {
         this._memberOKCauses = config.causesOK instanceof Array ? config.causesOK : CODE_RESPONSE_OK;
         this._memberRetryCauses = config.causesRetry instanceof Array ? config.causesRetry : CODE_RESPONSE_RETRY;
 
+        this.communications = (config.communications && config.communications.types) instanceof Array
+            ? config.communications.types
+            : [];
+
         let parameters = (config && config.parameters) || {};
         [
             this._limit = 999,
@@ -255,6 +271,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._amd._string = amdParams.join(' ');
         }
 
+        this.numberStrategy = config.numberStrategy || NUMBER_STRATEGY.BY_PRIORITY; // byPriority
+
         this.agentStrategy = config.agentStrategy;
         this.defaultAgentParams = config.agentParams || {};
         if (config.agents instanceof Array)
@@ -306,6 +324,7 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     countAvailableMembers (limit = 1, cb) {
+        // console.dir(this.getFilterAvailableMembers(), {depth: 10, colors: true});
         dialerService.members._aggregate([
                 {$match: this.getFilterAvailableMembers()},
                 {$limit: limit},
@@ -376,25 +395,51 @@ module.exports = class Dialer extends EventEmitter2 {
         );
     }
 
+    getCommunicationCodes () {
+        const minOfDay = this._calendar.calcCurrentTimeOfDay(),
+            codes = [],
+            allCodes = [],
+            ranges = [],
+            date = new Date().getDate()
+            ;
+
+        for (let comm of this.communications) {
+            allCodes.push(comm.code);
+            for (let range of comm.ranges) {
+                if (range.startTime <= minOfDay && range.endTime > minOfDay) {
+                    codes.push(comm.code);
+                    range.code = comm.code;
+                    range.rangeId = `${date}_${range.startTime}_${range.endTime}`;
+                    ranges.push(range);
+                    break;
+                }
+            }
+        }
+        return {codes, ranges, allCodes};
+    }
+
     getFilterAvailableMembers () {
+
+        const {codes, ranges} = this.getCommunicationCodes();
+
         const communications = {
             $elemMatch: {
                 state: {
                     $in: [MEMBER_STATE.Idle, null]
                 },
                 type: {
-                    $in: [].concat(this._calendar.getCommunicationCodes(), null)
+                    $in: [].concat(codes, null)
                 }
             }
         };
 
         let codeFilter = [
             {
-                type: {$nin: this._calendar.getCommunicationCodes()}
+                type: {$nin: codes}
             }
         ];
 
-        for (let type of this._calendar._currentCommunicationsRanges) {
+        for (let type of ranges) {
             codeFilter.push({
                 $or: [
                     {
@@ -402,7 +447,7 @@ module.exports = class Dialer extends EventEmitter2 {
                         $or: [
                             {
                                 "rangeAttempts": {
-                                    "$lt": type.range.attempts
+                                    "$lt": type.attempts || 0
                                 }
                             },
                             {

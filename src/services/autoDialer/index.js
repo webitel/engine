@@ -522,7 +522,8 @@ class AutoDialer extends EventEmitter2 {
                 $set : {
                     _waitingForResultStatus: null,
                     _waitingForResultStatusCb: null,
-                    "communications.$.checkResult": null
+                    "communications.$.checkResult": null,
+                    "communications.$.lastCall": -1
                 },
                 $inc: {_probeCount: -1, "communications.$._probe": -1, "communications.$.rangeAttempts": -1},
                 $push: {

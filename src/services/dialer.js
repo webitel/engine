@@ -517,6 +517,10 @@ let Service = {
 
                 const communications = memberDb.communications || [];
 
+                for (let i = 0, len = communications.length; i < len; i++) {
+                    $set[`communications.${i}.checkResult`] = null;
+                }
+
                 if (callback.success === true) {
                     $set._endCause = "NORMAL_CLEARING";
                     $set._nextTryTime = null;
@@ -524,6 +528,8 @@ let Service = {
                         $set[`communications.${i}.state`] = 2;
                     }
                 } else {
+
+
                     // TODO bug if 0 - set default
                     if (+callback.next_after_sec >= 0) {
                         $set._nextTryTime = Date.now() + (+callback.next_after_sec * 1000);

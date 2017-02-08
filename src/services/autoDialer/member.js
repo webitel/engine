@@ -9,7 +9,9 @@ let generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     MEMBER_STATE = require('./const').MEMBER_STATE,
-    END_CAUSE = require('./const').END_CAUSE
+    END_CAUSE = require('./const').END_CAUSE,
+    NUMBER_STRATEGY = require('./const').NUMBER_STRATEGY,
+    dialerService = require(__appRoot + '/services/dialer')
     ;
 
 module.exports = class Member extends EventEmitter2 {
@@ -86,51 +88,76 @@ module.exports = class Member extends EventEmitter2 {
         this._currentNumber = null;
         this._countActiveNumbers = 0;
         this._communications = config.communications;
+
         if (config.communications instanceof Array) {
 
-            let typeCodes = dialer._calendar.getCommunicationCodes();
+            let {codes, ranges, allCodes} = dialer.getCommunicationCodes();
 
-            const communicationsMap = config.communications.map( (i, key) => {
+            const communicationsMap = config.communications.filter( (i, key) => {
+                if (i.state !== 0)
+                    return false;
+
+                const idx = codes.indexOf(i.type);
+
+                if (~idx) {
+                    i.isTypeFound = 1;
+                    const rangeProperty = ranges[idx];
+                    if (i.rangeId && i.rangeId === rangeProperty.rangeId) {
+                        if (i.rangeAttempts >= rangeProperty.attempts) {
+                            return false;
+                        }
+                    } else {
+                        i.rangeId = rangeProperty.rangeId;
+                        i.rangeAttempts = 0;
+                    }
+                    i.rangePriority = rangeProperty.priority || 0;
+                    
+                } else if (~allCodes.indexOf(i.type)) {
+                    return false
+                } else {
+                    if (!i.rangeAttempts) i.rangeAttempts = 0;
+                    i.isTypeFound = 0;
+                    i.rangePriority = -1;
+                }
+
                 i._id = key;
                 if (!i._probe)
                     i._probe = 0;
 
-                if (!i._score)
-                    i._score = 0;
+                if (!i.lastCall)
+                    i.lastCall = 0;
 
-                i._codeFound = dialer._calendar.checkCommunicationInAllCode(i.type) ? true : false;
-                let idx = typeCodes.indexOf(i.type);
-
-                if (~idx) {
-                    i._codeWorkPrior = idx;
-                    let rangeProperty = dialer._calendar.getCommunicationByPosition(i._codeWorkPrior);
-                    if (rangeProperty) {
-                        if (i.rangeId && i.rangeId === rangeProperty.rangeId) {
-                            if (i.rangeAttempts >= rangeProperty.range.attempts) {
-                                i._skipByAttempt = 1;
-                                i._codeWorkPrior = 1002;
-                            }
-                        } else {
-                            i.rangeId = rangeProperty.rangeId || null;
-                            i.rangeAttempts = 0;
-                        }
-                    }
-                } else {
-                    i._codeWorkPrior = i._codeFound ? 1001 : 1000;
-                }
-                i._score = i._codeWorkPrior + i._probe;
-                return i;
+                return true;
             });
 
-            const communications = keySort(communicationsMap, {
-                state: "asc",
-                // _skipByAttempt: "desc",
-                _codeWorkPrior: "asc",
-                _score: "asc",
-                priority: "desc"
-            });
+            //TOP DOWN -> sort last call + priority
+            
+            let sort = {};
+            
+            if (dialer.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
+                sort = {
+                    isTypeFound: "desc",
+                    lastCall: "asc",
+                    rangePriority: "desc",
+                    priority: "desc",
+                    _probe: "asc"
+                };
+            } else {
+                sort = {
+                    isTypeFound: "desc",
+                    rangePriority: "desc",
+                    lastCall: "asc",
+                    priority: "desc",
+                    _probe: "asc"
+                };
+            }
+
+            const communications = keySort(communicationsMap, sort);
+
+            console.log(communicationsMap);
 
             let currentNumber = communications[0];
+            currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
 
             if (currentNumber.state !== MEMBER_STATE.Idle) {
                 // end call... ?? Error: must no find
@@ -209,6 +236,20 @@ module.exports = class Member extends EventEmitter2 {
 
         this._log.callNumber = communication.number;
         this._log.callPriority = communication.priority || 0;
+
+        const $set = {};
+        $set[`communications.${communication._id}`] = communication;
+
+        dialerService.members._updateByIdFix(
+            this._id,
+            {$set},
+            (err, res) => {
+                if (err)
+                    log.error(err);
+
+            }
+        );
+        
         if (all instanceof Array)
             this._log.callPositionIndex = all.indexOf(communication);
     }
