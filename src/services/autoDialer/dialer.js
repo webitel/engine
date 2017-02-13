@@ -339,6 +339,157 @@ module.exports = class Dialer extends EventEmitter2 {
         );
     }
 
+    checkMember (cb) {
+
+        const {codes, ranges, allCodes} = this.getCommunicationCodes();
+
+        const skipCode = allCodes.filter( i => ~codes.indexOf(i) ? false : true );
+
+        const patterns = [".*"];
+        const regex = [];
+
+        const $or = [];
+
+        for (let p of patterns) {
+            regex.push(new RegExp(p));
+            $or.push({
+                "communications.number": {$regex: p},
+                "_p": p
+            })
+        }
+
+        let codeFilter = [
+            {
+                "communications.type": null
+            }
+        ];
+
+        for (let type of ranges) {
+            codeFilter.push({
+                $or: [
+                    {
+                        "communications.type": type.code,
+                        $or: [
+                            {
+                                "communications.rangeAttempts": {
+                                    "$lt": type.attempts || 0
+                                }
+                            },
+                            {
+                                "communications.rangeId": {
+                                    "$ne": type.rangeId
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "communications.type": type.code,
+                        "communications.rangeId": null
+                    }
+                ]
+            })
+        }
+
+        const agg = [
+            {
+                $match: {
+                    dialer: this._id,
+                    _waitingForResultStatusCb: null,
+                    _endCause: null,
+                    _lock: null,
+                    "communications.state": 0,
+                    $and: [
+                        {'$or': [ { _nextTryTime: { '$lte': Date.now()} }, { _nextTryTime: null }]},
+                        {'$or': codeFilter}
+                    ]
+                }
+            },
+
+            {
+                $sort: { "_nextTryTime": -1, "priority": -1, _id: -1}
+            },
+
+            {$limit: 1000},
+
+            {$unwind: {path: "$communications",  includeArrayIndex: "_idx" }},
+
+            {
+                $match: {
+                    "communications.state": 0,
+                    "communications.type": {$nin: skipCode},
+                    $or: codeFilter
+                }
+            },
+
+            {
+                $project: {
+                    _nextTryTime: 1,
+                    priority: 1,
+                    communications: 1,
+                    "isType": {
+                        $switch: {
+                            "branches": [
+                                {
+                                    case: {$ifNull: ["$communications.type", null]},
+                                    then: 1
+                                }
+                            ],
+                            default: 0
+                        }
+                    },
+                    "lastCall": { $ifNull: [ "$communications.lastCall", -1 ] },
+                    _idx: 1,
+                    index: { $indexOfArray: [ [null].concat(codes), "$communications.type" ] }
+                }
+            },
+
+            // {$sort: {"isType": -1, "communications.lastCall": 1, index: 1, "communications.priority": -1, "communications._probe": 1}}, //TOD-DOWN
+            {$sort: {"isType": -1, index: -1, "communications.lastCall": 1,  "communications.priority": -1, "communications._probe": 1}}, //PRIORITY
+
+            {
+                $group: {
+                    _id: "$_id",
+                    communications: {$first: "$communications"},
+                    _nextTryTime: {$first: "$_nextTryTime"},
+                    priority: {$first: "$priority"},
+                    _idx: {$first: "$_idx"}
+                }
+            },
+
+            {$limit: 10},
+
+            {$addFields: { "_p": patterns }},
+
+            {$unwind: "$_p"},
+
+            {$match: {$or: $or}},
+
+            {
+                $group: {
+                    _id: "$_id",
+                    communications: {$first: "$communications"},
+                    _nextTryTime: {$first: "$_nextTryTime"},
+                    priority: {$first: "$priority"},
+                    _p: {$first: "$_p"},
+                    _idx: {$first: "$_idx"}
+                }
+            },
+
+            {$sort: { "_nextTryTime": -1, "priority": -1, "_id": -1}}
+        ];
+
+        console.dir(agg, {depth: 100});
+
+        dialerService.members._aggregate(agg, (e, res = []) => {
+            if (e)
+                throw e;
+
+            console.dir(res[0] && res[0].communications, {depth: 10, colors: true});
+
+            return cb(e, res);
+        })
+    }
+
     _huntingMember () {
         if (!this.isReady())
             return;
@@ -361,35 +512,39 @@ module.exports = class Dialer extends EventEmitter2 {
                     this._setConfig(res.value);
                     this._active = res.value.stats.active;
 
-                    this.reserveMember((err, member) => {
-                        if (err) {
-                            log.error(err);
-                            return this.rollback();
-                        }
+                    this.checkMember( () => {
+                        this.reserveMember((err, member) => {
+                            if (err) {
+                                log.error(err);
+                                return this.rollback();
+                            }
 
-                        if (!member || !member.value) {
-                            if (this.members.length() === 0)
-                                this.tryStop();
-                            this.rollback();
-                            return log.debug (`Not found members in ${this.nameDialer}`);
-                        }
+                            if (!member || !member.value) {
+                                if (this.members.length() === 0)
+                                    this.tryStop();
+                                this.rollback();
+                                return log.debug (`Not found members in ${this.nameDialer}`);
+                            }
 
-                        if (!this.isReady()) {
-                            this.rollback();
-                            return this.unReserveMember(member.value._id, (err) => {
-                                if (err)
-                                    return log.error(err);
-                            });
-                        }
-                        // this.unReserveMember(member.value._id, (err) => {
-                        //     if (err)
-                        //         return log.error(err);
-                        // });
-                        // return this.rollback({}, () => this.huntingMember());
+                            if (!this.isReady()) {
+                                this.rollback();
+                                return this.unReserveMember(member.value._id, (err) => {
+                                    if (err)
+                                        return log.error(err);
+                                });
+                            }
+                            // this.unReserveMember(member.value._id, (err) => {
+                            //     if (err)
+                            //         return log.error(err);
+                            // });
+                            // return this.rollback({}, () => this.huntingMember());
 
-                        let m = new Member(member.value, this);
-                        this.members.add(m._id, m);
+                            let m = new Member(member.value, this);
+                            this.members.add(m._id, m);
+                        });
                     });
+
+
                 }
             }
         );

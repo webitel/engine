@@ -154,7 +154,7 @@ module.exports = class Member extends EventEmitter2 {
 
             const communications = keySort(communicationsMap, sort);
 
-            console.log(communicationsMap);
+            // console.log(communicationsMap);
 
             let currentNumber = communications[0];
             currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
