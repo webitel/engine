@@ -75,27 +75,51 @@ module.exports = class VoiceBroadcast extends Dialer {
             for (let key of member.getVariableKeys()) {
                 vars.push(`${key}='${member.getVariable(key)}'`);
             }
+
+            const dest = member.getDestination();
+
             vars.push(
-                // `origination_uuid=${member.sessionId}`,
+                `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
-                `origination_caller_id_number='${member.getQueueNumber()}'`,
+                `origination_caller_id_number='${dest.callerIdNumber}'`,
                 `origination_caller_id_name='${member.getQueueName()}'`,
 
                 `origination_callee_id_number='${member.number}'`,
-                `origination_callee_id_name='${member.name}'`
+                `origination_callee_id_name='${member.name}'`,
+                `destination_number='${member.number}'`,
+
+                `dlr_queue=${member.getQueueId()}`
             );
-            return `originate {${vars}}loopback/${member.number}/default 'set:dlr_member_id=${member._id.toString()},set:dlr_queue=${member.getQueueId()},socket:` + '$${acr_srv}' + `' inline`;
+
+            const apps = [];
+            if (this._recordSession) {
+                vars.push(
+                    `RECORD_MIN_SEC=2`,
+                    `RECORD_STEREO=true`,
+                    `RECORD_BRIDGE_REQ=false`,
+                    `recording_follow_transfer=true`
+                );
+
+                let sessionUri = 'http_cache://$${cdr_url}' +
+                    encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${member.sessionId}&type=mp3&email=none&name=recordSession&.mp3`);
+
+                apps.push(`record_session:${sessionUri}`)
+            }
+
+            const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
+            let dialString = member.number.replace(dest._regexp, gw);
+
+            apps.push(`socket:` + '$${acr_srv}');
+
+            return `originate {${vars}}${dialString} '${apps.join(',')}' inline`;
         };
 
         const handleHangupEvent = (e) => {
             let member = this.members.get(e.getHeader('variable_dlr_member_id'));
             if (member) {
-                // console.log('minus ', --member.channelsCount);
-                if (member.channelsCount !== 0)
+                if (--member.channelsCount !== 0)
                     return;
 
-               // console.log(e.getHeader('variable_uuid'));
-                member.channelsCount--;
                 member.end(e.getHeader('variable_hangup_cause'), e);
             }
         };
@@ -104,7 +128,6 @@ module.exports = class VoiceBroadcast extends Dialer {
             let member = this.members.get(e.getHeader('variable_dlr_member_id'));
             if (member) {
                 member.channelsCount++;
-                //console.log('create ',member.channelsCount);
             }
         };
 
@@ -132,7 +155,6 @@ module.exports = class VoiceBroadcast extends Dialer {
             if (/^-ERR/.test(res.body)) {
                 return member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
             }
-            // member.channelsCount++;
         });
     }
 };

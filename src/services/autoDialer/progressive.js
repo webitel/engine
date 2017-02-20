@@ -37,9 +37,7 @@ module.exports = class Progressive extends Dialer {
         });
 
         this.members.on('removed', (m) => {
-            this.rollback({
-                callSuccessful: m.callSuccessful
-            }, e => {
+            this.rollback(m, m.getDestination(), e => {
                 if (!e)
                     engine();
             });
@@ -130,6 +128,7 @@ module.exports = class Progressive extends Dialer {
 
         this.getDialString = (member, agent) => {
             let vars = [
+                `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_id=${member.getQueueId()}`,
                 `presence_data='${member.getDomain()}'`,
@@ -158,6 +157,28 @@ module.exports = class Progressive extends Dialer {
 
             vars.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
 
+            const dest = member.getDestination();
+
+            const apps = [];
+            if (this._recordSession) {
+                vars.push(
+                    `RECORD_MIN_SEC=2`,
+                    `RECORD_STEREO=true`,
+                    `RECORD_BRIDGE_REQ=false`,
+                    `recording_follow_transfer=true`
+                );
+
+                let sessionUri = 'http_cache://$${cdr_url}' +
+                    encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${member.sessionId}&type=mp3&email=none&name=recordSession&.mp3`);
+
+                apps.push(`record_session:${sessionUri}`)
+            }
+
+            const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
+            let dialString = member.number.replace(dest._regexp, gw);
+
+            apps.push(`bridge:{origination_caller_id_number='${dest.callerIdNumber}'}${dialString}`);
+
             vars.push(
                 `origination_callee_id_number='${agent.agentId}'`,
                 `origination_callee_id_name='${agent.agentId}'`,
@@ -167,9 +188,8 @@ module.exports = class Progressive extends Dialer {
                 `originate_timeout=${this.getAgentParam('callTimeout', agent)}`, // TODO
                 'webitel_direction=outbound'
             );
-            return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},transfer:${member.number}' inline`;
+            return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},${apps.join(',')}' inline`;
         }
-
     }
 
     dialMember (member, agent) {

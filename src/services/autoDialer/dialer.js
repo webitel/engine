@@ -386,7 +386,6 @@ module.exports = class Dialer extends EventEmitter2 {
 
         if (dest && dest.uuid) {
             $inc[`stats.resource.${dest.uuid}`] = -1;
-            console.log(`add>> <<<<<<<<${dest.uuid}`);
         }
 
         this._dbDialer.findAndModify(
@@ -811,7 +810,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if(!this.isReady())
             return cb();
         this._dbDialer.findAndModify(
-            {_id: this._objectId, $and: [filterLimit], active: true},
+            {_id: this._objectId, $or: [filterNull, filterLimit], active: true},
             {},
             {$inc},
             {new: false}, //TODO
@@ -825,7 +824,6 @@ module.exports = class Dialer extends EventEmitter2 {
             (dest, callback) => {
                 const res = this.getResourceStat(dest.uuid);
                 if (res && res.active < dest.limit) {
-                    const uuid = res.uuid;
                     this.trySetCallDestination(res.uuid, dest.limit, (err, res) => {
                         if (err)
                             return callback(err);
@@ -834,7 +832,7 @@ module.exports = class Dialer extends EventEmitter2 {
                             callback(null);
                             return;
                         }
-                        console.log(`add>>${uuid}`);
+
                         callback(null, true);
                     });
 
@@ -891,6 +889,7 @@ module.exports = class Dialer extends EventEmitter2 {
                             return callback(null);
 
                         dest = res;
+                        dest._regexp = resource.regexp;
                         callback(null, true)
                     });
                 } else {
