@@ -16,7 +16,7 @@ let generateUuid = require('node-uuid'),
 
 module.exports = class Member extends EventEmitter2 {
 
-    constructor (config, dialer = {}) {
+    constructor (config, currentNumber, destination, dialer = {}) {
         super();
 
         this._id = config._id;
@@ -51,12 +51,15 @@ module.exports = class Member extends EventEmitter2 {
         this.getCausesError = (cause) => dialer._memberErrorCauses.indexOf(cause);
         this.getCausesMinus = (cause) => dialer._memberMinusCauses.indexOf(cause);
 
+        this.getDestination = () => destination;
+        this.getDestinationUuid = () => destination;
         this.channelsCount = 0;
         this._minusProbe = false;
         this.agent = {};
 
         this._log = {
             session: this.sessionId,
+            destinationId: destination.uuid,
             callTime: Date.now(),
             callSuccessful: false,
             callState: 0,
@@ -72,12 +75,6 @@ module.exports = class Member extends EventEmitter2 {
 
         this._waitingForResultStatus = dialer._waitingForResultStatus;
 
-        // if (config._waitingForResultStatus && !config._lastMinusProbe) {
-        //     // minus prev probe (no callback)
-        //     this.log(`No prev call result status`);
-        //     this.currentProbe--;
-        // }
-
         this.endCause = null;
         // this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
@@ -85,110 +82,24 @@ module.exports = class Member extends EventEmitter2 {
         this.setCurrentAttempt(this.currentProbe);
 
         this.number = "";
-        this._currentNumber = null;
         this._countActiveNumbers = 0;
         this._communications = config.communications;
 
-        if (config.communications instanceof Array) {
+        this._currentNumber = currentNumber;
+        this._currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
 
-            let {codes, ranges, allCodes} = dialer.getCommunicationCodes();
+        this.setCurrentNumber(this._currentNumber, config.communications);
 
-            const communicationsMap = config.communications.filter( (i, key) => {
-                if (i.state !== 0)
-                    return false;
+        if (this._currentNumber) {
+            this._currentNumber._probe++;
 
-                const idx = codes.indexOf(i.type);
+            if (this._currentNumber.rangeId)
+                this._currentNumber.rangeAttempts++;
 
-                if (~idx) {
-                    i.isTypeFound = 1;
-                    const rangeProperty = ranges[idx];
-                    if (i.rangeId && i.rangeId === rangeProperty.rangeId) {
-                        if (i.rangeAttempts >= rangeProperty.attempts) {
-                            return false;
-                        }
-                    } else {
-                        i.rangeId = rangeProperty.rangeId;
-                        i.rangeAttempts = 0;
-                    }
-                    i.rangePriority = rangeProperty.priority || 0;
-                    
-                } else if (~allCodes.indexOf(i.type)) {
-                    return false
-                } else {
-                    if (!i.rangeAttempts) i.rangeAttempts = 0;
-                    i.isTypeFound = 0;
-                    i.rangePriority = -1;
-                }
-
-                i._id = key;
-                if (!i._probe)
-                    i._probe = 0;
-
-                if (!i.lastCall)
-                    i.lastCall = 0;
-
-                return true;
-            });
-
-            //TOP DOWN -> sort last call + priority
-            
-            let sort = {};
-            
-            if (dialer.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
-                sort = {
-                    isTypeFound: "desc",
-                    lastCall: "asc",
-                    rangePriority: "desc",
-                    priority: "desc",
-                    _probe: "asc"
-                };
-            } else {
-                sort = {
-                    isTypeFound: "desc",
-                    rangePriority: "desc",
-                    lastCall: "asc",
-                    priority: "desc",
-                    _probe: "asc"
-                };
-            }
-
-            const communications = keySort(communicationsMap, sort);
-
-            // console.log(communicationsMap);
-
-            let currentNumber = communications[0];
-            currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
-
-            if (currentNumber.state !== MEMBER_STATE.Idle) {
-                // end call... ?? Error: must no find
-                console.error(`TODO currentNumber.state !== MEMBER_STATE.Idle`);
-                this.nextTrySec = 5;
-                return;
-            } else if (currentNumber._codeFound === true && !currentNumber.rangeId || currentNumber._skipByAttempt) {
-                // no current range: sleep to next range
-                console.error(`TODO sleep number`);
-                this.nextTrySec = 5;
-                return;
-            }
-
-            this._currentNumber = currentNumber;
-
-           // console.dir(communications, {depth: 10, colors: true});
-
-            this.setCurrentNumber(this._currentNumber, config.communications);
-
-            if (this._currentNumber) {
-                this._currentNumber._probe++;
-
-                if (this._currentNumber.rangeId)
-                    this._currentNumber.rangeAttempts++;
-
-                this.number = (this._currentNumber.number + '').replace(/\D/g, '');
-                this.log(`set number: ${this.number}`);
-            } else {
-                console.log('ERROR', this);
-            }
-
+            this.number = (this._currentNumber.number + '').replace(/\D/g, '');
+            this.log(`set number: ${this.number}`);
+        } else {
+            console.log('ERROR', this);
         }
     }
 
@@ -240,15 +151,15 @@ module.exports = class Member extends EventEmitter2 {
         const $set = {};
         $set[`communications.${communication._id}`] = communication;
 
-        dialerService.members._updateByIdFix(
-            this._id,
-            {$set},
-            (err, res) => {
-                if (err)
-                    log.error(err);
-
-            }
-        );
+        // dialerService.members._updateByIdFix(
+        //     this._id,
+        //     {$set},
+        //     (err, res) => {
+        //         if (err)
+        //             log.error(err);
+        //
+        //     }
+        // );
         
         if (all instanceof Array)
             this._log.callPositionIndex = all.indexOf(communication);

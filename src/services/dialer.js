@@ -111,7 +111,7 @@ let Service = {
      * @param cb
      */
     create: function (caller, option, cb) {
-        checkPermissions(caller, 'dialer', 'd', function (err) {
+        checkPermissions(caller, 'dialer', 'c', function (err) {
             if (err)
                 return cb(err);
 

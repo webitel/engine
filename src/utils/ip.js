@@ -3,7 +3,7 @@
  */
 'use strict';
 
-module.exports = function (req) {
+module.exports = (req) => {
     return req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
         req.socket.remoteAddress ||

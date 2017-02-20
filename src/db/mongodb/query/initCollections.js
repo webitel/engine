@@ -242,6 +242,11 @@ var Indexes = {
 
         }
     ],
+    "collectionDialerAgents": [
+        {
+            "randomPoint" : "2d"
+        }
+    ],
     "collectionAgentStatus": [
         {
             "domain" : 1

@@ -57,9 +57,7 @@ module.exports = class VoiceBroadcast extends Dialer {
         });
 
         this.members.on('removed', (m) => {
-            this.rollback({
-                callSuccessful: m.callSuccessful
-            }, e => {
+            this.rollback(m, m.getDestination(), e => {
                 if (!e)
                     this.huntingMember();
             });
@@ -79,11 +77,12 @@ module.exports = class VoiceBroadcast extends Dialer {
             }
             vars.push(
                 // `origination_uuid=${member.sessionId}`,
+                `dlr_member_id=${member._id.toString()}`,
                 `origination_caller_id_number='${member.getQueueNumber()}'`,
                 `origination_caller_id_name='${member.getQueueName()}'`,
+
                 `origination_callee_id_number='${member.number}'`,
-                `origination_callee_id_name='${member.name}'`,
-                `loopback_bowout_on_execute=true`
+                `origination_callee_id_name='${member.name}'`
             );
             return `originate {${vars}}loopback/${member.number}/default 'set:dlr_member_id=${member._id.toString()},set:dlr_queue=${member.getQueueId()},socket:` + '$${acr_srv}' + `' inline`;
         };
@@ -91,17 +90,32 @@ module.exports = class VoiceBroadcast extends Dialer {
         const handleHangupEvent = (e) => {
             let member = this.members.get(e.getHeader('variable_dlr_member_id'));
             if (member) {
-                console.log(e.getHeader('variable_uuid'));
+                // console.log('minus ', --member.channelsCount);
+                if (member.channelsCount !== 0)
+                    return;
+
+               // console.log(e.getHeader('variable_uuid'));
                 member.channelsCount--;
                 member.end(e.getHeader('variable_hangup_cause'), e);
             }
         };
 
+        const cr = (e) => {
+            let member = this.members.get(e.getHeader('variable_dlr_member_id'));
+            if (member) {
+                member.channelsCount++;
+                //console.log('create ',member.channelsCount);
+            }
+        };
+
         application.Esl.on(`esl::event::CHANNEL_HANGUP_COMPLETE::*`, handleHangupEvent);
+        application.Esl.on(`esl::event::CHANNEL_CREATE::*`, cr);
 
         application.Esl.subscribe(['CHANNEL_HANGUP_COMPLETE']);
+        application.Esl.subscribe(['CHANNEL_CREATE']);
         this.once('end', () => {
             application.Esl.off(`esl::event::CHANNEL_HANGUP_COMPLETE::*`, handleHangupEvent);
+            application.Esl.off(`esl::event::CHANNEL_CREATE::*`, cr);
         });
     }
 
@@ -113,10 +127,12 @@ module.exports = class VoiceBroadcast extends Dialer {
         log.trace(`Call ${ds}`);
 
         application.Esl.bgapi(ds, (res) => {
+            member.log(`fs response ${res.body}`);
+
             if (/^-ERR/.test(res.body)) {
-                member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
+                return member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
             }
-            member.channelsCount++;
+            // member.channelsCount++;
         });
     }
 };

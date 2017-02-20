@@ -88,7 +88,7 @@ function Handler(wss, application) {
                 };
 
                 log.trace('[%s->%s] received: %s', caller && caller.id,
-                    ws.upgradeReq.connection.remoteAddress, message
+                    getIp(ws.upgradeReq), message
                 );
 
                 var msg = JSON.parse(message);

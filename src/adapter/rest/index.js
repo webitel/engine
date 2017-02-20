@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var favicon = require('serve-favicon');
 var path = require('path');
 var conf = require(__appRoot + '/conf');
+const getIp = require(__appRoot + '/utils/ip');
 
 api.use(favicon(__appRoot + '/public/static/favicon.ico'));
 
@@ -26,7 +27,9 @@ morgan.token('colorStatus', (req, res) => {
     return `\x1b[${color}m${status}\x1b[0m`
 });
 
-api.use(morgan('api: [:webitelUser] > [:colorStatus] :remote-addr :method :url :response-time ms :res[content-length] ":user-agent"', {
+morgan.token('realIp', getIp);
+
+api.use(morgan('api: [:webitelUser] > [:colorStatus] :realIp :method :url :response-time ms :res[content-length] ":user-agent"', {
     skip: req => req.method === 'OPTIONS'
 }));
 

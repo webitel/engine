@@ -32,6 +32,7 @@ module.exports = class Dialer extends EventEmitter2 {
         this._instanceId = application._instanceId;
         this._active = 0;
         this._agents = [];
+        this._recources = {};
 
         this.consumerTag = null;
         this.queueName = `engine.dialer.${this._id}`;
@@ -114,7 +115,9 @@ module.exports = class Dialer extends EventEmitter2 {
 
                             } else {
                                 // TODO option strategy X2 = set false
-                                if (false && m._currentNumber.type === communications[i].type) {
+                                // Separate attempts for numbers with the same type
+
+                                if (m._currentNumber.type === communications[i].type) {
                                     $set[`communications.${i}.rangeId`] = m._currentNumber.rangeId;
                                     $set[`communications.${i}.rangeAttempts`] = m._currentNumber.rangeAttempts;
                                 }
@@ -276,11 +279,92 @@ module.exports = class Dialer extends EventEmitter2 {
         this.agentStrategy = config.agentStrategy;
         this.defaultAgentParams = config.agentParams || {};
         if (config.agents instanceof Array)
-            this._agents = config.agents.map( (i)=> `${i}@${this._domain}`);
+            this._agents = config.agents.map((i)=> `${i}@${this._domain}`);
 
         this._variables = config.variables || {};
         this._variables.domain_name = this._domain;
+
+        this.resources = [];
+        if (config.resources instanceof Array) {
+            for (let res of config.resources) {
+                const regexp = strToRegExp(res.dialedNumber);
+                if (regexp)
+                    this.resources.push({
+                        dialedNumber: res.dialedNumber,
+                        regexp: regexp,
+                        destinations: res.destinations
+                    });
+            }
+        }
+
+        this._stats = config.stats || {};
+        if (this._stats.resources) {
+            this._recources = this._stats.resources;
+        }
+        this.updateResources(this.resources);
     }
+
+    updateResources () {
+        for (let resource of this.resources) {
+            if (resource.destinations instanceof Array) {
+                for (let dest of resource.destinations) {
+
+                    if (dest.enabled !== true) continue;
+
+                    let res = this.getResourceStat(dest.uuid);
+                    if (!res) {
+                        dest.active = 0;
+                        dest.gwActive = 0;
+                        dest.regexp = resource.dialedNumber;
+                        this._recources[dest.uuid] = res = dest;
+                    }
+                }
+            }
+        }
+    }
+
+    getResourceStat (uuid) {
+        return this._recources[uuid];
+    }
+
+    getFreeResourceRoutes () {
+        const res = [];
+        for (let key in this._recources) {
+            if (this._recources[key].active < this._recources[key].limit && !~res.indexOf(this._recources[key].regexp))
+                res.push(this._recources[key].regexp)
+        }
+        return res;
+    }
+
+    getResourceRoutes (cb) {
+        const gws = new Map(),
+            $or = [];
+
+
+
+        gws.forEach( (g, name) => {
+            $or.push({
+                name: name
+            })
+        });
+
+        application.DB.collection('gateway').find({$or}).toArray((e, res) => {
+            if (e)
+                return cb(e);
+
+            for (let dbGw of res) {
+                if (gws.has(dbGw.name))
+                    gws.get(dbGw.name).resources.forEach( i => {
+                        this.getResourceStat(i).gwActive = res.stats && res.stats.active
+                    });
+            }
+
+            return cb(null);
+        });
+
+        //return res;
+    }
+
 
     getAgentParam (paramName, agent = {}) {
         if (this.defaultAgentParams[paramName])
@@ -289,13 +373,20 @@ module.exports = class Dialer extends EventEmitter2 {
         return agent[paramName]
     }
 
-    rollback (params = {}, cb) {
+    rollback (member, dest, cb) {
         let $inc = {"stats.active": -1, "stats.callCount": 1};
 
-        if (params.callSuccessful) {
-            $inc["stats.successCall"] = 1;
-        } else {
-            $inc["stats.errorCall"] = 1;
+        if (member) {
+            if (member.callSuccessful) {
+                $inc["stats.successCall"] = 1;
+            } else {
+                $inc["stats.errorCall"] = 1;
+            }
+        }
+
+        if (dest && dest.uuid) {
+            $inc[`stats.resource.${dest.uuid}`] = -1;
+            console.log(`add>> <<<<<<<<${dest.uuid}`);
         }
 
         this._dbDialer.findAndModify(
@@ -512,36 +603,33 @@ module.exports = class Dialer extends EventEmitter2 {
                     this._setConfig(res.value);
                     this._active = res.value.stats.active;
 
-                    this.checkMember( () => {
-                        this.reserveMember((err, member) => {
-                            if (err) {
-                                log.error(err);
-                                return this.rollback();
-                            }
+                    this.reserveMember((err, member, number, destination) => {
+                        if (err) {
+                            log.error(err);
+                        }
 
-                            if (!member || !member.value) {
-                                if (this.members.length() === 0)
-                                    this.tryStop();
-                                this.rollback();
-                                return log.debug (`Not found members in ${this.nameDialer}`);
-                            }
+                        if (!member) {
+                            if (this.members.length() === 0)
+                                this.tryStop();
+                            this.rollback();
+                            return log.debug (`Not found available members in ${this.nameDialer}`);
+                        }
 
-                            if (!this.isReady()) {
-                                this.rollback();
-                                return this.unReserveMember(member.value._id, (err) => {
-                                    if (err)
-                                        return log.error(err);
-                                });
-                            }
-                            // this.unReserveMember(member.value._id, (err) => {
-                            //     if (err)
-                            //         return log.error(err);
-                            // });
-                            // return this.rollback({}, () => this.huntingMember());
+                        if (!this.isReady() || !destination || !number) {
+                            this.rollback(null, destination);
+                            return this.unReserveMember(member._id, (err) => {
+                                if (err)
+                                    return log.error(err);
+                            });
+                        }
+                        // this.unReserveMember(member.value._id, (err) => {
+                        //     if (err)
+                        //         return log.error(err);
+                        // });
+                        // return this.rollback({}, () => this.huntingMember());
 
-                            let m = new Member(member.value, this);
-                            this.members.add(m._id, m);
-                        });
+                        let m = new Member(member, number, destination, this);
+                        this.members.add(m._id, m);
                     });
 
 
@@ -647,28 +735,265 @@ module.exports = class Dialer extends EventEmitter2 {
             ]
     }
 
+    getMemberNumber (member, codes, ranges, allCodes) {
+        if (member.communications instanceof Array) {
+
+            const communicationsMap = member.communications.filter((i, key) => {
+                if (i.state !== 0)
+                    return false;
+
+                const idx = codes.indexOf(i.type);
+
+                if (~idx) {
+                    i.isTypeFound = 1;
+                    const rangeProperty = ranges[idx];
+                    if (i.rangeId && i.rangeId === rangeProperty.rangeId) {
+                        if (i.rangeAttempts >= rangeProperty.attempts) {
+                            return false;
+                        }
+                    } else {
+                        i.rangeId = rangeProperty.rangeId;
+                        i.rangeAttempts = 0;
+                    }
+                    i.rangePriority = rangeProperty.priority || 0;
+
+                } else if (~allCodes.indexOf(i.type)) {
+                    return false
+                } else {
+                    if (!i.rangeAttempts) i.rangeAttempts = 0;
+                    i.isTypeFound = 0;
+                    i.rangePriority = -1;
+                }
+
+                i._id = key;
+                if (!i._probe)
+                    i._probe = 0;
+
+                if (!i.lastCall)
+                    i.lastCall = 0;
+
+                return true;
+            });
+
+            let sort = {};
+
+            if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
+                sort = {
+                    isTypeFound: "desc", //-
+                    lastCall: "asc",
+                    rangePriority: "desc",
+                    priority: "desc",
+                    _probe: "asc"
+                };
+            } else {
+                sort = {
+                    isTypeFound: "desc", //-
+                    rangePriority: "desc",
+                    lastCall: "asc",
+                    priority: "desc",
+                    _probe: "asc"
+                };
+            }
+
+            return keySort(communicationsMap, sort)[0]
+        }
+    }
+
+    trySetCallDestination (uuid, limit, cb) {
+        const filterNull = {};
+        filterNull[`stats.resource.${uuid}`] = null;
+        const filterLimit = {};
+        filterLimit[`stats.resource.${uuid}`] = {$lt: limit};
+
+        const $inc = {};
+        $inc[`stats.resource.${uuid}`] = 1;
+
+        if(!this.isReady())
+            return cb();
+        this._dbDialer.findAndModify(
+            {_id: this._objectId, $and: [filterLimit], active: true},
+            {},
+            {$inc},
+            {new: false}, //TODO
+            cb
+        )
+    }
+
+    detectNumberInDestinations (destinations, cb) {
+        async.detectSeries(
+            destinations,
+            (dest, callback) => {
+                const res = this.getResourceStat(dest.uuid);
+                if (res && res.active < dest.limit) {
+                    const uuid = res.uuid;
+                    this.trySetCallDestination(res.uuid, dest.limit, (err, res) => {
+                        if (err)
+                            return callback(err);
+
+                        if (!res || !res.value) {
+                            callback(null);
+                            return;
+                        }
+                        console.log(`add>>${uuid}`);
+                        callback(null, true);
+                    });
+
+                    /* TODO check Max call in gw ?
+                    if (dest.gwProto === 'sip') {
+                        application.DB.collection('gateway').findOne({name: dest.gwName}, (err, gw) => {
+                            if (err)
+                                return callback(err);
+
+
+                        });
+                        this.trySetCallDestination(res.uuid, dest.limit, (err, res) => {
+                            if (err)
+                                return callback(err);
+
+                            if (!res.value)
+                                return callback();
+
+                            return callback(null, dest);
+                        });
+
+                    } else {
+                        this.trySetCallDestination(res.uuid, dest.limit, (err, res) => {
+                            if (err)
+                                return callback(err);
+
+                            if (!res.value)
+                                return callback();
+
+                            return callback(null, dest);
+                        });
+                    }
+                    */
+
+                } else {
+                    callback(null)
+                }
+            },
+            cb
+        )
+    }
+
+    detectNumberInRoutes (numberConfig = {}, cb) {
+        let dest = null; //todo;
+        async.detectSeries(
+            this.resources,
+            (resource, callback) => {
+                if (resource.regexp.test(numberConfig.number)) {
+                    this.detectNumberInDestinations(resource.destinations, (err, res) => {
+                        if (err)
+                            return callback(err);
+
+                        if (!res)
+                            return callback(null);
+
+                        dest = res;
+                        callback(null, true)
+                    });
+                } else {
+                    callback(null)
+                }
+            },
+            (err, res) => {
+                return cb(err, dest);
+            }
+        );
+    }
+
     reserveMember (cb) {
+
+        const regexp = this.getFreeResourceRoutes();
+        if (regexp.length === 0)
+            return cb(null, null);
+
         const $set = {
             _lock: this._instanceId
         };
 
         if (this._waitingForResultStatus) {
-            $set._waitingForResultStatus = Date.now() + (this._wrapUpTime * 1000);
+            $set._waitingForResultStatus = Date.now() + (this._wrapUpTime * 1000); //ERROR
             $set._waitingForResultStatusCb = 1;
             $set._maxTryCount = this._maxTryCount;
         }
 
-        // console.dir(this.getFilterAvailableMembers(), {depth: 10, colors: true});
+        //console.dir(this.getFilterAvailableMembers(), {depth: 10, colors: true});
+
+        let {codes, ranges, allCodes} = this.getCommunicationCodes();
+
+        const filter = this.getFilterAvailableMembers();
+
+
+        if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
+            filter['$where'] = `function () {
+        
+                var homes = fnFilterDialerCommunications(
+                    this.communications, ${JSON.stringify(codes)},
+                    ${JSON.stringify(ranges)},
+                    ${JSON.stringify(allCodes)}
+                );
+                var a = fnKeySort(homes, {
+                    isTypeFound: "desc",
+                    lastCall: "asc",
+                    rangePriority: "desc",
+                    priority: "desc",
+                    _probe: "asc"
+                })[0];
+        
+                printjson(a);
+                return true
+            }`;
+        } else {
+            filter['$where'] = `function () {
+        
+                var homes = fnFilterDialerCommunications(
+                    this.communications, ${JSON.stringify(codes)},
+                    ${JSON.stringify(ranges)},
+                    ${JSON.stringify(allCodes)}
+                );
+                var a = fnKeySort(homes, {
+                    isTypeFound: "desc",
+                    rangePriority: "desc",
+                    lastCall: "asc",
+                    priority: "desc",
+                    _probe: "asc"
+                })[0];
+        
+                printjson(a);
+                return true
+            }`;
+        }
+
+        // console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
-            this.getFilterAvailableMembers(),
+            filter,
             {
                 $set,
                 $inc: {_probeCount: 1},
                 $currentDate: {lastModified: true}
             },
             {sort: this.getSortAvailableMembers()},
-            cb
+            (err, res) => {
+                if (err)
+                    return cb(err);
+
+                if (!res && !res.value)
+                    return cb(null, null);
+
+                const number = this.getMemberNumber(res.value, codes, ranges, allCodes);
+                if (!number)
+                    return cb(null, res.value);
+
+                this.detectNumberInRoutes(number, (err, destination) => {
+                    if (err)
+                        return cb(err);
+
+                    return cb(null, res.value, number, destination);
+                });
+            }
         );
     }
 
@@ -909,3 +1234,61 @@ module.exports = class Dialer extends EventEmitter2 {
         });
     }
 };
+
+
+
+
+const keySort = function(arr = [], keys) {
+
+    keys = keys || {};
+
+    const sortFn = function(a, b) {
+        let sorted = 0, ix = 0;
+
+        while (sorted === 0 && ix < KL) {
+            let k = obIx(keys, ix);
+            if (k) {
+                let dir = keys[k];
+                sorted = _keySort(a[k], b[k], dir);
+                ix++;
+            }
+        }
+        return sorted;
+    };
+
+    const obIx = function(obj, ix){
+        return Object.keys(obj)[ix];
+    };
+
+    const _keySort = function(a, b, d) {
+        d = d !== null ? d : 1;
+        // a = a.toLowerCase(); // this breaks numbers
+        // b = b.toLowerCase();
+        if (a == b)
+            return 0;
+        return a > b ? 1 * d : -1 * d;
+    };
+
+    const KL = Object.keys(keys).length;
+
+    if (!KL)
+        return arr.sort(sortFn);
+
+    for ( let k in keys) {
+        // asc unless desc or skip
+        keys[k] =
+            keys[k] == 'desc' || keys[k] == -1  ? -1
+                : (keys[k] == 'skip' || keys[k] === 0 ? 0
+                : 1);
+    }
+    arr = arr.sort(sortFn);
+    return arr;
+};
+
+function strToRegExp(str = "") {
+    try {
+        return new RegExp(str);
+    } catch (e) {
+        return null;
+    }
+}

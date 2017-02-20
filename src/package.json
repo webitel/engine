@@ -11,7 +11,7 @@
   "dependencies": {
     "acl": "^0.4.8",
     "amqplib": "^0.4.1",
-    "async": "^1.4.0",
+    "async": "^2.1.4",
     "body-parser": "^1.15.2",
     "crypto": "0.0.3",
     "eventemitter2": "^1.0.3",

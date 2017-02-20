@@ -12,7 +12,7 @@
         }
     },
     "mongodb": {
-        "uri": "mongodb://10.10.10.8:27017,10.10.10.202:27017,pre.webitel.com:27017/webitel?replicaSet=webitel",
+        "uri": "mongodb://172.17.0.1:27017/webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",

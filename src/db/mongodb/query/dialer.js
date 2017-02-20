@@ -5,13 +5,15 @@
 'use strict';
 
 
-var conf = require(__appRoot + '/conf'),
+const conf = require(__appRoot + '/conf'),
     CodeError = require(__appRoot + '/lib/error'),
+    Mongo = require("mongodb"),
+    ObjectID = Mongo.ObjectID,
+    generateUuid = require('node-uuid'),
     dialerCollectionName = conf.get('mongodb:collectionDialer'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
-    ObjectID = require('mongodb').ObjectID,
     utils = require('./utils')
     ;
 
@@ -20,6 +22,105 @@ module.exports = {
 };
 
 function addQuery (db) {
+
+    const fnFilterDialerCommunications = `function(communications, codes, ranges, allCodes) {
+        return communications.filter( (i, key) => {
+                    if (i.state !== 0)
+                        return false;
+                    print(codes[0]);
+                    var idx = codes.indexOf(i.type);
+    
+                    if (~idx) {
+                        i.isTypeFound = 1;
+                        var rangeProperty = ranges[idx];
+                        if (i.rangeId && i.rangeId === rangeProperty.rangeId) {
+                            if (i.rangeAttempts >= rangeProperty.attempts) {
+                                return false;
+                            }
+                        } else {
+                            i.rangeId = rangeProperty.rangeId;
+                            i.rangeAttempts = 0;
+                        }
+                        i.rangePriority = rangeProperty.priority || 0;
+                        
+                    } else if (~allCodes.indexOf(i.type)) {
+                        return false
+                    } else {
+                        if (!i.rangeAttempts) i.rangeAttempts = 0;
+                        i.isTypeFound = 0;
+                        i.rangePriority = -1;
+                    }
+                    
+                    if (!i.lastCall)
+                        i.lastCall = 0;
+    
+                    return true;
+                })
+    }`;
+
+    const fnKeySort = `function(arr, keys) {
+
+        keys = keys || {};
+    
+        var sortFn = function(a, b) {
+            var sorted = 0, ix = 0;
+    
+            while (sorted === 0 && ix < KL) {
+                var k = obIx(keys, ix);
+                if (k) {
+                    var dir = keys[k];
+                    sorted = _keySort(a[k], b[k], dir);
+                    ix++;
+                }
+            }
+            return sorted;
+        };
+    
+        var obIx = function(obj, ix){
+            return Object.keys(obj)[ix];
+        };
+    
+        var _keySort = function(a, b, d) {
+            d = d !== null ? d : 1;
+            // a = a.toLowerCase(); // this breaks numbers
+            // b = b.toLowerCase();
+            if (a == b)
+                return 0;
+            return a > b ? 1 * d : -1 * d;
+        };
+    
+        var KL = Object.keys(keys).length;
+    
+        if (!KL)
+            return arr.sort(sortFn);
+    
+        for ( var k in keys) {
+            // asc unless desc or skip
+            keys[k] =
+                keys[k] == 'desc' || keys[k] == -1  ? -1
+                    : (keys[k] == 'skip' || keys[k] === 0 ? 0
+                    : 1);
+        }
+        arr = arr.sort(sortFn);
+        return arr;
+    };`;
+
+    db.collection("system.js")
+        .update({_id: "fnFilterDialerCommunications"}, {$set: {
+            value: new Mongo.Code(fnFilterDialerCommunications)
+        }}, {upsert: true}, e => {
+            if (e)
+                throw e;
+        });
+
+    db.collection("system.js")
+        .update({_id: "fnKeySort"}, {$set: {
+            value: new Mongo.Code(fnKeySort)
+        }}, {upsert: true}, e => {
+            if (e)
+                throw e;
+        });
+
     return {
         //TODO del collection
         _dialerCollection: db.collection(dialerCollectionName),
@@ -46,23 +147,23 @@ function addQuery (db) {
                 .removeOne({_id: new ObjectID(_id), domain: domainName}, cb);
         },
 
-        create: function (doc, cb) {
-
+        create: function (doc = {}, cb) {
+            setDefUuidDestination(doc.resources);
             return db
                 .collection(dialerCollectionName)
                 .insert(doc, cb);
         },
         
-        update: function (_id, domainName, doc, cb) {
+        update: function (_id, domainName, doc = {}, cb) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
 
             let data = {
                 $set: {}
             };
-
+            setDefUuidDestination(doc.resources);
             for (let key in doc) {
-                if (doc.hasOwnProperty(key) && key != '_id' && key != 'domain') {
+                if (doc.hasOwnProperty(key) && key != '_id' && key != 'domain' && key !== 'stats') {
                     data.$set[key] = doc[key];
                 }
             };
@@ -358,6 +459,19 @@ function addQuery (db) {
             return db
                 .collection(agentsCollectionName)
                 .findAndModify(filter, sort, update, {new: true, multi: true}, cb)
+        }
+    }
+}
+
+function setDefUuidDestination(resources) {
+    if (resources instanceof Array) {
+        for (let res of resources) {
+            if (res.destinations instanceof Array) {
+                for (let dest of res.destinations) {
+                    if (!dest.uuid)
+                        dest.uuid = generateUuid.v4();
+                }
+            }
         }
     }
 }
