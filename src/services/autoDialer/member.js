@@ -5,13 +5,11 @@
 'use strict';
 
 
-let generateUuid = require('node-uuid'),
+const generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     MEMBER_STATE = require('./const').MEMBER_STATE,
-    END_CAUSE = require('./const').END_CAUSE,
-    NUMBER_STRATEGY = require('./const').NUMBER_STRATEGY,
-    dialerService = require(__appRoot + '/services/dialer')
+    END_CAUSE = require('./const').END_CAUSE
     ;
 
 module.exports = class Member extends EventEmitter2 {
@@ -55,13 +53,14 @@ module.exports = class Member extends EventEmitter2 {
         this.getDestinationUuid = () => destination;
         this.channelsCount = 0;
         this._minusProbe = false;
-        this.agent = {};
+        this.agent = null;
 
         this._log = {
             session: this.sessionId,
             destinationId: destination.uuid,
             callTime: Date.now(),
             callSuccessful: false,
+            bridgedTime: null,
             callState: 0,
             callPriority: 0,
             callNumber: null, //+
@@ -121,6 +120,22 @@ module.exports = class Member extends EventEmitter2 {
             }
         }
         return null;
+    }
+
+    setBridgedTime () {
+        this._log.bridgedTime = Date.now()
+    }
+
+    getBridgedTime () {
+        return this._log.bridgedTime
+    }
+
+    startCall () {
+        this._log.callTime = Date.now()
+    }
+
+    getCallTime () {
+        return this._log.callTime;
     }
 
     setAgent (agent = {}) {

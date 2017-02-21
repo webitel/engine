@@ -273,6 +273,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
             this._amd._string = amdParams.join(' ');
         }
+        this._broadcastPlaybackUri = config.playbackFile && config.playbackFile.uri;
 
         this.numberStrategy = config.numberStrategy || NUMBER_STRATEGY.BY_PRIORITY; // byPriority
 
@@ -401,6 +402,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     log.error(e);
                 if (r.lastErrorObject.n !== 1 || r.lastErrorObject.updatedExisting !== true)
                     throw r;
+                this._active--;
                 return cb && cb(e)
             }
         );
@@ -621,11 +623,6 @@ module.exports = class Dialer extends EventEmitter2 {
                                     return log.error(err);
                             });
                         }
-                        // this.unReserveMember(member.value._id, (err) => {
-                        //     if (err)
-                        //         return log.error(err);
-                        // });
-                        // return this.rollback({}, () => this.huntingMember());
 
                         let m = new Member(member, number, destination, this);
                         this.members.add(m._id, m);

@@ -2,15 +2,13 @@
  * Created by igor on 31.05.16.
  */
 
-// TODO ...
-
-let Dialer = require('./dialer'),
+const Dialer = require('./dialer'),
+    generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
-    Gw = require('./gw'),
-    Member = require('./member'),
-    Router = require('./router'),
     async = require('async'),
-    DIALER_TYPES = require('./const').DIALER_TYPES;
+    DIALER_TYPES = require('./const').DIALER_TYPES,
+    AGENT_STATUS = require('./const').AGENT_STATUS,
+    END_CAUSE = require('./const').END_CAUSE;
 
 module.exports = class Predictive extends Dialer {
     constructor (config, calendarConf, dialerManager) {
@@ -18,155 +16,128 @@ module.exports = class Predictive extends Dialer {
 
         this._am = config.agentManager;
 
-        this._gw = new Gw({}, null, this._variables);
-        this._router = new Router(config.resources, this._variables);
-        this._agentReserveCallback = [];
-        this._agents = [];
-
-
-        this._gotCallCount = 0;
-        this._badCallCount = 0;
-        this._allCallCount = 0;
-        this._activeCallCount = 0;
-        this._skipAgents = [];
-        this._minPredictWaitingAgents = 0;
-
-        this._broadcastPlaybackUri = config.playbackFile && config.playbackFile.uri;
-
-        this._queueCall = [];
-
-        this._predictAdjust = 150; // Determines how aggressively to dial. The minimum value is 0, which disables over-dialing; the maximum is 1000; the default is 150
-
-
-        if (config.agents instanceof Array)
-            this._agents = [].concat(config.agents); //.map( (i)=> `${i}@${this._domain}`);
-
-
-
-        if (this._limit > this._agents.length && this._skills.length === 0  )
-            this._limit = this._agents.length;
-
-        // start with available count
-        if (this._limit > this._router._limit && this._router._limit > 0) {
-            log.warn(`skip dialer limit, max resources ${this._router._limit}`);
-            this._limit = this._router._limit;
-        }
-
         application.Esl.subscribe([ 'CHANNEL_HANGUP_COMPLETE', 'CHANNEL_PARK']);
 
-        //
-        // for (let i = 99950; i <= 99999; i++) {
-        //     application.Esl.bgapi(`callcenter_config agent set status ${i}@10.10.10.144 Available`);
-        //     application.Esl.bgapi(`callcenter_config agent set state ${i}@10.10.10.144 Waiting`);
-        // }
+        this.members.on('added', (member) => {
+            if (member.checkExpire()) {
+                member.endCause = END_CAUSE.MEMBER_EXPIRED;
+                member.end(END_CAUSE.MEMBER_EXPIRED);
+            } else {
+                this.dialMember(member)
+            }
 
-        let dial = (member, cb) => {
-            let ds = member._ds;
+            engine();
+        });
 
-            let onChannelAnswer = (e) => {
+        this.members.on('removed', (m) => {
+            this.rollback(m, m.getDestination(), e => {
+                if (!e)
+                    engine();
+            });
+        });
 
-                if (this._amd.enabled === true) {
-                    let amdResult = e.getHeader('variable_amd_result');
-                    member.log(`amd_result=${amdResult}`);
-                    if (amdResult !== 'HUMAN') {
-                        application.Esl.bgapi(`uuid_kill ${member.sessionId} USER_BUSY`);
-                        return;
+        this.on('availableAgent', a => {
+            this.huntingMember();
+        });
+
+        const engine = () => {
+            async.parallel(
+                {
+                    agents: (cb) => {
+                        dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, this._skills, cb);
+                    },
+                    members: (cb) => {
+                        this.countAvailableMembers(this._limit, cb);
+                    }
+                },
+                (err, res) => {
+                    if (err)
+                        return log.error(err);
+
+                    if (this._active < this._limit /*&& res.agents > 0*/ && res.members > 0) {
+                        this.huntingMember();
+                    } else if (this.members.length() === 0) {
+                        this.tryStop();
                     }
                 }
-
-                if (this._broadcastPlaybackUri)
-                    application.Esl.bgapi(`uuid_broadcast ${member.sessionId} playback::${this._broadcastPlaybackUri} aleg`);
-
-                member.log(`answer`);
-                let agent = this._am.getFreeAgent(this._agents, this.agentStrategy);
-                if (agent) {
-                    this._am.reserveAgent(agent, () => {
-                        member._agent = agent;
-                        member.log(`set agent: ${agent.id}`); //intercept_unbridged_only=true
-
-                        let agentVars = [
-                            `origination_callee_id_number='${agent.id}'`,
-                            `origination_callee_id_name='${agent.id}'`,
-                            `origination_caller_id_number='${member.number}'`,
-                            `origination_caller_id_name='${member.name}'`,
-                            `destination_number='${member.number}'`,
-                            `effective_caller_id_number='${agent.number}'`,
-                            `effective_callee_id_number='${member.number}'`
-                        ];
-                        application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.id}`);
-
-                        application.Esl.bgapi(`originate {${agentVars}}user/${agent.id} &eval('` + '${uuid_bridge(' + member.sessionId + ' ${uuid}' +  `)}')`, (res) => {
-                            member.log(res.body);
-                            if (/^-ERR/.test(res.body)) {
-                                this._badCallCount++;
-                                application.Esl.bgapi(`uuid_kill ${member.sessionId} CHAN_NOT_IMPLEMENTED`);
-                                member.end('BAD', e);
-                                return;
-                            }
-                            this._gotCallCount++;
-                        });
-                    });
-
-                } else {
-                    member.log(`no found agent`);
-                    this._badCallCount++;
-                    console.log('--------------------------- NO AGENTS ---------------------------');
-                    application.Esl.bgapi(`uuid_kill ${member.sessionId}`);
-                    member.end('BAD', e);
-                }
-
-            };
-
-            let _destroySession = false;
-
-            let destroySession = () => {
-                if (!_destroySession) {
-                    _destroySession = true;
-                    member.log(`minus line`);
-                    member.channelsCount--;
-                    this._activeCallCount--;
-                    application.Esl.off(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelAnswer);
-                    application.Esl.off(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelDestroy);
-                }
-            };
-
-            let onChannelDestroy = (e) => {
-                destroySession();
-                if (e.getHeader('variable_hangup_cause') != 'NORMAL_CLEARING') {
-                    this._gotCallCount--;
-                }
-                this.addMemberCallbackQueue(member, e, member._agent && member._agent.wrapUpTime);
-                cb();
-            };
-
-            application.Esl.once(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelAnswer);
-            application.Esl.once(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelDestroy);
-
-            this._activeCallCount++;
-            member.log(`plus line`);
-            console.log(`dial count: ${this._activeCallCount}`);
-            this._callRequestCount++;
-            this._allCallCount++;
-            member.channelsCount++;
-            application.Esl.bgapi(ds, (res) => {
-                this._callRequestCount--;
-                member.log(res.body);
-                if (/^-ERR/.test(res.body)) {
-                    let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
-                    destroySession();
-                    member.end(error);
-                } else if (/^-USAGE/.test(res.body)) {
-                    this._activeCallCount--;
-                    destroySession();
-                    member.end('DESTINATION_OUT_OF_ORDER');
-                }
-            });
+            );
         };
 
-        this.__dial = dial;
+        this.on('ready', () => {
+            engine();
+        });
 
-        this._callRequestCount = 0;
-        this.__dumpLastRecalc = 10;
+        this.on('wakeUp', () => {
+            engine()
+        });
+
+        this.getDialString = (member) => {
+            let vars = [
+                `origination_uuid=${member.sessionId}`,
+                `dlr_member_id=${member._id.toString()}`,
+                `dlr_id=${member.getQueueId()}`,
+                `presence_data='${member.getDomain()}'`,
+                `cc_queue='${member.getQueueName()}'`
+            ];
+
+            for (let key in this._variables) {
+                if (this._variables.hasOwnProperty(key)) {
+                    vars.push(`${key}='${this._variables[key]}'`);
+                }
+            }
+
+            if (member._currentNumber && member._currentNumber.description) {
+                vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
+            }
+
+            for (let key of member.getVariableKeys()) {
+                vars.push(`${key}='${member.getVariable(key)}'`);
+            }
+
+            const dest = member.getDestination();
+
+            const apps = [];
+            if (this._recordSession) {
+                vars.push(
+                    `RECORD_MIN_SEC=2`,
+                    `RECORD_STEREO=true`,
+                    `RECORD_BRIDGE_REQ=false`,
+                    `recording_follow_transfer=true`
+                );
+
+                let sessionUri = 'http_cache://$${cdr_url}' +
+                    encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${member.sessionId}&type=mp3&email=none&name=recordSession&.mp3`);
+
+                apps.push(`record_session:${sessionUri}`)
+            }
+
+            const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
+            const dialString = member.number.replace(dest._regexp, gw);
+
+            vars.push(
+                `origination_callee_id_number='${member.number}'`,
+                `origination_callee_id_name='${member.name}'`,
+
+                `origination_caller_id_number='${dest.callerIdNumber}'`,
+                `origination_caller_id_name='${member.getQueueName()}'`,
+
+                `destination_number='${member.number}'`,
+
+                `originate_timeout=${this._originateTimeout}`,
+                'webitel_direction=outbound'
+            );
+
+            if (this._amd && this._amd.enabled) {
+                apps.push(`amd:${this._amd._string}`);
+
+            }
+
+            vars.push('ignore_early_media=true'); //TODO move config
+
+            apps.push(`park:`);
+
+            return `originate {${vars}}${dialString} '${apps.join(',')}' inline`;
+        }
     }
 
     calcLimit (agent) {
@@ -234,50 +205,203 @@ module.exports = class Predictive extends Dialer {
 
     dialMember (member) {
         log.trace(`try call ${member.sessionId}`);
+        const ds = this.getDialString(member);
+        member.log(`dialString: ${ds}`);
+        log.trace(`Call ${ds}`);
 
-        let gw = this._router.getDialStringFromMember(member);
+        application.Esl.bgapi(ds, (res) => {
+            log.trace(`fs response: ${res && res.body}`);
+            member.channelsCount++;
 
-        if (gw.found) {
-            if (gw.dialString) {
-                let ds = gw.dialString(null, null, true, null, this);
-                member._ds = ds;
-                member.log(`dialString: ${ds}`);
-                log.trace(`Call ${ds}`);
+            if (/^-ERR|^-USAGE/.test(res.body)) {
+                let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
 
-                member.once('end', () => {
-                    this._router.freeGateway(gw);
-                    if (member._agent) {
-                        let id = this._skipAgents.indexOf(member._agent);
-                        if (~id) {
-                            this._skipAgents.slice(id, 1);
+                member.minusProbe();
+                member.nextTrySec = 1;
+                member.end();
+            }
+        });
+
+        const joinAgent = () => {
+            if (member.getBridgedTime() + (1000 * 10) <= Date.now() ) { //todo move conf 10 sec found
+                application.Esl.bgapi(`uuid_kill ${member.sessionId} CHAN_NOT_IMPLEMENTED`); // todo add conf hangup cause
+                return;
+            }
+
+            this._am.huntingAgent(this._objectId, this._agents, this._skills, this.agentStrategy, (err, agent) => {
+                if (err)
+                    throw err;
+
+                if (!agent) {
+                    member.log(`no found agent, try now`);
+
+                    member._predTimer = setTimeout(() => {
+                        joinAgent();
+                    }, 500); // TODO add config
+                    return;
+                }
+
+                member.setAgent(agent);
+
+                member._predAgentOriginateUuid = generateUuid.v4();
+
+                let agentVars = [
+                    `origination_uuid=${member._predAgentOriginateUuid}`,
+                    `origination_callee_id_number='${agent.agentId}'`,
+                    `origination_callee_id_name='${agent.agentId}'`,
+                    `origination_caller_id_number='${member.number}'`,
+                    `origination_caller_id_name='${member.name}'`,
+                    `destination_number='${member.number}'`,
+                    `effective_caller_id_number='${agent.agentId}'`,
+                    `effective_callee_id_number='${member.number}'`
+                ];
+                application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
+
+                const start = Date.now();
+                application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} &eval('` + '${uuid_bridge(' + member.sessionId + ' ${uuid}' +  `)}')`, (res) => {
+                    member.log(`agent fs res -> ${res.body}`);
+                    member._predAgentOriginateUuid = null;
+                    if (member.processEnd)
+                        return;
+                    const date = Date.now();
+
+                    if (/^-ERR|^-USAGE/.test(res.body)) {
+                        let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
+                        member.log(`agent error: ${error}`);
+
+                        if (error === 'NO_ANSWER') {
+                            if (this.getAgentParam('maxNoAnswer', agent) <= (this.getAgentParam('noAnswerCount', agent) + 1)) {
+                                return this._am.setNoAnswerAgent(agent, e => {
+                                    if (e)
+                                        log.error(e);
+
+                                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                                        call: true,
+                                        gotCall: false,
+                                        clearNoAnswer: true,
+                                        setAvailableTime: null,
+                                        connectedTimeSec: timeToSec(date, start),
+                                        lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
+                                        process: null
+                                    }, (e, res) => {
+                                        if (e)
+                                            return log.error(e);
+                                    });
+                                });
+                            }
+
+                            this._am.setAgentStats(agent.agentId, this._objectId, {
+                                call: true,
+                                gotCall: false,
+                                noAnswer: true,
+                                connectedTimeSec: timeToSec(date, start),
+                                lastStatus: `NO_ANSWER -> ${member._id}`,
+                                setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
+                                process: "checkState"
+                            }, (e, res) => {
+                                if (e)
+                                    return log.error(e);
+                            });
+                        } else {
+                            this._am.setAgentStats(agent.agentId, this._objectId, {
+                                call: true,
+                                gotCall: false,
+                                connectedTimeSec: timeToSec(date, start),
+                                lastStatus: `REJECT -> ${member._id} -> ${error}`,
+                                setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
+                                process: "checkState"
+                            }, (e, res) => {
+                                if (e)
+                                    return log.error(e);
+                            });
                         }
-                        this._am.taskUnReserveAgent(member._agent, 10);
 
+                        joinAgent();
+                    } else {
+                        this._am.setAgentStats(agent.agentId, this._objectId, {
+                            lastBridgeCallTimeStart: date,
+                            connectedTimeSec: timeToSec(date, start),
+                            lastStatus: `active -> ${member._id}`
+                        }, (e, res) => {
+                            if (e)
+                                return log.error(e);
+
+                            if (res && res.value) {
+                                //member._agent = res.value
+                                //TODO
+                            }
+                        });
                     }
                 });
 
-                this._queueCall.push(member);
-                if (this._queueCall.length === 1) {
-                    this.calcLimit();
+            });
+        };
+
+        const  onChannelPark = (e) => {
+            if (this._amd.enabled === true) {
+                let amdResult = e.getHeader('variable_amd_result');
+                member.log(`amd_result=${amdResult}`);
+                if (amdResult !== 'HUMAN') {
+                    application.Esl.bgapi(`uuid_kill ${member.sessionId} USER_BUSY`);
+                    return;
                 }
-
-            } else {
-                member.minusProbe();
-                this.nextTrySec = 0;
-                member.end();
             }
-        } else {
-            member.end(gw.cause);
-        }
 
-    }
+            if (this._broadcastPlaybackUri) {
+                log.trace(`broadcast ${member.sessionId} playback::${this._broadcastPlaybackUri} aleg`);
+                application.Esl.bgapi(`uuid_broadcast ${member.sessionId} playback::${this._broadcastPlaybackUri} aleg`);
+            }
 
-    setAgent (agent) {
-        if (~this._skipAgents.indexOf(agent) || !this.isReady())
-                return false;
+            member.setBridgedTime();
+            member.log(`answer`);
 
-        this.calcLimit();
-        return true;
+            joinAgent();
+        };
+
+        const onChannelHangup = (e) => {
+            if (member._predTimer) {
+                clearTimeout(member._predTimer);
+            }
+
+            if (member._predAgentOriginateUuid) {
+                application.Esl.bgapi(`uuid_kill ${member._predAgentOriginateUuid} ORIGINATOR_CANCEL`);
+            }
+
+            const agent = member.getAgent();
+            if (!agent)
+                return;
+            member.log(`set agent ${agent.agentId} check status`);
+            this._am.setAgentStats(agent.agentId, this._objectId, {
+                call: true,
+                gotCall: true, //TODO
+                clearNoAnswer: true,
+                lastBridgeCallTimeEnd: Date.now(),
+                callTimeSec: +e.getHeader('variable_billsec') || 0,
+                lastStatus: `end -> ${member._id}`,
+                setAvailableTime:
+                    agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
+                process: null
+            }, (e, res) => {
+                if (e)
+                    return log.error(e);
+            });
+
+            member.end(e.getHeader('variable_hangup_cause'), e);
+        };
+
+        member.once('end', (m) => {
+            application.Esl.off(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelPark);
+            application.Esl.off(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelHangup);
+        });
+
+        application.Esl.once(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelPark);
+        application.Esl.once(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelHangup);
+
     }
 
 };
+
+
+function timeToSec(current, start) {
+    return Math.round( (current - start) / 1000 )
+}

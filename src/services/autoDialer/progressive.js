@@ -19,19 +19,18 @@ module.exports = class Progressive extends Dialer {
             if (member.checkExpire()) {
                 member.endCause = END_CAUSE.MEMBER_EXPIRED;
                 member.end(END_CAUSE.MEMBER_EXPIRED);
-                return;
+            } else {
+                dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, (err, agent) => {
+                    if (err)
+                        throw err;
+
+                    if (agent) {
+                        this.dialMember(member, agent);
+                    } else {
+                        member.end(); //TODO
+                    }
+                });
             }
-
-            dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, (err, agent) => {
-                if (err)
-                    throw err;
-
-                if (agent) {
-                    this.dialMember(member, agent);
-                } else {
-                    member.end(); //TODO
-                }
-            });
 
             engine();
         });
