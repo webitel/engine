@@ -36,7 +36,7 @@ module.exports = class Progressive extends Dialer {
         });
 
         this.members.on('removed', (m) => {
-            this.rollback(m, m.getDestination(), e => {
+            this.rollback(m, m.getDestination(), null, e => {
                 if (!e)
                     engine();
             });

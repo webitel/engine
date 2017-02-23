@@ -155,6 +155,23 @@ class AgentManager extends EventEmitter2 {
         application.DB._query.dialer._getAgentCount(getAvailableAgentFilter(dialerId, agents, skills), cb);
     }
 
+    getAllLoggedAgent (dialerId, agents, skills, cb) {
+        application.DB._query.dialer._getAgentCount({
+            status: {
+                $ne: AGENT_STATUS.LoggedOut
+            },
+            dialer: {$elemMatch: {_id: dialerId}},
+            $or: [
+                {
+                    agentId: {$in: agents}
+                },
+                {
+                    skills: {$in: skills}
+                }
+            ]
+        }, cb);
+    }
+
     rollbeckAgent (agentId, dialerId, cb) {
         application.DB._query.dialer._findAndModifyAgent(
             {

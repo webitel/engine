@@ -226,7 +226,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._recordSession = true,
             this._amd = {
                 enabled: false
-            }
+            },
+            this._predictAdjust = 900
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -238,7 +239,8 @@ module.exports = class Dialer extends EventEmitter2 {
             config.lockId,
             config.skills,
             parameters.recordSession,
-            config.amd
+            config.amd,
+            parameters._predictAdjust
         ];
 
         if (this._amd.enabled) {
@@ -374,7 +376,7 @@ module.exports = class Dialer extends EventEmitter2 {
         return agent[paramName]
     }
 
-    rollback (member, dest, cb) {
+    rollback (member, dest, stats, cb) {
         let $inc = {"stats.active": -1, "stats.callCount": 1};
 
         if (member) {
@@ -389,13 +391,29 @@ module.exports = class Dialer extends EventEmitter2 {
             $inc[`stats.resource.${dest.uuid}`] = -1;
         }
 
+        const update = {
+            $currentDate: {lastModified: true}
+        };
+
+
+        if (stats instanceof Object) {
+            update.$set = {};
+            for (let key in stats) {
+                if (key === 'predictAbandoned') {
+                    if (stats.predictAbandoned === true)
+                        $inc["stats.predictAbandoned"] = 1;
+                } else {
+                    update.$set[`stats.${key}`] = stats[key]
+                }
+            }
+        }
+
+        update.$inc = $inc;
+
         this._dbDialer.findAndModify(
             {_id: this._objectId, "stats.active": {$gt: 0}},
             {},
-            {
-                $currentDate: {lastModified: true},
-                $inc
-            },
+            update,
             {},
             (e, r) => {
                 if (e)
@@ -582,6 +600,10 @@ module.exports = class Dialer extends EventEmitter2 {
         })
     }
 
+    getLimit () {
+        return this._limit
+    }
+
     _huntingMember () {
         if (!this.isReady())
             return;
@@ -589,7 +611,7 @@ module.exports = class Dialer extends EventEmitter2 {
         log.trace(`hunting on member ${this.nameDialer} - members queue: ${this._active} state: ${this.state}`);
 
         this._dbDialer.findAndModify(
-            {_id: this._objectId, "stats.active": {$lt: this._limit}},
+            {_id: this._objectId, "stats.active": {$lt: this.getLimit()}},
             {},
             {
                 $currentDate: {lastModified: true},
