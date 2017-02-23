@@ -227,7 +227,9 @@ module.exports = class Dialer extends EventEmitter2 {
             this._amd = {
                 enabled: false
             },
-            this._predictAdjust = 900
+            this._predictAdjust = 150,
+            this._targetPredictiveSilentCalls = 2.5,
+            this._maxPredictiveSilentCalls = 3
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -240,7 +242,9 @@ module.exports = class Dialer extends EventEmitter2 {
             config.skills,
             parameters.recordSession,
             config.amd,
-            parameters._predictAdjust
+            parameters.predictAdjust,
+            parameters.targetPredictiveSilentCalls,
+            parameters.maxPredictiveSilentCalls
         ];
 
         if (this._amd.enabled) {

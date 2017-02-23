@@ -34,10 +34,19 @@ module.exports = class Predictive extends Dialer {
         });
 
         this.members.on('removed', (m) => {
-            this.rollback(m, m.getDestination(), {queueLimit: this._stats.queueLimit || this._limit, predictAbandoned: m.predictAbandoned}, e => {
-                if (!e)
-                    engine();
-            });
+            this.rollback(
+                m,
+                m.getDestination(),
+                {
+                    queueLimit: this._stats.queueLimit || this._limit,
+                    predictAbandoned: m.predictAbandoned,
+                    predictAdjust: this._stats.predictAdjust
+                },
+                e => {
+                    if (!e)
+                        engine();
+                }
+            );
         });
 
         this.getLimit = () => {
@@ -100,11 +109,17 @@ module.exports = class Predictive extends Dialer {
                     // Init state
 
                     const silentCalls = (this._stats.predictAbandoned * 100) / this._stats.callCount;
-                    console.log(silentCalls)
+                    this._stats.predictAdjust = this._stats.predictAdjust || this._predictAdjust;
+
+                    // this._stats.predictAdjust += -( ((silentCalls - this._targetPredictiveSilentCalls) * ControllerProportionalGain) / ControllerIntegralGain  );
+                    
+                    this._stats.predictAdjust = ((100 - Math.abs(silentCalls) ) * ControllerProportionalGain * ControllerIntegralGain )  * 100;
+
+                    console.log(silentCalls, this._stats.predictAdjust);
 
                     const connectRate = this._stats.callCount / this._stats.successCall;
                     const overDial = Math.abs((res.agents / connectRate) - res.agents);
-                    const call = Math.ceil(res.agents + (overDial * this._predictAdjust) / 100 );
+                    const call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
 
                     this._stats.queueLimit = this._active + call - 1;
                     console.log(`CALL ->> +${call - res.agents} -->> ${this._stats.queueLimit}`);
