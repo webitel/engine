@@ -157,7 +157,7 @@ module.exports = class Predictive extends Dialer {
                 `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_id=${member.getQueueId()}`,
-                `dlr_side=member`,
+                `cc_side=member`,
                 `presence_data='${member.getDomain()}'`,
                 `cc_queue='${member.getQueueName()}'`
             ];
@@ -291,7 +291,7 @@ module.exports = class Predictive extends Dialer {
         member._predAgentOriginateUuid = generateUuid.v4();
 
         let agentVars = [
-            `dlr_side=agent`,
+            `cc_side=agent`,
             `origination_uuid=${member._predAgentOriginateUuid}`,
             `origination_callee_id_number='${agent.agentId}'`,
             `origination_callee_id_name='${agent.agentId}'`,
