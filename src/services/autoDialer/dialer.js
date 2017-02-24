@@ -1203,7 +1203,12 @@ module.exports = class Dialer extends EventEmitter2 {
             this.countMembers = res.count;
 
             this._processTryStop = false;
-            if (!res.nextTryTime) res.nextTryTime = Date.now() + 1000;
+            if (!res.nextTryTime) {
+                res.nextTryTime = Date.now() + 1000;
+            } else if (res.nextTryTime < Date.now()) {
+                return this.emit('wakeUp')
+            }
+
             if (res.nextTryTime > 0) {
                 let nextTime = res.nextTryTime - Date.now();
                 if (nextTime < 1)

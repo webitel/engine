@@ -85,17 +85,6 @@ module.exports = class Predictive extends Dialer {
                     if (res.agents === 0 )
                         return;
 
-                    if (!this._stats.successCall || this._stats.successCall <= 10 || res.agents <=2) { //error
-                        //this._stats.queueLimit = this._active + res.agents - 1;
-                        if ( (this._active - (res.allLogged - res.agents)) - res.agents < 0 ) {
-                            this.huntingMember();
-                        } else {
-                            if (this.members.length() === 0) {
-                                this.tryStop();
-                            }
-                        }
-                        return;
-                    }
 
                     if (!this._stats.predictAbandoned)
                         this._stats.predictAbandoned = 0;
@@ -131,10 +120,9 @@ module.exports = class Predictive extends Dialer {
                     this._stats.queueLimit = call;
                     console.log(`CALL ->> +${call} -->> ${this._stats.queueLimit}`);
 
-                    if ( this._active  < call ) {
+                    if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active  < call) ) {
                         this.huntingMember();
                     } else {
-                        console.log('ELSE');
                         if (this.members.length() === 0) {
                             this.tryStop();
                         }
