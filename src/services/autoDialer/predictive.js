@@ -8,10 +8,7 @@ const Dialer = require('./dialer'),
     async = require('async'),
     DIALER_TYPES = require('./const').DIALER_TYPES,
     AGENT_STATUS = require('./const').AGENT_STATUS,
-    END_CAUSE = require('./const').END_CAUSE,
-
-    ControllerIntegralGain = 0.05,
-    ControllerProportionalGain = 2
+    END_CAUSE = require('./const').END_CAUSE
     ;
 
 module.exports = class Predictive extends Dialer {
@@ -88,8 +85,8 @@ module.exports = class Predictive extends Dialer {
                     if (res.agents === 0 )
                         return;
 
-                    if (!this._stats.successCall || this._stats.successCall <= 10 || res.agents <=2) {
-                        this._stats.queueLimit = this._active + res.agents - 1;
+                    if (!this._stats.successCall || this._stats.successCall <= 10 || res.agents <=2) { //error
+                        //this._stats.queueLimit = this._active + res.agents - 1;
                         if ( (this._active - (res.allLogged - res.agents)) - res.agents < 0 ) {
                             this.huntingMember();
                         } else {
@@ -100,33 +97,44 @@ module.exports = class Predictive extends Dialer {
                         return;
                     }
 
+                    if (!this._stats.predictAbandoned)
+                        this._stats.predictAbandoned = 0;
 
-                    // if ( (this._active - (res.allLogged - res.agents)) - res.agents < 0)
-                    //     this.huntingMember();
-                    //
-                    // return;
+                    if (!this._stats.callCount)
+                        this._stats.callCount = 0;
 
-                    // Init state
+                    if (!this._stats.predictAdjust)
+                        this._stats.predictAdjust = this._predictAdjust;
 
-                    const silentCalls = (this._stats.predictAbandoned * 100) / this._stats.callCount;
-                    this._stats.predictAdjust = this._stats.predictAdjust || this._predictAdjust;
 
-                    // this._stats.predictAdjust += -( ((silentCalls - this._targetPredictiveSilentCalls) * ControllerProportionalGain) / ControllerIntegralGain  );
-                    
-                    this._stats.predictAdjust = ((100 - Math.abs(silentCalls) ) * ControllerProportionalGain * ControllerIntegralGain )  * 100;
+                    if (this._stats.callCount > 200 ) {
+                        const silentCalls = this._targetPredictiveSilentCalls - ((this._stats.predictAbandoned  * 100) / this._stats.callCount);
 
-                    console.log(silentCalls, this._stats.predictAdjust);
+                        this._stats.predictAdjust = Math.round( (Math.pow(2,silentCalls) / Math.pow(0.05,silentCalls)) * 35) ;
+                        // Math.round( ((silentCalls - this._targetPredictiveSilentCalls) * 2 ) / 0.05 );
+
+                        if (this._stats.predictAdjust > 1000) {
+                            this._stats.predictAdjust = 1000;
+                        } else if (this._stats.predictAdjust < 0) {
+                            this._stats.predictAdjust = 0
+                        }
+
+                        console.log('>>>>>>>>>>>>',this._stats.predictAdjust, ">>>", silentCalls);
+                    }
+
+
 
                     const connectRate = this._stats.callCount / this._stats.successCall;
-                    const overDial = Math.abs((res.agents / connectRate) - res.agents);
-                    const call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
+                    const overDial = Math.abs((res.allLogged / connectRate) - res.allLogged);
+                    const call = Math.ceil(res.allLogged + (overDial * this._stats.predictAdjust) / 100 );
 
-                    this._stats.queueLimit = this._active + call - 1;
-                    console.log(`CALL ->> +${call - res.agents} -->> ${this._stats.queueLimit}`);
+                    this._stats.queueLimit = call;
+                    console.log(`CALL ->> +${call} -->> ${this._stats.queueLimit}`);
 
-                    if ( (this._active - (res.allLogged - call)) - call < 0 ) {
+                    if ( this._active  < call ) {
                         this.huntingMember();
                     } else {
+                        console.log('ELSE');
                         if (this.members.length() === 0) {
                             this.tryStop();
                         }
@@ -149,6 +157,7 @@ module.exports = class Predictive extends Dialer {
                 `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_id=${member.getQueueId()}`,
+                `dlr_side=member`,
                 `presence_data='${member.getDomain()}'`,
                 `cc_queue='${member.getQueueName()}'`
             ];
@@ -282,6 +291,7 @@ module.exports = class Predictive extends Dialer {
         member._predAgentOriginateUuid = generateUuid.v4();
 
         let agentVars = [
+            `dlr_side=agent`,
             `origination_uuid=${member._predAgentOriginateUuid}`,
             `origination_callee_id_number='${agent.agentId}'`,
             `origination_callee_id_name='${agent.agentId}'`,
@@ -409,14 +419,15 @@ module.exports = class Predictive extends Dialer {
 
         application.Esl.bgapi(ds, (res) => {
             log.trace(`fs response: ${res && res.body}`);
-            member.channelsCount++;
-
+            member.log(`fs response: ${res.body}`);
             if (/^-ERR|^-USAGE/.test(res.body)) {
                 let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
 
                 member.minusProbe();
                 member.nextTrySec = 1;
                 member.end();
+            } else {
+                member.channelsCount++;
             }
         });
 
@@ -446,6 +457,8 @@ module.exports = class Predictive extends Dialer {
                 clearTimeout(member._predTimer);
             }
 
+            member.channelsCount--;
+
             if (member._predAgentOriginateUuid) {
                 application.Esl.bgapi(`uuid_kill ${member._predAgentOriginateUuid} ORIGINATOR_CANCEL`);
             }
@@ -464,7 +477,7 @@ module.exports = class Predictive extends Dialer {
                     process: null
                 }, (e, res) => {
                     if (e)
-                        return log.error(e);
+                        throw e;
                 });
             }
 

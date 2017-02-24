@@ -158,7 +158,7 @@ class AgentManager extends EventEmitter2 {
     getAllLoggedAgent (dialerId, agents, skills, cb) {
         application.DB._query.dialer._getAgentCount({
             status: {
-                $ne: AGENT_STATUS.LoggedOut
+                $nin: [AGENT_STATUS.LoggedOut, AGENT_STATUS.OnBreak]
             },
             dialer: {$elemMatch: {_id: dialerId}},
             $or: [

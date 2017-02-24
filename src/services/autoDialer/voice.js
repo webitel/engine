@@ -88,7 +88,8 @@ module.exports = class VoiceBroadcast extends Dialer {
                 `origination_callee_id_name='${member.name}'`,
                 `destination_number='${member.number}'`,
 
-                `dlr_queue=${member.getQueueId()}`
+                `dlr_queue=${member.getQueueId()}`,
+                `dlr_side=member`
             );
 
             const apps = [];
