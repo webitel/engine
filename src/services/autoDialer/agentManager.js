@@ -216,7 +216,7 @@ class AgentManager extends EventEmitter2 {
                 filter,
                 sort,
                 {
-                    $set: {"dialer.$.process": "active"},
+                    $set: {"dialer.$.process": "active" , "dialer.$.lastStatus": "hunting"},
                     $currentDate: { lastModified: true }
                 },
                 (err, res) => {

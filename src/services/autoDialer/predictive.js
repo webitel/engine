@@ -75,6 +75,8 @@ module.exports = class Predictive extends Dialer {
                     if (err)
                         return log.error(err);
 
+                    console.log(`exec engine`)
+
                     if (!this.isReady()) {
                         if (this.members.length() === 0) {
                             this.tryStop();
@@ -92,8 +94,25 @@ module.exports = class Predictive extends Dialer {
                     if (!this._stats.callCount)
                         this._stats.callCount = 0;
 
+                    if (!this._stats.successCall)
+                        this._stats.successCall = 0;
+
                     if (!this._stats.predictAdjust)
                         this._stats.predictAdjust = this._predictAdjust;
+
+                    console.log(`all agent ${res.allLogged} active ${this._active}`);
+
+                    if (this._stats.successCall < 10) {
+                        this._stats.queueLimit = res.allLogged;
+                        if (this._active < res.allLogged ) {
+                            this.huntingMember();
+                        } else {
+                            if (this.members.length() === 0) {
+                                this.tryStop();
+                            }
+                        }
+                        return;
+                    }
 
 
                     if (this._stats.callCount > 200 ) {
@@ -114,13 +133,13 @@ module.exports = class Predictive extends Dialer {
 
 
                     const connectRate = this._stats.callCount / this._stats.successCall;
-                    const overDial = Math.abs((res.allLogged / connectRate) - res.allLogged);
-                    const call = Math.ceil(res.allLogged + (overDial * this._stats.predictAdjust) / 100 );
+                    const overDial = Math.abs((res.agents / connectRate) - res.agents);
+                    const call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
 
-                    this._stats.queueLimit = call;
-                    console.log(`CALL ->> +${call} -->> ${this._stats.queueLimit}`);
+                    this._stats.queueLimit = call + res.allLogged;
+                    console.log(`CALL ->> +${call} -->> ${this._stats.queueLimit} all agents: ${res.allLogged}`);
 
-                    if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active  < call) ) {
+                    if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active  < this._stats.queueLimit) ) {
                         this.huntingMember();
                     } else {
                         if (this.members.length() === 0) {
@@ -299,9 +318,8 @@ module.exports = class Predictive extends Dialer {
         application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
 
         const start = Date.now();
-        application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} &eval('` + '${uuid_bridge(' + member.sessionId + ' ${uuid}' +  `)}')`, (res) => {
+        application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} $park()`, (res) => {
             member.log(`agent fs res -> ${res.body}`);
-            member._predAgentOriginateUuid = null;
             if (member.processEnd)
                 return;
             const date = Date.now();
@@ -359,19 +377,22 @@ module.exports = class Predictive extends Dialer {
 
                 this._joinAgent(member);
             } else {
-                member.predictAbandoned = false;
-                this._am.setAgentStats(agent.agentId, this._objectId, {
-                    lastBridgeCallTimeStart: date,
-                    connectedTimeSec: timeToSec(date, start),
-                    lastStatus: `active -> ${member._id}`
-                }, (e, res) => {
-                    if (e)
-                        return log.error(e);
+                application.Esl.bgapi(`uuid_bridge ${member.sessionId} ${member._predAgentOriginateUuid}`, (bridge) => {
+                    member._predAgentOriginateUuid = null;
+                    member.predictAbandoned = false;
+                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                        lastBridgeCallTimeStart: date,
+                        connectedTimeSec: timeToSec(date, start),
+                        lastStatus: `active -> ${member._id}`
+                    }, (e, res) => {
+                        if (e)
+                            return log.error(e);
 
-                    if (res && res.value) {
-                        //member._agent = res.value
-                        //TODO
-                    }
+                        if (res && res.value) {
+                            //member._agent = res.value
+                            //TODO
+                        }
+                    });
                 });
             }
         });
