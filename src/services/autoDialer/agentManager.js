@@ -72,6 +72,8 @@ class AgentManager extends EventEmitter2 {
                             log.error(e);
                     });
                     return cb(null, true)
+                } else {
+                    log.warn('no agents');
                 }
                 return cb(null, false)
             }
@@ -180,14 +182,14 @@ class AgentManager extends EventEmitter2 {
             },
             {},
             {
-                $set: {"dialer.$.process": null, "dialer.$.setAvailableTime": null},
+                $set: {"dialer.$.process": null},
                 $currentDate: { lastModified: true }
             },
             cb
         )
     }
 
-    huntingAgent (dialerId, agents, skills, strategy, cb) {
+    huntingAgent (dialerId, agents, skills, strategy, member, cb) {
         const filter = getAvailableAgentFilter(dialerId, agents, skills);
 
         // console.dir(filter, {depth: 10, colors: true});
@@ -216,7 +218,7 @@ class AgentManager extends EventEmitter2 {
                 filter,
                 sort,
                 {
-                    $set: {"dialer.$.process": "active" , "dialer.$.lastStatus": "hunting"},
+                    $set: {"dialer.$.process": "active" , "dialer.$.lastStatus": `hunting for ${member._id}`},
                     $currentDate: { lastModified: true }
                 },
                 (err, res) => {
@@ -227,6 +229,18 @@ class AgentManager extends EventEmitter2 {
                         return cb();
 
                     const agent = res.value;
+
+                    if (member.processEnd) {
+                        return this.rollbeckAgent(agent.agentId, dialerId, e => {
+                            if (e) {
+                                log.error(`bad rollback agent ${agent.agentId}`);
+                                return cb(e);
+                            } else {
+                                return cb();
+                            }
+                        });
+                    }
+
                     this.setAgentStatus(agent, AGENT_STATE.Reserved, err => {
                         if (err) {
                             log.error(err);
@@ -324,7 +338,7 @@ class AgentManager extends EventEmitter2 {
             },
             {},
             {
-                $set: {"dialer.$.process": null, "dialer.$.setAvailableTime": wrap},
+                $set: {"dialer.$.process": null},
                 $currentDate: { lastModified: true }
             },
             (err, res) => {
