@@ -159,7 +159,10 @@ function addQuery (db) {
                 return cb(new CodeError(400, 'Bad objectId.'));
 
             let data = {
-                $set: {}
+                $set: {},
+                $currentDate: {
+                    lastModified: {$type: "timestamp" }
+                }
             };
             setDefUuidDestination(doc.resources);
             for (let key in doc) {

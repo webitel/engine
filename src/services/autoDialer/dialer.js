@@ -36,11 +36,11 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this.consumerTag = null;
         this.queueName = `engine.dialer.${this._id}`;
+        this._lastModified = 0;
 
         this._dbDialer = application.DB.collection('dialer');
 
         this._dbDialer.update({_id: this._objectId, "stats.active": null}, {
-            $currentDate: {lastModified: true},
             $set: {"stats.active": 0}
         });
 
@@ -203,6 +203,34 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     _setConfig (config) {
+
+        this._stats = config.stats || {};
+        if (this._stats.resources) {
+            this._recources = this._stats.resources;
+        }
+
+        if (config.lastModified && config.lastModified.equals(this._lastModified)) {
+            return;
+        }
+
+        this._lastModified = config.lastModified;
+
+        this.resources = [];
+        if (config.resources instanceof Array) {
+            for (let res of config.resources) {
+                const regexp = strToRegExp(res.dialedNumber);
+                if (regexp)
+                    this.resources.push({
+                        dialedNumber: res.dialedNumber,
+                        regexp: regexp,
+                        destinations: res.destinations
+                    });
+            }
+        }
+
+        this.updateResources(this.resources);
+
+
         this._memberErrorCauses = config.causesError instanceof Array ? config.causesError : CODE_RESPONSE_ERRORS;
         this._memberMinusCauses = config.causesMinus instanceof Array ? config.causesMinus : CODE_RESPONSE_MINUS_PROBE;
         this._memberOKCauses = config.causesOK instanceof Array ? config.causesOK : CODE_RESPONSE_OK;
@@ -290,25 +318,6 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this._variables = config.variables || {};
         this._variables.domain_name = this._domain;
-
-        this.resources = [];
-        if (config.resources instanceof Array) {
-            for (let res of config.resources) {
-                const regexp = strToRegExp(res.dialedNumber);
-                if (regexp)
-                    this.resources.push({
-                        dialedNumber: res.dialedNumber,
-                        regexp: regexp,
-                        destinations: res.destinations
-                    });
-            }
-        }
-
-        this._stats = config.stats || {};
-        if (this._stats.resources) {
-            this._recources = this._stats.resources;
-        }
-        this.updateResources(this.resources);
     }
 
     updateResources () {
@@ -396,7 +405,6 @@ module.exports = class Dialer extends EventEmitter2 {
         }
 
         const update = {
-            $currentDate: {lastModified: true}
         };
 
 
@@ -618,7 +626,6 @@ module.exports = class Dialer extends EventEmitter2 {
             {_id: this._objectId, "stats.active": {$lt: this.getLimit()}},
             {},
             {
-                $currentDate: {lastModified: true},
                 $inc: {"stats.active": 1}
             },
             {new: true},

@@ -67,20 +67,6 @@ class AutoDialer extends EventEmitter2 {
         app.Broker.on('error:close', this.onConnectBrokerError.bind(this));
         app.Broker.on('init:broker', this.onConnectBrokerSuccessful.bind(this));
 
-        // app.Broker.on('ccEvent', this.onAgentStatusChange.bind(this));
-        // app.Broker.on('webitelEvent', (e) => {
-        //
-        //     // TODO replace skills;
-        //     return void 0;
-        //     if (e['Event-Name'] == 'USER_MANAGED') {
-        //         let agentId = `${e['Event-Account']}@${e['User-Domain']}`;
-        //         let agent = this.agentManager.getAgentById(agentId);
-        //         if (agent) {
-        //
-        //         }
-        //     }
-        // });
-
         this.activeDialer.on('added', (dialer) => {
 
             dialer.on('ready', (d) => {
@@ -89,7 +75,7 @@ class AutoDialer extends EventEmitter2 {
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
                     {
-                        $set: {state: d.state, _cause: d.cause, active: true, nextTick: null},
+                        $set: {state: d.state, _cause: d.cause, active: true, nextTick: null, "stats.readyOn": Date.now()},
                         $addToSet: {"stats.process": this._app._instanceId}
                     },
                     e => {

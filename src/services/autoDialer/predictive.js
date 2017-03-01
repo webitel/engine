@@ -54,8 +54,7 @@ module.exports = class Predictive extends Dialer {
             return this._limit;
         };
 
-
-        this.on('availableAgent', agent => {
+        this.on('availableAgent', () => {
             engine();
         });
 
@@ -132,14 +131,14 @@ module.exports = class Predictive extends Dialer {
 
                         console.log('>>>>>>>>>>>>',this._stats.predictAdjust, ">>>", silentCalls);
                     }
-                    let call = 0;
+
                     if (this._stats.predictAdjust === 0) {
                         this._stats.queueLimit = res.allLogged;
                     } else {
                         const connectRate = this._stats.callCount / this._stats.bridgedCall;
                         const overDial = Math.abs((res.agents / connectRate) - res.agents);
 
-                        call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
+                        const call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
 
                         this._stats.queueLimit =  call + (res.allLogged - res.agents) ;
                     }
@@ -314,7 +313,7 @@ module.exports = class Predictive extends Dialer {
                         lastStatus: `NO_ANSWER -> ${member._id}`,
                         setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
                         process: null
-                    }, (e, res) => {
+                    }, (e) => {
                         if (e)
                             return log.error(e);
                     });
@@ -326,7 +325,7 @@ module.exports = class Predictive extends Dialer {
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
                         setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
                         process: null
-                    }, (e, res) => {
+                    }, (e) => {
                         if (e)
                             return log.error(e);
                     });
@@ -346,7 +345,7 @@ module.exports = class Predictive extends Dialer {
                             lastStatus: `error bridge -> ${res.body}`,
                             setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                             process: null
-                        }, (e, res) => {
+                        }, (e) => {
                             if (e)
                                 throw e;
 
@@ -484,7 +483,6 @@ module.exports = class Predictive extends Dialer {
             log.trace(`fs response: ${res && res.body}`);
             member.log(`fs response: ${res.body}`);
             if (/^-ERR|^-USAGE/.test(res.body)) {
-                let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                 member.channelsCount--;
                 member.minusProbe();
                 member.nextTrySec = 1;

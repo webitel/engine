@@ -20,7 +20,7 @@ module.exports = class Progressive extends Dialer {
                 member.endCause = END_CAUSE.MEMBER_EXPIRED;
                 member.end(END_CAUSE.MEMBER_EXPIRED);
             } else {
-                dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, (err, agent) => {
+                dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, member, (err, agent) => {
                     if (err)
                         throw err;
 
@@ -230,7 +230,7 @@ module.exports = class Progressive extends Dialer {
                                 connectedTimeSec: timeToSec(date, start),
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
                                 process: null
-                            }, (e, res) => {
+                            }, (e) => {
                                 if (e)
                                     return log.error(e);
                             });
@@ -244,8 +244,8 @@ module.exports = class Progressive extends Dialer {
                         connectedTimeSec: timeToSec(date, start),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
                         setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
-                        process: "checkState"
-                    }, (e, res) => {
+                        process: null
+                    }, (e) => {
                         if (e)
                             return log.error(e);
                     });
@@ -256,8 +256,8 @@ module.exports = class Progressive extends Dialer {
                         connectedTimeSec: timeToSec(date, start),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
                         setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
-                        process: "checkState"
-                    }, (e, res) => {
+                        process: null
+                    }, (e) => {
                         if (e)
                             return log.error(e);
                     });
