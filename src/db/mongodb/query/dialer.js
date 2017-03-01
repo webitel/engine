@@ -329,7 +329,7 @@ function addQuery (db) {
                 .findOneAndUpdate(
                     filter,
                     doc,
-                    sort,
+                    {sort, projection: {_log: 0}},
                     cb
                 )
         },

@@ -757,11 +757,11 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     getSortAvailableMembers () {
-        return [
-                ["_nextTryTime", -1],
-                ["priority", -1],
-                ["_id", -1]
-            ]
+        return {
+                "_nextTryTime": -1,
+                "priority": -1,
+                "_id": -1
+        }
     }
 
     getMemberNumber (member, codes, ranges, allCodes) {
@@ -957,7 +957,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
             filter['$where'] = `function () {
-        
+            
                 var homes = fnFilterDialerCommunications(
                     this.communications, ${JSON.stringify(codes)},
                     ${JSON.stringify(ranges)},
@@ -970,13 +970,13 @@ module.exports = class Dialer extends EventEmitter2 {
                     priority: "desc",
                     _probe: "asc"
                 })[0];
-        
+            
                 printjson(a);
                 return true
             }`;
         } else {
             filter['$where'] = `function () {
-        
+            
                 var homes = fnFilterDialerCommunications(
                     this.communications, ${JSON.stringify(codes)},
                     ${JSON.stringify(ranges)},
@@ -989,7 +989,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     priority: "desc",
                     _probe: "asc"
                 })[0];
-        
+            
                 printjson(a);
                 return true
             }`;
@@ -1004,7 +1004,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 $inc: {_probeCount: 1},
                 $currentDate: {lastModified: true}
             },
-            {sort: this.getSortAvailableMembers()},
+            this.getSortAvailableMembers(),
             (err, res) => {
                 if (err)
                     return cb(err);
