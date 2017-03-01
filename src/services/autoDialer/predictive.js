@@ -86,7 +86,6 @@ module.exports = class Predictive extends Dialer {
                     if (res.agents === 0 )
                         return;
 
-
                     if (!this._stats.predictAbandoned)
                         this._stats.predictAbandoned = 0;
 

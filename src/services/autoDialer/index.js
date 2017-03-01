@@ -193,7 +193,7 @@ class AutoDialer extends EventEmitter2 {
                 "args": {}
             }
              */
-            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.systemm");
+            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.system");
             log.debug(`Init queue - successful`);
             this.emit('changeConnection');
         });
@@ -281,7 +281,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     sendToBroker (data = {}, cb) {
-        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.systemm`, data, e => {
+        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.system`, data, e => {
             if (e)
                 log.error(e);
             return cb && cb(e);
