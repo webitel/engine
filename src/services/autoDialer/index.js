@@ -88,7 +88,7 @@ class AutoDialer extends EventEmitter2 {
 
             dialer.once('end', (d) => {
                 log.debug(`End dialer ${d.nameDialer} - ${d._id} - ${d.cause}`);
- 
+
                 let sleepTime = (d.state === DIALER_STATES.Sleep) ? (new Date(Date.now() + dialer._calendar.sleepTime)) : null;
 
                 this.dbDialer._dialerCollection.findOneAndUpdate(
@@ -482,7 +482,7 @@ class AutoDialer extends EventEmitter2 {
                         {_id: dialer._id, "stats.active": {$gt: 0}},
                         {},
                         {
-                            $currentDate: {lastModified: true},
+                            $currentDate: {lastModified: {$type: "timestamp" }},
                             $inc: {"stats.active": 0 - res.result.nModified}
                         },
                         {},
