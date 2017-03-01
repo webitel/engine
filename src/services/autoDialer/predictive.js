@@ -37,6 +37,7 @@ module.exports = class Predictive extends Dialer {
                 {
                     queueLimit: this._stats.queueLimit || this._limit,
                     predictAbandoned: m.predictAbandoned,
+                    bridgedCall: m.bridgedCall,
                     predictAdjust: this._stats.predictAdjust
                 },
                 e => {
@@ -75,7 +76,6 @@ module.exports = class Predictive extends Dialer {
                     if (err)
                         return log.error(err);
 
-                    console.log(`exec engine`)
 
                     if (!this.isReady()) {
                         if (this.members.length() === 0) {
@@ -90,6 +90,9 @@ module.exports = class Predictive extends Dialer {
 
                     if (!this._stats.predictAbandoned)
                         this._stats.predictAbandoned = 0;
+
+                    if (!this._stats.bridgedCall)
+                        this._stats.bridgedCall = 0;
 
                     if (!this._stats.callCount)
                         this._stats.callCount = 0;
@@ -129,20 +132,21 @@ module.exports = class Predictive extends Dialer {
 
                         console.log('>>>>>>>>>>>>',this._stats.predictAdjust, ">>>", silentCalls);
                     }
-
+                    let call = 0;
                     if (this._stats.predictAdjust === 0) {
                         this._stats.queueLimit = res.allLogged;
                     } else {
-                        const connectRate = this._stats.callCount / this._stats.successCall;
+                        const connectRate = this._stats.callCount / this._stats.bridgedCall;
                         const overDial = Math.abs((res.agents / connectRate) - res.agents);
-                        const call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
 
-                        this._stats.queueLimit = call + res.allLogged;
+                        call = Math.ceil(res.agents + (overDial * this._stats.predictAdjust) / 100 );
+
+                        this._stats.queueLimit =  call + (res.allLogged - res.agents) ;
                     }
 
                     console.log(`CALL ->> -->> ${this._stats.queueLimit} all agents: ${res.allLogged}`);
 
-                    if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active  < this._stats.queueLimit) ) {
+                    if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active < this._stats.queueLimit) ) {
                         this.huntingMember();
                     } else {
                         if (this.members.length() === 0) {
@@ -232,69 +236,6 @@ module.exports = class Predictive extends Dialer {
         }
     }
 
-    calcLimit (agent) {
-        console.log(`call request ${this._callRequestCount}`);
-        if (!this.isReady()) {
-            this._queueCall.length = 0;
-            return;
-        }
-
-        let aC = 0;
-        let cc = 0;
-        if (agent && this._gotCallCount > 10) {
-            aC = 1;
-            this._skipAgents.push(agent);
-        } else {
-            if (this._callRequestCount != 0) return;
-            this._skipAgents = this._am.getFreeAgents(this._agents, this.agentStrategy);
-            aC = this._skipAgents.length;
-        }
-
-        if (aC == 0)
-                return;
-
-        if (this._predictAdjust != 0 && this._gotCallCount > 10 && aC > 0) {
-
-            if (this.__dumpLastRecalc < this._gotCallCount) {
-                let avgBad = (this._badCallCount * 100) / this._allCallCount;
-                if (avgBad > 2) {
-                    this._predictAdjust -= this._predictAdjust * (avgBad / 100);
-                    if (this._predictAdjust <= 0)
-                        this._predictAdjust = 1;
-
-                } else if (avgBad > 0 && avgBad < 2 && this._predictAdjust < 1000) {
-                    this._predictAdjust += this._predictAdjust * ((100 - avgBad) / 100);
-                    if (this._predictAdjust > 1000)
-                        this._predictAdjust = 1000;
-                } else  if (avgBad === 0) {
-                    this._predictAdjust += this._predictAdjust * 0.055;
-                }
-                this.__dumpLastRecalc = this._gotCallCount + 10;
-            }
-
-            let connectRate = this._allCallCount / this._gotCallCount;
-            let overDial = Math.abs((aC / connectRate) - aC);
-            console.log(`connectRate: ${connectRate} overDial: ${overDial}`);
-            cc =  Math.ceil(aC + (overDial * this._predictAdjust) / 100 );
-        } else {
-            cc = aC;
-        }
-
-        console.log(`concurrency: ${this._activeCallCount + cc}; cc: ${cc}; aC: ${aC}; calls: ${this._activeCallCount}; adjust: ${this._predictAdjust}; all: ${this._allCallCount}; got: ${this._gotCallCount}; bad: ${this._badCallCount}`);
-
-        if (this._queueCall.length > 0) {
-            for (let i = 0; i < cc; i++) {
-                let m = this._queueCall.shift();
-                if (!m) {
-                    break;
-                }
-                this.__dial(m, this.calcLimit.bind(this));
-            }
-        } else {
-            this._skipAgents.length = 0;
-        }
-    }
-
     _originateAgent (member, agent) {
         member.setAgent(agent);
 
@@ -318,7 +259,7 @@ module.exports = class Predictive extends Dialer {
             }
         }
 
-        //application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
+        application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
 
         const start = Date.now();
         application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} $park()`, (res) => {
@@ -396,6 +337,8 @@ module.exports = class Predictive extends Dialer {
                 application.Esl.bgapi(`uuid_bridge ${member.sessionId} ${member._predAgentOriginateUuid}`, (bridge) => {
                     member._predAgentOriginateUuid = null;
                     member.predictAbandoned = false;
+                    member.bridgedCall = true;
+
                     member.log(`fs response bridge agent: ${bridge.body}`);
 
                     if (/^-ERR|^-USAGE/.test(res.body)) {
@@ -454,7 +397,6 @@ module.exports = class Predictive extends Dialer {
                 }, 500); // TODO add config
                 return;
             } else if (member.processEnd) {
-                console.log(member);
                 member.log(`set agent ${agent.agentId} rollback`);
                 this._am.setAgentStats(agent.agentId, this._objectId, {
                     lastStatus: `rollback -> ${member._id}`,
@@ -476,20 +418,6 @@ module.exports = class Predictive extends Dialer {
         const ds = this.getDialString(member);
         member.log(`dialString: ${ds}`);
         log.trace(`Call ${ds}`);
-
-        application.Esl.bgapi(ds, (res) => {
-            log.trace(`fs response: ${res && res.body}`);
-            member.log(`fs response: ${res.body}`);
-            if (/^-ERR|^-USAGE/.test(res.body)) {
-                let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
-
-                member.minusProbe();
-                member.nextTrySec = 1;
-                member.end();
-            } else {
-                member.channelsCount++;
-            }
-        });
 
         const  onChannelPark = (e) => {
             if (this._amd.enabled === true) {
@@ -551,6 +479,18 @@ module.exports = class Predictive extends Dialer {
 
         application.Esl.once(`esl::event::CHANNEL_PARK::${member.sessionId}`, onChannelPark);
         application.Esl.once(`esl::event::CHANNEL_HANGUP_COMPLETE::${member.sessionId}`, onChannelHangup);
+        member.channelsCount++;
+        application.Esl.bgapi(ds, (res) => {
+            log.trace(`fs response: ${res && res.body}`);
+            member.log(`fs response: ${res.body}`);
+            if (/^-ERR|^-USAGE/.test(res.body)) {
+                let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
+                member.channelsCount--;
+                member.minusProbe();
+                member.nextTrySec = 1;
+                member.end();
+            }
+        });
 
     }
 

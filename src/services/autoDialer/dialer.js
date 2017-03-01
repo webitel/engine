@@ -403,9 +403,9 @@ module.exports = class Dialer extends EventEmitter2 {
         if (stats instanceof Object) {
             update.$set = {};
             for (let key in stats) {
-                if (key === 'predictAbandoned') {
-                    if (stats.predictAbandoned === true)
-                        $inc["stats.predictAbandoned"] = 1;
+                if (key === 'predictAbandoned' || key === 'bridgedCall') {
+                    if (stats[key] === true)
+                        $inc[`stats.${key}`] = 1;
                 } else {
                     update.$set[`stats.${key}`] = stats[key]
                 }
