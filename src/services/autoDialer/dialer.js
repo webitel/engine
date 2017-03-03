@@ -49,6 +49,8 @@ module.exports = class Dialer extends EventEmitter2 {
         this.nameDialer = config.name;
         this.number = config.number || this.nameDialer;
 
+        this._maxResources = 0;
+
         this._domain = config.domain;
         this.state = DIALER_STATES.Idle;
         this.cause = DIALER_CAUSE.Init;
@@ -321,6 +323,7 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     updateResources () {
+        this._maxResources = 0;
         for (let resource of this.resources) {
             if (resource.destinations instanceof Array) {
                 for (let dest of resource.destinations) {
@@ -328,6 +331,8 @@ module.exports = class Dialer extends EventEmitter2 {
                     if (dest.enabled !== true) continue;
 
                     let res = this.getResourceStat(dest.uuid);
+                    this._maxResources += (dest.limit || 0);
+
                     if (!res) {
                         dest.active = 0;
                         dest.gwActive = 0;
@@ -426,7 +431,7 @@ module.exports = class Dialer extends EventEmitter2 {
             {_id: this._objectId, "stats.active": {$gt: 0}},
             {},
             update,
-            {},
+            {fields: {_id: 1}},
             (e, r) => {
                 if (e)
                     log.error(e);
@@ -447,6 +452,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
     countAvailableMembers (limit = 1, cb) {
         // console.dir(this.getFilterAvailableMembers(), {depth: 10, colors: true});
+        // TODO cpu ... modify count!!!
         dialerService.members._aggregate([
                 {$match: this.getFilterAvailableMembers()},
                 {$limit: limit},
@@ -459,157 +465,6 @@ module.exports = class Dialer extends EventEmitter2 {
                 return cb(err, (res[0] && res[0].availableMembers) || 0);
             }
         );
-    }
-
-    checkMember (cb) {
-
-        const {codes, ranges, allCodes} = this.getCommunicationCodes();
-
-        const skipCode = allCodes.filter( i => ~codes.indexOf(i) ? false : true );
-
-        const patterns = [".*"];
-        const regex = [];
-
-        const $or = [];
-
-        for (let p of patterns) {
-            regex.push(new RegExp(p));
-            $or.push({
-                "communications.number": {$regex: p},
-                "_p": p
-            })
-        }
-
-        let codeFilter = [
-            {
-                "communications.type": null
-            }
-        ];
-
-        for (let type of ranges) {
-            codeFilter.push({
-                $or: [
-                    {
-                        "communications.type": type.code,
-                        $or: [
-                            {
-                                "communications.rangeAttempts": {
-                                    "$lt": type.attempts || 0
-                                }
-                            },
-                            {
-                                "communications.rangeId": {
-                                    "$ne": type.rangeId
-                                }
-                            }
-                        ]
-                    },
-                    {
-                        "communications.type": type.code,
-                        "communications.rangeId": null
-                    }
-                ]
-            })
-        }
-
-        const agg = [
-            {
-                $match: {
-                    dialer: this._id,
-                    _waitingForResultStatusCb: null,
-                    _endCause: null,
-                    _lock: null,
-                    "communications.state": 0,
-                    $and: [
-                        {'$or': [ { _nextTryTime: { '$lte': Date.now()} }, { _nextTryTime: null }]},
-                        {'$or': codeFilter}
-                    ]
-                }
-            },
-
-            {
-                $sort: { "_nextTryTime": -1, "priority": -1, _id: -1}
-            },
-
-            {$limit: 1000},
-
-            {$unwind: {path: "$communications",  includeArrayIndex: "_idx" }},
-
-            {
-                $match: {
-                    "communications.state": 0,
-                    "communications.type": {$nin: skipCode},
-                    $or: codeFilter
-                }
-            },
-
-            {
-                $project: {
-                    _nextTryTime: 1,
-                    priority: 1,
-                    communications: 1,
-                    "isType": {
-                        $switch: {
-                            "branches": [
-                                {
-                                    case: {$ifNull: ["$communications.type", null]},
-                                    then: 1
-                                }
-                            ],
-                            default: 0
-                        }
-                    },
-                    "lastCall": { $ifNull: [ "$communications.lastCall", -1 ] },
-                    _idx: 1,
-                    index: { $indexOfArray: [ [null].concat(codes), "$communications.type" ] }
-                }
-            },
-
-            // {$sort: {"isType": -1, "communications.lastCall": 1, index: 1, "communications.priority": -1, "communications._probe": 1}}, //TOD-DOWN
-            {$sort: {"isType": -1, index: -1, "communications.lastCall": 1,  "communications.priority": -1, "communications._probe": 1}}, //PRIORITY
-
-            {
-                $group: {
-                    _id: "$_id",
-                    communications: {$first: "$communications"},
-                    _nextTryTime: {$first: "$_nextTryTime"},
-                    priority: {$first: "$priority"},
-                    _idx: {$first: "$_idx"}
-                }
-            },
-
-            {$limit: 10},
-
-            {$addFields: { "_p": patterns }},
-
-            {$unwind: "$_p"},
-
-            {$match: {$or: $or}},
-
-            {
-                $group: {
-                    _id: "$_id",
-                    communications: {$first: "$communications"},
-                    _nextTryTime: {$first: "$_nextTryTime"},
-                    priority: {$first: "$priority"},
-                    _p: {$first: "$_p"},
-                    _idx: {$first: "$_idx"}
-                }
-            },
-
-            {$sort: { "_nextTryTime": -1, "priority": -1, "_id": -1}}
-        ];
-
-        console.dir(agg, {depth: 100});
-
-        dialerService.members._aggregate(agg, (e, res = []) => {
-            if (e)
-                throw e;
-
-            console.dir(res[0] && res[0].communications, {depth: 10, colors: true});
-
-            return cb(e, res);
-        })
     }
 
     getLimit () {
@@ -843,7 +698,7 @@ module.exports = class Dialer extends EventEmitter2 {
             {_id: this._objectId, $or: [filterNull, filterLimit], active: true},
             {},
             {$inc},
-            {new: false}, //TODO
+            {new: false, fields: {_id:1}}, //TODO
             cb
         )
     }
@@ -954,48 +809,65 @@ module.exports = class Dialer extends EventEmitter2 {
 
         const filter = this.getFilterAvailableMembers();
 
-
+        // TODO bad query...
         if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
             filter['$where'] = `function () {
-            
-                var homes = fnFilterDialerCommunications(
-                    this.communications, ${JSON.stringify(codes)},
-                    ${JSON.stringify(ranges)},
-                    ${JSON.stringify(allCodes)}
-                );
-                var a = fnKeySort(homes, {
-                    isTypeFound: "desc",
-                    lastCall: "asc",
-                    rangePriority: "desc",
-                    priority: "desc",
-                    _probe: "asc"
-                })[0];
-            
-                printjson(a);
-                return true
+       
+                var number = fnKeySort(
+                    fnFilterDialerCommunications(
+                            this.communications, ${JSON.stringify(codes)},
+                            ${JSON.stringify(ranges)},
+                            ${JSON.stringify(allCodes)}
+                    ), 
+                    {
+                        isTypeFound: "desc",
+                        lastCall: "asc",
+                        rangePriority: "desc",
+                        priority: "desc",
+                        _probe: "asc"
+                    }
+                )[0];
+                
+                var regs = ${JSON.stringify(regexp)};
+                
+                for (var i = 0;  i < regs.length; i++) {
+                    if (new RegExp(regs[i]).test(number)) {
+                        return true;
+                    }
+                }
+        
+                return false
             }`;
         } else {
             filter['$where'] = `function () {
-            
-                var homes = fnFilterDialerCommunications(
-                    this.communications, ${JSON.stringify(codes)},
-                    ${JSON.stringify(ranges)},
-                    ${JSON.stringify(allCodes)}
-                );
-                var a = fnKeySort(homes, {
-                    isTypeFound: "desc",
-                    rangePriority: "desc",
-                    lastCall: "asc",
-                    priority: "desc",
-                    _probe: "asc"
-                })[0];
-            
-                printjson(a);
-                return true
+                var number = fnKeySort(
+                    fnFilterDialerCommunications(
+                        this.communications, ${JSON.stringify(codes)},
+                        ${JSON.stringify(ranges)},
+                        ${JSON.stringify(allCodes)}
+                    ), 
+                    {
+                        isTypeFound: "desc",
+                        rangePriority: "desc",
+                        lastCall: "asc",
+                        priority: "desc",
+                        _probe: "asc"
+                    }
+                )[0];
+        
+                var regs = ${JSON.stringify(regexp)};
+                
+                for (var i = 0;  i < regs.length; i++) {
+                    if (new RegExp(regs[i]).test(number)) {
+                        return true;
+                    }
+                }
+        
+                return false
             }`;
         }
 
-        // console.dir(filter, {depth: 10, colors: true});
+        //console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,
@@ -1009,7 +881,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 if (err)
                     return cb(err);
 
-                if (!res && !res.value)
+                if (!res || !res.value)
                     return cb(null, null);
 
                 const number = this.getMemberNumber(res.value, codes, ranges, allCodes);

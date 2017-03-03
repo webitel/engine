@@ -65,7 +65,7 @@ module.exports = class Predictive extends Dialer {
                         dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, this._skills, cb);
                     },
                     allLogged: (cb) => {
-                        dialerManager.agentManager.getAllLoggedAgent(this._objectId, this._agents, this._skills, cb);
+                       dialerManager.agentManager.getAllLoggedAgent(this._objectId, this._agents, this._skills, cb);
                     },
                     members: (cb) => {
                         this.countAvailableMembers(this._limit, cb);
@@ -76,7 +76,7 @@ module.exports = class Predictive extends Dialer {
                         return log.error(err);
 
 
-                    if (!this.isReady()) {
+                    if (!this.isReady() || res.members < 1) {
                         if (this.members.length() === 0) {
                             this.tryStop();
                         }
