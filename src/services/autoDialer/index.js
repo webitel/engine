@@ -18,9 +18,10 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     ProgressiveDialer = require('./progressive'),
     PredictiveDialer = require('./predictive'),
     eventsService = require(__appRoot + '/services/events'),
-    ObjectID = require('mongodb').ObjectID,
     dialerService = require(__appRoot + '/services/dialer'),
-    encodeRK = require(__appRoot + '/utils/helper').encodeRK
+    encodeRK = require(__appRoot + '/utils/helper').encodeRK,
+    async = require('async'),
+    calendarManager = require('./calendarManager')
     ;
 
 const EVENT_CHANGE_STATE = `DC::CHANGE_STATE`;
@@ -71,7 +72,7 @@ class AutoDialer extends EventEmitter2 {
 
             dialer.on('ready', (d) => {
                 log.debug(`Ready dialer ${d.nameDialer} - ${d._id}`);
-
+                d.state = DIALER_STATES.Work;
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
                     {
@@ -89,12 +90,10 @@ class AutoDialer extends EventEmitter2 {
             dialer.once('end', (d) => {
                 log.debug(`End dialer ${d.nameDialer} - ${d._id} - ${d.cause}`);
 
-                let sleepTime = (d.state === DIALER_STATES.Sleep) ? (new Date(Date.now() + dialer._calendar.sleepTime)) : null;
-
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
                     {
-                        $set: {state: d.state, _cause: d.cause, active: d.state === DIALER_STATES.Sleep, nextTick: sleepTime},
+                        $set: {state: d.state, _cause: d.cause, active: d.state === DIALER_STATES.Sleep},
                         $pull: {"stats.process": this._app._instanceId}
                     },
                     e => {
@@ -103,9 +102,6 @@ class AutoDialer extends EventEmitter2 {
                         this.activeDialer.remove(dialer._id);
                     }
                 );
-
-                if (sleepTime)
-                    this.addTask(d._id, d._domain, dialer._calendar.sleepTime);
 
                 this.sendEvent(d, d.state === DIALER_STATES.Sleep, 'end');
             });
@@ -133,6 +129,60 @@ class AutoDialer extends EventEmitter2 {
 
             log.info(`Remove active dialer ${dialer.nameDialer} : ${dialer._id} - ${dialer.cause}`);
             this.sendEvent(dialer, dialer.state === DIALER_STATES.Sleep, 'removed');
+        });
+
+        this.on(`changeDialerState`, (dialer, calendar, timeOfDay) => {
+
+            if ((dialer.state === DIALER_STATES.Work || dialer.state === DIALER_STATES.Idle) && timeOfDay === null) {
+                log.debug(`Set dialer ${dialer._id} sleep`);
+                const d = this.activeDialer.get(dialer._id.toString());
+                if (d) {
+                    d.setState(DIALER_STATES.Sleep);
+                    d.cause = DIALER_CAUSE.ProcessSleep;
+                }
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: dialer._id},
+                    {
+                        $set: {active: true, state: DIALER_STATES.Sleep, _cause: DIALER_CAUSE.ProcessSleep, "stats.minuteOfDay": timeOfDay}
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+                    }
+                );
+
+            } else if (dialer.state === DIALER_STATES.Sleep && timeOfDay !== null) {
+                log.debug(`Set dialer ${dialer._id} ready`);
+
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: dialer._id},
+                    {
+                        $set: {state: DIALER_STATES.Idle, _cause: DIALER_CAUSE.Init, "stats.minuteOfDay": timeOfDay}
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+
+                        this.runDialerById(dialer._id, dialer.domain, (err) => {
+                            if (err)
+                                log.error(err);
+                        });
+                    }
+                );
+            } else if (timeOfDay !== null) {
+                log.debug(`Set dialer ${dialer._id} time of day ${timeOfDay}`);
+
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: dialer._id},
+                    {
+                        $set: {"stats.minuteOfDay": timeOfDay}
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+                    }
+                );
+            }
         });
     }
 
@@ -172,7 +222,6 @@ class AutoDialer extends EventEmitter2 {
     }
 
     onConnectBrokerSuccessful () {
-        this.connectBroker = true;
         const channel = application.Broker.channel;
 
         channel.assertQueue('', {autoDelete: true, durable: true, exclusive: true}, (err, qok) => {
@@ -193,9 +242,11 @@ class AutoDialer extends EventEmitter2 {
                 "args": {}
             }
              */
-            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.system");
-            log.debug(`Init queue - successful`);
-            this.emit('changeConnection');
+            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.systemm", {}, (e) => {
+                log.debug(`Init queue - successful`);
+                this.connectBroker = true;
+                this.emit('changeConnection');
+            });
         });
 
         channel.assertQueue('engine.agents', {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
@@ -281,7 +332,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     sendToBroker (data = {}, cb) {
-        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.system`, data, e => {
+        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.systemm`, data, e => {
             if (e)
                 log.error(e);
             return cb && cb(e);
@@ -334,7 +385,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     loadCampaign () {
-        this.dbDialer._getActiveDialer((err, res) => {
+        this.dbDialer._getActiveDialer({}, (err, res) => {
             if (err)
                 return log.error(err);
 
@@ -445,7 +496,18 @@ class AutoDialer extends EventEmitter2 {
             if (err)
                 return log.error(err);
             // todo
+
+            if (!res)
+                return log.error('Not found calendar');
+
             dialerDb.lockId = this.id;
+            dialerDb.state = DIALER_STATES.Idle;
+            dialerDb._currentMinuteOfDay = calendarManager.getCurrentTimeOfDay(res);
+            if (!dialerDb._currentMinuteOfDay) {
+                this.emit('changeDialerState', dialerDb, res, dialerDb._currentMinuteOfDay);
+                return;
+            }
+
             let dialer = this.newInstanceDialer(dialerDb, res, this.id, this.agentManager);
             if (!dialer)
                 return new Error('Bad dialer type');
@@ -522,6 +584,38 @@ class AutoDialer extends EventEmitter2 {
             },
             cb
         );
+    }
+
+    calendarAgent (cb) {
+        calendarManager.checkDialerDeadline(this, this.dbDialer, this.dbCalendar, (err, res) => {
+            if (err)
+                log.error(err);
+            
+            
+        });
+        //
+        // this.dbDialer._getActiveDialer({calendar: 1, domain: 1}, (err, res) => {
+        //     if (err)
+        //         return log.error(err);
+        //
+        //     if (res instanceof Array) {
+        //         async.forEachOf(res, (dialer, key, callback) => {
+        //             const calendarId = dialer.calendar && dialer.calendar.id;
+        //             if (!calendarId)
+        //                 return callback();
+        //
+        //             this.dbCalendar.findById(dialer.domain, calendarId, (err, res) => {
+        //                 if (err) {
+        //                     log.error(err);
+        //                     return cb(err);
+        //                 }
+        //
+        //                 console.log(dialer, res);
+        //                 callback();
+        //             });
+        //         }, () => {});
+        //     }
+        // })
     }
 }
 

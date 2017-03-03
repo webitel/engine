@@ -283,12 +283,12 @@ function addQuery (db) {
             );
         },
 
-        _getActiveDialer: function (cb) {
+        _getActiveDialer: function (project, cb) {
             return db
                 .collection(dialerCollectionName)
                 .find({
                     active: true
-                })
+                }, project)
                 .toArray(cb)
         },
         

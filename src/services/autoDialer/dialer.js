@@ -14,7 +14,6 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     NUMBER_STRATEGY = require('./const').NUMBER_STRATEGY,
 
     Member = require('./member'),
-    Calendar = require('./calendar'),
     Collection = require(__appRoot + '/lib/collection'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
@@ -33,6 +32,12 @@ module.exports = class Dialer extends EventEmitter2 {
         this._active = 0;
         this._agents = [];
         this._recources = {};
+
+        this._currentMinuteOfDay = config._currentMinuteOfDay;
+        if (!this._currentMinuteOfDay) {
+            this._currentMinuteOfDay = 0;
+            log.warn(`Bad _currentMinuteOfDay`);
+        }
 
         this.consumerTag = null;
         this.queueName = `engine.dialer.${this._id}`;
@@ -55,11 +60,10 @@ module.exports = class Dialer extends EventEmitter2 {
         this.state = DIALER_STATES.Idle;
         this.cause = DIALER_CAUSE.Init;
 
-        this._calendar = new Calendar(calendarConfig, config.communications);
-
         this.once('end', () => {
-            this._calendar.stop();
             this.closeChannel();
+            if (this._timerId)
+                clearTimeout(this._timerId);
         });
 
         this._setConfig(config);
@@ -177,6 +181,10 @@ module.exports = class Dialer extends EventEmitter2 {
         });
     }
 
+    setCurrentMinuteOfDay (min) {
+        this._currentMinuteOfDay = min;
+    }
+
     initChannel (cb) {
         this.channel = application.Broker.channel;
         this.channel.assertQueue(this.queueName, {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
@@ -205,12 +213,17 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     _setConfig (config) {
+        this.state = config.state;
 
         this._stats = config.stats || {};
         if (this._stats.resources) {
             this._recources = this._stats.resources;
         }
 
+        if (this._stats.minuteOfDay) {
+            this._currentMinuteOfDay = this._stats.minuteOfDay;
+        }
+        console.log(this._currentMinuteOfDay);
 
         if (config.lastModified && config.lastModified.equals(this._lastModified)) {
             return;
@@ -523,7 +536,7 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     getCommunicationCodes () {
-        const minOfDay = this._calendar.calcCurrentTimeOfDay(),
+        const minOfDay = this._currentMinuteOfDay,
             codes = [],
             allCodes = [],
             ranges = [],
@@ -931,35 +944,7 @@ module.exports = class Dialer extends EventEmitter2 {
         )
     }
 
-    reCalcCalendar () {
-        this._calendar.reCalc();
-        let calendar = this._calendar;
-        
-        if (calendar.expire) {
-            this.state = DIALER_STATES.End;
-            this.cause = DIALER_CAUSE.ProcessExpire;
-        } else if (calendar.sleepTime > 0) {
-            this.state = DIALER_STATES.Sleep;
-            this.cause = DIALER_CAUSE.ProcessSleep;
-        } else if (calendar.deadLineTime > 0) {
-            this.state = DIALER_STATES.Work;
-            this.cause = DIALER_CAUSE.ProcessReady;
-        }
-    }
-
     checkSleep () {
-        if (this._calendar.expire) {
-            this.cause = DIALER_CAUSE.ProcessExpire;
-            this.emit('end', this);
-            return;
-        }
-        if (Date.now() >= this._calendar.deadLineTime) {
-            if (this.state !== DIALER_STATES.Sleep) {
-                this.reCalcCalendar();
-                this.cause = DIALER_CAUSE.ProcessSleep;
-                this.setState(DIALER_STATES.Sleep)
-            }
-        }
         if (this.state === DIALER_STATES.Sleep) {
             this.closeNoChannelsMembers(DIALER_STATES.Sleep);
             if (this.members.length() === 0) {
@@ -1009,6 +994,10 @@ module.exports = class Dialer extends EventEmitter2 {
             } else {
                 this.closeNoChannelsMembers(DIALER_STATES.ProcessStop);
             }
+        }
+
+        if (state === DIALER_STATES.Sleep) {
+            this.checkSleep();
         }
     }
 
@@ -1123,10 +1112,9 @@ module.exports = class Dialer extends EventEmitter2 {
                 return;
             }
 
-            this.reCalcCalendar();
             this.checkSleep();
 
-            if (this.state === DIALER_STATES.Work) {
+            if (this.state === DIALER_STATES.Idle || this.state === DIALER_STATES.Work) {
                 this.countMembers = count;
                 this.initChannel((e, res) => {
                     if (e) {

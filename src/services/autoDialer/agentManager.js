@@ -26,6 +26,8 @@ class AgentManager extends EventEmitter2 {
                     throw e
             });
 
+            dialer.calendarAgent();
+
             dialer.clearAttemptOnDeadlineResultStatus(e => {
                 if (e)
                     throw e;
