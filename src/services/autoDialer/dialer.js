@@ -153,7 +153,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 dialerService.members._updateByIdFix(
                     m._id,
                     update,
-                    (err, res) => {
+                    (err) => {
                         if (err)
                             log.error(err);
 
@@ -511,8 +511,9 @@ module.exports = class Dialer extends EventEmitter2 {
                         }
 
                         if (!member) {
-                            if (this.members.length() === 0)
+                            if (this.members.length() === 0) {
                                 this.tryStop();
+                            }
                             this.rollback();
                             return log.debug (`Not found available members in ${this.nameDialer}`);
                         }
@@ -1071,10 +1072,14 @@ module.exports = class Dialer extends EventEmitter2 {
             this.countMembers = res.count;
 
             this._processTryStop = false;
+
             if (!res.nextTryTime) {
                 res.nextTryTime = Date.now() + 1000;
             } else if (res.nextTryTime < Date.now()) {
-                return this.emit('wakeUp')
+                this._timerId = setTimeout(() => {
+                    clearTimeout(this._timerId);
+                    this.emit('wakeUp')
+                }, 1000);
             }
 
             if (res.nextTryTime > 0) {
