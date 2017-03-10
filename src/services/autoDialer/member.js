@@ -160,8 +160,8 @@ module.exports = class Member extends EventEmitter2 {
         this._log.callNumber = communication.number;
         this._log.callPriority = communication.priority || 0;
 
-        const $set = {};
-        $set[`communications.${communication._id}`] = communication;
+        // const $set = {};
+        // $set[`communications.${communication._id}`] = communication;
 
         // dialerService.members._updateByIdFix(
         //     this._id,
@@ -173,8 +173,14 @@ module.exports = class Member extends EventEmitter2 {
         //     }
         // );
         
-        if (all instanceof Array)
+        if (all instanceof Array) {
+            for (let num of all) {
+                if (num.state === MEMBER_STATE.Idle) {
+                    this._countActiveNumbers++
+                }
+            }
             this._log.callPositionIndex = all.indexOf(communication);
+        }
     }
 
     checkExpire () {
@@ -253,8 +259,8 @@ module.exports = class Member extends EventEmitter2 {
         if (this.expire)
             e.expire = this.expire;
 
-        if (this._agent) {
-            e.agentId = this._agent.id;
+        if (this.agent) {
+            e.agentId = this.agent.agentId;
         }
 
         for (let key in this.variables) {
@@ -276,6 +282,15 @@ module.exports = class Member extends EventEmitter2 {
 
         log.trace(`end member ${this._id} cause: ${this.endCause || endCause || ''}`) ;
 
+        if (this.predictAbandoned) {
+            this.log(`Abandoned`);
+            this._setStateCurrentNumber(MEMBER_STATE.End);
+            this.callSuccessful = false;
+            this.endCause = END_CAUSE.ABANDONED;
+            this.emit('end', this);
+            return;
+        }
+
         if (this._waitingForResultStatus) {
             this.log(`Check callback`);
             this.emit('end', this);
@@ -293,15 +308,6 @@ module.exports = class Member extends EventEmitter2 {
                 this.setAmdResult(e.getHeader('variable_amd_result'), e.getHeader('variable_amd_cause'));
 
             this.setCallUUID(e.getHeader('variable_uuid'))
-        }
-
-        if (this.predictAbandoned) {
-            this.log(`Abandoned`);
-            this._setStateCurrentNumber(MEMBER_STATE.End);
-            this.callSuccessful = false;
-            this.endCause = END_CAUSE.ABANDONED;
-            this.emit('end', this);
-            return;
         }
         
         if (~this.getCausesMinus(endCause)) {

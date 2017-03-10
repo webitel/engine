@@ -21,7 +21,8 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     dialerService = require(__appRoot + '/services/dialer'),
     encodeRK = require(__appRoot + '/utils/helper').encodeRK,
     async = require('async'),
-    calendarManager = require('./calendarManager')
+    calendarManager = require('./calendarManager'),
+    Scheduler = require(__appRoot + '/lib/scheduler')
     ;
 
 const EVENT_CHANGE_STATE = `DC::CHANGE_STATE`;
@@ -39,7 +40,7 @@ class AutoDialer extends EventEmitter2 {
         this.connectBroker = false;
 
         this.activeDialer = new Collection('id');
-        this.agentManager = new AgentManager(this);
+        this.agentManager = new AgentManager();
 
         this.agentManager.on('unReserveHookAgent', this.sendAgentToDialer.bind(this));
 
@@ -131,9 +132,31 @@ class AutoDialer extends EventEmitter2 {
             this.sendEvent(dialer, dialer.state === DIALER_STATES.Sleep, 'removed');
         });
 
-        this.on(`changeDialerState`, (dialer, calendar, timeOfDay) => {
+        this.on(`changeDialerState`, (dialer, calendar, currentTime) => {
 
-            if ((dialer.state === DIALER_STATES.Work || dialer.state === DIALER_STATES.Idle) && timeOfDay === null) {
+            if (currentTime.expire && dialer._cause !== DIALER_CAUSE.ProcessExpire) {
+                log.debug(`Set dialer ${dialer._id} expire`);
+                const d = this.activeDialer.get(dialer._id.toString());
+                if (d) {
+                    d.setState(DIALER_STATES.End);
+                    d.cause = DIALER_CAUSE.ProcessExpire;
+                }
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: dialer._id},
+                    {
+                        $set: {
+                            active: false,
+                            state: DIALER_STATES.End,
+                            _cause: DIALER_CAUSE.ProcessExpire,
+                            "stats.minuteOfDay": null
+                        }
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+                    }
+                );
+            } else if ((dialer.state === DIALER_STATES.Work || dialer.state === DIALER_STATES.Idle) && currentTime.currentTimeOfDay === null) {
                 log.debug(`Set dialer ${dialer._id} sleep`);
                 const d = this.activeDialer.get(dialer._id.toString());
                 if (d) {
@@ -143,7 +166,13 @@ class AutoDialer extends EventEmitter2 {
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: dialer._id},
                     {
-                        $set: {active: true, state: DIALER_STATES.Sleep, _cause: DIALER_CAUSE.ProcessSleep, "stats.minuteOfDay": timeOfDay}
+                        $set: {
+                            active: true,
+                            state: DIALER_STATES.Sleep,
+                            _cause: DIALER_CAUSE.ProcessSleep,
+                            "stats.minuteOfDay": currentTime.currentTimeOfDay,
+                            "stats.weekOfDay": currentTime.currentWeek
+                        }
                     },
                     e => {
                         if (e)
@@ -151,13 +180,18 @@ class AutoDialer extends EventEmitter2 {
                     }
                 );
 
-            } else if (dialer.state === DIALER_STATES.Sleep && timeOfDay !== null) {
+            } else if (dialer.state === DIALER_STATES.Sleep && currentTime.currentTimeOfDay !== null) {
                 log.debug(`Set dialer ${dialer._id} ready`);
 
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: dialer._id},
                     {
-                        $set: {state: DIALER_STATES.Idle, _cause: DIALER_CAUSE.Init, "stats.minuteOfDay": timeOfDay}
+                        $set: {
+                            state: DIALER_STATES.Idle,
+                            _cause: DIALER_CAUSE.Init,
+                            "stats.minuteOfDay": currentTime.currentTimeOfDay,
+                            "stats.weekOfDay": currentTime.currentWeek
+                        }
                     },
                     e => {
                         if (e)
@@ -169,13 +203,16 @@ class AutoDialer extends EventEmitter2 {
                         });
                     }
                 );
-            } else if (timeOfDay !== null) {
-                log.debug(`Set dialer ${dialer._id} time of day ${timeOfDay}`);
+            } else if (currentTime.currentTimeOfDay !== null) {
+                log.debug(`Set dialer ${dialer._id} time of day ${currentTime.currentTimeOfDay}`);
 
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: dialer._id},
                     {
-                        $set: {"stats.minuteOfDay": timeOfDay}
+                        $set: {
+                            "stats.minuteOfDay": currentTime.currentTimeOfDay,
+                            "stats.weekOfDay": currentTime.currentWeek
+                        }
                     },
                     e => {
                         if (e)
@@ -183,7 +220,64 @@ class AutoDialer extends EventEmitter2 {
                     }
                 );
             }
+
+            if (dialer.stats && dialer.stats.weekOfDay !== currentTime.currentWeek) {
+                this.dbDialer._dialerCollection.findOneAndUpdate(
+                    {_id: dialer._id},
+                    {
+                        $set: {
+                            "stats.weekOfDay": currentTime.currentWeek
+                        }
+                    },
+                    e => {
+                        if (e)
+                            log.error(e);
+
+                        this.agentManager.resetAgentsStats(dialer._id, e => {
+                            if (e)
+                                log.error(e);
+                        })
+                    }
+                );
+            }
+
         });
+
+        const fnScheduleSec = (cb) => {
+            if (!this.isReady()) {
+                return cb();
+            }
+
+            this.clearAttemptOnDeadlineResultStatus(e => {
+                if (e)
+                    log.error(e);
+            });
+
+            this.agentManager.checkSetAvailableTime(e => {
+                if (e)
+                    log.error(e);
+
+                return cb();
+            });
+        };
+
+        // let currentDay = das;
+
+        const fnScheduleMin = (cb) => {
+
+            if (!this.isReady()) {
+                return cb();
+            }
+
+            this.calendarAgent((err) => {
+                if (err)
+                    log.error(err);
+                return cb();
+            });
+        };
+
+        new Scheduler('1-59/1 * * * * *', fnScheduleSec, {log: false});
+        new Scheduler('*/1 * * * *', fnScheduleMin, {log: false});
     }
 
     sendEvent (d, active, callingName) {
@@ -242,7 +336,7 @@ class AutoDialer extends EventEmitter2 {
                 "args": {}
             }
              */
-            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.system", {}, (e) => {
+            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.systemm", {}, (e) => {
                 log.debug(`Init queue - successful`);
                 this.connectBroker = true;
                 this.emit('changeConnection');
@@ -332,7 +426,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     sendToBroker (data = {}, cb) {
-        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.system`, data, e => {
+        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.systemm`, data, e => {
             if (e)
                 log.error(e);
             return cb && cb(e);
@@ -502,9 +596,12 @@ class AutoDialer extends EventEmitter2 {
 
             dialerDb.lockId = this.id;
             dialerDb.state = DIALER_STATES.Idle;
-            dialerDb._currentMinuteOfDay = calendarManager.getCurrentTimeOfDay(res);
-            if (!dialerDb._currentMinuteOfDay) {
-                this.emit('changeDialerState', dialerDb, res, dialerDb._currentMinuteOfDay);
+
+            const currentTime = calendarManager.getCurrentTimeOfDay(res);
+            dialerDb._currentMinuteOfDay = currentTime.currentTimeOfDay;
+            dialerDb._currentWeek = currentTime.currentWeek;
+            if (currentTime.expire || !currentTime.currentTimeOfDay) {
+                this.emit('changeDialerState', dialerDb, res, currentTime);
                 return;
             }
 
@@ -587,12 +684,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     calendarAgent (cb) {
-        calendarManager.checkDialerDeadline(this, this.dbDialer, this.dbCalendar, (err, res) => {
-            if (err)
-                log.error(err);
-            
-            
-        });
+        calendarManager.checkDialerDeadline(this, this.dbDialer, this.dbCalendar, cb);
         //
         // this.dbDialer._getActiveDialer({calendar: 1, domain: 1}, (err, res) => {
         //     if (err)

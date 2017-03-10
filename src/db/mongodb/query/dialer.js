@@ -461,7 +461,7 @@ function addQuery (db) {
         _updateAgentMulti: (filter, update, cb) => {
             return db
                 .collection(agentsCollectionName)
-                .findAndModify(filter, sort, update, {new: true, multi: true}, cb)
+                .update(filter, update, {multi: true}, cb)
         }
     }
 }

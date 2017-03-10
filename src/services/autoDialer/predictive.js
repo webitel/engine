@@ -49,7 +49,7 @@ module.exports = class Predictive extends Dialer {
         });
 
         this.getLimit = () => {
-            if (this._stats.queueLimit) {
+            if (this._stats.queueLimit && this._stats.queueLimit < this._limit) {
                 return this._stats.queueLimit;
             }
             return this._limit;

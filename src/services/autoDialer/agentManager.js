@@ -16,24 +16,8 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
 
 class AgentManager extends EventEmitter2 {
 
-    constructor (dialer) {
+    constructor () {
         super();
-
-        //TODO move to dialer
-        setInterval(() => {
-            this.checkSetAvailableTime(e => {
-                if (e)
-                    throw e
-            });
-
-            dialer.calendarAgent();
-
-            dialer.clearAttemptOnDeadlineResultStatus(e => {
-                if (e)
-                    throw e;
-            })
-        }, 1000);
-
     }
 
     checkSetAvailableTime (cb) {
@@ -173,6 +157,26 @@ class AgentManager extends EventEmitter2 {
                 }
             ]
         }, cb);
+    }
+
+    resetAgentsStats (dialerId, cb) {
+        application.DB._query.dialer._updateAgentMulti(
+            {
+                dialer: {$elemMatch: {_id: dialerId}}
+            },
+            {
+                $set: {
+                    "dialer.$.lastStatus": "reset status",
+                    "dialer.$.callCount": 0,
+                    "dialer.$.gotCallCount": 0,
+                    "dialer.$.callTimeSec": 0,
+                    "dialer.$.lastBridgeCallTimeStart": 0,
+                    "dialer.$.lastBridgeCallTimeEnd": 0,
+                    "dialer.$.connectedTimeSec": 0
+                }
+            },
+            cb
+        );
     }
 
     rollbeckAgent (agentId, dialerId, cb) {

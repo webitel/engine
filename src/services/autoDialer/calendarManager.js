@@ -25,8 +25,7 @@ function checkDialerDeadline(dialerManager, dialerDb, calendarDb, cb) {
                         return callback(err);
                     }
 
-                    const currentTimeOfDay = getCurrentTimeOfDay(calendar);
-                    dialerManager.emit('changeDialerState', dialer, calendar, currentTimeOfDay);
+                    dialerManager.emit('changeDialerState', dialer, calendar, getCurrentTimeOfDay(calendar));
                     callback();
                 });
             }, cb);
@@ -45,17 +44,16 @@ function getCurrentTimeOfDay(calendar) {
 
     // Check range date;
     if (calendar.startDate && currentTime < calendar.startDate)
-        return null;
+        return {expire: true, currentTimeOfDay: null};
     else if (calendar.endDate && currentTime > calendar.endDate)
-        return null;
+        return {expire: true, currentTimeOfDay: null};
 
     //Check work
     let isAccept = false;
     const currentTimeOfDay = current.get('hours') * 60 + current.get('minutes');
+    const currentWeek = current.isoWeekday();
 
     if (calendar.accept instanceof Array) {
-        let currentWeek = current.isoWeekday();
-
         for (let i = 0, len = calendar.accept.length; i < len; i++) {
             isAccept = currentWeek === calendar.accept[i].weekDay && between(currentTimeOfDay, calendar.accept[i].startTime, calendar.accept[i].endTime);
             if (isAccept)
@@ -63,11 +61,11 @@ function getCurrentTimeOfDay(calendar) {
         }
 
     } else {
-        return null;
+        return {currentTimeOfDay: null, currentWeek};
     }
 
     if (!isAccept)
-        return null;
+        return {currentTimeOfDay: null, currentWeek};
 
     // Check holiday
     if (calendar.except instanceof Array) {
@@ -80,11 +78,11 @@ function getCurrentTimeOfDay(calendar) {
             const exceptDate = moment(calendar.except[i].date);
             if (exceptDate.get('date') == currentDay && exceptDate.get('month') == currentMonth &&
                 (calendar.except[i].repeat === 1 || (calendar.except[i].repeat === 0 && exceptDate.get('year') == currentYear)) )
-                return null;
+                return {currentTimeOfDay: null, currentWeek};
         }
     }
 
-    return currentTimeOfDay;
+    return {currentTimeOfDay, currentWeek};
 }
 
 module.exports = {
