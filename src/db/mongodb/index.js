@@ -32,6 +32,7 @@ function initConnect (server) {
         db._query = {
             email: require('./query/email').addQuery(db),
             auth: require('./query/auth').addQuery(db),
+            agent: require('./query/agent').addQuery(db),
             dialplan: require('./query/dialplan').addQuery(db),
             blacklist: require('./query/blacklist').addQuery(db),
             book: require('./query/contactBook').addQuery(db),

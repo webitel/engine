@@ -38,7 +38,8 @@ module.exports = class Predictive extends Dialer {
                     queueLimit: this._stats.queueLimit || this._limit,
                     predictAbandoned: m.predictAbandoned,
                     bridgedCall: m.bridgedCall,
-                    predictAdjust: this._stats.predictAdjust
+                    predictAdjust: this._stats.predictAdjust,
+                    amd: m.getAmdResult()
                 },
                 e => {
                     if (!e)
@@ -74,7 +75,6 @@ module.exports = class Predictive extends Dialer {
                 (err, res) => {
                     if (err)
                         return log.error(err);
-
 
                     if (!this.isReady() || res.members < 1) {
                         if (this.members.length() === 0) {
@@ -297,7 +297,7 @@ module.exports = class Predictive extends Dialer {
                                 connectedTimeSec: timeToSec(date, start),
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
                                 process: null
-                            }, (e, res) => {
+                            }, (e) => {
                                 if (e)
                                     return log.error(e);
                             });
@@ -373,7 +373,7 @@ module.exports = class Predictive extends Dialer {
     }
 
     _joinAgent (member) {
-        if (member.getBridgedTime() + (1000 * 10) <= Date.now() ) { //todo move conf 10 sec found
+        if (member.getBridgedTime() + (1000 * this._maxLocateAgentSec) <= Date.now() ) {
             application.Esl.bgapi(`uuid_kill ${member.sessionId} LOSE_RACE`); // todo add conf hangup cause
             return;
         }
@@ -461,7 +461,7 @@ module.exports = class Predictive extends Dialer {
                     lastStatus: `end -> ${member._id}`,
                     setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                     process: null
-                }, (e, res) => {
+                }, (e) => {
                     if (e)
                         throw e;
                 });

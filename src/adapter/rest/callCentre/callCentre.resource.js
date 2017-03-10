@@ -44,6 +44,7 @@ function addRoutes(api) {
     api.post('/api/v2/callcenter/agent/:id/status', agentSetStatus);
     api.post('/api/v2/callcenter/agent/:id/state', agentSetState);
     api.get('/api/v2/callcenter/agent/:id', agentGetParams);
+    api.get('/api/v2/callcenter/agent', agentList);
 }
 
 function getTiersByQueue (req, res, next) {
@@ -358,7 +359,7 @@ function agentSetState(req, res, next) {
 }
 
 function agentGetParams(req, res, next) {
-    let options = {
+    const options = {
         domain: req.query['domain'],
         id: req.params['id']
     };
@@ -374,4 +375,34 @@ function agentGetParams(req, res, next) {
                 "info": result
             })
     });
+}
+
+function agentList(req, res, next) {
+    const options = {
+        domain: req.query['domain']
+    };
+
+    if (req.query.filter) {
+        options.filter = parseFilter(req.query.filter)
+    }
+
+    ccServices.getAgentList(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            })
+    });
+}
+
+function parseFilter(data) {
+    try {
+        return JSON.parse(decodeURIComponent(data))
+    } catch (e) {
+        return null;
+    }
 }

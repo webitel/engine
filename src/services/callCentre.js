@@ -597,6 +597,22 @@ var Service = {
             );
         });
     },
+
+    getAgentList: function (caller, options, cb) {
+        checkPermissions(caller, 'cc/queue', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            if (!options) {
+                return cb(new CodeError(400, 'Options is required.'));
+            }
+
+            const domain = validateCallerParameters(caller, options['domain']);
+            const db = application.DB._query.agent;
+
+            return db.list(domain, options.filter, options.project, cb);
+        });
+    },
     
     _getAgentParams: function (agentId, cb) {
         application.Esl.bgapi(`callcenter_config agent list ${agentId}`,

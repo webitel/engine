@@ -76,7 +76,7 @@ class AutoDialer extends EventEmitter2 {
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
                     {
-                        $set: {state: d.state, _cause: d.cause, active: true, nextTick: null, "stats.readyOn": Date.now()},
+                        $set: {state: d.state, _cause: d.cause, active: true, nextTick: null, "stats.readyOn": Date.now(), "stats.stopOn": null},
                         $addToSet: {"stats.process": this._app._instanceId}
                     },
                     e => {
@@ -93,7 +93,7 @@ class AutoDialer extends EventEmitter2 {
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
                     {
-                        $set: {state: d.state, _cause: d.cause, active: d.state === DIALER_STATES.Sleep},
+                        $set: {state: d.state, _cause: d.cause, active: d.state === DIALER_STATES.Sleep, "stats.readyOn": null, "stats.stopOn": Date.now()},
                         $pull: {"stats.process": this._app._instanceId}
                     },
                     e => {

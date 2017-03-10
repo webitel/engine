@@ -681,6 +681,32 @@ let Service = {
             let db = application.DB._query.dialer;
             return db._aggregateMembers(agg, cb);
         }
+    },
+    
+    agents: {
+        list: function (caller, option, cb) {
+            checkPermissions(caller, 'dialer', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!option || !option.dialer)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                let domain = validateCallerParameters(caller, option['domain']);
+                if (!domain) {
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+                }
+
+                let db = application.DB._query.dialer;
+
+                db.findById(option.dialer, domain, (err, data) => {
+                    if (err)
+                        return cb(err);
+
+
+                });
+            })
+        }
     }
 };
 

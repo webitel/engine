@@ -29,7 +29,7 @@ function addRoutes(api) {
 
     // Channel actions
     api.post('/api/v2/accounts/:id/spy', spy);
-};
+}
 
 
 function createV1 (req, res, next) {

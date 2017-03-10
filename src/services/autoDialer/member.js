@@ -42,8 +42,6 @@ module.exports = class Member extends EventEmitter2 {
         this.getQueueId = () => dialer._id;
         this.getDomain = () => dialer._domain;
 
-        // let lockedGws = option.lockedGateways; // TODO
-
         this.getCausesSuccessful = (cause) => dialer._memberOKCauses.indexOf(cause);
         this.getCausesRetry = (cause) => dialer._memberRetryCauses.indexOf(cause);
         this.getCausesError = (cause) => dialer._memberErrorCauses.indexOf(cause);
@@ -107,7 +105,6 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     setAmdResult (result, cause) {
-        console.log(`set amd ${result} - ${cause}`);
         this._log.amdResult = result;
         this._log.amdCause = cause;
     }

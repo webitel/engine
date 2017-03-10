@@ -223,7 +223,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (this._stats.minuteOfDay) {
             this._currentMinuteOfDay = this._stats.minuteOfDay;
         }
-        console.log(this._currentMinuteOfDay);
+        //console.log(this._currentMinuteOfDay);
 
         if (config.lastModified && config.lastModified.equals(this._lastModified)) {
             return;
@@ -272,7 +272,8 @@ module.exports = class Dialer extends EventEmitter2 {
             },
             this._predictAdjust = 150,
             this._targetPredictiveSilentCalls = 2.5,
-            this._maxPredictiveSilentCalls = 3
+            this._maxPredictiveSilentCalls = 3,
+            this._maxLocateAgentSec = 10
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -287,7 +288,8 @@ module.exports = class Dialer extends EventEmitter2 {
             config.amd,
             parameters.predictAdjust,
             parameters.targetPredictiveSilentCalls,
-            parameters.maxPredictiveSilentCalls
+            parameters.maxPredictiveSilentCalls,
+            parameters.maxLocateAgentSec
         ];
 
         if (this._amd.enabled) {
@@ -370,36 +372,6 @@ module.exports = class Dialer extends EventEmitter2 {
         return res;
     }
 
-    getResourceRoutes (cb) {
-        const gws = new Map(),
-            $or = [];
-
-
-
-        gws.forEach( (g, name) => {
-            $or.push({
-                name: name
-            })
-        });
-
-        application.DB.collection('gateway').find({$or}).toArray((e, res) => {
-            if (e)
-                return cb(e);
-
-            for (let dbGw of res) {
-                if (gws.has(dbGw.name))
-                    gws.get(dbGw.name).resources.forEach( i => {
-                        this.getResourceStat(i).gwActive = res.stats && res.stats.active
-                    });
-            }
-
-            return cb(null);
-        });
-
-        //return res;
-    }
-
-
     getAgentParam (paramName, agent = {}) {
         if (this.defaultAgentParams[paramName])
             return this.defaultAgentParams[paramName];
@@ -427,11 +399,16 @@ module.exports = class Dialer extends EventEmitter2 {
 
 
         if (stats instanceof Object) {
+            // todo ref
             update.$set = {};
             for (let key in stats) {
                 if (key === 'predictAbandoned' || key === 'bridgedCall') {
                     if (stats[key] === true)
                         $inc[`stats.${key}`] = 1;
+                } else if (key === 'amd') {
+                    if (stats.amd) {
+                        $inc[`stats.amd.${stats.amd.result}`] = 1;
+                    }
                 } else {
                     update.$set[`stats.${key}`] = stats[key]
                 }
@@ -485,13 +462,14 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     _huntingMember () {
+        console.log('_huntingMember');
         if (!this.isReady())
             return;
 
         log.trace(`hunting on member ${this.nameDialer} - members queue: ${this._active} state: ${this.state}`);
 
         this._dbDialer.findAndModify(
-            {_id: this._objectId, "stats.active": {$lt: this.getLimit()}},
+            {_id: this._objectId, "stats.active": {$lt: Math.min(this.getLimit(), this._maxResources)}},
             {},
             {
                 $inc: {"stats.active": 1}
@@ -609,11 +587,6 @@ module.exports = class Dialer extends EventEmitter2 {
         if (codeFilter.length > 0) {
             communications.$elemMatch.$or = codeFilter;
         }
-
-        if (this._lockedGateways && this._lockedGateways.length > 0)
-            communications.$elemMatch.gatewayPositionMap = {
-                $nin: this._lockedGateways
-            };
 
         return {
             dialer: this._id,
@@ -795,7 +768,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     callback(null)
                 }
             },
-            (err, res) => {
+            (err) => {
                 return cb(err, dest);
             }
         );
@@ -1126,6 +1099,7 @@ module.exports = class Dialer extends EventEmitter2 {
                         this.cause = `${err.message}`;
                         return this.emit('end', this);
                     }
+                    this.cause = DIALER_CAUSE.ProcessReady;
                     this.emit('ready', this);
                     log.trace(`found in ${this.nameDialer} ${count} members. run hunting...`);
                 });
