@@ -334,8 +334,6 @@ module.exports = class Predictive extends Dialer {
             } else {
                 application.Esl.bgapi(`uuid_bridge ${member.sessionId} ${member._predAgentOriginateUuid}`, (bridge) => {
                     member._predAgentOriginateUuid = null;
-                    member.predictAbandoned = false;
-                    member.bridgedCall = true;
 
                     member.log(`fs response bridge agent: ${bridge.body}`);
 
@@ -352,6 +350,8 @@ module.exports = class Predictive extends Dialer {
                             this._joinAgent(member);
                         });
                     } else {
+                        member.predictAbandoned = false;
+                        member.bridgedCall = true;
                         this._am.setAgentStats(agent.agentId, this._objectId, {
                             lastBridgeCallTimeStart: date,
                             connectedTimeSec: timeToSec(date, start),

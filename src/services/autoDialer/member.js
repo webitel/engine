@@ -294,6 +294,15 @@ module.exports = class Member extends EventEmitter2 {
 
             this.setCallUUID(e.getHeader('variable_uuid'))
         }
+
+        if (this.predictAbandoned) {
+            this.log(`Abandoned`);
+            this._setStateCurrentNumber(MEMBER_STATE.End);
+            this.callSuccessful = false;
+            this.endCause = END_CAUSE.ABANDONED;
+            this.emit('end', this);
+            return;
+        }
         
         if (~this.getCausesMinus(endCause)) {
             this.minusProbe();
