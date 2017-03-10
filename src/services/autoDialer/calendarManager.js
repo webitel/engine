@@ -10,7 +10,7 @@ const log = require(__appRoot + '/lib/log')(module),
     ;
     
 function checkDialerDeadline(dialerManager, dialerDb, calendarDb, cb) {
-    dialerDb._getActiveDialer({calendar: 1, domain: 1, state: 1}, (err, res) => {
+    dialerDb._getActiveDialer({calendar: 1, domain: 1, state: 1, "stats.weekOfDay": 1}, (err, res) => {
         if (err)
             return log.error(err);
 
