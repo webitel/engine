@@ -105,7 +105,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                 $set[`communications.${i}.lastCall`] = m._minusProbe ? 0 : Date.now();
 
                                 if (this._waitingForResultStatus) {
-                                    if (m._minusProbe) {
+                                    if (m._minusProbe || m.predictAbandoned) {
                                         $set._waitingForResultStatusCb = null;
                                         $set._waitingForResultStatus = null;
                                         $set[`communications.${i}.checkResult`] = null;
@@ -137,7 +137,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set._lastNumberId = m._currentNumber._id;
                 }
 
-                if (m.endCause && !this._waitingForResultStatus) {
+                if (m.endCause && (!this._waitingForResultStatus || m.predictAbandoned)) {
                     $set._endCause = m.endCause;
                 }
 
@@ -188,8 +188,10 @@ module.exports = class Dialer extends EventEmitter2 {
     initChannel (cb) {
         this.channel = application.Broker.channel;
         this.channel.assertQueue(this.queueName, {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
-            if (err)
-                throw err; // TODO set log
+            if (err) {
+                log.error(err);
+                return cb(err);
+            }
 
             this.channel.consume(qok.queue, (msg) => {
                 try {
@@ -198,8 +200,10 @@ module.exports = class Dialer extends EventEmitter2 {
                     log.error(e);
                 }
             }, {noAck: true}, (e, res) => {
-                if (e)
-                    throw e; //TODO set log
+                if (e) {
+                    log.error(e);
+                    return cb(e);
+                }
                 this.consumerTag = res.consumerTag;
                 return cb(e)
             });
@@ -425,8 +429,10 @@ module.exports = class Dialer extends EventEmitter2 {
             (e, r) => {
                 if (e)
                     log.error(e);
+
                 if (r.lastErrorObject.n !== 1 || r.lastErrorObject.updatedExisting !== true)
-                    throw r;
+                    log.error('Bad update rollback dialer', r);
+
                 this._active--;
                 return cb && cb(e)
             }
@@ -462,7 +468,7 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     _huntingMember () {
-        console.log('_huntingMember');
+        //console.log('_huntingMember');
         if (!this.isReady())
             return;
 
@@ -787,6 +793,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (this._waitingForResultStatus) {
             $set._waitingForResultStatus = Date.now() + (this._wrapUpTime * 1000); //ERROR
             $set._waitingForResultStatusCb = 1;
+            $set['communications.$.checkResult'] = 1;
             $set._maxTryCount = this._maxTryCount;
         }
 
@@ -854,7 +861,7 @@ module.exports = class Dialer extends EventEmitter2 {
             }`;
         }
 
-        //console.dir(filter, {depth: 10, colors: true});
+    //    console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,

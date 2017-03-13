@@ -22,7 +22,7 @@ module.exports = class Progressive extends Dialer {
             } else {
                 dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, member, (err, agent) => {
                     if (err)
-                        throw err;
+                        log.error(err);
 
                     if (agent) {
                         this.dialMember(member, agent);

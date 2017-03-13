@@ -105,6 +105,7 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     setAmdResult (result, cause) {
+        this.log(`Set amd ${result} - ${cause}`);
         this._log.amdResult = result;
         this._log.amdCause = cause;
     }

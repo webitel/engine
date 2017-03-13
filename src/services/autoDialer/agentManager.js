@@ -327,8 +327,10 @@ class AgentManager extends EventEmitter2 {
                 if (err)
                     return cb(err);
 
-                if (!res.value)
-                    throw res;
+                if (!res.value) {
+                    log.error('Bad response setAgentStats update:', res);
+                    return cb(new Error('Bad response setAgentStats update'));
+                }
 
                 return cb(err, res);
             }
@@ -350,8 +352,10 @@ class AgentManager extends EventEmitter2 {
                 if (err)
                     return cb(err);
 
-                if (!res.value)
-                    throw res;
+                if (!res.value) {
+                    log.error(`Bad response`, res);
+                    return cb(new Error('Bad response flushAgentProcess query'));
+                }
 
                 return cb(err, res);
             }

@@ -64,7 +64,7 @@ module.exports = class VoiceBroadcast extends Dialer {
         });
         
         this.getDialString = (member) => {
-            const vars = [`presence_data='${member.getDomain()}'`, `cc_queue='${member.getQueueName()}'`, `originate_timeout=${this._originateTimeout}`];
+            const vars = [`presence_data='${member.getDomain()}'`, `cc_queue='${member.getQueueName()}'`, 'ignore_early_media=true', `originate_timeout=${this._originateTimeout}`];
 
             for (let key in this._variables) {
                 if (this._variables.hasOwnProperty(key)) {

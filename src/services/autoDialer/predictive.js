@@ -271,7 +271,7 @@ module.exports = class Predictive extends Dialer {
                     process: null
                 }, (e, res) => {
                     if (e)
-                        throw e;
+                        log.error(e);
 
                 });
                 return
@@ -344,7 +344,7 @@ module.exports = class Predictive extends Dialer {
                             process: null
                         }, (e) => {
                             if (e)
-                                throw e;
+                                log.error(e);
 
                             member.agent = null;
                             this._joinAgent(member);
@@ -385,7 +385,7 @@ module.exports = class Predictive extends Dialer {
 
         this._am.huntingAgent(this._objectId, this._agents, this._skills, this.agentStrategy, member, (err, agent) => {
             if (err)
-                throw err;
+                log.error(err);
 
 
             if (!agent) {
@@ -400,9 +400,9 @@ module.exports = class Predictive extends Dialer {
                     lastStatus: `rollback -> ${member._id}`,
                     setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                     process: null
-                }, (e, res) => {
+                }, (e) => {
                     if (e)
-                        throw e;
+                        log.error(e);
                 });
                 return;
             }
@@ -463,7 +463,7 @@ module.exports = class Predictive extends Dialer {
                     process: null
                 }, (e) => {
                     if (e)
-                        throw e;
+                        log.error(e);
                 });
             }
 
