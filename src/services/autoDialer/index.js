@@ -336,7 +336,7 @@ class AutoDialer extends EventEmitter2 {
                 "args": {}
             }
              */
-            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.systemm", {}, (e) => {
+            channel.bindQueue(qok.queue, application.Broker.Exchange.ENGINE, "*.dialer.system", {}, (e) => {
                 log.debug(`Init queue - successful`);
                 this.connectBroker = true;
                 this.emit('changeConnection');
@@ -394,7 +394,7 @@ class AutoDialer extends EventEmitter2 {
             agent.dialer instanceof Array) {
 
             for (let agentDialer of agent.dialer) {
-                let dialer = this.activeDialer.get('' + agentDialer._id);
+                let dialer = this.activeDialer.get(agentDialer._id.toString());
                 if (dialer) {
                     if (dialer.emit('availableAgent', agent))
                         return;
@@ -426,7 +426,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     sendToBroker (data = {}, cb) {
-        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.systemm`, data, e => {
+        application.Broker.publish(application.Broker.Exchange.ENGINE, `${encodeRK(application._instanceId)}.dialer.system`, data, e => {
             if (e)
                 log.error(e);
             return cb && cb(e);
@@ -672,9 +672,12 @@ class AutoDialer extends EventEmitter2 {
                 },
                 $inc: {_probeCount: -1, "communications.$._probe": -1, "communications.$.rangeAttempts": -1},
                 $push: {
-                    _log: {
+                    _callback: {
                         time: Date.now(),
-                        text: `Schedule no response result status`
+                        from: "system",
+                        data: {
+                            msg: "System schedule: no response result status"
+                        }
                     }
                 },
                 $currentDate: {lastModified: true}

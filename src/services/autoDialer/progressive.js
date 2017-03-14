@@ -36,7 +36,9 @@ module.exports = class Progressive extends Dialer {
         });
 
         this.members.on('removed', (m) => {
-            this.rollback(m, m.getDestination(), null, e => {
+            this.rollback(m, m.getDestination(), {
+                bridgedCall: m.bridgedCall
+            }, e => {
                 if (!e)
                     engine();
             });
@@ -263,6 +265,7 @@ module.exports = class Progressive extends Dialer {
                     });
                 }
             } else {
+                member.bridgedCall = true;
                 this._am.setAgentStats(agent.agentId, this._objectId, {
                     lastBridgeCallTimeStart: date,
                     connectedTimeSec: timeToSec(date, start),

@@ -371,6 +371,7 @@ function getAvailableAgentFilter(dialerId, agents, skills) {
             $in: [AGENT_STATUS.Available, AGENT_STATUS.AvailableOnDemand]
         },
         state: AGENT_STATE.Waiting,
+        setAvailableTime: null,
         dialer: {$elemMatch: {_id: dialerId}},
         "dialer.process": {$ne: "active"},
         $or: [

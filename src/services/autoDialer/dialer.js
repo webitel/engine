@@ -117,7 +117,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                         };
                                         update.$min[`communications.${i}.checkResult`] = 1;
 
-                                        $max._waitingForResultStatus =  Date.now() + (this._wrapUpTime * 1000);
+                                        $set._waitingForResultStatus =  Date.now() + (this._wrapUpTime * 1000);
                                     }
                                 }
 
@@ -408,7 +408,6 @@ module.exports = class Dialer extends EventEmitter2 {
 
         if (stats instanceof Object) {
             // todo ref
-            update.$set = {};
             for (let key in stats) {
                 if (key === 'predictAbandoned' || key === 'bridgedCall') {
                     if (stats[key] === true)
@@ -418,6 +417,9 @@ module.exports = class Dialer extends EventEmitter2 {
                         $inc[`stats.amd.${stats.amd.result}`] = 1;
                     }
                 } else {
+                    if (!update.$set)
+                        update.$set = {};
+
                     update.$set[`stats.${key}`] = stats[key]
                 }
             }
@@ -517,8 +519,8 @@ module.exports = class Dialer extends EventEmitter2 {
                         let m = new Member(member, number, destination, this);
                         this.members.add(m._id, m);
                     });
-
-
+                } else if (this.members.length() === 0) {
+                    this.tryStop();
                 }
             }
         );
@@ -795,7 +797,7 @@ module.exports = class Dialer extends EventEmitter2 {
         };
 
         if (this._waitingForResultStatus) {
-            $set._waitingForResultStatus = Date.now() + (this._wrapUpTime * 1000); //ERROR
+            $set._waitingForResultStatus = null; //Date.now() + (this._wrapUpTime * 1000); //ERROR
             $set._waitingForResultStatusCb = 1;
             $set['communications.$.checkResult'] = 1;
             $set._maxTryCount = this._maxTryCount;
