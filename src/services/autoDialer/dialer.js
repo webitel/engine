@@ -33,6 +33,8 @@ module.exports = class Dialer extends EventEmitter2 {
         this._agents = [];
         this._recources = {};
 
+        this._eternalQueue = false;
+
         this._currentMinuteOfDay = config._currentMinuteOfDay;
         if (!this._currentMinuteOfDay) {
             this._currentMinuteOfDay = 0;
@@ -277,7 +279,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._predictAdjust = 150,
             this._targetPredictiveSilentCalls = 2.5,
             this._maxPredictiveSilentCalls = 3,
-            this._maxLocateAgentSec = 10
+            this._maxLocateAgentSec = 10,
+            this._eternalQueue = false
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -293,7 +296,8 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.predictAdjust,
             parameters.targetPredictiveSilentCalls,
             parameters.maxPredictiveSilentCalls,
-            parameters.maxLocateAgentSec
+            parameters.maxLocateAgentSec,
+            parameters.eternalQueue
         ];
 
         if (this._amd.enabled) {
@@ -1015,10 +1019,14 @@ module.exports = class Dialer extends EventEmitter2 {
             this.active = false;
             this.emit('end', this);
             return
-        }
-
-        if (this.state === DIALER_STATES.Sleep) {
+        } else if (this.state === DIALER_STATES.Sleep) {
             return
+        } else if (this._eternalQueue === true) {
+            clearTimeout(this._timerId);
+            this._timerId = setTimeout(() => {
+                this.emit('wakeUp')
+            }, 5000);
+            return;
         }
 
         if (this._processTryStop)
@@ -1056,8 +1064,8 @@ module.exports = class Dialer extends EventEmitter2 {
             if (!res.nextTryTime) {
                 res.nextTryTime = Date.now() + 1000;
             } else if (res.nextTryTime < Date.now()) {
+                clearTimeout(this._timerId);
                 this._timerId = setTimeout(() => {
-                    clearTimeout(this._timerId);
                     this.emit('wakeUp')
                 }, 1000);
             }
@@ -1071,9 +1079,8 @@ module.exports = class Dialer extends EventEmitter2 {
                     nextTime = 2147483647;
 
                 console.log(nextTime);
-
+                clearTimeout(this._timerId);
                 this._timerId = setTimeout(() => {
-                    clearTimeout(this._timerId);
                     this.emit('wakeUp')
                 }, nextTime);
             }
@@ -1090,7 +1097,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 return;
             }
 
-            if (count === 0) {
+            if (!this._eternalQueue && count === 0) {
                 this.cause = DIALER_CAUSE.ProcessNotFoundMember;
                 this.state = DIALER_STATES.End;
                 this.emit('end', this);
