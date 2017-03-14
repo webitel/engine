@@ -430,7 +430,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 if (e)
                     log.error(e);
 
-                if (r.lastErrorObject.n !== 1 || r.lastErrorObject.updatedExisting !== true)
+                if (!r || r.lastErrorObject.n !== 1 || r.lastErrorObject.updatedExisting !== true)
                     log.error('Bad update rollback dialer', r);
 
                 this._active--;
