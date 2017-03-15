@@ -79,57 +79,11 @@ module.exports = class Progressive extends Dialer {
             engine()
         });
 
-
-        let getMembersFromEvent = (e) => {
-            return this.members.get(e.getHeader('variable_dlr_member_id'))
-        };
-
-        let onChannelCreate = (e) => {
-            let m = getMembersFromEvent(e);
-            if (m) {
-                m.channelsCount++;
-                m.setCallUUID(e.getHeader('variable_uuid'));
-            }
-        };
-        
-        let onChannelDestroy = (e) => {
-            let m = getMembersFromEvent(e);
-            if (m && --m.channelsCount === 0) {
-                m.end(e.getHeader('variable_hangup_cause'), e);
-                const agent = m.getAgent();
-
-                this._am.setAgentStats(agent.agentId, this._objectId, {
-                    call: true,
-                    gotCall: true, //TODO
-                    clearNoAnswer: true,
-                    lastBridgeCallTimeEnd: Date.now(),
-                    callTimeSec: +e.getHeader('variable_billsec') || 0,
-                    lastStatus: `end -> ${m._id}`,
-                    setAvailableTime:
-                        agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null
-                }, (e, res) => {
-                    if (e)
-                        return log.error(e);
-                });
-
-            }
-        };
-
-        this.once('end', () => {
-            log.debug('Off channel events');
-            application.Esl.off('esl::event::CHANNEL_DESTROY::*', onChannelDestroy);
-            application.Esl.off('esl::event::CHANNEL_CREATE::*', onChannelCreate);
-        });
-
-        application.Esl.subscribe(['CHANNEL_CREATE', 'CHANNEL_DESTROY']);
-
-        application.Esl.on('esl::event::CHANNEL_DESTROY::*', onChannelDestroy);
-        application.Esl.on('esl::event::CHANNEL_CREATE::*', onChannelCreate);
+        application.Esl.subscribe(['CHANNEL_DESTROY']);
 
         this.getDialString = (member, agent) => {
             let vars = [
-                `origination_uuid=${member.sessionId}`,
+                `dlr_session=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_id=${member.getQueueId()}`,
                 `presence_data='${member.getDomain()}'`,
@@ -204,12 +158,59 @@ module.exports = class Progressive extends Dialer {
         log.trace(`Call ${ds}`);
 
         const start = Date.now();
+        let channelUuid = null;
 
+        const onChannelDestroy = (e) => {
+            member.end(e.getHeader('variable_hangup_cause'), e);
+
+            this._am.setAgentStats(agent.agentId, this._objectId, {
+                call: true,
+                gotCall: true, //TODO
+                clearNoAnswer: true,
+                lastBridgeCallTimeEnd: Date.now(),
+                callTimeSec: +e.getHeader('variable_billsec') || 0,
+                lastStatus: `end -> ${member._id}`,
+                setAvailableTime:
+                    agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
+                process: null
+            }, (e, res) => {
+                if (e)
+                    return log.error(e);
+            });
+        };
+
+        member.once('end', () => {
+            if (channelUuid)
+                application.Esl.off(`esl::event::CHANNEL_DESTROY::${channelUuid}`, onChannelDestroy);
+        });
+
+        member.channelsCount++;
         application.Esl.bgapi(ds, (res) => {
             log.trace(`fs response: ${res && res.body}`);
             const date = Date.now();
 
-            if (/^-ERR|^-USAGE/.test(res.body)) {
+            const bgOkData = res.body.match(/^\+OK\s(.*)\n$/);
+
+            if (bgOkData) {
+                channelUuid = bgOkData[1];
+                member.setCallUUID(channelUuid);
+                application.Esl.on(`esl::event::CHANNEL_DESTROY::${channelUuid}`, onChannelDestroy);
+
+                member.bridgedCall = true;
+                this._am.setAgentStats(agent.agentId, this._objectId, {
+                    lastBridgeCallTimeStart: date,
+                    connectedTimeSec: timeToSec(date, start),
+                    lastStatus: `active -> ${member._id}`
+                }, (e, res) => {
+                    if (e)
+                        return log.error(e);
+
+                    if (res && res.value) {
+                        //member._agent = res.value
+                        //TODO
+                    }
+                });
+            } else if (/^-ERR|^-USAGE/.test(res.body)) {
                 let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                 member.log(`agent error: ${error}`);
                 
@@ -265,20 +266,7 @@ module.exports = class Progressive extends Dialer {
                     });
                 }
             } else {
-                member.bridgedCall = true;
-                this._am.setAgentStats(agent.agentId, this._objectId, {
-                    lastBridgeCallTimeStart: date,
-                    connectedTimeSec: timeToSec(date, start),
-                    lastStatus: `active -> ${member._id}`
-                }, (e, res) => {
-                    if (e)
-                        return log.error(e);
-
-                    if (res && res.value) {
-                        //member._agent = res.value
-                        //TODO
-                    }
-                });
+                log.error(res.body);
             }
         });
 

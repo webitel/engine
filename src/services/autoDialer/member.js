@@ -67,13 +67,14 @@ module.exports = class Member extends EventEmitter2 {
             callAttempt: null, // +
             callUUID: null,
             recordSessionSec: 0,
+            agentId: null,
             steps: []
         };
 
         this._waitingForResultStatus = dialer._waitingForResultStatus;
 
         this.endCause = null;
-        // this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
+        //this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
         this.log(`create probe ${this.currentProbe}`);
         this.setCurrentAttempt(this.currentProbe);
@@ -138,6 +139,7 @@ module.exports = class Member extends EventEmitter2 {
 
     setAgent (agent = {}) {
         this.log(`set agent: ${agent.agentId}`);
+        this._log.agentId = agent.agentId;
         this.agent = {
             agentId: agent.agentId,
             state: agent.state,

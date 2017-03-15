@@ -3,12 +3,12 @@
  */
 
 const Dialer = require('./dialer'),
-    generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     async = require('async'),
     DIALER_TYPES = require('./const').DIALER_TYPES,
     AGENT_STATUS = require('./const').AGENT_STATUS,
-    END_CAUSE = require('./const').END_CAUSE
+    END_CAUSE = require('./const').END_CAUSE,
+    CANCEL_CAUSE = 'ORIGINATOR_CANCEL'
     ;
 
 module.exports = class Predictive extends Dialer {
@@ -237,11 +237,9 @@ module.exports = class Predictive extends Dialer {
     _originateAgent (member, agent) {
         member.setAgent(agent);
 
-        member._predAgentOriginateUuid = generateUuid.v4();
-
         let agentVars = [
             `cc_side=agent`,
-            `origination_uuid=${member._predAgentOriginateUuid}`,
+            `dlr_session=${member.sessionId}`,
             `origination_callee_id_number='${agent.agentId}'`,
             `origination_callee_id_name='${agent.agentId}'`,
             `origination_caller_id_number='${member.number}'`,
@@ -260,16 +258,24 @@ module.exports = class Predictive extends Dialer {
         application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
 
         const start = Date.now();
+
+        member._predAgentOriginate = true;
         application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} $park()`, (res) => {
             member.log(`agent ${agent.agentId} fs res -> ${res.body}`);
+            const bgOkData = res.body.match(/^\+OK\s(.*)\n$/);
+            const date = Date.now();
+
             if (member.processEnd) {
                 member.agent = null;
+
+                if (bgOkData)
+                    application.Esl.bgapi(`uuid_kill ${bgOkData[1]} ${CANCEL_CAUSE}`);
 
                 this._am.setAgentStats(agent.agentId, this._objectId, {
                     lastStatus: `error bridge member end`,
                     setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                     process: null
-                }, (e, res) => {
+                }, (e) => {
                     if (e)
                         log.error(e);
 
@@ -277,9 +283,44 @@ module.exports = class Predictive extends Dialer {
                 return
             }
 
-            const date = Date.now();
+            if (bgOkData) {
+                application.Esl.bgapi(`uuid_bridge ${member.sessionId} ${bgOkData[1]}`, (bridge) => {
+                    member._predAgentOriginate = false;
 
-            if (/^-ERR|^-USAGE/.test(res.body)) {
+                    member.log(`fs response bridge agent: ${bridge.body}`);
+
+                    if (/^-ERR|^-USAGE/.test(res.body)) {
+                        this._am.setAgentStats(agent.agentId, this._objectId, {
+                            lastStatus: `error bridge -> ${res.body}`,
+                            setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
+                            process: null
+                        }, (e) => {
+                            if (e)
+                                log.error(e);
+
+                            member.agent = null;
+                            this._joinAgent(member);
+                        });
+                    } else {
+                        member.predictAbandoned = false;
+                        member.bridgedCall = true;
+                        this._am.setAgentStats(agent.agentId, this._objectId, {
+                            lastBridgeCallTimeStart: date,
+                            connectedTimeSec: timeToSec(date, start),
+                            lastStatus: `active -> ${member._id}`
+                        }, (e, res) => {
+                            if (e)
+                                return log.error(e);
+
+                            if (res && res.value) {
+                                //member._agent = res.value
+                                //TODO
+                            }
+                        });
+                    }
+
+                });
+            } else if (/^-ERR|^-USAGE/.test(res.body)) {
                 let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                 member.log(`agent error: ${error}`);
 
@@ -332,42 +373,7 @@ module.exports = class Predictive extends Dialer {
 
                 this._joinAgent(member);
             } else {
-                application.Esl.bgapi(`uuid_bridge ${member.sessionId} ${member._predAgentOriginateUuid}`, (bridge) => {
-                    member._predAgentOriginateUuid = null;
-
-                    member.log(`fs response bridge agent: ${bridge.body}`);
-
-                    if (/^-ERR|^-USAGE/.test(res.body)) {
-                        this._am.setAgentStats(agent.agentId, this._objectId, {
-                            lastStatus: `error bridge -> ${res.body}`,
-                            setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                            process: null
-                        }, (e) => {
-                            if (e)
-                                log.error(e);
-
-                            member.agent = null;
-                            this._joinAgent(member);
-                        });
-                    } else {
-                        member.predictAbandoned = false;
-                        member.bridgedCall = true;
-                        this._am.setAgentStats(agent.agentId, this._objectId, {
-                            lastBridgeCallTimeStart: date,
-                            connectedTimeSec: timeToSec(date, start),
-                            lastStatus: `active -> ${member._id}`
-                        }, (e, res) => {
-                            if (e)
-                                return log.error(e);
-
-                            if (res && res.value) {
-                                //member._agent = res.value
-                                //TODO
-                            }
-                        });
-                    }
-
-                });
+                log.error(res.body);
             }
         });
     }
@@ -445,8 +451,8 @@ module.exports = class Predictive extends Dialer {
 
             member.channelsCount--;
 
-            if (member._predAgentOriginateUuid) {
-                application.Esl.bgapi(`uuid_kill ${member._predAgentOriginateUuid} ORIGINATOR_CANCEL`);
+            if (member._predAgentOriginate === true) {
+                application.Esl.bgapi(`hupall ${CANCEL_CAUSE} dlr_session ${member.sessionId}`);
             }
 
             const agent = member.getAgent();
