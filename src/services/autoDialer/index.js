@@ -557,7 +557,7 @@ class AutoDialer extends EventEmitter2 {
         let ad = this.activeDialer.get(id);
         if (ad) {
             if (ad.state === DIALER_STATES.Work)
-                ad.huntingMember();
+                ad.emit('wakeUp');
 
             return cb && cb(null, {active: true});
         }
