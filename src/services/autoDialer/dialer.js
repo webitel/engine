@@ -812,7 +812,7 @@ module.exports = class Dialer extends EventEmitter2 {
         // TODO bad query...
         if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
             filter['$where'] = `function () {
-       
+                
                 var number = fnKeySort(
                     fnFilterDialerCommunications(
                             this.communications, ${JSON.stringify(codes)},
@@ -831,7 +831,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 var regs = ${JSON.stringify(regexp)};
                 
                 for (var i = 0;  i < regs.length; i++) {
-                    if (new RegExp(regs[i]).test(number)) {
+                    if (new RegExp(regs[i]).test(number.number)) {
                         return true;
                     }
                 }
@@ -840,6 +840,7 @@ module.exports = class Dialer extends EventEmitter2 {
             }`;
         } else {
             filter['$where'] = `function () {
+           
                 var number = fnKeySort(
                     fnFilterDialerCommunications(
                         this.communications, ${JSON.stringify(codes)},
@@ -858,7 +859,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 var regs = ${JSON.stringify(regexp)};
                 
                 for (var i = 0;  i < regs.length; i++) {
-                    if (new RegExp(regs[i]).test(number)) {
+                    if (new RegExp(regs[i]).test(number.number)) {
                         return true;
                     }
                 }

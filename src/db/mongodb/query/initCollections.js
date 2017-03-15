@@ -205,6 +205,7 @@ var Indexes = {
         },
         {
             "_name": "hunting",
+            "_unique": false,
             "_": {
                 "communications.state" : 1,
                 "communications.type" : 1,
