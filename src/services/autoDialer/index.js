@@ -134,7 +134,7 @@ class AutoDialer extends EventEmitter2 {
 
         this.on(`changeDialerState`, (dialer, calendar, currentTime) => {
 
-            if (currentTime.expire && dialer._cause !== DIALER_CAUSE.ProcessExpire) {
+            if (currentTime.expire) {
                 log.debug(`Set dialer ${dialer._id} expire`);
                 const d = this.activeDialer.get(dialer._id.toString());
                 if (d) {

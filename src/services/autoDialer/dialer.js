@@ -1023,6 +1023,12 @@ module.exports = class Dialer extends EventEmitter2 {
             return
         } else if (this.state === DIALER_STATES.Sleep) {
             return
+        } else if (this.state === DIALER_STATES.End) {
+            if (this.members.length() != 0)
+                return;
+            this.active = false;
+            this.emit('end', this);
+            return
         } else if (this._eternalQueue === true) {
             clearTimeout(this._timerId);
             this._timerId = setTimeout(() => {
