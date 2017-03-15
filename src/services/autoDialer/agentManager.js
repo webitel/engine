@@ -199,7 +199,9 @@ class AgentManager extends EventEmitter2 {
 
         // console.dir(filter, {depth: 10, colors: true});
 
-        const sort = {};
+        const sort = {
+            "dialer._id": 1
+        };
 
         switch (strategy) {
             case AGENT_STRATEGY.RANDOM:
@@ -219,7 +221,8 @@ class AgentManager extends EventEmitter2 {
                 sort["dialer.callCount"] = 1;
         }
 
-        application.DB._query.dialer._findAndModifyAgent(
+        application.DB._query.dialer._findAndModifyAgentByHunting(
+                dialerId,
                 filter,
                 sort,
                 {

@@ -458,6 +458,40 @@ function addQuery (db) {
                 .findAndModify(filter, sort, update, {new: true}, cb)
         },
 
+        _findAndModifyAgentByHunting: (dialerId, filter, sort, update, cb) => {
+            console.dir(filter, {depth: 10});
+            console.dir(sort, {depth: 10});
+            return db
+                .collection(agentsCollectionName)
+                .findAndModify(
+                    filter,
+                    sort,
+                    update,
+                    {
+                        new: true,
+                        fields: {
+                            "_id" : 1,
+                            "agentId" : 1,
+                            "state" : 1,
+                            "status" : 1,
+                            "busyDelayTime" : 1,
+                            "lastStatusChange" : 1,
+                            "maxNoAnswer" : 1,
+                            "noAnswerDelayTime" : 1,
+                            "rejectDelayTime" : 1,
+                            "wrapUpTime" : 1,
+                            "callTimeout" : 1,
+                            "skills" : 1,
+                            "randomPoint" : 1,
+                            "noAnswerCount": 1,
+                            "lastModified": 1,
+                            "dialer": {$elemMatch: {_id: dialerId}}
+                        }
+                    },
+                    cb
+                )
+        },
+
         _updateAgentMulti: (filter, update, cb) => {
             return db
                 .collection(agentsCollectionName)
