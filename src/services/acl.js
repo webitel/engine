@@ -103,7 +103,8 @@ var Service = {
 
             let data = {
                 "roles": option.roles,
-                "allows": option.allows
+                "allows": option.allows,
+                "parents": option.parents
             };
 
             let parents = option.parents;
