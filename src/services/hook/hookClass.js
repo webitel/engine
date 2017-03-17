@@ -184,16 +184,22 @@ class Trigger {
         var scope = this;
 
         let dbConnected = false,
+            initHookQueue = false,
             brokerConnected = false;
         
         var init = function () {
-            if (dbConnected && brokerConnected) {
+            if (dbConnected && brokerConnected && initHookQueue) {
                 scope._events.length = 0;
                 scope._init()
             }
         };
 
         app.Broker.on('init:hook', () => {
+            initHookQueue = true;
+            init();
+        });
+
+        app.Broker.on('init:broker', () => {
             brokerConnected = true;
             init();
         });
@@ -359,7 +365,7 @@ class Trigger {
 function _setHeadersFromEvent(mapHeaders, eventObj) {
     let headers = {};
     for (let head in mapHeaders) {
-        if (mapHeaders.hasOwnProperty(head) && typeof mapHeaders[head] == 'string' && eventObj) {
+        if (mapHeaders.hasOwnProperty(head) && typeof mapHeaders[head] === 'string' && eventObj) {
             headers[head] = mapHeaders[head].replace(/\$\{([\s\S]*?)\}/gi, (a, b) => {
                 return eventObj[b] || ""
             });

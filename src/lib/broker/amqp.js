@@ -203,8 +203,12 @@ class WebitelAmqp extends EventEmitter2 {
 
             let opt = this._parseHookEventName(event);
 
-            if (this.channel)
+            if (this.channel) {
+                log.trace(`Bind hook ${event}`);
                 this.channel.bindQueue(HOOK_QUEUE, opt.ex, opt.rk, {}, cb);
+            } else {
+                log.error(`No channel!`);
+            }
         } catch (e) {
             log.error(e);
         }
@@ -217,8 +221,11 @@ class WebitelAmqp extends EventEmitter2 {
 
             let opt = this._parseHookEventName(event);
 
-            if (this.channel)
+            if (this.channel) {
                 this.channel.unbindQueue(HOOK_QUEUE, opt.ex, opt.rk, {}, cb);
+            } else {
+                log.error(`No channel!`);
+            }
         } catch (e) {
             log.error(e);
         }
