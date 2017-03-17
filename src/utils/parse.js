@@ -117,6 +117,14 @@ var Parser = {
         if (typeof str != 'string')
             return false;
         return str.substring(str.indexOf('@') + 1);
+    },
+
+    parseQueryToObject: function (data) {
+        try {
+            return JSON.parse(decodeURIComponent(data))
+        } catch (e) {
+            return null;
+        }
     }
 };
 

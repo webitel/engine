@@ -61,6 +61,19 @@ function addQuery(db) {
                 }, {"tokens.$": 1, _id: 0}, cb)
         },
 
+        listToken: (domain, filter, columns, cb) => {
+            const _f = filter instanceof Object ? filter : {};
+            if (domain !== '*') {
+                _f.name = domain;
+            }
+
+            db
+                .collection(domainCollectionName)
+                .find(_f, columns)
+                .limit(40)
+                .toArray(cb);
+        },
+
         addToken: (domainName, data, cb) => {
             let update = {
                 "$push": {

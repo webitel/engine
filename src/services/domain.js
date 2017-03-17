@@ -160,6 +160,18 @@ var Service = {
             })
         },
 
+        getTokenList: (caller, options = {}, cb) => {
+            const perm = caller.domain ? 'ro' : 'r';
+            checkPermissions(caller, 'domain', perm, (err) => {
+                if (err)
+                    return cb(err);
+
+                const domain = validateCallerParameters(caller, options.domain);
+
+                application.DB._query.domain.listToken(domain, options.filter, options.columns, cb);
+            })
+        },
+
         genToken: (caller, options = {}, cb) => {
             const perm = caller.domain ? 'uo' : 'u';
             checkPermissions(caller, 'domain', perm, (err) => {

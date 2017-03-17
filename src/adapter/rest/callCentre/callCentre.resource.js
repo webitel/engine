@@ -4,7 +4,8 @@
 
 'use strict';
 
-var ccServices = require(__appRoot + '/services/callCentre');
+const ccServices = require(__appRoot + '/services/callCentre'),
+    parseFilter = require(__appRoot + '/utils/parse').parseQueryToObject;
 
 module.exports = {
     addRoutes: addRoutes
@@ -397,12 +398,4 @@ function agentList(req, res, next) {
                 "info": result
             })
     });
-}
-
-function parseFilter(data) {
-    try {
-        return JSON.parse(decodeURIComponent(data))
-    } catch (e) {
-        return null;
-    }
 }

@@ -3,7 +3,8 @@
  */
 
 'use strict';
-var domainService = require(__appRoot + '/services/domain');
+const domainService = require(__appRoot + '/services/domain'),
+    parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject;
 
 module.exports = {
     addRoutes: addRoutes
@@ -21,6 +22,8 @@ function addRoutes(api) {
     api.put('/api/v2/domains/:name/settings', updateOrInsert);
 
     api.post('/api/v2/domains/:name/settings/token', genToken);
+    api.get('/api/v2/domains/:name/settings/token', getTokens);
+
     api.delete('/api/v2/domains/:name/settings/token/:uuid', removeToken);
     api.patch('/api/v2/domains/:name/settings/token/:uuid', setStateToken);
 
@@ -170,6 +173,29 @@ function remove (req, res, next) {
                 "info": result
             });
     });
+}
+
+function getTokens(req, res, next) {
+    const options = {
+        domain: req.params['name'],
+        filter: parseQueryToObject(req.query.filter),
+        columns: parseQueryToObject(req.query.columns)
+    };
+
+    domainService.settings.getTokenList(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        if (!result) //code error 404
+            return next();
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "info": result
+            });
+    })
 }
 
 function getSettings(req, res, next) {
