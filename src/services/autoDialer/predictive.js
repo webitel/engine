@@ -239,6 +239,8 @@ module.exports = class Predictive extends Dialer {
 
         let agentVars = [
             `cc_side=agent`,
+            `cc_agent=${agent.agentId}`,
+            `cc_queue=${this.nameDialer}`,
             `dlr_session=${member.sessionId}`,
             `origination_callee_id_number='${agent.agentId}'`,
             `origination_callee_id_name='${agent.agentId}'`,

@@ -237,6 +237,10 @@ var Service = {
                 delete options.domain;
                 application.DB._query.domain.updateOrInserParams(domain, options, cb);
             })
+        },
+
+        _remove: (domainName, cb) => {
+            application.DB._query.domain.remove(domainName, cb);
         }
     }
 };

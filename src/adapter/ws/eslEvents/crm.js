@@ -10,7 +10,8 @@ var log = require(__appRoot + '/lib/log')(module),
     blackListService = require(__appRoot + '/services/blacklist'),
     contactBookService = require(__appRoot + '/services/contactBook'),
     emailService = require(__appRoot + '/services/email'),
-    statusService = require(__appRoot + '/services/userStatus')
+    statusService = require(__appRoot + '/services/userStatus'),
+    domainService = require(__appRoot + '/services/domain')
     ;
 
 module.exports = function (event) {
@@ -126,6 +127,13 @@ function onDomainDelete (domainName) {
             return log.error(err);
         };
         log.debug('EMail settings destroy %s from domain %s', result && result.n, domainName);
+    });
+
+    domainService.settings._remove(domainName, function (err, result) {
+        if (err) {
+            return log.error(err);
+        }
+        log.debug('Domain settings destroy %s from domain %s', result && result.n, domainName);
     });
 };
 

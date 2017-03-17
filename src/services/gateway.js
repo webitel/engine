@@ -379,7 +379,7 @@ var Service = {
         if (sipGatewayName) {
             Service._changeGatewayLineByName(sipGatewayName, e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE', e['Channel-Call-UUID']);
         } else {
-            Service._changeGatewayLineByRealm(e['variable_sip_from_host'] + ':' + e['variable_sip_from_port'],
+            Service._changeGatewayLineByRealm(e['variable_sip_from_host'] + ':' + (e['variable_sip_from_port'] || 5060), //TODO
                 e['Call-Direction'], e['Event-Name'] === 'CHANNEL_CREATE', e['Channel-Call-UUID']);
         }
     },

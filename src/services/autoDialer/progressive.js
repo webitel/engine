@@ -142,6 +142,7 @@ module.exports = class Progressive extends Dialer {
                 `destination_number='${member.number}'`,
                 `originate_timeout=${this.getAgentParam('callTimeout', agent)}`,
                 'webitel_direction=outbound',
+                `cc_agent=${agent.agentId}`,
                 `cc_side=agent`
             );
             return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},${apps.join(',')}' inline`;

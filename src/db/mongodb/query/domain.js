@@ -85,6 +85,16 @@ function addQuery(db) {
                 .update({
                     "name": domainName
                 }, update, {upsert: true}, cb);
+        },
+
+        remove: (domainName, cb) => {
+            db
+                .collection(domainCollectionName)
+                .remove({
+                    "name": domainName
+                }, (err, res) => {
+                    return cb(err, res && res.result)
+                });
         }
     }
 }
