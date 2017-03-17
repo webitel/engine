@@ -11,6 +11,7 @@ let log = require(__appRoot + '/lib/log')(module),
     ;
 
 const ALLOW_RELOAD_MODULE = ["amqp", "callcenter"];
+const ALLOW_RELOAD_CACHE = ["clear", "remove"];
 
 let Service = {
     reloadXml: function (caller, cb) {
@@ -37,6 +38,29 @@ let Service = {
 
 
             let execString = `reload mod_${moduleName}`;
+            log.warn('Exec: %s', execString);
+
+            application.Esl.bgapi(
+                execString,
+                function (res) {
+                    var err = checkEslError(res);
+                    if (err)
+                        return cb && cb(err, res.body);
+
+                    return cb && cb(null, res.body);
+                }
+            );
+        });
+    },
+
+    cache: function (caller, options, cb) {
+        checkPermissions(caller, 'system/reload', 'u', function (err) {
+            if (err)
+                return cb(err);
+
+
+
+            const execString = `http_clear_cache`;
             log.warn('Exec: %s', execString);
 
             application.Esl.bgapi(
