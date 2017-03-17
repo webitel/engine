@@ -246,6 +246,20 @@ var Indexes = {
     "collectionDialerAgents": [
         {
             "randomPoint" : "2d"
+        },
+        {
+            "_name": "huntingAgent",
+            "_unique": false,
+            "_": {
+                "dialer._id" : 1,
+                "dialer.callCount" : 1,
+                "status" : 1,
+                "state" : 1,
+                "setAvailableTime" : 1,
+                "dialer.process" : 1,
+                "agentId" : 1
+            }
+
         }
     ],
     "collectionAgentStatus": [
