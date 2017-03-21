@@ -5,7 +5,8 @@
 'use strict';
 
 
-var dialerService = require(__appRoot + '/services/dialer')
+var dialerService = require(__appRoot + '/services/dialer'),
+    parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject
     ;
 
 module.exports = {
@@ -149,35 +150,12 @@ function listMembers (req, res, next) {
         limit: req.query.limit,
         pageNumber: req.query.page,
         domain: req.query.domain,
-        columns: {},
-        sort: {},
-        filter: {}
+        columns: parseQueryToObject(req.query.columns),
+        sort: parseQueryToObject(req.query.sort),
+        filter: parseQueryToObject(req.query.filter)
     };
-
-    if (req.query.columns)
-        req.query.columns.split(',')
-            .forEach( (i) => options.columns[i] = 1 );
-
-    if (req.query.sort) {
-        let _s = req.query.sort.split('=');
-        if (_s.length == 2)
-            options.sort[_s[0]] = parseInt(_s[1]);
-    }
-
-    // TODO JSON.parse(decodeURIComponent("%7B%22c%22%3A1%2C%22type%22%3A%7B%22%24gte%22%3A2%7D%2C%22d%22%3Atrue%7D")) ?
-    if (req.query.filter) {
-        let _s = req.query.filter.split(',');
-        _s.forEach( (item) => {
-            let _f = item.split('=');
-            if (_f.length == 2) {
-                if (/^\^/.test(_f[1]))
-                    options.filter[_f[0]] = {$regex: _f[1]};
-                else if (/^true$|^false$/.test(_f[1])) {
-                    options.filter[_f[0]] = {$exists: _f[1] === "true"};
-                } else options.filter[_f[0]] = isNaN(parseInt(_f[1])) ?_f[1] : parseInt(_f[1]);
-            }
-        });
-    }
+    
+    console.dir(options, {depth: 10, colors: true});
 
     dialerService.members.list(req.webitelUser, options, (err, result) => {
         if (err)
@@ -194,21 +172,8 @@ function countMembers (req, res, next) {
     let options = {
         dialer: req.params.dialer,
         domain: req.query.domain,
-        filter: {}
+        filter: parseQueryToObject(req.query.filter)
     };
-
-    // TODO
-    if (req.query.filter) {
-        let _s = req.query.filter.split(',');
-        _s.forEach( (item) => {
-            let _f = item.split('=');
-            if (_f.length == 2) {
-                if (/^\^/.test(_f[1]))
-                    options.filter[_f[0]] = {$regex: _f[1]};
-                else options.filter[_f[0]] = isNaN(parseInt(_f[1])) ?_f[1] : parseInt(_f[1]);
-            }
-        });
-    }
 
     dialerService.members.count(req.webitelUser, options, (err, result) => {
         if (err)
