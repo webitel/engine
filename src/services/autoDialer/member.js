@@ -274,6 +274,7 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     broadcast () {
+        console.log(this.toJSON());
         application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, this.toJSON());
     }
 

@@ -645,6 +645,7 @@ let Service = {
                         if (memberDb.variables.hasOwnProperty(key))
                             event[`variable_${key}`] = memberDb.variables[key]
                     }
+                    console.log(event);
                     application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
 
                 }
