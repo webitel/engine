@@ -176,6 +176,24 @@ function addQuery (db) {
                 .updateOne({_id: new ObjectID(_id), domain: domainName}, data, cb);
 
         },
+
+        resetProcessStatistic: function (_id, domainName, cb) {
+            if (!ObjectID.isValid(_id))
+                return cb(new CodeError(400, 'Bad objectId.'));
+
+            return db
+                .collection(dialerCollectionName)
+                .updateOne(
+                    {_id: new ObjectID(_id), domain: domainName, active: {$ne: true}},
+                    {
+                        $set: {
+                            "stats.active": 0,
+                            "stats.resource": {}
+                        }
+                    },
+                    cb
+                );
+        },
         
         memberList: function (options, cb) {
             return utils.searchInCollection(db, memberCollectionName, options, cb);

@@ -18,6 +18,8 @@ function addRoutes (api) {
     api.post('/api/v2/dialer', create);
     api.get('/api/v2/dialer/:id', item);
     api.put('/api/v2/dialer/:id', update);
+    api.put('/api/v2/dialer/:id/reset', resetProcess);
+
     api.put('/api/v2/dialer/:id/state/:state', setState);
     api.delete('/api/v2/dialer/:id', remove);
 
@@ -144,6 +146,23 @@ function create (req, res, next) {
     });
 }
 
+function resetProcess (req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialerService.resetProcessStatistic(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
 function listMembers (req, res, next) {
     let options = {
         dialer: req.params.dialer,
@@ -154,7 +173,7 @@ function listMembers (req, res, next) {
         sort: parseQueryToObject(req.query.sort),
         filter: parseQueryToObject(req.query.filter)
     };
-    
+
     console.dir(options, {depth: 10, colors: true});
 
     dialerService.members.list(req.webitelUser, options, (err, result) => {

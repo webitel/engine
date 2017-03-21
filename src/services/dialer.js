@@ -220,6 +220,37 @@ let Service = {
         });
     },
 
+    /**
+     *
+     * @param caller
+     * @param option
+     * @param cb
+     */
+    resetProcessStatistic: function (caller, option, cb) {
+        checkPermissions(caller, 'dialer', 'u', function (err) {
+            if (err)
+                return cb(err);
+
+            if (!option)
+                return cb(new CodeError(400, "Bad request options"));
+
+            if (!option.id)
+                return cb(new CodeError(400, 'Bad request: id is required.'));
+
+
+            let domain = validateCallerParameters(caller, option['domain']);
+            if (!domain) {
+                return cb(new CodeError(400, 'Bad request: domain is required.'));
+            }
+
+            let db = application.DB._query.dialer;
+            return db.resetProcessStatistic(option.id, domain, cb);
+
+        });
+    },
+
+
+
     members: {
         list: function (caller, option, cb) {
             checkPermissions(caller, 'dialer/members', 'r', function (err) {
