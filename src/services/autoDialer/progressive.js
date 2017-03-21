@@ -45,7 +45,7 @@ module.exports = class Progressive extends Dialer {
         });
 
         this.on('availableAgent', a => {
-            this.huntingMember();
+            engine();
         });
 
         const engine = () => {
