@@ -482,6 +482,21 @@ let Service = {
             });
         },
 
+        resetMembers: (caller, options = {}, cb) => {
+            checkPermissions(caller, 'dialer/members', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options.dialer)
+                    return cb(new CodeError(400, 'Bad request: dialer id is required.'));
+
+                // TODO check dialer in domain
+                // const domain = validateCallerParameters(caller, options['domain']);
+
+                application.DB._query.dialer._resetMembers(options.dialer, options.resetLog, caller.id, cb);
+            })
+        },
+
         setCallback: (caller, options = {}, cb) => {
 
             log.debug(`Set callback: %j, from: %s`, options, caller.id);

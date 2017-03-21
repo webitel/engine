@@ -14,6 +14,7 @@ const conf = require(__appRoot + '/conf'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
+    log = require(__appRoot + '/lib/log')(module),
     utils = require('./utils')
     ;
 
@@ -495,6 +496,103 @@ function addQuery (db) {
             return db
                 .collection(agentsCollectionName)
                 .update(filter, update, {multi: true}, cb)
+        },
+
+        _resetMembers: (dialerId, resetLog = false, callerId, cb) => {
+
+            let bulk = db.collection(memberCollectionName).initializeOrderedBulkOp(),
+                count = 0;
+
+            const time = Date.now();
+
+            const cursor = db
+                .collection(memberCollectionName)
+                .find({dialer: dialerId, _endCause: {$ne: null}}, {communications: 1, _id: 1});
+
+            const respBulk = err => {
+                if (err)
+                    log.error(err);
+            };
+
+            let getUpdate;
+
+            if (resetLog) {
+                getUpdate = ($unset, $set) => {
+                    $set._log = [{
+                        steps: [{
+                            "time" : time,
+                            "data" : `Reset by ${callerId}`
+                        }]
+                    }];
+                    return {
+                        $unset,
+                        $set
+                    }
+                }
+            } else {
+                getUpdate = ($unset, $set) => {
+                    return {
+                        $unset,
+                        $set,
+                        $push: {
+                            _log: {
+                                steps: [{
+                                    "time" : time,
+                                    "data" : `Reset by ${callerId}`
+                                }]
+                            }
+                        }
+                    }
+                }
+            }
+
+            cursor.each((err, doc) => {
+                if (err)
+                    return cb(err);
+
+                if (doc) {
+                    if (doc.communications instanceof Array) {
+
+                        const $unset = {
+                            _endCause: 1,
+                            _probeCount: 1,
+                            callSuccessful: 1,
+                            _lastNumberId: 1,
+                            _lastMinusProbe: 1,
+                            _nextTryTime: 1
+                        };
+
+                        const $set = {};
+                        for (let i = 0, len = doc.communications.length; i < len; i++) {
+                            $set[`communications.${i}.state`] = 0;
+                            $unset[`communications.${i}._id`] = 1;
+                            $unset[`communications.${i}._probe`] = 1;
+                            $unset[`communications.${i}._score`] = 1;
+                            $unset[`communications.${i}.rangeId`] = 1;
+                            $unset[`communications.${i}.rangeAttempts`] = 1;
+                            $unset[`communications.${i}.lastCall`] = 1;
+                        }
+
+                        bulk.find({_id: doc._id}).updateOne(getUpdate($unset, $set));
+                        count++;
+
+                        if ( count % 1000 == 0 ) {
+                            log.debug(`Exec bulk member reset: ${count}`);
+                            bulk.execute(respBulk);
+                            bulk = db.collection(memberCollectionName).initializeOrderedBulkOp();
+                        }
+                    }
+
+                } else {
+                    // Execute any pending operations
+                    if ( count % 1000 != 0 ) {
+                        bulk.execute(respBulk);
+                        log.debug(`Exec bulk member reset: ${count}`);
+                    }
+
+                    return cb(null, count);
+                }
+            });
         }
     }
 }
