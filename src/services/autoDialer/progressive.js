@@ -27,6 +27,7 @@ module.exports = class Progressive extends Dialer {
                     if (agent) {
                         this.dialMember(member, agent);
                     } else {
+                        member.log(`No found agent!!!`);
                         member.end(); //TODO
                     }
                 });
@@ -54,6 +55,9 @@ module.exports = class Progressive extends Dialer {
                     agents: (cb) => {
                         dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, this._skills, cb);
                     },
+                    allLogged: (cb) => {
+                        dialerManager.agentManager.getAllLoggedAgent(this._objectId, this._agents, this._skills, cb);
+                    },
                     members: (cb) => {
                         this.countAvailableMembers(this._limit, cb);
                     }
@@ -62,7 +66,7 @@ module.exports = class Progressive extends Dialer {
                     if (err)
                         return log.error(err);
 
-                    if (this._active < this._limit && res.agents > 0 && res.members > 0) {
+                    if (this._active < this._limit && res.agents > 0 && res.members > 0 && this._active < res.allLogged) {
                         this.huntingMember();
                     } else if (this.members.length() === 0) {
                         this.tryStop();

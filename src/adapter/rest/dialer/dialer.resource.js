@@ -174,8 +174,6 @@ function listMembers (req, res, next) {
         filter: parseQueryToObject(req.query.filter)
     };
 
-    console.dir(options, {depth: 10, colors: true});
-
     dialerService.members.list(req.webitelUser, options, (err, result) => {
         if (err)
             return next(err);
