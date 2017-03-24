@@ -239,7 +239,15 @@ function addQuery (db) {
 
             return db
                 .collection(memberCollectionName)
-                .removeOne({_id: new ObjectID(_id), dialer: dialerId}, cb);
+                .removeOne({_id: new ObjectID(_id), dialer: dialerId, _lock: null}, (e, res) => {
+                    if (e)
+                        return cb(e);
+
+                    if (res && res.result && res.result.n === 0)
+                        return cb(new CodeError(406, `Not Acceptable`));
+
+                    return cb(null, res);
+                });
         },
 
         removeMemberByFilter: function (dialerId, filter, cb) {
