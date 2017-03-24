@@ -6,21 +6,13 @@ var MongoClient = require("mongodb").MongoClient,
 module.exports = initConnect;
 
 function initConnect (server) {
-    var options = {
-        server: {
-            auto_reconnect: true,
-            slaveOk: true,
-            replset: {
-                socketOptions: {
-                    keepAlive: 1,
-                    connectTimeoutMS : 30000 ,
-                    socketTimeoutMS: 90000
-                }
-            }
-            // socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 },
-            // replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
-        }
+
+    const options = {
+        autoReconnect: true,
+        reconnectTries: Infinity,
+        reconnectInterval: 1000
     };
+
     mongoClient.connect(config.get('mongodb:uri'), options, function(err, db) {
         if (err) {
             log.error('Connect db error: %s', err.message);
