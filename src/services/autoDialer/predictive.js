@@ -491,9 +491,7 @@ module.exports = class Predictive extends Dialer {
             member.log(`fs response: ${res.body}`);
             if (/^-ERR|^-USAGE/.test(res.body)) {
                 member.channelsCount--;
-                member.minusProbe();
-                member.nextTrySec = 1;
-                member.end();
+                member.end(res.body.replace(/-ERR|-USAGE\s(.*)\n/, '$1'));
             }
         });
 

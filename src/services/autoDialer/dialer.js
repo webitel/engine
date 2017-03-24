@@ -5,6 +5,7 @@
 const DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
+    END_CAUSE = require('./const').END_CAUSE,
 
     CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
     CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
@@ -139,7 +140,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set._lastNumberId = m._currentNumber._id;
                 }
 
-                if (m.endCause && (!this._waitingForResultStatus || m.predictAbandoned)) {
+                if (m.endCause && (!this._waitingForResultStatus || m.predictAbandoned || m.endCause === END_CAUSE.MEMBER_EXPIRED)) {
                     $set._endCause = m.endCause;
                 }
 

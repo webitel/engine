@@ -286,6 +286,17 @@ module.exports = class Member extends EventEmitter2 {
 
         log.trace(`end member ${this._id} cause: ${this.endCause || endCause || ''}`) ;
 
+        if (e) {
+            const recordSec = +e.getHeader('variable_record_seconds');
+            if (recordSec)
+                this.setRecordSession(recordSec);
+
+            if (e.getHeader('variable_amd_result'))
+                this.setAmdResult(e.getHeader('variable_amd_result'), e.getHeader('variable_amd_cause'));
+
+            this.setCallUUID(e.getHeader('variable_uuid'))
+        }
+
         if (this.predictAbandoned) {
             this.log(`Abandoned`);
             this._setStateCurrentNumber(MEMBER_STATE.End);
@@ -295,7 +306,7 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (this._waitingForResultStatus) {
+        if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED) {
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
             this.log(`Check callback`);
             this.emit('end', this);
@@ -304,16 +315,7 @@ module.exports = class Member extends EventEmitter2 {
         let skipOk = false,
             billSec = e && +e.getHeader('variable_billsec');
 
-        if (e) {
-            let recordSec = +e.getHeader('variable_record_seconds');
-            if (recordSec)
-                this.setRecordSession(recordSec);
 
-            if (e.getHeader('variable_amd_result'))
-                this.setAmdResult(e.getHeader('variable_amd_result'), e.getHeader('variable_amd_cause'));
-
-            this.setCallUUID(e.getHeader('variable_uuid'))
-        }
         
         if (~this.getCausesMinus(endCause)) {
             this.minusProbe();
