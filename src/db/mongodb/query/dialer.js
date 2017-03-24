@@ -122,6 +122,16 @@ function addQuery (db) {
                 throw e;
         });
 
+    const _resetAgents = (dialerId) => {
+        return db
+            .collection(agentsCollectionName)
+            .update(
+                {"dialer": {$elemMatch: {_id: dialerId, process: {$ne: null}}}},
+                {$set: {"dialer.$.process": null}},
+                {multi: true}
+            );
+    };
+
     return {
         //TODO del collection
         _dialerCollection: db.collection(dialerCollectionName),
@@ -177,14 +187,18 @@ function addQuery (db) {
 
         },
 
-        resetProcessStatistic: function (_id, domainName, cb) {
-            if (!ObjectID.isValid(_id))
+        resetProcessStatistic: function (dialerId, domainName, cb) {
+            if (!ObjectID.isValid(dialerId))
                 return cb(new CodeError(400, 'Bad objectId.'));
+
+            const _id = new ObjectID(dialerId);
+
+            _resetAgents(_id);
 
             return db
                 .collection(dialerCollectionName)
                 .updateOne(
-                    {_id: new ObjectID(_id), domain: domainName, active: {$ne: true}},
+                    {_id, domain: domainName, active: {$ne: true}},
                     {
                         $set: {
                             "stats.active": 0,
