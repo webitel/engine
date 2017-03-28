@@ -57,7 +57,7 @@ module.exports = class VoiceBroadcast extends Dialer {
         });
 
         this.members.on('removed', (m) => {
-            this.rollback(m, m.getDestination(), null, e => {
+            this.rollback(m, m.getDestination(), {amd: m.getAmdResult(), bridgedCall: m.bridgedCall}, e => {
                 if (!e)
                     this.huntingMember();
             });
@@ -154,8 +154,11 @@ module.exports = class VoiceBroadcast extends Dialer {
             member.log(`fs response ${res.body}`);
 
             if (/^-ERR/.test(res.body)) {
+                member.bridgedCall = false;
                 return member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
             }
+
+            member.bridgedCall = true;
         });
     }
 };
