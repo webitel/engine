@@ -47,7 +47,7 @@ var Service = {
             });
 
             aclConf.forEach((item) => {
-                if (item.hasOwnProperty('parents')) {
+                if (item.hasOwnProperty('parents') && item.parents) {
                     acl.addRoleParents(item.roles, item.parents);
                 }
                 log.debug('Register role %s', item.roles);
