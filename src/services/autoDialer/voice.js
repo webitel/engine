@@ -87,7 +87,7 @@ module.exports = class VoiceBroadcast extends Dialer {
                 `origination_callee_id_number='${member.number}'`,
                 `origination_callee_id_name='${member.name}'`,
                 `destination_number='${member.number}'`,
-
+                `webitel_direction=dialer`,
                 `dlr_queue=${member.getQueueId()}`,
                 `cc_side=member`
             );

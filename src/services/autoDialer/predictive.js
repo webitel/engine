@@ -248,7 +248,8 @@ module.exports = class Predictive extends Dialer {
             `origination_caller_id_name='${member.name}'`,
             `destination_number='${member.number}'`,
             `effective_caller_id_number='${agent.agentId}'`,
-            `effective_callee_id_number='${member.number}'`
+            `effective_callee_id_number='${member.number}'`,
+            'webitel_direction=inbound'
         ];
 
         for (let key in this._variables) {
