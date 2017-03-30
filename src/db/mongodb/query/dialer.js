@@ -305,7 +305,7 @@ function addQuery (db) {
             query = query.concat(aggregateQuery);
             return db
                 .collection(memberCollectionName)
-                .aggregate(query, cb);
+                .aggregate(query, {allowDiskUse:true}, cb);
         },
         
         _updateDialer: function (_id, state, cause, active, nextTick, cb) {
