@@ -278,6 +278,11 @@ module.exports = class Member extends EventEmitter2 {
         application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, this.toJSON());
     }
 
+    setCallSuccessful (val) {
+        this.callSuccessful = val; // TODO delete
+        this._log.callSuccessful = val;
+    }
+
     end (endCause, e) {
         
         if (this.processEnd) return;
@@ -306,7 +311,7 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED) {
+        if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED && this.bridgedCall === true) {
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
             this.log(`Check callback`);
             this.emit('end', this);

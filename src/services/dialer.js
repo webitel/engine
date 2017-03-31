@@ -568,7 +568,19 @@ let Service = {
                 }
 
                 if (callback.success === true) {
+                    if (!memberDb._lock && memberDb._log instanceof Array) {
+                        $set[`_log.${memberDb._log.length -1}.callSuccessful`] = true;
+                        $set[`_log.${memberDb._log.length -1}.callState`] = 2;
+                    } else {
+                        const activeMember = application.AutoDialer.getMemberFromActiveDialer(options.dialer, options.member);
+                        if (activeMember) {
+                            activeMember.setCallSuccessful(true);
+                        } else {
+                            log.warn(`Not found active member ${options.member}`);
+                        }
+                    }
                     $set._endCause = "NORMAL_CLEARING";
+                    $set.callSuccessful = true;
                     $set._nextTryTime = null;
                     for (let i = 0, len = communications.length; i < len; i++) {
                         $set[`communications.${i}.state`] = 2;

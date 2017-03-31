@@ -547,7 +547,7 @@ function addQuery (db) {
 
             const cursor = db
                 .collection(memberCollectionName)
-                .find({dialer: dialerId, _endCause: {$ne: null}}, {communications: 1, _id: 1});
+                .find({dialer: dialerId, _endCause: {$ne: null} , callSuccessful: false}, {communications: 1, _id: 1});
 
             const respBulk = err => {
                 if (err)

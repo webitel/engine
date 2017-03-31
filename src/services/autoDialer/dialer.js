@@ -6,6 +6,7 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     DIALER_CAUSE = require('./const').DIALER_CAUSE,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE,
+    DIALER_TYPES = require('./const').DIALER_TYPES,
 
     CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
     CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
@@ -81,8 +82,9 @@ module.exports = class Dialer extends EventEmitter2 {
             log.trace(`Members length ${this.members.length()}`);
 
             member.once('end', (m) => {
-                const $set = {_lastSession: m.sessionId, variables: m.variables, callSuccessful: m.callSuccessful},
+                const $set = {_lastSession: m.sessionId, variables: m.variables},
                     $max = {
+                        callSuccessful: m.callSuccessful,
                         _nextTryTime: m.nextTime
                     };
 
@@ -108,7 +110,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                 $set[`communications.${i}.lastCall`] = m._minusProbe ? 0 : Date.now();
 
                                 if (this._waitingForResultStatus) {
-                                    if (m._minusProbe || m.predictAbandoned) {
+                                    if (m._minusProbe || m.predictAbandoned || !m.bridgedCall) {
                                         $set._waitingForResultStatusCb = null;
                                         $set._waitingForResultStatus = null;
                                         $set[`communications.${i}.checkResult`] = null;
@@ -167,7 +169,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 if (!this.members.remove(m._id))
                     log.error(new Error(m));
 
-                if (m.endCause) {
+                if ($set._endCause) {
                     m.broadcast();
                 }
             });
@@ -287,7 +289,7 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.maxTryCount,
             parameters.intervalTryCount,
             parameters.minBillSec,
-            parameters.waitingForResultStatus,
+            parameters.waitingForResultStatus && this.type !== DIALER_TYPES.VoiceBroadcasting,
             parameters.wrapUpTime,
             parameters.originateTimeout,
             config.lockId,
@@ -389,9 +391,10 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     rollback (member, dest, stats, cb) {
-        let $inc = {"stats.active": -1, "stats.callCount": 1};
+        let $inc = {"stats.active": -1};
 
         if (member) {
+            $inc["stats.callCount"] = 1;
             if (member.callSuccessful) {
                 $inc["stats.successCall"] = 1;
             } else {

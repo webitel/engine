@@ -388,6 +388,14 @@ class AutoDialer extends EventEmitter2 {
         }
     }
 
+    getMemberFromActiveDialer (dialerId, memberId) {
+        const dialer = this.activeDialer.get(dialerId);
+        if (!dialer)
+            return null;
+
+        return dialer.members.get(memberId);
+    }
+
     sendAgentToDialer (agent = {}) {
         if (agent.state === AGENT_STATE.Waiting &&
             (agent.status === AGENT_STATUS.Available || agent.status === AGENT_STATUS.AvailableOnDemand) &&
