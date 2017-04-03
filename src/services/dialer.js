@@ -250,6 +250,10 @@ let Service = {
     },
 
 
+    _removeByDomain: function (domainName, cb) {
+        const db = application.DB._query.dialer;
+        db._removeByDomain(domainName, cb);
+    },
 
     members: {
         list: function (caller, option, cb) {

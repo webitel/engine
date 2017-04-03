@@ -9,6 +9,9 @@ var log = require(__appRoot + '/lib/log')(module),
     dialplanService = require(__appRoot + '/services/dialplan'),
     blackListService = require(__appRoot + '/services/blacklist'),
     contactBookService = require(__appRoot + '/services/contactBook'),
+    callCenterService = require(__appRoot + '/services/callCentre'),
+    dialerService = require(__appRoot + '/services/dialer'),
+    calendarService = require(__appRoot + '/services/calendar'),
     emailService = require(__appRoot + '/services/email'),
     statusService = require(__appRoot + '/services/userStatus'),
     domainService = require(__appRoot + '/services/domain')
@@ -68,6 +71,14 @@ function onUserDelete (userId, domain) {
             return log.error(err);
         };
         log.debug('Statuses destroyed %s', userId);
+    });
+
+    callCenterService._removeById(userId, function (err) {
+        if (err) {
+            return log.error(err);
+        }
+
+        log.debug('Agent destroyed %s', userId);
     });
 };
 
@@ -135,7 +146,28 @@ function onDomainDelete (domainName) {
         }
         log.debug('Domain settings destroy %s from domain %s', result && result.n, domainName);
     });
-};
+    
+    callCenterService._removeByDomainName(domainName, function (err, result) {
+        if (err) {
+            return log.error(err);
+        }
+        log.debug('Agent settings destroy %s from domain %s', result && result.n, domainName);
+    });
+
+    dialerService._removeByDomain(domainName, function (err, result) {
+        if (err) {
+            return log.error(err);
+        }
+        log.debug('Dialer settings destroy %s from domain %s', result && result.n, domainName);
+    });
+
+    calendarService._removeByDomain(domainName, function (err, result) {
+        if (err) {
+            return log.error(err);
+        }
+        log.debug('Calendar settings destroy %s from domain %s', result && result.n, domainName);
+    });
+}
 
 function onUserState (event) {
 

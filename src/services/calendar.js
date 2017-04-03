@@ -142,6 +142,12 @@ let Service = {
 
             return dbCalendar.removeById(domain, option.id, cb);
         });
+    },
+    
+    _removeByDomain: function (domainName, cb) {
+        let dbCalendar = application.DB._query.calendar;
+
+        return dbCalendar.removeByDomain(domainName, cb);
     }
 };
 

@@ -118,7 +118,7 @@ class AgentManager extends EventEmitter2 {
                             }
                             if (agentParams) {
                                 log.debug(`Upsert agent parameters - ${agentId}`);
-                                application.DB._query.dialer._initAgent(agentId,  agentParams, agent.skills ? agent.skills.split(',') : [], (e, res) => {
+                                application.DB._query.dialer._initAgent(agentId, dialer._domain, agentParams, agent.skills ? agent.skills.split(',') : [], (e, res) => {
                                     if (e)
                                         return cb(e);
 

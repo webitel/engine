@@ -14,14 +14,25 @@ module.exports = {
 function addQuery(db) {
     return {
         list: (domain, filter = {}, project = {}, cb) => {
-            // TODO 
-            // if (domain)
-            //     filter.domain = domain;
+            if (domain)
+                filter.domain = domain;
 
             return db
                 .collection(collectionAgent)
                 .find(filter, project)
                 .toArray(cb);
+        },
+
+        removeById: (agentId, cb) => {
+            return db
+                .collection(collectionAgent)
+                .removeOne({agentId}, cb);
+        },
+
+        removeByDomain: (domain, cb) => {
+            return db
+                .collection(collectionAgent)
+                .remove({domain}, {multi: true}, cb);
         }
     }
 }

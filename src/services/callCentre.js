@@ -655,6 +655,18 @@ var Service = {
                 return cb(new CodeError(status, body));
             }
         });
+    },
+    
+    _removeById: function (agentId, cb) {
+        const db = application.DB._query.agent;
+
+        return db.removeById(agentId, cb);
+    },
+
+    _removeByDomainName: function (domain, cb) {
+        const db = application.DB._query.agent;
+
+        return db.removeByDomain(domain, cb);
     }
 
 };

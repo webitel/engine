@@ -88,6 +88,16 @@ function addQuery (db) {
                 {_id: new ObjectID(id), domain: domain},
                 cb
             );
-        } 
+        },
+
+        removeByDomain: function (domain, cb) {
+            return db
+                .collection(calendarCollectionName)
+                .remove(
+                    {domain},
+                    {multi: true},
+                    cb
+                );
+        }
     }
 }

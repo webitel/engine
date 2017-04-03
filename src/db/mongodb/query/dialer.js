@@ -272,6 +272,38 @@ function addQuery (db) {
                 .remove(_f, {multi: true}, cb);
         },
 
+        _removeByDomain: function (domain, cb) {
+            const dialers = [];
+            db
+                .collection(dialerCollectionName)
+                .find({domain}, {_id: 1})
+                .toArray((err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (!(res instanceof Array)) {
+                        return cb();
+                    }
+
+                    for (let dialer of res) {
+                        dialers.push(dialer._id.toString());
+                    }
+
+
+                    db
+                        .collection(memberCollectionName)
+                        .remove({dialer: {$in: dialers}}, {multi: true}, e => {
+                            if (e)
+                                return log.error(e);
+                        });
+
+                    return db
+                        .collection(dialerCollectionName)
+                        .remove({domain}, {multi: true}, cb);
+
+                });
+        },
+
         removeMemberByDialerId: function (dialerId, cb) {
             return db
                 .collection(memberCollectionName)
@@ -423,10 +455,10 @@ function addQuery (db) {
                 }, {upsert: false}, cb)
         },
 
-        _initAgent: function (agentId, params = {}, skills, cb) {
+        _initAgent: function (agentId, domain, params = {}, skills, cb) {
             return db
                 .collection(agentsCollectionName)
-                .update({agentId: agentId}, {
+                .update({agentId: agentId, domain}, {
                     $set: {
                         state: params.state,
                         status: params.status,
