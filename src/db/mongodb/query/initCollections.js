@@ -196,7 +196,7 @@ var Indexes = {
             "priority" : 1
         },
         {
-            "_unique": true,
+            "_unique": false,
             "_name": "number_unique",
             "_": {
                 "communications.number" : 1,
@@ -294,6 +294,16 @@ var Indexes = {
         },
         {
             "domain" : 1
+        }
+    ],
+    "collectionReplica": [
+        {
+            "process": 1
+        },
+        {
+            "createdOn": 1,
+            "collection": 1,
+            "docId": 1
         }
     ]
 };

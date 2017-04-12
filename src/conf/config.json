@@ -37,7 +37,8 @@
         "collectionAgentsInDialer": "_agentsIsDialer",
         "collectionDialerMembers": "members",
         "collectionMedia": "mediaFile",
-        "collectionGateway": "gateway"
+        "collectionGateway": "gateway",
+        "collectionReplica": "replica"
     },
     "freeSWITCH": {
         "host": "172.17.0.1",
