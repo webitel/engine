@@ -244,8 +244,11 @@ var Indexes = {
         }
     ],
     "collectionDialerAgents": [
+        // {
+        //     "randomPoint" : "2d"
+        // },
         {
-            "randomPoint" : "2d"
+            "randomValue": 1
         },
         {
             "_name": "huntingAgent",

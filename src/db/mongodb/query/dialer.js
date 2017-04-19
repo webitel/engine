@@ -470,7 +470,8 @@ function addQuery (db) {
                         wrapUpTime: +params.reject_delay_time,
                         callTimeout: 10, // TODO
                         skills: skills,
-                        randomPoint: [Math.random(), 0]
+                        // randomPoint: [Math.random(), 0]
+                        randomValue: Math.random()
                     },
                     $max: {
                         noAnswerCount: +params.no_answer_count
@@ -489,7 +490,8 @@ function addQuery (db) {
                     {
                         $set: {
                             state,
-                            randomPoint: [Math.random(), 0],
+                            //randomPoint: [Math.random(), 0],
+                            randomValue: Math.random(),
                             lastStatusChange: Date.now()
                         },
                         $currentDate: { lastModified: true }
@@ -508,7 +510,8 @@ function addQuery (db) {
                     {
                         $set: {
                             status,
-                            randomPoint: [Math.random(), 0],
+                            randomValue: Math.random(),
+                            // randomPoint: [Math.random(), 0],
                             lastStatusChange: Date.now() // todo ?
                         },
                         $currentDate: { lastModified: true }
@@ -554,7 +557,8 @@ function addQuery (db) {
                             "wrapUpTime" : 1,
                             "callTimeout" : 1,
                             "skills" : 1,
-                            "randomPoint" : 1,
+                            // "randomPoint" : 1,
+                            "randomValue" : 1,
                             "noAnswerCount": 1,
                             "lastModified": 1,
                             "dialer": {$elemMatch: {_id: dialerId}}
@@ -579,7 +583,7 @@ function addQuery (db) {
 
             const cursor = db
                 .collection(memberCollectionName)
-                .find({dialer: dialerId, _endCause: {$ne: null} , callSuccessful: false}, {communications: 1, _id: 1});
+                .find({dialer: dialerId, _endCause: {$ne: null} , callSuccessful: {$ne: true}}, {communications: 1, _id: 1});
 
             const respBulk = err => {
                 if (err)

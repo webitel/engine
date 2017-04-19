@@ -200,12 +200,13 @@ class AgentManager extends EventEmitter2 {
         // console.dir(filter, {depth: 10, colors: true});
 
         const sort = {
-            "dialer._id": 1
+            // "dialer._id": 1
         };
 
         switch (strategy) {
             case AGENT_STRATEGY.RANDOM:
-                filter.randomPoint = { $near : [Math.random(), 0] };
+                // filter.randomPoint = { $near : [Math.random(), 0] };
+                sort.randomValue =  Math.random() > 0.5 ? 1 : -1;
                 break;
             case AGENT_STRATEGY.WITH_FEWEST_CALLS:
                 sort["dialer.callCount"] = 1;

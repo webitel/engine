@@ -263,7 +263,7 @@ module.exports = class Predictive extends Dialer {
         const start = Date.now();
 
         member._predAgentOriginate = true;
-        application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} $park()`, (res) => {
+        application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} &park()`, (res) => {
             member.log(`agent ${agent.agentId} fs res -> ${res.body}`);
             const bgOkData = res.body.match(/^\+OK\s(.*)\n$/);
             const date = Date.now();
@@ -292,9 +292,9 @@ module.exports = class Predictive extends Dialer {
 
                     member.log(`fs response bridge agent: ${bridge.body}`);
 
-                    if (/^-ERR|^-USAGE/.test(res.body)) {
+                    if (/^-ERR|^-USAGE/.test(bridge.body)) {
                         this._am.setAgentStats(agent.agentId, this._objectId, {
-                            lastStatus: `error bridge -> ${res.body}`,
+                            lastStatus: `error bridge -> ${bridge.body}`,
                             setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                             process: null
                         }, (e) => {
