@@ -700,7 +700,7 @@ let Service = {
 
                     if (lastNumber) {
                         event.currentNumber = lastNumber.number;
-                        event.dlr_member_number_description = lastNumber.description
+                        event.dlr_member_number_description = lastNumber.description || ''
                     }
 
                     for (let key in memberDb.variables) {

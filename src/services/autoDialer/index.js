@@ -366,23 +366,31 @@ class AutoDialer extends EventEmitter2 {
             return;
 
         const e = JSON.parse(msg.content.toString());
-        
+
         if (e['CC-Action'] === 'agent-status-change') {
+            log.trace(`try set status ${e['CC-Agent']} -> ${e['CC-Agent-Status']}`);
             this.dbDialer._setAgentStatus(e['CC-Agent'], e['CC-Agent-Status'], (err, res) => {
                 if (err)
                     return log.error(err);
 
                 if (res.value) {
+                    log.debug(`OK set status ${e['CC-Agent']} -> ${e['CC-Agent-Status']}`);
                     this.sendAgentToDialer(res.value);
+                } else {
+                    log.error(`Agent ${e['CC-Agent']} set status no response db: `, e, res);
                 }
             });
         } else if (e['CC-Action'] === 'agent-state-change') {
+            log.trace(`try set state ${e['CC-Agent']} -> ${e['CC-Agent-State']}`);
             this.dbDialer._setAgentState(e['CC-Agent'], e['CC-Agent-State'], (err, res) => {
                 if (err)
                     return log.error(err);
 
                 if (res.value) {
+                    log.trace(`OK set state ${e['CC-Agent']} -> ${e['CC-Agent-State']}`);
                     this.sendAgentToDialer(res.value);
+                } else {
+                    log.error(`Agent ${e['CC-Agent']} set state no response db: `, e, res);
                 }
             })
         }
