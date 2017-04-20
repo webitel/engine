@@ -263,7 +263,10 @@ module.exports = class Predictive extends Dialer {
         const start = Date.now();
 
         member._predAgentOriginate = true;
-        application.Esl.bgapi(`originate {${agentVars}}user/${agent.agentId} &park()`, (res) => {
+
+        const agentDs = `originate {${agentVars}}user/${agent.agentId} &park()`;
+        member.log(`Agent ds: ${agentDs}`);
+        application.Esl.bgapi(agentDs, (res) => {
             member.log(`agent ${agent.agentId} fs res -> ${res.body}`);
             const bgOkData = res.body.match(/^\+OK\s(.*)\n$/);
             const date = Date.now();
