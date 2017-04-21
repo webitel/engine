@@ -1094,6 +1094,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 console.log(nextTime);
                 clearTimeout(this._timerId);
                 this._timerId = setTimeout(() => {
+                    console.log('send wakeUp');
                     this.emit('wakeUp')
                 }, nextTime);
             }

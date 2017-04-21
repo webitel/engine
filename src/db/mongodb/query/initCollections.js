@@ -263,6 +263,14 @@ var Indexes = {
                 "agentId" : 1
             }
 
+        },
+        {
+            "_name": "agentId",
+            "_unique": true,
+            "_": {
+                "agentId" : 1
+            }
+
         }
     ],
     "collectionAgentStatus": [

@@ -83,6 +83,8 @@ module.exports = class Predictive extends Dialer {
                         return;
                     }
 
+                    log.trace('engine response: ', res);
+
                     if (res.agents === 0 )
                         return;
 
@@ -458,6 +460,7 @@ module.exports = class Predictive extends Dialer {
             member.channelsCount--;
 
             if (member._predAgentOriginate === true) {
+                log.trace(`hangup agent channel for dlr_session ${member.sessionId}`);
                 application.Esl.bgapi(`hupall ${CANCEL_CAUSE} dlr_session ${member.sessionId}`);
             }
 

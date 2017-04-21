@@ -15,7 +15,8 @@ const conf = require(__appRoot + '/conf'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
     log = require(__appRoot + '/lib/log')(module),
-    utils = require('./utils')
+    utils = require('./utils'),
+    getDomainFromStr = require(__appRoot + '/utils/parse').getDomainFromStr
     ;
 
 module.exports = {
@@ -485,7 +486,7 @@ function addQuery (db) {
             return db
                 .collection(agentsCollectionName)
                 .findAndModify(
-                    {agentId: agentId},
+                    {agentId: agentId, domain: getDomainFromStr(agentId)},
                     {},
                     {
                         $set: {
@@ -505,7 +506,7 @@ function addQuery (db) {
             return db
                 .collection(agentsCollectionName)
                 .findAndModify(
-                    {agentId: agentId},
+                    {agentId: agentId, domain: getDomainFromStr(agentId)},
                     {},
                     {
                         $set: {
