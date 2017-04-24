@@ -618,7 +618,7 @@ module.exports = class Dialer extends EventEmitter2 {
         return {
                 "_nextTryTime": -1,
                 "priority": -1,
-                "_id": -1
+                "_id": 1
         }
     }
 
