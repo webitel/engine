@@ -56,6 +56,7 @@ module.exports = class Member extends EventEmitter2 {
         this._log = {
             session: this.sessionId,
             destinationId: destination.uuid,
+            callDescription: "",
             callTime: Date.now(),
             callSuccessful: false,
             bridgedTime: null,
@@ -162,6 +163,7 @@ module.exports = class Member extends EventEmitter2 {
 
         this._log.callNumber = communication.number;
         this._log.callPriority = communication.priority || 0;
+        this._log.callDescription = communication.description || "";
 
         // const $set = {};
         // $set[`communications.${communication._id}`] = communication;
