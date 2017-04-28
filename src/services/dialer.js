@@ -367,6 +367,7 @@ let Service = {
                 let member = option.data;
                 member.dialer = option.dialer;
                 member.createdOn = Date.now();
+                member.randomValue = Math.random();
                 member._score = member.createdOn + (member.priority || 0);
 
                 if (!(member.communications instanceof Array) || member.communications.length == 0)

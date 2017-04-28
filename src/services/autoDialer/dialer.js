@@ -82,7 +82,7 @@ module.exports = class Dialer extends EventEmitter2 {
             log.trace(`Members length ${this.members.length()}`);
 
             member.once('end', (m) => {
-                const $set = {_lastSession: m.sessionId, variables: m.variables},
+                const $set = {_lastSession: m.sessionId, variables: m.variables, lastCall: Date.now()},
                     $max = {
                         callSuccessful: m.callSuccessful,
                         _nextTryTime: m.nextTime
@@ -283,7 +283,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._targetPredictiveSilentCalls = 2.5,
             this._maxPredictiveSilentCalls = 3,
             this._maxLocateAgentSec = 10,
-            this._eternalQueue = false
+            this._eternalQueue = false,
+            this.membersStrategy = 'next-tries-circuit'
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -300,7 +301,8 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.targetPredictiveSilentCalls,
             parameters.maxPredictiveSilentCalls,
             parameters.maxLocateAgentSec,
-            parameters.eternalQueue
+            parameters.eternalQueue,
+            config.membersStrategy
         ];
 
         if (this._amd.enabled) {
@@ -615,6 +617,14 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     getSortAvailableMembers () {
+        if (this.membersStrategy === 'strict-circuit') {
+            return {
+                "_probeCount": 1,
+                "priority": -1,
+                "_id": 1,
+                "lastModified": -1
+            }
+        }
         return {
                 "_nextTryTime": -1,
                 "priority": -1,
