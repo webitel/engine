@@ -575,7 +575,7 @@ function addQuery (db) {
                 .update(filter, update, {multi: true}, cb)
         },
 
-        _resetMembers: (dialerId, resetLog = false, callerId, cb) => {
+        _resetMembers: (dialerId, resetLog = false, fromDate, callerId, cb) => {
 
             let bulk = db.collection(memberCollectionName).initializeOrderedBulkOp(),
                 count = 0;
@@ -584,7 +584,7 @@ function addQuery (db) {
 
             const cursor = db
                 .collection(memberCollectionName)
-                .find({dialer: dialerId, _endCause: {$ne: null} , callSuccessful: {$ne: true}}, {communications: 1, _id: 1});
+                .find({dialer: dialerId, _endCause: {$ne: null} , createdOn: {$gte: fromDate}, callSuccessful: {$ne: true}}, {communications: 1, _id: 1});
 
             const respBulk = err => {
                 if (err)

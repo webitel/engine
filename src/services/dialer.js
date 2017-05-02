@@ -529,7 +529,7 @@ let Service = {
                 // TODO check dialer in domain
                 // const domain = validateCallerParameters(caller, options['domain']);
 
-                application.DB._query.dialer._resetMembers(options.dialer, options.resetLog, caller.id, cb);
+                application.DB._query.dialer._resetMembers(options.dialer, options.resetLog, options.fromDate, caller.id, cb);
             })
         },
 

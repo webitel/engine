@@ -336,7 +336,8 @@ function resetMembers(req, res, next) {
     let options = {
         dialer: req.params.dialer,
         resetLog: req.query._log === 'true',
-        domain: req.query.domain
+        domain: req.query.domain,
+        fromDate: req.query.from && +req.query.from
     };
 
     dialerService.members.resetMembers(req.webitelUser, options, (err, count) => {
