@@ -142,7 +142,8 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set._lastNumberId = m._currentNumber._id;
                 }
 
-                if (m.endCause && (!this._waitingForResultStatus || m.predictAbandoned || m.endCause === END_CAUSE.MEMBER_EXPIRED)) {
+                if (m.endCause &&
+                    (!this._waitingForResultStatus || m.predictAbandoned || m.endCause === END_CAUSE.MEMBER_EXPIRED || m.endCause === END_CAUSE.MAX_TRY)) {
                     $set._endCause = m.endCause;
                 }
 
