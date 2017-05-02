@@ -77,7 +77,7 @@ module.exports = class Member extends EventEmitter2 {
         this.endCause = null;
         //this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
-        this.log(`create probe ${this.currentProbe}`);
+        this.log(`create probe ${this.currentProbe} - max ${dialer._maxTryCount}`);
         this.setCurrentAttempt(this.currentProbe);
 
         this.number = "";
@@ -251,7 +251,7 @@ module.exports = class Member extends EventEmitter2 {
             "Event-Name": "CUSTOM",
             "Event-Subclass": "engine::dialer_member_end",
             "variable_domain_name": this.getDomain(),
-            "dialerId": this._queueId,
+            "dialerId": this.getQueueId(),
             "dialerName": this.getQueueName(),
             "id": this._id.toString(),
             "name": this.name,
@@ -288,6 +288,10 @@ module.exports = class Member extends EventEmitter2 {
     end (endCause, e) {
         
         if (this.processEnd) return;
+
+        if (endCause)
+            endCause = endCause.trim();
+
         this.processEnd = true;
         this.setProbeEndCause(endCause);
 
@@ -317,6 +321,7 @@ module.exports = class Member extends EventEmitter2 {
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
             this.log(`Check callback`);
             this.emit('end', this);
+            return;
         }
 
         let skipOk = false,

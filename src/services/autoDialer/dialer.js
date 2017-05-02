@@ -113,6 +113,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                     if (m._minusProbe || m.predictAbandoned || !m.bridgedCall) {
                                         $set._waitingForResultStatusCb = null;
                                         $set._waitingForResultStatus = null;
+                                        // $set._waitingForResultStatusLast = null;
                                         $set[`communications.${i}.checkResult`] = null;
                                     } else {
                                         update.$min = {
@@ -121,6 +122,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                         update.$min[`communications.${i}.checkResult`] = 1;
 
                                         $set._waitingForResultStatus =  Date.now() + (this._wrapUpTime * 1000);
+                                        // $set._waitingForResultStatusLast = m.currentProbe >= this._maxTryCount;
                                     }
                                 }
 
