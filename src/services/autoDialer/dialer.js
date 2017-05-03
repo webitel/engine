@@ -622,10 +622,9 @@ module.exports = class Dialer extends EventEmitter2 {
     getSortAvailableMembers () {
         if (this.membersStrategy === 'strict-circuit') {
             return {
-                "_probeCount": 1,
+                "lastCall": 1,
                 "priority": -1,
-                "_id": 1,
-                "lastModified": -1
+                "_id": 1
             }
         }
         return {
@@ -885,7 +884,7 @@ module.exports = class Dialer extends EventEmitter2 {
             }`;
         }
 
-    //    console.dir(filter, {depth: 10, colors: true});
+        console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,

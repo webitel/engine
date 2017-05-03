@@ -29,7 +29,7 @@ function addQuery (db) {
         return communications.filter( (i, key) => {
                     if (i.state !== 0)
                         return false;
-                    print(codes[0]);
+                    
                     var idx = codes.indexOf(i.type);
     
                     if (~idx) {
@@ -178,10 +178,10 @@ function addQuery (db) {
             };
             setDefUuidDestination(doc.resources);
             for (let key in doc) {
-                if (doc.hasOwnProperty(key) && key != '_id' && key != 'domain' && key !== 'stats') {
+                if (doc.hasOwnProperty(key) && key !== '_id' && key !== 'domain' && key !== 'stats' && key !== 'active' && key !== 'state') {
                     data.$set[key] = doc[key];
                 }
-            };
+            }
             return db
                 .collection(dialerCollectionName)
                 .updateOne({_id: new ObjectID(_id), domain: domainName}, data, cb);
@@ -636,7 +636,8 @@ function addQuery (db) {
                             callSuccessful: 1,
                             _lastNumberId: 1,
                             _lastMinusProbe: 1,
-                            _nextTryTime: 1
+                            _nextTryTime: 1,
+                            lastCall: 1
                         };
 
                         const $set = {};
