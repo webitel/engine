@@ -66,6 +66,7 @@
         "loglevel": "trace",
         "callcenter": true,
         "writeUserStatus": false,
+        "dialerCbMinusAttempt": true,
         "auth": {
             "tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100

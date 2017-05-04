@@ -366,6 +366,7 @@ let Service = {
 
                 let member = option.data;
                 member.dialer = option.dialer;
+                member.domain = domain;
                 member.createdOn = Date.now();
                 member.randomValue = Math.random();
                 member._score = member.createdOn + (member.priority || 0);
@@ -680,7 +681,7 @@ let Service = {
                 if ($set._endCause) {
                     const lastNumber = isFinite(memberDb._lastNumberId) && memberDb.communications[memberDb._lastNumberId]
                         ? memberDb.communications[memberDb._lastNumberId]
-                        : {}
+                        : null
                         ;
 
                     const event = {
@@ -743,6 +744,16 @@ let Service = {
         _aggregate (agg, cb) {
             let db = application.DB._query.dialer;
             return db._aggregateMembers(agg, cb);
+        },
+
+        _getCursor: (filter, projection) => {
+            const db = application.DB._query.dialer;
+            return db._getCursor(filter, projection);
+        },
+
+        _updateOneMember: (filter, update, cb) => {
+            const db = application.DB._query.dialer;
+            return db._updateOneMember(filter, update, cb);
         }
     },
     

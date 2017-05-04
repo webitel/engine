@@ -22,7 +22,9 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     encodeRK = require(__appRoot + '/utils/helper').encodeRK,
     async = require('async'),
     calendarManager = require('./calendarManager'),
-    Scheduler = require(__appRoot + '/lib/scheduler')
+    Scheduler = require(__appRoot + '/lib/scheduler'),
+    conf = require(__appRoot + '/conf'),
+    dialerCbMinusAttempt = `${conf.get('application:dialerCbMinusAttempt')}` === 'true'
     ;
 
 const EVENT_CHANGE_STATE = `DC::CHANGE_STATE`;
@@ -243,15 +245,10 @@ class AutoDialer extends EventEmitter2 {
 
         });
 
-        const fnScheduleSec = (cb) => {
+        const checkSetAvailableTimeSec = (cb) => {
             if (!this.isReady()) {
                 return cb();
             }
-
-            this.clearAttemptOnDeadlineResultStatus(e => {
-                if (e)
-                    log.error(e);
-            });
 
             this.agentManager.checkSetAvailableTime(e => {
                 if (e)
@@ -260,6 +257,32 @@ class AutoDialer extends EventEmitter2 {
                 return cb();
             });
         };
+
+        const clearAttemptOnDeadlineResultSec = dialerCbMinusAttempt
+            ? (cb) => {
+                if (!this.isReady()) {
+                    return cb();
+                }
+
+                this.clearAttemptOnDeadlineResultStatus(e => {
+                    if (e)
+                        log.error(e);
+
+                    return cb();
+                });
+              }
+            : (cb) => {
+                if (!this.isReady()) {
+                    return cb();
+                }
+
+                this.clearAttemptOnDeadlineResultStatusAddAttempts(e => {
+                    if (e)
+                        log.error(e);
+
+                    return cb();
+                });
+              };
 
         // let currentDay = das;
 
@@ -276,7 +299,9 @@ class AutoDialer extends EventEmitter2 {
             });
         };
 
-        new Scheduler('1-59/1 * * * * *', fnScheduleSec, {log: false});
+
+        new Scheduler('1-59/1 * * * * *', checkSetAvailableTimeSec, {log: false});
+        new Scheduler('1-59/1 * * * * *', clearAttemptOnDeadlineResultSec, {log: false});
         new Scheduler('*/1 * * * *', fnScheduleMin, {log: false});
     }
 
@@ -693,7 +718,7 @@ class AutoDialer extends EventEmitter2 {
                         time: Date.now(),
                         from: "system",
                         data: {
-                            msg: "System schedule: no response result status"
+                            msg: "System schedule: no response result status, minus attempts"
                         }
                     }
                 },
@@ -701,6 +726,54 @@ class AutoDialer extends EventEmitter2 {
             },
             cb
         );
+    }
+
+    clearAttemptOnDeadlineResultStatusAddAttempts (cb) {
+        const cursor = dialerService.members._getCursor({
+            _waitingForResultStatus: {$lte: Date.now()},
+            _waitingForResultStatusCb: 1,
+            communications: {$elemMatch: {checkResult: 1}},
+            _lock: null
+        }, {_probeCount: 1, _maxTryCount: 1, _id: 1, variables: 1, name: 1, dialer: 1, domain: 1, communications: 1, _lastNumberId: 1});
+
+        cursor.count((e, count) => {
+            if (e)
+                return cb(e);
+
+            if (count < 1)
+                return cb();
+
+
+            const _exec = (e, data) => {
+                if (e) {
+                    return cb(e)
+                }
+
+                if (!data) {
+                    return cb()
+                }
+
+                const lastAttempts = data._maxTryCount <= data._probeCount;
+                dialerService.members._updateOneMember({
+                    _id: data._id,
+                    _waitingForResultStatusCb: 1,
+                    communications: {$elemMatch: {checkResult: 1}},
+                    _lock: null
+                }, _getUpdateMember(lastAttempts, data.communications.length), (e, res) => {
+                    if (e) {
+                        return log.error(e);
+                    }
+
+                    if (res && res.result.nModified === 1 && lastAttempts) {
+                        _broadcastMemberEnd(data)
+                    }
+                });
+
+                cursor.nextObject(_exec);
+            };
+
+            cursor.nextObject(_exec);
+        });
     }
 
     calendarAgent (cb) {
@@ -730,5 +803,70 @@ class AutoDialer extends EventEmitter2 {
         // })
     }
 }
+
+
+function _getUpdateMember(end, communicationsLength) {
+    const $set = {
+        _waitingForResultStatus: null,
+        _waitingForResultStatusCb: null
+    };
+
+    if (end) {
+        $set._endCause = END_CAUSE.MAX_TRY;
+        for (let i = 0; i < communicationsLength; i++)
+            $set[`communications.${i}.state`] = 2;
+    }
+
+    return {
+        $set,
+        $unset: {"checkResult": 1},
+        $push: {
+            _callback: {
+                time: Date.now(),
+                from: "system",
+                data: {
+                    msg: "System schedule: no response result status, save attempts"
+                }
+            }
+        },
+        $currentDate: {lastModified: true}
+    }
+}
+
+
+function _broadcastMemberEnd(member) {
+    const event = {
+        "Event-Name": "CUSTOM",
+        "Event-Subclass": "engine::dialer_member_end",
+        // TODO
+        "variable_domain_name": member.domain,
+        "dialerId": member.dialer,
+        "id": member._id.toString(),
+        "name": member.name,
+        "currentProbe": member._probeCount,
+        "endCause": END_CAUSE.MAX_TRY,
+        "reason": "callback",
+        "callback_user_id": "system"
+    };
+
+    const lastNumber = isFinite(member._lastNumberId) && member.communications[member._lastNumberId]
+            ? member.communications[member._lastNumberId]
+            : null
+        ;
+
+
+    if (lastNumber) {
+        event.currentNumber = lastNumber.number;
+        event.dlr_member_number_description = lastNumber.description || ''
+    }
+
+    for (let key in member.variables) {
+        if (member.variables.hasOwnProperty(key))
+            event[`variable_${key}`] = member.variables[key]
+    }
+    console.log(event);
+    application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
+}
+
 
 module.exports = AutoDialer;

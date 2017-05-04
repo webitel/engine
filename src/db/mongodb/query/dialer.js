@@ -671,6 +671,18 @@ function addQuery (db) {
                     return cb(null, count);
                 }
             });
+        },
+
+        _getCursor: (filter, projection) => {
+            return db
+                .collection(memberCollectionName)
+                .find(filter, projection);
+        },
+
+        _updateOneMember: (filter, update, cb) => {
+            return db
+                .collection(memberCollectionName)
+                .updateOne(filter, update, {}, cb);
         }
     }
 }
