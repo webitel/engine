@@ -374,9 +374,9 @@ module.exports = class Member extends EventEmitter2 {
         }
 
 
-        if (this.currentProbe >= this.getMaxAttemptsCount() && !this._waitingForResultStatus) {
+        if (this.currentProbe >= this.getMaxAttemptsCount()) {
             this.log(`max try count`);
-            this.endCause = endCause || END_CAUSE.MAX_TRY;
+            this.endCause = END_CAUSE.MAX_TRY;
             this._setStateCurrentNumber(MEMBER_STATE.End)
         } else {
             if (this._countActiveNumbers == 1 && endCause)
