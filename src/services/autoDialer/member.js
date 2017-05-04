@@ -85,7 +85,7 @@ module.exports = class Member extends EventEmitter2 {
         this._communications = config.communications;
 
         this._currentNumber = currentNumber;
-        this._currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
+        //this._currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
 
         this.setCurrentNumber(this._currentNumber, config.communications);
 
@@ -328,7 +328,6 @@ module.exports = class Member extends EventEmitter2 {
             billSec = e && +e.getHeader('variable_billsec');
 
 
-        
         if (~this.getCausesMinus(endCause)) {
             this.minusProbe();
             this.log(`end cause ${endCause}`);

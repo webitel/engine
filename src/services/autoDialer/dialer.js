@@ -363,6 +363,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
                     let res = this.getResourceStat(dest.uuid);
                     this._maxResources += (dest.limit || 0);
+                    dest.regexpVal = resource.regexp;
 
                     if (!res) {
                         dest.active = 0;
@@ -383,7 +384,7 @@ module.exports = class Dialer extends EventEmitter2 {
         const res = [];
         for (let key in this._recources) {
             if (this._recources[key].active < this._recources[key].limit && !~res.indexOf(this._recources[key].regexp))
-                res.push(this._recources[key].regexp)
+                res.push(this._recources[key].regexpVal)
         }
         return res;
     }
@@ -560,10 +561,12 @@ module.exports = class Dialer extends EventEmitter2 {
 
     getFilterAvailableMembers () {
 
+        const regexp = this.getFreeResourceRoutes();
         const {codes, ranges} = this.getCommunicationCodes();
 
         const communications = {
             $elemMatch: {
+                number: {$in: regexp},
                 state: {
                     $in: [MEMBER_STATE.Idle, null]
                 },
@@ -609,6 +612,7 @@ module.exports = class Dialer extends EventEmitter2 {
             communications.$elemMatch.$or = codeFilter;
         }
 
+        //console.dir(communications, {depth: 100, colors: true});
         return {
             dialer: this._id,
             _waitingForResultStatusCb: null,
@@ -634,12 +638,16 @@ module.exports = class Dialer extends EventEmitter2 {
         }
     }
 
-    getMemberNumber (member, codes, ranges, allCodes) {
+    getMemberNumber (member, codes, ranges, allCodes, regexp) {
         if (member.communications instanceof Array) {
 
             const communicationsMap = member.communications.filter((i, key) => {
                 if (i.state !== 0)
                     return false;
+
+                if (!checkInRegExps(regexp, i.number)) {
+                    return false;
+                }
 
                 const idx = codes.indexOf(i.type);
 
@@ -815,7 +823,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (this._waitingForResultStatus) {
             $set._waitingForResultStatus = null; //Date.now() + (this._wrapUpTime * 1000); //ERROR
             $set._waitingForResultStatusCb = 1;
-            $set['communications.$.checkResult'] = 1;
+           // $set['communications.$.checkResult'] = 1;
             $set._maxTryCount = this._maxTryCount;
         }
 
@@ -826,65 +834,65 @@ module.exports = class Dialer extends EventEmitter2 {
         const filter = this.getFilterAvailableMembers();
 
         // TODO bad query...
-        if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
-            filter['$where'] = `function () {
-                
-                var number = fnKeySort(
-                    fnFilterDialerCommunications(
-                            this.communications, ${JSON.stringify(codes)},
-                            ${JSON.stringify(ranges)},
-                            ${JSON.stringify(allCodes)}
-                    ), 
-                    {
-                        isTypeFound: "desc",
-                        lastCall: "asc",
-                        rangePriority: "desc",
-                        priority: "desc",
-                        _probe: "asc"
-                    }
-                )[0];
-                
-                var regs = ${JSON.stringify(regexp)};
-                
-                for (var i = 0;  i < regs.length; i++) {
-                    if (new RegExp(regs[i]).test(number.number)) {
-                        return true;
-                    }
-                }
-        
-                return false
-            }`;
-        } else {
-            filter['$where'] = `function () {
-           
-                var number = fnKeySort(
-                    fnFilterDialerCommunications(
-                        this.communications, ${JSON.stringify(codes)},
-                        ${JSON.stringify(ranges)},
-                        ${JSON.stringify(allCodes)}
-                    ), 
-                    {
-                        isTypeFound: "desc",
-                        rangePriority: "desc",
-                        lastCall: "asc",
-                        priority: "desc",
-                        _probe: "asc"
-                    }
-                )[0];
-        
-                var regs = ${JSON.stringify(regexp)};
-                
-                for (var i = 0;  i < regs.length; i++) {
-                    if (new RegExp(regs[i]).test(number.number)) {
-                        return true;
-                    }
-                }
-        
-                return false
-            }`;
-        }
+        // if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
+        //     filter['$where'] = `function () {
+        //
+        //         var number = fnKeySort(
+        //             fnFilterDialerCommunications(
+        //                     this.communications, ${JSON.stringify(codes)},
+        //                     ${JSON.stringify(ranges)},
+        //                     ${JSON.stringify(allCodes)}
+        //             ),
+        //             {
+        //                 isTypeFound: "desc",
+        //                 lastCall: "asc",
+        //                 rangePriority: "desc",
+        //                 priority: "desc",
+        //                 _probe: "asc"
+        //             }
+        //         )[0];
+        //
+        //         var regs = ${JSON.stringify(regexp)};
+        //
+        //         for (var i = 0;  i < regs.length; i++) {
+        //             if (new RegExp(regs[i]).test(number.number)) {
+        //                 return true;
+        //             }
+        //         }
+        //
+        //         return false
+        //     }`;
+        // } else {
+        //     filter['$where'] = `function () {
+        //
+        //         var number = fnKeySort(
+        //             fnFilterDialerCommunications(
+        //                 this.communications, ${JSON.stringify(codes)},
+        //                 ${JSON.stringify(ranges)},
+        //                 ${JSON.stringify(allCodes)}
+        //             ),
+        //             {
+        //                 isTypeFound: "desc",
+        //                 rangePriority: "desc",
+        //                 lastCall: "asc",
+        //                 priority: "desc",
+        //                 _probe: "asc"
+        //             }
+        //         )[0];
+        //
+        //         var regs = ${JSON.stringify(regexp)};
+        //
+        //         for (var i = 0;  i < regs.length; i++) {
+        //             if (new RegExp(regs[i]).test(number.number)) {
+        //                 return true;
+        //             }
+        //         }
+        //
+        //         return false
+        //     }`;
+        // }
 
-        console.dir(filter, {depth: 10, colors: true});
+        //console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,
@@ -901,7 +909,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 if (!res || !res.value)
                     return cb(null, null);
 
-                const number = this.getMemberNumber(res.value, codes, ranges, allCodes);
+                const number = this.getMemberNumber(res.value, codes, ranges, allCodes, regexp);
                 if (!number)
                     return cb(null, res.value);
 
@@ -909,16 +917,32 @@ module.exports = class Dialer extends EventEmitter2 {
                     if (err)
                         return cb(err);
 
+                    //TODO bad ...
+                    if (this._waitingForResultStatus) {
+                        this.setCallAttemptCheckResult(res.value._id, number._id, (err) => {
+                            if (err)
+                                log.error(err);
+                        });
+                    }
+
                     return cb(null, res.value, number, destination);
                 });
             }
         );
     }
 
+    setCallAttemptCheckResult (id, pos, cb) {
+        dialerService.members._updateByIdFix(
+            id,
+            {$set: { [`communications.${pos}.checkResult`]: 1} },
+            cb
+        )
+    }
+
     unReserveMember (id, cb) {
         dialerService.members._updateById(
             id,
-            {$set: {_lock: null}},
+            {$set: {_lock: null, _waitingForResultStatusCb: null}, $inc: {_probeCount: -1}},
             cb
         )
     }
@@ -1204,4 +1228,15 @@ function strToRegExp(str = "") {
     } catch (e) {
         return null;
     }
+}
+
+
+function checkInRegExps(regexp = [], number) {
+    for (let reg of regexp) {
+        if (reg.test(number)) {
+            return true;
+        }
+    }
+
+    return false;
 }

@@ -778,11 +778,10 @@ module.exports = Service;
 function replaceExpression(obj) {
     if (obj)
         for (var key in obj) {
-            if (typeof obj[key] == "object")
+            if (typeof obj[key] === "object")
                 replaceExpression(obj[key]);
-            else if (typeof obj[key] != "function" && key == "expression") {
+            else if (typeof obj[key] !== "function" && key === "expression") {
                 obj["sysExpression"] = expVal(obj[key]);
-            };
-        };
-    return;
-};
+            }
+        }
+}
