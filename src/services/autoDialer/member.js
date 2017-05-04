@@ -347,7 +347,7 @@ module.exports = class Member extends EventEmitter2 {
                 return;
             } else {
                 skipOk = true;
-                this.log(`skip ok: bill sec ${billSec}`)
+                this.log(`skip ok: bill sec ${billSec || 0}`)
             }
 
         }
