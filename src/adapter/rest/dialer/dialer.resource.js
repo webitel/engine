@@ -147,10 +147,9 @@ function create (req, res, next) {
 }
 
 function resetProcess (req, res, next) {
-    const options = {
-        id: req.params.id,
-        domain: req.query.domain
-    };
+    const options = req.body || {};
+    options.id = req.params.id;
+    options.domain = req.query.domain;
 
     dialerService.resetProcessStatistic(req.webitelUser, options, (err, result) => {
         if (err)

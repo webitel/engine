@@ -244,7 +244,7 @@ let Service = {
             }
 
             let db = application.DB._query.dialer;
-            return db.resetProcessStatistic(option.id, domain, cb);
+            return db.resetProcessStatistic(option, domain, cb);
 
         });
     },

@@ -188,23 +188,40 @@ function addQuery (db) {
 
         },
 
-        resetProcessStatistic: function (dialerId, domainName, cb) {
+        resetProcessStatistic: function (options, domainName, cb) {
+            const dialerId = options.id;
             if (!ObjectID.isValid(dialerId))
                 return cb(new CodeError(400, 'Bad objectId.'));
 
             const _id = new ObjectID(dialerId);
 
-            _resetAgents(_id);
+            if (options.resetAgents === true)
+                _resetAgents(_id);
+
+            const $set = {};
+
+            if (options.resetProcess) {
+                $set['stats.active'] = 0;
+                $set['stats.resource'] = {};
+            }
+
+            if (options.resetStats) {
+                $set['stats.callCount'] = 0;
+                $set['stats.errorCall'] = 0;
+                $set['stats.successCall'] = 0;
+                $set['stats.predictAbandoned'] = 0;
+                $set['stats.queueLimit'] = 0;
+                $set['stats.predictAdjust'] = 0;
+                $set['stats.bridgedCall'] = 0;
+                $set['stats.amd'] = {};
+            }
 
             return db
                 .collection(dialerCollectionName)
                 .updateOne(
                     {_id, domain: domainName, active: {$ne: true}},
                     {
-                        $set: {
-                            "stats.active": 0,
-                            "stats.resource": {}
-                        }
+                        $set
                     },
                     cb
                 );
