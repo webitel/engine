@@ -9,7 +9,8 @@ const generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     MEMBER_STATE = require('./const').MEMBER_STATE,
-    END_CAUSE = require('./const').END_CAUSE
+    END_CAUSE = require('./const').END_CAUSE,
+    DIALER_TYPES = require('./const').DIALER_TYPES
     ;
 
 module.exports = class Member extends EventEmitter2 {
@@ -49,6 +50,8 @@ module.exports = class Member extends EventEmitter2 {
 
         this.getNoRetryAbandoned = () => !dialer.retryAbandoned;
 
+        this.getDialerType = () => dialer.type;
+
         this.getDestination = () => destination;
         this.getDestinationUuid = () => destination;
         this.channelsCount = 0;
@@ -60,6 +63,7 @@ module.exports = class Member extends EventEmitter2 {
             destinationId: destination.uuid,
             callDescription: "",
             callTime: Date.now(),
+            talkSec: 0,
             callSuccessful: false,
             bridgedTime: null,
             callState: 0,
@@ -108,6 +112,32 @@ module.exports = class Member extends EventEmitter2 {
         this._log.callAttempt = attempt;
     }
 
+    setTalkSec (e, useAmd) {
+        this._log.talkSec = 0;
+
+        const answerTime = getIntValueFromEventHeader(e, 'variable_answer_epoch');
+        if (answerTime === 0)
+            return this._log.talkSec;
+
+        if (this.getDialerType() === DIALER_TYPES.VoiceBroadcasting) {
+            this._log.talkSec = getIntValueFromEventHeader(e, 'variable_end_epoch') - answerTime;
+        } else {
+            const bridgeEpoch = getIntValueFromEventHeader(e, 'variable_bridge_epoch');
+            if (bridgeEpoch > 0)
+                this._log.talkSec = getIntValueFromEventHeader(e, 'variable_end_epoch') - getIntValueFromEventHeader(e, 'variable_bridge_epoch');
+        }
+
+        if (useAmd) {
+            this._log.talkSec -= answerTime - getIntValueFromEventHeader(e, 'variable_amd_result_epoch');
+        }
+
+        return this._log.talkSec;
+    }
+
+    getTalkSec () {
+        return this._log.talkSec;
+    }
+
     setAmdResult (result, cause) {
         this.log(`Set amd ${result} - ${cause}`);
         this._log.amdResult = result;
@@ -134,10 +164,6 @@ module.exports = class Member extends EventEmitter2 {
 
     startCall () {
         this._log.callTime = Date.now()
-    }
-
-    getCallTime () {
-        return this._log.callTime;
     }
 
     setAgent (agent = {}) {
@@ -304,10 +330,15 @@ module.exports = class Member extends EventEmitter2 {
             if (recordSec)
                 this.setRecordSession(recordSec);
 
-            if (e.getHeader('variable_amd_result'))
+            if (e.getHeader('variable_amd_result')) {
                 this.setAmdResult(e.getHeader('variable_amd_result'), e.getHeader('variable_amd_cause'));
+                this.setTalkSec(e, true);
+            } else {
+                this.setTalkSec(e, false);
+            }
 
-            this.setCallUUID(e.getHeader('variable_uuid'))
+            this.setCallUUID(e.getHeader('variable_uuid'));
+
         }
 
         if (this.predictAbandoned) {
@@ -328,9 +359,7 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        let skipOk = false,
-            billSec = e && +e.getHeader('variable_billsec');
-
+        let skipOk = false;
 
         if (~this.getCausesMinus(endCause)) {
             this.minusProbe();
@@ -342,7 +371,7 @@ module.exports = class Member extends EventEmitter2 {
         }
 
         if (~this.getCausesSuccessful(endCause) && this.bridgedCall) {
-            if (billSec >= this.getMinBillSec()) {
+            if (this.getTalkSec() >= this.getMinBillSec()) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
                 this.callSuccessful = true;
@@ -351,7 +380,7 @@ module.exports = class Member extends EventEmitter2 {
                 return;
             } else {
                 skipOk = true;
-                this.log(`skip ok: bill sec ${billSec || 0}`)
+                this.log(`skip ok: talk sec ${this.getTalkSec()}`)
             }
 
         }
@@ -439,3 +468,8 @@ const keySort = function(arr = [], keys) {
     arr = arr.sort(sortFn);
     return arr;
 };
+
+
+function getIntValueFromEventHeader(e, name) {
+    return +e.getHeader(name) || 0;
+}
