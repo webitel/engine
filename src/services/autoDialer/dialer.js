@@ -287,7 +287,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._maxPredictiveSilentCalls = 3,
             this._maxLocateAgentSec = 10,
             this._eternalQueue = false,
-            this.membersStrategy = 'next-tries-circuit'
+            this.membersStrategy = 'next-tries-circuit',
+            this.retryAbandoned = false
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -305,7 +306,8 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.maxPredictiveSilentCalls,
             parameters.maxLocateAgentSec,
             parameters.eternalQueue,
-            config.membersStrategy
+            config.membersStrategy,
+            parameters.retryAbandoned
         ];
 
         if (this._amd.enabled) {

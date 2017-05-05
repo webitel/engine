@@ -47,6 +47,8 @@ module.exports = class Member extends EventEmitter2 {
         this.getCausesError = (cause) => dialer._memberErrorCauses.indexOf(cause);
         this.getCausesMinus = (cause) => dialer._memberMinusCauses.indexOf(cause);
 
+        this.getNoRetryAbandoned = () => !dialer.retryAbandoned;
+
         this.getDestination = () => destination;
         this.getDestinationUuid = () => destination;
         this.channelsCount = 0;
@@ -309,12 +311,14 @@ module.exports = class Member extends EventEmitter2 {
         }
 
         if (this.predictAbandoned) {
-            this.log(`Abandoned`);
-            this._setStateCurrentNumber(MEMBER_STATE.End);
             this.callSuccessful = false;
-            this.endCause = END_CAUSE.ABANDONED;
-            this.emit('end', this);
-            return;
+            if (this.getNoRetryAbandoned()) {
+                this.log(`Abandoned`);
+                this._setStateCurrentNumber(MEMBER_STATE.End);
+                this.endCause = END_CAUSE.ABANDONED;
+                this.emit('end', this);
+                return;
+            }
         }
 
         if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED && this.bridgedCall === true) {
@@ -337,7 +341,7 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (~this.getCausesSuccessful(endCause)) {
+        if (~this.getCausesSuccessful(endCause) && this.bridgedCall) {
             if (billSec >= this.getMinBillSec()) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
@@ -352,7 +356,7 @@ module.exports = class Member extends EventEmitter2 {
 
         }
 
-        if (~this.getCausesRetry(endCause) || skipOk) {
+        if (~this.getCausesRetry(endCause) || skipOk || this.predictAbandoned) {
             if (this.currentProbe >= this.getMaxAttemptsCount()) {
                 this.log(`max try count`);
                 this.endCause = END_CAUSE.MAX_TRY;
