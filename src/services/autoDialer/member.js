@@ -121,14 +121,13 @@ module.exports = class Member extends EventEmitter2 {
 
         if (this.getDialerType() === DIALER_TYPES.VoiceBroadcasting) {
             this._log.talkSec = getIntValueFromEventHeader(e, 'variable_end_epoch') - answerTime;
+            if (useAmd && this._log.talkSec > 0) {
+                this._log.talkSec -= getIntValueFromEventHeader(e, 'variable_amd_result_epoch') - answerTime;
+            }
         } else {
             const bridgeEpoch = getIntValueFromEventHeader(e, 'variable_bridge_epoch');
             if (bridgeEpoch > 0)
                 this._log.talkSec = getIntValueFromEventHeader(e, 'variable_end_epoch') - getIntValueFromEventHeader(e, 'variable_bridge_epoch');
-        }
-
-        if (useAmd) {
-            this._log.talkSec -= answerTime - getIntValueFromEventHeader(e, 'variable_amd_result_epoch');
         }
 
         return this._log.talkSec;
