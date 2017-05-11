@@ -294,15 +294,19 @@ class Application extends EventEmitter2 {
             var scope = this,
                 server;
 
-            if (conf.get('ssl:enabled').toString() == 'true') {
+            if (conf.get('ssl:enabled').toString() === 'true') {
                 var https_options = {
                     key: fs.readFileSync(conf.get('ssl:ssl_key')),
                     cert: fs.readFileSync(conf.get('ssl:ssl_cert'))
                 };
-                server = httpSrv.createServer(https_options, api).listen(conf.get('server:port'), conf.get('server:host'), function() {
-                    log.info('Server (https) listening on port ' + this.address().port);
-                    scope.emit('sys::serverStart', this, true);
-                });
+
+                server = (conf.get('ssl:http2').toString() === 'true' ? require('spdy') :  httpSrv)
+                    .createServer(https_options, api).listen(conf.get('server:port'), conf.get('server:host'), function() {
+                        log.info('Server (https) listening on port ' + this.address().port);
+                        scope.emit('sys::serverStart', this, true);
+                    });
+
+
             } else {
                 server = httpSrv.createServer(api).listen(conf.get('server:port'), conf.get('server:host'), function() {
                     log.info('Server (http) listening on port ' + this.address().port);

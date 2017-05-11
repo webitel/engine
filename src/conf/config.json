@@ -1,6 +1,7 @@
 {
     "ssl": {
         "enabled": false,
+        "http2": false,
         "ssl_key": "/ssl/wss.pem",
         "ssl_cert": "/ssl/wss.pem"
     },
