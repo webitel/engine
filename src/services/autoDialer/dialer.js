@@ -361,7 +361,10 @@ module.exports = class Dialer extends EventEmitter2 {
             if (resource.destinations instanceof Array) {
                 for (let dest of resource.destinations) {
 
-                    if (dest.enabled !== true) continue;
+                    if (dest.enabled !== true) {
+                        delete this._recources[dest.uuid];
+                        continue;
+                    }
 
                     let res = this.getResourceStat(dest.uuid);
                     this._maxResources += (dest.limit || 0);
