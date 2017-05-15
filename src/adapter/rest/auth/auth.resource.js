@@ -147,7 +147,7 @@ function validateRequestV2(req, res, next) {
         return next(new CodeError(401, "Invalid token"));
 
     if (decoded.exp <= Date.now()) {
-        return next(new CodeError(400, "Token Expired"));
+        return next(new CodeError(401, "Token Expired"));
     }
 
     if (decoded.v === 2 && decoded.t === 'domain') {

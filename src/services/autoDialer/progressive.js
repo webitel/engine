@@ -126,11 +126,6 @@ module.exports = class Progressive extends Dialer {
                     `RECORD_BRIDGE_REQ=false`,
                     `recording_follow_transfer=true`
                 );
-
-                let sessionUri = 'http_cache://$${cdr_url}' +
-                    encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${member.sessionId}&type=mp3&email=none&name=recordSession&.mp3`);
-
-                apps.push(`record_session:${sessionUri}`)
             }
 
             const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
@@ -200,6 +195,14 @@ module.exports = class Progressive extends Dialer {
                 channelUuid = bgOkData[1];
                 member.setCallUUID(channelUuid);
                 application.Esl.on(`esl::event::CHANNEL_DESTROY::${channelUuid}`, onChannelDestroy);
+
+                if (this._recordSession) {
+                    application.Esl.bgapi(`uuid_record ${channelUuid} start http_cache://${application._storageUri}` +
+                        encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${channelUuid}&type=mp3&email=none&name=recordSession&.mp3`)
+                        , res => {
+                            log.trace(`Response uuid_record ${channelUuid} : ${res.body}`);
+                    });
+                }
 
                 member.bridgedCall = true;
                 this._am.setAgentStats(agent.agentId, this._objectId, {

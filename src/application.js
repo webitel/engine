@@ -29,6 +29,7 @@ class Application extends EventEmitter2 {
         this.DB = null;
         this.WConsole = null;
         this.Esl = null;
+        this._storageUri = null;
         this.Users = new Collection('id');
         this.Domains = new Collection('id');
         this.Agents = new Collection('id');
@@ -152,7 +153,12 @@ class Application extends EventEmitter2 {
         esl.on('esl::event::auth::success', function () {
             esl.connected = true;
             console.log('>>> esl::event::auth::success');
-            scope.emit('sys::connectFsApi', esl);
+
+            esl.bgapi(`global_getvar cdr_url`, res => {
+                scope._storageUri = res.body;
+                log.info(`Set internal storage uri: ${scope._storageUri}`);
+                scope.emit('sys::connectFsApi', esl);
+            });
         });
 
         esl.on('esl::event::auth::fail', function () {
