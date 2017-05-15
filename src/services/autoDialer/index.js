@@ -235,10 +235,7 @@ class AutoDialer extends EventEmitter2 {
                         if (e)
                             log.error(e);
 
-                        this.agentManager.resetAgentsStats(dialer._id, e => {
-                            if (e)
-                                log.error(e);
-                        })
+                        this.resetDialerStats(dialer._id, dialer.domain, dialer.autoResetStats);
                     }
                 );
             }
@@ -303,6 +300,28 @@ class AutoDialer extends EventEmitter2 {
         new Scheduler('1-59/1 * * * * *', checkSetAvailableTimeSec, {log: false});
         new Scheduler('1-59/1 * * * * *', clearAttemptOnDeadlineResultSec, {log: false});
         new Scheduler('*/1 * * * *', fnScheduleMin, {log: false});
+    }
+
+
+    resetDialerStats (dialerId, domain, autoResetStats = false) {
+        log.trace(`Reset stats for ${dialerId} ${domain} auto: ${autoResetStats}`);
+        this.agentManager.resetAgentsStats(dialerId, e => {
+            if (e)
+                return log.error(e);
+            log.debug(`Reset agents: OK`);
+        });
+
+        if (autoResetStats) {
+            dialerService._resetProcessStatistic({
+                id: dialerId.toString(),
+                skipActive: true,
+                resetStats: true
+            }, domain, err => {
+                if (err)
+                    return log.error(err);
+                log.debug(`Reset stats: OK`);
+            })
+        }
     }
 
     sendEvent (d, active, callingName) {
@@ -641,6 +660,11 @@ class AutoDialer extends EventEmitter2 {
             const currentTime = calendarManager.getCurrentTimeOfDay(res);
             dialerDb._currentMinuteOfDay = currentTime.currentTimeOfDay;
             dialerDb._currentWeek = currentTime.currentWeek;
+
+            if (dialerDb.stats && dialerDb.stats.weekOfDay !== currentTime.currentWeek) {
+                this.resetDialerStats(dialerDb._id, dialerDb.domain, dialerDb.autoResetStats);
+            }
+
             if (currentTime.expire || !currentTime.currentTimeOfDay) {
                 this.emit('changeDialerState', dialerDb, res, currentTime);
                 return;

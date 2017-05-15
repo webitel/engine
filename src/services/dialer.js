@@ -243,10 +243,13 @@ let Service = {
                 return cb(new CodeError(400, 'Bad request: domain is required.'));
             }
 
-            let db = application.DB._query.dialer;
-            return db.resetProcessStatistic(option, domain, cb);
-
+            Service._resetProcessStatistic(option, domain, cb);
         });
+    },
+
+    _resetProcessStatistic: function (option, domain, cb) {
+        let db = application.DB._query.dialer;
+        return db.resetProcessStatistic(option, domain, cb);
     },
 
 

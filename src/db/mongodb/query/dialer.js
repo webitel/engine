@@ -219,7 +219,7 @@ function addQuery (db) {
             return db
                 .collection(dialerCollectionName)
                 .updateOne(
-                    {_id, domain: domainName, active: {$ne: true}},
+                    options.skipActive ? {_id, domain: domainName} : {_id, domain: domainName, active: {$ne: true}},
                     {
                         $set
                     },
