@@ -20,8 +20,8 @@ var Service = {
         let userId = option['account'];
 
         if (!state || !status || !userId) {
-            return log.error('Caller %s status or state undefined.', userId);
-        };
+            return log.warn('Caller %s status or state undefined.', userId);
+        }
 
         let data = option;
         data['date'] = Date.now();

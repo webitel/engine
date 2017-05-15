@@ -40,7 +40,7 @@ if (cluster.isMaster === true) {
     };
 
     for (let i = 0; i < count; i++)
-        forkWorker(startPort++, crashCount, i);
+        forkWorker(startPort, crashCount, i);
 
     // Listen for dying workers
     cluster.on('exit', function (worker) {

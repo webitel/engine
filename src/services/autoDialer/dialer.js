@@ -109,7 +109,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
                                 $set[`communications.${i}.lastCall`] = m._minusProbe ? 0 : Date.now();
 
-                                if (this._waitingForResultStatus) {
+                                if (m._waitingForResultStatus) {
                                     if (m._minusProbe || m.predictAbandoned || !m.bridgedCall) {
                                         $set._waitingForResultStatusCb = null;
                                         $set._waitingForResultStatus = null;
@@ -127,10 +127,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                 }
 
                             } else {
-                                // TODO option strategy X2 = set false
-                                // Separate attempts for numbers with the same type
-
-                                if (m._currentNumber.type === communications[i].type) {
+                                if (!this.retriesByNumber && m._currentNumber.type === communications[i].type) {
                                     $set[`communications.${i}.rangeId`] = m._currentNumber.rangeId;
                                     $set[`communications.${i}.rangeAttempts`] = m._currentNumber.rangeAttempts;
                                 }
@@ -288,7 +285,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._maxLocateAgentSec = 10,
             this._eternalQueue = false,
             this.membersStrategy = 'next-tries-circuit',
-            this.retryAbandoned = false
+            this.retryAbandoned = false,
+            this.retriesByNumber = false
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -307,7 +305,8 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.maxLocateAgentSec,
             parameters.eternalQueue,
             config.membersStrategy,
-            parameters.retryAbandoned
+            parameters.retryAbandoned,
+            parameters.retriesByNumber
         ];
 
         if (this._amd.enabled) {
