@@ -68,7 +68,7 @@ require('./hook/hook.resource').addRoutes(api);
 require('./calendar/calendar.resource').addRoutes(api);
 require('./dialer/dialer.resource').addRoutes(api);
 require('./vmail/vmail.resource').addRoutes(api);
-require('./callMe/callMe.resource').addRoutes(api);
+//require('./callMe/callMe.resource').addRoutes(api);
 
 // Error handle
 require('./error').addRoutes(api);
