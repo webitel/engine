@@ -15,12 +15,8 @@ var Service = {
     insert: function (option) {
         if (noWriteStatus) return;
 
-        let status = option['status'];
-        let state = option['state'];
-        let userId = option['account'];
-
-        if (!state || !status || !userId) {
-            return log.warn('Caller %s status or state undefined.', userId);
+        if (!option['state'] || !option['status'] || !option['account']) {
+            return log.warn('Caller %s status or state undefined.', option['account']);
         }
 
         let data = option;

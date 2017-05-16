@@ -22,7 +22,7 @@ function addQuery(db) {
             collection
                 .findAndModify(
                 {"account": data['account'], "domain": data['domain'], "endDate": null},
-                {"date": -1},
+                {"_id": -1},
                 {"$set": {"endDate": data['date']}},
                 {limit: 1, new: true},
                 (err, result) => {
