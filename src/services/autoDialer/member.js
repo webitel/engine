@@ -352,8 +352,6 @@ module.exports = class Member extends EventEmitter2 {
         }
 
         if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED && this.bridgedCall === true) {
-            // TODO... callSuccessful ?
-            this.callSuccessful = true;
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
             this.log(`Check callback`);
             this.emit('end', this);
@@ -375,7 +373,7 @@ module.exports = class Member extends EventEmitter2 {
             if (this.getTalkSec() >= this.getMinBillSec()) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
-                this.callSuccessful = true;
+                this.setCallSuccessful(true);
                 this._setStateCurrentNumber(MEMBER_STATE.End);
                 this.emit('end', this);
                 return;

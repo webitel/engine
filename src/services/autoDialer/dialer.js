@@ -277,7 +277,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._skills = [],
             this._recordSession = true,
             this._amd = {
-                enabled: false
+                enabled: false,
+                allowNotSure: false
             },
             this._predictAdjust = 150,
             this._targetPredictiveSilentCalls = 2.5,
@@ -286,7 +287,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._eternalQueue = false,
             this.membersStrategy = 'next-tries-circuit',
             this.retryAbandoned = false,
-            this.retriesByNumber = false
+            this.retriesByNumber = false,
+            this.oneDayTask = false
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -306,7 +308,8 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.eternalQueue,
             config.membersStrategy,
             parameters.retryAbandoned,
-            parameters.retriesByNumber
+            parameters.retriesByNumber,
+            parameters.oneDayTask
         ];
 
         if (this._amd.enabled) {
@@ -561,6 +564,120 @@ module.exports = class Dialer extends EventEmitter2 {
             }
         }
         return {codes, ranges, allCodes};
+    }
+
+    //TODO
+    getMaxRangesByType () {
+        const minOfDay = this._currentMinuteOfDay;
+        const date = new Date().getDate();
+        const $or = [];
+        var maxRange = null;
+        var $and = null;
+
+        function compare(a,b) {
+            if (a.endTime < b.endTime)
+                return 1;
+            if (a.endTime > b.endTime)
+                return -1;
+            return 0;
+        }
+
+        for (let comm of this.communications) {
+            maxRange = comm.ranges.sort(compare)[0];
+            $and = [
+                {$eq: ["$$item.type", comm.code]}
+            ];
+
+            if (maxRange.endTime > minOfDay) {
+                $and.push(
+                    {$eq: ["$$item.rangeId", `${date}_${maxRange.startTime}_${maxRange.endTime}`]},
+                    {$gte: ["$$item.rangeAttempts", maxRange.attempts]}
+                )
+            }
+
+            $or.push({$and});
+        }
+
+        return $or;
+    }
+
+    setExpireByCurrentDay () {
+        if (!this.oneDayTask)
+            return;
+
+        const $or = this.getMaxRangesByType();
+        if ($or.length === 0) {
+            log.warn(`Not found communication types`);
+            return;
+        }
+
+        const cursor = dialerService.members._aggregate([
+            {$match: {
+                "dialer": this._id,
+                "communications.type": {$ne: null},
+                _waitingForResultStatusCb: null,
+                _endCause: null,
+                _lock: null
+            }},
+
+            { "$project": {
+                len: {$size: "$communications.type"},
+                endOfRange: {
+                    $filter: {
+                        input: "$communications",
+                        as: "item",
+                        cond: {
+                            $or
+                        }
+                    }
+                }
+            }},
+
+            { "$project": {
+                len: 1,
+                lenEndOfRange: {$size: "$endOfRange"}
+            }},
+
+            { "$project": {
+                len: 1,
+                expire: {'$eq': ['$len', '$lenEndOfRange']}
+            }},
+
+            {$match: { "expire": true}}
+        ]);
+
+        cursor.each( (err, data) => {
+            if (err)
+                return log.error(err);
+
+            if (!data)
+                return;
+
+            log.trace(`Set member ${data._id} cause expired!`);
+
+            const $set = {
+                _endCause: END_CAUSE.MEMBER_EXPIRED
+            };
+
+            while (data.len--) {
+                $set[`communications.${data.len}.state`] = 2;
+            }
+
+            dialerService.members._updateOneMember({
+                _id: data._id,
+                _lock: null,
+                _endCause: null
+
+            }, {$set}, (e, res) => {
+                if (e) {
+                    return log.error(e);
+                }
+
+                //TODO fire event
+            });
+        });
+
+        //console.dir(a, {depth: 10, colors: true});
     }
 
     getFilterAvailableMembers () {
@@ -1076,6 +1193,9 @@ module.exports = class Dialer extends EventEmitter2 {
             return
         } else if (this._eternalQueue === true) {
             clearTimeout(this._timerId);
+
+            this.setExpireByCurrentDay();
+
             this._timerId = setTimeout(() => {
                 this.emit('wakeUp')
             }, 5000);
@@ -1125,8 +1245,10 @@ module.exports = class Dialer extends EventEmitter2 {
 
             if (res.nextTryTime > 0) {
                 let nextTime = res.nextTryTime - Date.now();
-                if (nextTime < 1)
+                if (nextTime < 1) {
                     nextTime = 1000;
+                    this.setExpireByCurrentDay();
+                }
 
                 if (nextTime > 2147483647)
                     nextTime = 2147483647;

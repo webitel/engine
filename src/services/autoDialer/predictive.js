@@ -435,7 +435,7 @@ module.exports = class Predictive extends Dialer {
             if (this._amd.enabled === true) {
                 let amdResult = e.getHeader('variable_amd_result');
                 member.log(`amd_result=${amdResult}`);
-                if (amdResult !== 'HUMAN') {
+                if ( !(amdResult === 'HUMAN' || (this._amd.allowNotSure && amdResult === 'NOTSURE')) ) {
                     application.Esl.bgapi(`uuid_kill ${member.sessionId} NORMAL_UNSPECIFIED`);
                     return;
                 }
