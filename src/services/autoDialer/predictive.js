@@ -105,7 +105,7 @@ module.exports = class Predictive extends Dialer {
 
                     console.log(`all agent ${res.allLogged} active ${this._active}`);
 
-                    if (this._stats.successCall < 10) {
+                    if (this._stats.bridgedCall < 10) {
                         this._stats.queueLimit = res.allLogged;
                         if (this._active < res.allLogged ) {
                             this.huntingMember();

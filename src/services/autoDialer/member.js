@@ -352,6 +352,8 @@ module.exports = class Member extends EventEmitter2 {
         }
 
         if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED && this.bridgedCall === true) {
+            // TODO... callSuccessful ?
+            this.callSuccessful = true;
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
             this.log(`Check callback`);
             this.emit('end', this);
