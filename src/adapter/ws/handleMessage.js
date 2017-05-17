@@ -133,7 +133,7 @@ function Handler(wss, application) {
     });
     
     application._getWSocketSessions = function () {
-        return wss.clients.length
+        return wss.clients.size
     };
     
     application.broadcast = function (event, user) {
