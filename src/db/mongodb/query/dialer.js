@@ -337,10 +337,21 @@ function addQuery (db) {
             };
 
             for (let key in doc) {
-                if (doc.hasOwnProperty(key) && key != '_id' && key != 'dialer') {
+                if (key === 'communications') {
+                    if (doc[key] instanceof Array) {
+                        doc[key].forEach( (comm, idx) => {
+                            for (let key in comm) {
+                                if (!~PROTECTED_FIELDS_COMMUNICATION.indexOf(key)) {
+                                    data.$set[`communications.${idx}.${key}`] = comm[key];
+                                }
+                            }
+                        })
+                    }
+
+                } else if (doc.hasOwnProperty(key) && key != '_id' && key != 'dialer') {
                     data.$set[key] = doc[key];
                 }
-            };
+            }
 
             return db
                 .collection(memberCollectionName)
@@ -716,3 +727,5 @@ function setDefUuidDestination(resources) {
         }
     }
 }
+
+const PROTECTED_FIELDS_COMMUNICATION = ["lastCall", "rangeAttempts", "rangeId", "_score", "_probe", "_id", "state", "status"];
