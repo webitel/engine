@@ -332,31 +332,49 @@ function addQuery (db) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
 
-            let data = {
-                $set: {}
-            };
+            db
+                .collection(memberCollectionName)
+                .findOne({_id: new ObjectID(_id), dialer: dialerId}, (err, res) => {
+                    if (err)
+                        return cb(err);
 
-            for (let key in doc) {
-                if (key === 'communications') {
-                    if (doc[key] instanceof Array) {
-                        doc[key].forEach( (comm, idx) => {
-                            for (let key in comm) {
-                                if (!~PROTECTED_FIELDS_COMMUNICATION.indexOf(key)) {
-                                    data.$set[`communications.${idx}.${key}`] = comm[key];
-                                }
+                    if (!res)
+                        return cb(new CodeError(404, `Member ${_id} not found`));
+
+                    if (res._lock)
+                        return cb(new CodeError(406, `Member ${_id} locked`));
+
+                    let data = {
+                        $set: {}
+                    };
+
+                    for (let key in doc) {
+                        if (key === 'communications') {
+                            if (doc[key] instanceof Array) {
+                                doc[key] = doc[key].map( (comm, idx) => {
+                                    let storageComm = findCommunications(res.communications, comm.number);
+                                    if (storageComm) {
+                                        PROTECTED_FIELDS_COMMUNICATION.forEach(colName => {
+                                            if (storageComm.hasOwnProperty(colName)) {
+                                                comm[colName] = storageComm[colName]
+                                            }
+                                        })
+                                    }
+
+                                    return comm;
+                                });
                             }
-                        })
+
+                            data.$set[key] = doc[key];
+                        } else if (doc.hasOwnProperty(key) && key != '_id' && key != 'dialer') {
+                            data.$set[key] = doc[key];
+                        }
                     }
 
-                } else if (doc.hasOwnProperty(key) && key != '_id' && key != 'dialer') {
-                    data.$set[key] = doc[key];
-                }
-            }
-
-            return db
-                .collection(memberCollectionName)
-                .updateOne({_id: new ObjectID(_id), dialer: dialerId}, data, cb);
-
+                    return db
+                        .collection(memberCollectionName)
+                        .updateOne({_id: new ObjectID(_id), dialer: dialerId}, data, cb);
+                });
         },
         
         aggregateMembers: function (dialerId, aggregateQuery, cb) {
@@ -729,3 +747,9 @@ function setDefUuidDestination(resources) {
 }
 
 const PROTECTED_FIELDS_COMMUNICATION = ["lastCall", "rangeAttempts", "rangeId", "_score", "_probe", "_id", "state", "status"];
+
+function findCommunications(arr = [], number) {
+    for (let i = 0; i < arr.length; i++)
+        if (arr[i].number === number)
+            return arr[i]
+}
