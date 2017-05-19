@@ -570,9 +570,15 @@ module.exports = class Dialer extends EventEmitter2 {
     getMaxRangesByType () {
         const minOfDay = this._currentMinuteOfDay;
         const date = new Date().getDate();
-        const $or = [];
-        var maxRange = null;
-        var $and = null;
+        let codes = [];
+        const $or = [
+            {
+                $and: codes
+            }
+        ];
+        let maxRange = null;
+        let $and = null;
+        let $orComm = null;
 
         function compare(a,b) {
             if (a.endTime < b.endTime)
@@ -583,19 +589,36 @@ module.exports = class Dialer extends EventEmitter2 {
         }
 
         for (let comm of this.communications) {
-            maxRange = comm.ranges.sort(compare)[0];
+            $orComm = [
+                { '$eq': [ { '$ifNull': [ '$$item.rangeId', null ] }, null ] }
+            ];
+            codes.push({
+                '$ne': ["$$item.type", comm.code ]
+            });
             $and = [
+                {$eq: ["$$item.state", 0]},
                 {$eq: ["$$item.type", comm.code]}
             ];
-
-            if (maxRange.endTime > minOfDay) {
-                $and.push(
-                    {$eq: ["$$item.rangeId", `${date}_${maxRange.startTime}_${maxRange.endTime}`]},
-                    {$gte: ["$$item.rangeAttempts", maxRange.attempts]}
-                )
+            maxRange = 0;
+            for (let range of comm.ranges) {
+                if (maxRange < range.endTime) {
+                    maxRange = range.endTime
+                }
+                $orComm.push({
+                    $and: [
+                        {$eq: ["$$item.rangeId", `${date}_${range.startTime}_${range.endTime}`]},
+                        {$lt: ["$$item.rangeAttempts", range.attempts]}
+                    ]
+                })
             }
+            console.log(maxRange, minOfDay)
+            if (maxRange > minOfDay) {
+                $and.push({
+                    $or: $orComm
+                });
 
-            $or.push({$and});
+                $or.push({$and});
+            }
         }
 
         return $or;
@@ -614,15 +637,15 @@ module.exports = class Dialer extends EventEmitter2 {
         const cursor = dialerService.members._aggregate([
             {$match: {
                 "dialer": this._id,
-                "communications.type": {$ne: null},
+                "communications.state": 0,
                 _waitingForResultStatusCb: null,
                 _endCause: null,
                 _lock: null
             }},
 
             { "$project": {
-                len: {$size: "$communications.type"},
-                endOfRange: {
+                len: {$size: "$communications"},
+                workNumbers: {
                     $filter: {
                         input: "$communications",
                         as: "item",
@@ -635,15 +658,11 @@ module.exports = class Dialer extends EventEmitter2 {
 
             { "$project": {
                 len: 1,
-                lenEndOfRange: {$size: "$endOfRange"}
+                countWorkNumbers: {$size: "$workNumbers"}
             }},
 
-            { "$project": {
-                len: 1,
-                expire: {'$eq': ['$len', '$lenEndOfRange']}
-            }},
-
-            {$match: { "expire": true}}
+            {$match: { "countWorkNumbers": 0}},
+            { '$project': { _id: 1, len: 1 } }
         ]);
 
         cursor.each( (err, data) => {

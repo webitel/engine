@@ -1,19 +1,19 @@
 {
     "ssl": {
         "enabled": false,
-        "http2": false,
-        "ssl_key": "/ssl/wss.pem",
-        "ssl_cert": "/ssl/wss.pem"
+        "http2": true,
+        "ssl_key": "src/cert/server.key",
+        "ssl_cert": "src/cert/server.crt"
     },
     "server": {
-        "host": "0.0.0.0",
+        "host": "10.10.10.25",
         "port": 10022,
         "socket": {
             "originHost": false
         }
     },
     "mongodb": {
-        "uri": "mongodb://MONGODB_HOST:27017/webitel",
+        "uri": "mongodb://10.10.10.200:27017/webitel",
         "collectionPublic": "public",
         "collectionDefault": "default",
         "collectionSystem": "global",
@@ -42,34 +42,36 @@
         "collectionReplica": "replica"
     },
     "freeSWITCH": {
-        "host": "172.17.0.1",
+        "host": "10.10.10.200",
         "port": 8021,
         "pwd": "ClueCon",
         "reconnect": 5
     },
     "webitelServer": {
-        "host": "CONSOLE_HOST",
+        "host": "10.10.10.200",
         "port": "6873",
         "account": "root",
-        "secret": "ROOT_PASSWORD",
+        "secret": "secret",
         "reconnect": 5
     },
     "cdrServer": {
-        "host": "http://cdr:10023",
+        "host2": "https://pre.webitel.com/cdr",
+        "host": "http://10.10.10.25:10023",
         "useProxy": false
     },
     "licenseServer": {
         "enabled": true,
-        "master": false,
-        "host": "https://srv.webitel.com/engine"
+        "master": true,
+        "host": "http://10.10.10.25:1234"
     },
     "application": {
         "loglevel": "trace",
         "callcenter": true,
-        "writeUserStatus": false,
-        "dialerCbMinusAttempt": true,
+        "writeUserStatus": true,
+        "dialerCbMinusAttempt": false,
         "auth": {
-            "tokenSecretKey": "/ssl/token.key",
+            "tokenSecretKey": "/home/igor/token.key",
+            "#tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100
         },
         "socketTimeUnauthorized": 5,
@@ -95,7 +97,8 @@
         "scheduleHour": 5
     },
     "broker": {
-        "connectionString": "amqp://webitel:ROOT_PASSWORD@172.17.0.1:5672?heartbeat=0",
+        "connectionString": "amqp://webitel:secret@10.10.10.200:5672?heartbeat=0",
+        "#connectionString": "esl://ClueCon:ClueCon@pre.webitel.com:8021",
         "config": {
             "storageExchange": {
                 "commands": "Storage.Commands",
