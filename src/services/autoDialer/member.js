@@ -69,6 +69,7 @@ module.exports = class Member extends EventEmitter2 {
             callState: 0,
             callPriority: 0,
             callNumber: null, //+
+            callTypeCode: "",
             callPositionIndex: 0, //+
             cause: null, //+
             callAttempt: null, // +
@@ -191,6 +192,8 @@ module.exports = class Member extends EventEmitter2 {
         this._log.callNumber = communication.number;
         this._log.callPriority = communication.priority || 0;
         this._log.callDescription = communication.description || "";
+        if (communication.type)
+            this._log.callTypeCode = communication.type;
 
         // const $set = {};
         // $set[`communications.${communication._id}`] = communication;
