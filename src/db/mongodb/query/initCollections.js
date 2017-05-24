@@ -316,6 +316,12 @@ var Indexes = {
             "collection": 1,
             "docId": 1
         }
+    ],
+    "collectionDialerHistory": [
+        {
+            "dialer": 1,
+            "createdOn": -1
+        }
     ]
 };
 

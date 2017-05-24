@@ -33,6 +33,8 @@ function addRoutes (api) {
     api.delete('/api/v2/dialer/:dialer/members', removeMembers);
     api.put('/api/v2/dialer/:dialer/members/:id', updateMember);
     api.put('/api/v2/dialer/:dialer/members/:id/status', setStatusMember);
+
+    api.get('/api/v2/dialer/:dialer/history', listHistory);
 }
 
 
@@ -346,6 +348,28 @@ function resetMembers(req, res, next) {
         return res.status(200).json({
             "status": "OK",
             "info": count
+        });
+    });
+}
+
+function listHistory(req, res, next) {
+    let options = {
+        dialer: req.params.dialer,
+        limit: req.query.limit,
+        pageNumber: req.query.page,
+        domain: req.query.domain,
+        columns: parseQueryToObject(req.query.columns),
+        sort: parseQueryToObject(req.query.sort),
+        filter: parseQueryToObject(req.query.filter)
+    };
+
+    dialerService.listHistory(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "info": result
         });
     });
 }

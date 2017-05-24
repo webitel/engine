@@ -11,6 +11,7 @@ const conf = require(__appRoot + '/conf'),
     ObjectID = Mongo.ObjectID,
     generateUuid = require('node-uuid'),
     dialerCollectionName = conf.get('mongodb:collectionDialer'),
+    dialerHistoryCollectionName = conf.get('mongodb:collectionDialerHistory'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
@@ -132,6 +133,16 @@ function addQuery (db) {
                 {multi: true}
             );
     };
+    
+    
+    function removeDialerHistory(dialerId, cb) {
+        if (!ObjectID.isValid(dialerId))
+            return cb(new Error(`Bad dialer object id: ${dialerId}`));
+
+        return db
+            .collection(dialerHistoryCollectionName)
+            .remove({dialer: dialerId}, {multi: true}, cb);
+    }
 
     return {
         //TODO del collection
@@ -154,9 +165,16 @@ function addQuery (db) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
 
+            const oid = new ObjectID(_id);
+
+            removeDialerHistory(oid, e => {
+                if (e)
+                    log.error(e);
+            });
+
             return db
                 .collection(dialerCollectionName)
-                .removeOne({_id: new ObjectID(_id), domain: domainName}, cb);
+                .removeOne({_id: oid, domain: domainName}, cb);
         },
 
         create: function (doc = {}, cb) {
@@ -304,13 +322,20 @@ function addQuery (db) {
                     }
 
                     for (let dialer of res) {
-                        dialers.push(dialer._id.toString());
+                        dialers.push(dialer._id);
                     }
+
+                    db
+                        .collection(dialerHistoryCollectionName)
+                        .remove({dialer: {$in: dialers}}, {multi: true}, e => {
+                            if (e)
+                                return log.error(e);
+                        });
 
 
                     db
                         .collection(memberCollectionName)
-                        .remove({dialer: {$in: dialers}}, {multi: true}, e => {
+                        .remove({dialer: {$in: dialers.map( i => i.toString())}}, {multi: true}, e => {
                             if (e)
                                 return log.error(e);
                         });
@@ -729,7 +754,31 @@ function addQuery (db) {
             return db
                 .collection(memberCollectionName)
                 .updateOne(filter, update, {}, cb);
-        }
+        },
+
+        insertDialerHistory: (dialerId, data = {}, cb) => {
+            data.createdOn = Date.now();
+
+            if (typeof dialerId === 'string' && ObjectID.isValid(dialerId)) {
+                dialerId = new ObjectID(dialerId);
+            }
+
+            data.dialer = dialerId;
+            
+            return db
+                .collection(dialerHistoryCollectionName)
+                .insert(data, cb);
+        },
+
+        listHistory: (options = {}, cb) => {
+            if (options.filter && ObjectID.isValid(options.filter.dialer)) {
+                options.filter.dialer = new ObjectID(options.filter.dialer);
+            }
+            options.domain = null;
+            return utils.searchInCollection(db, dialerHistoryCollectionName, options, cb);
+        },
+
+        removeDialerHistory: removeDialerHistory
     }
 }
 

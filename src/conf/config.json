@@ -34,6 +34,7 @@
         "collectionAclPermissions": "aclPermissions",
         "collectionHook": "hook",
         "collectionDialer": "dialer",
+        "collectionDialerHistory": "dialerHistory",
         "collectionDialerAgents": "_agents",
         "collectionAgentsInDialer": "_agentsIsDialer",
         "collectionDialerMembers": "members",

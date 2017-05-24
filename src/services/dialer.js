@@ -258,6 +258,30 @@ let Service = {
         db._removeByDomain(domainName, cb);
     },
 
+    listHistory: function (caller, option, cb) {
+        checkPermissions(caller, 'dialer', 'r', (err) => {
+            if (err)
+                return cb(err);
+            
+            if (!option.dialer)
+                return cb(new CodeError(400, "Bad request dialer is required."));
+
+            let domain = validateCallerParameters(caller, option['domain']);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Bad request: domain is required.'));
+            }
+
+            if (!option.filter)
+                option.filter = {};
+
+            option.filter["dialer"] = option.dialer;
+
+            const db = application.DB._query.dialer;
+            return db.listHistory(option, cb);
+        })
+    },
+
     members: {
         list: function (caller, option, cb) {
             checkPermissions(caller, 'dialer/members', 'r', function (err) {
@@ -533,7 +557,14 @@ let Service = {
                 // TODO check dialer in domain
                 // const domain = validateCallerParameters(caller, options['domain']);
 
-                application.DB._query.dialer._resetMembers(options.dialer, options.resetLog, options.fromDate, caller.id, cb);
+                application.DB._query.dialer._resetMembers(options.dialer, options.resetLog, options.fromDate, caller.id, (err, count) => {
+                    if (err) {
+                        application.AutoDialer.addLogDialer(options.dialer, "RESET_MEMBERS", `Error: ${err.message}`);
+                        return cb(err)
+                    }
+                    application.AutoDialer.addLogDialer(options.dialer, "RESET_MEMBERS", `Reset (${caller.id}) count ${count}`);
+                    return cb(null, count)
+                });
             })
         },
 

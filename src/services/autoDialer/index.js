@@ -75,6 +75,7 @@ class AutoDialer extends EventEmitter2 {
 
             dialer.on('ready', (d) => {
                 log.debug(`Ready dialer ${d.nameDialer} - ${d._id}`);
+
                 d.state = DIALER_STATES.Work;
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
@@ -86,6 +87,7 @@ class AutoDialer extends EventEmitter2 {
                         if (e)
                             log.error(e);
                         this.sendEvent(d, true, 'ready');
+                        this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessReady, "Start");
                     }
                 );
             });
@@ -103,6 +105,12 @@ class AutoDialer extends EventEmitter2 {
                         if (e)
                             log.error(e);
                         this.activeDialer.remove(dialer._id);
+
+                        if (d.state === DIALER_STATES.Sleep) {
+                            this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessSleep, "Sleeping");
+                        } else {
+                            this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessStop, "Stop");
+                        }
                     }
                 );
 
@@ -111,6 +119,7 @@ class AutoDialer extends EventEmitter2 {
 
             dialer.on('error', (d) => {
                 log.warn(`remove dialer ${d.nameDialer}`);
+                this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessInternalError, "Error");
                 this.activeDialer.remove(d._id);
             });
 
@@ -303,12 +312,26 @@ class AutoDialer extends EventEmitter2 {
     }
 
 
+    addLogDialer (dialerId, action, value) {
+        this.dbDialer.insertDialerHistory(dialerId, {
+            action,
+            value
+        }, e => {
+            if (e)
+                log.error(e)
+        })
+    }
+
+
     resetDialerStats (dialerId, domain, autoResetStats = false) {
         log.trace(`Reset stats for ${dialerId} ${domain} auto: ${autoResetStats}`);
         this.agentManager.resetAgentsStats(dialerId, e => {
-            if (e)
+            if (e) {
+                this.addLogDialer(dialerId, "RESET_AGENTS_STATS", `Error: ${e.message}`);
                 return log.error(e);
+            }
             log.debug(`Reset agents: OK`);
+            this.addLogDialer(dialerId, "RESET_AGENTS_STATS", "OK");
         });
 
         if (autoResetStats) {

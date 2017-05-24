@@ -45,7 +45,7 @@ let Utils = module.exports = {
             columns = options['columns'] || {},
             limit = parseInt(options['limit'], 10) || 40,
             sort = options['sort'] || {},
-            pageNumber = parseInt(options['pageNumber'], 10),
+            pageNumber = parseInt(options['pageNumber'], 10) || 0,
             domain = options.domain;
 
         let query = Utils.buildFilterQuery(filter);
