@@ -217,6 +217,8 @@ class AutoDialer extends EventEmitter2 {
             } else if (currentTime.currentTimeOfDay !== null) {
                 log.debug(`Set dialer ${dialer._id} time of day ${currentTime.currentTimeOfDay}`);
 
+                this.emit(`calendarChange:${dialer._id}`, currentTime);
+
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: dialer._id},
                     {
@@ -765,6 +767,7 @@ class AutoDialer extends EventEmitter2 {
                         time: Date.now(),
                         from: "system",
                         data: {
+                            success: "Timeout",
                             msg: "System schedule: no response result status, minus attempts"
                         }
                     }
@@ -872,6 +875,7 @@ function _getUpdateMember(end, communicationsLength) {
                 time: Date.now(),
                 from: "system",
                 data: {
+                    success: "Timeout",
                     msg: "System schedule: no response result status, save attempts"
                 }
             }

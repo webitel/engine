@@ -38,7 +38,8 @@ module.exports = class Progressive extends Dialer {
 
         this.members.on('removed', (m) => {
             this.rollback(m, m.getDestination(), {
-                bridgedCall: m.bridgedCall
+                bridgedCall: m.bridgedCall,
+                connectedCall: m.getConnectedFlag()
             }, e => {
                 if (!e)
                     engine();
@@ -192,6 +193,7 @@ module.exports = class Progressive extends Dialer {
             const bgOkData = res.body.match(/^\+OK\s(.*)\n$/);
 
             if (bgOkData) {
+                member.setConnectedFlag(true);
                 channelUuid = bgOkData[1];
                 member.setCallUUID(channelUuid);
                 application.Esl.on(`esl::event::CHANNEL_DESTROY::${channelUuid}`, onChannelDestroy);

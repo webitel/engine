@@ -64,7 +64,18 @@ module.exports = class Dialer extends EventEmitter2 {
         this.state = DIALER_STATES.Idle;
         this.cause = DIALER_CAUSE.Init;
 
+        const onChangeCalendar = (currentTime = {}) => {
+            if (!currentTime.currentTimeOfDay)
+                return log.warn(`No current time`, currentTime);
+
+            log.debug(`Set new timeOfDay ${this._currentMinuteOfDay} to ${currentTime.currentTimeOfDay}`);
+            this._currentMinuteOfDay = currentTime.currentTimeOfDay
+        };
+
+        dialerManager.on(`calendarChange:${this._id}`, onChangeCalendar);
+
         this.once('end', () => {
+            dialerManager.off(`calendarChange:${this._id}`, onChangeCalendar);
             this.closeChannel();
             if (this._timerId)
                 clearTimeout(this._timerId);
@@ -229,9 +240,9 @@ module.exports = class Dialer extends EventEmitter2 {
             this._recources = this._stats.resources;
         }
 
-        if (this._stats.minuteOfDay) {
-            this._currentMinuteOfDay = this._stats.minuteOfDay;
-        }
+        // if (this._stats.minuteOfDay) {
+        //     this._currentMinuteOfDay = this._stats.minuteOfDay;
+        // }
         //console.log(this._currentMinuteOfDay);
 
         if (config.lastModified && config.lastModified.equals(this._lastModified)) {
@@ -426,7 +437,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (stats instanceof Object) {
             // todo ref
             for (let key in stats) {
-                if (key === 'predictAbandoned' || key === 'bridgedCall') {
+                if (key === 'predictAbandoned' || key === 'bridgedCall' || 'connectedCall') {
                     if (stats[key] === true)
                         $inc[`stats.${key}`] = 1;
                 } else if (key === 'amd') {
@@ -578,7 +589,6 @@ module.exports = class Dialer extends EventEmitter2 {
         ];
         let maxRange = null;
         let $and = null;
-        let $orComm = null;
 
         function compare(a,b) {
             if (a.endTime < b.endTime)
@@ -589,9 +599,7 @@ module.exports = class Dialer extends EventEmitter2 {
         }
 
         for (let comm of this.communications) {
-            $orComm = [
-                { '$eq': [ { '$ifNull': [ '$$item.rangeId', null ] }, null ] }
-            ];
+
             codes.push({
                 '$ne': ["$$item.type", comm.code ]
             });
@@ -599,26 +607,30 @@ module.exports = class Dialer extends EventEmitter2 {
                 {$eq: ["$$item.state", 0]},
                 {$eq: ["$$item.type", comm.code]}
             ];
-            maxRange = 0;
-            for (let range of comm.ranges) {
-                if (maxRange < range.endTime) {
-                    maxRange = range.endTime
-                }
-                $orComm.push({
-                    $and: [
-                        {$eq: ["$$item.rangeId", `${date}_${range.startTime}_${range.endTime}`]},
-                        {$lt: ["$$item.rangeAttempts", range.attempts]}
-                    ]
-                })
-            }
-            console.log(maxRange, minOfDay)
-            if (maxRange > minOfDay) {
-                $and.push({
-                    $or: $orComm
-                });
+            maxRange = comm.ranges.sort(compare)[0];
 
-                $or.push({$and});
+            if (!maxRange)
+                continue;
+
+            if (maxRange.endTime < minOfDay) {
+                continue
             }
+
+            if (maxRange.startTime <= minOfDay && maxRange.endTime > minOfDay) {
+                $and.push({
+                    $or: [
+                        {
+                            $and: [
+                                {$eq: ["$$item.rangeId", `${date}_${maxRange.startTime}_${maxRange.endTime}`]},
+                                {$lt: ["$$item.rangeAttempts", maxRange.attempts]}
+                            ]
+                        },
+                        { '$eq': [ { '$ifNull': [ '$$item.rangeId', null ] }, null ] }
+                    ]
+                });
+            }
+
+            $or.push({$and});
         }
 
         return $or;
@@ -1032,7 +1044,7 @@ module.exports = class Dialer extends EventEmitter2 {
         //     }`;
         // }
 
-        //console.dir(filter, {depth: 10, colors: true});
+        // console.dir(filter, {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,
@@ -1266,7 +1278,6 @@ module.exports = class Dialer extends EventEmitter2 {
                 let nextTime = res.nextTryTime - Date.now();
                 if (nextTime < 1) {
                     nextTime = 1000;
-                    this.setExpireByCurrentDay();
                 }
 
                 if (nextTime > 2147483647)
@@ -1276,6 +1287,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 clearTimeout(this._timerId);
                 this._timerId = setTimeout(() => {
                     console.log('send wakeUp');
+                    this.setExpireByCurrentDay();
                     this.emit('wakeUp')
                 }, nextTime);
             }

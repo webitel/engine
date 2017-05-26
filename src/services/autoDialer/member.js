@@ -24,6 +24,7 @@ module.exports = class Member extends EventEmitter2 {
         this.sessionId = generateUuid.v4();
         this.currentProbe = (config._probeCount || 0) + 1;
         this.callSuccessful = false;
+        this.connectedCall = false;
 
         this.name = (config.name || "_undef_").replace(/'/g, '_');
         this.variables = {};
@@ -111,6 +112,14 @@ module.exports = class Member extends EventEmitter2 {
 
     setCurrentAttempt (attempt) {
         this._log.callAttempt = attempt;
+    }
+
+    setConnectedFlag (val = true) {
+        this.connectedCall = val;
+    }
+
+    getConnectedFlag () {
+        return this.connectedCall
     }
 
     setTalkSec (e, useAmd) {

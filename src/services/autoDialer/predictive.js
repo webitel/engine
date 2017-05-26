@@ -38,6 +38,7 @@ module.exports = class Predictive extends Dialer {
                     queueLimit: this._stats.queueLimit || this._limit,
                     predictAbandoned: m.predictAbandoned,
                     bridgedCall: m.bridgedCall,
+                    connectedCall: m.getConnectedFlag(),
                     predictAdjust: this._stats.predictAdjust,
                     amd: m.getAmdResult()
                 },
@@ -432,6 +433,8 @@ module.exports = class Predictive extends Dialer {
         log.trace(`Call ${ds}`);
 
         const  onChannelPark = (e) => {
+            member.setConnectedFlag(true);
+            
             if (this._amd.enabled === true) {
                 let amdResult = e.getHeader('variable_amd_result');
                 member.log(`amd_result=${amdResult}`);
