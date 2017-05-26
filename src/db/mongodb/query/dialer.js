@@ -231,6 +231,7 @@ function addQuery (db) {
                 $set['stats.queueLimit'] = 0;
                 $set['stats.predictAdjust'] = 0;
                 $set['stats.bridgedCall'] = 0;
+                $set['stats.connectedCall'] = 0;
                 $set['stats.amd'] = {};
             }
 
