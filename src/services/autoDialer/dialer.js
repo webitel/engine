@@ -565,7 +565,7 @@ module.exports = class Dialer extends EventEmitter2 {
         for (let comm of this.communications) {
             allCodes.push(comm.code);
             for (let range of comm.ranges) {
-                if (range.startTime <= minOfDay && range.endTime > minOfDay) {
+                if (range.startTime <= minOfDay && range.endTime > minOfDay && range.attempts > 0) {
                     codes.push(comm.code);
                     range.code = comm.code;
                     range.rangeId = `${date}_${range.startTime}_${range.endTime}`;
