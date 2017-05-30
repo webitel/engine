@@ -153,7 +153,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 }
 
                 if (m.endCause &&
-                    (!this._waitingForResultStatus || m.predictAbandoned || m.endCause === END_CAUSE.MEMBER_EXPIRED || m.endCause === END_CAUSE.MAX_TRY)) {
+                    (!this._waitingForResultStatus || m.predictAbandoned || ~this._memberErrorCauses.indexOf(m.endCause))) {
                     $set._endCause = m.endCause;
                 }
 
@@ -266,7 +266,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this.updateResources(this.resources);
 
-        this._memberErrorCauses = config.causesError instanceof Array ? config.causesError : CODE_RESPONSE_ERRORS;
+        this._memberErrorCauses = config.causesError instanceof Array ? [].concat(config.causesError, END_CAUSE.MAX_TRY) : CODE_RESPONSE_ERRORS;
         this._memberMinusCauses = config.causesMinus instanceof Array ? config.causesMinus : CODE_RESPONSE_MINUS_PROBE;
         this._memberOKCauses = config.causesOK instanceof Array ? config.causesOK : CODE_RESPONSE_OK;
         this._memberRetryCauses = config.causesRetry instanceof Array ? config.causesRetry : CODE_RESPONSE_RETRY;
