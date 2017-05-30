@@ -437,7 +437,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (stats instanceof Object) {
             // todo ref
             for (let key in stats) {
-                if (key === 'predictAbandoned' || key === 'bridgedCall' || 'connectedCall') {
+                if (key === 'predictAbandoned' || key === 'bridgedCall' || key === 'connectedCall') {
                     if (stats[key] === true)
                         $inc[`stats.${key}`] = 1;
                 } else if (key === 'amd') {
