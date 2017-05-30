@@ -590,8 +590,20 @@ let Service = {
                 if (!memberDb)
                     return cb(new CodeError(404, `Not found ${options.member} in dialer ${options.dialer}`));
 
-                if (memberDb._waitingForResultStatusCb !== 1)
+                if (memberDb._waitingForResultStatusCb !== 1) {
+                    dbDialer._updateMember(
+                        {_id: memberDb._id},
+                        {$push: {_callback: {from: caller.id, time: Date.now(), data: {success: "Later", msg: `Woow! Slow down! You ip: ${options.callerIp}!!1`}}}},
+                        {},
+                        (e) => {
+                            if (e) {
+                                log.error(e)
+                            }
+                        }
+                    );
+
                     return cb(new CodeError(400, `Member ${options.member}: result status false`));
+                }
 
                 let callback = options.callback,
                     $push;

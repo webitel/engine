@@ -6,7 +6,8 @@
 
 
 var dialerService = require(__appRoot + '/services/dialer'),
-    parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject
+    parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject,
+    getIp = require(__appRoot + '/utils/ip')
     ;
 
 module.exports = {
@@ -319,6 +320,7 @@ function setStatusMember(req, res, next) {
         dialer: req.params.dialer,
         member: req.params.id,
         domain: req.query.domain,
+        callerIp: getIp(req),
         callback: req.body
     };
 
