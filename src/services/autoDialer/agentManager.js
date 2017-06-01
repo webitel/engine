@@ -133,7 +133,7 @@ class AgentManager extends EventEmitter2 {
                         callback(err, res);
                     }
                 );
-
+k
             }
         );
     }
@@ -172,7 +172,12 @@ class AgentManager extends EventEmitter2 {
                     "dialer.$.callTimeSec": 0,
                     "dialer.$.lastBridgeCallTimeStart": 0,
                     "dialer.$.lastBridgeCallTimeEnd": 0,
-                    "dialer.$.connectedTimeSec": 0
+                    "dialer.$.connectedTimeSec": 0,
+                    "dialer.$.idleSec": 0,
+                    "loggedInSec": 0,
+                    "loggedOutTime" : 0,
+                    "loggedInOfDayTime" : 0,
+                    "lastLoggedInTime" : 0
                 }
             },
             cb
@@ -238,6 +243,7 @@ class AgentManager extends EventEmitter2 {
                         return cb();
 
                     const agent = res.value;
+                    agent._idleTime = this.getIdleTimeSecAgent(agent);
 
                     if (member.processEnd) {
                         return this.rollbeckAgent(agent.agentId, dialerId, e => {
@@ -268,6 +274,37 @@ class AgentManager extends EventEmitter2 {
                     })
                 }
             )
+    }
+
+    // TODO
+    getIdleTimeSecAgent (agent = {}) {
+        if (!agent) {
+            log.error("getIdleTimeSecAgent -> No agent!!!");
+            return 0;
+        }
+
+        if (agent._idleTime) {
+            return agent._idleTime
+        }
+
+        if (agent.state !== AGENT_STATE.Waiting ) {
+            log.error("Agent no waiting -> ", agent);
+            return 0
+        }
+        // todo bug (switch no change custom) ? if lastStatusChange < startDialer for hunting ?  startDialer : lastStatusChange
+        if (!agent.lastStatusChange) {
+            log.error("Agent no lastStatusChange -> ", agent);
+            return 0
+        }
+
+        const idle = Math.round((Date.now() - agent.lastStatusChange) / 1000);
+        if (idle < 0 ) {
+            log.error(`Agent idle = ${idle} -> `, agent);
+            return 0
+        }
+
+        return idle
+
     }
     
     setAgentStats (agentId, dialerId, params = {}, cb) {
@@ -303,6 +340,9 @@ class AgentManager extends EventEmitter2 {
 
         if (params.noAnswer === true)
             $inc["noAnswerCount"] = 1;
+
+        if (params.idleSec)
+            $inc["dialer.$.idleSec"] = params.idleSec;
 
         if (params.clearNoAnswer === true)
             $set["noAnswerCount"] = 0;

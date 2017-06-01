@@ -536,7 +536,7 @@ function addQuery (db) {
                         state: params.state,
                         status: params.status,
                         busyDelayTime: +params.busy_delay_time,
-                        lastStatusChange: +params.last_status_change * 1000,
+                        lastStatusChange: Date.now(), //+params.last_status_change * 1000, // TODO bug switch ???
                         maxNoAnswer: +params.max_no_answer,
                         noAnswerDelayTime: +params.no_answer_delay_time,
                         rejectDelayTime: +params.reject_delay_time,
@@ -575,23 +575,67 @@ function addQuery (db) {
         },
 
         _setAgentStatus: function (agentId, status, cb) {
-            return db
-                .collection(agentsCollectionName)
-                .findAndModify(
-                    {agentId: agentId, domain: getDomainFromStr(agentId)},
-                    {},
-                    {
-                        $set: {
-                            status,
-                            randomValue: Math.random(),
-                            // randomPoint: [Math.random(), 0],
-                            lastStatusChange: Date.now() // todo ?
-                        },
-                        $currentDate: { lastModified: true }
-                    },
-                    {upsert: true, new: true},
-                    cb
-                )
+            const time = Date.now();
+            const update = {
+                $set : {
+                    status,
+                    randomValue: Math.random(),
+                    lastStatusChange: time
+
+                },
+                $currentDate: { lastModified: true }
+            };
+
+            if (status === 'Logged Out') {
+                let filter = {agentId: agentId, domain: getDomainFromStr(agentId)};
+                return db
+                    .collection(agentsCollectionName)
+                    .findOne(
+                        filter,
+                        {lastLoggedInTime: 1},
+                        (err, res) => {
+                            if (err)
+                                return cb(err);
+
+                            if (res && res.lastLoggedInTime > 0) {
+                                filter = {_id: res._id};
+                                update.$inc = {
+                                    loggedInSec: Math.round( (time - res.lastLoggedInTime) / 1000 )
+                                }
+                            } else {
+                                update.$set.loggedInSec = 0;
+                            }
+
+                            update.$set.loggedOutTime = time;
+                            update.$unset = {lastLoggedInTime : 1};
+
+                            return db
+                                .collection(agentsCollectionName)
+                                .findAndModify(
+                                    filter,
+                                    {},
+                                    update,
+                                    {upsert: true, new: true},
+                                    cb
+                                )
+                        }
+                    )
+            } else {
+                update.$min = {
+                    lastLoggedInTime: time,
+                    loggedInOfDayTime: time
+                };
+                return db
+                    .collection(agentsCollectionName)
+                    .findAndModify(
+                        {agentId: agentId, domain: getDomainFromStr(agentId)},
+                        {},
+                        update,
+                        {upsert: true, new: true},
+                        cb
+                    )
+
+            }
         },
 
         _getAgentCount: (filter = {}, cb) => {
@@ -630,7 +674,6 @@ function addQuery (db) {
                             "wrapUpTime" : 1,
                             "callTimeout" : 1,
                             "skills" : 1,
-                            // "randomPoint" : 1,
                             "randomValue" : 1,
                             "noAnswerCount": 1,
                             "lastModified": 1,

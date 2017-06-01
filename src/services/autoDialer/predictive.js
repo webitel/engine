@@ -283,7 +283,8 @@ module.exports = class Predictive extends Dialer {
                 this._am.setAgentStats(agent.agentId, this._objectId, {
                     lastStatus: `error bridge member end`,
                     setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null
+                    process: null,
+                    idleSec: this._am.getIdleTimeSecAgent(agent)
                 }, (e) => {
                     if (e)
                         log.error(e);
@@ -302,7 +303,8 @@ module.exports = class Predictive extends Dialer {
                         this._am.setAgentStats(agent.agentId, this._objectId, {
                             lastStatus: `error bridge -> ${bridge.body}`,
                             setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                            process: null
+                            process: null,
+                            idleSec: this._am.getIdleTimeSecAgent(agent)
                         }, (e) => {
                             if (e)
                                 log.error(e);
@@ -316,7 +318,8 @@ module.exports = class Predictive extends Dialer {
                         this._am.setAgentStats(agent.agentId, this._objectId, {
                             lastBridgeCallTimeStart: date,
                             connectedTimeSec: timeToSec(date, start),
-                            lastStatus: `active -> ${member._id}`
+                            lastStatus: `active -> ${member._id}`,
+                            idleSec: this._am.getIdleTimeSecAgent(agent)
                         }, (e, res) => {
                             if (e)
                                 return log.error(e);
@@ -346,7 +349,8 @@ module.exports = class Predictive extends Dialer {
                                 setAvailableTime: null,
                                 connectedTimeSec: timeToSec(date, start),
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
-                                process: null
+                                process: null,
+                                idleSec: this._am.getIdleTimeSecAgent(agent)
                             }, (e) => {
                                 if (e)
                                     return log.error(e);
@@ -361,7 +365,8 @@ module.exports = class Predictive extends Dialer {
                         connectedTimeSec: timeToSec(date, start),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
                         setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
-                        process: null
+                        process: null,
+                        idleSec: this._am.getIdleTimeSecAgent(agent)
                     }, (e) => {
                         if (e)
                             return log.error(e);
@@ -373,7 +378,8 @@ module.exports = class Predictive extends Dialer {
                         connectedTimeSec: timeToSec(date, start),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
                         setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
-                        process: null
+                        process: null,
+                        idleSec: this._am.getIdleTimeSecAgent(agent)
                     }, (e) => {
                         if (e)
                             return log.error(e);
@@ -414,7 +420,8 @@ module.exports = class Predictive extends Dialer {
                 this._am.setAgentStats(agent.agentId, this._objectId, {
                     lastStatus: `rollback -> ${member._id}`,
                     setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null
+                    process: null,
+                    idleSec: this._am.getIdleTimeSecAgent(agent)
                 }, (e) => {
                     if (e)
                         log.error(e);
@@ -478,7 +485,7 @@ module.exports = class Predictive extends Dialer {
                     callTimeSec: +e.getHeader('variable_billsec') || 0,
                     lastStatus: `end -> ${member._id}`,
                     setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null
+                    process: null,
                 }, (e) => {
                     if (e)
                         log.error(e);
