@@ -133,7 +133,6 @@ class AgentManager extends EventEmitter2 {
                         callback(err, res);
                     }
                 );
-k
             }
         );
     }
