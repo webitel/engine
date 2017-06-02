@@ -529,6 +529,14 @@ function addQuery (db) {
         },
 
         _initAgent: function (agentId, domain, params = {}, skills, cb) {
+            const $setOnInsert = {
+                loggedInSec: 0
+            };
+
+            if (params.status !== AGENT_STATUS.LoggedOut) {
+                $setOnInsert.lastLoggedInTime = Date.now();
+                $setOnInsert.loggedInOfDayTime = Date.now();
+            }
             return db
                 .collection(agentsCollectionName)
                 .update({agentId: agentId, domain}, {
@@ -546,6 +554,7 @@ function addQuery (db) {
                         // randomPoint: [Math.random(), 0]
                         randomValue: Math.random()
                     },
+                    $setOnInsert,
                     $max: {
                         noAnswerCount: +params.no_answer_count
                     },

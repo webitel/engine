@@ -173,10 +173,12 @@ class AgentManager extends EventEmitter2 {
                     "dialer.$.lastBridgeCallTimeEnd": 0,
                     "dialer.$.connectedTimeSec": 0,
                     "dialer.$.idleSec": 0,
-                    "loggedInSec": 0,
-                    "loggedOutTime" : 0,
-                    "loggedInOfDayTime" : 0,
-                    "lastLoggedInTime" : 0
+                    "loggedInSec": 0
+                },
+                $unset: {
+                    loggedInOfDayTime: 1,
+                    loggedOutTime: 1,
+                    lastLoggedInTime: 1
                 }
             },
             cb
