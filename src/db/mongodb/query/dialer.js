@@ -529,38 +529,40 @@ function addQuery (db) {
         },
 
         _initAgent: function (agentId, domain, params = {}, skills, cb) {
-            const $setOnInsert = {
-                loggedInSec: 0
+            const update = {
+                $set: {
+                    state: params.state,
+                    status: params.status,
+                    busyDelayTime: +params.busy_delay_time,
+                    lastStatusChange: Date.now(), //+params.last_status_change * 1000, // TODO bug switch ???
+                    maxNoAnswer: +params.max_no_answer,
+                    noAnswerDelayTime: +params.no_answer_delay_time,
+                    rejectDelayTime: +params.reject_delay_time,
+                    wrapUpTime: +params.reject_delay_time,
+                    callTimeout: 10, // TODO
+                    skills: skills,
+                    // randomPoint: [Math.random(), 0]
+                    randomValue: Math.random()
+                },
+                $setOnInsert: {
+                    loggedInSec: 0
+                },
+                $max: {
+                    noAnswerCount: +params.no_answer_count
+                },
+                // $addToSet: {setAvailableTime: null},
+                $currentDate: { lastModified: true }
             };
 
             if (params.status !== AGENT_STATUS.LoggedOut) {
-                $setOnInsert.lastLoggedInTime = Date.now();
-                $setOnInsert.loggedInOfDayTime = Date.now();
+                update.$min = {
+                    lastLoggedInTime: Date.now(),
+                    loggedInOfDayTime: Date.now()
+                };
             }
             return db
                 .collection(agentsCollectionName)
-                .update({agentId: agentId, domain}, {
-                    $set: {
-                        state: params.state,
-                        status: params.status,
-                        busyDelayTime: +params.busy_delay_time,
-                        lastStatusChange: Date.now(), //+params.last_status_change * 1000, // TODO bug switch ???
-                        maxNoAnswer: +params.max_no_answer,
-                        noAnswerDelayTime: +params.no_answer_delay_time,
-                        rejectDelayTime: +params.reject_delay_time,
-                        wrapUpTime: +params.reject_delay_time,
-                        callTimeout: 10, // TODO
-                        skills: skills,
-                        // randomPoint: [Math.random(), 0]
-                        randomValue: Math.random()
-                    },
-                    $setOnInsert,
-                    $max: {
-                        noAnswerCount: +params.no_answer_count
-                    },
-                    // $addToSet: {setAvailableTime: null},
-                    $currentDate: { lastModified: true }
-                }, {upsert: true}, cb)
+                .update({agentId: agentId, domain}, update, {upsert: true}, cb)
         },
 
         _setAgentState: function (agentId, state, cb) {
