@@ -557,6 +557,10 @@ let Service = {
                 // TODO check dialer in domain
                 // const domain = validateCallerParameters(caller, options['domain']);
 
+                if (options.resetLog && caller.domain) {
+                    return cb(new CodeError(403, 'Bad request: resetLog allow from root.'));
+                }
+
                 application.DB._query.dialer._resetMembers(options.dialer, options.resetLog, options.fromDate, caller.id, (err, count) => {
                     if (err) {
                         application.AutoDialer.addLogDialer(options.dialer, "RESET_MEMBERS", `Error: ${err.message}`);
@@ -593,7 +597,17 @@ let Service = {
                 if (memberDb._waitingForResultStatusCb !== 1) {
                     dbDialer._updateMember(
                         {_id: memberDb._id},
-                        {$push: {_callback: {from: caller.id, time: Date.now(), data: {success: "Later", msg: `Woow! Slow down! You ip: ${options.callerIp}!!1`}}}},
+                        {$push: {
+                            _callback: {
+                                from: caller.id,
+                                time: Date.now(),
+                                data: {
+                                    success: `timeout:${options.callback.success === true ? 'true' : 'false'}`,
+                                    msg: `Woow! Slow down! You ip: ${options.callerIp}!!1`,
+                                    request: options.callback,
+                                }
+                            }
+                        }},
                         {},
                         (e) => {
                             if (e) {

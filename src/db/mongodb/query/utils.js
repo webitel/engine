@@ -11,7 +11,7 @@ let Utils = module.exports = {
         var filterArray = [];
         if (filter) {
             for (var key in filter) {
-                if (!filter[key]) {
+                if (typeof filter[key] === 'undefined') {
                     delete filter[key];
                     continue;
                 };
