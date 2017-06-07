@@ -182,7 +182,7 @@ class AutoDialer extends EventEmitter2 {
                             state: DIALER_STATES.Sleep,
                             _cause: DIALER_CAUSE.ProcessSleep,
                             "stats.minuteOfDay": currentTime.currentTimeOfDay,
-                            "stats.weekOfDay": currentTime.currentWeek
+                            "stats.lockStatsRange": currentTime.lockStatsRange
                         }
                     },
                     e => {
@@ -201,7 +201,7 @@ class AutoDialer extends EventEmitter2 {
                             state: DIALER_STATES.Idle,
                             _cause: DIALER_CAUSE.Init,
                             "stats.minuteOfDay": currentTime.currentTimeOfDay,
-                            "stats.weekOfDay": currentTime.currentWeek
+                            "stats.lockStatsRange": currentTime.lockStatsRange
                         }
                     },
                     e => {
@@ -224,7 +224,7 @@ class AutoDialer extends EventEmitter2 {
                     {
                         $set: {
                             "stats.minuteOfDay": currentTime.currentTimeOfDay,
-                            "stats.weekOfDay": currentTime.currentWeek
+                            "stats.lockStatsRange": currentTime.lockStatsRange
                         }
                     },
                     e => {
@@ -234,12 +234,12 @@ class AutoDialer extends EventEmitter2 {
                 );
             }
 
-            if (dialer.stats && dialer.stats.weekOfDay !== currentTime.currentWeek) {
+            if (dialer.stats && dialer.stats.lockStatsRange !== currentTime.lockStatsRange) {
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: dialer._id},
                     {
                         $set: {
-                            "stats.weekOfDay": currentTime.currentWeek
+                            "stats.lockStatsRange": currentTime.lockStatsRange
                         }
                     },
                     e => {
@@ -684,9 +684,10 @@ class AutoDialer extends EventEmitter2 {
 
             const currentTime = calendarManager.getCurrentTimeOfDay(res);
             dialerDb._currentMinuteOfDay = currentTime.currentTimeOfDay;
-            dialerDb._currentWeek = currentTime.currentWeek;
+            dialerDb._currentWeek = currentTime.lockStatsRange;
 
-            if (dialerDb.stats && dialerDb.stats.weekOfDay !== currentTime.currentWeek) {
+            if (dialerDb.stats && dialerDb.stats.lockStatsRange !== currentTime.lockStatsRange) {
+                dialerDb.stats.lockStatsRange = currentTime.lockStatsRange;
                 this.resetDialerStats(dialerDb._id, dialerDb.domain, dialerDb.autoResetStats);
             }
 

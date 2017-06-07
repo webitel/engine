@@ -10,7 +10,7 @@ const log = require(__appRoot + '/lib/log')(module),
     ;
     
 function checkDialerDeadline(dialerManager, dialerDb, calendarDb, cb) {
-    dialerDb._getActiveDialer({calendar: 1, domain: 1, state: 1, "stats.weekOfDay": 1, autoResetStats: 1}, (err, res) => {
+    dialerDb._getActiveDialer({calendar: 1, domain: 1, state: 1, "stats.lockStatsRange": 1, autoResetStats: 1}, (err, res) => {
         if (err)
             return log.error(err);
 
@@ -51,9 +51,11 @@ function getCurrentTimeOfDay(calendar) {
     //Check work
     let isAccept = false;
     const currentTimeOfDay = current.get('hours') * 60 + current.get('minutes');
-    const currentWeek = current.isoWeekday();
+    const lockStatsRange = current.format('DDD');
 
     if (calendar.accept instanceof Array) {
+        const currentWeek = current.isoWeekday();
+
         for (let i = 0, len = calendar.accept.length; i < len; i++) {
             isAccept = currentWeek === calendar.accept[i].weekDay && between(currentTimeOfDay, calendar.accept[i].startTime, calendar.accept[i].endTime);
             if (isAccept)
@@ -61,11 +63,11 @@ function getCurrentTimeOfDay(calendar) {
         }
 
     } else {
-        return {currentTimeOfDay: null, currentWeek};
+        return {currentTimeOfDay: null, lockStatsRange};
     }
 
     if (!isAccept)
-        return {currentTimeOfDay: null, currentWeek};
+        return {currentTimeOfDay: null, lockStatsRange};
 
     // Check holiday
     if (calendar.except instanceof Array) {
@@ -78,11 +80,11 @@ function getCurrentTimeOfDay(calendar) {
             const exceptDate = moment(calendar.except[i].date);
             if (exceptDate.get('date') == currentDay && exceptDate.get('month') == currentMonth &&
                 (calendar.except[i].repeat === 1 || (calendar.except[i].repeat === 0 && exceptDate.get('year') == currentYear)) )
-                return {currentTimeOfDay: null, currentWeek};
+                return {currentTimeOfDay: null, lockStatsRange};
         }
     }
 
-    return {currentTimeOfDay, currentWeek};
+    return {currentTimeOfDay, lockStatsRange};
 }
 
 module.exports = {
