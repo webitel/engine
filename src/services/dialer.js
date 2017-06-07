@@ -653,6 +653,7 @@ let Service = {
                         for (let i = 0, len = communications.length; i < len; i++) {
                             if (all || ~arrNumbers.indexOf(communications[i].number)) {
                                 $set[`communications.${i}.state`] = 2;
+                                $set[`communications.${i}.stopCommunication`] = true;
                                 communications[i].state = 2;
                             }
                         }

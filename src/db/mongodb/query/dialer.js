@@ -710,7 +710,13 @@ function addQuery (db) {
 
             const cursor = db
                 .collection(memberCollectionName)
-                .find({dialer: dialerId, _endCause: {$ne: null} , createdOn: {$gte: fromDate}, callSuccessful: {$ne: true}}, {communications: 1, _id: 1});
+                .find({
+                    dialer: dialerId,
+                    _endCause: {$ne: null} ,
+                    createdOn: {$gte: fromDate},
+                    callSuccessful: {$ne: true},
+                    communications: {$elemMatch: {stopCommunication: {$ne: true}}}
+                }, {communications: 1, _id: 1});
 
             const respBulk = err => {
                 if (err)
@@ -768,6 +774,9 @@ function addQuery (db) {
 
                         const $set = {};
                         for (let i = 0, len = doc.communications.length; i < len; i++) {
+                            if (doc.communications[i].stopCommunication === true)
+                                continue;
+
                             $set[`communications.${i}.state`] = 0;
                             $unset[`communications.${i}._id`] = 1;
                             $unset[`communications.${i}._probe`] = 1;
@@ -850,7 +859,7 @@ function setDefUuidDestination(resources) {
     }
 }
 
-const PROTECTED_FIELDS_COMMUNICATION = ["lastCall", "rangeAttempts", "rangeId", "_score", "_probe", "_id", "state", "status"];
+const PROTECTED_FIELDS_COMMUNICATION = ["lastCall", "rangeAttempts", "rangeId", "_score", "_probe", "_id", "state", "status", "stopCommunication"];
 
 function findCommunications(arr = [], number) {
     for (let i = 0; i < arr.length; i++)
