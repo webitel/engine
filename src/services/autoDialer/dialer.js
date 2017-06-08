@@ -590,31 +590,37 @@ module.exports = class Dialer extends EventEmitter2 {
         let maxRange = null;
         let $and = null;
 
-        function compare(a,b) {
-            if (a.endTime < b.endTime)
-                return 1;
-            if (a.endTime > b.endTime)
-                return -1;
-            return 0;
-        }
-
         for (let comm of this.communications) {
-
             codes.push({
                 '$ne': ["$$item.type", comm.code ]
             });
-            $and = [
-                {$eq: ["$$item.state", 0]},
-                {$eq: ["$$item.type", comm.code]}
-            ];
-            maxRange = comm.ranges.sort(compare)[0];
 
-            if (!maxRange)
+            if (!comm.ranges)
                 continue;
+
+            maxRange = null;
+
+            comm.ranges.forEach( i => {
+                if (i.attempts > 0) {
+                    if (!maxRange || maxRange.endTime < i.endTime)
+                        maxRange = i;
+                    return true;
+                }
+                return false;
+            });
+
+            if (!maxRange) {
+                continue
+            }
 
             if (maxRange.endTime < minOfDay) {
                 continue
             }
+
+            $and = [
+                {$eq: ["$$item.state", 0]},
+                {$eq: ["$$item.type", comm.code]}
+            ];
 
             if (maxRange.startTime <= minOfDay && maxRange.endTime > minOfDay) {
                 $and.push({
@@ -676,6 +682,38 @@ module.exports = class Dialer extends EventEmitter2 {
             {$match: { "countWorkNumbers": 0}},
             { '$project': { _id: 1, len: 1 } }
         ]);
+
+        //TODO DELETE!!!
+        console.dir([
+            {$match: {
+                "dialer": this._id,
+                "communications.state": 0,
+                _waitingForResultStatusCb: null,
+                _endCause: null,
+                _lock: null
+            }},
+
+            { "$project": {
+                len: {$size: "$communications"},
+                workNumbers: {
+                    $filter: {
+                        input: "$communications",
+                        as: "item",
+                        cond: {
+                            $or
+                        }
+                    }
+                }
+            }},
+
+            { "$project": {
+                len: 1,
+                countWorkNumbers: {$size: "$workNumbers"}
+            }},
+
+            {$match: { "countWorkNumbers": 0}},
+            { '$project': { _id: 1, len: 1 } }
+        ], {colors: true, depth: 30});
 
         cursor.each( (err, data) => {
             if (err)
