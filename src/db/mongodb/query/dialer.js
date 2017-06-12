@@ -417,7 +417,7 @@ function addQuery (db) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
 
-            if (typeof _id == 'string') {
+            if (typeof _id === 'string') {
                 _id = new ObjectID(_id);
             }
             return db
@@ -507,6 +507,20 @@ function addQuery (db) {
                 
         },
 
+        _setActiveAgents: function (dialerId, active, cb) {
+            return db
+                .collection(agentsCollectionName)
+                .update(
+                    {
+                        dialer: {$elemMatch: {_id: dialerId}}
+                    }, {
+                        $set: {"dialer.$.active": active}
+                    },
+                    {multi: true},
+                    cb
+                );
+        },
+
         _initAgentInDialer: function (id, dialerId, cb) {
             return db
                 .collection(agentsCollectionName)
@@ -534,7 +548,7 @@ function addQuery (db) {
                     state: params.state,
                     status: params.status,
                     busyDelayTime: +params.busy_delay_time,
-                    lastStatusChange: Date.now(), //+params.last_status_change * 1000, // TODO bug switch ???
+                    lastStatusChange: +params.last_status_change * 1000,
                     maxNoAnswer: +params.max_no_answer,
                     noAnswerDelayTime: +params.no_answer_delay_time,
                     rejectDelayTime: +params.reject_delay_time,
@@ -544,9 +558,6 @@ function addQuery (db) {
                     // randomPoint: [Math.random(), 0]
                     randomValue: Math.random()
                 },
-                $setOnInsert: {
-                    loggedInSec: 0
-                },
                 $max: {
                     noAnswerCount: +params.no_answer_count
                 },
@@ -554,11 +565,19 @@ function addQuery (db) {
                 $currentDate: { lastModified: true }
             };
 
+            const time = Date.now();
             if (params.status !== AGENT_STATUS.LoggedOut) {
                 update.$min = {
-                    lastLoggedInTime: Date.now(),
-                    loggedInOfDayTime: Date.now()
+                    lastLoggedInTime: time,
+                    lastStateChange: time
                 };
+                update.$unset = {loggedOutTime : 1};
+            } else {
+                update.$min = {
+                    loggedOutTime: time,
+                    lastStateChange: time
+                };
+                update.$unset = {lastLoggedInTime : 1};
             }
             return db
                 .collection(agentsCollectionName)
@@ -574,9 +593,8 @@ function addQuery (db) {
                     {
                         $set: {
                             state,
-                            //randomPoint: [Math.random(), 0],
                             randomValue: Math.random(),
-                            lastStatusChange: Date.now()
+                            lastStateChange: Date.now()
                         },
                         $currentDate: { lastModified: true }
                     },
@@ -586,6 +604,8 @@ function addQuery (db) {
         },
 
         _setAgentStatus: function (agentId, status, cb) {
+            let filter = {agentId: agentId, domain: getDomainFromStr(agentId)};
+
             const time = Date.now();
             const update = {
                 $set : {
@@ -597,56 +617,54 @@ function addQuery (db) {
                 $currentDate: { lastModified: true }
             };
 
-            if (status === 'Logged Out') {
-                let filter = {agentId: agentId, domain: getDomainFromStr(agentId)};
-                return db
-                    .collection(agentsCollectionName)
-                    .findOne(
-                        filter,
-                        {lastLoggedInTime: 1},
-                        (err, res) => {
-                            if (err)
-                                return cb(err);
+            return db
+                .collection(agentsCollectionName)
+                .findOne(
+                    filter,
+                    {lastStatusChange: 1, statusInfo: 1, status: 1, dialer: 1},
+                    (err, res) => {
+                        if (err)
+                            return cb(err);
 
-                            if (res && res.lastLoggedInTime > 0) {
-                                filter = {_id: res._id};
+                        if (res) {
+                            if (res.status && res.lastStatusChange) {
+                                const sec = Math.round( (time - res.lastStatusChange) / 1000 );
                                 update.$inc = {
-                                    loggedInSec: Math.round( (time - res.lastLoggedInTime) / 1000 )
-                                }
-                            } else {
-                                update.$set.loggedInSec = 0;
-                            }
+                                    [`statusInfo.${res.status}`]: sec
+                                };
 
+                                if (res.dialer instanceof Array) {
+                                    for (let i = 0; i < res.dialer.length; i++) {
+                                        if (res.dialer[i].active > 0) {
+                                            if (res.lastStatusChange > res.dialer[i].active) {
+                                                update.$inc[`dialer.${i}.${res.status}`] = sec;
+                                            } else {
+                                                update.$inc[`dialer.${i}.${res.status}`] =  Math.round( (time - res.dialer[i].active) / 1000 );
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (status !== AGENT_STATUS.LoggedOut) {
+                            update.$set.lastLoggedInTime = time;
+                            update.$unset = {loggedOutTime : 1};
+                        } else {
                             update.$set.loggedOutTime = time;
                             update.$unset = {lastLoggedInTime : 1};
-
-                            return db
-                                .collection(agentsCollectionName)
-                                .findAndModify(
-                                    filter,
-                                    {},
-                                    update,
-                                    {upsert: true, new: true},
-                                    cb
-                                )
                         }
-                    )
-            } else {
-                update.$min = {
-                    lastLoggedInTime: time,
-                    loggedInOfDayTime: time
-                };
-                return db
-                    .collection(agentsCollectionName)
-                    .findAndModify(
-                        {agentId: agentId, domain: getDomainFromStr(agentId)},
-                        {},
-                        update,
-                        {upsert: true, new: true},
-                        cb
-                    )
-
-            }
+                        return db
+                            .collection(agentsCollectionName)
+                            .findAndModify(
+                                filter,
+                                {},
+                                update,
+                                {upsert: true, new: true},
+                                cb
+                            );
+                    }
+                );
         },
 
         _getAgentCount: (filter = {}, cb) => {
@@ -679,6 +697,7 @@ function addQuery (db) {
                             "status" : 1,
                             "busyDelayTime" : 1,
                             "lastStatusChange" : 1,
+                            "lastStateChange": 1,
                             "maxNoAnswer" : 1,
                             "noAnswerDelayTime" : 1,
                             "rejectDelayTime" : 1,

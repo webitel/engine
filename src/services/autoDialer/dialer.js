@@ -34,6 +34,7 @@ module.exports = class Dialer extends EventEmitter2 {
         this._active = 0;
         this._agents = [];
         this._recources = {};
+        this._readyTime = 0;
 
         this._eternalQueue = false;
 
@@ -42,6 +43,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this._currentMinuteOfDay = 0;
             log.warn(`Bad _currentMinuteOfDay`);
         }
+
+        this._lockStatsRange = config._lockStatsRange;
 
         this.consumerTag = null;
         this.queueName = `engine.dialer.${this._id}`;
@@ -230,6 +233,25 @@ module.exports = class Dialer extends EventEmitter2 {
         if (this.consumerTag) {
             this.channel.cancel(this.consumerTag)
         }
+    }
+
+
+    reloadConfig (cb) {
+        this._dbDialer.findOne(
+            {_id: this._objectId, lastModified: {$ne: this._lastModified}},
+            (e, res) => {
+                if (e) {
+                    log.error(e);
+                    return cb(e);
+                }
+
+                if (!res)
+                    return cb(null, false);
+
+                this._setConfig(res);
+                return cb(null, true)
+            }
+        )
     }
 
     _setConfig (config) {
@@ -646,107 +668,107 @@ module.exports = class Dialer extends EventEmitter2 {
         if (!this.oneDayTask)
             return;
 
-        const $or = this.getMaxRangesByType();
-        if ($or.length === 0) {
-            log.warn(`Not found communication types`);
-            return;
-        }
-
-        const cursor = dialerService.members._aggregate([
-            {$match: {
-                "dialer": this._id,
-                "communications.state": 0,
-                _waitingForResultStatusCb: null,
-                _endCause: null,
-                _lock: null
-            }},
-
-            { "$project": {
-                len: {$size: "$communications"},
-                workNumbers: {
-                    $filter: {
-                        input: "$communications",
-                        as: "item",
-                        cond: {
-                            $or
-                        }
-                    }
-                }
-            }},
-
-            { "$project": {
-                len: 1,
-                countWorkNumbers: {$size: "$workNumbers"}
-            }},
-
-            {$match: { "countWorkNumbers": 0}},
-            { '$project': { _id: 1, len: 1 } }
-        ]);
-
-        //TODO DELETE!!!
-        console.dir([
-            {$match: {
-                "dialer": this._id,
-                "communications.state": 0,
-                _waitingForResultStatusCb: null,
-                _endCause: null,
-                _lock: null
-            }},
-
-            { "$project": {
-                len: {$size: "$communications"},
-                workNumbers: {
-                    $filter: {
-                        input: "$communications",
-                        as: "item",
-                        cond: {
-                            $or
-                        }
-                    }
-                }
-            }},
-
-            { "$project": {
-                len: 1,
-                countWorkNumbers: {$size: "$workNumbers"}
-            }},
-
-            {$match: { "countWorkNumbers": 0}},
-            { '$project': { _id: 1, len: 1 } }
-        ], {colors: true, depth: 30});
-
-        cursor.each( (err, data) => {
-            if (err)
-                return log.error(err);
-
-            if (!data)
+        this.reloadConfig(() => {
+            const $or = this.getMaxRangesByType();
+            if ($or.length === 0) {
+                log.warn(`Not found communication types`);
                 return;
-
-            log.trace(`Set member ${data._id} cause expired!`);
-
-            const $set = {
-                _endCause: END_CAUSE.MEMBER_EXPIRED
-            };
-
-            while (data.len--) {
-                $set[`communications.${data.len}.state`] = 2;
             }
 
-            dialerService.members._updateOneMember({
-                _id: data._id,
-                _lock: null,
-                _endCause: null
+            const cursor = dialerService.members._aggregate([
+                {$match: {
+                    "dialer": this._id,
+                    "communications.state": 0,
+                    _waitingForResultStatusCb: null,
+                    _endCause: null,
+                    _lock: null
+                }},
 
-            }, {$set}, (e, res) => {
-                if (e) {
-                    return log.error(e);
+                { "$project": {
+                    len: {$size: "$communications"},
+                    workNumbers: {
+                        $filter: {
+                            input: "$communications",
+                            as: "item",
+                            cond: {
+                                $or
+                            }
+                        }
+                    }
+                }},
+
+                { "$project": {
+                    len: 1,
+                    countWorkNumbers: {$size: "$workNumbers"}
+                }},
+
+                {$match: { "countWorkNumbers": 0}},
+                { '$project': { _id: 1, len: 1 } }
+            ]);
+
+            //TODO DELETE!!!
+            console.dir([
+                {$match: {
+                    "dialer": this._id,
+                    "communications.state": 0,
+                    _waitingForResultStatusCb: null,
+                    _endCause: null,
+                    _lock: null
+                }},
+
+                { "$project": {
+                    len: {$size: "$communications"},
+                    workNumbers: {
+                        $filter: {
+                            input: "$communications",
+                            as: "item",
+                            cond: {
+                                $or
+                            }
+                        }
+                    }
+                }},
+
+                { "$project": {
+                    len: 1,
+                    countWorkNumbers: {$size: "$workNumbers"}
+                }},
+
+                {$match: { "countWorkNumbers": 0}},
+                { '$project': { _id: 1, len: 1 } }
+            ], {colors: true, depth: 30});
+
+            cursor.each( (err, data) => {
+                if (err)
+                    return log.error(err);
+
+                if (!data)
+                    return;
+
+                log.trace(`Set member ${data._id} cause expired!`);
+
+                const $set = {
+                    _endCause: END_CAUSE.MEMBER_EXPIRED
+                };
+
+                while (data.len--) {
+                    $set[`communications.${data.len}.state`] = 2;
                 }
 
-                //TODO fire event
+                dialerService.members._updateOneMember({
+                    _id: data._id,
+                    _lock: null,
+                    _endCause: null
+
+                }, {$set}, (e, res) => {
+                    if (e) {
+                        return log.error(e);
+                    }
+
+                    //TODO fire event
+                });
             });
         });
-
-        //console.dir(a, {depth: 10, colors: true});
     }
 
     getFilterAvailableMembers () {
@@ -1023,66 +1045,8 @@ module.exports = class Dialer extends EventEmitter2 {
 
         const filter = this.getFilterAvailableMembers();
 
-        // TODO bad query...
-        // if (this.numberStrategy === NUMBER_STRATEGY.TOP_DOWN) {
-        //     filter['$where'] = `function () {
-        //
-        //         var number = fnKeySort(
-        //             fnFilterDialerCommunications(
-        //                     this.communications, ${JSON.stringify(codes)},
-        //                     ${JSON.stringify(ranges)},
-        //                     ${JSON.stringify(allCodes)}
-        //             ),
-        //             {
-        //                 isTypeFound: "desc",
-        //                 lastCall: "asc",
-        //                 rangePriority: "desc",
-        //                 priority: "desc",
-        //                 _probe: "asc"
-        //             }
-        //         )[0];
-        //
-        //         var regs = ${JSON.stringify(regexp)};
-        //
-        //         for (var i = 0;  i < regs.length; i++) {
-        //             if (new RegExp(regs[i]).test(number.number)) {
-        //                 return true;
-        //             }
-        //         }
-        //
-        //         return false
-        //     }`;
-        // } else {
-        //     filter['$where'] = `function () {
-        //
-        //         var number = fnKeySort(
-        //             fnFilterDialerCommunications(
-        //                 this.communications, ${JSON.stringify(codes)},
-        //                 ${JSON.stringify(ranges)},
-        //                 ${JSON.stringify(allCodes)}
-        //             ),
-        //             {
-        //                 isTypeFound: "desc",
-        //                 rangePriority: "desc",
-        //                 lastCall: "asc",
-        //                 priority: "desc",
-        //                 _probe: "asc"
-        //             }
-        //         )[0];
-        //
-        //         var regs = ${JSON.stringify(regexp)};
-        //
-        //         for (var i = 0;  i < regs.length; i++) {
-        //             if (new RegExp(regs[i]).test(number.number)) {
-        //                 return true;
-        //             }
-        //         }
-        //
-        //         return false
-        //     }`;
-        // }
-
         // console.dir(filter, {depth: 10, colors: true});
+        // console.dir(this.getSortAvailableMembers(), {depth: 10, colors: true});
 
         dialerService.members._updateMember(
             filter,
@@ -1359,6 +1323,7 @@ module.exports = class Dialer extends EventEmitter2 {
                         return this.emit('end', this);
                     }
                     this.cause = DIALER_CAUSE.ProcessReady;
+                    this._readyTime = Date.now();
                     this.emit('ready', this);
                     log.trace(`found in ${this.nameDialer} ${count} members. run hunting...`);
                 });

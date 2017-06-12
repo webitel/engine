@@ -20,7 +20,7 @@ module.exports = class Progressive extends Dialer {
                 member.endCause = END_CAUSE.MEMBER_EXPIRED;
                 member.end(END_CAUSE.MEMBER_EXPIRED);
             } else {
-                dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, member, (err, agent) => {
+                dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, this._readyTime, member, (err, agent) => {
                     if (err)
                         log.error(err);
 

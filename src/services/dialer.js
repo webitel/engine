@@ -61,9 +61,9 @@ let Service = {
             }
 
             option.domain = domain;
-            if (option.state == 1) {
+            if (option.state === 1) {
                 return application.AutoDialer.runDialerById(option.id, domain, cb);
-            } else if (option.state == 3) {
+            } else if (option.state === 3) {
                 return application.AutoDialer.stopDialerById(option.id, domain, cb);
             } else {
                 return cb(new CodeError(400, 'Bad set state'));

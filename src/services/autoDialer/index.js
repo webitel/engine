@@ -76,11 +76,25 @@ class AutoDialer extends EventEmitter2 {
             dialer.on('ready', (d) => {
                 log.debug(`Ready dialer ${d.nameDialer} - ${d._id}`);
 
+                this.agentManager.setActiveAgentsInDialer(d._objectId, Date.now(), (e) => {
+                    if (e) {
+                        log.error(e)
+                    }
+                });
+
                 d.state = DIALER_STATES.Work;
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
                     {
-                        $set: {state: d.state, _cause: d.cause, active: true, nextTick: null, "stats.readyOn": Date.now(), "stats.stopOn": null},
+                        $set: {
+                            state: d.state,
+                            _cause: d.cause,
+                            active: true,
+                            nextTick: null,
+                            "stats.readyOn": Date.now(),
+                            "stats.stopOn": null,
+                            "stats.lockStatsRange": d._lockStatsRange,
+                        },
                         $addToSet: {"stats.process": this._app._instanceId}
                     },
                     e => {
@@ -94,6 +108,11 @@ class AutoDialer extends EventEmitter2 {
 
             dialer.once('end', (d) => {
                 log.debug(`End dialer ${d.nameDialer} - ${d._id} - ${d.cause}`);
+                this.agentManager.setActiveAgentsInDialer(d._objectId, 0, (e) => {
+                    if (e) {
+                        log.error(e)
+                    }
+                });
 
                 this.dbDialer._dialerCollection.findOneAndUpdate(
                     {_id: d._objectId},
@@ -607,24 +626,23 @@ class AutoDialer extends EventEmitter2 {
     }
     _stopDialerById (id, domain, cb) {
         let dialer = this.activeDialer.get(id);
-        if (!dialer) {
-            this.dbDialer._updateDialer(
-                id,
-                DIALER_STATES.ProcessStop,
-                DIALER_CAUSE.ProcessStop,
-                false,
-                null,
-                (err, c) => {
-                    if (err)
-                        return cb(err);
-
-                    return cb(null,  {state: DIALER_STATES.ProcessStop, members: 0})
-                }
-            );
-        } else {
+        if (dialer) {
             dialer.setState(DIALER_STATES.ProcessStop);
-            return cb(null, dialer.toJson());
         }
+
+        this.dbDialer._updateDialer(
+            id,
+            DIALER_STATES.ProcessStop,
+            DIALER_CAUSE.ProcessStop,
+            false,
+            null,
+            (err, c) => {
+                if (err)
+                    return cb(err);
+
+                return cb(null,  {state: DIALER_STATES.ProcessStop, members: 0})
+            }
+        );
     }
 
     runDialerById(id, domain, cb) {
@@ -684,7 +702,7 @@ class AutoDialer extends EventEmitter2 {
 
             const currentTime = calendarManager.getCurrentTimeOfDay(res);
             dialerDb._currentMinuteOfDay = currentTime.currentTimeOfDay;
-            dialerDb._currentWeek = currentTime.lockStatsRange;
+            dialerDb._lockStatsRange = currentTime.lockStatsRange;
 
             if (dialerDb.stats && dialerDb.stats.lockStatsRange !== currentTime.lockStatsRange) {
                 dialerDb.stats.lockStatsRange = currentTime.lockStatsRange;

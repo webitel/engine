@@ -137,6 +137,10 @@ class AgentManager extends EventEmitter2 {
         );
     }
 
+    setActiveAgentsInDialer (dialerId, active, cb) {
+        application.DB._query.dialer._setActiveAgents(dialerId, active, cb);
+    }
+
     getAvailableCount (dialerId, agents, skills, cb) {
         application.DB._query.dialer._getAgentCount(getAvailableAgentFilter(dialerId, agents, skills), cb);
     }
@@ -167,18 +171,17 @@ class AgentManager extends EventEmitter2 {
                 $set: {
                     "dialer.$.lastStatus": "reset status",
                     "dialer.$.callCount": 0,
+                    "dialer.$.missedCall": 0,
                     "dialer.$.gotCallCount": 0,
                     "dialer.$.callTimeSec": 0,
                     "dialer.$.lastBridgeCallTimeStart": 0,
                     "dialer.$.lastBridgeCallTimeEnd": 0,
                     "dialer.$.connectedTimeSec": 0,
                     "dialer.$.idleSec": 0,
-                    "loggedInSec": 0
-                },
-                $unset: {
-                    loggedInOfDayTime: 1,
-                    loggedOutTime: 1,
-                    lastLoggedInTime: 1
+                    "dialer.$.Available": 0,
+                    "dialer.$.On Break": 0,
+                    "dialer.$.Logged Out": 0,
+                    "dialer.$.Available (On Demand)": 0,
                 }
             },
             cb
@@ -200,7 +203,7 @@ class AgentManager extends EventEmitter2 {
         )
     }
 
-    huntingAgent (dialerId, agents, skills, strategy, member, cb) {
+    huntingAgent (dialerId, agents, skills, strategy, dialerReadyOn, member, cb) {
         const filter = getAvailableAgentFilter(dialerId, agents, skills);
 
         // console.dir(filter, {depth: 10, colors: true});
@@ -244,7 +247,7 @@ class AgentManager extends EventEmitter2 {
                         return cb();
 
                     const agent = res.value;
-                    agent._idleTime = this.getIdleTimeSecAgent(agent);
+                    agent._idleTime = this.getIdleTimeSecAgent(agent, dialerReadyOn);
 
                     if (member.processEnd) {
                         return this.rollbeckAgent(agent.agentId, dialerId, e => {
@@ -278,7 +281,7 @@ class AgentManager extends EventEmitter2 {
     }
 
     // TODO
-    getIdleTimeSecAgent (agent = {}) {
+    getIdleTimeSecAgent (agent = {}, dialerReadyTime = 0) {
         if (!agent) {
             log.error("getIdleTimeSecAgent -> No agent!!!");
             return 0;
@@ -292,13 +295,20 @@ class AgentManager extends EventEmitter2 {
             log.error("Agent no waiting -> ", agent);
             return 0
         }
-        // todo bug (switch no change custom) ? if lastStatusChange < startDialer for hunting ?  startDialer : lastStatusChange
-        if (!agent.lastStatusChange) {
-            log.error("Agent no lastStatusChange -> ", agent);
+
+        const lastChange = Math.max(agent.lastStateChange, agent.lastStatusChange);
+        if (!lastChange) {
+            log.error("Agent no lastStateChange -> ", agent);
             return 0
         }
 
-        const idle = Math.round((Date.now() - agent.lastStatusChange) / 1000);
+        let idle = -1;
+        if (dialerReadyTime < lastChange) {
+            idle = Math.round((Date.now() - lastChange) / 1000);
+        } else {
+            idle = Math.round((Date.now() - dialerReadyTime) / 1000);
+        }
+
         if (idle < 0 ) {
             log.error(`Agent idle = ${idle} -> `, agent);
             return 0
@@ -350,6 +360,9 @@ class AgentManager extends EventEmitter2 {
 
         if (params.hasOwnProperty('minNextCallTime'))
             $set.minNextCallTime = params.minNextCallTime;
+
+        if (params.missedCall === true)
+            $inc["dialer.$.missedCall"] = 1;
 
         
         const update = {

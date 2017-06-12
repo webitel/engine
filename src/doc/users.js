@@ -22,3 +22,12 @@ for (var i = 99950; i <= 99989; i++) {
     };
     webitel.httpApi('POST', '/api/v2/accounts?domain=10.10.10.144',  a, (e)=> {if (e) console.error(e)})
 }
+
+for (let i = 99950; i <= 99999; i++) {
+    webitel.httpApi('POST', `/api/v2/callcenter/agent/${i}/status?domain=10.10.10.144`, {status: 'Available'}, e => {
+        if (e) console.error(e)
+    });
+    webitel.httpApi('POST', `/api/v2/callcenter/agent/${i}/state?domain=10.10.10.144`, {status: 'Waiting'}, e => {
+        if (e) console.error(e)
+    });
+}

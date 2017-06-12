@@ -350,7 +350,8 @@ module.exports = class Predictive extends Dialer {
                                 connectedTimeSec: timeToSec(date, start),
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
                                 process: null,
-                                idleSec: this._am.getIdleTimeSecAgent(agent)
+                                idleSec: this._am.getIdleTimeSecAgent(agent),
+                                missedCall: true
                             }, (e) => {
                                 if (e)
                                     return log.error(e);
@@ -366,7 +367,8 @@ module.exports = class Predictive extends Dialer {
                         lastStatus: `NO_ANSWER -> ${member._id}`,
                         setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
                         process: null,
-                        idleSec: this._am.getIdleTimeSecAgent(agent)
+                        idleSec: this._am.getIdleTimeSecAgent(agent),
+                        missedCall: true
                     }, (e) => {
                         if (e)
                             return log.error(e);
@@ -379,7 +381,8 @@ module.exports = class Predictive extends Dialer {
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
                         setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
                         process: null,
-                        idleSec: this._am.getIdleTimeSecAgent(agent)
+                        idleSec: this._am.getIdleTimeSecAgent(agent),
+                        missedCall: true
                     }, (e) => {
                         if (e)
                             return log.error(e);
@@ -404,7 +407,7 @@ module.exports = class Predictive extends Dialer {
             member._predTimer = null;
         }
 
-        this._am.huntingAgent(this._objectId, this._agents, this._skills, this.agentStrategy, member, (err, agent) => {
+        this._am.huntingAgent(this._objectId, this._agents, this._skills, this.agentStrategy, this._readyTime,  member, (err, agent) => {
             if (err)
                 log.error(err);
 

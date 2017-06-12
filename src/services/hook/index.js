@@ -118,7 +118,12 @@ var Service = {
     _unBindBroker: function (id, domain, cb) {
         var db = application.DB._query.hook;
         db.item(id, domain, {"event": 1, "_id": 0}, (e, res) => {
-            if (e) return cb(e);
+            if (e)
+                return cb(e);
+
+            if (!res)
+                return cb();
+
             db.count({"event": res.event}, (e, count) => {
                 if (e) return cb(e);
 

@@ -77,7 +77,7 @@ function getCurrentTimeOfDay(calendar) {
             ;
 
         for (let i = 0, len = calendar.except.length; i < len; i++) {
-            const exceptDate = moment(calendar.except[i].date);
+            const exceptDate = moment(calendar.except[i].date); // TODO bug timezone
             if (exceptDate.get('date') == currentDay && exceptDate.get('month') == currentMonth &&
                 (calendar.except[i].repeat === 1 || (calendar.except[i].repeat === 0 && exceptDate.get('year') == currentYear)) )
                 return {currentTimeOfDay: null, lockStatsRange};
