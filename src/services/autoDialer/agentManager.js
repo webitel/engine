@@ -284,22 +284,22 @@ class AgentManager extends EventEmitter2 {
     getIdleTimeSecAgent (agent = {}, dialerReadyTime = 0) {
         if (!agent) {
             log.error("getIdleTimeSecAgent -> No agent!!!");
-            return 0;
+            return -1;
         }
 
-        if (agent._idleTime) {
+        if (agent._idleTime >= 0) {
             return agent._idleTime
         }
 
         if (agent.state !== AGENT_STATE.Waiting ) {
             log.error("Agent no waiting -> ", agent);
-            return 0
+            return -1
         }
 
         const lastChange = Math.max(agent.lastStateChange, agent.lastStatusChange);
         if (!lastChange) {
             log.error("Agent no lastStateChange -> ", agent);
-            return 0
+            return -1
         }
 
         let idle = -1;
