@@ -9,6 +9,8 @@ let Dialer = require('./dialer'),
     AGENT_STATUS = require('./const').AGENT_STATUS,
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
+
+// TODO set agent Idle + Missed call
 module.exports = class Progressive extends Dialer {
     constructor (config, calendarConf, dialerManager) {
         super(DIALER_TYPES.ProgressiveDialer, config, calendarConf, dialerManager);
@@ -132,7 +134,7 @@ module.exports = class Progressive extends Dialer {
             const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
             let dialString = member.number.replace(dest._regexp, gw);
 
-            apps.push(`bridge:\\'{cc_side=member,origination_caller_id_number='${dest.callerIdNumber}'}${dialString}\\'`);
+            apps.push(`bridge:\\'{cc_side=member,originate_timeout=${this._originateTimeout},origination_caller_id_number='${dest.callerIdNumber}'}${dialString}\\'`);
 
             vars.push(
                 `origination_callee_id_number='${agent.agentId}'`,
