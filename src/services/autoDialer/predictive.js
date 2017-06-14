@@ -347,7 +347,6 @@ module.exports = class Predictive extends Dialer {
                                 gotCall: false,
                                 clearNoAnswer: true,
                                 setAvailableTime: null,
-                                connectedTimeSec: timeToSec(date, start),
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
                                 process: null,
                                 idleSec: this._am.getIdleTimeSecAgent(agent),
@@ -363,7 +362,6 @@ module.exports = class Predictive extends Dialer {
                         call: true,
                         gotCall: false,
                         noAnswer: true,
-                        connectedTimeSec: timeToSec(date, start),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
                         setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
                         process: null,
@@ -377,7 +375,6 @@ module.exports = class Predictive extends Dialer {
                     this._am.setAgentStats(agent.agentId, this._objectId, {
                         call: true,
                         gotCall: false,
-                        connectedTimeSec: timeToSec(date, start),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
                         setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
                         process: null,
