@@ -15,6 +15,7 @@ const conf = require(__appRoot + '/conf'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
+    AGENT_STATE = require(__appRoot + '/services/autoDialer/const').AGENT_STATE,
     log = require(__appRoot + '/lib/log')(module),
     utils = require('./utils'),
     getDomainFromStr = require(__appRoot + '/utils/parse').getDomainFromStr
@@ -621,7 +622,7 @@ function addQuery (db) {
                 .collection(agentsCollectionName)
                 .findOne(
                     filter,
-                    {lastStatusChange: 1, statusInfo: 1, status: 1, dialer: 1},
+                    {lastStatusChange: 1, statusInfo: 1, status: 1, dialer: 1, lastStateChange: 1, state: 1},
                     (err, res) => {
                         if (err)
                             return cb(err);
@@ -633,6 +634,13 @@ function addQuery (db) {
                                     [`statusInfo.${res.status}`]: sec
                                 };
 
+                                let idle = false;
+                                let lastChangeStatusState = null;
+                                if (res.state === AGENT_STATE.Waiting && (res.status === AGENT_STATUS.Available || res.status === AGENT_STATUS.AvailableOnDemand)) {
+                                    idle = true;
+                                    lastChangeStatusState = Math.max(res.state, res.status);
+                                }
+
                                 if (res.dialer instanceof Array) {
                                     for (let i = 0; i < res.dialer.length; i++) {
                                         if (res.dialer[i].active > 0) {
@@ -641,6 +649,15 @@ function addQuery (db) {
                                             } else {
                                                 update.$inc[`dialer.${i}.${res.status}`] =  Math.round( (time - res.dialer[i].active) / 1000 );
                                             }
+
+                                            if (idle) {
+                                                if (lastChangeStatusState > res.dialer[i].active) {
+                                                    update.$inc[`dialer.${i}.idleSec`] = Math.round( (time - lastChangeStatusState) / 1000 );
+                                                } else {
+                                                    update.$inc[`dialer.${i}.idleSec`] = Math.round( (time - res.dialer[i].active) / 1000 );
+                                                }
+                                            }
+
                                         }
                                     }
                                 }
