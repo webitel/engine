@@ -138,7 +138,7 @@ var _eventsModule = {
         for (var key in _domain) {
             user = application.Users.get(_domain[key]);
             if (!user) {
-                log.warn('REMOVE DOMAIN session', key);
+                log.debug('REMOVE DOMAIN session', key);
                 delete _domain[key];
                 continue;
             };
@@ -159,7 +159,7 @@ var _eventsModule = {
             }
         }
         if (_iterator == 0) {
-            log.warn('REMOVE DOMAIN', domainId);
+            log.debug('REMOVE DOMAIN', domainId);
             _event.domains.remove(domainId);
             log.trace('[%s] Remove subscribed domain %s', eventName, domainId);
         } else {

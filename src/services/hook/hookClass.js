@@ -21,6 +21,9 @@ class Hook {
         this.headers = option.headers;
         this.map = option.map;
         this.auth = option.auth;
+        if (option.customBody === true) {
+            this._rawBody = option.rawBody;
+        }
         this._filters = {};
         this._fields = [];
         for (let key in filter) {
@@ -56,7 +59,7 @@ class Hook {
             headers: _setHeadersFromEvent(this.auth.headers, e)
         };
 
-        if ( request.method == 'GET') {
+        if ( request.method === 'GET') {
             request.qs = _setHeadersFromEvent(this.auth.map, e);
         } else {
             request.json = _setHeadersFromEvent(this.auth.map, e);
@@ -124,15 +127,29 @@ const Operations = {
 };
 
 class Message {
-    constructor(eventName, message, fields, map) {
+    constructor(eventName, message, fields, map, rawBody) {
         this.action = eventName;
-        this.data = fields && fields.length > 0 ? _.pick(message, fields) : message;
-        if (map instanceof Object) {
-            for (let key in map)
-                if (this.data.hasOwnProperty(key)) {
-                    this.data[map[key]] = this.data[key];
-                    delete this.data[key];
-                }
+        this._rawData = false;
+        if (typeof rawBody === 'string') {
+            rawBody = rawBody.replace(/\$\{([\s\S]*?)\}/gi, function (a, b) {
+                return message[b] || ""
+            });
+            try {
+                this.data = JSON.parse(rawBody);
+                this._rawData = true;
+            } catch (e) {
+                this.data = {};
+                log.error(e);
+            }
+        } else {
+            this.data = fields && fields.length > 0 ? _.pick(message, fields) : message;
+            if (map instanceof Object) {
+                for (let key in map)
+                    if (this.data.hasOwnProperty(key)) {
+                        this.data[map[key]] = this.data[key];
+                        delete this.data[key];
+                    }
+            }
         }
         this.id = generateUuid.v4();
     };
@@ -153,7 +170,7 @@ class Message {
             request.headers.Cookie = eventObj['auth:header:set-cookie'];
         }
 
-        if ( _method == 'GET') {
+        if ( _method === 'GET') {
             request.qs = this.data;
         } else {
             request.json = this.toJson();
@@ -163,6 +180,9 @@ class Message {
     };
 
     toJson () {
+        if (this._rawData) {
+            return this.data;
+        }
         return {
             "id": this.id,
             "action": this.action,
@@ -283,7 +303,7 @@ class Trigger {
                     if (hook.check(e)) {
                         this.send(hook, eventName, e);
                     } else {
-                        log.debug(`skipp ${hook.event}`);
+                        log.debug(`skip ${hook.event}`);
                         log.trace(hook);
                         log.trace(e);
                     }
@@ -312,13 +332,25 @@ class Trigger {
                                         }
 
                                         for (let k in res.body) {
-                                            if (res.body.hasOwnProperty(k) && typeof res.body[k] == 'string')
+                                            if (res.body.hasOwnProperty(k) && typeof res.body[k] === 'string')
                                                 e[`auth:body:${k}`] = res.body[k];
                                         }
 
                                         for (let h in res.headers) {
-                                            if (res.headers.hasOwnProperty(h))
-                                                e[`auth:header:${h}`] = res.headers[h] instanceof Array ? res.headers[h].join(';') : res.headers[h];
+                                            if (res.headers.hasOwnProperty(h)) {
+                                                if (res.headers[h] instanceof Array) {
+                                                    let indexArrayHeadSeparator = null;
+                                                    for (let arrHead of res.headers[h]) {
+                                                        indexArrayHeadSeparator = arrHead.indexOf('=');
+                                                        e[`auth:header:${arrHead.substring(0, indexArrayHeadSeparator)}`] =
+                                                            arrHead.substring(indexArrayHeadSeparator + 1);
+                                                    }
+                                                    e[`auth:header:${h}`] = res.headers[h].join(';');
+                                                } else {
+                                                    e[`auth:header:${h}`] = res.headers[h];
+                                                }
+                                                // console.dir(e, {colors: true, depth: 10});
+                                            }
                                         }
                                         return cb(null);
                                     }
@@ -329,7 +361,7 @@ class Trigger {
                         },
 
                         (cb) => {
-                            let message = new Message(name, e, hook.fields, hook.map);
+                            let message = new Message(name, e, hook.fields, hook.map, hook._rawBody);
 
                             log.trace(`Try send message: ${message.id}`);
                             let id = message.id;

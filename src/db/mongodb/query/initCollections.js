@@ -12,6 +12,14 @@ var Indexes = {
         "_": {
             "destination_number" : 1
         }
+    }, {
+        "_unique": false,
+        "_name": "findAcr",
+        "_": {
+            "version": 1,
+            "destination_number" : 1,
+            "disabled": 1
+        }
     }],
     "collectionDefault": [{
         "_unique": true,
