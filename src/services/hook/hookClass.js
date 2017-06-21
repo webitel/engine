@@ -132,7 +132,7 @@ class Message {
         this._rawData = false;
         if (typeof rawBody === 'string') {
             rawBody = rawBody.replace(/\$\{([\s\S]*?)\}/gi, function (a, b) {
-                return message[b] || ""
+                return message[`variable_${b}`] || message[b] || ""
             });
             try {
                 this.data = JSON.parse(rawBody);
