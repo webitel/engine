@@ -16,7 +16,7 @@ function addRoutes(api) {
         res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,PATCH,DELETE,OPTIONS');
         res.header('Access-Control-Allow-Headers', 'Content-type,Accept,X-Access-Token,X-Key');
         res.header('Access-Control-Max-Age', 86400);
-        if (req.method == 'OPTIONS') {
+        if (req.method === 'OPTIONS') {
             res.status(200).end();
         } else {
             next();

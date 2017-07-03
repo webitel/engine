@@ -6,6 +6,7 @@
         "ssl_cert": "/ssl/wss.pem"
     },
     "server": {
+        "baseUrl": "http://localhost:10022",
         "host": "0.0.0.0",
         "port": 10022,
         "socket": {

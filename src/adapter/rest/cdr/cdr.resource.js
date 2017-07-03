@@ -10,7 +10,7 @@ var conf = require(__appRoot + '/conf'),
     url = require('url'),
     log = require(__appRoot +  '/lib/log')(module),
     CDR_SERVER_HOST = conf.get('cdrServer:host'),
-    middlewareRequest = conf.get('cdrServer:useProxy') ? proxyToCdr : redirectToCdr;
+    middlewareRequest = `${conf.get('cdrServer:useProxy')}` === 'true' ? proxyToCdr : redirectToCdr;
     ;
 
 module.exports = {

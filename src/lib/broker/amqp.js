@@ -308,7 +308,7 @@ class WebitelAmqp extends EventEmitter2 {
                             try {
                                 let json = JSON.parse(msg.content.toString());
                                 // TODO https://freeswitch.org/jira/browse/FS-8817
-                                if (json['Event-Name'] == 'CUSTOM') return;
+                                if (json['Event-Name'] === 'CUSTOM') return;
                                 scope.emit('callEvent', json);
                             } catch (e) {
                                 log.error(e);
@@ -331,7 +331,7 @@ class WebitelAmqp extends EventEmitter2 {
                             try {
                                 let json = JSON.parse(msg.content.toString());
                                 // TODO https://freeswitch.org/jira/browse/FS-8817
-                                if (json['Event-Name'] == 'CUSTOM') return;
+                                if (json['Event-Name'] === 'CUSTOM') return;
                                 scope.emit('callDomainEvent', json);
                             } catch (e) {
                                 log.error(e);

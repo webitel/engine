@@ -7,10 +7,15 @@
 var CodeError = require(__appRoot + '/lib/error'),
     authService = require('./auth'),
     conf = require(__appRoot + '/conf'),
-    CDR_SERVER_URL = conf.get("cdrServer:host"),
+    CDR_SERVER_URL = `${conf.get('cdrServer:useProxy')}` === 'true' ? conf.get('server:baseUrl') : conf.get("cdrServer:host"),
     CDR_GET_FILE_API = '/api/v2/files/',
     checkPermissions = require(__appRoot + '/middleware/checkPermissions')
     ;
+
+
+if (CDR_SERVER_URL) {
+    CDR_SERVER_URL = CDR_SERVER_URL.replace(/\/$/g, '')
+}
 
 var Service = {
     getRecordFile: function (caller, uuid, cb) {
