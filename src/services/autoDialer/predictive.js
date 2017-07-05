@@ -255,11 +255,19 @@ module.exports = class Predictive extends Dialer {
             'webitel_direction=inbound'
         ];
 
+        const webitelData = {
+            dlr_member_id: member._id.toString(),
+            dlr_id: member.getQueueId()
+        };
+
         for (let key in this._variables) {
             if (this._variables.hasOwnProperty(key)) {
                 agentVars.push(`${key}='${this._variables[key]}'`);
+                webitelData[key] = `'${this._variables[key]}'`;
             }
         }
+
+        agentVars.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
 
         application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
 
