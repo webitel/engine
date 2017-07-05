@@ -73,6 +73,7 @@ module.exports = class Member extends EventEmitter2 {
             callTypeCode: "",
             callPositionIndex: 0, //+
             cause: null, //+
+            causeQ850: null,
             callAttempt: null, // +
             callUUID: null,
             recordSessionSec: 0,
@@ -273,6 +274,11 @@ module.exports = class Member extends EventEmitter2 {
         this._log.cause = cause;
     }
 
+    setProbeQ850Code (code) {
+        if (+code)
+            this._log.causeQ850 = +code;
+    }
+
     setCallUUID (uuid) {
         this.log(`set uuid ${uuid}`);
         this._log.callUUID = uuid;
@@ -348,6 +354,7 @@ module.exports = class Member extends EventEmitter2 {
                 this.setTalkSec(e, false);
             }
 
+            this.setProbeQ850Code(e.getHeader('variable_hangup_cause_q850'));
             this.setCallUUID(e.getHeader('variable_uuid'));
 
         }
@@ -423,7 +430,7 @@ module.exports = class Member extends EventEmitter2 {
             this.endCause = END_CAUSE.MAX_TRY;
             this._setStateCurrentNumber(MEMBER_STATE.End)
         } else {
-            if (this._countActiveNumbers == 1 && endCause)
+            if (this._countActiveNumbers === 1 && endCause)
                 this.endCause = endCause;
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
         }
