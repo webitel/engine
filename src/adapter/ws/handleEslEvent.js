@@ -39,7 +39,7 @@ function handleEslEvent(application) {
                             "variable_w_jsclient_xtransfer": jsonEvent["variable_w_jsclient_xtransfer"] || jsonEvent['variable_sip_h_X-WebitelXTransfer'],
                             "variable_w_jsclient_originate_number": jsonEvent["variable_w_jsclient_originate_number"],
                             "Call-Info": jsonEvent["Call-Info"],
-                            "Other-Leg-Unique-ID": jsonEvent["Other-Leg-Unique-ID"],
+                            "Other-Leg-Unique-ID": jsonEvent["Other-Leg-Unique-ID"] || jsonEvent["variable_originating_leg_uuid"],
                             "variable_hangup_cause": jsonEvent["variable_hangup_cause"] || jsonEvent["Hangup-Cause"],
                             "Caller-Channel-Created-Time": jsonEvent["Caller-Channel-Created-Time"],
                             "Caller-Channel-Answered-Time": jsonEvent["Caller-Channel-Answered-Time"],
