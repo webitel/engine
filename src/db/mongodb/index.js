@@ -39,7 +39,9 @@ function initConnect (server) {
             dialer: require('./query/dialer').addQuery(db),
             telegram: require('./query/telegram').addQuery(db),
             domain: require('./query/domain').addQuery(db),
-            gateway: require('./query/gateway').addQuery(db)
+            gateway: require('./query/gateway').addQuery(db),
+            widget: require('./query/widget').addQuery(db),
+            callback: require('./query/callback').addQuery(db),
         };
 
         server.emit('sys::connectDb', db);

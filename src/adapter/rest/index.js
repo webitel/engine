@@ -37,7 +37,7 @@ require('./cdr/cdr.resource').addRoutes(api);
 
 api.use(bodyParser.json());
 
-if (conf.get('conference:enable').toString() == 'true') {
+if (conf.get('conference:enable').toString() === 'true') {
     api.use('/', express.static(path.join(__appRoot, '/public/conference')));
     require('./verto/verto.resource').addRoutes(api);
 }
@@ -68,6 +68,8 @@ require('./hook/hook.resource').addRoutes(api);
 require('./calendar/calendar.resource').addRoutes(api);
 require('./dialer/dialer.resource').addRoutes(api);
 require('./vmail/vmail.resource').addRoutes(api);
+require('./widget/widget.resource').addRoutes(api);
+require('./callbackQueue/callbackQueue.resource').addRoutes(api);
 //require('./callMe/callMe.resource').addRoutes(api);
 
 // Error handle

@@ -3,3 +3,4 @@
  */
 // TODO
 module.exports = require('./mongodb');
+module.exports._pg = require('./pg');

@@ -3,7 +3,7 @@
  */
 
 const log = require(__appRoot + '/lib/log')(module);
-
+const parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject;
 
 module.exports.getDomainFromSwitchEvent = (data) => {
     if (!data)
@@ -23,6 +23,22 @@ module.exports.getDomainFromSwitchEvent = (data) => {
 
     if (data['variable_presence_id'])
         return data['variable_presence_id'].substring(data['variable_presence_id'].indexOf('@') + 1);
+};
+
+module.exports.getRequest = (req) => {
+    //TODO filter
+    const options = {
+        limit: req.query.limit,
+        pageNumber: req.query.page,
+        domain: req.query.domain,
+        columns: {}
+    };
+
+    if (req.query.columns)
+        req.query.columns.split(',')
+            .forEach( (i) => options.columns[i] = 1 );
+
+    return options
 };
 
 module.exports.encodeRK = (rk) => {

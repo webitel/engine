@@ -38,6 +38,7 @@ class Application extends EventEmitter2 {
         this.Broker = new Broker(conf.get('broker'), this);
         new Hooks(this);
         this.AutoDialer = new AutoDialer(this);
+        this.PG = initDb._pg;
         process.nextTick(this.connectDb.bind(this));
     }
 

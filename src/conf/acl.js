@@ -54,7 +54,8 @@ const RESOURCES = [
 
     'license',
 
-    'vmail'
+    'vmail',
+    'widget'
 ];
 
 module.exports = [
@@ -101,7 +102,10 @@ module.exports = [
             'account': ["*"],
 
             'system/reload': ["*"],
-            'license': ["*"]
+            'license': ["*"],
+            'widget': ["*"],
+            'callback': ["*"],
+            'callback/members': ["*"],
         }
     },
     {
