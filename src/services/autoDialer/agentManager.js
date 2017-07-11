@@ -224,6 +224,10 @@ class AgentManager extends EventEmitter2 {
                 sort["dialer.callTimeSec"] = 1;
                 break;
 
+            case AGENT_STRATEGY.LONGEST_IDLE_AGENT:
+                sort["dialer.idleSec"] = -1;
+                break;
+
             case AGENT_STRATEGY.TOP_DOWN:
                 //TODO
                 // break;

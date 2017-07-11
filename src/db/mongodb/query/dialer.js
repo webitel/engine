@@ -698,7 +698,8 @@ function addQuery (db) {
         },
 
         _findAndModifyAgentByHunting: (dialerId, filter, sort, update, cb) => {
-
+            console.dir(filter,{depth: 100, colors: true});
+            console.dir(sort,{depth: 100, colors: true});
             return db
                 .collection(agentsCollectionName)
                 .findAndModify(
