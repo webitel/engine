@@ -3,21 +3,15 @@
  */
 
 
-const pg = require('pg');
+const pg = require('pg'),
+    conf = require(__appRoot + '/conf');
 
 // create a config to configure both pooling behavior
 // and client options
 // note: all config is optional and the environment variables
 // will be read if the config is not present
-var config = {
-    user: 'webitel', //env var: PGUSER
-    database: 'webitel', //env var: PGDATABASE
-    password: 'webitel', //env var: PGPASSWORD
-    host: '10.10.10.200', // Server hosting the postgres database
-    port: 5432, //env var: PGPORT
-    max: 100, // max number of clients in the pool
-    idleTimeoutMillis: 30000, // how long a client is allowed to remain idle before being closed
-};
+
+const config = conf.get('pg');
 
 //this initializes a connection pool
 //it will keep idle connections open for 30 seconds

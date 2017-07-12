@@ -173,7 +173,9 @@ const Service = {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
                 }
 
-                application.PG.getQuery('callback').members.create(option, cb)
+                application.PG.getQuery('callback').members.create(option, cb);
+                //TODO
+                // application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_add', domain, option));
             });
         },
 
@@ -210,6 +212,8 @@ const Service = {
                         } else {
                             log.trace(`Call: ${res.body}`);
                         }
+                        //TODO
+                        // application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_add', domain, option));
                         return cb(null, "Success");
                     });
                 }
@@ -239,11 +243,22 @@ const Service = {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
                 }
 
+                let sendHook = false;
                 if (option.data.done === true) {
                     option.data.done_at = Date.now();
                     option.data.done_by = caller.id;
+                    sendHook = true;
                 }
-                application.PG.getQuery('callback').members.update(option.id, option.queue, domain, option.data, cb);
+                application.PG.getQuery('callback').members.update(option.id, option.queue, domain, option.data, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (sendHook && res) {
+                        application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_done', domain, res));
+                    }
+
+                    return cb(null, res);
+                });
 
             });
         },
@@ -294,10 +309,29 @@ const Service = {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
                 }
 
+
                 option.data.created_on = Date.now();
                 option.data.created_by = caller.id;
 
-                application.PG.getQuery('callback').members.addComment(option.id, option.data, cb);
+                application.PG.getQuery('callback').members.addComment(option.id, option.data, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (res) {
+                        application.Broker.emit('hookEvent', 'CUSTOM', domain, {
+                            "Event-Name": "CUSTOM",
+                            "Event-Subclass": "engine::callback_member_comment",
+                            "variable_domain_name": domain,
+                            "created_by": res.created_by,
+                            "created_on": res.created_on,
+                            "comment_id": res.id,
+                            "member_id": res.member_id,
+                            "comment": res.text
+                        });
+                    }
+
+                    return cb(null, res);
+                });
             });
         },
 
@@ -362,3 +396,17 @@ const Service = {
 };
 
 module.exports = Service;
+
+function getJson(eventName, domain, member) {
+    const e = {
+        "Event-Name": "CUSTOM",
+        "Event-Subclass": `engine::${eventName}`,
+        "variable_domain_name": domain
+    };
+
+    for (let key in member) {
+        e[key] = member[key]
+    }
+
+    return e
+}

@@ -5,6 +5,7 @@
 "use strict";
 
 const log = require(__appRoot + '/lib/log')(module),
+    CodeError = require(__appRoot + '/lib/error'),
     buildQuery = require('./utils').buildQuery;
 
 const create = `
@@ -51,7 +52,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0])
                     } else {
-                        return cb(new Error('Bad db response'));
+                        return cb(new CodeError(404, `Not found ${_id}@${domainName}`));
                     }
                 }
             )
@@ -114,7 +115,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0].id, res.rows[0]._file_path)
                     } else {
-                        return cb(new Error('No found'));
+                        return cb(new CodeError(404, `Not found ${id}@${domain}`));
                     }
                 }
             )
@@ -146,7 +147,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0])
                     } else {
-                        return cb(new Error('No found'));
+                        return cb(new CodeError(404, `Not found ${_id}@${domainName}`));
                     }
                 }
             );

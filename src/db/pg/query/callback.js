@@ -5,12 +5,13 @@
 "use strict";
 
 const log = require(__appRoot + '/lib/log')(module),
+    CodeError = require(__appRoot + '/lib/error'),
     buildQuery = require('./utils').buildQuery;
 
 const create = `
     INSERT INTO callback_queue (name, domain, description)
     VALUES ($1, $2, $3)
-    RETURNING id;             
+    RETURNING *;             
 `;
 
 const sqlItem = `
@@ -32,8 +33,11 @@ const sqlMemberCreate = `
 const sqlMemberItem = `
     SELECT 
         m.*, 
+        w.name as widget_name, 
         (SELECT array_to_json(array_agg(c)) FROM callback_members_comment as c where c.member_id = m.id) as comments
-    FROM callback_members as m WHERE m.id = $1 AND m.queue_id = $2 AND m.domain = $3
+    FROM callback_members as m
+     JOIN widget as w on w.id = m.widget_id
+    WHERE m.id = $1 AND m.queue_id = $2 AND m.domain = $3
 `;
 
 const sqlMemberDelete = `
@@ -84,7 +88,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0])
                     } else {
-                        return cb(new Error('Bad db response'));
+                        return cb(new CodeError(404, `Not found ${_id}@${domainName}`));
                     }
                 }
             )
@@ -102,7 +106,7 @@ function add(pool) {
                         return cb(err);
 
                     if (res && res.rowCount) {
-                        return cb(null, res.rows[0].id)
+                        return cb(null, res.rows[0])
                     } else {
                         log.error('bad response', res);
                         return cb(new Error('Bad db response'));
@@ -124,7 +128,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0].id, res.rows[0]._filepath)
                     } else {
-                        return cb(new Error('No found'));
+                        return cb(new CodeError(404, `Not found ${id}@${domain}`));
                     }
                 }
             )
@@ -158,7 +162,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows)
                     } else {
-                        return cb(new Error('No found'));
+                        return cb(new CodeError(404, `Not found ${_id}@${domainName}`));
                     }
                 }
             );
@@ -253,7 +257,7 @@ function add(pool) {
                         if (res && res.rowCount) {
                             return cb(null, res.rows[0])
                         } else {
-                            return cb(new Error('Bad db response'));
+                            return cb(new CodeError(404, `Not found ${_id}@${domainName}`));
                         }
                     }
                 )
@@ -359,7 +363,7 @@ function add(pool) {
                         if (res && res.rowCount) {
                             return cb(null, res.rows[0])
                         } else {
-                            return cb(new Error('No found'));
+                            return cb(new CodeError(404, `Not found ${id}@${domain}`));
                         }
                     }
                 )
@@ -379,7 +383,7 @@ function add(pool) {
                 let update = `
                     UPDATE callback_members 
                         SET ${values.join(',')} 
-                    WHERE id = $${params.length + 1} AND queue_id = $${params.length + 2} AND domain = $${params.length + 3}
+                    WHERE done is null AND id = $${params.length + 1} AND queue_id = $${params.length + 2} AND domain = $${params.length + 3}
                     RETURNING *
                 `;
                 params.push(+_id);
@@ -394,7 +398,7 @@ function add(pool) {
                         if (res && res.rowCount) {
                             return cb(null, res.rows[0])
                         } else {
-                            return cb(new Error('No found'));
+                            return cb(new CodeError(404, `Not found ${_id}@${domainName}`));
                         }
                     }
                 );
