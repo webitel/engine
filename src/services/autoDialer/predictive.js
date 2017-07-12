@@ -188,7 +188,7 @@ module.exports = class Predictive extends Dialer {
             }
 
             for (let key of member.getVariableKeys()) {
-                vars.push(`${key}='${member.getVariable(key)}'`);
+                vars.push(`'${key}'='${member.getVariable(key)}'`);
             }
 
             const dest = member.getDestination();
@@ -263,8 +263,11 @@ module.exports = class Predictive extends Dialer {
         for (let key in this._variables) {
             if (this._variables.hasOwnProperty(key)) {
                 agentVars.push(`${key}='${this._variables[key]}'`);
-                webitelData[key] = `'${this._variables[key]}'`;
             }
+        }
+        for (let key of member.getVariableKeys()) {
+            webitelData[key] = member.getVariable(key);
+            agentVars.push(`'${key}'='${member.getVariable(key)}'`);
         }
 
         agentVars.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
