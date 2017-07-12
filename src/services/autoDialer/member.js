@@ -10,6 +10,7 @@ const generateUuid = require('node-uuid'),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE,
+    getHangupCode = require('./const').getHangupCode,
     DIALER_TYPES = require('./const').DIALER_TYPES
     ;
 
@@ -272,6 +273,7 @@ module.exports = class Member extends EventEmitter2 {
 
     setProbeEndCause (cause) {
         this._log.cause = cause;
+        this._log.causeQ850 = getHangupCode(cause)
     }
 
     setProbeQ850Code (code) {
