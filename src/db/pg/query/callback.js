@@ -36,7 +36,7 @@ const sqlMemberItem = `
         w.name as widget_name, 
         (SELECT array_to_json(array_agg(c)) FROM callback_members_comment as c where c.member_id = m.id) as comments
     FROM callback_members as m
-     JOIN widget as w on w.id = m.widget_id
+     LEFT JOIN widget as w on w.id = m.widget_id
     WHERE m.id = $1 AND m.queue_id = $2 AND m.domain = $3
 `;
 
