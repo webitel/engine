@@ -339,6 +339,7 @@ function add(pool) {
                                 return cb(new Error('No found destination number'));
 
                             return cb(null, {
+                                member: res.rows[0].member_json,
                                 destinationNumber: res.rows[0].destination_number,
                                 queueName: res.rows[0].queue_name,
                                 callTimeout: res.rows[0].call_timeout

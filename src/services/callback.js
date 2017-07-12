@@ -173,9 +173,12 @@ const Service = {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
                 }
 
-                application.PG.getQuery('callback').members.create(option, cb);
-                //TODO
-                // application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_add', domain, option));
+                application.PG.getQuery('callback').members.create(option, (err, data) => {
+                    if (err)
+                        return cb(err);
+                    application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_add', domain, data));
+                    return cb(null, data);
+                });
             });
         },
 
@@ -212,8 +215,9 @@ const Service = {
                         } else {
                             log.trace(`Call: ${res.body}`);
                         }
-                        //TODO
-                        // application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_add', domain, option));
+                        if (info.member) {
+                            application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info.member));
+                        }
                         return cb(null, "Success");
                     });
                 }

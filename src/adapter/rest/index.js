@@ -70,7 +70,6 @@ require('./dialer/dialer.resource').addRoutes(api);
 require('./vmail/vmail.resource').addRoutes(api);
 require('./widget/widget.resource').addRoutes(api);
 require('./callbackQueue/callbackQueue.resource').addRoutes(api);
-//require('./callMe/callMe.resource').addRoutes(api);
 
 // Error handle
 require('./error').addRoutes(api);
