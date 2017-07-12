@@ -8,6 +8,8 @@ const log = require(__appRoot + '/lib/log')(module),
     fsExtra = require('fs-extra'),
     fs = require('fs'),
     conf = require(__appRoot + '/conf'),
+    publicWebRtc = conf.get('widget:publicWebRtc'),
+    publicPostApi = conf.get('widget:publicPostApi'),
     WIDGET_PATH = conf.get('widget:basePath'),
     WIDGET_URI = conf.get('widget:baseUri'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
@@ -160,6 +162,8 @@ function generateWidgetFile(id, domain, config = {}, cb) {
         if (err)
             return cb(err);
 
+        config.publicPostApi = publicPostApi;
+        config.publicWebRtc = publicWebRtc;
         const text = getWidgetConfig(config);
         if (!text) {
             return cb(new CodeError(400, `Bad config.`))

@@ -207,7 +207,7 @@ const Service = {
 
                 if (tryCall) {
                     //TODO webitel_widget_id webitel_widget_name
-                    const dialString = `originate [^^:cc_queue='${info.queueName}':call_timeout=${info.callTimeout || 60}:domain_name='${option.domain}':ignore_early_media=true:loopback_bowout=false:hangup_after_bridge=true]loopback/${option.number}/default '${info.destinationNumber}' XML public ${option.number} ${option.number}`;
+                    const dialString = `originate [^^:cc_queue='${info.queueName}':leg_timeout=${info.callTimeout || 60}:domain_name='${option.domain}':ignore_early_media=true:loopback_bowout=false:hangup_after_bridge=true]loopback/${option.number}/default '${info.destinationNumber}' XML public ${option.number} ${option.number}`;
                     log.trace(`Exec: ${dialString}`);
                     application.Esl.bgapi(dialString, (res) => {
                         if (/^-ERR|^-USAGE/.test(res.body)) {

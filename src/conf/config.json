@@ -78,6 +78,8 @@
         "host": "https://srv.webitel.com/engine"
     },
     "widget": {
+        "publicWebRtc": "wss://pre.webitel.com/public/",
+        "publicPostApi": "http://10.10.10.25:10022/callback/members",
         "basePath": "/home/igor/work/web-client/src/clickToCall",
         "baseUri": "http://10.10.10.25/clickToCall"
     },
