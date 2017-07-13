@@ -4,6 +4,9 @@
 
 
 const pg = require('pg'),
+    log = require(__appRoot + '/lib/log')(module),
+    initQueue = require('./init'),
+    async = require('async'),
     conf = require(__appRoot + '/conf');
 
 // create a config to configure both pooling behavior
@@ -22,6 +25,17 @@ const query = new Map();
 query.set('widget', require('./query/widget')(pool));
 query.set('callback', require('./query/callback')(pool));
 
+function initData(err) {
+    if (err) {
+        log.error(err);
+        setTimeout(() => {
+            init(pool, initData)
+        }, 1000)
+    }
+}
+
+init(pool, initData);
+
 pool.on('error', function (err, client) {
     // if an error is encountered by a client while it sits idle in the pool
     // the pool itself will emit an error event with both the error and
@@ -29,7 +43,7 @@ pool.on('error', function (err, client) {
     // this is a rare occurrence but can happen if there is a network partition
     // between your application and the database, the database restarts, etc.
     // and so you might want to handle it and at least log it out
-    console.error('idle client error', err.message, err.stack);
+    log.error('idle client error', err.message, err.stack);
 });
 
 module.exports.getQuery = name => query.get(name);
@@ -44,3 +58,13 @@ module.exports.query = function (text, values, callback) {
 module.exports.connect = function (callback) {
     return pool.connect(callback);
 };
+
+function init(pool, cb) {
+    async.eachSeries(
+        initQueue,
+        (sql, cb) => {
+            pool.query(sql, cb);
+        },
+        cb
+    )
+}

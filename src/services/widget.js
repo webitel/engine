@@ -159,8 +159,10 @@ module.exports = Service;
 
 function generateWidgetFile(id, domain, config = {}, cb) {
     fsExtra.ensureDir(`${WIDGET_PATH}/domains/${domain}`, err => {
-        if (err)
+        if (err) {
+            log.error(err);
             return cb(err);
+        }
 
         config.publicPostApi = publicPostApi;
         config.publicWebRtc = publicWebRtc;
@@ -171,8 +173,10 @@ function generateWidgetFile(id, domain, config = {}, cb) {
         const path = `${WIDGET_PATH}/domains/${domain}/${id}.js`;
         log.trace(`try save widget file: ${path}`);
         fs.writeFile(path, text, err => {
-            if (err)
+            if (err) {
                 return cb(err);
+                log.error(err);
+            }
 
             return cb(null, path)
         })
