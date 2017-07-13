@@ -17,7 +17,7 @@
         "user": "webitel",
         "database": "webitel",
         "password": "webitel",
-        "host": "10.10.10.200",
+        "host": "postgres",
         "port": 5432,
         "max": 100,
         "idleTimeoutMillis": 30000
