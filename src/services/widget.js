@@ -168,7 +168,7 @@ function generateWidgetFile(id, domain, config = {}, cb) {
         if (!text) {
             return cb(new CodeError(400, `Bad config.`))
         }
-        const path = `${WIDGET_PATH}/${domain}/${id}.js`;
+        const path = `${WIDGET_PATH}/domains/${domain}/${id}.js`;
         log.trace(`try save widget file: ${path}`);
         fs.writeFile(path, text, err => {
             if (err)
