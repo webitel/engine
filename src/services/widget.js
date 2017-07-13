@@ -174,8 +174,8 @@ function generateWidgetFile(id, domain, config = {}, cb) {
         log.trace(`try save widget file: ${path}`);
         fs.writeFile(path, text, err => {
             if (err) {
-                return cb(err);
                 log.error(err);
+                return cb(err);
             }
 
             return cb(null, path)

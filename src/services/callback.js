@@ -197,8 +197,12 @@ const Service = {
                 return cb(new CodeError(400, 'Widget is required.'));
 
             const tryCall = !option.callback_time;
-            if (tryCall)
+            if (tryCall) {
+                option.data.done = true;
                 option.callback_time = Date.now();
+                option.data.done_at = Date.now();
+                option.data.done_by = caller.id;
+            }
 
             option.request_ip = callerInfo.ip;
             application.PG.getQuery('callback').members.createPublic(callerInfo.widget, option, (err, info) => {
