@@ -50,18 +50,9 @@ function list(req, res, next) {
 }
 
 function listMembers(req, res, next) {
-    let options = {
-        limit: req.query.limit,
-        pageNumber: req.query.page,
-        domain: req.query.domain,
-        queue: req.params.queueId,
-        columns: {}
-    };
-
-    if (req.query.columns)
-        options.columns = parseQueryToObject(req.query.columns);
-
-    callbackService.members.list(req.webitelUser, options, (err, result) => {
+    const requestList = getRequest(req);
+    requestList.queue = req.params.queueId;
+    callbackService.members.list(req.webitelUser, requestList , (err, result) => {
         if (err)
             return next(err);
 

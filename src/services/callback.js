@@ -220,7 +220,10 @@ const Service = {
                         }
                         return cb(null, "Success");
                     });
+                } else {
+                    return cb(null, "Success");
                 }
+
             });
         },
 

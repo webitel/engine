@@ -31,7 +31,7 @@ module.exports = {
         }
 
         for (let key in request.sort) {
-            sort = `${escape(key)} ${request.sort[key] ? 'ASC' : 'DESC'}`;
+            sort = `${escape(key)} ${request.sort[key] === -1 ? 'ASC' : 'DESC'}`;
             break;
         }
 
