@@ -158,7 +158,7 @@ const Service = {
 module.exports = Service;
 
 function generateWidgetFile(id, domain, config = {}, cb) {
-    fsExtra.ensureDir(`${WIDGET_PATH}/${domain}`, err => {
+    fsExtra.ensureDir(`${WIDGET_PATH}/domains/${domain}`, err => {
         if (err)
             return cb(err);
 
