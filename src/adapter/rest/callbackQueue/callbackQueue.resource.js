@@ -10,6 +10,7 @@ module.exports = {
 
 const parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject,
     callbackService = require(__appRoot + '/services/callback'),
+    getRequest = require(__appRoot + '/utils/helper').getRequest,
     getIp = require(__appRoot + '/utils/ip')
 ;
 
@@ -37,17 +38,7 @@ function addRoutes(api) {
 }
 
 function list(req, res, next) {
-    let options = {
-        limit: req.query.limit,
-        pageNumber: req.query.page,
-        domain: req.query.domain,
-        columns: {}
-    };
-
-    if (req.query.columns)
-        options.columns = parseQueryToObject(req.query.columns);
-
-    callbackService.list(req.webitelUser, options, (err, result) => {
+    callbackService.list(req.webitelUser, getRequest(req), (err, result) => {
         if (err)
             return next(err);
 

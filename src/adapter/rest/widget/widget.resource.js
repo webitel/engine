@@ -10,7 +10,6 @@ module.exports = {
 
 const widgetService = require(__appRoot + '/services/widget');
 const getRequest = require(__appRoot + '/utils/helper').getRequest;
-const parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject;
 
 function addRoutes(api) {
     api.get('/api/v2/widget', list);
@@ -21,17 +20,7 @@ function addRoutes(api) {
 }
 
 function list(req, res, next) {
-    let options = {
-        limit: req.query.limit,
-        pageNumber: req.query.page,
-        domain: req.query.domain,
-        columns: {}
-    };
-
-    if (req.query.columns)
-        options.columns = parseQueryToObject(req.query.columns);
-
-    widgetService.list(req.webitelUser, options, (err, result) => {
+    widgetService.list(req.webitelUser, getRequest(req), (err, result) => {
         if (err)
             return next(err);
 

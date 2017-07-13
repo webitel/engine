@@ -26,17 +26,19 @@ module.exports.getDomainFromSwitchEvent = (data) => {
 };
 
 module.exports.getRequest = (req) => {
-    //TODO filter
     const options = {
-        limit: req.query.limit,
-        pageNumber: req.query.page,
+        limit: (+req.query.limit) || 40,
+        pageNumber: (+req.query.page) || 1,
         domain: req.query.domain,
-        columns: {}
+        columns: [],
+        sort: parseQueryToObject(req.query.sort),
+        filter: parseQueryToObject(req.query.filter) || {}
     };
 
-    if (req.query.columns)
-        req.query.columns.split(',')
-            .forEach( (i) => options.columns[i] = 1 );
+    const cols = parseQueryToObject(req.query.columns);
+    if (cols) {
+        options.columns = Object.keys(cols)
+    }
 
     return options
 };

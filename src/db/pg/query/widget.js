@@ -26,17 +26,7 @@ const sqlDelete = `
 function add(pool) {
     return {
         list: (request, cb) => {
-            pool.query(
-                buildQuery(request, "widget"),
-                [
-                ], (err, res) => {
-                    if (err) {
-                        return cb(err);
-                    }
-
-                    return cb(null, res.rows)
-                }
-            )
+            buildQuery(pool, request, "widget", cb);
         },
 
         findById: (_id, domainName, options, cb) => {

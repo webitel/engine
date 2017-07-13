@@ -62,17 +62,7 @@ const sqlCommentUpdate = `
 function add(pool) {
     return {
         list: (request, cb) => {
-            pool.query(
-                buildQuery(request, "callback_queue"),
-                [
-                ], (err, res) => {
-                    if (err) {
-                        return cb(err);
-                    }
-
-                    return cb(null, res.rows)
-                }
-            )
+            buildQuery(pool, request, "callback_queue", cb);
         },
 
         findById: (_id, domainName, cb) => {
@@ -230,17 +220,7 @@ function add(pool) {
                 )
             },
             list: (request, cb) => {
-                pool.query(
-                    buildQuery(request, "callback_members"),
-                    [
-                    ], (err, res) => {
-                        if (err) {
-                            return cb(err);
-                        }
-
-                        return cb(null, res.rows)
-                    }
-                )
+                buildQuery(pool, request, "callback_members", cb);
             },
 
             findById: (_id, queue_id, domainName, cb) => {
