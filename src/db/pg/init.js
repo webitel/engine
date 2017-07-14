@@ -97,19 +97,13 @@ create unique index IF NOT EXISTS callback_members_comment_id_uindex
 sql.push(`
 CREATE OR REPLACE FUNCTION insert_member_public(
    in widget_id BIGINT,
-   in memberNumber VARCHAR(50),
-   in href VARCHAR(255),
-   in user_agent VARCHAR(300),
-   in location jsonb,
-   in domain VARCHAR(70),
-   in callback_time BIGINT,
-   in _request_ip VARCHAR(50),
-   in memberLogs jsonb,
+
+   inout member jsonb,
+
    OUT destination_number VARCHAR(50),
    OUT queue_name VARCHAR(50),
    OUT call_timeout SMALLINT,
-   OUT error SMALLINT,
-   OUT member_json jsonb
+   OUT error SMALLINT
  )
     AS $$
     DECLARE
@@ -127,7 +121,7 @@ CREATE OR REPLACE FUNCTION insert_member_public(
       INTO queue_id, limit_by_number, limit_by_ip, destination_number, queue_name, call_timeout
       FROM widget
         INNER JOIN callback_queue c on widget.queue_id = c.id
-      where widget.id = widget_id AND (widget.blacklist is null or not _request_ip::cidr <<= ANY(widget.blacklist) ) LIMIT 1;
+      where widget.id = widget_id AND (widget.blacklist is null or not cast(member->>'request_ip' as CIDR) <<= ANY(widget.blacklist)) LIMIT 1;
 
       if queue_id is NULL THEN
         error := -1;
@@ -137,7 +131,7 @@ CREATE OR REPLACE FUNCTION insert_member_public(
       if exists(
         SELECT count(id) as c
         FROM callback_members m
-        WHERE (m.request_ip = _request_ip ) AND m.created_on BETWEEN ((now() at time zone 'utc')::TIMESTAMP - INTERVAL '30 min')::TIMESTAMP AND (now() at time zone 'utc')
+        WHERE (m.request_ip = member->>'request_ip'::varchar(50) ) AND m.created_on BETWEEN ((now() at time zone 'utc')::TIMESTAMP - INTERVAL '30 min')::TIMESTAMP AND (now() at time zone 'utc')
         HAVING count(*) >= limit_by_ip
       ) THEN
         error := -2;
@@ -147,13 +141,12 @@ CREATE OR REPLACE FUNCTION insert_member_public(
       if limit_by_number = true AND exists(
         SELECT count(*) as c
         FROM callback_members m
-        WHERE (m.number = memberNumber ) AND m.created_on BETWEEN ((now() at time zone 'utc')::TIMESTAMP - INTERVAL '30 min')::TIMESTAMP AND (now() at time zone 'utc')
+        WHERE (m.number = cast(member->>'number' as varchar(50)) ) AND m.created_on BETWEEN ((now() at time zone 'utc')::TIMESTAMP - INTERVAL '30 min')::TIMESTAMP AND (now() at time zone 'utc')
         HAVING count(*) >= 1
       ) THEN
         error := -3;
         return;
       END IF;
-
 
       with rows as (
         INSERT INTO callback_members (
@@ -166,23 +159,27 @@ CREATE OR REPLACE FUNCTION insert_member_public(
           callback_time,
           widget_id,
           request_ip,
+          done,
+          done_at,
+          done_by,
           logs)
         VALUES (
-          memberNumber,
-          href,
-          user_agent,
-          location,
-          domain,
+          member->>'number'::VARCHAR(50),
+          cast(member->>'href' as VARCHAR(255)),
+          cast(member->>'user_agent' as VARCHAR(300)),
+          member->'location',
+          cast(member->>'domain' as VARCHAR(70)),
           queue_id,
-          callback_time,
+          cast(member->>'callback_time' as bigint),
           widget_id,
-          _request_ip,
-          memberLogs
+          cast(member->>'request_ip' as VARCHAR(50)),
+          cast(member->>'done' as BOOLEAN),
+          cast(member->>'done_at' as BIGINT),
+          cast(member->>'done_by' as VARCHAR(100)),
+          member->'logs'
         )  RETURNING *
       )
-      SELECT row_to_json(rows) into member_json from rows;
-
-
+      SELECT row_to_json(rows) into member from rows;
       return;
     END;
     $$ LANGUAGE plpgsql;

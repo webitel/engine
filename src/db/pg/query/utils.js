@@ -21,9 +21,11 @@ module.exports = {
 
         for (let key in request.filter) {
             if (typeof request.filter[key] === 'string') {
-                filters.push(`${key} like $${parameters.push(request.filter[key] + '%')}`)
+                filters.push(`${escape(key)} like $${parameters.push(request.filter[key] + '%')}`)
+            } else if (typeof request.filter[key] === 'boolean' && !request.filter[key]) {
+                filters.push(`(${escape(key)} is null or ${escape(key)} = false)`)
             } else {
-                filters.push(`${key} = $${parameters.push(request.filter[key])}`)
+                filters.push(`${escape(key)} = $${parameters.push(request.filter[key])}`)
             }
         }
         if (request.domain) {

@@ -196,12 +196,11 @@ const Service = {
             if (!callerInfo.widget)
                 return cb(new CodeError(400, 'Widget is required.'));
 
-            const tryCall = !option.callback_time;
+            const tryCall = option.done = !option.callback_time;
             if (tryCall) {
-                option.data.done = true;
                 option.callback_time = Date.now();
-                option.data.done_at = Date.now();
-                option.data.done_by = caller.id;
+                option.done_at = Date.now();
+                option.done_by = 'auto';
             }
 
             option.request_ip = callerInfo.ip;

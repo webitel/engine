@@ -268,29 +268,11 @@ function add(pool) {
             },
 
             createPublic: (widget_id, doc, cb) => {
-                /*
-                 widget_id BIGINT,
-                 number VARCHAR(50),
-                 href VARCHAR(255),
-                 user_agent VARCHAR(300),
-                 location jsonb,
-                 domain VARCHAR(70),
-                 queue_id BIGINT,
-                 callback_time BIGINT,
-                 request_ip VARCHAR(50)
-                 */
                 pool.query(
-                    `SELECT * FROM insert_member_public($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                    `SELECT * FROM insert_member_public($1, $2)`,
                     [
                         +widget_id,
-                        doc.number,
-                        doc.href,
-                        doc.user_agent,
-                        doc.location,
-                        doc.domain,
-                        doc.callback_time,
-                        doc.request_ip,
-                        JSON.stringify(doc.logs)
+                        doc
                     ],
                     (err, res) => {
                         if (err)
