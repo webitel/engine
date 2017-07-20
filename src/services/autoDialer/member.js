@@ -340,7 +340,6 @@ module.exports = class Member extends EventEmitter2 {
             endCause = endCause.trim();
 
         this.processEnd = true;
-        this.setProbeEndCause(endCause);
 
         log.trace(`end member ${this._id} cause: ${this.endCause || endCause || ''}`) ;
 
@@ -356,12 +355,15 @@ module.exports = class Member extends EventEmitter2 {
                 this.setTalkSec(e, false);
             }
 
-            this.setProbeQ850Code(e.getHeader('variable_hangup_cause_q850'));
+            //this.setProbeQ850Code(e.getHeader('variable_hangup_cause_q850'));
             this.setCallUUID(e.getHeader('variable_uuid'));
 
         }
 
         if (this.predictAbandoned) {
+
+            this.setProbeEndCause(END_CAUSE.ABANDONED);
+
             this.callSuccessful = false;
             if (this.getNoRetryAbandoned()) {
                 this.log(`Abandoned`);
@@ -370,6 +372,8 @@ module.exports = class Member extends EventEmitter2 {
                 this.emit('end', this);
                 return;
             }
+        } else {
+            this.setProbeEndCause(endCause);
         }
 
         if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED && this.bridgedCall === true) {

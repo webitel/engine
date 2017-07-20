@@ -148,7 +148,8 @@ const HANGUP_CODES = {
     "PICKED_OFF": 605,
     "USER_NOT_REGISTERED": 606,
     "PROGRESS_TIMEOUT": 607,
-    "GATEWAY_DOWN": 609
+    "GATEWAY_DOWN": 609,
+    [END_CAUSE.ABANDONED] : 687
 };
 
 const mapCodes = new Map();
