@@ -10,6 +10,7 @@ var jwt = require('jwt-simple'),
     authService = require(__appRoot + '/services/auth'),
     aclService = require(__appRoot + '/services/acl'),
     cdrSrv = config.get('cdrServer'),
+    vertoSocket = config.get('freeSWITCH:verto'),
     tokenSecretKey = require(__appRoot + '/utils/token');
 
 module.exports = {
@@ -50,6 +51,7 @@ function login (req, res, next) {
 
         if (result) {
             result.cdr = cdrSrv;
+            result.verto = vertoSocket;
             return res
                 .json(result);
         }
@@ -207,7 +209,8 @@ function whoami(req, res, next) {
             'domain': _user.domain,
             'roleName': _user.roleName,
             'expires': _user.expires,
-            'cdr': cdrSrv
+            'cdr': cdrSrv,
+            'verto': vertoSocket
         });
     });
 }

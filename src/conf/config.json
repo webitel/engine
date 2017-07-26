@@ -56,6 +56,7 @@
         "collectionCallbackMembers": "callbackMembers"
     },
     "freeSWITCH": {
+        "verto": "wss://pre.webitel.com/verto/",
         "host": "172.17.0.1",
         "port": 8021,
         "pwd": "ClueCon",
