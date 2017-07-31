@@ -168,6 +168,9 @@ class AgentManager extends EventEmitter2 {
                 dialer: {$elemMatch: {_id: dialerId}}
             },
             {
+                $unset: {
+                    [`stats.${dialerId}`]: 1
+                },
                 $set: {
                     "dialer.$.lastStatus": "reset status",
                     "dialer.$.callCount": 0,
@@ -181,7 +184,7 @@ class AgentManager extends EventEmitter2 {
                     "dialer.$.Available": 0,
                     "dialer.$.On Break": 0,
                     "dialer.$.Logged Out": 0,
-                    "dialer.$.Available (On Demand)": 0,
+                    "dialer.$.Available (On Demand)": 0
                 }
             },
             cb
@@ -218,10 +221,12 @@ class AgentManager extends EventEmitter2 {
                 sort.randomValue =  Math.random() > 0.5 ? 1 : -1;
                 break;
             case AGENT_STRATEGY.WITH_FEWEST_CALLS:
-                sort["dialer.callCount"] = 1;
+                // sort["dialer.callCount"] = 1;
+                sort[`stats.${dialerId}.callCount`] = 1;
                 break;
             case AGENT_STRATEGY.WITH_LEAST_TALK_TIME:
-                sort["dialer.callTimeSec"] = 1;
+                // sort["dialer.callTimeSec"] = 1;
+                sort[`stats.${dialerId}.callTimeSec`] = 1;
                 break;
 
             case AGENT_STRATEGY.LONGEST_IDLE_AGENT:
@@ -233,7 +238,8 @@ class AgentManager extends EventEmitter2 {
                 //TODO
                 // break;
             default:
-                sort["dialer.callCount"] = 1;
+                // sort["dialer.callCount"] = 1;
+                sort[`stats.${dialerId}.callCount`] = 1;
         }
 
         application.DB._query.dialer._findAndModifyAgentByHunting(
@@ -345,11 +351,15 @@ class AgentManager extends EventEmitter2 {
         if (params.gotCall === true)
             $inc["dialer.$.gotCallCount"] = 1;
 
-        if (params.call === true)
+        if (params.call === true) {
             $inc["dialer.$.callCount"] = 1;
+            $inc[`stats.${dialerId}.callCount`] = 1; //TODO
+        }
 
-        if (params.hasOwnProperty('callTimeSec'))
+        if (params.hasOwnProperty('callTimeSec')) {
             $inc["dialer.$.callTimeSec"] = params.callTimeSec;
+            $inc[`stats.${dialerId}.callTimeSec`] = params.callTimeSec; //TODO
+        }
 
         if (params.hasOwnProperty('connectedTimeSec'))
             $inc["dialer.$.connectedTimeSec"] = params.connectedTimeSec;
