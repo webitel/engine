@@ -225,7 +225,8 @@ class AgentManager extends EventEmitter2 {
                 break;
 
             case AGENT_STRATEGY.LONGEST_IDLE_AGENT:
-                sort["dialer.idleSec"] = -1;
+                // sort["dialer.idleSec"] = -1;
+                sort[`stats.${dialerId}.idleSec`] = -1;
                 break;
 
             case AGENT_STRATEGY.TOP_DOWN:
@@ -356,8 +357,10 @@ class AgentManager extends EventEmitter2 {
         if (params.noAnswer === true)
             $inc["noAnswerCount"] = 1;
 
-        if (params.idleSec)
+        if (params.idleSec) {
+            $inc[`stats.${dialerId}.idleSec`] = params.idleSec; //TODO
             $inc["dialer.$.idleSec"] = params.idleSec;
+        }
 
         if (params.clearNoAnswer === true)
             $set["noAnswerCount"] = 0;

@@ -656,6 +656,8 @@ function addQuery (db) {
                                                 } else {
                                                     update.$inc[`dialer.${i}.idleSec`] = Math.round( (time - res.dialer[i].active) / 1000 );
                                                 }
+
+                                                update.$inc[`stats.${res.dialer[i]._id}.idleSec`] = update.$inc[`dialer.${i}.idleSec`];
                                             }
 
                                         }
