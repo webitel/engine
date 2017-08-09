@@ -208,7 +208,7 @@ const Service = {
                 if (err)
                     return cb(err);
 
-                application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info.member));
+                application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info));
 
                 if (tryCall) {
                     //TODO webitel_widget_id webitel_widget_name
