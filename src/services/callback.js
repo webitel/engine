@@ -208,7 +208,7 @@ const Service = {
                 if (err)
                     return cb(err);
 
-                application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info));
+                application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, option));
 
                 if (tryCall) {
                     //TODO webitel_widget_id webitel_widget_name
@@ -220,6 +220,10 @@ const Service = {
                         } else {
                             log.trace(`Call: ${res.body}`);
                         }
+                        // doesn't work in this case
+                        //if (info.member) {
+                        //    application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info.member));
+                        //}
                         return cb(null, "Success");
                     });
                 } else {
