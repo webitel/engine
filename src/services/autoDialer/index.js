@@ -777,20 +777,28 @@ class AutoDialer extends EventEmitter2 {
                     _waitingForResultStatus: null,
                     _waitingForResultStatusCb: null,
                     // "communications.$.checkResult": 0,
-                    "communications.$.lastCall": -1
-                },
-                $unset: {"checkResult": 1},
-                $inc: {_probeCount: -1, "communications.$._probe": -1, "communications.$.rangeAttempts": -1},
-                $push: {
-                    _callback: {
+                    "communications.$.lastCall": -1,
+                    "_log.0.callback": {
                         time: Date.now(),
                         from: "system",
                         data: {
                             success: "timeout",
-                            msg: "System schedule: no response result status, minus attempts"
+                            description: "System schedule: no response result status, minus attempts"
                         }
                     }
                 },
+                $unset: {"checkResult": 1},
+                $inc: {_probeCount: -1, "communications.$._probe": -1, "communications.$.rangeAttempts": -1},
+                // $push: {
+                //     _callback: {
+                //         time: Date.now(),
+                //         from: "system",
+                //         data: {
+                //             success: "timeout",
+                //             msg: "System schedule: no response result status, minus attempts"
+                //         }
+                //     }
+                // },
                 $currentDate: {lastModified: true}
             },
             cb
@@ -886,19 +894,28 @@ function _getUpdateMember(end, communicationsLength) {
             $set[`communications.${i}.state`] = 2;
     }
 
+    $set['_log.0.callback'] = {
+        time: Date.now(),
+        from: "system",
+        data: {
+            success: "timeout",
+            description: "System schedule: no response result status, save attempts"
+        }
+    };
+
     return {
         $set,
         $unset: {"checkResult": 1},
-        $push: {
-            _callback: {
-                time: Date.now(),
-                from: "system",
-                data: {
-                    success: "timeout",
-                    msg: "System schedule: no response result status, save attempts"
-                }
-            }
-        },
+        // $push: {
+        //     _callback: {
+        //         time: Date.now(),
+        //         from: "system",
+        //         data: {
+        //             success: "timeout",
+        //             msg: "System schedule: no response result status, save attempts"
+        //         }
+        //     }
+        // },
         $currentDate: {lastModified: true}
     }
 }

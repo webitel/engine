@@ -96,14 +96,23 @@ module.exports = class Dialer extends EventEmitter2 {
             log.trace(`Members length ${this.members.length()}`);
 
             member.once('end', (m) => {
-                const $set = {_lastSession: m.sessionId, variables: m.variables, lastCall: Date.now()},
+                const $set = {
+                        _lastSession: m.sessionId,
+                        variables: m.variables,
+                        lastCall: Date.now(),
+                        // '_log.$': {}
+                    },
                     $max = {
                         callSuccessful: m.callSuccessful,
                         _nextTryTime: m.nextTime
                     };
 
+                for (let key in m._log) {
+                    $set[`_log.$.${key}`] = m._log[key];
+                }
+                $set[`_log.$.state`] = "end";
                 const update = {
-                    $push: {_log: m._log},
+                    // $push: {_log: m._log},
                     $set,
                     $max
                 };
@@ -169,8 +178,8 @@ module.exports = class Dialer extends EventEmitter2 {
                 }
 
                 // console.log(update);
-                dialerService.members._updateByIdFix(
-                    m._id,
+                dialerService.members._updateByFilter(
+                    {_id: m._id, "_log.state": "reserved"},
                     update,
                     (err) => {
                         if (err)
@@ -1053,7 +1062,13 @@ module.exports = class Dialer extends EventEmitter2 {
             {
                 $set,
                 $inc: {_probeCount: 1},
-                $currentDate: {lastModified: true}
+                $currentDate: {lastModified: true},
+                $push: {
+                    _log: {
+                        $each: [{state: "reserved", reservedTime: Date.now()}],
+                        $sort: { reservedTime: -1 },
+                    }
+                }
             },
             this.getSortAvailableMembers(),
             (err, res) => {

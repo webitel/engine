@@ -603,7 +603,7 @@ let Service = {
                                 time: Date.now(),
                                 data: {
                                     success: `timeout:${options.callback.success === true ? 'true' : 'false'}`,
-                                    msg: `Woow! Slow down! You ip: ${options.callerIp}!!1`,
+                                    description: `Woow! Slow down! You ip: ${options.callerIp}!!1`,
                                     request: options.callback,
                                 }
                             }
@@ -712,15 +712,21 @@ let Service = {
                     }
                 }
 
+                $set['_log.0.callback'] = {
+                    from: caller.id,
+                    time: Date.now(),
+                    data: callback
+                };
+
                 const q = {
                     $set: $set,
-                    $push: {
-                        '_callback': {
-                            from: caller.id,
-                            time: Date.now(),
-                            data: callback
-                        }
-                    }
+                    // $push: {
+                    //     '_callback': {
+                    //         from: caller.id,
+                    //         time: Date.now(),
+                    //         data: callback
+                    //     }
+                    // }
                 };
 
                 dbDialer._updateMember(
@@ -779,6 +785,11 @@ let Service = {
         _updateById: (id, doc, cb) => {
             let db = application.DB._query.dialer;
             return db._updateMember({_id: id}, doc, null, cb);
+        },
+
+        _updateByFilter: (filter, update, cb) => {
+            let db = application.DB._query.dialer;
+            return db._updateMember(filter, update, null, cb);
         },
 
         _updateByIdFix: (id, doc, cb) => {
