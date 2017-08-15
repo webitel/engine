@@ -208,6 +208,8 @@ const Service = {
                 if (err)
                     return cb(err);
 
+                application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, option));
+
                 if (tryCall) {
                     //TODO webitel_widget_id webitel_widget_name
                     const dialString = `originate [^^:cc_queue='${info.queueName}':leg_timeout=${info.callTimeout || 60}:domain_name='${option.domain}':ignore_early_media=true:loopback_bowout=false:hangup_after_bridge=true]loopback/${option.number}/default '${info.destinationNumber}' XML public ${option.number} ${option.number}`;
@@ -218,9 +220,10 @@ const Service = {
                         } else {
                             log.trace(`Call: ${res.body}`);
                         }
-                        if (info.member) {
-                            application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info.member));
-                        }
+                        // doesn't work in this case
+                        //if (info.member) {
+                        //    application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info.member));
+                        //}
                         return cb(null, "Success");
                     });
                 } else {
