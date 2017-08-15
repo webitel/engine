@@ -450,7 +450,7 @@ module.exports = class Predictive extends Dialer {
         member.log(`dialString: ${ds}`);
         log.trace(`Call ${ds}`);
 
-        const  onChannelPark = (e) => {
+        const onChannelPark = (e) => {
             member.setConnectedFlag(true);
             
             if (this._amd.enabled === true) {
@@ -503,7 +503,12 @@ module.exports = class Predictive extends Dialer {
                 });
             }
 
-            member.end(e.getHeader('variable_hangup_cause'), e);
+            //FAH-218
+            if (this._amd.enabled && !e.getHeader('variable_amd_result') && +e.getHeader('variable_answer_epoch') > 0) {
+                member.end('ORIGINATOR_CANCEL', e);
+            } else {
+                member.end(e.getHeader('variable_hangup_cause'), e);
+            }
         };
 
         member.once('end', (m) => {
