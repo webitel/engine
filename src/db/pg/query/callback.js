@@ -346,7 +346,7 @@ function add(pool) {
                 let update = `
                     UPDATE callback_members 
                         SET ${values.join(',')} 
-                    WHERE done is null AND id = $${params.length + 1} AND queue_id = $${params.length + 2} AND domain = $${params.length + 3}
+                    WHERE (done is null or done = false) AND id = $${params.length + 1} AND queue_id = $${params.length + 2} AND domain = $${params.length + 3}
                     RETURNING *
                 `;
                 params.push(+_id);
