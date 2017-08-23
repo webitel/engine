@@ -783,7 +783,7 @@ class AutoDialer extends EventEmitter2 {
                         from: "system",
                         data: {
                             success: "timeout",
-                            description: "System schedule: no response result status, minus attempts"
+                            system: "No response result status, minus attempts"
                         }
                     }
                 },
@@ -899,7 +899,7 @@ function _getUpdateMember(end, communicationsLength) {
         from: "system",
         data: {
             success: "timeout",
-            description: "System schedule: no response result status, save attempts"
+            system: "No response result status, save attempts"
         }
     };
 
