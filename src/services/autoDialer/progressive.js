@@ -134,7 +134,7 @@ module.exports = class Progressive extends Dialer {
             const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
             let dialString = member.number.replace(dest._regexp, gw);
 
-            apps.push(`bridge:\\'{cc_side=member,originate_timeout=${this._originateTimeout},origination_caller_id_number='${dest.callerIdNumber}'}${dialString}\\'`);
+            apps.push(`bridge:\\'{cc_side=member,originate_timeout=${this._originateTimeout},origination_caller_id_number='${member.getCallerIdNumber()}'}${dialString}\\'`);
 
             vars.push(
                 `origination_callee_id_number='${agent.agentId}'`,

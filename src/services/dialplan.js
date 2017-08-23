@@ -50,7 +50,7 @@ var Service = {
                     return cb(err);
 
                 option = option || {};
-                var callflow = option['callflow'],
+                let callflow = option['callflow'],
                     timezone = option['timezone'],
                     timezonename = option['timezonename'],
                     extension = {
@@ -60,22 +60,21 @@ var Service = {
                 if (!_id || option['domain'] || option['userRef'] || option['version']) {
                     return cb(new CodeError(400, 'Bad request.'));
                 }
-                ;
 
-                for (var key in option) {
-                    if (key == 'callflow' || key == 'onDisconnect')
+                for (let key in option) {
+                    if (key === 'callflow' || key === 'onDisconnect')
                         replaceExpression(option[key]);
-                    if (option[key])
-                        extension.$set[key] = option[key];
-                };
 
-                var dbDialplan = application.DB._query.dialplan;
+                    extension.$set[key] = option[key];
+                }
+
+                const dbDialplan = application.DB._query.dialplan;
                 dbDialplan.updateExtension(_id, extension, cb);
             });
             return 1;
         } catch (e) {
             cb(e);
-        };
+        }
     },
     
     _removeExtension: function (userId, domain, cb) {

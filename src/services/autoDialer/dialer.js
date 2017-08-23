@@ -414,6 +414,10 @@ module.exports = class Dialer extends EventEmitter2 {
                     this._maxResources += (dest.limit || 0);
                     dest.regexpVal = resource.regexp;
 
+                    if (typeof dest.callerIdNumbers === "string") {
+                        dest._callerIdNumbersArr = dest.callerIdNumbers.split("\n")
+                    }
+
                     if (!res) {
                         dest.active = 0;
                         dest.gwActive = 0;

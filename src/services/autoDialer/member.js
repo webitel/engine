@@ -55,6 +55,15 @@ module.exports = class Member extends EventEmitter2 {
         this.getDialerType = () => dialer.type;
 
         this.getDestination = () => destination;
+
+        this.getCallerIdNumber = () => {
+            if (destination._callerIdNumbersArr && destination._callerIdNumbersArr.length > 0) {
+                return destination._callerIdNumbersArr[randomInteger(0, destination._callerIdNumbersArr.length - 1)]
+            } else {
+                return destination.callerIdNumber
+            }
+        };
+
         this.getDestinationUuid = () => destination;
         this.channelsCount = 0;
         this._minusProbe = false;
@@ -496,4 +505,8 @@ const keySort = function(arr = [], keys) {
 
 function getIntValueFromEventHeader(e, name) {
     return +e.getHeader(name) || 0;
+}
+
+function randomInteger(min, max) {
+    return Math.round( min - 0.5 + Math.random() * (max - min + 1) );
 }

@@ -215,7 +215,7 @@ module.exports = class Predictive extends Dialer {
                 `origination_callee_id_number='${member.number}'`,
                 `origination_callee_id_name='${member.name}'`,
 
-                `origination_caller_id_number='${dest.callerIdNumber}'`,
+                `origination_caller_id_number='${member.getCallerIdNumber()}'`,
                 `origination_caller_id_name='${member.getQueueName()}'`,
 
                 `destination_number='${member.number}'`,
