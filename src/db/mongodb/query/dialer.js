@@ -638,7 +638,7 @@ function addQuery (db) {
                                 let lastChangeStatusState = null;
                                 if (res.state === AGENT_STATE.Waiting && (res.status === AGENT_STATUS.Available || res.status === AGENT_STATUS.AvailableOnDemand)) {
                                     idle = true;
-                                    lastChangeStatusState = Math.max(res.state, res.status);
+                                    lastChangeStatusState = Math.max(res.lastStateChange, res.lastStatusChange);
                                 }
 
                                 if (res.dialer instanceof Array) {
