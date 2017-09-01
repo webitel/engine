@@ -403,7 +403,8 @@ module.exports = class Member extends EventEmitter2 {
             return;
         }
 
-        if (~this.getCausesSuccessful(endCause) && this.bridgedCall) {
+        //TODO
+        if (~this.getCausesSuccessful(endCause) && (this.bridgedCall || this.getDialerType() === DIALER_TYPES.VoiceBroadcasting)) {
             if (this.getTalkSec() >= this.getMinBillSec()) {
                 this.endCause = endCause;
                 this.log(`OK: ${endCause}`);
