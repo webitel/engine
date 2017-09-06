@@ -14,6 +14,8 @@ eventsService.registered(EVENT_NAME);
 
 module.exports = app => {
 
+    app.Broker.on('init:broker', () => mapEvents.clear());
+
     function addLogRoute(id) {
         if (mapEvents.has(id)) {
             mapEvents.set(id, mapEvents.get(id) + 1)
@@ -88,8 +90,6 @@ module.exports = app => {
         json['Event-Name'] = 'SE::BROADCAST';
         eventsService.fire('SE::BROADCAST', json['domain'], json);
         eventsService.fire('SE::BROADCAST', 'root', json);
-
-        console.dir(json, {colors: true})
     })
 
 };
