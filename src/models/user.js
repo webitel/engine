@@ -6,42 +6,31 @@
 
 var handleWebSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
     log = require(__appRoot + '/lib/log')(module),
-    authServices = require(__appRoot + '/services/auth'),
-    aclServices = require(__appRoot + '/services/acl'),
-    outQueryService = require(__appRoot + '/services/outboundQueue')
+    eventService = require(__appRoot +  '/services/events'),
+    aclServices = require(__appRoot + '/services/acl')
     ;
 
-const SCRAP_RATE = 1.02; //  - > %
 
-var User = function (id, sessionId, ws, params) {
+const User = function (id, sessionId, ws, params) {
     this.id = id;
     this.ws = {};
     this.domain = id.split('@')[1];
     this.sessionLength = 1;
+    ws._mapUserEvents = [];
+
     this.ws[sessionId] = ws;
     this.state = '';
     this.status = '';
     this._subscribeEvent = {};
 
-    var variable = params;
-    for (var key in variable) {
+    const variable = params;
+    for (let key in variable) {
         if (variable.hasOwnProperty(key) && !this[key]) {
             this[key] = variable[key];
-        };
-    };
-    this.logged = params['logged'] || false;
-
-    /**
-     TODO outbound company
-    outQueryService.getAvgBillSecUser(this, function (err, res) {
-            if (err)
-                return log.error(err);
-
-            this.avgBillSec = (Math.round(res * SCRAP_RATE) || 0);
         }
-        .bind(this)
-    );
-     **/
+    }
+
+    this.logged = params['logged'] || false;
 };
 
 User.prototype.getLogged = function () {
@@ -49,11 +38,11 @@ User.prototype.getLogged = function () {
 };
 
 User.prototype.getSession = function (ws) {
-    for (var key in this.ws) {
+    for (let key in this.ws) {
         if (this.ws.hasOwnProperty(key) && this.ws[key] == ws) {
             return key;
-        };
-    };
+        }
+    }
 
     return null;
 };
@@ -64,6 +53,8 @@ User.prototype.setLogged = function (logged) {
 };
 
 User.prototype.addSession = function (sessionId, ws, params) {
+    ws._mapUserEvents = [];
+
     this.ws[sessionId] = ws;
     this.sessionLength ++;
     return this.sessionLength;
@@ -71,6 +62,14 @@ User.prototype.addSession = function (sessionId, ws, params) {
 
 User.prototype.removeSession = function (sessionId) {
     if (this.ws[sessionId]) {
+        if (this.ws[sessionId]._mapUserEvents.length > 0) {
+            this.ws[sessionId]._mapUserEvents.forEach(eventName => this.unSubscribe(eventName, sessionId, e => {
+                if (e) {
+                    log.error(e)
+                }
+            }))
+        }
+
         delete this.ws[sessionId];
         this.sessionLength --;
         log.trace('Pear disconnect: %s [%s]', this.id, sessionId);
@@ -87,7 +86,7 @@ User.prototype.getSessionLength = function () {
 User.prototype.sendSessionObject = function (obj, sessionId) {
     if (!obj || !sessionId || !this.ws[sessionId]) {
         return false;
-    };
+    }
 
     try {
         this.ws[sessionId].send(JSON.stringify(obj));
@@ -95,11 +94,11 @@ User.prototype.sendSessionObject = function (obj, sessionId) {
     } catch (e) {
         log.error(e);
         return false;
-    };
+    }
 };
 
 User.prototype.sendObject = function (obj) {
-    for (var key in this.ws) {
+    for (let key in this.ws) {
         if (this.ws.hasOwnProperty(key)) {
             this.sendSessionObject(obj, key);
         }
@@ -134,12 +133,12 @@ User.prototype.broadcastInDomain = function (event) {
 
 User.prototype.disconnect = function () {
     try {
-        var ws = this.ws;
-        for (var key in ws) {
+        const ws = this.ws;
+        for (let key in ws) {
             if (ws.hasOwnProperty(key)) {
                 ws[key].close();
-            };
-        };
+            }
+        }
     } catch (e) {
         log.error(e);
         return false;
@@ -149,35 +148,17 @@ User.prototype.disconnect = function () {
 User.prototype.setState = function (state, status, description) {
     if (status) {
         this.status = status;
-    };
+    }
 
     if (state) {
         this.state = state;
-    };
+    }
 
     if (description) {
         this.description = description;
     }
+
     log.debug('User %s status: %s, state: %s', this.id, this.status, this.state);
-
-/**
-    TODO outbound company
-    try {
-        if (this.state === 'ONHOOK') {
-            outQueryService.getCallee(this, {}, function (err, res) {
-
-            });
-        }
-    } catch (e) {
-        log.error(e);
-    } finally {
-        return {
-            "state": this.state,
-            "status": this.status
-        };
-    };
-
-**/
 };
 
 User.prototype.changeRole = function (role) {
@@ -191,6 +172,68 @@ User.prototype.changeRole = function (role) {
         this.roleName = role;
         this.acl = aclResource;
     });
+};
+
+User.prototype.subscribe = function (eventName, sessionId, args, cb) {
+    if (this.ws[sessionId]) {
+        this.ws[sessionId]._mapUserEvents.push(eventName)
+    }
+    eventService.addListener(eventName, this, sessionId, args, cb)
+};
+
+User.prototype.unSubscribe = function (eventName, sessionId, cb) {
+    if (this.ws[sessionId] && ~this.ws[sessionId]._mapUserEvents.indexOf(eventName)) {
+        this.ws[sessionId]._mapUserEvents.splice(
+            this.ws[sessionId]._mapUserEvents.indexOf(eventName),
+            1
+        )
+    }
+    eventService.removeListener(eventName, this, sessionId, (err, res) => {
+        if (!err) {
+            if (this.ws[sessionId]) {
+                const ws = this.ws[sessionId];
+                if (typeof ws._observeEvents === "object") {
+                    delete ws._observeEvents[eventName]
+                }
+            }
+        }
+        return cb(err, res)
+    })
+};
+
+User.prototype.observeEvent = function (eventName, sessionId, exec) {
+    if (this.ws[sessionId]) {
+        const ws = this.ws[sessionId];
+        if (!ws._observeEvents) {
+            ws._observeEvents = {}
+        }
+
+        if (ws._observeEvents[eventName] instanceof Array) {
+            ws._observeEvents[eventName].push(exec)
+        } else {
+            ws._observeEvents[eventName] = [exec]
+        }
+    }
+};
+
+
+User.prototype.closeObserveEvent = function (ws, sessionId) {
+    let arr;
+    let fn;
+
+    if (ws._observeEvents) {
+        for (let  key in ws._observeEvents) {
+            arr = ws._observeEvents[key];
+            if (arr instanceof Array) {
+                while (arr.length) {
+                    fn = arr.shift();
+                    if (typeof fn === 'function') {
+                        fn(sessionId, key)
+                    }
+                }
+            }
+        }
+    }
 };
 
 module.exports = User;

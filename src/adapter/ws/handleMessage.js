@@ -95,7 +95,7 @@ function Handler(wss, application) {
                 var execId = msg['exec-uuid'];
                 var args = msg['exec-args'] || {};
 
-                if (typeof controller[msg['exec-func']] == 'function') {
+                if (typeof controller[msg['exec-func']] === 'function') {
                     controller[msg['exec-func']](caller, execId, args, ws);
                 } else {
                     ws.send(JSON.stringify({
@@ -211,9 +211,9 @@ function Handler(wss, application) {
 
             if (domain) {
                 var _index = domain.users.indexOf(user.id);
-                if (_index != -1) {
+                if (_index !== -1) {
                     domain.users.splice(_index, 1);
-                    if (domain.users.length == 0) {
+                    if (domain.users.length === 0) {
                         application.Domains.remove(_domain);
                         log.debug('Domains session: ', application.Domains.length());
                     };
@@ -294,7 +294,7 @@ var getJSONUserEvent = function (eventName, domainName, userId) {
 };
 
 function insertSession (account, domain, state, status, description, online) {
-    if (account != 'root') {
+    if (account !== 'root') {
         handleStatusDb({
             "domain": domain,
             "account": account,

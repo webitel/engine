@@ -24,13 +24,13 @@ module.exports = (application) => {
     application.Broker.on('init:broker', subscribe);
 
     event.domains.on('added', (_, key) => {
-        if (key == 'root') {
+        if (key === 'root') {
             bindHeartbeat();
         }
     });
 
     event.domains.on('removed', (_, key) => {
-        if (key == 'root') {
+        if (key === 'root') {
             unBindHeartbeat();
         }
     });

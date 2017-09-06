@@ -6,26 +6,28 @@
 
 var WebitelCommandTypes = require(__appRoot + '/const').WebitelCommandTypes,
     getCommandResponseJSON = require('./responseTemplate').getCommandResponseJSON,
-    log = require(__appRoot +  '/lib/log')(module),
-    eventService = require(__appRoot +  '/services/events')
+    log = require(__appRoot +  '/lib/log')(module)
     ;
 
 module.exports = eventsCtrl();
 
 function eventsCtrl () {
-    var controller = {};
+    const controller = {};
     controller[WebitelCommandTypes.Event.On.name] = subscribe;
     controller[WebitelCommandTypes.Event.Off.name] = unSubscribe;
     return controller;
 }
 
 function subscribe (caller, execId, args, ws) {
-    var _all = args.all,
+    let _all = args.all,
         eventName = args['event'];
     // TODO add ACL commands
     if (!caller)
         return getCommandResponseJSON(ws, execId, {"body": "-ERR: Authentication required!"});
-    eventService.addListener(eventName, caller, caller.getSession(ws), args, (err, result) => {
+
+    const sessionId = caller.getSession(ws);
+
+    caller.subscribe(eventName, sessionId, args, (err, result) => {
         let _result = {
             "body": ""
         };
@@ -33,7 +35,7 @@ function subscribe (caller, execId, args, ws) {
             _result.body = err.message
         } else {
             _result.body = result;
-            application.emit(`subscribe::${eventName}`, args, caller, eventName);
+            // application.emit(`subscribe::${eventName}`, args, caller, eventName, sessionId);
             if (_all)
                 caller._subscribeEvent[eventName] = true;
         }
@@ -43,17 +45,19 @@ function subscribe (caller, execId, args, ws) {
 }
 
 function unSubscribe (caller, execId, args, ws) {
-    var eventName = args['event'];
+    const eventName = args['event'];
     // TODO add ACL commands
     if (!caller)
         return getCommandResponseJSON(ws, execId, {"body": "-ERR: Authentication required!"});
-    eventService.removeListener(eventName, caller, caller.getSession(ws), function (err, result) {
-        var _result = {
-            "body": (err && err.message) || result
-        };
+
+    caller.unSubscribe(eventName, caller.getSession(ws), function (err, result) {
         if (caller._subscribeEvent.hasOwnProperty(eventName))
             delete caller._subscribeEvent[eventName];
-        application.emit(`unsubscribe::${eventName}`, args, caller, eventName);
-        getCommandResponseJSON(ws, execId, _result);
+
+        // application.emit(`unsubscribe::${eventName}`, args, caller, eventName);
+
+        getCommandResponseJSON(ws, execId, {
+            "body": (err && err.message) || result
+        });
     });
 }

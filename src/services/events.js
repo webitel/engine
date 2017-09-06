@@ -4,16 +4,17 @@
 
 'use strict';
 
-var HashCollection = require(__appRoot + '/lib/collection'),
+const HashCollection = require(__appRoot + '/lib/collection'),
     eventsCollection = new HashCollection('id'),
     log = require(__appRoot + '/lib/log')(module)
     ;
 
 
-var _eventsModule = {
+const _eventsModule = {
     registered: function (eventName) {
-        if (!eventName || eventName == '')
+        if (!eventName || eventName === '')
             return;
+
         let e = eventsCollection.add(eventName, {
             domains: new HashCollection('id'),
             name: eventName
@@ -21,36 +22,15 @@ var _eventsModule = {
         log.info('Registered event %s', eventName);
         return e;
     },
-    
-    checkNoSubscribersDomain: function (eventName, domainName) {
-        let e = eventsCollection.get(eventName);
-        if (!e || !e.domains)
-            return true;
-
-        let domain = e.domains.get(domainName);
-        if (!domain)
-            return true;
-
-        for (let key in domain)
-            if (domain.hasOwnProperty(key))
-                return false;
-
-        return true;
-    },
-
-    unRegistered: function (eventName) {
-        eventsCollection.remove(eventName);
-        log.trace('Unregistered event %s', eventName);
-    },
 
     addListener: function (eventName, caller, sessionId, options, cb) {
-        if (typeof eventName != 'string' || !caller || !sessionId) {
+        if (typeof eventName !== 'string' || !caller || !sessionId) {
             if (cb)
                 cb(new Error('-ERR: Bad parameters.'));
             return;
         }
 
-        var _event = eventsCollection.get(eventName);
+        const _event = eventsCollection.get(eventName);
         if (!_event) {
             log.error('-ERR: Event unregistered');
             if (cb)
@@ -58,14 +38,17 @@ var _eventsModule = {
             return;
         }
 
-        var _domainId = caller.domain || 'root',
+        const _domainId = caller.domain || 'root',
             domainSubscribes = _event.domains.get(_domainId);
 
         if (!domainSubscribes) {
-            var _user = {};
-            _user[sessionId] = caller.id;
             log.trace('subscribe', sessionId, eventName);
-            _event.domains.add(_domainId, _user);
+            _event.domains.add(_domainId, {
+                [sessionId]: {
+                    name: caller.id,
+                    args: options
+                }
+            });
         } else {
             if (domainSubscribes.hasOwnProperty(sessionId)) {
                 log.error('subscribe', sessionId, eventName);
@@ -74,81 +57,86 @@ var _eventsModule = {
                 return;
             } else {
                 log.trace('subscribe', sessionId, eventName);
-                domainSubscribes[sessionId] = caller.id;
+                domainSubscribes[sessionId] = {
+                    name: caller.id,
+                    args: options
+                };
             }
         }
 
+        application.emit(`subscribe::${eventName}`, options, caller, eventName, sessionId);
         if (cb)
             cb(null, '+OK: subscribe ' + eventName);
     },
 
     removeListener: function (eventName, caller, sessionId, cb) {
-        if (!caller || typeof eventName != 'string') {
+        if (!caller || typeof eventName !== 'string') {
             if (cb)
                 cb(new Error('-ERR: Bad parameters'));
             return;
-        };
+        }
 
-        var _event = eventsCollection.get(eventName);
+        const _event = eventsCollection.get(eventName);
         if (!_event) {
             if (cb)
                 cb(new Error('-ERR: Event unregistered'));
             return;
-        };
+        }
 
-        var _domainId = caller.domain || 'root';
-
-        var domainSubscribes = _event.domains.get(_domainId);
+        const domainSubscribes = _event.domains.get(caller.domain || 'root');
 
         if (domainSubscribes && domainSubscribes.hasOwnProperty(sessionId)) {
+            application.emit(`unsubscribe::${eventName}`, domainSubscribes[sessionId], caller, eventName);
             delete domainSubscribes[sessionId];
-        };
+        }
 
+        log.trace(`Session ${sessionId} un subscribe event ${eventName}`);
         if (cb)
             cb(null, '+OK: unsubscribe ' + eventName);
     },
-    // TODO existsCb переделать
+    // TODO existsCb переделать (FAH)
     fire: function (eventName, domainId, event, cb, existsFn) {
-        //log.trace('fire', eventName, domainId);
-        if (typeof eventName != 'string' || !(event instanceof Object)) {
+
+        if (typeof eventName !== 'string' || !(event instanceof Object)) {
             if (cb)
                 cb(new Error('-ERR: Bad parameters'));
             return;
-        };
+        }
 
-        var _event = eventsCollection.get(eventName);
+        const _event = eventsCollection.get(eventName);
+
         if (!_event) {
             if (cb)
                 cb(new Error('-ERR: Event unregistered'));
             return;
-        };
+        }
 
-        var _domain = _event.domains.get(domainId),
-            user
-            ;
+        const _domain = _event.domains.get(domainId);
+        let user;
 
         if (!_domain) {
             if (cb)
                 cb(new Error('-ERR: Not subscribes'));
             return;
-        };
+        }
+
         event['webitel-event-name'] = 'server';
 
-        var _iterator = 0;
-        for (var key in _domain) {
-            user = application.Users.get(_domain[key]);
+        let _iterator = 0;
+        for (let key in _domain) {
+            user = application.Users.get(_domain[key].name);
             if (!user) {
                 log.debug('REMOVE DOMAIN session', key);
                 delete _domain[key];
                 continue;
-            };
+            }
 
             // TODO !!!
             if (existsFn && !existsFn(user, event)) {
                 _iterator++;
                 log.trace(`Skip fire ${key} - exists false`);
                 continue
-            };
+            }
 
             if (!user.sendSessionObject(event, key)) {
                 log.warn('REMOVE DOMAIN session', key);
@@ -158,7 +146,8 @@ var _eventsModule = {
                 _iterator++;
             }
         }
-        if (_iterator == 0) {
+
+        if (_iterator === 0) {
             log.debug('REMOVE DOMAIN', domainId);
             _event.domains.remove(domainId);
             log.trace('[%s] Remove subscribed domain %s', eventName, domainId);

@@ -26,7 +26,8 @@ const _srvEvents = [
 
 
 module.exports = (application) => {
-    for (var i = 0, len = _srvEvents.length; i < len; i++) {
+    for (let i = 0, len = _srvEvents.length; i < len; i++) {
+
         let e = eventsService.registered('SE:' + _srvEvents[i].toUpperCase());
 
         e.domains.on('removed', (_, domainName) => {

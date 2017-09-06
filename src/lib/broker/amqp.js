@@ -30,6 +30,7 @@ class WebitelAmqp extends EventEmitter2 {
         this.connect();
         this.queue = null;
         this.customChannelQueue = null;
+        this.systemBroadcastQueueName = null;
         this.channel = null;
         this._instanceId = generateUuid.v4();
         this[_stackCb] = {};
@@ -322,6 +323,7 @@ class WebitelAmqp extends EventEmitter2 {
                         return cb(null, null);
                     });
                 },
+
                 //init custom channel queue
                 function (_, cb) {
                     log.debug('Try init custom channel event queue');
@@ -449,7 +451,28 @@ class WebitelAmqp extends EventEmitter2 {
                         }, {noAck: true});
                     });
                     return cb(null, null);
-                }
+                },
+
+                //init system.broadcast queue
+                function (_, cb) {
+                    log.debug('Try init channel system.broadcast');
+                    channel.assertQueue('', {autoDelete: true, durable: false, exclusive: true}, (err, qok) => {
+                        if (err)
+                            return cb(err);
+
+                        channel.consume(qok.queue, (msg) => {
+                            try {
+                                scope.emit('broadcast.message', JSON.parse(msg.content.toString()));
+                            } catch (e) {
+                                log.error(e);
+                            }
+                        }, {noAck: true});
+
+                        scope.systemBroadcastQueueName = qok.queue;
+                        // channel.bindQueue(qok.queue, scope.Exchange.ENGINE, `*.broadcast.message.*`);
+                        return cb(null, null);
+                    });
+                },
                 
                 //init commands
 
@@ -484,7 +507,7 @@ class WebitelAmqp extends EventEmitter2 {
             delete this[_stackCb][jobId];
         else log.error('bad jobId: ', jobId);
 
-        if (typeof _cb == 'function')
+        if (typeof _cb === 'function')
             _cb({body: "-ERR FreeSWITCH not found."});
 
         log.error('Bad gateway');
@@ -505,7 +528,7 @@ class WebitelAmqp extends EventEmitter2 {
             //console.log(`Count stack ${Object.keys(this[_stackCb]).length}`);
             log.trace(`Response fs-api: ${jobId}`);
 
-            if (msg.properties.contentType == "text/json")
+            if (msg.properties.contentType === "text/json")
                 _msg = JSON.parse(_msg);
 
             if (typeof _cb === "function")
