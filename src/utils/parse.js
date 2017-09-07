@@ -114,9 +114,17 @@ var Parser = {
     },
 
     getDomainFromStr: function (str) {
-        if (typeof str != 'string')
+        if (typeof str !== 'string')
             return false;
         return str.substring(str.indexOf('@') + 1);
+    },
+
+    deleteDomainFromStr: function (str) {
+        const idx = str.indexOf('@');
+        if (!~idx) {
+            return str
+        }
+        return str.substring(0, idx)
     },
 
     parseQueryToObject: function (data) {

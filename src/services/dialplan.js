@@ -6,6 +6,8 @@
 
 var CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
+    channelServices = require('./channel'),
+    deleteDomainFromStr = require(__appRoot + '/utils/parse').deleteDomainFromStr,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     expVal = require(__appRoot + '/utils/validateExpression')
     ;
@@ -447,9 +449,57 @@ var Service = {
         }
         var dbDialplan = application.DB._query.dialplan;
         dbDialplan.removeVariablesByDomain(domain, cb);
+    },
+
+    debugPublic: function (caller, options, cb) {
+        checkPermissions(caller, 'rotes/public', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            return makeDebugAcrCall(caller, options, 'public', cb)
+        })
+    },
+    
+    debugDefault: function (caller, options, cb) {
+        checkPermissions(caller, 'rotes/default', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            return makeDebugAcrCall(caller, options, 'default', cb)
+        })
     }
 
 };
+
+
+function makeDebugAcrCall(caller, options = {}, context, cb) {
+    if (!options.number) {
+        return cb(new CodeError(400, 'Number is required.'))
+    }
+
+    if (!options.uuid) {
+        return cb(new CodeError(400, 'Uuid is required.'))
+    }
+
+    if (!options.from) {
+        return cb(new CodeError(400, 'From is required.'))
+    }
+
+    if (!caller.domain) {
+        if (!options.domain) {
+            return cb(new CodeError(400, "From or domain is required."))
+        }
+
+        return channelServices.bgApi(`originate [domain_name=${options.domain},origination_uuid=${options.uuid},origination_caller_id_number=${options.number},` +
+            `webitel_direction=debug,webitel_debug_acr=true]user/${options.from} ${options.number} XML ${context}`, cb);
+
+    } else {
+
+        return channelServices.bgApi(`originate [domain_name=${caller.domain},origination_uuid=${options.uuid},origination_caller_id_number=${options.number},` +
+            `webitel_direction=debug,webitel_debug_acr=true]user/${deleteDomainFromStr(options.from)}@${caller.domain} ${options.number} XML ${context}`, cb);
+
+    }
+}
 
 module.exports = Service;
 
