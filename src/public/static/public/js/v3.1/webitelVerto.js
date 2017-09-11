@@ -6447,7 +6447,11 @@
             var dialog = this;
 
             if (dialog.verto.ringer) {
-                dialog.verto.ringer.attr("src", dialog.verto.options.ringFile)[0].play();
+                dialog.verto.ringer.attr("src", dialog.verto.options.ringFile);
+                if (dialog.verto.ringer[0].readyState !== 4) {
+                    dialog.verto.ringer[0].load();
+                }
+                dialog.verto.ringer[0].play();
 
                 setTimeout(function() {
                         dialog.stopRinging();
