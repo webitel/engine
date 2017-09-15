@@ -85,7 +85,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0].id)
                     } else {
-                        log.error('bad response', res)
+                        log.error('bad response', res);
                         return cb(new Error('Bad db response'));
                     }
                 }

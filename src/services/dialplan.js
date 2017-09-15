@@ -4,7 +4,7 @@
 
 'use strict';
 
-var CodeError = require(__appRoot + '/lib/error'),
+const CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     channelServices = require('./channel'),
     deleteDomainFromStr = require(__appRoot + '/utils/parse').deleteDomainFromStr,
@@ -12,31 +12,51 @@ var CodeError = require(__appRoot + '/lib/error'),
     expVal = require(__appRoot + '/utils/validateExpression')
     ;
 
-var Service = {
+const Service = {
     
     /**
      *
-     * @param domain
+     * @param caller
+     * @param request
      * @param cb
      * @returns {*}
      */
-    getExtensions: function (caller, domain, cb) {
-        try {
-            checkPermissions(caller, 'rotes/extension', 'r', function (err) {
-                if (err)
-                    return cb(err);
+    listExtension: function (caller, request, cb) {
+        checkPermissions(caller, 'rotes/extension', 'r', function (err) {
+            if (err)
+                return cb(err);
 
-                domain = validateCallerParameters(caller, domain);
-                if (!domain) {
-                    return cb(new CodeError(400, 'Domain is required.'));
-                };
+            const domain = validateCallerParameters(caller, request.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+            request.domain = domain;
+            application.PG.getQuery('dialplan').listExtension(request, cb);
+        });
+    },
 
-                var dbDialplan = application.DB._query.dialplan;
-                dbDialplan.getExtensions(domain, cb);
-            });
-        } catch (e) {
-            cb(e);
-        };
+    /**
+     *
+     * @param caller
+     * @param options
+     * @param cb
+     */
+    itemExtension: function (caller, options = {}, cb) {
+        checkPermissions(caller, 'rotes/extension', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            const domain = validateCallerParameters(caller, options.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+
+            if (!options.id) {
+                return cb(new CodeError(400, 'Id is required.'));
+            }
+
+            application.PG.getQuery('dialplan').itemExtension(options.id, domain, cb);
+        });
     },
 
     /**
@@ -45,51 +65,34 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    updateExtension: function (caller, _id, option, cb) {
-        try {
-            checkPermissions(caller, 'rotes/extension', 'u', function (err) {
-                if (err)
-                    return cb(err);
+    updateExtension: function (caller, options, cb) {
+        checkPermissions(caller, 'rotes/extension', 'u', function (err) {
+            if (err)
+                return cb(err);
 
-                option = option || {};
-                let callflow = option['callflow'],
-                    timezone = option['timezone'],
-                    timezonename = option['timezonename'],
-                    extension = {
-                        "$set": {}
-                    };
+            if (!options.id) {
+                return cb(new CodeError(400, 'Id is required.'));
+            }
 
-                if (!_id || option['domain'] || option['userRef'] || option['version']) {
-                    return cb(new CodeError(400, 'Bad request.'));
-                }
+            const domain = validateCallerParameters(caller, options.domain);
 
-                for (let key in option) {
-                    if (key === 'callflow' || key === 'onDisconnect')
-                        replaceExpression(option[key]);
-
-                    extension.$set[key] = option[key];
-                }
-
-                const dbDialplan = application.DB._query.dialplan;
-                dbDialplan.updateExtension(_id, extension, cb);
-            });
-            return 1;
-        } catch (e) {
-            cb(e);
-        }
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+            replaceExpression(options);
+            application.PG.getQuery('dialplan').updateExtension(options.id, domain, options, cb);
+        });
     },
     
     _removeExtension: function (userId, domain, cb) {
         if (!domain || !userId) {
             return cb(new CodeError(400, "Domain is required."));
-        };
-        var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.removeExtensionFromUser(userId, domain, cb);
+        }
+        application.PG.getQuery('dialplan').removeExtensionFromUser(userId, domain, cb);
     },
     
     _createExtension: function (dialplan, cb) {
-        var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.createExtension(dialplan, cb);
+        application.PG.getQuery('dialplan').createExtension(dialplan, cb);
     },
 
     /**
@@ -104,8 +107,7 @@ var Service = {
         if (!number || !domain)
             return cb(new CodeError(400, "Domain or number is require."));
 
-        var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.existsExtension(number, domain, cb);
+        application.PG.getQuery('dialplan').existsExtension(number, domain, cb);
     },
     
     _updateOrInsertExtension: function (userId, number, domain, cb) {
@@ -133,21 +135,11 @@ var Service = {
             if (!domain) {
                 return cb(new CodeError(400, 'Bad request.'));
             }
-            ;
-            try {
-                replaceExpression(dialplan);
-                dialplan['createdOn'] = new Date().toString();
-                dialplan['domain'] = domain;
-                if (!dialplan['order']) {
-                    dialplan['order'] = 0;
-                }
-                ;
-                dialplan['version'] = 2;
-                var dbDialplan = application.DB._query.dialplan;
-                dbDialplan.createDefault(dialplan, cb);
-            } catch (e) {
-                return cb(e);
-            };
+
+            replaceExpression(dialplan);
+            dialplan.domain = domain;
+            dialplan.version = 2;
+            application.PG.getQuery('dialplan').createDefault(dialplan, cb);
         });
     },
 
@@ -157,24 +149,32 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    getDefault: function (caller, domain, cb) {
-        try {
-            checkPermissions(caller, 'rotes/default', 'r', function (err) {
-                if (err)
-                    return cb(err);
+    listDefault: function (caller, request, cb) {
+        checkPermissions(caller, 'rotes/default', 'r', function (err) {
+            if (err)
+                return cb(err);
 
-                domain = validateCallerParameters(caller, domain);
-                if (!domain) {
-                    return cb(new CodeError(400, 'Domain is required.'));
-                }
-                ;
+            const domain = validateCallerParameters(caller, request.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+            request.domain = domain;
+            application.PG.getQuery('dialplan').listDefault(request, cb);
+        });
+    },
 
-                var dbDialplan = application.DB._query.dialplan;
-                dbDialplan.getDefault(domain, cb);
-            });
-        } catch (e) {
-            cb(e);
-        };
+    itemDefault: function (caller, options, cb) {
+        checkPermissions(caller, 'rotes/default', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            const domain = validateCallerParameters(caller, options.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+
+            application.PG.getQuery('dialplan').itemDefault(options.id, domain, cb);
+        });
     },
 
     /**
@@ -183,70 +183,21 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    removeDefault: function (caller, _id, cb) {
+    removeDefault: function (caller, options = {}, cb) {
         checkPermissions(caller, 'rotes/default', 'd', function (err) {
             if (err)
                 return cb(err);
 
-            if (!_id) {
+            if (!options.id) {
                 return cb(new CodeError(400, 'Id is required.'));
             }
-            ;
-            var dbDialplan = application.DB._query.dialplan;
-            dbDialplan.removeDefault(_id, cb);
-        });
-    },
+            const domain = validateCallerParameters(caller, options.domain);
 
-    /**
-     *
-     * @param _id
-     * @param option
-     * @param cb
-     * @returns {*}
-     */
-    updateDefault: function (caller, _id, option, cb) {
-        checkPermissions(caller, 'rotes/default', 'u', function (err) {
-            if (err)
-                return cb(err);
-
-            if (!_id) {
-                return cb(new CodeError(400, 'Id is required.'));
-            }
-            ;
-            option = option || {};
-            option['domain'] = validateCallerParameters(caller, option['domain']);
-
-            if (!option['domain']) {
+            if (!domain) {
                 return cb(new CodeError(400, 'Domain is required.'));
             }
-            ;
 
-            replaceExpression(option);
-            option['version'] = 2;
-            var dbDialplan = application.DB._query.dialplan;
-            return dbDialplan.updateDefault(_id, option, cb);
-        });
-    },
-
-    /**
-     *
-     * @param domain
-     * @param option
-     * @param cb
-     * @returns {*}
-     */
-    incOrderDefault: function (caller, domain, option, cb) {
-        checkPermissions(caller, 'rotes/default', 'u', function (err) {
-            if (err)
-                return cb(err);
-
-            domain = validateCallerParameters(caller, domain);
-            if (!domain || !option || isNaN(option['inc']) || isNaN(option['start'])) {
-                return cb(new CodeError(400, 'Bad request.'));
-            }
-            ;
-            var dbDialplan = application.DB._query.dialplan;
-            return dbDialplan.incOrderDefault(domain, option, cb);
+            application.PG.getQuery('dialplan').deleteDefault(options.id, domain, cb);
         });
     },
 
@@ -257,17 +208,40 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    setOrderDefault: function (caller, _id, option, cb) {
+    updateDefault: function (caller, options = {}, cb) {
         checkPermissions(caller, 'rotes/default', 'u', function (err) {
             if (err)
                 return cb(err);
 
-            if (!_id || !option || isNaN(option['order'])) {
-                return cb(new CodeError(400, 'Bad request.'));
+            if (!options.id) {
+                return cb(new CodeError(400, 'Id is required.'));
             }
-            ;
-            var dbDialplan = application.DB._query.dialplan;
-            return dbDialplan.setOrderDefault(_id, option, cb);
+
+            const domain = validateCallerParameters(caller, options.domain);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+            replaceExpression(options);
+            application.PG.getQuery('dialplan').updateDefault(options.id, domain, options, cb);
+        });
+    },
+
+    move: function (caller, options, cb) {
+        checkPermissions(caller, 'rotes/default', 'u', function (err) {
+            if (err)
+                return cb(err);
+
+            if (!options.id) {
+                return cb(new CodeError(400, 'Id is required.'));
+            }
+
+            const domain = validateCallerParameters(caller, options.domain);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+            application.PG.getQuery('dialplan').moveDefault(options.id, domain, options.up, cb);
         });
     },
 
@@ -287,22 +261,11 @@ var Service = {
             if (!domain || !dialplan || !dialplan['destination_number']) {
                 return cb(new CodeError(400, 'Bad request.'));
             }
-            ;
-            try {
-                replaceExpression(dialplan);
-                dialplan['createdOn'] = new Date().toString();
-                dialplan['domain'] = domain;
-                if (!dialplan['order']) {
-                    dialplan['order'] = 0;
-                }
-                ;
-                dialplan['version'] = 2;
-                var dbDialplan = application.DB._query.dialplan;
-                dbDialplan.createPublic(dialplan, cb);
-            } catch (e) {
-                return cb(e);
-            }
-            ;
+
+            replaceExpression(dialplan);
+            dialplan['domain'] = domain;
+            dialplan['version'] = 2;
+            application.PG.getQuery('dialplan').createPublic(dialplan, cb);
         });
     },
 
@@ -312,24 +275,36 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    getPublic: function (caller, domain, cb) {
-        try {
-            checkPermissions(caller, 'rotes/public', 'r', function (err) {
-                if (err)
-                    return cb(err);
+    listPublic: function (caller, request = {}, cb) {
+        checkPermissions(caller, 'rotes/public', 'r', function (err) {
+            if (err)
+                return cb(err);
 
-                domain = validateCallerParameters(caller, domain);
-                if (!domain) {
-                    return cb(new CodeError(400, 'Domain is required.'));
-                }
-                ;
+            const domain = validateCallerParameters(caller, request.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+            request.domain = domain;
+            application.PG.getQuery('dialplan').listPublic(request, cb);
+        });
+    },
 
-                var dbDialplan = application.DB._query.dialplan;
-                dbDialplan.getPublic(domain, cb);
-            });
-        } catch (e) {
-            cb(e);
-        };
+    itemPublic: function (caller, options = {}, cb) {
+        checkPermissions(caller, 'rotes/public', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            const domain = validateCallerParameters(caller, options.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+
+            if (!options.id) {
+                return cb(new CodeError(400, 'Id is required.'));
+            }
+
+            application.PG.getQuery('dialplan').itemPublic(options.id, domain, cb);
+        });
     },
 
     /**
@@ -338,17 +313,21 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    removePublic: function (caller, _id, cb) {
+    removePublic: function (caller, options = {}, cb) {
         checkPermissions(caller, 'rotes/public', 'd', function (err) {
             if (err)
                 return cb(err);
 
-            if (!_id) {
+            if (!options.id) {
                 return cb(new CodeError(400, 'Id is required.'));
             }
-            ;
-            var dbDialplan = application.DB._query.dialplan;
-            dbDialplan.removePublic(_id, cb);
+            const domain = validateCallerParameters(caller, options.domain);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+
+            application.PG.getQuery('dialplan').deletePublic(options.id, domain, cb);
         });
     },
 
@@ -359,48 +338,42 @@ var Service = {
      * @param cb
      * @returns {*}
      */
-    updatePublic: function (caller, _id, option, cb) {
+    updatePublic: function (caller, options, cb) {
         checkPermissions(caller, 'rotes/public', 'u', function (err) {
             if (err)
                 return cb(err);
 
-            if (!_id || !option) {
+            if (!options.id) {
                 return cb(new CodeError(400, 'Id is required.'));
             }
-            ;
-            option = option || {};
-            option['domain'] = validateCallerParameters(caller, option['domain']);
 
-            if (!option['domain']) {
+            const domain = validateCallerParameters(caller, options.domain);
+
+            if (!domain) {
                 return cb(new CodeError(400, 'Domain is required.'));
             }
-            ;
-
-            replaceExpression(option);
-            option['version'] = 2;
-            var dbDialplan = application.DB._query.dialplan;
-            return dbDialplan.updatePublic(_id, option, cb);
+            replaceExpression(options);
+            application.PG.getQuery('dialplan').updatePublic(options.id, domain, options, cb);
         });
     },
 
     /**
      *
      * @param caller
-     * @param domain
+     * @param request
      * @param cb
      */
-    getDomainVariable: function (caller, domain, cb) {
+    listDomainVariables: function (caller, request = {}, cb) {
         checkPermissions(caller, 'rotes/domain', 'r', function (err) {
             if (err)
                 return cb(err);
 
-            domain = validateCallerParameters(caller, domain);
+            const domain = validateCallerParameters(caller, request.domain);
             if (!domain) {
                 return cb(new CodeError(400, 'Domain is required.'));
             }
-            ;
-            var dbDialplan = application.DB._query.dialplan;
-            dbDialplan.getDomainVariable(domain, cb);
+            request.domain = domain;
+            application.PG.getQuery('dialplan').listDomainVariables(request, cb);
         });
     },
 
@@ -421,9 +394,7 @@ var Service = {
             if (!domain || !variables) {
                 return cb(new CodeError(400, 'Bad request.'));
             }
-            ;
-            var dbDialplan = application.DB._query.dialplan;
-            dbDialplan.insertOrUpdateDomainVariable(domain, variables, cb);
+            application.PG.getQuery('dialplan').insertOrUpdateDomainVariable(domain, variables, cb);
         });
     },
     
@@ -431,24 +402,21 @@ var Service = {
         if (!domain) {
             return cb(new CodeError(400, 'Domain is required.'));
         }
-        var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.removeDefaultByDomain(domain, cb);
+        application.PG.getQuery('dialplan').removeDefaultByDomain(domain, cb);
     },
 
     _removePublicByDomain: function (domain, cb) {
         if (!domain) {
             return cb(new CodeError(400, 'Domain is required.'));
         }
-        var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.removePublicByDomain(domain, cb);
+        application.PG.getQuery('dialplan').removePublicByDomain(domain, cb);
     },
 
     _removeVariablesByDomain: function (domain, cb) {
         if (!domain) {
             return cb(new CodeError(400, 'Domain is required.'));
         }
-        var dbDialplan = application.DB._query.dialplan;
-        dbDialplan.removeVariablesByDomain(domain, cb);
+        application.PG.getQuery('dialplan').deleteVariables(domain, cb);
     },
 
     debugPublic: function (caller, options, cb) {
@@ -505,15 +473,15 @@ module.exports = Service;
 
 function replaceExpression(obj) {
     if (obj)
-        for (var key in obj) {
-            if (typeof obj[key] == "object")
+        for (let key in obj) {
+            if (typeof obj[key] === "object")
                 replaceExpression(obj[key]);
-            else if (typeof obj[key] != "function" && key == "expression") {
+            else if (typeof obj[key] !== "function" && key === "expression") {
                 obj["sysExpression"] = expVal(obj[key]);
-            };
-        };
+            }
+        }
     return;
-};
+}
 
 // @@private
 function getTemplateExtension(id, number, domain) {
@@ -555,4 +523,4 @@ function getTemplateExtension(id, number, domain) {
             }
         ]
     }
-};
+}

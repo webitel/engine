@@ -4532,7 +4532,7 @@
             });
 
             if (verto.options.ringFile) {
-                verto.ringer = $('<video>', {id: "verto_ringer"}).css('display', 'none');
+                verto.ringer = $('<video>', {id: "verto_ringer", preload:"auto", src: verto.options.ringFile}).css('display', 'none');
             };
 
             verto.rpcClient.call('login', {});
@@ -6435,11 +6435,15 @@
         };
 
         $.verto.dialog.prototype.stopRinging = function() {
-            var dialog = this;
-            if (dialog.verto.ringer) {
-                dialog.verto.ringer[0].pause();
-                dialog.verto.ringer.currentTime = 0;
-                //dialog.verto.ringer.stop();
+            try {
+                var dialog = this;
+                if (dialog.verto.ringer && dialog.verto.ringer[0].currentTime !== 0) {
+                    dialog.verto.ringer[0].pause();
+                    dialog.verto.ringer[0].currentTime = 0;
+                    //dialog.verto.ringer.stop();
+                }
+            } catch (e) {
+                console.error(e)
             }
         };
 
@@ -6447,10 +6451,6 @@
             var dialog = this;
 
             if (dialog.verto.ringer) {
-                dialog.verto.ringer.attr("src", dialog.verto.options.ringFile);
-                if (dialog.verto.ringer[0].readyState !== 4) {
-                    dialog.verto.ringer[0].load();
-                }
                 dialog.verto.ringer[0].play();
 
                 setTimeout(function() {

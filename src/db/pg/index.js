@@ -24,6 +24,7 @@ const pool = new pg.Pool(config);
 const query = new Map();
 query.set('widget', require('./query/widget')(pool));
 query.set('callback', require('./query/callback')(pool));
+query.set('dialplan', require('./query/dialplan')(pool));
 
 function initData(err) {
     if (err) {

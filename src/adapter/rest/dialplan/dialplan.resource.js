@@ -5,6 +5,7 @@
 'use strict';
 
 const dialplanService = require(__appRoot + '/services/dialplan');
+const getRequest = require(__appRoot + '/utils/helper').getRequest;
 
 module.exports = {
     addRoutes: addRoutes
@@ -14,54 +15,81 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    api.get('/api/v2/routes/extensions', getExtensions);
-    // TODO get by ID !!
-    // api.get
-    api.put('/api/v2/routes/extensions/:id', putExtension);
+    api.get('/api/v2/routes/extensions', listExtension);
+    api.get('/api/v2/routes/extensions/:id', itemExtension);
+    api.put('/api/v2/routes/extensions/:id', updateExtension);
 
-    api.get('/api/v2/routes/variables', getDomainVariables);
+    api.get('/api/v2/routes/variables', listDomainVariables);
     api.post('/api/v2/routes/variables', insertOrUpdateDomainVariable);
     api.put('/api/v2/routes/variables', insertOrUpdateDomainVariable);
 
 
     api.post('/api/v2/routes/public', postPublic);
     api.post('/api/v2/routes/public/:id/debug', debugPublic);
-    api.get('/api/v2/routes/public', getPublic);
+    api.get('/api/v2/routes/public', listPublic);
+    api.get('/api/v2/routes/public/:id', itemPublic);
     api.delete('/api/v2/routes/public/:id', deletePublic);
-    api.put('/api/v2/routes/public/:id', putPublic);
+    api.put('/api/v2/routes/public/:id', updatePublic);
 
     api.post('/api/v2/routes/default', postDefault);
     api.post('/api/v2/routes/default/:id/debug', debugDefault);
-    api.get('/api/v2/routes/default', getDefault);
+    api.put('/api/v2/routes/default/:id/up', moveUpDefault);
+    api.put('/api/v2/routes/default/:id/down', moveDownDefault);
+    api.get('/api/v2/routes/default', listDefault);
+    api.get('/api/v2/routes/default/:id', itemDefault);
     api.delete('/api/v2/routes/default/:id', deleteDefault);
-    api.put('/api/v2/routes/default/:id', putDefault);
-    api.put('/api/v2/routes/default/:id/setOrder', setOrderDefault);
-    api.put('/api/v2/routes/default/:domainName/incOrder', incOrderDefault);
+    api.put('/api/v2/routes/default/:id', updateDefault);
+    // todo deprecated
+    // api.put('/api/v2/routes/default/:id/setOrder', setOrderDefault);
+    // api.put('/api/v2/routes/default/:domainName/incOrder', incOrderDefault);
 }
 
-function getExtensions (req, res, next) {
-    dialplanService.getExtensions(req.webitelUser, req.query['domain'], function (err, result) {
-        if (err) {
+function listExtension (req, res, next) {
+    dialplanService.listExtension(req.webitelUser, getRequest(req), function (err, result) {
+        if (err)
             return next(err);
-        };
 
-        return res
-            .status(200)
-            .json(result);
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
     });
 }
 
-function putExtension (req, res, next) {
-    var option = req.body || {};
-    dialplanService.updateExtension(req.webitelUser, req.params['id'], option,
+function itemExtension(req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialplanService.itemExtension(req.webitelUser, options, function (err, result) {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function updateExtension (req, res, next) {
+    const options = req.body || {};
+    options.id = req.params.id;
+    options.domain = req.query.domain;
+
+    dialplanService.updateExtension(req.webitelUser, options,
         function (err, result) {
             if (err) {
                 return next(err);
-            };
+            }
 
             return res
                 .status(200)
-                .json(result);
+                .json({
+                    "status": "OK",
+                    "data": result
+                });
         }
     );
 }
@@ -70,37 +98,29 @@ function postPublic (req, res, next) {
     dialplanService.createPublic(req.webitelUser, req.query['domain'] || req.body['domain'], req.body, function (err, result) {
         if (err) {
             return next(err);
-        };
-
-        var _r = {
-            "status": "OK",
-            "info": result['_id'],
-            "data": result
-        };
+        }
 
         return res
             .status(200)
-            .json(_r);
+            .json({
+                "status": "OK",
+                "info": result['id'],
+                "data": result
+            });
     });
 }
 
-function getPublic (req, res, next) {
-    dialplanService.getPublic(req.webitelUser, req.query['domain'], function (err, result) {
-        if (err) {
-            return next(err);
-        };
-
-        return res
-            .status(200)
-            .json(result);
-    });
-}
 
 function deletePublic (req, res, next) {
-    dialplanService.removePublic(req.webitelUser, req.params['id'], function (err, result) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialplanService.removePublic(req.webitelUser, options, function (err, result) {
         if (err) {
             return next(err);
-        };
+        }
 
         return res
             .status(200)
@@ -108,17 +128,23 @@ function deletePublic (req, res, next) {
     });
 }
 
-function putPublic (req, res, next) {
-    var option = req.body || {};
-    dialplanService.updatePublic(req.webitelUser, req.params['id'], option,
+function updatePublic (req, res, next) {
+    const options = req.body || {};
+    options.id = req.params.id;
+    options.domain = req.query.domain;
+
+    dialplanService.updatePublic(req.webitelUser, options,
         function (err, result) {
             if (err) {
                 return next(err);
-            };
+            }
 
             return res
                 .status(200)
-                .json(result);
+                .json({
+                    "status": "OK",
+                    "data": result
+                });
         }
     );
 }
@@ -127,37 +153,86 @@ function postDefault (req, res, next) {
     dialplanService.createDefault(req.webitelUser, req.query['domain'] || req.body['domain'], req.body, function (err, result) {
         if (err) {
             return next(err);
-        };
-
-        var _r = {
-            "status": "OK",
-            "info": result['_id'],
-            "data": result
-        };
+        }
 
         return res
             .status(200)
-            .json(_r);
+            .json({
+                "status": "OK",
+                "info": result['id'],
+                "data": result
+            });
     });
 }
 
-function getDefault (req, res, next) {
-    dialplanService.getDefault(req.webitelUser, req.query['domain'], function (err, result) {
-        if (err) {
+function listPublic (req, res, next) {
+    dialplanService.listPublic(req.webitelUser, getRequest(req), function (err, result) {
+        if (err)
             return next(err);
-        };
 
-        return res
-            .status(200)
-            .json(result);
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function itemPublic (req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialplanService.itemPublic(req.webitelUser, options, function (err, result) {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function listDefault (req, res, next) {
+    dialplanService.listDefault(req.webitelUser, getRequest(req), function (err, result) {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function itemDefault (req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialplanService.itemDefault(req.webitelUser, options, function (err, result) {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
     });
 }
 
 function deleteDefault (req, res, next) {
-    dialplanService.removeDefault(req.webitelUser, req.params['id'], function (err, result) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialplanService.removeDefault(req.webitelUser, options, function (err, result) {
         if (err) {
             return next(err);
-        };
+        }
 
         return res
             .status(200)
@@ -165,63 +240,39 @@ function deleteDefault (req, res, next) {
     });
 }
 
-function putDefault (req, res, next) {
-    var option = req.body || {};
-    dialplanService.updateDefault(req.webitelUser, req.params['id'], option,
+function updateDefault (req, res, next) {
+    const options = req.body || {};
+    options.id = req.params.id;
+    options.domain = req.query.domain;
+
+    dialplanService.updateDefault(req.webitelUser, options,
         function (err, result) {
             if (err) {
                 return next(err);
-            };
+            }
 
             return res
                 .status(200)
-                .json(result);
+                .json({
+                    "status": "OK",
+                    "data": result
+                });
         }
     );
 }
 
-function setOrderDefault (req, res, next) {
-    var option = req.body || {};
-    dialplanService.setOrderDefault(req.webitelUser, req.params['id'], option,
-        function (err, result) {
-            if (err) {
-                return next(err);
-            };
-
-            return res
-                .status(200)
-                .json(result);
-        }
-    );
-}
-
-function incOrderDefault (req, res, next) {
-    var option = {
-        inc: parseInt(req.body['inc']),
-        start: parseInt(req.body['start'])
-    };
-    dialplanService.incOrderDefault(req.webitelUser, req.params['domainName'], option,
-        function (err, result) {
-            if (err) {
-                return next(err);
-            };
-
-            return res
-                .status(200)
-                .json(result);
-        }
-    );
-}
-
-function getDomainVariables (req, res, next) {
-    dialplanService.getDomainVariable(req.webitelUser, req.query['domain'], function (err, result) {
+function listDomainVariables (req, res, next) {
+    dialplanService.listDomainVariables(req.webitelUser, getRequest(req), function (err, result) {
         if (err) {
             return next(err);
-        };
+        }
 
         return res
             .status(200)
-            .json(result);
+            .json({
+                "status": "OK",
+                "data": result
+            });
     });
 }
 
@@ -267,6 +318,46 @@ function debugDefault(req, res, next) {
     };
 
     dialplanService.debugDefault(req.webitelUser, options, (err, result) => {
+        if (err) {
+            return next(err);
+        }
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK"
+            });
+    })
+}
+
+function moveUpDefault(req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain,
+        up: true
+    };
+
+    dialplanService.move(req.webitelUser, options, (err) => {
+        if (err) {
+            return next(err);
+        }
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK"
+            });
+    })
+}
+
+function moveDownDefault(req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain,
+        up: false
+    };
+
+    dialplanService.move(req.webitelUser, options, (err) => {
         if (err) {
             return next(err);
         }

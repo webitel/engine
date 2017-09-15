@@ -158,6 +158,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         createDefault: function (dialplan, cb) {
             db
                 .collection(defaultCollectionName)
@@ -178,6 +179,7 @@ function addQuery(db) {
          * @param cb
          * @returns {*}
          */
+        //todo +
         getDefault: function (domain, cb) {
             return Dialplan.getDataFromCollection({
                 domain: domain,
@@ -191,6 +193,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         removeDefault: function (_id, cb) {
             if (!validateId(_id, cb)) return 0;
             db
@@ -219,6 +222,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         updateDefault: function (_id, data, cb) {
             if (!validateId(_id, cb)) return 0;
             db
@@ -307,6 +311,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         createPublic: function (dialplan, cb) {
             db
                 .collection(publicCollectionName)
@@ -329,6 +334,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         getPublic: function (domain, cb) {
             db
                 .collection(publicCollectionName)
@@ -344,6 +350,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         removePublic: function (_id, cb) {
             if (!validateId(_id, cb)) return 0;
             db
@@ -372,6 +379,7 @@ function addQuery(db) {
          * @param cb
          * @returns {number}
          */
+        //todo +
         updatePublic: function (_id, data, cb) {
             if (!validateId(_id, cb)) return 0;
             db

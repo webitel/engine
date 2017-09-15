@@ -109,21 +109,21 @@ function onDomainDelete (domainName) {
         if (err) {
             return log.error(err);
         };
-        log.debug('Default routes destroy %s from domain %s', result && result.n, domainName);
+        log.debug('Default routes destroy %s from domain %s', result, domainName);
     });
 
     dialplanService._removePublicByDomain(domainName, function (err, result) {
         if (err) {
             return log.error(err);
         };
-        log.debug('Public routes destroy %s from domain %s', result && result.n, domainName);
+        log.debug('Public routes destroy %s from domain %s', result, domainName);
     });
 
     dialplanService._removeVariablesByDomain(domainName, function (err, result) {
         if (err) {
             return log.error(err);
         };
-        log.debug('Route variables destroy %s from domain %s', result && result.n, domainName);
+        log.debug('Route variables destroy %s from domain %s', result, domainName);
     });
 
     contactBookService._removeByDomain(domainName, function (err, result) {
