@@ -185,4 +185,126 @@ CREATE OR REPLACE FUNCTION insert_member_public(
     $$ LANGUAGE plpgsql;
 `);
 
+
+sql.push(`
+create table  IF NOT EXISTS callflow_default
+(
+	id serial not null
+		constraint callflow_default_pkey
+			primary key,
+	destination_number varchar(120) not null,
+	name varchar(120) not null,
+	"order" integer default currval('callflow_default_id_seq'::regclass) not null,
+	disabled boolean default false,
+	debug boolean default false,
+	domain varchar(75) not null,
+	fs_timezone varchar(35),
+	callflow json,
+	callflow_on_disconnect json,
+	cf_diagram json,
+	version smallint default 2,
+	call_count bigint default 0,
+	description varchar(500)
+)
+;
+
+create unique index  IF NOT EXISTS  callflow_default_id_uindex
+	on callflow_default (id)
+;
+
+create index  IF NOT EXISTS  callflow_default_destination_number_disabled_domain_index
+	on callflow_default (destination_number, disabled, domain)
+;
+
+create index  IF NOT EXISTS  callflow_default_order_index
+	on callflow_default ("order")
+;
+`);
+
+sql.push(`
+create table IF NOT EXISTS callflow_extension
+(
+	id serial not null
+		constraint callflow_extension_pkey
+			primary key,
+	destination_number varchar(50) not null,
+	domain varchar(75) not null,
+	user_id varchar(120) not null,
+	name varchar(75),
+	version smallint default 2,
+	callflow json,
+	callflow_on_disconnect json,
+	cf_diagram json,
+	fs_timezone varchar(35)
+)
+;
+
+create unique index IF NOT EXISTS callflow_extension_id_uindex
+	on callflow_extension (id)
+;
+
+create index IF NOT EXISTS callflow_extension_destination_number_domain_index
+	on callflow_extension (destination_number, domain)
+;
+`);
+
+sql.push(`
+create table IF NOT EXISTS callflow_public
+(
+	id serial not null
+		constraint callflow_public_pkey
+			primary key,
+	destination_number varchar(120) [],
+	name varchar(120) not null,
+	disabled boolean default false,
+	domain varchar(75) not null,
+	fs_timezone varchar(35),
+	callflow json,
+	callflow_on_disconnect json,
+	cf_diagram json,
+	call_count bigint default 0,
+	version smallint default 2,
+	description varchar(500),
+	debug boolean default false
+)
+;
+
+create unique index IF NOT EXISTS callflow_public_id_uindex
+	on callflow_public (id)
+;
+
+create unique index IF NOT EXISTS callflow_public_destination_number_index_unique
+	on callflow_public (destination_number)
+;
+
+create index IF NOT EXISTS callflow_public_destination_number_index
+	on callflow_public USING gin (destination_number)
+;
+
+create index IF NOT EXISTS callflow_public_disabled_index
+	on callflow_public (disabled)
+;
+`);
+
+
+sql.push(`
+create table IF NOT EXISTS  callflow_variables
+(
+	id serial not null
+		constraint callflow_variables_pkey
+			primary key,
+	domain varchar(75) not null,
+	variables jsonb
+)
+;
+
+create unique index IF NOT EXISTS  callflow_variables_id_uindex
+	on callflow_variables (id)
+;
+
+create unique index IF NOT EXISTS  callflow_variables_domain_uindex
+	on callflow_variables (domain)
+;
+`);
+
 module.exports = sql;
