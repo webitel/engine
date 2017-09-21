@@ -10,6 +10,8 @@ const MEMBER_STATE = {
     End: 2
 };
 
+const VAR_SEPARATOR = String.fromCharCode(27);
+
 const DIALER_STATES = {
     Idle: 0,
     Work: 1,
@@ -179,5 +181,6 @@ module.exports = {
     MEMBER_STATE: MEMBER_STATE,
     AGENT_STRATEGY: AGENT_STRATEGY,
     NUMBER_STRATEGY: NUMBER_STRATEGY,
+    VAR_SEPARATOR,
     getHangupCode: getHangupCode
 };

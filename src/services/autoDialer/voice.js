@@ -5,6 +5,7 @@
 let Dialer = require('./dialer'),
     log = require(__appRoot + '/lib/log')(module),
     END_CAUSE = require('./const').END_CAUSE,
+    VAR_SEPARATOR = require('./const').VAR_SEPARATOR,
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 module.exports = class VoiceBroadcast extends Dialer {
@@ -121,7 +122,7 @@ module.exports = class VoiceBroadcast extends Dialer {
 
             apps.push(`socket:` + '$${acr_srv}');
 
-            return `originate {${vars}}${dialString} '${apps.join(',')}' inline`;
+            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
         };
 
         const handleHangupEvent = (e) => {

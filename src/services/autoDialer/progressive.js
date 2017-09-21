@@ -7,6 +7,7 @@ let Dialer = require('./dialer'),
     async = require('async'),
     END_CAUSE = require('./const').END_CAUSE,
     AGENT_STATUS = require('./const').AGENT_STATUS,
+    VAR_SEPARATOR = require('./const').VAR_SEPARATOR,
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 
@@ -147,7 +148,7 @@ module.exports = class Progressive extends Dialer {
                 `cc_agent=${agent.agentId}`,
                 `cc_side=agent`
             );
-            return `originate {${vars}}user/${agent.agentId} 'set_user:${agent.agentId},${apps.join(',')}' inline`;
+            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}user/${agent.agentId} 'set_user:${agent.agentId},${apps.join(',')}' inline`;
         }
     }
 

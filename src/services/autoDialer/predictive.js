@@ -8,6 +8,7 @@ const Dialer = require('./dialer'),
     DIALER_TYPES = require('./const').DIALER_TYPES,
     AGENT_STATUS = require('./const').AGENT_STATUS,
     END_CAUSE = require('./const').END_CAUSE,
+    VAR_SEPARATOR = require('./const').VAR_SEPARATOR,
     CANCEL_CAUSE = 'ORIGINATOR_CANCEL'
     ;
 
@@ -233,7 +234,7 @@ module.exports = class Predictive extends Dialer {
 
             apps.push(`park:`);
 
-            return `originate {${vars}}${dialString} '${apps.join(',')}' inline`;
+            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
         }
     }
 
@@ -278,7 +279,7 @@ module.exports = class Predictive extends Dialer {
 
         member._predAgentOriginate = true;
 
-        const agentDs = `originate {${agentVars}}user/${agent.agentId} &park()`;
+        const agentDs = `originate {^^${VAR_SEPARATOR}${agentVars.join(VAR_SEPARATOR)}}user/${agent.agentId} &park()`;
         member.log(`Agent ds: ${agentDs}`);
         application.Esl.bgapi(agentDs, (res) => {
             member.log(`agent ${agent.agentId} fs res -> ${res.body}`);
