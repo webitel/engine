@@ -292,6 +292,8 @@ begin
 end
 $$ language plpgsql;
 
+DROP TRIGGER  IF EXISTS callflow_public_check_destination_tg ON callflow_public;
+
 CREATE TRIGGER callflow_public_check_destination_tg
 BEFORE INSERT OR UPDATE ON callflow_public
     FOR EACH ROW EXECUTE PROCEDURE callflow_public_check_duplicate_destination();
