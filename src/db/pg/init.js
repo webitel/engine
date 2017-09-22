@@ -273,9 +273,28 @@ create unique index IF NOT EXISTS callflow_public_id_uindex
 	on callflow_public (id)
 ;
 
-create unique index IF NOT EXISTS callflow_public_destination_number_index_unique
-	on callflow_public (destination_number)
-;
+DROP INDEX IF EXISTS callflow_public_destination_number_index_unique;
+
+create or REPLACE function callflow_public_check_duplicate_destination() returns trigger as $$
+declare
+  domain_b VARCHAR(75);
+begin
+    SELECT domain
+    INTO domain_b
+    FROM callflow_public WHERE destination_number @> NEW.destination_number AND disabled != true AND id != NEW.id
+    LIMIT  1;
+
+    if not domain_b is NULL THEN
+      RAISE 'Duplicate destination number: % at domain: %', NEW.destination_number, domain_b  USING ERRCODE = '23505';
+    END IF;
+
+    return new;
+end
+$$ language plpgsql;
+
+CREATE TRIGGER callflow_public_check_destination_tg
+BEFORE INSERT OR UPDATE ON callflow_public
+    FOR EACH ROW EXECUTE PROCEDURE callflow_public_check_duplicate_destination();
 
 create index IF NOT EXISTS callflow_public_destination_number_index
 	on callflow_public USING gin (destination_number)
