@@ -285,6 +285,9 @@ module.exports = class Dialer extends EventEmitter2 {
         this.resources = [];
         if (config.resources instanceof Array) {
             for (let res of config.resources) {
+                if (res.disabled)
+                    continue;
+                
                 const regexp = strToRegExp(res.dialedNumber);
                 if (regexp)
                     this.resources.push({
