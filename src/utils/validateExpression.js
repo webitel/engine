@@ -78,6 +78,9 @@ module.exports = function (expression) {
         .replace(/\&limit\(([\s\S]*?)\)/gi, function (f, param) {
             return 'sys.limit(\"' + param + '\")';
         })
+        .replace(/\&date_time\(([\s\S]*?)\)/gi, function (f, param) {
+            return 'sys.date_time(\"' + param + '\")';
+        })
         // END COMMANDS
         .replace(/\0B(\d+)\0/g, function(m, i) {
             return all[i];
