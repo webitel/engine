@@ -19,6 +19,13 @@ module.exports = {
         if (!request.filter)
             request.filter = {};
 
+        if (request.from >= 0) {
+            filters.push(`created_on >= $${parameters.push(request.from)}`)
+        }
+        if (request.to >= 0) {
+            filters.push(`created_on <= $${parameters.push(request.to)}`)
+        }
+
         for (let key in request.filter) {
             if (typeof request.filter[key] === 'string') {
                 filters.push(`${escape(key)} like $${parameters.push(request.filter[key] + '%')}`)

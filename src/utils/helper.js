@@ -30,6 +30,8 @@ module.exports.getRequest = (req) => {
         limit: (+req.query.limit) || 40,
         pageNumber: (+req.query.page) || 1,
         domain: req.query.domain,
+        from: isFinite(req.query.from) ? +req.query.from : undefined,
+        to: isFinite(req.query.to) ? +req.query.to : undefined,
         columns: [],
         sort: parseQueryToObject(req.query.sort),
         filter: parseQueryToObject(req.query.filter) || {}
