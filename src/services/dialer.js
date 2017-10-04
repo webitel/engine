@@ -391,24 +391,30 @@ let Service = {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
                 }
 
-                let member = option.data;
-                member.dialer = option.dialer;
-                member.domain = domain;
-                member.createdOn = Date.now();
-                member.randomValue = Math.random();
-                member._score = member.createdOn + (member.priority || 0);
-
-                if (!(member.communications instanceof Array) || member.communications.length == 0)
-                    return cb(new CodeError(400, 'Bad communications (must array)'));
-
-                for (let comm of member.communications) {
-                    if (!comm.number)
-                        return cb(new CodeError(400, `Bad communication number`));
-                    comm.state = 0;
+                if (! (option.data instanceof Array)) {
+                    option.data = [option.data];
                 }
 
+                option.data = option.data.map( m => {
+                    m.domain = domain;
+                    m.dialer = option.dialer;
+                    m.createdOn = Date.now();
+                    m.randomValue = Math.random();
+                    m._score = m.createdOn + (m.priority || 0);
+
+                    if (!(m.communications instanceof Array) || m.communications.length === 0)
+                        return cb(new CodeError(400, 'Bad communications (must array)'));
+
+                    for (let comm of m.communications) {
+                        if (!comm.number)
+                            return cb(new CodeError(400, `Bad communication number`));
+                        comm.state = 0;
+                    }
+                    return m
+                });
+
                 let db = application.DB._query.dialer;
-                return db.createMember(member, (err, res) => {
+                return db.createMember(option.data, (err, res) => {
                     if (err)
                         return cb(err);
 

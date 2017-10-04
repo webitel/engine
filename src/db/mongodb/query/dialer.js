@@ -280,9 +280,13 @@ function addQuery (db) {
         },
         
         createMember: function (doc, cb) {
-            return db
-                .collection(memberCollectionName)
-                .insert(doc, cb);
+            try {
+                return db
+                    .collection(memberCollectionName)
+                    .insertMany(doc, cb);
+            } catch (e) {
+                return cb(e)
+            }
         },
         
         removeMemberById: function (_id, dialerId, cb) {
