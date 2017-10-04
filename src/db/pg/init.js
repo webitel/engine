@@ -328,4 +328,21 @@ create unique index IF NOT EXISTS  callflow_variables_domain_uindex
 ;
 `);
 
+sql.push(`
+create table IF NOT EXISTS tcp_dump
+(
+	id serial not null
+		constraint tcp_dump_pkey
+			primary key,
+	created_on bigint default (date_part('epoch'::text, now()))::bigint not null,
+	filter varchar(250),
+	duration smallint default 0 not null,
+	description varchar(250),
+	meta_file json
+);
+
+create unique index IF NOT EXISTS tcp_dump_id_uindex
+	on tcp_dump (id)
+;`);
+
 module.exports = sql;
