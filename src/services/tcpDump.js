@@ -74,7 +74,22 @@ const Service = {
         if (!option.id)
             return cb(new CodeError(400, "Bad request id is required"));
 
-        application.PG.getQuery('tcpDump').remove(option.id, cb);
+        application.PG.getQuery('tcpDump').remove(option.id, (err, data) => {
+
+            if (err)
+                return cb(err);
+
+            if (data && data.meta_file && data.meta_file.name) {
+                application.Broker.publish(application.Broker.Exchange.STORAGE_COMMANDS, 'storage.commands.inbound',
+                    {'exec-api': 'tcpDump.removeFile', 'exec-args': data.meta_file}, e => {
+                        if (e)
+                            return log.error(e)
+                    }
+                );
+            }
+
+            return cb(null, data);
+        });
     },
 
     update: (caller, option = {}, cb) => {
