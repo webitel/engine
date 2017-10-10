@@ -281,10 +281,10 @@ declare
 begin
     SELECT domain
     INTO domain_b
-    FROM callflow_public WHERE destination_number @> NEW.destination_number AND disabled != true AND id != NEW.id
+    FROM callflow_public WHERE destination_number && NEW.destination_number AND disabled IS NOT TRUE AND id != NEW.id
     LIMIT  1;
 
-    if not domain_b is NULL THEN
+    if not domain_b is NULL AND NEW.disabled IS NOT TRUE THEN
       RAISE 'Duplicate destination number: % at domain: %', NEW.destination_number, domain_b  USING ERRCODE = '23505';
     END IF;
 
