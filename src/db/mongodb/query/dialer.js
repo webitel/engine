@@ -214,9 +214,6 @@ function addQuery (db) {
 
             const _id = new ObjectID(dialerId);
 
-            if (options.resetAgents === true)
-                _resetAgents(_id);
-
             const $set = {};
 
             if (options.resetProcess) {

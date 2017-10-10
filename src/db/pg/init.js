@@ -345,4 +345,125 @@ create unique index IF NOT EXISTS tcp_dump_id_uindex
 	on tcp_dump (id)
 ;`);
 
+//Dialer agents
+sql.push(`
+create table IF NOT EXISTS agents
+(
+	name varchar(255) not null
+		constraint agents_name_pk
+			primary key,
+	system varchar(255),
+	uuid varchar(255),
+	type varchar(255),
+	contact varchar(1024),
+	status varchar(255),
+	state varchar(255),
+	max_no_answer integer default 0 not null,
+	wrap_up_time integer default 0 not null,
+	reject_delay_time integer default 0 not null,
+	busy_delay_time integer default 0 not null,
+	no_answer_delay_time integer default 0 not null,
+	last_bridge_start integer default 0 not null,
+	last_bridge_end integer default 0 not null,
+	last_offered_call integer default 0 not null,
+	last_status_change integer default 0 not null,
+	no_answer_count integer default 0 not null,
+	calls_answered integer default 0 not null,
+	talk_time integer default 0 not null,
+	ready_time integer default 0 not null,
+	external_calls_count integer default 0 not null
+)
+;
+
+
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS last_set_stats timestamp default now();
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS logged_in integer default 0;
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS logged_out integer default 0;
+
+create unique index IF NOT EXISTS agents_name_uindex
+	on agents (name)
+;
+
+create or REPLACE function setagent() returns trigger
+	language plpgsql
+as $$
+BEGIN
+  if new.status != old.status OR new.state != old.state THEN
+
+    NEW.last_set_stats = NOW() at time zone 'utc';
+
+     IF OLD.state = 'Waiting' AND (OLD.status = 'Available' OR OLD.status = 'Available (On Demand)') AND NEW.ready_time < EXTRACT(EPOCH FROM NEW.last_set_stats) THEN
+       UPDATE agent_in_dialer
+         SET idle_sec = idle_sec +
+                        (EXTRACT(EPOCH FROM (NEW.last_set_stats -
+                         GREATEST(active, to_timestamp(GREATEST(NEW.last_bridge_end + OLD.wrap_up_time, NEW.ready_time, OLD.last_status_change)) at time zone 'utc'))))
+       WHERE agent_name = new.name AND NOT active is NULL;
+     ELSEIF OLD.status = 'On Break' AND NEW.status != 'On Break' THEN
+       UPDATE agent_in_dialer
+         SET on_break_sec = on_break_sec + (EXTRACT(EPOCH FROM (NEW.last_set_stats - GREATEST(active, to_timestamp(OLD.last_status_change) at time zone 'utc' ))))
+       WHERE agent_name = new.name AND NOT active is NULL ;
+     END IF;
+
+    IF OLD.status = 'Logged Out' AND NEW.status != 'Logged Out' THEN
+      SELECT EXTRACT(EPOCH FROM NOW())::INT INTO NEW.logged_in;
+      NEW.logged_out = 0;
+    ELSEIF NEW.status = 'Logged Out' AND OLD.status != 'Logged Out' THEN
+      SELECT EXTRACT(EPOCH FROM NOW())::INT INTO NEW.logged_out;
+      NEW.logged_in = 0;
+    END IF;
+
+  END IF;
+  RETURN NEW;
+END;
+$$
+;
+DROP TRIGGER  IF EXISTS agents_setagent ON agents;
+
+create trigger agents_setagent
+	before update
+	on agents
+	for each row
+	execute procedure setagent()
+;
+
+`);
+//Dialer agents in dialer
+sql.push(`
+create table IF NOT EXISTS agent_in_dialer
+(
+    id serial not null
+		constraint agent_in_dialer_id_pk
+			primary key,
+	agent_name varchar(100) not null,
+	dialer_id varchar(24) not null,
+	call_count integer default 0,
+	missed_call integer default 0,
+	process varchar(255),
+	call_time_sec integer default 0,
+	connected_time_sec integer default 0,
+	idle_sec integer default 0,
+	on_break_sec integer default 0,
+	wrap_time_sec integer default 0,
+	active timestamp,
+	last_status varchar(120),
+	bridged_count integer default 0,
+	last_offered_call integer
+)
+;
+
+create unique index IF NOT EXISTS agent_in_dialer_agent_name_dialer_id_uindex
+	on agent_in_dialer (agent_name, dialer_id)
+;
+
+create unique index IF NOT EXISTS agent_in_dialer_agent_name_active_uindex
+	on agent_in_dialer (agent_name, active)
+;
+
+create unique index IF NOT EXISTS agent_in_dialer_id_uindex
+	on agent_in_dialer (id)
+;
+
+
+`);
+
 module.exports = sql;

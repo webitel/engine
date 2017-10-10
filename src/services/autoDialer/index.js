@@ -25,7 +25,7 @@ let EventEmitter2 = require('eventemitter2').EventEmitter2,
     Scheduler = require(__appRoot + '/lib/scheduler'),
     conf = require(__appRoot + '/conf'),
     dialerCbMinusAttempt = `${conf.get('application:dialerCbMinusAttempt')}` === 'true'
-    ;
+;
 
 const EVENT_CHANGE_STATE = `DC::CHANGE_STATE`;
 eventsService.registered(EVENT_CHANGE_STATE);
@@ -44,7 +44,7 @@ class AutoDialer extends EventEmitter2 {
         this.activeDialer = new Collection('id');
         this.agentManager = new AgentManager();
 
-        this.agentManager.on('unReserveHookAgent', this.sendAgentToDialer.bind(this));
+        //this.agentManager.on('unReserveHookAgent', this.sendAgentToDialer.bind(this));
 
         log.debug('Init AutoDialer');
 
@@ -76,7 +76,7 @@ class AutoDialer extends EventEmitter2 {
             dialer.on('ready', (d) => {
                 log.debug(`Ready dialer ${d.nameDialer} - ${d._id}`);
 
-                this.agentManager.setActiveAgentsInDialer(d._objectId, Date.now(), (e) => {
+                this.agentManager.setActiveAgentsInDialer(d._objectId, 1, d._agents, (e) => {
                     if (e) {
                         log.error(e)
                     }
@@ -108,7 +108,7 @@ class AutoDialer extends EventEmitter2 {
 
             dialer.once('end', (d) => {
                 log.debug(`End dialer ${d.nameDialer} - ${d._id} - ${d.cause}`);
-                this.agentManager.setActiveAgentsInDialer(d._objectId, 0, (e) => {
+                this.agentManager.setActiveAgentsInDialer(d._objectId, 0, [], (e) => {
                     if (e) {
                         log.error(e)
                     }
@@ -141,19 +141,7 @@ class AutoDialer extends EventEmitter2 {
                 this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessInternalError, "Error");
                 this.activeDialer.remove(d._id);
             });
-
-            if (dialer.type === DIALER_TYPES.PredictiveDialer || dialer.type === DIALER_TYPES.ProgressiveDialer) {
-
-                this.agentManager.initAgents(dialer, (err, res) => {
-                    if (err)
-                        return log.error(err);
-
-                    dialer.setReady();
-                });
-
-            } else {
-                dialer.setReady();
-            }
+            dialer.setReady();
         });
 
         this.activeDialer.on('removed', (dialer) => {
@@ -272,19 +260,6 @@ class AutoDialer extends EventEmitter2 {
 
         });
 
-        const checkSetAvailableTimeSec = (cb) => {
-            if (!this.isReady()) {
-                return cb();
-            }
-
-            this.agentManager.checkSetAvailableTime(e => {
-                if (e)
-                    log.error(e);
-
-                return cb();
-            });
-        };
-
         const clearAttemptOnDeadlineResultSec = dialerCbMinusAttempt
             ? (cb) => {
                 if (!this.isReady()) {
@@ -297,7 +272,7 @@ class AutoDialer extends EventEmitter2 {
 
                     return cb();
                 });
-              }
+            }
             : (cb) => {
                 if (!this.isReady()) {
                     return cb();
@@ -309,7 +284,7 @@ class AutoDialer extends EventEmitter2 {
 
                     return cb();
                 });
-              };
+            };
 
         // let currentDay = das;
 
@@ -326,8 +301,6 @@ class AutoDialer extends EventEmitter2 {
             });
         };
 
-
-        new Scheduler('1-59/1 * * * * *', checkSetAvailableTimeSec, {log: false});
         new Scheduler('1-59/1 * * * * *', clearAttemptOnDeadlineResultSec, {log: false});
         new Scheduler('*/1 * * * *', fnScheduleMin, {log: false});
     }
@@ -431,57 +404,57 @@ class AutoDialer extends EventEmitter2 {
             });
         });
 
-        channel.assertQueue('engine.agents', {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
-            if (err)
-                return log.error(err);
-
-            channel.consume(qok.queue, (msg) => {
-                try {
-                    this.onAgentStatusChange(msg);
-                } catch (e) {
-                    log.error(e);
-                }
-            }, {noAck: true});
-            //#FreeSWITCH-Hostname,Event-Subclass,CC-Action,CC-Queue,Unique-ID
-            channel.bindQueue(qok.queue, application.Broker.Exchange.FS_CC_EVENT, "*.callcenter%3A%3Ainfo.agent-status-change.*.*");
-            channel.bindQueue(qok.queue, application.Broker.Exchange.FS_CC_EVENT, "*.callcenter%3A%3Ainfo.agent-state-change.*.*");
-            log.debug(`Init queue agents - successful`);
-        });
+        // channel.assertQueue('engine.agents', {autoDelete: true, durable: true, exclusive: false}, (err, qok) => {
+        //     if (err)
+        //         return log.error(err);
+        //
+        //     channel.consume(qok.queue, (msg) => {
+        //         try {
+        //             this.onAgentStatusChange(msg);
+        //         } catch (e) {
+        //             log.error(e);
+        //         }
+        //     }, {noAck: true});
+        //     //#FreeSWITCH-Hostname,Event-Subclass,CC-Action,CC-Queue,Unique-ID
+        //     channel.bindQueue(qok.queue, application.Broker.Exchange.FS_CC_EVENT, "*.callcenter%3A%3Ainfo.agent-status-change.*.*");
+        //     channel.bindQueue(qok.queue, application.Broker.Exchange.FS_CC_EVENT, "*.callcenter%3A%3Ainfo.agent-state-change.*.*");
+        //     log.debug(`Init queue agents - successful`);
+        // });
     }
 
     onAgentStatusChange (msg) {
-        if (!msg)
-            return;
-
-        const e = JSON.parse(msg.content.toString());
-
-        if (e['CC-Action'] === 'agent-status-change') {
-            log.trace(`try set status ${e['CC-Agent']} -> ${e['CC-Agent-Status']}`);
-            this.dbDialer._setAgentStatus(e['CC-Agent'], e['CC-Agent-Status'], (err, res) => {
-                if (err)
-                    return log.error(err);
-
-                if (res.value) {
-                    log.debug(`OK set status ${e['CC-Agent']} -> ${e['CC-Agent-Status']}`);
-                    this.sendAgentToDialer(res.value);
-                } else {
-                    log.error(`Agent ${e['CC-Agent']} set status no response db: `, e, res);
-                }
-            });
-        } else if (e['CC-Action'] === 'agent-state-change') {
-            log.trace(`try set state ${e['CC-Agent']} -> ${e['CC-Agent-State']}`);
-            this.dbDialer._setAgentState(e['CC-Agent'], e['CC-Agent-State'], (err, res) => {
-                if (err)
-                    return log.error(err);
-
-                if (res.value) {
-                    log.trace(`OK set state ${e['CC-Agent']} -> ${e['CC-Agent-State']}`);
-                    this.sendAgentToDialer(res.value);
-                } else {
-                    log.error(`Agent ${e['CC-Agent']} set state no response db: `, e, res);
-                }
-            })
-        }
+        // if (!msg)
+        //     return;
+        //
+        // const e = JSON.parse(msg.content.toString());
+        //
+        // if (e['CC-Action'] === 'agent-status-change') {
+        //     log.trace(`try set status ${e['CC-Agent']} -> ${e['CC-Agent-Status']}`);
+        //     this.dbDialer._setAgentStatus(e['CC-Agent'], e['CC-Agent-Status'], (err, res) => {
+        //         if (err)
+        //             return log.error(err);
+        //
+        //         if (res.value) {
+        //             log.debug(`OK set status ${e['CC-Agent']} -> ${e['CC-Agent-Status']}`);
+        //             this.sendAgentToDialer(res.value);
+        //         } else {
+        //             log.error(`Agent ${e['CC-Agent']} set status no response db: `, e, res);
+        //         }
+        //     });
+        // } else if (e['CC-Action'] === 'agent-state-change') {
+        //     log.trace(`try set state ${e['CC-Agent']} -> ${e['CC-Agent-State']}`);
+        //     this.dbDialer._setAgentState(e['CC-Agent'], e['CC-Agent-State'], (err, res) => {
+        //         if (err)
+        //             return log.error(err);
+        //
+        //         if (res.value) {
+        //             log.trace(`OK set state ${e['CC-Agent']} -> ${e['CC-Agent-State']}`);
+        //             this.sendAgentToDialer(res.value);
+        //         } else {
+        //             log.error(`Agent ${e['CC-Agent']} set state no response db: `, e, res);
+        //         }
+        //     })
+        // }
     }
 
     getMemberFromActiveDialer (dialerId, memberId) {
@@ -717,7 +690,7 @@ class AutoDialer extends EventEmitter2 {
             let dialer = this.newInstanceDialer(dialerDb, res, this.id, this.agentManager);
             if (!dialer)
                 return new Error('Bad dialer type');
-            
+
             this.activeDialer.add(dialer._id, dialer);
         });
     }
@@ -937,9 +910,9 @@ function _broadcastMemberEnd(member) {
     };
 
     const lastNumber = isFinite(member._lastNumberId) && member.communications[member._lastNumberId]
-            ? member.communications[member._lastNumberId]
-            : null
-        ;
+        ? member.communications[member._lastNumberId]
+        : null
+    ;
 
 
     if (lastNumber) {

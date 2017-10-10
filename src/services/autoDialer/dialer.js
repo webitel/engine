@@ -20,8 +20,9 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     dialerService = require(__appRoot + '/services/dialer'),
-    async = require('async')
-    ;
+    async = require('async'),
+    REG_ORIGINATE = /originate_timeout=(\d+),?/
+;
 
 module.exports = class Dialer extends EventEmitter2 {
 
@@ -287,7 +288,7 @@ module.exports = class Dialer extends EventEmitter2 {
             for (let res of config.resources) {
                 if (res.disabled)
                     continue;
-                
+
                 const regexp = strToRegExp(res.dialedNumber);
                 if (regexp)
                     this.resources.push({
@@ -394,7 +395,31 @@ module.exports = class Dialer extends EventEmitter2 {
         this.numberStrategy = config.numberStrategy || NUMBER_STRATEGY.BY_PRIORITY; // byPriority
 
         this.agentStrategy = config.agentStrategy;
-        this.defaultAgentParams = config.agentParams || {};
+        this.defaultAgentParams = {};
+        //TODO
+        for (let key in config.agentParams) {
+            switch (key) {
+                case "callTimeout":
+                    this.defaultAgentParams.originate_timeout = config.agentParams[key];
+                    break;
+                case "wrapUpTime":
+                    this.defaultAgentParams.wrap_up_time = config.agentParams[key];
+                    break;
+                case "maxNoAnswer":
+                    this.defaultAgentParams.max_no_answer = config.agentParams[key];
+                    break;
+                case "busyDelayTime":
+                    this.defaultAgentParams.busy_delay_time = config.agentParams[key];
+                    break;
+                case "rejectDelayTime":
+                    this.defaultAgentParams.reject_delay_time = config.agentParams[key];
+                    break;
+                case "noAnswerDelayTime":
+                    this.defaultAgentParams.no_answer_delay_time = config.agentParams[key];
+                    break;
+            }
+        }
+
         if (config.agents instanceof Array)
             this._agents = config.agents.map((i)=> `${i}@${this._domain}`);
 
@@ -449,10 +474,21 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     getAgentParam (paramName, agent = {}) {
-        if (this.defaultAgentParams[paramName])
+        if (isFinite(this.defaultAgentParams[paramName]))
             return this.defaultAgentParams[paramName];
 
         return agent[paramName]
+    }
+
+    getAgentOriginateTimeout (agent = {}) {
+        if (this.defaultAgentParams.originate_timeout > 0) {
+            return this.defaultAgentParams.originate_timeout;
+        }
+        const data = REG_ORIGINATE.exec(agent.contact);
+        if (data && data[1]) {
+            return +data[1]
+        }
+        return 60;
     }
 
     rollback (member, dest, stats, cb) {
@@ -601,7 +637,7 @@ module.exports = class Dialer extends EventEmitter2 {
             allCodes = [],
             ranges = [],
             date = new Date().getDate()
-            ;
+        ;
 
         for (let comm of this.communications) {
             allCodes.push(comm.code);
@@ -726,36 +762,36 @@ module.exports = class Dialer extends EventEmitter2 {
             ]);
 
             //TODO DELETE!!!
-            console.dir([
-                {$match: {
-                    "dialer": this._id,
-                    "communications.state": 0,
-                    _waitingForResultStatusCb: null,
-                    _endCause: null,
-                    _lock: null
-                }},
-
-                { "$project": {
-                    len: {$size: "$communications"},
-                    workNumbers: {
-                        $filter: {
-                            input: "$communications",
-                            as: "item",
-                            cond: {
-                                $or
-                            }
-                        }
-                    }
-                }},
-
-                { "$project": {
-                    len: 1,
-                    countWorkNumbers: {$size: "$workNumbers"}
-                }},
-
-                {$match: { "countWorkNumbers": 0}},
-                { '$project': { _id: 1, len: 1 } }
-            ], {colors: true, depth: 30});
+            // console.dir([
+            //     {$match: {
+            //         "dialer": this._id,
+            //         "communications.state": 0,
+            //         _waitingForResultStatusCb: null,
+            //         _endCause: null,
+            //         _lock: null
+            //     }},
+            //
+            //     { "$project": {
+            //         len: {$size: "$communications"},
+            //         workNumbers: {
+            //             $filter: {
+            //                 input: "$communications",
+            //                 as: "item",
+            //                 cond: {
+            //                     $or
+            //                 }
+            //             }
+            //         }
+            //     }},
+            //
+            //     { "$project": {
+            //         len: 1,
+            //         countWorkNumbers: {$size: "$workNumbers"}
+            //     }},
+            //
+            //     {$match: { "countWorkNumbers": 0}},
+            //     { '$project': { _id: 1, len: 1 } }
+            // ], {colors: true, depth: 30});
 
             cursor.each( (err, data) => {
                 if (err)
@@ -863,9 +899,9 @@ module.exports = class Dialer extends EventEmitter2 {
             }
         }
         return {
-                "_nextTryTime": -1,
-                "priority": -1,
-                "_id": 1
+            "_nextTryTime": -1,
+            "priority": -1,
+            "_id": 1
         }
     }
 
@@ -1054,7 +1090,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (this._waitingForResultStatus) {
             $set._waitingForResultStatus = null; //Date.now() + (this._wrapUpTime * 1000); //ERROR
             $set._waitingForResultStatusCb = 1;
-           // $set['communications.$.checkResult'] = 1;
+            // $set['communications.$.checkResult'] = 1;
             $set._maxTryCount = this._maxTryCount;
         }
 
@@ -1144,7 +1180,7 @@ module.exports = class Dialer extends EventEmitter2 {
             ],
             (err, res) => {
                 if (err)
-                        return cb(err);
+                    return cb(err);
 
                 return cb(null, (res && res[0]) || {});
             }
@@ -1244,7 +1280,7 @@ module.exports = class Dialer extends EventEmitter2 {
         } else if (this.state === DIALER_STATES.Sleep) {
             return
         } else if (this.state === DIALER_STATES.End) {
-            if (this.members.length() != 0)
+            if (this.members.length() !== 0)
                 return;
             this.active = false;
             this.emit('end', this);
@@ -1321,7 +1357,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
         });
     }
-    
+
     setReady () {
         this.getCountAndNextTryTime((err, {count = 0, nextTryTime = 0}) => {
             if (err) {

@@ -8,7 +8,7 @@
 var dialerService = require(__appRoot + '/services/dialer'),
     parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject,
     getIp = require(__appRoot + '/utils/ip')
-    ;
+;
 
 module.exports = {
     addRoutes: addRoutes
@@ -36,6 +36,8 @@ function addRoutes (api) {
     api.put('/api/v2/dialer/:dialer/members/:id/status', setStatusMember);
 
     api.get('/api/v2/dialer/:dialer/history', listHistory);
+
+    api.post('/api/v2/dialer/:dialer/agents/stats', getAgentStats)
 }
 
 
@@ -372,6 +374,25 @@ function listHistory(req, res, next) {
         return res.status(200).json({
             "status": "OK",
             "info": result
+        });
+    });
+}
+
+function getAgentStats(req, res, next) {
+    const options = {
+        dialer: req.params.dialer,
+        agents: req.body.agents,
+        skills: req.body.skills,
+        domain: req.query.domain
+    };
+
+    dialerService.agents.stats(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
         });
     });
 }

@@ -6,12 +6,10 @@ let Dialer = require('./dialer'),
     log = require(__appRoot + '/lib/log')(module),
     async = require('async'),
     END_CAUSE = require('./const').END_CAUSE,
-    AGENT_STATUS = require('./const').AGENT_STATUS,
     VAR_SEPARATOR = require('./const').VAR_SEPARATOR,
     DIALER_TYPES = require('./const').DIALER_TYPES;
 
 
-// TODO set agent Idle + Missed call
 module.exports = class Progressive extends Dialer {
     constructor (config, calendarConf, dialerManager) {
         super(DIALER_TYPES.ProgressiveDialer, config, calendarConf, dialerManager);
@@ -23,7 +21,7 @@ module.exports = class Progressive extends Dialer {
                 member.endCause = END_CAUSE.MEMBER_EXPIRED;
                 member.end(END_CAUSE.MEMBER_EXPIRED);
             } else {
-                dialerManager.agentManager.huntingAgent(config._id, this._agents, this._skills, this.agentStrategy, this._readyTime, member, (err, agent) => {
+                dialerManager.agentManager.huntingAgent(this, member, (err, agent) => {
                     if (err)
                         log.error(err);
 
@@ -53,6 +51,14 @@ module.exports = class Progressive extends Dialer {
             engine();
         });
 
+        let t = null;
+        const tryNow = () => {
+            clearTimeout(t);
+            t = setTimeout(() => {
+                engine();
+            }, 1000);
+        };
+
         const engine = () => {
             async.parallel(
                 {
@@ -74,6 +80,8 @@ module.exports = class Progressive extends Dialer {
                         this.huntingMember();
                     } else if (this.members.length() === 0) {
                         this.tryStop();
+                    } else {
+                        tryNow()
                     }
                 }
             );
@@ -138,22 +146,22 @@ module.exports = class Progressive extends Dialer {
             apps.push(`bridge:\\'{cc_side=member,originate_timeout=${this._originateTimeout},origination_caller_id_number='${member.getCallerIdNumber()}'}${dialString}\\'`);
 
             vars.push(
-                `origination_callee_id_number='${agent.agentId}'`,
-                `origination_callee_id_name='${agent.agentId}'`,
+                `origination_callee_id_number='${agent.name}'`,
+                `origination_callee_id_name='${agent.name}'`,
                 `origination_caller_id_number='${member.number}'`,
                 `origination_caller_id_name='${member.name}'`,
                 `destination_number='${member.number}'`,
-                `originate_timeout=${this.getAgentParam('callTimeout', agent)}`,
+                `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
                 'webitel_direction=outbound',
-                `cc_agent=${agent.agentId}`,
+                `cc_agent=${agent.name}`,
                 `cc_side=agent`
             );
-            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}user/${agent.agentId} 'set_user:${agent.agentId},${apps.join(',')}' inline`;
+            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}user/${agent.name} 'set_user:${agent.name},${apps.join(',')}' inline`;
         }
     }
 
     dialMember (member, agent) {
-        log.trace(`try call ${member.sessionId} to ${agent.agentId}`);
+        log.trace(`try call ${member.sessionId} to ${agent.name}`);
         member.setAgent(agent);
 
         const ds = this.getDialString(member, agent);
@@ -167,17 +175,14 @@ module.exports = class Progressive extends Dialer {
         const onChannelDestroy = (e) => {
             member.end(e.getHeader('variable_hangup_cause'), e);
 
-            this._am.setAgentStats(agent.agentId, this._objectId, {
+            this._am.setAgentStats(agent, this._objectId, {
                 call: true,
-                gotCall: true, //TODO
-                clearNoAnswer: true,
-                lastBridgeCallTimeEnd: Date.now(),
+                bridged: true,
                 callTimeSec: +e.getHeader('variable_billsec') || 0,
+                wrapTime: this.getAgentParam('wrap_up_time', agent),
                 lastStatus: `end -> ${member._id}`,
-                setAvailableTime:
-                    agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
                 process: null
-            }, (e, res) => {
+            }, (e) => {
                 if (e)
                     return log.error(e);
             });
@@ -206,15 +211,13 @@ module.exports = class Progressive extends Dialer {
                         encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${channelUuid}&type=mp3&email=none&name=recordSession&.mp3`)
                         , res => {
                             log.trace(`Response uuid_record ${channelUuid} : ${res.body}`);
-                    });
+                        });
                 }
 
                 member.bridgedCall = true;
-                this._am.setAgentStats(agent.agentId, this._objectId, {
-                    lastBridgeCallTimeStart: date,
+                this._am.setAgentStats(agent, this._objectId, {
                     connectedTimeSec: timeToSec(date, start),
-                    lastStatus: `active -> ${member._id}`,
-                    idleSec: this._am.getIdleTimeSecAgent(agent)
+                    lastStatus: `active -> ${member._id}`
                 }, (e, res) => {
                     if (e)
                         return log.error(e);
@@ -227,26 +230,25 @@ module.exports = class Progressive extends Dialer {
             } else if (/^-ERR|^-USAGE/.test(res.body)) {
                 let error =  res.body.replace(/-ERR\s(.*)\n/, '$1');
                 member.log(`agent error: ${error}`);
-                
-                
+
+
                 member.minusProbe();
                 member.nextTrySec = 1;
                 member.end();
 
                 if (error === 'NO_ANSWER') {
-                    if (this.getAgentParam('maxNoAnswer', agent) <= (this.getAgentParam('noAnswerCount', agent) + 1)) {
+                    if (this.getAgentParam('max_no_answer', agent) <= (this.getAgentParam('no_answer_count', agent) + 1)) {
                         return this._am.setNoAnswerAgent(agent, e => {
                             if (e)
                                 log.error(e);
 
-                            this._am.setAgentStats(agent.agentId, this._objectId, {
+                            this._am.setAgentStats(agent, this._objectId, {
                                 call: true,
-                                gotCall: false,
-                                clearNoAnswer: true,
-                                setAvailableTime: null,
+                                bridged: false,
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
+                                connectedTimeSec: timeToSec(date, start),
                                 process: null,
-                                idleSec: this._am.getIdleTimeSecAgent(agent),
+                                noAnswer: true,
                                 missedCall: true
                             }, (e) => {
                                 if (e)
@@ -255,27 +257,28 @@ module.exports = class Progressive extends Dialer {
                         });
                     }
 
-                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                    this._am.setAgentStats(agent, this._objectId, {
                         call: true,
-                        gotCall: false,
+                        bridged: false,
                         noAnswer: true,
+                        wrapTime: this.getAgentParam('no_answer_delay_time', agent),
+                        connectedTimeSec: timeToSec(date, start),
                         lastStatus: `NO_ANSWER -> ${member._id}`,
-                        setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
                         process: null,
-                        idleSec: this._am.getIdleTimeSecAgent(agent),
                         missedCall: true
                     }, (e) => {
                         if (e)
                             return log.error(e);
                     });
                 } else {
-                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                    this._am.setAgentStats(agent, this._objectId, {
                         call: true,
-                        gotCall: false,
+                        bridged: false,
+                        noAnswer: true,
+                        wrapTime: this.getAgentParam('reject_delay_time', agent),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
-                        setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
+                        connectedTimeSec: timeToSec(date, start),
                         process: null,
-                        idleSec: this._am.getIdleTimeSecAgent(agent),
                         missedCall: true
                     }, (e) => {
                         if (e)

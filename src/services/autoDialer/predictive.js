@@ -10,7 +10,7 @@ const Dialer = require('./dialer'),
     END_CAUSE = require('./const').END_CAUSE,
     VAR_SEPARATOR = require('./const').VAR_SEPARATOR,
     CANCEL_CAUSE = 'ORIGINATOR_CANCEL'
-    ;
+;
 
 module.exports = class Predictive extends Dialer {
     constructor (config, calendarConf, dialerManager) {
@@ -61,14 +61,24 @@ module.exports = class Predictive extends Dialer {
             engine();
         });
 
+        let t = null;
+        const tryNow = () => {
+            clearTimeout(t);
+            t = setTimeout(() => {
+                engine();
+            }, 1000);
+        };
+
         const engine = () => {
             async.parallel(
                 {
                     agents: (cb) => {
                         dialerManager.agentManager.getAvailableCount(this._objectId, this._agents, this._skills, cb);
+                        // cb(null, 2)
                     },
                     allLogged: (cb) => {
-                       dialerManager.agentManager.getAllLoggedAgent(this._objectId, this._agents, this._skills, cb);
+                        dialerManager.agentManager.getAllLoggedAgent(this._objectId, this._agents, this._skills, cb);
+                        // cb(null, 50)
                     },
                     members: (cb) => {
                         this.countAvailableMembers(this._limit, cb);
@@ -79,16 +89,16 @@ module.exports = class Predictive extends Dialer {
                         return log.error(err);
 
                     if (!this.isReady() || res.members < 1) {
-                        if (this.members.length() === 0) {
-                            this.tryStop();
-                        }
+                        this.tryStop();
                         return;
                     }
 
                     log.trace('engine response: ', res);
 
-                    if (res.agents === 0 )
+                    if (res.agents === 0 ) {
+                        tryNow();
                         return;
+                    }
 
                     if (!this._stats.predictAbandoned)
                         this._stats.predictAbandoned = 0;
@@ -111,10 +121,10 @@ module.exports = class Predictive extends Dialer {
                         this._stats.queueLimit = res.allLogged;
                         if (this._active < res.allLogged ) {
                             this.huntingMember();
+                        } else if (this.members.length() === 0) {
+                            this.tryStop();
                         } else {
-                            if (this.members.length() === 0) {
-                                this.tryStop();
-                            }
+                            tryNow();
                         }
                         return;
                     }
@@ -150,10 +160,10 @@ module.exports = class Predictive extends Dialer {
 
                     if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active < this._stats.queueLimit) ) {
                         this.huntingMember();
+                    } else if (this.members.length() === 0) {
+                        this.tryStop();
                     } else {
-                        if (this.members.length() === 0) {
-                            this.tryStop();
-                        }
+                        tryNow();
                     }
 
                 }
@@ -243,15 +253,16 @@ module.exports = class Predictive extends Dialer {
 
         let agentVars = [
             `cc_side=agent`,
-            `cc_agent='${agent.agentId}'`,
+            `cc_agent='${agent.name}'`,
             `cc_queue='${this.nameDialer}'`,
+            `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
             `dlr_session='${member.sessionId}'`,
-            `origination_callee_id_number='${agent.agentId}'`,
-            `origination_callee_id_name='${agent.agentId}'`,
+            `origination_callee_id_number='${agent.name}'`,
+            `origination_callee_id_name='${agent.name}'`,
             `origination_caller_id_number='${member.number}'`,
             `origination_caller_id_name='${member.name}'`,
             `destination_number='${member.number}'`,
-            `effective_caller_id_number='${agent.agentId}'`,
+            `effective_caller_id_number='${agent.name}'`,
             `effective_callee_id_number='${member.number}'`,
             'webitel_direction=inbound'
         ];
@@ -273,16 +284,16 @@ module.exports = class Predictive extends Dialer {
 
         agentVars.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
 
-        application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.agentId}`);
+        application.Esl.bgapi(`uuid_setvar ${member.sessionId} cc_agent ${agent.name}`);
 
         const start = Date.now();
 
         member._predAgentOriginate = true;
 
-        const agentDs = `originate {^^${VAR_SEPARATOR}${agentVars.join(VAR_SEPARATOR)}}user/${agent.agentId} &park()`;
+        const agentDs = `originate {^^${VAR_SEPARATOR}${agentVars.join(VAR_SEPARATOR)}}user/${agent.name} &park()`;
         member.log(`Agent ds: ${agentDs}`);
         application.Esl.bgapi(agentDs, (res) => {
-            member.log(`agent ${agent.agentId} fs res -> ${res.body}`);
+            member.log(`agent ${agent.name} fs res -> ${res.body}`);
             const bgOkData = res.body.match(/^\+OK\s(.*)\n$/);
             const date = Date.now();
 
@@ -292,11 +303,10 @@ module.exports = class Predictive extends Dialer {
                 if (bgOkData)
                     application.Esl.bgapi(`uuid_kill ${bgOkData[1]} ${CANCEL_CAUSE}`);
 
-                this._am.setAgentStats(agent.agentId, this._objectId, {
+                this._am.setAgentStats(agent, this._objectId, {
                     lastStatus: `error bridge member end`,
-                    setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null,
-                    idleSec: this._am.getIdleTimeSecAgent(agent)
+                    call: true,
+                    process: null
                 }, (e) => {
                     if (e)
                         log.error(e);
@@ -312,11 +322,10 @@ module.exports = class Predictive extends Dialer {
                     member.log(`fs response bridge agent: ${bridge.body}`);
 
                     if (/^-ERR|^-USAGE/.test(bridge.body)) {
-                        this._am.setAgentStats(agent.agentId, this._objectId, {
+                        this._am.setAgentStats(agent, this._objectId, {
                             lastStatus: `error bridge -> ${bridge.body}`,
-                            setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                            process: null,
-                            idleSec: this._am.getIdleTimeSecAgent(agent)
+                            call: true,
+                            process: null
                         }, (e) => {
                             if (e)
                                 log.error(e);
@@ -327,11 +336,9 @@ module.exports = class Predictive extends Dialer {
                     } else {
                         member.predictAbandoned = false;
                         member.bridgedCall = true;
-                        this._am.setAgentStats(agent.agentId, this._objectId, {
-                            lastBridgeCallTimeStart: date,
+                        this._am.setAgentStats(agent, this._objectId, {
                             connectedTimeSec: timeToSec(date, start),
-                            lastStatus: `active -> ${member._id}`,
-                            idleSec: this._am.getIdleTimeSecAgent(agent)
+                            lastStatus: `active -> ${member._id}`
                         }, (e, res) => {
                             if (e)
                                 return log.error(e);
@@ -349,48 +356,49 @@ module.exports = class Predictive extends Dialer {
                 member.log(`agent error: ${error}`);
 
                 if (error === 'NO_ANSWER') {
-                    if (this.getAgentParam('maxNoAnswer', agent) <= (this.getAgentParam('noAnswerCount', agent) + 1)) {
-                        return this._am.setNoAnswerAgent(agent, e => {
+                    if (this.getAgentParam('max_no_answer', agent) <= (this.getAgentParam('no_answer_count', agent) + 1)) {
+                        this._am.setNoAnswerAgent(agent, e => {
                             if (e)
                                 log.error(e);
 
-                            this._am.setAgentStats(agent.agentId, this._objectId, {
+                            this._am.setAgentStats(agent, this._objectId, {
                                 call: true,
-                                gotCall: false,
-                                clearNoAnswer: true,
-                                setAvailableTime: null,
+                                bridged: false,
                                 lastStatus: `NO_ANSWER -> ${member._id} -> MAX`,
+                                connectedTimeSec: timeToSec(date, start),
                                 process: null,
-                                idleSec: this._am.getIdleTimeSecAgent(agent),
+                                noAnswer: true,
                                 missedCall: true
                             }, (e) => {
                                 if (e)
                                     return log.error(e);
                             });
                         });
+                    } else {
+                        this._am.setAgentStats(agent, this._objectId, {
+                            call: true,
+                            bridged: false,
+                            noAnswer: true,
+                            wrapTime: this.getAgentParam('no_answer_delay_time', agent),
+                            connectedTimeSec: timeToSec(date, start),
+                            lastStatus: `NO_ANSWER -> ${member._id}`,
+                            process: null,
+                            missedCall: true
+                        }, (e) => {
+                            if (e)
+                                return log.error(e);
+                        });
                     }
 
-                    this._am.setAgentStats(agent.agentId, this._objectId, {
-                        call: true,
-                        gotCall: false,
-                        noAnswer: true,
-                        lastStatus: `NO_ANSWER -> ${member._id}`,
-                        setAvailableTime: date + (this.getAgentParam('noAnswerDelayTime', agent) * 1000),
-                        process: null,
-                        idleSec: this._am.getIdleTimeSecAgent(agent),
-                        missedCall: true
-                    }, (e) => {
-                        if (e)
-                            return log.error(e);
-                    });
                 } else {
-                    this._am.setAgentStats(agent.agentId, this._objectId, {
+                    this._am.setAgentStats(agent, this._objectId, {
                         call: true,
-                        gotCall: false,
+                        bridged: false,
+                        noAnswer: true,
+                        wrapTime: this.getAgentParam('reject_delay_time', agent),
                         lastStatus: `REJECT -> ${member._id} -> ${error}`,
-                        setAvailableTime: date + (this.getAgentParam('rejectDelayTime', agent) * 1000),
+                        connectedTimeSec: timeToSec(date, start),
                         process: null,
-                        idleSec: this._am.getIdleTimeSecAgent(agent),
                         missedCall: true
                     }, (e) => {
                         if (e)
@@ -406,17 +414,19 @@ module.exports = class Predictive extends Dialer {
     }
 
     _joinAgent (member) {
+        member.agent = null;
         if (member.getBridgedTime() + (1000 * this._maxLocateAgentSec) <= Date.now() ) {
             application.Esl.bgapi(`uuid_kill ${member.sessionId} LOSE_RACE`); // todo add conf hangup cause
             return;
         }
 
         if (member._predTimer) {
-            clearTimeout(member._predTimer);
-            member._predTimer = null;
+            return;
+            // clearTimeout(member._predTimer);
+            // member._predTimer = null;
         }
 
-        this._am.huntingAgent(this._objectId, this._agents, this._skills, this.agentStrategy, this._readyTime,  member, (err, agent) => {
+        this._am.huntingAgent(this,  member, (err, agent) => {
             if (err)
                 log.error(err);
 
@@ -424,16 +434,16 @@ module.exports = class Predictive extends Dialer {
             if (!agent) {
                 member.log(`no found agent, try now`);
                 member._predTimer = setTimeout(() => {
+                    member._predTimer = null;
                     this._joinAgent(member);
-                }, 500); // TODO add config
+                }, 1000); // TODO add config
                 return;
             } else if (member.processEnd) {
-                member.log(`set agent ${agent.agentId} rollback`);
-                this._am.setAgentStats(agent.agentId, this._objectId, {
+                member.log(`set agent ${agent.name} rollback`);
+                this._am.setAgentStats(agent, this._objectId, {
                     lastStatus: `rollback -> ${member._id}`,
-                    setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null,
-                    idleSec: this._am.getIdleTimeSecAgent(agent)
+                    call: true,
+                    process: null
                 }, (e) => {
                     if (e)
                         log.error(e);
@@ -453,7 +463,7 @@ module.exports = class Predictive extends Dialer {
 
         const onChannelPark = (e) => {
             member.setConnectedFlag(true);
-            
+
             if (this._amd.enabled === true) {
                 let amdResult = e.getHeader('variable_amd_result');
                 member.log(`amd_result=${amdResult}`);
@@ -485,23 +495,21 @@ module.exports = class Predictive extends Dialer {
                 log.trace(`hangup agent channel for dlr_session ${member.sessionId}`);
                 application.Esl.bgapi(`hupall ${CANCEL_CAUSE} dlr_session ${member.sessionId}`);
             }
-
             const agent = member.getAgent();
             if (agent) {
-                member.log(`set agent ${agent.agentId} check status`);
-                this._am.setAgentStats(agent.agentId, this._objectId, {
+                member.log(`set agent ${agent.name} check status`);
+                this._am.setAgentStats(agent, this._objectId, {
                     call: true,
-                    gotCall: true, //TODO
-                    clearNoAnswer: true,
-                    lastBridgeCallTimeEnd: Date.now(),
+                    bridged: true,
                     callTimeSec: +e.getHeader('variable_billsec') || 0,
+                    wrapTime: this.getAgentParam('wrap_up_time', agent),
                     lastStatus: `end -> ${member._id}`,
-                    setAvailableTime: agent.status === AGENT_STATUS.AvailableOnDemand ? null : Date.now() + (this.getAgentParam('wrapUpTime', agent) * 1000),
-                    process: null,
+                    process: null
                 }, (e) => {
                     if (e)
                         log.error(e);
                 });
+                member.agent = null;
             }
 
             //FAH-218

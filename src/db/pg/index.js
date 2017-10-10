@@ -21,11 +21,38 @@ const config = conf.get('pg');
 //and set a limit of maximum 10 idle clients
 const pool = new pg.Pool(config);
 
+let client = null;
+
+const p = {
+    query: function (text, values, callback) {
+
+        pool.connect((err, client, done) => {
+            if (err)
+                return callback(err);
+
+            // log.trace(`SQL: ${text}`);
+            client.query(text, values, (err, res) => {
+                done();
+                return callback(err, res);
+            })
+        });
+
+        //
+        // if (!client) {
+        //     return callback(new Error("No live connect to PG"));
+        // }
+        // return client.query(text, values, (a,b,c) => {
+        //    log.trace(`SQL: ${text}`);
+        //     return callback(a, b, c);
+        // });
+    }
+};
+
 const query = new Map();
-query.set('widget', require('./query/widget')(pool));
-query.set('callback', require('./query/callback')(pool));
-query.set('dialplan', require('./query/dialplan')(pool));
-query.set('tcpDump', require('./query/tcpDump')(pool));
+query.set('widget', require('./query/widget')(p));
+query.set('callback', require('./query/callback')(p));
+query.set('dialplan', require('./query/dialplan')(p));
+query.set('agents', require('./query/agents')(p));
 
 function initData(err) {
     if (err) {
@@ -52,7 +79,11 @@ module.exports.getQuery = name => query.get(name);
 
 //export the query method for passing queries to the pool
 module.exports.query = function (text, values, callback) {
-    return pool.query(text, values, callback);
+    return pool.query(text, values, (a,b,c) => {
+        log.trace(`SQL: ${text}`);
+        pool.release();
+        return callback(a, b, c);
+    });
 };
 
 // the pool also supports checking out a client for
@@ -62,11 +93,19 @@ module.exports.connect = function (callback) {
 };
 
 function init(pool, cb) {
-    async.eachSeries(
-        initQueue,
-        (sql, cb) => {
-            pool.query(sql, cb);
-        },
-        cb
-    )
+    pool.connect( (err, cli) => {
+        if (err) {
+            return cb(err)
+        }
+        client = cli;
+
+        async.eachSeries(
+            initQueue,
+            (sql, cb) => {
+                p.query(sql, [], cb);
+            },
+            cb
+        )
+    });
+
 }

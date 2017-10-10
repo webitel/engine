@@ -12,7 +12,7 @@ const generateUuid = require('node-uuid'),
     END_CAUSE = require('./const').END_CAUSE,
     getHangupCode = require('./const').getHangupCode,
     DIALER_TYPES = require('./const').DIALER_TYPES
-    ;
+;
 
 module.exports = class Member extends EventEmitter2 {
 
@@ -187,18 +187,10 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     setAgent (agent = {}) {
-        this.log(`set agent: ${agent.agentId}`);
-        this._log.agentId = agent.agentId;
-        this.agent = {
-            agentId: agent.agentId,
-            state: agent.state,
-            status: agent.status,
-            wrapUpTime: agent.wrapUpTime,
-            rejectDelayTime: agent.rejectDelayTime,
-            noAnswerDelayTime: agent.noAnswerDelayTime,
-            maxNoAnswer: agent.maxNoAnswer,
-            busyDelayTime: agent.busyDelayTime
-        }
+        this.log(`set agent: ${agent.name}`);
+        this._log.agentId = agent.name;
+        //todo
+        this.agent = agent;
     }
 
     getAgent () {
@@ -227,7 +219,7 @@ module.exports = class Member extends EventEmitter2 {
         //
         //     }
         // );
-        
+
         if (all instanceof Array) {
             for (let num of all) {
                 if (num.state === MEMBER_STATE.Idle) {
@@ -321,7 +313,7 @@ module.exports = class Member extends EventEmitter2 {
             e.expire = this.expire;
 
         if (this.agent) {
-            e.agentId = this.agent.agentId;
+            e.agentId = this.agent.name;
         }
 
         for (let key in this.variables) {
@@ -342,7 +334,7 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     end (endCause, e) {
-        
+
         if (this.processEnd) return;
 
         if (endCause)

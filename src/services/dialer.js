@@ -10,7 +10,7 @@ var CodeError = require(__appRoot + '/lib/error'),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     END_CAUSE = require('./autoDialer/const').END_CAUSE,
     expVal = require(__appRoot + '/utils/validateExpression')
-    ;
+;
 
 let Service = {
 
@@ -248,7 +248,17 @@ let Service = {
     },
 
     _resetProcessStatistic: function (option, domain, cb) {
+        if (option.resetAgents === true) {
+            application.PG.getQuery('agents').reset(
+                option.id,
+                (err) => {
+                    if (err)
+                        return log.error(err);
+                }
+            )
+        }
         let db = application.DB._query.dialer;
+
         return db.resetProcessStatistic(option, domain, cb);
     },
 
@@ -262,7 +272,7 @@ let Service = {
         checkPermissions(caller, 'dialer', 'r', (err) => {
             if (err)
                 return cb(err);
-            
+
             if (!option.dialer)
                 return cb(new CodeError(400, "Bad request dialer is required."));
 
@@ -755,7 +765,7 @@ let Service = {
                     const lastNumber = isFinite(memberDb._lastNumberId) && memberDb.communications[memberDb._lastNumberId]
                         ? memberDb.communications[memberDb._lastNumberId]
                         : null
-                        ;
+                    ;
 
                     const event = {
                         "Event-Name": "CUSTOM",
@@ -857,6 +867,36 @@ let Service = {
 
 
                 });
+            })
+        },
+
+        stats: function (caller, options, cb) {
+            checkPermissions(caller, 'dialer', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options || !options.dialer)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                const domain = validateCallerParameters(caller, options['domain']);
+                if (!domain) {
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+                }
+
+                if (!(options.agents instanceof Array)) {
+                    return cb(new CodeError(400, 'Bad request: agent is required.'));
+                }
+                if (!(options.skills instanceof Array)) {
+                    return cb(new CodeError(400, 'Bad request: skills is required.'));
+                }
+
+                application.PG.getQuery('agents').getAgentStats(
+                    options.dialer,
+                    options.agents,
+                    options.skills,
+                    domain,
+                    cb
+                );
             })
         }
     }
