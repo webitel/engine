@@ -22,8 +22,8 @@ module.exports = {
  */
 
 function addRoutes(api) {
-    api.all(/^\/api\/v2\/r\/(cdr|files|media)/, getRedirectUrl);
-    api.all(/^\/api\/v2\/(cdr|files|media)/, middlewareRequest);
+    api.all(/^\/api\/v2\/r\/(cdr|files|media|tcp_dump)/, getRedirectUrl);
+    api.all(/^\/api\/v2\/(cdr|files|media|tcp_dump)/, middlewareRequest);
 };
 
 if (CDR_SERVER_HOST) {
