@@ -219,6 +219,29 @@ create index  IF NOT EXISTS  callflow_default_destination_number_disabled_domain
 create index  IF NOT EXISTS  callflow_default_order_index
 	on callflow_default ("order")
 ;
+
+CREATE OR REPLACE FUNCTION callflow_default_check_destination_number(reg_txt varchar(120))
+  RETURNS BOOLEAN AS
+$BODY$
+BEGIN
+  PERFORM regexp_matches('', reg_txt);
+  RETURN reg_txt != '';
+END;
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+  
+DO $$
+BEGIN
+
+  BEGIN
+    ALTER TABLE callflow_default ADD CONSTRAINT callflow_default_check_destination_number_cs CHECK (callflow_default_check_destination_number(destination_number) = TRUE);
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+
+END $$;
+
 `);
 
 sql.push(`
