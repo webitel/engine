@@ -163,7 +163,13 @@ module.exports = [
             'domain/item': ["*"],
             'domain': ["ro", "uo"],
 
-            'account': ["*"]
+            'account': ["*"],
+
+            'widget': ["*"],
+            'callback': ["*"],
+            'callback/members': ["*"],
+
+            'metadata': ["*"]
         }
     }
 ];
