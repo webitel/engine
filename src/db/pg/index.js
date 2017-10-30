@@ -54,6 +54,8 @@ query.set('callback', require('./query/callback')(p));
 query.set('dialplan', require('./query/dialplan')(p));
 query.set('agents', require('./query/agents')(p));
 query.set('tcpDump', require('./query/tcpDump')(p));
+query.set('contacts', require('./query/contacts')(p));
+query.set('metadata', require('./query/metadata')(p));
 
 function initData(err) {
     if (err) {

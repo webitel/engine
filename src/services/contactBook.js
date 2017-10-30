@@ -4,135 +4,127 @@
 
 'use strict';
 
-var CodeError = require(__appRoot + '/lib/error'),
+const CodeError = require(__appRoot + '/lib/error'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions');
 
-var Service = {
-    create: function (caller, domain, data, cb) {
+const Service = {
+
+    list: function (caller, options, cb) {
+        checkPermissions(caller, 'book', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            let domain = validateCallerParameters(caller, options['domain']);
+            if (!domain) {
+                return cb(new CodeError(400, 'Bad request: domain is required.'));
+            }
+            options.domain = domain;
+            application.PG.getQuery('contacts').list(options, cb);
+        });
+    },
+
+    getById: function (caller, options, cb) {
+        checkPermissions(caller, 'book', 'r', function (err) {
+            if (err)
+                return cb(err);
+
+            let domain = validateCallerParameters(caller, options.domain);
+            if (!domain) {
+                return cb(new CodeError(400, 'Bad request: domain is required.'));
+            }
+
+            if (!options.id)
+                return cb(new CodeError(400, 'Bad request: id is required.'));
+
+            application.PG.getQuery('contacts').findById(options.id, domain, cb);
+        });
+    },
+
+    create: function (caller, data, cb) {
         checkPermissions(caller, 'book', 'c', function (err) {
-            try {
-                if (err)
-                    return cb(err);
-
-                domain = validateCallerParameters(caller, domain);
-                if (!domain || !data || typeof data['name'] != 'string' || !(data['phones'] instanceof Array)) {
-                    return cb(new CodeError(400, 'Bad request.'));
-                };
-                data['domain'] = domain;
-                var dbBook = application.DB._query.book;
-                dbBook.create(data, cb);
-            } catch (e) {
-                return cb(e);
-            };
-        });
-    },
-
-    search: function (caller, domain, option, cb) {
-        checkPermissions(caller, 'book', 'r', function (err) {
             if (err)
                 return cb(err);
 
-            domain = validateCallerParameters(caller, domain);
-            var dbBook = application.DB._query.book;
-            return dbBook.search(domain, option, cb);
+            const domain = validateCallerParameters(caller, data.domain);
+
+            application.PG.getQuery('contacts').create(data, domain, cb);
         });
     },
+
     
-    list: function (caller, domain, option, cb) {
-        checkPermissions(caller, 'book', 'r', function (err) {
-            if (err)
-                return cb(err);
-
-            option = option || {};
-            var query = {
-                "filter": {
-                    "name": option['name'],
-                    "phones": option['phone'],
-                    "tag": option['tag']
-                },
-                "limit": option['limit']
-            };
-            return Service.search(caller, domain, query, cb);
-        });
-    },
-    
-    getById: function (caller, domain, id, cb) {
-        checkPermissions(caller, 'book', 'r', function (err) {
-            if (err)
-                return cb(err);
-
-            var query = {
-                "filter": {
-                    "_id": id
-                }
-            };
-            return Service.search(caller, domain, query, function (err, res) {
-                if (err) {
-                    return cb(err);
-                };
-
-                if (res && res.length == 0) {
-                    return cb(new CodeError(404, "Not found."))
-                };
-
-                return cb(null, res && res[0])
-            });
-        });
-    },
-    
-    updateItem: function (caller, domain, id, data, cb) {
+    updateItem: function (caller, contact = {}, cb) {
         checkPermissions(caller, 'book', 'u', function (err) {
             if (err)
                 return cb(err);
 
-            domain = validateCallerParameters(caller, domain);
-            if (!domain) {
+            const domain = validateCallerParameters(caller, contact.domain);
+            if (!domain)
                 return cb(new CodeError(400, "Domain is required."));
-            };
 
-            if (!data) {
-                return cb(new CodeError(400, "Bad request."))
-            };
+            if (!contact.id)
+                return cb(new CodeError(400, "Id is required."));
 
-            if (!data['phones'] || !data['name']) {
-                return cb(new CodeError(400, "Phones or name is required."))
-            };
-
-            var dbBook = application.DB._query.book;
-            return dbBook.updateById(domain, id, data, cb);
+            application.PG.getQuery('contacts').update(contact, contact.id, domain, cb);
         });
     },
     
-    removeItem: function (caller, domain, id, cb) {
+    removeItem: function (caller, options, cb) {
         checkPermissions(caller, 'book', 'd', function (err) {
             if (err)
                 return cb(err);
 
-            domain = validateCallerParameters(caller, domain);
+            const domain = validateCallerParameters(caller, options.domain);
             if (!domain) {
                 return cb(new CodeError(400, "Domain is required."));
-            };
+            }
 
-            var dbBook = application.DB._query.book;
-            return dbBook.removeById(domain, id, function (err, res) {
-                if (err)
-                    return cb(err);
-                var result = res && res['result'];
-                if (!result || result.n != 1) {
-                    return cb(new CodeError(404, "Not found"));
-                }
-                return cb(null, result);
-            });
+            if (!options.id)
+                return cb(new CodeError(400, "Id is required."));
+
+            application.PG.getQuery('contacts').deleteById(options.id, domain, cb);
         });
     },
     
     _removeByDomain: function (domain, cb) {
         if (!domain) {
             return cb(new CodeError(400, "Domain is required."));
-        };
-        var dbBook = application.DB._query.book;
-        return dbBook.removeByDomain(domain, cb);
+        }
+
+        application.PG.getQuery('contacts').deleteByDomain(domain, cb);
+    },
+    
+    types: {
+        list: function (caller, options, cb) {
+            checkPermissions(caller, 'book', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                let domain = validateCallerParameters(caller, options['domain']);
+                if (!domain) {
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+                }
+                options.domain = domain;
+                application.PG.getQuery('contacts').types.list(options, cb);
+            });
+        },
+        
+        create: function (caller, options, cb) {
+            checkPermissions(caller, 'book', 'c', function (err) {
+                if (err)
+                    return cb(err);
+
+                const domain = validateCallerParameters(caller, options['domain']);
+                if (!domain)
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+
+
+                if (!options.name)
+                    return cb(new CodeError(400, 'Bad request: name is required.'));
+
+                application.PG.getQuery('contacts').types.create(options.name, domain, cb);
+            });
+        }
     }
 };
 

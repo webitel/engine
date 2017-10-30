@@ -55,7 +55,9 @@ const RESOURCES = [
     'license',
 
     'vmail',
-    'widget'
+    'widget',
+
+    'metadata'
 ];
 
 module.exports = [
@@ -106,6 +108,8 @@ module.exports = [
             'widget': ["*"],
             'callback': ["*"],
             'callback/members': ["*"],
+
+            'metadata': ["*"]
         }
     },
     {
@@ -119,7 +123,8 @@ module.exports = [
             'vmail': ['ro'],
             'cdr': ['ro'],
             'cdr/files': ['ro'],
-            'cc/tiers': ["r"]
+            'cc/tiers': ["r"],
+            'metadata': ["r"]
         }
     },
     {

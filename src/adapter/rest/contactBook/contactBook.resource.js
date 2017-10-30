@@ -4,7 +4,8 @@
 
 'use strict';
 
-var bookService = require(__appRoot + '/services/contactBook');
+const bookService = require(__appRoot + '/services/contactBook');
+const getRequest = require(__appRoot + '/utils/helper').getRequest;
 
 module.exports = {
     addRoutes: addRoutes
@@ -14,126 +15,163 @@ module.exports = {
  * Adds routes to the api.
  */
 function addRoutes(api) {
-    api.post('/api/v2/contacts/', createBook);
-    // ?name=&phone=&tag=&limit=
+    api.post('/api/v2/contacts/communications', createType);
+    api.get('/api/v2/contacts/communications', listTypes);
+
+    api.get('/api/v2/contacts/yealink', testYealink);
+    //api.get('/api/v2/contacts/v-card', testVCard);
+
     api.get('/api/v2/contacts', listBook);
     api.get('/api/v2/contacts/:id', itemBook);
-    api.post('/api/v2/contacts/searches', searches);
+    api.post('/api/v2/contacts', createBook);
     api.put('/api/v2/contacts/:id', updateItem);
     api.delete('/api/v2/contacts/:id', deleteItem);
-};
+
+    // api.post('/api/v2/contacts/searches', searches);
+
+
+    // api/v2/contacts/:id/communications -user comm
+    // api/v2/contacts/communications - all com
+    // api/v2/contacts/tags - all tags
+    // api/v2/contacts/tags/:name - all contact by tag
+
+}
+
+function testYealink(req, res, next) {
+    application.PG.getQuery('contacts').importData.yeaLink(req.query.domain, (err, result) => {
+        if (err)
+            return next(err);
+
+        res.set('Content-Type', 'text/xml');
+        res.send(result)
+    });
+}
+
+function testVCard(req, res, next) {
+    application.PG.getQuery('contacts').importData.vCard(req.query.domain, (err, result) => {
+        if (err)
+            return next(err);
+
+        res.set('Content-Type', 'text/v-card');
+        res.send(result)
+    });
+}
 
 function listBook (req, res, next) {
-    var options = {
-        "name": req.query['name'],
-        "phone": req.query['phone'],
-        "tag": req.query['tag'],
-        "limit": req.query['limit']
-    };
-    bookService.list(req.webitelUser, req.query['domain'], options, function (err, result) {
-        if (err) {
+    bookService.list(req.webitelUser, getRequest(req), (err, result) => {
+        if (err)
             return next(err);
-        };
 
-        var _r = {
+        return res.status(200).json({
             "status": "OK",
-            "info": result['_id'],
             "data": result
-        };
-
-        return res
-            .status(200)
-            .json(_r);
+        });
     });
-};
+}
 
 function itemBook (req, res, next) {
-    bookService.getById(req.webitelUser, req.query['domain'], req.params['id'], function (err, result) {
-        if (err) {
-            return next(err);
-        };
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
 
-        var _r = {
+    bookService.getById(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
             "status": "OK",
             "data": result
-        };
-
-        return res
-            .status(200)
-            .json(_r);
+        });
     });
-};
+}
 
 function createBook (req, res, next) {
+    const options = req.body;
 
-    bookService.create(req.webitelUser, req.query['domain'] || req.body['domain'], req.body, function (err, result) {
+    if (req.query['domain'])
+        options.domain = req.query['domain'];
+
+    bookService.create(req.webitelUser, options, (err, result) => {
         if (err) {
             return next(err);
-        };
-
-        var _r = {
-            "status": "OK",
-            "info": result['_id'],
-            "data": result
-        };
+        }
 
         return res
             .status(200)
-            .json(_r);
+            .json({
+                "status": "OK",
+                "data": result,
+            });
     });
-};
-
-function searches (req, res, next) {
-    bookService.search(req.webitelUser, req.query['domain'], req.body,
-        function (err, result) {
-            if (err) {
-                return next(err);
-            };
-
-            return res
-                .status(200)
-                .json({
-                    "status": "OK",
-                    "data": result
-                });
-        }
-    );
-};
+}
 
 function updateItem (req, res, next) {
-    bookService.updateItem(req.webitelUser, req.query['domain'], req.params['id'], req.body,
-        function (err, result) {
-            if (err) {
-                return next(err);
-            };
+    const options = req.body;
+    options.id = req.params.id;
 
-            return res
-                .status(200)
-                .json({
-                    "status": "OK",
-                    "data": result
-                });
+    if (req.query['domain'])
+        options.domain = req.query['domain'];
+
+    bookService.updateItem(req.webitelUser, options, (err, result) => {
+        if (err) {
+            return next(err);
         }
-    );
-};
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "data": result,
+            });
+    });
+}
 
 function deleteItem (req, res, next) {
-    bookService.removeItem(req.webitelUser, req.query['domain'], req.params['id'],
-        function (err, result) {
-            if (err) {
-                return next(err);
-            };
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
 
-            if (!result) {
-                next(new Error("Bad response db"));
-            };
+    bookService.removeItem(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
 
-            return res
-                .status(200)
-                .json({
-                    "status": result.ok == 1 ? "OK" : "error",
-                    "info": result.n
-                });
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function createType(req, res, next) {
+    const options = req.body;
+
+    if (req.query['domain'])
+        options.domain = req.query['domain'];
+
+    bookService.types.create(req.webitelUser, options, (err, result) => {
+        if (err) {
+            return next(err);
         }
-    );
-};
+
+        return res
+            .status(200)
+            .json({
+                "status": "OK",
+                "data": result,
+            });
+    });
+}
+
+function listTypes (req, res, next) {
+    bookService.types.list(req.webitelUser, getRequest(req), (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
