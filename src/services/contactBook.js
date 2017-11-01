@@ -124,6 +124,43 @@ const Service = {
 
                 application.PG.getQuery('contacts').types.create(options.name, domain, cb);
             });
+        },
+
+        remove: function (caller, options, cb) {
+            checkPermissions(caller, 'book', 'd', function (err) {
+                if (err)
+                    return cb(err);
+
+                const domain = validateCallerParameters(caller, options['domain']);
+                if (!domain)
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+
+
+                if (!options.id)
+                    return cb(new CodeError(400, 'Bad request: id is required.'));
+
+                application.PG.getQuery('contacts').types.delete(domain, options.id, cb);
+            });
+        },
+
+        update: function (caller, options, cb) {
+            checkPermissions(caller, 'book', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                const domain = validateCallerParameters(caller, options['domain']);
+                if (!domain)
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+
+
+                if (!options.id)
+                    return cb(new CodeError(400, 'Bad request: id is required.'));
+
+                if (!options.name)
+                    return cb(new CodeError(400, 'Bad request: name is required.'));
+
+                application.PG.getQuery('contacts').types.update(domain, options.id, options.name, cb);
+            });
         }
     }
 };

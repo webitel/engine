@@ -119,6 +119,20 @@ VALUES ($1, $2)
 RETURNING *    
 `;
 
+const sqlCommTypeRemove = `
+DELETE 
+FROM communication_type 
+WHERE domain = $1 AND id = $2
+RETURNING *
+`;
+
+const sqlCommTypeUpdate = `
+UPDATE communication_type
+SET  name = $1
+WHERE domain = $2 AND id = $3
+RETURNING *
+`;
+
 const sqlTestYealink = `
 SELECT xmlelement(
     NAME "YealinkIPPhoneDirectory",
@@ -285,6 +299,45 @@ function add(pool) {
                             return cb(null, res.rows[0])
                         } else {
                             return cb(new CodeError(404, `Not found ${name}@${domain}`));
+                        }
+                    }
+                )
+            },
+
+            delete: (domain, id, cb) => {
+                pool.query(
+                    sqlCommTypeRemove,
+                    [
+                        domain,
+                        +id
+                    ], (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+                        if (res && res.rowCount && res.rows[0]) {
+                            return cb(null, res.rows[0])
+                        } else {
+                            return cb(new CodeError(404, `Not found ${id}@${domain}`));
+                        }
+                    }
+                )
+            },
+
+            update: (domain, id, name, cb) => {
+                pool.query(
+                    sqlCommTypeUpdate,
+                    [
+                        name,
+                        domain,
+                        +id
+                    ], (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+                        if (res && res.rowCount && res.rows[0]) {
+                            return cb(null, res.rows[0])
+                        } else {
+                            return cb(new CodeError(404, `Not found ${id}@${domain}`));
                         }
                     }
                 )

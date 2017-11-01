@@ -17,6 +17,8 @@ module.exports = {
 function addRoutes(api) {
     api.post('/api/v2/contacts/communications', createType);
     api.get('/api/v2/contacts/communications', listTypes);
+    api.delete('/api/v2/contacts/communications/:id', removeType);
+    api.put('/api/v2/contacts/communications/:id', updateType);
 
     api.get('/api/v2/contacts/yealink', testYealink);
     //api.get('/api/v2/contacts/v-card', testVCard);
@@ -166,6 +168,38 @@ function createType(req, res, next) {
 
 function listTypes (req, res, next) {
     bookService.types.list(req.webitelUser, getRequest(req), (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function removeType(req, res, next) {
+    const options = {
+        domain: req.query.domain,
+        id: req.params.id
+    };
+    bookService.types.remove(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function updateType(req, res, next) {
+    const options = req.body;
+    options.domain = req.query.domain;
+    options.id = req.params.id;
+
+    bookService.types.update(req.webitelUser, options, (err, result) => {
         if (err)
             return next(err);
 
