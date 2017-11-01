@@ -489,4 +489,61 @@ create unique index IF NOT EXISTS agent_in_dialer_id_uindex
 
 `);
 
+sql.push(`
+create table IF NOT EXISTS metadata
+(
+	id serial not null
+		constraint metadata_pkey
+			primary key,
+	domain varchar(120) not null,
+	object_name varchar(50) not null,
+	data jsonb
+)
+;
+
+create unique index IF NOT EXISTS metadata_id_uindex
+	on metadata (id)
+;
+
+create unique index IF NOT EXISTS metadata_domain_object_name_uindex
+	on metadata (domain, object_name)
+;
+`);
+
+sql.push(`
+create table IF NOT EXISTS contacts
+(
+	id bigserial not null
+		constraint contacts_pkey
+			primary key,
+	domain varchar(100) not null,
+	name varchar(120) not null,
+	company_name varchar(120),
+	job_name varchar(120),
+	description varchar(500),
+	photo bytea,
+	custom_data jsonb,
+	tags varchar(50) []
+)
+;
+
+create unique index IF NOT EXISTS contacts_id_uindex
+	on contacts (id)
+;
+
+create index IF NOT EXISTS contacts_domain_index
+	on contacts (domain)
+;
+
+create index IF NOT EXISTS contacts_name_index
+	on contacts (name)
+;
+
+create index IF NOT EXISTS contacts_company_name_index
+	on contacts (company_name)
+;
+
+
+`);
+
 module.exports = sql;
