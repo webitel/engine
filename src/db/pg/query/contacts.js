@@ -6,8 +6,8 @@
 
 const log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error'),
-    buildQuery = require('./utils').buildQuery;
-
+    buildQuery = require('./utils').buildQuery,
+    bytea = require('postgres-bytea');
 
 const sqlContactItem = `
     select row_to_json(t) as contact
@@ -172,6 +172,11 @@ function add(pool) {
                         return cb(err);
                     }
                     if (res && res.rowCount && res.rows[0]) {
+                        if (res.rows[0].contact.photo) {
+                            //TODO query encode
+                            res.rows[0].contact.photo = bytea(res.rows[0].contact.photo).toString('utf8');
+                        }
+
                         return cb(null, res.rows[0].contact)
                     } else {
                         return cb(new CodeError(404, `Not found ${id}@${domainName}`));
@@ -182,6 +187,7 @@ function add(pool) {
 
         create: (contact = {}, domain, cb) => {
             try {
+
                 pool.query(
                     //domain, name, company_name, job_name, description, photo, custom_data, tags, communications
                     sqlContactCreate,
@@ -191,7 +197,7 @@ function add(pool) {
                         contact.company_name,
                         contact.job_name,
                         contact.description,
-                        null, //photo
+                        contact.photo, //photo
                         contact.custom_data ? JSON.stringify(contact.custom_data) : null,
                         contact.tags,
                         contact.communications ? JSON.stringify(contact.communications) : null
@@ -221,7 +227,7 @@ function add(pool) {
                         contact.company_name,
                         contact.job_name,
                         contact.description,
-                        null, //photo
+                        contact.photo, //photo
                         contact.custom_data ? JSON.stringify(contact.custom_data) : null,
                         contact.tags,
                         +id,

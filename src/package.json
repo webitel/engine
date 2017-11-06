@@ -30,6 +30,7 @@
     "nodemailer": "^1.4.0",
     "nodemailer-smtp-pool": "^1.1.1",
     "pg": "^6.4.0",
+    "postgres-bytea": "^1.0.0",
     "prettysize": "0.0.3",
     "request": "^2.69.0",
     "require_optional": "^1.0.1",
