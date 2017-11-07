@@ -55,9 +55,8 @@ const sqlMoveDownDefault = `
     ), mov as (
         SELECT id, "order"
         FROM ${DEFAULT_TABLE_NAME}
-        WHERE "order" > (SELECT t1."order"
+        WHERE domain = $2 AND "order" > (SELECT t1."order"
                          FROM t1
-                         WHERE t1.domain = t1.domain
                          LIMIT 1)
         ORDER BY "order" asc
         LIMIT 1
@@ -79,9 +78,8 @@ const sqlMoveUpDefault = `
     ), mov as (
         SELECT id, "order"
         FROM ${DEFAULT_TABLE_NAME}
-        WHERE "order" < (SELECT t1."order"
+        WHERE domain = $2 AND "order" < (SELECT t1."order"
                          FROM t1
-                         WHERE t1.domain = t1.domain
                          LIMIT 1)
         ORDER BY "order" desc
         LIMIT 1
