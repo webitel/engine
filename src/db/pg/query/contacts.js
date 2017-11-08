@@ -10,21 +10,8 @@ const log = require(__appRoot + '/lib/log')(module),
     bytea = require('postgres-bytea');
 
 const sqlContactItem = `
-    select row_to_json(t) as contact
-    from (
-      select *,
-        (
-          select array_to_json(array_agg(row_to_json(d)))
-          from (
-            select contacts_communication.id, contacts_communication.number, contacts_communication.type_id, ct.name as type_name
-            from contacts_communication
-            INNER JOIN communication_type as ct on ct.id = contacts_communication.type_id
-            where contacts_communication.contact_id = contacts.id
-          ) d
-        ) as communications
-      from contacts
-      where contacts.id = $1 AND contacts.domain = $2
-    ) t;
+    SELECT * FROM v_contacts_list 
+    where v_contacts_list.id = $1 AND v_contacts_list.domain = $2
 `;
 
 const sqlContactCreate = `
@@ -158,7 +145,7 @@ function add(pool) {
 
     return {
         list: (request, cb) => {
-            buildQuery(pool, request, "contacts", cb);
+            buildQuery(pool, request, "v_contacts_list", cb);
         },
 
         findById: (id, domainName, cb) => {
@@ -172,12 +159,12 @@ function add(pool) {
                         return cb(err);
                     }
                     if (res && res.rowCount && res.rows[0]) {
-                        if (res.rows[0].contact.photo) {
+                        if (res.rows[0].photo) {
                             //TODO query encode
-                            res.rows[0].contact.photo = bytea(res.rows[0].contact.photo).toString('utf8');
+                            res.rows[0].photo = bytea(res.rows[0].photo).toString('utf8');
                         }
 
-                        return cb(null, res.rows[0].contact)
+                        return cb(null, res.rows[0])
                     } else {
                         return cb(new CodeError(404, `Not found ${id}@${domainName}`));
                     }

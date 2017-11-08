@@ -7,6 +7,11 @@
 const bookService = require(__appRoot + '/services/contactBook');
 const getRequest = require(__appRoot + '/utils/helper').getRequest;
 
+/*
+1: on domain create add communication type - Email  Phone
+2: list communications
+ */
+
 module.exports = {
     addRoutes: addRoutes
 };

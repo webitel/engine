@@ -543,7 +543,82 @@ create index IF NOT EXISTS contacts_company_name_index
 	on contacts (company_name)
 ;
 
+`);
 
+sql.push(`
+create table IF NOT EXISTS communication_type
+(
+	id serial not null
+		constraint communication_type_pkey
+			primary key,
+	name varchar(50) not null,
+	domain varchar(120) not null
+)
+;
+
+create unique index IF NOT EXISTS communication_type_id_uindex
+	on communication_type (id)
+;
+
+create unique index IF NOT EXISTS communication_type_domain_name_uindex
+	on communication_type (domain, name)
+;
+
+create index IF NOT EXISTS communication_type_name_index
+	on communication_type (name)
+;
+
+create index IF NOT EXISTS communication_type_domain_index
+	on communication_type (domain)
+;
+`);
+
+sql.push(`
+create table IF NOT EXISTS contacts_communication
+(
+	id bigserial not null
+		constraint contacts_communication_pkey
+			primary key,
+	contact_id bigint not null
+		constraint contacts_communication_contacts_id_fk
+			references contacts
+				on update cascade on delete cascade,
+	number varchar(50) not null,
+	digits varchar(50),
+	type_id bigint not null
+		constraint contacts_communication_communication_type_id_fk
+			references communication_type
+)
+;
+
+create unique index IF NOT EXISTS contacts_communication_id_uindex
+	on contacts_communication (id)
+;
+
+create index IF NOT EXISTS contacts_communication_contact_id_index
+	on contacts_communication (contact_id)
+;
+
+create index IF NOT EXISTS contacts_communication_number_index
+	on contacts_communication (number)
+;
+
+create index IF NOT EXISTS contacts_communication_type_id_index
+	on contacts_communication (type_id)
+;
+
+CREATE OR REPLACE VIEW v_contacts_list AS
+    select *,
+        (
+          select array_to_json(array_agg(row_to_json(d)))
+          from (
+            select contacts_communication.id, contacts_communication.number, contacts_communication.type_id, ct.name as type_name
+            from contacts_communication
+            INNER JOIN communication_type as ct on ct.id = contacts_communication.type_id
+            where contacts_communication.contact_id = contacts.id
+          ) d
+        ) as communications
+      from contacts;
 `);
 
 module.exports = sql;
