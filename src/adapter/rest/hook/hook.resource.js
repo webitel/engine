@@ -3,8 +3,7 @@
  */
 'use strict';
 
-var hookService = require(__appRoot + '/services/hook')
-    ;
+const hookService = require(__appRoot + '/services/hook');
 
 module.exports = {
     addRoutes: addRoutes
@@ -16,8 +15,12 @@ function addRoutes (api) {
     api.get('/api/v2/hooks/:id', item);
     api.put('/api/v2/hooks/:id', update);
     api.delete('/api/v2/hooks/:id', remove);
+
+    //queue
+    // api.get('/api/v2/hooks/:id/queue', listQueue);
+
     //api.post('/api/v2/hooks/searches', searches);
-};
+}
 
 function list (req, res, next) {
     let options = {
@@ -39,7 +42,7 @@ function list (req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function item(req, res, next) {
     let options = {
@@ -56,7 +59,7 @@ function item(req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function update(req, res, next) {
     let options = {
@@ -74,7 +77,7 @@ function update(req, res, next) {
             "data": result
         });
     })
-};
+}
 
 function create(req, res, next) {
     let options = {
@@ -91,7 +94,7 @@ function create(req, res, next) {
             "data": result
         });
     });
-};
+}
 
 function remove(req, res, next) {
     let options = {
@@ -109,7 +112,3 @@ function remove(req, res, next) {
         });
     })
 }
-
-function searches(req, res, next) {
-
-};

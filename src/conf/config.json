@@ -89,6 +89,10 @@
         "callcenter": true,
         "writeUserStatus": false,
         "dialerCbMinusAttempt": true,
+        "hook": {
+            "maxRetries": 100,
+            "defaultDelaySec": 60
+        },
         "auth": {
             "tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100

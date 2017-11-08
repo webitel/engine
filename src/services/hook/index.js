@@ -88,6 +88,8 @@ var Service = {
 
             let _doc = {
                 domain: domain,
+                retries: doc.retries,
+                delay: doc.delay,
                 event: doc.event,
                 enable: doc.enable,
                 description: doc.description,
@@ -169,6 +171,8 @@ var Service = {
             let _doc = {
                 domain: domain,
                 event: doc.event,
+                retries: doc.retries,
+                delay: doc.delay,
                 enable: doc.enable,
                 description: doc.description,
                 action: doc.action,
@@ -216,7 +220,7 @@ var Service = {
                 return db.remove(option.id, domain, cb);
             });
         });
-    },
+    }
 };
 
 module.exports = Service;

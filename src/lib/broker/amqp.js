@@ -11,6 +11,7 @@ var log = require(__appRoot + '/lib/log')(module),
     Amqp = require('amqplib/callback_api');
 
 const HOOK_QUEUE = 'hooks',
+    HOOK_DELAY_EXCHANGE = 'HOOK-DELAY',
     GATEWAY_QUEUE = 'engine.gateway',
     STORAGE_QUEUE = 'engine-storage',
     TELEGRAM_QUEUE = 'telegram-notification';
@@ -39,6 +40,7 @@ class WebitelAmqp extends EventEmitter2 {
     get Exchange () {
         return {
             ENGINE: 'engine',
+            HOOK_DELAY_EXCHANGE: HOOK_DELAY_EXCHANGE,
             FS_EVENT: this.config.eventsExchange.channel,
             FS_CC_EVENT: this.config.eventsExchange.cc,
             FS_COMMANDS: this.config.eventsExchange.commands,
@@ -118,6 +120,10 @@ class WebitelAmqp extends EventEmitter2 {
     };
 
     publish (exchange, rk, content, cb) {
+        this.publishWithArgs(exchange, rk, content, {contentType: "text/json"}, cb);
+    };
+
+    publishWithArgs (exchange, rk, content, args, cb) {
         let ch = this.channel;
         if (!ch)
             return cb && cb(new Error(`No live connect.`));
@@ -130,10 +136,11 @@ class WebitelAmqp extends EventEmitter2 {
                 content = new Buffer(JSON.stringify(content));
             }
             log.trace(`publish ${rk}`);
-            ch.publish(exchange, rk, content, {contentType: "text/json"});
+            ch.publish(exchange, rk, content, args);
             return cb && cb();
         } catch (e) {
             log.error(e);
+            return cb && cb();
         }
     };
 
@@ -274,7 +281,7 @@ class WebitelAmqp extends EventEmitter2 {
 
     init (channel) {
         let scope = this;
-
+        this.channel = channel;
         async.waterfall(
             [
                 // init channel event exchange
@@ -297,6 +304,14 @@ class WebitelAmqp extends EventEmitter2 {
                 function (_, cb) {
                     log.debug('Try init storage exchange');
                     channel.assertExchange(scope.Exchange.STORAGE_COMMANDS, 'topic', {durable: true}, cb);
+                },
+                // init hook exchange
+                function (_, cb) {
+                    log.debug('Try init storage exchange');
+                    const arg = {
+                        'x-delayed-type': 'topic'
+                    };
+                    channel.assertExchange(HOOK_DELAY_EXCHANGE, 'x-delayed-message', {durable: true, arguments: arg}, cb);
                 },
 
                 //init channel queue
@@ -383,29 +398,38 @@ class WebitelAmqp extends EventEmitter2 {
                 // init hooks queue
                 function (_, cb) {
                     log.debug('Try init hooks events queue');
-                    channel.assertQueue(HOOK_QUEUE, {autoDelete: false, durable: false, exclusive: false}, (err, qok) => {
+                    channel.assertQueue(
+                        HOOK_QUEUE,
+                        {
+                            autoDelete: false,
+                            durable: true,
+                            exclusive: false
+                        },
+                        (err, qok) => {
 
-                        channel.consume(qok.queue, (msg) => {
-                            try {
-                                let e = JSON.parse(msg.content.toString()),
-                                    domain = getDomain(e);
+                            channel.consume(qok.queue, (msg) => {
+                                try {
+                                    let e = JSON.parse(msg.content.toString()),
+                                        domain = getDomain(e);
 
-                                if (!domain) {
-                                    log.debug(`No found domain`, domain);
-                                    log.trace(e);
-                                    return;
+                                    if (!domain) {
+                                        log.debug(`No found domain`, domain);
+                                        log.trace(e);
+                                        return;
+                                    }
+
+                                    scope.emit('hookEvent', e['Event-Name'], domain, e);
+                                } catch (e) {
+                                    log.error(e);
                                 }
+                            }, {noAck: true});
+                            channel.bindQueue(qok.queue, HOOK_DELAY_EXCHANGE, "hook");
 
-                                scope.emit('hookEvent', e['Event-Name'], domain, e);
-                            } catch (e) {
-                                log.error(e);
-                            }
-                        }, {noAck: true});
+                            scope.emit(`init:hook`);
 
-                        scope.emit(`init:hook`);
-
-                        return cb(null, null);
-                    });
+                            return cb(null, null);
+                        }
+                    );
                 },
 
                 //init gateway queue
@@ -491,7 +515,6 @@ class WebitelAmqp extends EventEmitter2 {
                     return log.error(err);
                 log.info('Init AMQP: OK');
 
-                scope.channel = channel;
                 scope.emit(`init:broker`);
             });
     };

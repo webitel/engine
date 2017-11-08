@@ -2,20 +2,38 @@
  * Created by i.navrotskyj on 13.03.2016.
  */
 'use strict';
-var Collection = require(__appRoot + '/lib/collection'),
+const Collection = require(__appRoot + '/lib/collection'),
     generateUuid = require('node-uuid'),
     url = require('url'),
     http = require('http'),
     request = require('request'),
     _ = require('underscore'),
     async = require('async'),
-    log = require(__appRoot + '/lib/log')(module);
+    conf = require(__appRoot + '/conf'),
+    log = require(__appRoot + '/lib/log')(module),
+    MAX_RETRIES = conf.get('application:hook:maxRetries') || Infinity,
+    DEF_DELAY_SEC = conf.get('application:hook:defaultDelaySec') || 60
+;
 
 class Hook {
     constructor(option) {
         let filter = option.filter;
         this.event = option.event;
         this.domain = option.domain;
+        this.retries = 0;
+        this.delaySec = DEF_DELAY_SEC;//option.delay;
+        if (option.retries > 0 && option.retries <= MAX_RETRIES) {
+            this.retries = option.retries;
+        } else {
+            log.debug(`Hook ${option._id}@${option.domain} bad options retries, skip retries`);
+        }
+
+        if (option.delay > 0) {
+            this.delaySec = option.delay;
+        } else {
+            log.debug(`Hook ${option._id}@${option.domain} bad options delay, use default ${this.delaySec}`);
+        }
+
         this.action = option.action;
         this.fields = option.fields;
         this.headers = option.headers;
@@ -111,7 +129,7 @@ const Operations = {
     },
     "reg": function (a, b) {
         try {
-            if (typeof b != 'string')
+            if (typeof b !== 'string')
                 return;
             let flags = b.match(new RegExp('^/(.*?)/([gimy]*)$'));
             if (!flags)
@@ -151,7 +169,10 @@ class Message {
                     }
             }
         }
-        this.id = generateUuid.v4();
+        if (!message.webitel_hook_msg_id) {
+            message.webitel_hook_msg_id = generateUuid.v4();
+        }
+        this.id = message.webitel_hook_msg_id;
     };
 
     toRequest (uri, method, eventObj, hook) {
@@ -376,11 +397,11 @@ class Trigger {
                     ],
                     (err, response, id) => {
                         if (err)
-                            return log.warn(err);
+                            return responseError(err, response, e, id, hook);
 
                         if (response.statusCode === 200)
                             log.trace(`Send message: ${id}`);
-                        else log.warn(`Send message: ${id} status code: ${response.statusCode}`);
+                        else responseError(err, response, e, id, hook);
                     }
                 );
 
@@ -392,6 +413,30 @@ class Trigger {
 
     };
 
+}
+
+function responseError(err, response = {}, event = {}, id, hook) {
+    if (isNaN(+event.webitel_hook_retries)) {
+        event.webitel_hook_retries = 1;
+    } else {
+        event.webitel_hook_retries++;
+    }
+
+    if (hook.retries < event.webitel_hook_retries) {
+        log.warn(`Hook ${id} max retries ${hook.retries} last status code ${response.statusCode}`);
+        return; //TODO rem db
+    }
+    log.trace(`Message ${id} retry send ${event.webitel_hook_retries} max ${hook.retries} after ${hook.delaySec} sec`);
+    application.Broker.publishWithArgs(
+        application.Broker.Exchange.HOOK_DELAY_EXCHANGE,
+        `hook`,
+        event,
+        {
+            persistent: true,
+            contentType: "text/json",
+            headers: {'x-delay': hook.delaySec * 1000}
+        }
+    );
 }
 
 function _setHeadersFromEvent(mapHeaders, eventObj) {
