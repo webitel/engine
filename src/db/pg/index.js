@@ -57,6 +57,7 @@ query.set('tcpDump', require('./query/tcpDump')(p));
 query.set('contacts', require('./query/contacts')(p));
 query.set('metadata', require('./query/metadata')(p));
 query.set('hook', require('./query/hook')(p));
+query.set('dialer', require('./query/dialer')(p));
 
 function initData(err) {
     if (err) {

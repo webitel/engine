@@ -5,9 +5,10 @@
 'use strict';
 
 
-var dialerService = require(__appRoot + '/services/dialer'),
+const dialerService = require(__appRoot + '/services/dialer'),
     parseQueryToObject = require(__appRoot + '/utils/parse').parseQueryToObject,
-    getIp = require(__appRoot + '/utils/ip')
+    getIp = require(__appRoot + '/utils/ip'),
+    getRequest = require(__appRoot + '/utils/helper').getRequest
 ;
 
 module.exports = {
@@ -37,7 +38,13 @@ function addRoutes (api) {
 
     api.get('/api/v2/dialer/:dialer/history', listHistory);
 
-    api.post('/api/v2/dialer/:dialer/agents/stats', getAgentStats)
+    api.post('/api/v2/dialer/:dialer/agents/stats', getAgentStats);
+
+    api.get('/api/v2/dialer/:dialer/templates', listTemplates);
+    api.get('/api/v2/dialer/:dialer/templates/:id', itemTemplate);
+    api.post('/api/v2/dialer/:dialer/templates', createTemplate);
+    api.put('/api/v2/dialer/:dialer/templates/:id', updateTemplate);
+    api.delete('/api/v2/dialer/:dialer/templates/:id', removeTemplate);
 }
 
 
@@ -395,4 +402,89 @@ function getAgentStats(req, res, next) {
             "data": result
         });
     });
+}
+
+function listTemplates(req, res, next) {
+    const options = getRequest(req);
+    if (!options.filter) {
+        options.filter = {};
+    }
+
+    options.filter.dialer_id = req.params.dialer;
+    delete options.domain;
+
+    dialerService.templates.list(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    })
+}
+
+function itemTemplate(req, res, next) {
+    const options = {
+        dialerId: req.params.dialer,
+        id: req.params.id
+    };
+
+    dialerService.templates.item(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    })
+}
+
+function createTemplate(req, res, next) {
+    const options = req.body;
+    options.dialerId = req.params.dialer;
+
+    dialerService.templates.create(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    })
+}
+
+function updateTemplate(req, res, next) {
+    const options = req.body;
+    options.dialerId = req.params.dialer;
+    options.id = req.params.id;
+
+    dialerService.templates.update(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    })
+}
+
+function removeTemplate(req, res, next) {
+    const options = {
+        dialerId: req.params.dialer,
+        id: req.params.id
+    };
+
+    dialerService.templates.remove(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    })
 }

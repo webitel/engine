@@ -899,6 +899,68 @@ let Service = {
                 );
             })
         }
+    },
+
+    templates: {
+        list: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                application.PG.getQuery('dialer').templates.list(options, cb);
+            });
+        },
+
+        item: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                application.PG.getQuery('dialer').templates.item(options.dialerId, options.id, cb);
+            });
+        },
+
+        create: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                application.PG.getQuery('dialer').templates.create(options, cb);
+            });
+        },
+
+        update: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                application.PG.getQuery('dialer').templates.update(options.dialerId, options.id, options, cb);
+            });
+        },
+
+        remove: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                application.PG.getQuery('dialer').templates.remove(options.dialerId, options.id, cb);
+            });
+        }
     }
 };
 
