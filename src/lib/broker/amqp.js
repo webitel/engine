@@ -185,7 +185,7 @@ class WebitelAmqp extends EventEmitter2 {
     _parseHookEventName (eventName) {
         let _e = eventName.split('->').map((value) => encodeRK(value) );
 
-        if (~eventName.indexOf('->webitel::')) {
+        if (~eventName.indexOf('->webitel::') || ~eventName.indexOf('->ACR::')) {
             return {
                 ex: this.Exchange.FS_CC_EVENT,
                 rk: `*.${_e[1]}.*.*.*`
