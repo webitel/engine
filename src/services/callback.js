@@ -217,14 +217,15 @@ const Service = {
                     application.Esl.bgapi(dialString, (res) => {
                         if (/^-ERR|^-USAGE/.test(res.body)) {
                             log.error(res.body);
+                            return cb(new CodeError(400, res.body.replace('\n', '')), "Error");
                         } else {
                             log.trace(`Call: ${res.body}`);
+                            return cb(null, "Success");
                         }
-                        // doesn't work in this case
+                        //TODO ? doesn't work in this case
                         //if (info.member) {
                         //    application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, info.member));
                         //}
-                        return cb(null, "Success");
                     });
                 } else {
                     return cb(null, "Success");
