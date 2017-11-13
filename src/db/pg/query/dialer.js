@@ -17,8 +17,8 @@ const sqlTemplateItem = `
 `;
 
 const sqlTemplateCreate = `
-    INSERT INTO dialer_templates(dialer_id, name, type, template, description)
-    VALUES ($1, $2, $3, $4, $5)
+    INSERT INTO dialer_templates(dialer_id, name, type, action, template, description)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING id;
 `;
 
@@ -26,9 +26,10 @@ const sqlTemplateUpdate = `
     UPDATE dialer_templates
         SET name = $1
             ,type = $2
-            ,template = $3
-            ,description = $4
-    WHERE id = $5 AND dialer_id = $6
+            ,action = $3
+            ,template = $4
+            ,description = $5
+    WHERE id = $6 AND dialer_id = $7
     RETURNING *;
 `;
 
@@ -36,6 +37,11 @@ const sqlRemoveTemplate = `
     DELETE FROM dialer_templates
     WHERE id = $1 AND dialer_id = $2
     RETURNING *;
+`;
+
+const sqlRemoveTemplateAllByDialer = `
+    DELETE FROM dialer_templates
+    WHERE dialer_id = $1;
 `;
 
 function add(pool) {
@@ -67,11 +73,12 @@ function add(pool) {
                 try {
                     pool.query(
                         sqlTemplateCreate,
-                        //dialer_id, name, type, template, description
+                        //dialer_id, name, type, action, template, description
                         [
                             data.dialerId,
                             data.name,
                             data.type,
+                            data.action,
                             data.template ? JSON.stringify(data.template) : null,
                             data.description
                         ],
@@ -98,6 +105,7 @@ function add(pool) {
                         [
                             data.name,
                             data.type,
+                            data.action,
                             data.template ? JSON.stringify(data.template) : null,
                             data.description,
                             +id,
@@ -136,6 +144,15 @@ function add(pool) {
                             return cb(new CodeError(404, `Not found ${id}@${dialerId}`));
                         }
                     }
+                )
+            },
+
+            //TODO
+            removeAllByDialer: (dialerId, cb) => {
+                pool.query(
+                    sqlRemoveTemplateAllByDialer,
+                    [dialerId],
+                    (err) => cb(err)
                 )
             }
         }
