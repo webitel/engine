@@ -6,8 +6,7 @@
 
 const log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error'),
-    buildQuery = require('./utils').buildQuery,
-    bytea = require('postgres-bytea');
+    buildQuery = require('./utils').buildQuery;
 
 const sqlContactItem = `
     SELECT * FROM v_contacts_list 
@@ -161,7 +160,7 @@ function add(pool) {
                     if (res && res.rowCount && res.rows[0]) {
                         if (res.rows[0].photo) {
                             //TODO query encode
-                            res.rows[0].photo = bytea(res.rows[0].photo).toString('utf8');
+                            res.rows[0].photo = res.rows[0].photo.toString();
                         }
 
                         return cb(null, res.rows[0])
