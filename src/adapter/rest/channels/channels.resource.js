@@ -4,7 +4,7 @@
 
 'use strict';
 
-var channelService = require(__appRoot + '/services/channel'),
+const channelService = require(__appRoot + '/services/channel'),
     CodeError = require(__appRoot + '/lib/error');
 
 module.exports = {
@@ -13,6 +13,7 @@ module.exports = {
 
 function addRoutes(api) {
     api.get('/api/v2/channels', getChannels);
+    api.get('/api/v2/channels/:userId', getChannelsByUser);
     api.get('/api/v2/calls', getCalls);
 
     api.post('/api/v2/channels', originate);
@@ -37,7 +38,29 @@ function addRoutes(api) {
     api.delete('/api/v1/channels/:id', killUuid);
     api.put('/api/v1/channels/:id', changeState);
     api.patch('/api/v1/channels/:id', changeState);
-};
+}
+
+function getChannelsByUser(req, res, next) {
+    const options = {
+        userId: req.params.userId,
+        domain: req.query.domain
+    };
+
+    channelService.channelsByUser(req.webitelUser, options,
+        function (err, result) {
+            if (err) {
+                return next(err);
+            };
+
+            return res
+                .status(200)
+                .json({
+                    "status": "OK",
+                    "data": result
+                });
+        }
+    );
+}
 
 function originateV1 (req, res, next) {
     var extension = req.body.calledId, // CALLE
@@ -178,6 +201,8 @@ function killUuid (req, res, next) {
 function eavesdrop (req, res, next) {
     var option = {
         "user": req.body['user'],
+        "display": req.body['display'],
+        "variables": req.body['variables'],
         "channel-uuid": req.params['id'],
         "side": req.query['side']
     };

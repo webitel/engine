@@ -4,10 +4,12 @@
 
 'use strict';
 
-var log = require(__appRoot + '/lib/log')(module),
+const log = require(__appRoot + '/lib/log')(module),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     CodeError = require(__appRoot + '/lib/error'),
     checkEslError = require(__appRoot + '/middleware/checkEslError');
+
+const VAR_SEPARATOR = String.fromCharCode(27);
 
 var Service = {
     bgApi: function (execString, cb) {
@@ -199,24 +201,31 @@ var Service = {
         var user = options['user'] || caller.id,
             side = options['side'],
             displayValue = options['display'],
-            variables = ''
+            vars = options['variables'],
+            variables = []
         ;
         if (displayValue) {
-            variables = `[origination_callee_id_number=${displayValue},origination_caller_id_name=${displayValue}]`
+            variables.push(`origination_callee_id_number=${displayValue}`)
         }
-        if (options['channel-uuid'] == 'all' && caller.id != 'root') {
+
+        if (vars instanceof Array && vars.length > 0) {
+            variables = variables.concat(vars)
+        }
+
+        if (options['channel-uuid'] === 'all' && caller.id !== 'root') {
             return cb(new Error('Permission denied.'));
-        };
+        }
+
         if (caller.domain) {
             user = (user + '').split('@')[0] + '@' + caller.domain;
-        };
+        }
 
         if (!side) {
             side = user;
-        };
+        }
 
         Service.bgApi(
-            'originate ' + variables + 'user/' + user + ' &eavesdrop(' + (options['channel-uuid'] || '')
+            'originate ' + (variables.length > 0 ? `[^^${VAR_SEPARATOR}${variables.join(VAR_SEPARATOR)}]` : '')  + 'user/' + user + ' &eavesdrop(' + (options['channel-uuid'] || '')
                 + ') XML default ' + side + ' ' + side,
             cb
         );
@@ -295,6 +304,19 @@ var Service = {
             };
             return cb(null, data);
         });
+    },
+
+    channelsByUser: function (caller, options, cb) {
+        const _domain = validateCallerParameters(caller, options['domain']);
+        if (!_domain) {
+            return cb(new CodeError(400, `Domain is required`))
+        }
+
+        if (!options.userId) {
+            return cb(new CodeError(400, 'User id is required'))
+        }
+
+        application.PG.getQuery('channels').listByPresence(`${options.userId}@${_domain}`, cb);
     },
 
     /**
