@@ -4,11 +4,15 @@
 
 'use strict';
 
-var CodeError = require(__appRoot + '/lib/error'),
+const CodeError = require(__appRoot + '/lib/error'),
+    request = require('request'),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     log = require(__appRoot + '/lib/log')(module),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     END_CAUSE = require('./autoDialer/const').END_CAUSE,
+    conf = require(__appRoot + '/conf'),
+    generateUuid = require('node-uuid'),
+    BASE_URI = conf.get('server:baseUrl').replace(/(\/+)$/, ''),
     expVal = require(__appRoot + '/utils/validateExpression')
 ;
 
@@ -903,7 +907,7 @@ let Service = {
 
     templates: {
         list: (caller, options, cb) => {
-            checkPermissions(caller, 'dialer', 'r', function (err) {
+            checkPermissions(caller, 'dialer/templates', 'r', function (err) {
                 if (err)
                     return cb(err);
 
@@ -915,7 +919,7 @@ let Service = {
         },
 
         item: (caller, options, cb) => {
-            checkPermissions(caller, 'dialer', 'r', function (err) {
+            checkPermissions(caller, 'dialer/templates', 'r', function (err) {
                 if (err)
                     return cb(err);
 
@@ -927,7 +931,7 @@ let Service = {
         },
 
         create: (caller, options, cb) => {
-            checkPermissions(caller, 'dialer', 'u', function (err) {
+            checkPermissions(caller, 'dialer/templates', 'c', function (err) {
                 if (err)
                     return cb(err);
 
@@ -939,7 +943,7 @@ let Service = {
         },
 
         update: (caller, options, cb) => {
-            checkPermissions(caller, 'dialer', 'u', function (err) {
+            checkPermissions(caller, 'dialer/templates', 'u', function (err) {
                 if (err)
                     return cb(err);
 
@@ -951,7 +955,7 @@ let Service = {
         },
 
         remove: (caller, options, cb) => {
-            checkPermissions(caller, 'dialer', 'u', function (err) {
+            checkPermissions(caller, 'dialer/templates', 'd', function (err) {
                 if (err)
                     return cb(err);
 
@@ -960,6 +964,67 @@ let Service = {
 
                 application.PG.getQuery('dialer').templates.remove(options.dialerId, options.id, cb);
             });
+        },
+
+        startExecute: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer/templates', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                application.PG.getQuery('dialer').templates.setExecute(options.dialerId, options.id, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (!res) {
+                        return cb(new CodeError(400, `Process is working`))
+                    }
+
+                    if (res.before_delete) {
+                        application.DB._query.dialer.removeMemberByDialerId(res.dialer_id, (err) => {
+                            if (err) {
+                                log.error(err);
+                                application.PG.getQuery('dialer').templates.rollback(res.dialer_id, res.id, {
+                                    process_start: null,
+                                    process_state: ""
+                                }, (err) => {
+                                    if (err)
+                                        return log.error(err);
+                                });
+                                return cb(err)
+                            }
+
+                            executeTemplate(res, cb)
+                        });
+                    } else {
+                        executeTemplate(res, cb)
+                    }
+
+                });
+            });
+        },
+
+        endExecute: (caller, options, cb) => {
+            checkPermissions(caller, 'dialer/templates', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                let data = '';
+                if (options.body instanceof Object) {
+                    try {
+                        data = JSON.stringify(options.body)
+                    } catch (e) {
+                        log.error(e)
+                    }
+                }
+
+                application.PG.getQuery('dialer').templates.endExecute(options.dialerId, options.id, options.pid, data, cb)
+            })
         }
     }
 };
@@ -975,4 +1040,81 @@ function replaceExpression(obj) {
                 obj["sysExpression"] = expVal(obj[key]);
             }
         }
+}
+
+function executeTemplate(res, cb) {
+    switch (res.type) {
+        case "SQL":
+        case "WEB":
+            return sendRequestTemplate(res, cb);
+        default:
+            application.PG.getQuery('dialer').templates.rollback(res.dialer_id, res.id, {
+                process_start: null,
+                process_state: ""
+            }, (err) => {
+                if (err)
+                    return log.error(err);
+            });
+            return cb(new CodeError(400, `Not implement type ${res.type}`));
+    }
+}
+
+function sendRequestTemplate(record, cb) {
+    const template = record.template || {};
+    const options = {
+        method: template.method,
+        uri: template.url, //TODO
+        body: null,
+        headers: template.headers || {}
+    };
+
+    // todo lower case
+    if (!options.headers['Content-Type']) {
+        options.headers['Content-Type'] = 'application/json';
+        try {
+            options.body = JSON.stringify(template)
+        } catch (e) {
+            return cb(new CodeError(400, e.message))
+        }
+    }
+
+    options.headers['X-Action'] = record.action;
+    options.headers['X-Response-Host'] = BASE_URI;
+    options.headers['X-Response-Path'] = `/api/v2/dialer/${record.dialer_id}/templates/${record.id}/end/${record.process_id}`;
+    options.headers['X-Dialer-Id'] = record.dialer_id;
+    options.headers['X-Template-Id'] = record.id;
+
+    request(options, (err, res) => {
+        if (err) {
+            log.error(err);
+            application.PG.getQuery('dialer').templates.rollback(record.dialer_id, record.id, {
+                process_start: null,
+                process_state: `ERROR_STAGE_1`,
+                last_response_code: null,
+                last_response_text: err.message
+            }, (err) => {
+                if (err)
+                    return log.error(err);
+
+            });
+            return cb(err);
+        }
+
+        log.debug(`Execute template ${record.id} response code ${res.statusCode} text: ${res.body}`);
+        if (res.statusCode !== 200) {
+            application.PG.getQuery('dialer').templates.rollback(record.dialer_id, record.id, {
+                process_start: null,
+                process_state: `ERROR_STAGE_1`,
+                last_response_code: res.statusCode,
+                last_response_text: res.body ? res.body + "" : ""
+            }, (err) => {
+                if (err)
+                    return log.error(err);
+            });
+
+            return cb(new CodeError(res.statusCode, res.body + ""));
+        }
+
+        return cb(null, res.body)
+    });
 }

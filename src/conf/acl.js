@@ -32,6 +32,7 @@ const RESOURCES = [
 
     'dialer',
     'dialer/members',
+    'dialer/templates',
 
     'book',
     'hook',
@@ -84,6 +85,7 @@ module.exports = [
 
             'dialer': ["*"],
             'dialer/members': ["*"],
+            'dialer/templates': ["*"],
 
             'book': ["*"],
             'hook': ["*"],
@@ -147,6 +149,7 @@ module.exports = [
 
             'dialer': ["*"],
             'dialer/members': ["*"],
+            'dialer/templates': ["*"],
 
             'book': ["*"],
             'hook': ["*"],

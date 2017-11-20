@@ -45,6 +45,47 @@ function addRoutes (api) {
     api.post('/api/v2/dialer/:dialer/templates', createTemplate);
     api.put('/api/v2/dialer/:dialer/templates/:id', updateTemplate);
     api.delete('/api/v2/dialer/:dialer/templates/:id', removeTemplate);
+
+    api.put('/api/v2/dialer/:dialer/templates/:id/execute', startExecuteTemplate);
+    api.put('/api/v2/dialer/:dialer/templates/:id/end/:pid', endExecuteTemplate);
+}
+
+function endExecuteTemplate(req, res, next) {
+    const options = {
+        dialerId: req.params.dialer,
+        pid: req.params.pid,
+        id: req.params.id,
+        domain: req.query.domain,
+        body: req.body
+    };
+
+    dialerService.templates.endExecute(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function startExecuteTemplate(req, res, next) {
+    const options = {
+        dialerId: req.params.dialer,
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialerService.templates.startExecute(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
 }
 
 
