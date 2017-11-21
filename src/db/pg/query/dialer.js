@@ -17,8 +17,8 @@ const sqlTemplateItem = `
 `;
 
 const sqlTemplateCreate = `
-    INSERT INTO dialer_templates(dialer_id, name, type, action, template, description, before_delete)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO dialer_templates(dialer_id, name, type, action, template, description, before_delete, cron, next_process_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING id;
 `;
 
@@ -30,7 +30,9 @@ const sqlTemplateUpdate = `
             ,template = $4
             ,description = $5
             ,before_delete = $6
-    WHERE id = $7 AND dialer_id = $8
+            ,cron = $7
+            ,next_process_id = $8
+    WHERE id = $9 AND dialer_id = $10
     RETURNING *;
 `;
 
@@ -74,7 +76,7 @@ function add(pool) {
                 try {
                     pool.query(
                         sqlTemplateCreate,
-                        //dialer_id, name, type, action, template, description
+                        //dialer_id, name, type, action, template, description, before_delete, cron, next_process_id
                         [
                             data.dialerId,
                             data.name,
@@ -82,7 +84,9 @@ function add(pool) {
                             data.action,
                             data.template ? JSON.stringify(data.template) : null,
                             data.description,
-                            data.before_delete ? 1 : 0
+                            data.before_delete ? 1 : 0,
+                            data.cron,
+                            data.next_process_id ? +data.next_process_id : null,
                         ],
                         (err, res) => {
                             if (err)
@@ -111,6 +115,8 @@ function add(pool) {
                             data.template ? JSON.stringify(data.template) : null,
                             data.description,
                             data.before_delete ? 1 : 0,
+                            data.cron,
+                            data.next_process_id ? +data.next_process_id : null,
                             +id,
                             dialerId
                         ],
