@@ -303,6 +303,7 @@ class AutoDialer extends EventEmitter2 {
 
         new Scheduler('1-59/1 * * * * *', clearAttemptOnDeadlineResultSec, {log: false});
         new Scheduler('*/1 * * * *', fnScheduleMin, {log: false});
+        new Scheduler('*/5 * * * *', this.setMembersExpire, {log: false});
     }
 
 
@@ -778,6 +779,59 @@ class AutoDialer extends EventEmitter2 {
         );
     }
 
+    setMembersExpire (cb) {
+        const cursor = dialerService.members._getCursor({
+            _lock: null,
+            expire: {$lt: Date.now()},
+            _endCause: null
+        }, {_probeCount: 1, expire: 1, _maxTryCount: 1, _id: 1, variables: 1, name: 1, dialer: 1, domain: 1, communications: 1, _lastNumberId: 1});
+
+        cursor.count((e, count) => {
+            if (e)
+                return cb(e);
+
+            log.trace(`Count expire members ${count}`);
+            if (count < 1)
+                return cb();
+
+            const _exec = (e, data) => {
+                if (e) {
+                    return cb(e)
+                }
+
+                if (!data) {
+                    return cb()
+                }
+
+                let $set = {
+                    _endCause: END_CAUSE.MEMBER_EXPIRED
+                };
+
+                if (data.communications instanceof Array) {
+                    setNumbersEndStatus($set, data.communications.length);
+                }
+
+                dialerService.members._updateOneMember({
+                    _id: data._id,
+                    _lock: null,
+                    _endCause: null
+                }, {$set}, (err, res) => {
+                    if (err)
+                        return log.error(err);
+
+                    if (res && res.result.nModified === 1) {
+                        log.debug(`Set member ${data._id} set expire`);
+                        _broadcastMemberEnd(data, END_CAUSE.MEMBER_EXPIRED, 'expire')
+                    }
+                });
+                cursor.nextObject(_exec);
+            };
+
+            cursor.nextObject(_exec);
+
+        })
+    }
+
     clearAttemptOnDeadlineResultStatusAddAttempts (cb) {
         const cursor = dialerService.members._getCursor({
             _waitingForResultStatus: {$lte: Date.now()},
@@ -815,7 +869,7 @@ class AutoDialer extends EventEmitter2 {
                     }
 
                     if (res && res.result.nModified === 1 && lastAttempts) {
-                        _broadcastMemberEnd(data)
+                        _broadcastMemberEnd(data, END_CAUSE.MAX_TRY, "callback")
                     }
                 });
 
@@ -852,6 +906,11 @@ class AutoDialer extends EventEmitter2 {
         //     }
         // })
     }
+}
+
+function setNumbersEndStatus($set = {}, communicationsLength) {
+    for (let i = 0; i < communicationsLength; i++)
+        $set[`communications.${i}.state`] = 2;
 }
 
 
@@ -894,7 +953,7 @@ function _getUpdateMember(end, communicationsLength) {
 }
 
 
-function _broadcastMemberEnd(member) {
+function _broadcastMemberEnd(member, endCause, reason) {
     const event = {
         "Event-Name": "CUSTOM",
         "Event-Subclass": "engine::dialer_member_end",
@@ -903,11 +962,14 @@ function _broadcastMemberEnd(member) {
         "dialerId": member.dialer,
         "id": member._id.toString(),
         "name": member.name,
-        "currentProbe": member._probeCount,
-        "endCause": END_CAUSE.MAX_TRY,
-        "reason": "callback",
+        "endCause": endCause,
+        "reason": reason,
         "callback_user_id": "system"
     };
+
+    if (member._probeCount) {
+        event.currentProbe = member._probeCount;
+    }
 
     const lastNumber = isFinite(member._lastNumberId) && member.communications[member._lastNumberId]
         ? member.communications[member._lastNumberId]
