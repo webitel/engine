@@ -794,13 +794,14 @@ class AutoDialer extends EventEmitter2 {
             if (count < 1)
                 return cb();
 
-            const _exec = (e, data) => {
-                if (e) {
-                    return cb(e)
+
+            cursor.each((err, data) => {
+                if (err) {
+                    return cb(err);
                 }
 
                 if (!data) {
-                    return cb()
+                    return cb();
                 }
 
                 let $set = {
@@ -824,11 +825,7 @@ class AutoDialer extends EventEmitter2 {
                         _broadcastMemberEnd(data, END_CAUSE.MEMBER_EXPIRED, 'expire')
                     }
                 });
-                cursor.nextObject(_exec);
-            };
-
-            cursor.nextObject(_exec);
-
+            });
         })
     }
 
@@ -847,8 +844,7 @@ class AutoDialer extends EventEmitter2 {
             if (count < 1)
                 return cb();
 
-
-            const _exec = (e, data) => {
+            cursor.each((e, data) => {
                 if (e) {
                     return cb(e)
                 }
@@ -872,11 +868,7 @@ class AutoDialer extends EventEmitter2 {
                         _broadcastMemberEnd(data, END_CAUSE.MAX_TRY, "callback")
                     }
                 });
-
-                cursor.nextObject(_exec);
-            };
-
-            cursor.nextObject(_exec);
+            });
         });
     }
 
