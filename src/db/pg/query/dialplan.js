@@ -533,7 +533,7 @@ function add(pool) {
                     if (res && res.rowCount > 0) {
                         return cb(null, res.rows[0].count > 0)
                     } else {
-                        return cb(new CodeError(404, `Not found ${id}`));
+                        return cb(new CodeError(404, `Not found ${number}`));
                     }
                 }
             );
@@ -553,7 +553,7 @@ function add(pool) {
                     if (res && res.rowCount) {
                         return cb(null, res.rows[0])
                     } else {
-                        return cb(new CodeError(404, `Not found ${id}`));
+                        return cb(new CodeError(404, `Not found ${userId}`));
                     }
                 }
             );
