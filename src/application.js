@@ -18,7 +18,8 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     Hooks = require('./services/hook/hookClass'),
     checkEslError = require('./middleware/checkEslError'),
     AutoDialer = require('./services/autoDialer'),
-    gatewayService = require('./services/gateway')
+    gatewayService = require('./services/gateway'),
+    dialerService = require('./services/dialer')
     ;
 
 class Application extends EventEmitter2 {
@@ -54,6 +55,19 @@ class Application extends EventEmitter2 {
         return 1;
     }
 
+    initScheduler () {
+        dialerService.templates._initJobs(err => {
+            if (err) {
+                log.error(err);
+                setTimeout(() => {
+                    this.initScheduler();
+                }, 5000);
+            } else {
+                log.trace('Init dialer jobs successful');
+            }
+        });
+    }
+
     connectDb() {
         var conferenceService = require('./services/conference');
         var scope = this,
@@ -70,6 +84,7 @@ class Application extends EventEmitter2 {
             scope.attachProcess();
             scope.connectToWConsole();
             scope.initTelegram();
+            scope.initScheduler();
         });
 
         this.once('sys::connectFsApi', function () {
@@ -85,7 +100,7 @@ class Application extends EventEmitter2 {
 
         initDb(scope);
 
-        if (typeof gc == 'function') {
+        if (typeof gc === 'function') {
             setInterval(function () {
                 gc();
                 console.log('----------------- GC -----------------');

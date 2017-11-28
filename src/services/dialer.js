@@ -13,8 +13,60 @@ const CodeError = require(__appRoot + '/lib/error'),
     conf = require(__appRoot + '/conf'),
     generateUuid = require('node-uuid'),
     BASE_URI = conf.get('server:baseUrl').replace(/(\/+)$/, ''),
+    Scheduler = require(__appRoot + '/lib/scheduler'),
+    cronParser = require('cron-parser'),
     expVal = require(__appRoot + '/utils/validateExpression')
 ;
+
+
+class CronJobs {
+    constructor() {
+        this.jobs = new Map();
+    }
+
+    cancel(id) {
+        if (this.jobs.has(id)) {
+            const job = this.jobs.get(id);
+            job.cancel();
+            this.jobs.delete(id);
+            this.info();
+            return true;
+        }
+        this.info();
+        return false
+    }
+
+    add(id, cronFormat, data) {
+        const res = {};
+        try {
+            this.jobs.set(id, new Scheduler(cronFormat, function JobExecuteTemplate(cb) {
+                _startExecute(data, (err, res) => {
+                    if (err)
+                        log.error(err);
+
+                    cb(null, res);
+                });
+            },  {log: true}));
+
+        } catch (e) {
+            res.err = e;
+        }
+        this.info();
+        return res;
+    }
+
+    recreate(id, cronFormat, data) {
+        this.cancel(id);
+        this.add(id, cronFormat, data);
+        this.info();
+    }
+
+    info() {
+        log.debug(`Active job: ${this.jobs.size}`)
+    }
+}
+
+const cronJobs = new CronJobs();
 
 let Service = {
 
@@ -409,7 +461,9 @@ let Service = {
                     option.data = [option.data];
                 }
 
-                option.data = option.data.map( m => {
+                let m;
+                for (let i = 0; i < option.data.length; i++) {
+                    m = option.data[i];
                     m.domain = domain;
                     m.dialer = option.dialer;
                     m.createdOn = Date.now();
@@ -424,8 +478,7 @@ let Service = {
                             return cb(new CodeError(400, `Bad communication number`));
                         comm.state = 0;
                     }
-                    return m
-                });
+                }
 
                 let db = application.DB._query.dialer;
                 return db.createMember(option.data, (err, res) => {
@@ -938,7 +991,26 @@ let Service = {
                 if (!options)
                     return cb(new CodeError(400, "Bad request options"));
 
-                application.PG.getQuery('dialer').templates.create(options, cb);
+                if (options.cron) {
+                    const e = testCronFormat(options.cron);
+                    if (e) {
+                        return cb(e)
+                    }
+                }
+
+                application.PG.getQuery('dialer').templates.create(options, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (options.cron) {
+                        cronJobs.recreate(res.id, options.cron, {
+                            dialerId: options.dialerId,
+                            id: res.id,
+                        });
+                    }
+
+                    return cb(null, res);
+                });
             });
         },
 
@@ -950,7 +1022,22 @@ let Service = {
                 if (!options)
                     return cb(new CodeError(400, "Bad request options"));
 
-                application.PG.getQuery('dialer').templates.update(options.dialerId, options.id, options, cb);
+                application.PG.getQuery('dialer').templates.update(options.dialerId, options.id, options, (err, data) => {
+                    if (err)
+                        return cb(err);
+
+                    if (data) {
+                        if (data.cron) {
+                            cronJobs.recreate(data.id, data.cron, {
+                                dialerId: options.dialerId,
+                                id: options.id,
+                            });
+                        } else {
+                            cronJobs.cancel(data.id)
+                        }
+                    }
+                    return cb(err, data);
+                });
             });
         },
 
@@ -962,7 +1049,14 @@ let Service = {
                 if (!options)
                     return cb(new CodeError(400, "Bad request options"));
 
-                application.PG.getQuery('dialer').templates.remove(options.dialerId, options.id, cb);
+                application.PG.getQuery('dialer').templates.remove(options.dialerId, options.id, (err, res) => {
+                    if (err) {
+                        return cb(err);
+                    }
+                    if (res)
+                        cronJobs.cancel(res.id);
+                    return cb(null, res);
+                });
             });
         },
 
@@ -974,35 +1068,7 @@ let Service = {
                 if (!options)
                     return cb(new CodeError(400, "Bad request options"));
 
-                application.PG.getQuery('dialer').templates.setExecute(options.dialerId, options.id, (err, res) => {
-                    if (err)
-                        return cb(err);
-
-                    if (!res) {
-                        return cb(new CodeError(400, `Process is working`))
-                    }
-
-                    if (res.before_delete) {
-                        application.DB._query.dialer.removeMemberByDialerId(res.dialer_id, (err) => {
-                            if (err) {
-                                log.error(err);
-                                application.PG.getQuery('dialer').templates.rollback(res.dialer_id, res.id, {
-                                    process_start: null,
-                                    process_state: ""
-                                }, (err) => {
-                                    if (err)
-                                        return log.error(err);
-                                });
-                                return cb(err)
-                            }
-
-                            executeTemplate(res, cb)
-                        });
-                    } else {
-                        executeTemplate(res, cb)
-                    }
-
-                });
+                return _startExecute(options, cb);
             });
         },
 
@@ -1014,16 +1080,59 @@ let Service = {
                 if (!options)
                     return cb(new CodeError(400, "Bad request options"));
 
-                let data = '';
+                let data = null;
                 if (options.body instanceof Object) {
                     try {
-                        data = JSON.stringify(options.body)
+                        data = new Buffer(JSON.stringify(options.body));
+                        if (data.length === 2) {
+                            data = null;
+                        }
                     } catch (e) {
                         log.error(e)
                     }
                 }
 
-                application.PG.getQuery('dialer').templates.endExecute(options.dialerId, options.id, options.pid, data, cb)
+                application.PG.getQuery('dialer').templates.endExecute(options, data, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (!res) {
+                        return cb(new CodeError(406, `Bad proccess id ${options.pid}`))
+                    }
+
+                    if (options.success && res.next_process_id && res.dialer_id) {
+                        _startExecute({
+                            dialerId: res.dialer_id,
+                            id: res.next_process_id,
+                        }, (err) => {
+                            if (err)
+                                log.error(err);
+                        })
+                    }
+
+                    return cb(null, res);
+                })
+            })
+        },
+
+        _initJobs: (cb) => {
+            cronJobs.jobs.forEach((job, key) => {
+                cronJobs.cancel(key);
+            });
+
+            application.PG.getQuery('dialer').templates.getNoEmptyCron((err, jobs) => {
+                if (err) {
+                    return cb(err);
+                }
+
+                jobs.forEach(job => {
+                    cronJobs.recreate(job.id, job.cron, {
+                        dialerId: job.dialer_id,
+                        id: job.id
+                    });
+                });
+
+                return cb(null);
             })
         }
     }
@@ -1040,6 +1149,38 @@ function replaceExpression(obj) {
                 obj["sysExpression"] = expVal(obj[key]);
             }
         }
+}
+
+function _startExecute(options = {}, cb) {
+    application.PG.getQuery('dialer').templates.setExecute(options.dialerId, options.id, (err, res) => {
+        if (err)
+            return cb(err);
+
+        if (!res) {
+            return cb(new CodeError(400, `Process is working`))
+        }
+
+        if (res.before_delete && res.action === "import") {
+            application.DB._query.dialer.removeMemberByDialerId(res.dialer_id, (err) => {
+                if (err) {
+                    log.error(err);
+                    application.PG.getQuery('dialer').templates.rollback(res.dialer_id, res.id, {
+                        process_start: null,
+                        process_state: ""
+                    }, (err) => {
+                        if (err)
+                            return log.error(err);
+                    });
+                    return cb(err)
+                }
+
+                executeTemplate(res, cb)
+            });
+        } else {
+            executeTemplate(res, cb)
+        }
+
+    });
 }
 
 function executeTemplate(res, cb) {
@@ -1068,12 +1209,29 @@ function sendRequestTemplate(record, cb) {
         headers: template.headers || {}
     };
 
+    if (!template.body) {
+        template.body = {}
+    }
+
     // todo lower case
     if (!options.headers['Content-Type']) {
         options.headers['Content-Type'] = 'application/json';
+
+        if (record.success_data) {
+            if (record.success_data instanceof Buffer) {
+                template.body.user_data = record.success_data;
+                try {
+                    template.body.user_data = JSON.parse(template.body.user_data)
+                } catch (e) {
+
+                }
+            }
+        }
+
         try {
-            options.body = JSON.stringify(template)
+            options.body = JSON.stringify(template.body);
         } catch (e) {
+            //TODO ???
             return cb(new CodeError(400, e.message))
         }
     }
@@ -1090,7 +1248,6 @@ function sendRequestTemplate(record, cb) {
             application.PG.getQuery('dialer').templates.rollback(record.dialer_id, record.id, {
                 process_start: null,
                 process_state: `ERROR_STAGE_1`,
-                last_response_code: null,
                 last_response_text: err.message
             }, (err) => {
                 if (err)
@@ -1105,7 +1262,6 @@ function sendRequestTemplate(record, cb) {
             application.PG.getQuery('dialer').templates.rollback(record.dialer_id, record.id, {
                 process_start: null,
                 process_state: `ERROR_STAGE_1`,
-                last_response_code: res.statusCode,
                 last_response_text: res.body ? res.body + "" : ""
             }, (err) => {
                 if (err)
@@ -1117,4 +1273,13 @@ function sendRequestTemplate(record, cb) {
 
         return cb(null, res.body)
     });
+}
+
+function testCronFormat(format) {
+    try {
+        cronParser.parseExpression(format);
+        return null;
+    } catch (e) {
+        return new CodeError(400, e.message)
+    }
 }

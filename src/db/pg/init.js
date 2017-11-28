@@ -621,4 +621,34 @@ CREATE OR REPLACE VIEW v_contacts_list AS
       from contacts;
 `);
 
+sql.push(`
+create table IF NOT EXISTS dialer_templates
+(
+	id serial not null
+		constraint dialer_templates_pkey
+			primary key,
+	dialer_id varchar(100) not null,
+	name varchar(100) not null,
+	type varchar(20) not null,
+	template jsonb,
+	description varchar(500),
+	action varchar(20) not null,
+	last_response_text text,
+	before_delete boolean default false,
+	process_state varchar(20),
+	process_start integer,
+	process_id varchar(30),
+	cron varchar(50),
+	next_process_id integer,
+	success_data bytea
+)
+;
+
+create unique index IF NOT EXISTS dialer_templates_id_uindex
+	on dialer_templates (id)
+;
+
+
+`);
+
 module.exports = sql;

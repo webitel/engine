@@ -163,14 +163,12 @@ function add(pool) {
                     SET process_start = NULL
                         ,process_id = NULL
                         ,process_state = COALESCE($1, process_state)
-                        ,last_response_code = COALESCE($2, last_response_code)
-                        ,last_response_text = COALESCE($3, last_response_text)
-                    WHERE id = $4 AND NOT process_start is NULL AND dialer_id = $5
+                        ,last_response_text = COALESCE($2, last_response_text)
+                    WHERE id = $3 AND NOT process_start is NULL AND dialer_id = $4
                     RETURNING *;
                     `,
                     [
                         data.process_state,
-                        data.last_response_code,
                         data.last_response_text,
                         +id,
                         dialerId
@@ -188,24 +186,26 @@ function add(pool) {
                 )
             },
 
-            endExecute: (dialerId, id, pid, responseText, cb) => {
+            endExecute: (options = {}, buf, cb) => {
                 pool.query(
                     `
                     UPDATE dialer_templates
                     SET process_start = NULL
                         ,process_state = 'END'
                         ,process_id = NULL
-                        ,last_response_text = $1
-                        ,last_response_code = NULL
-                    WHERE id = $2 AND NOT process_start is NULL AND dialer_id = $3 
-                        AND process_id = $4
+                        ,success_data = case when $1 then $2 else success_data end
+                        ,last_response_text = $3
+                    WHERE id = $4 AND NOT process_start is NULL AND dialer_id = $5 
+                        AND process_id = $6
                     RETURNING *;
                     `,
                     [
-                        responseText,
-                        +id,
-                        dialerId,
-                        pid
+                        options.success,
+                        buf,
+                        options.message,
+                        +options.id,
+                        options.dialerId,
+                        options.pid
                     ],
                     (err, res) => {
                         if (err)
@@ -261,6 +261,24 @@ function add(pool) {
                         } else {
                             return cb(new CodeError(404, `Not found ${dialerId}`));
                         }
+                    }
+                )
+            },
+
+            getNoEmptyCron: (cb) => {
+                pool.query(`
+                    SELECT id, cron, dialer_id FROM dialer_templates
+                    where not cron is null AND cron != '';
+                    `,
+                    [],
+                    (err, res) => {
+                        if (err)
+                            return cb(err);
+
+                        if (res) {
+                            return cb(null, res.rows)
+                        }
+                        return cb(null, []);
                     }
                 )
             },

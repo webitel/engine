@@ -56,6 +56,8 @@ function endExecuteTemplate(req, res, next) {
         pid: req.params.pid,
         id: req.params.id,
         domain: req.query.domain,
+        message: req.query.message || "",
+        success: req.query.success === "true",
         body: req.body
     };
 

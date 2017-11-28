@@ -14,7 +14,9 @@ class Scheduler {
         const interval = parser.parseExpression(cronFormat);
         const _c = cronFormat;
 
-        log.info(`Create job: ${fn.name || ''}`);
+        log.info(`Create job: ${fn.name || ''} > ${cronFormat}`);
+
+        this.cancel = () => clearTimeout(_timer);
 
         (function shed() {
             if (_timer)
