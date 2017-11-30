@@ -225,6 +225,7 @@ function add(pool) {
                     `
                     UPDATE dialer_templates
                     SET process_start = extract(EPOCH from now())::INT
+                        ,execute_time = extract(EPOCH from now())::INT
                         ,process_state = 'CHECK_RESPONSE'
                         ,process_id = substring(md5(clock_timestamp()::text), 0, 10)
                     WHERE id = $1 AND process_start is NULL AND dialer_id = $2 

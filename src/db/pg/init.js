@@ -640,7 +640,8 @@ create table IF NOT EXISTS dialer_templates
 	process_id varchar(30),
 	cron varchar(50),
 	next_process_id integer,
-	success_data bytea
+	success_data bytea,
+	execute_time integer
 )
 ;
 
