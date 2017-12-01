@@ -120,7 +120,33 @@ module.exports = class VoiceBroadcast extends Dialer {
             const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
             let dialString = member.number.replace(dest._regexp, gw);
 
-            apps.push(`socket:` + '$${acr_srv}');
+            if (this._amd && this._amd.enabled) {
+                vars.push("hangup_after_bridge=true");
+
+                vars.push(`amd_on_human='transfer::${member.getQueueId()} XML dialer ${member.getCallerIdNumber()} ${member.getQueueName()}'`);
+                // vars.push(`amd_on_human='transfer::dialer'`);
+                vars.push(`amd_on_machine=hangup::NORMAL_UNSPECIFIED`);
+                vars.push(`amd_on_notsure=${this._amd.allowNotSure ? `'transfer::${member.getQueueId()} XML dialer ${member.getCallerIdNumber()} ${member.getQueueName()}'` : 'hangup::NORMAL_UNSPECIFIED'}`);
+
+                apps.push(`amd:${this._amd._string}`);
+
+                if (this._amd.playbackFile) {
+
+                    if (this._amd.beforePlaybackFileTime > 0)
+                        apps.push(`sleep:${this._amd.beforePlaybackFileTime}`);
+
+                    apps.push(`playback:${this._amd.playbackFile}`);
+
+                    if (this._amd.totalAnalysisTime - this._amd.beforePlaybackFileTime > 0) {
+                        apps.push(`sleep:${this._amd.totalAnalysisTime - this._amd.beforePlaybackFileTime + 100}`);
+                    }
+                } else {
+                    apps.push(`sleep:${this._amd.beforePlaybackFileTime + 100}`);
+                }
+
+            } else {
+                apps.push(`park:`);
+            }
 
             return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
         };

@@ -235,14 +235,34 @@ module.exports = class Predictive extends Dialer {
                 'webitel_direction=outbound'
             );
 
-            if (this._amd && this._amd.enabled) {
-                apps.push(`amd:${this._amd._string}`);
-
-            }
-
             vars.push('ignore_early_media=true'); //TODO move config
 
-            apps.push(`park:`);
+            if (this._amd && this._amd.enabled) {
+                vars.push("hangup_after_bridge=true");
+
+                vars.push("amd_on_human=park");
+                vars.push(`amd_on_machine=hangup::NORMAL_UNSPECIFIED`);
+                vars.push(`amd_on_notsure=${this._amd.allowNotSure ? 'park' : 'hangup::NORMAL_UNSPECIFIED'}`);
+
+                apps.push(`amd:${this._amd._string}`);
+
+                if (this._amd.playbackFile) {
+
+                    if (this._amd.beforePlaybackFileTime > 0)
+                        apps.push(`sleep:${this._amd.beforePlaybackFileTime}`);
+
+                    apps.push(`playback:${this._amd.playbackFile}`);
+
+                    if (this._amd.totalAnalysisTime - this._amd.beforePlaybackFileTime > 0) {
+                        apps.push(`sleep:${this._amd.totalAnalysisTime - this._amd.beforePlaybackFileTime + 100}`);
+                    }
+                } else {
+                    apps.push(`sleep:${this._amd.beforePlaybackFileTime + 100}`);
+                }
+
+            } else {
+                apps.push(`park:`);
+            }
 
             return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
         }
@@ -341,6 +361,9 @@ module.exports = class Predictive extends Dialer {
                             lastStatus: `active -> ${member._id}`
                         }, (e, res) => {
                             if (e)
+
+
+
                                 return log.error(e);
 
                             if (res && res.value) {
@@ -467,10 +490,10 @@ module.exports = class Predictive extends Dialer {
             if (this._amd.enabled === true) {
                 let amdResult = e.getHeader('variable_amd_result');
                 member.log(`amd_result=${amdResult}`);
-                if ( !(amdResult === 'HUMAN' || (this._amd.allowNotSure && amdResult === 'NOTSURE')) ) {
-                    application.Esl.bgapi(`uuid_kill ${member.sessionId} NORMAL_UNSPECIFIED`);
-                    return;
-                }
+                // if ( !(amdResult === 'HUMAN' || (this._amd.allowNotSure && amdResult === 'NOTSURE')) ) {
+                //     application.Esl.bgapi(`uuid_kill ${member.sessionId} NORMAL_UNSPECIFIED`);
+                //     return;
+                // }
             }
 
             if (this._broadcastPlaybackUri) {

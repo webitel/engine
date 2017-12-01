@@ -389,6 +389,12 @@ module.exports = class Dialer extends EventEmitter2 {
             }
 
             this._amd._string = amdParams.join(' ');
+
+            if (this._amd.playbackFile && this._amd.playbackFile.uri) {
+                this._amd.playbackFile = this._amd.playbackFile.uri;
+            } else {
+                this._amd.playbackFile = null;
+            }
         }
         this._broadcastPlaybackUri = config.playbackFile && config.playbackFile.uri;
 

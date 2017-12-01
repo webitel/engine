@@ -75,6 +75,7 @@ module.exports = class Member extends EventEmitter2 {
             callDescription: "",
             callTime: Date.now(),
             talkSec: 0,
+            waitSec: 0,
             callSuccessful: false,
             bridgedTime: null,
             callState: 0,
@@ -175,6 +176,7 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     setBridgedTime () {
+        //ERROR
         this._log.bridgedTime = Date.now()
     }
 
