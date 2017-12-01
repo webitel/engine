@@ -145,7 +145,7 @@ module.exports = class VoiceBroadcast extends Dialer {
                 }
 
             } else {
-                apps.push(`park:`);
+                apps.push(`transfer:${member.getQueueId()} XML dialer ${member.getCallerIdNumber()} ${member.getQueueName()}`);
             }
 
             return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
@@ -156,6 +156,11 @@ module.exports = class VoiceBroadcast extends Dialer {
             if (member) {
                 if (--member.channelsCount !== 0)
                     return;
+
+                if (member.getConnectedTime() > 0 && e.getHeader("Caller-Context") === "dialer") {
+                    member.bridgedCall = true;
+                    member.setBridgedTime(member.getConnectedTime());
+                }
 
                 member.end(e.getHeader('variable_hangup_cause'), e);
             }
@@ -194,7 +199,6 @@ module.exports = class VoiceBroadcast extends Dialer {
                 return member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
             }
             member.setConnectedFlag(true);
-            member.bridgedCall = true;
         });
     }
 };

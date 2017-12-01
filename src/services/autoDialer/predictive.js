@@ -356,6 +356,7 @@ module.exports = class Predictive extends Dialer {
                     } else {
                         member.predictAbandoned = false;
                         member.bridgedCall = true;
+                        member.setBridgedTime();
                         this._am.setAgentStats(agent, this._objectId, {
                             connectedTimeSec: timeToSec(date, start),
                             lastStatus: `active -> ${member._id}`
@@ -438,7 +439,7 @@ module.exports = class Predictive extends Dialer {
 
     _joinAgent (member) {
         member.agent = null;
-        if (member.getBridgedTime() + (1000 * this._maxLocateAgentSec) <= Date.now() ) {
+        if (member.getConnectedTime() + (1000 * this._maxLocateAgentSec) <= Date.now() ) {
             application.Esl.bgapi(`uuid_kill ${member.sessionId} LOSE_RACE`); // todo add conf hangup cause
             return;
         }
@@ -501,7 +502,6 @@ module.exports = class Predictive extends Dialer {
                 application.Esl.bgapi(`uuid_broadcast ${member.sessionId} playback::${this._broadcastPlaybackUri} aleg`);
             }
             member.predictAbandoned = true;
-            member.setBridgedTime();
             member.log(`answer`);
 
             this._joinAgent(member);

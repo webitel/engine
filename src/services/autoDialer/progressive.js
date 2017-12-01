@@ -173,6 +173,11 @@ module.exports = class Progressive extends Dialer {
         let channelUuid = null;
 
         const onChannelDestroy = (e) => {
+            if (+e.getHeader("variable_bridge_uepoch")) {
+                member.bridgedCall = true;
+                member.setBridgedTime(Math.round(+e.getHeader("variable_bridge_uepoch") / 1000));
+            }
+
             member.end(e.getHeader('variable_hangup_cause'), e);
 
             this._am.setAgentStats(agent, this._objectId, {
@@ -214,7 +219,6 @@ module.exports = class Progressive extends Dialer {
                         });
                 }
 
-                member.bridgedCall = true;
                 this._am.setAgentStats(agent, this._objectId, {
                     connectedTimeSec: timeToSec(date, start),
                     lastStatus: `active -> ${member._id}`

@@ -75,9 +75,10 @@ module.exports = class Member extends EventEmitter2 {
             callDescription: "",
             callTime: Date.now(),
             talkSec: 0,
-            waitSec: 0,
+            waitSec: null,
             callSuccessful: false,
             bridgedTime: null,
+            connectedTime: null,
             callState: 0,
             callPriority: 0,
             callNumber: null, //+
@@ -128,6 +129,9 @@ module.exports = class Member extends EventEmitter2 {
 
     setConnectedFlag (val = true) {
         this.connectedCall = val;
+        if (val) {
+            this.setConnectedTime()
+        }
     }
 
     getConnectedFlag () {
@@ -151,7 +155,13 @@ module.exports = class Member extends EventEmitter2 {
             if (bridgeEpoch > 0)
                 this._log.talkSec = getIntValueFromEventHeader(e, 'variable_end_epoch') - getIntValueFromEventHeader(e, 'variable_bridge_epoch');
         }
-
+        if (this.getDialerType() !== DIALER_TYPES.ProgressiveDialer) {
+            if (this._log.bridgedTime) {
+                this._log.waitSec = Math.round((this._log.bridgedTime - this._log.connectedTime) / 1000);
+            } else if (this._log.connectedTime && this._log.amdResult !== "MACHINE") {
+                this._log.waitSec = Math.round((Date.now() - this._log.connectedTime) / 1000);
+            }
+        }
         return this._log.talkSec;
     }
 
@@ -175,9 +185,16 @@ module.exports = class Member extends EventEmitter2 {
         return null;
     }
 
-    setBridgedTime () {
-        //ERROR
-        this._log.bridgedTime = Date.now()
+    setConnectedTime () {
+        this._log.connectedTime = Date.now();
+    }
+
+    getConnectedTime() {
+        return this._log.connectedTime;
+    }
+
+    setBridgedTime (time) {
+        this._log.bridgedTime = time || Date.now()
     }
 
     getBridgedTime () {
