@@ -64,7 +64,8 @@ module.exports = class VoiceBroadcast extends Dialer {
                 {
                     amd: m.getAmdResult(),
                     bridgedCall: m.bridgedCall,
-                    connectedCall: m.getConnectedFlag()
+                    connectedCall: m.getConnectedFlag(),
+                    waitSec: m.getWaitSec()
                 },
                 e => {
                     if (!e)

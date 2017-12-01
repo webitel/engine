@@ -41,6 +41,7 @@ module.exports = class Predictive extends Dialer {
                     bridgedCall: m.bridgedCall,
                     connectedCall: m.getConnectedFlag(),
                     predictAdjust: this._stats.predictAdjust,
+                    waitSec: m.getWaitSec(),
                     amd: m.getAmdResult()
                 },
                 e => {

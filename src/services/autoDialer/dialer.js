@@ -527,6 +527,8 @@ module.exports = class Dialer extends EventEmitter2 {
                     if (stats.amd) {
                         $inc[`stats.amd.${stats.amd.result}`] = 1;
                     }
+                } else if (key === 'waitSec' && stats.waitSec > 0) {
+                    $inc[`stats.${key}`] = stats.waitSec;
                 } else {
                     if (!update.$set)
                         update.$set = {};

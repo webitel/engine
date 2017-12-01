@@ -169,6 +169,10 @@ module.exports = class Member extends EventEmitter2 {
         return this._log.talkSec;
     }
 
+    getWaitSec () {
+        return this._log.waitSec;
+    }
+
     setAmdResult (result, cause) {
         this.log(`Set amd ${result} - ${cause}`);
         this._log.amdResult = result;
