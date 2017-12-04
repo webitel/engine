@@ -230,6 +230,7 @@ function addQuery (db) {
                 $set['stats.predictAdjust'] = 0;
                 $set['stats.bridgedCall'] = 0;
                 $set['stats.connectedCall'] = 0;
+                $set['stats.waitSec'] = 0;
                 $set['stats.amd'] = {};
             }
 
