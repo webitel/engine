@@ -170,7 +170,7 @@ const sqlDeleteExtensionByUserId = `
 const sqlUpsertDomainVariables = `
     with upsert as (
 	  update ${VARIABLES_TABLE_NAME}
-	  set (variables) = ($1)
+	  set variables = $1
 	  where domain = $2
 	  returning *
 	)
