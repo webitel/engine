@@ -266,7 +266,7 @@ create unique index IF NOT EXISTS callflow_extension_id_uindex
 	on callflow_extension (id)
 ;
 
-create index IF NOT EXISTS callflow_extension_destination_number_domain_index
+create unique index IF NOT EXISTS callflow_extension_destination_number_domain_index
 	on callflow_extension (destination_number, domain)
 ;
 `);
