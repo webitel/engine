@@ -18,6 +18,7 @@ function addRoutes(api) {
     api.get('/api/v2/routes/extensions', listExtension);
     api.get('/api/v2/routes/extensions/:id', itemExtension);
     api.put('/api/v2/routes/extensions/:id', updateExtension);
+    api.delete('/api/v2/routes/extensions/:id', removeExtension);
 
     api.get('/api/v2/routes/variables', listDomainVariables);
     api.post('/api/v2/routes/variables', insertOrUpdateDomainVariable);
@@ -42,6 +43,23 @@ function addRoutes(api) {
     // todo deprecated
     // api.put('/api/v2/routes/default/:id/setOrder', setOrderDefault);
     // api.put('/api/v2/routes/default/:domainName/incOrder', incOrderDefault);
+}
+
+function removeExtension(req, res, next) {
+    const options = {
+        id: req.params.id,
+        domain: req.query.domain
+    };
+
+    dialplanService.removeExtension(req.webitelUser, options, function (err, result) {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    })
 }
 
 function listExtension (req, res, next) {

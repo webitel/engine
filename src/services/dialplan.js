@@ -83,6 +83,25 @@ const Service = {
             application.PG.getQuery('dialplan').updateExtension(options.id, domain, options, cb);
         });
     },
+
+    removeExtension: function (caller, options, cb) {
+        checkPermissions(caller, 'rotes/extension', 'd', function (err) {
+            if (err)
+                return cb(err);
+
+            if (!+options.id) {
+                return cb(new CodeError(400, 'Id is required.'));
+            }
+
+            const domain = validateCallerParameters(caller, options.domain);
+
+            if (!domain) {
+                return cb(new CodeError(400, 'Domain is required.'));
+            }
+
+            application.PG.getQuery('dialplan').removeExtensionById(options.id, domain, cb);
+        });
+    },
     
     _removeExtension: function (userId, domain, cb) {
         if (!domain || !userId) {

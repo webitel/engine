@@ -167,6 +167,11 @@ const sqlDeleteExtensionByUserId = `
     DELETE FROM ${EXTENSION_TABLE_NAME} WHERE domain = $1 AND user_id = $2;
 `;
 
+const sqlDeleteExtensionById = `
+    DELETE FROM ${EXTENSION_TABLE_NAME} WHERE domain = $1 AND id = $2
+    RETURNING id;
+`;
+
 const sqlUpsertDomainVariables = `
     with upsert as (
 	  update ${VARIABLES_TABLE_NAME}
@@ -587,6 +592,24 @@ function add(pool) {
             } catch (e) {
                 return cb(new CodeError(400, e.message))
             }
+        },
+
+        removeExtensionById: (id, domain, cb) => {
+            pool.query(
+                sqlDeleteExtensionById,
+                [domain, +id],
+                (err, res) => {
+                    if (err) {
+                        return cb(err);
+                    }
+                    if (res && res.rowCount) {
+                        return cb(null, res.rows[0])
+                    } else {
+                        return cb(new CodeError(404, `Not found ${id}`));
+                    }
+                }
+
+            )
         },
 
         //endregion
