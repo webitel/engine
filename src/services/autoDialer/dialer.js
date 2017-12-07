@@ -334,7 +334,9 @@ module.exports = class Dialer extends EventEmitter2 {
             this.membersStrategy = 'next-tries-circuit',
             this.retryAbandoned = false,
             this.retriesByNumber = false,
-            this.oneDayTask = false
+            this.oneDayTask = false,
+            this._predictStartBridgedCount = 10,
+            this._predictStartCallCount = 200
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -355,7 +357,9 @@ module.exports = class Dialer extends EventEmitter2 {
             config.membersStrategy,
             parameters.retryAbandoned,
             parameters.retriesByNumber,
-            parameters.oneDayTask
+            parameters.oneDayTask,
+            parameters.predictStartBridgedCount,
+            parameters.predictStartCallCount,
         ];
 
         if (this._amd.enabled) {

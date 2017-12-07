@@ -118,7 +118,7 @@ module.exports = class Predictive extends Dialer {
 
                     console.log(`all agent ${res.allLogged} active ${this._active}`);
 
-                    if (this._stats.bridgedCall < 10) {
+                    if (this._stats.bridgedCall < this._predictStartBridgedCount) {
                         this._stats.queueLimit = res.allLogged;
                         if (this._active < res.allLogged ) {
                             this.huntingMember();
@@ -131,7 +131,7 @@ module.exports = class Predictive extends Dialer {
                     }
 
 
-                    if (this._stats.callCount > 200 ) {
+                    if (this._stats.callCount > this._predictStartCallCount ) {
                         const silentCalls = this._targetPredictiveSilentCalls - ((this._stats.predictAbandoned  * 100) / this._stats.callCount);
 
                         this._stats.predictAdjust = Math.round( (Math.pow(2,silentCalls) / Math.pow(0.05,silentCalls)) * 35) ;
