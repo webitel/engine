@@ -648,8 +648,34 @@ create table IF NOT EXISTS dialer_templates
 create unique index IF NOT EXISTS dialer_templates_id_uindex
 	on dialer_templates (id)
 ;
+`);
 
+sql.push(`
 
+create table IF NOT EXISTS callflow_private
+(
+	uuid varchar(50) not null
+		constraint callflow_temp_uuid_pk
+			primary key,
+	domain varchar(75) not null,
+  created_on integer default (date_part('epoch'::text, timezone('utc'::text, (now())::timestamp without time zone)))::integer,
+	deadline integer default 60,
+	fs_timezone varchar(35),
+	callflow json
+)
+;
+
+create unique index IF NOT EXISTS callflow_private_uuid_domain_uindex
+	on callflow_private (uuid, domain)
+;
+
+create unique index IF NOT EXISTS callflow_private_uuid_uindex
+	on callflow_private (uuid)
+;
+
+create index IF NOT EXISTS callflow_private_created_on_deadline_index
+	on callflow_private (created_on, deadline)
+;
 `);
 
 module.exports = sql;
