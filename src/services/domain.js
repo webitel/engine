@@ -8,8 +8,24 @@ var CodeError = require(__appRoot + '/lib/error'),
     authService = require(__appRoot + '/services/auth'),
     plainTableToJSON = require(__appRoot + '/utils/parse').plainTableToJSON,
     plainCollectionToJSON = require(__appRoot + '/utils/parse').plainCollectionToJSON,
+    log = require(__appRoot + '/lib/log')(module),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions')
     ;
+
+
+function createData(domain) {
+    application.PG.getQuery('contacts').types.create("Email", domain, err => {
+        if (err)
+            return log.error(err);
+        log.trace(`Create default communication type Email successful`);
+    });
+    application.PG.getQuery('contacts').types.create("Phone", domain, err => {
+        if (err)
+            return log.error(err);
+
+        log.trace(`Create default communication type Phone successful`);
+    });
+}
 
 var Service = {
     /**
@@ -35,7 +51,7 @@ var Service = {
             application.WConsole.domainCreate(caller, option['name'], option['customerId'], option, function (err, res) {
                 if (err)
                     return cb(err);
-
+                createData(option.name);
                 return cb(null, res);
             });
         });

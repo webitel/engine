@@ -140,6 +140,12 @@ SELECT string_agg(concat('BEGIN:VCARD\nVERSION:3.0\nN:', name), '\nEND:VCARD\n\n
 FROM contacts;
 `;
 
+const sqlDeleteCommunicationTypesByDomain = `
+    DELETE 
+    FROM communication_type 
+    WHERE domain = $1 
+`;
+
 function add(pool) {
 
     return {
@@ -263,11 +269,14 @@ function add(pool) {
                     if (err) {
                         return cb(err);
                     }
-                    if (res && res.rowCount && res.rows[0]) {
-                        return cb(null, res.rows[0])
-                    } else {
-                        return cb(new CodeError(404, `Not found ${id}@${domain}`));
-                    }
+
+                    pool.query(sqlDeleteCommunicationTypesByDomain, [domain], err => {
+                        if (err) {
+                            log.error(err)
+                        }
+                    });
+
+                    return cb(null, res.rows)
                 }
             )
         },
