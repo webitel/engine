@@ -361,11 +361,19 @@ class Trigger {
                                             if (res.headers.hasOwnProperty(h)) {
                                                 if (res.headers[h] instanceof Array) {
                                                     let indexArrayHeadSeparator = null;
+                                                    let indexArrayValSeparator = null;
                                                     for (let arrHead of res.headers[h]) {
                                                         indexArrayHeadSeparator = arrHead.indexOf('=');
-                                                        e[`auth:header:${arrHead.substring(0, indexArrayHeadSeparator)}`] =
-                                                            arrHead.substring(indexArrayHeadSeparator + 1);
+                                                        indexArrayValSeparator = arrHead.indexOf(';');
+                                                        if (indexArrayValSeparator !== -1) {
+                                                            e[`auth:header:${arrHead.substring(0, indexArrayHeadSeparator)}`] =
+                                                                arrHead.substring(indexArrayHeadSeparator + 1, indexArrayValSeparator);
+                                                        }  else {
+                                                            e[`auth:header:${arrHead.substring(0, indexArrayHeadSeparator)}`] =
+                                                                arrHead.substring(indexArrayHeadSeparator + 1);
+                                                        }
                                                     }
+
                                                     e[`auth:header:${h}`] = res.headers[h].join(';');
                                                 } else {
                                                     e[`auth:header:${h}`] = res.headers[h];
