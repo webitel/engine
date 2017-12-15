@@ -7,7 +7,8 @@
 const log = require(__appRoot + '/lib/log')(module),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
-    CodeError = require(__appRoot + '/lib/error');
+    CodeError = require(__appRoot + '/lib/error'),
+    moment = require('moment-timezone');
 
 
 const Service = {
@@ -420,6 +421,10 @@ function getJson(eventName, domain, member) {
 
     for (let key in member) {
         e[key] = member[key]
+    }
+
+    if (e.callback_time) {
+        e.callback_iso8601 = moment(e.callback_time).utc().toISOString();
     }
 
     return e
