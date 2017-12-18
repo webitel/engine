@@ -11,7 +11,7 @@ const parser = require('cron-parser'),
 class Scheduler {
     constructor (cronFormat, fn, params = {}) {
         let _timer = null;
-        const interval = parser.parseExpression(cronFormat);
+        const interval = parser.parseExpression(cronFormat,  {tz: params.timezone});
         const _c = cronFormat;
 
         log.info(`Create job: ${fn.name || ''} > ${cronFormat}`);

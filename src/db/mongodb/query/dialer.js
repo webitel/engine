@@ -12,6 +12,7 @@ const conf = require(__appRoot + '/conf'),
     generateUuid = require('node-uuid'),
     dialerCollectionName = conf.get('mongodb:collectionDialer'),
     dialerHistoryCollectionName = conf.get('mongodb:collectionDialerHistory'),
+    calendarCollectionName = conf.get('mongodb:collectionCalendar'),
     memberCollectionName = conf.get('mongodb:collectionDialerMembers'),
     agentsCollectionName = conf.get('mongodb:collectionDialerAgents'),
     AGENT_STATUS = require(__appRoot + '/services/autoDialer/const').AGENT_STATUS,
@@ -883,7 +884,43 @@ function addQuery (db) {
             return utils.searchInCollection(db, dialerHistoryCollectionName, options, cb);
         },
 
-        removeDialerHistory: removeDialerHistory
+        removeDialerHistory: removeDialerHistory,
+
+        getTimezoneFromDialer: (dialerId, cb) => {
+            if (!ObjectID.isValid(dialerId))
+                return cb(new CodeError(400, 'Bad objectId.'));
+
+            return db
+                .collection(dialerCollectionName)
+                .aggregate([
+                    {"$match": {_id: new ObjectID(dialerId)}},
+                    {
+                        $lookup:
+                            {
+                                from: calendarCollectionName,
+                                localField: "_id.toString()",
+                                foreignField: "calendar.id",
+                                as: "calendarDoc"
+                            }
+                    },
+                    {
+                        "$unwind": "$calendarDoc"
+                    },
+                    {
+                        "$project": {
+                            "timezone": "$calendarDoc.timeZone.id"
+                        }
+                    }
+                ], (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (res && res[0] && res[0].timezone) {
+                        return cb(null, res[0].timezone)
+                    }
+                    return cb(null, null)
+                });
+        },
     }
 }
 

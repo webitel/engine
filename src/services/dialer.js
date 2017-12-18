@@ -37,28 +37,32 @@ class CronJobs {
     }
 
     add(id, cronFormat, data) {
-        const res = {};
-        try {
-            this.jobs.set(id, new Scheduler(cronFormat, function JobExecuteTemplate(cb) {
-                _startExecute(data, (err, res) => {
-                    if (err)
-                        log.error(err);
+        application.DB._query.dialer.getTimezoneFromDialer(data.dialerId, (err, timezone) => {
+            if (err)
+                log.error(err);
 
-                    cb(null, res);
-                });
-            },  {log: true}));
+            const res = {};
+            try {
+                this.jobs.set(id, new Scheduler(cronFormat, function JobExecuteTemplate(cb) {
+                    _startExecute(data, (err, res) => {
+                        if (err)
+                            log.error(err);
 
-        } catch (e) {
-            res.err = e;
-        }
-        this.info();
-        return res;
+                        cb(null, res);
+                    });
+                },  {log: true, timezone}));
+
+            } catch (e) {
+                res.err = e;
+            }
+            this.info();
+            return res;
+        });
     }
 
     recreate(id, cronFormat, data) {
         this.cancel(id);
         this.add(id, cronFormat, data);
-        this.info();
     }
 
     info() {

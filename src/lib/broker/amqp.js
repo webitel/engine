@@ -307,7 +307,7 @@ class WebitelAmqp extends EventEmitter2 {
                 },
                 // init hook exchange
                 function (_, cb) {
-                    log.debug('Try init storage exchange');
+                    log.debug('Try init hook exchange');
                     const arg = {
                         'x-delayed-type': 'topic'
                     };
