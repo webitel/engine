@@ -226,6 +226,7 @@ function getTemplateExtension(number, domain) {
             },
             {
                 "bridge": {
+                    "pickup": number,
                     "endpoints": [{
                         "name": number,
                         "type": "user"
