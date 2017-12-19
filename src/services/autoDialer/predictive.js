@@ -487,8 +487,6 @@ module.exports = class Predictive extends Dialer {
         log.trace(`Call ${ds}`);
 
         const onChannelPark = (e) => {
-            member.setConnectedFlag(true);
-
             if (this._amd.enabled === true) {
                 let amdResult = e.getHeader('variable_amd_result');
                 member.log(`amd_result=${amdResult}`);
@@ -538,6 +536,8 @@ module.exports = class Predictive extends Dialer {
 
             //FAH-218
             if (this._amd.enabled && !e.getHeader('variable_amd_result') && +e.getHeader('variable_answer_epoch') > 0) {
+                e.addHeader('variable_amd_result', 'CANCEL');
+                e.addHeader('variable_amd_cause', 'INITIALSILENCE');
                 member.end('ORIGINATOR_CANCEL', e);
             } else {
                 member.end(e.getHeader('variable_hangup_cause'), e);
@@ -558,6 +558,8 @@ module.exports = class Predictive extends Dialer {
             if (/^-ERR|^-USAGE/.test(res.body)) {
                 member.channelsCount--;
                 member.end(res.body.replace(/-ERR|-USAGE\s(.*)\n/, '$1'));
+            } else {
+                member.setConnectedFlag(true);
             }
         });
 
