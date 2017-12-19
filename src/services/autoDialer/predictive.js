@@ -258,7 +258,7 @@ module.exports = class Predictive extends Dialer {
                         apps.push(`sleep:${this._amd.totalAnalysisTime - this._amd.beforePlaybackFileTime + 100}`);
                     }
                 } else {
-                    apps.push(`sleep:${this._amd.beforePlaybackFileTime + 100}`);
+                    apps.push(`sleep:${this._amd.totalAnalysisTime + 100}`);
                 }
 
             } else {
