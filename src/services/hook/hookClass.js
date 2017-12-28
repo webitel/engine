@@ -149,8 +149,18 @@ class Message {
         this.action = eventName;
         this._rawData = false;
         if (typeof rawBody === 'string') {
+            let val;
             rawBody = rawBody.replace(/\$\{([\s\S]*?)\}/gi, function (a, b) {
-                return message[`variable_${b}`] || message[b] || ""
+                if (~b.indexOf('.')) {
+                    val = message;
+                    b.split('.').forEach(function (token) {
+                        val = val && val[token];
+                    });
+                } else {
+                    val = message[`variable_${b}`] || message[b]
+                }
+
+                return val || ""
             });
             try {
                 this.data = JSON.parse(rawBody);
