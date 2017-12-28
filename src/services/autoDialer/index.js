@@ -782,7 +782,7 @@ class AutoDialer extends EventEmitter2 {
     setMembersExpire (cb) {
         const cursor = dialerService.members._getCursor({
             _lock: null,
-            expire: {$lt: Date.now()},
+            expire: {$lt: Date.now(), $gt: 0},
             _endCause: null
         }, {_probeCount: 1, expire: 1, _maxTryCount: 1, _id: 1, variables: 1, name: 1, dialer: 1, domain: 1, communications: 1, _lastNumberId: 1});
 
