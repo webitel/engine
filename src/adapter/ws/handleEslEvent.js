@@ -45,8 +45,8 @@ function handleEslEvent(application) {
                             "Caller-Channel-Answered-Time": jsonEvent["Caller-Channel-Answered-Time"],
                             "Caller-Channel-Hangup-Time": jsonEvent["Caller-Channel-Hangup-Time"],
                             "DTMF-Digit": jsonEvent["DTMF-Digit"],
-                            "Application": jsonEvent["Application"],
-                            "Application-Data": jsonEvent["Application-Data"],
+                            // "Application": jsonEvent["Application"],
+                            // "Application-Data": jsonEvent["Application-Data"],
                             "Bridge-A-Unique-ID": jsonEvent["Bridge-A-Unique-ID"],
                             "Bridge-B-Unique-ID": jsonEvent["Bridge-B-Unique-ID"],
                             "variable_originating_leg_uuid": jsonEvent["variable_originating_leg_uuid"],
@@ -54,7 +54,8 @@ function handleEslEvent(application) {
                             "variable_cc_queue": jsonEvent['variable_cc_queue'],
                             "variable_cc_member_session_uuid": jsonEvent['variable_cc_member_session_uuid'],
                             // "variable_webitel_data": "'" + jsonEvent['variable_webitel_data'] + "'",
-                            "variable_w_transfer_result": jsonEvent['variable_w_transfer_result']
+                            "variable_w_transfer_result": jsonEvent['variable_w_transfer_result'],
+                            "variable_signal_bond": jsonEvent['variable_signal_bond'],
 
                         };
                         if (jsonEvent.hasOwnProperty('variable_webitel_data'))
