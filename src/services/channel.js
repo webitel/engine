@@ -28,20 +28,36 @@ var Service = {
     },
 
     makeCall: function (caller, options, cb) {
-        var _extension = options && options['extension'];
+        const _extension = options && options['extension'];
+        const user = options['user'] || "";
         if (!_extension)
-            return cb(new Error('Bad parameters'));
+            return cb(new Error('Bad parameters: extension is required'));
 
-        var _originatorParam = new Array('w_jsclient_originate_number=' + _extension);
+        if (typeof user !== "string") {
+            return cb(new Error('Bad parameters: user is required'));
+        }
+
+        let _originatorParam = new Array('w_jsclient_originate_number=' + _extension);
         if (options['params'] instanceof Array) {
             _originatorParam = _originatorParam.concat(options['params']);
         }
 
-        var _autoAnswerParam = [].concat( options['auto_answer_param'] || []),
-            _param = '[' + _originatorParam.concat(_autoAnswerParam).join(',') + ']',
-            dialString = ('originate ' + _param + 'user/' + options['user'] + ' ' + _extension
-                + ' xml default ' + options['user'] + ' ' + options['user'])
-            ;
+        if (typeof options['auto_answer_param'] === "string") {
+            _originatorParam.push(options['auto_answer_param'])
+        }
+
+        if (caller.domain) {
+            _originatorParam.push(`domain_name=${caller.domain}`);
+        } else if (~user.indexOf('@')) { //TODO from root
+            _originatorParam.push(`domain_name=${user.split('@')[1]}`);
+        }
+
+        _originatorParam.push(
+            `origination_caller_id_number='${options['user']}'`, //TODO bug
+            'webitel_direction=outbound'
+        );
+
+        const dialString = `originate {${_originatorParam.join(',')}}user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
 
         Service.bgApi(dialString, cb);
     },
