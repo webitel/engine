@@ -106,20 +106,21 @@ module.exports = class Progressive extends Dialer {
                 `cc_queue='${member.getQueueName()}'`
             ];
 
+            const webitelData = {
+                dlr_member_id: member._id.toString(),
+                dlr_id: member.getQueueId()
+            };
+
             for (let key in this._variables) {
                 if (this._variables.hasOwnProperty(key)) {
                     vars.push(`${key}='${this._variables[key]}'`);
+                    webitelData[key] = this._variables[key];
                 }
             }
 
             if (member._currentNumber && member._currentNumber.description) {
                 vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
             }
-
-            const webitelData = {
-                dlr_member_id: member._id.toString(),
-                dlr_id: member.getQueueId()
-            };
 
             for (let key of member.getVariableKeys()) {
                 webitelData[key] = member.getVariable(key);

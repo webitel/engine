@@ -777,6 +777,7 @@ let Service = {
                     }
 
                     if (callback.next_communication && memberDb.communications) {
+                        $set._endCause = null;
                         $push = {
                             "communications": {
                                 number: callback.next_communication,
