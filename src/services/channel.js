@@ -37,12 +37,12 @@ var Service = {
             return cb(new Error('Bad parameters: user is required'));
         }
 
-        let _originatorParam = new Array('w_jsclient_originate_number=' + _extension);
+        let _originatorParam = ['w_jsclient_originate_number=' + _extension];
         if (options['params'] instanceof Array) {
             _originatorParam = _originatorParam.concat(options['params']);
         }
 
-        if (typeof options['auto_answer_param'] === "string") {
+        if (typeof options['auto_answer_param'] === "string" && options['auto_answer_param']) {
             _originatorParam.push(options['auto_answer_param'])
         }
 
@@ -53,11 +53,11 @@ var Service = {
         }
 
         _originatorParam.push(
-            `origination_caller_id_number='${options['user']}'`, //TODO bug
-            'webitel_direction=outbound'
+            'webitel_direction=outbound',
+            'ignore_early_media=true'
         );
 
-        const dialString = `originate {${_originatorParam.join(',')}}user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
+        const dialString = `originate [${_originatorParam.join(',')}]user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
 
         Service.bgApi(dialString, cb);
     },
@@ -160,11 +160,35 @@ var Service = {
     },
     // TODO delete
     attXfer2: function (caller, options, cb) {
-        var _originatorParam = new Array('w_jsclient_originate_number=' + options['extension'], 'w_jsclient_xtransfer=' + options['parent_call_uuid']),
-            _autoAnswerParam = [].concat( options['auto_answer_param'] || []),
-            _param = '{' + _originatorParam.concat(_autoAnswerParam).join(',') + '}',
-            dialString = ('originate ' + _param + 'user/' + options['user'] + ' ' + options['extension'].split('@')[0]
-                + ' xml default ' + options['user'].split('@')[0] + ' ' + options['user'].split('@')[0]);
+        let _extension = options && options['extension'];
+        const user = options['user'] || "";
+        if (!_extension)
+            return cb(new Error('Bad parameters: extension is required'));
+
+        _extension = _extension.split('@')[0];
+
+        if (typeof user !== "string") {
+            return cb(new Error('Bad parameters: user is required'));
+        }
+
+        let _originatorParam = ['w_jsclient_originate_number=' + _extension, 'w_jsclient_xtransfer=' + options['parent_call_uuid']];
+
+        if (typeof options['auto_answer_param'] === "string" && options['auto_answer_param']) {
+            _originatorParam.push(options['auto_answer_param'])
+        }
+
+        if (caller.domain) {
+            _originatorParam.push(`domain_name=${caller.domain}`);
+        } else if (~user.indexOf('@')) { //TODO from root
+            _originatorParam.push(`domain_name=${user.split('@')[1]}`);
+        }
+
+        _originatorParam.push(
+            'webitel_direction=outbound',
+            'ignore_early_media=true'
+        );
+
+        const dialString = `originate {${_originatorParam.join(',')}}user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
 
         Service.bgApi(dialString, cb);
     },

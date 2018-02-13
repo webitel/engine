@@ -144,20 +144,15 @@ module.exports = class Progressive extends Dialer {
             const gw = dest.gwProto === 'sip' && dest.gwName ? `sofia/gateway/${dest.gwName}/${dest.dialString}` : dest.dialString;
             let dialString = member.number.replace(dest._regexp, gw);
 
-            apps.push(`bridge:\\'{cc_side=member,originate_timeout=${this._originateTimeout},origination_caller_id_number='${member.getCallerIdNumber()}'}${dialString}\\'`);
+            apps.push(`bridge:\\'[cc_side=member,originate_timeout=${this._originateTimeout},ignore_display_updates=true,origination_callee_id_number=${member.number},origination_caller_id_number='${member.getCallerIdNumber()}']${dialString}\\'`);
 
             vars.push(
-                `origination_callee_id_number='${agent.name}'`,
-                `origination_callee_id_name='${agent.name}'`,
-                `origination_caller_id_number='${member.number}'`,
-                `origination_caller_id_name='${member.name}'`,
-                `destination_number='${member.number}'`,
                 `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
                 'webitel_direction=outbound',
                 `cc_agent=${agent.name}`,
                 `cc_side=agent`
             );
-            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}user/${agent.name} 'set_user:${agent.name},${apps.join(',')}' inline`;
+            return `originate [^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}]user/${agent.name} 'set_user:${agent.name},${apps.join(',')}' inline default '${member.name}' '${member.number}'`;
         }
     }
 

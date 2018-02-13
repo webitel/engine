@@ -226,17 +226,14 @@ module.exports = class Predictive extends Dialer {
             vars.push(
                 `origination_callee_id_number='${member.number}'`,
                 `origination_callee_id_name='${member.name}'`,
-
                 `origination_caller_id_number='${member.getCallerIdNumber()}'`,
-                `origination_caller_id_name='${member.getQueueName()}'`,
-
-                `destination_number='${member.number}'`,
-
                 `originate_timeout=${this._originateTimeout}`,
                 'webitel_direction=outbound'
             );
 
             vars.push('ignore_early_media=true'); //TODO move config
+            apps.push(`set_profile_var:caller_id_number=${member.number}`);
+            apps.push(`set_profile_var:caller_id_name=${member.name || member.number}`);
 
             if (this._amd && this._amd.enabled) {
                 vars.push("hangup_after_bridge=true");
@@ -265,7 +262,7 @@ module.exports = class Predictive extends Dialer {
                 apps.push(`park:`);
             }
 
-            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
+            return `originate [^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}]${dialString} '${apps.join(',')}' inline`;
         }
     }
 
@@ -273,18 +270,12 @@ module.exports = class Predictive extends Dialer {
         member.setAgent(agent);
 
         let agentVars = [
+            `effective_callee_id_number=${agent.name.split('@')[0]}`,
             `cc_side=agent`,
             `cc_agent='${agent.name}'`,
             `cc_queue='${this.nameDialer}'`,
             `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
             `dlr_session='${member.sessionId}'`,
-            `origination_callee_id_number='${agent.name}'`,
-            `origination_callee_id_name='${agent.name}'`,
-            `origination_caller_id_number='${member.number}'`,
-            `origination_caller_id_name='${member.name}'`,
-            `destination_number='${member.number}'`,
-            `effective_caller_id_number='${agent.name}'`,
-            `effective_callee_id_number='${member.number}'`,
             'webitel_direction=inbound'
         ];
 
@@ -311,7 +302,7 @@ module.exports = class Predictive extends Dialer {
 
         member._predAgentOriginate = true;
 
-        const agentDs = `originate {^^${VAR_SEPARATOR}${agentVars.join(VAR_SEPARATOR)}}user/${agent.name} &park()`;
+        const agentDs = `originate {^^${VAR_SEPARATOR}${agentVars.join(VAR_SEPARATOR)}}user/${agent.name} 'set_profile_var:callee_id_number=${agent.name.split('@')[0]},set_profile_var:callee_id_name=${agent.name.split('@')[0]},sleep:10000' inline default '${member.name}' '${member.number}'`;
         member.log(`Agent ds: ${agentDs}`);
         application.Esl.bgapi(agentDs, (res) => {
             member.log(`agent ${agent.name} fs res -> ${res.body}`);
@@ -363,9 +354,6 @@ module.exports = class Predictive extends Dialer {
                             lastStatus: `active -> ${member._id}`
                         }, (e, res) => {
                             if (e)
-
-
-
                                 return log.error(e);
 
                             if (res && res.value) {
