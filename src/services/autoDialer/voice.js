@@ -107,7 +107,7 @@ module.exports = class VoiceBroadcast extends Dialer {
             if (this._recordSession) {
                 vars.push(
                     `RECORD_MIN_SEC=2`,
-                    `RECORD_STEREO=true`,
+                    `RECORD_STEREO=false`,
                     `RECORD_BRIDGE_REQ=false`,
                     `recording_follow_transfer=true`
                 );
