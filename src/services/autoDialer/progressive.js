@@ -99,7 +99,6 @@ module.exports = class Progressive extends Dialer {
 
         this.getDialString = (member, agent) => {
             let vars = [
-                `dlr_session=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_id=${member.getQueueId()}`,
                 `presence_data='${member.getDomain()}'`,

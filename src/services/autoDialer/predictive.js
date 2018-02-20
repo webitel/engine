@@ -275,7 +275,7 @@ module.exports = class Predictive extends Dialer {
             `cc_agent='${agent.name}'`,
             `cc_queue='${this.nameDialer}'`,
             `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
-            `dlr_session='${member.sessionId}'`,
+            `cc_member_session_uuid='${member.sessionId}'`,
             'webitel_direction=inbound'
         ];
 

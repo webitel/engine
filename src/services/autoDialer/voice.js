@@ -100,6 +100,7 @@ module.exports = class VoiceBroadcast extends Dialer {
                 `destination_number='${member.number}'`,
                 `webitel_direction=dialer`,
                 `dlr_queue=${member.getQueueId()}`,
+                // `cc_member_session_uuid=${member.sessionId}`,
                 `cc_side=member`
             );
 
@@ -111,7 +112,8 @@ module.exports = class VoiceBroadcast extends Dialer {
                     `RECORD_BRIDGE_REQ=false`,
                     `recording_follow_transfer=true`
                 );
-
+                // ${direction|uuid}
+                ///TODO records
                 let sessionUri = 'http_cache://$${cdr_url}' +
                     encodeURI(`/sys/formLoadFile?domain=${member.getDomain()}&id=${member.sessionId}&type=mp3&email=none&name=recordSession&.mp3`);
 
