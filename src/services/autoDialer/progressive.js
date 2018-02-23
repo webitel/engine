@@ -29,7 +29,8 @@ module.exports = class Progressive extends Dialer {
                         this.dialMember(member, agent);
                     } else {
                         member.log(`No found agent!!!`);
-                        member.end(); //TODO
+                        member.minusProbe();
+                        member.end();
                     }
                 });
             }
