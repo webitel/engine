@@ -9,7 +9,7 @@ var CodeError = require(__appRoot + '/lib/error'),
     conf = require(__appRoot + '/conf')
     ;
 
-const noWriteStatus = String(conf.get('application:writeUserStatus')) !== 'true';
+const noWriteStatus = conf.get('application:writeUserStatus') !== 'true';
 
 const Service = {
     insert: function (data) {

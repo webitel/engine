@@ -87,7 +87,7 @@
     "application": {
         "loglevel": "trace",
         "callcenter": true,
-        "writeUserStatus": false,
+        "writeUserStatus": true,
         "dialerCbMinusAttempt": true,
         "hook": {
             "maxRetries": 100,
