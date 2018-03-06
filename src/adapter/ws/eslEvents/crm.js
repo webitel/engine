@@ -183,8 +183,10 @@ function onUserStatus (jsonEvent) {
         user = application.Users.get(userId)
         ;
 
-    if (description)
+    if (description) {
         description = decodeURI(description);
+        jsonEvent['Account-Status-Descript'] = description;
+    }
 
     if (user) {
         user.setState(state, status, description);
@@ -193,20 +195,13 @@ function onUserStatus (jsonEvent) {
     } else {
         jsonEvent['Account-Online'] = false;
         jsonEvent['cc_logged'] = false;
-    };
+    }
 
-    var data = {
-        "domain": domainName,
-        "account": jsonEvent['Account-User'],
-        "status": status,
-        "state": state,
-        "description":  description,
-        "online": !!user,
-        "date": Date.now()
-    };
+    jsonEvent['ws'] = !!user;
+    jsonEvent['presence_id'] = userId;
 
-    statusService.insert(data);
-};
+    statusService.insert(jsonEvent);
+}
 
 // @private
 function getTemplateExtension(number, domain) {

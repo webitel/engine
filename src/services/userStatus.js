@@ -11,21 +11,77 @@ var CodeError = require(__appRoot + '/lib/error'),
 
 const noWriteStatus = String(conf.get('application:writeUserStatus')) !== 'true';
 
-var Service = {
-    insert: function (option) {
+const Service = {
+    insert: function (data) {
         if (noWriteStatus) return;
 
-        if (!option['state'] || !option['status'] || !option['account']) {
-            return log.warn('Caller %s status or state undefined.', option['account']);
+
+        if (!data['Account-User-State'] || !data['Account-Status'] || !data['Account-User']) {
+            return log.warn('Caller %s status or state undefined.', data['Account-User']);
         }
 
-        let data = option;
-        data['date'] = Date.now();
-        let dbUserStatus = application.DB._query.userStatus;
+        if (data['Account-Agent-Status']) {
+            data['Account-Agent-Status'] = decodeURIComponent(data['Account-Agent-Status']);
+            data['cc'] = data['Account-Agent-Status'] === "Available" ||
+                data['Account-Agent-Status'] === "Available (On Demand)" ||
+                data['Account-Agent-Status'] === "On Break";
+        } else {
+            data['cc'] = false;
+        }
 
-        dbUserStatus.create(data, (err) => {
-            if (err)
-                log.error(err);
+        const now = Date.now();
+
+        application.PG.getQuery('agents').setUserStats(data, (err, res) => {
+            if (err) {
+                return log.error(err);
+            }
+
+            if (!res) {
+                return;
+            }
+
+            application.Broker.publish(application.Broker.Exchange.STORAGE_COMMANDS,
+                `log.user.${application.Broker.encodeRK(data['Account-User'])}.${application.Broker.encodeRK(data['Account-Domain'])}.status`,
+                {
+                    "presence_id": data['presence_id'],
+                    "domain": data['Account-Domain'],
+                    "extension": data['Account-User'],
+                    "account": data['Account-User-Name'] ? decodeURIComponent(data['Account-User-Name']) : "", //
+                    "display_status": getDisplayStatus(res['description'], res['state'], res['status']),
+                    "status": res['status'],
+                    "state": res['state'],
+                    "description": res['description'],
+                    "ws": res['ws'],
+                    "cc": res['cc'],
+                    "created_time": +res['updated_at'],
+                    "end_time": now,
+                    "duration": Math.round((now - +res['updated_at']) / 1000)
+                }, e => {
+                    if (e)
+                        return log.error(e)
+                }
+            );
+
+            //TODO
+            if (data['cc'] !== res['cc']) {
+                application.Broker.publish(application.Broker.Exchange.STORAGE_COMMANDS,
+                    `log.user.${application.Broker.encodeRK(data['Account-User'])}.${application.Broker.encodeRK(data['Account-Domain'])}.status`,
+                    {
+                        "presence_id": data['presence_id'],
+                        "domain": data['Account-Domain'],
+                        "extension": data['Account-User'],
+                        "account": data['Account-User-Name'] ? decodeURIComponent(data['Account-User-Name']) : "", //
+                        "display_status": data['cc'] ? "Logged In" : "Logged Out",
+                        "ws": res['ws'],
+                        "cc": res['cc'],
+                        "created_time": +res['updated_at']
+                    }, e => {
+                        if (e)
+                            return log.error(e)
+                    }
+                );
+            }
+
         });
     },
     
@@ -40,3 +96,10 @@ var Service = {
 };
 
 module.exports = Service;
+
+
+function getDisplayStatus(description, state, status) {
+    if (description)
+        return description;
+    return status === "NONE" ? state : status;
+}

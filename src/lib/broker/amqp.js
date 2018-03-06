@@ -163,6 +163,10 @@ class WebitelAmqp extends EventEmitter2 {
         }
     };
 
+    encodeRK (rk) {
+        return encodeRK(rk)
+    }
+
     bindDomainEvent (eventName, domainName, cb) {
         let ch = this.channel;
         if (!ch || !this.customChannelQueue) return cb && cb(new Error('No connect.'));
@@ -674,7 +678,7 @@ const WEBITEL_EVENT = {
 
 const ALLOW_CONSOLE_HEADER = ['Account-Domain', 'Account-Role', 'Account-Status', 'Account-User', 'Account-User-State',
     'Event-Account', 'Event-Date-Timestamp', 'Event-Domain', 'Domain-Name', 'variable_customer_id', 'User-Domain', 'User-ID',
-    'User-State', 'Account-Skills', 'Account-Status-Descript', 'Account-Agent-State', 'Account-Agent-Status', 'variable_skills'];
+    'User-State', 'Account-Skills', 'Account-Status-Descript', 'Account-Agent-State', 'Account-Agent-Status', 'variable_skills', 'Account-User-Name'];
 
 function parseConsoleEvent (e) {
     let event = {

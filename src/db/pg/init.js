@@ -678,4 +678,26 @@ create index IF NOT EXISTS callflow_private_created_on_deadline_index
 ;
 `);
 
+sql.push(`
+create table IF NOT EXISTS user_stats
+(
+	id varchar(70) not null
+		constraint user_stats_pkey
+			primary key,
+	updated_at bigint,
+	status varchar(50),
+	state varchar(50),
+	description varchar(50),
+	cc boolean,
+	ws boolean
+)
+;
+
+create unique index IF NOT EXISTS user_stats_id_uindex
+	on user_stats (id)
+;
+
+
+`);
+
 module.exports = sql;

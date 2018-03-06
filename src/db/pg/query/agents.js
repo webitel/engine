@@ -368,6 +368,33 @@ function add(pool) {
                             });
 
                             */
+        },
+
+        setUserStats: (event = {}, cb) => {
+            pool.query(
+                `with old as (
+                    SELECT *
+                    FROM user_stats
+                    WHERE id = $1
+                    LIMIT 1
+                ), upd as (
+                  INSERT INTO user_stats (id, state, status, description, cc, ws, updated_at)
+                  VALUES ($1, $2, $3, $4, $5, $6, (extract(EPOCH FROM now() AT TIME ZONE 'UTC') * 1000)::BIGINT)
+                  ON CONFLICT (id)
+                  DO UPDATE SET state = $2, status = $3, description = $4, cc = $5, ws = $6, updated_at = (extract(EPOCH FROM now() AT TIME ZONE 'UTC') * 1000)::BIGINT
+                )
+                SELECT * FROM old`,
+                [event['presence_id'], event['Account-User-State'], event['Account-Status'], event['Account-Status-Descript'] || "", event['cc'], event['ws']],
+                (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (res.rowCount) {
+                        return cb(null, res.rows[0])
+                    }
+                    return cb(null, null)
+                }
+            )
         }
     }
 }

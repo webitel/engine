@@ -294,15 +294,16 @@ var getJSONUserEvent = function (eventName, domainName, userId) {
 };
 
 function insertSession (account, domain, state, status, description, online) {
+    //TODO
+    return;
     if (account !== 'root') {
         handleStatusDb({
-            "domain": domain,
-            "account": account,
-            "status": (status || "").toUpperCase(),
-            "state": (state || "").toUpperCase(),
-            "description": (description || ""),
-            "online": online,
-            "date": Date.now()
+            "Account-Domain": domain,
+            "Account-User": account,
+            "Account-Status": (status || "").toUpperCase(),
+            "Account-User-State": (state || "").toUpperCase(),
+            "Account-Status-Descript": (description || ""),
+            "ws": online
         }, (err) => {
             if (err)
                 log.error(err);
