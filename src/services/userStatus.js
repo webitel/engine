@@ -11,6 +11,13 @@ var CodeError = require(__appRoot + '/lib/error'),
 
 const noWriteStatus = conf.get('application:writeUserStatus') !== 'true';
 
+
+if (noWriteStatus) {
+    log.info(`Disabled application:writeUserStatus`)
+} else {
+    log.info(`Enabled application:writeUserStatus`)
+}
+
 const Service = {
     insert: function (data) {
         if (noWriteStatus) return;
