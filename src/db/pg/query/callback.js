@@ -26,7 +26,7 @@ const sqlDelete = `
 const sqlMemberCreate = `
     INSERT INTO callback_members (domain, queue_id, number, href, user_agent, location)
     VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING *;  
+    RETURNING *, (SELECT name FROM callback_queue WHERE id = $2) as queue_name;  
 `;
 
 
@@ -48,7 +48,17 @@ const sqlMemberDelete = `
 const sqlCommentAdd = `
     INSERT INTO callback_members_comment (created_by, created_on, member_id, text)
     VALUES ($1, $2, $3, $4)
-    RETURNING id, created_by, created_on::bigint, member_id, text;
+    RETURNING id, created_by, created_on::bigint, member_id, text, (
+        SELECT row_to_json(d)
+        FROM (
+          SELECT
+            q.name AS queue_name, m.widget_id AS widget_id, q.id AS queue_id
+          FROM callback_members m
+            JOIN callback_queue q ON q.id = m.queue_id
+          WHERE m.id = $3
+          LIMIT 1
+        ) d
+    ) as info;
 `;
 const sqlCommentRemove = `
     DELETE FROM callback_members_comment WHERE id = $1 AND member_id = $2
@@ -301,7 +311,7 @@ function add(pool) {
                                 return cb(new Error('No found destination number'));
 
                             return cb(null, {
-                                member: res.rows[0].member_json,
+                                member: res.rows[0].member,
                                 destinationNumber: res.rows[0].destination_number,
                                 queueName: res.rows[0].queue_name,
                                 callTimeout: res.rows[0].call_timeout
@@ -344,10 +354,11 @@ function add(pool) {
                 }
 
                 let update = `
-                    UPDATE callback_members 
+                    UPDATE callback_members m
                         SET ${values.join(',')} 
-                    WHERE (done is null or done = false) AND id = $${params.length + 1} AND queue_id = $${params.length + 2} AND domain = $${params.length + 3}
-                    RETURNING *
+                    FROM callback_queue q
+                    WHERE (m.done is null or m.done = false) AND m.id = $${params.length + 1} AND m.queue_id = $${params.length + 2} AND m.domain = $${params.length + 3} AND m.queue_id = q.id
+                    RETURNING m.*, q.name as queue_name
                 `;
                 params.push(+_id);
                 params.push(+queue_id);

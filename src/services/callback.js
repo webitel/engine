@@ -177,6 +177,11 @@ const Service = {
                 application.PG.getQuery('callback').members.create(option, (err, data) => {
                     if (err)
                         return cb(err);
+
+                    if (data) {
+                        option.member_id = data.id;
+                        option.queue_name = data.queue_name;
+                    }
                     application.Broker.emit('hookEvent', 'CUSTOM', domain, getJson('callback_member_add', domain, data));
                     return cb(null, data);
                 });
@@ -209,11 +214,20 @@ const Service = {
                 if (err)
                     return cb(err);
 
+                if (info.member) {
+                    option.member_id = info.member.id;
+                    option.queue_id = info.member.queue_id;
+                    option.widget_id = info.member.widget_id;
+                }
+
+                option.queue_name = info.queueName;
+                option.destination_number = info.destinationNumber;
+
                 application.Broker.emit('hookEvent', 'CUSTOM', option.domain, getJson('callback_member_add', option.domain, option));
 
                 if (tryCall) {
                     //TODO webitel_widget_id webitel_widget_name
-                    const dialString = `originate [^^:origination_callee_id_number='${option.number}':origination_callee_id_name='${info.queueName}':cc_queue='${info.queueName}':leg_timeout=${info.callTimeout || 60}:domain_name='${option.domain}':ignore_early_media=true:loopback_bowout=false:hangup_after_bridge=true]loopback/${option.number}/default '${info.destinationNumber}' XML public ${option.number} ${option.number}`;
+                    const dialString = `originate {^^:origination_callee_id_number='${option.number}':origination_callee_id_name='${info.queueName}':cc_side=member:cc_queue='${info.queueName}':leg_timeout=${info.callTimeout || 60}:domain_name='${option.domain}':ignore_early_media=true:loopback_bowout=false:hangup_after_bridge=true}loopback/${option.number}/default '${info.destinationNumber}' XML public ${option.number} ${option.number}`;
                     log.trace(`Exec: ${dialString}`);
                     application.Esl.bgapi(dialString, (res) => {
                         if (/^-ERR|^-USAGE/.test(res.body)) {
@@ -333,6 +347,9 @@ const Service = {
                         return cb(err);
 
                     if (res) {
+                        if (!res.info) {
+                            res.info = {};
+                        }
                         application.Broker.emit('hookEvent', 'CUSTOM', domain, {
                             "Event-Name": "CUSTOM",
                             "Event-Subclass": "engine::callback_member_comment",
@@ -341,6 +358,9 @@ const Service = {
                             "created_on": res.created_on,
                             "comment_id": res.id,
                             "member_id": res.member_id,
+                            "queue_id": res.info.queue_id || null,
+                            "queue_name": res.info.queue_name || null,
+                            "widget_id": res.info.widget_id || null,
                             "comment": res.text
                         });
                     }

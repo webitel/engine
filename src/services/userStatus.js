@@ -4,7 +4,7 @@
 
 'use strict';
 
-var CodeError = require(__appRoot + '/lib/error'),
+const CodeError = require(__appRoot + '/lib/error'),
     log = require(__appRoot + '/lib/log')(module),
     conf = require(__appRoot + '/conf')
     ;
@@ -13,9 +13,9 @@ const noWriteStatus = `${conf.get('application:writeUserStatus')}` !== 'true';
 
 
 if (noWriteStatus) {
-    log.info(`Disabled application:writeUserStatus`)
+    log.warn(`Disabled application:writeUserStatus`)
 } else {
-    log.info(`Enabled application:writeUserStatus`)
+    log.debug(`Enabled application:writeUserStatus`)
 }
 
 const Service = {
@@ -95,9 +95,9 @@ const Service = {
     _removeByUserId: function (userId, domain, cb) {
         if (!domain || !userId) {
             return cb(new CodeError(400, "Domain is required."));
-        };
+        }
 
-        var dbUserStatus = application.DB._query.userStatus;
+        const dbUserStatus = application.DB._query.userStatus;
         return dbUserStatus._removeByUserId(domain, userId, cb);
     }
 };
