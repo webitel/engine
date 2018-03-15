@@ -7,37 +7,6 @@ var Collections = require(__appRoot + '/conf/config.json').mongodb,
     ;
 
 var Indexes = {
-    "collectionPublic": [{
-        "_unique": true,
-        "_": {
-            "destination_number" : 1
-        }
-    }, {
-        "_unique": false,
-        "_name": "findAcr",
-        "_": {
-            "version": 1,
-            "destination_number" : 1,
-            "disabled": 1
-        }
-    }],
-    "collectionDefault": [{
-        "_unique": true,
-        "_": {
-            "domain" : 1,
-            "destination_number" : 1
-        }
-    }],
-    "collectionExtension": [{
-        "_unique": true,
-        "_": {
-            "domain" : 1,
-            "destination_number" : 1
-        }
-    }],
-    "collectionDomainVar": [{
-        "domain" : 1
-    }],
     "collectionAuth": [{
         "_unique": true,
         "_": {
@@ -279,29 +248,6 @@ var Indexes = {
                 "agentId" : 1
             }
 
-        }
-    ],
-    "collectionAgentStatus": [
-        {
-            "domain" : 1
-        },
-        {
-            "account" : 1
-        },
-        {
-            "status" : 1
-        },
-        {
-            "state" : 1
-        },
-        {
-            "online" : 1
-        },
-        {
-            "date" : 1
-        },
-        {
-            "endDate" : 1
         }
     ],
     "collectionGateway": [
