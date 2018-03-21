@@ -78,7 +78,8 @@ const AGENT_STRATEGY = {
     WITH_FEWEST_CALLS: "with_fewest_calls", //сначала на оператора с наименьшим количеством звонков.
     WITH_LEAST_TALK_TIME: "with_least_talk_time", //сначала на оператора с наименьшим временем в разговоре.
     LONGEST_IDLE_AGENT: "longest_idle_agent", //сначала на оператора с наибольшим временем в ожидание.
-    TOP_DOWN: "top-down" //всегда сверху-вниз.
+    TOP_DOWN: "top-down", //всегда сверху-вниз.
+    WITH_LEAST_UTILIZATION: "with_least_utilization"
 };
 
 const NUMBER_STRATEGY = {

@@ -96,6 +96,9 @@ class AgentManager extends EventEmitter2 {
                 sort = 'ad.idle_sec DESC NULLS FIRST';
                 break;
 
+            case AGENT_STRATEGY.WITH_LEAST_UTILIZATION:
+                sort = '1 - (COALESCE(ad.idle_sec, 0) / (1 * (((COALESCE(ad.call_time_sec, 0) + COALESCE(ad.connected_time_sec, 0) + COALESCE(ad.wrap_time_sec, 0))::FLOAT) + coalesce(ad.idle_sec)))) ASC';
+                break;
             //case AGENT_STRATEGY.TOP_DOWN:
             //TODO
             // break;
