@@ -173,8 +173,8 @@ var Service = {
 
         let _originatorParam = ['w_jsclient_originate_number=' + _extension, 'w_jsclient_xtransfer=' + options['parent_call_uuid']];
 
-        if (typeof options['auto_answer_param'] === "string" && options['auto_answer_param']) {
-            _originatorParam.push(options['auto_answer_param'])
+        if (options['auto_answer_param']) {
+            _originatorParam.push(options['auto_answer_param'].toString())
         }
 
         if (caller.domain) {
