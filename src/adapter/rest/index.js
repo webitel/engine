@@ -50,9 +50,10 @@ require('./auth/auth.resource').addRoutes(api);
 require('./acl/acl.resource').addRoutes(api);
 
 require('./domain/domain.resource').addRoutes(api);
+//TODO
+require('./cdr/cdr.resource').addRoutes(api);
 require('./account/account.resource').addRoutes(api);
 require('./stats/stats.resource').addRoutes(api);
-require('./cdr/cdr.resource').addRoutes(api);
 require('./dialplan/dialplan.resource').addRoutes(api);
 require('./dialplan/blackList.resource').addRoutes(api);
 require('./email/email.resource').addRoutes(api);
