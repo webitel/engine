@@ -100,7 +100,7 @@ module.exports = class Dialer extends EventEmitter2 {
                 const $set = {
                         _lastSession: m.sessionId,
                         variables: m.variables,
-                        lastCall: Date.now(),
+                        lastCall: m._minusProbe ? 0 : Date.now(),
                         // '_log.$': {}
                     },
                     $max = {
@@ -189,13 +189,13 @@ module.exports = class Dialer extends EventEmitter2 {
                     }
                 );
 
-                log.trace(`removed ${m.sessionId}`);
-                if (!this.members.remove(m._id))
-                    log.error(new Error(m));
-
                 if ($set._endCause) {
                     m.broadcast();
                 }
+
+                log.trace(`removed ${m.sessionId}`);
+                if (!this.members.remove(m._id))
+                    log.error(new Error(m));
             });
 
         });
@@ -906,6 +906,7 @@ module.exports = class Dialer extends EventEmitter2 {
     getSortAvailableMembers () {
         if (this.membersStrategy === 'strict-circuit') {
             return {
+                "$natural": 1,
                 "lastCall": 1,
                 "priority": -1,
                 "_id": 1
