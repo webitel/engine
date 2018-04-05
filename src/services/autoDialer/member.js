@@ -276,7 +276,11 @@ module.exports = class Member extends EventEmitter2 {
     }
 
     getVariable (varName) {
-        return this.variables[varName];
+        return this.variables[varName] && this.variables[varName].replace('\'', `\\'`);
+    }
+
+    getCurrentNumberDescription () {
+        return this._currentNumber.description && this._currentNumber.description.replace('\'', `\\'`);
     }
 
     getVariableKeys () {

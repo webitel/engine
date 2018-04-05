@@ -119,11 +119,11 @@ module.exports = class Progressive extends Dialer {
             }
 
             if (member._currentNumber && member._currentNumber.description) {
-                vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
+                vars.push(`dlr_member_number_description='${member.getCurrentNumberDescription()}'`);
             }
 
             for (let key of member.getVariableKeys()) {
-                webitelData[key] = member.getVariable(key);
+                webitelData[key] = (member.getVariable(key) || "").replace(/\\'/g, '');
                 vars.push(`'${key}'='${member.getVariable(key)}'`);
             }
 

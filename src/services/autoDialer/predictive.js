@@ -196,7 +196,7 @@ module.exports = class Predictive extends Dialer {
             }
 
             if (member._currentNumber && member._currentNumber.description) {
-                vars.push(`dlr_member_number_description='${member._currentNumber.description}'`);
+                vars.push(`dlr_member_number_description='${member.getCurrentNumberDescription()}'`);
             }
 
             for (let key of member.getVariableKeys()) {
@@ -290,7 +290,7 @@ module.exports = class Predictive extends Dialer {
             }
         }
         for (let key of member.getVariableKeys()) {
-            webitelData[key] = member.getVariable(key);
+            webitelData[key] = (member.getVariable(key) || "").replace(/\\'/g, '');
             agentVars.push(`'${key}'='${member.getVariable(key)}'`);
         }
 
