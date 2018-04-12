@@ -262,7 +262,7 @@ module.exports = class Predictive extends Dialer {
                 apps.push(`park:`);
             }
 
-            return `originate [^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}]${dialString} '${apps.join(',')}' inline`;
+            return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
         }
     }
 
