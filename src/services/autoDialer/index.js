@@ -604,6 +604,8 @@ class AutoDialer extends EventEmitter2 {
             dialer.setState(DIALER_STATES.ProcessStop);
         }
 
+        console.log(`Stop dialer: ${id}, active members: ${dialer ? dialer.members.getKeys() : 0}`);
+
         this.dbDialer._updateDialer(
             id,
             DIALER_STATES.ProcessStop,
@@ -636,6 +638,24 @@ class AutoDialer extends EventEmitter2 {
             log.trace(`Dialer ${id} is ready`);
             if (ad.state === DIALER_STATES.Work)
                 ad.emit('wakeUp');
+
+            console.log(`-----------DUMP DIALER-----------`);
+            console.log(`name: ${ad.nameDialer}`);
+            console.log(`state: ${ad.state}`);
+            console.log(`active: ${ad._active}`);
+            console.log(`cause: ${ad.cause}`);
+            console.log(`countMembers: ${ad.countMembers}`);
+
+            console.log(`members: ${ad.members.length()}`);
+            if (ad.members.length() > 0) {
+                const keys = ad.members.getKeys();
+                for (let key of keys) {
+                    console.dir(ad.members.get(key))
+                }
+            }
+
+            console.log(`stats:`);
+            console.dir(ad._stats);
 
             return cb && cb(null, {active: true});
         }

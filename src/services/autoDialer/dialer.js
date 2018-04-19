@@ -94,7 +94,7 @@ module.exports = class Dialer extends EventEmitter2 {
         this.members = new Collection('id');
 
         this.members.on('added', (member) => {
-            log.trace(`Members length ${this.members.length()}`);
+            log.trace(`Dialer ${this.nameDialer}: member added ${member._id} -> length ${this.members.length()}`);
 
             member.once('end', (m) => {
                 const $set = {
@@ -201,7 +201,7 @@ module.exports = class Dialer extends EventEmitter2 {
         });
 
         this.members.on('removed', (m) => {
-            log.trace(`Members length ${this.members.length()}`);
+            log.trace(`Dialer ${this.nameDialer}: member remove ${m._id} -> length ${this.members.length()}`);
 
             this.countMembers--;
             this.checkSleep();
@@ -628,6 +628,9 @@ module.exports = class Dialer extends EventEmitter2 {
 
                         if (!this.isReady() || !destination || !number) {
                             this.rollback(null, destination);
+                            if (this.members.length() === 0) {
+                                this.tryStop();
+                            }
                             return this.unReserveMember(member._id, (err) => {
                                 if (err)
                                     return log.error(err);
@@ -639,6 +642,8 @@ module.exports = class Dialer extends EventEmitter2 {
                     });
                 } else if (this.members.length() === 0) {
                     this.tryStop();
+                } else {
+                    log.trace(`Dialer ${this.nameDialer} members count: ${this.members.length()}`)
                 }
             }
         );
@@ -1274,15 +1279,14 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     tryStop () {
-        console.log('state', this.state, this.members.length());
-
+        log.trace(`Dialer ${this.nameDialer} state: ${this.state} members: ${this.members.length()}`);
         if (this.isError()) {
             log.warn(`Force stop process.`);
             return;
         }
 
         if (this.state === DIALER_STATES.ProcessStop) {
-            if (this.members.length() != 0)
+            if (this.members.length() !== 0)
                 return;
 
             log.info('Stop dialer');
