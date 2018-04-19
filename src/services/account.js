@@ -269,6 +269,7 @@ function parseAccount (data, domain, cb) {
     const lines = data.split('\n');
     lines.pop();
     lines.pop();
+    lines.pop();
     const columns = lines.shift().split('|');
 
     let user, ws;
