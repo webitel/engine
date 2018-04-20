@@ -381,6 +381,28 @@ Webitel.prototype.list_users = function(_caller, domain, cb, format) {
     }, _cb);
     cmd.execute();*/
 };
+//api user_list select:domain,user,name,role,agent,agent.status,state,status,description filter:domain=10.10.10.144
+
+Webitel.prototype.userList2 = function(caller, options = {}, cb) {
+    if (!options.domain) {
+        return cb(new CodeError(400, `Domain is required.`));
+    }
+
+    if (!options.columns || options.columns.length === 0) {
+        options.columns = ["user", "name", "role", "agent", "agent.status", "state", "status", "description"]
+    } else if (!~options.columns.indexOf("user")) {
+        options.columns.push("user");
+    }
+
+    this.api(`user_list select:${options.columns} filter:domain=${options.domain}`, res => {
+        const err = checkBodyError(res);
+        if (err) {
+            return cb(err);
+        }
+
+        cb(null, res.body);
+    })
+};
 
 Webitel.prototype.userList = function(_caller, domain, cb) {
     this.api(WebitelCommandTypes.Account.List, [

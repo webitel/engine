@@ -157,18 +157,18 @@ var Service = {
                 return cb(new CodeError(400, 'Bad request.'));
             }
 
-            let domain = validateCallerParameters(caller, option['domain']);
+            option['domain'] = validateCallerParameters(caller, option['domain']);
 
-            if (!domain) {
+            if (!option['domain']) {
                 return cb(new CodeError(400, "Domain is require."));
             }
 
-            return application.WConsole.userList(caller, domain, function (err, res) {
+            return application.WConsole.userList2(caller, option, function (err, res) {
                 if (err)
                     return cb(err);
 
                 try {
-                    return parseAccount(res, domain, cb);
+                    return parseAccount(res, option['domain'], cb);
                 } catch (e) {
                     log.error(e);
                     cb(e);
@@ -233,7 +233,7 @@ var Service = {
 
             let _id = name + '@' + domain;
 
-            if (_id == caller.id) {
+            if (_id === caller.id) {
                 return cb(new CodeError(400, "Easy! it's YOU !!!"));
             }
 
@@ -259,44 +259,41 @@ var Service = {
 
 module.exports = Service;
 
-const const_DataSeparator = '=================================================================================================';
-
 function parseAccount (data, domain, cb) {
-    if (!data) {
+    if (typeof data  !== "string") {
         cb('Data is undefined!');
         return
-    };
-    try {
-        domain = domain || '_undef_';
-        var _line,
-            _head,
-            _json = {},
-            _id,
-            _user;
+    }
 
-        _line = data.match(/[^\r\n]+/g);
-        _head = _line[0].match(/[^\t]+/g).map((a) => a.trim());
-        for (var i = 2; i < _line.length && _line[i] != const_DataSeparator; i++) {
-            _id = '';
-            _line[i].split('\t').forEach( (a, i) => {
-                if (i == 0) {
-                    _id = a.trim();
-                    _json[_id] = {
-                        id: _id
-                    }
-                } else {
-                    if (_head[i] == 'online') {
-                        _user = application.Users.get(_json[_id]['id'] + '@' + domain);
-                        _json[_id]['online'] = !!((_user && _user.logged));
-                        _json[_id]['cc_logged'] = !!((_user && _user['cc-logged']));
-                    } else {
-                        _json[_id][_head[i]] = a.trim();
-                    }
-                }
-            });
-        };
-        cb(null, _json);
-    } catch (e) {
-        cb(e);
-    };
-};
+    const result = {};
+    const lines = data.split('\n');
+    lines.pop();
+    lines.pop();
+    const columns = lines.shift().split('|');
+
+    let user, ws;
+
+    lines.forEach( item => {
+        user = item.split('|').reduce((res, val, key) => {
+            res[columns[key]] = val;
+            return res;
+        }, {});
+
+        user.id = user.user;
+        delete user.user;
+
+        ws = application.Users.get(user.id + '@' + domain);
+        if (ws) {
+            user.online = ws.logged;
+            user.cc_logged = !!ws['cc-logged'];
+        } else {
+            user.online = user.cc_logged = false;
+
+        }
+
+        user.domain = domain;
+
+        result[user.id] = user;
+    });
+    return cb(null, result);
+}

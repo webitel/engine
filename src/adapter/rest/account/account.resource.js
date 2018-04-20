@@ -3,9 +3,10 @@
  */
 'use strict';
 
-var accountService = require(__appRoot + '/services/account'),
+const accountService = require(__appRoot + '/services/account'),
     ccService = require(__appRoot + '/services/callCentre'),
-    channelService = require(__appRoot + '/services/channel')
+    channelService = require(__appRoot + '/services/channel'),
+    getRequest = require(__appRoot + '/utils/helper').getRequest
     ;
 
 module.exports = {
@@ -144,11 +145,8 @@ function tiers (req, res, next) {
 };
 
 function list (req, res, next) {
-    let option = {
-        "domain": req.query['domain']
-    };
 
-    accountService.accountList(req.webitelUser, option,
+    accountService.accountList(req.webitelUser, getRequest(req),
         function (err, result) {
             if (err) {
                 return next(err);
@@ -162,7 +160,7 @@ function list (req, res, next) {
                     });
         }
     );
-};
+}
 
 function remove (req, res, next) {
     let option = {
