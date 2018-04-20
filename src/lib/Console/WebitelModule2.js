@@ -382,6 +382,52 @@ Webitel.prototype.list_users = function(_caller, domain, cb, format) {
     cmd.execute();*/
 };
 //api user_list select:domain,user,name,role,agent,agent.status,state,status,description filter:domain=10.10.10.144
+// hotdesk signin WIN-BH6JO9V4VPA@10.10.10.144 user=100
+// hotdesk signout WIN-BH6JO9V4VPA@10.10.10.144
+
+Webitel.prototype.hotdeskSignIn = function(caller, options = {}, cb) {
+    const tmp = caller.id.split('@');
+
+    if (!tmp[1]) {
+        return cb(new CodeError(400, `Domain is required`));
+    }
+
+    const id = `${options.address}@${tmp[1]}`;
+
+    this.api(`hotdesk signin ${id} user=${tmp[0]}`, res => {
+        const err = checkBodyError(res);
+        if (err) {
+            return cb(err);
+        }
+        cb(null, {
+            info: res.body
+        });
+    })
+};
+
+Webitel.prototype.hotdeskSignOut = function(caller, options = {}, cb) {
+    const tmp = caller.id.split('@');
+
+    if (!tmp[1]) {
+        return cb(new CodeError(400, `Domain is required`));
+    }
+
+    this.hotdeskSignOutById(`${options.address}@${tmp[1]}`, cb)
+};
+
+
+Webitel.prototype.hotdeskSignOutById = function(id, cb) {
+    this.api(`hotdesk signout ${id}`, res => {
+        const err = checkBodyError(res);
+        if (err) {
+            return cb(err);
+        }
+        cb(null, {
+            info: res.body
+        });
+    })
+};
+
 
 Webitel.prototype.userList2 = function(caller, options = {}, cb) {
     if (!options.domain) {
@@ -389,7 +435,7 @@ Webitel.prototype.userList2 = function(caller, options = {}, cb) {
     }
 
     if (!options.columns || options.columns.length === 0) {
-        options.columns = ["user", "name", "role", "agent", "agent.status", "state", "status", "description"]
+        options.columns = ["user", "name", "role", "agent", "agent.status", "state", "status", "descript"]
     } else if (!~options.columns.indexOf("user")) {
         options.columns.push("user");
     }
