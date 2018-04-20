@@ -303,6 +303,30 @@ let Service = {
                 return cb(new CodeError(400, 'Bad request: domain is required.'));
             }
 
+            if (option.id) {
+                const d = application.AutoDialer.activeDialer.get(option.id);
+                if (d) {
+                    log.warn(`Dialer ${d.nameDialer} in memory! members count ${d.members.length()}`);
+                    let m;
+                    for (let key of d.members.getKeys()) {
+                        m = d.members.get(key);
+                        if (m) {
+                            log.warn(`Member ${m._id} clean session ${m.sessionId} and minus probe!`);
+                            m.log(`Reset probe by reset process`);
+                            m.minusProbe();
+                            m.end();
+                        }
+                    }
+
+                    if (!d.members.length()) {
+                        d.emit('end', d);
+                    }
+
+                    log.warn(`Dialer ${d.nameDialer} in memory! members count ${d.members.length()}`);
+
+                }
+            }
+
             Service._resetProcessStatistic(option, domain, cb);
         });
     },

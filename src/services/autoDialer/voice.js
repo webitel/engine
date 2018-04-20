@@ -157,8 +157,15 @@ module.exports = class VoiceBroadcast extends Dialer {
         const handleHangupEvent = (e) => {
             let member = this.members.get(e.getHeader('variable_dlr_member_id'));
             if (member) {
-                if (--member.channelsCount !== 0)
+                member.channelsCount--;
+
+                if (member.channelsCount > 0)
                     return;
+
+                if (member.channelsCount < 0) {
+                    log.warn(`Member no handle channel_create`);
+                    log.warn(member.toJSON());
+                }
 
                 if (member.getConnectedTime() > 0 && e.getHeader("Caller-Context") === "dialer") {
                     member.bridgedCall = true;
