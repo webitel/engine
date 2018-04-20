@@ -620,7 +620,7 @@ class AutoDialer extends EventEmitter2 {
     }
 
     runDialerById(id, domain, cb) {
-
+        log.trace(`Dialer ${id} ${domain} send start`);
         this.sendToBroker({
             action: "start",
             args: {
@@ -630,9 +630,10 @@ class AutoDialer extends EventEmitter2 {
         }, cb);
     }
     _runDialerById(id, domain, cb) {
-
+        log.trace(`Dialer ${id} ${domain} receive start`);
         let ad = this.activeDialer.get(id);
         if (ad) {
+            log.trace(`Dialer ${id} is ready`);
             if (ad.state === DIALER_STATES.Work)
                 ad.emit('wakeUp');
 
@@ -640,15 +641,21 @@ class AutoDialer extends EventEmitter2 {
         }
 
         this.dbDialer._getDialerById(id, domain, (err, res) => {
-            if (err)
+            if (err) {
+                log.error(`Dialer ${id} err: ${err.message}`);
                 return cb(err);
+            }
 
-            if (!res)
+            if (!res) {
+                log.error(`Dialer ${id} not found in ${domain}`);
                 return cb(`Not found dialer ${id}@${domain}`);
+            }
 
             let error = this.addDialerFromDb(res);
-            if (error)
+            if (error) {
+                log.error(`Dialer ${id} add error: ${error}`);
                 return cb(error);
+            }
             return cb(null, {active: true});
         });
     }
@@ -656,20 +663,19 @@ class AutoDialer extends EventEmitter2 {
     addDialerFromDb (dialerDb) {
 
         if (dialerDb.active) {
-            log.debug(`Dialer ${dialerDb.name} - ${dialerDb._id} is active.`);
+            log.debug(`Dialer ${dialerDb._id} - ${dialerDb.name} is active.`);
             //return new Error("Dialer is active...");
         }
 
         let calendarId = dialerDb && dialerDb.calendar && dialerDb.calendar.id;
 
-
         this.dbCalendar.findById(dialerDb.domain, calendarId, (err, res) => {
             if (err)
-                return log.error(err);
+                return log.error(`Dialer ${dialerDb._id} error: ${err.message}`);
             // todo
 
             if (!res)
-                return log.error('Not found calendar');
+                return log.error(`Dialer ${dialerDb._id} not found calendar`);
 
             dialerDb.lockId = this.id;
             dialerDb.state = DIALER_STATES.Idle;
@@ -685,6 +691,7 @@ class AutoDialer extends EventEmitter2 {
 
             if (currentTime.expire || !currentTime.currentTimeOfDay) {
                 this.emit('changeDialerState', dialerDb, res, currentTime);
+                log.trace(`Dialer ${dialerDb._id} changeDialerState`);
                 return;
             }
 
