@@ -11,6 +11,7 @@ var conf = require('../conf'),
     ACCOUNT_ROLE = require( __appRoot + '/const').ACCOUNT_ROLE,
     generateUuid = require('node-uuid'),
     CodeError = require(__appRoot + '/lib/error'),
+    parseAccount = require(__appRoot + '/utils/parse').parseAccount,
     acl = require('./acl')
     ;
 
@@ -25,7 +26,8 @@ module.exports = {
     logout: logout,
     getTokenMaxExpires: getTokenMaxExpires,
     removeFromUserName: removeFromUserName,
-    _removeDomainsTokens: _removeDomainsTokens
+    _removeDomainsTokens: _removeDomainsTokens,
+    checkUserByFilter: checkUserByFilter
 };
 
 function logout(option, cb) {
@@ -96,6 +98,40 @@ function validateDomainKey(domain, uuid, cb) {
     application.DB._query.domain.getTokenByKey(domain, uuid, cb);
 }
 
+function checkUserByFilter(options = {}, cb) {
+    application.WConsole.userList2({}, options, (err, res) => {
+        if (err)
+            return cb(err);
+
+        let account = parseAccount(res, options.domain);
+        if (!account || account.length !== 1) {
+            return cb(new CodeError())
+        }
+
+        account = account[0];
+
+        acl._whatResources(account['role'], (e, aclResource) => {
+            if (e)
+                return cb(e);
+
+            const tokenObj = genToken(account.id, aclResource),
+                userObj = {
+                    "key": generateUuid.v4(),
+                    "domain": account.domain,
+                    "username": `${account.id}@${account.domain}`,
+                    "expires": tokenObj.expires,
+                    "token": tokenObj.token,
+                    "roleName": account.role,
+                    "acl": aclResource
+                };
+            const authDb = application.DB._query.auth;
+            authDb.add(userObj, function (err) {
+                return cb(err, userObj)
+            });
+        });
+    });
+}
+
 function checkUser (login, password, cb) {
     try {
         login = login || '';
@@ -123,7 +159,7 @@ function checkUser (login, password, cb) {
                 return;
             }
             var a1Hash = md5(login.replace('@', ':') + ':' + password);
-            var registered = (a1Hash == resJson['a1-hash']);
+            var registered = (a1Hash === resJson['a1-hash']);
 
             if (registered) {
                 acl._whatResources(resJson['account_role'], (e, aclResource) => {

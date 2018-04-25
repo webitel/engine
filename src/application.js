@@ -19,7 +19,8 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     checkEslError = require('./middleware/checkEslError'),
     AutoDialer = require('./services/autoDialer'),
     gatewayService = require('./services/gateway'),
-    dialerService = require('./services/dialer')
+    dialerService = require('./services/dialer'),
+    hotdeskService = require('./services/hotdesk')
     ;
 
 class Application extends EventEmitter2 {
@@ -68,6 +69,10 @@ class Application extends EventEmitter2 {
         });
     }
 
+    initHotdesk () {
+        hotdeskService.init(this);
+    }
+
     connectDb() {
         var conferenceService = require('./services/conference');
         var scope = this,
@@ -85,6 +90,7 @@ class Application extends EventEmitter2 {
             scope.connectToWConsole();
             scope.initTelegram();
             scope.initScheduler();
+            scope.initHotdesk();
         });
 
         this.once('sys::connectFsApi', function () {

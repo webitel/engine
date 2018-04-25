@@ -4,14 +4,28 @@
 
 'use strict';
 
-var jwt = require('jwt-simple'),
+const jwt = require('jwt-simple'),
     config = require(__appRoot + '/conf'),
+    request = require('request'),
+    log = require(__appRoot + '/lib/log')(module),
     CodeError = require(__appRoot + '/lib/error'),
     authService = require(__appRoot + '/services/auth'),
     aclService = require(__appRoot + '/services/acl'),
     cdrSrv = config.get('cdrServer'),
     vertoSocket = config.get('freeSWITCH:verto'),
     tokenSecretKey = require(__appRoot + '/utils/token');
+
+const BASE_URL = config.get("server:baseUrl").replace(/\/$/, '');
+
+function genGuid(data = []) {
+    if (!data || data.length !== 16 ) {
+        return null;
+    }
+
+    return data.slice(0,4).reverse().toString('hex') + "-" + data.slice(4,6).reverse().toString('hex') + "-"
+        + data.slice(6,8).reverse().toString('hex') + "-" + data.slice(8,10).toString('hex')
+        + "-" + data.slice(10).toString('hex');
+}
 
 module.exports = {
     addRoutes: addRoutes
@@ -25,14 +39,86 @@ function addRoutes(api) {
     api.all('/api/v2/*', validateRequestV2);
     api.get('/api/v2/whoami', whoami);
     api.post('/login', login);
+    api.get( '/login/:domain', loginOAuth);
     api.post('/logout', logout);
+}
+
+function loginOAuth(req, res, next) {
+    const {code} = req.query;
+    const {domain} = req.params;
+
+    if (!code || !domain) {
+        return next(new CodeError(403, `Code or domain is required`))
+    }
+
+    let db = application.DB._query.domain;
+    db.getAuthSettings(domain, (err, auth) => {
+        if (err) {
+            return next(err);
+        }
+
+        if (!auth) {
+            return next(new CodeError(401, "Invalid credentials"))
+        }
+
+        request.post(auth.host, {
+                rejectUnauthorized: false,
+                form:{
+                    code,
+                    client_id: auth.client_id,
+                    grant_type: "authorization_code",
+                    redirect_uri: `${BASE_URL}/login/${domain}`
+                }},
+            (err, _, data) => {
+                if (err) {
+                    log.error(err);
+                    return next(new CodeError(401, "Invalid credentials"))
+                }
+                try {
+                    const token = jwt.decode(JSON.parse(data).access_token, auth.signature);
+                    if (auth.user_id && token[auth.user_id]) {
+                        return validateOAuthToken({domain, filter: {
+                                    [auth.user_id]: auth.user_id_guid ? genGuid(Buffer.from(token[auth.user_id], 'base64')) : token[auth.user_id]
+                            }},
+                            res,
+                            next
+                        )
+                    }
+
+                    return next(new CodeError(401, "Invalid credentials"))
+                } catch (e) {
+                    log.error(e);
+                    next(new CodeError(401, "Invalid credentials"));
+                }
+            });
+    });
+}
+
+function validateOAuthToken(options, res, next) {
+    authService.checkUserByFilter(options, (err, result) => {
+        if (err)
+            return next(err);
+
+        if (result) {
+            result.cdr = cdrSrv;
+            result.verto = vertoSocket;
+            return res
+                .json(result);
+        }
+
+        return res
+            .status(500)
+            .json({
+                "status": "error"
+            });
+    })
 }
 
 function login (req, res, next) {
     var username = req.body.username || '';
     var password = req.body.password || '';
 
-    if (username == '') {
+    if (username === '') {
         res.status(401);
         res.json({
             "status": 401,
@@ -176,7 +262,7 @@ function validateRequestV2(req, res, next) {
         // Authorize the user to see if s/he can access our resources
 
         authService.validateUser(key, function (err, dbUser) {
-            if (dbUser && dbUser.token == token) {
+            if (dbUser && dbUser.token === token) {
                 req['webitelUser'] = {
                     id: dbUser.username,
                     domain: dbUser.domain,

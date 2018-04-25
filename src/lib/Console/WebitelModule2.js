@@ -11,6 +11,7 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     authServices = require(__appRoot + '/services/auth'),
     async = require('async'),
     CodeError = require(__appRoot + '/lib/error'),
+    parseHotdesk = require(__appRoot + '/utils/parse').parseHotdesk,
     Event = require('./Event'),
     COMMAND_TYPES = require('../../const').WebitelCommandTypes;
 
@@ -362,7 +363,7 @@ Webitel.prototype.updateDomain = function(_caller, name, option, cb) {
     });
 };
 
-Webitel.prototype.list_users = function(_caller, domain, cb, format) {
+Webitel.prototype.list_users = function(_caller, domain, cb) {
     // Для ивентов, чтобы заполнить online
     this.api(WebitelCommandTypes.ListUsers, [
         domain || ''
@@ -381,7 +382,7 @@ Webitel.prototype.list_users = function(_caller, domain, cb, format) {
     }, _cb);
     cmd.execute();*/
 };
-//api user_list select:domain,user,name,role,agent,agent.status,state,status,description filter:domain=10.10.10.144
+//api user_list select:domain,user,name,role,agent,agent.status,state,status,description filter:domain=10.10.10.144&MY_FIELD_ADMIN='321321'
 // hotdesk signin WIN-BH6JO9V4VPA@10.10.10.144 user=100
 // hotdesk signout WIN-BH6JO9V4VPA@10.10.10.144
 
@@ -440,7 +441,7 @@ Webitel.prototype.userList2 = function(caller, options = {}, cb) {
         options.columns.push("user");
     }
 
-    this.api(`user_list select:${options.columns} filter:domain=${options.domain}`, res => {
+    this.api(`user_list select:${options.columns} filter:domain=${options.domain}${parseFilter(options)}`, res => {
         const err = checkBodyError(res);
         if (err) {
             return cb(err);
@@ -449,6 +450,74 @@ Webitel.prototype.userList2 = function(caller, options = {}, cb) {
         cb(null, res.body);
     })
 };
+
+Webitel.prototype.hotdeskList = function (caller, options = {}, cb) {
+    this.api(`hotdesk list filter:domain=${options.domain}${parseFilter(options)}`, res => {
+        let err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        }
+        cb(null, parseHotdesk(res.body))
+    })
+};
+
+Webitel.prototype.hotdeskRemove = function (caller, options = {}, cb) {
+    //hotdesk del <desk>[@<domain>]
+    this.api(`hotdesk del '${options.id}@${options.domain}'`, res => {
+        let err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        cb(null, res.body);
+    })
+};
+
+Webitel.prototype.hotdeskCreate = function (caller, options = {}, cb) {
+    const params = [];
+    for (let key in options.params) {
+        params.push(`${key}='${options.params[key]}'`)
+    }
+    this.api(`hotdesk add '${options.id}@${options.domain}' ${params.join(',')}`, res => {
+        let err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        cb(null, res.body);
+    })
+};
+
+Webitel.prototype.hotdeskUpdate = function (caller, options = {}, cb) {
+    const params = [];
+    for (let key in options.params) {
+        params.push(`${key}='${options.params[key]}'`)
+    }
+    this.api(`hotdesk set '${options.id}@${options.domain}' ${params.join(',')}`, res => {
+        let err = checkBodyError(res);
+        if (err) {
+            cb(err);
+            return;
+        }
+
+        cb(null, res.body);
+    })
+};
+
+function parseFilter(options = {}) {
+    if (!options.filter) {
+        return "";
+    }
+
+    let res = "";
+    for (let key in options.filter) {
+        res += `&${key}='${options.filter[key]}'`
+    }
+    return res;
+}
 
 Webitel.prototype.userList = function(_caller, domain, cb) {
     this.api(WebitelCommandTypes.Account.List, [

@@ -133,7 +133,68 @@ var Parser = {
         } catch (e) {
             return null;
         }
-    }
+    },
+    parseAccount: parseAccount,
+    parseHotdesk: parseHotdesk,
 };
+
+function parseAccount (data, domain) {
+    if (typeof data  !== "string") {
+        return []
+    }
+
+    const result = [];
+    const lines = data.split('\n');
+    lines.pop();
+    lines.pop();
+    lines.pop();
+    const columns = lines.shift().split('|');
+
+    let user;
+
+    lines.forEach( item => {
+        user = item.split('|').reduce((res, val, key) => {
+            res[columns[key]] = val;
+            return res;
+        }, {});
+
+        user.id = user.user;
+        delete user.user;
+
+        user.domain = domain;
+
+        result.push(user);
+    });
+
+    return result;
+}
+
+//TODO
+function parseHotdesk (data) {
+    if (typeof data  !== "string") {
+        return []
+    }
+
+    const result = [];
+    const lines = data.split('\n');
+    lines.pop();
+    lines.pop();
+    lines.pop();
+    const columns = lines.shift().split('|');
+
+    let tmp;
+
+    lines.forEach( item => {
+        tmp = item.split('|').reduce((res, val, key) => {
+            res[columns[key]] = val;
+            return res;
+        }, {});
+        result.push(tmp);
+    });
+
+    return result;
+}
+
+
 
 module.exports = Parser;

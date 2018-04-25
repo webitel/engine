@@ -58,7 +58,9 @@ const RESOURCES = [
     'vmail',
     'widget',
 
-    'metadata'
+    'metadata',
+
+    'hotdesk'
 ];
 
 module.exports = [
@@ -111,7 +113,9 @@ module.exports = [
             'callback': ["*"],
             'callback/members': ["*"],
 
-            'metadata': ["*"]
+            'metadata': ["*"],
+
+            'hotdesk': ["*"]
         }
     },
     {
@@ -126,7 +130,8 @@ module.exports = [
             'cdr': ['ro'],
             'cdr/files': ['ro'],
             'cc/tiers': ["r"],
-            'metadata': ["r"]
+            'metadata': ["r"],
+            'hotdesk': ["*"]
         }
     },
     {
@@ -172,7 +177,9 @@ module.exports = [
             'callback': ["*"],
             'callback/members': ["*"],
 
-            'metadata': ["*"]
+            'metadata': ["*"],
+
+            'hotdesk': ["*"]
         }
     }
 ];

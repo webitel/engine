@@ -108,6 +108,14 @@ function addQuery(db) {
                 }, (err, res) => {
                     return cb(err, res && res.result)
                 });
+        },
+
+        getAuthSettings: (name, cb) => {
+            db
+                .collection(domainCollectionName)
+                .findOne({name, "auth.enable": true}, {fields: {"auth": 1}}, (err, res) => {
+                    return cb(err, res && res.auth)
+                });
         }
     }
 }

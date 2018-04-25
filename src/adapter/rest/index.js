@@ -70,6 +70,7 @@ require('./vmail/vmail.resource').addRoutes(api);
 require('./widget/widget.resource').addRoutes(api);
 require('./callbackQueue/callbackQueue.resource').addRoutes(api);
 require('./metadata/metadata.resource').addRoutes(api);
+require('./hotdesk/hotdesk.resource').addRoutes(api);
 
 // Error handle
 require('./error').addRoutes(api);

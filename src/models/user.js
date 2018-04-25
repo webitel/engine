@@ -7,6 +7,7 @@
 var handleWebSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
     log = require(__appRoot + '/lib/log')(module),
     eventService = require(__appRoot +  '/services/events'),
+    hotdeskService = require(__appRoot +  '/services/hotdesk'),
     aclServices = require(__appRoot + '/services/acl')
     ;
 
@@ -16,6 +17,12 @@ const User = function (id, sessionId, ws, params) {
     this.ws = {};
     this.domain = id.split('@')[1];
     this.sessionLength = 1;
+
+    this.hotdesk = {
+        id: null,
+        sessions: []
+    };
+
     ws._mapUserEvents = [];
 
     this.ws[sessionId] = ws;
@@ -31,6 +38,41 @@ const User = function (id, sessionId, ws, params) {
     }
 
     this.logged = params['logged'] || false;
+};
+
+User.prototype.addHotdeskingSession = function(id, sessionId) {
+    if (this.flushHotdesking(id)) {
+        this.hotdesk.id = id;
+    }
+    this.hotdesk.sessions.push(sessionId);
+    log.debug(`hotdesk add session: ${sessionId}`);
+};
+
+User.prototype.checkHotdeskSession = function(id, sessionId) {
+    if (this.hotdesk.id !== id) {
+        return false;
+    }
+    return !!~this.hotdesk.sessions.indexOf(sessionId)
+};
+
+User.prototype.flushHotdesking = function(id) {
+    if (!this.hotdesk.id || this.hotdesk.id !== id) {
+        this.hotdesk.id = null;
+        this.hotdesk.sessions = [];
+        return true
+    }
+    return false
+};
+
+User.prototype.removeHotdeskSession = function(sessionId) {
+    const idx = this.hotdesk.sessions.indexOf(sessionId);
+    if (~idx) {
+        log.debug(`hotdesk ${this.hotdesk.id} destroy session: ${this.hotdesk.sessions.splice(idx, 1)}`);
+        if (!this.hotdesk.sessions.length) {
+            log.trace(`hotdesk ${this.hotdesk.id} added task sign out ${this.id}`);
+            hotdeskService.addTask(this.id, this.hotdesk.id, this.domain);
+        }
+    }
 };
 
 User.prototype.getLogged = function () {
@@ -69,7 +111,7 @@ User.prototype.removeSession = function (sessionId) {
                 }
             }))
         }
-
+        this.removeHotdeskSession(sessionId);
         delete this.ws[sessionId];
         this.sessionLength --;
         log.trace('Pear disconnect: %s [%s]', this.id, sessionId);
