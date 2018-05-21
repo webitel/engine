@@ -37,6 +37,8 @@ module.exports = class Dialer extends EventEmitter2 {
         this._recources = {};
         this._readyTime = 0;
 
+        this.descriptionMapping = null;
+
         this._eternalQueue = false;
 
         this._currentMinuteOfDay = config._currentMinuteOfDay;
@@ -435,6 +437,23 @@ module.exports = class Dialer extends EventEmitter2 {
 
         this._variables = config.variables || {};
         this._variables.domain_name = this._domain;
+
+        if (config.callResult instanceof Array && this._waitingForResultStatus) {
+            this.descriptionMapping = {
+                t: parseCallResult('t', config.callResult),
+                f: parseCallResult('f', config.callResult),
+                n: parseCallResult('n', config.callResult)
+            };
+        } else {
+            this.descriptionMapping = null;
+        }
+    }
+
+    getDescriptionMapping() {
+        if (this.descriptionMapping) {
+            return {dlr_dsc_s: this.descriptionMapping, dlr_wrap: this._wrapUpTime}
+        }
+        return null
     }
 
     updateResources () {
@@ -1478,4 +1497,14 @@ function checkInRegExps(regexp = [], number) {
     }
 
     return false;
+}
+
+function parseCallResult(type, settings) {
+    return settings.filter(i => i.type === type).map(i => {
+        if (i.items && i.items.length > 0) {
+            return [i.name].concat(i.items)
+        } else {
+            return i.name
+        }
+    })
 }

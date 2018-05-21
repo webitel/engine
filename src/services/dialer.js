@@ -203,6 +203,10 @@ let Service = {
                 replaceExpression(dialer._cf)
             }
 
+            if (!dialer.agents) {
+                dialer.agents = [];
+            }
+
             return db.create(dialer, cb);
         });
     },

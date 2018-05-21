@@ -281,7 +281,8 @@ module.exports = class Predictive extends Dialer {
 
         const webitelData = {
             dlr_member_id: member._id.toString(),
-            dlr_id: member.getQueueId()
+            dlr_id: member.getQueueId(),
+            ...this.getDescriptionMapping()
         };
 
         for (let key in this._variables) {
