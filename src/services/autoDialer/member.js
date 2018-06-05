@@ -467,7 +467,8 @@ module.exports = class Member extends EventEmitter2 {
         } else {
             if (this._countActiveNumbers === 1 && endCause)
                 this.endCause = endCause;
-            this.nextTime = Date.now() + (this.nextTrySec * 1000);
+            if (!this._minusProbe)
+                this.nextTime = Date.now() + (this.nextTrySec * 1000);
         }
         this.log(`end cause: ${endCause || ''}`);
         this.emit('end', this);
