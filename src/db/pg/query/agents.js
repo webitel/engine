@@ -377,6 +377,7 @@ function add(pool) {
                     FROM user_stats
                     WHERE id = $1
                     LIMIT 1
+                    FOR UPDATE
                 ), upd as (
                   INSERT INTO user_stats (id, state, status, description, cc, ws, updated_at)
                   VALUES ($1, $2, $3, $4, $5, $6, (extract(EPOCH FROM now() AT TIME ZONE 'UTC') * 1000)::BIGINT)
