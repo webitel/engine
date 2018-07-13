@@ -930,7 +930,7 @@ module.exports = class Dialer extends EventEmitter2 {
     getSortAvailableMembers () {
         if (this.membersStrategy === 'strict-circuit') {
             return {
-                "$natural": 1,
+                // "$natural": 1,
                 "lastCall": 1,
                 "priority": -1,
                 "_id": 1
