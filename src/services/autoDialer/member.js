@@ -465,8 +465,8 @@ module.exports = class Member extends EventEmitter2 {
             this.endCause = END_CAUSE.MAX_TRY;
             this._setStateCurrentNumber(MEMBER_STATE.End)
         } else {
-            if (this._countActiveNumbers === 1 && endCause)
-                this.endCause = endCause;
+            // if (this._countActiveNumbers === 1 && endCause)
+            //     this.endCause = endCause;
             if (!this._minusProbe)
                 this.nextTime = Date.now() + (this.nextTrySec * 1000);
         }
