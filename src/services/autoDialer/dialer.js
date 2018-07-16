@@ -503,7 +503,7 @@ module.exports = class Dialer extends EventEmitter2 {
     }
 
     getAgentParam (paramName, agent = {}) {
-        if (isFinite(this.defaultAgentParams[paramName]))
+        if (this.defaultAgentParams[paramName] !== null && isFinite(this.defaultAgentParams[paramName]))
             return this.defaultAgentParams[paramName];
 
         return agent[paramName]

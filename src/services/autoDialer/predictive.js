@@ -370,7 +370,7 @@ module.exports = class Predictive extends Dialer {
                 member.log(`agent error: ${error}`);
 
                 if (error === 'NO_ANSWER') {
-                    if (this.getAgentParam('max_no_answer', agent) <= (this.getAgentParam('no_answer_count', agent) + 1)) {
+                    if (this.getAgentParam('max_no_answer', agent) > 0 && this.getAgentParam('max_no_answer', agent) <= (this.getAgentParam('no_answer_count', agent) + 1)) {
                         this._am.setNoAnswerAgent(agent, e => {
                             if (e)
                                 log.error(e);
