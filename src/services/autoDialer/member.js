@@ -457,6 +457,8 @@ module.exports = class Member extends EventEmitter2 {
         if (~this.getCausesError(endCause)) {
             this.log(`fatal: ${endCause}`);
             this._setStateCurrentNumber(MEMBER_STATE.End);
+            if (this._countActiveNumbers === 1 && endCause)
+                this.endCause = endCause;
         }
 
 
@@ -467,6 +469,7 @@ module.exports = class Member extends EventEmitter2 {
         } else {
             // if (this._countActiveNumbers === 1 && endCause)
             //     this.endCause = endCause;
+
             if (!this._minusProbe)
                 this.nextTime = Date.now() + (this.nextTrySec * 1000);
         }
