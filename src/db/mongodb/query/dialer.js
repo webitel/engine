@@ -20,7 +20,7 @@ const conf = require(__appRoot + '/conf'),
     log = require(__appRoot + '/lib/log')(module),
     utils = require('./utils'),
     getDomainFromStr = require(__appRoot + '/utils/parse').getDomainFromStr
-    ;
+;
 
 module.exports = {
     addQuery: addQuery
@@ -112,16 +112,16 @@ function addQuery (db) {
 
     db.collection("system.js")
         .update({_id: "fnFilterDialerCommunications"}, {$set: {
-            value: new Mongo.Code(fnFilterDialerCommunications)
-        }}, {upsert: true}, e => {
+                value: new Mongo.Code(fnFilterDialerCommunications)
+            }}, {upsert: true}, e => {
             if (e)
                 throw e;
         });
 
     db.collection("system.js")
         .update({_id: "fnKeySort"}, {$set: {
-            value: new Mongo.Code(fnKeySort)
-        }}, {upsert: true}, e => {
+                value: new Mongo.Code(fnKeySort)
+            }}, {upsert: true}, e => {
             if (e)
                 throw e;
         });
@@ -135,8 +135,8 @@ function addQuery (db) {
                 {multi: true}
             );
     };
-    
-    
+
+
     function removeDialerHistory(dialerId, cb) {
         if (!ObjectID.isValid(dialerId))
             return cb(new Error(`Bad dialer object id: ${dialerId}`));
@@ -153,7 +153,7 @@ function addQuery (db) {
         search: function (options, cb) {
             return utils.searchInCollection(db, dialerCollectionName, options, cb);
         },
-        
+
         findById: function (_id, domainName, cb) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
@@ -162,7 +162,7 @@ function addQuery (db) {
                 .collection(dialerCollectionName)
                 .findOne({_id: new ObjectID(_id), domain: domainName}, cb);
         },
-        
+
         removeById: function (_id, domainName, cb) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
@@ -185,7 +185,7 @@ function addQuery (db) {
                 .collection(dialerCollectionName)
                 .insert(doc, cb);
         },
-        
+
         update: function (_id, domainName, doc = {}, cb) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
@@ -245,15 +245,15 @@ function addQuery (db) {
                     cb
                 );
         },
-        
+
         memberList: function (options, cb) {
             return utils.searchInCollection(db, memberCollectionName, options, cb);
         },
-        
+
         memberCount: function (options, cb) {
             return utils.countInCollection(db, memberCollectionName, options, cb);
         },
-        
+
         memberById: function (_id, dialerName, cb, addDialer) {
             if (!ObjectID.isValid(_id) || !ObjectID.isValid(dialerName))
                 return cb(new CodeError(400, 'Bad objectId.'));
@@ -277,7 +277,7 @@ function addQuery (db) {
 
                 });
         },
-        
+
         createMember: function (doc, cb) {
             try {
                 return db
@@ -287,7 +287,7 @@ function addQuery (db) {
                 return cb(e)
             }
         },
-        
+
         removeMemberById: function (_id, dialerId, cb) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
@@ -406,7 +406,7 @@ function addQuery (db) {
                         .updateOne({_id: new ObjectID(_id), dialer: dialerId}, data, cb);
                 });
         },
-        
+
         aggregateMembers: function (dialerId, aggregateQuery, cb) {
             let query = [
                 {$match:{dialer: dialerId}}
@@ -416,7 +416,7 @@ function addQuery (db) {
                 .collection(memberCollectionName)
                 .aggregate(query, {allowDiskUse:true}, cb);
         },
-        
+
         _updateDialer: function (_id, state, cause, active, nextTick, cb) {
             if (!ObjectID.isValid(_id))
                 return cb(new CodeError(400, 'Bad objectId.'));
@@ -427,10 +427,10 @@ function addQuery (db) {
             return db
                 .collection(dialerCollectionName)
                 .findOneAndUpdate(
-                {_id: _id},
-                {$set: {state: state, _cause: cause, active: active === true, nextTick: nextTick}},
-                cb
-            );
+                    {_id: _id},
+                    {$set: {state: state, _cause: cause, active: active === true, nextTick: nextTick}},
+                    cb
+                );
         },
 
         _getActiveDialer: function (project, cb) {
@@ -441,7 +441,7 @@ function addQuery (db) {
                 }, project)
                 .toArray(cb)
         },
-        
+
         _getDialerById: function (id, domain, cb) {
             if (typeof id === 'string' && ObjectID.isValid(id)) {
                 id = new ObjectID(id);
@@ -451,7 +451,7 @@ function addQuery (db) {
                 .collection(dialerCollectionName)
                 .findOne({_id: new ObjectID(id), domain: domain}, cb);
         },
-        
+
         _updateLockedMembers: (id, lockId, cause, cb) => {
             return db
                 .collection(memberCollectionName)
@@ -460,6 +460,30 @@ function addQuery (db) {
                     {$set: {_endCause: cause}, $unset: {_lock: null}}, {multi: true},
                     cb
                 )
+        },
+
+        _setNumbersStateCrashMembers: (cause, state) => {
+            var fn = () => {
+                db
+                    .collection(memberCollectionName)
+                    .update(
+                        {"_endCause":"PROCESS_CRASH", "communications": {$elemMatch: {state: {$ne: state}}}},
+                        { $set: { "communications.$.state": state}}, {multi: true},
+                        (err, res) => {
+                            if (err) {
+                                return log.error(err)
+                            }
+
+                            if (res.result.n !== 0) {
+                                fn();
+                                return
+                            }
+                            log.debug(`end set numbers end state`)
+                        }
+                    )
+            };
+
+            fn()
         },
 
         _updateMultiMembers: (filter, update, cb) => {
@@ -472,7 +496,7 @@ function addQuery (db) {
                     cb
                 )
         },
-        
+
         _updateMember: function (filter, doc, sort, cb) {
             return db
                 .collection(memberCollectionName)
@@ -493,7 +517,7 @@ function addQuery (db) {
                     cb
                 )
         },
-        
+
         _aggregateMembers: function (agg, cb) {
             return db
                 .collection(memberCollectionName)
@@ -508,7 +532,7 @@ function addQuery (db) {
                 .collection(memberCollectionName)
                 .find({dialer: dialerId, _lock: true})
                 .count(cb)
-                
+
         },
 
         _setActiveAgents: function (dialerId, active, cb) {
@@ -870,7 +894,7 @@ function addQuery (db) {
             }
 
             data.dialer = dialerId;
-            
+
             return db
                 .collection(dialerHistoryCollectionName)
                 .insert(data, cb);

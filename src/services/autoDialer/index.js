@@ -745,6 +745,8 @@ class AutoDialer extends EventEmitter2 {
                 if (err)
                     return log.error(err);
 
+                this.dbDialer._setNumbersStateCrashMembers(END_CAUSE.PROCESS_CRASH, 2);
+
                 if (res.result.nModified) {
                     log.info(`Minus active call ${res.result.nModified}`);
                     this.dbDialer._dialerCollection.findAndModify(
