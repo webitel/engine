@@ -6464,6 +6464,10 @@
         };
 
         $.verto.dialog.prototype.ring = function() {
+            if (Object.keys(this.verto.dialogs).length !== 1) {
+                return
+            }
+
             var dialog = this;
 
             dialog.setState($.verto.enum.state.ringing);
