@@ -204,7 +204,7 @@ module.exports = class VoiceBroadcast extends Dialer {
         application.Esl.bgapi(ds, (res) => {
             member.log(`fs response ${res.body}`);
 
-            if (/^-ERR/.test(res.body)) {
+            if (/^-ERR|^-USAGE/.test(res.body)) {
                 member.bridgedCall = false;
                 return member.end(res.body.replace(/-ERR\s(.*)\n/, '$1'));
             }
