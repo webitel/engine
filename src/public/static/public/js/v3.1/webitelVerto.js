@@ -6464,14 +6464,13 @@
         };
 
         $.verto.dialog.prototype.ring = function() {
-            if (Object.keys(this.verto.dialogs).length !== 1) {
-                return
-            }
-
             var dialog = this;
 
             dialog.setState($.verto.enum.state.ringing);
-            dialog.indicateRing();
+
+            if (Object.keys(this.verto.dialogs).length === 1) {
+                dialog.indicateRing();
+            }
         };
 
         $.verto.dialog.prototype.useVideo = function(on) {
