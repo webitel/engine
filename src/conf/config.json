@@ -19,7 +19,6 @@
         "password": "webitel",
         "host": "postgres",
         "port": 5432,
-        "max": 100,
         "idleTimeoutMillis": 30000
     },
     "mongodb": {
