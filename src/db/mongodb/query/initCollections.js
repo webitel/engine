@@ -196,6 +196,32 @@ var Indexes = {
             }
         },
         {
+            "_name": "strategy_next_try_1",
+            "_unique": false,
+            "_": {
+                "_nextTryTime" : -1,
+                "priority" : -1,
+                "_id" : 1,
+                "dialer" : 1,
+                "_waitingForResultStatusCb" : 1,
+                "_endCause" : 1,
+                "_lock" : 1
+            }
+        },
+        {
+            "_name": "strategy_strict_circuit_1",
+            "_unique": false,
+            "_": {
+                "dialer" : 1,
+                "_waitingForResultStatusCb" : 1,
+                "_endCause" : 1,
+                "_lock" : 1,
+                "lastCall" : 1,
+                "priority" : -1,
+                "_id" : 1
+            }
+        },
+        {
             "_name": "communicationsRangeId",
             "_unique": false,
             "_": {
