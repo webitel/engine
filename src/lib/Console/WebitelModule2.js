@@ -950,7 +950,7 @@ Webitel.prototype.queueUpdateItem = function (_caller, args, cb) {
     for (var key in args['params']) {
         _params = _params.concat(key, '=' , args['params'][key] instanceof Object
                 ? ''
-                : String(args['params'][key])
+                : `'${args['params'][key]}'`
             , ',');
     };
 
