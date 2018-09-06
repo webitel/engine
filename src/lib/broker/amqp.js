@@ -133,7 +133,7 @@ class WebitelAmqp extends EventEmitter2 {
                 return cb && cb(new Error(`Bad parameters.`));
 
             if (content instanceof Object) {
-                content = new Buffer(JSON.stringify(content));
+                content = Buffer.from(JSON.stringify(content));
             }
             log.trace(`publish ${rk}`);
             ch.publish(exchange, rk, content, args);
@@ -598,7 +598,7 @@ class WebitelAmqp extends EventEmitter2 {
         this.channel.publish(
             this.Exchange.FS_COMMANDS,
             'commandBindingKey', //TODO move config
-            new Buffer(command),
+            Buffer.from(command),
             {
                 headers: {
                     "x-fs-api-resp-exchange": this.Exchange.FS_COMMANDS,

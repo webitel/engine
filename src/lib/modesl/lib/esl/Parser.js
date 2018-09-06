@@ -11,7 +11,7 @@ var Parser = module.exports = function(socket) {
         maxListeners: 25
     });
 
-    this.buffer = new Buffer([]);
+    this.buffer = Buffer.from([]);
     this.bodyLen = 0;
     this.encoding = 'utf8';
 
@@ -159,7 +159,7 @@ Parser.prototype._parsePlainBody = function(txt) {
             end = start + len;
 
         //extract body with byte length
-        headers._body = (new Buffer(txt)).slice(start, end).toString(this.encoding);
+        headers._body = (Buffer.from(txt)).slice(start, end).toString(this.encoding);
     }
 
     return headers;

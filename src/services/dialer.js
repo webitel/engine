@@ -1116,7 +1116,7 @@ let Service = {
                 let data = null;
                 if (options.body instanceof Object) {
                     try {
-                        data = new Buffer(JSON.stringify(options.body));
+                        data = Buffer.from(JSON.stringify(options.body));
                         if (data.length === 2) {
                             data = null;
                         }

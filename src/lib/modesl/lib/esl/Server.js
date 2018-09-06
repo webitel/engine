@@ -89,7 +89,7 @@ Server.prototype._onListening = function() {
 };
 
 Server.prototype._generateId = function() {
-    var rand = new Buffer(15); // multiple of 3 for base64
+    var rand = Buffer.from(15); // multiple of 3 for base64
 
     //next in sequence
     this.seq = (this.seq + 1) | 0;

@@ -586,7 +586,7 @@ module.exports = class Dialer extends EventEmitter2 {
         if (!this.isReady())
             return;
 
-        this.channel.sendToQueue(this.queueName, new Buffer(JSON.stringify({action: "call"})));
+        this.channel.sendToQueue(this.queueName, Buffer.from(JSON.stringify({action: "call"})));
     }
 
     countAvailableMembers (limit = 1, cb) {

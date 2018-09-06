@@ -185,7 +185,7 @@ function validateRequestV1(req, res, next) {
     try {
         var header = req.headers['authorization'] || '',
             token = header.split(/\s+/).pop() || '',
-            auth = new Buffer(token, 'base64').toString(),
+            auth = Buffer.from(token, 'base64').toString(),
             parts = auth.split(/:/),
             username = parts[0],
             password = parts[1];
