@@ -832,7 +832,7 @@ function addQuery (db) {
                             _endCause: 1,
                             _probeCount: 1,
                             callSuccessful: 1,
-                            _lastNumberId: 1,
+                            //_lastNumberId: 1,
                             _lastMinusProbe: 1,
                             _nextTryTime: 1,
                             lastCall: 1
