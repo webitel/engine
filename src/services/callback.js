@@ -134,6 +134,40 @@ const Service = {
                 application.PG.getQuery('callback').members.list(option, cb);
             });
         },
+        view: (caller, option = {}, cb) => {
+            checkPermissions(caller, 'callback/members', 'r', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!option)
+                    return cb(new CodeError(400, "Bad request options"));
+
+                let domain = validateCallerParameters(caller, option['domain']);
+                if (!domain) {
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+                }
+                switch (option.type) {
+                    case 'overdue':
+                        application.PG.getQuery('callback').members.viewIsOverdue(
+                            domain, option.limit || 40, option.offset || 0, option.filter, cb);
+                        break;
+                    case 'scheduled':
+                        application.PG.getQuery('callback').members.viewIsScheduled(
+                            domain, option.limit || 40, option.offset || 0, option.filter, cb);
+                        break;
+                    case 'completed':
+                        application.PG.getQuery('callback').members.viewIsCompleted(
+                            domain, option.limit || 40, option.offset || 0,  option.filter, cb);
+                        break;
+                    case 'no_time':
+                        application.PG.getQuery('callback').members.viewIsNotCallbackTime(
+                            domain, option.limit || 40, option.offset || 0,  option.filter, cb);
+                        break;
+                    default:
+                        return cb(new CodeError(400, `Not found view ${option.type}`))
+                }
+            });
+        },
 
         get: (caller, option = {}, cb) => {
             checkPermissions(caller, 'callback/members', 'r', function (err) {

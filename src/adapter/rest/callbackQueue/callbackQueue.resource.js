@@ -38,6 +38,28 @@ function addRoutes(api) {
 }
 
 function list(req, res, next) {
+    if (req.query.view) {
+        const options = {
+            type: req.query.view,
+            domain: req.query.domain,
+            filter: req.query.filter,
+            limit: parseInt(req.query.limit, 10) || 40,
+            offset: 0
+        };
+
+        options.offset = (parseInt(req.query.page, 10) || 0) * options.limit;
+
+        return callbackService.members.view(req.webitelUser, options, (err, result) => {
+            if (err)
+                return next(err);
+
+            return res.status(200).json({
+                "status": "OK",
+                "data": result
+            });
+        })
+    }
+
     callbackService.list(req.webitelUser, getRequest(req), (err, result) => {
         if (err)
             return next(err);

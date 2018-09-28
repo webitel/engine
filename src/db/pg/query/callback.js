@@ -233,6 +233,143 @@ function add(pool) {
                 buildQuery(pool, request, "callback_members", cb);
             },
 
+            viewIsOverdue: (domain, limit = 40, offset = 0, filter, cb) => {
+                const params = [
+                    domain,
+                    Date.now(),
+                    limit,
+                    offset
+                ];
+                if (filter) {
+                    params.push(filter)
+                }
+                pool.query(
+                    `select
+                      m.id,
+                      m.number,
+                      m.callback_time,
+                      m.done,
+                      c2.name as queue_name,
+                      c2.id as queue_id
+                    from callback_members m
+                      inner join callback_queue c2 on m.queue_id = c2.id
+                    where m.domain = $1 and not done is true and callback_time < $2 ${filter ? "AND number like $5 || '%'" : ""}
+                    order by callback_time desc
+                    limit $3 offset $4`,
+                    params,
+                    (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+                        return cb(null, res.rows)
+                    }
+                )
+            },
+
+            viewIsScheduled: (domain, limit = 40, offset = 0, filter, cb) => {
+                const params = [
+                    domain,
+                    Date.now(),
+                    limit,
+                    offset
+                ];
+
+                if (filter) {
+                    params.push(filter)
+                }
+
+                pool.query(
+                    `select
+                      m.id,
+                      m.number,
+                      m.callback_time,
+                      m.done,
+                      c2.name as queue_name,
+                      c2.id as queue_id
+                    from callback_members m
+                      inner join callback_queue c2 on m.queue_id = c2.id
+                    where m.domain = $1 and not done is true and callback_time >= $2 ${filter ? "AND number like $5 || '%'" : ""}
+                    order by callback_time asc
+                    limit $3 offset $4`,
+                    params,
+                    (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+                        return cb(null, res.rows)
+                    }
+                )
+            },
+
+            viewIsCompleted: (domain, limit = 40, offset = 0, filter, cb) => {
+                const params = [
+                    domain,
+                    limit,
+                    offset
+                ];
+
+                if (filter) {
+                    params.push(filter)
+                }
+
+                pool.query(
+                    `select
+                      m.id,
+                      m.number,
+                      m.callback_time,
+                      m.done,
+                      m.done_at,
+                      c2.name as queue_name,
+                      c2.id as queue_id
+                    from callback_members m
+                      inner join callback_queue c2 on m.queue_id = c2.id
+                    where m.domain = $1 and done is true ${filter ? "AND number like $4 || '%'" : ""}
+                    order by done_at desc
+                    limit $2 offset $3`,
+                    params,
+                    (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+                        return cb(null, res.rows)
+                    }
+                )
+            },
+
+            viewIsNotCallbackTime: (domain, limit = 40, offset = 0, filter, cb) => {
+                const params = [
+                    domain,
+                    limit,
+                    offset
+                ];
+
+                if (filter) {
+                    params.push(filter)
+                }
+
+                pool.query(
+                    `select
+                      m.id,
+                      m.number,
+                      m.callback_time,
+                      m.done,
+                      c2.name as queue_name,
+                      c2.id as queue_id
+                    from callback_members m
+                      inner join callback_queue c2 on m.queue_id = c2.id
+                    where m.domain = $1 and not done is true and callback_time is null ${filter ? "AND number like $4 || '%'" : ""}
+                    order by created_on asc
+                    limit $2 offset $3`,
+                    params,
+                    (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+                        return cb(null, res.rows)
+                    }
+                )
+            },
+
             findById: (_id, queue_id, domainName, cb) => {
                 pool.query(
                     sqlMemberItem,
