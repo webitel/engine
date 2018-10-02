@@ -104,6 +104,10 @@ module.exports = class VoiceBroadcast extends Dialer {
                 `cc_side=member`
             );
 
+            if (member._currentNumber && member._currentNumber.description) {
+                vars.push(`dlr_member_number_description='${member.getCurrentNumberDescription()}'`);
+            }
+
             const apps = [];
             if (this._recordSession) {
                 vars.push(
