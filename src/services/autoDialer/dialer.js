@@ -136,7 +136,7 @@ module.exports = class Dialer extends EventEmitter2 {
                                 $set[`communications.${i}.lastCall`] = m._minusProbe ? 0 : Date.now();
 
                                 if (m._waitingForResultStatus) {
-                                    if (m._minusProbe || m.predictAbandoned || !m.bridgedCall) {
+                                    if (m._minusProbe || m.predictAbandoned || !m.getConnectToAgent()) {
                                         $set._waitingForResultStatusCb = null;
                                         $set._waitingForResultStatus = null;
                                         // $set._waitingForResultStatusLast = null;

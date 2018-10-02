@@ -26,6 +26,7 @@ module.exports = class Member extends EventEmitter2 {
         this.currentProbe = (config._probeCount || 0) + 1;
         this.callSuccessful = false;
         this.connectedCall = false;
+        this.connectedAgent = false;
 
         this.name = (config.name || "_undef_").replace(/'/g, '_');
         this.variables = {};
@@ -121,6 +122,14 @@ module.exports = class Member extends EventEmitter2 {
         } else {
             console.log('ERROR', this);
         }
+    }
+
+    setConnectToAgent() {
+        this.connectedAgent = true;
+    }
+
+    getConnectToAgent() {
+        return this.connectedAgent;
     }
 
     setCurrentAttempt (attempt) {

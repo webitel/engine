@@ -204,6 +204,8 @@ module.exports = class Progressive extends Dialer {
 
             if (bgOkData) {
                 member.setConnectedFlag(true);
+                member.setConnectToAgent();
+
                 channelUuid = bgOkData[1];
                 member.setCallUUID(channelUuid);
                 application.Esl.on(`esl::event::CHANNEL_DESTROY::${channelUuid}`, onChannelDestroy);

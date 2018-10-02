@@ -350,6 +350,8 @@ module.exports = class Predictive extends Dialer {
                         member.predictAbandoned = false;
                         member.bridgedCall = true;
                         member.setBridgedTime();
+                        member.setConnectToAgent();
+
                         this._am.setAgentStats(agent, this._objectId, {
                             connectedTimeSec: timeToSec(date, start),
                             lastStatus: `active -> ${member._id}`
@@ -504,7 +506,7 @@ module.exports = class Predictive extends Dialer {
 
             if (member._predAgentOriginate === true) {
                 log.trace(`hangup agent channel for dlr_session ${member.sessionId}`);
-                application.Esl.bgapi(`hupall ${CANCEL_CAUSE} dlr_session ${member.sessionId}`);
+                application.Esl.bgapi(`hupall ${CANCEL_CAUSE} cc_member_session_uuid ${member.sessionId}`);
             }
             const agent = member.getAgent();
             if (agent) {
