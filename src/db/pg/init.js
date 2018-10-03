@@ -71,18 +71,17 @@ create table IF NOT EXISTS callback_members
 create unique index IF NOT EXISTS callback_members_id_uindex
   on callback_members (id);
 
-create index IF NOT EXISTS callback_members_domain_done_callback_time_index
-  on callback_members (domain, done, callback_time);
+create index IF NOT EXISTS callback_members_created_on_index
+  on callback_members (created_on);
+
+create index IF NOT EXISTS callback_members_callback_time_domain_done_number_index
+  on callback_members (callback_time, domain, done, number);
 
 create index IF NOT EXISTS callback_members_callback_time_index
   on callback_members (callback_time);
 
-create index IF NOT EXISTS callback_members_created_on_index
-  on callback_members (created_on);
-
-create index IF NOT EXISTS callback_members_domain_done_index
-  on callback_members (domain, done);
-
+create index IF NOT EXISTS callback_members_callback_time_domain_done_index
+  on callback_members (callback_time, domain, done);
 `);
 
 sql.push(`
