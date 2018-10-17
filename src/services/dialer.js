@@ -852,40 +852,94 @@ let Service = {
                 );
 
                 if ($set._endCause) {
-                    const lastNumber = isFinite(memberDb._lastNumberId) && memberDb.communications[memberDb._lastNumberId]
-                        ? memberDb.communications[memberDb._lastNumberId]
-                        : null
-                    ;
-
-                    const event = {
-                        "Event-Name": "CUSTOM",
-                        "Event-Subclass": "engine::dialer_member_end",
-                        // TODO
-                        "variable_domain_name": dialerDb.domain,
-                        "dialerId": memberDb.dialer,
-                        "dialerName": dialerDb.name,
-                        "id": memberDb._id.toString(),
-                        "name": memberDb.name,
-                        "currentProbe": memberDb._probeCount,
-                        "endCause": $set._endCause,
-                        "reason": "callback",
-                        "callback_user_id": caller.id
-                    };
-
-                    if (lastNumber) {
-                        event.currentNumber = lastNumber.number;
-                        event.dlr_member_number_description = lastNumber.description || ''
-                    }
-
-                    for (let key in memberDb.variables) {
-                        if (memberDb.variables.hasOwnProperty(key))
-                            event[`variable_${key}`] = memberDb.variables[key]
-                    }
-                    console.log(event);
-                    application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
+                    Service.members.fireHookEndCause(memberDb, "callback", caller.id, dialerDb.domain,
+                        $set._endCause, dialerDb.name);
 
                 }
             }, true); //TODO...
+        },
+
+        terminate: (caller, options = {}, cb) => {
+            checkPermissions(caller, 'dialer/members', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!options)
+                    return cb(new CodeError(400, "Bad request options"));
+
+
+                if (!options.id)
+                    return cb(new CodeError(400, 'Bad request: id is required.'));
+
+                if (!options.dialer)
+                    return cb(new CodeError(400, 'Bad request: dialer id is required.'));
+
+                let domain = validateCallerParameters(caller, options.domain);
+                if (!domain) {
+                    return cb(new CodeError(400, 'Bad request: domain is required.'));
+                }
+
+                let dbDialer = application.DB._query.dialer;
+                dbDialer.memberById(options.id, options.dialer, (err, memberDb, dialerDb) => {
+                    if (err)
+                        return cb(err);
+
+                    if (!memberDb)
+                        return cb(new CodeError(404, `Not found ${options.id} in dialer ${options.dialer}`));
+
+                    if (domain !== dialerDb.domain) {
+                        return cb(new CodeError(405, "Domain not allowed"))
+                    }
+
+                    if (memberDb._lock || memberDb._endCause || memberDb._waitingForResultStatusCb) {
+                        return cb(new CodeError(405, "Not allow set terminate member"))
+                    }
+
+                    return dbDialer.terminateMember(memberDb, END_CAUSE.MANAGER_REQUEST, (err, res) => {
+                        if (err) {
+                            return cb(err);
+                        }
+
+                        Service.members.fireHookEndCause(memberDb, "terminate", caller.id, dialerDb.domain,
+                            END_CAUSE.MANAGER_REQUEST, dialerDb.name);
+                        return cb(null, res);
+                    });
+                }, true);
+            });
+        },
+
+        fireHookEndCause: (memberDb, reason, userId, domain, endCause, dialerName) => {
+            const lastNumber = isFinite(memberDb._lastNumberId) && memberDb.communications[memberDb._lastNumberId]
+                ? memberDb.communications[memberDb._lastNumberId]
+                : null
+            ;
+
+            const event = {
+                "Event-Name": "CUSTOM",
+                "Event-Subclass": "engine::dialer_member_end",
+                // TODO
+                "variable_domain_name": domain,
+                "dialerId": memberDb.dialer,
+                "dialerName": dialerName,
+                "id": memberDb._id.toString(),
+                "name": memberDb.name,
+                "currentProbe": memberDb._probeCount,
+                "endCause": endCause,
+                "reason": reason,
+                "callback_user_id": userId
+            };
+
+            if (lastNumber) {
+                event.currentNumber = lastNumber.number;
+                event.dlr_member_number_description = lastNumber.description || ''
+            }
+
+            for (let key in memberDb.variables) {
+                if (memberDb.variables.hasOwnProperty(key))
+                    event[`variable_${key}`] = memberDb.variables[key]
+            }
+            console.log(event);
+            application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
         },
 
         _updateById: (id, doc, cb) => {

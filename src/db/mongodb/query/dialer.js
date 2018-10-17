@@ -407,6 +407,34 @@ function addQuery (db) {
                 });
         },
 
+        terminateMember: function(memberDb, cause, cb) {
+            const $set = {_endCause: cause, callSuccessful: true};
+
+            if (memberDb.communications instanceof Array) {
+                for (let i = 0; i < memberDb.communications.length; i++) {
+                    $set[`communications.${i}.state`] = 2
+                }
+            }
+
+            db
+                .collection(memberCollectionName)
+                .findOneAndUpdate({
+                    _id: memberDb._id,
+                    dialer: memberDb.dialer,
+                    _lock: null,
+                    _endCause: null,
+                    _waitingForResultStatusCb: {$ne: 1}
+                }, {$set}, {projection: {_id: 1}}, (err, res) => {
+                    if (err)
+                        return cb(err);
+
+                    if (!res || !res.value)
+                        return cb(new CodeError(404, `Member ${memberDb._id} not found`));
+
+                    return cb(null, res.value);
+                });
+        },
+
         aggregateMembers: function (dialerId, aggregateQuery, cb) {
             let query = [
                 {$match:{dialer: dialerId}}
