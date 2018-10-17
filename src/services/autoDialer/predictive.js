@@ -116,7 +116,7 @@ module.exports = class Predictive extends Dialer {
                     if (!this._stats.predictAdjust)
                         this._stats.predictAdjust = this._predictAdjust;
 
-                    console.log(`all agent ${res.allLogged} active ${this._active}`);
+                    // console.log(`all agent ${res.allLogged} active ${this._active}`);
 
                     if (this._stats.bridgedCall < this._predictStartBridgedCount) {
                         this._stats.queueLimit = res.allLogged;
@@ -143,7 +143,7 @@ module.exports = class Predictive extends Dialer {
                             this._stats.predictAdjust = 0
                         }
 
-                        console.log('>>>>>>>>>>>>',this._stats.predictAdjust, ">>>", silentCalls);
+                        // console.log('>>>>>>>>>>>>',this._stats.predictAdjust, ">>>", silentCalls);
                     }
 
                     if (this._stats.predictAdjust === 0) {
@@ -157,7 +157,7 @@ module.exports = class Predictive extends Dialer {
                         this._stats.queueLimit =  call + (res.allLogged - res.agents) ;
                     }
 
-                    console.log(`CALL ->> -->> ${this._stats.queueLimit} all agents: ${res.allLogged}`);
+                    // console.log(`CALL ->> -->> ${this._stats.queueLimit} all agents: ${res.allLogged}`);
 
                     if ((res.agents <= 2 && this._active < res.allLogged) || (res.agents >= 2  && this._active < this._stats.queueLimit) ) {
                         this.huntingMember();

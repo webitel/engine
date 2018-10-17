@@ -973,7 +973,7 @@ function _getUpdateMember(end, communicationsLength) {
     }
 }
 
-
+// TODO export from service
 function _broadcastMemberEnd(member, endCause, reason) {
     const event = {
         "Event-Name": "CUSTOM",
