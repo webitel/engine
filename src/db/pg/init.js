@@ -10,6 +10,12 @@ create table IF NOT EXISTS callback_queue
 	description varchar(250),
 	domain varchar(70) not null
 );
+
+ALTER TABLE callback_queue ADD COLUMN IF NOT EXISTS agents varchar(100) [] NULL;
+
+CREATE INDEX IF NOT EXISTS callback_queue_agents_index ON callback_queue USING GIN (agents);
+
+CREATE INDEX IF NOT EXISTS callback_queue_domain_index ON callback_queue (domain);
 `);
 
 //WIDGET

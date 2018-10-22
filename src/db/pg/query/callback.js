@@ -233,12 +233,13 @@ function add(pool) {
                 buildQuery(pool, request, "callback_members", cb);
             },
 
-            viewIsOverdue: (domain, limit = 40, offset = 0, filter, cb) => {
+            viewIsOverdue: (userId, domain, limit = 40, offset = 0, filter, cb) => {
                 const params = [
                     domain,
                     Date.now(),
                     limit,
-                    offset
+                    offset,
+                    userId
                 ];
                 if (filter) {
                     params.push(filter)
@@ -252,8 +253,8 @@ function add(pool) {
                       c2.name as queue_name,
                       c2.id as queue_id
                     from callback_members m
-                      inner join callback_queue c2 on m.queue_id = c2.id
-                    where m.domain = $1 and not done is true and callback_time < $2 ${filter ? "AND number like $5 || '%'" : ""}
+                      inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$5]::VARCHAR(100)[]
+                    where m.domain = $1 and not done is true and callback_time < $2 ${filter ? "AND number like $6 || '%'" : ""}
                     order by callback_time desc
                     limit $3 offset $4`,
                     params,
@@ -266,12 +267,13 @@ function add(pool) {
                 )
             },
 
-            viewIsScheduled: (domain, limit = 40, offset = 0, filter, cb) => {
+            viewIsScheduled: (userId, domain, limit = 40, offset = 0, filter, cb) => {
                 const params = [
                     domain,
                     Date.now(),
                     limit,
-                    offset
+                    offset,
+                    userId
                 ];
 
                 if (filter) {
@@ -287,8 +289,8 @@ function add(pool) {
                       c2.name as queue_name,
                       c2.id as queue_id
                     from callback_members m
-                      inner join callback_queue c2 on m.queue_id = c2.id
-                    where m.domain = $1 and not done is true and callback_time >= $2 ${filter ? "AND number like $5 || '%'" : ""}
+                      inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$5]::VARCHAR(100)[]
+                    where m.domain = $1 and not done is true and callback_time >= $2 ${filter ? "AND number like $6 || '%'" : ""}
                     order by callback_time asc
                     limit $3 offset $4`,
                     params,
@@ -301,11 +303,12 @@ function add(pool) {
                 )
             },
 
-            viewIsCompleted: (domain, limit = 40, offset = 0, filter, cb) => {
+            viewIsCompleted: (userId, domain, limit = 40, offset = 0, filter, cb) => {
                 const params = [
                     domain,
                     limit,
-                    offset
+                    offset,
+                    userId
                 ];
 
                 if (filter) {
@@ -322,8 +325,8 @@ function add(pool) {
                       c2.name as queue_name,
                       c2.id as queue_id
                     from callback_members m
-                      inner join callback_queue c2 on m.queue_id = c2.id
-                    where m.domain = $1 and done is true ${filter ? "AND number like $4 || '%'" : ""}
+                      inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$4]::VARCHAR(100)[]
+                    where m.domain = $1 and done is true ${filter ? "AND number like $5 || '%'" : ""}
                     order by done_at desc
                     limit $2 offset $3`,
                     params,
@@ -336,11 +339,12 @@ function add(pool) {
                 )
             },
 
-            viewIsNotCallbackTime: (domain, limit = 40, offset = 0, filter, cb) => {
+            viewIsNotCallbackTime: (userId, domain, limit = 40, offset = 0, filter, cb) => {
                 const params = [
                     domain,
                     limit,
-                    offset
+                    offset,
+                    userId
                 ];
 
                 if (filter) {
@@ -356,8 +360,8 @@ function add(pool) {
                       c2.name as queue_name,
                       c2.id as queue_id
                     from callback_members m
-                      inner join callback_queue c2 on m.queue_id = c2.id
-                    where m.domain = $1 and not done is true and callback_time is null ${filter ? "AND number like $4 || '%'" : ""}
+                      inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$4]::VARCHAR(100)[]
+                    where m.domain = $1 and not done is true and callback_time is null ${filter ? "AND number like $5 || '%'" : ""}
                     order by created_on asc
                     limit $2 offset $3`,
                     params,
@@ -521,4 +525,4 @@ function add(pool) {
 module.exports = add;
 
 const allowMemberUpdateFields = ['number', 'href', 'user_agent', 'location', 'domain', 'done', 'done_at', 'done_by'];
-const allowQueueUpdateFields = ['name', 'description'];
+const allowQueueUpdateFields = ['name', 'description', 'agents'];

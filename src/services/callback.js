@@ -6,6 +6,7 @@
 
 const log = require(__appRoot + '/lib/log')(module),
     validateCallerParameters = require(__appRoot + '/utils/validateCallerParameters'),
+    deleteDomainFromStr = require(__appRoot + '/utils/parse').deleteDomainFromStr,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     CodeError = require(__appRoot + '/lib/error'),
     moment = require('moment-timezone');
@@ -146,22 +147,23 @@ const Service = {
                 if (!domain) {
                     return cb(new CodeError(400, 'Bad request: domain is required.'));
                 }
+                const userId = deleteDomainFromStr(caller.id);
                 switch (option.type) {
                     case 'overdue':
                         application.PG.getQuery('callback').members.viewIsOverdue(
-                            domain, option.limit || 40, option.offset || 0, option.filter, cb);
+                            userId, domain, option.limit || 40, option.offset || 0, option.filter, cb);
                         break;
                     case 'scheduled':
                         application.PG.getQuery('callback').members.viewIsScheduled(
-                            domain, option.limit || 40, option.offset || 0, option.filter, cb);
+                            userId, domain, option.limit || 40, option.offset || 0, option.filter, cb);
                         break;
                     case 'completed':
                         application.PG.getQuery('callback').members.viewIsCompleted(
-                            domain, option.limit || 40, option.offset || 0,  option.filter, cb);
+                            userId, domain, option.limit || 40, option.offset || 0,  option.filter, cb);
                         break;
                     case 'no_time':
                         application.PG.getQuery('callback').members.viewIsNotCallbackTime(
-                            domain, option.limit || 40, option.offset || 0,  option.filter, cb);
+                            userId, domain, option.limit || 40, option.offset || 0,  option.filter, cb);
                         break;
                     default:
                         return cb(new CodeError(400, `Not found view ${option.type}`))
