@@ -212,19 +212,57 @@ function getTemplateExtension(number, domain) {
         "name": "ext_" + number,
         "version": 2,
         "callflow": [
+
             {
-                "setVar": [ "ringback=$${us-ring}", "transfer_ringback=$${uk-ring}","hangup_after_bridge=true",
-                    "continue_on_fail=true"]
+                "setVar": "all:bridge_generate_comfort_noise=true"
             },
             {
-                "recordSession": "start"
+                "ringback": {
+                    "call": {
+                        "name": "%(800,3200,425)",
+                        "type": "tone"
+                    },
+                    "transfer": {
+                        "name": "%(800,3200,425)",
+                        "type": "tone"
+                    }
+                }
+            },
+            {
+                "setVar": [
+                    "hangup_after_bridge=true",
+                    "continue_on_fail=true"
+                ]
+            },
+            {
+                "userData": {
+                    "name": `${number}`,
+                    "var": "effective_caller_id_name",
+                    "setVar": "effective_callee_id_name"
+                }
+            },
+            {
+                "recordSession": {
+                    "action": "start",
+                    "stereo": false,
+                    "type": "mp3"
+                }
+            },
+            {
+                "setVar": "all:origination_callee_id_name=${effective_callee_id_name}"
             },
             {
                 "bridge": {
-                    "endpoints": [{
-                        "name": number,
-                        "type": "user"
-                    }]
+                    "endpoints": [
+                        {
+                            "name": `${number}`,
+                            "type": "user",
+                            "parameters": [
+                                "leg_timeout=40",
+                                `origination_callee_id_number=${number}`
+                            ]
+                        }
+                    ]
                 }
             },
             {
@@ -238,7 +276,7 @@ function getTemplateExtension(number, domain) {
             },
             {
                 "voicemail": {
-                    "user": number
+                    "user": `${number}`
                 }
             },
             {
@@ -246,4 +284,4 @@ function getTemplateExtension(number, domain) {
             }
         ]
     }
-};
+}
