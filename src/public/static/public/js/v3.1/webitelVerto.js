@@ -2316,13 +2316,13 @@
         }, n.fn.andSelf = n.fn.addBack, "function" == typeof define && define.amd && define("jquery", [], function() {
             return n
         });
-        var Lc = a.jQuery, Mc = a.$;
+        var Lc = a.jQuery;
         return n.noConflict = function(b) {
-            return a.$ === n && (a.$ = Mc), b && a.jQuery === n && (a.jQuery = Lc), n
-        }, typeof b === U && (a.jQuery = a.$ = n), n
+            return b && a.jQuery === n && (a.jQuery = Lc), n
+        }, typeof b === U && (a.jQuery = n), n
     });
 
-    var jQuery = window.jQuery.noConflict();
+    var jQuery = window.jQuery.noConflict(true);
     var self = {};
 
     /*! jQuery JSON plugin 2.4.0 | code.google.com/p/jquery-json */
