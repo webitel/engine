@@ -1425,6 +1425,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     }
                     this.cause = DIALER_CAUSE.ProcessReady;
                     this._readyTime = Date.now();
+                    this.state = DIALER_STATES.Work;
                     this.emit('ready', this);
                     log.trace(`found in ${this.nameDialer} ${count} members. run hunting...`);
                 });

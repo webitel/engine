@@ -88,10 +88,6 @@ module.exports = class Progressive extends Dialer {
             );
         };
 
-        this.on('ready', () => {
-            engine();
-        });
-
         this.on('wakeUp', () => {
             engine()
         });

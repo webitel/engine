@@ -100,6 +100,8 @@ class AutoDialer extends EventEmitter2 {
                     e => {
                         if (e)
                             log.error(e);
+
+                        dialer.emit('wakeUp', dialer);
                         this.sendEvent(d, true, 'ready');
                         this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessReady, "Start");
                     }
@@ -141,6 +143,7 @@ class AutoDialer extends EventEmitter2 {
                 this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessInternalError, "Error");
                 this.activeDialer.remove(d._id);
             });
+
             dialer.setReady();
         });
 

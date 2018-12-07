@@ -34,10 +34,6 @@ module.exports = class VoiceBroadcast extends Dialer {
             }
         };
 
-        this.on('ready', () => {
-            engine()
-        });
-
         this.on('wakeUp', () => {
             engine()
         });
