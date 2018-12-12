@@ -4,7 +4,7 @@
 
 'use strict';
 
-var log = require(__appRoot + '/lib/log')(module),
+const log = require(__appRoot + '/lib/log')(module),
     authService = require(__appRoot + '/services/auth'),
     dialplanService = require(__appRoot + '/services/dialplan'),
     blackListService = require(__appRoot + '/services/blacklist'),
@@ -14,7 +14,9 @@ var log = require(__appRoot + '/lib/log')(module),
     calendarService = require(__appRoot + '/services/calendar'),
     emailService = require(__appRoot + '/services/email'),
     statusService = require(__appRoot + '/services/userStatus'),
-    domainService = require(__appRoot + '/services/domain')
+    domainService = require(__appRoot + '/services/domain'),
+    conf = require(__appRoot + '/conf'),
+    createUserCallflow = `${conf.get('application:createUserCallflow')}` !== 'false'
     ;
 
 module.exports = function (event) {
@@ -84,8 +86,14 @@ function onUserDelete (userId, domain) {
 
 // TODO move to response command
 function onUserCreate (login, domain) {
-    var userId = login + '@' + domain;
-    var extension = getTemplateExtension(login, domain);
+    const userId = login + '@' + domain;
+
+    if (!createUserCallflow) {
+        log.debug('Skip create callflow for user: %s', userId);
+        return;
+    }
+
+    const extension = getTemplateExtension(login, domain);
 
     dialplanService._createExtension(extension, function (err) {
         if (err) {
