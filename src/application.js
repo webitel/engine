@@ -91,6 +91,7 @@ class Application extends EventEmitter2 {
             scope.initTelegram();
             scope.initScheduler();
             scope.initHotdesk();
+            scope.startRpcServer();
         });
 
         this.once('sys::connectFsApi', function () {
@@ -309,6 +310,10 @@ class Application extends EventEmitter2 {
         } else {
             wconsole.connect();
         }
+    }
+
+    startRpcServer() {
+        require('./adapter/rpc')(this);
     }
 
     configureExpress () {

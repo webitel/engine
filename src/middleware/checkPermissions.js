@@ -29,3 +29,7 @@ module.exports = function (caller, resource, action, cb) {
         cb(e, false);
     }
 };
+
+module.exports.ROOT = {
+    roleName: "root"
+};

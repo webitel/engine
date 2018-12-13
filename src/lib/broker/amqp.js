@@ -13,6 +13,7 @@ var log = require(__appRoot + '/lib/log')(module),
 const HOOK_QUEUE = 'hooks',
     HOOK_DELAY_EXCHANGE = 'HOOK-DELAY',
     GATEWAY_QUEUE = 'engine.gateway',
+    RPC_QUEUE = 'engine.rpc',
     STORAGE_QUEUE = 'engine-storage',
     TELEGRAM_QUEUE = 'telegram-notification';
 
@@ -143,6 +144,22 @@ class WebitelAmqp extends EventEmitter2 {
             return cb && cb();
         }
     };
+
+    publishToQueue(queueName, content, params, cb) {
+        if (!this.channel)
+            return cb && cb(new Error(`No live connect.`));
+
+        if (content instanceof Object) {
+            try {
+                content = JSON.stringify(content);
+            } catch (e) {
+                log.error(e);
+                return cb && cb(e);
+            }
+        }
+
+        this.channel.sendToQueue(queueName, new Buffer(content), params, cb);
+    }
 
     bindChannelEvents (caller, cb) {
         let ch = this.channel;
@@ -455,6 +472,20 @@ class WebitelAmqp extends EventEmitter2 {
 
                         return cb(null, null);
                     });
+                },
+
+                //init rpc queue
+                function (_, cb) {
+                    log.debug('Try init rpc commands queue');
+                    channel.assertQueue(RPC_QUEUE, {autoDelete: false, durable: false, exclusive: false}, (err, qok) => {
+                        channel.consume(qok.queue, (msg) => {
+                            scope.emit('rpc_command', msg);
+                        }, {noAck: true}); //todo handle ack
+
+                        //TODO remove binding...
+                        channel.bindQueue(qok.queue, scope.Exchange.ENGINE, "rpc");
+                        cb(null, null);
+                    })
                 },
 
                 // init console event

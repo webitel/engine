@@ -168,6 +168,11 @@ var Service = {
                     return cb(err);
 
                 try {
+                    //TODO
+                    if (option.convertToArray) {
+                        return plainTableToJSONArray(res, cb, '|');
+                    }
+
                     return parseAccount(res, option['domain'], cb);
                 } catch (e) {
                     log.error(e);
