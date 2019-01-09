@@ -35,6 +35,8 @@ function addRoutes(api) {
     api.post('/api/v2/callback/:queueId/members/:id/comments', addComment);
     api.delete('/api/v2/callback/:queueId/members/:id/comments/:commentId', removeComment);
     api.put('/api/v2/callback/:queueId/members/:id/comments/:commentId', updateComment);
+
+    api.post('/api/v2/callback/:queueId/members/:id/call', makeCall);
 }
 
 function list(req, res, next) {
@@ -315,6 +317,24 @@ function del(req, res, next) {
     };
 
     callbackService.remove(req.webitelUser, options, (err, result) => {
+        if (err)
+            return next(err);
+
+        return res.status(200).json({
+            "status": "OK",
+            "data": result
+        });
+    });
+}
+
+function makeCall(req, res, next) {
+    let options = {
+        id: req.params.id,
+        queue: req.params.queueId,
+        domain: req.query.domain
+    };
+
+    callbackService.members.call(req.webitelUser, options, (err, result) => {
         if (err)
             return next(err);
 

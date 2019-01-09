@@ -57,7 +57,7 @@ var Service = {
             'ignore_early_media=true'
         );
 
-        const dialString = `originate [${_originatorParam.join(',')}]user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
+        const dialString = `originate {${_originatorParam.join(',')}}user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
 
         Service.bgApi(dialString, cb);
     },

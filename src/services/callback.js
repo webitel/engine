@@ -9,6 +9,7 @@ const log = require(__appRoot + '/lib/log')(module),
     deleteDomainFromStr = require(__appRoot + '/utils/parse').deleteDomainFromStr,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     CodeError = require(__appRoot + '/lib/error'),
+    ChannelService = require('./channel'),
     moment = require('moment-timezone');
 
 
@@ -461,6 +462,55 @@ const Service = {
 
                 application.PG.getQuery('callback').members.updateComment(option.id, option.queue, domain, option.commentId, option.text, cb);
 
+            });
+        },
+
+        call: (caller, option = {}, cb) => {
+            checkPermissions(caller, 'callback/members', 'u', function (err) {
+                if (err)
+                    return cb(err);
+
+                if (!option)
+                    return cb(new CodeError(400, "Bad request options"));
+
+
+                if (!option.id)
+                    return cb(new CodeError(400, 'Bad request: id is required.'));
+
+                if (!option.queue)
+                    return cb(new CodeError(400, "Bad request queue is required."));
+
+
+                application.PG.getQuery('callback').members.createCall(
+                    option.id,
+                    deleteDomainFromStr(caller.id),
+                    (e, res) => {
+                        if (e)
+                            return cb(e);
+
+                        if (!res) {
+                            return cb(new CodeError(405, `Not allow call to ${option.id}`))
+                        }
+
+                        const vars = [
+                            "auto_answer_param='sip_auto_answer=true'",
+                            'ignore_early_media=true',
+                            'webitel_direction=outbound',
+                            `w_jsclient_originate_number='${res.number}'`,
+                            `cc_queue='${res.queue_name}'`,
+                            `cc_agent=${caller.id}`,
+                            `cc_type=cb`,
+                            `cc_side=agent`
+                        ];
+
+                        ChannelService.bgApi(`originate {${vars.join(',')}}user/${caller.id} '${res.number}' XML default '${res.number}' '${res.number}'`, (err, res) => {
+                            if (err)
+                                return cb(err);
+
+                            return cb(null, res);
+                        })
+                    }
+                );
             });
         }
     }

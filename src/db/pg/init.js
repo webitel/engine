@@ -112,6 +112,26 @@ create unique index IF NOT EXISTS callback_members_comment_id_uindex
 `);
 
 sql.push(`
+create table IF NOT EXISTS callback_calls
+(
+	id bigserial not null
+		constraint callback_calls_pkey
+			primary key,
+	member_id bigint not null
+		constraint callback_calls_callback_members_id_fk
+			references callback_members
+				on delete cascade,
+	created_by varchar(50) not null,
+	created_at bigint
+)
+;
+
+create unique index IF NOT EXISTS callback_calls_id_uindex
+	on callback_calls (id)
+;
+`);
+
+sql.push(`
 CREATE OR REPLACE FUNCTION insert_member_public(
    in widget_id BIGINT,
 

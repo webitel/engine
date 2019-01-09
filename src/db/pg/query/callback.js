@@ -34,7 +34,8 @@ const sqlMemberItem = `
     SELECT 
         m.*, 
         w.name as widget_name, 
-        (SELECT array_to_json(array_agg(c)) FROM callback_members_comment as c where c.member_id = m.id) as comments
+        (SELECT array_to_json(array_agg(c)) FROM callback_members_comment as c where c.member_id = m.id) as comments,
+        (SELECT array_to_json(array_agg(cl)) FROM callback_calls as cl where cl.member_id = m.id LIMIT 20) as calls
     FROM callback_members as m
      LEFT JOIN widget as w on w.id = m.widget_id
     WHERE m.id = $1 AND m.queue_id = $2 AND m.domain = $3
@@ -518,6 +519,37 @@ function add(pool) {
                     }
                 );
             },
+
+            createCall: (member_id, user, cb) => {
+                pool.query(
+                    `with ins as (
+                    insert into callback_calls (member_id, created_at, created_by)
+                    select m.id, $2, $3
+                    from callback_members m
+                      inner join callback_queue c2 on m.queue_id = c2.id
+                      where m.id = $1 and c2.agents && '{${user}}'
+                    returning id
+                    )
+                    select m.number, c2.name as queue_name from callback_members m
+                    inner join callback_queue c2 on m.queue_id = c2.id
+                      where m.id = $1 and exists(select 1 from ins)`, //domain, queue_id, number, href, user_agent, location
+                    [
+                        +member_id,
+                        Date.now(),
+                        user
+                    ], (err, res) => {
+                        if (err)
+                            return cb(err);
+
+                        if (res && res.rowCount) {
+                            return cb(null, res.rows[0])
+                        } else {
+                            log.error('bad response', res);
+                            return cb(new Error('Bad db response'));
+                        }
+                    }
+                )
+            }
         }
     }
 }
