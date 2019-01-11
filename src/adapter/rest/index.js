@@ -28,8 +28,9 @@ morgan.token('colorStatus', (req, res) => {
 });
 
 morgan.token('realIp', getIp);
+morgan.token('realPort', req => req.connection.remotePort);
 
-api.use(morgan('api: [:webitelUser] > [:colorStatus] :realIp :method :url :response-time ms :res[content-length] ":user-agent"', {
+api.use(morgan('api: [:webitelUser] > [:colorStatus] :realIp::realPort :method :url :response-time ms :res[content-length] ":user-agent"', {
     skip: req => req.method === 'OPTIONS'
 }));
 
