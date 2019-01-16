@@ -36,6 +36,7 @@
     "require_optional": "^1.0.1",
     "serve-favicon": "^2.3.0",
     "spdy": "^3.4.4",
+    "speakeasy": "^2.0.0",
     "underscore": "^1.8.3",
     "winston": "^2.3.0",
     "ws": "^2.3.1"

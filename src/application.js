@@ -20,7 +20,8 @@ var EventEmitter2 = require('eventemitter2').EventEmitter2,
     AutoDialer = require('./services/autoDialer'),
     gatewayService = require('./services/gateway'),
     dialerService = require('./services/dialer'),
-    hotdeskService = require('./services/hotdesk')
+    hotdeskService = require('./services/hotdesk'),
+    securityService = require('./services/security')
     ;
 
 class Application extends EventEmitter2 {
@@ -95,7 +96,7 @@ class Application extends EventEmitter2 {
         });
 
         this.once('sys::connectFsApi', function () {
-            scope.configureExpress();
+            scope.configureSecurity();
             conferenceService._runAutoDeleteUser(scope);
         });
 
@@ -314,6 +315,15 @@ class Application extends EventEmitter2 {
 
     startRpcServer() {
         require('./adapter/rpc')(this);
+    }
+
+    configureSecurity() {
+        securityService.init(err => {
+            if (err)
+                throw err;
+
+            this.configureExpress();
+        })
     }
 
     configureExpress () {

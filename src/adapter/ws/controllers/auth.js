@@ -68,6 +68,7 @@ function auth(caller, execId, args, ws) {
         authService.checkUser(
             args['account'],
             args['secret'],
+            args['code'],
             (err, userParam) => {
                 if (err) {
                     try {

@@ -93,6 +93,7 @@
             "defaultDelaySec": 60
         },
         "auth": {
+            "useTOTP": false,
             "tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100
         },

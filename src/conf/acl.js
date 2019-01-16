@@ -115,7 +115,9 @@ module.exports = [
 
             'metadata': ["*"],
 
-            'hotdesk': ["*"]
+            'hotdesk': ["*"],
+
+            'kibana': ["*"]
         }
     },
     {
@@ -131,7 +133,9 @@ module.exports = [
             'cdr/files': ['ro'],
             'cc/tiers': ["r"],
             'metadata': ["r"],
-            'hotdesk': ["*"]
+            'hotdesk': ["*"],
+
+            'kibana': ["r"]
         }
     },
     {
@@ -179,7 +183,9 @@ module.exports = [
 
             'metadata': ["*"],
 
-            'hotdesk': ["*"]
+            'hotdesk': ["*"],
+
+            'kibana': ["*"]
         }
     }
 ];

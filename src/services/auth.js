@@ -12,6 +12,7 @@ var conf = require('../conf'),
     generateUuid = require('node-uuid'),
     CodeError = require(__appRoot + '/lib/error'),
     parseAccount = require(__appRoot + '/utils/parse').parseAccount,
+    securityService = require('./security'),
     acl = require('./acl')
     ;
 
@@ -43,7 +44,7 @@ function logout(option, cb) {
             return cb(err);
         };
 
-        if (user && user['token'] == token) {
+        if (user && user['token'] === token) {
             return removeKey(key, cb);
         } else {
             return cb(new CodeError(401, 'Invalid credentials.'));
@@ -52,15 +53,16 @@ function logout(option, cb) {
 }
 
 function login (option, cb) {
-    var username = option['username'] || '',
-        password = option['password'] || ''
+    const username = option['username'] || '',
+        password = option['password'] || '',
+        code = option['code'] || ''
         ;
 
-    if (username == '') {
+    if (username === '') {
         return cb(new CodeError(401, 'Invalid credentials'));
     }
 
-    return getTokenObject(username, password, cb);
+    return getTokenObject(username, password, code, cb);
 }
 
 function baseAuth(option, cb) {
@@ -75,9 +77,9 @@ function baseAuth(option, cb) {
     }
 }
 
-function getTokenObject (username, password, cb) {
+function getTokenObject (username, password, code, cb) {
     var _id = generateUuid.v4();
-    return validate(username, password, _id, cb);
+    return validate(username, password, _id, code, cb);
 }
 
 function removeKey(key, cb) {
@@ -132,12 +134,20 @@ function checkUserByFilter(options = {}, cb) {
     });
 }
 
-function checkUser (login, password, cb) {
+function checkUser (login, password, code, cb) {
     try {
         login = login || '';
         password = password || '';
         if (login === RootName) {
             if (password === RootPassword) {
+                if (securityService.isEnabled()) {
+                    if (!code)
+                        return cb(new CodeError(301, `Set security code`));
+
+                    if (!securityService.verifying(code)) {
+                        return cb(new CodeError(401, 'code incorrect'));
+                    }
+                }
                 acl._whatResources(RootName, (e, aclResource) => {
                     cb(null, {
                         'role': ACCOUNT_ROLE.ROOT,
@@ -184,8 +194,8 @@ function checkUser (login, password, cb) {
     }
 }
 
-function validate (username, password, _id, cb) {
-    checkUser(username, password, function (err, user) {
+function validate (username, password, _id, code, cb) {
+    checkUser(username, password, code, function (err, user) {
         if (err) {
             return cb(err);
         }

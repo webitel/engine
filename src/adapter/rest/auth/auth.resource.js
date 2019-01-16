@@ -11,6 +11,7 @@ const jwt = require('jwt-simple'),
     CodeError = require(__appRoot + '/lib/error'),
     authService = require(__appRoot + '/services/auth'),
     aclService = require(__appRoot + '/services/acl'),
+    securityService = require(__appRoot + '/services/security'),
     cdrSrv = config.get('cdrServer'),
     vertoSocket = config.get('freeSWITCH:verto'),
     tokenSecretKey = require(__appRoot + '/utils/token');
@@ -38,9 +39,40 @@ function addRoutes(api) {
     api.all('/api/v1/*', validateRequestV1);
     api.all('/api/v2/*', validateRequestV2);
     api.get('/api/v2/whoami', whoami);
+    api.put('/api/v2/settings/security', setupSecurity);
+    api.get('/api/v2/settings/security', getSecurity);
     api.post('/login', login);
     api.get( '/login/:domain', loginOAuth);
     api.post('/logout', logout);
+}
+
+
+function setupSecurity(req, res, next) {
+    const options = {
+        code: req.query.code,
+        ...req.body
+    };
+    securityService.setSettings(req.webitelUser, options, (err, settings) => {
+        if (err) {
+            return next(err);
+        }
+
+        return res
+            .status(200)
+            .json(settings);
+    });
+}
+
+function getSecurity(req, res, next) {
+    securityService.getSettings(req.webitelUser, {code: req.query.code}, (err, settings) => {
+        if (err) {
+            return next(err);
+        }
+
+        return res
+            .status(200)
+            .json(settings);
+    });
 }
 
 function loginOAuth(req, res, next) {
@@ -115,8 +147,9 @@ function validateOAuthToken(options, res, next) {
 }
 
 function login (req, res, next) {
-    var username = req.body.username || '';
-    var password = req.body.password || '';
+    const username = req.body.username || '';
+    const password = req.body.password || '';
+    const code = req.query.code || '';
 
     if (username === '') {
         res.status(401);
@@ -128,8 +161,9 @@ function login (req, res, next) {
     }
 
     authService.login({
-        username: username,
-        password: password
+        username,
+        password,
+        code
     }, function (err, result) {
         if (err) {
             return next(err);
