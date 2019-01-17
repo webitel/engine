@@ -11,8 +11,8 @@ const CodeError = require(__appRoot + '/lib/error'),
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     END_CAUSE = require('./autoDialer/const').END_CAUSE,
     conf = require(__appRoot + '/conf'),
-    generateUuid = require('node-uuid'),
     BASE_URI = conf.get('server:baseUrl').replace(/(\/+)$/, ''),
+    CHECK_SESSION_ID = `${conf.get('application:dialerCbCheckForSessionId')}` === 'true',
     Scheduler = require(__appRoot + '/lib/scheduler'),
     cronParser = require('cron-parser'),
     expVal = require(__appRoot + '/utils/validateExpression')
@@ -699,6 +699,13 @@ let Service = {
                 if (!memberDb)
                     return cb(new CodeError(404, `Not found ${options.member} in dialer ${options.dialer}`));
 
+                let callback = options.callback,
+                    $push;
+
+                if (CHECK_SESSION_ID && memberDb._lastSession !== callback.session_id) {
+                    return cb(new CodeError(400, `Member ${options.member}: bad session id`));
+                }
+
                 if (memberDb._waitingForResultStatusCb !== 1) {
                     dbDialer._updateMember(
                         {_id: memberDb._id},
@@ -723,9 +730,6 @@ let Service = {
 
                     return cb(new CodeError(400, `Member ${options.member}: result status false`));
                 }
-
-                let callback = options.callback,
-                    $push;
 
                 const $set = {
                     _waitingForResultStatus: null,

@@ -60,6 +60,10 @@ function handleEslEvent(application) {
                             "variable_signal_bond": jsonEvent['variable_signal_bond'],
 
                         };
+                        if (jsonEvent.hasOwnProperty('variable_dlr_session_id')) {
+                            jsonRequest["variable_dlr_session_id"] = jsonEvent["variable_dlr_session_id"]
+                        }
+
                         if (jsonEvent.hasOwnProperty('variable_webitel_data'))
                             jsonRequest.variable_webitel_data = "'" + jsonEvent['variable_webitel_data'] + "'"; //TODO
 

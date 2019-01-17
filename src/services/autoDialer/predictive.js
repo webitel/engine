@@ -272,6 +272,7 @@ module.exports = class Predictive extends Dialer {
             `cc_queue='${this.nameDialer}'`,
             `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
             `cc_member_session_uuid='${member.sessionId}'`,
+            `dlr_session_id='${member.getSessionId()}'`, // todo duplicate... for WTEL-766
             'webitel_direction=inbound'
         ];
 

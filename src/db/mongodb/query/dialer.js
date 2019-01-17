@@ -531,7 +531,7 @@ function addQuery (db) {
                 .findOneAndUpdate(
                     filter,
                     doc,
-                    {sort, projection: {_log: 0}},
+                    {sort, projection: {_log: 0}, returnOriginal: false},
                     cb
                 )
         },

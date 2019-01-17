@@ -14,6 +14,7 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     CODE_RESPONSE_MINUS_PROBE = require('./const').CODE_RESPONSE_MINUS_PROBE,
 
     NUMBER_STRATEGY = require('./const').NUMBER_STRATEGY,
+    generateUuid = require('node-uuid'),
 
     Member = require('./member'),
     Collection = require(__appRoot + '/lib/collection'),
@@ -100,7 +101,6 @@ module.exports = class Dialer extends EventEmitter2 {
 
             member.once('end', (m) => {
                 const $set = {
-                        _lastSession: m.sessionId,
                         variables: m.variables,
                         lastCall: m._minusProbe ? 0 : Date.now(),
                         // '_log.$': {}
@@ -1125,6 +1125,7 @@ module.exports = class Dialer extends EventEmitter2 {
             return cb(null, null);
 
         const $set = {
+            _lastSession: generateUuid.v4(),
             _lock: this._instanceId
         };
 

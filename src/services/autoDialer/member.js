@@ -22,7 +22,7 @@ module.exports = class Member extends EventEmitter2 {
         this._id = config._id;
         this.expire = config.expire;
         this.timezone = config.timezone; //TODO
-        this.sessionId = generateUuid.v4();
+        this.sessionId = config._lastSession;
         this.currentProbe = (config._probeCount || 0) + 1;
         this.callSuccessful = false;
         this.connectedCall = false;
@@ -122,6 +122,10 @@ module.exports = class Member extends EventEmitter2 {
         } else {
             console.log('ERROR', this);
         }
+    }
+
+    getSessionId() {
+        return this.sessionId;
     }
 
     setConnectToAgent() {

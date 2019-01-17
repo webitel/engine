@@ -88,6 +88,7 @@
         "callcenter": true,
         "writeUserStatus": true,
         "dialerCbMinusAttempt": true,
+        "dialerCbCheckForSessionId": false,
         "hook": {
             "maxRetries": 100,
             "defaultDelaySec": 60
