@@ -9,8 +9,8 @@ const log = require(__appRoot + '/lib/log')(module),
     buildQuery = require('./utils').buildQuery;
 
 const create = `
-    INSERT INTO callback_queue (name, domain, description)
-    VALUES ($1, $2, $3)
+    INSERT INTO callback_queue (name, domain, description, agents)
+    VALUES ($1, $2, $3, $4)
     RETURNING *;             
 `;
 
@@ -102,6 +102,7 @@ function add(pool) {
                     doc.name, //$1
                     doc.domain, //$2
                     doc.description, //$3
+                    doc.agents ? doc.agents : [], //$3
                 ], (err, res) => {
                     if (err)
                         return cb(err);
