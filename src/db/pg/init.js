@@ -76,6 +76,9 @@ create table IF NOT EXISTS callback_members
 
 create unique index IF NOT EXISTS callback_members_id_uindex
   on callback_members (id);
+  
+create index IF NOT EXISTS callback_members_queue_id_index
+  on callback_members (queue_id);
 
 create index IF NOT EXISTS callback_members_created_on_index
   on callback_members (created_on);
