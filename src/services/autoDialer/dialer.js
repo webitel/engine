@@ -367,6 +367,10 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.predictStartCallCount,
         ];
 
+        if (!isFinite(this._maxLocateAgentSec) || this._maxLocateAgentSec > 300 || this._maxLocateAgentSec < 1) {
+            this._maxLocateAgentSec = 10
+        }
+
         if (this._amd.enabled) {
             const amdParams = [];
             if (this._amd.hasOwnProperty('silenceThreshold')) {
