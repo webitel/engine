@@ -8,6 +8,7 @@ var CodeError = require(__appRoot + '/lib/error'),
     plainTableToJSON = require(__appRoot + '/utils/parse').plainTableToJSON,
     plainTableToJSONArray = require(__appRoot + '/utils/parse').plainTableToJSONArray,
     plainCollectionToJSON = require(__appRoot + '/utils/parse').plainCollectionToJSON,
+    deleteDomainFromStr = require(__appRoot + '/utils/parse').deleteDomainFromStr,
     checkPermissions = require(__appRoot + '/middleware/checkPermissions'),
     log = require(__appRoot + '/lib/log')(module)
     ;
@@ -142,6 +143,22 @@ var Service = {
         });
     },
 
+    accountListOnlySelf: (caller, option, cb) => {
+        checkPermissions(caller, 'account', 'ro', function (err) {
+            if (err) {
+                return cb(err);
+            }
+            option['domain'] = validateCallerParameters(caller, option['domain']);
+            option["filter"] = {
+                "user": deleteDomainFromStr(caller.id)
+            };
+
+            application.WConsole.userList2(caller, option, function (err, res) {
+                responseAccountList(err, res, option, cb)
+            });
+        })
+    },
+
     /**
      *
      * @param caller
@@ -150,8 +167,12 @@ var Service = {
      */
     accountList: function (caller, option, cb) {
         checkPermissions(caller, 'account', 'r', function (err) {
-            if (err)
+            if (err) {
+                if (err.status === 403) {
+                    return Service.accountListOnlySelf(caller, option, cb);
+                }
                 return cb(err);
+            }
 
             if (!option) {
                 return cb(new CodeError(400, 'Bad request.'));
@@ -164,20 +185,7 @@ var Service = {
             }
 
             return application.WConsole.userList2(caller, option, function (err, res) {
-                if (err)
-                    return cb(err);
-
-                try {
-                    //TODO
-                    if (option.convertToArray) {
-                        return plainTableToJSONArray(res, cb, '|');
-                    }
-
-                    return parseAccount(res, option['domain'], cb);
-                } catch (e) {
-                    log.error(e);
-                    cb(e);
-                }
+                responseAccountList(err, res, option, cb)
             });
 
         });
@@ -302,4 +310,21 @@ function parseAccount (data, domain, cb) {
         result[user.id] = user;
     });
     return cb(null, result);
+}
+
+function responseAccountList(err, res, option, cb) {
+    if (err)
+        return cb(err);
+
+    try {
+        //TODO
+        if (option.convertToArray) {
+            return plainTableToJSONArray(res, cb, '|');
+        }
+
+        return parseAccount(res, option['domain'], cb);
+    } catch (e) {
+        log.error(e);
+        cb(e);
+    }
 }

@@ -140,11 +140,24 @@ User.prototype.sendSessionObject = function (obj, sessionId) {
 };
 
 User.prototype.sendObject = function (obj) {
+    if (!this.hasPermitNotifyAccountStatus(obj, this.acl && this.acl['account'])) {
+        return
+    }
+
     for (let key in this.ws) {
         if (this.ws.hasOwnProperty(key)) {
             this.sendSessionObject(obj, key);
         }
     }
+};
+
+//TODO
+User.prototype.hasPermitNotifyAccountStatus = function (e, aclAccount = []) {
+    if (e && e['Event-Name'] === "ACCOUNT_STATUS") {
+        return (e['presence_id'] === this.id ||
+            (e['presence_id'] !== this.id && (~aclAccount.indexOf('*') || ~aclAccount.indexOf('r'))))
+    }
+    return true
 };
 
 User.prototype.__broadcastInDomain = function (obj, domainId) {
