@@ -81,11 +81,19 @@ module.exports = class Dialer extends EventEmitter2 {
 
         dialerManager.on(`calendarChange:${this._id}`, onChangeCalendar);
 
-        this.once('end', () => {
+        this.doDestroy = () => {
             dialerManager.off(`calendarChange:${this._id}`, onChangeCalendar);
             this.closeChannel();
             if (this._timerId)
                 clearTimeout(this._timerId);
+        };
+
+        this.once('end', () => {
+            this.doDestroy();
+        });
+
+        this.once('error', () => {
+            this.doDestroy();
         });
 
         this._setConfig(config);

@@ -141,6 +141,7 @@ class AutoDialer extends EventEmitter2 {
             dialer.on('error', (d) => {
                 log.warn(`remove dialer ${d.nameDialer}`);
                 this.addLogDialer(d._objectId, DIALER_CAUSE.ProcessInternalError, "Error");
+                dialer.removeAllListeners();
                 this.activeDialer.remove(d._id);
             });
 
