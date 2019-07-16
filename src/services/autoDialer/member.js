@@ -9,6 +9,7 @@ const generateUuid = require('node-uuid'),
     log = require(__appRoot + '/lib/log')(module),
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     MEMBER_STATE = require('./const').MEMBER_STATE,
+    MEMBER_VARIABLE_CALLER_NUMBER = require('./const').MEMBER_VARIABLE_CALLER_NUMBER,
     END_CAUSE = require('./const').END_CAUSE,
     getHangupCode = require('./const').getHangupCode,
     DIALER_TYPES = require('./const').DIALER_TYPES
@@ -58,6 +59,9 @@ module.exports = class Member extends EventEmitter2 {
         this.getDestination = () => destination;
 
         this.getCallerIdNumber = () => {
+            if (this.variables.hasOwnProperty(MEMBER_VARIABLE_CALLER_NUMBER)) {
+                return `${this.getVariable(MEMBER_VARIABLE_CALLER_NUMBER)}`
+            }
             if (destination._callerIdNumbersArr && destination._callerIdNumbersArr.length > 0) {
                 return destination._callerIdNumbersArr[randomInteger(0, destination._callerIdNumbersArr.length - 1)]
             } else {

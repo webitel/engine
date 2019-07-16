@@ -85,10 +85,12 @@ module.exports = class VoiceBroadcast extends Dialer {
 
             const dest = member.getDestination();
 
+            const callerIdNumber = member.getCallerIdNumber();
+
             vars.push(
                 `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
-                `origination_caller_id_number='${member.getCallerIdNumber()}'`,
+                `origination_caller_id_number='${callerIdNumber}'`,
                 `origination_caller_id_name='${member.getQueueName()}'`,
 
                 `origination_callee_id_number='${member.number}'`,
@@ -126,10 +128,10 @@ module.exports = class VoiceBroadcast extends Dialer {
             if (this._amd && this._amd.enabled) {
                 vars.push("hangup_after_bridge=true");
 
-                vars.push(`amd_on_human='transfer::${member.getQueueId()} XML dialer ${member.getCallerIdNumber()} ${member.getQueueName()}'`);
+                vars.push(`amd_on_human='transfer::${member.getQueueId()} XML dialer ${callerIdNumber} ${member.getQueueName()}'`);
                 // vars.push(`amd_on_human='transfer::dialer'`);
                 vars.push(`amd_on_machine=hangup::NORMAL_UNSPECIFIED`);
-                vars.push(`amd_on_notsure=${this._amd.allowNotSure ? `'transfer::${member.getQueueId()} XML dialer ${member.getCallerIdNumber()} ${member.getQueueName()}'` : 'hangup::NORMAL_UNSPECIFIED'}`);
+                vars.push(`amd_on_notsure=${this._amd.allowNotSure ? `'transfer::${member.getQueueId()} XML dialer ${callerIdNumber} ${member.getQueueName()}'` : 'hangup::NORMAL_UNSPECIFIED'}`);
 
                 apps.push(`amd:${this._amd._string}`);
 
@@ -148,7 +150,7 @@ module.exports = class VoiceBroadcast extends Dialer {
                 }
 
             } else {
-                apps.push(`transfer:${member.getQueueId()} XML dialer ${member.getCallerIdNumber()} ${member.getQueueName()}`);
+                apps.push(`transfer:${member.getQueueId()} XML dialer ${callerIdNumber} ${member.getQueueName()}`);
             }
 
             return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;

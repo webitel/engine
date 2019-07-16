@@ -68,6 +68,8 @@ const CODE_RESPONSE_MINUS_PROBE = ["RECOVERY_ON_TIMER_EXPIRE", "NORMAL_TEMPORARY
 
 const MAX_MEMBER_RETRY = 999;
 
+const MEMBER_VARIABLE_CALLER_NUMBER = "outbound_caller_id_number";
+
 const DIALER_TYPES = {
     VoiceBroadcasting: "Voice Broadcasting",
     ProgressiveDialer: "Progressive Dialer",
@@ -185,5 +187,6 @@ module.exports = {
     AGENT_STRATEGY: AGENT_STRATEGY,
     NUMBER_STRATEGY: NUMBER_STRATEGY,
     VAR_SEPARATOR,
+    MEMBER_VARIABLE_CALLER_NUMBER,
     getHangupCode: getHangupCode
 };
