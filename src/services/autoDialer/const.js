@@ -91,6 +91,11 @@ const NUMBER_STRATEGY = {
     BY_PRIORITY: "by-priority"
 };
 
+const ROUTE_RESOURCES_STRATEGY = {
+    TOP_DOWN: "top_down",
+    RANDOM: "random"
+};
+
 const HANGUP_CODES = {
     "UNSPECIFIED":	0,
     "UNALLOCATED_NUMBER": 1,
@@ -188,5 +193,6 @@ module.exports = {
     NUMBER_STRATEGY: NUMBER_STRATEGY,
     VAR_SEPARATOR,
     MEMBER_VARIABLE_CALLER_NUMBER,
-    getHangupCode: getHangupCode
+    getHangupCode: getHangupCode,
+    ROUTE_RESOURCES_STRATEGY
 };

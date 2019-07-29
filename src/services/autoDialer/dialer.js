@@ -7,6 +7,7 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     MEMBER_STATE = require('./const').MEMBER_STATE,
     END_CAUSE = require('./const').END_CAUSE,
     DIALER_TYPES = require('./const').DIALER_TYPES,
+    ROUTE_RESOURCES_STRATEGY = require('./const').ROUTE_RESOURCES_STRATEGY,
 
     CODE_RESPONSE_ERRORS = require('./const').CODE_RESPONSE_ERRORS,
     CODE_RESPONSE_RETRY = require('./const').CODE_RESPONSE_RETRY,
@@ -307,7 +308,8 @@ module.exports = class Dialer extends EventEmitter2 {
                     this.resources.push({
                         dialedNumber: res.dialedNumber,
                         regexp: regexp,
-                        destinations: res.destinations
+                        destinations: res.destinations,
+                        strategy: res.strategy || ROUTE_RESOURCES_STRATEGY.TOP_DOWN
                     });
             }
         }
@@ -1109,7 +1111,7 @@ module.exports = class Dialer extends EventEmitter2 {
             this.resources,
             (resource, callback) => {
                 if (resource.regexp.test(numberConfig.number)) {
-                    this.detectNumberInDestinations(resource.destinations, (err, res) => {
+                    this.detectNumberInDestinations(getDestinationByStrategy(resource.strategy, resource.destinations), (err, res) => {
                         if (err)
                             return callback(err);
 
@@ -1524,4 +1526,18 @@ function parseCallResult(type, settings) {
             return i.name
         }
     })
+}
+
+
+function getDestinationByStrategy(strategy = ROUTE_RESOURCES_STRATEGY.TOP_DOWN, destinations = []) {
+    switch (strategy) {
+        case ROUTE_RESOURCES_STRATEGY.RANDOM:
+            return destinations.sort(sortRandom);
+        default:
+            return destinations;
+    }
+}
+
+function sortRandom() {
+    return 0.5 - Math.random();
 }
