@@ -101,7 +101,7 @@ class AgentManager extends EventEmitter2 {
                 break;
 
             case AGENT_STRATEGY.WITH_HIGHEST_WAITING_TIME:
-                sort = 'a.last_status_change ASC NULLS FIRST';
+                sort = 'ad.last_offered_call ASC NULLS FIRST';
                 break;
             //case AGENT_STRATEGY.TOP_DOWN:
             //TODO
