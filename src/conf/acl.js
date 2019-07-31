@@ -89,15 +89,12 @@ module.exports = [
             'dialer/members': ["*"],
             'dialer/templates': ["*"],
 
-            'book': ["*"],
             'hook': ["*"],
             'vmail': ["*"],
 
             'cdr': ["*"],
             'cdr/files': ["*"],
             'cdr/media': ["*"],
-
-            'outbound/list': ["*"],
 
             'gateway': ["*"],
             'gateway/profile': ["*"],
@@ -127,7 +124,6 @@ module.exports = [
             'acl/roles': ['r'],
             'blacklist': ['c', 'u', 'r'],
             'channels': ['*'],
-            'book': ['c', 'u', 'r'],
             'vmail': ['ro'],
             'cdr': ['ro'],
             'cdr/files': ['ro'],
@@ -160,15 +156,12 @@ module.exports = [
             'dialer/members': ["*"],
             'dialer/templates': ["*"],
 
-            'book': ["*"],
             'hook': ["*"],
             'vmail': ["*"],
 
             'cdr': ["*"],
             'cdr/files': ["*"],
             'cdr/media': ["*"],
-
-            'outbound/list': ["*"],
 
             'gateway': ["*"],
 
