@@ -370,7 +370,7 @@ let Service = {
                 return cb(new CodeError(400, 'Bad request: domain is required.'));
             }
 
-            if (!option.filter)
+            if (typeof option.filter !== "object")
                 option.filter = {};
 
             option.filter["dialer"] = option.dialer;
@@ -431,7 +431,7 @@ let Service = {
                 // TODO  before select dialer
                 option.domain = null;
 
-                if (!option.filter)
+                if (typeof option.filter !== "object")
                     option.filter = {};
 
                 option.filter["dialer"] = option.dialer;
@@ -604,7 +604,7 @@ let Service = {
                     return cb(new CodeError(400, "Bad request options"));
 
 
-                if (!option.filter)
+                if (typeof option.filter !== "object")
                     return cb(new CodeError(400, 'Bad request: filter is required.'));
 
                 if (!option.dialer)
