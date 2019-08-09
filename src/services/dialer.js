@@ -401,10 +401,10 @@ let Service = {
                 // TODO  before select dialer
                 option.domain = null;
 
-                if (!option.filter)
+                if (typeof option.filter !== "object")
                     option.filter = {};
 
-                option.filter["dialer"] = option.dialer;
+                option.filter.dialer = option.dialer;
 
                 let db = application.DB._query.dialer;
                 return db.memberList(option, cb);
