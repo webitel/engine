@@ -379,6 +379,14 @@ var Service = {
         return Service.bgApi(_api, cb);
     },
 
+    hupByVariable(variable, value, cause, cb) {
+        if (!variable || !value || !cause) {
+            return cb(new Error(`Bad request`))
+        }
+
+        return Service.bgApi(`hupall ${cause} '${variable}' '${value}'`, cb)
+    },
+
     _countChannels: function (cb) {
         Service.bgApi('show channels count', cb)
     }

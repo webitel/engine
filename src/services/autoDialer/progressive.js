@@ -234,7 +234,7 @@ module.exports = class Progressive extends Dialer {
 
                 member.minusProbe();
                 member.nextTrySec = 1;
-                member.end();
+                member.end(error === END_CAUSE.MANAGER_REQUEST ? END_CAUSE.MANAGER_REQUEST : undefined);
 
                 if (error === 'NO_ANSWER') {
                     if (this.getAgentParam('max_no_answer', agent) > 0 && this.getAgentParam('max_no_answer', agent) <= (this.getAgentParam('no_answer_count', agent) + 1)) {

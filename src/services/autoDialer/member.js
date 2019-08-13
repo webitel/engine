@@ -12,7 +12,8 @@ const generateUuid = require('node-uuid'),
     MEMBER_VARIABLE_CALLER_NUMBER = require('./const').MEMBER_VARIABLE_CALLER_NUMBER,
     END_CAUSE = require('./const').END_CAUSE,
     getHangupCode = require('./const').getHangupCode,
-    DIALER_TYPES = require('./const').DIALER_TYPES
+    DIALER_TYPES = require('./const').DIALER_TYPES,
+    channelService = require(__appRoot + '/services/channel')
 ;
 
 module.exports = class Member extends EventEmitter2 {
@@ -28,6 +29,8 @@ module.exports = class Member extends EventEmitter2 {
         this.callSuccessful = false;
         this.connectedCall = false;
         this.connectedAgent = false;
+
+        this.terminateOn = null;
 
         this.name = (config.name || "_undef_").replace(/'/g, '_');
         this.variables = {};
@@ -377,6 +380,20 @@ module.exports = class Member extends EventEmitter2 {
         this._log.callSuccessful = val;
     }
 
+    setTerminate(caller, cb) {
+        this.terminateOn = caller;
+        channelService.hupByVariable('dlr_member_id',this._id.toString(), END_CAUSE.MANAGER_REQUEST, (err) => {
+            if (err) {
+                return cb(err)
+            }
+
+            return cb(null, {
+                _id: this._id,
+                waitHangupCause: END_CAUSE.MANAGER_REQUEST
+            })
+        });
+    }
+
     end (endCause, e) {
 
         if (this.processEnd) return;
@@ -403,6 +420,15 @@ module.exports = class Member extends EventEmitter2 {
             //this.setProbeQ850Code(e.getHeader('variable_hangup_cause_q850'));
             this.setCallUUID(e.getHeader('variable_uuid'));
 
+        }
+
+        if (endCause === END_CAUSE.MANAGER_REQUEST && this.terminateOn) {
+            this.log(`User ${this.terminateOn} terminate call`);
+            this._setStateCurrentNumber(MEMBER_STATE.End);
+            this.endCause = END_CAUSE.MANAGER_REQUEST;
+            this.predictAbandoned = true;
+            this.emit('end', this);
+            return
         }
 
         if (this.predictAbandoned) {

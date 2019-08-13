@@ -15,7 +15,8 @@ const CodeError = require(__appRoot + '/lib/error'),
     CHECK_SESSION_ID = `${conf.get('application:dialerCbCheckForSessionId')}` === 'true',
     Scheduler = require(__appRoot + '/lib/scheduler'),
     cronParser = require('cron-parser'),
-    expVal = require(__appRoot + '/utils/validateExpression')
+    expVal = require(__appRoot + '/utils/validateExpression'),
+    ENABLE_TERMINATE_CALL = `${conf.get('application:dialerEnableTerminateCall')}` === 'true'
 ;
 
 
@@ -895,19 +896,35 @@ let Service = {
                         return cb(new CodeError(405, "Domain not allowed"))
                     }
 
-                    if (memberDb._lock || memberDb._endCause || memberDb._waitingForResultStatusCb) {
+                    if (memberDb._endCause) {
                         return cb(new CodeError(405, "Not allow set terminate member"))
-                    }
+                    } else if (ENABLE_TERMINATE_CALL && memberDb._lock) {
+                        const activeMember = application.AutoDialer.getMemberFromActiveDialer(options.dialer, options.id);
+                        if (activeMember) {
+                            activeMember.setTerminate(caller.id, (err, res) => {
+                                if (err) {
+                                    return cb(err);
+                                }
 
-                    return dbDialer.terminateMember(memberDb, END_CAUSE.MANAGER_REQUEST, (err, res) => {
-                        if (err) {
-                            return cb(err);
+                                return cb(null, res)
+                            });
+                        } else {
+                            return cb(new CodeError(500, `Not found ${options.id} active call`));
                         }
 
-                        Service.members.fireHookEndCause(memberDb, "terminate", caller.id, dialerDb.domain,
-                            END_CAUSE.MANAGER_REQUEST, dialerDb.name);
-                        return cb(null, res);
-                    });
+                    } else if (memberDb._lock || memberDb._waitingForResultStatusCb) {
+                        return cb(new CodeError(405, "Not allow set terminate member"))
+                    } else {
+                        dbDialer.terminateMember(memberDb, END_CAUSE.MANAGER_REQUEST, (err, res) => {
+                            if (err) {
+                                return cb(err);
+                            }
+
+                            Service.members.fireHookEndCause(memberDb, "terminate", caller.id, dialerDb.domain,
+                                END_CAUSE.MANAGER_REQUEST, dialerDb.name);
+                            return cb(null, res);
+                        });
+                    }
                 }, true);
             });
         },
