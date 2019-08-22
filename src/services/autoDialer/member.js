@@ -13,7 +13,8 @@ const generateUuid = require('node-uuid'),
     END_CAUSE = require('./const').END_CAUSE,
     getHangupCode = require('./const').getHangupCode,
     DIALER_TYPES = require('./const').DIALER_TYPES,
-    channelService = require(__appRoot + '/services/channel')
+    channelService = require(__appRoot + '/services/channel'),
+    VARIABLES = require('./const').VARIABLES
 ;
 
 module.exports = class Member extends EventEmitter2 {
@@ -91,6 +92,7 @@ module.exports = class Member extends EventEmitter2 {
             callPriority: 0,
             callNumber: null, //+
             callTypeCode: "",
+            callTypeName: "",
             callPositionIndex: 0, //+
             cause: null, //+
             causeQ850: null,
@@ -116,7 +118,7 @@ module.exports = class Member extends EventEmitter2 {
         this._currentNumber = currentNumber;
         //this._currentNumber.checkResult = this._waitingForResultStatus ? 1 : null;
 
-        this.setCurrentNumber(this._currentNumber, config.communications);
+        this.setCurrentNumber(this._currentNumber, config.communications, dialer);
 
         if (this._currentNumber) {
             this._currentNumber._probe++;
@@ -240,15 +242,20 @@ module.exports = class Member extends EventEmitter2 {
         return this.agent;
     }
 
-    setCurrentNumber (communication, all) {
+    setCurrentNumber (communication, all, queue) {
         if (!communication)
             return log.warn(`No communication in ${this._id}`);
 
         this._log.callNumber = communication.number;
         this._log.callPriority = communication.priority || 0;
         this._log.callDescription = communication.description || "";
-        if (communication.type)
+        if (communication.type) {
             this._log.callTypeCode = communication.type;
+            this._log.callTypeName = queue.getCommunicationTypeName(communication.type);
+
+            this.setVariable(`${VARIABLES.COMMUNICATION_TYPE_NAME}`, this._log.callTypeName);
+            this.setVariable(`${VARIABLES.COMMUNICATION_TYPE_CODE}`, this._log.callTypeCode);
+        }
 
         // const $set = {};
         // $set[`communications.${communication._id}`] = communication;

@@ -110,7 +110,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
             member.once('end', (m) => {
                 const $set = {
-                        variables: m.variables,
+                       //variables: m.variables, //DEV-697
                         lastCall: m._minusProbe ? 0 : Date.now(),
                         // '_log.$': {}
                     },
@@ -508,6 +508,16 @@ module.exports = class Dialer extends EventEmitter2 {
 
     getResourceStat (uuid) {
         return this._recources[uuid];
+    }
+
+    getCommunicationTypeName(id) {
+        if (this.communications instanceof Array) {
+            for (let comm of this.communications) {
+                if (comm.code === id)
+                    return comm.name
+            }
+        }
+        return ""
     }
 
     getFreeResourceRoutes () {

@@ -91,6 +91,11 @@ const NUMBER_STRATEGY = {
     BY_PRIORITY: "by-priority"
 };
 
+const VARIABLES = {
+    COMMUNICATION_TYPE_NAME : "dlr_communication_type_name",
+    COMMUNICATION_TYPE_CODE : "dlr_communication_type_code"
+};
+
 const ROUTE_RESOURCES_STRATEGY = {
     TOP_DOWN: "top_down",
     RANDOM: "random"
@@ -194,5 +199,6 @@ module.exports = {
     VAR_SEPARATOR,
     MEMBER_VARIABLE_CALLER_NUMBER,
     getHangupCode: getHangupCode,
-    ROUTE_RESOURCES_STRATEGY
+    ROUTE_RESOURCES_STRATEGY,
+    VARIABLES,
 };
