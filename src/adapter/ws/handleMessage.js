@@ -11,10 +11,30 @@ var conf = require('../../conf'),
     handleStatusDb = require(__appRoot + '/services/userStatus').insert,
     DIFF_AGENT_LOGOUT_SEC = conf.get('application:callCentre:diffAgentLogoutTimeSec') || 60,
     SCHEDULE_TIME_SEC = conf.get('application:callCentre:scheduleLogoutSec') || 60,
-    getIp = require(__appRoot + '/utils/ip')
+    getIp = require(__appRoot + '/utils/ip'),
+    maxUniqueOnline = 0
     ;
 
+if (+conf.get('application:auth:maxUniqueOnline')) {
+    maxUniqueOnline = +conf.get('application:auth:maxUniqueOnline');
+    log.info(`Maximum license connections ${maxUniqueOnline}`)
+}
+
 module.exports = Handler;
+
+function sendMaxUser(params, execId, ws) {
+    try {
+        log.info(`Maximum license connections ${maxUniqueOnline}`);
+        ws.send(JSON.stringify({
+            'exec-uuid': execId,
+            'exec-complete': '-ERR',
+            'exec-response': 'Maximum license connections'
+        }));
+        ws.close();
+    } catch (e) {
+        log.warn('User socket close:', e.message);
+    }
+}
 
 function Handler(wss, application) {
     var controller = Controller(application);
@@ -31,6 +51,9 @@ function Handler(wss, application) {
             var user = application.Users.get(id)
                 ;
             if (!user) {
+                if (maxUniqueOnline && id !== 'root' && application.Users.lengthUsers() >= maxUniqueOnline) {
+                    return sendMaxUser(params, execId, ws)
+                }
                 user = new User(id, sessionId, ws, params);
                 application.Users.add(id, user);
             } else {
@@ -234,6 +257,13 @@ function Handler(wss, application) {
             log.warn('On remove domain error: ', e.message);
         }
     });
+    application.Users.lengthUsers = function () {
+        const allLength = this.length();
+        if (this.existsKey('root')) {
+            return allLength - 1;
+        }
+        return allLength;
+    };
     application.Users._maxSession = 0;
     application.Users.on('added', function (user) {
         try {

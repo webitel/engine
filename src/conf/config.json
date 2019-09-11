@@ -96,6 +96,7 @@
         },
         "auth": {
             "useTOTP": false,
+            "maxUniqueOnline": 0,
             "tokenSecretKey": "/ssl/token.key",
             "expiresDays": 100
         },
