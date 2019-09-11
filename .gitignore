@@ -1,6 +1,4 @@
-.idea/
-src/node_modules/
-src/patch/
-src/cert/
-/utils/saveJSONDB.js
-/utils/location.js
+.idea
+/bin/
+/client/node_modules/
+/client/.idea/

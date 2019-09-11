@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package engine;
+
+service CalendarApi {
+    // - POST /calendar
+    rpc Create(Calendar) returns (Calendar) {}
+    // -GET /calendar
+    rpc List(ListReqeust) returns (ListCalendar) {}
+    // -GET /calendar/:id
+    rpc Get(ItemRequest) returns (Calendar) {}
+    // -PUT /calendar/:id
+    rpc Update(Calendar) returns (Calendar) {}
+    // -DELETE /calendar/:id
+    rpc Remove(ItemRequest) returns (Calendar) {}
+
+    // -GET /calendar/timezones
+    rpc GetTimezones(ListReqeust) returns (ListTimezoneResponse) {}
+
+    //
+    rpc GetAcceptOfDay(AcceptOfDayReqeust) returns (ListAcceptOfDay) {}
+}
+
+message RemoveResponse {
+
+}
+
+message Lookup {
+    int64 id = 1;
+    string name = 2;
+}
+
+message ItemRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message ListReqeust {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+
+}
+
+message ListCalendar {
+    repeated Calendar items = 1;
+}
+
+message Calendar {
+    int64 id = 1;
+    string name = 2;
+    int64 domain_id = 3;
+    int64 start = 4;
+    int64 finish = 5;
+    Lookup timezone = 6;
+    string description = 7;
+}
+
+message ListTimezoneResponse {
+    repeated Timezone items = 1;
+}
+
+message Timezone {
+    int64 id = 1;
+    string name = 2;
+    string offset = 3;
+}
+
+message AcceptOfDay {
+    int64 id = 1;
+    int32 week_day = 3;
+    int32 start_time_of_day = 4;
+    int32 end_time_of_day = 5;
+}
+
+message AcceptOfDayReqeust {
+    int64 calendar_id = 1;
+}
+
+message ListAcceptOfDay {
+    repeated AcceptOfDay items = 1;
+}
