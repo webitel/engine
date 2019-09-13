@@ -147,4 +147,4 @@ function add(pool) {
 
 module.exports = add;
 
-const allowUpdateFields = ['name', 'description', 'config', 'limit_by_number', 'limit_by_ip', 'blacklist', 'language', 'callflow_id', 'queue_id'];
+const allowUpdateFields = ['name', 'description', 'config', 'limit_by_number', 'limit_by_ip', 'blacklist', 'language', 'callflow_id', 'queue_id', 'geo_token', 'geo_origins'];

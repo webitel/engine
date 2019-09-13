@@ -40,6 +40,9 @@ create table IF NOT EXISTS widget
 	callflow_id varchar(24)
 );
 
+ALTER TABLE widget ADD COLUMN IF NOT EXISTS geo_token varchar(120);
+ALTER TABLE widget ADD COLUMN IF NOT EXISTS geo_origins varchar(120)[];
+
 create index IF NOT EXISTS widget_id_index
 	on widget (id)
 ;
@@ -190,6 +193,7 @@ CREATE OR REPLACE FUNCTION insert_member_public(
 
       with rows as (
         INSERT INTO callback_members (
+          created_on,
           number,
           href,
           user_agent,
@@ -204,6 +208,7 @@ CREATE OR REPLACE FUNCTION insert_member_public(
           done_by,
           logs)
         VALUES (
+          (now() at time zone 'utc'),
           member->>'number'::VARCHAR(50),
           cast(member->>'href' as VARCHAR(255)),
           cast(member->>'user_agent' as VARCHAR(300)),
