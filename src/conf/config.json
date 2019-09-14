@@ -88,6 +88,7 @@
         "callcenter": true,
         "writeUserStatus": true,
         "dialerCbMinusAttempt": true,
+        "maxSocketPerUser": 10,
         "dialerCbCheckForSessionId": false,
         "dialerEnableTerminateCall": false,
         "hook": {

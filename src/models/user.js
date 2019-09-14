@@ -4,7 +4,7 @@
 
 'use strict';
 
-var handleWebSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
+const handleWebSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
     log = require(__appRoot + '/lib/log')(module),
     eventService = require(__appRoot +  '/services/events'),
     hotdeskService = require(__appRoot +  '/services/hotdesk'),
@@ -100,11 +100,11 @@ User.prototype.addSession = function (sessionId, ws, params) {
     this.ws[sessionId] = ws;
     this.sessionLength ++;
 
-    if (this.sessionLength > 20) {
-        log.warn(`user ${this.id} opened ${this.sessionLength} sockets`)
-    } else if (this.sessionLength > 100) {
-        log.error(`user ${this.id} opened ${this.sessionLength} sockets`)
-    }
+    // if (this.sessionLength > 20) {
+    //     log.warn(`user ${this.id} opened ${this.sessionLength} sockets`)
+    // } else if (this.sessionLength > 100) {
+    //     log.error(`user ${this.id} opened ${this.sessionLength} sockets`)
+    // }
 
     return this.sessionLength;
 };

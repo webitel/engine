@@ -13,6 +13,12 @@ const conf = require('../../conf'),
     getIp = require(__appRoot + '/utils/ip');
 
 let maxUniqueOnline = 0;
+let maxOpenedSocketPerUser = 10;
+
+if (+conf.get('application:maxSocketPerUser') > 0) {
+    maxOpenedSocketPerUser = +conf.get('application:maxSocketPerUser');
+    log.info(`Maximum opened socket per user ${maxOpenedSocketPerUser}`)
+}
 
 if (+conf.get('application:auth:maxUniqueOnline')) {
     maxUniqueOnline = +conf.get('application:auth:maxUniqueOnline');
@@ -28,6 +34,20 @@ function sendMaxUser(params, execId, ws) {
             'exec-uuid': execId,
             'exec-complete': '-ERR',
             'exec-response': 'Maximum license connections'
+        }));
+        ws.terminate();
+    } catch (e) {
+        log.warn('User socket close:', e.message);
+    }
+}
+
+function sendMaxOpenedSocket(params, execId, ws, userId) {
+    try {
+        log.warn(`user ${userId} opened maximum sockets ${maxOpenedSocketPerUser}`);
+        ws.send(JSON.stringify({
+            'exec-uuid': execId,
+            'exec-complete': '-ERR',
+            'exec-response': 'Maximum opened socket ' + maxOpenedSocketPerUser
         }));
         ws.terminate();
     } catch (e) {
@@ -62,7 +82,11 @@ function Handler(wss, application) {
                 user = new User(id, sessionId, ws, params);
                 application.Users.add(id, user);
             } else {
-                user.addSession(sessionId, ws, params);
+                if (user.addSession(sessionId, ws, params) >= maxOpenedSocketPerUser) {
+                    if (id !== 'root') {
+                        return sendMaxOpenedSocket(params, execId, ws, id)
+                    }
+                }
             }
 
             caller = user;

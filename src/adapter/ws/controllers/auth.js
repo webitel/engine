@@ -10,6 +10,7 @@ var WebitelCommandTypes = require(__appRoot + '/const').WebitelCommandTypes,
     aclService = require(__appRoot + '/services/acl'),
     jwt = require('jwt-simple'),
     tokenSecretKey = require(__appRoot + '/utils/token'),
+    CodeError = require(__appRoot + '/lib/error'),
     log = require(__appRoot +  '/lib/log')(module);
 
 
@@ -20,6 +21,7 @@ function authCtrl () {
     controller[WebitelCommandTypes.Auth.name] = auth;
     controller[WebitelCommandTypes.Logout.name] = logout;
     controller[WebitelCommandTypes.Login.name] = login;
+    controller['list_sockets'] = getSockets;
     return controller;
 };
 
@@ -102,3 +104,20 @@ function logout(caller, execId, args, ws) {
 function login(caller, execId, args, ws) {
     getCommandResponseJSON(ws, execId, {body: "+OK: logged: " + caller.setLogged(true)});
 };
+
+function getSockets(caller, execId, args, ws) {
+    if (caller.id !== 'root') {
+        return getCommandResponseJSONError(ws, execId, new CodeError(403, 'Forbidden'));
+    }
+
+    const res  = [];
+
+    for (let key in application.Users.collection) {
+        res.push({
+            id: key,
+            sockets: application.Users.collection[key].sessionLength
+        })
+    }
+
+    getCommandResponseJSON(ws, execId, {body: res});
+}
