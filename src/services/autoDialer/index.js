@@ -1011,7 +1011,7 @@ function _broadcastMemberEnd(member, endCause, reason) {
         if (member.variables.hasOwnProperty(key))
             event[`variable_${key}`] = member.variables[key]
     }
-    console.log(event);
+    //console.log(event);
     application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
 }
 

@@ -1365,7 +1365,7 @@ module.exports = class Dialer extends EventEmitter2 {
             return;
 
         this._processTryStop = true;
-        console.log('Try END -------------');
+        // console.log('Try END -------------');
 
         this.getCountAndNextTryTime((err, res) => {
             if (err)
@@ -1411,10 +1411,10 @@ module.exports = class Dialer extends EventEmitter2 {
                 if (nextTime > 2147483647)
                     nextTime = 2147483647;
 
-                console.log(nextTime);
+                // console.log(nextTime);
                 clearTimeout(this._timerId);
                 this._timerId = setTimeout(() => {
-                    console.log('send wakeUp');
+                    // console.log('send wakeUp');
                     this.setExpireByCurrentDay();
                     this.emit('wakeUp')
                 }, nextTime);
