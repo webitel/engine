@@ -69,12 +69,10 @@ function handleEslEvent(application) {
 
                         user.sendObject(jsonRequest);
                     }
-                    ;
 
                     log.debug(jsonEvent['Event-Name'] + ' -> ' + (jsonEvent["Unique-ID"] || "Other ESL event.") + ' -> '
                         + jsonEvent['Channel-Presence-ID']);
                 }
-                ;
             } catch (e) {
                 log.error(e.message);
             }

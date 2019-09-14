@@ -82,7 +82,6 @@ function auth(caller, execId, args, ws) {
                     } catch (e) {
                         log.warn('User socket close:', e.message);
                     }
-                    ;
                 } else {
                     try {
                         var webitelId = args['account'];

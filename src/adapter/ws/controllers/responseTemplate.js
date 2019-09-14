@@ -4,18 +4,18 @@
 
 'use strict';
 
-var handleSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
+const handleSocketError = require(__appRoot + '/middleware/handleWebSocketError'),
     log = require(__appRoot + '/lib/log')(module)
     ;
 
 module.exports = {
     getCommandResponseJSON: function (_ws, id, res) {
         try {
-            var complete,
+            let complete,
                 response;
 
-            if (res && typeof res['body'] == 'string') {
-                complete = (res['body'].indexOf('-ERR') == 0 || res['body'].indexOf('-USAGE') == 0) ? "-ERR" : "+OK";
+            if (res && typeof res['body'] === 'string') {
+                complete = (res['body'].indexOf('-ERR') === 0 || res['body'].indexOf('-USAGE') === 0) ? "-ERR" : "+OK";
                 response = res['body']
             } else {
                 complete = res ? '+OK' : '-ERR: bad response';
@@ -26,7 +26,7 @@ module.exports = {
         } catch (e) {
             handleSocketError(_ws);
             log.warn('Error send response');
-        };
+        }
     },
     
     getCommandResponseJSONError: function (_ws, id, err) {
@@ -35,7 +35,7 @@ module.exports = {
         } catch (e) {
             handleSocketError(_ws);
             log.warn('Error send response');
-        };
+        }
     }
 };
 function _getCommandResponseStr (id, complete, args) {

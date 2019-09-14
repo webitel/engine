@@ -1,6 +1,6 @@
 'use strict';
 
-var conf = require('../../conf'),
+const conf = require('../../conf'),
     socketTimeUnauthorized = conf.get('application:socketTimeUnauthorized') || 10,
     log = require('../../lib/log')(module),
     handleError = require(__appRoot + '/middleware/handleWebSocketError'),
@@ -10,10 +10,9 @@ var conf = require('../../conf'),
     User = require(__appRoot + '/models/user'),
     handleStatusDb = require(__appRoot + '/services/userStatus').insert,
     DIFF_AGENT_LOGOUT_SEC = conf.get('application:callCentre:diffAgentLogoutTimeSec') || 60,
-    SCHEDULE_TIME_SEC = conf.get('application:callCentre:scheduleLogoutSec') || 60,
-    getIp = require(__appRoot + '/utils/ip'),
-    maxUniqueOnline = 0
-    ;
+    getIp = require(__appRoot + '/utils/ip');
+
+let maxUniqueOnline = 0;
 
 if (+conf.get('application:auth:maxUniqueOnline')) {
     maxUniqueOnline = +conf.get('application:auth:maxUniqueOnline');
@@ -30,26 +29,32 @@ function sendMaxUser(params, execId, ws) {
             'exec-complete': '-ERR',
             'exec-response': 'Maximum license connections'
         }));
-        ws.close();
+        ws.terminate();
     } catch (e) {
         log.warn('User socket close:', e.message);
     }
 }
 
 function Handler(wss, application) {
-    var controller = Controller(application);
+    const controller = Controller(application);
 
-    wss.on('connection', function(ws) {
+    wss.on('connection', function(ws, req) {
 
-        var caller = null,
-            sessionId = generateUuid.v4(),
-            timerId
-            ;
+        const ipAddr = getIp(req);
+        const sessionId = generateUuid.v4();
+
+        log.trace(`Receive new connection from IP: ${ipAddr} Origin: ${req.headers.origin} Agent: ${req.headers['user-agent']}`);
+
+        let caller = null,
+            timerId;
+
+        ws.webitelUserId = null;
 
         function onAuth (id, params, execId) {
             clearTimeout(timerId);
-            var user = application.Users.get(id)
-                ;
+            ws.webitelUserId = id;
+            let user = application.Users.get(id);
+
             if (!user) {
                 if (maxUniqueOnline && id !== 'root' && application.Users.lengthUsers() >= maxUniqueOnline) {
                     return sendMaxUser(params, execId, ws)
@@ -58,12 +63,12 @@ function Handler(wss, application) {
                 application.Users.add(id, user);
             } else {
                 user.addSession(sessionId, ws, params);
-            };
+            }
 
             caller = user;
             // test leak;
             //caller.bigData = new Array(1e6).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
-            var response = {
+            const response = {
                 'exec-uuid': execId,
                 'exec-complete': '+OK',
                 'exec-response': {
@@ -80,39 +85,31 @@ function Handler(wss, application) {
                 }
             };
             caller.sendSessionObject(response, sessionId);
-            log.trace('New pear %s [%s]', caller && caller.id, getIp(ws.upgradeReq));
-        };
+            log.trace('New pear %s [%s]', caller && caller.id, ipAddr);
+        }
 
         ws.once('webitelAuth', onAuth);
 
         if (socketTimeUnauthorized > 0) {
             timerId = setTimeout(function () {
                 if (!caller) {
-                    log.trace('Disconnect session %s, remoteAddress: %s [unauth]', sessionId,
-                        ws.upgradeReq.connection.remoteAddress);
+                    log.trace('Disconnect session %s, remoteAddress: %s [unauth]', sessionId, ipAddr);
                     try {
                         ws.send(JSON.stringify({
                             "webitel-event-name": "account",
                             "Event-Name": "DISCONNECT"
                         }));
-                        ws.close();
+                        ws.terminate();
                     } catch (e) {
                         log.warn('User socket close:', e.message);
                     }
                 }
             }, socketTimeUnauthorized * 1000);
-        };
+        }
 
-        ws.on('message', function(message, flags) {
+        ws.on('message', function(message) {
             try {
-                if (flags.binary) {
-                    log.warn('[%s->%s] Bad message type binary', caller && caller.id, ws.upgradeReq.connection.remoteAddress);
-                    return;
-                };
-
-                log.trace('[%s->%s] received: %s', caller && caller.id,
-                    getIp(ws.upgradeReq), message
-                );
+                log.trace('[%s->%s] received: %s', caller && caller.id, ipAddr, message);
 
                 var msg = JSON.parse(message);
                 var execId = msg['exec-uuid'];
@@ -127,27 +124,26 @@ function Handler(wss, application) {
                         'exec-response': msg['exec-func'] + ' - not found.'
                     }));
                     log.warn(msg['exec-func'] + ' - not found --> ' + (caller && caller.id));
-                };
+                }
             } catch (e) {
                 handleError(ws);
                 log.error('Command error:', e.message);
-            };
+            }
         });
 
         ws.on('close', function () {
             try {
                 ws.removeListener('webitelAuth', onAuth);
-                //ws.close();
                 log.trace('Close session %s', sessionId);
                 if (caller && caller.removeSession(sessionId) === 0) {
                     application.Users.remove(caller.id);
                     log.trace('disconnect: ', caller.id);
                     log.debug('Users session: ', application.Users.length());
-                };
+                }
 
             } catch (e) {
                 log.error(e);
-            };
+            }
         });
 
         ws.on('error', function(e) {

@@ -99,6 +99,13 @@ User.prototype.addSession = function (sessionId, ws, params) {
 
     this.ws[sessionId] = ws;
     this.sessionLength ++;
+
+    if (this.sessionLength > 20) {
+        log.warn(`user ${this.id} opened ${this.sessionLength} sockets`)
+    } else if (this.sessionLength > 100) {
+        log.error(`user ${this.id} opened ${this.sessionLength} sockets`)
+    }
+
     return this.sessionLength;
 };
 
@@ -113,7 +120,7 @@ User.prototype.removeSession = function (sessionId) {
         }
         this.removeHotdeskSession(sessionId);
         delete this.ws[sessionId];
-        this.sessionLength --;
+        this.sessionLength--;
         log.trace('Pear disconnect: %s [%s]', this.id, sessionId);
         return this.sessionLength;
     } else {
@@ -191,7 +198,7 @@ User.prototype.disconnect = function () {
         const ws = this.ws;
         for (let key in ws) {
             if (ws.hasOwnProperty(key)) {
-                ws[key].close();
+                ws[key].terminate();
             }
         }
     } catch (e) {
