@@ -1,7 +1,0 @@
-syntax = "proto3";
-
-package engine;
-
-message Response {
-    string status = 1;
-}

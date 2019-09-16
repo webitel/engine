@@ -38,6 +38,7 @@ func Must(sc StoreChannel) interface{} {
 type Store interface {
 	Session() SessionStore
 	Calendar() CalendarStore
+	Skill() SkillStore
 }
 
 type SessionStore interface {
@@ -57,4 +58,12 @@ type CalendarStore interface {
 	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
 
 	GetAcceptOfDay(calendarId int64) ([]*model.CalendarAcceptOfDay, *model.AppError)
+}
+
+type SkillStore interface {
+	Create(skill *model.Skill) (*model.Skill, *model.AppError)
+	Get(domainId int64, id int64) (*model.Skill, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.Skill, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+	Update(skill *model.Skill) (*model.Skill, *model.AppError)
 }

@@ -34,6 +34,7 @@ const (
 type SqlSupplierOldStores struct {
 	session  store.SessionStore
 	calendar store.CalendarStore
+	skill    store.SkillStore
 }
 
 type SqlSupplier struct {
@@ -59,6 +60,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.oldStores.session = NewSqlSessionStore(supplier)
 	supplier.oldStores.calendar = NewSqlCalendarStore(supplier)
+	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -174,6 +176,10 @@ func (ss *SqlSupplier) Session() store.SessionStore {
 
 func (ss *SqlSupplier) Calendar() store.CalendarStore {
 	return ss.oldStores.calendar
+}
+
+func (ss *SqlSupplier) Skill() store.SkillStore {
+	return ss.oldStores.skill
 }
 
 type typeConverter struct{}

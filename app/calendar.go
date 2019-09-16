@@ -5,6 +5,7 @@ import "github.com/webitel/engine/model"
 func (a *App) GetCalendarsPage(domainId int64, page, perPage int) ([]*model.Calendar, *model.AppError) {
 	return a.Store.Calendar().GetAllPage(domainId, page*perPage, perPage)
 }
+
 func (a *App) CreateCalendar(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
 	return a.Store.Calendar().Create(calendar)
 }

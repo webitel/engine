@@ -44,3 +44,7 @@ func (s *LayeredStore) Session() SessionStore {
 func (s *LayeredStore) Calendar() CalendarStore {
 	return s.DatabaseLayer.Calendar()
 }
+
+func (s *LayeredStore) Skill() SkillStore {
+	return s.DatabaseLayer.Skill()
+}

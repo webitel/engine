@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service SkillApi {
+    rpc Create(Skill) returns (Skill) {}
+    rpc Get(ItemRequest) returns (Skill) {}
+    rpc List(ListReqeust) returns (ListSkill) {}
+    rpc Update(Skill) returns (Skill) {}
+    rpc Remove(ItemRequest) returns (Skill) {}
+}
+
+message Skill {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string description = 4;
+}
+
+message ListSkill {
+    repeated Skill items = 1;
+}

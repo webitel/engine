@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "const.proto";
+
 package engine;
 
 service CalendarApi {
@@ -22,23 +24,6 @@ service CalendarApi {
 }
 
 message RemoveResponse {
-
-}
-
-message Lookup {
-    int64 id = 1;
-    string name = 2;
-}
-
-message ItemRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
-}
-
-message ListReqeust {
-    int64 domain_id = 1;
-    int32 size = 2;
-    int32 page = 3;
 
 }
 
