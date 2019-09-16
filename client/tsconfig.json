@@ -15,6 +15,7 @@
     "experimentalDecorators": true,
     "target": "es5",
     "noImplicitReturns": true,
+    "esModuleInterop": true,
     "noFallthroughCasesInSwitch": true,
     "lib": [
       "es2017",

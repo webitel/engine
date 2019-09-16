@@ -1,10 +1,12 @@
 
-import JsSIP from 'jssip'
+// import JsSIP from 'jssip'
+
+declare var jssip:any;
 
 export class SipPhone {
     private ua :any;
     constructor() {
-        var socket = new JsSIP.WebSocketInterface('wss://dev.webitel.com'); //'wss://dev.webitel.com'
+        var socket = new jssip.WebSocketInterface('wss://dev.webitel.com'); //'wss://dev.webitel.com'
         var configuration = {
             sockets  : [ socket ],
             registrar_server: "sip:sip1.webitel.com",
@@ -20,20 +22,20 @@ export class SipPhone {
             debug: true
         };
 
-        var ua = this.ua = new JsSIP.UA(configuration);
+        var ua = this.ua = new jssip.UA(configuration);
 
-        ua.on('connected', (e) => {
+        ua.on('connected', (e : any) => {
             console.error('connected', e);
         });
 
-        ua.on('newRTCSession', (e) => {
+        ua.on('newRTCSession', (e : any) => {
             console.error('newRTCSession', e);
         });
-        ua.on('disconnected', (e) => {
+        ua.on('disconnected', (e : any) => {
             console.error('disconnected', e);
         });
 
-        ua.on('registered', (e) => {
+        ua.on('registered', (e : any) => {
 
             console.error('registered', e);
 
@@ -42,11 +44,11 @@ export class SipPhone {
             }, 2000)
         });
 
-        ua.on('unregistered', (e) => {
+        ua.on('unregistered', (e : any) => {
             console.error('unregistered', e);
         });
 
-        ua.on('registrationFailed', (e) => {
+        ua.on('registrationFailed', (e : any) => {
             console.error('registrationFailed', e);
         });
 
@@ -55,8 +57,8 @@ export class SipPhone {
     }
     makeCall() {
         var session = null as any;
-        var selfView =   document.getElementById('a1') as Object;
-        var remoteView =  document.getElementById('a2') as Object;
+        var selfView =   document.getElementById('a1') as HTMLVideoElement;
+        var remoteView =  document.getElementById('a2') as HTMLVideoElement;
 
 
         var eventHandlers = {
@@ -64,14 +66,14 @@ export class SipPhone {
             'failed':     function(){ /* Your code here */ },
             'confirmed':  function(){
                 // Attach local stream to selfView
-                selfView.srcObject = session.connection.getLocalStreams()[0]; //window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
+                selfView.srcObject = session.connection.getLocalStreams()[0] ; //window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
                 selfView.play()
             },
-            'addstream':  function() {
+            'addstream':  function(e : any) {
                 var stream = e.stream;
                 debugger
                 // Attach remote stream to remoteView
-                remoteView.srcObject = window.URL.createObjectURL(stream);
+                remoteView.src = window.URL.createObjectURL(stream) ;
                 remoteView.play()
             },
             'ended':      function(){ /* Your code here */ }
