@@ -136,6 +136,7 @@ func (a *App) HubRegister(webCon *WebConn) {
 		hub.Register(webCon)
 	}
 }
+
 func (a *App) HubUnregister(webConn *WebConn) {
 	if webConn.UserId == 0 {
 		return //TODO user not register

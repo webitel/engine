@@ -34,7 +34,7 @@
     "build": "rm -rf ./dist/ && npm run check-types && webpack --mode production --config ./build/webpack.prod.config.js",
     "build2": "rm -rf ./dist/ && webpack --mode production --config ./build/webpack.prod.config.js",
     "dev": "webpack-dev-server -d --mode development --config ./build/webpack.dev.config.js",
-    "dev-legacy-config": "webpack-dev-server --mode development --config webpack.config.js",
+    "dev-legacy-config": "webpack-dev-server --mode development --config ./build/webpack.config.js",
     "check-types": "tsc"
   },
   "author": "Igor",

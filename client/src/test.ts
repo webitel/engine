@@ -2,7 +2,7 @@ import {Client} from './client'
 
 const cli = new Client({
     endpoint: "http://10.10.10.25:10025",
-    token: "MY_TOKEN"
+    token: "USER_TOKEN"
 });
 
 

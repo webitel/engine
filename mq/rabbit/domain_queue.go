@@ -192,7 +192,11 @@ func (dq *DomainQueue) connect() error {
 
 	dq.rebindingUsers()
 
-	go dq.Listen()
+	go func() {
+		if err := dq.Listen(); err != nil {
+			wlog.Error(fmt.Sprintf("DomainQueue [%d] error: %s", dq.Id(), err.Error()))
+		}
+	}()
 
 	return nil
 }

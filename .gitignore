@@ -2,3 +2,4 @@
 /bin/
 /client/node_modules/
 /client/.idea/
+!/client/src/*.ts

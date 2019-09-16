@@ -32,7 +32,7 @@ export class Socket extends EventEmitter<ISocketEvents> {
     }
 
     public connect(token: string) {
-        this.socket = new WebSocket(`${formatWebSocketUri(this.host)}/${SOCKET_URL_SUFFIX}?token=${token}`);
+        this.socket = new WebSocket(`${formatWebSocketUri(this.host)}/${SOCKET_URL_SUFFIX}?access_token=${token}`);
 
         this.socket.onclose = e => this.onClose(e.code);
 

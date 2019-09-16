@@ -199,6 +199,7 @@ func (webCon *WebConn) SendHello() {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO)
 	msg.Add("server_version", model.CurrentVersion)
 	msg.Add("server_time", model.GetMillis())
+	msg.Add("session", webCon.GetSession())
 	webCon.Send <- msg
 }
 

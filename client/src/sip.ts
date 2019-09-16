@@ -54,27 +54,27 @@ export class SipPhone {
 
     }
     makeCall() {
-        var session = null;
-        var selfView =   document.getElementById('a1');
-        var remoteView =  document.getElementById('a2');
+        var session = null as any;
+        var selfView =   document.getElementById('a1') as Object;
+        var remoteView =  document.getElementById('a2') as Object;
 
 
         var eventHandlers = {
-            'progress':   function(e){ /* Your code here */ },
-            'failed':     function(e){ /* Your code here */ },
-            'confirmed':  function(e){
+            'progress':   function(){ /* Your code here */ },
+            'failed':     function(){ /* Your code here */ },
+            'confirmed':  function(){
                 // Attach local stream to selfView
                 selfView.srcObject = session.connection.getLocalStreams()[0]; //window.URL.createObjectURL(session.connection.getLocalStreams()[0]);
                 selfView.play()
             },
-            'addstream':  function(e) {
+            'addstream':  function() {
                 var stream = e.stream;
                 debugger
                 // Attach remote stream to remoteView
                 remoteView.srcObject = window.URL.createObjectURL(stream);
                 remoteView.play()
             },
-            'ended':      function(e){ /* Your code here */ }
+            'ended':      function(){ /* Your code here */ }
         };
 
         var options = {

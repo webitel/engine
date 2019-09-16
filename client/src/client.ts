@@ -29,7 +29,7 @@ export class Client {
 
     constructor(protected readonly _config : IConfig) {
         this.log = new Log();
-        new SipPhone();
+        //new SipPhone();
     }
 
     public async connect() {
