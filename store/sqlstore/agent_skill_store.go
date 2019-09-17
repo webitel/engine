@@ -85,7 +85,8 @@ func (s SqlSkillStore) Update(skill *model.Skill) (*model.Skill, *model.AppError
 		"DomainId":    skill.DomainId,
 	})
 	if err != nil {
-		panic(err.Error())
+		return nil, model.NewAppError("SqlSkillStore.Update", "store.sql_skill.update.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", skill.Id, err.Error()), http.StatusInternalServerError)
 	}
 	return skill, nil
 }

@@ -20,7 +20,7 @@ type Lookup struct {
 func (m *Lookup) Reset()                    { *m = Lookup{} }
 func (m *Lookup) String() string            { return proto.CompactTextString(m) }
 func (*Lookup) ProtoMessage()               {}
-func (*Lookup) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (*Lookup) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
 func (m *Lookup) GetId() int64 {
 	if m != nil {
@@ -45,7 +45,7 @@ type ListReqeust struct {
 func (m *ListReqeust) Reset()                    { *m = ListReqeust{} }
 func (m *ListReqeust) String() string            { return proto.CompactTextString(m) }
 func (*ListReqeust) ProtoMessage()               {}
-func (*ListReqeust) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{1} }
+func (*ListReqeust) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{1} }
 
 func (m *ListReqeust) GetDomainId() int64 {
 	if m != nil {
@@ -76,7 +76,7 @@ type ItemRequest struct {
 func (m *ItemRequest) Reset()                    { *m = ItemRequest{} }
 func (m *ItemRequest) String() string            { return proto.CompactTextString(m) }
 func (*ItemRequest) ProtoMessage()               {}
-func (*ItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{2} }
+func (*ItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{2} }
 
 func (m *ItemRequest) GetDomainId() int64 {
 	if m != nil {
@@ -99,7 +99,7 @@ type Response struct {
 func (m *Response) Reset()                    { *m = Response{} }
 func (m *Response) String() string            { return proto.CompactTextString(m) }
 func (*Response) ProtoMessage()               {}
-func (*Response) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{3} }
+func (*Response) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{3} }
 
 func (m *Response) GetStatus() string {
 	if m != nil {
@@ -115,9 +115,9 @@ func init() {
 	proto.RegisterType((*Response)(nil), "engine.Response")
 }
 
-func init() { proto.RegisterFile("const.proto", fileDescriptor1) }
+func init() { proto.RegisterFile("const.proto", fileDescriptor2) }
 
-var fileDescriptor1 = []byte{
+var fileDescriptor2 = []byte{
 	// 190 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x8f, 0xb1, 0x6a, 0xc3, 0x30,
 	0x10, 0x86, 0xb1, 0xdc, 0x0a, 0xfb, 0x0c, 0x1d, 0x34, 0x14, 0x43, 0x17, 0xa3, 0xc9, 0x43, 0xe9,

@@ -2,6 +2,7 @@ package model
 
 const (
 	PERMISSION_SCOPE_CALENDAR = "calendars"
+	PERMISSION_SCOPE_CC_TEAM  = "cc_team"
 )
 
 type PermissionAccess uint32
@@ -16,6 +17,7 @@ const (
 func (p PermissionAccess) Value() uint32 {
 	return [...]uint32{8, 4, 2, 1}[p]
 }
+
 func (p PermissionAccess) Name() string {
 	return [...]string{"create", "read", "update", "delete"}[p]
 }

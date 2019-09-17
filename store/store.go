@@ -39,6 +39,7 @@ type Store interface {
 	Session() SessionStore
 	Calendar() CalendarStore
 	Skill() SkillStore
+	AgentTeam() AgentTeamStore
 }
 
 type SessionStore interface {
@@ -66,4 +67,15 @@ type SkillStore interface {
 	GetAllPage(domainId int64, offset, limit int) ([]*model.Skill, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 	Update(skill *model.Skill) (*model.Skill, *model.AppError)
+}
+
+type AgentTeamStore interface {
+	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+
+	Create(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.AgentTeam, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.AgentTeam, *model.AppError)
+	Get(domainId int64, id int64) (*model.AgentTeam, *model.AppError)
+	Update(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
 }

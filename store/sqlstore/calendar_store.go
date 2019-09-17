@@ -178,7 +178,8 @@ where id = :Id returning *`, map[string]interface{}{
 		"Id":          calendar.Id,
 	})
 	if err != nil {
-		panic(err.Error())
+		return nil, model.NewAppError("SqlCalendarStore.Update", "store.sql_calendar.update.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), http.StatusInternalServerError)
 	}
 	return calendar, nil
 }

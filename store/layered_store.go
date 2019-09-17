@@ -48,3 +48,7 @@ func (s *LayeredStore) Calendar() CalendarStore {
 func (s *LayeredStore) Skill() SkillStore {
 	return s.DatabaseLayer.Skill()
 }
+
+func (s *LayeredStore) AgentTeam() AgentTeamStore {
+	return s.DatabaseLayer.AgentTeam()
+}

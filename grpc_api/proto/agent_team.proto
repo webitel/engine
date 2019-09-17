@@ -1,0 +1,33 @@
+
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service AgentTeamApi {
+    rpc Create(AgentTeam) returns (AgentTeam) {}
+    rpc Get(ItemRequest) returns (AgentTeam) {}
+    rpc List(ListReqeust) returns (ListAgentTeam) {}
+    rpc Update(AgentTeam) returns (AgentTeam) {}
+    rpc Remove(ItemRequest) returns (AgentTeam) {}
+}
+
+message AgentTeam {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string description = 4;
+    string strategy = 5;
+    int32 max_no_answer = 6;
+    int32 wrap_up_time = 7;
+    int32 reject_delay_time = 8;
+    int32 busy_delay_time = 9;
+    int32 no_answer_delay_time = 10;
+    int32 call_timeout = 11;
+    int64 updated_at = 12;
+}
+
+message ListAgentTeam {
+    repeated AgentTeam items = 1;
+}

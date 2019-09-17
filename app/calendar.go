@@ -22,9 +22,12 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	oldCalendar.Finish = calendar.Finish
 	oldCalendar.Start = calendar.Start
 
-	a.Store.Calendar().Update(oldCalendar)
+	oldCalendar, err = a.Store.Calendar().Update(oldCalendar)
+	if err != nil {
+		return nil, err
+	}
 
-	return oldCalendar, nil //TODO
+	return oldCalendar, nil
 }
 
 func (a *App) CalendarCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
