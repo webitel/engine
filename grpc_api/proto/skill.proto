@@ -7,7 +7,7 @@ package engine;
 service SkillApi {
     rpc Create(Skill) returns (Skill) {}
     rpc Get(ItemRequest) returns (Skill) {}
-    rpc List(ListReqeust) returns (ListSkill) {}
+    rpc List(ListRequest) returns (ListSkill) {}
     rpc Update(Skill) returns (Skill) {}
     rpc Remove(ItemRequest) returns (Skill) {}
 }

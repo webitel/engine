@@ -8,7 +8,7 @@ service CalendarApi {
     // - POST /calendar
     rpc Create(Calendar) returns (Calendar) {}
     // -GET /calendar
-    rpc List(ListReqeust) returns (ListCalendar) {}
+    rpc List(ListRequest) returns (ListCalendar) {}
     // -GET /calendar/:id
     rpc Get(ItemRequest) returns (Calendar) {}
     // -PUT /calendar/:id
@@ -17,9 +17,9 @@ service CalendarApi {
     rpc Remove(ItemRequest) returns (Calendar) {}
 
     // -GET /calendar/timezones
-    rpc GetTimezones(ListReqeust) returns (ListTimezoneResponse) {}
+    rpc GetTimezones(ListRequest) returns (ListTimezoneResponse) {}
 
-    //
+    // -GET /calendar/:id/accept
     rpc GetAcceptOfDay(AcceptOfDayReqeust) returns (ListAcceptOfDay) {}
 }
 

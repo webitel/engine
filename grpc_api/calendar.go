@@ -49,7 +49,7 @@ func (api *calendar) Create(ctx context.Context, in *engine.Calendar) (*engine.C
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) List(ctx context.Context, in *engine.ListReqeust) (*engine.ListCalendar, error) {
+func (api *calendar) List(ctx context.Context, in *engine.ListRequest) (*engine.ListCalendar, error) {
 
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -64,9 +64,9 @@ func (api *calendar) List(ctx context.Context, in *engine.ListReqeust) (*engine.
 	var list []*model.Calendar
 
 	if permission.Rbac {
-		list, err = api.app.GetCalendarPageByGroups(session.Domain(int64(in.DomainId)), session.RoleIds, int(in.Page), int(in.Size))
+		list, err = api.app.GetCalendarPageByGroups(session.Domain(in.DomainId), session.RoleIds, int(in.Page), int(in.Size))
 	} else {
-		list, err = api.app.GetCalendarsPage(session.Domain(int64(in.DomainId)), int(in.Page), int(in.Size))
+		list, err = api.app.GetCalendarsPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
 	}
 
 	if err != nil {
@@ -187,7 +187,7 @@ func (api *calendar) Remove(ctx context.Context, in *engine.ItemRequest) (*engin
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) GetTimezones(ctx context.Context, in *engine.ListReqeust) (*engine.ListTimezoneResponse, error) {
+func (api *calendar) GetTimezones(ctx context.Context, in *engine.ListRequest) (*engine.ListTimezoneResponse, error) {
 	list, err := api.app.GetCalendarTimezoneAllPage(int(in.Page), int(in.Size))
 	if err != nil {
 		return nil, err

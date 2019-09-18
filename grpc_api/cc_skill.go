@@ -40,7 +40,7 @@ func (api *skill) Create(ctx context.Context, in *engine.Skill) (*engine.Skill, 
 	return transformSkill(skill), nil
 }
 
-func (api *skill) List(ctx context.Context, in *engine.ListReqeust) (*engine.ListSkill, error) {
+func (api *skill) List(ctx context.Context, in *engine.ListRequest) (*engine.ListSkill, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

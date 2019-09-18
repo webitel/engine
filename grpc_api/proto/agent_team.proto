@@ -8,7 +8,7 @@ package engine;
 service AgentTeamApi {
     rpc Create(AgentTeam) returns (AgentTeam) {}
     rpc Get(ItemRequest) returns (AgentTeam) {}
-    rpc List(ListReqeust) returns (ListAgentTeam) {}
+    rpc List(ListRequest) returns (ListAgentTeam) {}
     rpc Update(AgentTeam) returns (AgentTeam) {}
     rpc Remove(ItemRequest) returns (AgentTeam) {}
 }

@@ -14,9 +14,9 @@ var (
 		Token:    "",
 		Scopes: []SessionPermission{
 			{
-				Id:     0,
-				Name:   "test",
-				Abac:   false,
+				Id:   0,
+				Name: "test",
+				//Abac:   false,
 				Obac:   true,
 				Rbac:   false,
 				Access: PERMISSION_ACCESS_READ.Value() | PERMISSION_ACCESS_CREATE.Value(),

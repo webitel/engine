@@ -44,4 +44,9 @@ func testGetSession(t *testing.T, token string, am AuthManager) {
 		t.Errorf("bad session \"%s\": %v", token, err.Error())
 		return
 	}
+
+	if session.Token != TOKEN {
+		t.Errorf("bad session \"%s\": %v", token, session.Token)
+		return
+	}
 }

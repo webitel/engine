@@ -52,7 +52,7 @@ func (api *agentTeam) Create(ctx context.Context, in *engine.AgentTeam) (*engine
 	return transformAgentTeam(team), nil
 }
 
-func (api *agentTeam) List(ctx context.Context, in *engine.ListReqeust) (*engine.ListAgentTeam, error) {
+func (api *agentTeam) List(ctx context.Context, in *engine.ListRequest) (*engine.ListAgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

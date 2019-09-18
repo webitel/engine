@@ -36,14 +36,10 @@ func Must(sc StoreChannel) interface{} {
 }
 
 type Store interface {
-	Session() SessionStore
 	Calendar() CalendarStore
 	Skill() SkillStore
 	AgentTeam() AgentTeamStore
-}
-
-type SessionStore interface {
-	Get(sessionIdOrToken string) StoreChannel
+	Agent() AgentStore
 }
 
 type CalendarStore interface {
@@ -78,4 +74,16 @@ type AgentTeamStore interface {
 	Get(domainId int64, id int64) (*model.AgentTeam, *model.AppError)
 	Update(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+}
+
+type AgentStore interface {
+	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+
+	Create(agent *model.Agent) (*model.Agent, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.Agent, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Agent, *model.AppError)
+	Get(domainId int64, id int64) (*model.Agent, *model.AppError)
+	Update(agent *model.Agent) (*model.Agent, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+	SetStatus(domainId, agentId int64, status string, payload interface{}) (bool, *model.AppError)
 }

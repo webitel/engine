@@ -37,10 +37,6 @@ func (s *LayeredStore) RunQuery(queryFunction QueryFunction) StoreChannel {
 	return storeChannel
 }
 
-func (s *LayeredStore) Session() SessionStore {
-	return s.DatabaseLayer.Session()
-}
-
 func (s *LayeredStore) Calendar() CalendarStore {
 	return s.DatabaseLayer.Calendar()
 }
@@ -51,4 +47,8 @@ func (s *LayeredStore) Skill() SkillStore {
 
 func (s *LayeredStore) AgentTeam() AgentTeamStore {
 	return s.DatabaseLayer.AgentTeam()
+}
+
+func (s *LayeredStore) Agent() AgentStore {
+	return s.DatabaseLayer.Agent()
 }

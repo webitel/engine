@@ -21,11 +21,12 @@ const (
 	STATUS_FAIL = "FAIL"
 
 	HEADER_REQUEST_ID = "X-Request-ID"
-	HEADER_TOKEN      = "X-Access-Token"
-	HEADER_BEARER     = "BEARER"
-	HEADER_AUTH       = "Authorization"
-	HEADER_FORWARDED  = "X-Forwarded-For"
-	HEADER_REAL_IP    = "X-Real-IP"
+	//HEADER_TOKEN      = "X-Access-Token"
+	HEADER_TOKEN     = "X-Webitel-Access"
+	HEADER_BEARER    = "BEARER"
+	HEADER_AUTH      = "Authorization"
+	HEADER_FORWARDED = "X-Forwarded-For"
+	HEADER_REAL_IP   = "X-Real-IP"
 )
 
 type ListResponse struct {

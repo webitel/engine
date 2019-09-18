@@ -64,7 +64,7 @@ func (rl *RecoveryLogger) Println(i ...interface{}) {
 }
 
 func (a *App) StartServer() error {
-	wlog.Info("starting Server...")
+	wlog.Info("starting server...")
 	var handler http.Handler = &CorsWrapper{a.Srv.RootRouter}
 
 	a.Srv.Server = &http.Server{

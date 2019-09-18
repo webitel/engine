@@ -178,8 +178,15 @@ where id = :Id returning *`, map[string]interface{}{
 		"Id":          calendar.Id,
 	})
 	if err != nil {
+		code := http.StatusInternalServerError
+		switch err.(type) {
+		case *pq.Error:
+			if err.(*pq.Error).Code == ForeignKeyViolationErrorCode {
+				code = http.StatusBadRequest
+			}
+		}
 		return nil, model.NewAppError("SqlCalendarStore.Update", "store.sql_calendar.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), http.StatusInternalServerError)
+			fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), code)
 	}
 	return calendar, nil
 }

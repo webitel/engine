@@ -32,10 +32,10 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	session   store.SessionStore
 	calendar  store.CalendarStore
 	skill     store.SkillStore
 	agentTeam store.AgentTeamStore
+	agent     store.AgentStore
 }
 
 type SqlSupplier struct {
@@ -59,10 +59,10 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.initConnection()
 
-	supplier.oldStores.session = NewSqlSessionStore(supplier)
 	supplier.oldStores.calendar = NewSqlCalendarStore(supplier)
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
+	supplier.oldStores.agent = NewSqlAgentStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -172,10 +172,6 @@ func (ss *SqlSupplier) DriverName() string {
 	return *ss.settings.DriverName
 }
 
-func (ss *SqlSupplier) Session() store.SessionStore {
-	return ss.oldStores.session
-}
-
 func (ss *SqlSupplier) Calendar() store.CalendarStore {
 	return ss.oldStores.calendar
 }
@@ -186,6 +182,10 @@ func (ss *SqlSupplier) Skill() store.SkillStore {
 
 func (ss *SqlSupplier) AgentTeam() store.AgentTeamStore {
 	return ss.oldStores.agentTeam
+}
+
+func (ss *SqlSupplier) Agent() store.AgentStore {
+	return ss.oldStores.agent
 }
 
 type typeConverter struct{}

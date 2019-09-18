@@ -11,6 +11,7 @@ type API struct {
 	calendar  *calendar
 	skill     *skill
 	agentTeam *agentTeam
+	agent     *agent
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -18,8 +19,10 @@ func Init(a *app.App, server *grpc.Server) {
 	api.calendar = NewCalendarApi(a)
 	api.skill = NewSkillApi(a)
 	api.agentTeam = NewAgentTeamApi(a)
+	api.agent = NewAgentApi(a)
 
 	engine.RegisterCalendarApiServer(server, api.calendar)
 	engine.RegisterSkillApiServer(server, api.skill)
 	engine.RegisterAgentTeamApiServer(server, api.agentTeam)
+	engine.RegisterAgentApiServer(server, api.agent)
 }

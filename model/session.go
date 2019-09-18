@@ -18,9 +18,9 @@ type AuthClient interface {
 }
 
 type SessionPermission struct {
-	Id     int    `json:"id"`
-	Name   string `json:"name"`
-	Abac   bool   `json:"abac"`
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	//Abac   bool   `json:"abac"`
 	Obac   bool   `json:"obac"`
 	Rbac   bool   `json:"rbac"`
 	Access uint32 `json:"access"`
@@ -33,8 +33,8 @@ type Session struct {
 	UserId   int64  `json:"user_id"`
 	RoleIds  []int  `json:"role_ids"`
 
-	Token  string `json:"token"`
-	Scopes []SessionPermission
+	Token  string              `json:"token"`
+	Scopes []SessionPermission `json:"scopes"`
 }
 
 func (s *Session) Domain(def int64) int64 {
@@ -43,9 +43,9 @@ func (s *Session) Domain(def int64) int64 {
 
 func NotAllowPermission(name string) SessionPermission {
 	return SessionPermission{
-		Id:     0,
-		Name:   name,
-		Abac:   true,
+		Id:   0,
+		Name: name,
+		//Abac:   true,
 		Obac:   true,
 		Rbac:   true,
 		Access: 0,
@@ -106,9 +106,19 @@ func (self *Session) IsValid() *AppError {
 	if len(self.Id) < 1 {
 		return NewAppError("Session.IsValid", "model.session.is_valid.id.app_error", self.Trace(), "", http.StatusBadRequest)
 	}
+	if self.UserId < 1 {
+		return NewAppError("Session.IsValid", "model.session.is_valid.user_id.app_error", self.Trace(), "", http.StatusBadRequest)
+	}
+	if len(self.Token) < 1 {
+		return NewAppError("Session.IsValid", "model.session.is_valid.token.app_error", self.Trace(), "", http.StatusBadRequest)
+	}
 
 	if self.DomainId < 1 {
 		return NewAppError("Session.IsValid", "model.session.is_valid.domain_id.app_error", self.Trace(), "", http.StatusBadRequest)
+	}
+
+	if len(self.RoleIds) < 1 {
+		return NewAppError("Session.IsValid", "model.session.is_valid.role_ids.app_error", self.Trace(), "", http.StatusBadRequest)
 	}
 
 	//TODO

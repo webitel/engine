@@ -83,7 +83,7 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
 	dq.channel.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
 		"x-sock-id": bind.Id,
 	})
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind %s %s", dq.Id(), bind.Exchange, bind.Routing))
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s to call events", dq.Id(), bind.UserId, bind.Id))
 	//TODO check error
 	return nil
 }
@@ -101,8 +101,6 @@ func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) *model.AppError {
 }
 
 func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] bind userId=%d to call events", dq.Id(), b.UserId))
-
 	err := dq.channel.QueueBind(
 		dq.queue.Name,
 		b.Routing,
@@ -112,7 +110,9 @@ func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
 			"x-sock-id": b.Id,
 		})
 	if err != nil {
-		//TODO
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to call events: %s", dq.Id(), b.UserId, b.Id, err.Error()))
+	} else {
+		wlog.Debug(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to call events", dq.Id(), b.UserId, b.Id))
 	}
 }
 

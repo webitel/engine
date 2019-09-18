@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service AgentApi {
+    rpc Create(Agent) returns (Agent) {}
+    rpc List(ListRequest) returns (ListAgent) {}
+    rpc Get(ItemRequest) returns (Agent) {}
+    rpc Update(Agent) returns (Agent) {}
+    rpc Remove(ItemRequest) returns (Agent) {}
+
+    rpc UpdateStatus(AgentStatusRequest) returns (Response) {}
+}
+
+message AgentStatusRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+
+    enum Status {
+        ONLINE = 0;
+        OFFLINE = 1;
+        PAUSE = 2;
+    }
+
+    string status = 3; //FIXME enumerate
+}
+
+message Agent {
+    int64 id = 1;
+    int64 domain_id = 2;
+    Lookup user = 3;
+    string status = 4;
+    string state = 5;
+    string description = 7;
+}
+
+message ListAgent {
+    repeated Agent items = 1;
+}

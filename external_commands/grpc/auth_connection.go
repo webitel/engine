@@ -92,9 +92,9 @@ func transformScopes(src []*auth.AccessScope) []model.SessionPermission {
 	dst := make([]model.SessionPermission, 0, len(src))
 	for _, v := range src {
 		dst = append(dst, model.SessionPermission{
-			Id:     int(v.Id),
-			Name:   v.Class,
-			Abac:   v.Abac,
+			Id:   int(v.Id),
+			Name: v.Class,
+			//Abac:   v.Abac,
 			Obac:   v.Obac,
 			Rbac:   v.Rbac,
 			Access: v.Access,
