@@ -6,10 +6,15 @@ import "const.proto";
 package engine;
 
 service AgentTeamApi {
+    // POST /call_center/agent_team
     rpc Create(AgentTeam) returns (AgentTeam) {}
-    rpc Get(ItemRequest) returns (AgentTeam) {}
+    // GET /call_center/agent_team
     rpc List(ListRequest) returns (ListAgentTeam) {}
+    // GET /call_center/agent_team/:ID
+    rpc Get(ItemRequest) returns (AgentTeam) {}
+    // PUT /call_center/agent_team/:ID
     rpc Update(AgentTeam) returns (AgentTeam) {}
+    // DELETE /call_center/agent_team/:ID
     rpc Remove(ItemRequest) returns (AgentTeam) {}
 }
 

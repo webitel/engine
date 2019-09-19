@@ -5,13 +5,27 @@ import "const.proto";
 package engine;
 
 service AgentApi {
+    // POST /call_center/agent
     rpc Create(Agent) returns (Agent) {}
+    // GET /call_center/agent
     rpc List(ListRequest) returns (ListAgent) {}
+    // GET /call_center/agent/:ID
     rpc Get(ItemRequest) returns (Agent) {}
+    // PUT /call_center/agent/:ID
     rpc Update(Agent) returns (Agent) {}
+    // DELETE /call_center/agent/:ID
     rpc Remove(ItemRequest) returns (Agent) {}
-
+    // PATCH /call_center/agent/:ID/status
     rpc UpdateStatus(AgentStatusRequest) returns (Response) {}
+
+//    rpc AddSkill(SkillAgent) returns (SkillAgent) {}
+}
+
+message SkillAgent {
+    int64 id = 1;
+    Lookup skill = 2;
+    Lookup agent = 3;
+    int32 capacity = 4;
 }
 
 message AgentStatusRequest {

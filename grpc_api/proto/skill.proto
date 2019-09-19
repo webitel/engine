@@ -5,10 +5,15 @@ import "const.proto";
 package engine;
 
 service SkillApi {
+    // POST /call_center/skill
     rpc Create(Skill) returns (Skill) {}
-    rpc Get(ItemRequest) returns (Skill) {}
+    // GET /call_center/skill
     rpc List(ListRequest) returns (ListSkill) {}
+    // GET /call_center/skill/:ID
+    rpc Get(ItemRequest) returns (Skill) {}
+    // PUT /call_center/skill/:ID
     rpc Update(Skill) returns (Skill) {}
+    // DELETE /call_center/skill/:ID
     rpc Remove(ItemRequest) returns (Skill) {}
 }
 

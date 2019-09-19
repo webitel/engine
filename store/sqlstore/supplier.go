@@ -32,10 +32,13 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	calendar  store.CalendarStore
-	skill     store.SkillStore
-	agentTeam store.AgentTeamStore
-	agent     store.AgentStore
+	calendar            store.CalendarStore
+	skill               store.SkillStore
+	agentTeam           store.AgentTeamStore
+	agent               store.AgentStore
+	routingScheme       store.RoutingSchemeStore
+	routingInboundCall  store.RoutingInboundCallStore
+	routingOutboundCall store.RoutingOutboundCallStore
 }
 
 type SqlSupplier struct {
@@ -63,6 +66,9 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
 	supplier.oldStores.agent = NewSqlAgentStore(supplier)
+	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
+	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
+	supplier.oldStores.routingOutboundCall = NewSqlRoutingOutboundCallStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -188,6 +194,18 @@ func (ss *SqlSupplier) Agent() store.AgentStore {
 	return ss.oldStores.agent
 }
 
+func (ss *SqlSupplier) RoutingScheme() store.RoutingSchemeStore {
+	return ss.oldStores.routingScheme
+}
+
+func (ss *SqlSupplier) RoutingInboundCall() store.RoutingInboundCallStore {
+	return ss.oldStores.routingInboundCall
+}
+
+func (ss *SqlSupplier) RoutingOutboundCall() store.RoutingOutboundCallStore {
+	return ss.oldStores.routingOutboundCall
+}
+
 type typeConverter struct{}
 
 func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
@@ -220,6 +238,19 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 			return json.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+
+	case **model.Lookup:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*[]byte)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_lookup"))
+			}
+			if *s == nil {
+				return nil
+			}
+			return json.Unmarshal(*s, target)
+		}
+		return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: binder}, true
 	case *model.StringMap:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
@@ -246,8 +277,15 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 			if !ok {
 				return errors.New(utils.T("store.sql.convert_string_array"))
 			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
+
+			var a pq.StringArray
+
+			if err := a.Scan(*s); err != nil {
+				return err
+			} else {
+				*(target).(*model.StringArray) = model.StringArray(a)
+				return nil
+			}
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringInterface:

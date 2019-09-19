@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service RoutingOutboundCallApi {
+    // POST /routing/outbound_call
+    rpc Create(RoutingOutboundCall) returns (RoutingOutboundCall) {}
+    // GET /routing/outbound_call
+    rpc List(ListRequest) returns (ListRoutingOutboundCall) {}
+    // GET /routing/outbound_call/:ID
+    rpc Get(ItemRequest) returns (RoutingOutboundCall) {}
+    // PUT /routing/outbound_call/:ID
+    rpc Update(RoutingOutboundCall) returns (RoutingOutboundCall) {}
+    // DELETE /routing/outbound_call/:ID
+//    rpc Remove(ItemRequest) returns (RoutingOutboundCall) {}
+}
+
+message RoutingOutboundCall {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+    string name = 7;
+    string description = 8;
+    Lookup start_scheme = 9;
+    Lookup stop_scheme = 10;
+    string pattern = 11;
+    int32 priority = 12;
+    Lookup timezone = 13;
+    bool debug = 14;
+    bool disabled = 15;
+}
+
+message ListRoutingOutboundCall {
+    repeated RoutingOutboundCall items = 1;
+}

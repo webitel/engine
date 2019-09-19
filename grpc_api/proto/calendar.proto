@@ -23,10 +23,6 @@ service CalendarApi {
     rpc GetAcceptOfDay(AcceptOfDayReqeust) returns (ListAcceptOfDay) {}
 }
 
-message RemoveResponse {
-
-}
-
 message ListCalendar {
     repeated Calendar items = 1;
 }

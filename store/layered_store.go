@@ -52,3 +52,15 @@ func (s *LayeredStore) AgentTeam() AgentTeamStore {
 func (s *LayeredStore) Agent() AgentStore {
 	return s.DatabaseLayer.Agent()
 }
+
+func (s *LayeredStore) RoutingScheme() RoutingSchemeStore {
+	return s.DatabaseLayer.RoutingScheme()
+}
+
+func (s *LayeredStore) RoutingInboundCall() RoutingInboundCallStore {
+	return s.DatabaseLayer.RoutingInboundCall()
+}
+
+func (s *LayeredStore) RoutingOutboundCall() RoutingOutboundCallStore {
+	return s.DatabaseLayer.RoutingOutboundCall()
+}
