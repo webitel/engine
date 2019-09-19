@@ -61,6 +61,7 @@ function Handler(wss, application) {
     wss.on('connection', function(ws, req) {
 
         const ipAddr = getIp(req);
+        ws.ipAddr = ipAddr;
         const sessionId = generateUuid.v4();
 
         log.trace(`Receive new connection from IP: ${ipAddr} Origin: ${req.headers.origin} Agent: ${req.headers['user-agent']}`);

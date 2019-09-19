@@ -115,7 +115,8 @@ function getSockets(caller, execId, args, ws) {
     for (let key in application.Users.collection) {
         res.push({
             id: key,
-            sockets: application.Users.collection[key].sessionLength
+            sockets: application.Users.collection[key].sessionLength,
+            ips: application.Users.collection[key].getSessionIps()
         })
     }
 

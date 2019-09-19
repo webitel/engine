@@ -132,6 +132,16 @@ User.prototype.getSessionLength = function () {
    return this.sessionLength;
 };
 
+User.prototype.getSessionIps = function () {
+    const ips = [];
+    for (let key in this.ws) {
+        if (this.ws[key]) {
+            ips.push(this.ws[key].ipAddr)
+        }
+    }
+    return ips
+};
+
 User.prototype.sendSessionObject = function (obj, sessionId) {
     if (!obj || !sessionId || !this.ws[sessionId]) {
         return false;
