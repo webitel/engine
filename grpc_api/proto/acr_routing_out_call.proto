@@ -29,8 +29,7 @@ message RoutingOutboundCall {
     Lookup scheme = 9;
     string pattern = 10;
     int32 priority = 11;
-    bool debug = 12;
-    bool disabled = 13;
+    bool disabled = 12;
 }
 
 message ListRoutingOutboundCall {

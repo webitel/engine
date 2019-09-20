@@ -42,6 +42,7 @@ func (api *routingScheme) Create(ctx context.Context, in *engine.RoutingScheme) 
 		},
 		Name:        in.Name,
 		Type:        int8(in.Type),
+		Debug:       in.Debug,
 		Scheme:      []byte("{}"),
 		Payload:     []byte("{}"),
 		Description: in.Description, //TODO
@@ -131,6 +132,7 @@ func (api *routingScheme) Update(ctx context.Context, in *engine.RoutingScheme) 
 		},
 		Name:        in.Name,
 		Type:        int8(in.Type),
+		Debug:       in.Debug,
 		Scheme:      nil,
 		Payload:     nil,
 		Description: in.Description,
@@ -180,6 +182,7 @@ func transformRoutingScheme(src *model.RoutingScheme) *engine.RoutingScheme {
 		Description: src.Description,
 		Name:        src.Name,
 		Type:        int32(src.Type),
+		Debug:       src.Debug,
 		Scheme: &google_protobuf.Any{
 			TypeUrl: "json",
 			Value:   src.Scheme,

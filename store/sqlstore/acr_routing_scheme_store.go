@@ -21,12 +21,12 @@ func NewSqlRoutingSchemeStore(sqlStore SqlStore) store.RoutingSchemeStore {
 func (s SqlRoutingSchemeStore) Create(scheme *model.RoutingScheme) (*model.RoutingScheme, *model.AppError) {
 	var out *model.RoutingScheme
 	if err := s.GetMaster().SelectOne(&out, `with s as (
-    insert into acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by)
-    values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+    insert into acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug)
+    values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug)
     returning *
 )
 select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
-    s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload
+    s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
 from s
     left join wbt_user c on c.id = s.created_by
     left join wbt_user u on u.id = s.updated_by`,
@@ -40,6 +40,7 @@ from s
 			"CreatedBy": scheme.CreatedBy.Id,
 			"UpdatedAt": scheme.UpdatedAt,
 			"UpdatedBy": scheme.UpdatedBy.Id,
+			"Debug":     scheme.Debug,
 		}); err != nil {
 		return nil, model.NewAppError("SqlRoutingSchemeStore.Save", "store.sql_routing_scheme.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", scheme.Name, err.Error()), http.StatusInternalServerError)
@@ -53,7 +54,7 @@ func (s SqlRoutingSchemeStore) GetAllPage(domainId int64, offset, limit int) ([]
 
 	if _, err := s.GetReplica().Select(&schemes,
 		`select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
-    s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
+    s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, debug
 from acr_routing_scheme s
     left join wbt_user c on c.id = s.created_by
     left join wbt_user u on u.id = s.updated_by
@@ -71,7 +72,7 @@ func (s SqlRoutingSchemeStore) Get(domainId int64, id int64) (*model.RoutingSche
 	var rScheme *model.RoutingScheme
 	if err := s.GetReplica().SelectOne(&rScheme, `
 			select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
-		s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload
+		s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
 	from acr_routing_scheme s
 		left join wbt_user c on c.id = s.created_by
 		left join wbt_user u on u.id = s.updated_by
@@ -99,12 +100,13 @@ func (s SqlRoutingSchemeStore) Update(scheme *model.RoutingScheme) (*model.Routi
         type = :Type,
         updated_at = :UpdatedAt,
         updated_by = :UpdatedBy,
-		description = :Description
+		description = :Description,
+		debug = :Debug
     where s.id = :Id and s.domain_id = :Domain
     returning *
 )
 select s.id, s.domain_id, s.description, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
-    s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload
+    s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
 from s
     left join wbt_user c on c.id = s.created_by
     left join wbt_user u on u.id = s.updated_by`, map[string]interface{}{
@@ -117,6 +119,7 @@ from s
 		"Id":          scheme.Id,
 		"Domain":      scheme.DomainId,
 		"Description": scheme.Description,
+		"Debug":       scheme.Debug,
 	})
 	if err != nil {
 		code := http.StatusInternalServerError

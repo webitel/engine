@@ -31,6 +31,7 @@ message RoutingScheme {
     int32 type = 9;
     google.protobuf.Any scheme = 10;
     google.protobuf.Any payload = 11;
+    bool debug = 12;
 }
 
 message ListRoutingScheme {

@@ -25,7 +25,6 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	oldRouting.Pattern = routing.Pattern
 	oldRouting.Priority = routing.Priority
 	oldRouting.Disabled = routing.Disabled
-	oldRouting.Debug = routing.Debug
 	oldRouting.UpdatedAt = routing.UpdatedAt
 
 	if routing.GetSchemeId() != nil {

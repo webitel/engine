@@ -22,7 +22,7 @@ func (a *App) UpdateRoutingScheme(scheme *model.RoutingScheme) (*model.RoutingSc
 
 	oldScheme.Name = scheme.Name
 	oldScheme.Type = scheme.Type
-
+	oldScheme.Debug = scheme.Debug
 	oldScheme.Description = scheme.Description
 
 	oldScheme.UpdatedAt = scheme.UpdatedAt

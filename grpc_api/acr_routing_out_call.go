@@ -45,7 +45,6 @@ func (api *routingOutboundCall) Create(ctx context.Context, in *engine.RoutingOu
 		Scheme: model.Lookup{
 			Id: int(in.GetScheme().GetId()),
 		},
-		Debug:    in.Debug,
 		Disabled: in.Disabled,
 	}
 
@@ -137,7 +136,6 @@ func (api *routingOutboundCall) Update(ctx context.Context, in *engine.RoutingOu
 		},
 		Pattern:  in.Pattern,
 		Priority: int(in.Priority),
-		Debug:    in.Debug,
 		Disabled: in.Disabled,
 	}
 
@@ -192,7 +190,6 @@ func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.Routin
 		Name:        src.Name,
 		Pattern:     src.Pattern,
 		Priority:    int32(src.Priority),
-		Debug:       src.Debug,
 		Disabled:    src.Disabled,
 	}
 

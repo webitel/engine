@@ -22,13 +22,13 @@ func (s SqlRoutingOutboundCallStore) Create(routing *model.RoutingOutboundCall) 
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
     insert into acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
-                                      scheme_id, pattern, priority, debug, disabled)
-	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Priority, :Debug, :Disabled)
+                                      scheme_id, pattern, priority, disabled)
+	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Priority, :Disabled)
 	returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id,c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as scheme,
-	   tmp.pattern, tmp.priority, debug, disabled
+	   tmp.pattern, tmp.priority, disabled
 from tmp
     left join wbt_user c on c.id = tmp.created_by
     left join wbt_user u on u.id = tmp.updated_by
@@ -44,7 +44,6 @@ from tmp
 			"SchemeId":    routing.Scheme.Id,
 			"Pattern":     routing.Pattern,
 			"Priority":    routing.Priority,
-			"Debug":       routing.Debug,
 			"Disabled":    routing.Disabled,
 		})
 
@@ -67,7 +66,7 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, offset, limit in
 
 	if _, err := s.GetReplica().Select(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name)::jsonb as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.pattern, tmp.priority, debug, disabled, cc_get_lookup(arst.id, arst.name) as scheme
+       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.pattern, tmp.priority, disabled, cc_get_lookup(arst.id, arst.name) as scheme
 from acr_routing_outbound_call tmp
 	inner join acr_routing_scheme arst on tmp.scheme_id = arst.id
     left join wbt_user c on c.id = tmp.created_by
@@ -88,7 +87,7 @@ func (s SqlRoutingOutboundCallStore) Get(domainId, id int64) (*model.RoutingOutb
 	if err := s.GetReplica().SelectOne(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as scheme, 
-		tmp.pattern, tmp.priority, debug, disabled
+		tmp.pattern, tmp.priority, disabled
 from acr_routing_outbound_call tmp
     left join wbt_user c on c.id = tmp.created_by
     left join wbt_user u on u.id = tmp.updated_by
@@ -115,14 +114,13 @@ func (s SqlRoutingOutboundCallStore) Update(routing *model.RoutingOutboundCall) 
         scheme_id = :SchemeId,
         pattern = :Pattern,
         priority = :Priority,
-        debug = :Debug,
         disabled = :Disabled
     where r.id = :Id and r.domain_id = :Domain
     returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as scheme, 
-		tmp.pattern, tmp.priority, debug, disabled
+		tmp.pattern, tmp.priority, disabled
 from tmp
     left join wbt_user c on c.id = tmp.created_by
     left join wbt_user u on u.id = tmp.updated_by
@@ -137,7 +135,6 @@ from tmp
 			"SchemeId":    routing.Scheme.Id,
 			"Pattern":     routing.Pattern,
 			"Priority":    routing.Priority,
-			"Debug":       routing.Debug,
 			"Disabled":    routing.Disabled,
 		})
 

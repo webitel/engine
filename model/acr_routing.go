@@ -6,7 +6,8 @@ type RoutingScheme struct {
 	Type        int8   `json:"type" db:"type"`
 	Scheme      []byte `json:"scheme" db:"scheme"`
 	Payload     []byte `json:"payload" db:"payload"`
-	Description string `json:"description"`
+	Description string `json:"description" db:"description"`
+	Debug       bool   `json:"debug" db:"debug"`
 }
 
 func (s *RoutingScheme) IsValid() *AppError {
@@ -53,7 +54,6 @@ type RoutingOutboundCall struct {
 	Scheme      Lookup `json:"scheme" db:"scheme"`
 	Priority    int    `json:"priority" db:"priority"`
 	Pattern     string `json:"pattern" db:"pattern"`
-	Debug       bool   `json:"debug" db:"debug"`
 	Disabled    bool   `json:"disabled" db:"disabled"`
 }
 
