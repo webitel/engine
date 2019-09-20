@@ -48,29 +48,20 @@ func (s *RoutingInboundCall) IsValid() *AppError {
 
 type RoutingOutboundCall struct {
 	DomainRecord
-	Name        string  `json:"name" db:"name"`
-	Description string  `json:"description" db:"description"`
-	StartScheme Lookup  `json:"start_scheme" db:"start_scheme"`
-	StopScheme  *Lookup `json:"stop_scheme" db:"stop_scheme"`
-	Priority    int     `json:"priority" db:"priority"`
-	Pattern     string  `json:"pattern" db:"pattern"`
-	Timezone    Lookup  `json:"timezone" db:"timezone"`
-	Debug       bool    `json:"debug" db:"debug"`
-	Disabled    bool    `json:"disabled" db:"disabled"`
+	Name        string `json:"name" db:"name"`
+	Description string `json:"description" db:"description"`
+	Scheme      Lookup `json:"scheme" db:"scheme"`
+	Priority    int    `json:"priority" db:"priority"`
+	Pattern     string `json:"pattern" db:"pattern"`
+	Debug       bool   `json:"debug" db:"debug"`
+	Disabled    bool   `json:"disabled" db:"disabled"`
 }
 
-func (r *RoutingOutboundCall) GetStopSchemeId() *int {
-	if r.StopScheme == nil {
+func (r *RoutingOutboundCall) GetSchemeId() *int {
+	if r.Scheme.Id == 0 {
 		return nil
 	}
-	return &r.StopScheme.Id
-}
-
-func (r *RoutingOutboundCall) GetStartSchemeId() *int {
-	if r.StartScheme.Id == 0 {
-		return nil
-	}
-	return &r.StartScheme.Id
+	return &r.Scheme.Id
 }
 
 func (s *RoutingOutboundCall) IsValid() *AppError {

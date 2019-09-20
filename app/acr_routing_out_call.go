@@ -26,17 +26,10 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	oldRouting.Priority = routing.Priority
 	oldRouting.Disabled = routing.Disabled
 	oldRouting.Debug = routing.Debug
-	oldRouting.Timezone.Id = routing.Timezone.Id
+	oldRouting.UpdatedAt = routing.UpdatedAt
 
-	if routing.GetStartSchemeId() != nil {
-		oldRouting.StartScheme.Id = routing.StartScheme.Id
-	}
-	if routing.GetStopSchemeId() != nil {
-		oldRouting.StopScheme = &model.Lookup{
-			Id: routing.StopScheme.Id,
-		}
-	} else {
-		oldRouting.StopScheme = nil
+	if routing.GetSchemeId() != nil {
+		oldRouting.Scheme.Id = routing.Scheme.Id
 	}
 
 	oldRouting, err = app.Store.RoutingOutboundCall().Update(oldRouting)

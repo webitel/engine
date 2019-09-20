@@ -42,20 +42,11 @@ func (api *routingOutboundCall) Create(ctx context.Context, in *engine.RoutingOu
 		Description: in.Description,
 		Pattern:     in.Pattern,
 		Priority:    int(in.Priority),
-		Timezone: model.Lookup{
-			Id: int(in.GetTimezone().GetId()),
-		},
-		StartScheme: model.Lookup{
-			Id: int(in.GetStartScheme().GetId()),
+		Scheme: model.Lookup{
+			Id: int(in.GetScheme().GetId()),
 		},
 		Debug:    in.Debug,
 		Disabled: in.Disabled,
-	}
-
-	if in.StopScheme != nil {
-		routing.StopScheme = &model.Lookup{
-			Id: int(in.StopScheme.Id),
-		}
 	}
 
 	if err = routing.IsValid(); err != nil {
@@ -141,22 +132,13 @@ func (api *routingOutboundCall) Update(ctx context.Context, in *engine.RoutingOu
 		},
 		Name:        in.Name,
 		Description: in.Description,
-		StartScheme: model.Lookup{
-			Id: int(in.GetStartScheme().GetId()),
-		},
-		Timezone: model.Lookup{
-			Id: int(in.GetTimezone().GetId()),
+		Scheme: model.Lookup{
+			Id: int(in.GetScheme().GetId()),
 		},
 		Pattern:  in.Pattern,
 		Priority: int(in.Priority),
 		Debug:    in.Debug,
 		Disabled: in.Disabled,
-	}
-
-	if in.StopScheme != nil {
-		routing.StopScheme = &model.Lookup{
-			Id: int(in.StopScheme.Id),
-		}
 	}
 
 	if err = routing.IsValid(); err != nil {
@@ -172,7 +154,7 @@ func (api *routingOutboundCall) Update(ctx context.Context, in *engine.RoutingOu
 	return transformRoutingOutboundCall(routing), nil
 }
 
-func (api *routingOutboundCall) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingInboundCall, error) {
+func (api *routingOutboundCall) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -183,13 +165,13 @@ func (api *routingOutboundCall) Remove(ctx context.Context, in *engine.ItemReque
 		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
 	}
 
-	var routing *model.RoutingInboundCall
-	routing, err = api.app.RemoveRoutingInboundCall(session.Domain(in.DomainId), in.Id)
+	var routing *model.RoutingOutboundCall
+	routing, err = api.app.RemoveRoutingOutboundCall(session.Domain(in.DomainId), in.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return transformRoutingInboundCall(routing), nil
+	return transformRoutingOutboundCall(routing), nil
 }
 
 func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.RoutingOutboundCall {
@@ -210,25 +192,14 @@ func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.Routin
 		Name:        src.Name,
 		Pattern:     src.Pattern,
 		Priority:    int32(src.Priority),
-		Timezone: &engine.Lookup{
-			Id:   int64(src.Timezone.Id),
-			Name: src.Timezone.Name,
-		},
-		Debug:    src.Debug,
-		Disabled: src.Disabled,
+		Debug:       src.Debug,
+		Disabled:    src.Disabled,
 	}
 
-	if src.GetStopSchemeId() != nil {
-		dst.StopScheme = &engine.Lookup{
-			Id:   int64(src.StopScheme.Id),
-			Name: src.StopScheme.Name,
-		}
-	}
-
-	if src.GetStartSchemeId() != nil {
-		dst.StartScheme = &engine.Lookup{
-			Id:   int64(*src.GetStartSchemeId()),
-			Name: src.StartScheme.Name,
+	if src.GetSchemeId() != nil {
+		dst.Scheme = &engine.Lookup{
+			Id:   int64(*src.GetSchemeId()),
+			Name: src.Scheme.Name,
 		}
 	}
 

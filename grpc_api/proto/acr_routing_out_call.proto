@@ -14,7 +14,7 @@ service RoutingOutboundCallApi {
     // PUT /routing/outbound_call/:ID
     rpc Update(RoutingOutboundCall) returns (RoutingOutboundCall) {}
     // DELETE /routing/outbound_call/:ID
-//    rpc Remove(ItemRequest) returns (RoutingOutboundCall) {}
+    rpc Remove(ItemRequest) returns (RoutingOutboundCall) {}
 }
 
 message RoutingOutboundCall {
@@ -26,13 +26,11 @@ message RoutingOutboundCall {
     Lookup updated_by = 6;
     string name = 7;
     string description = 8;
-    Lookup start_scheme = 9;
-    Lookup stop_scheme = 10;
-    string pattern = 11;
-    int32 priority = 12;
-    Lookup timezone = 13;
-    bool debug = 14;
-    bool disabled = 15;
+    Lookup scheme = 9;
+    string pattern = 10;
+    int32 priority = 11;
+    bool debug = 12;
+    bool disabled = 13;
 }
 
 message ListRoutingOutboundCall {
