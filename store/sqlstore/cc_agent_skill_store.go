@@ -28,9 +28,9 @@ select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name
 from tmp
     inner join cc_skill s on s.id = tmp.skill_id
     inner join cc_agent a on a.id = tmp.agent_id
-    inner join wbt_user wu on a.user_id = wu.id
-    left join wbt_user c on c.id = tmp.created_by
-    left join wbt_user u on u.id = tmp.updated_by`,
+    inner join directory.wbt_user wu on a.user_id = wu.id
+    left join directory.wbt_user c on c.id = tmp.created_by
+    left join directory.wbt_user u on u.id = tmp.updated_by`,
 		map[string]interface{}{
 			"SkillId":   in.Skill.Id,
 			"AgentId":   in.Agent.Id,
@@ -54,7 +54,7 @@ func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, offset, limit in
 		`select sa.id, cc_get_lookup(cs.id, cs.name) as skill, cc_get_lookup(ca.id, u.name) as agent, sa.capacity
 from cc_skill_in_agent sa
     inner join cc_agent ca on sa.agent_id = ca.id
-    inner join wbt_user u on u.id = ca.user_id
+    inner join directory.wbt_user u on u.id = ca.user_id
     inner join cc_skill cs on sa.skill_id = cs.id
 where sa.agent_id = :AgentId and ca.domain_id = :DomainId
 order by sa.capacity desc
@@ -75,9 +75,9 @@ func (s SqlAgentSkillStore) GetById(domainId, agentId, id int64) (*model.AgentSk
 from cc_skill_in_agent tmp
     inner join cc_skill s on s.id = tmp.skill_id
     inner join cc_agent a on a.id = tmp.agent_id
-    inner join wbt_user wu on a.user_id = wu.id
-    left join wbt_user c on c.id = tmp.created_by
-    left join wbt_user u on u.id = tmp.updated_by
+    inner join directory.wbt_user wu on a.user_id = wu.id
+    left join directory.wbt_user c on c.id = tmp.created_by
+    left join directory.wbt_user u on u.id = tmp.updated_by
 where tmp.id = :Id and tmp.agent_id = :AgentId and a.domain_id = :DomainId
 `, map[string]interface{}{"DomainId": domainId, "Id": id, "AgentId": agentId}); err != nil {
 		return nil, model.NewAppError("SqlAgentSkillStore.GetAllPage", "store.sql_skill_in_agent.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
@@ -102,9 +102,9 @@ select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name
 from tmp
     inner join cc_skill s on s.id = tmp.skill_id
     inner join cc_agent a on a.id = tmp.agent_id
-    inner join wbt_user wu on a.user_id = wu.id
-    left join wbt_user c on c.id = tmp.created_by
-    left join wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
+    inner join directory.wbt_user wu on a.user_id = wu.id
+    left join directory.wbt_user c on c.id = tmp.created_by
+    left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
 		"UpdatedAt": agentSkill.UpdatedAt,
 		"UpdatedBy": agentSkill.UpdatedBy.Id,
 		"SkillId":   agentSkill.Skill.Id,

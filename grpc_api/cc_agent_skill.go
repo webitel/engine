@@ -98,6 +98,7 @@ func (api *agentSkill) List(ctx context.Context, in *engine.ListForItemRequest) 
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.AgentSkillItem{
+			Id: v.Id,
 			Skill: &engine.Lookup{
 				Id:   int64(v.Skill.Id),
 				Name: v.Skill.Name,

@@ -28,8 +28,8 @@ func (s SqlRoutingSchemeStore) Create(scheme *model.RoutingScheme) (*model.Routi
 select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
     s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
 from s
-    left join wbt_user c on c.id = s.created_by
-    left join wbt_user u on u.id = s.updated_by`,
+    left join directory.wbt_user c on c.id = s.created_by
+    left join directory.wbt_user u on u.id = s.updated_by`,
 		map[string]interface{}{
 			"DomainId":  scheme.DomainId,
 			"Name":      scheme.Name,
@@ -56,8 +56,8 @@ func (s SqlRoutingSchemeStore) GetAllPage(domainId int64, offset, limit int) ([]
 		`select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
     s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, debug
 from acr_routing_scheme s
-    left join wbt_user c on c.id = s.created_by
-    left join wbt_user u on u.id = s.updated_by
+    left join directory.wbt_user c on c.id = s.created_by
+    left join directory.wbt_user u on u.id = s.updated_by
 where s.domain_id = :DomainId
 order by s.id
 limit :Limit
@@ -74,8 +74,8 @@ func (s SqlRoutingSchemeStore) Get(domainId int64, id int64) (*model.RoutingSche
 			select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
 		s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
 	from acr_routing_scheme s
-		left join wbt_user c on c.id = s.created_by
-		left join wbt_user u on u.id = s.updated_by
+		left join directory.wbt_user c on c.id = s.created_by
+		left join directory.wbt_user u on u.id = s.updated_by
 	where s.id = :Id and s.domain_id = :DomainId
 	order by s.id	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
@@ -108,8 +108,8 @@ func (s SqlRoutingSchemeStore) Update(scheme *model.RoutingScheme) (*model.Routi
 select s.id, s.domain_id, s.description, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
     s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
 from s
-    left join wbt_user c on c.id = s.created_by
-    left join wbt_user u on u.id = s.updated_by`, map[string]interface{}{
+    left join directory.wbt_user c on c.id = s.created_by
+    left join directory.wbt_user u on u.id = s.updated_by`, map[string]interface{}{
 		"Name":        scheme.Name,
 		"Scheme":      scheme.Scheme,
 		"Payload":     scheme.Payload,

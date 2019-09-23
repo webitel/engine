@@ -46,7 +46,7 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 		)
 		select i.id, i.status, i.state, i.description, i.domain_id, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from i
-		  inner join wbt_user ct on ct.id = i.user_id`,
+		  inner join directory.wbt_user ct on ct.id = i.user_id`,
 		map[string]interface{}{"UserId": agent.User.Id, "Description": agent.Description,
 			"DomainId": agent.DomainId}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
@@ -62,7 +62,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, offset, limit int) ([]*model.A
 	if _, err := s.GetReplica().Select(&agents,
 		`select a.id, a.status, state, description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
-					inner join wbt_user ct on ct.id = a.user_id
+					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId
 				order by a.id
 			limit :Limit
@@ -79,7 +79,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, offset, 
 	if _, err := s.GetReplica().Select(&agents,
 		`select a.id, a.status, state, description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
-					inner join wbt_user ct on ct.id = a.user_id
+					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and (
 					exists(select 1
 					  from cc_agent_acl acl
@@ -99,7 +99,7 @@ func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppEr
 	if err := s.GetReplica().SelectOne(&agent, `
 			select a.id, a.status, state, domain_id, description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
-					inner join wbt_user ct on ct.id = a.user_id
+					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and a.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
@@ -124,7 +124,7 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 		)
 		select u.id, u.status, u.state, u.domain_id, u.description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from u
-			inner join wbt_user ct on ct.id = u.user_id
+			inner join directory.wbt_user ct on ct.id = u.user_id
 		order by id`, map[string]interface{}{
 		"UserId":      agent.User.Id,
 		"Description": agent.Description,

@@ -32,8 +32,8 @@ select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_
       cc_get_lookup(arsp.id, arsp.name) as stop_scheme, tmp.numbers, tmp.host, cc_get_lookup(ct.id, ct.name) as timezone,
        debug, disabled
 from tmp
-    left join wbt_user c on c.id = tmp.created_by
-    left join wbt_user u on u.id = tmp.updated_by
+    left join directory.wbt_user c on c.id = tmp.created_by
+    left join directory.wbt_user u on u.id = tmp.updated_by
     inner join acr_routing_scheme arst on tmp.start_scheme_id = arst.id
     left join acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
     inner join calendar_timezones ct on tmp.timezone_id = ct.id`,
@@ -76,8 +76,8 @@ func (s SqlRoutingInboundCallStore) GetAllPage(domainId int64, offset, limit int
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.numbers, tmp.host, cc_get_lookup(ct.id, ct.name) as timezone,
        debug, disabled
 from acr_routing_inbound_call tmp
-    left join wbt_user c on c.id = tmp.created_by
-    left join wbt_user u on u.id = tmp.updated_by
+    left join directory.wbt_user c on c.id = tmp.created_by
+    left join directory.wbt_user u on u.id = tmp.updated_by
 inner join calendar_timezones ct on tmp.timezone_id = ct.id 
 where tmp.domain_id = :DomainId
 order by tmp.id
