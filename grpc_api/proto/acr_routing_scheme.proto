@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "const.proto";
 
-import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
 
 package engine;
 
@@ -29,8 +29,8 @@ message RoutingScheme {
     string name = 7;
     string description = 8;
     int32 type = 9;
-    google.protobuf.Any scheme = 10;
-    google.protobuf.Any payload = 11;
+    google.protobuf.Value scheme = 10;
+    google.protobuf.Value payload = 11;
     bool debug = 12;
 }
 

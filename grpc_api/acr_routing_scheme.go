@@ -2,7 +2,6 @@ package grpc_api
 
 import (
 	"context"
-	google_protobuf "github.com/golang/protobuf/ptypes/any"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
@@ -43,9 +42,9 @@ func (api *routingScheme) Create(ctx context.Context, in *engine.RoutingScheme) 
 		Name:        in.Name,
 		Type:        int8(in.Type),
 		Debug:       in.Debug,
-		Scheme:      []byte("{}"),
-		Payload:     []byte("{}"),
-		Description: in.Description, //TODO
+		Scheme:      MarshalJsonpb(in.Scheme),
+		Payload:     MarshalJsonpb(in.Payload),
+		Description: in.Description,
 	}
 
 	if err = scheme.IsValid(); err != nil {
@@ -133,8 +132,8 @@ func (api *routingScheme) Update(ctx context.Context, in *engine.RoutingScheme) 
 		Name:        in.Name,
 		Type:        int8(in.Type),
 		Debug:       in.Debug,
-		Scheme:      nil,
-		Payload:     nil,
+		Scheme:      MarshalJsonpb(in.Scheme),
+		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
 	})
 
@@ -183,13 +182,7 @@ func transformRoutingScheme(src *model.RoutingScheme) *engine.RoutingScheme {
 		Name:        src.Name,
 		Type:        int32(src.Type),
 		Debug:       src.Debug,
-		Scheme: &google_protobuf.Any{
-			TypeUrl: "json",
-			Value:   src.Scheme,
-		},
-		Payload: &google_protobuf.Any{
-			TypeUrl: "json",
-			Value:   src.Payload,
-		},
+		Scheme:      UnmarshalJsonpb(src.Scheme),
+		Payload:     UnmarshalJsonpb(src.Payload),
 	}
 }
