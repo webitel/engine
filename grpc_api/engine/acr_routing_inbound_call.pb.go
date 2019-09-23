@@ -9,6 +9,7 @@ It is generated from these files:
 	acr_routing_out_call.proto
 	acr_routing_scheme.proto
 	agent.proto
+	agent_skill.proto
 	agent_team.proto
 	calendar.proto
 	const.proto
@@ -25,6 +26,10 @@ It has these top-level messages:
 	AgentStatusRequest
 	Agent
 	ListAgent
+	AgentSkillItemReqeust
+	AgentSkillItem
+	AgentSkill
+	ListAgentSkill
 	AgentTeam
 	ListAgentTeam
 	ListCalendar
@@ -36,6 +41,8 @@ It has these top-level messages:
 	ListAcceptOfDay
 	Lookup
 	ListRequest
+	DomainRecord
+	ListForItemRequest
 	ItemRequest
 	Response
 	Skill

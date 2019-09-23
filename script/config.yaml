@@ -1,8 +1,8 @@
   config:
     target: "ws://10.10.10.25:10025/websocket"
     phases:
-      - duration: 10
-        arrivalRate: 1000
+      - duration: 1
+        arrivalRate: 1
   scenarios:
     - engine: "ws"
       flow:

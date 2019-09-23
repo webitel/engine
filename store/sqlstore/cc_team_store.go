@@ -1,7 +1,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -38,7 +37,7 @@ func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *mod
 			"CallTimeout":       team.CallTimeout,
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), http.StatusInternalServerError)
+			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
@@ -106,13 +105,8 @@ func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *mod
 			from cc_team
 			where id = :Id and domain_id = :DomainId
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlAgentTeamStore.Get", "store.sql_agent_team.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusNotFound)
-		} else {
-			return nil, model.NewAppError("SqlAgentTeamStore.Get", "store.sql_agent_team.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
-		}
+		return nil, model.NewAppError("SqlAgentTeamStore.Get", "store.sql_agent_team.get.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return team, nil
 	}

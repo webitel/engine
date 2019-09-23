@@ -36,6 +36,7 @@ type SqlSupplierOldStores struct {
 	skill               store.SkillStore
 	agentTeam           store.AgentTeamStore
 	agent               store.AgentStore
+	agentSkill          store.AgentSkillStore
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
 	routingOutboundCall store.RoutingOutboundCallStore
@@ -69,6 +70,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
 	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
 	supplier.oldStores.routingOutboundCall = NewSqlRoutingOutboundCallStore(supplier)
+	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -192,6 +194,10 @@ func (ss *SqlSupplier) AgentTeam() store.AgentTeamStore {
 
 func (ss *SqlSupplier) Agent() store.AgentStore {
 	return ss.oldStores.agent
+}
+
+func (ss *SqlSupplier) AgentSkill() store.AgentSkillStore {
+	return ss.oldStores.agentSkill
 }
 
 func (ss *SqlSupplier) RoutingScheme() store.RoutingSchemeStore {

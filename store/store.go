@@ -40,6 +40,7 @@ type Store interface {
 	Skill() SkillStore
 	AgentTeam() AgentTeamStore
 	Agent() AgentStore
+	AgentSkill() AgentSkillStore
 	RoutingScheme() RoutingSchemeStore
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
@@ -89,6 +90,14 @@ type AgentStore interface {
 	Update(agent *model.Agent) (*model.Agent, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 	SetStatus(domainId, agentId int64, status string, payload interface{}) (bool, *model.AppError)
+}
+
+type AgentSkillStore interface {
+	Create(agent *model.AgentSkill) (*model.AgentSkill, *model.AppError)
+	GetById(domainId, agentId, id int64) (*model.AgentSkill, *model.AppError)
+	Update(agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError)
+	GetAllPage(domainId, agentId int64, offset, limit int) ([]*model.AgentSkill, *model.AppError)
+	Delete(agentId, id int64) *model.AppError
 }
 
 type RoutingSchemeStore interface {

@@ -53,6 +53,10 @@ func (s *LayeredStore) Agent() AgentStore {
 	return s.DatabaseLayer.Agent()
 }
 
+func (s *LayeredStore) AgentSkill() AgentSkillStore {
+	return s.DatabaseLayer.AgentSkill()
+}
+
 func (s *LayeredStore) RoutingScheme() RoutingSchemeStore {
 	return s.DatabaseLayer.RoutingScheme()
 }

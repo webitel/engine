@@ -35,7 +35,7 @@ type AgentTeam struct {
 func (m *AgentTeam) Reset()                    { *m = AgentTeam{} }
 func (m *AgentTeam) String() string            { return proto.CompactTextString(m) }
 func (*AgentTeam) ProtoMessage()               {}
-func (*AgentTeam) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+func (*AgentTeam) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
 
 func (m *AgentTeam) GetId() int64 {
 	if m != nil {
@@ -128,7 +128,7 @@ type ListAgentTeam struct {
 func (m *ListAgentTeam) Reset()                    { *m = ListAgentTeam{} }
 func (m *ListAgentTeam) String() string            { return proto.CompactTextString(m) }
 func (*ListAgentTeam) ProtoMessage()               {}
-func (*ListAgentTeam) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{1} }
+func (*ListAgentTeam) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{1} }
 
 func (m *ListAgentTeam) GetItems() []*AgentTeam {
 	if m != nil {
@@ -356,9 +356,9 @@ var _AgentTeamApi_serviceDesc = grpc.ServiceDesc{
 	Metadata: "agent_team.proto",
 }
 
-func init() { proto.RegisterFile("agent_team.proto", fileDescriptor4) }
+func init() { proto.RegisterFile("agent_team.proto", fileDescriptor5) }
 
-var fileDescriptor4 = []byte{
+var fileDescriptor5 = []byte{
 	// 417 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0x41, 0x6f, 0xd3, 0x30,
 	0x14, 0xc7, 0x49, 0xd3, 0x86, 0xe6, 0xa5, 0x65, 0xd4, 0x80, 0x64, 0x15, 0x21, 0x85, 0x1e, 0xa0,
