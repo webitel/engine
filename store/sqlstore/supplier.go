@@ -40,6 +40,7 @@ type SqlSupplierOldStores struct {
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
 	routingOutboundCall store.RoutingOutboundCallStore
+	routingVariable     store.RoutingVariableStore
 }
 
 type SqlSupplier struct {
@@ -70,6 +71,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
 	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
 	supplier.oldStores.routingOutboundCall = NewSqlRoutingOutboundCallStore(supplier)
+	supplier.oldStores.routingVariable = NewSqlRoutingVariableStore(supplier)
 	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
@@ -210,6 +212,10 @@ func (ss *SqlSupplier) RoutingInboundCall() store.RoutingInboundCallStore {
 
 func (ss *SqlSupplier) RoutingOutboundCall() store.RoutingOutboundCallStore {
 	return ss.oldStores.routingOutboundCall
+}
+
+func (ss *SqlSupplier) RoutingVariable() store.RoutingVariableStore {
+	return ss.oldStores.routingVariable
 }
 
 type typeConverter struct{}

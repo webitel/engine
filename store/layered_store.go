@@ -68,3 +68,7 @@ func (s *LayeredStore) RoutingInboundCall() RoutingInboundCallStore {
 func (s *LayeredStore) RoutingOutboundCall() RoutingOutboundCallStore {
 	return s.DatabaseLayer.RoutingOutboundCall()
 }
+
+func (s *LayeredStore) RoutingVariable() RoutingVariableStore {
+	return s.DatabaseLayer.RoutingVariable()
+}

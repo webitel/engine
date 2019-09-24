@@ -27,7 +27,7 @@ type Skill struct {
 func (m *Skill) Reset()                    { *m = Skill{} }
 func (m *Skill) String() string            { return proto.CompactTextString(m) }
 func (*Skill) ProtoMessage()               {}
-func (*Skill) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{0} }
+func (*Skill) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{0} }
 
 func (m *Skill) GetId() int64 {
 	if m != nil {
@@ -64,7 +64,7 @@ type ListSkill struct {
 func (m *ListSkill) Reset()                    { *m = ListSkill{} }
 func (m *ListSkill) String() string            { return proto.CompactTextString(m) }
 func (*ListSkill) ProtoMessage()               {}
-func (*ListSkill) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{1} }
+func (*ListSkill) Descriptor() ([]byte, []int) { return fileDescriptor9, []int{1} }
 
 func (m *ListSkill) GetItems() []*Skill {
 	if m != nil {
@@ -292,9 +292,9 @@ var _SkillApi_serviceDesc = grpc.ServiceDesc{
 	Metadata: "skill.proto",
 }
 
-func init() { proto.RegisterFile("skill.proto", fileDescriptor8) }
+func init() { proto.RegisterFile("skill.proto", fileDescriptor9) }
 
-var fileDescriptor8 = []byte{
+var fileDescriptor9 = []byte{
 	// 254 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0xcf, 0x4a, 0xc4, 0x30,
 	0x10, 0x87, 0xed, 0x9f, 0x2d, 0xdb, 0x29, 0x0a, 0x8e, 0x97, 0x52, 0x2f, 0xa5, 0x5e, 0x0a, 0x42,

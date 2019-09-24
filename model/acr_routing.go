@@ -28,6 +28,18 @@ type RoutingInboundCall struct {
 	Disabled    bool        `json:"disabled" db:"disabled"`
 }
 
+type RoutingVariable struct {
+	Id       int64  `json:"id" db:"id"`
+	DomainId int64  `json:"domain_id" db:"domain_id"`
+	Key      string `json:"key" db:"key"`
+	Value    string `json:"value" db:"value"`
+}
+
+func (r *RoutingVariable) IsValid() *AppError {
+	//FIXME
+	return nil
+}
+
 func (r *RoutingInboundCall) GetStopSchemeId() *int {
 	if r.StopScheme == nil {
 		return nil

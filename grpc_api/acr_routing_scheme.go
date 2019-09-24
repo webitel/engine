@@ -26,6 +26,10 @@ func (api *routingScheme) Create(ctx context.Context, in *engine.RoutingScheme) 
 		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
 	}
 
+	if !permission.CanCreate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_CREATE)
+	}
+
 	scheme := &model.RoutingScheme{
 		DomainRecord: model.DomainRecord{
 			Id:        0,

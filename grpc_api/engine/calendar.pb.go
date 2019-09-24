@@ -24,7 +24,7 @@ type ListCalendar struct {
 func (m *ListCalendar) Reset()                    { *m = ListCalendar{} }
 func (m *ListCalendar) String() string            { return proto.CompactTextString(m) }
 func (*ListCalendar) ProtoMessage()               {}
-func (*ListCalendar) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{0} }
+func (*ListCalendar) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{0} }
 
 func (m *ListCalendar) GetItems() []*Calendar {
 	if m != nil {
@@ -46,7 +46,7 @@ type Calendar struct {
 func (m *Calendar) Reset()                    { *m = Calendar{} }
 func (m *Calendar) String() string            { return proto.CompactTextString(m) }
 func (*Calendar) ProtoMessage()               {}
-func (*Calendar) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{1} }
+func (*Calendar) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{1} }
 
 func (m *Calendar) GetId() int64 {
 	if m != nil {
@@ -104,7 +104,7 @@ type ListTimezoneResponse struct {
 func (m *ListTimezoneResponse) Reset()                    { *m = ListTimezoneResponse{} }
 func (m *ListTimezoneResponse) String() string            { return proto.CompactTextString(m) }
 func (*ListTimezoneResponse) ProtoMessage()               {}
-func (*ListTimezoneResponse) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{2} }
+func (*ListTimezoneResponse) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{2} }
 
 func (m *ListTimezoneResponse) GetItems() []*Timezone {
 	if m != nil {
@@ -122,7 +122,7 @@ type Timezone struct {
 func (m *Timezone) Reset()                    { *m = Timezone{} }
 func (m *Timezone) String() string            { return proto.CompactTextString(m) }
 func (*Timezone) ProtoMessage()               {}
-func (*Timezone) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{3} }
+func (*Timezone) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{3} }
 
 func (m *Timezone) GetId() int64 {
 	if m != nil {
@@ -155,7 +155,7 @@ type AcceptOfDay struct {
 func (m *AcceptOfDay) Reset()                    { *m = AcceptOfDay{} }
 func (m *AcceptOfDay) String() string            { return proto.CompactTextString(m) }
 func (*AcceptOfDay) ProtoMessage()               {}
-func (*AcceptOfDay) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{4} }
+func (*AcceptOfDay) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{4} }
 
 func (m *AcceptOfDay) GetId() int64 {
 	if m != nil {
@@ -192,7 +192,7 @@ type AcceptOfDayReqeust struct {
 func (m *AcceptOfDayReqeust) Reset()                    { *m = AcceptOfDayReqeust{} }
 func (m *AcceptOfDayReqeust) String() string            { return proto.CompactTextString(m) }
 func (*AcceptOfDayReqeust) ProtoMessage()               {}
-func (*AcceptOfDayReqeust) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{5} }
+func (*AcceptOfDayReqeust) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{5} }
 
 func (m *AcceptOfDayReqeust) GetCalendarId() int64 {
 	if m != nil {
@@ -208,7 +208,7 @@ type ListAcceptOfDay struct {
 func (m *ListAcceptOfDay) Reset()                    { *m = ListAcceptOfDay{} }
 func (m *ListAcceptOfDay) String() string            { return proto.CompactTextString(m) }
 func (*ListAcceptOfDay) ProtoMessage()               {}
-func (*ListAcceptOfDay) Descriptor() ([]byte, []int) { return fileDescriptor6, []int{6} }
+func (*ListAcceptOfDay) Descriptor() ([]byte, []int) { return fileDescriptor7, []int{6} }
 
 func (m *ListAcceptOfDay) GetItems() []*AcceptOfDay {
 	if m != nil {
@@ -511,9 +511,9 @@ var _CalendarApi_serviceDesc = grpc.ServiceDesc{
 	Metadata: "calendar.proto",
 }
 
-func init() { proto.RegisterFile("calendar.proto", fileDescriptor6) }
+func init() { proto.RegisterFile("calendar.proto", fileDescriptor7) }
 
-var fileDescriptor6 = []byte{
+var fileDescriptor7 = []byte{
 	// 498 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0x5d, 0x8b, 0xd3, 0x40,
 	0x14, 0xdd, 0xf4, 0x23, 0xdb, 0xde, 0x94, 0xae, 0x8e, 0x65, 0x8d, 0x55, 0x30, 0x04, 0x94, 0xae,

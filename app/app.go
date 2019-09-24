@@ -14,11 +14,6 @@ import (
 	"go.uber.org/atomic"
 )
 
-const (
-	MAX_SESSION_SIZE   = 10000
-	EXPIRE_SESSION_SEC = 60 * 5
-)
-
 type App struct {
 	nodeId         string
 	Log            *wlog.Logger

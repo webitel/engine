@@ -44,6 +44,7 @@ type Store interface {
 	RoutingScheme() RoutingSchemeStore
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
+	RoutingVariable() RoutingVariableStore
 }
 
 type CalendarStore interface {
@@ -121,5 +122,13 @@ type RoutingOutboundCallStore interface {
 	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingOutboundCall, *model.AppError)
 	Get(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError)
 	Update(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+}
+
+type RoutingVariableStore interface {
+	Create(variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingVariable, *model.AppError)
+	Get(domainId int64, id int64) (*model.RoutingVariable, *model.AppError)
+	Update(variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 }

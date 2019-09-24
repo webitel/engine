@@ -39,7 +39,7 @@ var AgentStatusRequest_Status_value = map[string]int32{
 func (x AgentStatusRequest_Status) String() string {
 	return proto.EnumName(AgentStatusRequest_Status_name, int32(x))
 }
-func (AgentStatusRequest_Status) EnumDescriptor() ([]byte, []int) { return fileDescriptor3, []int{1, 0} }
+func (AgentStatusRequest_Status) EnumDescriptor() ([]byte, []int) { return fileDescriptor4, []int{1, 0} }
 
 type SkillAgent struct {
 	Id       int64   `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
@@ -51,7 +51,7 @@ type SkillAgent struct {
 func (m *SkillAgent) Reset()                    { *m = SkillAgent{} }
 func (m *SkillAgent) String() string            { return proto.CompactTextString(m) }
 func (*SkillAgent) ProtoMessage()               {}
-func (*SkillAgent) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{0} }
+func (*SkillAgent) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
 
 func (m *SkillAgent) GetId() int64 {
 	if m != nil {
@@ -90,7 +90,7 @@ type AgentStatusRequest struct {
 func (m *AgentStatusRequest) Reset()                    { *m = AgentStatusRequest{} }
 func (m *AgentStatusRequest) String() string            { return proto.CompactTextString(m) }
 func (*AgentStatusRequest) ProtoMessage()               {}
-func (*AgentStatusRequest) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{1} }
+func (*AgentStatusRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{1} }
 
 func (m *AgentStatusRequest) GetId() int64 {
 	if m != nil {
@@ -125,7 +125,7 @@ type Agent struct {
 func (m *Agent) Reset()                    { *m = Agent{} }
 func (m *Agent) String() string            { return proto.CompactTextString(m) }
 func (*Agent) ProtoMessage()               {}
-func (*Agent) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{2} }
+func (*Agent) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{2} }
 
 func (m *Agent) GetId() int64 {
 	if m != nil {
@@ -176,7 +176,7 @@ type ListAgent struct {
 func (m *ListAgent) Reset()                    { *m = ListAgent{} }
 func (m *ListAgent) String() string            { return proto.CompactTextString(m) }
 func (*ListAgent) ProtoMessage()               {}
-func (*ListAgent) Descriptor() ([]byte, []int) { return fileDescriptor3, []int{3} }
+func (*ListAgent) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{3} }
 
 func (m *ListAgent) GetItems() []*Agent {
 	if m != nil {
@@ -442,9 +442,9 @@ var _AgentApi_serviceDesc = grpc.ServiceDesc{
 	Metadata: "agent.proto",
 }
 
-func init() { proto.RegisterFile("agent.proto", fileDescriptor3) }
+func init() { proto.RegisterFile("agent.proto", fileDescriptor4) }
 
-var fileDescriptor3 = []byte{
+var fileDescriptor4 = []byte{
 	// 414 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0xcf, 0x6b, 0xd4, 0x40,
 	0x14, 0xde, 0x49, 0x36, 0xd3, 0xdd, 0x17, 0x2d, 0xeb, 0x28, 0x12, 0xe2, 0x25, 0x8c, 0x1e, 0x02,

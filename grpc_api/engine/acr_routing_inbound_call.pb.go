@@ -8,6 +8,7 @@ It is generated from these files:
 	acr_routing_inbound_call.proto
 	acr_routing_out_call.proto
 	acr_routing_scheme.proto
+	acr_routing_variables.proto
 	agent.proto
 	agent_skill.proto
 	agent_team.proto
@@ -22,6 +23,8 @@ It has these top-level messages:
 	ListRoutingOutboundCall
 	RoutingScheme
 	ListRoutingScheme
+	RoutingVariable
+	ListRoutingVariable
 	SkillAgent
 	AgentStatusRequest
 	Agent

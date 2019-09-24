@@ -26,7 +26,7 @@ type AgentSkillItemReqeust struct {
 func (m *AgentSkillItemReqeust) Reset()                    { *m = AgentSkillItemReqeust{} }
 func (m *AgentSkillItemReqeust) String() string            { return proto.CompactTextString(m) }
 func (*AgentSkillItemReqeust) ProtoMessage()               {}
-func (*AgentSkillItemReqeust) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+func (*AgentSkillItemReqeust) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
 
 func (m *AgentSkillItemReqeust) GetId() int64 {
 	if m != nil {
@@ -58,7 +58,7 @@ type AgentSkillItem struct {
 func (m *AgentSkillItem) Reset()                    { *m = AgentSkillItem{} }
 func (m *AgentSkillItem) String() string            { return proto.CompactTextString(m) }
 func (*AgentSkillItem) ProtoMessage()               {}
-func (*AgentSkillItem) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{1} }
+func (*AgentSkillItem) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{1} }
 
 func (m *AgentSkillItem) GetId() int64 {
 	if m != nil {
@@ -96,7 +96,7 @@ type AgentSkill struct {
 func (m *AgentSkill) Reset()                    { *m = AgentSkill{} }
 func (m *AgentSkill) String() string            { return proto.CompactTextString(m) }
 func (*AgentSkill) ProtoMessage()               {}
-func (*AgentSkill) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{2} }
+func (*AgentSkill) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{2} }
 
 func (m *AgentSkill) GetId() int64 {
 	if m != nil {
@@ -168,7 +168,7 @@ type ListAgentSkill struct {
 func (m *ListAgentSkill) Reset()                    { *m = ListAgentSkill{} }
 func (m *ListAgentSkill) String() string            { return proto.CompactTextString(m) }
 func (*ListAgentSkill) ProtoMessage()               {}
-func (*ListAgentSkill) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{3} }
+func (*ListAgentSkill) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{3} }
 
 func (m *ListAgentSkill) GetItems() []*AgentSkillItem {
 	if m != nil {
@@ -398,9 +398,9 @@ var _AgentSkillApi_serviceDesc = grpc.ServiceDesc{
 	Metadata: "agent_skill.proto",
 }
 
-func init() { proto.RegisterFile("agent_skill.proto", fileDescriptor4) }
+func init() { proto.RegisterFile("agent_skill.proto", fileDescriptor5) }
 
-var fileDescriptor4 = []byte{
+var fileDescriptor5 = []byte{
 	// 386 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x6b, 0xf2, 0x40,
 	0x14, 0xfc, 0x4c, 0x4c, 0x8c, 0x4f, 0xbe, 0x40, 0x17, 0x2a, 0x69, 0x8a, 0x20, 0xa1, 0x07, 0x0f,

@@ -20,4 +20,5 @@ type SqlStore interface {
 	RoutingScheme() store.RoutingSchemeStore
 	RoutingInboundCall() store.RoutingInboundCallStore
 	RoutingOutboundCall() store.RoutingOutboundCallStore
+	RoutingVariable() store.RoutingVariableStore
 }
