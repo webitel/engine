@@ -14,6 +14,7 @@ It is generated from these files:
 	agent_team.proto
 	calendar.proto
 	const.proto
+	outbound_resource.proto
 	skill.proto
 
 It has these top-level messages:
@@ -48,6 +49,8 @@ It has these top-level messages:
 	ListForItemRequest
 	ItemRequest
 	Response
+	OutboundResource
+	ListOutboundResource
 	Skill
 	ListSkill
 */

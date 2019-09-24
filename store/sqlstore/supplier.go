@@ -32,11 +32,13 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	calendar            store.CalendarStore
-	skill               store.SkillStore
-	agentTeam           store.AgentTeamStore
-	agent               store.AgentStore
-	agentSkill          store.AgentSkillStore
+	calendar         store.CalendarStore
+	skill            store.SkillStore
+	agentTeam        store.AgentTeamStore
+	agent            store.AgentStore
+	agentSkill       store.AgentSkillStore
+	outboundResource store.OutboundResourceStore
+
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
 	routingOutboundCall store.RoutingOutboundCallStore
@@ -68,11 +70,13 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
 	supplier.oldStores.agent = NewSqlAgentStore(supplier)
+	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
+	supplier.oldStores.outboundResource = NewSqlOutboundResourceStore(supplier)
+
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
 	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
 	supplier.oldStores.routingOutboundCall = NewSqlRoutingOutboundCallStore(supplier)
 	supplier.oldStores.routingVariable = NewSqlRoutingVariableStore(supplier)
-	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -200,6 +204,10 @@ func (ss *SqlSupplier) Agent() store.AgentStore {
 
 func (ss *SqlSupplier) AgentSkill() store.AgentSkillStore {
 	return ss.oldStores.agentSkill
+}
+
+func (ss *SqlSupplier) OutboundResource() store.OutboundResourceStore {
+	return ss.oldStores.outboundResource
 }
 
 func (ss *SqlSupplier) RoutingScheme() store.RoutingSchemeStore {

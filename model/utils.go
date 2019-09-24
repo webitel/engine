@@ -35,6 +35,15 @@ type Lookup struct {
 	Name string `json:"name"`
 }
 
+func (s StringMap) ToJson() string {
+	if s == nil {
+		return "{}"
+	}
+
+	data, _ := json.Marshal(s)
+	return string(data)
+}
+
 func (sa StringArray) Equals(input StringArray) bool {
 
 	if len(sa) != len(input) {

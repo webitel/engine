@@ -7,12 +7,14 @@ import (
 )
 
 type API struct {
-	app                 *app.App
-	calendar            *calendar
-	skill               *skill
-	agentTeam           *agentTeam
-	agent               *agent
-	agentSkill          *agentSkill
+	app              *app.App
+	calendar         *calendar
+	skill            *skill
+	agentTeam        *agentTeam
+	agent            *agent
+	agentSkill       *agentSkill
+	outboundResource *outboundResource
+
 	routingScheme       *routingScheme
 	routingOutboundCall *routingOutboundCall
 	routingVariable     *routingVariable
@@ -25,6 +27,8 @@ func Init(a *app.App, server *grpc.Server) {
 	api.agentTeam = NewAgentTeamApi(a)
 	api.agent = NewAgentApi(a)
 	api.agentSkill = NewAgentSkillApi(a)
+	api.outboundResource = NewOutboundResourceApi(a)
+
 	api.routingScheme = NewRoutingSchemeApi(a)
 	api.routingOutboundCall = NewRoutingOutboundCallApi(a)
 	api.routingVariable = NewRoutingVariableApi(a)
@@ -34,6 +38,8 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterAgentTeamApiServer(server, api.agentTeam)
 	engine.RegisterAgentApiServer(server, api.agent)
 	engine.RegisterAgentSkillApiServer(server, api.agentSkill)
+	engine.RegisterOutboundResourceApiServer(server, api.outboundResource)
+
 	engine.RegisterRoutingSchemeApiServer(server, api.routingScheme)
 	engine.RegisterRoutingOutboundCallApiServer(server, api.routingOutboundCall)
 	engine.RegisterRoutingVariableApiServer(server, api.routingVariable)

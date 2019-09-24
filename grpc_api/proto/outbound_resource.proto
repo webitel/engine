@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service OutboundResourceApi {
+    // POST /call_center/resources
+    rpc Create(OutboundResource) returns (OutboundResource) {}
+    // GET /call_center/resources
+    rpc List(ListRequest) returns (ListOutboundResource) {}
+    // GET /call_center/resources/:ID
+    rpc Get(ItemRequest) returns (OutboundResource) {}
+    // PUT /call_center/resources/:ID
+    rpc Update(OutboundResource) returns (OutboundResource) {}
+    // DELETE /call_center/resources/:ID
+    rpc Remove(ItemRequest) returns (OutboundResource) {}
+}
+
+message OutboundResource {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+
+    int32 limit = 7;
+    bool enabled = 8;
+    int32 rps = 9;
+    bool reserve = 10;
+    map<string, string> variables = 11;
+    string number = 12;
+    int32 max_successively_errors = 13;
+    string name = 14;
+    string dial_string = 15;
+    repeated string error_ids = 16;
+    string last_error_id = 17;
+    int32 successively_errors = 18;
+    int64 last_error_at = 19;
+}
+
+message ListOutboundResource {
+    repeated OutboundResource items = 1;
+}

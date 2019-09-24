@@ -57,6 +57,10 @@ func (s *LayeredStore) AgentSkill() AgentSkillStore {
 	return s.DatabaseLayer.AgentSkill()
 }
 
+func (s *LayeredStore) OutboundResource() OutboundResourceStore {
+	return s.DatabaseLayer.OutboundResource()
+}
+
 func (s *LayeredStore) RoutingScheme() RoutingSchemeStore {
 	return s.DatabaseLayer.RoutingScheme()
 }
