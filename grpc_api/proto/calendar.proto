@@ -29,12 +29,17 @@ message ListCalendar {
 
 message Calendar {
     int64 id = 1;
-    string name = 2;
-    int64 domain_id = 3;
-    int64 start = 4;
-    int64 finish = 5;
-    Lookup timezone = 6;
-    string description = 7;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+
+    string name = 7;
+    int64 start = 8;
+    int64 finish = 9;
+    Lookup timezone = 10;
+    string description = 11;
 }
 
 message ListTimezoneResponse {

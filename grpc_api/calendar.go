@@ -27,10 +27,21 @@ func (api *calendar) Create(ctx context.Context, in *engine.Calendar) (*engine.C
 	}
 
 	calendar := &model.Calendar{
-		Name:     in.Name,
-		DomainId: session.Domain(in.GetDomainId()),
-		Start:    nil, //TODO
-		Finish:   nil, //TODO
+		DomainRecord: model.DomainRecord{
+			Id:        0,
+			DomainId:  session.Domain(in.GetDomainId()),
+			CreatedAt: model.GetMillis(),
+			CreatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+			UpdatedAt: model.GetMillis(),
+			UpdatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+		},
+		Name:   in.Name,
+		Start:  nil, //TODO
+		Finish: nil, //TODO
 		Timezone: model.Lookup{
 			Id: int(in.Timezone.Id),
 		},
@@ -140,11 +151,17 @@ func (api *calendar) Update(ctx context.Context, in *engine.Calendar) (*engine.C
 	var calendar *model.Calendar
 
 	calendar, err = api.app.UpdateCalendar(&model.Calendar{
-		Id:       in.Id,
-		Name:     in.Name,
-		DomainId: session.Domain(in.GetDomainId()),
-		Start:    &in.Start,
-		Finish:   &in.Finish,
+		DomainRecord: model.DomainRecord{
+			Id:        in.Id,
+			DomainId:  session.Domain(in.GetDomainId()),
+			UpdatedAt: model.GetMillis(),
+			UpdatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+		},
+		Name:   in.Name,
+		Start:  &in.Start,
+		Finish: &in.Finish,
 		Timezone: model.Lookup{
 			Id: int(in.Timezone.Id),
 		},
@@ -244,11 +261,21 @@ func (api *calendar) GetAcceptOfDay(ctx context.Context, in *engine.AcceptOfDayR
 
 func transformCalendar(src *model.Calendar) *engine.Calendar {
 	item := &engine.Calendar{
-		Id:       src.Id,
-		Name:     src.Name,
-		DomainId: src.DomainId,
-		Start:    0,
-		Finish:   0,
+		Id:        src.Id,
+		DomainId:  src.DomainId,
+		CreatedAt: src.CreatedAt,
+		CreatedBy: &engine.Lookup{
+			Id:   int64(src.CreatedBy.Id),
+			Name: src.CreatedBy.Name,
+		},
+		UpdatedAt: src.UpdatedAt,
+		UpdatedBy: &engine.Lookup{
+			Id:   int64(src.UpdatedBy.Id),
+			Name: src.UpdatedBy.Name,
+		},
+		Name:   src.Name,
+		Start:  0,
+		Finish: 0,
 		Timezone: &engine.Lookup{
 			Id:   int64(src.Timezone.Id),
 			Name: src.Timezone.Name,

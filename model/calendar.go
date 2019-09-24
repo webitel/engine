@@ -23,8 +23,7 @@ type CalendarExceptDate struct {
 // Description of the Calendar
 // swagger:model Calendar
 type Calendar struct {
-	Id          int64   `json:"id" db:"id"`
-	DomainId    int64   `json:"domain_id"`
+	DomainRecord
 	Name        string  `json:"name" db:"name"`
 	Start       *int64  `json:"start" db:"start"`
 	Finish      *int64  `json:"finish" db:"finish"`

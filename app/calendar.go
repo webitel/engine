@@ -21,6 +21,8 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	oldCalendar.Name = calendar.Name
 	oldCalendar.Finish = calendar.Finish
 	oldCalendar.Start = calendar.Start
+	oldCalendar.UpdatedAt = calendar.UpdatedAt
+	oldCalendar.UpdatedBy.Id = calendar.UpdatedBy.Id
 
 	oldCalendar, err = a.Store.Calendar().Update(oldCalendar)
 	if err != nil {
