@@ -17,6 +17,7 @@ type SqlStore interface {
 	AgentTeam() store.AgentTeamStore
 	Agent() store.AgentStore
 	AgentSkill() store.AgentSkillStore
+	ResourceTeam() store.ResourceTeamStore
 	OutboundResource() store.OutboundResourceStore
 
 	RoutingScheme() store.RoutingSchemeStore

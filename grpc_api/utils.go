@@ -2,6 +2,8 @@ package grpc_api
 
 import (
 	"bytes"
+	"github.com/webitel/engine/grpc_api/engine"
+	"github.com/webitel/engine/model"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/struct"
@@ -67,4 +69,26 @@ func MarshalJsonpb(pb *structpb.Value) []byte {
 		return nil
 	}
 	return buf.Bytes()
+}
+
+func GetLookup(src *engine.Lookup) *model.Lookup {
+	if src == nil {
+		return nil
+	}
+
+	return &model.Lookup{
+		Id:   int(src.Id),
+		Name: src.Name,
+	}
+}
+
+func GetProtoLookup(src *model.Lookup) *engine.Lookup {
+	if src == nil {
+		return nil
+	}
+
+	return &engine.Lookup{
+		Id:   int64(src.Id),
+		Name: src.Name,
+	}
 }

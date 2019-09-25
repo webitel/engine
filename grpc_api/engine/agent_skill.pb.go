@@ -3,13 +3,14 @@
 
 package engine
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
+	context "context"
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -17,16 +18,45 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
 type AgentSkillItemReqeust struct {
-	Id       int64 `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	AgentId  int64 `protobuf:"varint,2,opt,name=agent_id,json=agentId" json:"agent_id,omitempty"`
-	DomainId int64 `protobuf:"varint,3,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	AgentId              int64    `protobuf:"varint,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AgentSkillItemReqeust) Reset()                    { *m = AgentSkillItemReqeust{} }
-func (m *AgentSkillItemReqeust) String() string            { return proto.CompactTextString(m) }
-func (*AgentSkillItemReqeust) ProtoMessage()               {}
-func (*AgentSkillItemReqeust) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{0} }
+func (m *AgentSkillItemReqeust) Reset()         { *m = AgentSkillItemReqeust{} }
+func (m *AgentSkillItemReqeust) String() string { return proto.CompactTextString(m) }
+func (*AgentSkillItemReqeust) ProtoMessage()    {}
+func (*AgentSkillItemReqeust) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{0}
+}
+
+func (m *AgentSkillItemReqeust) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentSkillItemReqeust.Unmarshal(m, b)
+}
+func (m *AgentSkillItemReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentSkillItemReqeust.Marshal(b, m, deterministic)
+}
+func (m *AgentSkillItemReqeust) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentSkillItemReqeust.Merge(m, src)
+}
+func (m *AgentSkillItemReqeust) XXX_Size() int {
+	return xxx_messageInfo_AgentSkillItemReqeust.Size(m)
+}
+func (m *AgentSkillItemReqeust) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentSkillItemReqeust.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentSkillItemReqeust proto.InternalMessageInfo
 
 func (m *AgentSkillItemReqeust) GetId() int64 {
 	if m != nil {
@@ -50,15 +80,38 @@ func (m *AgentSkillItemReqeust) GetDomainId() int64 {
 }
 
 type AgentSkillItem struct {
-	Id       int64   `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	Skill    *Lookup `protobuf:"bytes,2,opt,name=Skill" json:"Skill,omitempty"`
-	Capacity int32   `protobuf:"varint,3,opt,name=Capacity" json:"Capacity,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,2,opt,name=Skill,proto3" json:"Skill,omitempty"`
+	Capacity             int32    `protobuf:"varint,3,opt,name=Capacity,proto3" json:"Capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AgentSkillItem) Reset()                    { *m = AgentSkillItem{} }
-func (m *AgentSkillItem) String() string            { return proto.CompactTextString(m) }
-func (*AgentSkillItem) ProtoMessage()               {}
-func (*AgentSkillItem) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{1} }
+func (m *AgentSkillItem) Reset()         { *m = AgentSkillItem{} }
+func (m *AgentSkillItem) String() string { return proto.CompactTextString(m) }
+func (*AgentSkillItem) ProtoMessage()    {}
+func (*AgentSkillItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{1}
+}
+
+func (m *AgentSkillItem) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentSkillItem.Unmarshal(m, b)
+}
+func (m *AgentSkillItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentSkillItem.Marshal(b, m, deterministic)
+}
+func (m *AgentSkillItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentSkillItem.Merge(m, src)
+}
+func (m *AgentSkillItem) XXX_Size() int {
+	return xxx_messageInfo_AgentSkillItem.Size(m)
+}
+func (m *AgentSkillItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentSkillItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentSkillItem proto.InternalMessageInfo
 
 func (m *AgentSkillItem) GetId() int64 {
 	if m != nil {
@@ -82,21 +135,44 @@ func (m *AgentSkillItem) GetCapacity() int32 {
 }
 
 type AgentSkill struct {
-	Id        int64   `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	DomainId  int64   `protobuf:"varint,2,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	CreatedAt int64   `protobuf:"varint,3,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
-	CreatedBy *Lookup `protobuf:"bytes,4,opt,name=created_by,json=createdBy" json:"created_by,omitempty"`
-	UpdatedAt int64   `protobuf:"varint,5,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	UpdatedBy *Lookup `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy" json:"updated_by,omitempty"`
-	Agent     *Lookup `protobuf:"bytes,7,opt,name=Agent" json:"Agent,omitempty"`
-	Skill     *Lookup `protobuf:"bytes,8,opt,name=Skill" json:"Skill,omitempty"`
-	Capacity  int32   `protobuf:"varint,9,opt,name=Capacity" json:"Capacity,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	CreatedAt            int64    `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedBy            *Lookup  `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedAt            int64    `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedBy            *Lookup  `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,7,opt,name=Agent,proto3" json:"Agent,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,8,opt,name=Skill,proto3" json:"Skill,omitempty"`
+	Capacity             int32    `protobuf:"varint,9,opt,name=Capacity,proto3" json:"Capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AgentSkill) Reset()                    { *m = AgentSkill{} }
-func (m *AgentSkill) String() string            { return proto.CompactTextString(m) }
-func (*AgentSkill) ProtoMessage()               {}
-func (*AgentSkill) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{2} }
+func (m *AgentSkill) Reset()         { *m = AgentSkill{} }
+func (m *AgentSkill) String() string { return proto.CompactTextString(m) }
+func (*AgentSkill) ProtoMessage()    {}
+func (*AgentSkill) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{2}
+}
+
+func (m *AgentSkill) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentSkill.Unmarshal(m, b)
+}
+func (m *AgentSkill) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentSkill.Marshal(b, m, deterministic)
+}
+func (m *AgentSkill) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentSkill.Merge(m, src)
+}
+func (m *AgentSkill) XXX_Size() int {
+	return xxx_messageInfo_AgentSkill.Size(m)
+}
+func (m *AgentSkill) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentSkill.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentSkill proto.InternalMessageInfo
 
 func (m *AgentSkill) GetId() int64 {
 	if m != nil {
@@ -162,13 +238,36 @@ func (m *AgentSkill) GetCapacity() int32 {
 }
 
 type ListAgentSkill struct {
-	Items []*AgentSkillItem `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
+	Items                []*AgentSkillItem `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
-func (m *ListAgentSkill) Reset()                    { *m = ListAgentSkill{} }
-func (m *ListAgentSkill) String() string            { return proto.CompactTextString(m) }
-func (*ListAgentSkill) ProtoMessage()               {}
-func (*ListAgentSkill) Descriptor() ([]byte, []int) { return fileDescriptor5, []int{3} }
+func (m *ListAgentSkill) Reset()         { *m = ListAgentSkill{} }
+func (m *ListAgentSkill) String() string { return proto.CompactTextString(m) }
+func (*ListAgentSkill) ProtoMessage()    {}
+func (*ListAgentSkill) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{3}
+}
+
+func (m *ListAgentSkill) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListAgentSkill.Unmarshal(m, b)
+}
+func (m *ListAgentSkill) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListAgentSkill.Marshal(b, m, deterministic)
+}
+func (m *ListAgentSkill) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListAgentSkill.Merge(m, src)
+}
+func (m *ListAgentSkill) XXX_Size() int {
+	return xxx_messageInfo_ListAgentSkill.Size(m)
+}
+func (m *ListAgentSkill) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListAgentSkill.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListAgentSkill proto.InternalMessageInfo
 
 func (m *ListAgentSkill) GetItems() []*AgentSkillItem {
 	if m != nil {
@@ -184,6 +283,37 @@ func init() {
 	proto.RegisterType((*ListAgentSkill)(nil), "engine.ListAgentSkill")
 }
 
+func init() { proto.RegisterFile("agent_skill.proto", fileDescriptor_c8423e2df0c2237d) }
+
+var fileDescriptor_c8423e2df0c2237d = []byte{
+	// 386 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x6b, 0xf2, 0x40,
+	0x14, 0xfc, 0x4c, 0x4c, 0x8c, 0x4f, 0xbe, 0x40, 0x17, 0x2a, 0x69, 0x8a, 0x20, 0xa1, 0x07, 0x0f,
+	0xad, 0x87, 0xf4, 0x56, 0x4a, 0x41, 0x85, 0x16, 0xc1, 0x53, 0x4a, 0xcf, 0x92, 0xb8, 0x8b, 0x2c,
+	0x9a, 0x6c, 0x6a, 0x36, 0x85, 0xfc, 0xa0, 0xfe, 0x8c, 0xfe, 0xb7, 0x92, 0xdd, 0xc4, 0x18, 0x8d,
+	0x50, 0x8f, 0x99, 0x79, 0x6f, 0x66, 0x76, 0x78, 0x81, 0x2b, 0x7f, 0x4d, 0x22, 0xbe, 0x4c, 0x36,
+	0x74, 0xbb, 0x1d, 0xc7, 0x3b, 0xc6, 0x19, 0xd2, 0x49, 0xb4, 0xa6, 0x11, 0xb1, 0x7b, 0x2b, 0x16,
+	0x25, 0x5c, 0x82, 0xce, 0x12, 0xae, 0x27, 0xf9, 0xe4, 0x7b, 0x3e, 0x38, 0xe7, 0x24, 0xf4, 0xc8,
+	0x27, 0x49, 0x13, 0x8e, 0x4c, 0x50, 0x28, 0xb6, 0x5a, 0xc3, 0xd6, 0x48, 0xf5, 0x14, 0x8a, 0xd1,
+	0x0d, 0x18, 0x52, 0x92, 0x62, 0x4b, 0x11, 0x68, 0x47, 0x7c, 0xcf, 0x31, 0xba, 0x85, 0x2e, 0x66,
+	0xa1, 0x4f, 0xa3, 0x9c, 0x53, 0x05, 0x67, 0x48, 0x60, 0x8e, 0x9d, 0x00, 0xcc, 0xba, 0xc1, 0x89,
+	0xf2, 0x1d, 0x68, 0x82, 0x14, 0xb2, 0x3d, 0xd7, 0x1c, 0xcb, 0x9c, 0xe3, 0x05, 0x63, 0x9b, 0x34,
+	0xf6, 0x24, 0x89, 0x6c, 0x30, 0x66, 0x7e, 0xec, 0xaf, 0x28, 0xcf, 0x84, 0x87, 0xe6, 0xed, 0xbf,
+	0x9d, 0x1f, 0x05, 0xa0, 0x32, 0x39, 0x31, 0xa8, 0xe5, 0x53, 0xea, 0xf9, 0xd0, 0x00, 0x60, 0xb5,
+	0x23, 0x3e, 0x27, 0x78, 0xe9, 0xf3, 0x22, 0x7d, 0xb7, 0x40, 0x26, 0x1c, 0x3d, 0x54, 0x74, 0x90,
+	0x59, 0xed, 0xc6, 0x84, 0xe5, 0xf8, 0x34, 0xcb, 0xd5, 0xd2, 0x18, 0x97, 0x6a, 0x9a, 0x54, 0x2b,
+	0x10, 0xa9, 0x56, 0xd2, 0x41, 0x66, 0xe9, 0xcd, 0x6a, 0xc5, 0xc4, 0x34, 0xcb, 0x9b, 0x11, 0xcf,
+	0xb2, 0x3a, 0xcd, 0xcd, 0x08, 0xb2, 0xea, 0xcf, 0xf8, 0x6b, 0x7f, 0xdd, 0xa3, 0xfe, 0x5e, 0xc0,
+	0x5c, 0xd0, 0x84, 0x1f, 0x54, 0x78, 0x0f, 0x1a, 0xe5, 0x24, 0x4c, 0xac, 0xd6, 0x50, 0x1d, 0xf5,
+	0xdc, 0x7e, 0xa9, 0x79, 0x74, 0x2b, 0x72, 0xc8, 0xfd, 0x56, 0xe0, 0x7f, 0xc5, 0x4c, 0x62, 0x8a,
+	0x5c, 0xd0, 0x67, 0xa2, 0x14, 0x84, 0x4e, 0x57, 0xed, 0x06, 0xcc, 0xf9, 0x87, 0x9e, 0xa1, 0x9d,
+	0xa7, 0x40, 0xf6, 0xfe, 0x01, 0x34, 0xe1, 0xaf, 0x6c, 0x57, 0x5c, 0x65, 0x4a, 0x12, 0x6e, 0xf7,
+	0x0f, 0xb9, 0xda, 0xf6, 0x13, 0xa8, 0x6f, 0x84, 0xa3, 0xc1, 0x99, 0xa4, 0xf2, 0xaa, 0xcf, 0x38,
+	0xbb, 0xa0, 0x7f, 0x88, 0xd2, 0x2f, 0x48, 0xeb, 0x82, 0xee, 0x91, 0x90, 0x7d, 0x5d, 0xb0, 0x13,
+	0xe8, 0xe2, 0x9f, 0x7b, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x56, 0x95, 0x90, 0x9d, 0x9d, 0x03,
+	0x00, 0x00,
+}
+
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
 var _ grpc.ClientConn
@@ -192,8 +322,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for AgentSkillApi service
-
+// AgentSkillApiClient is the client API for AgentSkillApi service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AgentSkillApiClient interface {
 	// POST /call_center/agent/:ID/skill
 	Create(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error)
@@ -217,7 +348,7 @@ func NewAgentSkillApiClient(cc *grpc.ClientConn) AgentSkillApiClient {
 
 func (c *agentSkillApiClient) Create(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := grpc.Invoke(ctx, "/engine.AgentSkillApi/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +357,7 @@ func (c *agentSkillApiClient) Create(ctx context.Context, in *AgentSkill, opts .
 
 func (c *agentSkillApiClient) List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListAgentSkill, error) {
 	out := new(ListAgentSkill)
-	err := grpc.Invoke(ctx, "/engine.AgentSkillApi/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +366,7 @@ func (c *agentSkillApiClient) List(ctx context.Context, in *ListForItemRequest, 
 
 func (c *agentSkillApiClient) Get(ctx context.Context, in *AgentSkillItemReqeust, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := grpc.Invoke(ctx, "/engine.AgentSkillApi/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +375,7 @@ func (c *agentSkillApiClient) Get(ctx context.Context, in *AgentSkillItemReqeust
 
 func (c *agentSkillApiClient) Update(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := grpc.Invoke(ctx, "/engine.AgentSkillApi/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -253,15 +384,14 @@ func (c *agentSkillApiClient) Update(ctx context.Context, in *AgentSkill, opts .
 
 func (c *agentSkillApiClient) Remove(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := grpc.Invoke(ctx, "/engine.AgentSkillApi/Remove", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Remove", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for AgentSkillApi service
-
+// AgentSkillApiServer is the server API for AgentSkillApi service.
 type AgentSkillApiServer interface {
 	// POST /call_center/agent/:ID/skill
 	Create(context.Context, *AgentSkill) (*AgentSkill, error)
@@ -273,6 +403,26 @@ type AgentSkillApiServer interface {
 	Update(context.Context, *AgentSkill) (*AgentSkill, error)
 	// DELETE /call_center/agent/:ID/skill/:SKILL_ID
 	Remove(context.Context, *AgentSkill) (*AgentSkill, error)
+}
+
+// UnimplementedAgentSkillApiServer can be embedded to have forward compatible implementations.
+type UnimplementedAgentSkillApiServer struct {
+}
+
+func (*UnimplementedAgentSkillApiServer) Create(ctx context.Context, req *AgentSkill) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (*UnimplementedAgentSkillApiServer) List(ctx context.Context, req *ListForItemRequest) (*ListAgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (*UnimplementedAgentSkillApiServer) Get(ctx context.Context, req *AgentSkillItemReqeust) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (*UnimplementedAgentSkillApiServer) Update(ctx context.Context, req *AgentSkill) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (*UnimplementedAgentSkillApiServer) Remove(ctx context.Context, req *AgentSkill) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
 }
 
 func RegisterAgentSkillApiServer(s *grpc.Server, srv AgentSkillApiServer) {
@@ -396,35 +546,4 @@ var _AgentSkillApi_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "agent_skill.proto",
-}
-
-func init() { proto.RegisterFile("agent_skill.proto", fileDescriptor5) }
-
-var fileDescriptor5 = []byte{
-	// 386 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x6b, 0xf2, 0x40,
-	0x14, 0xfc, 0x4c, 0x4c, 0x8c, 0x4f, 0xbe, 0x40, 0x17, 0x2a, 0x69, 0x8a, 0x20, 0xa1, 0x07, 0x0f,
-	0xad, 0x87, 0xf4, 0x56, 0x4a, 0x41, 0x85, 0x16, 0xc1, 0x53, 0x4a, 0xcf, 0x92, 0xb8, 0x8b, 0x2c,
-	0x9a, 0x6c, 0x6a, 0x36, 0x85, 0xfc, 0xa0, 0xfe, 0x8c, 0xfe, 0xb7, 0x92, 0xdd, 0xc4, 0x18, 0x8d,
-	0x50, 0x8f, 0x99, 0x79, 0x6f, 0x66, 0x76, 0x78, 0x81, 0x2b, 0x7f, 0x4d, 0x22, 0xbe, 0x4c, 0x36,
-	0x74, 0xbb, 0x1d, 0xc7, 0x3b, 0xc6, 0x19, 0xd2, 0x49, 0xb4, 0xa6, 0x11, 0xb1, 0x7b, 0x2b, 0x16,
-	0x25, 0x5c, 0x82, 0xce, 0x12, 0xae, 0x27, 0xf9, 0xe4, 0x7b, 0x3e, 0x38, 0xe7, 0x24, 0xf4, 0xc8,
-	0x27, 0x49, 0x13, 0x8e, 0x4c, 0x50, 0x28, 0xb6, 0x5a, 0xc3, 0xd6, 0x48, 0xf5, 0x14, 0x8a, 0xd1,
-	0x0d, 0x18, 0x52, 0x92, 0x62, 0x4b, 0x11, 0x68, 0x47, 0x7c, 0xcf, 0x31, 0xba, 0x85, 0x2e, 0x66,
-	0xa1, 0x4f, 0xa3, 0x9c, 0x53, 0x05, 0x67, 0x48, 0x60, 0x8e, 0x9d, 0x00, 0xcc, 0xba, 0xc1, 0x89,
-	0xf2, 0x1d, 0x68, 0x82, 0x14, 0xb2, 0x3d, 0xd7, 0x1c, 0xcb, 0x9c, 0xe3, 0x05, 0x63, 0x9b, 0x34,
-	0xf6, 0x24, 0x89, 0x6c, 0x30, 0x66, 0x7e, 0xec, 0xaf, 0x28, 0xcf, 0x84, 0x87, 0xe6, 0xed, 0xbf,
-	0x9d, 0x1f, 0x05, 0xa0, 0x32, 0x39, 0x31, 0xa8, 0xe5, 0x53, 0xea, 0xf9, 0xd0, 0x00, 0x60, 0xb5,
-	0x23, 0x3e, 0x27, 0x78, 0xe9, 0xf3, 0x22, 0x7d, 0xb7, 0x40, 0x26, 0x1c, 0x3d, 0x54, 0x74, 0x90,
-	0x59, 0xed, 0xc6, 0x84, 0xe5, 0xf8, 0x34, 0xcb, 0xd5, 0xd2, 0x18, 0x97, 0x6a, 0x9a, 0x54, 0x2b,
-	0x10, 0xa9, 0x56, 0xd2, 0x41, 0x66, 0xe9, 0xcd, 0x6a, 0xc5, 0xc4, 0x34, 0xcb, 0x9b, 0x11, 0xcf,
-	0xb2, 0x3a, 0xcd, 0xcd, 0x08, 0xb2, 0xea, 0xcf, 0xf8, 0x6b, 0x7f, 0xdd, 0xa3, 0xfe, 0x5e, 0xc0,
-	0x5c, 0xd0, 0x84, 0x1f, 0x54, 0x78, 0x0f, 0x1a, 0xe5, 0x24, 0x4c, 0xac, 0xd6, 0x50, 0x1d, 0xf5,
-	0xdc, 0x7e, 0xa9, 0x79, 0x74, 0x2b, 0x72, 0xc8, 0xfd, 0x56, 0xe0, 0x7f, 0xc5, 0x4c, 0x62, 0x8a,
-	0x5c, 0xd0, 0x67, 0xa2, 0x14, 0x84, 0x4e, 0x57, 0xed, 0x06, 0xcc, 0xf9, 0x87, 0x9e, 0xa1, 0x9d,
-	0xa7, 0x40, 0xf6, 0xfe, 0x01, 0x34, 0xe1, 0xaf, 0x6c, 0x57, 0x5c, 0x65, 0x4a, 0x12, 0x6e, 0xf7,
-	0x0f, 0xb9, 0xda, 0xf6, 0x13, 0xa8, 0x6f, 0x84, 0xa3, 0xc1, 0x99, 0xa4, 0xf2, 0xaa, 0xcf, 0x38,
-	0xbb, 0xa0, 0x7f, 0x88, 0xd2, 0x2f, 0x48, 0xeb, 0x82, 0xee, 0x91, 0x90, 0x7d, 0x5d, 0xb0, 0x13,
-	0xe8, 0xe2, 0x9f, 0x7b, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x56, 0x95, 0x90, 0x9d, 0x9d, 0x03,
-	0x00, 0x00,
 }

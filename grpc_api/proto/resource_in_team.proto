@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service ResourceTeamApi {
+    // POST /call_center/team/:team_id/resources
+    rpc Create(ResourceTeam) returns (ResourceTeam) {}
+    // GET /call_center/team/:team_id/resources
+    rpc List(ListForItemRequest) returns (ListResourceTeam) {}
+    // GET /call_center/team/:team_id/resources/:id
+    rpc Get(ResourceTeamItemReqeust) returns (ResourceTeam) {}
+    // PUT /call_center/team/:team_id/resources/:id
+    rpc Update(ResourceTeam) returns (ResourceTeam) {}
+    // DELETE /call_center/team/:team_id/resources/:id
+    rpc Remove(ResourceTeamItemReqeust) returns (ResourceTeam) {}
+}
+
+message ResourceTeamItemReqeust {
+    int64 id = 1;
+    int64 team_id = 2;
+    int64 domain_id = 3;
+}
+
+message ResourceTeam {
+    int64 id = 1;
+    int64 team_id = 2;
+    int64 domain_id = 3;
+    Lookup agent = 4;
+    Lookup skill = 5;
+    int32 lvl = 6;
+    int32 min_capacity = 7;
+    int32 max_capacity = 8;
+}
+
+message ListResourceTeam {
+    repeated ResourceTeam items = 1;
+}

@@ -3,24 +3,55 @@
 
 package engine
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
 type Lookup struct {
-	Id   int64  `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	Name string `protobuf:"bytes,2,opt,name=name" json:"name,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Lookup) Reset()                    { *m = Lookup{} }
-func (m *Lookup) String() string            { return proto.CompactTextString(m) }
-func (*Lookup) ProtoMessage()               {}
-func (*Lookup) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{0} }
+func (m *Lookup) Reset()         { *m = Lookup{} }
+func (m *Lookup) String() string { return proto.CompactTextString(m) }
+func (*Lookup) ProtoMessage()    {}
+func (*Lookup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5adb9555099c2688, []int{0}
+}
+
+func (m *Lookup) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Lookup.Unmarshal(m, b)
+}
+func (m *Lookup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Lookup.Marshal(b, m, deterministic)
+}
+func (m *Lookup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Lookup.Merge(m, src)
+}
+func (m *Lookup) XXX_Size() int {
+	return xxx_messageInfo_Lookup.Size(m)
+}
+func (m *Lookup) XXX_DiscardUnknown() {
+	xxx_messageInfo_Lookup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Lookup proto.InternalMessageInfo
 
 func (m *Lookup) GetId() int64 {
 	if m != nil {
@@ -37,15 +68,38 @@ func (m *Lookup) GetName() string {
 }
 
 type ListRequest struct {
-	DomainId int64 `protobuf:"varint,1,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	Size     int32 `protobuf:"varint,2,opt,name=size" json:"size,omitempty"`
-	Page     int32 `protobuf:"varint,3,opt,name=page" json:"page,omitempty"`
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListRequest) Reset()                    { *m = ListRequest{} }
-func (m *ListRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListRequest) ProtoMessage()               {}
-func (*ListRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{1} }
+func (m *ListRequest) Reset()         { *m = ListRequest{} }
+func (m *ListRequest) String() string { return proto.CompactTextString(m) }
+func (*ListRequest) ProtoMessage()    {}
+func (*ListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5adb9555099c2688, []int{1}
+}
+
+func (m *ListRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListRequest.Unmarshal(m, b)
+}
+func (m *ListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListRequest.Marshal(b, m, deterministic)
+}
+func (m *ListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListRequest.Merge(m, src)
+}
+func (m *ListRequest) XXX_Size() int {
+	return xxx_messageInfo_ListRequest.Size(m)
+}
+func (m *ListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListRequest proto.InternalMessageInfo
 
 func (m *ListRequest) GetDomainId() int64 {
 	if m != nil {
@@ -69,17 +123,40 @@ func (m *ListRequest) GetPage() int32 {
 }
 
 type DomainRecord struct {
-	DomainId  int64 `protobuf:"varint,1,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	CreatedAt int64 `protobuf:"varint,2,opt,name=created_at,json=createdAt" json:"created_at,omitempty"`
-	CreatedBy int64 `protobuf:"varint,3,opt,name=created_by,json=createdBy" json:"created_by,omitempty"`
-	UpdatedAt int64 `protobuf:"varint,4,opt,name=updated_at,json=updatedAt" json:"updated_at,omitempty"`
-	UpdatedBy int64 `protobuf:"varint,5,opt,name=updated_by,json=updatedBy" json:"updated_by,omitempty"`
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	CreatedAt            int64    `protobuf:"varint,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedBy            int64    `protobuf:"varint,3,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedAt            int64    `protobuf:"varint,4,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedBy            int64    `protobuf:"varint,5,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DomainRecord) Reset()                    { *m = DomainRecord{} }
-func (m *DomainRecord) String() string            { return proto.CompactTextString(m) }
-func (*DomainRecord) ProtoMessage()               {}
-func (*DomainRecord) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{2} }
+func (m *DomainRecord) Reset()         { *m = DomainRecord{} }
+func (m *DomainRecord) String() string { return proto.CompactTextString(m) }
+func (*DomainRecord) ProtoMessage()    {}
+func (*DomainRecord) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5adb9555099c2688, []int{2}
+}
+
+func (m *DomainRecord) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DomainRecord.Unmarshal(m, b)
+}
+func (m *DomainRecord) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DomainRecord.Marshal(b, m, deterministic)
+}
+func (m *DomainRecord) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DomainRecord.Merge(m, src)
+}
+func (m *DomainRecord) XXX_Size() int {
+	return xxx_messageInfo_DomainRecord.Size(m)
+}
+func (m *DomainRecord) XXX_DiscardUnknown() {
+	xxx_messageInfo_DomainRecord.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DomainRecord proto.InternalMessageInfo
 
 func (m *DomainRecord) GetDomainId() int64 {
 	if m != nil {
@@ -117,16 +194,39 @@ func (m *DomainRecord) GetUpdatedBy() int64 {
 }
 
 type ListForItemRequest struct {
-	DomainId int64 `protobuf:"varint,1,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	ItemId   int64 `protobuf:"varint,2,opt,name=item_id,json=itemId" json:"item_id,omitempty"`
-	Size     int32 `protobuf:"varint,3,opt,name=size" json:"size,omitempty"`
-	Page     int32 `protobuf:"varint,4,opt,name=page" json:"page,omitempty"`
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	ItemId               int64    `protobuf:"varint,2,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListForItemRequest) Reset()                    { *m = ListForItemRequest{} }
-func (m *ListForItemRequest) String() string            { return proto.CompactTextString(m) }
-func (*ListForItemRequest) ProtoMessage()               {}
-func (*ListForItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{3} }
+func (m *ListForItemRequest) Reset()         { *m = ListForItemRequest{} }
+func (m *ListForItemRequest) String() string { return proto.CompactTextString(m) }
+func (*ListForItemRequest) ProtoMessage()    {}
+func (*ListForItemRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5adb9555099c2688, []int{3}
+}
+
+func (m *ListForItemRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListForItemRequest.Unmarshal(m, b)
+}
+func (m *ListForItemRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListForItemRequest.Marshal(b, m, deterministic)
+}
+func (m *ListForItemRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListForItemRequest.Merge(m, src)
+}
+func (m *ListForItemRequest) XXX_Size() int {
+	return xxx_messageInfo_ListForItemRequest.Size(m)
+}
+func (m *ListForItemRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListForItemRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListForItemRequest proto.InternalMessageInfo
 
 func (m *ListForItemRequest) GetDomainId() int64 {
 	if m != nil {
@@ -157,14 +257,37 @@ func (m *ListForItemRequest) GetPage() int32 {
 }
 
 type ItemRequest struct {
-	DomainId int64 `protobuf:"varint,1,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	Id       int64 `protobuf:"varint,2,opt,name=id" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ItemRequest) Reset()                    { *m = ItemRequest{} }
-func (m *ItemRequest) String() string            { return proto.CompactTextString(m) }
-func (*ItemRequest) ProtoMessage()               {}
-func (*ItemRequest) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{4} }
+func (m *ItemRequest) Reset()         { *m = ItemRequest{} }
+func (m *ItemRequest) String() string { return proto.CompactTextString(m) }
+func (*ItemRequest) ProtoMessage()    {}
+func (*ItemRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5adb9555099c2688, []int{4}
+}
+
+func (m *ItemRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ItemRequest.Unmarshal(m, b)
+}
+func (m *ItemRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ItemRequest.Marshal(b, m, deterministic)
+}
+func (m *ItemRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ItemRequest.Merge(m, src)
+}
+func (m *ItemRequest) XXX_Size() int {
+	return xxx_messageInfo_ItemRequest.Size(m)
+}
+func (m *ItemRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ItemRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ItemRequest proto.InternalMessageInfo
 
 func (m *ItemRequest) GetDomainId() int64 {
 	if m != nil {
@@ -181,13 +304,36 @@ func (m *ItemRequest) GetId() int64 {
 }
 
 type Response struct {
-	Status string `protobuf:"bytes,1,opt,name=status" json:"status,omitempty"`
+	Status               string   `protobuf:"bytes,1,opt,name=status,proto3" json:"status,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Response) Reset()                    { *m = Response{} }
-func (m *Response) String() string            { return proto.CompactTextString(m) }
-func (*Response) ProtoMessage()               {}
-func (*Response) Descriptor() ([]byte, []int) { return fileDescriptor8, []int{5} }
+func (m *Response) Reset()         { *m = Response{} }
+func (m *Response) String() string { return proto.CompactTextString(m) }
+func (*Response) ProtoMessage()    {}
+func (*Response) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5adb9555099c2688, []int{5}
+}
+
+func (m *Response) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Response.Unmarshal(m, b)
+}
+func (m *Response) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Response.Marshal(b, m, deterministic)
+}
+func (m *Response) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Response.Merge(m, src)
+}
+func (m *Response) XXX_Size() int {
+	return xxx_messageInfo_Response.Size(m)
+}
+func (m *Response) XXX_DiscardUnknown() {
+	xxx_messageInfo_Response.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Response proto.InternalMessageInfo
 
 func (m *Response) GetStatus() string {
 	if m != nil {
@@ -205,9 +351,9 @@ func init() {
 	proto.RegisterType((*Response)(nil), "engine.Response")
 }
 
-func init() { proto.RegisterFile("const.proto", fileDescriptor8) }
+func init() { proto.RegisterFile("const.proto", fileDescriptor_5adb9555099c2688) }
 
-var fileDescriptor8 = []byte{
+var fileDescriptor_5adb9555099c2688 = []byte{
 	// 283 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0xc1, 0x4a, 0xc4, 0x30,
 	0x10, 0x86, 0x69, 0xbb, 0x5b, 0xb7, 0xb3, 0xe2, 0x21, 0x07, 0x2d, 0x88, 0xb0, 0xe4, 0xb4, 0x07,

@@ -3,13 +3,14 @@
 
 package engine
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
+	context "context"
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -17,17 +18,46 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
 type Skill struct {
-	Id          int64  `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	DomainId    int64  `protobuf:"varint,2,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	Name        string `protobuf:"bytes,3,opt,name=name" json:"name,omitempty"`
-	Description string `protobuf:"bytes,4,opt,name=description" json:"description,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Skill) Reset()                    { *m = Skill{} }
-func (m *Skill) String() string            { return proto.CompactTextString(m) }
-func (*Skill) ProtoMessage()               {}
-func (*Skill) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{0} }
+func (m *Skill) Reset()         { *m = Skill{} }
+func (m *Skill) String() string { return proto.CompactTextString(m) }
+func (*Skill) ProtoMessage()    {}
+func (*Skill) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dd709e691a520876, []int{0}
+}
+
+func (m *Skill) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Skill.Unmarshal(m, b)
+}
+func (m *Skill) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Skill.Marshal(b, m, deterministic)
+}
+func (m *Skill) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Skill.Merge(m, src)
+}
+func (m *Skill) XXX_Size() int {
+	return xxx_messageInfo_Skill.Size(m)
+}
+func (m *Skill) XXX_DiscardUnknown() {
+	xxx_messageInfo_Skill.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Skill proto.InternalMessageInfo
 
 func (m *Skill) GetId() int64 {
 	if m != nil {
@@ -58,13 +88,36 @@ func (m *Skill) GetDescription() string {
 }
 
 type ListSkill struct {
-	Items []*Skill `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
+	Items                []*Skill `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListSkill) Reset()                    { *m = ListSkill{} }
-func (m *ListSkill) String() string            { return proto.CompactTextString(m) }
-func (*ListSkill) ProtoMessage()               {}
-func (*ListSkill) Descriptor() ([]byte, []int) { return fileDescriptor10, []int{1} }
+func (m *ListSkill) Reset()         { *m = ListSkill{} }
+func (m *ListSkill) String() string { return proto.CompactTextString(m) }
+func (*ListSkill) ProtoMessage()    {}
+func (*ListSkill) Descriptor() ([]byte, []int) {
+	return fileDescriptor_dd709e691a520876, []int{1}
+}
+
+func (m *ListSkill) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListSkill.Unmarshal(m, b)
+}
+func (m *ListSkill) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListSkill.Marshal(b, m, deterministic)
+}
+func (m *ListSkill) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListSkill.Merge(m, src)
+}
+func (m *ListSkill) XXX_Size() int {
+	return xxx_messageInfo_ListSkill.Size(m)
+}
+func (m *ListSkill) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListSkill.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListSkill proto.InternalMessageInfo
 
 func (m *ListSkill) GetItems() []*Skill {
 	if m != nil {
@@ -78,6 +131,28 @@ func init() {
 	proto.RegisterType((*ListSkill)(nil), "engine.ListSkill")
 }
 
+func init() { proto.RegisterFile("skill.proto", fileDescriptor_dd709e691a520876) }
+
+var fileDescriptor_dd709e691a520876 = []byte{
+	// 254 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0xcf, 0x4a, 0xc4, 0x30,
+	0x10, 0x87, 0xed, 0x9f, 0x2d, 0xdb, 0x29, 0x0a, 0x8e, 0x97, 0x52, 0x2f, 0xa5, 0x5e, 0x0a, 0x42,
+	0x59, 0xd6, 0x27, 0x10, 0x0f, 0xb2, 0xe0, 0x29, 0xe2, 0x59, 0xea, 0x66, 0x90, 0xd1, 0x4d, 0x52,
+	0x9b, 0xe8, 0x5b, 0xfb, 0x0e, 0xd2, 0x84, 0x42, 0x17, 0x2f, 0x7b, 0xcb, 0x7c, 0xdf, 0xfc, 0x66,
+	0x06, 0x02, 0x85, 0xfd, 0xe4, 0xc3, 0xa1, 0x1b, 0x46, 0xe3, 0x0c, 0x66, 0xa4, 0xdf, 0x59, 0x53,
+	0x55, 0xec, 0x8d, 0xb6, 0x2e, 0xc0, 0xe6, 0x03, 0x56, 0xcf, 0x53, 0x0f, 0x5e, 0x40, 0xcc, 0xb2,
+	0x8c, 0xea, 0xa8, 0x4d, 0x44, 0xcc, 0x12, 0xaf, 0x21, 0x97, 0x46, 0xf5, 0xac, 0x5f, 0x59, 0x96,
+	0xb1, 0xc7, 0xeb, 0x00, 0x76, 0x12, 0x11, 0x52, 0xdd, 0x2b, 0x2a, 0x93, 0x3a, 0x6a, 0x73, 0xe1,
+	0xdf, 0x58, 0x43, 0x21, 0xc9, 0xee, 0x47, 0x1e, 0x1c, 0x1b, 0x5d, 0xa6, 0x5e, 0x2d, 0x51, 0xb3,
+	0x81, 0xfc, 0x89, 0xad, 0x0b, 0xfb, 0x6e, 0x60, 0xc5, 0x8e, 0x94, 0x2d, 0xa3, 0x3a, 0x69, 0x8b,
+	0xed, 0x79, 0x17, 0xae, 0xeb, 0xbc, 0x15, 0xc1, 0x6d, 0x7f, 0x23, 0x58, 0x7b, 0x70, 0x3f, 0x30,
+	0xb6, 0x90, 0x3d, 0x8c, 0xd4, 0x3b, 0xc2, 0xe3, 0xe6, 0xea, 0xb8, 0x6c, 0xce, 0x70, 0x03, 0xe9,
+	0xb4, 0x08, 0xaf, 0x66, 0x31, 0x55, 0x82, 0xbe, 0xbe, 0xc9, 0xba, 0xea, 0x72, 0x09, 0xe7, 0xc4,
+	0x2d, 0x24, 0x8f, 0xb4, 0x08, 0xec, 0x1c, 0xa9, 0x39, 0xf0, 0x6f, 0x7c, 0x0b, 0xd9, 0xcb, 0x20,
+	0x4f, 0x39, 0xa4, 0x83, 0x4c, 0x90, 0x32, 0x3f, 0x74, 0xda, 0xe4, 0xb7, 0xcc, 0x7f, 0xca, 0xdd,
+	0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x44, 0xe3, 0x7d, 0xfe, 0xb8, 0x01, 0x00, 0x00,
+}
+
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
 var _ grpc.ClientConn
@@ -86,8 +161,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for SkillApi service
-
+// SkillApiClient is the client API for SkillApi service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SkillApiClient interface {
 	// POST /call_center/skill
 	Create(ctx context.Context, in *Skill, opts ...grpc.CallOption) (*Skill, error)
@@ -111,7 +187,7 @@ func NewSkillApiClient(cc *grpc.ClientConn) SkillApiClient {
 
 func (c *skillApiClient) Create(ctx context.Context, in *Skill, opts ...grpc.CallOption) (*Skill, error) {
 	out := new(Skill)
-	err := grpc.Invoke(ctx, "/engine.SkillApi/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SkillApi/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +196,7 @@ func (c *skillApiClient) Create(ctx context.Context, in *Skill, opts ...grpc.Cal
 
 func (c *skillApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListSkill, error) {
 	out := new(ListSkill)
-	err := grpc.Invoke(ctx, "/engine.SkillApi/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SkillApi/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +205,7 @@ func (c *skillApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc
 
 func (c *skillApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Skill, error) {
 	out := new(Skill)
-	err := grpc.Invoke(ctx, "/engine.SkillApi/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SkillApi/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +214,7 @@ func (c *skillApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.
 
 func (c *skillApiClient) Update(ctx context.Context, in *Skill, opts ...grpc.CallOption) (*Skill, error) {
 	out := new(Skill)
-	err := grpc.Invoke(ctx, "/engine.SkillApi/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SkillApi/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,15 +223,14 @@ func (c *skillApiClient) Update(ctx context.Context, in *Skill, opts ...grpc.Cal
 
 func (c *skillApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Skill, error) {
 	out := new(Skill)
-	err := grpc.Invoke(ctx, "/engine.SkillApi/Remove", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SkillApi/Remove", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for SkillApi service
-
+// SkillApiServer is the server API for SkillApi service.
 type SkillApiServer interface {
 	// POST /call_center/skill
 	Create(context.Context, *Skill) (*Skill, error)
@@ -167,6 +242,26 @@ type SkillApiServer interface {
 	Update(context.Context, *Skill) (*Skill, error)
 	// DELETE /call_center/skill/:ID
 	Remove(context.Context, *ItemRequest) (*Skill, error)
+}
+
+// UnimplementedSkillApiServer can be embedded to have forward compatible implementations.
+type UnimplementedSkillApiServer struct {
+}
+
+func (*UnimplementedSkillApiServer) Create(ctx context.Context, req *Skill) (*Skill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (*UnimplementedSkillApiServer) List(ctx context.Context, req *ListRequest) (*ListSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (*UnimplementedSkillApiServer) Get(ctx context.Context, req *ItemRequest) (*Skill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (*UnimplementedSkillApiServer) Update(ctx context.Context, req *Skill) (*Skill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (*UnimplementedSkillApiServer) Remove(ctx context.Context, req *ItemRequest) (*Skill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
 }
 
 func RegisterSkillApiServer(s *grpc.Server, srv SkillApiServer) {
@@ -290,26 +385,4 @@ var _SkillApi_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "skill.proto",
-}
-
-func init() { proto.RegisterFile("skill.proto", fileDescriptor10) }
-
-var fileDescriptor10 = []byte{
-	// 254 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x91, 0xcf, 0x4a, 0xc4, 0x30,
-	0x10, 0x87, 0xed, 0x9f, 0x2d, 0xdb, 0x29, 0x0a, 0x8e, 0x97, 0x52, 0x2f, 0xa5, 0x5e, 0x0a, 0x42,
-	0x59, 0xd6, 0x27, 0x10, 0x0f, 0xb2, 0xe0, 0x29, 0xe2, 0x59, 0xea, 0x66, 0x90, 0xd1, 0x4d, 0x52,
-	0x9b, 0xe8, 0x5b, 0xfb, 0x0e, 0xd2, 0x84, 0x42, 0x17, 0x2f, 0x7b, 0xcb, 0x7c, 0xdf, 0xfc, 0x66,
-	0x06, 0x02, 0x85, 0xfd, 0xe4, 0xc3, 0xa1, 0x1b, 0x46, 0xe3, 0x0c, 0x66, 0xa4, 0xdf, 0x59, 0x53,
-	0x55, 0xec, 0x8d, 0xb6, 0x2e, 0xc0, 0xe6, 0x03, 0x56, 0xcf, 0x53, 0x0f, 0x5e, 0x40, 0xcc, 0xb2,
-	0x8c, 0xea, 0xa8, 0x4d, 0x44, 0xcc, 0x12, 0xaf, 0x21, 0x97, 0x46, 0xf5, 0xac, 0x5f, 0x59, 0x96,
-	0xb1, 0xc7, 0xeb, 0x00, 0x76, 0x12, 0x11, 0x52, 0xdd, 0x2b, 0x2a, 0x93, 0x3a, 0x6a, 0x73, 0xe1,
-	0xdf, 0x58, 0x43, 0x21, 0xc9, 0xee, 0x47, 0x1e, 0x1c, 0x1b, 0x5d, 0xa6, 0x5e, 0x2d, 0x51, 0xb3,
-	0x81, 0xfc, 0x89, 0xad, 0x0b, 0xfb, 0x6e, 0x60, 0xc5, 0x8e, 0x94, 0x2d, 0xa3, 0x3a, 0x69, 0x8b,
-	0xed, 0x79, 0x17, 0xae, 0xeb, 0xbc, 0x15, 0xc1, 0x6d, 0x7f, 0x23, 0x58, 0x7b, 0x70, 0x3f, 0x30,
-	0xb6, 0x90, 0x3d, 0x8c, 0xd4, 0x3b, 0xc2, 0xe3, 0xe6, 0xea, 0xb8, 0x6c, 0xce, 0x70, 0x03, 0xe9,
-	0xb4, 0x08, 0xaf, 0x66, 0x31, 0x55, 0x82, 0xbe, 0xbe, 0xc9, 0xba, 0xea, 0x72, 0x09, 0xe7, 0xc4,
-	0x2d, 0x24, 0x8f, 0xb4, 0x08, 0xec, 0x1c, 0xa9, 0x39, 0xf0, 0x6f, 0x7c, 0x0b, 0xd9, 0xcb, 0x20,
-	0x4f, 0x39, 0xa4, 0x83, 0x4c, 0x90, 0x32, 0x3f, 0x74, 0xda, 0xe4, 0xb7, 0xcc, 0x7f, 0xca, 0xdd,
-	0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x44, 0xe3, 0x7d, 0xfe, 0xb8, 0x01, 0x00, 0x00,
 }

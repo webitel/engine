@@ -41,6 +41,7 @@ type Store interface {
 	AgentTeam() AgentTeamStore
 	Agent() AgentStore
 	AgentSkill() AgentSkillStore
+	ResourceTeam() ResourceTeamStore
 	OutboundResource() OutboundResourceStore
 	RoutingScheme() RoutingSchemeStore
 	RoutingInboundCall() RoutingInboundCallStore
@@ -100,6 +101,14 @@ type AgentSkillStore interface {
 	Update(agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError)
 	GetAllPage(domainId, agentId int64, offset, limit int) ([]*model.AgentSkill, *model.AppError)
 	Delete(agentId, id int64) *model.AppError
+}
+
+type ResourceTeamStore interface {
+	Create(in *model.ResourceInTeam) (*model.ResourceInTeam, *model.AppError)
+	Get(domainId, teamId int64, id int64) (*model.ResourceInTeam, *model.AppError)
+	GetAllPage(domainId, teamId int64, offset, limit int) ([]*model.ResourceInTeam, *model.AppError)
+	Update(resource *model.ResourceInTeam) (*model.ResourceInTeam, *model.AppError)
+	Delete(domainId, teamId int64, id int64) *model.AppError
 }
 
 type OutboundResourceStore interface {

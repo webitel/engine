@@ -3,19 +3,26 @@
 
 package engine
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
+	context "context"
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
 	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	math "math"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+// A compilation error at this line likely means your copy of the
+// proto package needs to be updated.
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type AgentStatusRequest_Status int32
 
@@ -30,6 +37,7 @@ var AgentStatusRequest_Status_name = map[int32]string{
 	1: "OFFLINE",
 	2: "PAUSE",
 }
+
 var AgentStatusRequest_Status_value = map[string]int32{
 	"ONLINE":  0,
 	"OFFLINE": 1,
@@ -39,19 +47,45 @@ var AgentStatusRequest_Status_value = map[string]int32{
 func (x AgentStatusRequest_Status) String() string {
 	return proto.EnumName(AgentStatusRequest_Status_name, int32(x))
 }
-func (AgentStatusRequest_Status) EnumDescriptor() ([]byte, []int) { return fileDescriptor4, []int{1, 0} }
 
-type SkillAgent struct {
-	Id       int64   `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	Skill    *Lookup `protobuf:"bytes,2,opt,name=skill" json:"skill,omitempty"`
-	Agent    *Lookup `protobuf:"bytes,3,opt,name=agent" json:"agent,omitempty"`
-	Capacity int32   `protobuf:"varint,4,opt,name=capacity" json:"capacity,omitempty"`
+func (AgentStatusRequest_Status) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{1, 0}
 }
 
-func (m *SkillAgent) Reset()                    { *m = SkillAgent{} }
-func (m *SkillAgent) String() string            { return proto.CompactTextString(m) }
-func (*SkillAgent) ProtoMessage()               {}
-func (*SkillAgent) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{0} }
+type SkillAgent struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,2,opt,name=skill,proto3" json:"skill,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	Capacity             int32    `protobuf:"varint,4,opt,name=capacity,proto3" json:"capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SkillAgent) Reset()         { *m = SkillAgent{} }
+func (m *SkillAgent) String() string { return proto.CompactTextString(m) }
+func (*SkillAgent) ProtoMessage()    {}
+func (*SkillAgent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{0}
+}
+
+func (m *SkillAgent) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SkillAgent.Unmarshal(m, b)
+}
+func (m *SkillAgent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SkillAgent.Marshal(b, m, deterministic)
+}
+func (m *SkillAgent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SkillAgent.Merge(m, src)
+}
+func (m *SkillAgent) XXX_Size() int {
+	return xxx_messageInfo_SkillAgent.Size(m)
+}
+func (m *SkillAgent) XXX_DiscardUnknown() {
+	xxx_messageInfo_SkillAgent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SkillAgent proto.InternalMessageInfo
 
 func (m *SkillAgent) GetId() int64 {
 	if m != nil {
@@ -82,15 +116,38 @@ func (m *SkillAgent) GetCapacity() int32 {
 }
 
 type AgentStatusRequest struct {
-	Id       int64  `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	DomainId int64  `protobuf:"varint,2,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	Status   string `protobuf:"bytes,3,opt,name=status" json:"status,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Status               string   `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AgentStatusRequest) Reset()                    { *m = AgentStatusRequest{} }
-func (m *AgentStatusRequest) String() string            { return proto.CompactTextString(m) }
-func (*AgentStatusRequest) ProtoMessage()               {}
-func (*AgentStatusRequest) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{1} }
+func (m *AgentStatusRequest) Reset()         { *m = AgentStatusRequest{} }
+func (m *AgentStatusRequest) String() string { return proto.CompactTextString(m) }
+func (*AgentStatusRequest) ProtoMessage()    {}
+func (*AgentStatusRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{1}
+}
+
+func (m *AgentStatusRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentStatusRequest.Unmarshal(m, b)
+}
+func (m *AgentStatusRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentStatusRequest.Marshal(b, m, deterministic)
+}
+func (m *AgentStatusRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentStatusRequest.Merge(m, src)
+}
+func (m *AgentStatusRequest) XXX_Size() int {
+	return xxx_messageInfo_AgentStatusRequest.Size(m)
+}
+func (m *AgentStatusRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentStatusRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentStatusRequest proto.InternalMessageInfo
 
 func (m *AgentStatusRequest) GetId() int64 {
 	if m != nil {
@@ -114,18 +171,41 @@ func (m *AgentStatusRequest) GetStatus() string {
 }
 
 type Agent struct {
-	Id          int64   `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
-	DomainId    int64   `protobuf:"varint,2,opt,name=domain_id,json=domainId" json:"domain_id,omitempty"`
-	User        *Lookup `protobuf:"bytes,3,opt,name=user" json:"user,omitempty"`
-	Status      string  `protobuf:"bytes,4,opt,name=status" json:"status,omitempty"`
-	State       string  `protobuf:"bytes,5,opt,name=state" json:"state,omitempty"`
-	Description string  `protobuf:"bytes,7,opt,name=description" json:"description,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	User                 *Lookup  `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	Status               string   `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
+	State                string   `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	Description          string   `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Agent) Reset()                    { *m = Agent{} }
-func (m *Agent) String() string            { return proto.CompactTextString(m) }
-func (*Agent) ProtoMessage()               {}
-func (*Agent) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{2} }
+func (m *Agent) Reset()         { *m = Agent{} }
+func (m *Agent) String() string { return proto.CompactTextString(m) }
+func (*Agent) ProtoMessage()    {}
+func (*Agent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{2}
+}
+
+func (m *Agent) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Agent.Unmarshal(m, b)
+}
+func (m *Agent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Agent.Marshal(b, m, deterministic)
+}
+func (m *Agent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Agent.Merge(m, src)
+}
+func (m *Agent) XXX_Size() int {
+	return xxx_messageInfo_Agent.Size(m)
+}
+func (m *Agent) XXX_DiscardUnknown() {
+	xxx_messageInfo_Agent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Agent proto.InternalMessageInfo
 
 func (m *Agent) GetId() int64 {
 	if m != nil {
@@ -170,13 +250,36 @@ func (m *Agent) GetDescription() string {
 }
 
 type ListAgent struct {
-	Items []*Agent `protobuf:"bytes,1,rep,name=items" json:"items,omitempty"`
+	Items                []*Agent `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ListAgent) Reset()                    { *m = ListAgent{} }
-func (m *ListAgent) String() string            { return proto.CompactTextString(m) }
-func (*ListAgent) ProtoMessage()               {}
-func (*ListAgent) Descriptor() ([]byte, []int) { return fileDescriptor4, []int{3} }
+func (m *ListAgent) Reset()         { *m = ListAgent{} }
+func (m *ListAgent) String() string { return proto.CompactTextString(m) }
+func (*ListAgent) ProtoMessage()    {}
+func (*ListAgent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{3}
+}
+
+func (m *ListAgent) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListAgent.Unmarshal(m, b)
+}
+func (m *ListAgent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListAgent.Marshal(b, m, deterministic)
+}
+func (m *ListAgent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListAgent.Merge(m, src)
+}
+func (m *ListAgent) XXX_Size() int {
+	return xxx_messageInfo_ListAgent.Size(m)
+}
+func (m *ListAgent) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListAgent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListAgent proto.InternalMessageInfo
 
 func (m *ListAgent) GetItems() []*Agent {
 	if m != nil {
@@ -186,11 +289,43 @@ func (m *ListAgent) GetItems() []*Agent {
 }
 
 func init() {
+	proto.RegisterEnum("engine.AgentStatusRequest_Status", AgentStatusRequest_Status_name, AgentStatusRequest_Status_value)
 	proto.RegisterType((*SkillAgent)(nil), "engine.SkillAgent")
 	proto.RegisterType((*AgentStatusRequest)(nil), "engine.AgentStatusRequest")
 	proto.RegisterType((*Agent)(nil), "engine.Agent")
 	proto.RegisterType((*ListAgent)(nil), "engine.ListAgent")
-	proto.RegisterEnum("engine.AgentStatusRequest_Status", AgentStatusRequest_Status_name, AgentStatusRequest_Status_value)
+}
+
+func init() { proto.RegisterFile("agent.proto", fileDescriptor_56ede974c0020f77) }
+
+var fileDescriptor_56ede974c0020f77 = []byte{
+	// 414 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0xcf, 0x6b, 0xd4, 0x40,
+	0x14, 0xde, 0x49, 0x36, 0xd3, 0xdd, 0x17, 0x2d, 0xeb, 0x28, 0x12, 0xe2, 0x25, 0x8c, 0x1e, 0x02,
+	0xca, 0x52, 0xd6, 0xbb, 0xb0, 0x48, 0x2b, 0x0b, 0x4b, 0x2b, 0xb3, 0xf4, 0x2c, 0x31, 0x79, 0x94,
+	0xa1, 0x4d, 0x26, 0x66, 0x26, 0x82, 0x77, 0xc1, 0x7f, 0xc5, 0x8b, 0xff, 0xa3, 0x64, 0x26, 0x29,
+	0x09, 0xad, 0xb2, 0xb7, 0x7c, 0x3f, 0xde, 0xf7, 0xbe, 0x4c, 0x26, 0x10, 0x66, 0x37, 0x58, 0x99,
+	0x75, 0xdd, 0x28, 0xa3, 0x18, 0xc5, 0xea, 0x46, 0x56, 0x18, 0x87, 0xb9, 0xaa, 0x74, 0x4f, 0xf2,
+	0x9f, 0x04, 0xe0, 0x70, 0x2b, 0xef, 0xee, 0xb6, 0x9d, 0x93, 0x9d, 0x82, 0x27, 0x8b, 0x88, 0x24,
+	0x24, 0xf5, 0x85, 0x27, 0x0b, 0xf6, 0x06, 0x02, 0xdd, 0xa9, 0x91, 0x97, 0x90, 0x34, 0xdc, 0x9c,
+	0xae, 0x5d, 0xc6, 0x7a, 0xaf, 0xd4, 0x6d, 0x5b, 0x0b, 0x27, 0x76, 0x2e, 0xbb, 0x28, 0xf2, 0x1f,
+	0x77, 0x59, 0x91, 0xc5, 0xb0, 0xc8, 0xb3, 0x3a, 0xcb, 0xa5, 0xf9, 0x11, 0xcd, 0x13, 0x92, 0x06,
+	0xe2, 0x1e, 0xf3, 0x5f, 0x04, 0x98, 0x6d, 0x70, 0x30, 0x99, 0x69, 0xb5, 0xc0, 0x6f, 0x2d, 0xea,
+	0x87, 0x75, 0x5e, 0xc1, 0xb2, 0x50, 0x65, 0x26, 0xab, 0x2f, 0xb2, 0xb0, 0x95, 0x7c, 0xb1, 0x70,
+	0xc4, 0xae, 0x60, 0x2f, 0x81, 0x6a, 0x3b, 0x6d, 0x6b, 0x2c, 0x45, 0x8f, 0xf8, 0x3b, 0xa0, 0x2e,
+	0x95, 0x01, 0xd0, 0xab, 0xcb, 0xfd, 0xee, 0xf2, 0x7c, 0x35, 0x63, 0x21, 0x9c, 0x5c, 0x5d, 0x5c,
+	0x58, 0x40, 0xd8, 0x12, 0x82, 0xcf, 0xdb, 0xeb, 0xc3, 0xf9, 0xca, 0xe3, 0xbf, 0x09, 0x04, 0x8f,
+	0x9f, 0xc5, 0x7f, 0x97, 0x73, 0x98, 0xb7, 0x1a, 0x9b, 0x7f, 0x9c, 0x80, 0xd5, 0x46, 0x05, 0xe7,
+	0xe3, 0x82, 0xec, 0x05, 0x04, 0xdd, 0x13, 0x46, 0x81, 0xa5, 0x1d, 0x60, 0x09, 0x84, 0x05, 0xea,
+	0xbc, 0x91, 0xb5, 0x91, 0xaa, 0x8a, 0x4e, 0xac, 0x36, 0xa6, 0xf8, 0x19, 0x2c, 0xf7, 0x52, 0x1b,
+	0xd7, 0xf6, 0x35, 0x04, 0xd2, 0x60, 0xa9, 0x23, 0x92, 0xf8, 0x69, 0xb8, 0x79, 0x3a, 0x34, 0xb0,
+	0xaa, 0x70, 0xda, 0xe6, 0x8f, 0x07, 0x0b, 0x4b, 0x6c, 0x6b, 0xc9, 0x52, 0xa0, 0x1f, 0x1b, 0xec,
+	0x56, 0x4d, 0xcd, 0xf1, 0x14, 0xf2, 0x19, 0x3b, 0x83, 0x79, 0xb7, 0x88, 0x3d, 0xbf, 0x7f, 0x2d,
+	0xa9, 0x4d, 0xff, 0x8d, 0xe2, 0x67, 0x63, 0x72, 0x98, 0x78, 0x0b, 0xfe, 0x27, 0x1c, 0x0d, 0xec,
+	0x0c, 0x96, 0xc3, 0xc0, 0x83, 0xf8, 0x14, 0xe8, 0x75, 0x5d, 0x1c, 0x53, 0x64, 0x0d, 0x54, 0x60,
+	0xa9, 0xbe, 0xe3, 0x91, 0xc9, 0x1f, 0xe0, 0x89, 0x4b, 0xee, 0x2f, 0x40, 0x3c, 0x31, 0x4c, 0xee,
+	0x5a, 0xbc, 0x1a, 0x34, 0x81, 0xba, 0x56, 0x95, 0x46, 0x3e, 0xfb, 0x4a, 0xed, 0x4f, 0xf2, 0xfe,
+	0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xed, 0x44, 0xd0, 0x01, 0x48, 0x03, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -201,8 +336,9 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// Client API for AgentApi service
-
+// AgentApiClient is the client API for AgentApi service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AgentApiClient interface {
 	// POST /call_center/agent
 	Create(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*Agent, error)
@@ -228,7 +364,7 @@ func NewAgentApiClient(cc *grpc.ClientConn) AgentApiClient {
 
 func (c *agentApiClient) Create(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*Agent, error) {
 	out := new(Agent)
-	err := grpc.Invoke(ctx, "/engine.AgentApi/Create", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentApi/Create", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -237,7 +373,7 @@ func (c *agentApiClient) Create(ctx context.Context, in *Agent, opts ...grpc.Cal
 
 func (c *agentApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListAgent, error) {
 	out := new(ListAgent)
-	err := grpc.Invoke(ctx, "/engine.AgentApi/List", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentApi/List", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +382,7 @@ func (c *agentApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc
 
 func (c *agentApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Agent, error) {
 	out := new(Agent)
-	err := grpc.Invoke(ctx, "/engine.AgentApi/Get", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentApi/Get", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -255,7 +391,7 @@ func (c *agentApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.
 
 func (c *agentApiClient) Update(ctx context.Context, in *Agent, opts ...grpc.CallOption) (*Agent, error) {
 	out := new(Agent)
-	err := grpc.Invoke(ctx, "/engine.AgentApi/Update", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentApi/Update", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +400,7 @@ func (c *agentApiClient) Update(ctx context.Context, in *Agent, opts ...grpc.Cal
 
 func (c *agentApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Agent, error) {
 	out := new(Agent)
-	err := grpc.Invoke(ctx, "/engine.AgentApi/Remove", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentApi/Remove", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -273,15 +409,14 @@ func (c *agentApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...gr
 
 func (c *agentApiClient) UpdateStatus(ctx context.Context, in *AgentStatusRequest, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
-	err := grpc.Invoke(ctx, "/engine.AgentApi/UpdateStatus", in, out, c.cc, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentApi/UpdateStatus", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// Server API for AgentApi service
-
+// AgentApiServer is the server API for AgentApi service.
 type AgentApiServer interface {
 	// POST /call_center/agent
 	Create(context.Context, *Agent) (*Agent, error)
@@ -295,6 +430,29 @@ type AgentApiServer interface {
 	Remove(context.Context, *ItemRequest) (*Agent, error)
 	// PATCH /call_center/agent/:ID/status
 	UpdateStatus(context.Context, *AgentStatusRequest) (*Response, error)
+}
+
+// UnimplementedAgentApiServer can be embedded to have forward compatible implementations.
+type UnimplementedAgentApiServer struct {
+}
+
+func (*UnimplementedAgentApiServer) Create(ctx context.Context, req *Agent) (*Agent, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (*UnimplementedAgentApiServer) List(ctx context.Context, req *ListRequest) (*ListAgent, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (*UnimplementedAgentApiServer) Get(ctx context.Context, req *ItemRequest) (*Agent, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (*UnimplementedAgentApiServer) Update(ctx context.Context, req *Agent) (*Agent, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (*UnimplementedAgentApiServer) Remove(ctx context.Context, req *ItemRequest) (*Agent, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
+}
+func (*UnimplementedAgentApiServer) UpdateStatus(ctx context.Context, req *AgentStatusRequest) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateStatus not implemented")
 }
 
 func RegisterAgentApiServer(s *grpc.Server, srv AgentApiServer) {
@@ -440,36 +598,4 @@ var _AgentApi_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "agent.proto",
-}
-
-func init() { proto.RegisterFile("agent.proto", fileDescriptor4) }
-
-var fileDescriptor4 = []byte{
-	// 414 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0xcf, 0x6b, 0xd4, 0x40,
-	0x14, 0xde, 0x49, 0x36, 0xd3, 0xdd, 0x17, 0x2d, 0xeb, 0x28, 0x12, 0xe2, 0x25, 0x8c, 0x1e, 0x02,
-	0xca, 0x52, 0xd6, 0xbb, 0xb0, 0x48, 0x2b, 0x0b, 0x4b, 0x2b, 0xb3, 0xf4, 0x2c, 0x31, 0x79, 0x94,
-	0xa1, 0x4d, 0x26, 0x66, 0x26, 0x82, 0x77, 0xc1, 0x7f, 0xc5, 0x8b, 0xff, 0xa3, 0x64, 0x26, 0x29,
-	0x09, 0xad, 0xb2, 0xb7, 0x7c, 0x3f, 0xde, 0xf7, 0xbe, 0x4c, 0x26, 0x10, 0x66, 0x37, 0x58, 0x99,
-	0x75, 0xdd, 0x28, 0xa3, 0x18, 0xc5, 0xea, 0x46, 0x56, 0x18, 0x87, 0xb9, 0xaa, 0x74, 0x4f, 0xf2,
-	0x9f, 0x04, 0xe0, 0x70, 0x2b, 0xef, 0xee, 0xb6, 0x9d, 0x93, 0x9d, 0x82, 0x27, 0x8b, 0x88, 0x24,
-	0x24, 0xf5, 0x85, 0x27, 0x0b, 0xf6, 0x06, 0x02, 0xdd, 0xa9, 0x91, 0x97, 0x90, 0x34, 0xdc, 0x9c,
-	0xae, 0x5d, 0xc6, 0x7a, 0xaf, 0xd4, 0x6d, 0x5b, 0x0b, 0x27, 0x76, 0x2e, 0xbb, 0x28, 0xf2, 0x1f,
-	0x77, 0x59, 0x91, 0xc5, 0xb0, 0xc8, 0xb3, 0x3a, 0xcb, 0xa5, 0xf9, 0x11, 0xcd, 0x13, 0x92, 0x06,
-	0xe2, 0x1e, 0xf3, 0x5f, 0x04, 0x98, 0x6d, 0x70, 0x30, 0x99, 0x69, 0xb5, 0xc0, 0x6f, 0x2d, 0xea,
-	0x87, 0x75, 0x5e, 0xc1, 0xb2, 0x50, 0x65, 0x26, 0xab, 0x2f, 0xb2, 0xb0, 0x95, 0x7c, 0xb1, 0x70,
-	0xc4, 0xae, 0x60, 0x2f, 0x81, 0x6a, 0x3b, 0x6d, 0x6b, 0x2c, 0x45, 0x8f, 0xf8, 0x3b, 0xa0, 0x2e,
-	0x95, 0x01, 0xd0, 0xab, 0xcb, 0xfd, 0xee, 0xf2, 0x7c, 0x35, 0x63, 0x21, 0x9c, 0x5c, 0x5d, 0x5c,
-	0x58, 0x40, 0xd8, 0x12, 0x82, 0xcf, 0xdb, 0xeb, 0xc3, 0xf9, 0xca, 0xe3, 0xbf, 0x09, 0x04, 0x8f,
-	0x9f, 0xc5, 0x7f, 0x97, 0x73, 0x98, 0xb7, 0x1a, 0x9b, 0x7f, 0x9c, 0x80, 0xd5, 0x46, 0x05, 0xe7,
-	0xe3, 0x82, 0xec, 0x05, 0x04, 0xdd, 0x13, 0x46, 0x81, 0xa5, 0x1d, 0x60, 0x09, 0x84, 0x05, 0xea,
-	0xbc, 0x91, 0xb5, 0x91, 0xaa, 0x8a, 0x4e, 0xac, 0x36, 0xa6, 0xf8, 0x19, 0x2c, 0xf7, 0x52, 0x1b,
-	0xd7, 0xf6, 0x35, 0x04, 0xd2, 0x60, 0xa9, 0x23, 0x92, 0xf8, 0x69, 0xb8, 0x79, 0x3a, 0x34, 0xb0,
-	0xaa, 0x70, 0xda, 0xe6, 0x8f, 0x07, 0x0b, 0x4b, 0x6c, 0x6b, 0xc9, 0x52, 0xa0, 0x1f, 0x1b, 0xec,
-	0x56, 0x4d, 0xcd, 0xf1, 0x14, 0xf2, 0x19, 0x3b, 0x83, 0x79, 0xb7, 0x88, 0x3d, 0xbf, 0x7f, 0x2d,
-	0xa9, 0x4d, 0xff, 0x8d, 0xe2, 0x67, 0x63, 0x72, 0x98, 0x78, 0x0b, 0xfe, 0x27, 0x1c, 0x0d, 0xec,
-	0x0c, 0x96, 0xc3, 0xc0, 0x83, 0xf8, 0x14, 0xe8, 0x75, 0x5d, 0x1c, 0x53, 0x64, 0x0d, 0x54, 0x60,
-	0xa9, 0xbe, 0xe3, 0x91, 0xc9, 0x1f, 0xe0, 0x89, 0x4b, 0xee, 0x2f, 0x40, 0x3c, 0x31, 0x4c, 0xee,
-	0x5a, 0xbc, 0x1a, 0x34, 0x81, 0xba, 0x56, 0x95, 0x46, 0x3e, 0xfb, 0x4a, 0xed, 0x4f, 0xf2, 0xfe,
-	0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xed, 0x44, 0xd0, 0x01, 0x48, 0x03, 0x00, 0x00,
 }
