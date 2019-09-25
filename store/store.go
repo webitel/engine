@@ -42,6 +42,7 @@ type Store interface {
 	Agent() AgentStore
 	AgentSkill() AgentSkillStore
 	ResourceTeam() ResourceTeamStore
+	Queue() QueueStore
 	OutboundResource() OutboundResourceStore
 	RoutingScheme() RoutingSchemeStore
 	RoutingInboundCall() RoutingInboundCallStore
@@ -150,5 +151,15 @@ type RoutingVariableStore interface {
 	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingVariable, *model.AppError)
 	Get(domainId int64, id int64) (*model.RoutingVariable, *model.AppError)
 	Update(variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+}
+
+type QueueStore interface {
+	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	Create(queue *model.Queue) (*model.Queue, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.Queue, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Queue, *model.AppError)
+	Get(domainId int64, id int64) (*model.Queue, *model.AppError)
+	Update(queue *model.Queue) (*model.Queue, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 }

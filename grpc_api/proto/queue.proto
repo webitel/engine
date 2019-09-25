@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+import "const.proto";
+import "google/protobuf/struct.proto";
+
+package engine;
+
+service QueueApi {
+    // POST /call_center/queue
+    rpc Create(Queue) returns (Queue) {}
+    // GET /call_center/queue
+    rpc List(ListRequest) returns (ListQueue) {}
+    // GET /call_center/queue/:id
+    rpc Get(ItemRequest) returns (Queue) {}
+    // PUT /call_center/queue/:id
+    rpc Update(Queue) returns (Queue) {}
+    // DELETE /call_center/queue/:id
+    rpc Remove(ItemRequest) returns (Queue) {}
+}
+
+message Queue {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+
+    string strategy = 7;
+    bool enabled = 8;
+    google.protobuf.Value payload = 9;
+    Lookup calendar = 10;
+    int32 priority = 11;
+    int32 max_calls = 12;
+    int32 sec_between_retries = 13;
+    string name = 14;
+    int32 max_of_retry = 15;
+    map<string, string> variables = 16;
+    int32 timeout = 17;
+    Lookup dnc_list = 18;
+    int32 sec_locate_agent = 19;
+    int32 type = 20;
+    Lookup team = 21;
+}
+
+message ListQueue {
+    repeated Queue items = 1;
+}

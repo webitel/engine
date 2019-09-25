@@ -80,3 +80,7 @@ func (s *LayeredStore) RoutingOutboundCall() RoutingOutboundCallStore {
 func (s *LayeredStore) RoutingVariable() RoutingVariableStore {
 	return s.DatabaseLayer.RoutingVariable()
 }
+
+func (s *LayeredStore) Queue() QueueStore {
+	return s.DatabaseLayer.Queue()
+}

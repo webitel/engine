@@ -97,13 +97,14 @@ func (am *authManager) getAuthClient() (model.AuthClient, *model.AppError) {
 }
 
 func (am *authManager) registerConnection(v *discovery.ServiceConnection) {
-	client, err := external_commands.NewAuthServiceConnection(v.Id, fmt.Sprintf("%s:%d", v.Host, v.Port))
+	addr := fmt.Sprintf("%s:%d", v.Host, v.Port)
+	client, err := external_commands.NewAuthServiceConnection(v.Id, addr)
 	if err != nil {
-		wlog.Error(fmt.Sprintf("connection %s error: %s", v.Id, err.Error()))
+		wlog.Error(fmt.Sprintf("connection %s [%s] error: %s", v.Id, addr, err.Error()))
 		return
 	}
 	am.poolConnections.Append(client)
-	wlog.Debug(fmt.Sprintf("register connection %s", client.Name()))
+	wlog.Debug(fmt.Sprintf("register connection %s [%s]", client.Name(), addr))
 }
 
 func (am *authManager) wakeUp() {

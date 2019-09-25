@@ -39,6 +39,7 @@ type SqlSupplierOldStores struct {
 	agentSkill       store.AgentSkillStore
 	resourceTeam     store.ResourceTeamStore
 	outboundResource store.OutboundResourceStore
+	queue            store.QueueStore
 
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
@@ -74,6 +75,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 	supplier.oldStores.resourceTeam = NewSqlResourceTeamStore(supplier)
 	supplier.oldStores.outboundResource = NewSqlOutboundResourceStore(supplier)
+	supplier.oldStores.queue = NewSqlQueueStore(supplier)
 
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
 	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
@@ -230,6 +232,10 @@ func (ss *SqlSupplier) RoutingOutboundCall() store.RoutingOutboundCallStore {
 
 func (ss *SqlSupplier) RoutingVariable() store.RoutingVariableStore {
 	return ss.oldStores.routingVariable
+}
+
+func (ss *SqlSupplier) Queue() store.QueueStore {
+	return ss.oldStores.queue
 }
 
 type typeConverter struct{}
