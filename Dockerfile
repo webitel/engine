@@ -17,7 +17,7 @@ ENV WEBITEL_REPO_BASE https://github.com/webitel
 WORKDIR /
 COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=0 /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=0 /go/src/github.com/webitel/engine/i18n /
 COPY --from=0 /go/src/github.com/webitel/engine/engine .
-COPY i18n .
 
 ENTRYPOINT ["./engine"]
