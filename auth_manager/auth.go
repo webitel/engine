@@ -11,9 +11,12 @@ import (
 	"sync"
 )
 
-const (
-	WATCHER_INTERVAL  = 5 * 1000
+var (
 	AUTH_SERVICE_NAME = "go.webitel.dsa"
+)
+
+const (
+	WATCHER_INTERVAL = 5 * 1000
 )
 
 type AuthManager interface {
