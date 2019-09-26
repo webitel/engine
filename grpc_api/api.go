@@ -15,6 +15,7 @@ type API struct {
 	agentSkill       *agentSkill
 	outboundResource *outboundResource
 	queue            *queue
+	supervisorInTeam *supervisorInTeam
 
 	routingScheme       *routingScheme
 	routingOutboundCall *routingOutboundCall
@@ -32,6 +33,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.resourceTeam = NewResourceTeamApi(a)
 	api.outboundResource = NewOutboundResourceApi(a)
 	api.queue = NewQueueApi(a)
+	api.supervisorInTeam = NewSupervisorInTeamApi(a)
 
 	api.routingScheme = NewRoutingSchemeApi(a)
 	api.routingOutboundCall = NewRoutingOutboundCallApi(a)
@@ -45,6 +47,7 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterResourceTeamApiServer(server, api.resourceTeam)
 	engine.RegisterOutboundResourceApiServer(server, api.outboundResource)
 	engine.RegisterQueueApiServer(server, api.queue)
+	engine.RegisterSupervisorInTeamApiServer(server, api.supervisorInTeam)
 
 	engine.RegisterRoutingSchemeApiServer(server, api.routingScheme)
 	engine.RegisterRoutingOutboundCallApiServer(server, api.routingOutboundCall)

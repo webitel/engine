@@ -20,6 +20,7 @@ type SqlStore interface {
 	ResourceTeam() store.ResourceTeamStore
 	OutboundResource() store.OutboundResourceStore
 	Queue() store.QueueStore
+	SupervisorTeam() store.SupervisorTeamStore
 
 	RoutingScheme() store.RoutingSchemeStore
 	RoutingInboundCall() store.RoutingInboundCallStore

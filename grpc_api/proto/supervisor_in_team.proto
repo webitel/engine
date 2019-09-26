@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "const.proto";
+
+package engine;
+
+service SupervisorInTeamApi {
+    // POST /call_center/team/:team_id/supervisor
+    rpc Create(SupervisorInTeam) returns (SupervisorInTeam) {}
+    // GET /call_center/team/:team_id/supervisor
+    rpc List(ListForItemRequest) returns (ListSupervisorInTeam) {}
+    // GET /call_center/team/:team_id/supervisor/:id
+    rpc Get(SupervisorTeamItemReqeust) returns (SupervisorInTeam) {}
+    // PUT /call_center/team/:team_id/supervisor/:id
+    rpc Update(SupervisorInTeam) returns (SupervisorInTeam) {}
+    // DELETE /call_center/team/:team_id/supervisor/:id
+    rpc Remove(SupervisorTeamItemReqeust) returns (SupervisorInTeam) {}
+}
+
+message SupervisorTeamItemReqeust {
+    int64 id = 1;
+    int64 team_id = 2;
+    int64 domain_id = 3;
+}
+
+message SupervisorInTeam {
+    int64 id = 1;
+    int64 team_id = 2;
+    int64 domain_id = 3;
+    Lookup agent = 4;
+}
+
+message ListSupervisorInTeam {
+    repeated SupervisorInTeam items = 1;
+}
