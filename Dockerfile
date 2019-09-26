@@ -8,15 +8,15 @@ RUN GOOS=linux go get -d ./...
 RUN GOOS=linux go install
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o engine .
 
-FROM scratch
+FROM alpine:latest
+
 LABEL maintainer="Vitaly Kovalyshyn"
 
-ENV WEBITEL_MAJOR 3
+ENV WEBITEL_MAJOR 19.12
 ENV WEBITEL_REPO_BASE https://github.com/webitel
 
 WORKDIR /
-COPY --from=0 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=0 /usr/share/zoneinfo /usr/share/zoneinfo
+RUN apk --no-cache add ca-certificates tzdata
 COPY --from=0 /go/src/github.com/webitel/engine/i18n /
 COPY --from=0 /go/src/github.com/webitel/engine/engine .
 
