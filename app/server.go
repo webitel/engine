@@ -72,7 +72,7 @@ func (a *App) StartServer() error {
 		ErrorLog: a.Log.StdLog(wlog.String("source", "httpserver")),
 	}
 
-	addr := ":10025"
+	addr := a.Config().WebSocketSettings.Address
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err

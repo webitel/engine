@@ -17,7 +17,8 @@ func main() {
 	interruptChan := make(chan os.Signal, 1)
 	a, err := app.New()
 	if err != nil {
-		panic(err.Error())
+		wlog.Critical(err.Error())
+		return
 	}
 	defer a.Shutdown()
 

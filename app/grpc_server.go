@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -11,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -21,6 +23,16 @@ var (
 
 type GrpcServer struct {
 	srv *grpc.Server
+	lis net.Listener
+}
+
+func (grpc *GrpcServer) GetPublicInterface() (string, int) {
+	h, p, _ := net.SplitHostPort(grpc.lis.Addr().String())
+	if h == "::" {
+		h = utils.GetPublicAddr()
+	}
+	port, _ := strconv.Atoi(p)
+	return h, port
 }
 
 func unaryInterceptor(ctx context.Context,
@@ -64,8 +76,14 @@ func httpCodeToGrpc(c int) codes.Code {
 	}
 }
 
-func NewGrpcServer() *GrpcServer {
+func NewGrpcServer(settings model.ServerSettings) *GrpcServer {
+	address := fmt.Sprintf("%s:%d", settings.Address, settings.Port)
+	lis, err := net.Listen(settings.Network, address)
+	if err != nil {
+		panic(err.Error())
+	}
 	return &GrpcServer{
+		lis: lis,
 		srv: grpc.NewServer(
 			grpc.UnaryInterceptor(unaryInterceptor),
 		),
@@ -77,14 +95,12 @@ func (s *GrpcServer) Server() *grpc.Server {
 }
 
 func (a *App) StartGrpcServer() error {
-	lis, err := net.Listen("tcp", "10.10.10.25:8081")
-	if err != nil {
-		panic(err.Error())
-	}
-
 	go func() {
-		err := a.GrpcServer.srv.Serve(lis)
+		defer wlog.Debug(fmt.Sprintf("[grpc] close server listening"))
+		wlog.Debug(fmt.Sprintf("[grpc] server listening %s", a.GrpcServer.lis.Addr().String()))
+		err := a.GrpcServer.srv.Serve(a.GrpcServer.lis)
 		if err != nil {
+			//FIXME
 			panic(err.Error())
 		}
 	}()

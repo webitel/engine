@@ -1,5 +1,7 @@
 package model
 
+import "net/http"
+
 const (
 	DEFAULT_LOCALE = "en"
 
@@ -26,8 +28,32 @@ func (s *LocalizationSettings) SetDefaults() {
 	}
 }
 
+type Config struct {
+	NodeName             string               `json:"node_name"`
+	DiscoverySettings    DiscoverySettings    `json:"discovery_settings"`
+	LocalizationSettings LocalizationSettings `json:"localization_settings"`
+	MessageQueueSettings MessageQueueSettings `json:"message_queue_settings"`
+	SqlSettings          SqlSettings          `json:"sql_settings"`
+	ServerSettings       ServerSettings       `json:"server_settings"`
+	WebSocketSettings    WebSocketSettings    `json:"web_socket_settings"`
+}
+
+type DiscoverySettings struct {
+	Url string
+}
+
 type MessageQueueSettings struct {
 	Url string
+}
+
+type ServerSettings struct {
+	Address string `json:"address"`
+	Port    int    `json:"port"`
+	Network string `json:"network"`
+}
+
+type WebSocketSettings struct {
+	Address string `json:"address"`
 }
 
 type SqlSettings struct {
@@ -41,4 +67,19 @@ type SqlSettings struct {
 	Trace                       bool
 	AtRestEncryptKey            string
 	QueryTimeout                *int
+}
+
+func (c *Config) IsValid() *AppError {
+	if len(c.WebSocketSettings.Address) < 3 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.websocket_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(c.DiscoverySettings.Url) < 3 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.discovery_url.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if c.SqlSettings.DataSource == nil || len(*c.SqlSettings.DataSource) < 3 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sql_datasource.app_error", nil, "", http.StatusBadRequest)
+	}
+	return nil
 }

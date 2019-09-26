@@ -17,7 +17,7 @@ func NewCluster(app *App) *cluster {
 }
 
 func (c *cluster) Start() error {
-	sd, err := discovery.NewServiceDiscovery(c.app.nodeId, "192.168.177.199:8500", func() (b bool, appError error) {
+	sd, err := discovery.NewServiceDiscovery(c.app.nodeId, c.app.Config().DiscoverySettings.Url, func() (b bool, appError error) {
 		return true, nil
 	})
 	if err != nil {
@@ -25,7 +25,8 @@ func (c *cluster) Start() error {
 	}
 	c.discovery = sd
 
-	err = sd.RegisterService(model.APP_SERVICE_NAME, "10.10.10.25", 8081, model.APP_SERVICE_TTL, model.APP_DEREGESTER_CRITICAL_TTL)
+	host, port := c.app.GrpcServer.GetPublicInterface()
+	err = sd.RegisterService(model.APP_SERVICE_NAME, host, port, model.APP_SERVICE_TTL, model.APP_DEREGESTER_CRITICAL_TTL)
 	if err != nil {
 		return err
 	}

@@ -16,6 +16,7 @@ import (
 
 type App struct {
 	nodeId         string
+	config         *model.Config
 	Log            *wlog.Logger
 	Srv            *Server
 	GrpcServer     *GrpcServer
@@ -28,8 +29,19 @@ type App struct {
 }
 
 func New(options ...string) (outApp *App, outErr error) {
+
+	config, err := loadConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	if err := config.IsValid(); err != nil {
+		return nil, err
+	}
+
 	app := &App{
-		nodeId: "engine-1",
+		nodeId: config.NodeName,
+		config: config,
 		Srv: &Server{
 			RootRouter: mux.NewRouter(),
 		},
@@ -67,24 +79,14 @@ func New(options ...string) (outApp *App, outErr error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	app.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(model.SqlSettings{
-		DriverName:                  model.NewString("postgres"),
-		DataSource:                  model.NewString("postgres://webitel:webitel@localhost:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10&search_path=call_center"),
-		MaxIdleConns:                model.NewInt(5),
-		MaxOpenConns:                model.NewInt(5),
-		ConnMaxLifetimeMilliseconds: model.NewInt(3600000),
-		Trace:                       true,
-	}))
+	app.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings))
 
-	app.MessageQueue = rabbit.NewRabbitMQ("todo", &model.MessageQueueSettings{
-		//Url: "amqp://webitel:webitel@10.10.10.200:5672?heartbeat=0",
-		Url: "amqp://webitel:webitel@192.168.177.10:5672?heartbeat=10",
-	})
+	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)
 	app.MessageQueue.Start()
 
 	app.Hubs = NewHubs(app)
 
-	app.GrpcServer = NewGrpcServer()
+	app.GrpcServer = NewGrpcServer(app.Config().ServerSettings)
 
 	if outErr = app.cluster.Start(); outErr != nil {
 		return nil, outErr
@@ -103,6 +105,10 @@ func (app *App) Shutdown() {
 
 	if app.MessageQueue != nil {
 		app.MessageQueue.Close()
+	}
+
+	if app.GrpcServer != nil {
+		app.GrpcServer.srv.Stop()
 	}
 
 	app.cluster.Stop()
