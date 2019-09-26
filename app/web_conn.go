@@ -197,6 +197,8 @@ func (c *WebConn) writePump() {
 
 func (webCon *WebConn) SendHello() {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO)
+	msg.Add("server_node_id", webCon.App.nodeId)
+	msg.Add("server_build_commit", model.BuildNumber)
 	msg.Add("server_version", model.CurrentVersion)
 	msg.Add("server_time", model.GetMillis())
 	msg.Add("sock_id", webCon.id)

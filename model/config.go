@@ -29,14 +29,15 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type Config struct {
-	NodeName             string               `json:"node_name"`
-	DiscoverySettings    DiscoverySettings    `json:"discovery_settings"`
-	LocalizationSettings LocalizationSettings `json:"localization_settings"`
-	MessageQueueSettings MessageQueueSettings `json:"message_queue_settings"`
-	SqlSettings          SqlSettings          `json:"sql_settings"`
-	ServerSettings       ServerSettings       `json:"server_settings"`
-	WebSocketSettings    WebSocketSettings    `json:"web_socket_settings"`
-	Dev                  bool                 `json:"dev"`
+	TranslationsDirectory *string              `json:"translations_directory"`
+	NodeName              string               `json:"node_name"`
+	DiscoverySettings     DiscoverySettings    `json:"discovery_settings"`
+	LocalizationSettings  LocalizationSettings `json:"localization_settings"`
+	MessageQueueSettings  MessageQueueSettings `json:"message_queue_settings"`
+	SqlSettings           SqlSettings          `json:"sql_settings"`
+	ServerSettings        ServerSettings       `json:"server_settings"`
+	WebSocketSettings     WebSocketSettings    `json:"web_socket_settings"`
+	Dev                   bool                 `json:"dev"`
 }
 
 type DiscoverySettings struct {
