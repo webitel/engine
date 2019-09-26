@@ -36,6 +36,7 @@ type Config struct {
 	SqlSettings          SqlSettings          `json:"sql_settings"`
 	ServerSettings       ServerSettings       `json:"server_settings"`
 	WebSocketSettings    WebSocketSettings    `json:"web_socket_settings"`
+	Dev                  bool                 `json:"dev"`
 }
 
 type DiscoverySettings struct {

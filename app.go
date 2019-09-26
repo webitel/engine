@@ -34,7 +34,9 @@ func main() {
 
 	a.StartGrpcServer()
 
-	setDebug()
+	if a.Config().Dev {
+		setDebug()
+	}
 
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
