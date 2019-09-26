@@ -1,12 +1,15 @@
 syntax = "proto3";
 
 import "const.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
 service CalendarApi {
     // - POST /calendar
-    rpc Create(Calendar) returns (Calendar) {}
+    rpc Create(Calendar) returns (Calendar) {
+        option (google.api.http).get = "/v1/ajiting";
+    }
     // -GET /calendar
     rpc List(ListRequest) returns (ListCalendar) {}
     // -GET /calendar/:id

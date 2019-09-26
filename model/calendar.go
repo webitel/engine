@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+// Description of the CalendarAcceptOfDay
+// swagger:model CalendarAcceptOfDay
 type CalendarAcceptOfDay struct {
 	Id             int64 `json:"id" db:"id"`
 	Week           int8  `json:"week" db:"week_day"`
@@ -13,6 +15,8 @@ type CalendarAcceptOfDay struct {
 	EndTimeOfDay   int16 `json:"end_time_of_day" db:"end_time_of_day"`
 }
 
+// Description of the CalendarExceptDate
+// swagger:model CalendarExceptDate
 type CalendarExceptDate struct {
 	Id         int64 `json:"id"`
 	CalendarId int64 `json:"calendar_id"`
@@ -31,6 +35,8 @@ type Calendar struct {
 	Description *string `json:"description,omitempty"`
 }
 
+// Description of the Timezone
+// swagger:model Timezone
 type Timezone struct {
 	Id     int64  `json:"id" db:"id"`
 	Name   string `json:"name" db:"name"`

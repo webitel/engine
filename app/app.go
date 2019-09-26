@@ -1,3 +1,37 @@
+// Package App Engine API.
+//
+// the purpose of this application is to provide an application
+//
+// Terms Of Service:
+//
+// there are no TOS at this moment, use at your own risk we take no responsibility
+//
+//     Schemes: http, https
+//     Host: localhost
+//     BasePath: /v2
+//     Version: 0.0.1
+//     License: MIT http://opensource.org/licenses/MIT
+//     Contact: John Doe<john.doe@example.com>
+//
+//     Consumes:
+//     - application/json
+//
+//     Produces:
+//     - application/json
+//
+//     Security:
+//     - X-Webitel-Access:
+//
+//     SecurityDefinitions:
+//     X-Webitel-Access:
+//          type: apiKey
+//          name: KEY
+//          in: header
+//
+//     Extensions:
+//     x-meta-value: value
+//
+// swagger:meta
 package app
 
 import (

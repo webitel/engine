@@ -13,7 +13,7 @@ import (
 
 const (
 	WATCHER_INTERVAL  = 5 * 1000
-	AUTH_SERVICE_NAME = "go.webitel.dsa1"
+	AUTH_SERVICE_NAME = "go.webitel.dsa"
 )
 
 type AuthManager interface {
