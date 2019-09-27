@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,6 +24,337 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
+type DeleteRoutingOutboundCallRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteRoutingOutboundCallRequest) Reset()         { *m = DeleteRoutingOutboundCallRequest{} }
+func (m *DeleteRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteRoutingOutboundCallRequest) ProtoMessage()    {}
+func (*DeleteRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{0}
+}
+
+func (m *DeleteRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteRoutingOutboundCallRequest.Unmarshal(m, b)
+}
+func (m *DeleteRoutingOutboundCallRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteRoutingOutboundCallRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteRoutingOutboundCallRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteRoutingOutboundCallRequest.Merge(m, src)
+}
+func (m *DeleteRoutingOutboundCallRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteRoutingOutboundCallRequest.Size(m)
+}
+func (m *DeleteRoutingOutboundCallRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteRoutingOutboundCallRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteRoutingOutboundCallRequest proto.InternalMessageInfo
+
+func (m *DeleteRoutingOutboundCallRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *DeleteRoutingOutboundCallRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type UpdateRoutingOutboundCallRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Scheme               *Lookup  `protobuf:"bytes,5,opt,name=scheme,proto3" json:"scheme,omitempty"`
+	Pattern              string   `protobuf:"bytes,6,opt,name=pattern,proto3" json:"pattern,omitempty"`
+	Priority             int32    `protobuf:"varint,7,opt,name=priority,proto3" json:"priority,omitempty"`
+	Disabled             bool     `protobuf:"varint,8,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateRoutingOutboundCallRequest) Reset()         { *m = UpdateRoutingOutboundCallRequest{} }
+func (m *UpdateRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateRoutingOutboundCallRequest) ProtoMessage()    {}
+func (*UpdateRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{1}
+}
+
+func (m *UpdateRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateRoutingOutboundCallRequest.Unmarshal(m, b)
+}
+func (m *UpdateRoutingOutboundCallRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateRoutingOutboundCallRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateRoutingOutboundCallRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateRoutingOutboundCallRequest.Merge(m, src)
+}
+func (m *UpdateRoutingOutboundCallRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateRoutingOutboundCallRequest.Size(m)
+}
+func (m *UpdateRoutingOutboundCallRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateRoutingOutboundCallRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateRoutingOutboundCallRequest proto.InternalMessageInfo
+
+func (m *UpdateRoutingOutboundCallRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetScheme() *Lookup {
+	if m != nil {
+		return m.Scheme
+	}
+	return nil
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetPattern() string {
+	if m != nil {
+		return m.Pattern
+	}
+	return ""
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *UpdateRoutingOutboundCallRequest) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
+}
+
+type ReadRoutingOutboundCallRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadRoutingOutboundCallRequest) Reset()         { *m = ReadRoutingOutboundCallRequest{} }
+func (m *ReadRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadRoutingOutboundCallRequest) ProtoMessage()    {}
+func (*ReadRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{2}
+}
+
+func (m *ReadRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadRoutingOutboundCallRequest.Unmarshal(m, b)
+}
+func (m *ReadRoutingOutboundCallRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadRoutingOutboundCallRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadRoutingOutboundCallRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadRoutingOutboundCallRequest.Merge(m, src)
+}
+func (m *ReadRoutingOutboundCallRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadRoutingOutboundCallRequest.Size(m)
+}
+func (m *ReadRoutingOutboundCallRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadRoutingOutboundCallRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadRoutingOutboundCallRequest proto.InternalMessageInfo
+
+func (m *ReadRoutingOutboundCallRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *ReadRoutingOutboundCallRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type SearchRoutingOutboundCallRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchRoutingOutboundCallRequest) Reset()         { *m = SearchRoutingOutboundCallRequest{} }
+func (m *SearchRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchRoutingOutboundCallRequest) ProtoMessage()    {}
+func (*SearchRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{3}
+}
+
+func (m *SearchRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchRoutingOutboundCallRequest.Unmarshal(m, b)
+}
+func (m *SearchRoutingOutboundCallRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchRoutingOutboundCallRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchRoutingOutboundCallRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchRoutingOutboundCallRequest.Merge(m, src)
+}
+func (m *SearchRoutingOutboundCallRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchRoutingOutboundCallRequest.Size(m)
+}
+func (m *SearchRoutingOutboundCallRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchRoutingOutboundCallRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchRoutingOutboundCallRequest proto.InternalMessageInfo
+
+func (m *SearchRoutingOutboundCallRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchRoutingOutboundCallRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchRoutingOutboundCallRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateRoutingOutboundCallRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Scheme               *Lookup  `protobuf:"bytes,4,opt,name=scheme,proto3" json:"scheme,omitempty"`
+	Pattern              string   `protobuf:"bytes,5,opt,name=pattern,proto3" json:"pattern,omitempty"`
+	Priority             int32    `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	Disabled             bool     `protobuf:"varint,7,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateRoutingOutboundCallRequest) Reset()         { *m = CreateRoutingOutboundCallRequest{} }
+func (m *CreateRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateRoutingOutboundCallRequest) ProtoMessage()    {}
+func (*CreateRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{4}
+}
+
+func (m *CreateRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateRoutingOutboundCallRequest.Unmarshal(m, b)
+}
+func (m *CreateRoutingOutboundCallRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateRoutingOutboundCallRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateRoutingOutboundCallRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateRoutingOutboundCallRequest.Merge(m, src)
+}
+func (m *CreateRoutingOutboundCallRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateRoutingOutboundCallRequest.Size(m)
+}
+func (m *CreateRoutingOutboundCallRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateRoutingOutboundCallRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateRoutingOutboundCallRequest proto.InternalMessageInfo
+
+func (m *CreateRoutingOutboundCallRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateRoutingOutboundCallRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateRoutingOutboundCallRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *CreateRoutingOutboundCallRequest) GetScheme() *Lookup {
+	if m != nil {
+		return m.Scheme
+	}
+	return nil
+}
+
+func (m *CreateRoutingOutboundCallRequest) GetPattern() string {
+	if m != nil {
+		return m.Pattern
+	}
+	return ""
+}
+
+func (m *CreateRoutingOutboundCallRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *CreateRoutingOutboundCallRequest) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
+}
 
 type RoutingOutboundCall struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -46,7 +378,7 @@ func (m *RoutingOutboundCall) Reset()         { *m = RoutingOutboundCall{} }
 func (m *RoutingOutboundCall) String() string { return proto.CompactTextString(m) }
 func (*RoutingOutboundCall) ProtoMessage()    {}
 func (*RoutingOutboundCall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{0}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{5}
 }
 
 func (m *RoutingOutboundCall) XXX_Unmarshal(b []byte) error {
@@ -162,7 +494,7 @@ func (m *ListRoutingOutboundCall) Reset()         { *m = ListRoutingOutboundCall
 func (m *ListRoutingOutboundCall) String() string { return proto.CompactTextString(m) }
 func (*ListRoutingOutboundCall) ProtoMessage()    {}
 func (*ListRoutingOutboundCall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{1}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{6}
 }
 
 func (m *ListRoutingOutboundCall) XXX_Unmarshal(b []byte) error {
@@ -191,6 +523,11 @@ func (m *ListRoutingOutboundCall) GetItems() []*RoutingOutboundCall {
 }
 
 func init() {
+	proto.RegisterType((*DeleteRoutingOutboundCallRequest)(nil), "engine.DeleteRoutingOutboundCallRequest")
+	proto.RegisterType((*UpdateRoutingOutboundCallRequest)(nil), "engine.UpdateRoutingOutboundCallRequest")
+	proto.RegisterType((*ReadRoutingOutboundCallRequest)(nil), "engine.ReadRoutingOutboundCallRequest")
+	proto.RegisterType((*SearchRoutingOutboundCallRequest)(nil), "engine.SearchRoutingOutboundCallRequest")
+	proto.RegisterType((*CreateRoutingOutboundCallRequest)(nil), "engine.CreateRoutingOutboundCallRequest")
 	proto.RegisterType((*RoutingOutboundCall)(nil), "engine.RoutingOutboundCall")
 	proto.RegisterType((*ListRoutingOutboundCall)(nil), "engine.ListRoutingOutboundCall")
 }
@@ -198,33 +535,47 @@ func init() {
 func init() { proto.RegisterFile("acr_routing_out_call.proto", fileDescriptor_b1f0c72a243c9a3d) }
 
 var fileDescriptor_b1f0c72a243c9a3d = []byte{
-	// 406 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x53, 0x4d, 0x8b, 0xd4, 0x40,
-	0x10, 0x35, 0x93, 0x99, 0xec, 0x4c, 0x45, 0xf6, 0xd0, 0x0b, 0xda, 0x64, 0x11, 0xc3, 0x1c, 0x24,
-	0x17, 0x07, 0x1c, 0x4f, 0x82, 0x08, 0xfb, 0x01, 0xb2, 0x30, 0x20, 0x04, 0x3c, 0x87, 0x4e, 0xba,
-	0x58, 0x1b, 0x93, 0xee, 0xd8, 0xa9, 0x08, 0xf9, 0x13, 0xfe, 0x43, 0xff, 0x8b, 0xa4, 0xf3, 0xe1,
-	0x0a, 0x61, 0x05, 0xbd, 0xa5, 0xde, 0x7b, 0xf5, 0xea, 0xa5, 0x8a, 0x86, 0x48, 0x14, 0x36, 0xb3,
-	0xa6, 0x25, 0xa5, 0xef, 0x33, 0xd3, 0x52, 0x56, 0x88, 0xb2, 0x3c, 0xd4, 0xd6, 0x90, 0x61, 0x01,
-	0xea, 0x7b, 0xa5, 0x31, 0x0a, 0x0b, 0xa3, 0x1b, 0x1a, 0xc0, 0xfd, 0x0f, 0x1f, 0x2e, 0xd2, 0x41,
-	0xff, 0xa9, 0xa5, 0xdc, 0xb4, 0x5a, 0xde, 0x88, 0xb2, 0x64, 0xe7, 0xb0, 0x52, 0x92, 0x7b, 0xb1,
-	0x97, 0xf8, 0xe9, 0x4a, 0x49, 0x76, 0x09, 0x3b, 0x69, 0x2a, 0xa1, 0x74, 0xa6, 0x24, 0x5f, 0x39,
-	0x78, 0x3b, 0x00, 0x77, 0x92, 0xbd, 0x00, 0x28, 0x2c, 0x0a, 0x42, 0x99, 0x09, 0xe2, 0xbe, 0x63,
-	0x77, 0x23, 0x72, 0x45, 0xec, 0xf5, 0x6f, 0x3a, 0xef, 0xf8, 0x3a, 0xf6, 0x92, 0xf0, 0x78, 0x7e,
-	0x18, 0xd2, 0x1c, 0x4e, 0xc6, 0x7c, 0x6d, 0xeb, 0x59, 0x7e, 0xdd, 0xf5, 0x6e, 0x6d, 0x2d, 0x27,
-	0xb7, 0xcd, 0xe0, 0x36, 0x22, 0x83, 0xdb, 0x44, 0xe7, 0x1d, 0x0f, 0x96, 0xdd, 0x46, 0xc5, 0x75,
-	0xc7, 0x18, 0xac, 0xb5, 0xa8, 0x90, 0x9f, 0xc5, 0x5e, 0xb2, 0x4b, 0xdd, 0x37, 0x8b, 0x21, 0x94,
-	0xd8, 0x14, 0x56, 0xd5, 0xa4, 0x8c, 0xe6, 0x5b, 0x47, 0x3d, 0x84, 0xd8, 0x2b, 0x08, 0x9a, 0xe2,
-	0x0b, 0x56, 0xc8, 0x77, 0x8b, 0x03, 0x46, 0x96, 0x71, 0x38, 0xab, 0x05, 0x11, 0x5a, 0xcd, 0xc1,
-	0xb9, 0x4c, 0x25, 0x8b, 0x60, 0x5b, 0x5b, 0x65, 0xac, 0xa2, 0x8e, 0x87, 0xb1, 0x97, 0x6c, 0xd2,
-	0xb9, 0xee, 0x39, 0xa9, 0x1a, 0x91, 0x97, 0x28, 0xf9, 0xd3, 0xd8, 0x4b, 0xb6, 0xe9, 0x5c, 0xef,
-	0x4f, 0xf0, 0xfc, 0xa4, 0x1a, 0x5a, 0xba, 0xc9, 0x1b, 0xd8, 0x28, 0xc2, 0xaa, 0xe1, 0x5e, 0xec,
-	0x27, 0xe1, 0xf1, 0x72, 0xca, 0xb4, 0xa0, 0x4d, 0x07, 0xe5, 0xf1, 0xe7, 0x0a, 0x9e, 0x2d, 0xd0,
-	0x57, 0xb5, 0x62, 0xb7, 0x10, 0xdc, 0xb8, 0x9d, 0xb3, 0xc7, 0x8c, 0xa2, 0xc7, 0xc8, 0xfd, 0x13,
-	0xf6, 0x01, 0xd6, 0x7d, 0x5c, 0x76, 0x31, 0x2f, 0xa8, 0x0f, 0x8f, 0xdf, 0x5a, 0x6c, 0x28, 0x7a,
-	0xf9, 0x07, 0xb8, 0xd8, 0xff, 0x0e, 0xfc, 0x8f, 0xf8, 0xa0, 0xfd, 0x8e, 0xb0, 0x9a, 0xda, 0xff,
-	0x32, 0xfa, 0x16, 0x82, 0xcf, 0xee, 0xcc, 0xff, 0xf5, 0x03, 0xef, 0x21, 0x48, 0xb1, 0x32, 0xdf,
-	0xf1, 0x5f, 0x32, 0xe4, 0x81, 0x7b, 0x45, 0x6f, 0x7f, 0x05, 0x00, 0x00, 0xff, 0xff, 0xc9, 0x41,
-	0xbe, 0x03, 0x78, 0x03, 0x00, 0x00,
+	// 635 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xcf, 0x6e, 0xd4, 0x3e,
+	0x10, 0x96, 0x37, 0x9b, 0xfd, 0x33, 0xfb, 0x53, 0x0f, 0xfe, 0x1d, 0x9a, 0x4d, 0x4b, 0x1b, 0x22,
+	0x54, 0xa2, 0x4a, 0x34, 0xa2, 0xdc, 0xb8, 0xd1, 0x72, 0x41, 0x2a, 0xaa, 0x94, 0x8a, 0xf3, 0xca,
+	0x1b, 0x5b, 0xa9, 0x45, 0x36, 0x0e, 0x89, 0x83, 0xb4, 0x20, 0x2e, 0x08, 0x01, 0x12, 0x12, 0x17,
+	0x1e, 0x8c, 0x03, 0xaf, 0xc0, 0x9d, 0x47, 0x00, 0xc5, 0x49, 0x76, 0xa1, 0x8a, 0xb3, 0xa5, 0xe2,
+	0x66, 0xcf, 0xd8, 0x9f, 0xbf, 0x99, 0x6f, 0x3c, 0x03, 0x36, 0x09, 0xb3, 0x59, 0x26, 0x0a, 0xc9,
+	0x93, 0x68, 0x26, 0x0a, 0x39, 0x0b, 0x49, 0x1c, 0x1f, 0xa5, 0x99, 0x90, 0x02, 0x0f, 0x58, 0x12,
+	0xf1, 0x84, 0xd9, 0x93, 0x50, 0x24, 0xb9, 0xac, 0x8c, 0xf6, 0x6e, 0x24, 0x44, 0x14, 0x33, 0x9f,
+	0xa4, 0xdc, 0x27, 0x49, 0x22, 0x24, 0x91, 0x5c, 0x24, 0x79, 0xe5, 0x75, 0xcf, 0xc1, 0x79, 0xcc,
+	0x62, 0x26, 0x59, 0x50, 0x41, 0x9e, 0x17, 0x72, 0x2e, 0x8a, 0x84, 0x9e, 0x92, 0x38, 0x0e, 0xd8,
+	0x8b, 0x82, 0xe5, 0x12, 0xef, 0xc0, 0x98, 0x8a, 0x05, 0xe1, 0xc9, 0x8c, 0x53, 0x0b, 0x39, 0xc8,
+	0x33, 0x82, 0x51, 0x65, 0x78, 0x42, 0xf1, 0x16, 0xf4, 0x38, 0xb5, 0x7a, 0xca, 0xda, 0xe3, 0xd4,
+	0xfd, 0x89, 0xc0, 0x79, 0x96, 0x52, 0xd2, 0x89, 0x58, 0x5d, 0x42, 0xcd, 0xa5, 0x3f, 0x5f, 0xe8,
+	0x5d, 0x79, 0x01, 0x43, 0x3f, 0x21, 0x0b, 0x66, 0x19, 0x0e, 0xf2, 0xc6, 0x81, 0x5a, 0x63, 0x07,
+	0x26, 0x94, 0xe5, 0x61, 0xc6, 0xd3, 0x32, 0x18, 0xab, 0xaf, 0x5c, 0xbf, 0x9b, 0xf0, 0x01, 0x0c,
+	0xf2, 0xf0, 0x92, 0x2d, 0x98, 0x65, 0x3a, 0xc8, 0x9b, 0x1c, 0x6f, 0x1d, 0x55, 0xc9, 0x39, 0x3a,
+	0x13, 0xe2, 0x79, 0x91, 0x06, 0xb5, 0x17, 0x5b, 0x30, 0x4c, 0x89, 0x94, 0x2c, 0x4b, 0xac, 0x81,
+	0x42, 0x69, 0xb6, 0xd8, 0x86, 0x51, 0x9a, 0x71, 0x91, 0x71, 0xb9, 0xb4, 0x86, 0x0e, 0xf2, 0xcc,
+	0x60, 0xb5, 0x2f, 0x7d, 0x94, 0xe7, 0x64, 0x1e, 0x33, 0x6a, 0x8d, 0x1c, 0xe4, 0x8d, 0x82, 0xd5,
+	0xde, 0x7d, 0x0a, 0x7b, 0x01, 0x23, 0xf4, 0x5f, 0x25, 0x34, 0x02, 0xe7, 0x82, 0x91, 0x2c, 0xbc,
+	0xbc, 0x29, 0x20, 0x86, 0x7e, 0xce, 0x5f, 0x31, 0x05, 0x69, 0x06, 0x6a, 0x5d, 0xda, 0x52, 0x12,
+	0x55, 0x39, 0x35, 0x03, 0xb5, 0x76, 0x7f, 0x20, 0x70, 0x4e, 0x33, 0x46, 0x6e, 0x5e, 0x0b, 0x8d,
+	0x52, 0x3d, 0xbd, 0x52, 0x46, 0x97, 0x52, 0xfd, 0xeb, 0x2a, 0x65, 0xea, 0x95, 0x1a, 0x74, 0x28,
+	0x35, 0xbc, 0xa2, 0xd4, 0x67, 0x03, 0xfe, 0x6f, 0x89, 0xf5, 0xef, 0xca, 0xf3, 0x16, 0x40, 0xa8,
+	0xb2, 0x46, 0x67, 0x44, 0xaa, 0xf8, 0x8c, 0x60, 0x5c, 0x5b, 0x1e, 0x49, 0x7c, 0x6f, 0xed, 0x9e,
+	0x2f, 0x35, 0x11, 0x36, 0xc7, 0x4f, 0x96, 0x25, 0x5a, 0xa1, 0x7e, 0x8f, 0x42, 0x33, 0x2b, 0xb4,
+	0xda, 0x52, 0xa1, 0x35, 0xee, 0x79, 0x15, 0x6b, 0x0b, 0x5a, 0x7d, 0xe2, 0x64, 0xb9, 0x12, 0x64,
+	0xa8, 0x17, 0x64, 0xd4, 0x25, 0xc8, 0xf8, 0xba, 0x82, 0x80, 0x5e, 0x90, 0x49, 0x87, 0x20, 0xff,
+	0x5d, 0x11, 0xe4, 0x0c, 0xb6, 0xcf, 0x78, 0x2e, 0xdb, 0x34, 0xb9, 0x0f, 0x26, 0x97, 0x6c, 0x91,
+	0x5b, 0xc8, 0x31, 0xbc, 0xc9, 0xf1, 0x4e, 0xc3, 0xa9, 0xad, 0x56, 0xab, 0x93, 0xc7, 0x5f, 0x4d,
+	0xb0, 0x5b, 0xdc, 0x17, 0x2c, 0x7b, 0xc9, 0x43, 0x86, 0xdf, 0x23, 0x98, 0x6a, 0xeb, 0x1d, 0x7b,
+	0xcd, 0x03, 0x9b, 0xbe, 0x84, 0xdd, 0x45, 0xc5, 0x75, 0xdf, 0x7e, 0xfb, 0xfe, 0xa5, 0xb7, 0xeb,
+	0x6e, 0xfb, 0x75, 0xcf, 0xf6, 0x45, 0xed, 0xf6, 0xcb, 0xc6, 0x9d, 0x3f, 0x44, 0x87, 0xf8, 0x03,
+	0x82, 0xa9, 0xf6, 0x8b, 0xaf, 0x89, 0x6c, 0xea, 0x02, 0xf6, 0xfe, 0x4a, 0xa7, 0xf6, 0x1c, 0xba,
+	0xfb, 0x8a, 0xcc, 0x14, 0xeb, 0xc8, 0xe0, 0x77, 0x08, 0xb6, 0x35, 0xbd, 0x0b, 0x1f, 0xac, 0xc2,
+	0xec, 0x6c, 0x6e, 0xdd, 0xe9, 0xb8, 0xa3, 0x18, 0xec, 0xe1, 0x5d, 0x0d, 0x03, 0xff, 0x35, 0xa7,
+	0x6f, 0xf0, 0x27, 0x04, 0x53, 0xed, 0x0c, 0x59, 0x27, 0x64, 0xd3, 0x98, 0xe9, 0xa6, 0x72, 0x57,
+	0x51, 0xb9, 0x6d, 0x77, 0x52, 0x29, 0xe5, 0xf9, 0x88, 0x60, 0xaa, 0x9d, 0x91, 0x6b, 0x36, 0x9b,
+	0xc6, 0xe8, 0xb5, 0x12, 0x73, 0xd8, 0xc9, 0x66, 0x3e, 0x50, 0x43, 0xfb, 0xc1, 0xaf, 0x00, 0x00,
+	0x00, 0xff, 0xff, 0xc0, 0xdf, 0x98, 0xf7, 0x05, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -235,226 +586,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// RoutingOutboundCallApiClient is the client API for RoutingOutboundCallApi service.
+// RoutingOutboundCallServiceClient is the client API for RoutingOutboundCallService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RoutingOutboundCallApiClient interface {
-	// POST /routing/outbound_call
-	Create(ctx context.Context, in *RoutingOutboundCall, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
-	// GET /routing/outbound_call
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListRoutingOutboundCall, error)
-	// GET /routing/outbound_call/:ID
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
-	// PUT /routing/outbound_call/:ID
-	Update(ctx context.Context, in *RoutingOutboundCall, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
-	// DELETE /routing/outbound_call/:ID
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
+type RoutingOutboundCallServiceClient interface {
+	// Create RoutingOutboundCall
+	CreateRoutingOutboundCall(ctx context.Context, in *CreateRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
+	// List of RoutingOutboundCall
+	SearchRoutingOutboundCall(ctx context.Context, in *SearchRoutingOutboundCallRequest, opts ...grpc.CallOption) (*ListRoutingOutboundCall, error)
+	// RoutingOutboundCall item
+	ReadRoutingOutboundCall(ctx context.Context, in *ReadRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
+	// Update RoutingOutboundCall
+	UpdateRoutingOutboundCall(ctx context.Context, in *UpdateRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
+	// Remove RoutingOutboundCall
+	DeleteRoutingOutboundCall(ctx context.Context, in *DeleteRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
 }
 
-type routingOutboundCallApiClient struct {
+type routingOutboundCallServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewRoutingOutboundCallApiClient(cc *grpc.ClientConn) RoutingOutboundCallApiClient {
-	return &routingOutboundCallApiClient{cc}
+func NewRoutingOutboundCallServiceClient(cc *grpc.ClientConn) RoutingOutboundCallServiceClient {
+	return &routingOutboundCallServiceClient{cc}
 }
 
-func (c *routingOutboundCallApiClient) Create(ctx context.Context, in *RoutingOutboundCall, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
+func (c *routingOutboundCallServiceClient) CreateRoutingOutboundCall(ctx context.Context, in *CreateRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
 	out := new(RoutingOutboundCall)
-	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/CreateRoutingOutboundCall", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingOutboundCallApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListRoutingOutboundCall, error) {
+func (c *routingOutboundCallServiceClient) SearchRoutingOutboundCall(ctx context.Context, in *SearchRoutingOutboundCallRequest, opts ...grpc.CallOption) (*ListRoutingOutboundCall, error) {
 	out := new(ListRoutingOutboundCall)
-	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/SearchRoutingOutboundCall", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingOutboundCallApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
+func (c *routingOutboundCallServiceClient) ReadRoutingOutboundCall(ctx context.Context, in *ReadRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
 	out := new(RoutingOutboundCall)
-	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/ReadRoutingOutboundCall", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingOutboundCallApiClient) Update(ctx context.Context, in *RoutingOutboundCall, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
+func (c *routingOutboundCallServiceClient) UpdateRoutingOutboundCall(ctx context.Context, in *UpdateRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
 	out := new(RoutingOutboundCall)
-	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/UpdateRoutingOutboundCall", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingOutboundCallApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
+func (c *routingOutboundCallServiceClient) DeleteRoutingOutboundCall(ctx context.Context, in *DeleteRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
 	out := new(RoutingOutboundCall)
-	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/DeleteRoutingOutboundCall", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RoutingOutboundCallApiServer is the server API for RoutingOutboundCallApi service.
-type RoutingOutboundCallApiServer interface {
-	// POST /routing/outbound_call
-	Create(context.Context, *RoutingOutboundCall) (*RoutingOutboundCall, error)
-	// GET /routing/outbound_call
-	List(context.Context, *ListRequest) (*ListRoutingOutboundCall, error)
-	// GET /routing/outbound_call/:ID
-	Get(context.Context, *ItemRequest) (*RoutingOutboundCall, error)
-	// PUT /routing/outbound_call/:ID
-	Update(context.Context, *RoutingOutboundCall) (*RoutingOutboundCall, error)
-	// DELETE /routing/outbound_call/:ID
-	Remove(context.Context, *ItemRequest) (*RoutingOutboundCall, error)
+// RoutingOutboundCallServiceServer is the server API for RoutingOutboundCallService service.
+type RoutingOutboundCallServiceServer interface {
+	// Create RoutingOutboundCall
+	CreateRoutingOutboundCall(context.Context, *CreateRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
+	// List of RoutingOutboundCall
+	SearchRoutingOutboundCall(context.Context, *SearchRoutingOutboundCallRequest) (*ListRoutingOutboundCall, error)
+	// RoutingOutboundCall item
+	ReadRoutingOutboundCall(context.Context, *ReadRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
+	// Update RoutingOutboundCall
+	UpdateRoutingOutboundCall(context.Context, *UpdateRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
+	// Remove RoutingOutboundCall
+	DeleteRoutingOutboundCall(context.Context, *DeleteRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
 }
 
-// UnimplementedRoutingOutboundCallApiServer can be embedded to have forward compatible implementations.
-type UnimplementedRoutingOutboundCallApiServer struct {
+// UnimplementedRoutingOutboundCallServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRoutingOutboundCallServiceServer struct {
 }
 
-func (*UnimplementedRoutingOutboundCallApiServer) Create(ctx context.Context, req *RoutingOutboundCall) (*RoutingOutboundCall, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedRoutingOutboundCallServiceServer) CreateRoutingOutboundCall(ctx context.Context, req *CreateRoutingOutboundCallRequest) (*RoutingOutboundCall, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRoutingOutboundCall not implemented")
 }
-func (*UnimplementedRoutingOutboundCallApiServer) List(ctx context.Context, req *ListRequest) (*ListRoutingOutboundCall, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedRoutingOutboundCallServiceServer) SearchRoutingOutboundCall(ctx context.Context, req *SearchRoutingOutboundCallRequest) (*ListRoutingOutboundCall, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchRoutingOutboundCall not implemented")
 }
-func (*UnimplementedRoutingOutboundCallApiServer) Get(ctx context.Context, req *ItemRequest) (*RoutingOutboundCall, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedRoutingOutboundCallServiceServer) ReadRoutingOutboundCall(ctx context.Context, req *ReadRoutingOutboundCallRequest) (*RoutingOutboundCall, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadRoutingOutboundCall not implemented")
 }
-func (*UnimplementedRoutingOutboundCallApiServer) Update(ctx context.Context, req *RoutingOutboundCall) (*RoutingOutboundCall, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedRoutingOutboundCallServiceServer) UpdateRoutingOutboundCall(ctx context.Context, req *UpdateRoutingOutboundCallRequest) (*RoutingOutboundCall, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRoutingOutboundCall not implemented")
 }
-func (*UnimplementedRoutingOutboundCallApiServer) Remove(ctx context.Context, req *ItemRequest) (*RoutingOutboundCall, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterRoutingOutboundCallApiServer(s *grpc.Server, srv RoutingOutboundCallApiServer) {
-	s.RegisterService(&_RoutingOutboundCallApi_serviceDesc, srv)
+func (*UnimplementedRoutingOutboundCallServiceServer) DeleteRoutingOutboundCall(ctx context.Context, req *DeleteRoutingOutboundCallRequest) (*RoutingOutboundCall, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoutingOutboundCall not implemented")
 }
 
-func _RoutingOutboundCallApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoutingOutboundCall)
+func RegisterRoutingOutboundCallServiceServer(s *grpc.Server, srv RoutingOutboundCallServiceServer) {
+	s.RegisterService(&_RoutingOutboundCallService_serviceDesc, srv)
+}
+
+func _RoutingOutboundCallService_CreateRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoutingOutboundCallRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingOutboundCallApiServer).Create(ctx, in)
+		return srv.(RoutingOutboundCallServiceServer).CreateRoutingOutboundCall(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingOutboundCallApi/Create",
+		FullMethod: "/engine.RoutingOutboundCallService/CreateRoutingOutboundCall",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingOutboundCallApiServer).Create(ctx, req.(*RoutingOutboundCall))
+		return srv.(RoutingOutboundCallServiceServer).CreateRoutingOutboundCall(ctx, req.(*CreateRoutingOutboundCallRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingOutboundCallApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _RoutingOutboundCallService_SearchRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRoutingOutboundCallRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingOutboundCallApiServer).List(ctx, in)
+		return srv.(RoutingOutboundCallServiceServer).SearchRoutingOutboundCall(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingOutboundCallApi/List",
+		FullMethod: "/engine.RoutingOutboundCallService/SearchRoutingOutboundCall",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingOutboundCallApiServer).List(ctx, req.(*ListRequest))
+		return srv.(RoutingOutboundCallServiceServer).SearchRoutingOutboundCall(ctx, req.(*SearchRoutingOutboundCallRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingOutboundCallApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _RoutingOutboundCallService_ReadRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRoutingOutboundCallRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingOutboundCallApiServer).Get(ctx, in)
+		return srv.(RoutingOutboundCallServiceServer).ReadRoutingOutboundCall(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingOutboundCallApi/Get",
+		FullMethod: "/engine.RoutingOutboundCallService/ReadRoutingOutboundCall",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingOutboundCallApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(RoutingOutboundCallServiceServer).ReadRoutingOutboundCall(ctx, req.(*ReadRoutingOutboundCallRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingOutboundCallApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoutingOutboundCall)
+func _RoutingOutboundCallService_UpdateRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRoutingOutboundCallRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingOutboundCallApiServer).Update(ctx, in)
+		return srv.(RoutingOutboundCallServiceServer).UpdateRoutingOutboundCall(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingOutboundCallApi/Update",
+		FullMethod: "/engine.RoutingOutboundCallService/UpdateRoutingOutboundCall",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingOutboundCallApiServer).Update(ctx, req.(*RoutingOutboundCall))
+		return srv.(RoutingOutboundCallServiceServer).UpdateRoutingOutboundCall(ctx, req.(*UpdateRoutingOutboundCallRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingOutboundCallApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _RoutingOutboundCallService_DeleteRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoutingOutboundCallRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingOutboundCallApiServer).Remove(ctx, in)
+		return srv.(RoutingOutboundCallServiceServer).DeleteRoutingOutboundCall(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingOutboundCallApi/Remove",
+		FullMethod: "/engine.RoutingOutboundCallService/DeleteRoutingOutboundCall",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingOutboundCallApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(RoutingOutboundCallServiceServer).DeleteRoutingOutboundCall(ctx, req.(*DeleteRoutingOutboundCallRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _RoutingOutboundCallApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.RoutingOutboundCallApi",
-	HandlerType: (*RoutingOutboundCallApiServer)(nil),
+var _RoutingOutboundCallService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.RoutingOutboundCallService",
+	HandlerType: (*RoutingOutboundCallServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _RoutingOutboundCallApi_Create_Handler,
+			MethodName: "CreateRoutingOutboundCall",
+			Handler:    _RoutingOutboundCallService_CreateRoutingOutboundCall_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _RoutingOutboundCallApi_List_Handler,
+			MethodName: "SearchRoutingOutboundCall",
+			Handler:    _RoutingOutboundCallService_SearchRoutingOutboundCall_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _RoutingOutboundCallApi_Get_Handler,
+			MethodName: "ReadRoutingOutboundCall",
+			Handler:    _RoutingOutboundCallService_ReadRoutingOutboundCall_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _RoutingOutboundCallApi_Update_Handler,
+			MethodName: "UpdateRoutingOutboundCall",
+			Handler:    _RoutingOutboundCallService_UpdateRoutingOutboundCall_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _RoutingOutboundCallApi_Remove_Handler,
+			MethodName: "DeleteRoutingOutboundCall",
+			Handler:    _RoutingOutboundCallService_DeleteRoutingOutboundCall_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,0 +1,1 @@
+artillery run config.yaml

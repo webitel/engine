@@ -1,24 +1,79 @@
 syntax = "proto3";
 
 import "const.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
-service AgentApi {
-    // POST /call_center/agent
-    rpc Create(Agent) returns (Agent) {}
-    // GET /call_center/agent
-    rpc List(ListRequest) returns (ListAgent) {}
-    // GET /call_center/agent/:ID
-    rpc Get(ItemRequest) returns (Agent) {}
-    // PUT /call_center/agent/:ID
-    rpc Update(Agent) returns (Agent) {}
-    // DELETE /call_center/agent/:ID
-    rpc Remove(ItemRequest) returns (Agent) {}
-    // PATCH /call_center/agent/:ID/status
-    rpc UpdateStatus(AgentStatusRequest) returns (Response) {}
+service AgentService {
+    // Create Agent
+    rpc CreateAgent(CreateAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            post: "/call_center/agents"
+            body: "*"
+        };
+    }
+    // List of Agent
+    rpc SearchAgent(SearchAgentRequest) returns (ListAgent) {
+        option (google.api.http) = {
+            get: "/call_center/agents"
+        };
+    }
+    // Agent item
+    rpc ReadAgent(ReadAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}"
+        };
+    }
+    // Update Agent
+    rpc UpdateAgent(UpdateAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            put: "/call_center/agents/{id}"
+            body: "*"
+        };
+    }
+    // Remove Agent
+    rpc DeleteAgent(DeleteAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            delete: "/call_center/agents/{id}"
+        };
+    }
+    // Change agent status
+    rpc UpdateAgentStatus(AgentStatusRequest) returns (Response) {
+        option (google.api.http) = {
+            patch: "/call_center/agents/{id}"
+        };
+    }
 
 //    rpc AddSkill(SkillAgent) returns (SkillAgent) {}
+}
+
+message UpdateAgentRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    Lookup user = 3;
+    string description = 4;
+}
+
+message ReadAgentRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+message DeleteAgentRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchAgentRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message CreateAgentRequest {
+    int64 domain_id = 1;
+    Lookup user = 2;
+    string description = 3;
 }
 
 message SkillAgent {

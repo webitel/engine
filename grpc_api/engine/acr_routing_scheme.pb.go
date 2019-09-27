@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,6 +25,337 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
+type DeleteRoutingSchemeRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteRoutingSchemeRequest) Reset()         { *m = DeleteRoutingSchemeRequest{} }
+func (m *DeleteRoutingSchemeRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteRoutingSchemeRequest) ProtoMessage()    {}
+func (*DeleteRoutingSchemeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7ca4c89a300c02fd, []int{0}
+}
+
+func (m *DeleteRoutingSchemeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteRoutingSchemeRequest.Unmarshal(m, b)
+}
+func (m *DeleteRoutingSchemeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteRoutingSchemeRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteRoutingSchemeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteRoutingSchemeRequest.Merge(m, src)
+}
+func (m *DeleteRoutingSchemeRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteRoutingSchemeRequest.Size(m)
+}
+func (m *DeleteRoutingSchemeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteRoutingSchemeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteRoutingSchemeRequest proto.InternalMessageInfo
+
+func (m *DeleteRoutingSchemeRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *DeleteRoutingSchemeRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type UpdateRoutingSchemeReqeust struct {
+	Id                   int64          `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64          `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string         `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string         `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Type                 int32          `protobuf:"varint,5,opt,name=type,proto3" json:"type,omitempty"`
+	Scheme               *_struct.Value `protobuf:"bytes,6,opt,name=scheme,proto3" json:"scheme,omitempty"`
+	Payload              *_struct.Value `protobuf:"bytes,7,opt,name=payload,proto3" json:"payload,omitempty"`
+	Debug                bool           `protobuf:"varint,8,opt,name=debug,proto3" json:"debug,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
+}
+
+func (m *UpdateRoutingSchemeReqeust) Reset()         { *m = UpdateRoutingSchemeReqeust{} }
+func (m *UpdateRoutingSchemeReqeust) String() string { return proto.CompactTextString(m) }
+func (*UpdateRoutingSchemeReqeust) ProtoMessage()    {}
+func (*UpdateRoutingSchemeReqeust) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7ca4c89a300c02fd, []int{1}
+}
+
+func (m *UpdateRoutingSchemeReqeust) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateRoutingSchemeReqeust.Unmarshal(m, b)
+}
+func (m *UpdateRoutingSchemeReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateRoutingSchemeReqeust.Marshal(b, m, deterministic)
+}
+func (m *UpdateRoutingSchemeReqeust) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateRoutingSchemeReqeust.Merge(m, src)
+}
+func (m *UpdateRoutingSchemeReqeust) XXX_Size() int {
+	return xxx_messageInfo_UpdateRoutingSchemeReqeust.Size(m)
+}
+func (m *UpdateRoutingSchemeReqeust) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateRoutingSchemeReqeust.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateRoutingSchemeReqeust proto.InternalMessageInfo
+
+func (m *UpdateRoutingSchemeReqeust) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetScheme() *_struct.Value {
+	if m != nil {
+		return m.Scheme
+	}
+	return nil
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetPayload() *_struct.Value {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *UpdateRoutingSchemeReqeust) GetDebug() bool {
+	if m != nil {
+		return m.Debug
+	}
+	return false
+}
+
+type ReadRoutingSchemeRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadRoutingSchemeRequest) Reset()         { *m = ReadRoutingSchemeRequest{} }
+func (m *ReadRoutingSchemeRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadRoutingSchemeRequest) ProtoMessage()    {}
+func (*ReadRoutingSchemeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7ca4c89a300c02fd, []int{2}
+}
+
+func (m *ReadRoutingSchemeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadRoutingSchemeRequest.Unmarshal(m, b)
+}
+func (m *ReadRoutingSchemeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadRoutingSchemeRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadRoutingSchemeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadRoutingSchemeRequest.Merge(m, src)
+}
+func (m *ReadRoutingSchemeRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadRoutingSchemeRequest.Size(m)
+}
+func (m *ReadRoutingSchemeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadRoutingSchemeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadRoutingSchemeRequest proto.InternalMessageInfo
+
+func (m *ReadRoutingSchemeRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *ReadRoutingSchemeRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type SearchRoutingSchemeRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchRoutingSchemeRequest) Reset()         { *m = SearchRoutingSchemeRequest{} }
+func (m *SearchRoutingSchemeRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchRoutingSchemeRequest) ProtoMessage()    {}
+func (*SearchRoutingSchemeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7ca4c89a300c02fd, []int{3}
+}
+
+func (m *SearchRoutingSchemeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchRoutingSchemeRequest.Unmarshal(m, b)
+}
+func (m *SearchRoutingSchemeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchRoutingSchemeRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchRoutingSchemeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchRoutingSchemeRequest.Merge(m, src)
+}
+func (m *SearchRoutingSchemeRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchRoutingSchemeRequest.Size(m)
+}
+func (m *SearchRoutingSchemeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchRoutingSchemeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchRoutingSchemeRequest proto.InternalMessageInfo
+
+func (m *SearchRoutingSchemeRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchRoutingSchemeRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchRoutingSchemeRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateRoutingSchemeRequest struct {
+	DomainId             int64          `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string         `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string         `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Type                 int32          `protobuf:"varint,4,opt,name=type,proto3" json:"type,omitempty"`
+	Scheme               *_struct.Value `protobuf:"bytes,5,opt,name=scheme,proto3" json:"scheme,omitempty"`
+	Payload              *_struct.Value `protobuf:"bytes,6,opt,name=payload,proto3" json:"payload,omitempty"`
+	Debug                bool           `protobuf:"varint,7,opt,name=debug,proto3" json:"debug,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
+}
+
+func (m *CreateRoutingSchemeRequest) Reset()         { *m = CreateRoutingSchemeRequest{} }
+func (m *CreateRoutingSchemeRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateRoutingSchemeRequest) ProtoMessage()    {}
+func (*CreateRoutingSchemeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7ca4c89a300c02fd, []int{4}
+}
+
+func (m *CreateRoutingSchemeRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateRoutingSchemeRequest.Unmarshal(m, b)
+}
+func (m *CreateRoutingSchemeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateRoutingSchemeRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateRoutingSchemeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateRoutingSchemeRequest.Merge(m, src)
+}
+func (m *CreateRoutingSchemeRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateRoutingSchemeRequest.Size(m)
+}
+func (m *CreateRoutingSchemeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateRoutingSchemeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateRoutingSchemeRequest proto.InternalMessageInfo
+
+func (m *CreateRoutingSchemeRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateRoutingSchemeRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateRoutingSchemeRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *CreateRoutingSchemeRequest) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
+
+func (m *CreateRoutingSchemeRequest) GetScheme() *_struct.Value {
+	if m != nil {
+		return m.Scheme
+	}
+	return nil
+}
+
+func (m *CreateRoutingSchemeRequest) GetPayload() *_struct.Value {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *CreateRoutingSchemeRequest) GetDebug() bool {
+	if m != nil {
+		return m.Debug
+	}
+	return false
+}
 
 type RoutingScheme struct {
 	Id                   int64          `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -47,7 +379,7 @@ func (m *RoutingScheme) Reset()         { *m = RoutingScheme{} }
 func (m *RoutingScheme) String() string { return proto.CompactTextString(m) }
 func (*RoutingScheme) ProtoMessage()    {}
 func (*RoutingScheme) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ca4c89a300c02fd, []int{0}
+	return fileDescriptor_7ca4c89a300c02fd, []int{5}
 }
 
 func (m *RoutingScheme) XXX_Unmarshal(b []byte) error {
@@ -163,7 +495,7 @@ func (m *ListRoutingScheme) Reset()         { *m = ListRoutingScheme{} }
 func (m *ListRoutingScheme) String() string { return proto.CompactTextString(m) }
 func (*ListRoutingScheme) ProtoMessage()    {}
 func (*ListRoutingScheme) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7ca4c89a300c02fd, []int{1}
+	return fileDescriptor_7ca4c89a300c02fd, []int{6}
 }
 
 func (m *ListRoutingScheme) XXX_Unmarshal(b []byte) error {
@@ -192,6 +524,11 @@ func (m *ListRoutingScheme) GetItems() []*RoutingScheme {
 }
 
 func init() {
+	proto.RegisterType((*DeleteRoutingSchemeRequest)(nil), "engine.DeleteRoutingSchemeRequest")
+	proto.RegisterType((*UpdateRoutingSchemeReqeust)(nil), "engine.UpdateRoutingSchemeReqeust")
+	proto.RegisterType((*ReadRoutingSchemeRequest)(nil), "engine.ReadRoutingSchemeRequest")
+	proto.RegisterType((*SearchRoutingSchemeRequest)(nil), "engine.SearchRoutingSchemeRequest")
+	proto.RegisterType((*CreateRoutingSchemeRequest)(nil), "engine.CreateRoutingSchemeRequest")
 	proto.RegisterType((*RoutingScheme)(nil), "engine.RoutingScheme")
 	proto.RegisterType((*ListRoutingScheme)(nil), "engine.ListRoutingScheme")
 }
@@ -199,34 +536,47 @@ func init() {
 func init() { proto.RegisterFile("acr_routing_scheme.proto", fileDescriptor_7ca4c89a300c02fd) }
 
 var fileDescriptor_7ca4c89a300c02fd = []byte{
-	// 417 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x51, 0xdd, 0x6a, 0xd4, 0x40,
-	0x14, 0x36, 0x9b, 0xdd, 0x74, 0xf7, 0x44, 0x8b, 0x8e, 0x3f, 0x8c, 0x51, 0x21, 0xec, 0x55, 0x40,
-	0x4c, 0x65, 0x0b, 0xd2, 0x4b, 0x5b, 0x2f, 0xa4, 0xd0, 0xab, 0x11, 0xbd, 0x0d, 0x93, 0xcc, 0x31,
-	0x0e, 0x6e, 0x32, 0x31, 0x99, 0x11, 0xf2, 0x2a, 0xbe, 0x83, 0xef, 0x28, 0x99, 0x49, 0x6a, 0x53,
-	0x96, 0x42, 0xef, 0x66, 0xbe, 0xbf, 0x73, 0xf8, 0x0e, 0x50, 0x5e, 0xb4, 0x59, 0xab, 0x8c, 0x96,
-	0x75, 0x99, 0x75, 0xc5, 0x0f, 0xac, 0x30, 0x6d, 0x5a, 0xa5, 0x15, 0x09, 0xb0, 0x2e, 0x65, 0x8d,
-	0x51, 0x58, 0xa8, 0xba, 0xd3, 0x0e, 0x8c, 0x5e, 0x97, 0x4a, 0x95, 0x7b, 0x3c, 0xb1, 0xbf, 0xdc,
-	0x7c, 0x3f, 0xe9, 0x74, 0x6b, 0x8a, 0x91, 0xdd, 0xfe, 0xf1, 0xe1, 0x11, 0x73, 0x59, 0x5f, 0x6c,
-	0x14, 0x39, 0x86, 0x85, 0x14, 0xd4, 0x8b, 0xbd, 0xc4, 0x67, 0x0b, 0x29, 0xc8, 0x2b, 0xd8, 0x08,
-	0x55, 0x71, 0x59, 0x67, 0x52, 0xd0, 0x85, 0x85, 0xd7, 0x0e, 0xb8, 0x14, 0xe4, 0x0d, 0x40, 0xd1,
-	0x22, 0xd7, 0x28, 0x32, 0xae, 0xa9, 0x6f, 0xd9, 0xcd, 0x88, 0x9c, 0x6b, 0xf2, 0xee, 0x3f, 0x9d,
-	0xf7, 0x74, 0x19, 0x7b, 0x49, 0xb8, 0x3b, 0x4e, 0xdd, 0x96, 0xe9, 0x95, 0x52, 0x3f, 0x4d, 0x73,
-	0x2d, 0xbf, 0xe8, 0x87, 0x34, 0xd3, 0x88, 0x29, 0x6d, 0xe5, 0xd2, 0x46, 0xc4, 0xa5, 0x4d, 0x74,
-	0xde, 0xd3, 0xe0, 0x70, 0xda, 0xa8, 0xb8, 0xe8, 0x09, 0x81, 0x65, 0xcd, 0x2b, 0xa4, 0x47, 0xb1,
-	0x97, 0x6c, 0x98, 0x7d, 0x93, 0x18, 0x42, 0x81, 0x5d, 0xd1, 0xca, 0x46, 0x4b, 0x55, 0xd3, 0xb5,
-	0xa5, 0x6e, 0x42, 0x83, 0x4b, 0xf7, 0x0d, 0xd2, 0x4d, 0xec, 0x25, 0x2b, 0x66, 0xdf, 0x24, 0x85,
-	0xc0, 0xf5, 0x4c, 0xc1, 0x0e, 0x7d, 0x91, 0xba, 0x4e, 0xd3, 0xa9, 0xd3, 0xf4, 0x1b, 0xdf, 0x1b,
-	0x64, 0xa3, 0x8a, 0xbc, 0x87, 0xa3, 0x86, 0xf7, 0x7b, 0xc5, 0x05, 0x0d, 0xef, 0x34, 0x4c, 0x32,
-	0xf2, 0x0c, 0x56, 0x02, 0x73, 0x53, 0xd2, 0x87, 0xb1, 0x97, 0xac, 0x99, 0xfb, 0x6c, 0x3f, 0xc2,
-	0x93, 0x2b, 0xd9, 0xe9, 0xf9, 0x7d, 0xde, 0xc2, 0x4a, 0x6a, 0xac, 0x3a, 0xea, 0xc5, 0x7e, 0x12,
-	0xee, 0x9e, 0x4f, 0x05, 0xcc, 0x54, 0xcc, 0x69, 0x76, 0x7f, 0x17, 0xf0, 0x78, 0x46, 0x9c, 0x37,
-	0x92, 0x9c, 0x41, 0xf0, 0xc9, 0x76, 0x4e, 0x0e, 0x9b, 0xa3, 0xc3, 0xf0, 0xf6, 0x01, 0x39, 0x83,
-	0xe5, 0xb0, 0x10, 0x79, 0x7a, 0xdd, 0xfa, 0xb0, 0x1e, 0xfe, 0x32, 0xd8, 0xe9, 0xe8, 0xe5, 0x0c,
-	0xbc, 0xe5, 0x3c, 0x05, 0xff, 0x33, 0xde, 0x30, 0x5e, 0x6a, 0xac, 0x26, 0xe3, 0x1d, 0xe3, 0x82,
-	0xaf, 0xf6, 0x9c, 0xf7, 0x5e, 0xf4, 0x03, 0x04, 0x0c, 0x2b, 0xf5, 0x1b, 0xef, 0x37, 0x31, 0x0f,
-	0xec, 0x81, 0x4e, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x3a, 0x6c, 0xa5, 0x39, 0x64, 0x03, 0x00,
-	0x00,
+	// 631 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0x96, 0x9d, 0x38, 0x3f, 0x13, 0xa8, 0xe8, 0xa6, 0x85, 0xc5, 0xa5, 0x92, 0xe5, 0x53, 0x54,
+	0x84, 0x83, 0xc2, 0x8d, 0x13, 0x14, 0x24, 0x54, 0xa9, 0x27, 0x57, 0x70, 0x8d, 0x36, 0xde, 0xc5,
+	0x5d, 0x35, 0xf1, 0x1a, 0x7b, 0x8d, 0x64, 0x10, 0x17, 0xae, 0x1c, 0xb9, 0xf1, 0x42, 0x3c, 0x00,
+	0xaf, 0xc0, 0x5b, 0x70, 0x41, 0xd9, 0xb5, 0xf3, 0x6b, 0x83, 0x0c, 0xb7, 0xcd, 0xcc, 0xf8, 0xfb,
+	0x32, 0xdf, 0x37, 0xb3, 0x0b, 0x98, 0x04, 0xc9, 0x34, 0x11, 0x99, 0xe4, 0x51, 0x38, 0x4d, 0x83,
+	0x6b, 0xb6, 0x60, 0x5e, 0x9c, 0x08, 0x29, 0x50, 0x87, 0x45, 0x21, 0x8f, 0x98, 0x3d, 0x08, 0x44,
+	0x94, 0x4a, 0x1d, 0xb4, 0x1f, 0x84, 0x42, 0x84, 0x73, 0x36, 0x56, 0xbf, 0x66, 0xd9, 0xdb, 0x71,
+	0x2a, 0x93, 0x2c, 0xd8, 0xcd, 0x92, 0x98, 0x8f, 0x49, 0x14, 0x09, 0x49, 0x24, 0x17, 0x51, 0xaa,
+	0xb3, 0xee, 0x05, 0xd8, 0x2f, 0xd9, 0x9c, 0x49, 0xe6, 0x6b, 0xba, 0x2b, 0xc5, 0xe6, 0xb3, 0x77,
+	0x19, 0x4b, 0x25, 0x3a, 0x81, 0x3e, 0x15, 0x0b, 0xc2, 0xa3, 0x29, 0xa7, 0xd8, 0x70, 0x8c, 0x51,
+	0xcb, 0xef, 0xe9, 0xc0, 0x05, 0x45, 0x07, 0x60, 0x72, 0x8a, 0x4d, 0x15, 0x35, 0x39, 0x75, 0xbf,
+	0x98, 0x60, 0xbf, 0x8e, 0x29, 0xd9, 0xc7, 0x62, 0x59, 0x2a, 0x8b, 0x72, 0xa3, 0x2c, 0xdf, 0xc6,
+	0x36, 0x77, 0xb0, 0x11, 0xb4, 0x23, 0xb2, 0x60, 0xb8, 0xe5, 0x18, 0xa3, 0xbe, 0xaf, 0xce, 0xc8,
+	0x81, 0x01, 0x65, 0x69, 0x90, 0xf0, 0x78, 0xd9, 0x00, 0x6e, 0xab, 0xd4, 0x66, 0x68, 0xf9, 0x95,
+	0xcc, 0x63, 0x86, 0x2d, 0xc7, 0x18, 0x59, 0xbe, 0x3a, 0x23, 0x0f, 0x3a, 0x5a, 0x41, 0xdc, 0x71,
+	0x8c, 0xd1, 0x60, 0x72, 0xd7, 0xd3, 0x7a, 0x78, 0xa5, 0x5a, 0xde, 0x1b, 0x32, 0xcf, 0x98, 0x5f,
+	0x54, 0xa1, 0xc7, 0xd0, 0x8d, 0x49, 0x3e, 0x17, 0x84, 0xe2, 0xee, 0x1f, 0x3f, 0x28, 0xcb, 0xd0,
+	0x11, 0x58, 0x94, 0xcd, 0xb2, 0x10, 0xf7, 0x1c, 0x63, 0xd4, 0xf3, 0xf5, 0x0f, 0xf7, 0x15, 0x60,
+	0x9f, 0x11, 0xfa, 0xff, 0xb2, 0x12, 0xb0, 0xaf, 0x18, 0x49, 0x82, 0xeb, 0xe6, 0x50, 0x08, 0xda,
+	0x29, 0xff, 0xc0, 0x14, 0x98, 0xe5, 0xab, 0xf3, 0x32, 0x16, 0x93, 0x50, 0x2b, 0x6b, 0xf9, 0xea,
+	0xec, 0xfe, 0x32, 0xc0, 0x7e, 0x91, 0x30, 0xf2, 0x2f, 0x53, 0x50, 0x3a, 0x65, 0xd6, 0x3b, 0xd5,
+	0xaa, 0x77, 0xaa, 0x5d, 0xe9, 0x94, 0xd5, 0xd4, 0xa9, 0x4e, 0x43, 0xa7, 0xba, 0x9b, 0x4e, 0x7d,
+	0x6b, 0xc1, 0xed, 0xad, 0xbe, 0x9b, 0x8d, 0xea, 0x29, 0x40, 0xa0, 0xb4, 0xa3, 0x53, 0x22, 0x55,
+	0xaf, 0x2d, 0xbf, 0x5f, 0x44, 0x9e, 0x4b, 0xf4, 0x68, 0x9d, 0x9e, 0xe5, 0xaa, 0xdf, 0xc1, 0xe4,
+	0xc0, 0xd3, 0x6b, 0xec, 0x5d, 0x0a, 0x71, 0x93, 0xc5, 0xab, 0xf2, 0xf3, 0x7c, 0x89, 0x96, 0xa9,
+	0x1d, 0x52, 0x68, 0x96, 0x46, 0x2b, 0x22, 0x1a, 0xad, 0x4c, 0xcf, 0xf2, 0xa2, 0xed, 0x3d, 0xb4,
+	0xa2, 0xe2, 0x3c, 0x5f, 0x99, 0xd3, 0xad, 0x37, 0xa7, 0x57, 0x6f, 0x4e, 0xbf, 0xd2, 0x1c, 0x68,
+	0x6a, 0xce, 0xa0, 0xa1, 0x39, 0xb7, 0x36, 0xcd, 0x79, 0x06, 0x87, 0x97, 0x3c, 0x95, 0xdb, 0xfe,
+	0x3c, 0x04, 0x8b, 0x4b, 0xb6, 0x48, 0xb1, 0xe1, 0xb4, 0x46, 0x83, 0xc9, 0x71, 0x29, 0xc0, 0xf6,
+	0xf4, 0xea, 0x9a, 0xc9, 0xf7, 0x36, 0x1c, 0x6d, 0x25, 0xae, 0x58, 0xf2, 0x9e, 0x07, 0x0c, 0x2d,
+	0x60, 0x58, 0x31, 0xf4, 0xc8, 0x2d, 0xd1, 0xea, 0x37, 0xc2, 0xae, 0x66, 0x74, 0x4f, 0x3e, 0xff,
+	0xf8, 0xf9, 0xd5, 0x3c, 0x76, 0xef, 0x8c, 0x8b, 0xcb, 0x7b, 0xac, 0xd5, 0x48, 0x9f, 0x1a, 0x67,
+	0x28, 0x82, 0x61, 0xc5, 0x1e, 0xaf, 0xe9, 0xea, 0x97, 0xdc, 0xbe, 0xbf, 0x72, 0x78, 0x57, 0x0a,
+	0x17, 0x2b, 0x4a, 0x84, 0xf6, 0x28, 0xd1, 0x0d, 0x1c, 0xee, 0x5d, 0x40, 0xc8, 0x59, 0xfd, 0xf1,
+	0x9a, 0xbb, 0xa9, 0xae, 0xb5, 0x53, 0xc5, 0x73, 0x0f, 0x1d, 0xef, 0xf2, 0x8c, 0x3f, 0x72, 0xfa,
+	0x09, 0x25, 0x30, 0xac, 0xb8, 0xfa, 0xd7, 0xcd, 0xd5, 0xbf, 0x0b, 0x75, 0x84, 0x8e, 0x22, 0xb4,
+	0xed, 0x6a, 0xc2, 0xa5, 0xa0, 0x02, 0x86, 0x15, 0x4f, 0xd7, 0x9a, 0xb3, 0xfe, 0x5d, 0xfb, 0x4b,
+	0x93, 0x67, 0xd5, 0x9c, 0xb3, 0x8e, 0x1a, 0xdd, 0x27, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x78,
+	0x6c, 0xe5, 0xf2, 0x9f, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -237,226 +587,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// RoutingSchemeApiClient is the client API for RoutingSchemeApi service.
+// RoutingSchemeServiceClient is the client API for RoutingSchemeService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RoutingSchemeApiClient interface {
-	// POST /routing/scheme
-	Create(ctx context.Context, in *RoutingScheme, opts ...grpc.CallOption) (*RoutingScheme, error)
-	// GET /routing/scheme?size=10&page=0
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListRoutingScheme, error)
-	// GET /routing/scheme/:ID
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingScheme, error)
-	// PUT /routing/scheme/:ID
-	Update(ctx context.Context, in *RoutingScheme, opts ...grpc.CallOption) (*RoutingScheme, error)
-	// DELETE /routing/scheme/:ID
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingScheme, error)
+type RoutingSchemeServiceClient interface {
+	// Create RoutingScheme
+	CreateRoutingScheme(ctx context.Context, in *CreateRoutingSchemeRequest, opts ...grpc.CallOption) (*RoutingScheme, error)
+	// List RoutingScheme
+	SearchRoutingScheme(ctx context.Context, in *SearchRoutingSchemeRequest, opts ...grpc.CallOption) (*ListRoutingScheme, error)
+	// RoutingScheme item
+	ReadRoutingScheme(ctx context.Context, in *ReadRoutingSchemeRequest, opts ...grpc.CallOption) (*RoutingScheme, error)
+	// Update RoutingScheme
+	UpdateRoutingScheme(ctx context.Context, in *UpdateRoutingSchemeReqeust, opts ...grpc.CallOption) (*RoutingScheme, error)
+	// Remove RoutingScheme
+	DeleteRoutingScheme(ctx context.Context, in *DeleteRoutingSchemeRequest, opts ...grpc.CallOption) (*RoutingScheme, error)
 }
 
-type routingSchemeApiClient struct {
+type routingSchemeServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewRoutingSchemeApiClient(cc *grpc.ClientConn) RoutingSchemeApiClient {
-	return &routingSchemeApiClient{cc}
+func NewRoutingSchemeServiceClient(cc *grpc.ClientConn) RoutingSchemeServiceClient {
+	return &routingSchemeServiceClient{cc}
 }
 
-func (c *routingSchemeApiClient) Create(ctx context.Context, in *RoutingScheme, opts ...grpc.CallOption) (*RoutingScheme, error) {
+func (c *routingSchemeServiceClient) CreateRoutingScheme(ctx context.Context, in *CreateRoutingSchemeRequest, opts ...grpc.CallOption) (*RoutingScheme, error) {
 	out := new(RoutingScheme)
-	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeService/CreateRoutingScheme", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingSchemeApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListRoutingScheme, error) {
+func (c *routingSchemeServiceClient) SearchRoutingScheme(ctx context.Context, in *SearchRoutingSchemeRequest, opts ...grpc.CallOption) (*ListRoutingScheme, error) {
 	out := new(ListRoutingScheme)
-	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeService/SearchRoutingScheme", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingSchemeApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingScheme, error) {
+func (c *routingSchemeServiceClient) ReadRoutingScheme(ctx context.Context, in *ReadRoutingSchemeRequest, opts ...grpc.CallOption) (*RoutingScheme, error) {
 	out := new(RoutingScheme)
-	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeService/ReadRoutingScheme", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingSchemeApiClient) Update(ctx context.Context, in *RoutingScheme, opts ...grpc.CallOption) (*RoutingScheme, error) {
+func (c *routingSchemeServiceClient) UpdateRoutingScheme(ctx context.Context, in *UpdateRoutingSchemeReqeust, opts ...grpc.CallOption) (*RoutingScheme, error) {
 	out := new(RoutingScheme)
-	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeService/UpdateRoutingScheme", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingSchemeApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingScheme, error) {
+func (c *routingSchemeServiceClient) DeleteRoutingScheme(ctx context.Context, in *DeleteRoutingSchemeRequest, opts ...grpc.CallOption) (*RoutingScheme, error) {
 	out := new(RoutingScheme)
-	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingSchemeService/DeleteRoutingScheme", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RoutingSchemeApiServer is the server API for RoutingSchemeApi service.
-type RoutingSchemeApiServer interface {
-	// POST /routing/scheme
-	Create(context.Context, *RoutingScheme) (*RoutingScheme, error)
-	// GET /routing/scheme?size=10&page=0
-	List(context.Context, *ListRequest) (*ListRoutingScheme, error)
-	// GET /routing/scheme/:ID
-	Get(context.Context, *ItemRequest) (*RoutingScheme, error)
-	// PUT /routing/scheme/:ID
-	Update(context.Context, *RoutingScheme) (*RoutingScheme, error)
-	// DELETE /routing/scheme/:ID
-	Remove(context.Context, *ItemRequest) (*RoutingScheme, error)
+// RoutingSchemeServiceServer is the server API for RoutingSchemeService service.
+type RoutingSchemeServiceServer interface {
+	// Create RoutingScheme
+	CreateRoutingScheme(context.Context, *CreateRoutingSchemeRequest) (*RoutingScheme, error)
+	// List RoutingScheme
+	SearchRoutingScheme(context.Context, *SearchRoutingSchemeRequest) (*ListRoutingScheme, error)
+	// RoutingScheme item
+	ReadRoutingScheme(context.Context, *ReadRoutingSchemeRequest) (*RoutingScheme, error)
+	// Update RoutingScheme
+	UpdateRoutingScheme(context.Context, *UpdateRoutingSchemeReqeust) (*RoutingScheme, error)
+	// Remove RoutingScheme
+	DeleteRoutingScheme(context.Context, *DeleteRoutingSchemeRequest) (*RoutingScheme, error)
 }
 
-// UnimplementedRoutingSchemeApiServer can be embedded to have forward compatible implementations.
-type UnimplementedRoutingSchemeApiServer struct {
+// UnimplementedRoutingSchemeServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRoutingSchemeServiceServer struct {
 }
 
-func (*UnimplementedRoutingSchemeApiServer) Create(ctx context.Context, req *RoutingScheme) (*RoutingScheme, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedRoutingSchemeServiceServer) CreateRoutingScheme(ctx context.Context, req *CreateRoutingSchemeRequest) (*RoutingScheme, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRoutingScheme not implemented")
 }
-func (*UnimplementedRoutingSchemeApiServer) List(ctx context.Context, req *ListRequest) (*ListRoutingScheme, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedRoutingSchemeServiceServer) SearchRoutingScheme(ctx context.Context, req *SearchRoutingSchemeRequest) (*ListRoutingScheme, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchRoutingScheme not implemented")
 }
-func (*UnimplementedRoutingSchemeApiServer) Get(ctx context.Context, req *ItemRequest) (*RoutingScheme, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedRoutingSchemeServiceServer) ReadRoutingScheme(ctx context.Context, req *ReadRoutingSchemeRequest) (*RoutingScheme, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadRoutingScheme not implemented")
 }
-func (*UnimplementedRoutingSchemeApiServer) Update(ctx context.Context, req *RoutingScheme) (*RoutingScheme, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedRoutingSchemeServiceServer) UpdateRoutingScheme(ctx context.Context, req *UpdateRoutingSchemeReqeust) (*RoutingScheme, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRoutingScheme not implemented")
 }
-func (*UnimplementedRoutingSchemeApiServer) Remove(ctx context.Context, req *ItemRequest) (*RoutingScheme, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterRoutingSchemeApiServer(s *grpc.Server, srv RoutingSchemeApiServer) {
-	s.RegisterService(&_RoutingSchemeApi_serviceDesc, srv)
+func (*UnimplementedRoutingSchemeServiceServer) DeleteRoutingScheme(ctx context.Context, req *DeleteRoutingSchemeRequest) (*RoutingScheme, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoutingScheme not implemented")
 }
 
-func _RoutingSchemeApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoutingScheme)
+func RegisterRoutingSchemeServiceServer(s *grpc.Server, srv RoutingSchemeServiceServer) {
+	s.RegisterService(&_RoutingSchemeService_serviceDesc, srv)
+}
+
+func _RoutingSchemeService_CreateRoutingScheme_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoutingSchemeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingSchemeApiServer).Create(ctx, in)
+		return srv.(RoutingSchemeServiceServer).CreateRoutingScheme(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingSchemeApi/Create",
+		FullMethod: "/engine.RoutingSchemeService/CreateRoutingScheme",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingSchemeApiServer).Create(ctx, req.(*RoutingScheme))
+		return srv.(RoutingSchemeServiceServer).CreateRoutingScheme(ctx, req.(*CreateRoutingSchemeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingSchemeApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _RoutingSchemeService_SearchRoutingScheme_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRoutingSchemeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingSchemeApiServer).List(ctx, in)
+		return srv.(RoutingSchemeServiceServer).SearchRoutingScheme(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingSchemeApi/List",
+		FullMethod: "/engine.RoutingSchemeService/SearchRoutingScheme",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingSchemeApiServer).List(ctx, req.(*ListRequest))
+		return srv.(RoutingSchemeServiceServer).SearchRoutingScheme(ctx, req.(*SearchRoutingSchemeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingSchemeApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _RoutingSchemeService_ReadRoutingScheme_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRoutingSchemeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingSchemeApiServer).Get(ctx, in)
+		return srv.(RoutingSchemeServiceServer).ReadRoutingScheme(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingSchemeApi/Get",
+		FullMethod: "/engine.RoutingSchemeService/ReadRoutingScheme",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingSchemeApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(RoutingSchemeServiceServer).ReadRoutingScheme(ctx, req.(*ReadRoutingSchemeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingSchemeApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoutingScheme)
+func _RoutingSchemeService_UpdateRoutingScheme_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRoutingSchemeReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingSchemeApiServer).Update(ctx, in)
+		return srv.(RoutingSchemeServiceServer).UpdateRoutingScheme(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingSchemeApi/Update",
+		FullMethod: "/engine.RoutingSchemeService/UpdateRoutingScheme",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingSchemeApiServer).Update(ctx, req.(*RoutingScheme))
+		return srv.(RoutingSchemeServiceServer).UpdateRoutingScheme(ctx, req.(*UpdateRoutingSchemeReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingSchemeApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _RoutingSchemeService_DeleteRoutingScheme_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoutingSchemeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingSchemeApiServer).Remove(ctx, in)
+		return srv.(RoutingSchemeServiceServer).DeleteRoutingScheme(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingSchemeApi/Remove",
+		FullMethod: "/engine.RoutingSchemeService/DeleteRoutingScheme",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingSchemeApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(RoutingSchemeServiceServer).DeleteRoutingScheme(ctx, req.(*DeleteRoutingSchemeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _RoutingSchemeApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.RoutingSchemeApi",
-	HandlerType: (*RoutingSchemeApiServer)(nil),
+var _RoutingSchemeService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.RoutingSchemeService",
+	HandlerType: (*RoutingSchemeServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _RoutingSchemeApi_Create_Handler,
+			MethodName: "CreateRoutingScheme",
+			Handler:    _RoutingSchemeService_CreateRoutingScheme_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _RoutingSchemeApi_List_Handler,
+			MethodName: "SearchRoutingScheme",
+			Handler:    _RoutingSchemeService_SearchRoutingScheme_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _RoutingSchemeApi_Get_Handler,
+			MethodName: "ReadRoutingScheme",
+			Handler:    _RoutingSchemeService_ReadRoutingScheme_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _RoutingSchemeApi_Update_Handler,
+			MethodName: "UpdateRoutingScheme",
+			Handler:    _RoutingSchemeService_UpdateRoutingScheme_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _RoutingSchemeApi_Remove_Handler,
+			MethodName: "DeleteRoutingScheme",
+			Handler:    _RoutingSchemeService_DeleteRoutingScheme_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

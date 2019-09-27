@@ -183,6 +183,376 @@ func (m *Calendar) GetDescription() string {
 	return ""
 }
 
+type CreateCalendarRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Start                int64    `protobuf:"varint,3,opt,name=start,proto3" json:"start,omitempty"`
+	Finish               int64    `protobuf:"varint,4,opt,name=finish,proto3" json:"finish,omitempty"`
+	Timezone             *Lookup  `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Description          string   `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateCalendarRequest) Reset()         { *m = CreateCalendarRequest{} }
+func (m *CreateCalendarRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateCalendarRequest) ProtoMessage()    {}
+func (*CreateCalendarRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{2}
+}
+
+func (m *CreateCalendarRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateCalendarRequest.Unmarshal(m, b)
+}
+func (m *CreateCalendarRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateCalendarRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateCalendarRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateCalendarRequest.Merge(m, src)
+}
+func (m *CreateCalendarRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateCalendarRequest.Size(m)
+}
+func (m *CreateCalendarRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateCalendarRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateCalendarRequest proto.InternalMessageInfo
+
+func (m *CreateCalendarRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateCalendarRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateCalendarRequest) GetStart() int64 {
+	if m != nil {
+		return m.Start
+	}
+	return 0
+}
+
+func (m *CreateCalendarRequest) GetFinish() int64 {
+	if m != nil {
+		return m.Finish
+	}
+	return 0
+}
+
+func (m *CreateCalendarRequest) GetTimezone() *Lookup {
+	if m != nil {
+		return m.Timezone
+	}
+	return nil
+}
+
+func (m *CreateCalendarRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+type SearchCalendarRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchCalendarRequest) Reset()         { *m = SearchCalendarRequest{} }
+func (m *SearchCalendarRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchCalendarRequest) ProtoMessage()    {}
+func (*SearchCalendarRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{3}
+}
+
+func (m *SearchCalendarRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchCalendarRequest.Unmarshal(m, b)
+}
+func (m *SearchCalendarRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchCalendarRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchCalendarRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchCalendarRequest.Merge(m, src)
+}
+func (m *SearchCalendarRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchCalendarRequest.Size(m)
+}
+func (m *SearchCalendarRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchCalendarRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchCalendarRequest proto.InternalMessageInfo
+
+func (m *SearchCalendarRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchCalendarRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchCalendarRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type ReadCalendarRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadCalendarRequest) Reset()         { *m = ReadCalendarRequest{} }
+func (m *ReadCalendarRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadCalendarRequest) ProtoMessage()    {}
+func (*ReadCalendarRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{4}
+}
+
+func (m *ReadCalendarRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadCalendarRequest.Unmarshal(m, b)
+}
+func (m *ReadCalendarRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadCalendarRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadCalendarRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadCalendarRequest.Merge(m, src)
+}
+func (m *ReadCalendarRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadCalendarRequest.Size(m)
+}
+func (m *ReadCalendarRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadCalendarRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadCalendarRequest proto.InternalMessageInfo
+
+func (m *ReadCalendarRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *ReadCalendarRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type DeleteCalendarRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteCalendarRequest) Reset()         { *m = DeleteCalendarRequest{} }
+func (m *DeleteCalendarRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteCalendarRequest) ProtoMessage()    {}
+func (*DeleteCalendarRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{5}
+}
+
+func (m *DeleteCalendarRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteCalendarRequest.Unmarshal(m, b)
+}
+func (m *DeleteCalendarRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteCalendarRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteCalendarRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteCalendarRequest.Merge(m, src)
+}
+func (m *DeleteCalendarRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteCalendarRequest.Size(m)
+}
+func (m *DeleteCalendarRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteCalendarRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteCalendarRequest proto.InternalMessageInfo
+
+func (m *DeleteCalendarRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *DeleteCalendarRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type UpdateCalendarRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Start                int64    `protobuf:"varint,4,opt,name=start,proto3" json:"start,omitempty"`
+	Finish               int64    `protobuf:"varint,5,opt,name=finish,proto3" json:"finish,omitempty"`
+	Timezone             *Lookup  `protobuf:"bytes,6,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Description          string   `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateCalendarRequest) Reset()         { *m = UpdateCalendarRequest{} }
+func (m *UpdateCalendarRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateCalendarRequest) ProtoMessage()    {}
+func (*UpdateCalendarRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{6}
+}
+
+func (m *UpdateCalendarRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateCalendarRequest.Unmarshal(m, b)
+}
+func (m *UpdateCalendarRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateCalendarRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateCalendarRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateCalendarRequest.Merge(m, src)
+}
+func (m *UpdateCalendarRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateCalendarRequest.Size(m)
+}
+func (m *UpdateCalendarRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateCalendarRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateCalendarRequest proto.InternalMessageInfo
+
+func (m *UpdateCalendarRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateCalendarRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateCalendarRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateCalendarRequest) GetStart() int64 {
+	if m != nil {
+		return m.Start
+	}
+	return 0
+}
+
+func (m *UpdateCalendarRequest) GetFinish() int64 {
+	if m != nil {
+		return m.Finish
+	}
+	return 0
+}
+
+func (m *UpdateCalendarRequest) GetTimezone() *Lookup {
+	if m != nil {
+		return m.Timezone
+	}
+	return nil
+}
+
+func (m *UpdateCalendarRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+type SearchTimezonesReqeust struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchTimezonesReqeust) Reset()         { *m = SearchTimezonesReqeust{} }
+func (m *SearchTimezonesReqeust) String() string { return proto.CompactTextString(m) }
+func (*SearchTimezonesReqeust) ProtoMessage()    {}
+func (*SearchTimezonesReqeust) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{7}
+}
+
+func (m *SearchTimezonesReqeust) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchTimezonesReqeust.Unmarshal(m, b)
+}
+func (m *SearchTimezonesReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchTimezonesReqeust.Marshal(b, m, deterministic)
+}
+func (m *SearchTimezonesReqeust) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchTimezonesReqeust.Merge(m, src)
+}
+func (m *SearchTimezonesReqeust) XXX_Size() int {
+	return xxx_messageInfo_SearchTimezonesReqeust.Size(m)
+}
+func (m *SearchTimezonesReqeust) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchTimezonesReqeust.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchTimezonesReqeust proto.InternalMessageInfo
+
+func (m *SearchTimezonesReqeust) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchTimezonesReqeust) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchTimezonesReqeust) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
 type ListTimezoneResponse struct {
 	Items                []*Timezone `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
@@ -194,7 +564,7 @@ func (m *ListTimezoneResponse) Reset()         { *m = ListTimezoneResponse{} }
 func (m *ListTimezoneResponse) String() string { return proto.CompactTextString(m) }
 func (*ListTimezoneResponse) ProtoMessage()    {}
 func (*ListTimezoneResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{2}
+	return fileDescriptor_e3d25d49f056cdb2, []int{8}
 }
 
 func (m *ListTimezoneResponse) XXX_Unmarshal(b []byte) error {
@@ -235,7 +605,7 @@ func (m *Timezone) Reset()         { *m = Timezone{} }
 func (m *Timezone) String() string { return proto.CompactTextString(m) }
 func (*Timezone) ProtoMessage()    {}
 func (*Timezone) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{3}
+	return fileDescriptor_e3d25d49f056cdb2, []int{9}
 }
 
 func (m *Timezone) XXX_Unmarshal(b []byte) error {
@@ -291,7 +661,7 @@ func (m *AcceptOfDay) Reset()         { *m = AcceptOfDay{} }
 func (m *AcceptOfDay) String() string { return proto.CompactTextString(m) }
 func (*AcceptOfDay) ProtoMessage()    {}
 func (*AcceptOfDay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{4}
+	return fileDescriptor_e3d25d49f056cdb2, []int{10}
 }
 
 func (m *AcceptOfDay) XXX_Unmarshal(b []byte) error {
@@ -351,7 +721,7 @@ func (m *AcceptOfDayReqeust) Reset()         { *m = AcceptOfDayReqeust{} }
 func (m *AcceptOfDayReqeust) String() string { return proto.CompactTextString(m) }
 func (*AcceptOfDayReqeust) ProtoMessage()    {}
 func (*AcceptOfDayReqeust) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{5}
+	return fileDescriptor_e3d25d49f056cdb2, []int{11}
 }
 
 func (m *AcceptOfDayReqeust) XXX_Unmarshal(b []byte) error {
@@ -390,7 +760,7 @@ func (m *ListAcceptOfDay) Reset()         { *m = ListAcceptOfDay{} }
 func (m *ListAcceptOfDay) String() string { return proto.CompactTextString(m) }
 func (*ListAcceptOfDay) ProtoMessage()    {}
 func (*ListAcceptOfDay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{6}
+	return fileDescriptor_e3d25d49f056cdb2, []int{12}
 }
 
 func (m *ListAcceptOfDay) XXX_Unmarshal(b []byte) error {
@@ -421,6 +791,12 @@ func (m *ListAcceptOfDay) GetItems() []*AcceptOfDay {
 func init() {
 	proto.RegisterType((*ListCalendar)(nil), "engine.ListCalendar")
 	proto.RegisterType((*Calendar)(nil), "engine.Calendar")
+	proto.RegisterType((*CreateCalendarRequest)(nil), "engine.CreateCalendarRequest")
+	proto.RegisterType((*SearchCalendarRequest)(nil), "engine.SearchCalendarRequest")
+	proto.RegisterType((*ReadCalendarRequest)(nil), "engine.ReadCalendarRequest")
+	proto.RegisterType((*DeleteCalendarRequest)(nil), "engine.DeleteCalendarRequest")
+	proto.RegisterType((*UpdateCalendarRequest)(nil), "engine.UpdateCalendarRequest")
+	proto.RegisterType((*SearchTimezonesReqeust)(nil), "engine.SearchTimezonesReqeust")
 	proto.RegisterType((*ListTimezoneResponse)(nil), "engine.ListTimezoneResponse")
 	proto.RegisterType((*Timezone)(nil), "engine.Timezone")
 	proto.RegisterType((*AcceptOfDay)(nil), "engine.AcceptOfDay")
@@ -431,45 +807,58 @@ func init() {
 func init() { proto.RegisterFile("calendar.proto", fileDescriptor_e3d25d49f056cdb2) }
 
 var fileDescriptor_e3d25d49f056cdb2 = []byte{
-	// 601 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0xcd, 0x6e, 0xd3, 0x40,
-	0x10, 0xce, 0xaf, 0x9b, 0x8c, 0x4b, 0x0a, 0xdb, 0xaa, 0x98, 0x50, 0x44, 0x64, 0x09, 0x94, 0x22,
-	0x91, 0xa8, 0xad, 0xe0, 0x84, 0x90, 0xd2, 0x22, 0xa2, 0x4a, 0x95, 0x90, 0x2c, 0x38, 0x5b, 0x5b,
-	0xef, 0x24, 0x2c, 0xad, 0x77, 0xdd, 0xec, 0xa6, 0xc8, 0x1c, 0x39, 0x72, 0xe5, 0x1d, 0x78, 0x21,
-	0x1e, 0x01, 0x1e, 0x04, 0x79, 0xd7, 0x36, 0x2e, 0x09, 0x52, 0x6f, 0x99, 0x6f, 0xbe, 0xf9, 0x66,
-	0x66, 0xbf, 0x71, 0xa0, 0x17, 0xd1, 0x4b, 0x14, 0x8c, 0x2e, 0x46, 0xc9, 0x42, 0x6a, 0x49, 0x1c,
-	0x14, 0x73, 0x2e, 0xb0, 0xef, 0x46, 0x52, 0x28, 0x6d, 0xc1, 0xfe, 0xde, 0x5c, 0xca, 0xf9, 0x25,
-	0x8e, 0x69, 0xc2, 0xc7, 0x54, 0x08, 0xa9, 0xa9, 0xe6, 0x52, 0x28, 0x9b, 0xf5, 0x5f, 0xc2, 0xe6,
-	0x19, 0x57, 0xfa, 0x24, 0x17, 0x22, 0x4f, 0xa1, 0xcd, 0x35, 0xc6, 0xca, 0xab, 0x0f, 0x9a, 0x43,
-	0xf7, 0xf0, 0xee, 0xc8, 0x4a, 0x8e, 0x0a, 0x42, 0x60, 0xd3, 0xfe, 0xaf, 0x06, 0x74, 0xca, 0xa2,
-	0x1e, 0x34, 0x38, 0xf3, 0xea, 0x83, 0xfa, 0xb0, 0x19, 0x34, 0x38, 0x23, 0x0f, 0xa1, 0xcb, 0x64,
-	0x4c, 0xb9, 0x08, 0x39, 0xf3, 0x1a, 0x06, 0xee, 0x58, 0xe0, 0x94, 0x91, 0x47, 0x00, 0xd1, 0x02,
-	0xa9, 0x46, 0x16, 0x52, 0xed, 0x35, 0x4d, 0xb6, 0x9b, 0x23, 0x13, 0x4d, 0x9e, 0xff, 0x4d, 0x9f,
-	0xa7, 0x5e, 0x6b, 0x50, 0x1f, 0xba, 0x87, 0xbd, 0x62, 0x8a, 0x33, 0x29, 0x2f, 0x96, 0x49, 0x49,
-	0x3f, 0x4e, 0x33, 0xb5, 0x65, 0xc2, 0x0a, 0xb5, 0xb6, 0x55, 0xcb, 0x11, 0xab, 0x56, 0xa4, 0xcf,
-	0x53, 0xcf, 0x59, 0xaf, 0x96, 0x33, 0x8e, 0x53, 0x42, 0xa0, 0x25, 0x68, 0x8c, 0xde, 0xc6, 0xa0,
-	0x3e, 0xec, 0x06, 0xe6, 0x37, 0xd9, 0x81, 0xb6, 0xd2, 0x74, 0xa1, 0xbd, 0x8e, 0x11, 0xb7, 0x01,
-	0xd9, 0x05, 0x67, 0xc6, 0x05, 0x57, 0x1f, 0xbd, 0xae, 0x81, 0xf3, 0x88, 0x3c, 0x83, 0x8e, 0xe6,
-	0x31, 0x7e, 0x91, 0x02, 0x3d, 0x58, 0xdb, 0xae, 0xcc, 0x93, 0x01, 0xb8, 0x0c, 0x55, 0xb4, 0xe0,
-	0x49, 0xe6, 0x88, 0xe7, 0x9a, 0xa6, 0x55, 0xc8, 0x7f, 0x0d, 0x3b, 0x99, 0x3b, 0xef, 0xf3, 0x8a,
-	0x00, 0x55, 0x22, 0x85, 0xc2, 0xff, 0xba, 0x54, 0x12, 0x73, 0x97, 0xde, 0x42, 0xa7, 0x80, 0x56,
-	0x4c, 0x2a, 0x76, 0x6d, 0x54, 0x76, 0xdd, 0x05, 0x47, 0xce, 0x66, 0x0a, 0xad, 0x2f, 0xdd, 0x20,
-	0x8f, 0xfc, 0x6f, 0x75, 0x70, 0x27, 0x51, 0x84, 0x89, 0x7e, 0x37, 0x7b, 0x43, 0xd3, 0x15, 0xad,
-	0x07, 0xd0, 0xf9, 0x8c, 0x78, 0x11, 0x32, 0x9a, 0x9a, 0xca, 0x76, 0xb0, 0x91, 0xc5, 0x19, 0x75,
-	0x1f, 0xee, 0x99, 0x17, 0x0b, 0xb3, 0xb5, 0x43, 0x39, 0x33, 0x9c, 0x96, 0xe1, 0xf4, 0x4c, 0x22,
-	0x1b, 0xd0, 0xaa, 0x3e, 0x81, 0x2d, 0x14, 0xec, 0x06, 0xb1, 0x6d, 0x88, 0x9b, 0x28, 0x58, 0x49,
-	0xf3, 0x5f, 0x00, 0xa9, 0xcc, 0x12, 0xe0, 0x15, 0x2e, 0x95, 0x26, 0x8f, 0xc1, 0x2d, 0xbe, 0x86,
-	0xb0, 0x9c, 0x0d, 0x0a, 0xe8, 0x94, 0xf9, 0xaf, 0x60, 0x2b, 0x7b, 0xcb, 0xea, 0x1a, 0xfb, 0x37,
-	0x9f, 0x71, 0xbb, 0x78, 0xc6, 0xaa, 0xbc, 0x65, 0x1c, 0xfe, 0x68, 0x82, 0x5b, 0xdc, 0xfb, 0x24,
-	0xe1, 0x64, 0x02, 0xce, 0x89, 0x39, 0x42, 0xb2, 0xf2, 0x89, 0xf4, 0x57, 0x10, 0x7f, 0xfb, 0xeb,
-	0xcf, 0xdf, 0xdf, 0x1b, 0x77, 0x88, 0x3b, 0xbe, 0x3e, 0x18, 0xd3, 0x4f, 0x5c, 0x73, 0x31, 0x27,
-	0x47, 0xd0, 0xca, 0x06, 0x22, 0x65, 0xdb, 0x2c, 0x0a, 0xf0, 0x6a, 0x89, 0x4a, 0xf7, 0x77, 0xaa,
-	0x60, 0xa9, 0x53, 0x23, 0x23, 0x68, 0x4e, 0xb1, 0x52, 0x73, 0xaa, 0x31, 0x2e, 0x6a, 0x56, 0xfb,
-	0x66, 0x7c, 0xe7, 0x83, 0x39, 0xef, 0x5b, 0xcd, 0x59, 0x23, 0x07, 0xe0, 0x04, 0x18, 0xcb, 0x6b,
-	0xbc, 0x7d, 0x8b, 0x13, 0xd8, 0x9c, 0x62, 0x79, 0xa3, 0x6a, 0xfd, 0x3e, 0x7b, 0x55, 0xf0, 0xdf,
-	0x7b, 0xf6, 0x6b, 0x64, 0x0a, 0xbd, 0x29, 0xde, 0x30, 0xa7, 0xbf, 0xce, 0x0d, 0x6b, 0x76, 0xff,
-	0x7e, 0x55, 0xad, 0x92, 0xf7, 0x6b, 0xe7, 0x8e, 0xf9, 0x5f, 0x3b, 0xfa, 0x13, 0x00, 0x00, 0xff,
-	0xff, 0x01, 0x96, 0x60, 0x89, 0x1c, 0x05, 0x00, 0x00,
+	// 802 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0xdd, 0x6a, 0xdb, 0x48,
+	0x14, 0x46, 0xb6, 0xe5, 0xd8, 0xc7, 0x46, 0xde, 0x4c, 0x6c, 0x47, 0xab, 0xfc, 0xac, 0x11, 0xec,
+	0xe2, 0x04, 0x36, 0x86, 0x2c, 0xbb, 0x17, 0x61, 0x29, 0xe4, 0x87, 0x42, 0x20, 0x50, 0x50, 0xda,
+	0xd2, 0x96, 0x06, 0x33, 0xd1, 0x8c, 0x9d, 0x21, 0xb1, 0xa4, 0x58, 0xe3, 0x16, 0xa7, 0xf4, 0xa6,
+	0x97, 0xbd, 0xed, 0x9b, 0xf4, 0x19, 0xfa, 0x06, 0xed, 0x1b, 0xb4, 0x0f, 0x52, 0x34, 0xd2, 0xc8,
+	0x92, 0x3d, 0xbe, 0x30, 0xf4, 0x4e, 0x73, 0xce, 0x99, 0xef, 0x9c, 0xf3, 0x9d, 0x9f, 0x11, 0x18,
+	0x2e, 0xbe, 0xa3, 0x1e, 0xc1, 0xe3, 0x83, 0x60, 0xec, 0x73, 0x1f, 0x95, 0xa9, 0x37, 0x64, 0x1e,
+	0xb5, 0x6a, 0xae, 0xef, 0x85, 0x3c, 0x16, 0x5a, 0xdb, 0x43, 0xdf, 0x1f, 0xde, 0xd1, 0x1e, 0x0e,
+	0x58, 0x0f, 0x7b, 0x9e, 0xcf, 0x31, 0x67, 0xbe, 0x17, 0xc6, 0x5a, 0xfb, 0x3f, 0xa8, 0x5f, 0xb0,
+	0x90, 0x9f, 0x26, 0x40, 0xe8, 0x2f, 0xd0, 0x19, 0xa7, 0xa3, 0xd0, 0xd4, 0x3a, 0xc5, 0x6e, 0xed,
+	0xf0, 0xb7, 0x83, 0x18, 0xf2, 0x40, 0x1a, 0x38, 0xb1, 0xda, 0xfe, 0x5e, 0x80, 0x4a, 0x7a, 0xc9,
+	0x80, 0x02, 0x23, 0xa6, 0xd6, 0xd1, 0xba, 0x45, 0xa7, 0xc0, 0x08, 0xda, 0x82, 0x2a, 0xf1, 0x47,
+	0x98, 0x79, 0x7d, 0x46, 0xcc, 0x82, 0x10, 0x57, 0x62, 0xc1, 0x39, 0x41, 0x3b, 0x00, 0xee, 0x98,
+	0x62, 0x4e, 0x49, 0x1f, 0x73, 0xb3, 0x28, 0xb4, 0xd5, 0x44, 0x72, 0xcc, 0xd1, 0xdf, 0x33, 0xf5,
+	0xf5, 0xd4, 0x2c, 0x75, 0xb4, 0x6e, 0xed, 0xd0, 0x90, 0x51, 0x5c, 0xf8, 0xfe, 0xed, 0x24, 0x48,
+	0xcd, 0x4f, 0xa6, 0x11, 0xda, 0x24, 0x20, 0x12, 0x4d, 0x8f, 0xd1, 0x12, 0x49, 0x8c, 0x26, 0xd5,
+	0xd7, 0x53, 0xb3, 0xac, 0x46, 0x4b, 0x2c, 0x4e, 0xa6, 0x08, 0x41, 0xc9, 0xc3, 0x23, 0x6a, 0xae,
+	0x75, 0xb4, 0x6e, 0xd5, 0x11, 0xdf, 0xa8, 0x09, 0x7a, 0xc8, 0xf1, 0x98, 0x9b, 0x15, 0x01, 0x1e,
+	0x1f, 0x50, 0x1b, 0xca, 0x03, 0xe6, 0xb1, 0xf0, 0xc6, 0xac, 0x0a, 0x71, 0x72, 0x42, 0xfb, 0x50,
+	0xe1, 0x6c, 0x44, 0x1f, 0x7c, 0x8f, 0x9a, 0xa0, 0x74, 0x97, 0xea, 0x51, 0x07, 0x6a, 0x84, 0x86,
+	0xee, 0x98, 0x05, 0x51, 0x45, 0xcc, 0x9a, 0x70, 0x9a, 0x15, 0xd9, 0x5f, 0x34, 0x68, 0x9d, 0x8a,
+	0x5c, 0x53, 0xfe, 0xe9, 0xfd, 0x84, 0x86, 0x3c, 0x4f, 0xb1, 0x36, 0x47, 0xb1, 0x4c, 0xa3, 0xa0,
+	0x4a, 0xa3, 0xa8, 0x4e, 0xa3, 0xb4, 0x34, 0x0d, 0x7d, 0xb5, 0x34, 0xca, 0x8b, 0x69, 0xbc, 0x86,
+	0xd6, 0x25, 0xc5, 0x63, 0xf7, 0x66, 0xd5, 0x2c, 0x42, 0xf6, 0x10, 0x67, 0xa1, 0x3b, 0xe2, 0x3b,
+	0x92, 0x05, 0x78, 0x48, 0x45, 0x12, 0xba, 0x23, 0xbe, 0xed, 0x13, 0xd8, 0x70, 0x28, 0x26, 0x2b,
+	0x61, 0xc7, 0x1d, 0x5b, 0x90, 0x1d, 0x6b, 0x9f, 0x41, 0xeb, 0x8c, 0xde, 0xd1, 0x15, 0x79, 0x9e,
+	0x47, 0xf9, 0xa6, 0x41, 0xeb, 0x99, 0x68, 0xa6, 0x79, 0x98, 0x95, 0x26, 0x44, 0x96, 0xaf, 0xa8,
+	0x2a, 0x5f, 0x49, 0x5d, 0x3e, 0x7d, 0x69, 0xf9, 0xca, 0xab, 0x95, 0x6f, 0x6d, 0xb1, 0x7c, 0x57,
+	0xd0, 0x8e, 0xcb, 0xf7, 0x34, 0xb9, 0x13, 0x3a, 0xf4, 0x9e, 0x4e, 0x7e, 0x55, 0xfd, 0x1e, 0x41,
+	0x33, 0x5a, 0x41, 0x12, 0xdc, 0xa1, 0x61, 0xe0, 0x7b, 0x21, 0x5d, 0xba, 0x8a, 0x52, 0xc3, 0x64,
+	0x15, 0x3d, 0x86, 0x8a, 0x14, 0x2d, 0xf0, 0xac, 0x9a, 0x84, 0x36, 0x94, 0xfd, 0xc1, 0x20, 0xa4,
+	0x3c, 0x21, 0x38, 0x39, 0xd9, 0x1f, 0x35, 0xa8, 0x1d, 0xbb, 0x2e, 0x0d, 0xf8, 0x93, 0xc1, 0x19,
+	0x9e, 0x2e, 0x60, 0xfd, 0x0e, 0x95, 0xb7, 0x94, 0xde, 0xf6, 0x09, 0x9e, 0x26, 0xf1, 0xaf, 0x45,
+	0xe7, 0xc8, 0x74, 0x0f, 0xd6, 0x45, 0x41, 0xfa, 0x11, 0xab, 0x7d, 0x7f, 0x20, 0x6c, 0x4a, 0xc2,
+	0xc6, 0x10, 0x8a, 0x28, 0xc0, 0x18, 0xf5, 0x4f, 0x68, 0x50, 0x8f, 0xe4, 0x0c, 0x75, 0x61, 0x58,
+	0xa7, 0x1e, 0x49, 0xcd, 0xec, 0x7f, 0x01, 0x65, 0x62, 0x91, 0x7c, 0xff, 0x01, 0x35, 0xb9, 0xf2,
+	0x67, 0x8c, 0x83, 0x14, 0x9d, 0x13, 0xfb, 0x7f, 0x68, 0x44, 0x5c, 0x66, 0xd3, 0xd8, 0xcb, 0xd3,
+	0xb8, 0x21, 0x69, 0xcc, 0xc2, 0xc7, 0x16, 0x87, 0x9f, 0x75, 0x68, 0xc8, 0xce, 0xbd, 0xa4, 0xe3,
+	0x37, 0xcc, 0xa5, 0xe8, 0x05, 0x18, 0xf9, 0x0d, 0x84, 0x76, 0xd2, 0x37, 0x41, 0xb5, 0x99, 0xac,
+	0x85, 0x27, 0xc3, 0x6e, 0x7d, 0xf8, 0xfa, 0xe3, 0x53, 0xa1, 0x61, 0x43, 0x4f, 0x46, 0x1a, 0x1e,
+	0x69, 0xfb, 0xe8, 0x25, 0x18, 0xf9, 0xad, 0x30, 0x43, 0x56, 0x6e, 0x0b, 0xab, 0x99, 0xf6, 0x70,
+	0xe6, 0xc5, 0xb2, 0x91, 0x40, 0xaf, 0xa3, 0x0c, 0x3a, 0x7a, 0x0e, 0xf5, 0xec, 0x4a, 0x40, 0x5b,
+	0xf2, 0xa6, 0x62, 0x51, 0x28, 0x02, 0xde, 0x14, 0x90, 0xeb, 0xa8, 0x31, 0x83, 0xec, 0xbd, 0x63,
+	0xe4, 0x3d, 0xba, 0x02, 0x23, 0x3f, 0xdf, 0xb3, 0x90, 0x95, 0x73, 0xaf, 0xc0, 0xb6, 0x04, 0x76,
+	0xd3, 0x9a, 0xc7, 0x8e, 0x18, 0x79, 0x05, 0x46, 0x7e, 0x0b, 0xcd, 0xe0, 0x95, 0xdb, 0x69, 0x79,
+	0xe8, 0xfb, 0x0b, 0xa1, 0x8f, 0xa0, 0x31, 0x37, 0xc4, 0x68, 0x37, 0x4f, 0xf7, 0xfc, 0x74, 0x5b,
+	0xdb, 0x59, 0xbe, 0xe7, 0xc7, 0xd3, 0xde, 0x16, 0x9e, 0xda, 0xa8, 0x99, 0xf1, 0xc4, 0x53, 0xec,
+	0x1b, 0x58, 0x8f, 0x51, 0xb3, 0xad, 0x68, 0xa9, 0x7a, 0x2f, 0x71, 0xb6, 0x99, 0x75, 0x96, 0xd1,
+	0xdb, 0xbb, 0xc2, 0x8f, 0x89, 0xda, 0x19, 0x3f, 0x47, 0x8c, 0xf4, 0xb0, 0xb0, 0x09, 0xaf, 0xcb,
+	0xe2, 0x47, 0xe6, 0x9f, 0x9f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x46, 0x7c, 0xce, 0xb7, 0x0d, 0x09,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -480,302 +869,302 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// CalendarApiClient is the client API for CalendarApi service.
+// CalendarServiceClient is the client API for CalendarService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type CalendarApiClient interface {
-	// - POST /calendar
-	Create(ctx context.Context, in *Calendar, opts ...grpc.CallOption) (*Calendar, error)
-	// -GET /calendar
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListCalendar, error)
-	// -GET /calendar/:id
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Calendar, error)
-	// -PUT /calendar/:id
-	Update(ctx context.Context, in *Calendar, opts ...grpc.CallOption) (*Calendar, error)
-	// -DELETE /calendar/:id
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Calendar, error)
-	// -GET /calendar/timezones
-	GetTimezones(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListTimezoneResponse, error)
+type CalendarServiceClient interface {
+	// Create calendar
+	CreateCalendar(ctx context.Context, in *CreateCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
+	// List of calendar
+	SearchCalendar(ctx context.Context, in *SearchCalendarRequest, opts ...grpc.CallOption) (*ListCalendar, error)
+	// Calendar item
+	ReadCalendar(ctx context.Context, in *ReadCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
+	// Update calendar
+	UpdateCalendar(ctx context.Context, in *UpdateCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
+	// Remove calendar
+	DeleteCalendar(ctx context.Context, in *DeleteCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
+	// List timezones
+	SearchTimezones(ctx context.Context, in *SearchTimezonesReqeust, opts ...grpc.CallOption) (*ListTimezoneResponse, error)
 	// -GET /calendar/:id/accept
-	GetAcceptOfDay(ctx context.Context, in *AcceptOfDayReqeust, opts ...grpc.CallOption) (*ListAcceptOfDay, error)
+	SearchAcceptOfDay(ctx context.Context, in *AcceptOfDayReqeust, opts ...grpc.CallOption) (*ListAcceptOfDay, error)
 }
 
-type calendarApiClient struct {
+type calendarServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewCalendarApiClient(cc *grpc.ClientConn) CalendarApiClient {
-	return &calendarApiClient{cc}
+func NewCalendarServiceClient(cc *grpc.ClientConn) CalendarServiceClient {
+	return &calendarServiceClient{cc}
 }
 
-func (c *calendarApiClient) Create(ctx context.Context, in *Calendar, opts ...grpc.CallOption) (*Calendar, error) {
+func (c *calendarServiceClient) CreateCalendar(ctx context.Context, in *CreateCalendarRequest, opts ...grpc.CallOption) (*Calendar, error) {
 	out := new(Calendar)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/CreateCalendar", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *calendarApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListCalendar, error) {
+func (c *calendarServiceClient) SearchCalendar(ctx context.Context, in *SearchCalendarRequest, opts ...grpc.CallOption) (*ListCalendar, error) {
 	out := new(ListCalendar)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/SearchCalendar", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *calendarApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Calendar, error) {
+func (c *calendarServiceClient) ReadCalendar(ctx context.Context, in *ReadCalendarRequest, opts ...grpc.CallOption) (*Calendar, error) {
 	out := new(Calendar)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/ReadCalendar", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *calendarApiClient) Update(ctx context.Context, in *Calendar, opts ...grpc.CallOption) (*Calendar, error) {
+func (c *calendarServiceClient) UpdateCalendar(ctx context.Context, in *UpdateCalendarRequest, opts ...grpc.CallOption) (*Calendar, error) {
 	out := new(Calendar)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/UpdateCalendar", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *calendarApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Calendar, error) {
+func (c *calendarServiceClient) DeleteCalendar(ctx context.Context, in *DeleteCalendarRequest, opts ...grpc.CallOption) (*Calendar, error) {
 	out := new(Calendar)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/DeleteCalendar", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *calendarApiClient) GetTimezones(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListTimezoneResponse, error) {
+func (c *calendarServiceClient) SearchTimezones(ctx context.Context, in *SearchTimezonesReqeust, opts ...grpc.CallOption) (*ListTimezoneResponse, error) {
 	out := new(ListTimezoneResponse)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/GetTimezones", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/SearchTimezones", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *calendarApiClient) GetAcceptOfDay(ctx context.Context, in *AcceptOfDayReqeust, opts ...grpc.CallOption) (*ListAcceptOfDay, error) {
+func (c *calendarServiceClient) SearchAcceptOfDay(ctx context.Context, in *AcceptOfDayReqeust, opts ...grpc.CallOption) (*ListAcceptOfDay, error) {
 	out := new(ListAcceptOfDay)
-	err := c.cc.Invoke(ctx, "/engine.CalendarApi/GetAcceptOfDay", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.CalendarService/SearchAcceptOfDay", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// CalendarApiServer is the server API for CalendarApi service.
-type CalendarApiServer interface {
-	// - POST /calendar
-	Create(context.Context, *Calendar) (*Calendar, error)
-	// -GET /calendar
-	List(context.Context, *ListRequest) (*ListCalendar, error)
-	// -GET /calendar/:id
-	Get(context.Context, *ItemRequest) (*Calendar, error)
-	// -PUT /calendar/:id
-	Update(context.Context, *Calendar) (*Calendar, error)
-	// -DELETE /calendar/:id
-	Remove(context.Context, *ItemRequest) (*Calendar, error)
-	// -GET /calendar/timezones
-	GetTimezones(context.Context, *ListRequest) (*ListTimezoneResponse, error)
+// CalendarServiceServer is the server API for CalendarService service.
+type CalendarServiceServer interface {
+	// Create calendar
+	CreateCalendar(context.Context, *CreateCalendarRequest) (*Calendar, error)
+	// List of calendar
+	SearchCalendar(context.Context, *SearchCalendarRequest) (*ListCalendar, error)
+	// Calendar item
+	ReadCalendar(context.Context, *ReadCalendarRequest) (*Calendar, error)
+	// Update calendar
+	UpdateCalendar(context.Context, *UpdateCalendarRequest) (*Calendar, error)
+	// Remove calendar
+	DeleteCalendar(context.Context, *DeleteCalendarRequest) (*Calendar, error)
+	// List timezones
+	SearchTimezones(context.Context, *SearchTimezonesReqeust) (*ListTimezoneResponse, error)
 	// -GET /calendar/:id/accept
-	GetAcceptOfDay(context.Context, *AcceptOfDayReqeust) (*ListAcceptOfDay, error)
+	SearchAcceptOfDay(context.Context, *AcceptOfDayReqeust) (*ListAcceptOfDay, error)
 }
 
-// UnimplementedCalendarApiServer can be embedded to have forward compatible implementations.
-type UnimplementedCalendarApiServer struct {
+// UnimplementedCalendarServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedCalendarServiceServer struct {
 }
 
-func (*UnimplementedCalendarApiServer) Create(ctx context.Context, req *Calendar) (*Calendar, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedCalendarServiceServer) CreateCalendar(ctx context.Context, req *CreateCalendarRequest) (*Calendar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCalendar not implemented")
 }
-func (*UnimplementedCalendarApiServer) List(ctx context.Context, req *ListRequest) (*ListCalendar, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedCalendarServiceServer) SearchCalendar(ctx context.Context, req *SearchCalendarRequest) (*ListCalendar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchCalendar not implemented")
 }
-func (*UnimplementedCalendarApiServer) Get(ctx context.Context, req *ItemRequest) (*Calendar, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedCalendarServiceServer) ReadCalendar(ctx context.Context, req *ReadCalendarRequest) (*Calendar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadCalendar not implemented")
 }
-func (*UnimplementedCalendarApiServer) Update(ctx context.Context, req *Calendar) (*Calendar, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedCalendarServiceServer) UpdateCalendar(ctx context.Context, req *UpdateCalendarRequest) (*Calendar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateCalendar not implemented")
 }
-func (*UnimplementedCalendarApiServer) Remove(ctx context.Context, req *ItemRequest) (*Calendar, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
+func (*UnimplementedCalendarServiceServer) DeleteCalendar(ctx context.Context, req *DeleteCalendarRequest) (*Calendar, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteCalendar not implemented")
 }
-func (*UnimplementedCalendarApiServer) GetTimezones(ctx context.Context, req *ListRequest) (*ListTimezoneResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetTimezones not implemented")
+func (*UnimplementedCalendarServiceServer) SearchTimezones(ctx context.Context, req *SearchTimezonesReqeust) (*ListTimezoneResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchTimezones not implemented")
 }
-func (*UnimplementedCalendarApiServer) GetAcceptOfDay(ctx context.Context, req *AcceptOfDayReqeust) (*ListAcceptOfDay, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAcceptOfDay not implemented")
-}
-
-func RegisterCalendarApiServer(s *grpc.Server, srv CalendarApiServer) {
-	s.RegisterService(&_CalendarApi_serviceDesc, srv)
+func (*UnimplementedCalendarServiceServer) SearchAcceptOfDay(ctx context.Context, req *AcceptOfDayReqeust) (*ListAcceptOfDay, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAcceptOfDay not implemented")
 }
 
-func _CalendarApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Calendar)
+func RegisterCalendarServiceServer(s *grpc.Server, srv CalendarServiceServer) {
+	s.RegisterService(&_CalendarService_serviceDesc, srv)
+}
+
+func _CalendarService_CreateCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCalendarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).Create(ctx, in)
+		return srv.(CalendarServiceServer).CreateCalendar(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/Create",
+		FullMethod: "/engine.CalendarService/CreateCalendar",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).Create(ctx, req.(*Calendar))
+		return srv.(CalendarServiceServer).CreateCalendar(ctx, req.(*CreateCalendarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _CalendarService_SearchCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchCalendarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).List(ctx, in)
+		return srv.(CalendarServiceServer).SearchCalendar(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/List",
+		FullMethod: "/engine.CalendarService/SearchCalendar",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).List(ctx, req.(*ListRequest))
+		return srv.(CalendarServiceServer).SearchCalendar(ctx, req.(*SearchCalendarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _CalendarService_ReadCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadCalendarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).Get(ctx, in)
+		return srv.(CalendarServiceServer).ReadCalendar(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/Get",
+		FullMethod: "/engine.CalendarService/ReadCalendar",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(CalendarServiceServer).ReadCalendar(ctx, req.(*ReadCalendarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Calendar)
+func _CalendarService_UpdateCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateCalendarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).Update(ctx, in)
+		return srv.(CalendarServiceServer).UpdateCalendar(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/Update",
+		FullMethod: "/engine.CalendarService/UpdateCalendar",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).Update(ctx, req.(*Calendar))
+		return srv.(CalendarServiceServer).UpdateCalendar(ctx, req.(*UpdateCalendarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _CalendarService_DeleteCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteCalendarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).Remove(ctx, in)
+		return srv.(CalendarServiceServer).DeleteCalendar(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/Remove",
+		FullMethod: "/engine.CalendarService/DeleteCalendar",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(CalendarServiceServer).DeleteCalendar(ctx, req.(*DeleteCalendarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarApi_GetTimezones_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _CalendarService_SearchTimezones_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchTimezonesReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).GetTimezones(ctx, in)
+		return srv.(CalendarServiceServer).SearchTimezones(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/GetTimezones",
+		FullMethod: "/engine.CalendarService/SearchTimezones",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).GetTimezones(ctx, req.(*ListRequest))
+		return srv.(CalendarServiceServer).SearchTimezones(ctx, req.(*SearchTimezonesReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarApi_GetAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CalendarService_SearchAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AcceptOfDayReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(CalendarApiServer).GetAcceptOfDay(ctx, in)
+		return srv.(CalendarServiceServer).SearchAcceptOfDay(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.CalendarApi/GetAcceptOfDay",
+		FullMethod: "/engine.CalendarService/SearchAcceptOfDay",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarApiServer).GetAcceptOfDay(ctx, req.(*AcceptOfDayReqeust))
+		return srv.(CalendarServiceServer).SearchAcceptOfDay(ctx, req.(*AcceptOfDayReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _CalendarApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.CalendarApi",
-	HandlerType: (*CalendarApiServer)(nil),
+var _CalendarService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.CalendarService",
+	HandlerType: (*CalendarServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _CalendarApi_Create_Handler,
+			MethodName: "CreateCalendar",
+			Handler:    _CalendarService_CreateCalendar_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _CalendarApi_List_Handler,
+			MethodName: "SearchCalendar",
+			Handler:    _CalendarService_SearchCalendar_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _CalendarApi_Get_Handler,
+			MethodName: "ReadCalendar",
+			Handler:    _CalendarService_ReadCalendar_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _CalendarApi_Update_Handler,
+			MethodName: "UpdateCalendar",
+			Handler:    _CalendarService_UpdateCalendar_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _CalendarApi_Remove_Handler,
+			MethodName: "DeleteCalendar",
+			Handler:    _CalendarService_DeleteCalendar_Handler,
 		},
 		{
-			MethodName: "GetTimezones",
-			Handler:    _CalendarApi_GetTimezones_Handler,
+			MethodName: "SearchTimezones",
+			Handler:    _CalendarService_SearchTimezones_Handler,
 		},
 		{
-			MethodName: "GetAcceptOfDay",
-			Handler:    _CalendarApi_GetAcceptOfDay_Handler,
+			MethodName: "SearchAcceptOfDay",
+			Handler:    _CalendarService_SearchAcceptOfDay_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

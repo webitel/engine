@@ -15,7 +15,7 @@ func NewSupervisorInTeamApi(app *app.App) *supervisorInTeam {
 	return &supervisorInTeam{app: app}
 }
 
-func (api *supervisorInTeam) Create(ctx context.Context, in *engine.SupervisorInTeam) (*engine.SupervisorInTeam, error) {
+func (api *supervisorInTeam) CreateSupervisorInTeam(ctx context.Context, in *engine.CreateSupervisorInTeamRequest) (*engine.SupervisorInTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (api *supervisorInTeam) Create(ctx context.Context, in *engine.SupervisorIn
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -58,42 +58,7 @@ func (api *supervisorInTeam) Create(ctx context.Context, in *engine.SupervisorIn
 	return transformSupervisorTeam(supervisor), nil
 }
 
-func (api *supervisorInTeam) List(ctx context.Context, in *engine.ListForItemRequest) (*engine.ListSupervisorInTeam, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetItemId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetItemId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var list []*model.SupervisorInTeam
-	list, err = api.app.GetSupervisorsPage(session.Domain(int64(in.DomainId)), in.GetItemId(), int(in.Page), int(in.Size))
-	if err != nil {
-		return nil, err
-	}
-
-	items := make([]*engine.SupervisorInTeam, 0, len(list))
-	for _, v := range list {
-		items = append(items, transformSupervisorTeam(v))
-	}
-	return &engine.ListSupervisorInTeam{
-		Items: items,
-	}, nil
-}
-
-func (api *supervisorInTeam) Get(ctx context.Context, in *engine.SupervisorTeamItemReqeust) (*engine.SupervisorInTeam, error) {
+func (api *supervisorInTeam) SearchSupervisorInTeam(ctx context.Context, in *engine.SearchSupervisorInTeamRequest) (*engine.ListSupervisorInTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -109,7 +74,42 @@ func (api *supervisorInTeam) Get(ctx context.Context, in *engine.SupervisorTeamI
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.SupervisorInTeam
+	list, err = api.app.GetSupervisorsPage(session.Domain(int64(in.DomainId)), in.GetTeamId(), int(in.Page), int(in.Size))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.SupervisorInTeam, 0, len(list))
+	for _, v := range list {
+		items = append(items, transformSupervisorTeam(v))
+	}
+	return &engine.ListSupervisorInTeam{
+		Items: items,
+	}, nil
+}
+
+func (api *supervisorInTeam) ReadSupervisorInTeam(ctx context.Context, in *engine.ReadSupervisorInTeamRequest) (*engine.SupervisorInTeam, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -120,7 +120,7 @@ func (api *supervisorInTeam) Get(ctx context.Context, in *engine.SupervisorTeamI
 	return transformSupervisorTeam(supervisor), nil
 }
 
-func (api *supervisorInTeam) Update(ctx context.Context, in *engine.SupervisorInTeam) (*engine.SupervisorInTeam, error) {
+func (api *supervisorInTeam) UpdateSupervisorInTeam(ctx context.Context, in *engine.UpdateSupervisorInTeamRequest) (*engine.SupervisorInTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (api *supervisorInTeam) Update(ctx context.Context, in *engine.SupervisorIn
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -161,7 +161,7 @@ func (api *supervisorInTeam) Update(ctx context.Context, in *engine.SupervisorIn
 	return transformSupervisorTeam(supervisor), nil
 }
 
-func (api *supervisorInTeam) Remove(ctx context.Context, in *engine.SupervisorTeamItemReqeust) (*engine.SupervisorInTeam, error) {
+func (api *supervisorInTeam) DeleteSupervisorInTeam(ctx context.Context, in *engine.DeleteSupervisorInTeamReqeust) (*engine.SupervisorInTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -181,7 +181,7 @@ func (api *supervisorInTeam) Remove(ctx context.Context, in *engine.SupervisorTe
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 

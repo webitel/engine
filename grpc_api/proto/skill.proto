@@ -1,20 +1,71 @@
 syntax = "proto3";
 
-import "const.proto";
-
 package engine;
 
-service SkillApi {
-    // POST /call_center/skill
-    rpc Create(Skill) returns (Skill) {}
-    // GET /call_center/skill
-    rpc List(ListRequest) returns (ListSkill) {}
-    // GET /call_center/skill/:ID
-    rpc Get(ItemRequest) returns (Skill) {}
-    // PUT /call_center/skill/:ID
-    rpc Update(Skill) returns (Skill) {}
-    // DELETE /call_center/skill/:ID
-    rpc Remove(ItemRequest) returns (Skill) {}
+import "google/api/annotations.proto";
+
+service SkillService {
+    // Create Skill
+    rpc CreateSkill(CreateSkillRequest) returns (Skill) {
+        option (google.api.http) = {
+            post: "/call_center/skills"
+            body: "*"
+        };
+    }
+    // List of Skill
+    rpc SearchSkill(SearchSkillRequest) returns (ListSkill) {
+        option (google.api.http) = {
+            get: "/call_center/skills"
+        };
+    }
+    // Skill item
+    rpc ReadSkill(ReadSkillRequest) returns (Skill) {
+        option (google.api.http) = {
+            get: "/call_center/skills/{id}"
+        };
+    }
+    // Update Skill
+    rpc UpdateSkill(UpdateSkillRequest) returns (Skill) {
+        option (google.api.http) = {
+            put: "/call_center/skills/{id}"
+            body: "*"
+        };
+    }
+    // Remove Skill
+    rpc DeleteSkill(DeleteSkillRequest) returns (Skill) {
+        option (google.api.http) = {
+            delete: "/call_center/skills/{id}"
+        };
+    }
+}
+
+message ReadSkillRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message DeleteSkillRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchSkillRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message CreateSkillRequest {
+    int64 domain_id = 1;
+    string name = 2;
+    string description = 3;
+}
+
+message UpdateSkillRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string description = 4;
 }
 
 message Skill {

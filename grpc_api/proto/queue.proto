@@ -2,20 +2,98 @@ syntax = "proto3";
 
 import "const.proto";
 import "google/protobuf/struct.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
-service QueueApi {
-    // POST /call_center/queue
-    rpc Create(Queue) returns (Queue) {}
-    // GET /call_center/queue
-    rpc List(ListRequest) returns (ListQueue) {}
-    // GET /call_center/queue/:id
-    rpc Get(ItemRequest) returns (Queue) {}
-    // PUT /call_center/queue/:id
-    rpc Update(Queue) returns (Queue) {}
-    // DELETE /call_center/queue/:id
-    rpc Remove(ItemRequest) returns (Queue) {}
+service QueueService {
+    // Create Queue
+    rpc CreateQueue(CreateQueueRequest) returns (Queue) {
+        option (google.api.http) = {
+            post: "/call_center/queues"
+            body: "*"
+        };
+    }
+    // List of Queue
+    rpc SearchQueue(SearchQueueRequest) returns (ListQueue) {
+        option (google.api.http) = {
+            get: "/call_center/queues"
+        };
+    }
+    // Queue item
+    rpc ReadQueue(ReadQueueRequest) returns (Queue) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{id}"
+        };
+    }
+    // Update Queue
+    rpc UpdateQueue(UpdateQueueRequest) returns (Queue) {
+        option (google.api.http) = {
+            put: "/call_center/queues/{id}"
+            body: "*"
+        };
+    }
+    // Remove Queue
+    rpc DeleteQueue(DeleteQueueRequest) returns (Queue) {
+        option (google.api.http) = {
+            delete: "/call_center/queues/{id}"
+        };
+    }
+}
+
+message DeleteQueueRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message UpdateQueueRequest {
+    int64 domain_id = 1;
+    string strategy = 2;
+    bool enabled = 3;
+    google.protobuf.Value payload = 4;
+    Lookup calendar = 5;
+    int32 priority = 6;
+    int32 max_calls = 7;
+    int32 sec_between_retries = 8;
+    string name = 9;
+    int32 max_of_retry = 10;
+    map<string, string> variables = 11;
+    int32 timeout = 12;
+    Lookup dnc_list = 13;
+    int32 sec_locate_agent = 14;
+    int32 type = 15;
+    Lookup team = 16;
+    int64 id =17;
+}
+
+message ReadQueueRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message SearchQueueRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message CreateQueueRequest {
+    int64 domain_id = 1;
+    string strategy = 2;
+    bool enabled = 3;
+    google.protobuf.Value payload = 4;
+    Lookup calendar = 5;
+    int32 priority = 6;
+    int32 max_calls = 7;
+    int32 sec_between_retries = 8;
+    string name = 9;
+    int32 max_of_retry = 10;
+    map<string, string> variables = 11;
+    int32 timeout = 12;
+    Lookup dnc_list = 13;
+    int32 sec_locate_agent = 14;
+    int32 type = 15;
+    Lookup team = 16;
 }
 
 message Queue {

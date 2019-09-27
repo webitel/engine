@@ -15,7 +15,7 @@ func NewAgentTeamApi(app *app.App) *agentTeam {
 	return &agentTeam{app: app}
 }
 
-func (api *agentTeam) Create(ctx context.Context, in *engine.AgentTeam) (*engine.AgentTeam, error) {
+func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgentTeamRequest) (*engine.AgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -52,7 +52,7 @@ func (api *agentTeam) Create(ctx context.Context, in *engine.AgentTeam) (*engine
 	return transformAgentTeam(team), nil
 }
 
-func (api *agentTeam) List(ctx context.Context, in *engine.ListRequest) (*engine.ListAgentTeam, error) {
+func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgentTeamRequest) (*engine.ListAgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (api *agentTeam) List(ctx context.Context, in *engine.ListRequest) (*engine
 	}, nil
 }
 
-func (api *agentTeam) Get(ctx context.Context, in *engine.ItemRequest) (*engine.AgentTeam, error) {
+func (api *agentTeam) ReadAgentTeam(ctx context.Context, in *engine.ReadAgentTeamRequest) (*engine.AgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (api *agentTeam) Get(ctx context.Context, in *engine.ItemRequest) (*engine.
 	return transformAgentTeam(team), nil
 }
 
-func (api *agentTeam) Update(ctx context.Context, in *engine.AgentTeam) (*engine.AgentTeam, error) {
+func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgentTeamRequest) (*engine.AgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -163,7 +163,7 @@ func (api *agentTeam) Update(ctx context.Context, in *engine.AgentTeam) (*engine
 	return transformAgentTeam(team), nil
 }
 
-func (api *agentTeam) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.AgentTeam, error) {
+func (api *agentTeam) DeleteAgentTeam(ctx context.Context, in *engine.DeleteAgentTeamRequest) (*engine.AgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

@@ -15,7 +15,7 @@ func NewRoutingSchemeApi(app *app.App) *routingScheme {
 	return &routingScheme{app: app}
 }
 
-func (api *routingScheme) Create(ctx context.Context, in *engine.RoutingScheme) (*engine.RoutingScheme, error) {
+func (api *routingScheme) CreateRoutingScheme(ctx context.Context, in *engine.CreateRoutingSchemeRequest) (*engine.RoutingScheme, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (api *routingScheme) Create(ctx context.Context, in *engine.RoutingScheme) 
 	}
 }
 
-func (api *routingScheme) List(ctx context.Context, in *engine.ListRequest) (*engine.ListRoutingScheme, error) {
+func (api *routingScheme) SearchRoutingScheme(ctx context.Context, in *engine.SearchRoutingSchemeRequest) (*engine.ListRoutingScheme, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -89,7 +89,7 @@ func (api *routingScheme) List(ctx context.Context, in *engine.ListRequest) (*en
 	}, nil
 }
 
-func (api *routingScheme) Get(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingScheme, error) {
+func (api *routingScheme) ReadRoutingScheme(ctx context.Context, in *engine.ReadRoutingSchemeRequest) (*engine.RoutingScheme, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (api *routingScheme) Get(ctx context.Context, in *engine.ItemRequest) (*eng
 	return transformRoutingScheme(scheme), nil
 }
 
-func (api *routingScheme) Update(ctx context.Context, in *engine.RoutingScheme) (*engine.RoutingScheme, error) {
+func (api *routingScheme) UpdateRoutingScheme(ctx context.Context, in *engine.UpdateRoutingSchemeReqeust) (*engine.RoutingScheme, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -148,7 +148,7 @@ func (api *routingScheme) Update(ctx context.Context, in *engine.RoutingScheme) 
 	return transformRoutingScheme(scheme), nil
 }
 
-func (api *routingScheme) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingScheme, error) {
+func (api *routingScheme) DeleteRoutingScheme(ctx context.Context, in *engine.DeleteRoutingSchemeRequest) (*engine.RoutingScheme, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

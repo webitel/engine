@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,6 +24,401 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
+type DeleteOutboundResourceRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteOutboundResourceRequest) Reset()         { *m = DeleteOutboundResourceRequest{} }
+func (m *DeleteOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteOutboundResourceRequest) ProtoMessage()    {}
+func (*DeleteOutboundResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{0}
+}
+
+func (m *DeleteOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteOutboundResourceRequest.Unmarshal(m, b)
+}
+func (m *DeleteOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteOutboundResourceRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteOutboundResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteOutboundResourceRequest.Merge(m, src)
+}
+func (m *DeleteOutboundResourceRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteOutboundResourceRequest.Size(m)
+}
+func (m *DeleteOutboundResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteOutboundResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteOutboundResourceRequest proto.InternalMessageInfo
+
+func (m *DeleteOutboundResourceRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *DeleteOutboundResourceRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type ReadOutboundResourceRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadOutboundResourceRequest) Reset()         { *m = ReadOutboundResourceRequest{} }
+func (m *ReadOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadOutboundResourceRequest) ProtoMessage()    {}
+func (*ReadOutboundResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{1}
+}
+
+func (m *ReadOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadOutboundResourceRequest.Unmarshal(m, b)
+}
+func (m *ReadOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadOutboundResourceRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadOutboundResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadOutboundResourceRequest.Merge(m, src)
+}
+func (m *ReadOutboundResourceRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadOutboundResourceRequest.Size(m)
+}
+func (m *ReadOutboundResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadOutboundResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadOutboundResourceRequest proto.InternalMessageInfo
+
+func (m *ReadOutboundResourceRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *ReadOutboundResourceRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type SearchOutboundResourceRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchOutboundResourceRequest) Reset()         { *m = SearchOutboundResourceRequest{} }
+func (m *SearchOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchOutboundResourceRequest) ProtoMessage()    {}
+func (*SearchOutboundResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{2}
+}
+
+func (m *SearchOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchOutboundResourceRequest.Unmarshal(m, b)
+}
+func (m *SearchOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchOutboundResourceRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchOutboundResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchOutboundResourceRequest.Merge(m, src)
+}
+func (m *SearchOutboundResourceRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchOutboundResourceRequest.Size(m)
+}
+func (m *SearchOutboundResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchOutboundResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchOutboundResourceRequest proto.InternalMessageInfo
+
+func (m *SearchOutboundResourceRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchOutboundResourceRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchOutboundResourceRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type UpdateOutboundResourceRequest struct {
+	Id                    int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId              int64             `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Limit                 int32             `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
+	Enabled               bool              `protobuf:"varint,4,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Rps                   int32             `protobuf:"varint,5,opt,name=rps,proto3" json:"rps,omitempty"`
+	Reserve               bool              `protobuf:"varint,6,opt,name=reserve,proto3" json:"reserve,omitempty"`
+	Variables             map[string]string `protobuf:"bytes,7,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Number                string            `protobuf:"bytes,8,opt,name=number,proto3" json:"number,omitempty"`
+	MaxSuccessivelyErrors int32             `protobuf:"varint,9,opt,name=max_successively_errors,json=maxSuccessivelyErrors,proto3" json:"max_successively_errors,omitempty"`
+	Name                  string            `protobuf:"bytes,10,opt,name=name,proto3" json:"name,omitempty"`
+	DialString            string            `protobuf:"bytes,11,opt,name=dial_string,json=dialString,proto3" json:"dial_string,omitempty"`
+	ErrorIds              []string          `protobuf:"bytes,12,rep,name=error_ids,json=errorIds,proto3" json:"error_ids,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}          `json:"-"`
+	XXX_unrecognized      []byte            `json:"-"`
+	XXX_sizecache         int32             `json:"-"`
+}
+
+func (m *UpdateOutboundResourceRequest) Reset()         { *m = UpdateOutboundResourceRequest{} }
+func (m *UpdateOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateOutboundResourceRequest) ProtoMessage()    {}
+func (*UpdateOutboundResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{3}
+}
+
+func (m *UpdateOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateOutboundResourceRequest.Unmarshal(m, b)
+}
+func (m *UpdateOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateOutboundResourceRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateOutboundResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateOutboundResourceRequest.Merge(m, src)
+}
+func (m *UpdateOutboundResourceRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateOutboundResourceRequest.Size(m)
+}
+func (m *UpdateOutboundResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateOutboundResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateOutboundResourceRequest proto.InternalMessageInfo
+
+func (m *UpdateOutboundResourceRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceRequest) GetLimit() int32 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceRequest) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
+	}
+	return false
+}
+
+func (m *UpdateOutboundResourceRequest) GetRps() int32 {
+	if m != nil {
+		return m.Rps
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceRequest) GetReserve() bool {
+	if m != nil {
+		return m.Reserve
+	}
+	return false
+}
+
+func (m *UpdateOutboundResourceRequest) GetVariables() map[string]string {
+	if m != nil {
+		return m.Variables
+	}
+	return nil
+}
+
+func (m *UpdateOutboundResourceRequest) GetNumber() string {
+	if m != nil {
+		return m.Number
+	}
+	return ""
+}
+
+func (m *UpdateOutboundResourceRequest) GetMaxSuccessivelyErrors() int32 {
+	if m != nil {
+		return m.MaxSuccessivelyErrors
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateOutboundResourceRequest) GetDialString() string {
+	if m != nil {
+		return m.DialString
+	}
+	return ""
+}
+
+func (m *UpdateOutboundResourceRequest) GetErrorIds() []string {
+	if m != nil {
+		return m.ErrorIds
+	}
+	return nil
+}
+
+type CreateOutboundResourceRequest struct {
+	DomainId              int64             `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Limit                 int32             `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	Enabled               bool              `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Rps                   int32             `protobuf:"varint,4,opt,name=rps,proto3" json:"rps,omitempty"`
+	Reserve               bool              `protobuf:"varint,5,opt,name=reserve,proto3" json:"reserve,omitempty"`
+	Variables             map[string]string `protobuf:"bytes,6,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Number                string            `protobuf:"bytes,7,opt,name=number,proto3" json:"number,omitempty"`
+	MaxSuccessivelyErrors int32             `protobuf:"varint,8,opt,name=max_successively_errors,json=maxSuccessivelyErrors,proto3" json:"max_successively_errors,omitempty"`
+	Name                  string            `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
+	DialString            string            `protobuf:"bytes,10,opt,name=dial_string,json=dialString,proto3" json:"dial_string,omitempty"`
+	ErrorIds              []string          `protobuf:"bytes,11,rep,name=error_ids,json=errorIds,proto3" json:"error_ids,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}          `json:"-"`
+	XXX_unrecognized      []byte            `json:"-"`
+	XXX_sizecache         int32             `json:"-"`
+}
+
+func (m *CreateOutboundResourceRequest) Reset()         { *m = CreateOutboundResourceRequest{} }
+func (m *CreateOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateOutboundResourceRequest) ProtoMessage()    {}
+func (*CreateOutboundResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{4}
+}
+
+func (m *CreateOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateOutboundResourceRequest.Unmarshal(m, b)
+}
+func (m *CreateOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateOutboundResourceRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateOutboundResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateOutboundResourceRequest.Merge(m, src)
+}
+func (m *CreateOutboundResourceRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateOutboundResourceRequest.Size(m)
+}
+func (m *CreateOutboundResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateOutboundResourceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateOutboundResourceRequest proto.InternalMessageInfo
+
+func (m *CreateOutboundResourceRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateOutboundResourceRequest) GetLimit() int32 {
+	if m != nil {
+		return m.Limit
+	}
+	return 0
+}
+
+func (m *CreateOutboundResourceRequest) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
+	}
+	return false
+}
+
+func (m *CreateOutboundResourceRequest) GetRps() int32 {
+	if m != nil {
+		return m.Rps
+	}
+	return 0
+}
+
+func (m *CreateOutboundResourceRequest) GetReserve() bool {
+	if m != nil {
+		return m.Reserve
+	}
+	return false
+}
+
+func (m *CreateOutboundResourceRequest) GetVariables() map[string]string {
+	if m != nil {
+		return m.Variables
+	}
+	return nil
+}
+
+func (m *CreateOutboundResourceRequest) GetNumber() string {
+	if m != nil {
+		return m.Number
+	}
+	return ""
+}
+
+func (m *CreateOutboundResourceRequest) GetMaxSuccessivelyErrors() int32 {
+	if m != nil {
+		return m.MaxSuccessivelyErrors
+	}
+	return 0
+}
+
+func (m *CreateOutboundResourceRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateOutboundResourceRequest) GetDialString() string {
+	if m != nil {
+		return m.DialString
+	}
+	return ""
+}
+
+func (m *CreateOutboundResourceRequest) GetErrorIds() []string {
+	if m != nil {
+		return m.ErrorIds
+	}
+	return nil
+}
 
 type OutboundResource struct {
 	Id                    int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -53,7 +449,7 @@ func (m *OutboundResource) Reset()         { *m = OutboundResource{} }
 func (m *OutboundResource) String() string { return proto.CompactTextString(m) }
 func (*OutboundResource) ProtoMessage()    {}
 func (*OutboundResource) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{0}
+	return fileDescriptor_c866ec047a06af0d, []int{5}
 }
 
 func (m *OutboundResource) XXX_Unmarshal(b []byte) error {
@@ -218,7 +614,7 @@ func (m *ListOutboundResource) Reset()         { *m = ListOutboundResource{} }
 func (m *ListOutboundResource) String() string { return proto.CompactTextString(m) }
 func (*ListOutboundResource) ProtoMessage()    {}
 func (*ListOutboundResource) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{1}
+	return fileDescriptor_c866ec047a06af0d, []int{6}
 }
 
 func (m *ListOutboundResource) XXX_Unmarshal(b []byte) error {
@@ -247,6 +643,13 @@ func (m *ListOutboundResource) GetItems() []*OutboundResource {
 }
 
 func init() {
+	proto.RegisterType((*DeleteOutboundResourceRequest)(nil), "engine.DeleteOutboundResourceRequest")
+	proto.RegisterType((*ReadOutboundResourceRequest)(nil), "engine.ReadOutboundResourceRequest")
+	proto.RegisterType((*SearchOutboundResourceRequest)(nil), "engine.SearchOutboundResourceRequest")
+	proto.RegisterType((*UpdateOutboundResourceRequest)(nil), "engine.UpdateOutboundResourceRequest")
+	proto.RegisterMapType((map[string]string)(nil), "engine.UpdateOutboundResourceRequest.VariablesEntry")
+	proto.RegisterType((*CreateOutboundResourceRequest)(nil), "engine.CreateOutboundResourceRequest")
+	proto.RegisterMapType((map[string]string)(nil), "engine.CreateOutboundResourceRequest.VariablesEntry")
 	proto.RegisterType((*OutboundResource)(nil), "engine.OutboundResource")
 	proto.RegisterMapType((map[string]string)(nil), "engine.OutboundResource.VariablesEntry")
 	proto.RegisterType((*ListOutboundResource)(nil), "engine.ListOutboundResource")
@@ -255,42 +658,59 @@ func init() {
 func init() { proto.RegisterFile("outbound_resource.proto", fileDescriptor_c866ec047a06af0d) }
 
 var fileDescriptor_c866ec047a06af0d = []byte{
-	// 556 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0x5d, 0x6b, 0xd4, 0x40,
-	0x14, 0x35, 0x9b, 0x6e, 0xba, 0xb9, 0xb1, 0x6b, 0x9d, 0xad, 0x76, 0x58, 0x15, 0xc3, 0xbe, 0x98,
-	0x17, 0x57, 0xa8, 0x50, 0xfc, 0xa2, 0xd0, 0xca, 0x2a, 0x85, 0x82, 0x30, 0x45, 0x5f, 0xc3, 0x64,
-	0xe7, 0x52, 0x86, 0xe6, 0x63, 0x9d, 0x99, 0x2c, 0xcd, 0x0f, 0xf4, 0x37, 0xf8, 0x77, 0x24, 0x93,
-	0xa4, 0xdd, 0xb6, 0xbb, 0x82, 0xbe, 0xcd, 0x3d, 0xe7, 0xdc, 0x33, 0x87, 0xb9, 0x37, 0x81, 0xfd,
-	0xa2, 0x34, 0x49, 0x51, 0xe6, 0x22, 0x56, 0xa8, 0x8b, 0x52, 0xcd, 0x71, 0xba, 0x50, 0x85, 0x29,
-	0x88, 0x87, 0xf9, 0x85, 0xcc, 0x71, 0x1c, 0xcc, 0x8b, 0x5c, 0x9b, 0x06, 0x9c, 0xfc, 0xee, 0xc3,
-	0xee, 0xb7, 0xb6, 0x81, 0xb5, 0x7a, 0x32, 0x84, 0x9e, 0x14, 0xd4, 0x09, 0x9d, 0xc8, 0x65, 0x3d,
-	0x29, 0xc8, 0x33, 0xf0, 0x45, 0x91, 0x71, 0x99, 0xc7, 0x52, 0xd0, 0x9e, 0x85, 0x07, 0x0d, 0x70,
-	0x2a, 0xc8, 0x0b, 0x80, 0xb9, 0x42, 0x6e, 0x50, 0xc4, 0xdc, 0x50, 0xd7, 0xb2, 0x7e, 0x8b, 0x1c,
-	0x1b, 0xf2, 0xfa, 0x86, 0x4e, 0x2a, 0xba, 0x15, 0x3a, 0x51, 0x70, 0x30, 0x9c, 0x36, 0x51, 0xa6,
-	0x67, 0x45, 0x71, 0x59, 0x2e, 0xae, 0xe5, 0x27, 0x55, 0xed, 0x56, 0x2e, 0x44, 0xe7, 0xd6, 0x6f,
-	0xdc, 0x5a, 0xa4, 0x71, 0xeb, 0xe8, 0xa4, 0xa2, 0xde, 0x7a, 0xb7, 0x56, 0x71, 0x52, 0x91, 0x3d,
-	0xe8, 0xa7, 0x32, 0x93, 0x86, 0x6e, 0x87, 0x4e, 0xd4, 0x67, 0x4d, 0x41, 0x28, 0x6c, 0x63, 0xce,
-	0x93, 0x14, 0x05, 0x1d, 0x84, 0x4e, 0x34, 0x60, 0x5d, 0x49, 0x76, 0xc1, 0x55, 0x0b, 0x4d, 0x7d,
-	0xab, 0xae, 0x8f, 0xb5, 0x56, 0xa1, 0x46, 0xb5, 0x44, 0x0a, 0x8d, 0xb6, 0x2d, 0xc9, 0x0c, 0xfc,
-	0x25, 0x57, 0xb2, 0x6e, 0xd4, 0x34, 0x08, 0xdd, 0x28, 0x38, 0x78, 0xd5, 0x25, 0xb9, 0xfb, 0xa2,
-	0xd3, 0x1f, 0x9d, 0x72, 0x96, 0x1b, 0x55, 0xb1, 0x9b, 0x4e, 0xf2, 0x14, 0xbc, 0xbc, 0xcc, 0x12,
-	0x54, 0xf4, 0x61, 0xe8, 0x44, 0x3e, 0x6b, 0x2b, 0x72, 0x08, 0xfb, 0x19, 0xbf, 0x8a, 0x75, 0x39,
-	0x9f, 0xa3, 0xd6, 0x72, 0x89, 0x69, 0x15, 0xa3, 0x52, 0x85, 0xd2, 0x74, 0xc7, 0xc6, 0x7b, 0x92,
-	0xf1, 0xab, 0xf3, 0x15, 0x76, 0x66, 0x49, 0x42, 0x60, 0x2b, 0xe7, 0x19, 0xd2, 0xa1, 0x75, 0xb3,
-	0x67, 0xf2, 0x12, 0x02, 0x21, 0x79, 0x1a, 0x6b, 0xa3, 0x64, 0x7e, 0x41, 0x1f, 0x59, 0x0a, 0x6a,
-	0xe8, 0xdc, 0x22, 0xf5, 0x80, 0xad, 0x77, 0x2c, 0x85, 0xa6, 0xbb, 0xa1, 0x1b, 0xf9, 0x6c, 0x60,
-	0x81, 0x53, 0xa1, 0xc9, 0x04, 0x76, 0x52, 0xae, 0x4d, 0xdc, 0x29, 0xe8, 0x63, 0xdb, 0x1f, 0xd4,
-	0xe0, 0xac, 0x11, 0x91, 0x37, 0x30, 0x5a, 0x97, 0x94, 0xd8, 0xa4, 0x44, 0xdf, 0x8f, 0x79, 0xdb,
-	0x94, 0x1b, 0x3a, 0xb2, 0xa3, 0xbe, 0x31, 0x3d, 0x36, 0xe3, 0x4f, 0x30, 0xbc, 0xfd, 0x6e, 0xf5,
-	0x7c, 0x2e, 0xb1, 0xb2, 0x9b, 0xe9, 0xb3, 0xfa, 0x58, 0x4f, 0x78, 0xc9, 0xd3, 0x12, 0xed, 0x5a,
-	0xfa, 0xac, 0x29, 0x3e, 0xf4, 0xde, 0x39, 0x93, 0x2f, 0xb0, 0x77, 0x26, 0xb5, 0xb9, 0xb7, 0xdc,
-	0x53, 0xe8, 0x4b, 0x83, 0x99, 0xa6, 0x8e, 0x9d, 0x19, 0xdd, 0x34, 0x33, 0xd6, 0xc8, 0x0e, 0x7e,
-	0xf5, 0x60, 0x74, 0x97, 0x3b, 0x5e, 0x48, 0x72, 0x04, 0xde, 0x67, 0xbb, 0xb6, 0x64, 0xa3, 0xc5,
-	0x78, 0x23, 0x33, 0x79, 0x40, 0x3e, 0xc2, 0x56, 0x9d, 0x8f, 0x8c, 0xae, 0xd7, 0x57, 0x6a, 0xc3,
-	0xf0, 0x67, 0x89, 0xda, 0x8c, 0x9f, 0xaf, 0x82, 0x6b, 0x9a, 0x0f, 0xc1, 0xfd, 0x8a, 0x2b, 0xbd,
-	0xa7, 0x06, 0xb3, 0xae, 0xf7, 0x6f, 0x97, 0x1e, 0x81, 0xf7, 0xdd, 0x7e, 0x1d, 0xff, 0x19, 0xfa,
-	0x3d, 0x78, 0x0c, 0xb3, 0x62, 0x89, 0xff, 0x7c, 0x75, 0xe2, 0xd9, 0x1f, 0xce, 0xdb, 0x3f, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0x72, 0x29, 0xcb, 0xee, 0xa0, 0x04, 0x00, 0x00,
+	// 829 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x56, 0x51, 0x6f, 0xf3, 0x34,
+	0x14, 0x55, 0x9a, 0xa5, 0x6d, 0x6e, 0xbe, 0xaf, 0x0c, 0x6f, 0x74, 0x56, 0xbb, 0x42, 0xc9, 0x04,
+	0x54, 0x93, 0x68, 0xa5, 0x81, 0x10, 0x9a, 0x78, 0xd9, 0xa0, 0x48, 0x43, 0x93, 0x90, 0x52, 0xc1,
+	0x6b, 0xe4, 0x26, 0x56, 0xb1, 0x96, 0x26, 0xc5, 0x76, 0xaa, 0x75, 0x30, 0x24, 0xf8, 0x0b, 0x48,
+	0xfc, 0x2a, 0xde, 0x78, 0xe0, 0x85, 0x47, 0x7e, 0x08, 0x8a, 0x93, 0xac, 0x6b, 0x97, 0x84, 0x32,
+	0xf6, 0x66, 0xdf, 0x7b, 0x73, 0xee, 0xc9, 0x3d, 0xc7, 0x89, 0xe1, 0x28, 0x8a, 0xe5, 0x34, 0x8a,
+	0x43, 0xdf, 0xe5, 0x54, 0x44, 0x31, 0xf7, 0xe8, 0x70, 0xc1, 0x23, 0x19, 0xa1, 0x3a, 0x0d, 0x67,
+	0x2c, 0xa4, 0x1d, 0xcb, 0x8b, 0x42, 0x21, 0xd3, 0x60, 0xe7, 0x78, 0x16, 0x45, 0xb3, 0x80, 0x8e,
+	0xc8, 0x82, 0x8d, 0x48, 0x18, 0x46, 0x92, 0x48, 0x16, 0x85, 0x22, 0xcd, 0xda, 0xd7, 0xd0, 0xfb,
+	0x82, 0x06, 0x54, 0xd2, 0xaf, 0x33, 0x4c, 0x27, 0x83, 0x74, 0xe8, 0xf7, 0x31, 0x15, 0x12, 0x75,
+	0xc1, 0xf4, 0xa3, 0x39, 0x61, 0xa1, 0xcb, 0x7c, 0xac, 0xf5, 0xb5, 0x81, 0xee, 0x34, 0xd3, 0xc0,
+	0x95, 0x8f, 0x5a, 0x50, 0x63, 0x3e, 0xae, 0xa9, 0x68, 0x8d, 0xf9, 0xf6, 0x57, 0xd0, 0x75, 0x28,
+	0xf1, 0x5f, 0x04, 0xcb, 0x87, 0xde, 0x84, 0x12, 0xee, 0x7d, 0xf7, 0x2c, 0x34, 0x04, 0x7b, 0x82,
+	0xdd, 0x51, 0x85, 0x67, 0x38, 0x6a, 0x9d, 0xc4, 0x16, 0x64, 0x46, 0xb1, 0x9e, 0xc6, 0x92, 0xb5,
+	0xfd, 0x97, 0x0e, 0xbd, 0x6f, 0x16, 0x3e, 0x29, 0x1f, 0x40, 0xca, 0x4b, 0xcb, 0x79, 0x6d, 0xb6,
+	0xad, 0x6d, 0xb5, 0x3d, 0x04, 0x23, 0x60, 0x73, 0x26, 0xb3, 0x1e, 0xe9, 0x06, 0x61, 0x68, 0xd0,
+	0x90, 0x4c, 0x03, 0xea, 0xe3, 0xbd, 0xbe, 0x36, 0x68, 0x3a, 0xf9, 0x16, 0xed, 0x83, 0xce, 0x17,
+	0x02, 0x1b, 0xaa, 0x3a, 0x59, 0x26, 0xb5, 0x9c, 0x0a, 0xca, 0x97, 0x14, 0xd7, 0xd3, 0xda, 0x6c,
+	0x8b, 0x1c, 0x30, 0x97, 0x84, 0xb3, 0xe4, 0x41, 0x81, 0x1b, 0x7d, 0x7d, 0x60, 0x9d, 0x7d, 0x3c,
+	0x4c, 0x15, 0x1f, 0x56, 0xbe, 0xc2, 0xf0, 0xdb, 0xfc, 0xb1, 0x71, 0x28, 0xf9, 0xca, 0x59, 0xc3,
+	0xa0, 0x36, 0xd4, 0xc3, 0x78, 0x3e, 0xa5, 0x1c, 0x37, 0xfb, 0xda, 0xc0, 0x74, 0xb2, 0x1d, 0xfa,
+	0x04, 0x8e, 0xe6, 0xe4, 0xd6, 0x15, 0xb1, 0xe7, 0x51, 0x21, 0xd8, 0x92, 0x06, 0x2b, 0x97, 0x72,
+	0x1e, 0x71, 0x81, 0x4d, 0xc5, 0xf5, 0xad, 0x39, 0xb9, 0x9d, 0x3c, 0xca, 0x8e, 0x55, 0x32, 0x19,
+	0x71, 0x48, 0xe6, 0x14, 0x83, 0x42, 0x53, 0x6b, 0xf4, 0x0e, 0x58, 0x3e, 0x23, 0x81, 0x2b, 0x24,
+	0x67, 0xe1, 0x0c, 0x5b, 0x2a, 0x05, 0x49, 0x68, 0xa2, 0x22, 0xc9, 0x44, 0x15, 0xb6, 0xcb, 0x7c,
+	0x81, 0x5f, 0xf5, 0xf5, 0x81, 0xe9, 0x34, 0x55, 0xe0, 0xca, 0x17, 0x9d, 0xcf, 0xa0, 0xb5, 0x49,
+	0x3f, 0x99, 0xd9, 0x0d, 0x5d, 0x29, 0x45, 0x4c, 0x27, 0x59, 0x26, 0x53, 0x5f, 0x92, 0x20, 0x4e,
+	0xd5, 0x36, 0x9d, 0x74, 0x73, 0x5e, 0xfb, 0x54, 0xb3, 0x7f, 0xd7, 0xa1, 0xf7, 0x39, 0xa7, 0xe4,
+	0x99, 0xfe, 0x7e, 0x90, 0xb3, 0x56, 0x22, 0xa7, 0x5e, 0x28, 0xe7, 0x5e, 0xa1, 0x9c, 0x46, 0x85,
+	0x9c, 0xf5, 0x4d, 0x39, 0x2b, 0x29, 0xef, 0x24, 0x67, 0x63, 0x57, 0x39, 0x9b, 0xbb, 0xc8, 0x69,
+	0x96, 0xcb, 0x09, 0xd5, 0x72, 0x5a, 0x2f, 0x2a, 0xe7, 0x9f, 0x06, 0xec, 0x6f, 0x4f, 0xe5, 0xbf,
+	0x1d, 0xd0, 0x1e, 0x80, 0xa7, 0x86, 0xeb, 0xbb, 0x24, 0x3d, 0xa5, 0xba, 0x63, 0x66, 0x91, 0x0b,
+	0x89, 0x3e, 0x5c, 0xa7, 0xa7, 0x2b, 0xa5, 0xa3, 0x75, 0xd6, 0xca, 0x55, 0xb9, 0x8e, 0xa2, 0x9b,
+	0x78, 0xf1, 0x50, 0x7e, 0xb9, 0x4a, 0xd0, 0x62, 0x75, 0xf2, 0x14, 0x9a, 0x91, 0xa2, 0x65, 0x91,
+	0x14, 0x2d, 0x4f, 0x4f, 0x57, 0xea, 0x38, 0x17, 0xa0, 0x65, 0x15, 0x97, 0xab, 0xb5, 0xdb, 0x1a,
+	0x25, 0x6e, 0x6b, 0x16, 0xba, 0xcd, 0x2c, 0x74, 0x1b, 0x6c, 0xba, 0x6d, 0xfc, 0xd8, 0x6d, 0x96,
+	0x72, 0xdb, 0x07, 0x39, 0x93, 0xed, 0x89, 0xee, 0x64, 0xb0, 0x57, 0xbb, 0x1a, 0xec, 0xf5, 0x2e,
+	0x06, 0x6b, 0x95, 0x1b, 0xec, 0x8d, 0x6a, 0x83, 0xed, 0x6f, 0x1a, 0x0c, 0xd9, 0xf0, 0x3a, 0x20,
+	0x42, 0xba, 0x79, 0x05, 0x7e, 0x53, 0x3d, 0x6f, 0x25, 0xc1, 0x71, 0x5a, 0x84, 0x46, 0x70, 0x50,
+	0xc4, 0x14, 0x29, 0xa6, 0x48, 0x3c, 0xa5, 0xb9, 0x09, 0x4a, 0x24, 0x3e, 0x50, 0x52, 0xaf, 0x41,
+	0x2f, 0xe4, 0xff, 0x74, 0xf6, 0x97, 0x70, 0x78, 0xcd, 0x84, 0x7c, 0x62, 0xee, 0x21, 0x18, 0x4c,
+	0xd2, 0xb9, 0xc0, 0x9a, 0xd2, 0x0c, 0x97, 0x69, 0xe6, 0xa4, 0x65, 0x67, 0xbf, 0x19, 0x70, 0xb4,
+	0x9d, 0x9b, 0x50, 0xbe, 0x64, 0x1e, 0x45, 0x3f, 0x42, 0xbb, 0xf8, 0xc3, 0x82, 0xde, 0xdb, 0xe9,
+	0xc3, 0xd3, 0x29, 0xed, 0x6e, 0xbf, 0xfb, 0xcb, 0x1f, 0x7f, 0xff, 0x5a, 0xeb, 0xda, 0xed, 0x91,
+	0x47, 0x82, 0xc0, 0xf5, 0x68, 0x28, 0x29, 0x1f, 0xe5, 0xd7, 0x13, 0x71, 0xae, 0x9d, 0xa2, 0x7b,
+	0x68, 0x17, 0xff, 0xcf, 0xd7, 0xdd, 0x2b, 0xff, 0xf7, 0x9d, 0xe3, 0x87, 0x93, 0x53, 0x30, 0x28,
+	0xfb, 0x6d, 0xc5, 0x00, 0xa3, 0x12, 0x06, 0xe8, 0x0e, 0x0e, 0x8b, 0xae, 0x26, 0xe8, 0x24, 0x47,
+	0xad, 0xb8, 0xb8, 0x54, 0xbc, 0xf8, 0x89, 0x6a, 0xdb, 0x43, 0xdd, 0xe2, 0xb6, 0xa3, 0x1f, 0x98,
+	0x7f, 0x8f, 0x7e, 0xd6, 0xa0, 0x5d, 0xfc, 0x87, 0x5e, 0xbf, 0x7b, 0xe5, 0x1f, 0xbc, 0x82, 0xc0,
+	0xfb, 0x8a, 0x40, 0xbf, 0x53, 0x45, 0x20, 0x19, 0xff, 0x4f, 0xd0, 0x2e, 0xbe, 0xe8, 0xad, 0x29,
+	0x54, 0x5e, 0x04, 0xff, 0x7d, 0x06, 0xa7, 0x55, 0x14, 0xa6, 0x75, 0x75, 0xdf, 0xfc, 0xe8, 0x9f,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0xd6, 0x35, 0xcd, 0xe1, 0xbd, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -301,226 +721,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// OutboundResourceApiClient is the client API for OutboundResourceApi service.
+// OutboundResourceServiceClient is the client API for OutboundResourceService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type OutboundResourceApiClient interface {
-	// POST /call_center/resources
-	Create(ctx context.Context, in *OutboundResource, opts ...grpc.CallOption) (*OutboundResource, error)
-	// GET /call_center/resources
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListOutboundResource, error)
-	// GET /call_center/resources/:ID
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*OutboundResource, error)
-	// PUT /call_center/resources/:ID
-	Update(ctx context.Context, in *OutboundResource, opts ...grpc.CallOption) (*OutboundResource, error)
-	// DELETE /call_center/resources/:ID
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*OutboundResource, error)
+type OutboundResourceServiceClient interface {
+	// Create OutboundResource
+	CreateOutboundResource(ctx context.Context, in *CreateOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
+	// List of OutboundResource
+	SearchOutboundResource(ctx context.Context, in *SearchOutboundResourceRequest, opts ...grpc.CallOption) (*ListOutboundResource, error)
+	// OutboundResource item
+	ReadOutboundResource(ctx context.Context, in *ReadOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
+	// Update OutboundResource
+	UpdateOutboundResource(ctx context.Context, in *UpdateOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
+	// Remove OutboundResource
+	DeleteOutboundResource(ctx context.Context, in *DeleteOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
 }
 
-type outboundResourceApiClient struct {
+type outboundResourceServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewOutboundResourceApiClient(cc *grpc.ClientConn) OutboundResourceApiClient {
-	return &outboundResourceApiClient{cc}
+func NewOutboundResourceServiceClient(cc *grpc.ClientConn) OutboundResourceServiceClient {
+	return &outboundResourceServiceClient{cc}
 }
 
-func (c *outboundResourceApiClient) Create(ctx context.Context, in *OutboundResource, opts ...grpc.CallOption) (*OutboundResource, error) {
+func (c *outboundResourceServiceClient) CreateOutboundResource(ctx context.Context, in *CreateOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
 	out := new(OutboundResource)
-	err := c.cc.Invoke(ctx, "/engine.OutboundResourceApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/CreateOutboundResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *outboundResourceApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListOutboundResource, error) {
+func (c *outboundResourceServiceClient) SearchOutboundResource(ctx context.Context, in *SearchOutboundResourceRequest, opts ...grpc.CallOption) (*ListOutboundResource, error) {
 	out := new(ListOutboundResource)
-	err := c.cc.Invoke(ctx, "/engine.OutboundResourceApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/SearchOutboundResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *outboundResourceApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
+func (c *outboundResourceServiceClient) ReadOutboundResource(ctx context.Context, in *ReadOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
 	out := new(OutboundResource)
-	err := c.cc.Invoke(ctx, "/engine.OutboundResourceApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/ReadOutboundResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *outboundResourceApiClient) Update(ctx context.Context, in *OutboundResource, opts ...grpc.CallOption) (*OutboundResource, error) {
+func (c *outboundResourceServiceClient) UpdateOutboundResource(ctx context.Context, in *UpdateOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
 	out := new(OutboundResource)
-	err := c.cc.Invoke(ctx, "/engine.OutboundResourceApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/UpdateOutboundResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *outboundResourceApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
+func (c *outboundResourceServiceClient) DeleteOutboundResource(ctx context.Context, in *DeleteOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
 	out := new(OutboundResource)
-	err := c.cc.Invoke(ctx, "/engine.OutboundResourceApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/DeleteOutboundResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// OutboundResourceApiServer is the server API for OutboundResourceApi service.
-type OutboundResourceApiServer interface {
-	// POST /call_center/resources
-	Create(context.Context, *OutboundResource) (*OutboundResource, error)
-	// GET /call_center/resources
-	List(context.Context, *ListRequest) (*ListOutboundResource, error)
-	// GET /call_center/resources/:ID
-	Get(context.Context, *ItemRequest) (*OutboundResource, error)
-	// PUT /call_center/resources/:ID
-	Update(context.Context, *OutboundResource) (*OutboundResource, error)
-	// DELETE /call_center/resources/:ID
-	Remove(context.Context, *ItemRequest) (*OutboundResource, error)
+// OutboundResourceServiceServer is the server API for OutboundResourceService service.
+type OutboundResourceServiceServer interface {
+	// Create OutboundResource
+	CreateOutboundResource(context.Context, *CreateOutboundResourceRequest) (*OutboundResource, error)
+	// List of OutboundResource
+	SearchOutboundResource(context.Context, *SearchOutboundResourceRequest) (*ListOutboundResource, error)
+	// OutboundResource item
+	ReadOutboundResource(context.Context, *ReadOutboundResourceRequest) (*OutboundResource, error)
+	// Update OutboundResource
+	UpdateOutboundResource(context.Context, *UpdateOutboundResourceRequest) (*OutboundResource, error)
+	// Remove OutboundResource
+	DeleteOutboundResource(context.Context, *DeleteOutboundResourceRequest) (*OutboundResource, error)
 }
 
-// UnimplementedOutboundResourceApiServer can be embedded to have forward compatible implementations.
-type UnimplementedOutboundResourceApiServer struct {
+// UnimplementedOutboundResourceServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedOutboundResourceServiceServer struct {
 }
 
-func (*UnimplementedOutboundResourceApiServer) Create(ctx context.Context, req *OutboundResource) (*OutboundResource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedOutboundResourceServiceServer) CreateOutboundResource(ctx context.Context, req *CreateOutboundResourceRequest) (*OutboundResource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOutboundResource not implemented")
 }
-func (*UnimplementedOutboundResourceApiServer) List(ctx context.Context, req *ListRequest) (*ListOutboundResource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedOutboundResourceServiceServer) SearchOutboundResource(ctx context.Context, req *SearchOutboundResourceRequest) (*ListOutboundResource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOutboundResource not implemented")
 }
-func (*UnimplementedOutboundResourceApiServer) Get(ctx context.Context, req *ItemRequest) (*OutboundResource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedOutboundResourceServiceServer) ReadOutboundResource(ctx context.Context, req *ReadOutboundResourceRequest) (*OutboundResource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadOutboundResource not implemented")
 }
-func (*UnimplementedOutboundResourceApiServer) Update(ctx context.Context, req *OutboundResource) (*OutboundResource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedOutboundResourceServiceServer) UpdateOutboundResource(ctx context.Context, req *UpdateOutboundResourceRequest) (*OutboundResource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOutboundResource not implemented")
 }
-func (*UnimplementedOutboundResourceApiServer) Remove(ctx context.Context, req *ItemRequest) (*OutboundResource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterOutboundResourceApiServer(s *grpc.Server, srv OutboundResourceApiServer) {
-	s.RegisterService(&_OutboundResourceApi_serviceDesc, srv)
+func (*UnimplementedOutboundResourceServiceServer) DeleteOutboundResource(ctx context.Context, req *DeleteOutboundResourceRequest) (*OutboundResource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOutboundResource not implemented")
 }
 
-func _OutboundResourceApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OutboundResource)
+func RegisterOutboundResourceServiceServer(s *grpc.Server, srv OutboundResourceServiceServer) {
+	s.RegisterService(&_OutboundResourceService_serviceDesc, srv)
+}
+
+func _OutboundResourceService_CreateOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOutboundResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OutboundResourceApiServer).Create(ctx, in)
+		return srv.(OutboundResourceServiceServer).CreateOutboundResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.OutboundResourceApi/Create",
+		FullMethod: "/engine.OutboundResourceService/CreateOutboundResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OutboundResourceApiServer).Create(ctx, req.(*OutboundResource))
+		return srv.(OutboundResourceServiceServer).CreateOutboundResource(ctx, req.(*CreateOutboundResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OutboundResourceApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _OutboundResourceService_SearchOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOutboundResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OutboundResourceApiServer).List(ctx, in)
+		return srv.(OutboundResourceServiceServer).SearchOutboundResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.OutboundResourceApi/List",
+		FullMethod: "/engine.OutboundResourceService/SearchOutboundResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OutboundResourceApiServer).List(ctx, req.(*ListRequest))
+		return srv.(OutboundResourceServiceServer).SearchOutboundResource(ctx, req.(*SearchOutboundResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OutboundResourceApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _OutboundResourceService_ReadOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadOutboundResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OutboundResourceApiServer).Get(ctx, in)
+		return srv.(OutboundResourceServiceServer).ReadOutboundResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.OutboundResourceApi/Get",
+		FullMethod: "/engine.OutboundResourceService/ReadOutboundResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OutboundResourceApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(OutboundResourceServiceServer).ReadOutboundResource(ctx, req.(*ReadOutboundResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OutboundResourceApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(OutboundResource)
+func _OutboundResourceService_UpdateOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOutboundResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OutboundResourceApiServer).Update(ctx, in)
+		return srv.(OutboundResourceServiceServer).UpdateOutboundResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.OutboundResourceApi/Update",
+		FullMethod: "/engine.OutboundResourceService/UpdateOutboundResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OutboundResourceApiServer).Update(ctx, req.(*OutboundResource))
+		return srv.(OutboundResourceServiceServer).UpdateOutboundResource(ctx, req.(*UpdateOutboundResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OutboundResourceApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _OutboundResourceService_DeleteOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOutboundResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OutboundResourceApiServer).Remove(ctx, in)
+		return srv.(OutboundResourceServiceServer).DeleteOutboundResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.OutboundResourceApi/Remove",
+		FullMethod: "/engine.OutboundResourceService/DeleteOutboundResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OutboundResourceApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(OutboundResourceServiceServer).DeleteOutboundResource(ctx, req.(*DeleteOutboundResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _OutboundResourceApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.OutboundResourceApi",
-	HandlerType: (*OutboundResourceApiServer)(nil),
+var _OutboundResourceService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.OutboundResourceService",
+	HandlerType: (*OutboundResourceServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _OutboundResourceApi_Create_Handler,
+			MethodName: "CreateOutboundResource",
+			Handler:    _OutboundResourceService_CreateOutboundResource_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _OutboundResourceApi_List_Handler,
+			MethodName: "SearchOutboundResource",
+			Handler:    _OutboundResourceService_SearchOutboundResource_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _OutboundResourceApi_Get_Handler,
+			MethodName: "ReadOutboundResource",
+			Handler:    _OutboundResourceService_ReadOutboundResource_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _OutboundResourceApi_Update_Handler,
+			MethodName: "UpdateOutboundResource",
+			Handler:    _OutboundResourceService_UpdateOutboundResource_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _OutboundResourceApi_Remove_Handler,
+			MethodName: "DeleteOutboundResource",
+			Handler:    _OutboundResourceService_DeleteOutboundResource_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -3,20 +3,81 @@ syntax = "proto3";
 import "const.proto";
 
 import "google/protobuf/struct.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
-service RoutingSchemeApi {
-    // POST /routing/scheme
-    rpc Create(RoutingScheme) returns (RoutingScheme) {}
-    // GET /routing/scheme?size=10&page=0
-    rpc List(ListRequest) returns (ListRoutingScheme) {}
-    // GET /routing/scheme/:ID
-    rpc Get(ItemRequest) returns (RoutingScheme) {}
-    // PUT /routing/scheme/:ID
-    rpc Update(RoutingScheme) returns (RoutingScheme) {}
-    // DELETE /routing/scheme/:ID
-    rpc Remove(ItemRequest) returns (RoutingScheme) {}
+service RoutingSchemeService {
+    // Create RoutingScheme
+    rpc CreateRoutingScheme(CreateRoutingSchemeRequest) returns (RoutingScheme) {
+        option (google.api.http) = {
+            post: "/routing/schemes"
+            body: "*"
+        };
+    }
+
+    // List RoutingScheme
+    rpc SearchRoutingScheme(SearchRoutingSchemeRequest) returns (ListRoutingScheme) {
+        option (google.api.http) = {
+            get: "/routing/schemes"
+        };
+    }
+    // RoutingScheme item
+    rpc ReadRoutingScheme(ReadRoutingSchemeRequest) returns (RoutingScheme) {
+        option (google.api.http) = {
+            get: "/routing/schemes/{id}"
+        };
+    }
+    // Update RoutingScheme
+    rpc UpdateRoutingScheme(UpdateRoutingSchemeReqeust) returns (RoutingScheme) {
+        option (google.api.http) = {
+            put: "/routing/schemes/{id}"
+            body: "*"
+        };
+    }
+    // Remove RoutingScheme
+    rpc DeleteRoutingScheme(DeleteRoutingSchemeRequest) returns (RoutingScheme) {
+        option (google.api.http) = {
+            delete: "/routing/schemes/{id}"
+        };
+    }
+}
+
+message DeleteRoutingSchemeRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message UpdateRoutingSchemeReqeust {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string description = 4;
+    int32 type = 5;
+    google.protobuf.Value scheme = 6;
+    google.protobuf.Value payload = 7;
+    bool debug = 8;
+}
+
+message ReadRoutingSchemeRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message SearchRoutingSchemeRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message CreateRoutingSchemeRequest {
+    int64 domain_id = 1;
+    string name = 2;
+    string description = 3;
+    int32 type = 4;
+    google.protobuf.Value scheme = 5;
+    google.protobuf.Value payload = 6;
+    bool debug = 7;
 }
 
 message RoutingScheme {

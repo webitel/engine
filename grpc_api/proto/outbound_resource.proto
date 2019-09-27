@@ -1,20 +1,89 @@
 syntax = "proto3";
 
 import "const.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
-service OutboundResourceApi {
-    // POST /call_center/resources
-    rpc Create(OutboundResource) returns (OutboundResource) {}
-    // GET /call_center/resources
-    rpc List(ListRequest) returns (ListOutboundResource) {}
-    // GET /call_center/resources/:ID
-    rpc Get(ItemRequest) returns (OutboundResource) {}
-    // PUT /call_center/resources/:ID
-    rpc Update(OutboundResource) returns (OutboundResource) {}
-    // DELETE /call_center/resources/:ID
-    rpc Remove(ItemRequest) returns (OutboundResource) {}
+service OutboundResourceService {
+    // Create OutboundResource
+    rpc CreateOutboundResource(CreateOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            post: "/call_center/resources"
+            body: "*"
+        };
+    }
+    // List of OutboundResource
+    rpc SearchOutboundResource(SearchOutboundResourceRequest) returns (ListOutboundResource) {
+        option (google.api.http) = {
+            get: "/call_center/resources"
+        };
+    }
+    // OutboundResource item
+    rpc ReadOutboundResource(ReadOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            get: "/call_center/resources/{id}"
+        };
+    }
+    // Update OutboundResource
+    rpc UpdateOutboundResource(UpdateOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            put: "/call_center/resources/{id}"
+            body: "*"
+        };
+    }
+    // Remove OutboundResource
+    rpc DeleteOutboundResource(DeleteOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            delete: "/call_center/resources/{id}"
+        };
+    }
+}
+
+
+message DeleteOutboundResourceRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message ReadOutboundResourceRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message SearchOutboundResourceRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message UpdateOutboundResourceRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int32 limit = 3;
+    bool enabled = 4;
+    int32 rps = 5;
+    bool reserve = 6;
+    map<string, string> variables = 7;
+    string number = 8;
+    int32 max_successively_errors = 9;
+    string name = 10;
+    string dial_string = 11;
+    repeated string error_ids = 12;
+}
+
+message CreateOutboundResourceRequest {
+    int64 domain_id = 1;
+    int32 limit = 2;
+    bool enabled = 3;
+    int32 rps = 4;
+    bool reserve = 5;
+    map<string, string> variables = 6;
+    string number = 7;
+    int32 max_successively_errors = 8;
+    string name = 9;
+    string dial_string = 10;
+    repeated string error_ids = 11;
 }
 
 message OutboundResource {

@@ -1,21 +1,85 @@
-
 syntax = "proto3";
 
-import "const.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
-service AgentTeamApi {
-    // POST /call_center/agent_team
-    rpc Create(AgentTeam) returns (AgentTeam) {}
-    // GET /call_center/agent_team
-    rpc List(ListRequest) returns (ListAgentTeam) {}
-    // GET /call_center/agent_team/:ID
-    rpc Get(ItemRequest) returns (AgentTeam) {}
-    // PUT /call_center/agent_team/:ID
-    rpc Update(AgentTeam) returns (AgentTeam) {}
-    // DELETE /call_center/agent_team/:ID
-    rpc Remove(ItemRequest) returns (AgentTeam) {}
+service AgentTeamService {
+    // Create AgentTeam
+    rpc CreateAgentTeam(CreateAgentTeamRequest) returns (AgentTeam) {
+        option (google.api.http) = {
+            post: "/call_center/teams"
+            body: "*"
+        };
+    }
+    // List of AgentTeam
+    rpc SearchAgentTeam(SearchAgentTeamRequest) returns (ListAgentTeam) {
+        option (google.api.http) = {
+            get: "/call_center/teams"
+        };
+    }
+    // AgentTeam item
+    rpc ReadAgentTeam(ReadAgentTeamRequest) returns (AgentTeam) {
+        option (google.api.http) = {
+            get: "/call_center/teams/{id}"
+        };
+    }
+    // Update AgentTeam
+    rpc UpdateAgentTeam(UpdateAgentTeamRequest) returns (AgentTeam) {
+        option (google.api.http) = {
+            put: "/call_center/teams/{id}"
+            body: "*"
+        };
+    }
+    // Remove AgentTeam
+    rpc DeleteAgentTeam(DeleteAgentTeamRequest) returns (AgentTeam) {
+        option (google.api.http) = {
+            delete: "/call_center/teams/{id}"
+        };
+    }
+}
+
+message DeleteAgentTeamRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateAgentTeamRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string description = 4;
+    string strategy = 5;
+    int32 max_no_answer = 6;
+    int32 wrap_up_time = 7;
+    int32 reject_delay_time = 8;
+    int32 busy_delay_time = 9;
+    int32 no_answer_delay_time = 10;
+    int32 call_timeout = 11;
+}
+
+message ReadAgentTeamRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchAgentTeamRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message CreateAgentTeamRequest {
+    int64 domain_id = 1;
+    string name = 2;
+    string description = 3;
+    string strategy = 4;
+    int32 max_no_answer = 5;
+    int32 wrap_up_time = 6;
+    int32 reject_delay_time = 7;
+    int32 busy_delay_time = 8;
+    int32 no_answer_delay_time = 9;
+    int32 call_timeout = 10;
 }
 
 message AgentTeam {

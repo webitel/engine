@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,7 +25,252 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type ResourceTeamItemReqeust struct {
+type UpdateResourceTeamRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,5,opt,name=skill,proto3" json:"skill,omitempty"`
+	Lvl                  int32    `protobuf:"varint,6,opt,name=lvl,proto3" json:"lvl,omitempty"`
+	MinCapacity          int32    `protobuf:"varint,7,opt,name=min_capacity,json=minCapacity,proto3" json:"min_capacity,omitempty"`
+	MaxCapacity          int32    `protobuf:"varint,8,opt,name=max_capacity,json=maxCapacity,proto3" json:"max_capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateResourceTeamRequest) Reset()         { *m = UpdateResourceTeamRequest{} }
+func (m *UpdateResourceTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateResourceTeamRequest) ProtoMessage()    {}
+func (*UpdateResourceTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{0}
+}
+
+func (m *UpdateResourceTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateResourceTeamRequest.Unmarshal(m, b)
+}
+func (m *UpdateResourceTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateResourceTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateResourceTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateResourceTeamRequest.Merge(m, src)
+}
+func (m *UpdateResourceTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateResourceTeamRequest.Size(m)
+}
+func (m *UpdateResourceTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateResourceTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateResourceTeamRequest proto.InternalMessageInfo
+
+func (m *UpdateResourceTeamRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateResourceTeamRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *UpdateResourceTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateResourceTeamRequest) GetAgent() *Lookup {
+	if m != nil {
+		return m.Agent
+	}
+	return nil
+}
+
+func (m *UpdateResourceTeamRequest) GetSkill() *Lookup {
+	if m != nil {
+		return m.Skill
+	}
+	return nil
+}
+
+func (m *UpdateResourceTeamRequest) GetLvl() int32 {
+	if m != nil {
+		return m.Lvl
+	}
+	return 0
+}
+
+func (m *UpdateResourceTeamRequest) GetMinCapacity() int32 {
+	if m != nil {
+		return m.MinCapacity
+	}
+	return 0
+}
+
+func (m *UpdateResourceTeamRequest) GetMaxCapacity() int32 {
+	if m != nil {
+		return m.MaxCapacity
+	}
+	return 0
+}
+
+type SearchResourceTeamRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchResourceTeamRequest) Reset()         { *m = SearchResourceTeamRequest{} }
+func (m *SearchResourceTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchResourceTeamRequest) ProtoMessage()    {}
+func (*SearchResourceTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{1}
+}
+
+func (m *SearchResourceTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchResourceTeamRequest.Unmarshal(m, b)
+}
+func (m *SearchResourceTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchResourceTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchResourceTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchResourceTeamRequest.Merge(m, src)
+}
+func (m *SearchResourceTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchResourceTeamRequest.Size(m)
+}
+func (m *SearchResourceTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchResourceTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchResourceTeamRequest proto.InternalMessageInfo
+
+func (m *SearchResourceTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchResourceTeamRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *SearchResourceTeamRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchResourceTeamRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateResourceTeamRequest struct {
+	TeamId               int64    `protobuf:"varint,1,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,4,opt,name=skill,proto3" json:"skill,omitempty"`
+	Lvl                  int32    `protobuf:"varint,5,opt,name=lvl,proto3" json:"lvl,omitempty"`
+	MinCapacity          int32    `protobuf:"varint,6,opt,name=min_capacity,json=minCapacity,proto3" json:"min_capacity,omitempty"`
+	MaxCapacity          int32    `protobuf:"varint,7,opt,name=max_capacity,json=maxCapacity,proto3" json:"max_capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateResourceTeamRequest) Reset()         { *m = CreateResourceTeamRequest{} }
+func (m *CreateResourceTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateResourceTeamRequest) ProtoMessage()    {}
+func (*CreateResourceTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{2}
+}
+
+func (m *CreateResourceTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateResourceTeamRequest.Unmarshal(m, b)
+}
+func (m *CreateResourceTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateResourceTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateResourceTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateResourceTeamRequest.Merge(m, src)
+}
+func (m *CreateResourceTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateResourceTeamRequest.Size(m)
+}
+func (m *CreateResourceTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateResourceTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateResourceTeamRequest proto.InternalMessageInfo
+
+func (m *CreateResourceTeamRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *CreateResourceTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateResourceTeamRequest) GetAgent() *Lookup {
+	if m != nil {
+		return m.Agent
+	}
+	return nil
+}
+
+func (m *CreateResourceTeamRequest) GetSkill() *Lookup {
+	if m != nil {
+		return m.Skill
+	}
+	return nil
+}
+
+func (m *CreateResourceTeamRequest) GetLvl() int32 {
+	if m != nil {
+		return m.Lvl
+	}
+	return 0
+}
+
+func (m *CreateResourceTeamRequest) GetMinCapacity() int32 {
+	if m != nil {
+		return m.MinCapacity
+	}
+	return 0
+}
+
+func (m *CreateResourceTeamRequest) GetMaxCapacity() int32 {
+	if m != nil {
+		return m.MaxCapacity
+	}
+	return 0
+}
+
+type ReadResourceTeamReqeust struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
 	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
@@ -33,46 +279,101 @@ type ResourceTeamItemReqeust struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ResourceTeamItemReqeust) Reset()         { *m = ResourceTeamItemReqeust{} }
-func (m *ResourceTeamItemReqeust) String() string { return proto.CompactTextString(m) }
-func (*ResourceTeamItemReqeust) ProtoMessage()    {}
-func (*ResourceTeamItemReqeust) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{0}
+func (m *ReadResourceTeamReqeust) Reset()         { *m = ReadResourceTeamReqeust{} }
+func (m *ReadResourceTeamReqeust) String() string { return proto.CompactTextString(m) }
+func (*ReadResourceTeamReqeust) ProtoMessage()    {}
+func (*ReadResourceTeamReqeust) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{3}
 }
 
-func (m *ResourceTeamItemReqeust) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ResourceTeamItemReqeust.Unmarshal(m, b)
+func (m *ReadResourceTeamReqeust) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadResourceTeamReqeust.Unmarshal(m, b)
 }
-func (m *ResourceTeamItemReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ResourceTeamItemReqeust.Marshal(b, m, deterministic)
+func (m *ReadResourceTeamReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadResourceTeamReqeust.Marshal(b, m, deterministic)
 }
-func (m *ResourceTeamItemReqeust) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ResourceTeamItemReqeust.Merge(m, src)
+func (m *ReadResourceTeamReqeust) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadResourceTeamReqeust.Merge(m, src)
 }
-func (m *ResourceTeamItemReqeust) XXX_Size() int {
-	return xxx_messageInfo_ResourceTeamItemReqeust.Size(m)
+func (m *ReadResourceTeamReqeust) XXX_Size() int {
+	return xxx_messageInfo_ReadResourceTeamReqeust.Size(m)
 }
-func (m *ResourceTeamItemReqeust) XXX_DiscardUnknown() {
-	xxx_messageInfo_ResourceTeamItemReqeust.DiscardUnknown(m)
+func (m *ReadResourceTeamReqeust) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadResourceTeamReqeust.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ResourceTeamItemReqeust proto.InternalMessageInfo
+var xxx_messageInfo_ReadResourceTeamReqeust proto.InternalMessageInfo
 
-func (m *ResourceTeamItemReqeust) GetId() int64 {
+func (m *ReadResourceTeamReqeust) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
 	return 0
 }
 
-func (m *ResourceTeamItemReqeust) GetTeamId() int64 {
+func (m *ReadResourceTeamReqeust) GetTeamId() int64 {
 	if m != nil {
 		return m.TeamId
 	}
 	return 0
 }
 
-func (m *ResourceTeamItemReqeust) GetDomainId() int64 {
+func (m *ReadResourceTeamReqeust) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type DeleteResourceTeamReqeust struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteResourceTeamReqeust) Reset()         { *m = DeleteResourceTeamReqeust{} }
+func (m *DeleteResourceTeamReqeust) String() string { return proto.CompactTextString(m) }
+func (*DeleteResourceTeamReqeust) ProtoMessage()    {}
+func (*DeleteResourceTeamReqeust) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{4}
+}
+
+func (m *DeleteResourceTeamReqeust) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteResourceTeamReqeust.Unmarshal(m, b)
+}
+func (m *DeleteResourceTeamReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteResourceTeamReqeust.Marshal(b, m, deterministic)
+}
+func (m *DeleteResourceTeamReqeust) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteResourceTeamReqeust.Merge(m, src)
+}
+func (m *DeleteResourceTeamReqeust) XXX_Size() int {
+	return xxx_messageInfo_DeleteResourceTeamReqeust.Size(m)
+}
+func (m *DeleteResourceTeamReqeust) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteResourceTeamReqeust.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteResourceTeamReqeust proto.InternalMessageInfo
+
+func (m *DeleteResourceTeamReqeust) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteResourceTeamReqeust) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *DeleteResourceTeamReqeust) GetDomainId() int64 {
 	if m != nil {
 		return m.DomainId
 	}
@@ -97,7 +398,7 @@ func (m *ResourceTeam) Reset()         { *m = ResourceTeam{} }
 func (m *ResourceTeam) String() string { return proto.CompactTextString(m) }
 func (*ResourceTeam) ProtoMessage()    {}
 func (*ResourceTeam) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{1}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{5}
 }
 
 func (m *ResourceTeam) XXX_Unmarshal(b []byte) error {
@@ -185,7 +486,7 @@ func (m *ListResourceTeam) Reset()         { *m = ListResourceTeam{} }
 func (m *ListResourceTeam) String() string { return proto.CompactTextString(m) }
 func (*ListResourceTeam) ProtoMessage()    {}
 func (*ListResourceTeam) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{2}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{6}
 }
 
 func (m *ListResourceTeam) XXX_Unmarshal(b []byte) error {
@@ -214,7 +515,11 @@ func (m *ListResourceTeam) GetItems() []*ResourceTeam {
 }
 
 func init() {
-	proto.RegisterType((*ResourceTeamItemReqeust)(nil), "engine.ResourceTeamItemReqeust")
+	proto.RegisterType((*UpdateResourceTeamRequest)(nil), "engine.UpdateResourceTeamRequest")
+	proto.RegisterType((*SearchResourceTeamRequest)(nil), "engine.SearchResourceTeamRequest")
+	proto.RegisterType((*CreateResourceTeamRequest)(nil), "engine.CreateResourceTeamRequest")
+	proto.RegisterType((*ReadResourceTeamReqeust)(nil), "engine.ReadResourceTeamReqeust")
+	proto.RegisterType((*DeleteResourceTeamReqeust)(nil), "engine.DeleteResourceTeamReqeust")
 	proto.RegisterType((*ResourceTeam)(nil), "engine.ResourceTeam")
 	proto.RegisterType((*ListResourceTeam)(nil), "engine.ListResourceTeam")
 }
@@ -222,30 +527,43 @@ func init() {
 func init() { proto.RegisterFile("resource_in_team.proto", fileDescriptor_d5a3bd9f62e0a29d) }
 
 var fileDescriptor_d5a3bd9f62e0a29d = []byte{
-	// 358 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0x4d, 0xab, 0xd3, 0x40,
-	0x14, 0x86, 0x4d, 0xd2, 0xa4, 0xf5, 0xa4, 0xd4, 0x32, 0x88, 0x1d, 0xe2, 0xc2, 0x18, 0x5c, 0x04,
-	0x17, 0x5d, 0x54, 0xe8, 0xb2, 0x50, 0x0a, 0x4a, 0xa1, 0xab, 0xa0, 0xeb, 0x30, 0x26, 0x87, 0x32,
-	0x34, 0x33, 0x13, 0x33, 0x93, 0x52, 0xff, 0x9f, 0x3f, 0xca, 0xa5, 0xe4, 0xa3, 0x1a, 0x31, 0x2e,
-	0xee, 0xe5, 0xee, 0x66, 0xde, 0xf7, 0x39, 0x5f, 0x33, 0x07, 0x5e, 0x55, 0xa8, 0x55, 0x5d, 0x65,
-	0x98, 0x72, 0x99, 0x1a, 0x64, 0x62, 0x5d, 0x56, 0xca, 0x28, 0xe2, 0xa1, 0x3c, 0x73, 0x89, 0x81,
-	0x9f, 0x29, 0xa9, 0x4d, 0x27, 0x46, 0x29, 0xac, 0x92, 0x1e, 0xff, 0x8c, 0x4c, 0x1c, 0x0d, 0x8a,
-	0x04, 0xbf, 0x61, 0xad, 0x0d, 0x59, 0x80, 0xcd, 0x73, 0x6a, 0x85, 0x56, 0xec, 0x24, 0x36, 0xcf,
-	0xc9, 0x0a, 0xa6, 0x4d, 0xb6, 0x94, 0xe7, 0xd4, 0x6e, 0x45, 0xaf, 0xb9, 0x1e, 0x73, 0xf2, 0x1a,
-	0x9e, 0xe7, 0x4a, 0x30, 0x2e, 0x1b, 0xcb, 0x69, 0xad, 0x59, 0x27, 0x1c, 0xf3, 0xe8, 0xa7, 0x05,
-	0xf3, 0x61, 0x85, 0xa7, 0x49, 0x4b, 0xde, 0x81, 0xcb, 0xce, 0x28, 0x0d, 0x9d, 0x84, 0x56, 0xec,
-	0x6f, 0x16, 0xeb, 0x6e, 0xb8, 0xf5, 0x49, 0xa9, 0x4b, 0x5d, 0x26, 0x9d, 0xd9, 0x50, 0xfa, 0xc2,
-	0x8b, 0x82, 0xba, 0xe3, 0x54, 0x6b, 0x92, 0x25, 0x38, 0xc5, 0xb5, 0xa0, 0x5e, 0x68, 0xc5, 0x6e,
-	0xd2, 0x1c, 0xc9, 0x5b, 0x98, 0x0b, 0x2e, 0xd3, 0x8c, 0x95, 0x2c, 0xe3, 0xe6, 0x3b, 0x9d, 0xb6,
-	0x96, 0x2f, 0xb8, 0x3c, 0xf4, 0x52, 0x8b, 0xb0, 0xdb, 0x1f, 0x64, 0xd6, 0x23, 0xec, 0x76, 0x47,
-	0xa2, 0x1d, 0x2c, 0x4f, 0x5c, 0x9b, 0xbf, 0xa6, 0x7f, 0x0f, 0x2e, 0x37, 0x28, 0x34, 0xb5, 0x42,
-	0x27, 0xf6, 0x37, 0x2f, 0xef, 0x1d, 0x0d, 0xa1, 0xa4, 0x43, 0x36, 0x3f, 0x6c, 0x78, 0x31, 0xd4,
-	0xf7, 0x25, 0x27, 0x5b, 0xf0, 0x0e, 0x15, 0x32, 0x83, 0x64, 0x34, 0x34, 0x18, 0x55, 0xa3, 0x67,
-	0x64, 0x07, 0x93, 0xa6, 0x17, 0x12, 0xfc, 0x7e, 0x02, 0xae, 0xcd, 0x47, 0x55, 0xf5, 0x1f, 0x5e,
-	0xa3, 0x36, 0x01, 0x1d, 0x7a, 0xff, 0xc4, 0x3b, 0x9f, 0xd0, 0x90, 0x37, 0x63, 0xe9, 0x07, 0x4b,
-	0xf3, 0xdf, 0xfa, 0x5b, 0xf0, 0xbe, 0x94, 0xf9, 0xc3, 0xfb, 0xde, 0x83, 0x97, 0xa0, 0x50, 0x57,
-	0x7c, 0x74, 0xe9, 0xaf, 0x5e, 0xbb, 0xe9, 0x1f, 0x7e, 0x05, 0x00, 0x00, 0xff, 0xff, 0xdd, 0x9c,
-	0x45, 0x02, 0x18, 0x03, 0x00, 0x00,
+	// 569 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x95, 0xcd, 0x6e, 0xd3, 0x40,
+	0x10, 0xc7, 0xb5, 0x4e, 0x9d, 0x94, 0x49, 0x55, 0x45, 0x0b, 0xa2, 0x4e, 0x40, 0x22, 0xb5, 0x10,
+	0x8a, 0x52, 0x11, 0x43, 0x2a, 0x71, 0xe0, 0xc0, 0xa5, 0x5c, 0x2a, 0xf5, 0xe4, 0xc2, 0xd9, 0x5a,
+	0xec, 0x51, 0x58, 0xd5, 0xde, 0x35, 0xf6, 0xa6, 0x6a, 0xa9, 0x8a, 0xa0, 0x52, 0x9f, 0x80, 0xa7,
+	0xe0, 0x79, 0x78, 0x05, 0x5e, 0x01, 0x89, 0x23, 0xf2, 0x3a, 0x21, 0x1f, 0xce, 0x42, 0x2a, 0xf5,
+	0xc6, 0x6d, 0x3d, 0x33, 0x9a, 0xf9, 0xcf, 0x6f, 0x3c, 0xbb, 0x70, 0x3f, 0xc3, 0x5c, 0x8e, 0xb3,
+	0x10, 0x03, 0x2e, 0x02, 0x85, 0x2c, 0x19, 0xa4, 0x99, 0x54, 0x92, 0xd6, 0x51, 0x8c, 0xb8, 0xc0,
+	0x4e, 0x33, 0x94, 0x22, 0x57, 0xa5, 0xb1, 0xf3, 0x70, 0x24, 0xe5, 0x28, 0x46, 0x8f, 0xa5, 0xdc,
+	0x63, 0x42, 0x48, 0xc5, 0x14, 0x97, 0x22, 0x2f, 0xbd, 0xee, 0xb5, 0x05, 0xed, 0xb7, 0x69, 0xc4,
+	0x14, 0xfa, 0x93, 0x9c, 0x6f, 0x90, 0x25, 0x3e, 0x7e, 0x18, 0x63, 0xae, 0xe8, 0x36, 0x58, 0x3c,
+	0x72, 0x48, 0x97, 0xf4, 0x6a, 0xbe, 0xc5, 0x23, 0xba, 0x03, 0x8d, 0xa2, 0x5c, 0xc0, 0x23, 0xc7,
+	0xd2, 0xc6, 0x7a, 0xf1, 0x79, 0x18, 0xd1, 0x07, 0x70, 0x27, 0x92, 0x09, 0xe3, 0xa2, 0x70, 0xd5,
+	0xb4, 0x6b, 0xb3, 0x34, 0x1c, 0x46, 0xf4, 0x31, 0xd8, 0x6c, 0x84, 0x42, 0x39, 0x1b, 0x5d, 0xd2,
+	0x6b, 0x0e, 0xb7, 0x07, 0xa5, 0xcc, 0xc1, 0x91, 0x94, 0x27, 0xe3, 0xd4, 0x2f, 0x9d, 0x45, 0x54,
+	0x7e, 0xc2, 0xe3, 0xd8, 0xb1, 0x57, 0x47, 0x69, 0x27, 0x6d, 0x41, 0x2d, 0x3e, 0x8d, 0x9d, 0x7a,
+	0x97, 0xf4, 0x6c, 0xbf, 0x38, 0xd2, 0x5d, 0xd8, 0x4a, 0xb8, 0x08, 0x42, 0x96, 0xb2, 0x90, 0xab,
+	0x73, 0xa7, 0xa1, 0x5d, 0xcd, 0x84, 0x8b, 0x83, 0x89, 0x49, 0x87, 0xb0, 0xb3, 0x59, 0xc8, 0xe6,
+	0x24, 0x84, 0x9d, 0x4d, 0x43, 0xdc, 0x73, 0x68, 0x1f, 0x23, 0xcb, 0xc2, 0xf7, 0xab, 0x30, 0x2c,
+	0x74, 0x47, 0x96, 0xba, 0x33, 0x32, 0xa1, 0xb0, 0x91, 0xf3, 0x8f, 0xa8, 0x71, 0xd8, 0xbe, 0x3e,
+	0x17, 0xb6, 0x94, 0x8d, 0x50, 0x93, 0xb0, 0x7d, 0x7d, 0x76, 0x7f, 0x12, 0x68, 0x1f, 0x64, 0x68,
+	0x18, 0xc1, 0x5c, 0x7a, 0x62, 0x46, 0x6e, 0x99, 0x90, 0xd7, 0xd6, 0x42, 0xbe, 0xb1, 0x06, 0x72,
+	0xdb, 0x8c, 0xbc, 0xfe, 0x6f, 0xe4, 0x8d, 0x2a, 0xf2, 0x00, 0x76, 0x7c, 0x64, 0xd1, 0x52, 0xd3,
+	0x38, 0xbe, 0xad, 0xff, 0xce, 0x65, 0xd0, 0x7e, 0x8d, 0x31, 0x56, 0xb8, 0xde, 0x62, 0x89, 0x5f,
+	0x04, 0xb6, 0xe6, 0xb3, 0xff, 0x47, 0x1b, 0xf3, 0x0a, 0x5a, 0x47, 0x3c, 0x57, 0x0b, 0xdd, 0xf7,
+	0xc1, 0xe6, 0x0a, 0x93, 0xdc, 0x21, 0xdd, 0x5a, 0xaf, 0x39, 0xbc, 0x37, 0x55, 0xb4, 0x30, 0x80,
+	0x32, 0x64, 0xf8, 0xcd, 0x86, 0xbb, 0xf3, 0xf6, 0x63, 0xcc, 0x4e, 0x79, 0x88, 0xf4, 0x33, 0x01,
+	0x5a, 0x5d, 0x07, 0xba, 0x3b, 0xcd, 0x65, 0x5c, 0x95, 0xce, 0xca, 0x72, 0xee, 0xf3, 0xab, 0xef,
+	0x3f, 0xbe, 0x5a, 0x7b, 0xee, 0x13, 0x2f, 0x64, 0x71, 0x1c, 0x84, 0x28, 0x14, 0x66, 0x5e, 0x31,
+	0x85, 0xdc, 0xbb, 0x98, 0xcc, 0xe6, 0xd2, 0x9b, 0xde, 0xa8, 0xf9, 0x4b, 0xd2, 0xa7, 0x5f, 0x08,
+	0xd0, 0xea, 0x6d, 0x30, 0x93, 0x60, 0xbc, 0x29, 0x3a, 0xce, 0x9f, 0x19, 0x2c, 0xa1, 0x71, 0x07,
+	0x5a, 0x46, 0x8f, 0xae, 0x29, 0x83, 0x7e, 0x82, 0xd6, 0xf2, 0x76, 0xd0, 0x47, 0xb3, 0x06, 0x57,
+	0xee, 0x8d, 0x81, 0xc0, 0xbe, 0x2e, 0xfd, 0x94, 0xee, 0xad, 0x57, 0xda, 0xbb, 0xe0, 0xd1, 0x25,
+	0xbd, 0x26, 0x40, 0xab, 0x0f, 0xc3, 0x8c, 0x81, 0xf1, 0xd1, 0x30, 0x88, 0x78, 0xa1, 0x45, 0x3c,
+	0xeb, 0xdc, 0x44, 0x44, 0x31, 0x8b, 0x2b, 0x02, 0xb4, 0xba, 0xc5, 0x33, 0x1d, 0xc6, 0x0d, 0xff,
+	0x3b, 0x8c, 0xfe, 0x4d, 0x74, 0xbc, 0xab, 0xeb, 0xc7, 0x72, 0xff, 0x77, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x80, 0x38, 0x80, 0xe7, 0x79, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -256,226 +574,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// ResourceTeamApiClient is the client API for ResourceTeamApi service.
+// ResourceTeamServiceClient is the client API for ResourceTeamService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type ResourceTeamApiClient interface {
-	// POST /call_center/team/:team_id/resources
-	Create(ctx context.Context, in *ResourceTeam, opts ...grpc.CallOption) (*ResourceTeam, error)
-	// GET /call_center/team/:team_id/resources
-	List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListResourceTeam, error)
-	// GET /call_center/team/:team_id/resources/:id
-	Get(ctx context.Context, in *ResourceTeamItemReqeust, opts ...grpc.CallOption) (*ResourceTeam, error)
-	// PUT /call_center/team/:team_id/resources/:id
-	Update(ctx context.Context, in *ResourceTeam, opts ...grpc.CallOption) (*ResourceTeam, error)
-	// DELETE /call_center/team/:team_id/resources/:id
-	Remove(ctx context.Context, in *ResourceTeamItemReqeust, opts ...grpc.CallOption) (*ResourceTeam, error)
+type ResourceTeamServiceClient interface {
+	// Create ResourceTeam
+	CreateResourceTeam(ctx context.Context, in *CreateResourceTeamRequest, opts ...grpc.CallOption) (*ResourceTeam, error)
+	// List of ResourceTeam
+	SearchResourceTeam(ctx context.Context, in *SearchResourceTeamRequest, opts ...grpc.CallOption) (*ListResourceTeam, error)
+	// ResourceTeam item
+	ReadResourceTeam(ctx context.Context, in *ReadResourceTeamReqeust, opts ...grpc.CallOption) (*ResourceTeam, error)
+	// Update ResourceTeam
+	UpdateResourceTeam(ctx context.Context, in *UpdateResourceTeamRequest, opts ...grpc.CallOption) (*ResourceTeam, error)
+	// Remove ResourceTeam
+	DeleteResourceTeam(ctx context.Context, in *DeleteResourceTeamReqeust, opts ...grpc.CallOption) (*ResourceTeam, error)
 }
 
-type resourceTeamApiClient struct {
+type resourceTeamServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewResourceTeamApiClient(cc *grpc.ClientConn) ResourceTeamApiClient {
-	return &resourceTeamApiClient{cc}
+func NewResourceTeamServiceClient(cc *grpc.ClientConn) ResourceTeamServiceClient {
+	return &resourceTeamServiceClient{cc}
 }
 
-func (c *resourceTeamApiClient) Create(ctx context.Context, in *ResourceTeam, opts ...grpc.CallOption) (*ResourceTeam, error) {
+func (c *resourceTeamServiceClient) CreateResourceTeam(ctx context.Context, in *CreateResourceTeamRequest, opts ...grpc.CallOption) (*ResourceTeam, error) {
 	out := new(ResourceTeam)
-	err := c.cc.Invoke(ctx, "/engine.ResourceTeamApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/CreateResourceTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *resourceTeamApiClient) List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListResourceTeam, error) {
+func (c *resourceTeamServiceClient) SearchResourceTeam(ctx context.Context, in *SearchResourceTeamRequest, opts ...grpc.CallOption) (*ListResourceTeam, error) {
 	out := new(ListResourceTeam)
-	err := c.cc.Invoke(ctx, "/engine.ResourceTeamApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/SearchResourceTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *resourceTeamApiClient) Get(ctx context.Context, in *ResourceTeamItemReqeust, opts ...grpc.CallOption) (*ResourceTeam, error) {
+func (c *resourceTeamServiceClient) ReadResourceTeam(ctx context.Context, in *ReadResourceTeamReqeust, opts ...grpc.CallOption) (*ResourceTeam, error) {
 	out := new(ResourceTeam)
-	err := c.cc.Invoke(ctx, "/engine.ResourceTeamApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/ReadResourceTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *resourceTeamApiClient) Update(ctx context.Context, in *ResourceTeam, opts ...grpc.CallOption) (*ResourceTeam, error) {
+func (c *resourceTeamServiceClient) UpdateResourceTeam(ctx context.Context, in *UpdateResourceTeamRequest, opts ...grpc.CallOption) (*ResourceTeam, error) {
 	out := new(ResourceTeam)
-	err := c.cc.Invoke(ctx, "/engine.ResourceTeamApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/UpdateResourceTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *resourceTeamApiClient) Remove(ctx context.Context, in *ResourceTeamItemReqeust, opts ...grpc.CallOption) (*ResourceTeam, error) {
+func (c *resourceTeamServiceClient) DeleteResourceTeam(ctx context.Context, in *DeleteResourceTeamReqeust, opts ...grpc.CallOption) (*ResourceTeam, error) {
 	out := new(ResourceTeam)
-	err := c.cc.Invoke(ctx, "/engine.ResourceTeamApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/DeleteResourceTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// ResourceTeamApiServer is the server API for ResourceTeamApi service.
-type ResourceTeamApiServer interface {
-	// POST /call_center/team/:team_id/resources
-	Create(context.Context, *ResourceTeam) (*ResourceTeam, error)
-	// GET /call_center/team/:team_id/resources
-	List(context.Context, *ListForItemRequest) (*ListResourceTeam, error)
-	// GET /call_center/team/:team_id/resources/:id
-	Get(context.Context, *ResourceTeamItemReqeust) (*ResourceTeam, error)
-	// PUT /call_center/team/:team_id/resources/:id
-	Update(context.Context, *ResourceTeam) (*ResourceTeam, error)
-	// DELETE /call_center/team/:team_id/resources/:id
-	Remove(context.Context, *ResourceTeamItemReqeust) (*ResourceTeam, error)
+// ResourceTeamServiceServer is the server API for ResourceTeamService service.
+type ResourceTeamServiceServer interface {
+	// Create ResourceTeam
+	CreateResourceTeam(context.Context, *CreateResourceTeamRequest) (*ResourceTeam, error)
+	// List of ResourceTeam
+	SearchResourceTeam(context.Context, *SearchResourceTeamRequest) (*ListResourceTeam, error)
+	// ResourceTeam item
+	ReadResourceTeam(context.Context, *ReadResourceTeamReqeust) (*ResourceTeam, error)
+	// Update ResourceTeam
+	UpdateResourceTeam(context.Context, *UpdateResourceTeamRequest) (*ResourceTeam, error)
+	// Remove ResourceTeam
+	DeleteResourceTeam(context.Context, *DeleteResourceTeamReqeust) (*ResourceTeam, error)
 }
 
-// UnimplementedResourceTeamApiServer can be embedded to have forward compatible implementations.
-type UnimplementedResourceTeamApiServer struct {
+// UnimplementedResourceTeamServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedResourceTeamServiceServer struct {
 }
 
-func (*UnimplementedResourceTeamApiServer) Create(ctx context.Context, req *ResourceTeam) (*ResourceTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedResourceTeamServiceServer) CreateResourceTeam(ctx context.Context, req *CreateResourceTeamRequest) (*ResourceTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateResourceTeam not implemented")
 }
-func (*UnimplementedResourceTeamApiServer) List(ctx context.Context, req *ListForItemRequest) (*ListResourceTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedResourceTeamServiceServer) SearchResourceTeam(ctx context.Context, req *SearchResourceTeamRequest) (*ListResourceTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchResourceTeam not implemented")
 }
-func (*UnimplementedResourceTeamApiServer) Get(ctx context.Context, req *ResourceTeamItemReqeust) (*ResourceTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedResourceTeamServiceServer) ReadResourceTeam(ctx context.Context, req *ReadResourceTeamReqeust) (*ResourceTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadResourceTeam not implemented")
 }
-func (*UnimplementedResourceTeamApiServer) Update(ctx context.Context, req *ResourceTeam) (*ResourceTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedResourceTeamServiceServer) UpdateResourceTeam(ctx context.Context, req *UpdateResourceTeamRequest) (*ResourceTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateResourceTeam not implemented")
 }
-func (*UnimplementedResourceTeamApiServer) Remove(ctx context.Context, req *ResourceTeamItemReqeust) (*ResourceTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterResourceTeamApiServer(s *grpc.Server, srv ResourceTeamApiServer) {
-	s.RegisterService(&_ResourceTeamApi_serviceDesc, srv)
+func (*UnimplementedResourceTeamServiceServer) DeleteResourceTeam(ctx context.Context, req *DeleteResourceTeamReqeust) (*ResourceTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteResourceTeam not implemented")
 }
 
-func _ResourceTeamApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceTeam)
+func RegisterResourceTeamServiceServer(s *grpc.Server, srv ResourceTeamServiceServer) {
+	s.RegisterService(&_ResourceTeamService_serviceDesc, srv)
+}
+
+func _ResourceTeamService_CreateResourceTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateResourceTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceTeamApiServer).Create(ctx, in)
+		return srv.(ResourceTeamServiceServer).CreateResourceTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.ResourceTeamApi/Create",
+		FullMethod: "/engine.ResourceTeamService/CreateResourceTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceTeamApiServer).Create(ctx, req.(*ResourceTeam))
+		return srv.(ResourceTeamServiceServer).CreateResourceTeam(ctx, req.(*CreateResourceTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ResourceTeamApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListForItemRequest)
+func _ResourceTeamService_SearchResourceTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchResourceTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceTeamApiServer).List(ctx, in)
+		return srv.(ResourceTeamServiceServer).SearchResourceTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.ResourceTeamApi/List",
+		FullMethod: "/engine.ResourceTeamService/SearchResourceTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceTeamApiServer).List(ctx, req.(*ListForItemRequest))
+		return srv.(ResourceTeamServiceServer).SearchResourceTeam(ctx, req.(*SearchResourceTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ResourceTeamApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceTeamItemReqeust)
+func _ResourceTeamService_ReadResourceTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadResourceTeamReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceTeamApiServer).Get(ctx, in)
+		return srv.(ResourceTeamServiceServer).ReadResourceTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.ResourceTeamApi/Get",
+		FullMethod: "/engine.ResourceTeamService/ReadResourceTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceTeamApiServer).Get(ctx, req.(*ResourceTeamItemReqeust))
+		return srv.(ResourceTeamServiceServer).ReadResourceTeam(ctx, req.(*ReadResourceTeamReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ResourceTeamApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceTeam)
+func _ResourceTeamService_UpdateResourceTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateResourceTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceTeamApiServer).Update(ctx, in)
+		return srv.(ResourceTeamServiceServer).UpdateResourceTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.ResourceTeamApi/Update",
+		FullMethod: "/engine.ResourceTeamService/UpdateResourceTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceTeamApiServer).Update(ctx, req.(*ResourceTeam))
+		return srv.(ResourceTeamServiceServer).UpdateResourceTeam(ctx, req.(*UpdateResourceTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ResourceTeamApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ResourceTeamItemReqeust)
+func _ResourceTeamService_DeleteResourceTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteResourceTeamReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ResourceTeamApiServer).Remove(ctx, in)
+		return srv.(ResourceTeamServiceServer).DeleteResourceTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.ResourceTeamApi/Remove",
+		FullMethod: "/engine.ResourceTeamService/DeleteResourceTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceTeamApiServer).Remove(ctx, req.(*ResourceTeamItemReqeust))
+		return srv.(ResourceTeamServiceServer).DeleteResourceTeam(ctx, req.(*DeleteResourceTeamReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _ResourceTeamApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.ResourceTeamApi",
-	HandlerType: (*ResourceTeamApiServer)(nil),
+var _ResourceTeamService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.ResourceTeamService",
+	HandlerType: (*ResourceTeamServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _ResourceTeamApi_Create_Handler,
+			MethodName: "CreateResourceTeam",
+			Handler:    _ResourceTeamService_CreateResourceTeam_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _ResourceTeamApi_List_Handler,
+			MethodName: "SearchResourceTeam",
+			Handler:    _ResourceTeamService_SearchResourceTeam_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _ResourceTeamApi_Get_Handler,
+			MethodName: "ReadResourceTeam",
+			Handler:    _ResourceTeamService_ReadResourceTeam_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _ResourceTeamApi_Update_Handler,
+			MethodName: "UpdateResourceTeam",
+			Handler:    _ResourceTeamService_UpdateResourceTeam_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _ResourceTeamApi_Remove_Handler,
+			MethodName: "DeleteResourceTeam",
+			Handler:    _ResourceTeamService_DeleteResourceTeam_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

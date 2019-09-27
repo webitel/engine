@@ -15,7 +15,7 @@ func NewRoutingVariableApi(app *app.App) *routingVariable {
 	return &routingVariable{app: app}
 }
 
-func (api *routingVariable) Create(ctx context.Context, in *engine.RoutingVariable) (*engine.RoutingVariable, error) {
+func (api *routingVariable) CreateRoutingVariable(ctx context.Context, in *engine.CreateRoutingVariableRequest) (*engine.RoutingVariable, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (api *routingVariable) Create(ctx context.Context, in *engine.RoutingVariab
 	return transformRoutingVariable(variable), nil
 }
 
-func (api *routingVariable) List(ctx context.Context, in *engine.ListRequest) (*engine.ListRoutingVariable, error) {
+func (api *routingVariable) SearchRoutingVariable(ctx context.Context, in *engine.SearchRoutingVariableRequest) (*engine.ListRoutingVariable, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (api *routingVariable) List(ctx context.Context, in *engine.ListRequest) (*
 	}, nil
 }
 
-func (api *routingVariable) Get(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingVariable, error) {
+func (api *routingVariable) ReadRoutingVariable(ctx context.Context, in *engine.ReadRoutingVariableRequest) (*engine.RoutingVariable, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (api *routingVariable) Get(ctx context.Context, in *engine.ItemRequest) (*e
 	return transformRoutingVariable(variable), nil
 }
 
-func (api *routingVariable) Update(ctx context.Context, in *engine.RoutingVariable) (*engine.RoutingVariable, error) {
+func (api *routingVariable) UpdateRoutingVariable(ctx context.Context, in *engine.UpdateRoutingVariableRequest) (*engine.RoutingVariable, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (api *routingVariable) Update(ctx context.Context, in *engine.RoutingVariab
 	return transformRoutingVariable(variable), nil
 }
 
-func (api *routingVariable) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingVariable, error) {
+func (api *routingVariable) DeleteRoutingVariable(ctx context.Context, in *engine.DeleteRoutingVariableRequest) (*engine.RoutingVariable, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

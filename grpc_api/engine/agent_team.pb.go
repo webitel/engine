@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,6 +24,385 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
+type DeleteAgentTeamRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteAgentTeamRequest) Reset()         { *m = DeleteAgentTeamRequest{} }
+func (m *DeleteAgentTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteAgentTeamRequest) ProtoMessage()    {}
+func (*DeleteAgentTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3083856eea12172, []int{0}
+}
+
+func (m *DeleteAgentTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteAgentTeamRequest.Unmarshal(m, b)
+}
+func (m *DeleteAgentTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteAgentTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteAgentTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteAgentTeamRequest.Merge(m, src)
+}
+func (m *DeleteAgentTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteAgentTeamRequest.Size(m)
+}
+func (m *DeleteAgentTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteAgentTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteAgentTeamRequest proto.InternalMessageInfo
+
+func (m *DeleteAgentTeamRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteAgentTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type UpdateAgentTeamRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
+	Strategy             string   `protobuf:"bytes,5,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	MaxNoAnswer          int32    `protobuf:"varint,6,opt,name=max_no_answer,json=maxNoAnswer,proto3" json:"max_no_answer,omitempty"`
+	WrapUpTime           int32    `protobuf:"varint,7,opt,name=wrap_up_time,json=wrapUpTime,proto3" json:"wrap_up_time,omitempty"`
+	RejectDelayTime      int32    `protobuf:"varint,8,opt,name=reject_delay_time,json=rejectDelayTime,proto3" json:"reject_delay_time,omitempty"`
+	BusyDelayTime        int32    `protobuf:"varint,9,opt,name=busy_delay_time,json=busyDelayTime,proto3" json:"busy_delay_time,omitempty"`
+	NoAnswerDelayTime    int32    `protobuf:"varint,10,opt,name=no_answer_delay_time,json=noAnswerDelayTime,proto3" json:"no_answer_delay_time,omitempty"`
+	CallTimeout          int32    `protobuf:"varint,11,opt,name=call_timeout,json=callTimeout,proto3" json:"call_timeout,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateAgentTeamRequest) Reset()         { *m = UpdateAgentTeamRequest{} }
+func (m *UpdateAgentTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateAgentTeamRequest) ProtoMessage()    {}
+func (*UpdateAgentTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3083856eea12172, []int{1}
+}
+
+func (m *UpdateAgentTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateAgentTeamRequest.Unmarshal(m, b)
+}
+func (m *UpdateAgentTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateAgentTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateAgentTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateAgentTeamRequest.Merge(m, src)
+}
+func (m *UpdateAgentTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateAgentTeamRequest.Size(m)
+}
+func (m *UpdateAgentTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateAgentTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateAgentTeamRequest proto.InternalMessageInfo
+
+func (m *UpdateAgentTeamRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateAgentTeamRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *UpdateAgentTeamRequest) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+func (m *UpdateAgentTeamRequest) GetMaxNoAnswer() int32 {
+	if m != nil {
+		return m.MaxNoAnswer
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetWrapUpTime() int32 {
+	if m != nil {
+		return m.WrapUpTime
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetRejectDelayTime() int32 {
+	if m != nil {
+		return m.RejectDelayTime
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetBusyDelayTime() int32 {
+	if m != nil {
+		return m.BusyDelayTime
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetNoAnswerDelayTime() int32 {
+	if m != nil {
+		return m.NoAnswerDelayTime
+	}
+	return 0
+}
+
+func (m *UpdateAgentTeamRequest) GetCallTimeout() int32 {
+	if m != nil {
+		return m.CallTimeout
+	}
+	return 0
+}
+
+type ReadAgentTeamRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadAgentTeamRequest) Reset()         { *m = ReadAgentTeamRequest{} }
+func (m *ReadAgentTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadAgentTeamRequest) ProtoMessage()    {}
+func (*ReadAgentTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3083856eea12172, []int{2}
+}
+
+func (m *ReadAgentTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadAgentTeamRequest.Unmarshal(m, b)
+}
+func (m *ReadAgentTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadAgentTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadAgentTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadAgentTeamRequest.Merge(m, src)
+}
+func (m *ReadAgentTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadAgentTeamRequest.Size(m)
+}
+func (m *ReadAgentTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadAgentTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadAgentTeamRequest proto.InternalMessageInfo
+
+func (m *ReadAgentTeamRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *ReadAgentTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type SearchAgentTeamRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchAgentTeamRequest) Reset()         { *m = SearchAgentTeamRequest{} }
+func (m *SearchAgentTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchAgentTeamRequest) ProtoMessage()    {}
+func (*SearchAgentTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3083856eea12172, []int{3}
+}
+
+func (m *SearchAgentTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchAgentTeamRequest.Unmarshal(m, b)
+}
+func (m *SearchAgentTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchAgentTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchAgentTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchAgentTeamRequest.Merge(m, src)
+}
+func (m *SearchAgentTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchAgentTeamRequest.Size(m)
+}
+func (m *SearchAgentTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchAgentTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchAgentTeamRequest proto.InternalMessageInfo
+
+func (m *SearchAgentTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchAgentTeamRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchAgentTeamRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateAgentTeamRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Strategy             string   `protobuf:"bytes,4,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	MaxNoAnswer          int32    `protobuf:"varint,5,opt,name=max_no_answer,json=maxNoAnswer,proto3" json:"max_no_answer,omitempty"`
+	WrapUpTime           int32    `protobuf:"varint,6,opt,name=wrap_up_time,json=wrapUpTime,proto3" json:"wrap_up_time,omitempty"`
+	RejectDelayTime      int32    `protobuf:"varint,7,opt,name=reject_delay_time,json=rejectDelayTime,proto3" json:"reject_delay_time,omitempty"`
+	BusyDelayTime        int32    `protobuf:"varint,8,opt,name=busy_delay_time,json=busyDelayTime,proto3" json:"busy_delay_time,omitempty"`
+	NoAnswerDelayTime    int32    `protobuf:"varint,9,opt,name=no_answer_delay_time,json=noAnswerDelayTime,proto3" json:"no_answer_delay_time,omitempty"`
+	CallTimeout          int32    `protobuf:"varint,10,opt,name=call_timeout,json=callTimeout,proto3" json:"call_timeout,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateAgentTeamRequest) Reset()         { *m = CreateAgentTeamRequest{} }
+func (m *CreateAgentTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateAgentTeamRequest) ProtoMessage()    {}
+func (*CreateAgentTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3083856eea12172, []int{4}
+}
+
+func (m *CreateAgentTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateAgentTeamRequest.Unmarshal(m, b)
+}
+func (m *CreateAgentTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateAgentTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateAgentTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateAgentTeamRequest.Merge(m, src)
+}
+func (m *CreateAgentTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateAgentTeamRequest.Size(m)
+}
+func (m *CreateAgentTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateAgentTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateAgentTeamRequest proto.InternalMessageInfo
+
+func (m *CreateAgentTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateAgentTeamRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateAgentTeamRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *CreateAgentTeamRequest) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+func (m *CreateAgentTeamRequest) GetMaxNoAnswer() int32 {
+	if m != nil {
+		return m.MaxNoAnswer
+	}
+	return 0
+}
+
+func (m *CreateAgentTeamRequest) GetWrapUpTime() int32 {
+	if m != nil {
+		return m.WrapUpTime
+	}
+	return 0
+}
+
+func (m *CreateAgentTeamRequest) GetRejectDelayTime() int32 {
+	if m != nil {
+		return m.RejectDelayTime
+	}
+	return 0
+}
+
+func (m *CreateAgentTeamRequest) GetBusyDelayTime() int32 {
+	if m != nil {
+		return m.BusyDelayTime
+	}
+	return 0
+}
+
+func (m *CreateAgentTeamRequest) GetNoAnswerDelayTime() int32 {
+	if m != nil {
+		return m.NoAnswerDelayTime
+	}
+	return 0
+}
+
+func (m *CreateAgentTeamRequest) GetCallTimeout() int32 {
+	if m != nil {
+		return m.CallTimeout
+	}
+	return 0
+}
 
 type AgentTeam struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -46,7 +426,7 @@ func (m *AgentTeam) Reset()         { *m = AgentTeam{} }
 func (m *AgentTeam) String() string { return proto.CompactTextString(m) }
 func (*AgentTeam) ProtoMessage()    {}
 func (*AgentTeam) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3083856eea12172, []int{0}
+	return fileDescriptor_e3083856eea12172, []int{5}
 }
 
 func (m *AgentTeam) XXX_Unmarshal(b []byte) error {
@@ -162,7 +542,7 @@ func (m *ListAgentTeam) Reset()         { *m = ListAgentTeam{} }
 func (m *ListAgentTeam) String() string { return proto.CompactTextString(m) }
 func (*ListAgentTeam) ProtoMessage()    {}
 func (*ListAgentTeam) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3083856eea12172, []int{1}
+	return fileDescriptor_e3083856eea12172, []int{6}
 }
 
 func (m *ListAgentTeam) XXX_Unmarshal(b []byte) error {
@@ -191,6 +571,11 @@ func (m *ListAgentTeam) GetItems() []*AgentTeam {
 }
 
 func init() {
+	proto.RegisterType((*DeleteAgentTeamRequest)(nil), "engine.DeleteAgentTeamRequest")
+	proto.RegisterType((*UpdateAgentTeamRequest)(nil), "engine.UpdateAgentTeamRequest")
+	proto.RegisterType((*ReadAgentTeamRequest)(nil), "engine.ReadAgentTeamRequest")
+	proto.RegisterType((*SearchAgentTeamRequest)(nil), "engine.SearchAgentTeamRequest")
+	proto.RegisterType((*CreateAgentTeamRequest)(nil), "engine.CreateAgentTeamRequest")
 	proto.RegisterType((*AgentTeam)(nil), "engine.AgentTeam")
 	proto.RegisterType((*ListAgentTeam)(nil), "engine.ListAgentTeam")
 }
@@ -198,34 +583,47 @@ func init() {
 func init() { proto.RegisterFile("agent_team.proto", fileDescriptor_e3083856eea12172) }
 
 var fileDescriptor_e3083856eea12172 = []byte{
-	// 417 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x92, 0x41, 0x6f, 0xd3, 0x30,
-	0x14, 0xc7, 0x49, 0xd3, 0x86, 0xe6, 0xa5, 0x65, 0xd4, 0x80, 0x64, 0x15, 0x21, 0x85, 0x1e, 0xa0,
-	0xe2, 0xd0, 0x4d, 0x85, 0x03, 0xd7, 0x0a, 0x24, 0x34, 0x09, 0x71, 0x88, 0xba, 0x73, 0xe4, 0xd5,
-	0x4f, 0x95, 0x51, 0x6d, 0x87, 0xf8, 0x85, 0xad, 0x1f, 0x82, 0x33, 0x5f, 0x17, 0xc5, 0xde, 0xd2,
-	0x48, 0xe3, 0xb0, 0x5b, 0xfd, 0xfb, 0xff, 0xfe, 0x7a, 0xcf, 0x75, 0xe0, 0xb9, 0xd8, 0xa3, 0xa1,
-	0x92, 0x50, 0xe8, 0x55, 0x55, 0x5b, 0xb2, 0x2c, 0x41, 0xb3, 0x57, 0x06, 0xe7, 0xd9, 0xce, 0x1a,
-	0x47, 0x01, 0x2e, 0xfe, 0xc6, 0x90, 0x6e, 0x5a, 0x73, 0x8b, 0x42, 0xb3, 0x67, 0x30, 0x50, 0x92,
-	0x47, 0x79, 0xb4, 0x8c, 0x8b, 0x81, 0x92, 0xec, 0x35, 0xa4, 0xd2, 0x6a, 0xa1, 0x4c, 0xa9, 0x24,
-	0x1f, 0x78, 0x3c, 0x0e, 0xe0, 0x52, 0x32, 0x06, 0x43, 0x23, 0x34, 0xf2, 0x38, 0x8f, 0x96, 0x69,
-	0xe1, 0x7f, 0xb3, 0x1c, 0x32, 0x89, 0x6e, 0x57, 0xab, 0x8a, 0x94, 0x35, 0x7c, 0xe8, 0xa3, 0x3e,
-	0x62, 0x73, 0x18, 0x3b, 0xaa, 0x05, 0xe1, 0xfe, 0xc8, 0x47, 0x3e, 0xee, 0xce, 0x6c, 0x01, 0x53,
-	0x2d, 0x6e, 0x4b, 0x63, 0x4b, 0x61, 0xdc, 0x0d, 0xd6, 0x3c, 0xc9, 0xa3, 0xe5, 0xa8, 0xc8, 0xb4,
-	0xb8, 0xfd, 0x61, 0x37, 0x1e, 0xb1, 0x1c, 0x26, 0x37, 0xb5, 0xa8, 0xca, 0xa6, 0x2a, 0x49, 0x69,
-	0xe4, 0x4f, 0xbd, 0x02, 0x2d, 0xbb, 0xaa, 0xb6, 0x4a, 0x23, 0xfb, 0x00, 0xb3, 0x1a, 0x7f, 0xe2,
-	0x8e, 0x4a, 0x89, 0x07, 0x71, 0x0c, 0xda, 0xd8, 0x6b, 0x67, 0x21, 0xf8, 0xda, 0x72, 0xef, 0xbe,
-	0x83, 0xb3, 0xeb, 0xc6, 0x1d, 0xfb, 0x66, 0xea, 0xcd, 0x69, 0x8b, 0x4f, 0xde, 0x39, 0xbc, 0xec,
-	0xb6, 0xea, 0xcb, 0xe0, 0xe5, 0x99, 0xb9, 0xdb, 0xee, 0x54, 0x78, 0x0b, 0x93, 0x9d, 0x38, 0x1c,
-	0xbc, 0x65, 0x1b, 0xe2, 0x59, 0xb8, 0x49, 0xcb, 0xb6, 0x01, 0xb1, 0x37, 0x00, 0x4d, 0x25, 0x05,
-	0xa1, 0x2c, 0x05, 0xf1, 0x89, 0xff, 0x77, 0xd3, 0x3b, 0xb2, 0xa1, 0xc5, 0x67, 0x98, 0x7e, 0x57,
-	0x8e, 0x4e, 0x8f, 0xf3, 0x1e, 0x46, 0x8a, 0x50, 0x3b, 0x1e, 0xe5, 0xf1, 0x32, 0x5b, 0xcf, 0x56,
-	0xe1, 0x3d, 0x57, 0x9d, 0x51, 0x84, 0x7c, 0xfd, 0x67, 0x00, 0x93, 0x0e, 0x6e, 0x2a, 0xc5, 0x2e,
-	0x20, 0xf9, 0x52, 0xa3, 0x20, 0x64, 0x0f, 0x4b, 0xf3, 0x87, 0x68, 0xf1, 0x84, 0x7d, 0x82, 0x61,
-	0x3b, 0x9c, 0xbd, 0xb8, 0x0f, 0xdb, 0x53, 0x81, 0xbf, 0x1a, 0x74, 0x34, 0x7f, 0xd5, 0x87, 0xfd,
-	0xd6, 0x39, 0xc4, 0xdf, 0xb0, 0x57, 0xba, 0x24, 0xd4, 0xf7, 0xa5, 0xff, 0x8e, 0xb9, 0x80, 0xe4,
-	0xca, 0x5f, 0xf8, 0xd1, 0x8b, 0xad, 0x21, 0x29, 0x50, 0xdb, 0xdf, 0xf8, 0xf8, 0x29, 0xd7, 0x89,
-	0xff, 0xd4, 0x3f, 0xfe, 0x0b, 0x00, 0x00, 0xff, 0xff, 0xda, 0x5e, 0x61, 0xdf, 0x13, 0x03, 0x00,
-	0x00,
+	// 630 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x55, 0xbf, 0x6e, 0xd4, 0x4e,
+	0x10, 0x96, 0xed, 0xf3, 0xe5, 0x3c, 0x97, 0xfb, 0x39, 0x59, 0xe5, 0x77, 0x31, 0x26, 0x01, 0xe3,
+	0x02, 0x4e, 0x29, 0x62, 0x29, 0x34, 0x88, 0x2e, 0x4a, 0x28, 0x90, 0x10, 0x85, 0x93, 0x94, 0xc8,
+	0xda, 0x78, 0x47, 0xce, 0xa2, 0xf3, 0xda, 0xd8, 0x7b, 0x24, 0x01, 0xd1, 0x20, 0xf1, 0x00, 0x88,
+	0x82, 0x07, 0xe3, 0x15, 0x78, 0x05, 0x7a, 0xe4, 0x75, 0x72, 0x4e, 0xee, 0x9c, 0x3f, 0x28, 0x12,
+	0x15, 0x9d, 0xfd, 0xed, 0xb7, 0xf3, 0xed, 0xec, 0x7e, 0x33, 0x03, 0x4b, 0x34, 0x41, 0x21, 0x23,
+	0x89, 0x34, 0xdd, 0xcc, 0x8b, 0x4c, 0x66, 0xa4, 0x8b, 0x22, 0xe1, 0x02, 0xdd, 0xb5, 0x24, 0xcb,
+	0x92, 0x31, 0x06, 0x34, 0xe7, 0x01, 0x15, 0x22, 0x93, 0x54, 0xf2, 0x4c, 0x94, 0x35, 0xcb, 0x7f,
+	0x01, 0xc3, 0x5d, 0x1c, 0xa3, 0xc4, 0xed, 0x6a, 0xff, 0x3e, 0xd2, 0x34, 0xc4, 0x77, 0x13, 0x2c,
+	0x25, 0xf9, 0x0f, 0x74, 0xce, 0x1c, 0xcd, 0xd3, 0x46, 0x46, 0xa8, 0x73, 0x46, 0xee, 0x83, 0xc5,
+	0xb2, 0x94, 0x72, 0x11, 0x71, 0xe6, 0xe8, 0x0a, 0xee, 0xd5, 0xc0, 0x4b, 0xe6, 0x7f, 0x31, 0x60,
+	0x78, 0x90, 0x33, 0x7a, 0xc7, 0x38, 0x84, 0x40, 0x47, 0xd0, 0x14, 0x1d, 0xc3, 0xd3, 0x46, 0x56,
+	0xa8, 0xbe, 0x89, 0x07, 0x7d, 0x86, 0x65, 0x5c, 0xf0, 0xbc, 0x3a, 0xb8, 0xd3, 0x51, 0x4b, 0x17,
+	0x21, 0xe2, 0x42, 0xaf, 0x94, 0x05, 0x95, 0x98, 0x9c, 0x3a, 0xa6, 0x5a, 0x9e, 0xfe, 0x13, 0x1f,
+	0x06, 0x29, 0x3d, 0x89, 0x44, 0x16, 0x51, 0x51, 0x1e, 0x63, 0xe1, 0x74, 0x3d, 0x6d, 0x64, 0x86,
+	0xfd, 0x94, 0x9e, 0xbc, 0xce, 0xb6, 0x15, 0x44, 0x3c, 0x58, 0x3c, 0x2e, 0x68, 0x1e, 0x4d, 0xf2,
+	0x48, 0xf2, 0x14, 0x9d, 0x05, 0x45, 0x81, 0x0a, 0x3b, 0xc8, 0xf7, 0x79, 0x8a, 0x64, 0x03, 0x96,
+	0x0b, 0x7c, 0x8b, 0xb1, 0x8c, 0x18, 0x8e, 0xe9, 0x69, 0x4d, 0xeb, 0x29, 0x9a, 0x5d, 0x2f, 0xec,
+	0x56, 0xb8, 0xe2, 0x3e, 0x06, 0xfb, 0x70, 0x52, 0x9e, 0x5e, 0x64, 0x5a, 0x8a, 0x39, 0xa8, 0xe0,
+	0x86, 0x17, 0xc0, 0xca, 0xf4, 0x54, 0x17, 0xc9, 0xa0, 0xc8, 0xcb, 0xe2, 0xec, 0x74, 0xcd, 0x86,
+	0x47, 0xb0, 0x18, 0xd3, 0xf1, 0x58, 0xb1, 0xb2, 0x89, 0x74, 0xfa, 0x75, 0x26, 0x15, 0xb6, 0x5f,
+	0x43, 0xfe, 0x0e, 0xac, 0x84, 0x48, 0xd9, 0xdd, 0x1e, 0xf3, 0x0d, 0x0c, 0xf7, 0x90, 0x16, 0xf1,
+	0xd1, 0x5c, 0x98, 0x4b, 0xdb, 0xb4, 0xf9, 0xb7, 0x2b, 0xf9, 0x07, 0x54, 0xe1, 0xcc, 0x50, 0x7d,
+	0x57, 0x58, 0x4e, 0x93, 0xfa, 0x3d, 0xcd, 0x50, 0x7d, 0xfb, 0xbf, 0x74, 0x18, 0xee, 0x14, 0xd8,
+	0xe6, 0x95, 0x9b, 0xe2, 0x2b, 0x6f, 0xe8, 0x57, 0x7b, 0xc3, 0xb8, 0xde, 0x1b, 0x9d, 0x9b, 0xbc,
+	0x61, 0xde, 0xec, 0x8d, 0xee, 0xed, 0xbc, 0xb1, 0x70, 0x6b, 0x6f, 0xf4, 0xfe, 0xc4, 0x1b, 0xd6,
+	0x6d, 0xbd, 0x01, 0xf3, 0xde, 0xf8, 0x6e, 0x80, 0x35, 0xbd, 0xf1, 0x7f, 0x65, 0xf9, 0x17, 0xcb,
+	0x92, 0xac, 0x03, 0x4c, 0x54, 0x77, 0x64, 0x11, 0x95, 0xce, 0xa2, 0xba, 0x5d, 0xeb, 0x0c, 0xd9,
+	0x96, 0xfe, 0x33, 0x18, 0xbc, 0xe2, 0xa5, 0x6c, 0x1e, 0xe7, 0x09, 0x98, 0x5c, 0x62, 0x5a, 0x3a,
+	0x9a, 0x67, 0x8c, 0xfa, 0x5b, 0xcb, 0x9b, 0x75, 0x2f, 0xdf, 0x6c, 0x0a, 0xa6, 0x5e, 0xdf, 0xfa,
+	0xda, 0x81, 0xa5, 0x29, 0xb8, 0x87, 0xc5, 0x7b, 0x1e, 0x23, 0x89, 0xc1, 0x9e, 0xa9, 0x2f, 0xf2,
+	0xe0, 0x3c, 0x42, 0x7b, 0xe1, 0xb9, 0xf3, 0x0a, 0xfe, 0xfa, 0xe7, 0x1f, 0x3f, 0xbf, 0xe9, 0xab,
+	0x3e, 0x09, 0x54, 0x76, 0x31, 0x0a, 0x89, 0x45, 0x50, 0x0d, 0x98, 0xf2, 0xb9, 0xb6, 0x41, 0x18,
+	0xd8, 0x33, 0x4d, 0xa2, 0x11, 0x69, 0xef, 0x1e, 0xee, 0xff, 0xe7, 0xeb, 0x97, 0x92, 0xf5, 0x5d,
+	0x25, 0xb4, 0x42, 0x5a, 0x84, 0x08, 0x85, 0xc1, 0xa5, 0x7e, 0x46, 0xd6, 0xce, 0x63, 0xb4, 0xb5,
+	0xb9, 0xb6, 0x34, 0x1e, 0xaa, 0xe8, 0xf7, 0xc8, 0xea, 0x7c, 0xf4, 0xe0, 0x23, 0x67, 0x9f, 0xc8,
+	0x11, 0xd8, 0x33, 0x93, 0xab, 0x49, 0xa4, 0x7d, 0xa4, 0xb5, 0xc9, 0xf8, 0x4a, 0x66, 0xcd, 0xbd,
+	0x4a, 0xa6, 0xba, 0x32, 0x04, 0x7b, 0x66, 0xd6, 0x36, 0x4a, 0xed, 0x43, 0xf8, 0x9a, 0x84, 0x36,
+	0xae, 0x52, 0x3a, 0xec, 0xaa, 0xc9, 0xfe, 0xf4, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0x0f, 0x79,
+	0x65, 0xb0, 0x13, 0x08, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -236,226 +634,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// AgentTeamApiClient is the client API for AgentTeamApi service.
+// AgentTeamServiceClient is the client API for AgentTeamService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type AgentTeamApiClient interface {
-	// POST /call_center/agent_team
-	Create(ctx context.Context, in *AgentTeam, opts ...grpc.CallOption) (*AgentTeam, error)
-	// GET /call_center/agent_team
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListAgentTeam, error)
-	// GET /call_center/agent_team/:ID
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*AgentTeam, error)
-	// PUT /call_center/agent_team/:ID
-	Update(ctx context.Context, in *AgentTeam, opts ...grpc.CallOption) (*AgentTeam, error)
-	// DELETE /call_center/agent_team/:ID
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*AgentTeam, error)
+type AgentTeamServiceClient interface {
+	// Create AgentTeam
+	CreateAgentTeam(ctx context.Context, in *CreateAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error)
+	// List of AgentTeam
+	SearchAgentTeam(ctx context.Context, in *SearchAgentTeamRequest, opts ...grpc.CallOption) (*ListAgentTeam, error)
+	// AgentTeam item
+	ReadAgentTeam(ctx context.Context, in *ReadAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error)
+	// Update AgentTeam
+	UpdateAgentTeam(ctx context.Context, in *UpdateAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error)
+	// Remove AgentTeam
+	DeleteAgentTeam(ctx context.Context, in *DeleteAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error)
 }
 
-type agentTeamApiClient struct {
+type agentTeamServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewAgentTeamApiClient(cc *grpc.ClientConn) AgentTeamApiClient {
-	return &agentTeamApiClient{cc}
+func NewAgentTeamServiceClient(cc *grpc.ClientConn) AgentTeamServiceClient {
+	return &agentTeamServiceClient{cc}
 }
 
-func (c *agentTeamApiClient) Create(ctx context.Context, in *AgentTeam, opts ...grpc.CallOption) (*AgentTeam, error) {
+func (c *agentTeamServiceClient) CreateAgentTeam(ctx context.Context, in *CreateAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error) {
 	out := new(AgentTeam)
-	err := c.cc.Invoke(ctx, "/engine.AgentTeamApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentTeamService/CreateAgentTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentTeamApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListAgentTeam, error) {
+func (c *agentTeamServiceClient) SearchAgentTeam(ctx context.Context, in *SearchAgentTeamRequest, opts ...grpc.CallOption) (*ListAgentTeam, error) {
 	out := new(ListAgentTeam)
-	err := c.cc.Invoke(ctx, "/engine.AgentTeamApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentTeamService/SearchAgentTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentTeamApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*AgentTeam, error) {
+func (c *agentTeamServiceClient) ReadAgentTeam(ctx context.Context, in *ReadAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error) {
 	out := new(AgentTeam)
-	err := c.cc.Invoke(ctx, "/engine.AgentTeamApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentTeamService/ReadAgentTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentTeamApiClient) Update(ctx context.Context, in *AgentTeam, opts ...grpc.CallOption) (*AgentTeam, error) {
+func (c *agentTeamServiceClient) UpdateAgentTeam(ctx context.Context, in *UpdateAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error) {
 	out := new(AgentTeam)
-	err := c.cc.Invoke(ctx, "/engine.AgentTeamApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentTeamService/UpdateAgentTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentTeamApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*AgentTeam, error) {
+func (c *agentTeamServiceClient) DeleteAgentTeam(ctx context.Context, in *DeleteAgentTeamRequest, opts ...grpc.CallOption) (*AgentTeam, error) {
 	out := new(AgentTeam)
-	err := c.cc.Invoke(ctx, "/engine.AgentTeamApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentTeamService/DeleteAgentTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AgentTeamApiServer is the server API for AgentTeamApi service.
-type AgentTeamApiServer interface {
-	// POST /call_center/agent_team
-	Create(context.Context, *AgentTeam) (*AgentTeam, error)
-	// GET /call_center/agent_team
-	List(context.Context, *ListRequest) (*ListAgentTeam, error)
-	// GET /call_center/agent_team/:ID
-	Get(context.Context, *ItemRequest) (*AgentTeam, error)
-	// PUT /call_center/agent_team/:ID
-	Update(context.Context, *AgentTeam) (*AgentTeam, error)
-	// DELETE /call_center/agent_team/:ID
-	Remove(context.Context, *ItemRequest) (*AgentTeam, error)
+// AgentTeamServiceServer is the server API for AgentTeamService service.
+type AgentTeamServiceServer interface {
+	// Create AgentTeam
+	CreateAgentTeam(context.Context, *CreateAgentTeamRequest) (*AgentTeam, error)
+	// List of AgentTeam
+	SearchAgentTeam(context.Context, *SearchAgentTeamRequest) (*ListAgentTeam, error)
+	// AgentTeam item
+	ReadAgentTeam(context.Context, *ReadAgentTeamRequest) (*AgentTeam, error)
+	// Update AgentTeam
+	UpdateAgentTeam(context.Context, *UpdateAgentTeamRequest) (*AgentTeam, error)
+	// Remove AgentTeam
+	DeleteAgentTeam(context.Context, *DeleteAgentTeamRequest) (*AgentTeam, error)
 }
 
-// UnimplementedAgentTeamApiServer can be embedded to have forward compatible implementations.
-type UnimplementedAgentTeamApiServer struct {
+// UnimplementedAgentTeamServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedAgentTeamServiceServer struct {
 }
 
-func (*UnimplementedAgentTeamApiServer) Create(ctx context.Context, req *AgentTeam) (*AgentTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedAgentTeamServiceServer) CreateAgentTeam(ctx context.Context, req *CreateAgentTeamRequest) (*AgentTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAgentTeam not implemented")
 }
-func (*UnimplementedAgentTeamApiServer) List(ctx context.Context, req *ListRequest) (*ListAgentTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedAgentTeamServiceServer) SearchAgentTeam(ctx context.Context, req *SearchAgentTeamRequest) (*ListAgentTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAgentTeam not implemented")
 }
-func (*UnimplementedAgentTeamApiServer) Get(ctx context.Context, req *ItemRequest) (*AgentTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedAgentTeamServiceServer) ReadAgentTeam(ctx context.Context, req *ReadAgentTeamRequest) (*AgentTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadAgentTeam not implemented")
 }
-func (*UnimplementedAgentTeamApiServer) Update(ctx context.Context, req *AgentTeam) (*AgentTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedAgentTeamServiceServer) UpdateAgentTeam(ctx context.Context, req *UpdateAgentTeamRequest) (*AgentTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAgentTeam not implemented")
 }
-func (*UnimplementedAgentTeamApiServer) Remove(ctx context.Context, req *ItemRequest) (*AgentTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterAgentTeamApiServer(s *grpc.Server, srv AgentTeamApiServer) {
-	s.RegisterService(&_AgentTeamApi_serviceDesc, srv)
+func (*UnimplementedAgentTeamServiceServer) DeleteAgentTeam(ctx context.Context, req *DeleteAgentTeamRequest) (*AgentTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAgentTeam not implemented")
 }
 
-func _AgentTeamApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AgentTeam)
+func RegisterAgentTeamServiceServer(s *grpc.Server, srv AgentTeamServiceServer) {
+	s.RegisterService(&_AgentTeamService_serviceDesc, srv)
+}
+
+func _AgentTeamService_CreateAgentTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAgentTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentTeamApiServer).Create(ctx, in)
+		return srv.(AgentTeamServiceServer).CreateAgentTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentTeamApi/Create",
+		FullMethod: "/engine.AgentTeamService/CreateAgentTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentTeamApiServer).Create(ctx, req.(*AgentTeam))
+		return srv.(AgentTeamServiceServer).CreateAgentTeam(ctx, req.(*CreateAgentTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentTeamApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _AgentTeamService_SearchAgentTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchAgentTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentTeamApiServer).List(ctx, in)
+		return srv.(AgentTeamServiceServer).SearchAgentTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentTeamApi/List",
+		FullMethod: "/engine.AgentTeamService/SearchAgentTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentTeamApiServer).List(ctx, req.(*ListRequest))
+		return srv.(AgentTeamServiceServer).SearchAgentTeam(ctx, req.(*SearchAgentTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentTeamApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _AgentTeamService_ReadAgentTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadAgentTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentTeamApiServer).Get(ctx, in)
+		return srv.(AgentTeamServiceServer).ReadAgentTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentTeamApi/Get",
+		FullMethod: "/engine.AgentTeamService/ReadAgentTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentTeamApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(AgentTeamServiceServer).ReadAgentTeam(ctx, req.(*ReadAgentTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentTeamApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AgentTeam)
+func _AgentTeamService_UpdateAgentTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAgentTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentTeamApiServer).Update(ctx, in)
+		return srv.(AgentTeamServiceServer).UpdateAgentTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentTeamApi/Update",
+		FullMethod: "/engine.AgentTeamService/UpdateAgentTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentTeamApiServer).Update(ctx, req.(*AgentTeam))
+		return srv.(AgentTeamServiceServer).UpdateAgentTeam(ctx, req.(*UpdateAgentTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentTeamApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _AgentTeamService_DeleteAgentTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAgentTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentTeamApiServer).Remove(ctx, in)
+		return srv.(AgentTeamServiceServer).DeleteAgentTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentTeamApi/Remove",
+		FullMethod: "/engine.AgentTeamService/DeleteAgentTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentTeamApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(AgentTeamServiceServer).DeleteAgentTeam(ctx, req.(*DeleteAgentTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _AgentTeamApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.AgentTeamApi",
-	HandlerType: (*AgentTeamApiServer)(nil),
+var _AgentTeamService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.AgentTeamService",
+	HandlerType: (*AgentTeamServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _AgentTeamApi_Create_Handler,
+			MethodName: "CreateAgentTeam",
+			Handler:    _AgentTeamService_CreateAgentTeam_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _AgentTeamApi_List_Handler,
+			MethodName: "SearchAgentTeam",
+			Handler:    _AgentTeamService_SearchAgentTeam_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _AgentTeamApi_Get_Handler,
+			MethodName: "ReadAgentTeam",
+			Handler:    _AgentTeamService_ReadAgentTeam_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _AgentTeamApi_Update_Handler,
+			MethodName: "UpdateAgentTeam",
+			Handler:    _AgentTeamService_UpdateAgentTeam_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _AgentTeamApi_Remove_Handler,
+			MethodName: "DeleteAgentTeam",
+			Handler:    _AgentTeamService_DeleteAgentTeam_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -8,6 +8,7 @@ import (
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
 	_struct "github.com/golang/protobuf/ptypes/struct"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,6 +25,481 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
+
+type DeleteQueueRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteQueueRequest) Reset()         { *m = DeleteQueueRequest{} }
+func (m *DeleteQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteQueueRequest) ProtoMessage()    {}
+func (*DeleteQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_96e4d7d76a734cd8, []int{0}
+}
+
+func (m *DeleteQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteQueueRequest.Unmarshal(m, b)
+}
+func (m *DeleteQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteQueueRequest.Merge(m, src)
+}
+func (m *DeleteQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteQueueRequest.Size(m)
+}
+func (m *DeleteQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteQueueRequest proto.InternalMessageInfo
+
+func (m *DeleteQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *DeleteQueueRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type UpdateQueueRequest struct {
+	DomainId             int64             `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Strategy             string            `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Enabled              bool              `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Payload              *_struct.Value    `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
+	Calendar             *Lookup           `protobuf:"bytes,5,opt,name=calendar,proto3" json:"calendar,omitempty"`
+	Priority             int32             `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	MaxCalls             int32             `protobuf:"varint,7,opt,name=max_calls,json=maxCalls,proto3" json:"max_calls,omitempty"`
+	SecBetweenRetries    int32             `protobuf:"varint,8,opt,name=sec_between_retries,json=secBetweenRetries,proto3" json:"sec_between_retries,omitempty"`
+	Name                 string            `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
+	MaxOfRetry           int32             `protobuf:"varint,10,opt,name=max_of_retry,json=maxOfRetry,proto3" json:"max_of_retry,omitempty"`
+	Variables            map[string]string `protobuf:"bytes,11,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Timeout              int32             `protobuf:"varint,12,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	DncList              *Lookup           `protobuf:"bytes,13,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
+	SecLocateAgent       int32             `protobuf:"varint,14,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
+	Type                 int32             `protobuf:"varint,15,opt,name=type,proto3" json:"type,omitempty"`
+	Team                 *Lookup           `protobuf:"bytes,16,opt,name=team,proto3" json:"team,omitempty"`
+	Id                   int64             `protobuf:"varint,17,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *UpdateQueueRequest) Reset()         { *m = UpdateQueueRequest{} }
+func (m *UpdateQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateQueueRequest) ProtoMessage()    {}
+func (*UpdateQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_96e4d7d76a734cd8, []int{1}
+}
+
+func (m *UpdateQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateQueueRequest.Unmarshal(m, b)
+}
+func (m *UpdateQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateQueueRequest.Merge(m, src)
+}
+func (m *UpdateQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateQueueRequest.Size(m)
+}
+func (m *UpdateQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateQueueRequest proto.InternalMessageInfo
+
+func (m *UpdateQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+func (m *UpdateQueueRequest) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
+	}
+	return false
+}
+
+func (m *UpdateQueueRequest) GetPayload() *_struct.Value {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *UpdateQueueRequest) GetCalendar() *Lookup {
+	if m != nil {
+		return m.Calendar
+	}
+	return nil
+}
+
+func (m *UpdateQueueRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetMaxCalls() int32 {
+	if m != nil {
+		return m.MaxCalls
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetSecBetweenRetries() int32 {
+	if m != nil {
+		return m.SecBetweenRetries
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *UpdateQueueRequest) GetMaxOfRetry() int32 {
+	if m != nil {
+		return m.MaxOfRetry
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetVariables() map[string]string {
+	if m != nil {
+		return m.Variables
+	}
+	return nil
+}
+
+func (m *UpdateQueueRequest) GetTimeout() int32 {
+	if m != nil {
+		return m.Timeout
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetDncList() *Lookup {
+	if m != nil {
+		return m.DncList
+	}
+	return nil
+}
+
+func (m *UpdateQueueRequest) GetSecLocateAgent() int32 {
+	if m != nil {
+		return m.SecLocateAgent
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
+
+func (m *UpdateQueueRequest) GetTeam() *Lookup {
+	if m != nil {
+		return m.Team
+	}
+	return nil
+}
+
+func (m *UpdateQueueRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type ReadQueueRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadQueueRequest) Reset()         { *m = ReadQueueRequest{} }
+func (m *ReadQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadQueueRequest) ProtoMessage()    {}
+func (*ReadQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_96e4d7d76a734cd8, []int{2}
+}
+
+func (m *ReadQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadQueueRequest.Unmarshal(m, b)
+}
+func (m *ReadQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadQueueRequest.Merge(m, src)
+}
+func (m *ReadQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadQueueRequest.Size(m)
+}
+func (m *ReadQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadQueueRequest proto.InternalMessageInfo
+
+func (m *ReadQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *ReadQueueRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type SearchQueueRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchQueueRequest) Reset()         { *m = SearchQueueRequest{} }
+func (m *SearchQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchQueueRequest) ProtoMessage()    {}
+func (*SearchQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_96e4d7d76a734cd8, []int{3}
+}
+
+func (m *SearchQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchQueueRequest.Unmarshal(m, b)
+}
+func (m *SearchQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchQueueRequest.Merge(m, src)
+}
+func (m *SearchQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchQueueRequest.Size(m)
+}
+func (m *SearchQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchQueueRequest proto.InternalMessageInfo
+
+func (m *SearchQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchQueueRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchQueueRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateQueueRequest struct {
+	DomainId             int64             `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Strategy             string            `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Enabled              bool              `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Payload              *_struct.Value    `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
+	Calendar             *Lookup           `protobuf:"bytes,5,opt,name=calendar,proto3" json:"calendar,omitempty"`
+	Priority             int32             `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	MaxCalls             int32             `protobuf:"varint,7,opt,name=max_calls,json=maxCalls,proto3" json:"max_calls,omitempty"`
+	SecBetweenRetries    int32             `protobuf:"varint,8,opt,name=sec_between_retries,json=secBetweenRetries,proto3" json:"sec_between_retries,omitempty"`
+	Name                 string            `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
+	MaxOfRetry           int32             `protobuf:"varint,10,opt,name=max_of_retry,json=maxOfRetry,proto3" json:"max_of_retry,omitempty"`
+	Variables            map[string]string `protobuf:"bytes,11,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Timeout              int32             `protobuf:"varint,12,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	DncList              *Lookup           `protobuf:"bytes,13,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
+	SecLocateAgent       int32             `protobuf:"varint,14,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
+	Type                 int32             `protobuf:"varint,15,opt,name=type,proto3" json:"type,omitempty"`
+	Team                 *Lookup           `protobuf:"bytes,16,opt,name=team,proto3" json:"team,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *CreateQueueRequest) Reset()         { *m = CreateQueueRequest{} }
+func (m *CreateQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateQueueRequest) ProtoMessage()    {}
+func (*CreateQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_96e4d7d76a734cd8, []int{4}
+}
+
+func (m *CreateQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateQueueRequest.Unmarshal(m, b)
+}
+func (m *CreateQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateQueueRequest.Merge(m, src)
+}
+func (m *CreateQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateQueueRequest.Size(m)
+}
+func (m *CreateQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateQueueRequest proto.InternalMessageInfo
+
+func (m *CreateQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+func (m *CreateQueueRequest) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
+	}
+	return false
+}
+
+func (m *CreateQueueRequest) GetPayload() *_struct.Value {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *CreateQueueRequest) GetCalendar() *Lookup {
+	if m != nil {
+		return m.Calendar
+	}
+	return nil
+}
+
+func (m *CreateQueueRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetMaxCalls() int32 {
+	if m != nil {
+		return m.MaxCalls
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetSecBetweenRetries() int32 {
+	if m != nil {
+		return m.SecBetweenRetries
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *CreateQueueRequest) GetMaxOfRetry() int32 {
+	if m != nil {
+		return m.MaxOfRetry
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetVariables() map[string]string {
+	if m != nil {
+		return m.Variables
+	}
+	return nil
+}
+
+func (m *CreateQueueRequest) GetTimeout() int32 {
+	if m != nil {
+		return m.Timeout
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetDncList() *Lookup {
+	if m != nil {
+		return m.DncList
+	}
+	return nil
+}
+
+func (m *CreateQueueRequest) GetSecLocateAgent() int32 {
+	if m != nil {
+		return m.SecLocateAgent
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
+
+func (m *CreateQueueRequest) GetTeam() *Lookup {
+	if m != nil {
+		return m.Team
+	}
+	return nil
+}
 
 type Queue struct {
 	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -56,7 +532,7 @@ func (m *Queue) Reset()         { *m = Queue{} }
 func (m *Queue) String() string { return proto.CompactTextString(m) }
 func (*Queue) ProtoMessage()    {}
 func (*Queue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{0}
+	return fileDescriptor_96e4d7d76a734cd8, []int{5}
 }
 
 func (m *Queue) XXX_Unmarshal(b []byte) error {
@@ -235,7 +711,7 @@ func (m *ListQueue) Reset()         { *m = ListQueue{} }
 func (m *ListQueue) String() string { return proto.CompactTextString(m) }
 func (*ListQueue) ProtoMessage()    {}
 func (*ListQueue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{1}
+	return fileDescriptor_96e4d7d76a734cd8, []int{6}
 }
 
 func (m *ListQueue) XXX_Unmarshal(b []byte) error {
@@ -264,6 +740,13 @@ func (m *ListQueue) GetItems() []*Queue {
 }
 
 func init() {
+	proto.RegisterType((*DeleteQueueRequest)(nil), "engine.DeleteQueueRequest")
+	proto.RegisterType((*UpdateQueueRequest)(nil), "engine.UpdateQueueRequest")
+	proto.RegisterMapType((map[string]string)(nil), "engine.UpdateQueueRequest.VariablesEntry")
+	proto.RegisterType((*ReadQueueRequest)(nil), "engine.ReadQueueRequest")
+	proto.RegisterType((*SearchQueueRequest)(nil), "engine.SearchQueueRequest")
+	proto.RegisterType((*CreateQueueRequest)(nil), "engine.CreateQueueRequest")
+	proto.RegisterMapType((map[string]string)(nil), "engine.CreateQueueRequest.VariablesEntry")
 	proto.RegisterType((*Queue)(nil), "engine.Queue")
 	proto.RegisterMapType((map[string]string)(nil), "engine.Queue.VariablesEntry")
 	proto.RegisterType((*ListQueue)(nil), "engine.ListQueue")
@@ -272,46 +755,62 @@ func init() {
 func init() { proto.RegisterFile("queue.proto", fileDescriptor_96e4d7d76a734cd8) }
 
 var fileDescriptor_96e4d7d76a734cd8 = []byte{
-	// 609 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x53, 0x5d, 0x6b, 0xd4, 0x40,
-	0x14, 0x35, 0xfb, 0x91, 0x4d, 0xee, 0xb6, 0x6b, 0x3b, 0xad, 0x32, 0xac, 0x15, 0xc2, 0xfa, 0x12,
-	0x15, 0xd3, 0x52, 0x5f, 0xa4, 0xf8, 0xd2, 0x16, 0x91, 0x42, 0x41, 0x0c, 0xd8, 0xd7, 0x30, 0x9b,
-	0xdc, 0x2e, 0x43, 0x93, 0x4c, 0x9a, 0x99, 0xd4, 0xcd, 0xff, 0xf1, 0xef, 0xf9, 0x1f, 0x64, 0x66,
-	0x36, 0xdb, 0x2e, 0x2e, 0xe8, 0x5b, 0xce, 0x39, 0xf7, 0x9e, 0xb9, 0xf7, 0x64, 0x06, 0xc6, 0xf7,
-	0x0d, 0x36, 0x18, 0x55, 0xb5, 0x50, 0x82, 0xb8, 0x58, 0x2e, 0x78, 0x89, 0xd3, 0x71, 0x2a, 0x4a,
-	0xa9, 0x2c, 0x39, 0x3d, 0x5a, 0x08, 0xb1, 0xc8, 0xf1, 0xd8, 0xa0, 0x79, 0x73, 0x7b, 0x2c, 0x55,
-	0xdd, 0xa4, 0x2b, 0x75, 0xf6, 0xcb, 0x85, 0xe1, 0x77, 0x6d, 0x41, 0x26, 0xd0, 0xe3, 0x19, 0x75,
-	0x02, 0x27, 0xec, 0xc7, 0x3d, 0x9e, 0x91, 0x57, 0xe0, 0x67, 0xa2, 0x60, 0xbc, 0x4c, 0x78, 0x46,
-	0x7b, 0x86, 0xf6, 0x2c, 0x71, 0x95, 0x91, 0xd7, 0x00, 0x69, 0x8d, 0x4c, 0x61, 0x96, 0x30, 0x45,
-	0xfb, 0x46, 0xf5, 0x57, 0xcc, 0xb9, 0x22, 0x1f, 0x1e, 0xe5, 0x79, 0x4b, 0x07, 0x81, 0x13, 0x8e,
-	0x4f, 0x27, 0x91, 0x9d, 0x2e, 0xba, 0x16, 0xe2, 0xae, 0xa9, 0xd6, 0xe5, 0x17, 0xad, 0x76, 0x6b,
-	0xaa, 0xac, 0x73, 0x1b, 0x5a, 0xb7, 0x15, 0x63, 0xdd, 0x3a, 0x79, 0xde, 0x52, 0x77, 0xbb, 0xdb,
-	0xaa, 0xe2, 0xa2, 0x25, 0x53, 0xf0, 0xa4, 0xaa, 0x99, 0xc2, 0x45, 0x4b, 0x47, 0x81, 0x13, 0xfa,
-	0xf1, 0x1a, 0x13, 0x0a, 0x23, 0x2c, 0xd9, 0x3c, 0xc7, 0x8c, 0x7a, 0x81, 0x13, 0x7a, 0x71, 0x07,
-	0xc9, 0x09, 0x8c, 0x2a, 0xd6, 0xe6, 0x82, 0x65, 0xd4, 0x37, 0x27, 0xbc, 0x8c, 0x6c, 0x70, 0x51,
-	0x17, 0x5c, 0x74, 0xc3, 0xf2, 0x06, 0xe3, 0xae, 0x8c, 0xbc, 0x03, 0x2f, 0x65, 0x39, 0x96, 0x19,
-	0xab, 0x29, 0x6c, 0x1d, 0x6a, 0xad, 0xeb, 0x99, 0xaa, 0x9a, 0x8b, 0x9a, 0xab, 0x96, 0x8e, 0x03,
-	0x27, 0x1c, 0xc6, 0x6b, 0xac, 0x83, 0x2e, 0xd8, 0x32, 0x49, 0x59, 0x9e, 0x4b, 0xba, 0x63, 0xc5,
-	0x82, 0x2d, 0x2f, 0x35, 0x26, 0x11, 0x1c, 0x48, 0x4c, 0x93, 0x39, 0xaa, 0x9f, 0x88, 0x65, 0x52,
-	0xa3, 0xaa, 0x39, 0x4a, 0xba, 0x6b, 0xca, 0xf6, 0x25, 0xa6, 0x17, 0x56, 0x89, 0xad, 0x40, 0x08,
-	0x0c, 0x4a, 0x56, 0x20, 0x9d, 0x98, 0xc5, 0xcd, 0x37, 0x09, 0x60, 0x47, 0x1f, 0x20, 0x6e, 0x4d,
-	0x7b, 0x4b, 0x9f, 0x9b, 0x66, 0x28, 0xd8, 0xf2, 0xdb, 0xad, 0xee, 0x6b, 0xc9, 0x19, 0xf8, 0x0f,
-	0xac, 0xe6, 0x3a, 0x09, 0x49, 0xf7, 0x82, 0x7e, 0x38, 0x3e, 0x3d, 0xea, 0x76, 0x31, 0xb7, 0x23,
-	0xba, 0xe9, 0xe4, 0x2f, 0xa5, 0xaa, 0xdb, 0xf8, 0xb1, 0x5c, 0x47, 0xaa, 0x78, 0x81, 0xa2, 0x51,
-	0x74, 0xdf, 0x18, 0x77, 0x90, 0xbc, 0x05, 0x2f, 0x2b, 0xd3, 0x24, 0xe7, 0x52, 0x51, 0xb2, 0x35,
-	0xa0, 0x51, 0x56, 0xa6, 0xd7, 0x5c, 0x2a, 0x12, 0xc2, 0x9e, 0x5e, 0x33, 0x17, 0x29, 0x53, 0x98,
-	0xb0, 0x05, 0x96, 0x8a, 0x1e, 0x18, 0xb7, 0x89, 0xc4, 0xf4, 0xda, 0xd0, 0xe7, 0x9a, 0xd5, 0x0b,
-	0xaa, 0xb6, 0x42, 0x7a, 0x68, 0x54, 0xf3, 0x4d, 0x66, 0x30, 0x50, 0xc8, 0x0a, 0xfa, 0x62, 0xeb,
-	0x21, 0x46, 0x9b, 0x7e, 0x86, 0xc9, 0xe6, 0x0e, 0x64, 0x0f, 0xfa, 0x77, 0xd8, 0x9a, 0x1b, 0xef,
-	0xc7, 0xfa, 0x93, 0x1c, 0xc2, 0xf0, 0x41, 0xff, 0x63, 0x73, 0xdd, 0xfd, 0xd8, 0x82, 0xb3, 0xde,
-	0x27, 0x67, 0x76, 0x02, 0xbe, 0x9e, 0xd3, 0xbe, 0x94, 0x37, 0x30, 0xe4, 0x0a, 0x0b, 0x49, 0x1d,
-	0x93, 0xd4, 0xee, 0x46, 0x52, 0xb1, 0xd5, 0x4e, 0x7f, 0x3b, 0xe0, 0x19, 0xe2, 0xbc, 0xe2, 0x24,
-	0x04, 0xf7, 0xd2, 0xdc, 0x76, 0xb2, 0x59, 0x3c, 0xdd, 0x84, 0xb3, 0x67, 0xe4, 0x04, 0x06, 0x26,
-	0x90, 0x83, 0xf5, 0x12, 0x5c, 0xaa, 0x18, 0xef, 0x1b, 0x94, 0x6a, 0xba, 0xff, 0x94, 0xec, 0x3a,
-	0xde, 0x43, 0xff, 0x2b, 0x3e, 0x69, 0xb8, 0x52, 0x58, 0x74, 0x0d, 0x7f, 0xd9, 0x87, 0xe0, 0xfe,
-	0x30, 0x0f, 0xe5, 0x9f, 0x83, 0x44, 0xe0, 0xc6, 0x58, 0x88, 0x07, 0xfc, 0x3f, 0xe7, 0xb9, 0x6b,
-	0x9e, 0xc9, 0xc7, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xb4, 0xdb, 0xa2, 0xcc, 0x91, 0x04, 0x00,
-	0x00,
+	// 872 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xef, 0x6a, 0x24, 0x45,
+	0x10, 0x67, 0x76, 0x33, 0xd9, 0x9d, 0x9a, 0x64, 0x6f, 0xd3, 0xb9, 0x93, 0x66, 0xee, 0x4e, 0x96,
+	0xbd, 0x2f, 0x7b, 0x01, 0x77, 0x8f, 0xf8, 0x45, 0x82, 0x20, 0xc9, 0x29, 0x22, 0x04, 0xc4, 0x39,
+	0x0c, 0x9e, 0x20, 0x4b, 0xef, 0x4c, 0x65, 0x6d, 0x6e, 0x76, 0x66, 0x32, 0xdd, 0x13, 0x33, 0x8a,
+	0x5f, 0x7c, 0x04, 0x7d, 0x03, 0xf1, 0x8d, 0x04, 0x9f, 0xc0, 0x07, 0x91, 0xae, 0xd9, 0xd9, 0xff,
+	0x1b, 0x13, 0x45, 0x44, 0xf0, 0x5b, 0x57, 0x55, 0xd7, 0xaf, 0xab, 0x8a, 0xdf, 0xaf, 0xbb, 0xc1,
+	0xbd, 0xca, 0x31, 0xc7, 0x7e, 0x9a, 0x25, 0x3a, 0x61, 0xbb, 0x18, 0x8f, 0x65, 0x8c, 0x9e, 0x1b,
+	0x24, 0xb1, 0xd2, 0xa5, 0xd3, 0x7b, 0x32, 0x4e, 0x92, 0x71, 0x84, 0x03, 0xb2, 0x46, 0xf9, 0xe5,
+	0x40, 0xe9, 0x2c, 0x0f, 0x56, 0xa3, 0x22, 0x95, 0x03, 0x11, 0xc7, 0x89, 0x16, 0x5a, 0x26, 0xb1,
+	0x2a, 0xa3, 0xdd, 0x53, 0x60, 0x1f, 0x62, 0x84, 0x1a, 0x3f, 0x33, 0xa7, 0xf8, 0x78, 0x95, 0xa3,
+	0xd2, 0xec, 0x31, 0x38, 0x61, 0x32, 0x11, 0x32, 0x1e, 0xca, 0x90, 0x5b, 0x1d, 0xab, 0x57, 0xf7,
+	0x9b, 0xa5, 0xe3, 0x93, 0x90, 0xb5, 0xa0, 0x26, 0x43, 0x5e, 0x23, 0x6f, 0x4d, 0x86, 0xdd, 0x9f,
+	0x6d, 0x60, 0x9f, 0xa7, 0xa1, 0xb8, 0x0f, 0x86, 0x07, 0x4d, 0xa5, 0x33, 0xa1, 0x71, 0x5c, 0x10,
+	0x92, 0xe3, 0xcf, 0x6c, 0xc6, 0xa1, 0x81, 0xb1, 0x18, 0x45, 0x18, 0xf2, 0x7a, 0xc7, 0xea, 0x35,
+	0xfd, 0xca, 0x64, 0x2f, 0xa0, 0x91, 0x8a, 0x22, 0x4a, 0x44, 0xc8, 0x77, 0x3a, 0x56, 0xcf, 0x3d,
+	0x7e, 0xab, 0x5f, 0x36, 0xd7, 0xaf, 0x5a, 0xef, 0x5f, 0x88, 0x28, 0x47, 0xbf, 0xda, 0xc6, 0x8e,
+	0xa0, 0x19, 0x88, 0x08, 0xe3, 0x50, 0x64, 0xdc, 0xa6, 0x94, 0x56, 0xbf, 0x1c, 0x61, 0xff, 0x3c,
+	0x49, 0xde, 0xe4, 0xa9, 0x3f, 0x8b, 0x9b, 0x9a, 0xd2, 0x4c, 0x26, 0x99, 0xd4, 0x05, 0xdf, 0xed,
+	0x58, 0x3d, 0xdb, 0x9f, 0xd9, 0xa6, 0x99, 0x89, 0xb8, 0x19, 0x06, 0x22, 0x8a, 0x14, 0x6f, 0x94,
+	0xc1, 0x89, 0xb8, 0x79, 0x69, 0x6c, 0xd6, 0x87, 0x43, 0x85, 0xc1, 0x70, 0x84, 0xfa, 0x1b, 0xc4,
+	0x78, 0x98, 0xa1, 0xce, 0x24, 0x2a, 0xde, 0xa4, 0x6d, 0x07, 0x0a, 0x83, 0xb3, 0x32, 0xe2, 0x97,
+	0x01, 0xc6, 0x60, 0x27, 0x16, 0x13, 0xe4, 0x0e, 0x35, 0x4e, 0x6b, 0xd6, 0x81, 0x3d, 0x73, 0x40,
+	0x72, 0x49, 0xe9, 0x05, 0x07, 0x4a, 0x86, 0x89, 0xb8, 0xf9, 0xf4, 0xd2, 0xe4, 0x15, 0xec, 0x63,
+	0x70, 0xae, 0x45, 0x26, 0xcd, 0x24, 0x14, 0x77, 0x3b, 0xf5, 0x9e, 0x7b, 0xfc, 0xbc, 0xea, 0x65,
+	0x7d, 0xfc, 0xfd, 0x8b, 0x6a, 0xef, 0x47, 0xb1, 0xce, 0x0a, 0x7f, 0x9e, 0x6b, 0xe6, 0xab, 0xe5,
+	0x04, 0x93, 0x5c, 0xf3, 0x3d, 0x3a, 0xa5, 0x32, 0xd9, 0x73, 0x68, 0x86, 0x71, 0x30, 0x8c, 0xa4,
+	0xd2, 0x7c, 0x7f, 0xe3, 0xb4, 0x1a, 0x61, 0x1c, 0x9c, 0x4b, 0xa5, 0x59, 0x0f, 0xda, 0xa6, 0xe7,
+	0x28, 0x09, 0x84, 0xc6, 0xa1, 0x18, 0x63, 0xac, 0x79, 0x8b, 0xd0, 0x5a, 0x0a, 0x83, 0x73, 0x72,
+	0x9f, 0x1a, 0xaf, 0xe9, 0x56, 0x17, 0x29, 0xf2, 0x07, 0x14, 0xa5, 0x35, 0xeb, 0xc2, 0x8e, 0x46,
+	0x31, 0xe1, 0xed, 0x8d, 0x87, 0x50, 0x6c, 0x4a, 0xb3, 0x83, 0x8a, 0x66, 0xde, 0xfb, 0xd0, 0x5a,
+	0xee, 0x89, 0xb5, 0xa1, 0xfe, 0x06, 0x0b, 0xe2, 0x96, 0xe3, 0x9b, 0x25, 0x7b, 0x08, 0xf6, 0xb5,
+	0x21, 0xc0, 0x94, 0x53, 0xa5, 0x71, 0x52, 0x7b, 0xcf, 0xea, 0x7e, 0x00, 0x6d, 0x1f, 0x45, 0xf8,
+	0xd7, 0x59, 0xfe, 0x1a, 0xd8, 0x2b, 0x14, 0x59, 0xf0, 0xf5, 0xdd, 0x21, 0x18, 0xec, 0x28, 0xf9,
+	0x6d, 0x59, 0x8c, 0xed, 0xd3, 0xda, 0xf8, 0x52, 0x31, 0x46, 0x62, 0xb6, 0xed, 0xd3, 0xba, 0xfb,
+	0xa3, 0x0d, 0xec, 0x65, 0x86, 0xff, 0x0b, 0xe8, 0xdf, 0x13, 0xd0, 0xfa, 0xf8, 0xff, 0xf3, 0x02,
+	0xfa, 0x9b, 0x82, 0xf9, 0x65, 0x17, 0x6c, 0x9a, 0xc7, 0x54, 0x09, 0x56, 0xa5, 0x84, 0x65, 0x5e,
+	0xd6, 0x56, 0x78, 0xf9, 0x14, 0x20, 0xa0, 0x59, 0x86, 0x43, 0xa1, 0x89, 0x7e, 0x75, 0xdf, 0x99,
+	0x7a, 0x4e, 0x35, 0x7b, 0x67, 0x1e, 0x1e, 0x15, 0x53, 0x0e, 0xae, 0x56, 0x5f, 0x6d, 0x3f, 0x2b,
+	0x0c, 0x5a, 0x4e, 0x57, 0x1b, 0xa1, 0xd9, 0x25, 0xda, 0xd4, 0x53, 0xa2, 0x55, 0xe1, 0x51, 0x49,
+	0xb9, 0x0d, 0x68, 0xd3, 0x1d, 0x67, 0xc5, 0x92, 0x66, 0x1a, 0xdb, 0x35, 0xd3, 0xdc, 0xaa, 0x19,
+	0xe7, 0xfe, 0x9a, 0x81, 0x7b, 0x68, 0xc6, 0xbd, 0x4d, 0x33, 0x7b, 0x77, 0xd3, 0xcc, 0xfe, 0x9f,
+	0x69, 0xa6, 0x75, 0x8b, 0x66, 0x1e, 0xac, 0x69, 0xe6, 0x64, 0x51, 0x33, 0x6d, 0xd2, 0xcc, 0x93,
+	0xaa, 0x17, 0x62, 0xc7, 0xdd, 0x64, 0x72, 0xb0, 0x5d, 0x26, 0xec, 0xfe, 0x32, 0x39, 0xbc, 0x55,
+	0x26, 0x0f, 0x37, 0xc8, 0xe4, 0xd1, 0x3f, 0x26, 0x93, 0x17, 0xe0, 0x98, 0x3a, 0x4b, 0xa5, 0x3c,
+	0x03, 0x5b, 0x6a, 0x9c, 0x28, 0x6e, 0xd1, 0xa4, 0xf6, 0x97, 0x26, 0xe5, 0x97, 0xb1, 0xe3, 0xdf,
+	0xea, 0xb0, 0x47, 0x8e, 0x57, 0x98, 0x5d, 0xcb, 0x00, 0xd9, 0x17, 0xe0, 0x2e, 0x5c, 0x3f, 0xcc,
+	0xdb, 0x7e, 0x27, 0x79, 0xcb, 0x88, 0xdd, 0xb7, 0x7f, 0xf8, 0xf5, 0xf7, 0x9f, 0x6a, 0xbc, 0x7b,
+	0x38, 0x30, 0x1c, 0x19, 0x06, 0x18, 0x6b, 0xcc, 0x06, 0xf4, 0x5f, 0x54, 0x27, 0xd6, 0x11, 0x7b,
+	0x0d, 0xee, 0xc2, 0x9b, 0x35, 0x47, 0x5e, 0x7f, 0xc8, 0xbc, 0x83, 0xd9, 0x6c, 0xaa, 0x6e, 0xba,
+	0x8f, 0x09, 0xfd, 0x11, 0xdb, 0x84, 0xce, 0x2e, 0xc0, 0x99, 0xbd, 0xa7, 0x8c, 0x57, 0xc9, 0xab,
+	0x4f, 0xec, 0x6a, 0xc1, 0x1d, 0x82, 0xf4, 0x18, 0xdf, 0x00, 0x39, 0xf8, 0x4e, 0x86, 0xdf, 0xb3,
+	0xaf, 0xc0, 0x5d, 0xf8, 0xcc, 0xcc, 0x4b, 0x5e, 0xff, 0xe1, 0xac, 0x62, 0x3f, 0x23, 0xec, 0xa7,
+	0xde, 0x56, 0x6c, 0x33, 0x91, 0x2f, 0xc1, 0x5d, 0xf8, 0xee, 0xce, 0xe1, 0xd7, 0xff, 0xc0, 0x5b,
+	0x4a, 0x3f, 0xda, 0x0a, 0x3f, 0xda, 0xa5, 0xfb, 0xe0, 0xdd, 0x3f, 0x02, 0x00, 0x00, 0xff, 0xff,
+	0x75, 0xa3, 0x45, 0x22, 0xb1, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -322,226 +821,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// QueueApiClient is the client API for QueueApi service.
+// QueueServiceClient is the client API for QueueService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type QueueApiClient interface {
-	// POST /call_center/queue
-	Create(ctx context.Context, in *Queue, opts ...grpc.CallOption) (*Queue, error)
-	// GET /call_center/queue
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListQueue, error)
-	// GET /call_center/queue/:id
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Queue, error)
-	// PUT /call_center/queue/:id
-	Update(ctx context.Context, in *Queue, opts ...grpc.CallOption) (*Queue, error)
-	// DELETE /call_center/queue/:id
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Queue, error)
+type QueueServiceClient interface {
+	// Create Queue
+	CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*Queue, error)
+	// List of Queue
+	SearchQueue(ctx context.Context, in *SearchQueueRequest, opts ...grpc.CallOption) (*ListQueue, error)
+	// Queue item
+	ReadQueue(ctx context.Context, in *ReadQueueRequest, opts ...grpc.CallOption) (*Queue, error)
+	// Update Queue
+	UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*Queue, error)
+	// Remove Queue
+	DeleteQueue(ctx context.Context, in *DeleteQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 }
 
-type queueApiClient struct {
+type queueServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewQueueApiClient(cc *grpc.ClientConn) QueueApiClient {
-	return &queueApiClient{cc}
+func NewQueueServiceClient(cc *grpc.ClientConn) QueueServiceClient {
+	return &queueServiceClient{cc}
 }
 
-func (c *queueApiClient) Create(ctx context.Context, in *Queue, opts ...grpc.CallOption) (*Queue, error) {
+func (c *queueServiceClient) CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
-	err := c.cc.Invoke(ctx, "/engine.QueueApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.QueueService/CreateQueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queueApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListQueue, error) {
+func (c *queueServiceClient) SearchQueue(ctx context.Context, in *SearchQueueRequest, opts ...grpc.CallOption) (*ListQueue, error) {
 	out := new(ListQueue)
-	err := c.cc.Invoke(ctx, "/engine.QueueApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.QueueService/SearchQueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queueApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Queue, error) {
+func (c *queueServiceClient) ReadQueue(ctx context.Context, in *ReadQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
-	err := c.cc.Invoke(ctx, "/engine.QueueApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.QueueService/ReadQueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queueApiClient) Update(ctx context.Context, in *Queue, opts ...grpc.CallOption) (*Queue, error) {
+func (c *queueServiceClient) UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
-	err := c.cc.Invoke(ctx, "/engine.QueueApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.QueueService/UpdateQueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queueApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*Queue, error) {
+func (c *queueServiceClient) DeleteQueue(ctx context.Context, in *DeleteQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
-	err := c.cc.Invoke(ctx, "/engine.QueueApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.QueueService/DeleteQueue", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// QueueApiServer is the server API for QueueApi service.
-type QueueApiServer interface {
-	// POST /call_center/queue
-	Create(context.Context, *Queue) (*Queue, error)
-	// GET /call_center/queue
-	List(context.Context, *ListRequest) (*ListQueue, error)
-	// GET /call_center/queue/:id
-	Get(context.Context, *ItemRequest) (*Queue, error)
-	// PUT /call_center/queue/:id
-	Update(context.Context, *Queue) (*Queue, error)
-	// DELETE /call_center/queue/:id
-	Remove(context.Context, *ItemRequest) (*Queue, error)
+// QueueServiceServer is the server API for QueueService service.
+type QueueServiceServer interface {
+	// Create Queue
+	CreateQueue(context.Context, *CreateQueueRequest) (*Queue, error)
+	// List of Queue
+	SearchQueue(context.Context, *SearchQueueRequest) (*ListQueue, error)
+	// Queue item
+	ReadQueue(context.Context, *ReadQueueRequest) (*Queue, error)
+	// Update Queue
+	UpdateQueue(context.Context, *UpdateQueueRequest) (*Queue, error)
+	// Remove Queue
+	DeleteQueue(context.Context, *DeleteQueueRequest) (*Queue, error)
 }
 
-// UnimplementedQueueApiServer can be embedded to have forward compatible implementations.
-type UnimplementedQueueApiServer struct {
+// UnimplementedQueueServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedQueueServiceServer struct {
 }
 
-func (*UnimplementedQueueApiServer) Create(ctx context.Context, req *Queue) (*Queue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedQueueServiceServer) CreateQueue(ctx context.Context, req *CreateQueueRequest) (*Queue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateQueue not implemented")
 }
-func (*UnimplementedQueueApiServer) List(ctx context.Context, req *ListRequest) (*ListQueue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedQueueServiceServer) SearchQueue(ctx context.Context, req *SearchQueueRequest) (*ListQueue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchQueue not implemented")
 }
-func (*UnimplementedQueueApiServer) Get(ctx context.Context, req *ItemRequest) (*Queue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedQueueServiceServer) ReadQueue(ctx context.Context, req *ReadQueueRequest) (*Queue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadQueue not implemented")
 }
-func (*UnimplementedQueueApiServer) Update(ctx context.Context, req *Queue) (*Queue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedQueueServiceServer) UpdateQueue(ctx context.Context, req *UpdateQueueRequest) (*Queue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateQueue not implemented")
 }
-func (*UnimplementedQueueApiServer) Remove(ctx context.Context, req *ItemRequest) (*Queue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterQueueApiServer(s *grpc.Server, srv QueueApiServer) {
-	s.RegisterService(&_QueueApi_serviceDesc, srv)
+func (*UnimplementedQueueServiceServer) DeleteQueue(ctx context.Context, req *DeleteQueueRequest) (*Queue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteQueue not implemented")
 }
 
-func _QueueApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Queue)
+func RegisterQueueServiceServer(s *grpc.Server, srv QueueServiceServer) {
+	s.RegisterService(&_QueueService_serviceDesc, srv)
+}
+
+func _QueueService_CreateQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateQueueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueueApiServer).Create(ctx, in)
+		return srv.(QueueServiceServer).CreateQueue(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.QueueApi/Create",
+		FullMethod: "/engine.QueueService/CreateQueue",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueApiServer).Create(ctx, req.(*Queue))
+		return srv.(QueueServiceServer).CreateQueue(ctx, req.(*CreateQueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _QueueApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _QueueService_SearchQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchQueueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueueApiServer).List(ctx, in)
+		return srv.(QueueServiceServer).SearchQueue(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.QueueApi/List",
+		FullMethod: "/engine.QueueService/SearchQueue",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueApiServer).List(ctx, req.(*ListRequest))
+		return srv.(QueueServiceServer).SearchQueue(ctx, req.(*SearchQueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _QueueApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _QueueService_ReadQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadQueueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueueApiServer).Get(ctx, in)
+		return srv.(QueueServiceServer).ReadQueue(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.QueueApi/Get",
+		FullMethod: "/engine.QueueService/ReadQueue",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(QueueServiceServer).ReadQueue(ctx, req.(*ReadQueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _QueueApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Queue)
+func _QueueService_UpdateQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateQueueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueueApiServer).Update(ctx, in)
+		return srv.(QueueServiceServer).UpdateQueue(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.QueueApi/Update",
+		FullMethod: "/engine.QueueService/UpdateQueue",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueApiServer).Update(ctx, req.(*Queue))
+		return srv.(QueueServiceServer).UpdateQueue(ctx, req.(*UpdateQueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _QueueApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _QueueService_DeleteQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteQueueRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueueApiServer).Remove(ctx, in)
+		return srv.(QueueServiceServer).DeleteQueue(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.QueueApi/Remove",
+		FullMethod: "/engine.QueueService/DeleteQueue",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(QueueServiceServer).DeleteQueue(ctx, req.(*DeleteQueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _QueueApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.QueueApi",
-	HandlerType: (*QueueApiServer)(nil),
+var _QueueService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.QueueService",
+	HandlerType: (*QueueServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _QueueApi_Create_Handler,
+			MethodName: "CreateQueue",
+			Handler:    _QueueService_CreateQueue_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _QueueApi_List_Handler,
+			MethodName: "SearchQueue",
+			Handler:    _QueueService_SearchQueue_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _QueueApi_Get_Handler,
+			MethodName: "ReadQueue",
+			Handler:    _QueueService_ReadQueue_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _QueueApi_Update_Handler,
+			MethodName: "UpdateQueue",
+			Handler:    _QueueService_UpdateQueue_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _QueueApi_Remove_Handler,
+			MethodName: "DeleteQueue",
+			Handler:    _QueueService_DeleteQueue_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,20 +1,71 @@
 syntax = "proto3";
 
-import "const.proto";
+import "google/api/annotations.proto";
 
 package engine;
 
-service RoutingVariableApi {
-    // POST /routing/variable
-    rpc Create(RoutingVariable) returns (RoutingVariable) {}
-    // GET /routing/variable?size=10&page=0
-    rpc List(ListRequest) returns (ListRoutingVariable) {}
-    // GET /routing/variable/:ID
-    rpc Get(ItemRequest) returns (RoutingVariable) {}
-    // PUT /routing/variable/:ID
-    rpc Update(RoutingVariable) returns (RoutingVariable) {}
-    // DELETE /routing/variable/:ID
-    rpc Remove(ItemRequest) returns (RoutingVariable) {}
+service RoutingVariableService {
+    // Create RoutingVariable
+    rpc CreateRoutingVariable(CreateRoutingVariableRequest) returns (RoutingVariable) {
+        option (google.api.http) = {
+            post: "/routing/variables"
+            body: "*"
+        };
+    }
+    // List of RoutingVariable
+    rpc SearchRoutingVariable(SearchRoutingVariableRequest) returns (ListRoutingVariable) {
+        option (google.api.http) = {
+            get: "/routing/variables"
+        };
+    }
+    // RoutingVariable item
+    rpc ReadRoutingVariable(ReadRoutingVariableRequest) returns (RoutingVariable) {
+        option (google.api.http) = {
+            get: "/routing/variables/{id}"
+        };
+    }
+    // Update RoutingVariable
+    rpc UpdateRoutingVariable(UpdateRoutingVariableRequest) returns (RoutingVariable) {
+        option (google.api.http) = {
+            put: "/routing/variables/{id}"
+            body: "*"
+        };
+    }
+    // Remove RoutingVariable
+    rpc DeleteRoutingVariable(DeleteRoutingVariableRequest) returns (RoutingVariable) {
+        option (google.api.http) = {
+            delete: "/routing/variables/{id}"
+        };
+    }
+}
+
+message DeleteRoutingVariableRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateRoutingVariableRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string key = 3;
+    string value = 4;
+}
+
+message ReadRoutingVariableRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message CreateRoutingVariableRequest {
+    int64 domain_id = 1;
+    string key = 2;
+    string value = 3;
+}
+
+message SearchRoutingVariableRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
 }
 
 message RoutingVariable {

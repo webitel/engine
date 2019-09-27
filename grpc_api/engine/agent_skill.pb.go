@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,10 +25,207 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type UpdateAgentSkillRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	AgentId              int64    `protobuf:"varint,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,4,opt,name=skill,proto3" json:"skill,omitempty"`
+	Capacity             int32    `protobuf:"varint,5,opt,name=capacity,proto3" json:"capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateAgentSkillRequest) Reset()         { *m = UpdateAgentSkillRequest{} }
+func (m *UpdateAgentSkillRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateAgentSkillRequest) ProtoMessage()    {}
+func (*UpdateAgentSkillRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{0}
+}
+
+func (m *UpdateAgentSkillRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateAgentSkillRequest.Unmarshal(m, b)
+}
+func (m *UpdateAgentSkillRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateAgentSkillRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateAgentSkillRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateAgentSkillRequest.Merge(m, src)
+}
+func (m *UpdateAgentSkillRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateAgentSkillRequest.Size(m)
+}
+func (m *UpdateAgentSkillRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateAgentSkillRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateAgentSkillRequest proto.InternalMessageInfo
+
+func (m *UpdateAgentSkillRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateAgentSkillRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateAgentSkillRequest) GetAgentId() int64 {
+	if m != nil {
+		return m.AgentId
+	}
+	return 0
+}
+
+func (m *UpdateAgentSkillRequest) GetSkill() *Lookup {
+	if m != nil {
+		return m.Skill
+	}
+	return nil
+}
+
+func (m *UpdateAgentSkillRequest) GetCapacity() int32 {
+	if m != nil {
+		return m.Capacity
+	}
+	return 0
+}
+
+type SearchAgentSkillRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	AgentId              int64    `protobuf:"varint,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchAgentSkillRequest) Reset()         { *m = SearchAgentSkillRequest{} }
+func (m *SearchAgentSkillRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchAgentSkillRequest) ProtoMessage()    {}
+func (*SearchAgentSkillRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{1}
+}
+
+func (m *SearchAgentSkillRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchAgentSkillRequest.Unmarshal(m, b)
+}
+func (m *SearchAgentSkillRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchAgentSkillRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchAgentSkillRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchAgentSkillRequest.Merge(m, src)
+}
+func (m *SearchAgentSkillRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchAgentSkillRequest.Size(m)
+}
+func (m *SearchAgentSkillRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchAgentSkillRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchAgentSkillRequest proto.InternalMessageInfo
+
+func (m *SearchAgentSkillRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchAgentSkillRequest) GetAgentId() int64 {
+	if m != nil {
+		return m.AgentId
+	}
+	return 0
+}
+
+func (m *SearchAgentSkillRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchAgentSkillRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateAgentSkillRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	AgentId              int64    `protobuf:"varint,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,3,opt,name=skill,proto3" json:"skill,omitempty"`
+	Capacity             int32    `protobuf:"varint,4,opt,name=capacity,proto3" json:"capacity,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateAgentSkillRequest) Reset()         { *m = CreateAgentSkillRequest{} }
+func (m *CreateAgentSkillRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateAgentSkillRequest) ProtoMessage()    {}
+func (*CreateAgentSkillRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{2}
+}
+
+func (m *CreateAgentSkillRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateAgentSkillRequest.Unmarshal(m, b)
+}
+func (m *CreateAgentSkillRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateAgentSkillRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateAgentSkillRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateAgentSkillRequest.Merge(m, src)
+}
+func (m *CreateAgentSkillRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateAgentSkillRequest.Size(m)
+}
+func (m *CreateAgentSkillRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateAgentSkillRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateAgentSkillRequest proto.InternalMessageInfo
+
+func (m *CreateAgentSkillRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateAgentSkillRequest) GetAgentId() int64 {
+	if m != nil {
+		return m.AgentId
+	}
+	return 0
+}
+
+func (m *CreateAgentSkillRequest) GetSkill() *Lookup {
+	if m != nil {
+		return m.Skill
+	}
+	return nil
+}
+
+func (m *CreateAgentSkillRequest) GetCapacity() int32 {
+	if m != nil {
+		return m.Capacity
+	}
+	return 0
+}
+
 type AgentSkillItemReqeust struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	AgentId              int64    `protobuf:"varint,2,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
-	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	AgentId              int64    `protobuf:"varint,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -37,7 +235,7 @@ func (m *AgentSkillItemReqeust) Reset()         { *m = AgentSkillItemReqeust{} }
 func (m *AgentSkillItemReqeust) String() string { return proto.CompactTextString(m) }
 func (*AgentSkillItemReqeust) ProtoMessage()    {}
 func (*AgentSkillItemReqeust) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c8423e2df0c2237d, []int{0}
+	return fileDescriptor_c8423e2df0c2237d, []int{3}
 }
 
 func (m *AgentSkillItemReqeust) XXX_Unmarshal(b []byte) error {
@@ -65,13 +263,6 @@ func (m *AgentSkillItemReqeust) GetId() int64 {
 	return 0
 }
 
-func (m *AgentSkillItemReqeust) GetAgentId() int64 {
-	if m != nil {
-		return m.AgentId
-	}
-	return 0
-}
-
 func (m *AgentSkillItemReqeust) GetDomainId() int64 {
 	if m != nil {
 		return m.DomainId
@@ -79,10 +270,72 @@ func (m *AgentSkillItemReqeust) GetDomainId() int64 {
 	return 0
 }
 
+func (m *AgentSkillItemReqeust) GetAgentId() int64 {
+	if m != nil {
+		return m.AgentId
+	}
+	return 0
+}
+
+type DeleteAgentSkillRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	AgentId              int64    `protobuf:"varint,3,opt,name=agent_id,json=agentId,proto3" json:"agent_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteAgentSkillRequest) Reset()         { *m = DeleteAgentSkillRequest{} }
+func (m *DeleteAgentSkillRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteAgentSkillRequest) ProtoMessage()    {}
+func (*DeleteAgentSkillRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c8423e2df0c2237d, []int{4}
+}
+
+func (m *DeleteAgentSkillRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteAgentSkillRequest.Unmarshal(m, b)
+}
+func (m *DeleteAgentSkillRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteAgentSkillRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteAgentSkillRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteAgentSkillRequest.Merge(m, src)
+}
+func (m *DeleteAgentSkillRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteAgentSkillRequest.Size(m)
+}
+func (m *DeleteAgentSkillRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteAgentSkillRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteAgentSkillRequest proto.InternalMessageInfo
+
+func (m *DeleteAgentSkillRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteAgentSkillRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *DeleteAgentSkillRequest) GetAgentId() int64 {
+	if m != nil {
+		return m.AgentId
+	}
+	return 0
+}
+
 type AgentSkillItem struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Skill                *Lookup  `protobuf:"bytes,2,opt,name=Skill,proto3" json:"Skill,omitempty"`
-	Capacity             int32    `protobuf:"varint,3,opt,name=Capacity,proto3" json:"Capacity,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,2,opt,name=skill,proto3" json:"skill,omitempty"`
+	Capacity             int32    `protobuf:"varint,3,opt,name=capacity,proto3" json:"capacity,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -92,7 +345,7 @@ func (m *AgentSkillItem) Reset()         { *m = AgentSkillItem{} }
 func (m *AgentSkillItem) String() string { return proto.CompactTextString(m) }
 func (*AgentSkillItem) ProtoMessage()    {}
 func (*AgentSkillItem) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c8423e2df0c2237d, []int{1}
+	return fileDescriptor_c8423e2df0c2237d, []int{5}
 }
 
 func (m *AgentSkillItem) XXX_Unmarshal(b []byte) error {
@@ -141,9 +394,9 @@ type AgentSkill struct {
 	CreatedBy            *Lookup  `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
 	UpdatedAt            int64    `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	UpdatedBy            *Lookup  `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
-	Agent                *Lookup  `protobuf:"bytes,7,opt,name=Agent,proto3" json:"Agent,omitempty"`
-	Skill                *Lookup  `protobuf:"bytes,8,opt,name=Skill,proto3" json:"Skill,omitempty"`
-	Capacity             int32    `protobuf:"varint,9,opt,name=Capacity,proto3" json:"Capacity,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,7,opt,name=agent,proto3" json:"agent,omitempty"`
+	Skill                *Lookup  `protobuf:"bytes,8,opt,name=skill,proto3" json:"skill,omitempty"`
+	Capacity             int32    `protobuf:"varint,9,opt,name=capacity,proto3" json:"capacity,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -153,7 +406,7 @@ func (m *AgentSkill) Reset()         { *m = AgentSkill{} }
 func (m *AgentSkill) String() string { return proto.CompactTextString(m) }
 func (*AgentSkill) ProtoMessage()    {}
 func (*AgentSkill) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c8423e2df0c2237d, []int{2}
+	return fileDescriptor_c8423e2df0c2237d, []int{6}
 }
 
 func (m *AgentSkill) XXX_Unmarshal(b []byte) error {
@@ -248,7 +501,7 @@ func (m *ListAgentSkill) Reset()         { *m = ListAgentSkill{} }
 func (m *ListAgentSkill) String() string { return proto.CompactTextString(m) }
 func (*ListAgentSkill) ProtoMessage()    {}
 func (*ListAgentSkill) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c8423e2df0c2237d, []int{3}
+	return fileDescriptor_c8423e2df0c2237d, []int{7}
 }
 
 func (m *ListAgentSkill) XXX_Unmarshal(b []byte) error {
@@ -277,7 +530,11 @@ func (m *ListAgentSkill) GetItems() []*AgentSkillItem {
 }
 
 func init() {
+	proto.RegisterType((*UpdateAgentSkillRequest)(nil), "engine.UpdateAgentSkillRequest")
+	proto.RegisterType((*SearchAgentSkillRequest)(nil), "engine.SearchAgentSkillRequest")
+	proto.RegisterType((*CreateAgentSkillRequest)(nil), "engine.CreateAgentSkillRequest")
 	proto.RegisterType((*AgentSkillItemReqeust)(nil), "engine.AgentSkillItemReqeust")
+	proto.RegisterType((*DeleteAgentSkillRequest)(nil), "engine.DeleteAgentSkillRequest")
 	proto.RegisterType((*AgentSkillItem)(nil), "engine.AgentSkillItem")
 	proto.RegisterType((*AgentSkill)(nil), "engine.AgentSkill")
 	proto.RegisterType((*ListAgentSkill)(nil), "engine.ListAgentSkill")
@@ -286,32 +543,44 @@ func init() {
 func init() { proto.RegisterFile("agent_skill.proto", fileDescriptor_c8423e2df0c2237d) }
 
 var fileDescriptor_c8423e2df0c2237d = []byte{
-	// 386 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x53, 0x41, 0x6b, 0xf2, 0x40,
-	0x14, 0xfc, 0x4c, 0x4c, 0x8c, 0x4f, 0xbe, 0x40, 0x17, 0x2a, 0x69, 0x8a, 0x20, 0xa1, 0x07, 0x0f,
-	0xad, 0x87, 0xf4, 0x56, 0x4a, 0x41, 0x85, 0x16, 0xc1, 0x53, 0x4a, 0xcf, 0x92, 0xb8, 0x8b, 0x2c,
-	0x9a, 0x6c, 0x6a, 0x36, 0x85, 0xfc, 0xa0, 0xfe, 0x8c, 0xfe, 0xb7, 0x92, 0xdd, 0xc4, 0x18, 0x8d,
-	0x50, 0x8f, 0x99, 0x79, 0x6f, 0x66, 0x76, 0x78, 0x81, 0x2b, 0x7f, 0x4d, 0x22, 0xbe, 0x4c, 0x36,
-	0x74, 0xbb, 0x1d, 0xc7, 0x3b, 0xc6, 0x19, 0xd2, 0x49, 0xb4, 0xa6, 0x11, 0xb1, 0x7b, 0x2b, 0x16,
-	0x25, 0x5c, 0x82, 0xce, 0x12, 0xae, 0x27, 0xf9, 0xe4, 0x7b, 0x3e, 0x38, 0xe7, 0x24, 0xf4, 0xc8,
-	0x27, 0x49, 0x13, 0x8e, 0x4c, 0x50, 0x28, 0xb6, 0x5a, 0xc3, 0xd6, 0x48, 0xf5, 0x14, 0x8a, 0xd1,
-	0x0d, 0x18, 0x52, 0x92, 0x62, 0x4b, 0x11, 0x68, 0x47, 0x7c, 0xcf, 0x31, 0xba, 0x85, 0x2e, 0x66,
-	0xa1, 0x4f, 0xa3, 0x9c, 0x53, 0x05, 0x67, 0x48, 0x60, 0x8e, 0x9d, 0x00, 0xcc, 0xba, 0xc1, 0x89,
-	0xf2, 0x1d, 0x68, 0x82, 0x14, 0xb2, 0x3d, 0xd7, 0x1c, 0xcb, 0x9c, 0xe3, 0x05, 0x63, 0x9b, 0x34,
-	0xf6, 0x24, 0x89, 0x6c, 0x30, 0x66, 0x7e, 0xec, 0xaf, 0x28, 0xcf, 0x84, 0x87, 0xe6, 0xed, 0xbf,
-	0x9d, 0x1f, 0x05, 0xa0, 0x32, 0x39, 0x31, 0xa8, 0xe5, 0x53, 0xea, 0xf9, 0xd0, 0x00, 0x60, 0xb5,
-	0x23, 0x3e, 0x27, 0x78, 0xe9, 0xf3, 0x22, 0x7d, 0xb7, 0x40, 0x26, 0x1c, 0x3d, 0x54, 0x74, 0x90,
-	0x59, 0xed, 0xc6, 0x84, 0xe5, 0xf8, 0x34, 0xcb, 0xd5, 0xd2, 0x18, 0x97, 0x6a, 0x9a, 0x54, 0x2b,
-	0x10, 0xa9, 0x56, 0xd2, 0x41, 0x66, 0xe9, 0xcd, 0x6a, 0xc5, 0xc4, 0x34, 0xcb, 0x9b, 0x11, 0xcf,
-	0xb2, 0x3a, 0xcd, 0xcd, 0x08, 0xb2, 0xea, 0xcf, 0xf8, 0x6b, 0x7f, 0xdd, 0xa3, 0xfe, 0x5e, 0xc0,
-	0x5c, 0xd0, 0x84, 0x1f, 0x54, 0x78, 0x0f, 0x1a, 0xe5, 0x24, 0x4c, 0xac, 0xd6, 0x50, 0x1d, 0xf5,
-	0xdc, 0x7e, 0xa9, 0x79, 0x74, 0x2b, 0x72, 0xc8, 0xfd, 0x56, 0xe0, 0x7f, 0xc5, 0x4c, 0x62, 0x8a,
-	0x5c, 0xd0, 0x67, 0xa2, 0x14, 0x84, 0x4e, 0x57, 0xed, 0x06, 0xcc, 0xf9, 0x87, 0x9e, 0xa1, 0x9d,
-	0xa7, 0x40, 0xf6, 0xfe, 0x01, 0x34, 0xe1, 0xaf, 0x6c, 0x57, 0x5c, 0x65, 0x4a, 0x12, 0x6e, 0xf7,
-	0x0f, 0xb9, 0xda, 0xf6, 0x13, 0xa8, 0x6f, 0x84, 0xa3, 0xc1, 0x99, 0xa4, 0xf2, 0xaa, 0xcf, 0x38,
-	0xbb, 0xa0, 0x7f, 0x88, 0xd2, 0x2f, 0x48, 0xeb, 0x82, 0xee, 0x91, 0x90, 0x7d, 0x5d, 0xb0, 0x13,
-	0xe8, 0xe2, 0x9f, 0x7b, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x56, 0x95, 0x90, 0x9d, 0x9d, 0x03,
-	0x00, 0x00,
+	// 589 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xd1, 0x8a, 0xda, 0x4c,
+	0x14, 0x26, 0xd1, 0xb8, 0x7a, 0x04, 0x71, 0x07, 0xfe, 0xdf, 0x34, 0xed, 0x52, 0x09, 0x2d, 0x15,
+	0xd9, 0x35, 0xc5, 0xd2, 0x9b, 0x5e, 0x14, 0x76, 0xdb, 0x1b, 0x61, 0xaf, 0x22, 0xbd, 0x96, 0x31,
+	0x73, 0xb0, 0xc3, 0xc6, 0x24, 0x6b, 0xc6, 0x96, 0xac, 0x6c, 0x29, 0x7d, 0x85, 0x7d, 0x84, 0x3e,
+	0x47, 0x9f, 0xa2, 0xaf, 0xd0, 0x07, 0x29, 0x99, 0x51, 0xb3, 0x46, 0xb3, 0x68, 0x69, 0xef, 0x32,
+	0xe7, 0x0c, 0xdf, 0xf7, 0x9d, 0x6f, 0xce, 0x39, 0x81, 0x63, 0x3a, 0xc1, 0x40, 0x8c, 0xe2, 0x2b,
+	0xee, 0xfb, 0xbd, 0x68, 0x16, 0x8a, 0x90, 0x54, 0x30, 0x98, 0xf0, 0x00, 0xad, 0xba, 0x17, 0x06,
+	0xb1, 0x50, 0x41, 0xeb, 0xc9, 0x24, 0x0c, 0x27, 0x3e, 0x3a, 0x34, 0xe2, 0x0e, 0x0d, 0x82, 0x50,
+	0x50, 0xc1, 0xc3, 0x20, 0x56, 0x59, 0xfb, 0xbb, 0x06, 0xad, 0x0f, 0x11, 0xa3, 0x02, 0xcf, 0x53,
+	0xb8, 0x61, 0x8a, 0xe6, 0xe2, 0xf5, 0x1c, 0x63, 0x41, 0x1a, 0xa0, 0x73, 0x66, 0x6a, 0x6d, 0xad,
+	0x53, 0x72, 0x75, 0xce, 0xc8, 0x63, 0xa8, 0xb1, 0x70, 0x4a, 0x79, 0x30, 0xe2, 0xcc, 0xd4, 0x65,
+	0xb8, 0xaa, 0x02, 0x03, 0x46, 0x1e, 0x41, 0x55, 0x09, 0xe2, 0xcc, 0x2c, 0xc9, 0xdc, 0x91, 0x3c,
+	0x0f, 0x18, 0x79, 0x06, 0x86, 0x54, 0x69, 0x96, 0xdb, 0x5a, 0xa7, 0xde, 0x6f, 0xf4, 0x94, 0xcc,
+	0xde, 0x65, 0x18, 0x5e, 0xcd, 0x23, 0x57, 0x25, 0x89, 0x05, 0x55, 0x8f, 0x46, 0xd4, 0xe3, 0x22,
+	0x31, 0x8d, 0xb6, 0xd6, 0x31, 0xdc, 0xf5, 0xd9, 0x4e, 0xa0, 0x35, 0x44, 0x3a, 0xf3, 0x3e, 0x6e,
+	0x8b, 0xdc, 0x10, 0xa5, 0x3d, 0x20, 0x4a, 0xdf, 0x14, 0x45, 0xa0, 0x1c, 0xf3, 0x1b, 0x94, 0x5a,
+	0x0d, 0x57, 0x7e, 0xa7, 0xb1, 0x88, 0x4e, 0x50, 0xea, 0x34, 0x5c, 0xf9, 0x6d, 0xdf, 0x69, 0xd0,
+	0x7a, 0x37, 0xc3, 0x9d, 0x06, 0xfd, 0x29, 0xf7, 0xda, 0x90, 0xd2, 0xbe, 0x86, 0x94, 0x73, 0x86,
+	0x8c, 0xe0, 0xbf, 0x4c, 0xce, 0x40, 0xe0, 0xd4, 0xc5, 0x6b, 0x9c, 0xff, 0xbd, 0x37, 0xb3, 0x29,
+	0xb4, 0xde, 0xa3, 0x8f, 0xff, 0xb0, 0x2d, 0xec, 0x31, 0x34, 0x36, 0x6b, 0xd8, 0x42, 0x5e, 0xfb,
+	0xa4, 0xef, 0xeb, 0x53, 0x29, 0xe7, 0xd3, 0x0f, 0x1d, 0x20, 0x23, 0x39, 0x4c, 0xfa, 0x09, 0x80,
+	0x27, 0x1f, 0x9e, 0x8d, 0xa8, 0x58, 0x8a, 0xaf, 0x2d, 0x23, 0xe7, 0x82, 0x9c, 0x65, 0xe9, 0x71,
+	0x52, 0xd0, 0xda, 0xab, 0xeb, 0x17, 0x49, 0x8a, 0x36, 0x97, 0x73, 0x26, 0xd1, 0x0c, 0x85, 0xb6,
+	0x8c, 0x28, 0xb4, 0x55, 0x7a, 0x9c, 0x98, 0x95, 0xdd, 0x68, 0xcb, 0x1b, 0x17, 0x49, 0xea, 0x8c,
+	0xb4, 0xd1, 0x3c, 0xda, 0xed, 0x8c, 0x4c, 0x66, 0xfe, 0x55, 0xf7, 0xf5, 0xaf, 0x96, 0xf3, 0xef,
+	0x2d, 0x34, 0x2e, 0x79, 0x2c, 0xee, 0x59, 0x78, 0x0a, 0x06, 0x17, 0x38, 0x8d, 0x4d, 0xad, 0x5d,
+	0xea, 0xd4, 0xfb, 0xff, 0xaf, 0x30, 0x73, 0xed, 0xa8, 0x2e, 0xf5, 0xbf, 0x1a, 0x70, 0x9c, 0x65,
+	0x86, 0x38, 0xfb, 0xc4, 0x3d, 0x24, 0x09, 0x34, 0xf3, 0x23, 0x45, 0x9e, 0xae, 0x80, 0x0a, 0x86,
+	0xcd, 0x22, 0xdb, 0x4c, 0xf6, 0xcb, 0x6f, 0x3f, 0x7f, 0xdd, 0xe9, 0x5d, 0xfb, 0xb9, 0xe3, 0x51,
+	0xdf, 0x1f, 0x79, 0x18, 0x08, 0x9c, 0x39, 0xb2, 0xf8, 0xd8, 0x59, 0xac, 0x1a, 0xef, 0xd6, 0x91,
+	0x85, 0xc6, 0x6f, 0xb4, 0x2e, 0xb9, 0x81, 0x66, 0x7e, 0x93, 0x64, 0xd4, 0x05, 0x3b, 0xc6, 0x5a,
+	0x17, 0xb9, 0xe9, 0x85, 0x7d, 0x26, 0xe9, 0x5f, 0x90, 0xfd, 0xe8, 0xc9, 0x67, 0x68, 0xb8, 0x48,
+	0xd9, 0x3d, 0xe6, 0x93, 0x02, 0xf7, 0xd4, 0x30, 0xef, 0x2c, 0xb9, 0x2f, 0x39, 0x4f, 0x49, 0x77,
+	0x2f, 0x4e, 0x67, 0xc1, 0xd9, 0x2d, 0xf9, 0x02, 0xcd, 0xfc, 0x8e, 0xcf, 0x8a, 0x2e, 0xd8, 0xfe,
+	0x3b, 0xc9, 0x5f, 0x4b, 0x72, 0xc7, 0x3a, 0x80, 0x3c, 0x35, 0x7d, 0x01, 0xcd, 0xfc, 0x32, 0xc9,
+	0xf8, 0x0b, 0xd6, 0xcc, 0x43, 0xc5, 0x77, 0x0f, 0xe0, 0x1f, 0x57, 0xe4, 0x8f, 0xee, 0xd5, 0xef,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0x44, 0x72, 0x0b, 0x22, 0x30, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -322,226 +591,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// AgentSkillApiClient is the client API for AgentSkillApi service.
+// AgentSkillServiceClient is the client API for AgentSkillService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type AgentSkillApiClient interface {
-	// POST /call_center/agent/:ID/skill
-	Create(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error)
-	// GET /call_center/agent/:ID/skill
-	List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListAgentSkill, error)
-	// GET /call_center/agent/:ID/skill/:SKILL_ID
-	Get(ctx context.Context, in *AgentSkillItemReqeust, opts ...grpc.CallOption) (*AgentSkill, error)
-	// PUT /call_center/agent/:ID/skill/:SKILL_ID
-	Update(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error)
-	// DELETE /call_center/agent/:ID/skill/:SKILL_ID
-	Remove(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error)
+type AgentSkillServiceClient interface {
+	// Create AgentSkill
+	CreateAgentSkill(ctx context.Context, in *CreateAgentSkillRequest, opts ...grpc.CallOption) (*AgentSkill, error)
+	// List of AgentSkill
+	SearchAgentSkill(ctx context.Context, in *SearchAgentSkillRequest, opts ...grpc.CallOption) (*ListAgentSkill, error)
+	// AgentSkill item
+	ReadAgentSkill(ctx context.Context, in *AgentSkillItemReqeust, opts ...grpc.CallOption) (*AgentSkill, error)
+	// Update AgentSkill
+	UpdateAgentSkill(ctx context.Context, in *UpdateAgentSkillRequest, opts ...grpc.CallOption) (*AgentSkill, error)
+	// Remove AgentSkill
+	DeleteAgentSkill(ctx context.Context, in *DeleteAgentSkillRequest, opts ...grpc.CallOption) (*AgentSkill, error)
 }
 
-type agentSkillApiClient struct {
+type agentSkillServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewAgentSkillApiClient(cc *grpc.ClientConn) AgentSkillApiClient {
-	return &agentSkillApiClient{cc}
+func NewAgentSkillServiceClient(cc *grpc.ClientConn) AgentSkillServiceClient {
+	return &agentSkillServiceClient{cc}
 }
 
-func (c *agentSkillApiClient) Create(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error) {
+func (c *agentSkillServiceClient) CreateAgentSkill(ctx context.Context, in *CreateAgentSkillRequest, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillService/CreateAgentSkill", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentSkillApiClient) List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListAgentSkill, error) {
+func (c *agentSkillServiceClient) SearchAgentSkill(ctx context.Context, in *SearchAgentSkillRequest, opts ...grpc.CallOption) (*ListAgentSkill, error) {
 	out := new(ListAgentSkill)
-	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillService/SearchAgentSkill", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentSkillApiClient) Get(ctx context.Context, in *AgentSkillItemReqeust, opts ...grpc.CallOption) (*AgentSkill, error) {
+func (c *agentSkillServiceClient) ReadAgentSkill(ctx context.Context, in *AgentSkillItemReqeust, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillService/ReadAgentSkill", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentSkillApiClient) Update(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error) {
+func (c *agentSkillServiceClient) UpdateAgentSkill(ctx context.Context, in *UpdateAgentSkillRequest, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillService/UpdateAgentSkill", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *agentSkillApiClient) Remove(ctx context.Context, in *AgentSkill, opts ...grpc.CallOption) (*AgentSkill, error) {
+func (c *agentSkillServiceClient) DeleteAgentSkill(ctx context.Context, in *DeleteAgentSkillRequest, opts ...grpc.CallOption) (*AgentSkill, error) {
 	out := new(AgentSkill)
-	err := c.cc.Invoke(ctx, "/engine.AgentSkillApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.AgentSkillService/DeleteAgentSkill", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// AgentSkillApiServer is the server API for AgentSkillApi service.
-type AgentSkillApiServer interface {
-	// POST /call_center/agent/:ID/skill
-	Create(context.Context, *AgentSkill) (*AgentSkill, error)
-	// GET /call_center/agent/:ID/skill
-	List(context.Context, *ListForItemRequest) (*ListAgentSkill, error)
-	// GET /call_center/agent/:ID/skill/:SKILL_ID
-	Get(context.Context, *AgentSkillItemReqeust) (*AgentSkill, error)
-	// PUT /call_center/agent/:ID/skill/:SKILL_ID
-	Update(context.Context, *AgentSkill) (*AgentSkill, error)
-	// DELETE /call_center/agent/:ID/skill/:SKILL_ID
-	Remove(context.Context, *AgentSkill) (*AgentSkill, error)
+// AgentSkillServiceServer is the server API for AgentSkillService service.
+type AgentSkillServiceServer interface {
+	// Create AgentSkill
+	CreateAgentSkill(context.Context, *CreateAgentSkillRequest) (*AgentSkill, error)
+	// List of AgentSkill
+	SearchAgentSkill(context.Context, *SearchAgentSkillRequest) (*ListAgentSkill, error)
+	// AgentSkill item
+	ReadAgentSkill(context.Context, *AgentSkillItemReqeust) (*AgentSkill, error)
+	// Update AgentSkill
+	UpdateAgentSkill(context.Context, *UpdateAgentSkillRequest) (*AgentSkill, error)
+	// Remove AgentSkill
+	DeleteAgentSkill(context.Context, *DeleteAgentSkillRequest) (*AgentSkill, error)
 }
 
-// UnimplementedAgentSkillApiServer can be embedded to have forward compatible implementations.
-type UnimplementedAgentSkillApiServer struct {
+// UnimplementedAgentSkillServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedAgentSkillServiceServer struct {
 }
 
-func (*UnimplementedAgentSkillApiServer) Create(ctx context.Context, req *AgentSkill) (*AgentSkill, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedAgentSkillServiceServer) CreateAgentSkill(ctx context.Context, req *CreateAgentSkillRequest) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAgentSkill not implemented")
 }
-func (*UnimplementedAgentSkillApiServer) List(ctx context.Context, req *ListForItemRequest) (*ListAgentSkill, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedAgentSkillServiceServer) SearchAgentSkill(ctx context.Context, req *SearchAgentSkillRequest) (*ListAgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAgentSkill not implemented")
 }
-func (*UnimplementedAgentSkillApiServer) Get(ctx context.Context, req *AgentSkillItemReqeust) (*AgentSkill, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedAgentSkillServiceServer) ReadAgentSkill(ctx context.Context, req *AgentSkillItemReqeust) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadAgentSkill not implemented")
 }
-func (*UnimplementedAgentSkillApiServer) Update(ctx context.Context, req *AgentSkill) (*AgentSkill, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedAgentSkillServiceServer) UpdateAgentSkill(ctx context.Context, req *UpdateAgentSkillRequest) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateAgentSkill not implemented")
 }
-func (*UnimplementedAgentSkillApiServer) Remove(ctx context.Context, req *AgentSkill) (*AgentSkill, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterAgentSkillApiServer(s *grpc.Server, srv AgentSkillApiServer) {
-	s.RegisterService(&_AgentSkillApi_serviceDesc, srv)
+func (*UnimplementedAgentSkillServiceServer) DeleteAgentSkill(ctx context.Context, req *DeleteAgentSkillRequest) (*AgentSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteAgentSkill not implemented")
 }
 
-func _AgentSkillApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AgentSkill)
+func RegisterAgentSkillServiceServer(s *grpc.Server, srv AgentSkillServiceServer) {
+	s.RegisterService(&_AgentSkillService_serviceDesc, srv)
+}
+
+func _AgentSkillService_CreateAgentSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAgentSkillRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentSkillApiServer).Create(ctx, in)
+		return srv.(AgentSkillServiceServer).CreateAgentSkill(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentSkillApi/Create",
+		FullMethod: "/engine.AgentSkillService/CreateAgentSkill",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentSkillApiServer).Create(ctx, req.(*AgentSkill))
+		return srv.(AgentSkillServiceServer).CreateAgentSkill(ctx, req.(*CreateAgentSkillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentSkillApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListForItemRequest)
+func _AgentSkillService_SearchAgentSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchAgentSkillRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentSkillApiServer).List(ctx, in)
+		return srv.(AgentSkillServiceServer).SearchAgentSkill(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentSkillApi/List",
+		FullMethod: "/engine.AgentSkillService/SearchAgentSkill",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentSkillApiServer).List(ctx, req.(*ListForItemRequest))
+		return srv.(AgentSkillServiceServer).SearchAgentSkill(ctx, req.(*SearchAgentSkillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentSkillApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AgentSkillService_ReadAgentSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AgentSkillItemReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentSkillApiServer).Get(ctx, in)
+		return srv.(AgentSkillServiceServer).ReadAgentSkill(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentSkillApi/Get",
+		FullMethod: "/engine.AgentSkillService/ReadAgentSkill",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentSkillApiServer).Get(ctx, req.(*AgentSkillItemReqeust))
+		return srv.(AgentSkillServiceServer).ReadAgentSkill(ctx, req.(*AgentSkillItemReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentSkillApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AgentSkill)
+func _AgentSkillService_UpdateAgentSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateAgentSkillRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentSkillApiServer).Update(ctx, in)
+		return srv.(AgentSkillServiceServer).UpdateAgentSkill(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentSkillApi/Update",
+		FullMethod: "/engine.AgentSkillService/UpdateAgentSkill",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentSkillApiServer).Update(ctx, req.(*AgentSkill))
+		return srv.(AgentSkillServiceServer).UpdateAgentSkill(ctx, req.(*UpdateAgentSkillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AgentSkillApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AgentSkill)
+func _AgentSkillService_DeleteAgentSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteAgentSkillRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentSkillApiServer).Remove(ctx, in)
+		return srv.(AgentSkillServiceServer).DeleteAgentSkill(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.AgentSkillApi/Remove",
+		FullMethod: "/engine.AgentSkillService/DeleteAgentSkill",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentSkillApiServer).Remove(ctx, req.(*AgentSkill))
+		return srv.(AgentSkillServiceServer).DeleteAgentSkill(ctx, req.(*DeleteAgentSkillRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _AgentSkillApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.AgentSkillApi",
-	HandlerType: (*AgentSkillApiServer)(nil),
+var _AgentSkillService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.AgentSkillService",
+	HandlerType: (*AgentSkillServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _AgentSkillApi_Create_Handler,
+			MethodName: "CreateAgentSkill",
+			Handler:    _AgentSkillService_CreateAgentSkill_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _AgentSkillApi_List_Handler,
+			MethodName: "SearchAgentSkill",
+			Handler:    _AgentSkillService_SearchAgentSkill_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _AgentSkillApi_Get_Handler,
+			MethodName: "ReadAgentSkill",
+			Handler:    _AgentSkillService_ReadAgentSkill_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _AgentSkillApi_Update_Handler,
+			MethodName: "UpdateAgentSkill",
+			Handler:    _AgentSkillService_UpdateAgentSkill_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _AgentSkillApi_Remove_Handler,
+			MethodName: "DeleteAgentSkill",
+			Handler:    _AgentSkillService_DeleteAgentSkill_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

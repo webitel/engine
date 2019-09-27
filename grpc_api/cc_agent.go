@@ -15,7 +15,7 @@ func NewAgentApi(app *app.App) *agent {
 	return &agent{app: app}
 }
 
-func (api *agent) Create(ctx context.Context, in *engine.Agent) (*engine.Agent, error) {
+func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest) (*engine.Agent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (api *agent) Create(ctx context.Context, in *engine.Agent) (*engine.Agent, 
 	return transformAgent(agent), nil
 }
 
-func (api *agent) List(ctx context.Context, in *engine.ListRequest) (*engine.ListAgent, error) {
+func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest) (*engine.ListAgent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (api *agent) List(ctx context.Context, in *engine.ListRequest) (*engine.Lis
 	}, nil
 }
 
-func (api *agent) Get(ctx context.Context, in *engine.ItemRequest) (*engine.Agent, error) {
+func (api *agent) ReadAgent(ctx context.Context, in *engine.ReadAgentRequest) (*engine.Agent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (api *agent) Get(ctx context.Context, in *engine.ItemRequest) (*engine.Agen
 	return transformAgent(agent), nil
 }
 
-func (api *agent) Update(ctx context.Context, in *engine.Agent) (*engine.Agent, error) {
+func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest) (*engine.Agent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ func (api *agent) Update(ctx context.Context, in *engine.Agent) (*engine.Agent, 
 	return transformAgent(agent), nil
 }
 
-func (api *agent) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.Agent, error) {
+func (api *agent) DeleteAgent(ctx context.Context, in *engine.DeleteAgentRequest) (*engine.Agent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func (api *agent) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.A
 	return transformAgent(agent), nil
 }
 
-func (api *agent) UpdateStatus(ctx context.Context, in *engine.AgentStatusRequest) (*engine.Response, error) {
+func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusRequest) (*engine.Response, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,6 +25,273 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type DeleteRoutingVariableRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteRoutingVariableRequest) Reset()         { *m = DeleteRoutingVariableRequest{} }
+func (m *DeleteRoutingVariableRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteRoutingVariableRequest) ProtoMessage()    {}
+func (*DeleteRoutingVariableRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e3674a3d02e9610, []int{0}
+}
+
+func (m *DeleteRoutingVariableRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteRoutingVariableRequest.Unmarshal(m, b)
+}
+func (m *DeleteRoutingVariableRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteRoutingVariableRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteRoutingVariableRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteRoutingVariableRequest.Merge(m, src)
+}
+func (m *DeleteRoutingVariableRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteRoutingVariableRequest.Size(m)
+}
+func (m *DeleteRoutingVariableRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteRoutingVariableRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteRoutingVariableRequest proto.InternalMessageInfo
+
+func (m *DeleteRoutingVariableRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteRoutingVariableRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type UpdateRoutingVariableRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Key                  string   `protobuf:"bytes,3,opt,name=key,proto3" json:"key,omitempty"`
+	Value                string   `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateRoutingVariableRequest) Reset()         { *m = UpdateRoutingVariableRequest{} }
+func (m *UpdateRoutingVariableRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateRoutingVariableRequest) ProtoMessage()    {}
+func (*UpdateRoutingVariableRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e3674a3d02e9610, []int{1}
+}
+
+func (m *UpdateRoutingVariableRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateRoutingVariableRequest.Unmarshal(m, b)
+}
+func (m *UpdateRoutingVariableRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateRoutingVariableRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateRoutingVariableRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateRoutingVariableRequest.Merge(m, src)
+}
+func (m *UpdateRoutingVariableRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateRoutingVariableRequest.Size(m)
+}
+func (m *UpdateRoutingVariableRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateRoutingVariableRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateRoutingVariableRequest proto.InternalMessageInfo
+
+func (m *UpdateRoutingVariableRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateRoutingVariableRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateRoutingVariableRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *UpdateRoutingVariableRequest) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+type ReadRoutingVariableRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadRoutingVariableRequest) Reset()         { *m = ReadRoutingVariableRequest{} }
+func (m *ReadRoutingVariableRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadRoutingVariableRequest) ProtoMessage()    {}
+func (*ReadRoutingVariableRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e3674a3d02e9610, []int{2}
+}
+
+func (m *ReadRoutingVariableRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadRoutingVariableRequest.Unmarshal(m, b)
+}
+func (m *ReadRoutingVariableRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadRoutingVariableRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadRoutingVariableRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadRoutingVariableRequest.Merge(m, src)
+}
+func (m *ReadRoutingVariableRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadRoutingVariableRequest.Size(m)
+}
+func (m *ReadRoutingVariableRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadRoutingVariableRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadRoutingVariableRequest proto.InternalMessageInfo
+
+func (m *ReadRoutingVariableRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *ReadRoutingVariableRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type CreateRoutingVariableRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Key                  string   `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+	Value                string   `protobuf:"bytes,3,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateRoutingVariableRequest) Reset()         { *m = CreateRoutingVariableRequest{} }
+func (m *CreateRoutingVariableRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateRoutingVariableRequest) ProtoMessage()    {}
+func (*CreateRoutingVariableRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e3674a3d02e9610, []int{3}
+}
+
+func (m *CreateRoutingVariableRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateRoutingVariableRequest.Unmarshal(m, b)
+}
+func (m *CreateRoutingVariableRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateRoutingVariableRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateRoutingVariableRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateRoutingVariableRequest.Merge(m, src)
+}
+func (m *CreateRoutingVariableRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateRoutingVariableRequest.Size(m)
+}
+func (m *CreateRoutingVariableRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateRoutingVariableRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateRoutingVariableRequest proto.InternalMessageInfo
+
+func (m *CreateRoutingVariableRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateRoutingVariableRequest) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *CreateRoutingVariableRequest) GetValue() string {
+	if m != nil {
+		return m.Value
+	}
+	return ""
+}
+
+type SearchRoutingVariableRequest struct {
+	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchRoutingVariableRequest) Reset()         { *m = SearchRoutingVariableRequest{} }
+func (m *SearchRoutingVariableRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchRoutingVariableRequest) ProtoMessage()    {}
+func (*SearchRoutingVariableRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1e3674a3d02e9610, []int{4}
+}
+
+func (m *SearchRoutingVariableRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchRoutingVariableRequest.Unmarshal(m, b)
+}
+func (m *SearchRoutingVariableRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchRoutingVariableRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchRoutingVariableRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchRoutingVariableRequest.Merge(m, src)
+}
+func (m *SearchRoutingVariableRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchRoutingVariableRequest.Size(m)
+}
+func (m *SearchRoutingVariableRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchRoutingVariableRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchRoutingVariableRequest proto.InternalMessageInfo
+
+func (m *SearchRoutingVariableRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchRoutingVariableRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchRoutingVariableRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
 type RoutingVariable struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
@@ -38,7 +306,7 @@ func (m *RoutingVariable) Reset()         { *m = RoutingVariable{} }
 func (m *RoutingVariable) String() string { return proto.CompactTextString(m) }
 func (*RoutingVariable) ProtoMessage()    {}
 func (*RoutingVariable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e3674a3d02e9610, []int{0}
+	return fileDescriptor_1e3674a3d02e9610, []int{5}
 }
 
 func (m *RoutingVariable) XXX_Unmarshal(b []byte) error {
@@ -98,7 +366,7 @@ func (m *ListRoutingVariable) Reset()         { *m = ListRoutingVariable{} }
 func (m *ListRoutingVariable) String() string { return proto.CompactTextString(m) }
 func (*ListRoutingVariable) ProtoMessage()    {}
 func (*ListRoutingVariable) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1e3674a3d02e9610, []int{1}
+	return fileDescriptor_1e3674a3d02e9610, []int{6}
 }
 
 func (m *ListRoutingVariable) XXX_Unmarshal(b []byte) error {
@@ -127,6 +395,11 @@ func (m *ListRoutingVariable) GetItems() []*RoutingVariable {
 }
 
 func init() {
+	proto.RegisterType((*DeleteRoutingVariableRequest)(nil), "engine.DeleteRoutingVariableRequest")
+	proto.RegisterType((*UpdateRoutingVariableRequest)(nil), "engine.UpdateRoutingVariableRequest")
+	proto.RegisterType((*ReadRoutingVariableRequest)(nil), "engine.ReadRoutingVariableRequest")
+	proto.RegisterType((*CreateRoutingVariableRequest)(nil), "engine.CreateRoutingVariableRequest")
+	proto.RegisterType((*SearchRoutingVariableRequest)(nil), "engine.SearchRoutingVariableRequest")
 	proto.RegisterType((*RoutingVariable)(nil), "engine.RoutingVariable")
 	proto.RegisterType((*ListRoutingVariable)(nil), "engine.ListRoutingVariable")
 }
@@ -134,24 +407,34 @@ func init() {
 func init() { proto.RegisterFile("acr_routing_variables.proto", fileDescriptor_1e3674a3d02e9610) }
 
 var fileDescriptor_1e3674a3d02e9610 = []byte{
-	// 273 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x91, 0xc1, 0x4a, 0xc3, 0x40,
-	0x10, 0x86, 0x4d, 0xd2, 0x06, 0x3b, 0x05, 0x95, 0xa9, 0x60, 0x68, 0x2e, 0x21, 0xa7, 0x5c, 0xcc,
-	0xa1, 0x22, 0x88, 0xf4, 0x22, 0x0a, 0x52, 0xf0, 0x14, 0xd0, 0x6b, 0xd8, 0x76, 0xc7, 0x32, 0xd8,
-	0x64, 0x63, 0x76, 0x13, 0xf0, 0xe1, 0x7c, 0x37, 0x69, 0xd6, 0x82, 0x46, 0x2a, 0xe8, 0x6d, 0xf7,
-	0x9b, 0x6f, 0xf6, 0xff, 0x61, 0x21, 0x14, 0xab, 0x3a, 0xaf, 0x55, 0x63, 0xb8, 0x5c, 0xe7, 0xad,
-	0xa8, 0x59, 0x2c, 0x37, 0xa4, 0xd3, 0xaa, 0x56, 0x46, 0xa1, 0x4f, 0xe5, 0x9a, 0x4b, 0x9a, 0x8e,
-	0x57, 0xaa, 0xd4, 0xc6, 0xc2, 0xf8, 0x19, 0x8e, 0x33, 0xeb, 0x3f, 0x7d, 0xea, 0x78, 0x04, 0x2e,
-	0xcb, 0xc0, 0x89, 0x9c, 0xc4, 0xcb, 0x5c, 0x96, 0x18, 0xc2, 0x48, 0xaa, 0x42, 0x70, 0x99, 0xb3,
-	0x0c, 0xdc, 0x0e, 0x1f, 0x5a, 0xb0, 0x90, 0x78, 0x02, 0xde, 0x0b, 0xbd, 0x05, 0x5e, 0xe4, 0x24,
-	0xa3, 0x6c, 0x7b, 0xc4, 0x53, 0x18, 0xb6, 0x62, 0xd3, 0x50, 0x30, 0xe8, 0x98, 0xbd, 0xc4, 0x77,
-	0x30, 0x79, 0x60, 0x6d, 0xfa, 0x59, 0xe7, 0x30, 0x64, 0x43, 0x85, 0x0e, 0x9c, 0xc8, 0x4b, 0xc6,
-	0xb3, 0xb3, 0xd4, 0x76, 0x4c, 0x7b, 0x5e, 0x66, 0xad, 0xd9, 0xbb, 0x0b, 0xd8, 0x1b, 0xdd, 0x54,
-	0x8c, 0x73, 0xf0, 0x6f, 0x6b, 0x12, 0x86, 0x70, 0xdf, 0x03, 0xd3, 0x7d, 0x83, 0xf8, 0x00, 0xaf,
-	0x61, 0xb0, 0xad, 0x86, 0x93, 0x9d, 0xd2, 0x15, 0xa5, 0xd7, 0x86, 0xb4, 0x99, 0x86, 0xdf, 0xe0,
-	0x8f, 0xdd, 0x4b, 0xf0, 0xee, 0xe9, 0xcb, 0xea, 0xc2, 0x50, 0xb1, 0x5b, 0xfd, 0x25, 0x72, 0x0e,
-	0xfe, 0x63, 0x25, 0xff, 0x5b, 0xf8, 0x0a, 0xfc, 0x8c, 0x0a, 0xd5, 0xd2, 0x5f, 0x73, 0x97, 0x7e,
-	0xf7, 0xe9, 0x17, 0x1f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xf3, 0x6b, 0x1b, 0x28, 0x28, 0x02, 0x00,
+	// 433 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0xcd, 0x8e, 0x94, 0x40,
+	0x10, 0x80, 0x03, 0x0c, 0x1b, 0xb7, 0x4c, 0xd4, 0xf4, 0x2e, 0x0e, 0x32, 0x18, 0x27, 0x1d, 0x0f,
+	0x93, 0x4d, 0x1c, 0x92, 0xf5, 0xe6, 0xd5, 0xbd, 0x6c, 0xf4, 0xc4, 0x46, 0xaf, 0x93, 0x1e, 0xba,
+	0xc4, 0x8e, 0x0c, 0x8d, 0xd0, 0x60, 0x1c, 0xe3, 0xc5, 0x57, 0xf0, 0xd1, 0x7c, 0x05, 0x5f, 0xc0,
+	0x37, 0x30, 0xd3, 0xcc, 0x8f, 0x62, 0x83, 0x89, 0x19, 0x6f, 0x45, 0x51, 0x5d, 0x5f, 0xfd, 0xc3,
+	0x84, 0x25, 0xe5, 0xa2, 0x94, 0xb5, 0x12, 0x79, 0xba, 0x68, 0x58, 0x29, 0xd8, 0x32, 0xc3, 0x6a,
+	0x5e, 0x94, 0x52, 0x49, 0x72, 0x82, 0x79, 0x2a, 0x72, 0x0c, 0xc2, 0x54, 0xca, 0x34, 0xc3, 0x88,
+	0x15, 0x22, 0x62, 0x79, 0x2e, 0x15, 0x53, 0x42, 0xe6, 0x5b, 0x2b, 0xfa, 0x02, 0xc2, 0x2b, 0xcc,
+	0x50, 0x61, 0xdc, 0xba, 0x79, 0xbd, 0xf5, 0x12, 0xe3, 0xfb, 0x1a, 0x2b, 0x45, 0xee, 0x80, 0x2d,
+	0xb8, 0x6f, 0x4d, 0xad, 0x99, 0x13, 0xdb, 0x82, 0x93, 0x09, 0x9c, 0x72, 0xb9, 0x62, 0x22, 0x5f,
+	0x08, 0xee, 0xdb, 0x5a, 0x7d, 0xab, 0x55, 0x5c, 0x73, 0x5a, 0x41, 0xf8, 0xaa, 0xe0, 0xec, 0x28,
+	0xce, 0xc8, 0x3d, 0x70, 0xde, 0xe1, 0x47, 0xdf, 0x99, 0x5a, 0xb3, 0xd3, 0x78, 0x23, 0x92, 0x73,
+	0x70, 0x1b, 0x96, 0xd5, 0xe8, 0x8f, 0xb4, 0xae, 0xfd, 0xa0, 0xd7, 0x10, 0xc4, 0xc8, 0xf8, 0x31,
+	0xe2, 0x4f, 0x20, 0x7c, 0x5e, 0x62, 0x7f, 0xfc, 0xbf, 0x3d, 0xb6, 0xcc, 0xf1, 0xda, 0x86, 0x78,
+	0x9d, 0x5f, 0xe3, 0x4d, 0x20, 0xbc, 0x41, 0x56, 0x26, 0x6f, 0xff, 0x05, 0x42, 0x60, 0x54, 0x89,
+	0x35, 0x6a, 0x8a, 0x1b, 0x6b, 0x79, 0xa3, 0x2b, 0x58, 0xda, 0x52, 0xdc, 0x58, 0xcb, 0xf4, 0x0d,
+	0xdc, 0xed, 0xb8, 0xff, 0x3f, 0xc5, 0xbf, 0x82, 0xb3, 0x97, 0xa2, 0x52, 0x5d, 0xd6, 0x13, 0x70,
+	0x85, 0xc2, 0x55, 0xe5, 0x5b, 0x53, 0x67, 0x76, 0xfb, 0x72, 0x3c, 0x6f, 0x67, 0x71, 0xde, 0x4d,
+	0xb9, 0xb5, 0xba, 0xfc, 0x31, 0x82, 0xfb, 0x9d, 0x5f, 0x37, 0x58, 0x36, 0x22, 0x41, 0x52, 0x83,
+	0x67, 0x6c, 0x09, 0x79, 0xbc, 0xf3, 0x39, 0xd4, 0xb1, 0xa0, 0x8f, 0x4c, 0x1f, 0x7e, 0xf9, 0xf6,
+	0xfd, 0xab, 0x3d, 0xa6, 0x24, 0xda, 0xee, 0x4f, 0xb4, 0xdf, 0x9f, 0x67, 0xd6, 0x05, 0x69, 0xc0,
+	0x33, 0x36, 0xe9, 0x80, 0x1d, 0xea, 0x61, 0x30, 0xd9, 0x59, 0x19, 0x8a, 0x43, 0x03, 0x8d, 0x3e,
+	0x27, 0x06, 0x34, 0xa9, 0xe0, 0xcc, 0x30, 0xcc, 0x84, 0xee, 0xd3, 0xe8, 0x9d, 0xf4, 0xfe, 0x54,
+	0x1f, 0x69, 0xde, 0x03, 0x32, 0xfe, 0x93, 0x17, 0x7d, 0x12, 0xfc, 0x33, 0x59, 0x83, 0x67, 0x5c,
+	0xdb, 0x43, 0xb2, 0x43, 0x5b, 0xdd, 0x0f, 0xa6, 0x1a, 0x1c, 0x06, 0x7d, 0xe0, 0x4d, 0xa1, 0x3f,
+	0x80, 0x67, 0xbc, 0x3f, 0x07, 0xf6, 0xd0, 0x79, 0xfa, 0x6b, 0xd2, 0x17, 0x7d, 0xec, 0xe5, 0x89,
+	0xbe, 0x7f, 0x4f, 0x7f, 0x06, 0x00, 0x00, 0xff, 0xff, 0x7b, 0x0e, 0x9c, 0xc7, 0x44, 0x05, 0x00,
 	0x00,
 }
 
@@ -163,226 +446,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// RoutingVariableApiClient is the client API for RoutingVariableApi service.
+// RoutingVariableServiceClient is the client API for RoutingVariableService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type RoutingVariableApiClient interface {
-	// POST /routing/variable
-	Create(ctx context.Context, in *RoutingVariable, opts ...grpc.CallOption) (*RoutingVariable, error)
-	// GET /routing/variable?size=10&page=0
-	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListRoutingVariable, error)
-	// GET /routing/variable/:ID
-	Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingVariable, error)
-	// PUT /routing/variable/:ID
-	Update(ctx context.Context, in *RoutingVariable, opts ...grpc.CallOption) (*RoutingVariable, error)
-	// DELETE /routing/variable/:ID
-	Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingVariable, error)
+type RoutingVariableServiceClient interface {
+	// Create RoutingVariable
+	CreateRoutingVariable(ctx context.Context, in *CreateRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error)
+	// List of RoutingVariable
+	SearchRoutingVariable(ctx context.Context, in *SearchRoutingVariableRequest, opts ...grpc.CallOption) (*ListRoutingVariable, error)
+	// RoutingVariable item
+	ReadRoutingVariable(ctx context.Context, in *ReadRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error)
+	// Update RoutingVariable
+	UpdateRoutingVariable(ctx context.Context, in *UpdateRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error)
+	// Remove RoutingVariable
+	DeleteRoutingVariable(ctx context.Context, in *DeleteRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error)
 }
 
-type routingVariableApiClient struct {
+type routingVariableServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewRoutingVariableApiClient(cc *grpc.ClientConn) RoutingVariableApiClient {
-	return &routingVariableApiClient{cc}
+func NewRoutingVariableServiceClient(cc *grpc.ClientConn) RoutingVariableServiceClient {
+	return &routingVariableServiceClient{cc}
 }
 
-func (c *routingVariableApiClient) Create(ctx context.Context, in *RoutingVariable, opts ...grpc.CallOption) (*RoutingVariable, error) {
+func (c *routingVariableServiceClient) CreateRoutingVariable(ctx context.Context, in *CreateRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error) {
 	out := new(RoutingVariable)
-	err := c.cc.Invoke(ctx, "/engine.RoutingVariableApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingVariableService/CreateRoutingVariable", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingVariableApiClient) List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListRoutingVariable, error) {
+func (c *routingVariableServiceClient) SearchRoutingVariable(ctx context.Context, in *SearchRoutingVariableRequest, opts ...grpc.CallOption) (*ListRoutingVariable, error) {
 	out := new(ListRoutingVariable)
-	err := c.cc.Invoke(ctx, "/engine.RoutingVariableApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingVariableService/SearchRoutingVariable", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingVariableApiClient) Get(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingVariable, error) {
+func (c *routingVariableServiceClient) ReadRoutingVariable(ctx context.Context, in *ReadRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error) {
 	out := new(RoutingVariable)
-	err := c.cc.Invoke(ctx, "/engine.RoutingVariableApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingVariableService/ReadRoutingVariable", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingVariableApiClient) Update(ctx context.Context, in *RoutingVariable, opts ...grpc.CallOption) (*RoutingVariable, error) {
+func (c *routingVariableServiceClient) UpdateRoutingVariable(ctx context.Context, in *UpdateRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error) {
 	out := new(RoutingVariable)
-	err := c.cc.Invoke(ctx, "/engine.RoutingVariableApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingVariableService/UpdateRoutingVariable", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *routingVariableApiClient) Remove(ctx context.Context, in *ItemRequest, opts ...grpc.CallOption) (*RoutingVariable, error) {
+func (c *routingVariableServiceClient) DeleteRoutingVariable(ctx context.Context, in *DeleteRoutingVariableRequest, opts ...grpc.CallOption) (*RoutingVariable, error) {
 	out := new(RoutingVariable)
-	err := c.cc.Invoke(ctx, "/engine.RoutingVariableApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.RoutingVariableService/DeleteRoutingVariable", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// RoutingVariableApiServer is the server API for RoutingVariableApi service.
-type RoutingVariableApiServer interface {
-	// POST /routing/variable
-	Create(context.Context, *RoutingVariable) (*RoutingVariable, error)
-	// GET /routing/variable?size=10&page=0
-	List(context.Context, *ListRequest) (*ListRoutingVariable, error)
-	// GET /routing/variable/:ID
-	Get(context.Context, *ItemRequest) (*RoutingVariable, error)
-	// PUT /routing/variable/:ID
-	Update(context.Context, *RoutingVariable) (*RoutingVariable, error)
-	// DELETE /routing/variable/:ID
-	Remove(context.Context, *ItemRequest) (*RoutingVariable, error)
+// RoutingVariableServiceServer is the server API for RoutingVariableService service.
+type RoutingVariableServiceServer interface {
+	// Create RoutingVariable
+	CreateRoutingVariable(context.Context, *CreateRoutingVariableRequest) (*RoutingVariable, error)
+	// List of RoutingVariable
+	SearchRoutingVariable(context.Context, *SearchRoutingVariableRequest) (*ListRoutingVariable, error)
+	// RoutingVariable item
+	ReadRoutingVariable(context.Context, *ReadRoutingVariableRequest) (*RoutingVariable, error)
+	// Update RoutingVariable
+	UpdateRoutingVariable(context.Context, *UpdateRoutingVariableRequest) (*RoutingVariable, error)
+	// Remove RoutingVariable
+	DeleteRoutingVariable(context.Context, *DeleteRoutingVariableRequest) (*RoutingVariable, error)
 }
 
-// UnimplementedRoutingVariableApiServer can be embedded to have forward compatible implementations.
-type UnimplementedRoutingVariableApiServer struct {
+// UnimplementedRoutingVariableServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedRoutingVariableServiceServer struct {
 }
 
-func (*UnimplementedRoutingVariableApiServer) Create(ctx context.Context, req *RoutingVariable) (*RoutingVariable, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedRoutingVariableServiceServer) CreateRoutingVariable(ctx context.Context, req *CreateRoutingVariableRequest) (*RoutingVariable, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRoutingVariable not implemented")
 }
-func (*UnimplementedRoutingVariableApiServer) List(ctx context.Context, req *ListRequest) (*ListRoutingVariable, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedRoutingVariableServiceServer) SearchRoutingVariable(ctx context.Context, req *SearchRoutingVariableRequest) (*ListRoutingVariable, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchRoutingVariable not implemented")
 }
-func (*UnimplementedRoutingVariableApiServer) Get(ctx context.Context, req *ItemRequest) (*RoutingVariable, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedRoutingVariableServiceServer) ReadRoutingVariable(ctx context.Context, req *ReadRoutingVariableRequest) (*RoutingVariable, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadRoutingVariable not implemented")
 }
-func (*UnimplementedRoutingVariableApiServer) Update(ctx context.Context, req *RoutingVariable) (*RoutingVariable, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedRoutingVariableServiceServer) UpdateRoutingVariable(ctx context.Context, req *UpdateRoutingVariableRequest) (*RoutingVariable, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRoutingVariable not implemented")
 }
-func (*UnimplementedRoutingVariableApiServer) Remove(ctx context.Context, req *ItemRequest) (*RoutingVariable, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterRoutingVariableApiServer(s *grpc.Server, srv RoutingVariableApiServer) {
-	s.RegisterService(&_RoutingVariableApi_serviceDesc, srv)
+func (*UnimplementedRoutingVariableServiceServer) DeleteRoutingVariable(ctx context.Context, req *DeleteRoutingVariableRequest) (*RoutingVariable, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoutingVariable not implemented")
 }
 
-func _RoutingVariableApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoutingVariable)
+func RegisterRoutingVariableServiceServer(s *grpc.Server, srv RoutingVariableServiceServer) {
+	s.RegisterService(&_RoutingVariableService_serviceDesc, srv)
+}
+
+func _RoutingVariableService_CreateRoutingVariable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoutingVariableRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingVariableApiServer).Create(ctx, in)
+		return srv.(RoutingVariableServiceServer).CreateRoutingVariable(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingVariableApi/Create",
+		FullMethod: "/engine.RoutingVariableService/CreateRoutingVariable",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingVariableApiServer).Create(ctx, req.(*RoutingVariable))
+		return srv.(RoutingVariableServiceServer).CreateRoutingVariable(ctx, req.(*CreateRoutingVariableRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingVariableApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListRequest)
+func _RoutingVariableService_SearchRoutingVariable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchRoutingVariableRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingVariableApiServer).List(ctx, in)
+		return srv.(RoutingVariableServiceServer).SearchRoutingVariable(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingVariableApi/List",
+		FullMethod: "/engine.RoutingVariableService/SearchRoutingVariable",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingVariableApiServer).List(ctx, req.(*ListRequest))
+		return srv.(RoutingVariableServiceServer).SearchRoutingVariable(ctx, req.(*SearchRoutingVariableRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingVariableApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _RoutingVariableService_ReadRoutingVariable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadRoutingVariableRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingVariableApiServer).Get(ctx, in)
+		return srv.(RoutingVariableServiceServer).ReadRoutingVariable(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingVariableApi/Get",
+		FullMethod: "/engine.RoutingVariableService/ReadRoutingVariable",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingVariableApiServer).Get(ctx, req.(*ItemRequest))
+		return srv.(RoutingVariableServiceServer).ReadRoutingVariable(ctx, req.(*ReadRoutingVariableRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingVariableApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RoutingVariable)
+func _RoutingVariableService_UpdateRoutingVariable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRoutingVariableRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingVariableApiServer).Update(ctx, in)
+		return srv.(RoutingVariableServiceServer).UpdateRoutingVariable(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingVariableApi/Update",
+		FullMethod: "/engine.RoutingVariableService/UpdateRoutingVariable",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingVariableApiServer).Update(ctx, req.(*RoutingVariable))
+		return srv.(RoutingVariableServiceServer).UpdateRoutingVariable(ctx, req.(*UpdateRoutingVariableRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RoutingVariableApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ItemRequest)
+func _RoutingVariableService_DeleteRoutingVariable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoutingVariableRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RoutingVariableApiServer).Remove(ctx, in)
+		return srv.(RoutingVariableServiceServer).DeleteRoutingVariable(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.RoutingVariableApi/Remove",
+		FullMethod: "/engine.RoutingVariableService/DeleteRoutingVariable",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RoutingVariableApiServer).Remove(ctx, req.(*ItemRequest))
+		return srv.(RoutingVariableServiceServer).DeleteRoutingVariable(ctx, req.(*DeleteRoutingVariableRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _RoutingVariableApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.RoutingVariableApi",
-	HandlerType: (*RoutingVariableApiServer)(nil),
+var _RoutingVariableService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.RoutingVariableService",
+	HandlerType: (*RoutingVariableServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _RoutingVariableApi_Create_Handler,
+			MethodName: "CreateRoutingVariable",
+			Handler:    _RoutingVariableService_CreateRoutingVariable_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _RoutingVariableApi_List_Handler,
+			MethodName: "SearchRoutingVariable",
+			Handler:    _RoutingVariableService_SearchRoutingVariable_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _RoutingVariableApi_Get_Handler,
+			MethodName: "ReadRoutingVariable",
+			Handler:    _RoutingVariableService_ReadRoutingVariable_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _RoutingVariableApi_Update_Handler,
+			MethodName: "UpdateRoutingVariable",
+			Handler:    _RoutingVariableService_UpdateRoutingVariable_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _RoutingVariableApi_Remove_Handler,
+			MethodName: "DeleteRoutingVariable",
+			Handler:    _RoutingVariableService_DeleteRoutingVariable_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

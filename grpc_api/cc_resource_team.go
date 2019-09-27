@@ -15,7 +15,7 @@ func NewResourceTeamApi(app *app.App) *resourceTeam {
 	return &resourceTeam{app: app}
 }
 
-func (api *resourceTeam) Create(ctx context.Context, in *engine.ResourceTeam) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) CreateResourceTeam(ctx context.Context, in *engine.CreateResourceTeamRequest) (*engine.ResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (api *resourceTeam) Create(ctx context.Context, in *engine.ResourceTeam) (*
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -60,7 +60,7 @@ func (api *resourceTeam) Create(ctx context.Context, in *engine.ResourceTeam) (*
 	return transformResourceTeam(teamResource), nil
 }
 
-func (api *resourceTeam) Get(ctx context.Context, in *engine.ResourceTeamItemReqeust) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) ReadResourceTeam(ctx context.Context, in *engine.ReadResourceTeamReqeust) (*engine.ResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (api *resourceTeam) Get(ctx context.Context, in *engine.ResourceTeamItemReq
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -87,7 +87,7 @@ func (api *resourceTeam) Get(ctx context.Context, in *engine.ResourceTeamItemReq
 	return transformResourceTeam(resource), nil
 }
 
-func (api *resourceTeam) List(ctx context.Context, in *engine.ListForItemRequest) (*engine.ListResourceTeam, error) {
+func (api *resourceTeam) SearchResourceTeam(ctx context.Context, in *engine.SearchResourceTeamRequest) (*engine.ListResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -100,15 +100,15 @@ func (api *resourceTeam) List(ctx context.Context, in *engine.ListForItemRequest
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetItemId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetItemId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_READ)
 		}
 	}
 
 	var list []*model.ResourceInTeam
-	list, err = api.app.GetResourceTeamPage(session.Domain(int64(in.DomainId)), in.GetItemId(), int(in.Page), int(in.Size))
+	list, err = api.app.GetResourceTeamPage(session.Domain(int64(in.DomainId)), in.GetTeamId(), int(in.Page), int(in.Size))
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (api *resourceTeam) List(ctx context.Context, in *engine.ListForItemRequest
 	}, nil
 }
 
-func (api *resourceTeam) Update(ctx context.Context, in *engine.ResourceTeam) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) UpdateResourceTeam(ctx context.Context, in *engine.UpdateResourceTeamRequest) (*engine.ResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -142,7 +142,7 @@ func (api *resourceTeam) Update(ctx context.Context, in *engine.ResourceTeam) (*
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -165,7 +165,7 @@ func (api *resourceTeam) Update(ctx context.Context, in *engine.ResourceTeam) (*
 	return transformResourceTeam(resource), nil
 }
 
-func (api *resourceTeam) Remove(ctx context.Context, in *engine.ResourceTeamItemReqeust) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) DeleteResourceTeam(ctx context.Context, in *engine.DeleteResourceTeamReqeust) (*engine.ResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (api *resourceTeam) Remove(ctx context.Context, in *engine.ResourceTeamItem
 		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 

@@ -1,29 +1,57 @@
 syntax = "proto3";
 
+package engine;
+
 import "const.proto";
 import "google/api/annotations.proto";
 
-package engine;
-
-service CalendarApi {
-    // - POST /calendar
-    rpc Create(Calendar) returns (Calendar) {
-        option (google.api.http).get = "/v1/ajiting";
+service CalendarService {
+    // Create calendar
+    rpc CreateCalendar(CreateCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            post: "/calendars"
+            body: "*"
+        };
     }
-    // -GET /calendar
-    rpc List(ListRequest) returns (ListCalendar) {}
-    // -GET /calendar/:id
-    rpc Get(ItemRequest) returns (Calendar) {}
-    // -PUT /calendar/:id
-    rpc Update(Calendar) returns (Calendar) {}
-    // -DELETE /calendar/:id
-    rpc Remove(ItemRequest) returns (Calendar) {}
+    // List of calendar
+    rpc SearchCalendar(SearchCalendarRequest) returns (ListCalendar) {
+        option (google.api.http) = {
+            get: "/calendars"
+        };
+    }
+    // Calendar item
+    rpc ReadCalendar(ReadCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            get: "/calendars/{id}"
+        };
+    }
+    // Update calendar
+    rpc UpdateCalendar(UpdateCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            put: "/calendars/{id}"
+            body: "*"
+        };
+    }
+    // Remove calendar
+    rpc DeleteCalendar(DeleteCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            delete: "/calendars/{id}"
+        };
+    }
 
-    // -GET /calendar/timezones
-    rpc GetTimezones(ListRequest) returns (ListTimezoneResponse) {}
+    // List timezones
+    rpc SearchTimezones(SearchTimezonesReqeust) returns (ListTimezoneResponse) {
+        option (google.api.http) = {
+            get: "/calendars/timezones"
+        };
+    }
 
     // -GET /calendar/:id/accept
-    rpc GetAcceptOfDay(AcceptOfDayReqeust) returns (ListAcceptOfDay) {}
+    rpc SearchAcceptOfDay(AcceptOfDayReqeust) returns (ListAcceptOfDay) {
+        option (google.api.http) = {
+            get: "/calendars/:id/accepts"
+        };
+    }
 }
 
 message ListCalendar {
@@ -43,6 +71,48 @@ message Calendar {
     int64 finish = 9;
     Lookup timezone = 10;
     string description = 11;
+}
+
+message CreateCalendarRequest {
+    int64 domain_id = 1;
+    string name = 2;
+    int64 start = 3;
+    int64 finish = 4;
+    Lookup timezone = 5;
+    string description = 6;
+}
+
+message SearchCalendarRequest {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
+}
+
+message ReadCalendarRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message DeleteCalendarRequest {
+    int64 domain_id = 1;
+    int64 id = 2;
+}
+
+message UpdateCalendarRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+
+    string name = 3;
+    int64 start = 4;
+    int64 finish = 5;
+    Lookup timezone = 6;
+    string description = 7;
+}
+
+message SearchTimezonesReqeust {
+    int64 domain_id = 1;
+    int32 size = 2;
+    int32 page = 3;
 }
 
 message ListTimezoneResponse {

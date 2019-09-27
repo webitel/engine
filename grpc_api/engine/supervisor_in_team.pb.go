@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/golang/protobuf/proto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -24,7 +25,70 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type SupervisorTeamItemReqeust struct {
+type UpdateSupervisorInTeamRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,4,opt,name=agent,proto3" json:"agent,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateSupervisorInTeamRequest) Reset()         { *m = UpdateSupervisorInTeamRequest{} }
+func (m *UpdateSupervisorInTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateSupervisorInTeamRequest) ProtoMessage()    {}
+func (*UpdateSupervisorInTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_232fda82b39ce17f, []int{0}
+}
+
+func (m *UpdateSupervisorInTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateSupervisorInTeamRequest.Unmarshal(m, b)
+}
+func (m *UpdateSupervisorInTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateSupervisorInTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateSupervisorInTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateSupervisorInTeamRequest.Merge(m, src)
+}
+func (m *UpdateSupervisorInTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateSupervisorInTeamRequest.Size(m)
+}
+func (m *UpdateSupervisorInTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateSupervisorInTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateSupervisorInTeamRequest proto.InternalMessageInfo
+
+func (m *UpdateSupervisorInTeamRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateSupervisorInTeamRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *UpdateSupervisorInTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *UpdateSupervisorInTeamRequest) GetAgent() *Lookup {
+	if m != nil {
+		return m.Agent
+	}
+	return nil
+}
+
+type ReadSupervisorInTeamRequest struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
 	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
@@ -33,46 +97,219 @@ type SupervisorTeamItemReqeust struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *SupervisorTeamItemReqeust) Reset()         { *m = SupervisorTeamItemReqeust{} }
-func (m *SupervisorTeamItemReqeust) String() string { return proto.CompactTextString(m) }
-func (*SupervisorTeamItemReqeust) ProtoMessage()    {}
-func (*SupervisorTeamItemReqeust) Descriptor() ([]byte, []int) {
-	return fileDescriptor_232fda82b39ce17f, []int{0}
+func (m *ReadSupervisorInTeamRequest) Reset()         { *m = ReadSupervisorInTeamRequest{} }
+func (m *ReadSupervisorInTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadSupervisorInTeamRequest) ProtoMessage()    {}
+func (*ReadSupervisorInTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_232fda82b39ce17f, []int{1}
 }
 
-func (m *SupervisorTeamItemReqeust) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SupervisorTeamItemReqeust.Unmarshal(m, b)
+func (m *ReadSupervisorInTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadSupervisorInTeamRequest.Unmarshal(m, b)
 }
-func (m *SupervisorTeamItemReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SupervisorTeamItemReqeust.Marshal(b, m, deterministic)
+func (m *ReadSupervisorInTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadSupervisorInTeamRequest.Marshal(b, m, deterministic)
 }
-func (m *SupervisorTeamItemReqeust) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SupervisorTeamItemReqeust.Merge(m, src)
+func (m *ReadSupervisorInTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadSupervisorInTeamRequest.Merge(m, src)
 }
-func (m *SupervisorTeamItemReqeust) XXX_Size() int {
-	return xxx_messageInfo_SupervisorTeamItemReqeust.Size(m)
+func (m *ReadSupervisorInTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadSupervisorInTeamRequest.Size(m)
 }
-func (m *SupervisorTeamItemReqeust) XXX_DiscardUnknown() {
-	xxx_messageInfo_SupervisorTeamItemReqeust.DiscardUnknown(m)
+func (m *ReadSupervisorInTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadSupervisorInTeamRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SupervisorTeamItemReqeust proto.InternalMessageInfo
+var xxx_messageInfo_ReadSupervisorInTeamRequest proto.InternalMessageInfo
 
-func (m *SupervisorTeamItemReqeust) GetId() int64 {
+func (m *ReadSupervisorInTeamRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
 	return 0
 }
 
-func (m *SupervisorTeamItemReqeust) GetTeamId() int64 {
+func (m *ReadSupervisorInTeamRequest) GetTeamId() int64 {
 	if m != nil {
 		return m.TeamId
 	}
 	return 0
 }
 
-func (m *SupervisorTeamItemReqeust) GetDomainId() int64 {
+func (m *ReadSupervisorInTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type SearchSupervisorInTeamRequest struct {
+	TeamId               int64    `protobuf:"varint,1,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchSupervisorInTeamRequest) Reset()         { *m = SearchSupervisorInTeamRequest{} }
+func (m *SearchSupervisorInTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchSupervisorInTeamRequest) ProtoMessage()    {}
+func (*SearchSupervisorInTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_232fda82b39ce17f, []int{2}
+}
+
+func (m *SearchSupervisorInTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchSupervisorInTeamRequest.Unmarshal(m, b)
+}
+func (m *SearchSupervisorInTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchSupervisorInTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchSupervisorInTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchSupervisorInTeamRequest.Merge(m, src)
+}
+func (m *SearchSupervisorInTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchSupervisorInTeamRequest.Size(m)
+}
+func (m *SearchSupervisorInTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchSupervisorInTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchSupervisorInTeamRequest proto.InternalMessageInfo
+
+func (m *SearchSupervisorInTeamRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *SearchSupervisorInTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchSupervisorInTeamRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchSupervisorInTeamRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type CreateSupervisorInTeamRequest struct {
+	TeamId               int64    `protobuf:"varint,1,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Agent                *Lookup  `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateSupervisorInTeamRequest) Reset()         { *m = CreateSupervisorInTeamRequest{} }
+func (m *CreateSupervisorInTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateSupervisorInTeamRequest) ProtoMessage()    {}
+func (*CreateSupervisorInTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_232fda82b39ce17f, []int{3}
+}
+
+func (m *CreateSupervisorInTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateSupervisorInTeamRequest.Unmarshal(m, b)
+}
+func (m *CreateSupervisorInTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateSupervisorInTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateSupervisorInTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateSupervisorInTeamRequest.Merge(m, src)
+}
+func (m *CreateSupervisorInTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateSupervisorInTeamRequest.Size(m)
+}
+func (m *CreateSupervisorInTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateSupervisorInTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateSupervisorInTeamRequest proto.InternalMessageInfo
+
+func (m *CreateSupervisorInTeamRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *CreateSupervisorInTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *CreateSupervisorInTeamRequest) GetAgent() *Lookup {
+	if m != nil {
+		return m.Agent
+	}
+	return nil
+}
+
+type DeleteSupervisorInTeamReqeust struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TeamId               int64    `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteSupervisorInTeamReqeust) Reset()         { *m = DeleteSupervisorInTeamReqeust{} }
+func (m *DeleteSupervisorInTeamReqeust) String() string { return proto.CompactTextString(m) }
+func (*DeleteSupervisorInTeamReqeust) ProtoMessage()    {}
+func (*DeleteSupervisorInTeamReqeust) Descriptor() ([]byte, []int) {
+	return fileDescriptor_232fda82b39ce17f, []int{4}
+}
+
+func (m *DeleteSupervisorInTeamReqeust) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteSupervisorInTeamReqeust.Unmarshal(m, b)
+}
+func (m *DeleteSupervisorInTeamReqeust) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteSupervisorInTeamReqeust.Marshal(b, m, deterministic)
+}
+func (m *DeleteSupervisorInTeamReqeust) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteSupervisorInTeamReqeust.Merge(m, src)
+}
+func (m *DeleteSupervisorInTeamReqeust) XXX_Size() int {
+	return xxx_messageInfo_DeleteSupervisorInTeamReqeust.Size(m)
+}
+func (m *DeleteSupervisorInTeamReqeust) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteSupervisorInTeamReqeust.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteSupervisorInTeamReqeust proto.InternalMessageInfo
+
+func (m *DeleteSupervisorInTeamReqeust) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteSupervisorInTeamReqeust) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *DeleteSupervisorInTeamReqeust) GetDomainId() int64 {
 	if m != nil {
 		return m.DomainId
 	}
@@ -93,7 +330,7 @@ func (m *SupervisorInTeam) Reset()         { *m = SupervisorInTeam{} }
 func (m *SupervisorInTeam) String() string { return proto.CompactTextString(m) }
 func (*SupervisorInTeam) ProtoMessage()    {}
 func (*SupervisorInTeam) Descriptor() ([]byte, []int) {
-	return fileDescriptor_232fda82b39ce17f, []int{1}
+	return fileDescriptor_232fda82b39ce17f, []int{5}
 }
 
 func (m *SupervisorInTeam) XXX_Unmarshal(b []byte) error {
@@ -153,7 +390,7 @@ func (m *ListSupervisorInTeam) Reset()         { *m = ListSupervisorInTeam{} }
 func (m *ListSupervisorInTeam) String() string { return proto.CompactTextString(m) }
 func (*ListSupervisorInTeam) ProtoMessage()    {}
 func (*ListSupervisorInTeam) Descriptor() ([]byte, []int) {
-	return fileDescriptor_232fda82b39ce17f, []int{2}
+	return fileDescriptor_232fda82b39ce17f, []int{6}
 }
 
 func (m *ListSupervisorInTeam) XXX_Unmarshal(b []byte) error {
@@ -182,7 +419,11 @@ func (m *ListSupervisorInTeam) GetItems() []*SupervisorInTeam {
 }
 
 func init() {
-	proto.RegisterType((*SupervisorTeamItemReqeust)(nil), "engine.SupervisorTeamItemReqeust")
+	proto.RegisterType((*UpdateSupervisorInTeamRequest)(nil), "engine.UpdateSupervisorInTeamRequest")
+	proto.RegisterType((*ReadSupervisorInTeamRequest)(nil), "engine.ReadSupervisorInTeamRequest")
+	proto.RegisterType((*SearchSupervisorInTeamRequest)(nil), "engine.SearchSupervisorInTeamRequest")
+	proto.RegisterType((*CreateSupervisorInTeamRequest)(nil), "engine.CreateSupervisorInTeamRequest")
+	proto.RegisterType((*DeleteSupervisorInTeamReqeust)(nil), "engine.DeleteSupervisorInTeamReqeust")
 	proto.RegisterType((*SupervisorInTeam)(nil), "engine.SupervisorInTeam")
 	proto.RegisterType((*ListSupervisorInTeam)(nil), "engine.ListSupervisorInTeam")
 }
@@ -190,27 +431,38 @@ func init() {
 func init() { proto.RegisterFile("supervisor_in_team.proto", fileDescriptor_232fda82b39ce17f) }
 
 var fileDescriptor_232fda82b39ce17f = []byte{
-	// 306 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0x3f, 0x4f, 0xf3, 0x30,
-	0x10, 0xc6, 0xdf, 0x24, 0xad, 0x5f, 0xb8, 0x4a, 0x15, 0x32, 0x48, 0x98, 0xc0, 0x50, 0x22, 0x86,
-	0x4e, 0x19, 0xca, 0x5e, 0x89, 0x3f, 0x6a, 0x15, 0xa9, 0x53, 0x80, 0xb9, 0x32, 0xf8, 0x54, 0x59,
-	0xc8, 0x76, 0x88, 0x2f, 0x1d, 0xf9, 0xbc, 0x7c, 0x0c, 0x94, 0x06, 0x0a, 0x4a, 0x29, 0x03, 0x30,
-	0xfa, 0x7e, 0x77, 0xcf, 0xf3, 0x9c, 0xce, 0x20, 0x7c, 0x55, 0x60, 0xb9, 0xd4, 0xde, 0x95, 0x73,
-	0x6d, 0xe7, 0x84, 0xd2, 0xa4, 0x45, 0xe9, 0xc8, 0x71, 0x86, 0x76, 0xa1, 0x2d, 0xc6, 0xbd, 0x07,
-	0x67, 0x3d, 0x35, 0xc5, 0x44, 0xc2, 0xd1, 0xcd, 0x7a, 0xe0, 0x16, 0xa5, 0xc9, 0x08, 0x4d, 0x8e,
-	0x4f, 0x58, 0x79, 0xe2, 0x7d, 0x08, 0xb5, 0x12, 0xc1, 0x20, 0x18, 0x46, 0x79, 0xa8, 0x15, 0x3f,
-	0x84, 0xff, 0xb5, 0xde, 0x5c, 0x2b, 0x11, 0xae, 0x8a, 0xac, 0x7e, 0x66, 0x8a, 0x1f, 0xc3, 0xae,
-	0x72, 0x46, 0x6a, 0x5b, 0xa3, 0x68, 0x85, 0x76, 0x9a, 0x42, 0xa6, 0x92, 0x67, 0xd8, 0xfb, 0xb0,
-	0xc8, 0x6c, 0x6d, 0xf2, 0x37, 0xca, 0xfc, 0x0c, 0xba, 0x72, 0x81, 0x96, 0x44, 0x67, 0x10, 0x0c,
-	0x7b, 0xa3, 0x7e, 0xda, 0x6c, 0x98, 0xce, 0x9c, 0x7b, 0xac, 0x8a, 0xbc, 0x81, 0xc9, 0x04, 0x0e,
-	0x66, 0xda, 0xd3, 0x46, 0x86, 0x14, 0xba, 0x9a, 0xd0, 0x78, 0x11, 0x0c, 0xa2, 0x61, 0x6f, 0x24,
-	0xde, 0xa7, 0xdb, 0x8d, 0x79, 0xd3, 0x36, 0x7a, 0x09, 0x61, 0xbf, 0xcd, 0x2e, 0x0a, 0xcd, 0xc7,
-	0xc0, 0xae, 0x4a, 0x94, 0x84, 0x7c, 0xab, 0x44, 0xbc, 0x95, 0x24, 0xff, 0xf8, 0x25, 0x74, 0xea,
-	0x7c, 0x3c, 0x5e, 0xc7, 0xd7, 0x9e, 0x26, 0xae, 0x7c, 0xbb, 0x44, 0x85, 0x9e, 0xe2, 0x93, 0xcf,
-	0xec, 0x0b, 0x8d, 0x6b, 0x88, 0xa6, 0x48, 0xfc, 0x74, 0xd3, 0xa6, 0x75, 0xd3, 0x6f, 0x93, 0x8c,
-	0x81, 0xdd, 0x15, 0xea, 0xe7, 0x9b, 0x4c, 0x81, 0xe5, 0x68, 0xdc, 0x12, 0x7f, 0x19, 0xe4, 0x9e,
-	0xad, 0x3e, 0xe7, 0xf9, 0x6b, 0x00, 0x00, 0x00, 0xff, 0xff, 0xc9, 0xd8, 0x88, 0x58, 0xcd, 0x02,
-	0x00, 0x00,
+	// 490 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x95, 0x41, 0x8b, 0x13, 0x31,
+	0x14, 0xc7, 0xc9, 0x74, 0xa7, 0xea, 0x2b, 0x2c, 0x12, 0x96, 0xee, 0x30, 0xbb, 0x85, 0x32, 0x2a,
+	0x94, 0xc2, 0x76, 0xa4, 0x8b, 0x20, 0x5e, 0x15, 0xa1, 0xb0, 0xa7, 0xa9, 0x9e, 0x4b, 0x9c, 0x3c,
+	0xc6, 0x60, 0x9b, 0x8c, 0x93, 0xd4, 0x83, 0xa5, 0x1e, 0xbc, 0x2a, 0x2a, 0xec, 0x47, 0xf3, 0x2b,
+	0xf8, 0x11, 0xfc, 0x00, 0x32, 0x19, 0xdb, 0x4a, 0x77, 0x1a, 0xb7, 0xa2, 0xde, 0x92, 0xf7, 0xda,
+	0xf7, 0xff, 0xe5, 0x9f, 0xbc, 0x37, 0x10, 0xe8, 0x79, 0x8e, 0xc5, 0x1b, 0xa1, 0x55, 0x31, 0x11,
+	0x72, 0x62, 0x90, 0xcd, 0x06, 0x79, 0xa1, 0x8c, 0xa2, 0x4d, 0x94, 0x99, 0x90, 0x18, 0xb6, 0x52,
+	0x25, 0xb5, 0xa9, 0x82, 0xe1, 0x69, 0xa6, 0x54, 0x36, 0xc5, 0x98, 0xe5, 0x22, 0x66, 0x52, 0x2a,
+	0xc3, 0x8c, 0x50, 0x52, 0x57, 0xd9, 0xe8, 0x03, 0x81, 0xce, 0xf3, 0x9c, 0x33, 0x83, 0xe3, 0x75,
+	0xd5, 0x91, 0x7c, 0x86, 0x6c, 0x96, 0xe0, 0xeb, 0x39, 0x6a, 0x43, 0x0f, 0xc1, 0x13, 0x3c, 0x20,
+	0x5d, 0xd2, 0x6b, 0x24, 0x9e, 0xe0, 0xf4, 0x18, 0x6e, 0x94, 0x92, 0x13, 0xc1, 0x03, 0xcf, 0x06,
+	0x9b, 0xe5, 0x76, 0xc4, 0xe9, 0x09, 0xdc, 0xe2, 0x6a, 0xc6, 0x84, 0x2c, 0x53, 0x0d, 0x9b, 0xba,
+	0x59, 0x05, 0x46, 0x9c, 0xde, 0x05, 0x9f, 0x65, 0x28, 0x4d, 0x70, 0xd0, 0x25, 0xbd, 0xd6, 0xf0,
+	0x70, 0x50, 0xa1, 0x0e, 0x2e, 0x94, 0x7a, 0x35, 0xcf, 0x93, 0x2a, 0x19, 0xa5, 0x70, 0x92, 0x20,
+	0xe3, 0xff, 0x14, 0x25, 0x5a, 0x42, 0x67, 0x8c, 0xac, 0x48, 0x5f, 0xee, 0x92, 0xf9, 0xa5, 0x2c,
+	0xd9, 0x5d, 0xd6, 0xdb, 0x3a, 0x21, 0x85, 0x03, 0x2d, 0xde, 0xa2, 0x95, 0xf3, 0x13, 0xbb, 0x2e,
+	0x63, 0x39, 0xcb, 0xd0, 0x1e, 0xda, 0x4f, 0xec, 0x3a, 0x5a, 0x40, 0xe7, 0x71, 0x81, 0x0e, 0xc3,
+	0xff, 0x4c, 0x7e, 0x6d, 0x70, 0xc3, 0x65, 0x30, 0x42, 0xe7, 0x09, 0x4e, 0xb1, 0x56, 0x1c, 0xe7,
+	0x7f, 0xcd, 0xe2, 0x77, 0x70, 0x7b, 0x5b, 0xe0, 0xbf, 0xbe, 0xa3, 0xa7, 0x70, 0x74, 0x21, 0xb4,
+	0xb9, 0xc2, 0x30, 0x00, 0x5f, 0x18, 0x9c, 0xe9, 0x80, 0x74, 0x1b, 0xbd, 0xd6, 0x30, 0x58, 0xfd,
+	0xfb, 0x8a, 0x1b, 0xd5, 0xcf, 0x86, 0xdf, 0x7d, 0x38, 0xde, 0xce, 0x8d, 0xcb, 0x5d, 0x8a, 0xf4,
+	0x13, 0x81, 0x76, 0xfd, 0x45, 0xd2, 0x7b, 0xab, 0xba, 0xce, 0x8b, 0x0e, 0x77, 0xca, 0x47, 0xe7,
+	0xef, 0xbf, 0x7e, 0xbb, 0xf4, 0xce, 0xa2, 0x5e, 0x9c, 0xb2, 0xe9, 0x74, 0x92, 0xa2, 0x34, 0x58,
+	0xc4, 0xa5, 0x3f, 0x3a, 0x5e, 0xfc, 0x74, 0x6d, 0x19, 0x6f, 0xe6, 0x80, 0x7e, 0x44, 0xfa, 0xf4,
+	0x33, 0x81, 0x76, 0xfd, 0xc3, 0xde, 0x00, 0x39, 0x1f, 0x7e, 0x78, 0xba, 0x76, 0xb3, 0xc6, 0xbc,
+	0xe8, 0xbe, 0x85, 0xea, 0xd3, 0x6b, 0x43, 0xd1, 0x8f, 0x04, 0x8e, 0xea, 0xfa, 0x99, 0xde, 0x59,
+	0x09, 0x39, 0xba, 0xdd, 0x61, 0xcf, 0x03, 0x4b, 0x12, 0xd3, 0xb3, 0xeb, 0x92, 0xc4, 0x0b, 0xc1,
+	0x97, 0xf4, 0x92, 0x40, 0xbb, 0x7e, 0xd6, 0x6d, 0x0c, 0x72, 0xce, 0x42, 0x07, 0xd2, 0x43, 0x8b,
+	0x34, 0x0c, 0xf7, 0x43, 0x2a, 0xaf, 0xed, 0x0b, 0x81, 0x76, 0x7d, 0x4f, 0x6e, 0xa8, 0x9c, 0x3d,
+	0xfb, 0x7b, 0xa3, 0xfa, 0xfb, 0x51, 0xbd, 0x68, 0xda, 0x6f, 0xc3, 0xf9, 0x8f, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0xe7, 0x45, 0x42, 0x50, 0x6a, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -221,226 +473,226 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// SupervisorInTeamApiClient is the client API for SupervisorInTeamApi service.
+// SupervisorInTeamServiceClient is the client API for SupervisorInTeamService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type SupervisorInTeamApiClient interface {
-	// POST /call_center/team/:team_id/supervisor
-	Create(ctx context.Context, in *SupervisorInTeam, opts ...grpc.CallOption) (*SupervisorInTeam, error)
-	// GET /call_center/team/:team_id/supervisor
-	List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListSupervisorInTeam, error)
-	// GET /call_center/team/:team_id/supervisor/:id
-	Get(ctx context.Context, in *SupervisorTeamItemReqeust, opts ...grpc.CallOption) (*SupervisorInTeam, error)
-	// PUT /call_center/team/:team_id/supervisor/:id
-	Update(ctx context.Context, in *SupervisorInTeam, opts ...grpc.CallOption) (*SupervisorInTeam, error)
-	// DELETE /call_center/team/:team_id/supervisor/:id
-	Remove(ctx context.Context, in *SupervisorTeamItemReqeust, opts ...grpc.CallOption) (*SupervisorInTeam, error)
+type SupervisorInTeamServiceClient interface {
+	// Create SupervisorInTeam
+	CreateSupervisorInTeam(ctx context.Context, in *CreateSupervisorInTeamRequest, opts ...grpc.CallOption) (*SupervisorInTeam, error)
+	// List of SupervisorInTeam
+	SearchSupervisorInTeam(ctx context.Context, in *SearchSupervisorInTeamRequest, opts ...grpc.CallOption) (*ListSupervisorInTeam, error)
+	// SupervisorInTeam item
+	ReadSupervisorInTeam(ctx context.Context, in *ReadSupervisorInTeamRequest, opts ...grpc.CallOption) (*SupervisorInTeam, error)
+	// Update SupervisorInTeam
+	UpdateSupervisorInTeam(ctx context.Context, in *UpdateSupervisorInTeamRequest, opts ...grpc.CallOption) (*SupervisorInTeam, error)
+	// Remove SupervisorInTeam
+	DeleteSupervisorInTeam(ctx context.Context, in *DeleteSupervisorInTeamReqeust, opts ...grpc.CallOption) (*SupervisorInTeam, error)
 }
 
-type supervisorInTeamApiClient struct {
+type supervisorInTeamServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewSupervisorInTeamApiClient(cc *grpc.ClientConn) SupervisorInTeamApiClient {
-	return &supervisorInTeamApiClient{cc}
+func NewSupervisorInTeamServiceClient(cc *grpc.ClientConn) SupervisorInTeamServiceClient {
+	return &supervisorInTeamServiceClient{cc}
 }
 
-func (c *supervisorInTeamApiClient) Create(ctx context.Context, in *SupervisorInTeam, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
+func (c *supervisorInTeamServiceClient) CreateSupervisorInTeam(ctx context.Context, in *CreateSupervisorInTeamRequest, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
 	out := new(SupervisorInTeam)
-	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamApi/Create", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamService/CreateSupervisorInTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *supervisorInTeamApiClient) List(ctx context.Context, in *ListForItemRequest, opts ...grpc.CallOption) (*ListSupervisorInTeam, error) {
+func (c *supervisorInTeamServiceClient) SearchSupervisorInTeam(ctx context.Context, in *SearchSupervisorInTeamRequest, opts ...grpc.CallOption) (*ListSupervisorInTeam, error) {
 	out := new(ListSupervisorInTeam)
-	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamApi/List", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamService/SearchSupervisorInTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *supervisorInTeamApiClient) Get(ctx context.Context, in *SupervisorTeamItemReqeust, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
+func (c *supervisorInTeamServiceClient) ReadSupervisorInTeam(ctx context.Context, in *ReadSupervisorInTeamRequest, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
 	out := new(SupervisorInTeam)
-	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamApi/Get", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamService/ReadSupervisorInTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *supervisorInTeamApiClient) Update(ctx context.Context, in *SupervisorInTeam, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
+func (c *supervisorInTeamServiceClient) UpdateSupervisorInTeam(ctx context.Context, in *UpdateSupervisorInTeamRequest, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
 	out := new(SupervisorInTeam)
-	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamApi/Update", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamService/UpdateSupervisorInTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *supervisorInTeamApiClient) Remove(ctx context.Context, in *SupervisorTeamItemReqeust, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
+func (c *supervisorInTeamServiceClient) DeleteSupervisorInTeam(ctx context.Context, in *DeleteSupervisorInTeamReqeust, opts ...grpc.CallOption) (*SupervisorInTeam, error) {
 	out := new(SupervisorInTeam)
-	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamApi/Remove", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.SupervisorInTeamService/DeleteSupervisorInTeam", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// SupervisorInTeamApiServer is the server API for SupervisorInTeamApi service.
-type SupervisorInTeamApiServer interface {
-	// POST /call_center/team/:team_id/supervisor
-	Create(context.Context, *SupervisorInTeam) (*SupervisorInTeam, error)
-	// GET /call_center/team/:team_id/supervisor
-	List(context.Context, *ListForItemRequest) (*ListSupervisorInTeam, error)
-	// GET /call_center/team/:team_id/supervisor/:id
-	Get(context.Context, *SupervisorTeamItemReqeust) (*SupervisorInTeam, error)
-	// PUT /call_center/team/:team_id/supervisor/:id
-	Update(context.Context, *SupervisorInTeam) (*SupervisorInTeam, error)
-	// DELETE /call_center/team/:team_id/supervisor/:id
-	Remove(context.Context, *SupervisorTeamItemReqeust) (*SupervisorInTeam, error)
+// SupervisorInTeamServiceServer is the server API for SupervisorInTeamService service.
+type SupervisorInTeamServiceServer interface {
+	// Create SupervisorInTeam
+	CreateSupervisorInTeam(context.Context, *CreateSupervisorInTeamRequest) (*SupervisorInTeam, error)
+	// List of SupervisorInTeam
+	SearchSupervisorInTeam(context.Context, *SearchSupervisorInTeamRequest) (*ListSupervisorInTeam, error)
+	// SupervisorInTeam item
+	ReadSupervisorInTeam(context.Context, *ReadSupervisorInTeamRequest) (*SupervisorInTeam, error)
+	// Update SupervisorInTeam
+	UpdateSupervisorInTeam(context.Context, *UpdateSupervisorInTeamRequest) (*SupervisorInTeam, error)
+	// Remove SupervisorInTeam
+	DeleteSupervisorInTeam(context.Context, *DeleteSupervisorInTeamReqeust) (*SupervisorInTeam, error)
 }
 
-// UnimplementedSupervisorInTeamApiServer can be embedded to have forward compatible implementations.
-type UnimplementedSupervisorInTeamApiServer struct {
+// UnimplementedSupervisorInTeamServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedSupervisorInTeamServiceServer struct {
 }
 
-func (*UnimplementedSupervisorInTeamApiServer) Create(ctx context.Context, req *SupervisorInTeam) (*SupervisorInTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+func (*UnimplementedSupervisorInTeamServiceServer) CreateSupervisorInTeam(ctx context.Context, req *CreateSupervisorInTeamRequest) (*SupervisorInTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateSupervisorInTeam not implemented")
 }
-func (*UnimplementedSupervisorInTeamApiServer) List(ctx context.Context, req *ListForItemRequest) (*ListSupervisorInTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+func (*UnimplementedSupervisorInTeamServiceServer) SearchSupervisorInTeam(ctx context.Context, req *SearchSupervisorInTeamRequest) (*ListSupervisorInTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchSupervisorInTeam not implemented")
 }
-func (*UnimplementedSupervisorInTeamApiServer) Get(ctx context.Context, req *SupervisorTeamItemReqeust) (*SupervisorInTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+func (*UnimplementedSupervisorInTeamServiceServer) ReadSupervisorInTeam(ctx context.Context, req *ReadSupervisorInTeamRequest) (*SupervisorInTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadSupervisorInTeam not implemented")
 }
-func (*UnimplementedSupervisorInTeamApiServer) Update(ctx context.Context, req *SupervisorInTeam) (*SupervisorInTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+func (*UnimplementedSupervisorInTeamServiceServer) UpdateSupervisorInTeam(ctx context.Context, req *UpdateSupervisorInTeamRequest) (*SupervisorInTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSupervisorInTeam not implemented")
 }
-func (*UnimplementedSupervisorInTeamApiServer) Remove(ctx context.Context, req *SupervisorTeamItemReqeust) (*SupervisorInTeam, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Remove not implemented")
-}
-
-func RegisterSupervisorInTeamApiServer(s *grpc.Server, srv SupervisorInTeamApiServer) {
-	s.RegisterService(&_SupervisorInTeamApi_serviceDesc, srv)
+func (*UnimplementedSupervisorInTeamServiceServer) DeleteSupervisorInTeam(ctx context.Context, req *DeleteSupervisorInTeamReqeust) (*SupervisorInTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSupervisorInTeam not implemented")
 }
 
-func _SupervisorInTeamApi_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SupervisorInTeam)
+func RegisterSupervisorInTeamServiceServer(s *grpc.Server, srv SupervisorInTeamServiceServer) {
+	s.RegisterService(&_SupervisorInTeamService_serviceDesc, srv)
+}
+
+func _SupervisorInTeamService_CreateSupervisorInTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSupervisorInTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SupervisorInTeamApiServer).Create(ctx, in)
+		return srv.(SupervisorInTeamServiceServer).CreateSupervisorInTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.SupervisorInTeamApi/Create",
+		FullMethod: "/engine.SupervisorInTeamService/CreateSupervisorInTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SupervisorInTeamApiServer).Create(ctx, req.(*SupervisorInTeam))
+		return srv.(SupervisorInTeamServiceServer).CreateSupervisorInTeam(ctx, req.(*CreateSupervisorInTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SupervisorInTeamApi_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListForItemRequest)
+func _SupervisorInTeamService_SearchSupervisorInTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchSupervisorInTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SupervisorInTeamApiServer).List(ctx, in)
+		return srv.(SupervisorInTeamServiceServer).SearchSupervisorInTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.SupervisorInTeamApi/List",
+		FullMethod: "/engine.SupervisorInTeamService/SearchSupervisorInTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SupervisorInTeamApiServer).List(ctx, req.(*ListForItemRequest))
+		return srv.(SupervisorInTeamServiceServer).SearchSupervisorInTeam(ctx, req.(*SearchSupervisorInTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SupervisorInTeamApi_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SupervisorTeamItemReqeust)
+func _SupervisorInTeamService_ReadSupervisorInTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadSupervisorInTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SupervisorInTeamApiServer).Get(ctx, in)
+		return srv.(SupervisorInTeamServiceServer).ReadSupervisorInTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.SupervisorInTeamApi/Get",
+		FullMethod: "/engine.SupervisorInTeamService/ReadSupervisorInTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SupervisorInTeamApiServer).Get(ctx, req.(*SupervisorTeamItemReqeust))
+		return srv.(SupervisorInTeamServiceServer).ReadSupervisorInTeam(ctx, req.(*ReadSupervisorInTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SupervisorInTeamApi_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SupervisorInTeam)
+func _SupervisorInTeamService_UpdateSupervisorInTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSupervisorInTeamRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SupervisorInTeamApiServer).Update(ctx, in)
+		return srv.(SupervisorInTeamServiceServer).UpdateSupervisorInTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.SupervisorInTeamApi/Update",
+		FullMethod: "/engine.SupervisorInTeamService/UpdateSupervisorInTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SupervisorInTeamApiServer).Update(ctx, req.(*SupervisorInTeam))
+		return srv.(SupervisorInTeamServiceServer).UpdateSupervisorInTeam(ctx, req.(*UpdateSupervisorInTeamRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SupervisorInTeamApi_Remove_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SupervisorTeamItemReqeust)
+func _SupervisorInTeamService_DeleteSupervisorInTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteSupervisorInTeamReqeust)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SupervisorInTeamApiServer).Remove(ctx, in)
+		return srv.(SupervisorInTeamServiceServer).DeleteSupervisorInTeam(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.SupervisorInTeamApi/Remove",
+		FullMethod: "/engine.SupervisorInTeamService/DeleteSupervisorInTeam",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SupervisorInTeamApiServer).Remove(ctx, req.(*SupervisorTeamItemReqeust))
+		return srv.(SupervisorInTeamServiceServer).DeleteSupervisorInTeam(ctx, req.(*DeleteSupervisorInTeamReqeust))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _SupervisorInTeamApi_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "engine.SupervisorInTeamApi",
-	HandlerType: (*SupervisorInTeamApiServer)(nil),
+var _SupervisorInTeamService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "engine.SupervisorInTeamService",
+	HandlerType: (*SupervisorInTeamServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _SupervisorInTeamApi_Create_Handler,
+			MethodName: "CreateSupervisorInTeam",
+			Handler:    _SupervisorInTeamService_CreateSupervisorInTeam_Handler,
 		},
 		{
-			MethodName: "List",
-			Handler:    _SupervisorInTeamApi_List_Handler,
+			MethodName: "SearchSupervisorInTeam",
+			Handler:    _SupervisorInTeamService_SearchSupervisorInTeam_Handler,
 		},
 		{
-			MethodName: "Get",
-			Handler:    _SupervisorInTeamApi_Get_Handler,
+			MethodName: "ReadSupervisorInTeam",
+			Handler:    _SupervisorInTeamService_ReadSupervisorInTeam_Handler,
 		},
 		{
-			MethodName: "Update",
-			Handler:    _SupervisorInTeamApi_Update_Handler,
+			MethodName: "UpdateSupervisorInTeam",
+			Handler:    _SupervisorInTeamService_UpdateSupervisorInTeam_Handler,
 		},
 		{
-			MethodName: "Remove",
-			Handler:    _SupervisorInTeamApi_Remove_Handler,
+			MethodName: "DeleteSupervisorInTeam",
+			Handler:    _SupervisorInTeamService_DeleteSupervisorInTeam_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

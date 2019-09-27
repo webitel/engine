@@ -15,7 +15,7 @@ func NewCalendarApi(app *app.App) *calendar {
 	return &calendar{app}
 }
 
-func (api *calendar) Create(ctx context.Context, in *engine.Calendar) (*engine.Calendar, error) {
+func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalendarRequest) (*engine.Calendar, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (api *calendar) Create(ctx context.Context, in *engine.Calendar) (*engine.C
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) List(ctx context.Context, in *engine.ListRequest) (*engine.ListCalendar, error) {
+func (api *calendar) SearchCalendar(ctx context.Context, in *engine.SearchCalendarRequest) (*engine.ListCalendar, error) {
 
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -93,7 +93,7 @@ func (api *calendar) List(ctx context.Context, in *engine.ListRequest) (*engine.
 	}, nil
 }
 
-func (api *calendar) Get(ctx context.Context, in *engine.ItemRequest) (*engine.Calendar, error) {
+func (api *calendar) ReadCalendar(ctx context.Context, in *engine.ReadCalendarRequest) (*engine.Calendar, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (api *calendar) Get(ctx context.Context, in *engine.ItemRequest) (*engine.C
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) Update(ctx context.Context, in *engine.Calendar) (*engine.Calendar, error) {
+func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalendarRequest) (*engine.Calendar, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -175,7 +175,7 @@ func (api *calendar) Update(ctx context.Context, in *engine.Calendar) (*engine.C
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.Calendar, error) {
+func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalendarRequest) (*engine.Calendar, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (api *calendar) Remove(ctx context.Context, in *engine.ItemRequest) (*engin
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) GetTimezones(ctx context.Context, in *engine.ListRequest) (*engine.ListTimezoneResponse, error) {
+func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimezonesReqeust) (*engine.ListTimezoneResponse, error) {
 	list, err := api.app.GetCalendarTimezoneAllPage(int(in.Page), int(in.Size))
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func (api *calendar) GetTimezones(ctx context.Context, in *engine.ListRequest) (
 	}, nil
 }
 
-func (api *calendar) GetAcceptOfDay(ctx context.Context, in *engine.AcceptOfDayReqeust) (*engine.ListAcceptOfDay, error) {
+func (api *calendar) SearchAcceptOfDay(ctx context.Context, in *engine.AcceptOfDayReqeust) (*engine.ListAcceptOfDay, error) {
 
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

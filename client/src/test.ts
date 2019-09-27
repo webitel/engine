@@ -1,7 +1,7 @@
 import {Client} from './client'
 
 const cli = new Client({
-    endpoint: "http://10.10.10.25:10025",
+    endpoint: "ws://192.168.177.199/ws",
     token: "USER_TOKEN"
 });
 

@@ -15,7 +15,7 @@ func NewRoutingOutboundCallApi(app *app.App) *routingOutboundCall {
 	return &routingOutboundCall{app: app}
 }
 
-func (api *routingOutboundCall) Create(ctx context.Context, in *engine.RoutingOutboundCall) (*engine.RoutingOutboundCall, error) {
+func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, in *engine.CreateRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (api *routingOutboundCall) Create(ctx context.Context, in *engine.RoutingOu
 	}
 }
 
-func (api *routingOutboundCall) List(ctx context.Context, in *engine.ListRequest) (*engine.ListRoutingOutboundCall, error) {
+func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, in *engine.SearchRoutingOutboundCallRequest) (*engine.ListRoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (api *routingOutboundCall) List(ctx context.Context, in *engine.ListRequest
 	}, nil
 }
 
-func (api *routingOutboundCall) Get(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingOutboundCall, error) {
+func (api *routingOutboundCall) ReadRoutingOutboundCall(ctx context.Context, in *engine.ReadRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,7 @@ func (api *routingOutboundCall) Get(ctx context.Context, in *engine.ItemRequest)
 	return transformRoutingOutboundCall(routing), nil
 }
 
-func (api *routingOutboundCall) Update(ctx context.Context, in *engine.RoutingOutboundCall) (*engine.RoutingOutboundCall, error) {
+func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, in *engine.UpdateRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func (api *routingOutboundCall) Update(ctx context.Context, in *engine.RoutingOu
 	return transformRoutingOutboundCall(routing), nil
 }
 
-func (api *routingOutboundCall) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.RoutingOutboundCall, error) {
+func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, in *engine.DeleteRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

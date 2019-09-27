@@ -15,7 +15,7 @@ func NewOutboundResourceApi(app *app.App) *outboundResource {
 	return &outboundResource{app: app}
 }
 
-func (api *outboundResource) Create(ctx context.Context, in *engine.OutboundResource) (*engine.OutboundResource, error) {
+func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *engine.CreateOutboundResourceRequest) (*engine.OutboundResource, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (api *outboundResource) Create(ctx context.Context, in *engine.OutboundReso
 	}
 }
 
-func (api *outboundResource) List(ctx context.Context, in *engine.ListRequest) (*engine.ListOutboundResource, error) {
+func (api *outboundResource) SearchOutboundResource(ctx context.Context, in *engine.SearchOutboundResourceRequest) (*engine.ListOutboundResource, error) {
 
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -94,7 +94,7 @@ func (api *outboundResource) List(ctx context.Context, in *engine.ListRequest) (
 	}, nil
 }
 
-func (api *outboundResource) Get(ctx context.Context, in *engine.ItemRequest) (*engine.OutboundResource, error) {
+func (api *outboundResource) ReadOutboundResource(ctx context.Context, in *engine.ReadOutboundResourceRequest) (*engine.OutboundResource, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -125,7 +125,7 @@ func (api *outboundResource) Get(ctx context.Context, in *engine.ItemRequest) (*
 	return transformOutboundResource(resource), nil
 }
 
-func (api *outboundResource) Update(ctx context.Context, in *engine.OutboundResource) (*engine.OutboundResource, error) {
+func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *engine.UpdateOutboundResourceRequest) (*engine.OutboundResource, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func (api *outboundResource) Update(ctx context.Context, in *engine.OutboundReso
 	return transformOutboundResource(resource), nil
 }
 
-func (api *outboundResource) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.OutboundResource, error) {
+func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *engine.DeleteOutboundResourceRequest) (*engine.OutboundResource, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

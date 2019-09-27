@@ -15,7 +15,7 @@ func NewQueueApi(app *app.App) *queue {
 	return &queue{app: app}
 }
 
-func (api *queue) Create(ctx context.Context, in *engine.Queue) (*engine.Queue, error) {
+func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest) (*engine.Queue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (api *queue) Create(ctx context.Context, in *engine.Queue) (*engine.Queue, 
 	return transformQueue(queue), nil
 }
 
-func (api *queue) List(ctx context.Context, in *engine.ListRequest) (*engine.ListQueue, error) {
+func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest) (*engine.ListQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (api *queue) List(ctx context.Context, in *engine.ListRequest) (*engine.Lis
 	}, nil
 }
 
-func (api *queue) Get(ctx context.Context, in *engine.ItemRequest) (*engine.Queue, error) {
+func (api *queue) ReadQueue(ctx context.Context, in *engine.ReadQueueRequest) (*engine.Queue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -134,7 +134,7 @@ func (api *queue) Get(ctx context.Context, in *engine.ItemRequest) (*engine.Queu
 	return transformQueue(queue), nil
 }
 
-func (api *queue) Update(ctx context.Context, in *engine.Queue) (*engine.Queue, error) {
+func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest) (*engine.Queue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -195,7 +195,7 @@ func (api *queue) Update(ctx context.Context, in *engine.Queue) (*engine.Queue, 
 	return transformQueue(queue), nil
 }
 
-func (api *queue) Remove(ctx context.Context, in *engine.ItemRequest) (*engine.Queue, error) {
+func (api *queue) DeleteQueue(ctx context.Context, in *engine.DeleteQueueRequest) (*engine.Queue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
