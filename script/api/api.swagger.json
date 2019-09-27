@@ -12,8 +12,8 @@
       "name": "MIT"
     }
   },
-  "host": "dev.webitel.com",
-  "basePath": "/api",
+  "host": "10.10.10.25:1907",
+  "basePath": "/",
   "schemes": [
     "http",
     "https",
@@ -35,7 +35,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListCalendar"
+              "$ref": "#/definitions/engineListCalendar"
             }
           },
           "403": {
@@ -84,7 +84,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Calendar"
+              "$ref": "#/definitions/engineCalendar"
             }
           },
           "403": {
@@ -105,45 +105,8 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateCalendarRequest"
+              "$ref": "#/definitions/engineCreateCalendarRequest"
             }
-          }
-        ],
-        "tags": [
-          "CalendarService"
-        ]
-      }
-    },
-    "/calendars/:id/accepts": {
-      "get": {
-        "summary": "-GET /calendar/:id/accept",
-        "operationId": "SearchAcceptOfDay",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/engine.ListAcceptOfDay"
-            }
-          },
-          "403": {
-            "description": "Returned when the user does not have permission to access the resource.",
-            "schema": {}
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "calendar_id",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
           }
         ],
         "tags": [
@@ -159,7 +122,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListTimezoneResponse"
+              "$ref": "#/definitions/engineListTimezoneResponse"
             }
           },
           "403": {
@@ -202,6 +165,43 @@
         ]
       }
     },
+    "/calendars/{calendar_id}/accepts": {
+      "get": {
+        "summary": "-GET /calendar/:id/accept",
+        "operationId": "SearchAcceptOfDay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListAcceptOfDay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
     "/calendars/{id}": {
       "get": {
         "summary": "Calendar item",
@@ -210,7 +210,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Calendar"
+              "$ref": "#/definitions/engineCalendar"
             }
           },
           "403": {
@@ -252,7 +252,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Calendar"
+              "$ref": "#/definitions/engineCalendar"
             }
           },
           "403": {
@@ -294,7 +294,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Calendar"
+              "$ref": "#/definitions/engineCalendar"
             }
           },
           "403": {
@@ -322,7 +322,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateCalendarRequest"
+              "$ref": "#/definitions/engineUpdateCalendarRequest"
             }
           }
         ],
@@ -339,7 +339,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListAgent"
+              "$ref": "#/definitions/engineListAgent"
             }
           },
           "403": {
@@ -388,7 +388,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Agent"
+              "$ref": "#/definitions/engineAgent"
             }
           },
           "403": {
@@ -409,7 +409,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateAgentRequest"
+              "$ref": "#/definitions/engineCreateAgentRequest"
             }
           }
         ],
@@ -426,7 +426,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListAgentSkill"
+              "$ref": "#/definitions/engineListAgentSkill"
             }
           },
           "403": {
@@ -482,7 +482,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentSkill"
+              "$ref": "#/definitions/engineAgentSkill"
             }
           },
           "403": {
@@ -510,7 +510,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateAgentSkillRequest"
+              "$ref": "#/definitions/engineCreateAgentSkillRequest"
             }
           }
         ],
@@ -527,7 +527,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentSkill"
+              "$ref": "#/definitions/engineAgentSkill"
             }
           },
           "403": {
@@ -576,7 +576,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentSkill"
+              "$ref": "#/definitions/engineAgentSkill"
             }
           },
           "403": {
@@ -625,7 +625,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentSkill"
+              "$ref": "#/definitions/engineAgentSkill"
             }
           },
           "403": {
@@ -660,7 +660,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateAgentSkillRequest"
+              "$ref": "#/definitions/engineUpdateAgentSkillRequest"
             }
           }
         ],
@@ -677,7 +677,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Agent"
+              "$ref": "#/definitions/engineAgent"
             }
           },
           "403": {
@@ -719,7 +719,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Agent"
+              "$ref": "#/definitions/engineAgent"
             }
           },
           "403": {
@@ -761,7 +761,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Agent"
+              "$ref": "#/definitions/engineAgent"
             }
           },
           "403": {
@@ -789,14 +789,16 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateAgentRequest"
+              "$ref": "#/definitions/engineUpdateAgentRequest"
             }
           }
         ],
         "tags": [
           "AgentService"
         ]
-      },
+      }
+    },
+    "/call_center/agents/{id}/status": {
       "patch": {
         "summary": "Change agent status",
         "operationId": "UpdateAgentStatus",
@@ -804,7 +806,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Response"
+              "$ref": "#/definitions/engineResponse"
             }
           },
           "403": {
@@ -826,6 +828,14 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineAgentStatusRequest"
+            }
           }
         ],
         "tags": [
@@ -841,7 +851,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListQueue"
+              "$ref": "#/definitions/engineListQueue"
             }
           },
           "403": {
@@ -890,7 +900,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Queue"
+              "$ref": "#/definitions/engineQueue"
             }
           },
           "403": {
@@ -911,7 +921,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateQueueRequest"
+              "$ref": "#/definitions/engineCreateQueueRequest"
             }
           }
         ],
@@ -928,7 +938,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Queue"
+              "$ref": "#/definitions/engineQueue"
             }
           },
           "403": {
@@ -970,7 +980,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Queue"
+              "$ref": "#/definitions/engineQueue"
             }
           },
           "403": {
@@ -1012,7 +1022,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Queue"
+              "$ref": "#/definitions/engineQueue"
             }
           },
           "403": {
@@ -1040,7 +1050,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateQueueRequest"
+              "$ref": "#/definitions/engineUpdateQueueRequest"
             }
           }
         ],
@@ -1057,7 +1067,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListOutboundResource"
+              "$ref": "#/definitions/engineListOutboundResource"
             }
           },
           "403": {
@@ -1106,7 +1116,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.OutboundResource"
+              "$ref": "#/definitions/engineOutboundResource"
             }
           },
           "403": {
@@ -1127,7 +1137,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateOutboundResourceRequest"
+              "$ref": "#/definitions/engineCreateOutboundResourceRequest"
             }
           }
         ],
@@ -1144,7 +1154,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.OutboundResource"
+              "$ref": "#/definitions/engineOutboundResource"
             }
           },
           "403": {
@@ -1186,7 +1196,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.OutboundResource"
+              "$ref": "#/definitions/engineOutboundResource"
             }
           },
           "403": {
@@ -1228,7 +1238,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.OutboundResource"
+              "$ref": "#/definitions/engineOutboundResource"
             }
           },
           "403": {
@@ -1256,7 +1266,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateOutboundResourceRequest"
+              "$ref": "#/definitions/engineUpdateOutboundResourceRequest"
             }
           }
         ],
@@ -1273,7 +1283,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListSkill"
+              "$ref": "#/definitions/engineListSkill"
             }
           },
           "403": {
@@ -1322,7 +1332,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Skill"
+              "$ref": "#/definitions/engineSkill"
             }
           },
           "403": {
@@ -1343,7 +1353,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateSkillRequest"
+              "$ref": "#/definitions/engineCreateSkillRequest"
             }
           }
         ],
@@ -1360,7 +1370,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Skill"
+              "$ref": "#/definitions/engineSkill"
             }
           },
           "403": {
@@ -1402,7 +1412,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Skill"
+              "$ref": "#/definitions/engineSkill"
             }
           },
           "403": {
@@ -1444,7 +1454,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.Skill"
+              "$ref": "#/definitions/engineSkill"
             }
           },
           "403": {
@@ -1472,7 +1482,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateSkillRequest"
+              "$ref": "#/definitions/engineUpdateSkillRequest"
             }
           }
         ],
@@ -1489,7 +1499,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListAgentTeam"
+              "$ref": "#/definitions/engineListAgentTeam"
             }
           },
           "403": {
@@ -1538,7 +1548,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentTeam"
+              "$ref": "#/definitions/engineAgentTeam"
             }
           },
           "403": {
@@ -1559,7 +1569,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateAgentTeamRequest"
+              "$ref": "#/definitions/engineCreateAgentTeamRequest"
             }
           }
         ],
@@ -1576,7 +1586,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentTeam"
+              "$ref": "#/definitions/engineAgentTeam"
             }
           },
           "403": {
@@ -1618,7 +1628,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentTeam"
+              "$ref": "#/definitions/engineAgentTeam"
             }
           },
           "403": {
@@ -1660,7 +1670,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.AgentTeam"
+              "$ref": "#/definitions/engineAgentTeam"
             }
           },
           "403": {
@@ -1688,7 +1698,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateAgentTeamRequest"
+              "$ref": "#/definitions/engineUpdateAgentTeamRequest"
             }
           }
         ],
@@ -1705,7 +1715,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListResourceTeam"
+              "$ref": "#/definitions/engineListResourceTeam"
             }
           },
           "403": {
@@ -1761,7 +1771,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ResourceTeam"
+              "$ref": "#/definitions/engineResourceTeam"
             }
           },
           "403": {
@@ -1789,7 +1799,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateResourceTeamRequest"
+              "$ref": "#/definitions/engineCreateResourceTeamRequest"
             }
           }
         ],
@@ -1806,7 +1816,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ResourceTeam"
+              "$ref": "#/definitions/engineResourceTeam"
             }
           },
           "403": {
@@ -1855,7 +1865,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ResourceTeam"
+              "$ref": "#/definitions/engineResourceTeam"
             }
           },
           "403": {
@@ -1904,7 +1914,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ResourceTeam"
+              "$ref": "#/definitions/engineResourceTeam"
             }
           },
           "403": {
@@ -1939,7 +1949,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateResourceTeamRequest"
+              "$ref": "#/definitions/engineUpdateResourceTeamRequest"
             }
           }
         ],
@@ -1956,7 +1966,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListSupervisorInTeam"
+              "$ref": "#/definitions/engineListSupervisorInTeam"
             }
           },
           "403": {
@@ -2012,7 +2022,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.SupervisorInTeam"
+              "$ref": "#/definitions/engineSupervisorInTeam"
             }
           },
           "403": {
@@ -2040,7 +2050,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateSupervisorInTeamRequest"
+              "$ref": "#/definitions/engineCreateSupervisorInTeamRequest"
             }
           }
         ],
@@ -2057,7 +2067,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.SupervisorInTeam"
+              "$ref": "#/definitions/engineSupervisorInTeam"
             }
           },
           "403": {
@@ -2106,7 +2116,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.SupervisorInTeam"
+              "$ref": "#/definitions/engineSupervisorInTeam"
             }
           },
           "403": {
@@ -2155,7 +2165,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.SupervisorInTeam"
+              "$ref": "#/definitions/engineSupervisorInTeam"
             }
           },
           "403": {
@@ -2190,7 +2200,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateSupervisorInTeamRequest"
+              "$ref": "#/definitions/engineUpdateSupervisorInTeamRequest"
             }
           }
         ],
@@ -2207,7 +2217,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListRoutingOutboundCall"
+              "$ref": "#/definitions/engineListRoutingOutboundCall"
             }
           },
           "403": {
@@ -2256,7 +2266,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingOutboundCall"
+              "$ref": "#/definitions/engineRoutingOutboundCall"
             }
           },
           "403": {
@@ -2277,7 +2287,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateRoutingOutboundCallRequest"
+              "$ref": "#/definitions/engineCreateRoutingOutboundCallRequest"
             }
           }
         ],
@@ -2294,7 +2304,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingOutboundCall"
+              "$ref": "#/definitions/engineRoutingOutboundCall"
             }
           },
           "403": {
@@ -2336,7 +2346,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingOutboundCall"
+              "$ref": "#/definitions/engineRoutingOutboundCall"
             }
           },
           "403": {
@@ -2378,7 +2388,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingOutboundCall"
+              "$ref": "#/definitions/engineRoutingOutboundCall"
             }
           },
           "403": {
@@ -2406,7 +2416,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateRoutingOutboundCallRequest"
+              "$ref": "#/definitions/engineUpdateRoutingOutboundCallRequest"
             }
           }
         ],
@@ -2423,7 +2433,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListRoutingScheme"
+              "$ref": "#/definitions/engineListRoutingScheme"
             }
           },
           "403": {
@@ -2472,7 +2482,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingScheme"
+              "$ref": "#/definitions/engineRoutingScheme"
             }
           },
           "403": {
@@ -2493,7 +2503,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateRoutingSchemeRequest"
+              "$ref": "#/definitions/engineCreateRoutingSchemeRequest"
             }
           }
         ],
@@ -2510,7 +2520,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingScheme"
+              "$ref": "#/definitions/engineRoutingScheme"
             }
           },
           "403": {
@@ -2552,7 +2562,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingScheme"
+              "$ref": "#/definitions/engineRoutingScheme"
             }
           },
           "403": {
@@ -2594,7 +2604,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingScheme"
+              "$ref": "#/definitions/engineRoutingScheme"
             }
           },
           "403": {
@@ -2622,7 +2632,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateRoutingSchemeReqeust"
+              "$ref": "#/definitions/engineUpdateRoutingSchemeReqeust"
             }
           }
         ],
@@ -2639,7 +2649,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.ListRoutingVariable"
+              "$ref": "#/definitions/engineListRoutingVariable"
             }
           },
           "403": {
@@ -2688,7 +2698,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingVariable"
+              "$ref": "#/definitions/engineRoutingVariable"
             }
           },
           "403": {
@@ -2709,7 +2719,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.CreateRoutingVariableRequest"
+              "$ref": "#/definitions/engineCreateRoutingVariableRequest"
             }
           }
         ],
@@ -2726,7 +2736,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingVariable"
+              "$ref": "#/definitions/engineRoutingVariable"
             }
           },
           "403": {
@@ -2768,7 +2778,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingVariable"
+              "$ref": "#/definitions/engineRoutingVariable"
             }
           },
           "403": {
@@ -2810,7 +2820,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engine.RoutingVariable"
+              "$ref": "#/definitions/engineRoutingVariable"
             }
           },
           "403": {
@@ -2838,7 +2848,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engine.UpdateRoutingVariableRequest"
+              "$ref": "#/definitions/engineUpdateRoutingVariableRequest"
             }
           }
         ],
@@ -2849,7 +2859,7 @@
     }
   },
   "definitions": {
-    "engine.AcceptOfDay": {
+    "engineAcceptOfDay": {
       "type": "object",
       "properties": {
         "id": {
@@ -2870,7 +2880,7 @@
         }
       }
     },
-    "engine.Agent": {
+    "engineAgent": {
       "type": "object",
       "properties": {
         "id": {
@@ -2882,7 +2892,7 @@
           "format": "int64"
         },
         "user": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "status": {
           "type": "string"
@@ -2895,7 +2905,7 @@
         }
       }
     },
-    "engine.AgentSkill": {
+    "engineAgentSkill": {
       "type": "object",
       "properties": {
         "id": {
@@ -2911,20 +2921,20 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "capacity": {
           "type": "integer",
@@ -2932,7 +2942,7 @@
         }
       }
     },
-    "engine.AgentSkillItem": {
+    "engineAgentSkillItem": {
       "type": "object",
       "properties": {
         "id": {
@@ -2940,7 +2950,7 @@
           "format": "int64"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "capacity": {
           "type": "integer",
@@ -2948,7 +2958,23 @@
         }
       }
     },
-    "engine.AgentTeam": {
+    "engineAgentStatusRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "engineAgentTeam": {
       "type": "object",
       "properties": {
         "id": {
@@ -2998,7 +3024,7 @@
         }
       }
     },
-    "engine.Calendar": {
+    "engineCalendar": {
       "type": "object",
       "properties": {
         "id": {
@@ -3014,14 +3040,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "name": {
           "type": "string"
@@ -3035,14 +3061,14 @@
           "format": "int64"
         },
         "timezone": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "description": {
           "type": "string"
         }
       }
     },
-    "engine.CreateAgentRequest": {
+    "engineCreateAgentRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3050,14 +3076,14 @@
           "format": "int64"
         },
         "user": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "description": {
           "type": "string"
         }
       }
     },
-    "engine.CreateAgentSkillRequest": {
+    "engineCreateAgentSkillRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3069,7 +3095,7 @@
           "format": "int64"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "capacity": {
           "type": "integer",
@@ -3077,7 +3103,7 @@
         }
       }
     },
-    "engine.CreateAgentTeamRequest": {
+    "engineCreateAgentTeamRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3119,7 +3145,7 @@
         }
       }
     },
-    "engine.CreateCalendarRequest": {
+    "engineCreateCalendarRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3138,14 +3164,14 @@
           "format": "int64"
         },
         "timezone": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "description": {
           "type": "string"
         }
       }
     },
-    "engine.CreateOutboundResourceRequest": {
+    "engineCreateOutboundResourceRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3195,7 +3221,7 @@
         }
       }
     },
-    "engine.CreateQueueRequest": {
+    "engineCreateQueueRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3213,7 +3239,7 @@
           "type": "object"
         },
         "calendar": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "priority": {
           "type": "integer",
@@ -3245,7 +3271,7 @@
           "format": "int32"
         },
         "dnc_list": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "sec_locate_agent": {
           "type": "integer",
@@ -3256,11 +3282,11 @@
           "format": "int32"
         },
         "team": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
-    "engine.CreateResourceTeamRequest": {
+    "engineCreateResourceTeamRequest": {
       "type": "object",
       "properties": {
         "team_id": {
@@ -3272,10 +3298,10 @@
           "format": "int64"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "lvl": {
           "type": "integer",
@@ -3291,7 +3317,7 @@
         }
       }
     },
-    "engine.CreateRoutingOutboundCallRequest": {
+    "engineCreateRoutingOutboundCallRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3305,7 +3331,7 @@
           "type": "string"
         },
         "scheme": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "pattern": {
           "type": "string"
@@ -3320,7 +3346,7 @@
         }
       }
     },
-    "engine.CreateRoutingSchemeRequest": {
+    "engineCreateRoutingSchemeRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3349,7 +3375,7 @@
         }
       }
     },
-    "engine.CreateRoutingVariableRequest": {
+    "engineCreateRoutingVariableRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3364,7 +3390,7 @@
         }
       }
     },
-    "engine.CreateSkillRequest": {
+    "engineCreateSkillRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -3379,7 +3405,7 @@
         }
       }
     },
-    "engine.CreateSupervisorInTeamRequest": {
+    "engineCreateSupervisorInTeamRequest": {
       "type": "object",
       "properties": {
         "team_id": {
@@ -3391,176 +3417,176 @@
           "format": "int64"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
-    "engine.ListAcceptOfDay": {
+    "engineListAcceptOfDay": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.AcceptOfDay"
+            "$ref": "#/definitions/engineAcceptOfDay"
           }
         }
       }
     },
-    "engine.ListAgent": {
+    "engineListAgent": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.Agent"
+            "$ref": "#/definitions/engineAgent"
           }
         }
       }
     },
-    "engine.ListAgentSkill": {
+    "engineListAgentSkill": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.AgentSkillItem"
+            "$ref": "#/definitions/engineAgentSkillItem"
           }
         }
       }
     },
-    "engine.ListAgentTeam": {
+    "engineListAgentTeam": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.AgentTeam"
+            "$ref": "#/definitions/engineAgentTeam"
           }
         }
       }
     },
-    "engine.ListCalendar": {
+    "engineListCalendar": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.Calendar"
+            "$ref": "#/definitions/engineCalendar"
           }
         }
       }
     },
-    "engine.ListOutboundResource": {
+    "engineListOutboundResource": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.OutboundResource"
+            "$ref": "#/definitions/engineOutboundResource"
           }
         }
       }
     },
-    "engine.ListQueue": {
+    "engineListQueue": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.Queue"
+            "$ref": "#/definitions/engineQueue"
           }
         }
       }
     },
-    "engine.ListResourceTeam": {
+    "engineListResourceTeam": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.ResourceTeam"
+            "$ref": "#/definitions/engineResourceTeam"
           }
         }
       }
     },
-    "engine.ListRoutingInboundCall": {
+    "engineListRoutingInboundCall": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.RoutingInboundCall"
+            "$ref": "#/definitions/engineRoutingInboundCall"
           }
         }
       }
     },
-    "engine.ListRoutingOutboundCall": {
+    "engineListRoutingOutboundCall": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.RoutingOutboundCall"
+            "$ref": "#/definitions/engineRoutingOutboundCall"
           }
         }
       }
     },
-    "engine.ListRoutingScheme": {
+    "engineListRoutingScheme": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.RoutingScheme"
+            "$ref": "#/definitions/engineRoutingScheme"
           }
         }
       }
     },
-    "engine.ListRoutingVariable": {
+    "engineListRoutingVariable": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.RoutingVariable"
+            "$ref": "#/definitions/engineRoutingVariable"
           }
         }
       }
     },
-    "engine.ListSkill": {
+    "engineListSkill": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.Skill"
+            "$ref": "#/definitions/engineSkill"
           }
         }
       }
     },
-    "engine.ListSupervisorInTeam": {
+    "engineListSupervisorInTeam": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.SupervisorInTeam"
+            "$ref": "#/definitions/engineSupervisorInTeam"
           }
         }
       }
     },
-    "engine.ListTimezoneResponse": {
+    "engineListTimezoneResponse": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engine.Timezone"
+            "$ref": "#/definitions/engineTimezone"
           }
         }
       }
     },
-    "engine.Lookup": {
+    "engineLookup": {
       "type": "object",
       "properties": {
         "id": {
@@ -3572,7 +3598,7 @@
         }
       }
     },
-    "engine.OutboundResource": {
+    "engineOutboundResource": {
       "type": "object",
       "properties": {
         "id": {
@@ -3588,14 +3614,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "limit": {
           "type": "integer",
@@ -3651,7 +3677,7 @@
         }
       }
     },
-    "engine.Queue": {
+    "engineQueue": {
       "type": "object",
       "properties": {
         "id": {
@@ -3667,14 +3693,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "strategy": {
           "type": "string"
@@ -3687,7 +3713,7 @@
           "type": "object"
         },
         "calendar": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "priority": {
           "type": "integer",
@@ -3719,7 +3745,7 @@
           "format": "int32"
         },
         "dnc_list": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "sec_locate_agent": {
           "type": "integer",
@@ -3730,11 +3756,11 @@
           "format": "int32"
         },
         "team": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
-    "engine.ResourceTeam": {
+    "engineResourceTeam": {
       "type": "object",
       "properties": {
         "id": {
@@ -3750,10 +3776,10 @@
           "format": "int64"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "lvl": {
           "type": "integer",
@@ -3769,7 +3795,7 @@
         }
       }
     },
-    "engine.Response": {
+    "engineResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -3777,7 +3803,7 @@
         }
       }
     },
-    "engine.RoutingInboundCall": {
+    "engineRoutingInboundCall": {
       "type": "object",
       "properties": {
         "id": {
@@ -3793,14 +3819,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "name": {
           "type": "string"
@@ -3809,10 +3835,10 @@
           "type": "string"
         },
         "start_scheme": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "stop_scheme": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "numbers": {
           "type": "array",
@@ -3824,7 +3850,7 @@
           "type": "string"
         },
         "timezone": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "debug": {
           "type": "boolean",
@@ -3836,7 +3862,7 @@
         }
       }
     },
-    "engine.RoutingOutboundCall": {
+    "engineRoutingOutboundCall": {
       "type": "object",
       "properties": {
         "id": {
@@ -3852,14 +3878,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "name": {
           "type": "string"
@@ -3868,7 +3894,7 @@
           "type": "string"
         },
         "scheme": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "pattern": {
           "type": "string"
@@ -3883,7 +3909,7 @@
         }
       }
     },
-    "engine.RoutingScheme": {
+    "engineRoutingScheme": {
       "type": "object",
       "properties": {
         "id": {
@@ -3899,14 +3925,14 @@
           "format": "int64"
         },
         "created_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "updated_at": {
           "type": "string",
           "format": "int64"
         },
         "updated_by": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "name": {
           "type": "string"
@@ -3930,7 +3956,7 @@
         }
       }
     },
-    "engine.RoutingVariable": {
+    "engineRoutingVariable": {
       "type": "object",
       "properties": {
         "id": {
@@ -3949,7 +3975,7 @@
         }
       }
     },
-    "engine.Skill": {
+    "engineSkill": {
       "type": "object",
       "properties": {
         "id": {
@@ -3968,7 +3994,7 @@
         }
       }
     },
-    "engine.SupervisorInTeam": {
+    "engineSupervisorInTeam": {
       "type": "object",
       "properties": {
         "id": {
@@ -3984,11 +4010,11 @@
           "format": "int64"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
-    "engine.Timezone": {
+    "engineTimezone": {
       "type": "object",
       "properties": {
         "id": {
@@ -4003,7 +4029,7 @@
         }
       }
     },
-    "engine.UpdateAgentRequest": {
+    "engineUpdateAgentRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4015,14 +4041,14 @@
           "format": "int64"
         },
         "user": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "description": {
           "type": "string"
         }
       }
     },
-    "engine.UpdateAgentSkillRequest": {
+    "engineUpdateAgentSkillRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4038,7 +4064,7 @@
           "format": "int64"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "capacity": {
           "type": "integer",
@@ -4046,7 +4072,7 @@
         }
       }
     },
-    "engine.UpdateAgentTeamRequest": {
+    "engineUpdateAgentTeamRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4092,7 +4118,7 @@
         }
       }
     },
-    "engine.UpdateCalendarRequest": {
+    "engineUpdateCalendarRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4115,14 +4141,14 @@
           "format": "int64"
         },
         "timezone": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "description": {
           "type": "string"
         }
       }
     },
-    "engine.UpdateOutboundResourceRequest": {
+    "engineUpdateOutboundResourceRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4176,7 +4202,7 @@
         }
       }
     },
-    "engine.UpdateQueueRequest": {
+    "engineUpdateQueueRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -4194,7 +4220,7 @@
           "type": "object"
         },
         "calendar": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "priority": {
           "type": "integer",
@@ -4226,7 +4252,7 @@
           "format": "int32"
         },
         "dnc_list": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "sec_locate_agent": {
           "type": "integer",
@@ -4237,7 +4263,7 @@
           "format": "int32"
         },
         "team": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "id": {
           "type": "string",
@@ -4245,7 +4271,7 @@
         }
       }
     },
-    "engine.UpdateResourceTeamRequest": {
+    "engineUpdateResourceTeamRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4261,10 +4287,10 @@
           "format": "int64"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "skill": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "lvl": {
           "type": "integer",
@@ -4280,7 +4306,7 @@
         }
       }
     },
-    "engine.UpdateRoutingOutboundCallRequest": {
+    "engineUpdateRoutingOutboundCallRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4298,7 +4324,7 @@
           "type": "string"
         },
         "scheme": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         },
         "pattern": {
           "type": "string"
@@ -4313,7 +4339,7 @@
         }
       }
     },
-    "engine.UpdateRoutingSchemeReqeust": {
+    "engineUpdateRoutingSchemeReqeust": {
       "type": "object",
       "properties": {
         "id": {
@@ -4346,7 +4372,7 @@
         }
       }
     },
-    "engine.UpdateRoutingVariableRequest": {
+    "engineUpdateRoutingVariableRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4365,7 +4391,7 @@
         }
       }
     },
-    "engine.UpdateSkillRequest": {
+    "engineUpdateSkillRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4384,7 +4410,7 @@
         }
       }
     },
-    "engine.UpdateSupervisorInTeamRequest": {
+    "engineUpdateSupervisorInTeamRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -4400,11 +4426,11 @@
           "format": "int64"
         },
         "agent": {
-          "$ref": "#/definitions/engine.Lookup"
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
-    "google.protobuf.NullValue": {
+    "protobufNullValue": {
       "type": "string",
       "enum": [
         "NULL_VALUE"

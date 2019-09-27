@@ -41,7 +41,8 @@ service AgentService {
     // Change agent status
     rpc UpdateAgentStatus(AgentStatusRequest) returns (Response) {
         option (google.api.http) = {
-            patch: "/call_center/agents/{id}"
+            patch: "/call_center/agents/{id}/status"
+            body: "*"
         };
     }
 

@@ -220,7 +220,7 @@ func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimez
 	}, nil
 }
 
-func (api *calendar) SearchAcceptOfDay(ctx context.Context, in *engine.AcceptOfDayReqeust) (*engine.ListAcceptOfDay, error) {
+func (api *calendar) SearchAcceptOfDay(ctx context.Context, in *engine.AcceptOfDayRequest) (*engine.ListAcceptOfDay, error) {
 
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

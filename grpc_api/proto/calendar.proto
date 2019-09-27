@@ -47,9 +47,9 @@ service CalendarService {
     }
 
     // -GET /calendar/:id/accept
-    rpc SearchAcceptOfDay(AcceptOfDayReqeust) returns (ListAcceptOfDay) {
+    rpc SearchAcceptOfDay(AcceptOfDayRequest) returns (ListAcceptOfDay) {
         option (google.api.http) = {
-            get: "/calendars/:id/accepts"
+            get: "/calendars/{calendar_id}/accepts"
         };
     }
 }
@@ -132,7 +132,7 @@ message AcceptOfDay {
     int32 end_time_of_day = 5;
 }
 
-message AcceptOfDayReqeust {
+message AcceptOfDayRequest {
     int64 calendar_id = 1;
 }
 
