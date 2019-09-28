@@ -12,8 +12,8 @@
       "name": "MIT"
     }
   },
-  "host": "10.10.10.25:1907",
-  "basePath": "/",
+  "host": "dev.webitel.com",
+  "basePath": "/api",
   "schemes": [
     "http",
     "https",
