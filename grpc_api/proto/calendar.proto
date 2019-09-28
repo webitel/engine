@@ -40,7 +40,7 @@ service CalendarService {
     }
 
     // List timezones
-    rpc SearchTimezones(SearchTimezonesReqeust) returns (ListTimezoneResponse) {
+    rpc SearchTimezones(SearchTimezonesRequest) returns (ListTimezoneResponse) {
         option (google.api.http) = {
             get: "/calendars/timezones"
         };
@@ -109,7 +109,7 @@ message UpdateCalendarRequest {
     string description = 7;
 }
 
-message SearchTimezonesReqeust {
+message SearchTimezonesRequest {
     int64 domain_id = 1;
     int32 size = 2;
     int32 page = 3;

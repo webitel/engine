@@ -2632,7 +2632,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineUpdateRoutingSchemeReqeust"
+              "$ref": "#/definitions/engineUpdateRoutingSchemeRequest"
             }
           }
         ],
@@ -4339,7 +4339,7 @@
         }
       }
     },
-    "engineUpdateRoutingSchemeReqeust": {
+    "engineUpdateRoutingSchemeRequest": {
       "type": "object",
       "properties": {
         "id": {

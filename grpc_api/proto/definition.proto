@@ -6,8 +6,8 @@ import "protoc-gen-swagger/options/annotations.proto";
 package engine;
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
-    host: "dev.webitel.com";
-    base_path: "/api";
+    host: "10.10.10.25:1907";
+    base_path: "/";
     info: {
         title: "Webitel engine API";
         version: "2019.0.0";

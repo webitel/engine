@@ -29,7 +29,7 @@ service RoutingSchemeService {
         };
     }
     // Update RoutingScheme
-    rpc UpdateRoutingScheme(UpdateRoutingSchemeReqeust) returns (RoutingScheme) {
+    rpc UpdateRoutingScheme(UpdateRoutingSchemeRequest) returns (RoutingScheme) {
         option (google.api.http) = {
             put: "/routing/schemes/{id}"
             body: "*"
@@ -48,7 +48,7 @@ message DeleteRoutingSchemeRequest {
     int64 id = 2;
 }
 
-message UpdateRoutingSchemeReqeust {
+message UpdateRoutingSchemeRequest {
     int64 id = 1;
     int64 domain_id = 2;
     string name = 3;

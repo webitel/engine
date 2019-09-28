@@ -20,7 +20,7 @@ service AgentSkillService {
         };
     }
     // AgentSkill item
-    rpc ReadAgentSkill(AgentSkillItemReqeust) returns (AgentSkill) {
+    rpc ReadAgentSkill(AgentSkillItemRequest) returns (AgentSkill) {
         option (google.api.http) = {
             get: "/call_center/agents/{agent_id}/skills/{id}"
         };
@@ -62,7 +62,7 @@ message CreateAgentSkillRequest {
     int32 capacity = 4;
 }
 
-message AgentSkillItemReqeust {
+message AgentSkillItemRequest {
     int64 id = 1;
     int64 domain_id = 2;
     int64 agent_id = 3;

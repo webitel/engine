@@ -107,7 +107,7 @@ func (api *routingScheme) ReadRoutingScheme(ctx context.Context, in *engine.Read
 	return transformRoutingScheme(scheme), nil
 }
 
-func (api *routingScheme) UpdateRoutingScheme(ctx context.Context, in *engine.UpdateRoutingSchemeReqeust) (*engine.RoutingScheme, error) {
+func (api *routingScheme) UpdateRoutingScheme(ctx context.Context, in *engine.UpdateRoutingSchemeRequest) (*engine.RoutingScheme, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

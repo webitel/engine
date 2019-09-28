@@ -111,7 +111,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 	}, nil
 }
 
-func (api *agentSkill) ReadAgentSkill(ctx context.Context, in *engine.AgentSkillItemReqeust) (*engine.AgentSkill, error) {
+func (api *agentSkill) ReadAgentSkill(ctx context.Context, in *engine.AgentSkillItemRequest) (*engine.AgentSkill, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
