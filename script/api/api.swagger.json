@@ -158,7 +158,7 @@
     },
     "/calendars/{calendar_id}/accepts": {
       "get": {
-        "summary": "-GET /calendar/:id/accept",
+        "summary": "List AcceptOfDay",
         "operationId": "SearchAcceptOfDay",
         "responses": {
           "200": {
@@ -186,6 +186,443 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "post": {
+        "summary": "Create AcceptOfDay",
+        "operationId": "CreateAcceptOfDay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAcceptOfDay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateAcceptOfDayRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/{calendar_id}/accepts/{id}": {
+      "get": {
+        "summary": "Read AcceptOfDay",
+        "operationId": "ReadAcceptOfDay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAcceptOfDay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete AcceptOfDay",
+        "operationId": "DeleteAcceptOfDay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAcceptOfDay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "put": {
+        "summary": "Update AcceptOfDay",
+        "operationId": "UpdateAcceptOfDay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAcceptOfDay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateAcceptOfDayRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/{calendar_id}/excepts": {
+      "get": {
+        "summary": "List ExceptDate",
+        "operationId": "SearchExceptDate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListExceptDate"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "post": {
+        "summary": "Create ExceptDate",
+        "operationId": "CreateExceptDate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineExceptDate"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateExceptDateReqeust"
+            }
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      }
+    },
+    "/calendars/{calendar_id}/excepts/{id}": {
+      "get": {
+        "summary": "Read ExceptDate",
+        "operationId": "ReadExceptDate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineExceptDate"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "delete": {
+        "summary": "Delete ExceptDate",
+        "operationId": "DeleteExceptDate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineExceptDate"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "CalendarService"
+        ]
+      },
+      "put": {
+        "summary": "Update ExceptDate",
+        "operationId": "UpdateExceptDate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineExceptDate"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "calendar_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateExceptDateReqeust"
+            }
           }
         ],
         "tags": [
@@ -2868,6 +3305,10 @@
         "end_time_of_day": {
           "type": "integer",
           "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -3059,6 +3500,35 @@
         }
       }
     },
+    "engineCreateAcceptOfDayRequest": {
+      "type": "object",
+      "properties": {
+        "calendar_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "week_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "start_time_of_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "end_time_of_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
     "engineCreateAgentRequest": {
       "type": "object",
       "properties": {
@@ -3159,6 +3629,34 @@
         },
         "description": {
           "type": "string"
+        }
+      }
+    },
+    "engineCreateExceptDateReqeust": {
+      "type": "object",
+      "properties": {
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "calendar_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "int64"
+        },
+        "repeat": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -3412,6 +3910,34 @@
         }
       }
     },
+    "engineExceptDate": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "calendar_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "int64"
+        },
+        "repeat": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        }
+      }
+    },
     "engineListAcceptOfDay": {
       "type": "object",
       "properties": {
@@ -3463,6 +3989,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineCalendar"
+          }
+        }
+      }
+    },
+    "engineListExceptDate": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineExceptDate"
           }
         }
       }
@@ -4020,6 +4557,39 @@
         }
       }
     },
+    "engineUpdateAcceptOfDayRequest": {
+      "type": "object",
+      "properties": {
+        "calendar_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "week_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "start_time_of_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "end_time_of_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "engineUpdateAgentRequest": {
       "type": "object",
       "properties": {
@@ -4136,6 +4706,38 @@
         },
         "description": {
           "type": "string"
+        }
+      }
+    },
+    "engineUpdateExceptDateReqeust": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "calendar_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "int64"
+        },
+        "repeat": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

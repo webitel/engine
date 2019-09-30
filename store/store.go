@@ -63,7 +63,17 @@ type CalendarStore interface {
 
 	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
 
-	GetAcceptOfDay(calendarId int64) ([]*model.CalendarAcceptOfDay, *model.AppError)
+	CreateAcceptOfDay(domainId, calendarId int64, timeRange *model.CalendarAcceptOfDay) (*model.CalendarAcceptOfDay, *model.AppError)
+	GetAcceptOfDayById(domainId, calendarId, id int64) (*model.CalendarAcceptOfDay, *model.AppError)
+	GetAcceptOfDayAllPage(calendarId int64) ([]*model.CalendarAcceptOfDay, *model.AppError)
+	UpdateAcceptOfDay(calendarId int64, rangeTime *model.CalendarAcceptOfDay) (*model.CalendarAcceptOfDay, *model.AppError)
+	DeleteAcceptOfDay(domainId, calendarId, id int64) *model.AppError
+
+	CreateExcept(domainId, calendarId int64, except *model.CalendarExceptDate) (*model.CalendarExceptDate, *model.AppError)
+	GetExceptById(domainId, calendarId, id int64) (*model.CalendarExceptDate, *model.AppError)
+	GetExceptAllPage(calendarId int64) ([]*model.CalendarExceptDate, *model.AppError)
+	UpdateExceptDate(calendarId int64, except *model.CalendarExceptDate) (*model.CalendarExceptDate, *model.AppError)
+	DeleteExceptDate(domainId, calendarId, id int64) *model.AppError
 }
 
 type SkillStore interface {

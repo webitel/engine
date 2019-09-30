@@ -13,15 +13,18 @@ type CalendarAcceptOfDay struct {
 	Week           int8  `json:"week" db:"week_day"`
 	StartTimeOfDay int16 `json:"start_time_of_day" db:"start_time_of_day"`
 	EndTimeOfDay   int16 `json:"end_time_of_day" db:"end_time_of_day"`
+	Disabled       bool  `json:"disabled" db:"disabled"`
 }
 
 // Description of the CalendarExceptDate
 // swagger:model CalendarExceptDate
 type CalendarExceptDate struct {
-	Id         int64 `json:"id"`
-	CalendarId int64 `json:"calendar_id"`
-	Repeat     int8  `json:"repeat"`
-	Date       int   `json:"date"`
+	Id         int64  `json:"id" db:"id"`
+	CalendarId int64  `json:"calendar_id" db:"calendar_id"`
+	Name       string `json:"name" db:"name"`
+	Repeat     int8   `json:"repeat" db:"repeat"`
+	Date       int64  `json:"date" db:"date"`
+	Disabled   bool   `json:"disabled" db:"disabled"`
 }
 
 // Description of the Calendar
@@ -41,6 +44,16 @@ type Timezone struct {
 	Id     int64  `json:"id" db:"id"`
 	Name   string `json:"name" db:"name"`
 	Offset string `json:"offset" db:"offset"`
+}
+
+func (a *CalendarAcceptOfDay) IsValid() *AppError {
+	//TODO FIXME
+	return nil
+}
+
+func (a *CalendarExceptDate) IsValid() *AppError {
+	//TODO FIXME
+	return nil
 }
 
 func (c *Calendar) IsValid() *AppError {
