@@ -33,7 +33,7 @@ service SupervisorInTeamService {
         };
     }
     // Remove SupervisorInTeam
-    rpc DeleteSupervisorInTeam(DeleteSupervisorInTeamReqeust) returns (SupervisorInTeam) {
+    rpc DeleteSupervisorInTeam(DeleteSupervisorInTeamRequest) returns (SupervisorInTeam) {
         option (google.api.http) = {
             delete: "/call_center/teams/{team_id}/supervisors/{id}"
         };
@@ -66,7 +66,7 @@ message CreateSupervisorInTeamRequest {
     Lookup agent = 3;
 }
 
-message DeleteSupervisorInTeamReqeust {
+message DeleteSupervisorInTeamRequest {
     int64 id = 1;
     int64 team_id = 2;
     int64 domain_id = 3;

@@ -60,7 +60,7 @@ func (api *resourceTeam) CreateResourceTeam(ctx context.Context, in *engine.Crea
 	return transformResourceTeam(teamResource), nil
 }
 
-func (api *resourceTeam) ReadResourceTeam(ctx context.Context, in *engine.ReadResourceTeamReqeust) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) ReadResourceTeam(ctx context.Context, in *engine.ReadResourceTeamRequest) (*engine.ResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -165,7 +165,7 @@ func (api *resourceTeam) UpdateResourceTeam(ctx context.Context, in *engine.Upda
 	return transformResourceTeam(resource), nil
 }
 
-func (api *resourceTeam) DeleteResourceTeam(ctx context.Context, in *engine.DeleteResourceTeamReqeust) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) DeleteResourceTeam(ctx context.Context, in *engine.DeleteResourceTeamRequest) (*engine.ResourceTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

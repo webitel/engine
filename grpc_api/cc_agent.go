@@ -29,7 +29,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 	agent := &model.Agent{
 		DomainId: session.Domain(in.GetDomainId()),
 		User: model.Lookup{
-			Id: int(in.User.Id),
+			Id: int(in.GetUser().GetId()),
 		},
 		Description: in.Description,
 	}
@@ -141,7 +141,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		Id:       in.Id,
 		DomainId: session.Domain(in.GetDomainId()),
 		User: model.Lookup{
-			Id: int(in.User.Id),
+			Id: int(in.GetUser().GetId()),
 		},
 		Description: in.Description,
 	})

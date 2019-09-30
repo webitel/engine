@@ -16,9 +16,7 @@
   "basePath": "/api",
   "schemes": [
     "http",
-    "https",
-    "ws",
-    "wss"
+    "https"
   ],
   "consumes": [
     "application/json"
@@ -138,13 +136,6 @@
           }
         },
         "parameters": [
-          {
-            "name": "domain_id",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "int64"
-          },
           {
             "name": "size",
             "in": "query",

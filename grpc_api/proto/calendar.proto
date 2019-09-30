@@ -110,9 +110,8 @@ message UpdateCalendarRequest {
 }
 
 message SearchTimezonesRequest {
-    int64 domain_id = 1;
-    int32 size = 2;
-    int32 page = 3;
+    int32 size = 1;
+    int32 page = 2;
 }
 
 message ListTimezoneResponse {

@@ -43,7 +43,7 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 		Start:  nil, //TODO
 		Finish: nil, //TODO
 		Timezone: model.Lookup{
-			Id: int(in.Timezone.Id),
+			Id: int(in.GetTimezone().GetId()),
 		},
 		Description: nil, //TODO
 	}
@@ -163,7 +163,7 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 		Start:  &in.Start,
 		Finish: &in.Finish,
 		Timezone: model.Lookup{
-			Id: int(in.Timezone.Id),
+			Id: int(in.GetTimezone().GetId()),
 		},
 		Description: &in.Description,
 	})
@@ -204,7 +204,7 @@ func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalend
 	return transformCalendar(calendar), nil
 }
 
-func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimezonesReqeust) (*engine.ListTimezoneResponse, error) {
+func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimezonesRequest) (*engine.ListTimezoneResponse, error) {
 	list, err := api.app.GetCalendarTimezoneAllPage(int(in.Page), int(in.Size))
 	if err != nil {
 		return nil, err

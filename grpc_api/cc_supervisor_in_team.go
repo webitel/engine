@@ -161,7 +161,7 @@ func (api *supervisorInTeam) UpdateSupervisorInTeam(ctx context.Context, in *eng
 	return transformSupervisorTeam(supervisor), nil
 }
 
-func (api *supervisorInTeam) DeleteSupervisorInTeam(ctx context.Context, in *engine.DeleteSupervisorInTeamReqeust) (*engine.SupervisorInTeam, error) {
+func (api *supervisorInTeam) DeleteSupervisorInTeam(ctx context.Context, in *engine.DeleteSupervisorInTeamRequest) (*engine.SupervisorInTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

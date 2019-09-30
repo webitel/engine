@@ -20,7 +20,7 @@ service ResourceTeamService {
         };
     }
     // ResourceTeam item
-    rpc ReadResourceTeam(ReadResourceTeamReqeust) returns (ResourceTeam) {
+    rpc ReadResourceTeam(ReadResourceTeamRequest) returns (ResourceTeam) {
         option (google.api.http) = {
             get: "/call_center/teams/{team_id}/resources/{id}"
         };
@@ -33,7 +33,7 @@ service ResourceTeamService {
         };
     }
     // Remove ResourceTeam
-    rpc DeleteResourceTeam(DeleteResourceTeamReqeust) returns (ResourceTeam) {
+    rpc DeleteResourceTeam(DeleteResourceTeamRequest) returns (ResourceTeam) {
         option (google.api.http) = {
             delete: "/call_center/teams/{team_id}/resources/{id}"
         };
@@ -68,13 +68,13 @@ message CreateResourceTeamRequest {
     int32 max_capacity = 7;
 }
 
-message ReadResourceTeamReqeust {
+message ReadResourceTeamRequest {
     int64 id = 1;
     int64 team_id = 2;
     int64 domain_id = 3;
 }
 
-message DeleteResourceTeamReqeust {
+message DeleteResourceTeamRequest {
     int64 id = 1;
     int64 team_id = 2;
     int64 domain_id = 3;
