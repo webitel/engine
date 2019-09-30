@@ -84,7 +84,7 @@ service CalendarService {
     }
 
     // Create ExceptDate
-    rpc CreateExceptDate(CreateExceptDateReqeust) returns (ExceptDate) {
+    rpc CreateExceptDate(CreateExceptDateRequest) returns (ExceptDate) {
         option (google.api.http) = {
             post: "/calendars/{calendar_id}/excepts"
             body: "*"
@@ -106,7 +106,7 @@ service CalendarService {
     }
 
     // Update ExceptDate
-    rpc UpdateExceptDate(UpdateExceptDateReqeust) returns (ExceptDate) {
+    rpc UpdateExceptDate(UpdateExceptDateRequest) returns (ExceptDate) {
         option (google.api.http) = {
             put: "/calendars/{calendar_id}/excepts/{id}"
             body: "*"
@@ -126,7 +126,7 @@ message DeleteExceptDateRequest {
     int64 id = 3;
 }
 
-message UpdateExceptDateReqeust {
+message UpdateExceptDateRequest {
     int64 id = 1;
     int64 calendar_id = 2;
     string name = 3;
@@ -151,7 +151,7 @@ message ReadExceptDateRequest {
     int64 id = 3;
 }
 
-message CreateExceptDateReqeust {
+message CreateExceptDateRequest {
     int64 domain_id = 1;
     int64 calendar_id = 2;
     string name = 3;

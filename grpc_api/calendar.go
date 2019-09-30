@@ -401,7 +401,7 @@ func (api *calendar) DeleteAcceptOfDay(ctx context.Context, in *engine.DeleteAcc
 	return transformAcceptOfDay(accept), nil
 }
 
-func (api *calendar) CreateExceptDate(ctx context.Context, in *engine.CreateExceptDateReqeust) (*engine.ExceptDate, error) {
+func (api *calendar) CreateExceptDate(ctx context.Context, in *engine.CreateExceptDateRequest) (*engine.ExceptDate, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -508,7 +508,7 @@ func (api *calendar) ReadExceptDate(ctx context.Context, in *engine.ReadExceptDa
 	return transformExceptDate(except), nil
 }
 
-func (api *calendar) UpdateExceptDate(ctx context.Context, in *engine.UpdateExceptDateReqeust) (*engine.ExceptDate, error) {
+func (api *calendar) UpdateExceptDate(ctx context.Context, in *engine.UpdateExceptDateRequest) (*engine.ExceptDate, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err

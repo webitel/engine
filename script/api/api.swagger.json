@@ -471,7 +471,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineCreateExceptDateReqeust"
+              "$ref": "#/definitions/engineCreateExceptDateRequest"
             }
           }
         ],
@@ -621,7 +621,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineUpdateExceptDateReqeust"
+              "$ref": "#/definitions/engineUpdateExceptDateRequest"
             }
           }
         ],
@@ -3632,7 +3632,7 @@
         }
       }
     },
-    "engineCreateExceptDateReqeust": {
+    "engineCreateExceptDateRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -4709,7 +4709,7 @@
         }
       }
     },
-    "engineUpdateExceptDateReqeust": {
+    "engineUpdateExceptDateRequest": {
       "type": "object",
       "properties": {
         "id": {
