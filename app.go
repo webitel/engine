@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/webitel/engine/apis"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/grpc_api"
@@ -37,6 +38,8 @@ func main() {
 	if a.Config().Dev {
 		setDebug()
 	}
+
+	wlog.Info(fmt.Sprintf("server version: %s", a.Version()))
 
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
