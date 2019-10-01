@@ -83,11 +83,12 @@ function Handler(wss, application) {
                 user = new User(id, sessionId, ws, params);
                 application.Users.add(id, user);
             } else {
-                if (user.addSession(sessionId, ws, params) >= maxOpenedSocketPerUser) {
+                if (user.getSessionLength() >= maxOpenedSocketPerUser) {
                     if (id !== 'root') {
                         return sendMaxOpenedSocket(params, execId, ws, id)
                     }
                 }
+                user.addSession(sessionId, ws, params);
             }
 
             caller = user;
