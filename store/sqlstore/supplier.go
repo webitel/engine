@@ -40,6 +40,7 @@ type SqlSupplierOldStores struct {
 	resourceTeam     store.ResourceTeamStore
 	outboundResource store.OutboundResourceStore
 	queue            store.QueueStore
+	queueRouting     store.QueueRoutingStore
 	supervisorTeam   store.SupervisorTeamStore
 
 	routingScheme       store.RoutingSchemeStore
@@ -77,6 +78,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.resourceTeam = NewSqlResourceTeamStore(supplier)
 	supplier.oldStores.outboundResource = NewSqlOutboundResourceStore(supplier)
 	supplier.oldStores.queue = NewSqlQueueStore(supplier)
+	supplier.oldStores.queueRouting = NewSqlQueueRoutingStore(supplier)
 	supplier.oldStores.supervisorTeam = NewSqlSupervisorTeamStore(supplier)
 
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
@@ -238,6 +240,10 @@ func (ss *SqlSupplier) RoutingVariable() store.RoutingVariableStore {
 
 func (ss *SqlSupplier) Queue() store.QueueStore {
 	return ss.oldStores.queue
+}
+
+func (ss *SqlSupplier) QueueRouting() store.QueueRoutingStore {
+	return ss.oldStores.queueRouting
 }
 
 func (ss *SqlSupplier) SupervisorTeam() store.SupervisorTeamStore {

@@ -43,6 +43,7 @@ type Store interface {
 	AgentSkill() AgentSkillStore
 	ResourceTeam() ResourceTeamStore
 	Queue() QueueStore
+	QueueRouting() QueueRoutingStore
 	SupervisorTeam() SupervisorTeamStore
 	OutboundResource() OutboundResourceStore
 	RoutingScheme() RoutingSchemeStore
@@ -173,6 +174,14 @@ type QueueStore interface {
 	Get(domainId int64, id int64) (*model.Queue, *model.AppError)
 	Update(queue *model.Queue) (*model.Queue, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+}
+
+type QueueRoutingStore interface {
+	Create(routing *model.QueueRouting) (*model.QueueRouting, *model.AppError)
+	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueRouting, *model.AppError)
+	Get(domainId, queueId int64, id int64) (*model.QueueRouting, *model.AppError)
+	Update(qr *model.QueueRouting) (*model.QueueRouting, *model.AppError)
+	Delete(queueId, id int64) *model.AppError
 }
 
 type SupervisorTeamStore interface {

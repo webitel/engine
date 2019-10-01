@@ -85,6 +85,10 @@ func (s *LayeredStore) Queue() QueueStore {
 	return s.DatabaseLayer.Queue()
 }
 
+func (s *LayeredStore) QueueRouting() QueueRoutingStore {
+	return s.DatabaseLayer.QueueRouting()
+}
+
 func (s *LayeredStore) SupervisorTeam() SupervisorTeamStore {
 	return s.DatabaseLayer.SupervisorTeam()
 }

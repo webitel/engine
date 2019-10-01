@@ -1487,6 +1487,257 @@
         ]
       }
     },
+    "/call_center/queues/{queue_id}/routings": {
+      "get": {
+        "summary": "SearchQueueRouting",
+        "operationId": "SearchQueueRouting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListQueueRouting"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "QueueRoutingService"
+        ]
+      },
+      "post": {
+        "summary": "CreateQueueRouting",
+        "operationId": "CreateQueueRouting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueRouting"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateQueueRoutingRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QueueRoutingService"
+        ]
+      }
+    },
+    "/call_center/queues/{queue_id}/routings/{id}": {
+      "get": {
+        "summary": "ReadQueueRouting",
+        "operationId": "ReadQueueRouting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueRouting"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "QueueRoutingService"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteQueueRouting",
+        "operationId": "DeleteQueueRouting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueRouting"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "QueueRoutingService"
+        ]
+      },
+      "put": {
+        "summary": "UpdateQueueRouting",
+        "operationId": "UpdateQueueRouting",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueRouting"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateQueueRoutingRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QueueRoutingService"
+        ]
+      }
+    },
     "/call_center/resources": {
       "get": {
         "summary": "List of OutboundResource",
@@ -3775,6 +4026,30 @@
         }
       }
     },
+    "engineCreateQueueRoutingRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "engineCreateResourceTeamRequest": {
       "type": "object",
       "properties": {
@@ -4022,6 +4297,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineQueue"
+          }
+        }
+      }
+    },
+    "engineListQueueRouting": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineQueueRouting"
           }
         }
       }
@@ -4285,6 +4571,30 @@
         },
         "team": {
           "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "engineQueueRouting": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -4859,6 +5169,34 @@
           "$ref": "#/definitions/engineLookup"
         },
         "id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineUpdateQueueRoutingRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "domain_id": {
           "type": "string",
           "format": "int64"
         }
