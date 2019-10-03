@@ -121,9 +121,9 @@ service CalendarService {
 }
 
 message DeleteExceptDateRequest {
-    int64 domain_id = 1;
-    int64 calendar_id = 2;
-    int64 id = 3;
+    int64 calendar_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
 }
 
 message UpdateExceptDateRequest {
@@ -146,18 +146,18 @@ message ListExceptDate {
 }
 
 message ReadExceptDateRequest {
-    int64 domain_id = 1;
-    int64 calendar_id = 2;
-    int64 id = 3;
+    int64 calendar_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
 }
 
 message CreateExceptDateRequest {
-    int64 domain_id = 1;
-    int64 calendar_id = 2;
-    string name = 3;
-    int64 date = 4;
-    int32 repeat = 5;
-    bool disabled = 6;
+    int64 calendar_id = 1;
+    string name = 2;
+    int64 date = 3;
+    int32 repeat = 4;
+    bool disabled = 5;
+    int64 domain_id = 6;
 }
 
 message ExceptDate {
@@ -189,15 +189,15 @@ message Calendar {
 }
 
 message ReadAcceptOfDayRequest {
-    int64 domain_id = 1;
-    int64 calendar_id = 2;
-    int64 id = 3;
+    int64 calendar_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
 }
 
 message DeleteAcceptOfDayRequest {
-    int64 domain_id = 1;
-    int64 calendar_id = 2;
-    int64 id = 3;
+    int64 calendar_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
 }
 
 message CreateCalendarRequest {
@@ -210,19 +210,19 @@ message CreateCalendarRequest {
 }
 
 message SearchCalendarRequest {
-    int64 domain_id = 1;
+    int32 page = 1;
     int32 size = 2;
-    int32 page = 3;
+    int64 domain_id = 3;
 }
 
 message ReadCalendarRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
+    int64 id = 1;
+    int64 domain_id = 2;
 }
 
 message DeleteCalendarRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
+    int64 id = 1;
+    int64 domain_id = 2;
 }
 
 message UpdateCalendarRequest {
@@ -238,8 +238,8 @@ message UpdateCalendarRequest {
 }
 
 message SearchTimezonesRequest {
-    int32 size = 1;
-    int32 page = 2;
+    int32 page = 1;
+    int32 size = 2;
 }
 
 message ListTimezoneResponse {

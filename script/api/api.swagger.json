@@ -50,11 +50,11 @@
         },
         "parameters": [
           {
-            "name": "domain_id",
+            "name": "page",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "integer",
+            "format": "int32"
           },
           {
             "name": "size",
@@ -64,11 +64,11 @@
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "domain_id",
             "in": "query",
             "required": false,
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -137,14 +137,14 @@
         },
         "parameters": [
           {
-            "name": "size",
+            "name": "page",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "size",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -3886,10 +3886,6 @@
     "engineCreateExceptDateRequest": {
       "type": "object",
       "properties": {
-        "domain_id": {
-          "type": "string",
-          "format": "int64"
-        },
         "calendar_id": {
           "type": "string",
           "format": "int64"
@@ -3908,6 +3904,10 @@
         "disabled": {
           "type": "boolean",
           "format": "boolean"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
