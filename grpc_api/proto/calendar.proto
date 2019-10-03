@@ -201,12 +201,12 @@ message DeleteAcceptOfDayRequest {
 }
 
 message CreateCalendarRequest {
-    int64 domain_id = 1;
-    string name = 2;
-    int64 start = 3;
-    int64 finish = 4;
-    Lookup timezone = 5;
-    string description = 6;
+    string name = 1;
+    int64 start = 2;
+    int64 finish = 3;
+    Lookup timezone = 4;
+    string description = 5;
+    int64 domain_id = 6;
 }
 
 message SearchCalendarRequest {
@@ -227,13 +227,14 @@ message DeleteCalendarRequest {
 
 message UpdateCalendarRequest {
     int64 id = 1;
-    int64 domain_id = 2;
 
-    string name = 3;
-    int64 start = 4;
-    int64 finish = 5;
-    Lookup timezone = 6;
-    string description = 7;
+    string name = 2;
+    int64 start = 3;
+    int64 finish = 4;
+    Lookup timezone = 5;
+    string description = 6;
+
+    int64 domain_id = 7;
 }
 
 message SearchTimezonesRequest {
@@ -272,10 +273,10 @@ message UpdateAcceptOfDayRequest {
 
 message AcceptOfDay {
     int64 id = 1;
-    int32 week_day = 3;
-    int32 start_time_of_day = 4;
-    int32 end_time_of_day = 5;
-    bool disabled = 6;
+    int32 week_day = 2;
+    int32 start_time_of_day = 3;
+    int32 end_time_of_day = 4;
+    bool disabled = 5;
 }
 
 message AcceptOfDayRequest {

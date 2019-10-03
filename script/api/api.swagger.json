@@ -3860,10 +3860,6 @@
     "engineCreateCalendarRequest": {
       "type": "object",
       "properties": {
-        "domain_id": {
-          "type": "string",
-          "format": "int64"
-        },
         "name": {
           "type": "string"
         },
@@ -3880,6 +3876,10 @@
         },
         "description": {
           "type": "string"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -4996,10 +4996,6 @@
           "type": "string",
           "format": "int64"
         },
-        "domain_id": {
-          "type": "string",
-          "format": "int64"
-        },
         "name": {
           "type": "string"
         },
@@ -5016,6 +5012,10 @@
         },
         "description": {
           "type": "string"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
