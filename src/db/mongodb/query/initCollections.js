@@ -164,6 +164,10 @@ var Indexes = {
             "_lock" : 1
         },
         {
+            "dialer" : 1,
+            "createdOn" : 1
+        },
+        {
             "name" : 1
         },
         {
