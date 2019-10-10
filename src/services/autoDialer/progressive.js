@@ -98,6 +98,7 @@ module.exports = class Progressive extends Dialer {
             let vars = [
                 `dlr_member_id='${member._id.toString()}'`,
                 `dlr_session_id='${member.getSessionId()}'`,
+                `dlr_current_attempt=${member.currentProbe}`,
                 `dlr_id=${member.getQueueId()}`,
                 `presence_data='${member.getDomain()}'`,
                 `cc_queue='${member.getQueueName()}'`

@@ -180,6 +180,7 @@ module.exports = class Predictive extends Dialer {
                 `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_id=${member.getQueueId()}`,
+                `dlr_current_attempt=${member.currentProbe}`,
                 `cc_side=member`,
                 `presence_data='${member.getDomain()}'`,
                 `cc_queue='${member.getQueueName()}'`

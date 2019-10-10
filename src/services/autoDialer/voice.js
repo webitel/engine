@@ -90,6 +90,7 @@ module.exports = class VoiceBroadcast extends Dialer {
             vars.push(
                 `origination_uuid=${member.sessionId}`,
                 `dlr_member_id=${member._id.toString()}`,
+                `dlr_current_attempt=${member.currentProbe}`,
                 `origination_caller_id_number='${callerIdNumber}'`,
                 `origination_caller_id_name='${member.getQueueName()}'`,
 
