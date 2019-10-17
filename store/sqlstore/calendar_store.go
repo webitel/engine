@@ -248,7 +248,7 @@ func (s SqlCalendarStore) GetAcceptOfDayAllPage(calendarId int64) ([]*model.Cale
 	if _, err := s.GetReplica().Select(&list, `select id, week_day, start_time_of_day, end_time_of_day, disabled
 		from calendar_accept_of_day a
 		where a.calendar_id = :CalendarId
-		order by a.week_day`, map[string]interface{}{"CalendarId": calendarId}); err != nil {
+		order by a.week_day, a.start_time_of_day`, map[string]interface{}{"CalendarId": calendarId}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetAcceptOfDay", "store.sql_calendar_accept.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return list, nil

@@ -1,0 +1,90 @@
+syntax = "proto3";
+
+package engine;
+
+import "google/api/annotations.proto";
+
+service CommunicationTypeService {
+    // Create CommunicationType
+    rpc CreateCommunicationType (CommunicationTypeRequest) returns (CommunicationType) {
+        option (google.api.http) = {
+            post: "/call_center/communication_type"
+            body: "*"
+        };
+    }
+
+    // List of CommunicationType
+    rpc SearchCommunicationType(SearchCommunicationTypeRequest) returns (ListCommunicationType) {
+        option (google.api.http) = {
+            get: "/call_center/communication_type"
+        };
+    }
+
+    // CommunicationType item
+    rpc ReadCommunicationType(ReadCommunicationTypeRequest) returns (CommunicationType) {
+        option (google.api.http) = {
+            get: "/call_center/communication_type/{id}"
+        };
+    }
+
+    // Update CommunicationType
+    rpc UpdateCommunicationType(UpdateCommunicationTypeRequest) returns (CommunicationType) {
+        option (google.api.http) = {
+            put: "/call_center/communication_type/{id}"
+            body: "*"
+        };
+    }
+
+    // Remove CommunicationType
+    rpc DeleteCommunicationType(DeleteCommunicationTypeRequest) returns (CommunicationType) {
+        option (google.api.http) = {
+            delete: "/call_center/communication_type/{id}"
+        };
+    }
+}
+
+message DeleteCommunicationTypeRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateCommunicationTypeRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string code = 4;
+    string type = 5;
+    string description = 6;
+}
+
+message ListCommunicationType {
+    repeated CommunicationType items = 1;
+}
+
+message SearchCommunicationTypeRequest {
+    int32 page = 1;
+    int32 size = 2;
+    int64 domain_id = 3;
+}
+
+message ReadCommunicationTypeRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message CommunicationTypeRequest {
+    int64 domain_id = 1;
+    string name = 2;
+    string code = 3;
+    string type = 4;
+    string description = 5;
+}
+
+message CommunicationType {
+    int64 id = 1;
+    int64 domain_id = 2;
+    string name = 3;
+    string code = 4;
+    string type = 5;
+    string description = 6;
+}

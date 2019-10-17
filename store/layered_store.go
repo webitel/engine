@@ -92,3 +92,7 @@ func (s *LayeredStore) QueueRouting() QueueRoutingStore {
 func (s *LayeredStore) SupervisorTeam() SupervisorTeamStore {
 	return s.DatabaseLayer.SupervisorTeam()
 }
+
+func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
+	return s.DatabaseLayer.CommunicationType()
+}

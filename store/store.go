@@ -50,6 +50,7 @@ type Store interface {
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
 	RoutingVariable() RoutingVariableStore
+	CommunicationType() CommunicationTypeStore
 }
 
 type CalendarStore interface {
@@ -190,4 +191,12 @@ type SupervisorTeamStore interface {
 	Get(domainId, teamId, id int64) (*model.SupervisorInTeam, *model.AppError)
 	Update(supervisor *model.SupervisorInTeam) (*model.SupervisorInTeam, *model.AppError)
 	Delete(teamId, id int64) *model.AppError
+}
+
+type CommunicationTypeStore interface {
+	Create(comm *model.CommunicationType) (*model.CommunicationType, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.CommunicationType, *model.AppError)
+	Get(domainId int64, id int64) (*model.CommunicationType, *model.AppError)
+	Update(cType *model.CommunicationType) (*model.CommunicationType, *model.AppError)
+	Delete(domainId int64, id int64) *model.AppError
 }

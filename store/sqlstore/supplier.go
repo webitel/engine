@@ -32,16 +32,17 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	calendar         store.CalendarStore
-	skill            store.SkillStore
-	agentTeam        store.AgentTeamStore
-	agent            store.AgentStore
-	agentSkill       store.AgentSkillStore
-	resourceTeam     store.ResourceTeamStore
-	outboundResource store.OutboundResourceStore
-	queue            store.QueueStore
-	queueRouting     store.QueueRoutingStore
-	supervisorTeam   store.SupervisorTeamStore
+	calendar          store.CalendarStore
+	skill             store.SkillStore
+	agentTeam         store.AgentTeamStore
+	agent             store.AgentStore
+	agentSkill        store.AgentSkillStore
+	resourceTeam      store.ResourceTeamStore
+	outboundResource  store.OutboundResourceStore
+	queue             store.QueueStore
+	queueRouting      store.QueueRoutingStore
+	supervisorTeam    store.SupervisorTeamStore
+	communicationType store.CommunicationTypeStore
 
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
@@ -80,6 +81,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.queue = NewSqlQueueStore(supplier)
 	supplier.oldStores.queueRouting = NewSqlQueueRoutingStore(supplier)
 	supplier.oldStores.supervisorTeam = NewSqlSupervisorTeamStore(supplier)
+	supplier.oldStores.communicationType = NewSqlCommunicationTypeStore(supplier)
 
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
 	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
@@ -240,6 +242,10 @@ func (ss *SqlSupplier) RoutingVariable() store.RoutingVariableStore {
 
 func (ss *SqlSupplier) Queue() store.QueueStore {
 	return ss.oldStores.queue
+}
+
+func (ss *SqlSupplier) CommunicationType() store.CommunicationTypeStore {
+	return ss.oldStores.communicationType
 }
 
 func (ss *SqlSupplier) QueueRouting() store.QueueRoutingStore {
