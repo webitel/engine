@@ -52,9 +52,9 @@ message ReadOutboundResourceRequest {
 }
 
 message SearchOutboundResourceRequest {
-    int64 domain_id = 1;
-    int32 size = 2;
-    int32 page = 3;
+    int32 size = 1;
+    int32 page = 2;
+    int64 domain_id = 3;
 }
 
 message UpdateOutboundResourceRequest {

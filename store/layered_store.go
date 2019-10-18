@@ -65,6 +65,14 @@ func (s *LayeredStore) OutboundResource() OutboundResourceStore {
 	return s.DatabaseLayer.OutboundResource()
 }
 
+func (s *LayeredStore) OutboundResourceGroup() OutboundResourceGroupStore {
+	return s.DatabaseLayer.OutboundResourceGroup()
+}
+
+func (s *LayeredStore) OutboundResourceInGroup() OutboundResourceInGroupStore {
+	return s.DatabaseLayer.OutboundResourceInGroup()
+}
+
 func (s *LayeredStore) RoutingScheme() RoutingSchemeStore {
 	return s.DatabaseLayer.RoutingScheme()
 }

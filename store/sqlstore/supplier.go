@@ -32,17 +32,19 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	calendar          store.CalendarStore
-	skill             store.SkillStore
-	agentTeam         store.AgentTeamStore
-	agent             store.AgentStore
-	agentSkill        store.AgentSkillStore
-	resourceTeam      store.ResourceTeamStore
-	outboundResource  store.OutboundResourceStore
-	queue             store.QueueStore
-	queueRouting      store.QueueRoutingStore
-	supervisorTeam    store.SupervisorTeamStore
-	communicationType store.CommunicationTypeStore
+	calendar                store.CalendarStore
+	skill                   store.SkillStore
+	agentTeam               store.AgentTeamStore
+	agent                   store.AgentStore
+	agentSkill              store.AgentSkillStore
+	resourceTeam            store.ResourceTeamStore
+	outboundResource        store.OutboundResourceStore
+	outboundResourceGroup   store.OutboundResourceGroupStore
+	outboundResourceInGroup store.OutboundResourceInGroupStore
+	queue                   store.QueueStore
+	queueRouting            store.QueueRoutingStore
+	supervisorTeam          store.SupervisorTeamStore
+	communicationType       store.CommunicationTypeStore
 
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
@@ -78,6 +80,8 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 	supplier.oldStores.resourceTeam = NewSqlResourceTeamStore(supplier)
 	supplier.oldStores.outboundResource = NewSqlOutboundResourceStore(supplier)
+	supplier.oldStores.outboundResourceGroup = NewSqlOutboundResourceGroupStore(supplier)
+	supplier.oldStores.outboundResourceInGroup = NewSqlOutboundResourceInGroupStore(supplier)
 	supplier.oldStores.queue = NewSqlQueueStore(supplier)
 	supplier.oldStores.queueRouting = NewSqlQueueRoutingStore(supplier)
 	supplier.oldStores.supervisorTeam = NewSqlSupervisorTeamStore(supplier)
@@ -222,6 +226,14 @@ func (ss *SqlSupplier) ResourceTeam() store.ResourceTeamStore {
 
 func (ss *SqlSupplier) OutboundResource() store.OutboundResourceStore {
 	return ss.oldStores.outboundResource
+}
+
+func (ss *SqlSupplier) OutboundResourceGroup() store.OutboundResourceGroupStore {
+	return ss.oldStores.outboundResourceGroup
+}
+
+func (ss *SqlSupplier) OutboundResourceInGroup() store.OutboundResourceInGroupStore {
+	return ss.oldStores.outboundResourceInGroup
 }
 
 func (ss *SqlSupplier) RoutingScheme() store.RoutingSchemeStore {

@@ -46,11 +46,14 @@ type Store interface {
 	QueueRouting() QueueRoutingStore
 	SupervisorTeam() SupervisorTeamStore
 	OutboundResource() OutboundResourceStore
+	OutboundResourceGroup() OutboundResourceGroupStore
+	OutboundResourceInGroup() OutboundResourceInGroupStore
+	CommunicationType() CommunicationTypeStore
+
 	RoutingScheme() RoutingSchemeStore
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
 	RoutingVariable() RoutingVariableStore
-	CommunicationType() CommunicationTypeStore
 }
 
 type CalendarStore interface {
@@ -133,6 +136,22 @@ type OutboundResourceStore interface {
 	Get(domainId int64, id int64) (*model.OutboundCallResource, *model.AppError)
 	Update(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+}
+
+type OutboundResourceGroupStore interface {
+	Create(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
+	Get(domainId int64, id int64) (*model.OutboundResourceGroup, *model.AppError)
+	Update(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+}
+
+type OutboundResourceInGroupStore interface {
+	Create(domainId, resourceId, groupId int64) (*model.OutboundResourceInGroup, *model.AppError)
+	GetAllPage(domainId, groupId int64, offset, limit int) ([]*model.OutboundResourceInGroup, *model.AppError)
+	Get(domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError)
+	Update(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError)
+	Delete(domainId, groupId, id int64) *model.AppError
 }
 
 type RoutingSchemeStore interface {
