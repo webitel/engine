@@ -139,8 +139,10 @@ type OutboundResourceStore interface {
 }
 
 type OutboundResourceGroupStore interface {
+	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
 	Create(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
 	Get(domainId int64, id int64) (*model.OutboundResourceGroup, *model.AppError)
 	Update(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
 	Delete(domainId, id int64) *model.AppError

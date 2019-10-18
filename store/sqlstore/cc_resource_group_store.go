@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -14,6 +15,24 @@ type SqlOutboundResourceGroupStore struct {
 func NewSqlOutboundResourceGroupStore(sqlStore SqlStore) store.OutboundResourceGroupStore {
 	us := &SqlOutboundResourceGroupStore{sqlStore}
 	return us
+}
+
+func (s SqlOutboundResourceGroupStore) CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+	res, err := s.GetReplica().SelectNullInt(`select 1
+		where exists(
+          select 1
+          from cc_outbound_resource_group_acl a
+          where a.dc = :DomainId
+            and a.object = :Id
+            and a.subject = any (:Groups::int[])
+            and a.access & :Access = :Access
+        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
+
+	if err != nil {
+		return false, nil
+	}
+
+	return (res.Valid && res.Int64 == 1), nil
 }
 
 func (s SqlOutboundResourceGroupStore) Create(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError) {
@@ -66,6 +85,31 @@ func (s SqlOutboundResourceGroupStore) GetAllPage(domainId int64, offset, limit 
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return groups, nil
+	}
+}
+
+func (s SqlOutboundResourceGroupStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError) {
+	var res []*model.OutboundResourceGroup
+	if _, err := s.GetReplica().Select(&res, `
+			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
+				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by
+			from cc_outbound_resource_group s
+				inner join cc_communication comm on comm.id = s.communication_id
+				left join directory.wbt_user c on c.id = s.created_by
+				left join directory.wbt_user u on u.id = s.updated_by
+		where s.domain_id = :DomainId  and (
+			exists(select 1
+			  from cc_outbound_resource_group_acl a
+			  where a.dc = s.domain_id and a.object = s.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+		  )
+		order by s.id
+		limit :Limit
+		offset :Offset
+		`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": model.PERMISSION_ACCESS_READ.Value()}); err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
+			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
+	} else {
+		return res, nil
 	}
 }
 

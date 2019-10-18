@@ -2,12 +2,20 @@ package app
 
 import "github.com/webitel/engine/model"
 
+func (a *App) OutboundResourceGroupCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.OutboundResourceGroup().CheckAccess(domainId, id, groups, access)
+}
+
 func (a *App) CreateOutboundResourceGroup(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError) {
 	return a.Store.OutboundResourceGroup().Create(group)
 }
 
 func (a *App) GetOutboundResourceGroupPage(domainId int64, page, perPage int) ([]*model.OutboundResourceGroup, *model.AppError) {
 	return a.Store.OutboundResourceGroup().GetAllPage(domainId, page*perPage, perPage)
+}
+
+func (a *App) GetOutboundResourceGroupPageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.OutboundResourceGroup, *model.AppError) {
+	return a.Store.OutboundResourceGroup().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
 }
 
 func (app *App) GetOutboundResourceGroup(domainId, id int64) (*model.OutboundResourceGroup, *model.AppError) {
