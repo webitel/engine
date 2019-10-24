@@ -205,12 +205,14 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		Endpoints:   info.GetCallEndpoints(),
 		Destination: destinationNumber,
 		Variables: map[string]string{
-			"sip_h_X-Webitel-Direction":   "internal",
-			"sip_h_X-Webitel-User-Id":     fmt.Sprintf("%v", conn.UserId),
-			"sip_h_X-Webitel-Domain-Id":   fmt.Sprintf("%v", conn.DomainId),
+			model.CALL_VARIABLE_ID:                callId,
+			model.CALL_VARIABLE_DIRECTION:         model.CALL_DIRECTION_INTERNAL,
+			model.CALL_VARIABLE_DISPLAY_DIRECTION: model.CALL_DIRECTION_OUTBOUND,
+			model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", conn.UserId),
+			model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", conn.DomainId),
+			model.CALL_VARIABLE_SOCK_ID:           conn.Id(),
+
 			"sip_h_X-Webitel-Destination": destinationNumber,
-			"sip_h_X-Webitel-Sock-Id":     conn.Id(),
-			"sip_h_X-Webitel-Uuid":        callId,
 
 			"origination_uuid":      callId,
 			"absolute_codec_string": "pcma",
