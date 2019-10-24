@@ -154,6 +154,10 @@ func NewId() string {
 	return b.String()
 }
 
+func NewUuid() string {
+	return uuid.NewRandom().String()
+}
+
 func NewRandomString(length int) string {
 	var b bytes.Buffer
 	str := make([]byte, length+8)

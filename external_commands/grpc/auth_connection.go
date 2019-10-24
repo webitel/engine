@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"github.com/webitel/call_center/external_commands/grpc/auth"
+	"github.com/webitel/engine/external_commands"
 	"github.com/webitel/engine/model"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	CONNECTION_TIMEOUT = 2 * time.Second
+	AUTH_CONNECTION_TIMEOUT = 2 * time.Second
 )
 
 type authConnection struct {
@@ -23,14 +24,14 @@ type authConnection struct {
 	api    auth.SAClient
 }
 
-func NewAuthServiceConnection(name, url string) (*authConnection, *model.AppError) {
+func NewAuthServiceConnection(name, url string) (external_commands.AuthClient, *model.AppError) {
 	var err error
 	connection := &authConnection{
 		name: name,
 		host: url,
 	}
 
-	connection.client, err = grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(CONNECTION_TIMEOUT))
+	connection.client, err = grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(AUTH_CONNECTION_TIMEOUT))
 
 	if err != nil {
 		return nil, model.NewAppError("NewAuthServiceConnection", "grpc.create_connection.app_error", nil, err.Error(), http.StatusInternalServerError)

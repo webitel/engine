@@ -32,6 +32,7 @@ const (
 )
 
 type SqlSupplierOldStores struct {
+	user                    store.UserStore
 	calendar                store.CalendarStore
 	skill                   store.SkillStore
 	agentTeam               store.AgentTeamStore
@@ -73,6 +74,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.initConnection()
 
+	supplier.oldStores.user = NewSqlUserStore(supplier)
 	supplier.oldStores.calendar = NewSqlCalendarStore(supplier)
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
@@ -198,6 +200,10 @@ func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
 
 func (ss *SqlSupplier) DriverName() string {
 	return *ss.settings.DriverName
+}
+
+func (ss *SqlSupplier) User() store.UserStore {
+	return ss.oldStores.user
 }
 
 func (ss *SqlSupplier) Calendar() store.CalendarStore {

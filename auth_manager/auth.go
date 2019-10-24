@@ -5,6 +5,7 @@ import (
 	"github.com/webitel/call_center/discovery"
 	"github.com/webitel/call_center/utils"
 	"github.com/webitel/engine/external_commands"
+	"github.com/webitel/engine/external_commands/grpc"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 	"net/http"
@@ -50,7 +51,7 @@ func (am *authManager) Start() *model.AppError {
 	wlog.Debug("starting auth service")
 
 	if services, err := am.serviceDiscovery.GetByName(AUTH_SERVICE_NAME); err != nil {
-		return model.NewAppError("", "", nil, err.Error(), http.StatusInternalServerError) //
+		return model.NewAppError("authManager.Start", "", nil, err.Error(), http.StatusInternalServerError) //
 	} else {
 		for _, v := range services {
 			am.registerConnection(v)
@@ -91,17 +92,17 @@ func (am *authManager) Stop() {
 	<-am.stopped
 }
 
-func (am *authManager) getAuthClient() (model.AuthClient, *model.AppError) {
+func (am *authManager) getAuthClient() (external_commands.AuthClient, *model.AppError) {
 	conn, err := am.poolConnections.Get(discovery.StrategyRoundRobin)
 	if err != nil {
 		return nil, model.NewAppError("AuthManager", "auth_manager.get_all_client.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return conn.(model.AuthClient), nil
+	return conn.(external_commands.AuthClient), nil
 }
 
 func (am *authManager) registerConnection(v *discovery.ServiceConnection) {
 	addr := fmt.Sprintf("%s:%d", v.Host, v.Port)
-	client, err := external_commands.NewAuthServiceConnection(v.Id, addr)
+	client, err := grpc.NewAuthServiceConnection(v.Id, addr)
 	if err != nil {
 		wlog.Error(fmt.Sprintf("connection %s [%s] error: %s", v.Id, addr, err.Error()))
 		return

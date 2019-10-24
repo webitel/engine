@@ -12,6 +12,7 @@ type SqlStore interface {
 	GetReplica() *gorp.DbMap
 	GetAllConns() []*gorp.DbMap
 
+	User() store.UserStore
 	Calendar() store.CalendarStore
 	Skill() store.SkillStore
 	AgentTeam() store.AgentTeamStore

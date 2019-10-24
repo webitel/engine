@@ -24,7 +24,9 @@ func TestAuthManager(t *testing.T) {
 	am.Start()
 	defer am.Stop()
 
-	testGetSession(t, TOKEN, am)
+	for i := 0; i < 1; i++ {
+		testGetSession(t, TOKEN, am)
+	}
 }
 
 func testGetSession(t *testing.T, token string, am AuthManager) {

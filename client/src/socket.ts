@@ -14,7 +14,7 @@ export interface IMessage {
     status?: string,
     seq?: number,
     seq_reply?: number,
-    data: Map<string, any>
+    data: Object
     error?: Map<string, any>
 }
 
@@ -60,7 +60,7 @@ export class Socket extends EventEmitter<ISocketEvents> {
 
     private onMessage(data : string) {
         const message = <IMessage>JSON.parse(data);
-        console.log(JSON.stringify(message, null, '\t'));
+        //console.log(JSON.stringify(message, null, 4));
         this.emit("message", message)
     }
 }

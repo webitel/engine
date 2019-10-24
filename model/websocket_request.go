@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"io"
 )
@@ -20,6 +21,13 @@ type WebSocketRequest struct {
 func (o *WebSocketRequest) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *WebSocketRequest) GetFieldString(name string) string {
+	if tmp, ok := o.Data[name]; ok {
+		return fmt.Sprintf("%v", tmp)
+	}
+	return ""
 }
 
 func WebSocketRequestFromJson(data io.Reader) *WebSocketRequest {

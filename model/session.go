@@ -9,14 +9,6 @@ const (
 	SESSION_CACHE_TIME = 60 * 5 // 5min
 )
 
-type AuthClient interface {
-	Name() string
-	Close() error
-	Ready() bool
-
-	GetSession(token string) (*Session, *AppError)
-}
-
 type SessionPermission struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`

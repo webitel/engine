@@ -111,12 +111,21 @@ func (wh *Hub) start() {
 	}
 }
 
+func (wh *Hub) UnSubscribeCalls(conn *WebConn) *model.AppError {
+	if b, ok := conn.GetListenEvent("call"); ok {
+		wh.domainQueue.Unbind(b)
+	} else {
+		//NOTFOUND
+	}
+
+	return nil
+}
+
 func (wh *Hub) SubscribeSessionCalls(conn *WebConn) *model.AppError {
 
 	b := wh.domainQueue.BindUserCall(conn.Id(), conn.GetSession().UserId)
-
-	conn.SetListenEvent(model.EVENT_CHANNEL_CREATE, b)
-	conn.SetListenEvent(model.EVENT_CHANNEL_DESTROY, b)
+	//TODO
+	conn.SetListenEvent("call", b)
 
 	return nil
 }

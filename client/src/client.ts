@@ -1,35 +1,73 @@
 import {Socket, IMessage} from './socket'
 import {Log} from './log'
+import EventEmitter from './event_emitter'
+import {Call, CallData, CallEventHandler, CallState} from './call'
 
-import {SipPhone} from './sip'
+import {SipPhone, SipConfiguration} from './sip'
 
-export interface IConfig {
+export interface Config {
     endpoint: string;
     token? : string;
     logLvl? : "debug" | "info" | "warn" | "error";
+    phone?: number;
 }
 
-interface IPromiseCallback {
-    resolve: (res : Map<string, any>) => void,
-    reject: (err : Map<string, any>) => void
+interface PromiseCallback {
+    resolve: (res : Object) => void,
+    reject: (err : Object) => void
+}
+
+export interface OutboundCallRequest {
+    toNumber: string
+    toName?: string
+    variables?: Map<string,string>
 }
 
 const WEBSOCKET_AUTHENTICATION_CHALLENGE  = "authentication_challenge";
 
+const WEBSOCKET_MAKE_OUTBOUND_CALL  = "call_invite";
+const WEBSOCKET_EVENT_HELLO = "hello";
+const WEBSOCKET_EVENT_CALL = "call";
+
 export enum Response {
-    // STATUS_FAIL = "FAIL",
+    STATUS_FAIL = "FAIL",
     STATUS_OK = "OK"
 }
 
-export class Client {
-    private socket : Socket;
-    private req_seq : number = 0;
-    private queueRequest : Map<number, IPromiseCallback> = new Map<number, IPromiseCallback>();
-    private log : Log;
+export interface Session {
+    id: string
+    expire: Number
+    user_id: Number
+    role_ids: Array<Number>
+}
 
-    constructor(protected readonly _config : IConfig) {
+export interface ConnectionInfo {
+    sock_id: string
+    server_build_commit: string
+    server_node_id: string
+    server_version: string
+    server_time: Number
+    session: Session
+}
+
+export class Client {
+    public phone : SipPhone;
+    private socket : Socket;
+    private connectionInfo: ConnectionInfo;
+    private req_seq : number = 0;
+    private queueRequest : Map<number, PromiseCallback> = new Map<number, PromiseCallback>();
+    private log : Log;
+    private eventHandler: EventEmitter;
+    private callStore: Map<string, Call>;
+
+    constructor(protected readonly _config : Config) {
         this.log = new Log();
-        //new SipPhone();
+        this.eventHandler = new EventEmitter();
+        this.callStore = new Map<string, Call>();
+    }
+
+    public async test() {
+        return await this.request("test")
     }
 
     public async connect() {
@@ -40,23 +78,55 @@ export class Client {
         await this.socket.close()
     }
 
-    public subscribe(action : string, data? : Object) : Promise<null | Error> {
-        return new Promise<null | Error>((resolve: () => void, reject: () => void) => {
-            this.queueRequest.set(++this.req_seq, {resolve, reject});
-
-            this.socket.send({
-                seq: this.req_seq,
-                action,
-                data
-            });
-        });
+    //TODO check count
+    public async subscribe(action : string, handler: CallEventHandler, data? : Object) : Promise<null | Error> {
+        const res = await this.request(`subscribe_${action}`, data);
+        this.eventHandler.on(action, handler);
+        return res
+    }
+    //TODO check count
+    public async unSubscribe(action : string, handler: CallEventHandler, data? : Object) : Promise<null | Error> {
+        const res = await this.request(`un_subscribe_${action}`, data);
+        this.eventHandler.off(action, handler);
+        return res;
     }
 
-    public auth() {
+    public allCall() : Call[] {
+        return Array.from(this.callStore.values())
+    }
+
+    public callById(id : string) : Call | null {
+        if (this.callStore.has(id)) {
+            return this.callStore.get(id);
+        }
+        return null;
+    }
+
+    public async auth() {
         return this.request(WEBSOCKET_AUTHENTICATION_CHALLENGE, {token: this._config.token})
     }
 
-    protected request(action : string, data? : Object) : Promise<null | Error>  {
+    public sessionInfo() : Session {
+        return this.connectionInfo.session
+    }
+
+    public get version() : string {
+        return this.connectionInfo.server_version
+    }
+
+    public get instanceId() : string {
+        return this.connectionInfo.sock_id
+    }
+
+    public invite(req: OutboundCallRequest) {
+        return this.request(WEBSOCKET_MAKE_OUTBOUND_CALL, req)
+    }
+
+    public answer(id: string) : boolean {
+        return this.phone.answer(id);
+    }
+
+    public request(action : string, data? : Object) : Promise<null | Error>  {
         return new Promise<null | Error>((resolve: () => void, reject: () => void) => {
             this.queueRequest.set(++this.req_seq, {resolve, reject});
             this.socket.send({
@@ -80,9 +150,50 @@ export class Client {
                 }
             }
         } else {
-            // message.data.delete("debug");
-            output(syntaxHighlight(JSON.stringify(message, undefined, 4)))
+            switch (message.event) {
+                case WEBSOCKET_EVENT_HELLO:
+                    this.connected(message.data as ConnectionInfo);
+                    this.log.debug(`opened session ${this.connectionInfo.sock_id} for userId=${this.connectionInfo.session.user_id}`)
+                    break;
+                case WEBSOCKET_EVENT_CALL:
+                    this.handleCallEvents(message.data as CallData);
+                    break;
+
+                case "sip":
+                    this.eventHandler.emit("sip", message.data)
+                    break;
+                default:
+                    this.log.error(`event ${message.event} not handler`)
+            }
         }
+    }
+
+    private connected(info : ConnectionInfo) {
+        this.connectionInfo = info;
+
+        this.phone = new SipPhone(this.instanceId);
+        this.phone.register(this.deviceSettings);
+
+        // @ts-ignore
+        window.cli = this;
+    }
+
+    private get deviceSettings() : SipConfiguration | null {
+        if (this.connectionInfo) {
+            // return {
+            //     uri: "sip:400@webitel.lo",
+            //     authorization_user: "300",
+            //     realm: "webitel.lo",
+            //     ha1 : '221e05baa91888c3ca176e6be5d30c5c'
+            // }
+            return {
+                uri: "sip:100@webitel.lo",
+                authorization_user: "100",
+                realm: "webitel.lo",
+                ha1 : 'ce6c7bf5194816a4e2aa65289d82c55a'
+            }
+        }
+        return null
     }
 
     private connectToSocket() : Promise<Error | null> {
@@ -104,29 +215,21 @@ export class Client {
             });
         });
     }
-}
 
-
-
-function syntaxHighlight(json : any) {
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match : any) {
-        var cls = 'number';
-        if (/^"/.test(match)) {
-            if (/:$/.test(match)) {
-                cls = 'key';
-            } else {
-                cls = 'string';
-            }
-        } else if (/true|false/.test(match)) {
-            cls = 'boolean';
-        } else if (/null/.test(match)) {
-            cls = 'null';
+    private handleCallEvents(event: CallData) {
+        let call : Call;
+        if (this.callStore.has(event.id)) {
+            call = this.callStore.get(event.id);
+            call.setState(event);
+        } else {
+            call = new Call(this, event as CallData);
+            this.callStore.set(event.id, call);
         }
-        return '<span class="' + cls + '">' + match + '</span>';
-    });
-}
 
-function output(inp :any) {
-    document.body.appendChild(document.createElement('pre')).innerHTML = inp;
+        if (call.state == CallState.Hangup) {
+            this.callStore.delete(call.id)
+        }
+
+        this.eventHandler.emit(WEBSOCKET_EVENT_CALL, call);
+    }
 }

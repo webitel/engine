@@ -37,6 +37,10 @@ func (s *LayeredStore) RunQuery(queryFunction QueryFunction) StoreChannel {
 	return storeChannel
 }
 
+func (s *LayeredStore) User() UserStore {
+	return s.DatabaseLayer.User()
+}
+
 func (s *LayeredStore) Calendar() CalendarStore {
 	return s.DatabaseLayer.Calendar()
 }

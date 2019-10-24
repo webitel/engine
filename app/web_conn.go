@@ -40,6 +40,8 @@ type WebConn struct {
 	endWritePump       chan struct{}
 	pumpFinished       chan struct{}
 	listenEvents       map[string]*model.BindQueueEvent
+
+	//Sip *SipProxy
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
@@ -56,6 +58,8 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.Trans
 		pumpFinished:       make(chan struct{}),
 		listenEvents:       make(map[string]*model.BindQueueEvent),
 	}
+
+	//wc.Sip = NewSipProxy(wc)
 
 	wc.SetSession(&session)
 	wc.SetSessionToken(session.Token)
@@ -106,7 +110,8 @@ func (c *WebConn) readPump() {
 	})
 
 	for {
-		req := model.WebSocketRequest{}
+
+		var req model.WebSocketRequest
 
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
 			// browsers will appear as CloseNoStatusReceived
@@ -255,6 +260,11 @@ func (webCon *WebConn) IsAuthenticated() bool {
 
 func (webCon *WebConn) SetListenEvent(name string, value *model.BindQueueEvent) {
 	webCon.listenEvents[name] = value
+}
+
+func (webCon *WebConn) GetListenEvent(name string) (*model.BindQueueEvent, bool) {
+	v, ok := webCon.listenEvents[name]
+	return v, ok
 }
 
 func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {

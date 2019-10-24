@@ -36,6 +36,7 @@ func Must(sc StoreChannel) interface{} {
 }
 
 type Store interface {
+	User() UserStore
 	Calendar() CalendarStore
 	Skill() SkillStore
 	AgentTeam() AgentTeamStore
@@ -54,6 +55,10 @@ type Store interface {
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
 	RoutingVariable() RoutingVariableStore
+}
+
+type UserStore interface {
+	GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError)
 }
 
 type CalendarStore interface {

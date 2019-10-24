@@ -10,16 +10,20 @@ import (
 )
 
 func (api *API) ApiWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
-	return webSocketHandler{api.App, wh}
+	return webSocketHandler{api.App, wh, false}
+}
+func (api *API) ApiAsyncWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+	return webSocketHandler{api.App, wh, true}
 }
 
 type webSocketHandler struct {
 	app         *app.App
 	handlerFunc func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, *model.AppError)
+	async       bool
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
-	wlog.Debug(fmt.Sprintf("websocket: %s", r.Action))
+	wlog.Debug(fmt.Sprintf("websocket: %s [%s]", r.Action, conn.WebSocket.RemoteAddr().String()))
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
@@ -38,8 +42,12 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	var data map[string]interface{}
 	var err *model.AppError
 
+	if wh.async {
+
+	}
+
 	if data, err = wh.handlerFunc(conn, r); err != nil {
-		wlog.Error(fmt.Sprintf("%v seq=%v [details: %v]", "websocket", r.Action, r.Seq, err.DetailedError))
+		wlog.Error(fmt.Sprintf("%v %v seq=%vq [details: %v]", "websocket", r.Action, r.Seq, err.DetailedError))
 		err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 

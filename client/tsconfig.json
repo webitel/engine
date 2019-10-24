@@ -8,8 +8,9 @@
   ],
   "compilerOptions": {
     "watch": true,
-    "sourceMap": false,
-    "declaration": false,
+    "sourceMap": true,
+    "typeRoots": ["src/types"],
+    "declaration": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

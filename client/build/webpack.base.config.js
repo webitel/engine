@@ -1,11 +1,12 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const WorkboxPlugin = require('workbox-webpack-plugin');
 
 module.exports = {
-    entry: [ './src/test'],
+    entry: ['./src/test'],
     output: {
         library: 'webitel',
-        // libraryTarget: 'umd',
+        libraryTarget: 'umd',
         filename: 'webitel.js',
         // auxiliaryComment: 'Test Comment'
     },
@@ -46,6 +47,9 @@ module.exports = {
         new HtmlWebpackPlugin({
             // inject: true,
             template: 'index.html'
-        })
+        }),
+        // new WorkboxPlugin.InjectManifest({
+        //     swSrc: './src/sw.js'
+        // })
     ]
 }

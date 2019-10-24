@@ -4,6 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/engine/mq/rabbit"
@@ -26,6 +27,7 @@ type App struct {
 	Store          store.Store
 	cluster        *cluster
 	sessionManager auth_manager.AuthManager
+	callManager    call_manager.CallManager
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -97,6 +99,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
+	app.callManager = call_manager.NewCallManager(app.cluster.discovery)
+	if err := app.callManager.Start(); err != nil {
+		return nil, err
+	}
+
 	return app, outErr
 }
 
@@ -111,8 +118,16 @@ func (app *App) Shutdown() {
 		app.GrpcServer.srv.Stop()
 	}
 
+	if app.callManager != nil {
+		app.callManager.Stop()
+	}
+
 	app.cluster.Stop()
 	app.sessionManager.Stop()
+}
+
+func (app *App) CallManager() call_manager.CallManager {
+	return app.callManager
 }
 
 func (app *App) Ready() (bool, *model.AppError) {

@@ -7,7 +7,6 @@ import (
 
 func (api *API) InitUser() {
 	api.Router.Handle("user_typing", api.ApiWebSocketHandler(api.userTyping))
-	api.Router.Handle("subscribe_self_calls", api.ApiWebSocketHandler(api.subscribeSelfCalls))
 }
 
 func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -18,15 +17,4 @@ func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	data["server_time"] = model.GetMillis()
 	data["node_id"] = ""
 	return data, nil
-}
-
-func (api *API) subscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	h, e := api.App.GetHubById(req.Session.Domain(0))
-	if e != nil {
-		return nil, e
-	}
-
-	//ids := []int64{12,3,4,5,6,7,8}
-
-	return nil, h.SubscribeSessionCalls(conn)
 }

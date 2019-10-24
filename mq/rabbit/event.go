@@ -25,6 +25,14 @@ func (e REvent) GetVariable(name string) (string, bool) {
 	return fmt.Sprintf("%v", v), k
 }
 
+func (e REvent) GetStringVariable(name string) string {
+	v, k := e[name]
+	if k {
+		return fmt.Sprintf("%v", v)
+	}
+	return ""
+}
+
 func (e REvent) GetIntVariable(name string) (int, bool) {
 	v, k := e[name]
 	if !k {

@@ -73,8 +73,8 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
-
-	handler.ServeWebSocket(conn, r)
+	//FIXME
+	go handler.ServeWebSocket(conn, r)
 }
 
 func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
