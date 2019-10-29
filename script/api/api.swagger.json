@@ -2635,6 +2635,49 @@
         "tags": [
           "OutboundResourceService"
         ]
+      },
+      "patch": {
+        "summary": "Path OutboundResource",
+        "operationId": "PathOutboundResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineOutboundResource"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/enginePathOutboundResourceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OutboundResourceService"
+        ]
       }
     },
     "/call_center/skills": {
@@ -5342,6 +5385,66 @@
         },
         "resource": {
           "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "enginePathOutboundResourceRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "enabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "rps": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "reserve": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "number": {
+          "type": "string"
+        },
+        "max_successively_errors": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dial_string": {
+          "type": "string"
+        },
+        "error_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

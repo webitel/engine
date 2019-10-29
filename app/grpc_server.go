@@ -44,7 +44,7 @@ func unaryInterceptor(ctx context.Context,
 	h, err := handler(ctx, req)
 
 	if err != nil {
-		wlog.Debug(fmt.Sprintf("method %s duration %s, error: %v", info.FullMethod, time.Since(start), err.Error()))
+		wlog.Error(fmt.Sprintf("method %s duration %s, error: %v", info.FullMethod, time.Since(start), err.Error()))
 
 		switch err.(type) {
 		case *model.AppError:

@@ -22,6 +22,26 @@ func (a *App) GetOutboundResourcePageByGroups(domainId int64, groups []int, page
 	return a.Store.OutboundResource().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
 }
 
+func (a *App) PatchOutboundResource(domainId, id int64, patch *model.OutboundCallResourcePath) (*model.OutboundCallResource, *model.AppError) {
+	oldResource, err := a.GetOutboundResource(domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldResource.Path(patch)
+
+	if err = oldResource.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldResource, err = a.Store.OutboundResource().Update(oldResource)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldResource, nil
+}
+
 func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
 	oldResource, err := a.GetOutboundResource(resource.DomainId, resource.Id)
 	if err != nil {

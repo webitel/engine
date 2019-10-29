@@ -179,6 +179,60 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 	return transformOutboundResource(resource), nil
 }
 
+func (api *outboundResource) PathOutboundResource(ctx context.Context, in *engine.PathOutboundResourceRequest) (*engine.OutboundResource, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	patch := &model.OutboundCallResourcePath{}
+	var resource *model.OutboundCallResource
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "limit":
+			patch.Limit = model.NewInt(int(in.Limit))
+		case "rps":
+			patch.RPS = model.NewInt(int(in.Rps))
+		case "max_successively_errors":
+			patch.MaxSuccessivelyErrors = model.NewInt(int(in.MaxSuccessivelyErrors))
+		case "enabled":
+			patch.Enabled = model.NewBool(in.Enabled)
+		case "reserve":
+			patch.Reserve = model.NewBool(in.Reserve)
+		case "name":
+			patch.Name = model.NewString(in.Name)
+		}
+	}
+
+	resource, err = api.app.PatchOutboundResource(session.Domain(in.GetDomainId()), in.GetId(), patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformOutboundResource(resource), nil
+}
+
 func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *engine.DeleteOutboundResourceRequest) (*engine.OutboundResource, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
