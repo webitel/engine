@@ -2446,14 +2446,14 @@
         },
         "parameters": [
           {
-            "name": "size",
+            "name": "page",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "size",
             "in": "query",
             "required": false,
             "type": "integer",
