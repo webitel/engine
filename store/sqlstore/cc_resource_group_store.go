@@ -44,7 +44,7 @@ values (:DomainId, :Name, :Strategy, :Description, :CommunicationId, :CreatedAt,
 returning  *
 )
 select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-       s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by
+       s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
 from s
     inner join cc_communication comm on comm.id = s.communication_id
     left join directory.wbt_user c on c.id = s.created_by
