@@ -82,6 +82,9 @@ create unique index IF NOT EXISTS callback_members_id_uindex
   
 create index IF NOT EXISTS callback_members_queue_id_index
   on callback_members (queue_id);
+  
+create index IF NOT EXISTS callback_members_queue_id_number_index
+  on callback_members (queue_id, number);
 
 create index IF NOT EXISTS callback_members_created_on_index
   on callback_members (created_on);
