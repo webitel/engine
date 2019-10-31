@@ -40,6 +40,7 @@ function handleEslEvent(application) {
                             "variable_w_account_origination_uuid": jsonEvent["variable_webitel_call_uuid"],
                             "variable_w_jsclient_xtransfer": jsonEvent["variable_w_jsclient_xtransfer"] || jsonEvent['variable_sip_h_X-WebitelXTransfer'],
                             "variable_w_jsclient_originate_number": jsonEvent["variable_w_jsclient_originate_number"],
+                            "variable_w_jsclient_auto_answer": jsonEvent["variable_w_jsclient_auto_answer"],
                             "Call-Info": jsonEvent["Call-Info"],
                             "Other-Leg-Unique-ID": jsonEvent["Other-Leg-Unique-ID"] || jsonEvent["variable_originating_leg_uuid"],
                             "variable_hangup_cause": jsonEvent["variable_hangup_cause"] || jsonEvent["Hangup-Cause"],
