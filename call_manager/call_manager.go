@@ -20,6 +20,7 @@ type CallManager interface {
 	Start() error
 	Stop()
 	MakeOutboundCall(req *model.CallRequest) (string, *model.AppError)
+	Bridge(legA, legANode, legB, legBNode string)
 	CallClient(id string) (CallClient, *model.AppError)
 }
 

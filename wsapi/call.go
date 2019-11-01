@@ -17,6 +17,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_dtmf", api.ApiWebSocketHandler(api.callDTMF))
 	api.Router.Handle("call_mute", api.ApiWebSocketHandler(api.callMute))
 	api.Router.Handle("call_blind_transfer", api.ApiWebSocketHandler(api.callBlindTransfer))
+	api.Router.Handle("call_bridge", api.ApiWebSocketHandler(api.callBridge))
 
 	api.Router.Handle("test", api.ApiAsyncWebSocketHandler(api.test))
 
@@ -27,6 +28,7 @@ func (api *API) test(conn *app.WebConn, req *model.WebSocketRequest) (map[string
 	time.Sleep(time.Second * 10)
 	return nil, nil
 }
+
 func (api *API) sipProxy(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	var data string
@@ -283,6 +285,28 @@ func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 			return nil, err
 		}
 	}
+
+	return nil, nil
+}
+
+func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var ok bool
+	var id, nodeId, id2, nodeId2 string
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+	if nodeId, ok = req.Data["node_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	}
+	if id2, ok = req.Data["parent_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "parent_id")
+	}
+	if nodeId2, ok = req.Data["parent_node_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "parent_node_id")
+	}
+
+	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
 
 	return nil, nil
 }

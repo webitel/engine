@@ -1,6 +1,7 @@
 package call_manager
 
 import (
+	"fmt"
 	"github.com/webitel/call_center/discovery"
 	"github.com/webitel/engine/model"
 	"net/http"
@@ -49,4 +50,50 @@ func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.
 	}
 
 	return uuid, nil
+}
+
+func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) {
+	var cli CallClient
+	var err *model.AppError
+
+	cli, err = cm.getClient(legANode)
+	if err != nil {
+		panic(1)
+	}
+
+	if legANode == legBNode {
+		_, err = cli.BridgeCall(legA, legB, "")
+	} else {
+		newUuid := model.NewUuid()
+
+		r1 := &model.CallRequest{
+			Endpoints: []string{"sofia/sip/bridge@test.com"},
+			Variables: map[string]string{
+				"sip_h_X-Webitel-ParentId": legB,
+				"sip_route_uri":            "sip:10.10.10.25:5080",
+				"origination_uuid":         newUuid,
+				"ignore_early_media":       "true",
+			},
+			Timeout:      10,
+			CallerName:   "",
+			CallerNumber: "",
+			Applications: []*model.CallRequestApplication{
+				{
+					AppName: "answer",
+				},
+				{
+					AppName: "set",
+					Args:    fmt.Sprintf("res=${uuid_bridge %s %s}", newUuid, legA),
+				},
+			},
+		}
+
+		_, _, err = cli.NewCall(r1)
+	}
+
+	if err != nil {
+		fmt.Println("ERROR ", err.Error())
+	} else {
+		fmt.Println("OK")
+	}
 }
