@@ -5661,6 +5661,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "gateway": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
@@ -6382,6 +6385,9 @@
         "last_error_at": {
           "type": "string",
           "format": "int64"
+        },
+        "gateway": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
@@ -6537,6 +6543,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "gateway": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
@@ -7308,6 +7317,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "gateway": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },

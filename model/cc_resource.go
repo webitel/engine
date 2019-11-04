@@ -15,6 +15,7 @@ type OutboundCallResource struct {
 	LastErrorId           *string     `json:"last_error_id" db:"last_error_id"`
 	SuccessivelyErrors    int         `json:"successively_errors" db:"successively_errors"`
 	LastErrorAt           int64       `json:"last_error_at" db:"last_error_at"`
+	Gateway               *Lookup     `json:"gateway" db:"gateway"`
 }
 
 type OutboundCallResourcePath struct {
@@ -25,6 +26,14 @@ type OutboundCallResourcePath struct {
 	MaxSuccessivelyErrors *int         `json:"max_successively_errors" db:"max_successively_errors"`
 	Name                  *string      `json:"name" db:"name"`
 	ErrorIds              *StringArray `json:"error_ids" db:"error_ids"`
+	Gateway               *Lookup      `json:"gateway" db:"gateway"`
+}
+
+func (r *OutboundCallResource) GetGatewayId() *int {
+	if r.Gateway != nil {
+		return NewInt(r.Gateway.Id)
+	}
+	return nil
 }
 
 func (r *OutboundCallResource) Path(p *OutboundCallResourcePath) {
@@ -48,6 +57,10 @@ func (r *OutboundCallResource) Path(p *OutboundCallResourcePath) {
 	}
 	if p.ErrorIds != nil {
 		r.ErrorIds = *p.ErrorIds
+	}
+
+	if p.Gateway != nil {
+		r.Gateway = p.Gateway
 	}
 }
 

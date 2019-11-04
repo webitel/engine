@@ -50,6 +50,12 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		ErrorIds:              in.ErrorIds,
 	}
 
+	if in.Gateway != nil {
+		resource.Gateway = &model.Lookup{
+			Id: int(in.GetGateway().GetId()),
+		}
+	}
+
 	if err = resource.IsValid(); err != nil {
 		return nil, err
 	}
@@ -149,9 +155,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		}
 	}
 
-	var resource *model.OutboundCallResource
-
-	resource, err = api.app.UpdateOutboundResource(&model.OutboundCallResource{
+	resource := &model.OutboundCallResource{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -170,7 +174,15 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		Name:                  in.Name,
 		DialString:            in.DialString,
 		ErrorIds:              in.ErrorIds,
-	})
+	}
+
+	if in.Gateway != nil {
+		resource.Gateway = &model.Lookup{
+			Id: int(in.GetGateway().GetId()),
+		}
+	}
+
+	resource, err = api.app.UpdateOutboundResource(resource)
 
 	if err != nil {
 		return nil, err
@@ -263,7 +275,7 @@ func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *eng
 }
 
 func transformOutboundResource(src *model.OutboundCallResource) *engine.OutboundResource {
-	return &engine.OutboundResource{
+	res := &engine.OutboundResource{
 		Id:        src.Id,
 		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
@@ -290,4 +302,13 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		SuccessivelyErrors:    int32(src.SuccessivelyErrors),
 		LastErrorAt:           src.LastErrorAt,
 	}
+
+	if src.Gateway != nil {
+		res.Gateway = &engine.Lookup{
+			Id:   int64(src.Gateway.Id),
+			Name: src.Gateway.Name,
+		}
+	}
+
+	return res
 }

@@ -21,17 +21,18 @@ func (s SqlOutboundResourceStore) Create(resource *model.OutboundCallResource) (
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().SelectOne(&out, `with s as (
     insert into cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
-                                  max_successively_errors, name, dial_string, error_ids, created_at, created_by, updated_by)
+                                  max_successively_errors, name, dial_string, error_ids, created_at, created_by, updated_by, gateway_id)
 values (:Limit, :Enabled, :UpdatedAt, :Rps, :DomainId, :Reserve , :Variables, :Number,
-        :MaxSErrors, :Name, :Ds, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy)
+        :MaxSErrors, :Name, :Ds, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId)
 	returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
       s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
-       s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by
+       s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(gw.id, gw.name) as gateway
 from s
     left join directory.wbt_user c on c.id = s.created_by
-    left join directory.wbt_user u on u.id = s.updated_by`,
+    left join directory.wbt_user u on u.id = s.updated_by
+	left join directory.sip_gateway gw on gw.id = s.gateway_id`,
 		map[string]interface{}{
 			"Limit":      resource.Limit,
 			"Enabled":    resource.Enabled,
@@ -48,6 +49,7 @@ from s
 			"CreatedAt":  resource.CreatedAt,
 			"CreatedBy":  resource.CreatedBy.Id,
 			"UpdatedBy":  resource.UpdatedBy.Id,
+			"GatewayId":  resource.GetGatewayId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlOutboundResourceStore.Save", "store.sql_out_resource.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", resource.Name, err.Error()), extractCodeFromErr(err))
@@ -79,10 +81,12 @@ func (s SqlOutboundResourceStore) GetAllPage(domainId int64, offset, limit int) 
 	if _, err := s.GetReplica().Select(&resources, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
 				  s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
-				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by
+				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
+					 cc_get_lookup(gw.id, gw.name) as gateway
 			from cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
+				left join directory.sip_gateway gw on gw.id = s.gateway_id
 		where s.domain_id = :DomainId
 		order by s.id
 		limit :Limit
@@ -100,10 +104,12 @@ func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []in
 	if _, err := s.GetReplica().Select(&resources, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
 				  s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
-				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by
+				  s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
+				  cc_get_lookup(gw.id, gw.name) as gateway
 			from cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
+				left join directory.sip_gateway gw on gw.id = s.gateway_id
 		where s.domain_id = :DomainId  and (
 			exists(select 1
 			  from cc_outbound_resource_acl a
@@ -125,10 +131,12 @@ func (s SqlOutboundResourceStore) Get(domainId int64, id int64) (*model.Outbound
 	if err := s.GetReplica().SelectOne(&resource, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
 				  s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
-				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by
+				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
+				  cc_get_lookup(gw.id, gw.name) as gateway
 			from cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
+				left join directory.sip_gateway gw on gw.id = s.gateway_id
 		where s.domain_id = :DomainId and s.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.Get", "store.sql_out_resource.get.app_error", nil,
@@ -154,16 +162,19 @@ with s as (
             max_successively_errors = :MaxSErrors,
             name = :Name,
             dial_string = :Ds,
-            error_ids = :ErrorIds
+            error_ids = :ErrorIds,
+			gateway_id = :GatewayId
         where id = :Id and domain_id = :DomainId
         returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
       s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
-       s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by
+       s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
+		cc_get_lookup(gw.id, gw.name) as gateway
 from s
     left join directory.wbt_user c on c.id = s.created_by
-    left join directory.wbt_user u on u.id = s.updated_by`, map[string]interface{}{
+    left join directory.wbt_user u on u.id = s.updated_by
+	left join directory.sip_gateway gw on gw.id = s.gateway_id`, map[string]interface{}{
 		"Limit":      resource.Limit,
 		"Enabled":    resource.Enabled,
 		"UpdatedAt":  resource.UpdatedAt,
@@ -178,6 +189,7 @@ from s
 		"ErrorIds":   pq.Array(resource.ErrorIds),
 		"Id":         resource.Id,
 		"DomainId":   resource.DomainId,
+		"GatewayId":  resource.GetGatewayId(),
 	})
 
 	if err != nil {

@@ -80,6 +80,7 @@ message PathOutboundResourceRequest {
     repeated string error_ids = 12;
 
     repeated string fields = 13;
+    Lookup gateway = 14;
 }
 
 message UpdateOutboundResourceRequest {
@@ -95,6 +96,7 @@ message UpdateOutboundResourceRequest {
     string name = 10;
     string dial_string = 11;
     repeated string error_ids = 12;
+    Lookup gateway = 13;
 }
 
 message CreateOutboundResourceRequest {
@@ -109,6 +111,7 @@ message CreateOutboundResourceRequest {
     string name = 9;
     string dial_string = 10;
     repeated string error_ids = 11;
+    Lookup gateway = 12;
 }
 
 message OutboundResource {
@@ -132,6 +135,7 @@ message OutboundResource {
     string last_error_id = 17;
     int32 successively_errors = 18;
     int64 last_error_at = 19;
+    Lookup gateway = 20;
 }
 
 message ListOutboundResource {
