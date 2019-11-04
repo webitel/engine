@@ -303,7 +303,7 @@ set start_time_of_day = :StartTimeOfDay,
     disabled = :Disabled,
     day = :Day
 where id = :Id and calendar_id = :CalendarId
-returning id, week_day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
+returning id, day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
 		"StartTimeOfDay": rangeTime.StartTimeOfDay,
 		"EndTimeOfDay":   rangeTime.EndTimeOfDay,
 		"Disabled":       rangeTime.Disabled,
