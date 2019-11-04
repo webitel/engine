@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 type OutboundResourceGroup struct {
 	DomainRecord
 	Name          string                      `json:"name" db:"name"`
@@ -12,6 +14,11 @@ type OutboundResourceGroup struct {
 type OutboundResourceGroupTime struct {
 	StartTimeOfDay int16 `json:"start_time_of_day" db:"start_time_of_day"`
 	EndTimeOfDay   int16 `json:"end_time_of_day" db:"end_time_of_day"`
+}
+
+func OutboundResourceGroupTimesToJson(times []OutboundResourceGroupTime) string {
+	data, _ := json.Marshal(times)
+	return string(data)
 }
 
 func (g *OutboundResourceGroup) IsValid() *AppError {

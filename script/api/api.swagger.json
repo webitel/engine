@@ -5589,6 +5589,12 @@
         },
         "communication": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "time": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineOutboundResourceTimeRange"
+          }
         }
       }
     },
@@ -6046,7 +6052,7 @@
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engineOutboundResourceGroup"
+            "$ref": "#/definitions/engineOutboundResourceViewGroup"
           }
         }
       }
@@ -6416,7 +6422,7 @@
         "communication": {
           "$ref": "#/definitions/engineLookup"
         },
-        "times": {
+        "time": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineOutboundResourceTimeRange"
@@ -6450,6 +6456,27 @@
         "end_time_of_day": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "engineOutboundResourceViewGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "strategy": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "communication": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
@@ -7201,6 +7228,12 @@
         },
         "communication": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "time": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineOutboundResourceTimeRange"
+          }
         }
       }
     },

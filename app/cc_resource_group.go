@@ -34,6 +34,7 @@ func (a *App) UpdateOutboundResourceGroup(group *model.OutboundResourceGroup) (*
 	oldGroup.Communication = group.Communication
 	oldGroup.UpdatedBy = group.UpdatedBy
 	oldGroup.UpdatedAt = group.UpdatedAt
+	oldGroup.Time = group.Time
 
 	oldGroup, err = a.Store.OutboundResourceGroup().Update(oldGroup)
 	if err != nil {

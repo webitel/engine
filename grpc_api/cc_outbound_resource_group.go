@@ -44,6 +44,7 @@ func (api *outboundResourceGroup) CreateOutboundResourceGroup(ctx context.Contex
 		Communication: model.Lookup{
 			Id: int(in.GetCommunication().GetId()),
 		},
+		Time: toModelOutboundResourceGroupTime(in.GetTime()),
 	}
 
 	if err = group.IsValid(); err != nil {
@@ -80,9 +81,18 @@ func (api *outboundResourceGroup) SearchOutboundResourceGroup(ctx context.Contex
 		return nil, err
 	}
 
-	items := make([]*engine.OutboundResourceGroup, 0, len(list))
+	items := make([]*engine.OutboundResourceViewGroup, 0, len(list))
 	for _, v := range list {
-		items = append(items, toEngineOutboundResourceGroup(v))
+		items = append(items, &engine.OutboundResourceViewGroup{
+			Id:          v.Id,
+			Name:        v.Name,
+			Strategy:    v.Strategy,
+			Description: v.Description,
+			Communication: &engine.Lookup{
+				Id:   int64(v.Communication.Id),
+				Name: v.Communication.Name,
+			},
+		})
 	}
 	return &engine.ListOutboundResourceGroup{
 		Items: items,
@@ -160,6 +170,7 @@ func (api *outboundResourceGroup) UpdateOutboundResourceGroup(ctx context.Contex
 		Communication: model.Lookup{
 			Id: int(in.GetCommunication().GetId()),
 		},
+		Time: toModelOutboundResourceGroupTime(in.Time),
 	})
 
 	if err != nil {
@@ -392,6 +403,7 @@ func toEngineOutboundResourceGroup(src *model.OutboundResourceGroup) *engine.Out
 			Id:   int64(src.Communication.Id),
 			Name: src.Communication.Name,
 		},
+		Time: toEngineOutboundResourceTimeRange(src.Time),
 	}
 }
 
@@ -404,4 +416,30 @@ func toEngineOutboundResourceInGroup(src *model.OutboundResourceInGroup) *engine
 			Name: src.Resource.Name,
 		},
 	}
+}
+
+func toEngineOutboundResourceTimeRange(src []model.OutboundResourceGroupTime) []*engine.OutboundResourceTimeRange {
+	res := make([]*engine.OutboundResourceTimeRange, 0, len(src))
+
+	for _, v := range src {
+		res = append(res, &engine.OutboundResourceTimeRange{
+			StartTimeOfDay: int32(v.StartTimeOfDay),
+			EndTimeOfDay:   int32(v.EndTimeOfDay),
+		})
+	}
+
+	return res
+}
+
+func toModelOutboundResourceGroupTime(src []*engine.OutboundResourceTimeRange) []model.OutboundResourceGroupTime {
+	res := make([]model.OutboundResourceGroupTime, 0, len(src))
+
+	for _, v := range src {
+		res = append(res, model.OutboundResourceGroupTime{
+			StartTimeOfDay: int16(v.StartTimeOfDay),
+			EndTimeOfDay:   int16(v.EndTimeOfDay),
+		})
+	}
+
+	return res
 }

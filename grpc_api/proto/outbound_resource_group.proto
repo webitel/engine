@@ -135,6 +135,7 @@ message UpdateOutboundResourceGroupRequest {
     string strategy = 4;
     string description = 5;
     Lookup communication = 6;
+    repeated OutboundResourceTimeRange time = 7;
 }
 
 message ReadOutboundResourceGroupRequest {
@@ -149,7 +150,7 @@ message SearchOutboundResourceGroupRequest {
 }
 
 message ListOutboundResourceGroup {
-    repeated OutboundResourceGroup items = 1;
+    repeated OutboundResourceViewGroup items = 1;
 }
 
 message CreateOutboundResourceGroupRequest {
@@ -158,6 +159,7 @@ message CreateOutboundResourceGroupRequest {
     string strategy = 3;
     string description = 4;
     Lookup communication = 5;
+    repeated OutboundResourceTimeRange time = 6;
 }
 
 message OutboundResourceTimeRange {
@@ -177,5 +179,14 @@ message OutboundResourceGroup {
     string strategy = 8;
     string description = 9;
     Lookup communication = 10;
-    repeated OutboundResourceTimeRange times = 11;
+    repeated OutboundResourceTimeRange time = 11;
+}
+
+message OutboundResourceViewGroup {
+    int64 id = 1;
+
+    string name = 2;
+    string strategy = 3;
+    string description = 4;
+    Lookup communication = 5;
 }

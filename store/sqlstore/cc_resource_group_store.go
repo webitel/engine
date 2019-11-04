@@ -39,12 +39,12 @@ func (s SqlOutboundResourceGroupStore) Create(group *model.OutboundResourceGroup
 	var out *model.OutboundResourceGroup
 	if err := s.GetMaster().SelectOne(&out, `with s as (
     insert into cc_outbound_resource_group (domain_id, name, strategy, description, communication_id, created_at,
-                                        created_by, updated_at, updated_by)
-values (:DomainId, :Name, :Strategy, :Description, :CommunicationId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+                                        created_by, updated_at, updated_by, time)
+values (:DomainId, :Name, :Strategy, :Description, :CommunicationId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Time)
 returning  *
 )
 select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-       s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
+       s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
 from s
     inner join cc_communication comm on comm.id = s.communication_id
     left join directory.wbt_user c on c.id = s.created_by
@@ -59,6 +59,7 @@ from s
 			"Strategy":        group.Strategy,
 			"Description":     group.Description,
 			"CommunicationId": group.Communication.Id,
+			"Time":            model.OutboundResourceGroupTimesToJson(group.Time),
 		}); nil != err {
 		return nil, model.NewAppError("SqlOutboundResourceGroupStore.Save", "store.sql_out_resource_group.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", group.Name, err.Error()), extractCodeFromErr(err))
@@ -117,7 +118,7 @@ func (s SqlOutboundResourceGroupStore) Get(domainId int64, id int64) (*model.Out
 	var group *model.OutboundResourceGroup
 	if err := s.GetReplica().SelectOne(&group, `
 			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by
+				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
 			from cc_outbound_resource_group s
 				inner join cc_communication comm on comm.id = s.communication_id
 				left join directory.wbt_user c on c.id = s.created_by
@@ -140,12 +141,13 @@ func (s SqlOutboundResourceGroupStore) Update(group *model.OutboundResourceGroup
         description = :Description,
         communication_id = :CommunicationId,
         updated_by = :UpdatedBy,
-        updated_at = :UpdatedAt
+        updated_at = :UpdatedAt,
+		time = :Time
     where id = :Id and domain_id = :DomainId
 	returning *
 )
 select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-       s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by
+       s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
 from s
     inner join cc_communication comm on comm.id = s.communication_id
     left join directory.wbt_user c on c.id = s.created_by
@@ -158,6 +160,7 @@ from s
 		"UpdatedAt":       group.UpdatedAt,
 		"Id":              group.Id,
 		"DomainId":        group.DomainId,
+		"Time":            model.OutboundResourceGroupTimesToJson(group.Time),
 	})
 
 	if err != nil {
