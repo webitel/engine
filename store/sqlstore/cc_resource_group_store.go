@@ -72,7 +72,7 @@ func (s SqlOutboundResourceGroupStore) GetAllPage(domainId int64, offset, limit 
 	var groups []*model.OutboundResourceGroup
 	if _, err := s.GetReplica().Select(&groups, `
 			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by
+				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
 			from cc_outbound_resource_group s
 				inner join cc_communication comm on comm.id = s.communication_id
 				left join directory.wbt_user c on c.id = s.created_by
@@ -93,7 +93,7 @@ func (s SqlOutboundResourceGroupStore) GetAllPageByGroups(domainId int64, groups
 	var res []*model.OutboundResourceGroup
 	if _, err := s.GetReplica().Select(&res, `
 			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by
+				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
 			from cc_outbound_resource_group s
 				inner join cc_communication comm on comm.id = s.communication_id
 				left join directory.wbt_user c on c.id = s.created_by
@@ -118,7 +118,7 @@ func (s SqlOutboundResourceGroupStore) Get(domainId int64, id int64) (*model.Out
 	var group *model.OutboundResourceGroup
 	if err := s.GetReplica().SelectOne(&group, `
 			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
+				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
 			from cc_outbound_resource_group s
 				inner join cc_communication comm on comm.id = s.communication_id
 				left join directory.wbt_user c on c.id = s.created_by
@@ -147,7 +147,7 @@ func (s SqlOutboundResourceGroupStore) Update(group *model.OutboundResourceGroup
 	returning *
 )
 select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-       s.created_at, cc_get_lookup(c.id, c.name) as created_by, updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
+       s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
 from s
     inner join cc_communication comm on comm.id = s.communication_id
     left join directory.wbt_user c on c.id = s.created_by
