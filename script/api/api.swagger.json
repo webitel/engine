@@ -1271,6 +1271,222 @@
         ]
       }
     },
+    "/call_center/buckets": {
+      "get": {
+        "summary": "List of Bucket",
+        "operationId": "SearchBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "BucketService"
+        ]
+      },
+      "post": {
+        "summary": "Create Bucket",
+        "operationId": "CreateBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateBucketRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BucketService"
+        ]
+      }
+    },
+    "/call_center/buckets/{id}": {
+      "get": {
+        "summary": "Bucket item",
+        "operationId": "ReadBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "BucketService"
+        ]
+      },
+      "delete": {
+        "summary": "Remove Bucket",
+        "operationId": "DeleteBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "BucketService"
+        ]
+      },
+      "put": {
+        "summary": "Update Bucket",
+        "operationId": "UpdateBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateBucketRequest"
+            }
+          }
+        ],
+        "tags": [
+          "BucketService"
+        ]
+      }
+    },
     "/call_center/communication_type": {
       "get": {
         "summary": "List of CommunicationType",
@@ -1700,6 +1916,553 @@
         ],
         "tags": [
           "QueueService"
+        ]
+      }
+    },
+    "/call_center/queues/{queue_id}/buckets": {
+      "get": {
+        "summary": "SearchQueueRouting",
+        "operationId": "SearchQueueBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListQueueBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "QueueBucketService"
+        ]
+      },
+      "post": {
+        "summary": "Create QueueBucket",
+        "operationId": "CreateQueueBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateQueueBucketRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QueueBucketService"
+        ]
+      }
+    },
+    "/call_center/queues/{queue_id}/buckets/{id}": {
+      "get": {
+        "summary": "ReadQueueRouting",
+        "operationId": "ReadQueueBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "QueueBucketService"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteQueueRouting",
+        "operationId": "DeleteQueueBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "QueueBucketService"
+        ]
+      },
+      "put": {
+        "summary": "UpdateQueueBucket",
+        "operationId": "UpdateQueueBucket",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineQueueBucket"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateQueueBucketRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QueueBucketService"
+        ]
+      }
+    },
+    "/call_center/queues/{queue_id}/members": {
+      "get": {
+        "summary": "List of Member",
+        "operationId": "SearchMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListMember"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      },
+      "post": {
+        "summary": "Create Member",
+        "operationId": "CreateMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMember"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateMemberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      }
+    },
+    "/call_center/queues/{queue_id}/members/bulk": {
+      "post": {
+        "summary": "Create Member",
+        "operationId": "CreateMemberBulk",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMemberBulkResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateMemberBulkRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      }
+    },
+    "/call_center/queues/{queue_id}/members/{id}": {
+      "get": {
+        "summary": "ReadQueueRouting",
+        "operationId": "ReadMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMember"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteMember",
+        "operationId": "DeleteMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMember"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      },
+      "put": {
+        "summary": "UpdateMember",
+        "operationId": "UpdateMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMember"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateMemberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
         ]
       }
     },
@@ -4271,7 +5034,7 @@
           "type": "string",
           "format": "int64"
         },
-        "week_day": {
+        "day": {
           "type": "integer",
           "format": "int32"
         },
@@ -4433,6 +5196,21 @@
         }
       }
     },
+    "engineBucket": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
     "engineCalendar": {
       "type": "object",
       "properties": {
@@ -4461,11 +5239,11 @@
         "name": {
           "type": "string"
         },
-        "start": {
+        "start_at": {
           "type": "string",
           "format": "int64"
         },
-        "finish": {
+        "end_at": {
           "type": "string",
           "format": "int64"
         },
@@ -4534,7 +5312,7 @@
           "type": "string",
           "format": "int64"
         },
-        "week_day": {
+        "day": {
           "type": "integer",
           "format": "int32"
         },
@@ -4629,17 +5407,32 @@
         }
       }
     },
+    "engineCreateBucketRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "engineCreateCalendarRequest": {
       "type": "object",
       "properties": {
         "name": {
           "type": "string"
         },
-        "start": {
+        "start_at": {
           "type": "string",
           "format": "int64"
         },
-        "finish": {
+        "end_at": {
           "type": "string",
           "format": "int64"
         },
@@ -4670,12 +5463,107 @@
           "format": "int64"
         },
         "repeat": {
-          "type": "integer",
-          "format": "int32"
+          "type": "boolean",
+          "format": "boolean"
         },
         "disabled": {
           "type": "boolean",
           "format": "boolean"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineCreateMemberBulkItem": {
+      "type": "object",
+      "properties": {
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "timezone": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "communications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineMemberCommunicationCreateRequest"
+          }
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "engineCreateMemberBulkRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineCreateMemberBulkItem"
+          }
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineCreateMemberRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "timezone": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "communications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineMemberCommunicationCreateRequest"
+          }
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
         },
         "domain_id": {
           "type": "string",
@@ -4767,6 +5655,26 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "engineCreateQueueBucketRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "ratio": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -5013,8 +5921,8 @@
           "format": "int64"
         },
         "repeat": {
-          "type": "integer",
-          "format": "int32"
+          "type": "boolean",
+          "format": "boolean"
         },
         "disabled": {
           "type": "boolean",
@@ -5066,6 +5974,17 @@
         }
       }
     },
+    "engineListBucket": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineBucket"
+          }
+        }
+      }
+    },
     "engineListCalendar": {
       "type": "object",
       "properties": {
@@ -5095,6 +6014,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineExceptDate"
+          }
+        }
+      }
+    },
+    "engineListMember": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineMember"
           }
         }
       }
@@ -5139,6 +6069,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineQueue"
+          }
+        }
+      }
+    },
+    "engineListQueueBucket": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineQueueBucket"
           }
         }
       }
@@ -5250,6 +6191,111 @@
           "format": "int64"
         },
         "name": {
+          "type": "string"
+        }
+      }
+    },
+    "engineMember": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "timezone": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "communications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineMemberCommunication"
+          }
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "stop_cause": {
+          "type": "string"
+        },
+        "last_activity_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "attempts": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "engineMemberBulkResponse": {
+      "type": "object"
+    },
+    "engineMemberCommunication": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "state": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "description": {
+          "type": "string"
+        },
+        "last_activity_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "attempts": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "last_cause": {
+          "type": "string"
+        }
+      }
+    },
+    "engineMemberCommunicationCreateRequest": {
+      "type": "object",
+      "properties": {
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "description": {
           "type": "string"
         }
       }
@@ -5369,6 +6415,12 @@
         },
         "communication": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "times": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineOutboundResourceTimeRange"
+          }
         }
       }
     },
@@ -5385,6 +6437,19 @@
         },
         "resource": {
           "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "engineOutboundResourceTimeRange": {
+      "type": "object",
+      "properties": {
+        "start_time_of_day": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "end_time_of_day": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -5527,6 +6592,22 @@
           "format": "int32"
         },
         "team": {
+          "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "engineQueueBucket": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "ratio": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bucket": {
           "$ref": "#/definitions/engineLookup"
         }
       }
@@ -5835,7 +6916,7 @@
           "type": "string",
           "format": "int64"
         },
-        "week_day": {
+        "day": {
           "type": "integer",
           "format": "int32"
         },
@@ -5946,6 +7027,25 @@
         }
       }
     },
+    "engineUpdateBucketRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "engineUpdateCalendarRequest": {
       "type": "object",
       "properties": {
@@ -5956,11 +7056,11 @@
         "name": {
           "type": "string"
         },
-        "start": {
+        "start_at": {
           "type": "string",
           "format": "int64"
         },
-        "finish": {
+        "end_at": {
           "type": "string",
           "format": "int64"
         },
@@ -6020,12 +7120,58 @@
           "format": "int64"
         },
         "repeat": {
-          "type": "integer",
-          "format": "int32"
+          "type": "boolean",
+          "format": "boolean"
         },
         "disabled": {
           "type": "boolean",
           "format": "boolean"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineUpdateMemberRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "timezone": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "communications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineMemberCommunicationCreateRequest"
+          }
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
         },
         "domain_id": {
           "type": "string",
@@ -6129,6 +7275,30 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "engineUpdateQueueBucketRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "ratio": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

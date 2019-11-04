@@ -41,7 +41,7 @@ func loadConfig() (*model.Config, error) {
 			MaxIdleConns:                model.NewInt(5),
 			MaxOpenConns:                model.NewInt(5),
 			ConnMaxLifetimeMilliseconds: model.NewInt(3600000),
-			Trace:                       false,
+			Trace:                       true,
 		},
 		MessageQueueSettings: model.MessageQueueSettings{
 			Url: *amqpSource,

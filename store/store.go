@@ -44,12 +44,16 @@ type Store interface {
 	AgentSkill() AgentSkillStore
 	ResourceTeam() ResourceTeamStore
 	Queue() QueueStore
+	Bucket() BucketSore
+	BucketInQueue() BucketInQueueStore
 	QueueRouting() QueueRoutingStore
 	SupervisorTeam() SupervisorTeamStore
 	OutboundResource() OutboundResourceStore
 	OutboundResourceGroup() OutboundResourceGroupStore
 	OutboundResourceInGroup() OutboundResourceInGroupStore
 	CommunicationType() CommunicationTypeStore
+
+	Member() MemberStore
 
 	RoutingScheme() RoutingSchemeStore
 	RoutingInboundCall() RoutingInboundCallStore
@@ -225,4 +229,29 @@ type CommunicationTypeStore interface {
 	Get(domainId int64, id int64) (*model.CommunicationType, *model.AppError)
 	Update(cType *model.CommunicationType) (*model.CommunicationType, *model.AppError)
 	Delete(domainId int64, id int64) *model.AppError
+}
+
+type MemberStore interface {
+	Create(member *model.Member) (*model.Member, *model.AppError)
+	BulkCreate(queueId int64, members []*model.Member) *model.AppError
+	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.Member, *model.AppError)
+	Get(domainId, queueId, id int64) (*model.Member, *model.AppError)
+	Update(domainId int64, member *model.Member) (*model.Member, *model.AppError)
+	Delete(queueId, id int64) *model.AppError
+}
+
+type BucketSore interface {
+	Create(bucket *model.Bucket) (*model.Bucket, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.Bucket, *model.AppError)
+	Get(domainId int64, id int64) (*model.Bucket, *model.AppError)
+	Update(bucket *model.Bucket) (*model.Bucket, *model.AppError)
+	Delete(domainId int64, id int64) *model.AppError
+}
+
+type BucketInQueueStore interface {
+	Create(queueBucket *model.QueueBucket) (*model.QueueBucket, *model.AppError)
+	Get(domainId, queueId, id int64) (*model.QueueBucket, *model.AppError)
+	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueBucket, *model.AppError)
+	Update(domainId int64, queueBucket *model.QueueBucket) (*model.QueueBucket, *model.AppError)
+	Delete(queueId, id int64) *model.AppError
 }

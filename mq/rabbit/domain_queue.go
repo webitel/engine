@@ -71,7 +71,7 @@ func (dq *DomainQueue) BindUserCall(id string, userId int64) *model.BindQueueEve
 	b := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
-		Routing:  fmt.Sprintf(model.MQ_CALL_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
+		Routing:  "#", //fmt.Sprintf(model.MQ_CALL_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
 		Exchange: model.MQ_CALL_EXCHANGE,
 	}
 
@@ -185,8 +185,12 @@ func parseCallEvent(data []byte) (*model.Call, error) {
 	//	}
 	//}
 
+	displayDirection := e.GetStringVariable(model.CALL_EVENT_HEADER_CALL_DISPLAY_DIRECTION)
 	direction := e.GetStringVariable(model.CALL_EVENT_HEADER_CALL_DIRECTION)
-	if direction == model.CALL_DIRECTION_INBOUND {
+
+	if displayDirection != "" {
+		call.Direction = displayDirection
+	} else if direction == model.CALL_DIRECTION_INBOUND {
 		call.Direction = model.CALL_DIRECTION_INBOUND
 	} else {
 		call.Direction = model.CALL_DIRECTION_OUTBOUND
@@ -195,7 +199,7 @@ func parseCallEvent(data []byte) (*model.Call, error) {
 	tst, _ := e.GetIntVariable("Caller-Channel-Answered-Time")
 	tstDirection := e.GetStringVariable(model.CALL_EVENT_HEADER_CALL_DIRECTION)
 
-	if tstDirection == model.CALL_DIRECTION_INTERNAL && (tst == 0 || eventName == "CHANNEL_ANSWER") {
+	if call.Direction == model.CALL_DIRECTION_OUTBOUND && tstDirection == model.CALL_DIRECTION_INTERNAL && (tst == 0 || eventName == "CHANNEL_ANSWER") {
 		call.Destination = e.GetStringVariable(model.CALL_EVENT_HEADER_DESTINATION)
 
 		call.FromNumber = e.GetStringVariable(model.CALL_EVENT_HEADER_TO_NUMBER)

@@ -19,8 +19,8 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	oldCalendar.Timezone.Id = calendar.Timezone.Id
 	oldCalendar.Description = calendar.Description
 	oldCalendar.Name = calendar.Name
-	oldCalendar.Finish = calendar.Finish
-	oldCalendar.Start = calendar.Start
+	oldCalendar.StartAt = calendar.StartAt
+	oldCalendar.EndAt = calendar.EndAt
 	oldCalendar.UpdatedAt = calendar.UpdatedAt
 	oldCalendar.UpdatedBy.Id = calendar.UpdatedBy.Id
 
@@ -62,7 +62,7 @@ func (a *App) UpdateCalendarAcceptOfDay(domainId, calendarId int64, timeRange *m
 		return nil, err
 	}
 
-	oldAccept.Week = timeRange.Week
+	oldAccept.Day = timeRange.Day
 	oldAccept.StartTimeOfDay = timeRange.StartTimeOfDay
 	oldAccept.EndTimeOfDay = timeRange.EndTimeOfDay
 	oldAccept.Disabled = timeRange.Disabled

@@ -97,6 +97,14 @@ func (s *LayeredStore) Queue() QueueStore {
 	return s.DatabaseLayer.Queue()
 }
 
+func (s *LayeredStore) Bucket() BucketSore {
+	return s.DatabaseLayer.Bucket()
+}
+
+func (s *LayeredStore) BucketInQueue() BucketInQueueStore {
+	return s.DatabaseLayer.BucketInQueue()
+}
+
 func (s *LayeredStore) QueueRouting() QueueRoutingStore {
 	return s.DatabaseLayer.QueueRouting()
 }
@@ -107,4 +115,8 @@ func (s *LayeredStore) SupervisorTeam() SupervisorTeamStore {
 
 func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
 	return s.DatabaseLayer.CommunicationType()
+}
+
+func (s *LayeredStore) Member() MemberStore {
+	return s.DatabaseLayer.Member()
 }

@@ -43,9 +43,13 @@ type SqlSupplierOldStores struct {
 	outboundResourceGroup   store.OutboundResourceGroupStore
 	outboundResourceInGroup store.OutboundResourceInGroupStore
 	queue                   store.QueueStore
+	bucket                  store.BucketSore
+	bucketInQueue           store.BucketInQueueStore
 	queueRouting            store.QueueRoutingStore
 	supervisorTeam          store.SupervisorTeamStore
 	communicationType       store.CommunicationTypeStore
+
+	member store.MemberStore
 
 	routingScheme       store.RoutingSchemeStore
 	routingInboundCall  store.RoutingInboundCallStore
@@ -85,9 +89,13 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.outboundResourceGroup = NewSqlOutboundResourceGroupStore(supplier)
 	supplier.oldStores.outboundResourceInGroup = NewSqlOutboundResourceInGroupStore(supplier)
 	supplier.oldStores.queue = NewSqlQueueStore(supplier)
+	supplier.oldStores.bucket = NewSqlBucketStore(supplier)
+	supplier.oldStores.bucketInQueue = NewSqlBucketInQueueStore(supplier)
 	supplier.oldStores.queueRouting = NewSqlQueueRoutingStore(supplier)
 	supplier.oldStores.supervisorTeam = NewSqlSupervisorTeamStore(supplier)
 	supplier.oldStores.communicationType = NewSqlCommunicationTypeStore(supplier)
+
+	supplier.oldStores.member = NewSqlMemberStore(supplier)
 
 	supplier.oldStores.routingScheme = NewSqlRoutingSchemeStore(supplier)
 	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
@@ -262,6 +270,14 @@ func (ss *SqlSupplier) Queue() store.QueueStore {
 	return ss.oldStores.queue
 }
 
+func (ss *SqlSupplier) Bucket() store.BucketSore {
+	return ss.oldStores.bucket
+}
+
+func (ss *SqlSupplier) BucketInQueue() store.BucketInQueueStore {
+	return ss.oldStores.bucketInQueue
+}
+
 func (ss *SqlSupplier) CommunicationType() store.CommunicationTypeStore {
 	return ss.oldStores.communicationType
 }
@@ -272,6 +288,10 @@ func (ss *SqlSupplier) QueueRouting() store.QueueRoutingStore {
 
 func (ss *SqlSupplier) SupervisorTeam() store.SupervisorTeamStore {
 	return ss.oldStores.supervisorTeam
+}
+
+func (ss *SqlSupplier) Member() store.MemberStore {
+	return ss.oldStores.member
 }
 
 type typeConverter struct{}
@@ -296,6 +316,17 @@ func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
 
 func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
+	case *[]model.MemberCommunication:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*string)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_member_communication"))
+			}
+			b := []byte(*s)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+
 	case *model.Lookup:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)

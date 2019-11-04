@@ -24,15 +24,15 @@ func (s *SqlCalendarStore) CreateTableIfNotExists() {
 func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
 	var out *model.Calendar
 	if err := s.GetMaster().SelectOne(&out, `with c as (
-		  insert into calendar (name,  domain_id, start, finish,description, timezone_id, created_at, created_by, updated_at, updated_by)
-		  values (:Name, :DomainId, :Start, :Finish, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+		  insert into calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by)
+		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
 		  returning *
 		)
 		select
 			c.id,
 			c.name, 
-			c.start,
-			c.finish, 
+			c.start_at,
+			c.end_at, 
 			c.description, 
 			c.domain_id, 
 			cc_get_lookup(ct.id, ct.name) as timezone,
@@ -47,8 +47,8 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 		map[string]interface{}{
 			"Name":        calendar.Name,
 			"DomainId":    calendar.DomainId,
-			"Start":       calendar.Start,
-			"Finish":      calendar.Finish,
+			"StartAt":     calendar.StartAt,
+			"EndAt":       calendar.EndAt,
 			"Description": calendar.Description,
 			"TimezoneId":  calendar.Timezone.Id,
 			"CreatedAt":   calendar.CreatedAt,
@@ -69,8 +69,8 @@ func (s SqlCalendarStore) GetAllPage(domainId int64, offset, limit int) ([]*mode
 	if _, err := s.GetReplica().Select(&calendars,
 		`select c.id,
        c.name,
-       c.start,
-       c.finish,
+       c.start_at,
+       c.end_at,
        c.description,
 	   c.domain_id,
        cc_get_lookup(ct.id, ct.name) as timezone,
@@ -117,8 +117,8 @@ func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, offse
 	if _, err := s.GetReplica().Select(&calendars,
 		`select c.id,
        c.name,
-       c.start,
-       c.finish,
+       c.start_at,
+       c.end_at,
        c.description,
 	   c.domain_id,
        cc_get_lookup(ct.id, ct.name) as timezone,
@@ -150,8 +150,8 @@ func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model
 	if err := s.GetReplica().SelectOne(&calendar, `
 			select c.id,
 			   c.name,
-			   c.start,
-			   c.finish,
+			   c.start_at,
+			   c.end_at,
 			   c.description,
 			   c.domain_id,
 			   cc_get_lookup(ct.id, ct.name) as timezone,
@@ -183,8 +183,8 @@ func (s SqlCalendarStore) Update(calendar *model.Calendar) (*model.Calendar, *mo
 	set name = :Name,
     timezone_id = :TimezoneId,
     description = :Description,
-    finish = :Finish,
-    start = :Start,
+    end_at = :EndAt,
+    start_at = :StartAt,
     updated_at = :UpdatedAt,
 	updated_by = :UpdatedBy
 where id = :Id and domain_id = :DomainId
@@ -192,8 +192,8 @@ where id = :Id and domain_id = :DomainId
 )
 select c.id,
        c.name,
-       c.start,
-       c.finish,
+       c.end_at,
+       c.end_at,
        c.description,
        c.domain_id,
        cc_get_lookup(ct.id, ct.name) as timezone,
@@ -208,8 +208,8 @@ from c
 		"Name":        calendar.Name,
 		"TimezoneId":  calendar.Timezone.Id,
 		"Description": calendar.Description,
-		"Finish":      calendar.Finish,
-		"Start":       calendar.Start,
+		"StartAt":     calendar.StartAt,
+		"EndAt":       calendar.EndAt,
 		"Id":          calendar.Id,
 		"DomainId":    calendar.DomainId,
 		"UpdatedAt":   calendar.UpdatedAt,
@@ -234,7 +234,7 @@ func (s SqlCalendarStore) Delete(domainId, id int64) *model.AppError {
 func (s SqlCalendarStore) GetTimezoneAllPage(offset, limit int) ([]*model.Timezone, *model.AppError) {
 	var timezones []*model.Timezone
 
-	if _, err := s.GetReplica().Select(&timezones, `select id, name, utc_offset::text as "offset" from calendar_timezones 
+	if _, err := s.GetReplica().Select(&timezones, `select id, name || ' ' || utc_offset::text as name, utc_offset::text as "offset" from calendar_timezones 
 		order by name limit :Limit offset :Offset`, map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetTimezoneAllPage", "store.sql_calendar_timezone.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
@@ -245,10 +245,10 @@ func (s SqlCalendarStore) GetTimezoneAllPage(offset, limit int) ([]*model.Timezo
 func (s SqlCalendarStore) GetAcceptOfDayAllPage(calendarId int64) ([]*model.CalendarAcceptOfDay, *model.AppError) {
 	var list []*model.CalendarAcceptOfDay
 
-	if _, err := s.GetReplica().Select(&list, `select id, week_day, start_time_of_day, end_time_of_day, disabled
+	if _, err := s.GetReplica().Select(&list, `select id, day, start_time_of_day, end_time_of_day, disabled
 		from calendar_accept_of_day a
 		where a.calendar_id = :CalendarId
-		order by a.week_day, a.start_time_of_day`, map[string]interface{}{"CalendarId": calendarId}); err != nil {
+		order by a.day, a.start_time_of_day`, map[string]interface{}{"CalendarId": calendarId}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetAcceptOfDay", "store.sql_calendar_accept.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return list, nil
@@ -257,12 +257,12 @@ func (s SqlCalendarStore) GetAcceptOfDayAllPage(calendarId int64) ([]*model.Cale
 
 func (s SqlCalendarStore) CreateAcceptOfDay(domainId, calendarId int64, timeRange *model.CalendarAcceptOfDay) (*model.CalendarAcceptOfDay, *model.AppError) {
 	var out *model.CalendarAcceptOfDay
-	err := s.GetMaster().SelectOne(&out, `insert into calendar_accept_of_day (calendar_id, week_day, start_time_of_day, end_time_of_day, disabled)
-select c.id, :WeekDay, :StartTimeOfDay, :EndTimeOfDay, :Disabled
+	err := s.GetMaster().SelectOne(&out, `insert into calendar_accept_of_day (calendar_id, day, start_time_of_day, end_time_of_day, disabled)
+select c.id, :Day, :StartTimeOfDay, :EndTimeOfDay, :Disabled
 from calendar c
 where c.id = :CalendarId and c.domain_id = :DomainId
-returning id, week_day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
-		"WeekDay":        timeRange.Week,
+returning id, day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
+		"Day":            timeRange.Day,
 		"StartTimeOfDay": timeRange.StartTimeOfDay,
 		"EndTimeOfDay":   timeRange.EndTimeOfDay,
 		"Disabled":       timeRange.Disabled,
@@ -281,7 +281,7 @@ returning id, week_day, start_time_of_day, end_time_of_day, disabled`, map[strin
 //TODO check domain_id
 func (s SqlCalendarStore) GetAcceptOfDayById(domainId, calendarId, id int64) (*model.CalendarAcceptOfDay, *model.AppError) {
 	var out *model.CalendarAcceptOfDay
-	err := s.GetReplica().SelectOne(&out, `select id, week_day, start_time_of_day, end_time_of_day, disabled
+	err := s.GetReplica().SelectOne(&out, `select id, day, start_time_of_day, end_time_of_day, disabled
 		from calendar_accept_of_day a
 		where a.id = :Id and a.calendar_id = :CalendarId`, map[string]interface{}{
 		"Id":         id,
@@ -301,13 +301,13 @@ func (s SqlCalendarStore) UpdateAcceptOfDay(calendarId int64, rangeTime *model.C
 set start_time_of_day = :StartTimeOfDay,
     end_time_of_day = :EndTimeOfDay,
     disabled = :Disabled,
-    week_day = :WeekDay
+    day = :Day
 where id = :Id and calendar_id = :CalendarId
 returning id, week_day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
 		"StartTimeOfDay": rangeTime.StartTimeOfDay,
 		"EndTimeOfDay":   rangeTime.EndTimeOfDay,
 		"Disabled":       rangeTime.Disabled,
-		"WeekDay":        rangeTime.Week,
+		"Day":            rangeTime.Day,
 		"Id":             rangeTime.Id,
 		"CalendarId":     calendarId,
 	})

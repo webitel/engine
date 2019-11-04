@@ -10,7 +10,7 @@ import (
 // swagger:model CalendarAcceptOfDay
 type CalendarAcceptOfDay struct {
 	Id             int64 `json:"id" db:"id"`
-	Week           int8  `json:"week" db:"week_day"`
+	Day            int8  `json:"day" db:"day"`
 	StartTimeOfDay int16 `json:"start_time_of_day" db:"start_time_of_day"`
 	EndTimeOfDay   int16 `json:"end_time_of_day" db:"end_time_of_day"`
 	Disabled       bool  `json:"disabled" db:"disabled"`
@@ -22,7 +22,7 @@ type CalendarExceptDate struct {
 	Id         int64  `json:"id" db:"id"`
 	CalendarId int64  `json:"calendar_id" db:"calendar_id"`
 	Name       string `json:"name" db:"name"`
-	Repeat     int8   `json:"repeat" db:"repeat"`
+	Repeat     bool   `json:"repeat" db:"repeat"`
 	Date       int64  `json:"date" db:"date"`
 	Disabled   bool   `json:"disabled" db:"disabled"`
 }
@@ -32,8 +32,8 @@ type CalendarExceptDate struct {
 type Calendar struct {
 	DomainRecord
 	Name        string  `json:"name" db:"name"`
-	Start       *int64  `json:"start" db:"start"`
-	Finish      *int64  `json:"finish" db:"finish"`
+	StartAt     *int64  `json:"start_at" db:"start_at"`
+	EndAt       *int64  `json:"end_at" db:"end_at"`
 	Timezone    Lookup  `json:"timezone"`
 	Description *string `json:"description,omitempty"`
 }

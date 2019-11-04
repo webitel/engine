@@ -39,13 +39,18 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 				Id: int(session.UserId),
 			},
 		},
-		Name:   in.Name,
-		Start:  nil, //TODO
-		Finish: nil, //TODO
+		Name: in.Name,
 		Timezone: model.Lookup{
 			Id: int(in.GetTimezone().GetId()),
 		},
 		Description: nil, //TODO
+	}
+
+	if in.StartAt > 0 {
+		calendar.StartAt = model.NewInt64(in.StartAt)
+	}
+	if in.EndAt > 0 {
+		calendar.EndAt = model.NewInt64(in.EndAt)
 	}
 
 	if err = calendar.IsValid(); err != nil {
@@ -159,9 +164,9 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 				Id: int(session.UserId),
 			},
 		},
-		Name:   in.Name,
-		Start:  &in.Start,
-		Finish: &in.Finish,
+		Name:    in.Name,
+		StartAt: &in.StartAt,
+		EndAt:   &in.EndAt,
 		Timezone: model.Lookup{
 			Id: int(in.GetTimezone().GetId()),
 		},
@@ -246,7 +251,7 @@ func (api *calendar) CreateAcceptOfDay(ctx context.Context, in *engine.CreateAcc
 	var accept *model.CalendarAcceptOfDay
 
 	accept, err = api.app.CreateCalendarAcceptOfDay(session.Domain(in.GetDomainId()), in.GetCalendarId(), &model.CalendarAcceptOfDay{
-		Week:           int8(in.GetWeekDay()),
+		Day:            int8(in.GetDay()),
 		StartTimeOfDay: int16(in.GetStartTimeOfDay()),
 		EndTimeOfDay:   int16(in.GetEndTimeOfDay()),
 		Disabled:       in.GetDisabled(),
@@ -352,7 +357,7 @@ func (api *calendar) UpdateAcceptOfDay(ctx context.Context, in *engine.UpdateAcc
 
 	var accept = &model.CalendarAcceptOfDay{
 		Id:             in.GetId(),
-		Week:           int8(in.GetWeekDay()),
+		Day:            int8(in.GetDay()),
 		StartTimeOfDay: int16(in.GetStartTimeOfDay()),
 		EndTimeOfDay:   int16(in.GetEndTimeOfDay()),
 		Disabled:       in.GetDisabled(),
@@ -429,7 +434,7 @@ func (api *calendar) CreateExceptDate(ctx context.Context, in *engine.CreateExce
 	except, err = api.app.CreateCalendarExceptDate(session.Domain(in.GetDomainId()), in.GetCalendarId(), &model.CalendarExceptDate{
 		CalendarId: in.GetCalendarId(),
 		Name:       in.GetName(),
-		Repeat:     int8(in.GetRepeat()),
+		Repeat:     in.GetRepeat(),
 		Date:       in.GetDate(),
 		Disabled:   in.GetDisabled(),
 	})
@@ -535,7 +540,7 @@ func (api *calendar) UpdateExceptDate(ctx context.Context, in *engine.UpdateExce
 		Id:         in.GetId(),
 		CalendarId: in.GetCalendarId(),
 		Name:       in.GetName(),
-		Repeat:     int8(in.GetRepeat()),
+		Repeat:     in.GetRepeat(),
 		Date:       in.GetDate(),
 		Disabled:   in.GetDisabled(),
 	}
@@ -597,9 +602,9 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 			Id:   int64(src.UpdatedBy.Id),
 			Name: src.UpdatedBy.Name,
 		},
-		Name:   src.Name,
-		Start:  0,
-		Finish: 0,
+		Name:    src.Name,
+		StartAt: 0,
+		EndAt:   0,
 		Timezone: &engine.Lookup{
 			Id:   int64(src.Timezone.Id),
 			Name: src.Timezone.Name,
@@ -610,12 +615,12 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 		item.Description = *src.Description
 	}
 
-	if src.Start != nil {
-		item.Start = *src.Start
+	if src.StartAt != nil {
+		item.StartAt = *src.StartAt
 	}
 
-	if src.Finish != nil {
-		item.Finish = *src.Finish
+	if src.EndAt != nil {
+		item.EndAt = *src.EndAt
 	}
 
 	return item
@@ -632,7 +637,7 @@ func transformTimezone(src *model.Timezone) *engine.Timezone {
 func transformAcceptOfDay(src *model.CalendarAcceptOfDay) *engine.AcceptOfDay {
 	return &engine.AcceptOfDay{
 		Id:             src.Id,
-		WeekDay:        int32(src.Week),
+		Day:            int32(src.Day),
 		StartTimeOfDay: int32(src.StartTimeOfDay),
 		EndTimeOfDay:   int32(src.EndTimeOfDay),
 		Disabled:       src.Disabled,
@@ -645,7 +650,7 @@ func transformExceptDate(src *model.CalendarExceptDate) *engine.ExceptDate {
 		CalendarId: src.CalendarId,
 		Name:       src.Name,
 		Date:       int64(src.Date),
-		Repeat:     int32(src.Repeat),
+		Repeat:     src.Repeat,
 		Disabled:   src.Disabled,
 	}
 }

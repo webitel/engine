@@ -160,6 +160,11 @@ message CreateOutboundResourceGroupRequest {
     Lookup communication = 5;
 }
 
+message OutboundResourceTimeRange {
+    int32 start_time_of_day = 1;
+    int32 end_time_of_day = 2;
+}
+
 message OutboundResourceGroup {
     int64 id = 1;
     int64 domain_id = 2;
@@ -172,4 +177,5 @@ message OutboundResourceGroup {
     string strategy = 8;
     string description = 9;
     Lookup communication = 10;
+    repeated OutboundResourceTimeRange times = 11;
 }

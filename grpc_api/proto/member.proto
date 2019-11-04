@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package engine;
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+service MemberService {
+    // Create Member
+    rpc CreateMember (CreateMemberRequest) returns (Member) {
+        option (google.api.http) = {
+            post: "/call_center/queues/{queue_id}/members"
+            body: "*"
+        };
+    }
+    // Create Member
+    rpc CreateMemberBulk (CreateMemberBulkRequest) returns (MemberBulkResponse) {
+        option (google.api.http) = {
+            post: "/call_center/queues/{queue_id}/members/bulk"
+            body: "*"
+        };
+    }
+    // List of Member
+    rpc SearchMember(SearchMemberRequest) returns (ListMember) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/members"
+        };
+    }
+    // ReadQueueRouting
+    rpc ReadMember(ReadMemberRequest) returns (Member) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/members/{id}"
+        };
+    }
+    // UpdateMember
+    rpc UpdateMember(UpdateMemberRequest) returns (Member) {
+        option (google.api.http) = {
+            put: "/call_center/queues/{queue_id}/members/{id}"
+            body: "*"
+        };
+    }
+    // DeleteMember
+    rpc DeleteMember(DeleteMemberRequest) returns (Member) {
+        option (google.api.http) = {
+            delete: "/call_center/queues/{queue_id}/members/{id}"
+        };
+    }
+}
+
+message DeleteMemberRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int64 domain_id = 3;
+}
+
+message UpdateMemberRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int32 priority = 3;
+    int64 expire_at = 4;
+    map<string, string> variables = 5;
+    string name = 6;
+    Lookup timezone = 7;
+    repeated MemberCommunicationCreateRequest communications = 8;
+    Lookup bucket = 9;
+    int64 domain_id = 10;
+}
+
+message ReadMemberRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int64 domain_id = 3;
+}
+
+message CreateMemberBulkRequest {
+    int64 queue_id = 1;
+    repeated CreateMemberBulkItem items = 2;
+    int64 domain_id = 3;
+}
+
+message CreateMemberBulkItem {
+    int32 priority = 1;
+    int64 expire_at = 2;
+    map<string, string> variables = 3;
+    string name = 4;
+    Lookup timezone = 5;
+    repeated MemberCommunicationCreateRequest communications = 6;
+    Lookup bucket = 7;
+}
+
+message MemberBulkResponse {
+
+}
+
+message SearchMemberRequest {
+    int64 queue_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message ListMember {
+    repeated Member items = 1;
+}
+
+message CreateMemberRequest {
+    int64 queue_id = 1;
+    int32 priority = 2;
+    int64 expire_at = 3;
+    map<string, string> variables = 4;
+    string name = 5;
+    Lookup timezone = 6;
+    repeated MemberCommunicationCreateRequest communications = 7;
+    Lookup bucket = 8;
+
+    int64 domain_id = 9;
+}
+
+message Member {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int32 priority = 3;
+    int64 expire_at = 4;
+    map<string, string> variables = 5;
+    string name = 6;
+    Lookup timezone = 7;
+    repeated MemberCommunication communications = 8;
+    Lookup bucket = 9;
+
+    string stop_cause = 10;
+    int64 last_activity_at = 11;
+    int32 attempts = 12;
+}
+
+message MemberCommunication {
+    int64 id = 1;
+    int32 priority = 2;
+    string destination = 3;
+    int32 state = 4;
+    string description = 5;
+    int64 last_activity_at = 6;
+    int32 attempts = 7;
+    string last_cause = 8;
+}
+message MemberCommunicationCreateRequest {
+    int32 priority = 1;
+    string destination = 2;
+    string description = 3;
+}
