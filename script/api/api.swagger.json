@@ -3500,7 +3500,7 @@
           "OutboundResourceService"
         ]
       },
-      "delete": {
+      "post": {
         "summary": "Create CreateOutboundResourceDisplay",
         "operationId": "CreateOutboundResourceDisplay",
         "responses": {
@@ -3527,19 +3527,6 @@
             "name": "resource_id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "display",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "domain_id",
-            "in": "query",
-            "required": false,
             "type": "string",
             "format": "int64"
           }

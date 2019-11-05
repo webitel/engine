@@ -48,7 +48,7 @@ service OutboundResourceService {
     // Create CreateOutboundResourceDisplay
     rpc CreateOutboundResourceDisplay(CreateOutboundResourceDisplayRequest) returns (ResourceDisplay) {
         option (google.api.http) = {
-            delete: "/call_center/resources/{resource_id}/display"
+            post: "/call_center/resources/{resource_id}/display"
         };
     }
     // List of ResourceDisplay
