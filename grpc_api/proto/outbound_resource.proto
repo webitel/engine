@@ -49,6 +49,7 @@ service OutboundResourceService {
     rpc CreateOutboundResourceDisplay(CreateOutboundResourceDisplayRequest) returns (ResourceDisplay) {
         option (google.api.http) = {
             post: "/call_center/resources/{resource_id}/display"
+            body: "*"
         };
     }
     // List of ResourceDisplay

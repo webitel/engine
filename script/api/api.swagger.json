@@ -3529,6 +3529,14 @@
             "required": true,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateOutboundResourceDisplayRequest"
+            }
           }
         ],
         "tags": [
@@ -5807,6 +5815,22 @@
         },
         "bucket": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineCreateOutboundResourceDisplayRequest": {
+      "type": "object",
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "display": {
+          "type": "string"
         },
         "domain_id": {
           "type": "string",
