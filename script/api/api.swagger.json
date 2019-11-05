@@ -3400,8 +3400,8 @@
         ]
       },
       "patch": {
-        "summary": "Path OutboundResource",
-        "operationId": "PathOutboundResource",
+        "summary": "Patch OutboundResource",
+        "operationId": "PatchOutboundResource",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -3434,7 +3434,263 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/enginePathOutboundResourceRequest"
+              "$ref": "#/definitions/enginePatchOutboundResourceRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OutboundResourceService"
+        ]
+      }
+    },
+    "/call_center/resources/{resource_id}/display": {
+      "get": {
+        "summary": "List of ResourceDisplay",
+        "operationId": "SearchOutboundResourceDisplay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListOutboundResourceDisplay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "OutboundResourceService"
+        ]
+      },
+      "delete": {
+        "summary": "Create CreateOutboundResourceDisplay",
+        "operationId": "CreateOutboundResourceDisplay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceDisplay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "display",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "OutboundResourceService"
+        ]
+      }
+    },
+    "/call_center/resources/{resource_id}/display/{id}": {
+      "get": {
+        "summary": "ResourceDisplay item",
+        "operationId": "ReadOutboundResourceDisplay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceDisplay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "OutboundResourceService"
+        ]
+      },
+      "delete": {
+        "summary": "Remove ResourceDisplay",
+        "operationId": "DeleteOutboundResourceDisplay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceDisplay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "OutboundResourceService"
+        ]
+      },
+      "put": {
+        "summary": "Update ResourceDisplay",
+        "operationId": "UpdateOutboundResourceDisplay",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceDisplay"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateOutboundResourceDisplayRequest"
             }
           }
         ],
@@ -6049,6 +6305,17 @@
         }
       }
     },
+    "engineListOutboundResourceDisplay": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineResourceDisplay"
+          }
+        }
+      }
+    },
     "engineListOutboundResourceGroup": {
       "type": "object",
       "properties": {
@@ -6486,7 +6753,7 @@
         }
       }
     },
-    "enginePathOutboundResourceRequest": {
+    "enginePatchOutboundResourceRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -6669,6 +6936,18 @@
         "disabled": {
           "type": "boolean",
           "format": "boolean"
+        }
+      }
+    },
+    "engineResourceDisplay": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "display": {
+          "type": "string"
         }
       }
     },
@@ -7208,6 +7487,26 @@
         },
         "bucket": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineUpdateOutboundResourceDisplayRequest": {
+      "type": "object",
+      "properties": {
+        "resource_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "display": {
+          "type": "string"
         },
         "domain_id": {
           "type": "string",

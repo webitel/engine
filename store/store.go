@@ -145,6 +145,12 @@ type OutboundResourceStore interface {
 	Get(domainId int64, id int64) (*model.OutboundCallResource, *model.AppError)
 	Update(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+
+	SaveDisplay(d *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError)
+	GetDisplayAllPage(domainId, resourceId int64, offset, limit int) ([]*model.ResourceDisplay, *model.AppError)
+	GetDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError)
+	UpdateDisplay(domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError)
+	DeleteDisplay(domainId, resourceId, id int64) *model.AppError
 }
 
 type OutboundResourceGroupStore interface {

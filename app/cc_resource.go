@@ -83,3 +83,45 @@ func (a *App) RemoveOutboundResource(domainId, id int64) (*model.OutboundCallRes
 	}
 	return resource, nil
 }
+
+func (a *App) CreateOutboundResourceDisplay(display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+	return a.Store.OutboundResource().SaveDisplay(display)
+}
+
+func (a *App) GetOutboundResourceDisplayPage(domainId, resourceId int64, page, perPage int) ([]*model.ResourceDisplay, *model.AppError) {
+	return a.Store.OutboundResource().GetDisplayAllPage(domainId, resourceId, page*perPage, perPage)
+}
+
+func (a *App) GetOutboundResourceDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+	return a.Store.OutboundResource().GetDisplay(domainId, resourceId, id)
+}
+
+func (a *App) UpdateOutboundResourceDisplay(domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+	oldDisplay, err := a.GetOutboundResourceDisplay(domainId, display.ResourceId, display.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldDisplay.Display = display.Display
+
+	oldDisplay, err = a.Store.OutboundResource().UpdateDisplay(domainId, oldDisplay)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldDisplay, nil
+}
+
+func (a *App) RemoveOutboundResourceDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+	display, err := a.Store.OutboundResource().GetDisplay(domainId, resourceId, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = a.Store.OutboundResource().DeleteDisplay(domainId, resourceId, id)
+	if err != nil {
+		return nil, err
+	}
+	return display, nil
+}

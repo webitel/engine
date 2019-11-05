@@ -208,3 +208,89 @@ func (s SqlOutboundResourceStore) Delete(domainId, id int64) *model.AppError {
 	}
 	return nil
 }
+
+func (s SqlOutboundResourceStore) SaveDisplay(d *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+	var out *model.ResourceDisplay
+	err := s.GetMaster().SelectOne(&out, `insert into cc_outbound_resource_display (resource_id, display)
+values (:ResourceId, :Display)
+returning *`, map[string]interface{}{
+		"ResourceId": d.ResourceId,
+		"Display":    d.Display,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceStore.SaveDisplay", "store.sql_out_resource.save_display.app_error", nil,
+			fmt.Sprintf("name=%v, %v", d.Display, err.Error()), extractCodeFromErr(err))
+	}
+
+	return out, nil
+}
+
+func (s SqlOutboundResourceStore) GetDisplayAllPage(domainId, resourceId int64, offset, limit int) ([]*model.ResourceDisplay, *model.AppError) {
+	var list []*model.ResourceDisplay
+	if _, err := s.GetReplica().Select(&list, `
+		select d.id, d.display, d.resource_id
+		from cc_outbound_resource_display d
+		where d.resource_id = :ResourceId and exists (select 1
+				from cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)
+		order by d.id
+		limit :Limit
+		offset :Offset
+		`, map[string]interface{}{
+		"ResourceId": resourceId,
+		"DomainId":   domainId,
+		"Limit":      limit,
+		"Offset":     offset,
+	}); err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceStore.GetDisplayAllPage", "store.sql_out_resource.get_display_all.app_error", nil,
+			fmt.Sprintf("ResourceId=%v, %s", resourceId, err.Error()), extractCodeFromErr(err))
+	} else {
+		return list, nil
+	}
+}
+
+func (s SqlOutboundResourceStore) GetDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+	var res *model.ResourceDisplay
+	if err := s.GetReplica().SelectOne(&res, `
+			select d.id, d.display, d.resource_id
+		from cc_outbound_resource_display d
+		where d.id = :Id and d.resource_id = :ResourceId and exists (select 1
+				from cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)	
+		`, map[string]interface{}{"Id": id, "DomainId": domainId, "ResourceId": resourceId}); err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceStore.GetDisplay", "store.sql_out_resource.get_display.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	} else {
+		return res, nil
+	}
+}
+
+func (s SqlOutboundResourceStore) UpdateDisplay(domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+	err := s.GetMaster().SelectOne(&display, `
+		update cc_outbound_resource_display d
+set display = :Display 
+where d.id = :Id and d.resource_id = :ResourceId 
+  and exists(select 1 from cc_outbound_resource r where r.id = d.resource_id and r.domain_id = :DomainId)
+returning *`, map[string]interface{}{
+		"Display":    display.Display,
+		"Id":         display.Id,
+		"ResourceId": display.ResourceId,
+		"DomainId":   domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceStore.UpdateDisplay", "store.sql_out_resource.update_display.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", display.Id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return display, nil
+}
+
+func (s SqlOutboundResourceStore) DeleteDisplay(domainId, resourceId, id int64) *model.AppError {
+	if _, err := s.GetMaster().Exec(`delete from cc_outbound_resource_display d
+		where d.id = :Id and d.resource_id = :ResourceId and exists(select 1 from cc_outbound_resource r where r.id = d.resource_id and r.domain_id = :DomainId)`,
+		map[string]interface{}{"Id": id, "DomainId": domainId, "ResourceId": resourceId}); err != nil {
+		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplay", "store.sql_out_resource.delete_display.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+	return nil
+}

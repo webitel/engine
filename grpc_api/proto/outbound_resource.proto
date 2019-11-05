@@ -32,8 +32,8 @@ service OutboundResourceService {
             body: "*"
         };
     }
-    // Path OutboundResource
-    rpc PathOutboundResource(PathOutboundResourceRequest) returns (OutboundResource) {
+    // Patch OutboundResource
+    rpc PatchOutboundResource(PatchOutboundResourceRequest) returns (OutboundResource) {
         option (google.api.http) = {
             patch: "/call_center/resources/{id}"
             body: "*"
@@ -45,6 +45,78 @@ service OutboundResourceService {
             delete: "/call_center/resources/{id}"
         };
     }
+    // Create CreateOutboundResourceDisplay
+    rpc CreateOutboundResourceDisplay(CreateOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            delete: "/call_center/resources/{resource_id}/display"
+        };
+    }
+    // List of ResourceDisplay
+    rpc SearchOutboundResourceDisplay(SearchOutboundResourceDisplayRequest) returns (ListOutboundResourceDisplay) {
+        option (google.api.http) = {
+            get: "/call_center/resources/{resource_id}/display"
+        };
+    }
+    // ResourceDisplay item
+    rpc ReadOutboundResourceDisplay(ReadOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            get: "/call_center/resources/{resource_id}/display/{id}"
+        };
+    }
+    // Update ResourceDisplay
+    rpc UpdateOutboundResourceDisplay(UpdateOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            put: "/call_center/resources/{resource_id}/display/{id}"
+            body: "*"
+        };
+    }
+    // Remove ResourceDisplay
+    rpc DeleteOutboundResourceDisplay(DeleteOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            delete: "/call_center/resources/{resource_id}/display/{id}"
+        };
+    }
+}
+
+message DeleteOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
+}
+
+message UpdateOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int64 id = 2;
+    string display = 3;
+    int64 domain_id = 4;
+}
+
+message ReadOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
+}
+
+message SearchOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message ListOutboundResourceDisplay {
+    repeated ResourceDisplay items = 1;
+}
+
+message CreateOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    string display = 2;
+    int64 domain_id = 3;
+}
+
+message ResourceDisplay {
+    int64 id = 1;
+    string display = 2;
 }
 
 
@@ -64,7 +136,7 @@ message SearchOutboundResourceRequest {
     int64 domain_id = 3;
 }
 
-message PathOutboundResourceRequest {
+message PatchOutboundResourceRequest {
     int64 id = 1;
     int64 domain_id = 2;
 

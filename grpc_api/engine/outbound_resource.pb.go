@@ -25,6 +25,383 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type DeleteOutboundResourceDisplayRequest struct {
+	ResourceId           int64    `protobuf:"varint,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteOutboundResourceDisplayRequest) Reset()         { *m = DeleteOutboundResourceDisplayRequest{} }
+func (m *DeleteOutboundResourceDisplayRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteOutboundResourceDisplayRequest) ProtoMessage()    {}
+func (*DeleteOutboundResourceDisplayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{0}
+}
+
+func (m *DeleteOutboundResourceDisplayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DeleteOutboundResourceDisplayRequest.Unmarshal(m, b)
+}
+func (m *DeleteOutboundResourceDisplayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DeleteOutboundResourceDisplayRequest.Marshal(b, m, deterministic)
+}
+func (m *DeleteOutboundResourceDisplayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteOutboundResourceDisplayRequest.Merge(m, src)
+}
+func (m *DeleteOutboundResourceDisplayRequest) XXX_Size() int {
+	return xxx_messageInfo_DeleteOutboundResourceDisplayRequest.Size(m)
+}
+func (m *DeleteOutboundResourceDisplayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteOutboundResourceDisplayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteOutboundResourceDisplayRequest proto.InternalMessageInfo
+
+func (m *DeleteOutboundResourceDisplayRequest) GetResourceId() int64 {
+	if m != nil {
+		return m.ResourceId
+	}
+	return 0
+}
+
+func (m *DeleteOutboundResourceDisplayRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *DeleteOutboundResourceDisplayRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type UpdateOutboundResourceDisplayRequest struct {
+	ResourceId           int64    `protobuf:"varint,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Display              string   `protobuf:"bytes,3,opt,name=display,proto3" json:"display,omitempty"`
+	DomainId             int64    `protobuf:"varint,4,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateOutboundResourceDisplayRequest) Reset()         { *m = UpdateOutboundResourceDisplayRequest{} }
+func (m *UpdateOutboundResourceDisplayRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateOutboundResourceDisplayRequest) ProtoMessage()    {}
+func (*UpdateOutboundResourceDisplayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{1}
+}
+
+func (m *UpdateOutboundResourceDisplayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdateOutboundResourceDisplayRequest.Unmarshal(m, b)
+}
+func (m *UpdateOutboundResourceDisplayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdateOutboundResourceDisplayRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdateOutboundResourceDisplayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateOutboundResourceDisplayRequest.Merge(m, src)
+}
+func (m *UpdateOutboundResourceDisplayRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdateOutboundResourceDisplayRequest.Size(m)
+}
+func (m *UpdateOutboundResourceDisplayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateOutboundResourceDisplayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateOutboundResourceDisplayRequest proto.InternalMessageInfo
+
+func (m *UpdateOutboundResourceDisplayRequest) GetResourceId() int64 {
+	if m != nil {
+		return m.ResourceId
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceDisplayRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *UpdateOutboundResourceDisplayRequest) GetDisplay() string {
+	if m != nil {
+		return m.Display
+	}
+	return ""
+}
+
+func (m *UpdateOutboundResourceDisplayRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type ReadOutboundResourceDisplayRequest struct {
+	ResourceId           int64    `protobuf:"varint,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
+	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReadOutboundResourceDisplayRequest) Reset()         { *m = ReadOutboundResourceDisplayRequest{} }
+func (m *ReadOutboundResourceDisplayRequest) String() string { return proto.CompactTextString(m) }
+func (*ReadOutboundResourceDisplayRequest) ProtoMessage()    {}
+func (*ReadOutboundResourceDisplayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{2}
+}
+
+func (m *ReadOutboundResourceDisplayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReadOutboundResourceDisplayRequest.Unmarshal(m, b)
+}
+func (m *ReadOutboundResourceDisplayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReadOutboundResourceDisplayRequest.Marshal(b, m, deterministic)
+}
+func (m *ReadOutboundResourceDisplayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReadOutboundResourceDisplayRequest.Merge(m, src)
+}
+func (m *ReadOutboundResourceDisplayRequest) XXX_Size() int {
+	return xxx_messageInfo_ReadOutboundResourceDisplayRequest.Size(m)
+}
+func (m *ReadOutboundResourceDisplayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReadOutboundResourceDisplayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReadOutboundResourceDisplayRequest proto.InternalMessageInfo
+
+func (m *ReadOutboundResourceDisplayRequest) GetResourceId() int64 {
+	if m != nil {
+		return m.ResourceId
+	}
+	return 0
+}
+
+func (m *ReadOutboundResourceDisplayRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *ReadOutboundResourceDisplayRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type SearchOutboundResourceDisplayRequest struct {
+	ResourceId           int64    `protobuf:"varint,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
+	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	DomainId             int64    `protobuf:"varint,4,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchOutboundResourceDisplayRequest) Reset()         { *m = SearchOutboundResourceDisplayRequest{} }
+func (m *SearchOutboundResourceDisplayRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchOutboundResourceDisplayRequest) ProtoMessage()    {}
+func (*SearchOutboundResourceDisplayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{3}
+}
+
+func (m *SearchOutboundResourceDisplayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchOutboundResourceDisplayRequest.Unmarshal(m, b)
+}
+func (m *SearchOutboundResourceDisplayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchOutboundResourceDisplayRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchOutboundResourceDisplayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchOutboundResourceDisplayRequest.Merge(m, src)
+}
+func (m *SearchOutboundResourceDisplayRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchOutboundResourceDisplayRequest.Size(m)
+}
+func (m *SearchOutboundResourceDisplayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchOutboundResourceDisplayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchOutboundResourceDisplayRequest proto.InternalMessageInfo
+
+func (m *SearchOutboundResourceDisplayRequest) GetResourceId() int64 {
+	if m != nil {
+		return m.ResourceId
+	}
+	return 0
+}
+
+func (m *SearchOutboundResourceDisplayRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+func (m *SearchOutboundResourceDisplayRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchOutboundResourceDisplayRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type ListOutboundResourceDisplay struct {
+	Items                []*ResourceDisplay `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *ListOutboundResourceDisplay) Reset()         { *m = ListOutboundResourceDisplay{} }
+func (m *ListOutboundResourceDisplay) String() string { return proto.CompactTextString(m) }
+func (*ListOutboundResourceDisplay) ProtoMessage()    {}
+func (*ListOutboundResourceDisplay) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{4}
+}
+
+func (m *ListOutboundResourceDisplay) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListOutboundResourceDisplay.Unmarshal(m, b)
+}
+func (m *ListOutboundResourceDisplay) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListOutboundResourceDisplay.Marshal(b, m, deterministic)
+}
+func (m *ListOutboundResourceDisplay) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListOutboundResourceDisplay.Merge(m, src)
+}
+func (m *ListOutboundResourceDisplay) XXX_Size() int {
+	return xxx_messageInfo_ListOutboundResourceDisplay.Size(m)
+}
+func (m *ListOutboundResourceDisplay) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListOutboundResourceDisplay.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListOutboundResourceDisplay proto.InternalMessageInfo
+
+func (m *ListOutboundResourceDisplay) GetItems() []*ResourceDisplay {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type CreateOutboundResourceDisplayRequest struct {
+	ResourceId           int64    `protobuf:"varint,1,opt,name=resource_id,json=resourceId,proto3" json:"resource_id,omitempty"`
+	Display              string   `protobuf:"bytes,2,opt,name=display,proto3" json:"display,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *CreateOutboundResourceDisplayRequest) Reset()         { *m = CreateOutboundResourceDisplayRequest{} }
+func (m *CreateOutboundResourceDisplayRequest) String() string { return proto.CompactTextString(m) }
+func (*CreateOutboundResourceDisplayRequest) ProtoMessage()    {}
+func (*CreateOutboundResourceDisplayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{5}
+}
+
+func (m *CreateOutboundResourceDisplayRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_CreateOutboundResourceDisplayRequest.Unmarshal(m, b)
+}
+func (m *CreateOutboundResourceDisplayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_CreateOutboundResourceDisplayRequest.Marshal(b, m, deterministic)
+}
+func (m *CreateOutboundResourceDisplayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreateOutboundResourceDisplayRequest.Merge(m, src)
+}
+func (m *CreateOutboundResourceDisplayRequest) XXX_Size() int {
+	return xxx_messageInfo_CreateOutboundResourceDisplayRequest.Size(m)
+}
+func (m *CreateOutboundResourceDisplayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreateOutboundResourceDisplayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CreateOutboundResourceDisplayRequest proto.InternalMessageInfo
+
+func (m *CreateOutboundResourceDisplayRequest) GetResourceId() int64 {
+	if m != nil {
+		return m.ResourceId
+	}
+	return 0
+}
+
+func (m *CreateOutboundResourceDisplayRequest) GetDisplay() string {
+	if m != nil {
+		return m.Display
+	}
+	return ""
+}
+
+func (m *CreateOutboundResourceDisplayRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type ResourceDisplay struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Display              string   `protobuf:"bytes,2,opt,name=display,proto3" json:"display,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ResourceDisplay) Reset()         { *m = ResourceDisplay{} }
+func (m *ResourceDisplay) String() string { return proto.CompactTextString(m) }
+func (*ResourceDisplay) ProtoMessage()    {}
+func (*ResourceDisplay) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{6}
+}
+
+func (m *ResourceDisplay) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ResourceDisplay.Unmarshal(m, b)
+}
+func (m *ResourceDisplay) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ResourceDisplay.Marshal(b, m, deterministic)
+}
+func (m *ResourceDisplay) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceDisplay.Merge(m, src)
+}
+func (m *ResourceDisplay) XXX_Size() int {
+	return xxx_messageInfo_ResourceDisplay.Size(m)
+}
+func (m *ResourceDisplay) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceDisplay.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceDisplay proto.InternalMessageInfo
+
+func (m *ResourceDisplay) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *ResourceDisplay) GetDisplay() string {
+	if m != nil {
+		return m.Display
+	}
+	return ""
+}
+
 type DeleteOutboundResourceRequest struct {
 	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
@@ -37,7 +414,7 @@ func (m *DeleteOutboundResourceRequest) Reset()         { *m = DeleteOutboundRes
 func (m *DeleteOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteOutboundResourceRequest) ProtoMessage()    {}
 func (*DeleteOutboundResourceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{0}
+	return fileDescriptor_c866ec047a06af0d, []int{7}
 }
 
 func (m *DeleteOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
@@ -84,7 +461,7 @@ func (m *ReadOutboundResourceRequest) Reset()         { *m = ReadOutboundResourc
 func (m *ReadOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadOutboundResourceRequest) ProtoMessage()    {}
 func (*ReadOutboundResourceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{1}
+	return fileDescriptor_c866ec047a06af0d, []int{8}
 }
 
 func (m *ReadOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
@@ -132,7 +509,7 @@ func (m *SearchOutboundResourceRequest) Reset()         { *m = SearchOutboundRes
 func (m *SearchOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchOutboundResourceRequest) ProtoMessage()    {}
 func (*SearchOutboundResourceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{2}
+	return fileDescriptor_c866ec047a06af0d, []int{9}
 }
 
 func (m *SearchOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
@@ -174,7 +551,7 @@ func (m *SearchOutboundResourceRequest) GetDomainId() int64 {
 	return 0
 }
 
-type PathOutboundResourceRequest struct {
+type PatchOutboundResourceRequest struct {
 	Id                    int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	DomainId              int64             `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	Limit                 int32             `protobuf:"varint,3,opt,name=limit,proto3" json:"limit,omitempty"`
@@ -194,123 +571,123 @@ type PathOutboundResourceRequest struct {
 	XXX_sizecache         int32             `json:"-"`
 }
 
-func (m *PathOutboundResourceRequest) Reset()         { *m = PathOutboundResourceRequest{} }
-func (m *PathOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
-func (*PathOutboundResourceRequest) ProtoMessage()    {}
-func (*PathOutboundResourceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{3}
+func (m *PatchOutboundResourceRequest) Reset()         { *m = PatchOutboundResourceRequest{} }
+func (m *PatchOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
+func (*PatchOutboundResourceRequest) ProtoMessage()    {}
+func (*PatchOutboundResourceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c866ec047a06af0d, []int{10}
 }
 
-func (m *PathOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_PathOutboundResourceRequest.Unmarshal(m, b)
+func (m *PatchOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PatchOutboundResourceRequest.Unmarshal(m, b)
 }
-func (m *PathOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_PathOutboundResourceRequest.Marshal(b, m, deterministic)
+func (m *PatchOutboundResourceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PatchOutboundResourceRequest.Marshal(b, m, deterministic)
 }
-func (m *PathOutboundResourceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PathOutboundResourceRequest.Merge(m, src)
+func (m *PatchOutboundResourceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PatchOutboundResourceRequest.Merge(m, src)
 }
-func (m *PathOutboundResourceRequest) XXX_Size() int {
-	return xxx_messageInfo_PathOutboundResourceRequest.Size(m)
+func (m *PatchOutboundResourceRequest) XXX_Size() int {
+	return xxx_messageInfo_PatchOutboundResourceRequest.Size(m)
 }
-func (m *PathOutboundResourceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_PathOutboundResourceRequest.DiscardUnknown(m)
+func (m *PatchOutboundResourceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PatchOutboundResourceRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_PathOutboundResourceRequest proto.InternalMessageInfo
+var xxx_messageInfo_PatchOutboundResourceRequest proto.InternalMessageInfo
 
-func (m *PathOutboundResourceRequest) GetId() int64 {
+func (m *PatchOutboundResourceRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
 	}
 	return 0
 }
 
-func (m *PathOutboundResourceRequest) GetDomainId() int64 {
+func (m *PatchOutboundResourceRequest) GetDomainId() int64 {
 	if m != nil {
 		return m.DomainId
 	}
 	return 0
 }
 
-func (m *PathOutboundResourceRequest) GetLimit() int32 {
+func (m *PatchOutboundResourceRequest) GetLimit() int32 {
 	if m != nil {
 		return m.Limit
 	}
 	return 0
 }
 
-func (m *PathOutboundResourceRequest) GetEnabled() bool {
+func (m *PatchOutboundResourceRequest) GetEnabled() bool {
 	if m != nil {
 		return m.Enabled
 	}
 	return false
 }
 
-func (m *PathOutboundResourceRequest) GetRps() int32 {
+func (m *PatchOutboundResourceRequest) GetRps() int32 {
 	if m != nil {
 		return m.Rps
 	}
 	return 0
 }
 
-func (m *PathOutboundResourceRequest) GetReserve() bool {
+func (m *PatchOutboundResourceRequest) GetReserve() bool {
 	if m != nil {
 		return m.Reserve
 	}
 	return false
 }
 
-func (m *PathOutboundResourceRequest) GetVariables() map[string]string {
+func (m *PatchOutboundResourceRequest) GetVariables() map[string]string {
 	if m != nil {
 		return m.Variables
 	}
 	return nil
 }
 
-func (m *PathOutboundResourceRequest) GetNumber() string {
+func (m *PatchOutboundResourceRequest) GetNumber() string {
 	if m != nil {
 		return m.Number
 	}
 	return ""
 }
 
-func (m *PathOutboundResourceRequest) GetMaxSuccessivelyErrors() int32 {
+func (m *PatchOutboundResourceRequest) GetMaxSuccessivelyErrors() int32 {
 	if m != nil {
 		return m.MaxSuccessivelyErrors
 	}
 	return 0
 }
 
-func (m *PathOutboundResourceRequest) GetName() string {
+func (m *PatchOutboundResourceRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
 }
 
-func (m *PathOutboundResourceRequest) GetDialString() string {
+func (m *PatchOutboundResourceRequest) GetDialString() string {
 	if m != nil {
 		return m.DialString
 	}
 	return ""
 }
 
-func (m *PathOutboundResourceRequest) GetErrorIds() []string {
+func (m *PatchOutboundResourceRequest) GetErrorIds() []string {
 	if m != nil {
 		return m.ErrorIds
 	}
 	return nil
 }
 
-func (m *PathOutboundResourceRequest) GetFields() []string {
+func (m *PatchOutboundResourceRequest) GetFields() []string {
 	if m != nil {
 		return m.Fields
 	}
 	return nil
 }
 
-func (m *PathOutboundResourceRequest) GetGateway() *Lookup {
+func (m *PatchOutboundResourceRequest) GetGateway() *Lookup {
 	if m != nil {
 		return m.Gateway
 	}
@@ -340,7 +717,7 @@ func (m *UpdateOutboundResourceRequest) Reset()         { *m = UpdateOutboundRes
 func (m *UpdateOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateOutboundResourceRequest) ProtoMessage()    {}
 func (*UpdateOutboundResourceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{4}
+	return fileDescriptor_c866ec047a06af0d, []int{11}
 }
 
 func (m *UpdateOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
@@ -474,7 +851,7 @@ func (m *CreateOutboundResourceRequest) Reset()         { *m = CreateOutboundRes
 func (m *CreateOutboundResourceRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateOutboundResourceRequest) ProtoMessage()    {}
 func (*CreateOutboundResourceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{5}
+	return fileDescriptor_c866ec047a06af0d, []int{12}
 }
 
 func (m *CreateOutboundResourceRequest) XXX_Unmarshal(b []byte) error {
@@ -609,7 +986,7 @@ func (m *OutboundResource) Reset()         { *m = OutboundResource{} }
 func (m *OutboundResource) String() string { return proto.CompactTextString(m) }
 func (*OutboundResource) ProtoMessage()    {}
 func (*OutboundResource) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{6}
+	return fileDescriptor_c866ec047a06af0d, []int{13}
 }
 
 func (m *OutboundResource) XXX_Unmarshal(b []byte) error {
@@ -781,7 +1158,7 @@ func (m *ListOutboundResource) Reset()         { *m = ListOutboundResource{} }
 func (m *ListOutboundResource) String() string { return proto.CompactTextString(m) }
 func (*ListOutboundResource) ProtoMessage()    {}
 func (*ListOutboundResource) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c866ec047a06af0d, []int{7}
+	return fileDescriptor_c866ec047a06af0d, []int{14}
 }
 
 func (m *ListOutboundResource) XXX_Unmarshal(b []byte) error {
@@ -810,11 +1187,18 @@ func (m *ListOutboundResource) GetItems() []*OutboundResource {
 }
 
 func init() {
+	proto.RegisterType((*DeleteOutboundResourceDisplayRequest)(nil), "engine.DeleteOutboundResourceDisplayRequest")
+	proto.RegisterType((*UpdateOutboundResourceDisplayRequest)(nil), "engine.UpdateOutboundResourceDisplayRequest")
+	proto.RegisterType((*ReadOutboundResourceDisplayRequest)(nil), "engine.ReadOutboundResourceDisplayRequest")
+	proto.RegisterType((*SearchOutboundResourceDisplayRequest)(nil), "engine.SearchOutboundResourceDisplayRequest")
+	proto.RegisterType((*ListOutboundResourceDisplay)(nil), "engine.ListOutboundResourceDisplay")
+	proto.RegisterType((*CreateOutboundResourceDisplayRequest)(nil), "engine.CreateOutboundResourceDisplayRequest")
+	proto.RegisterType((*ResourceDisplay)(nil), "engine.ResourceDisplay")
 	proto.RegisterType((*DeleteOutboundResourceRequest)(nil), "engine.DeleteOutboundResourceRequest")
 	proto.RegisterType((*ReadOutboundResourceRequest)(nil), "engine.ReadOutboundResourceRequest")
 	proto.RegisterType((*SearchOutboundResourceRequest)(nil), "engine.SearchOutboundResourceRequest")
-	proto.RegisterType((*PathOutboundResourceRequest)(nil), "engine.PathOutboundResourceRequest")
-	proto.RegisterMapType((map[string]string)(nil), "engine.PathOutboundResourceRequest.VariablesEntry")
+	proto.RegisterType((*PatchOutboundResourceRequest)(nil), "engine.PatchOutboundResourceRequest")
+	proto.RegisterMapType((map[string]string)(nil), "engine.PatchOutboundResourceRequest.VariablesEntry")
 	proto.RegisterType((*UpdateOutboundResourceRequest)(nil), "engine.UpdateOutboundResourceRequest")
 	proto.RegisterMapType((map[string]string)(nil), "engine.UpdateOutboundResourceRequest.VariablesEntry")
 	proto.RegisterType((*CreateOutboundResourceRequest)(nil), "engine.CreateOutboundResourceRequest")
@@ -827,65 +1211,80 @@ func init() {
 func init() { proto.RegisterFile("outbound_resource.proto", fileDescriptor_c866ec047a06af0d) }
 
 var fileDescriptor_c866ec047a06af0d = []byte{
-	// 920 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0x5f, 0x8f, 0xdb, 0x44,
-	0x10, 0x97, 0xf3, 0xdf, 0x93, 0xbb, 0x70, 0x6c, 0x43, 0x6e, 0x95, 0x34, 0x10, 0x52, 0x01, 0x51,
-	0x25, 0x12, 0x29, 0x20, 0x84, 0x2a, 0x5e, 0x5a, 0x38, 0xa4, 0xa2, 0x93, 0xa8, 0x7c, 0x82, 0x57,
-	0x6b, 0x63, 0x0f, 0x61, 0x55, 0xc7, 0x0e, 0xbb, 0xeb, 0xd0, 0x14, 0x8a, 0x54, 0x1e, 0xf8, 0x02,
-	0x88, 0x17, 0xbe, 0x16, 0x5f, 0x81, 0xcf, 0xc0, 0x33, 0xf2, 0xda, 0x3e, 0x5f, 0x72, 0xb6, 0x2f,
-	0x20, 0x4e, 0xa2, 0x6f, 0xbb, 0x33, 0x93, 0xdf, 0xcc, 0xce, 0xef, 0xb7, 0x9b, 0x31, 0x9c, 0x06,
-	0xa1, 0x5a, 0x04, 0xa1, 0xef, 0xda, 0x02, 0x65, 0x10, 0x0a, 0x07, 0xa7, 0x6b, 0x11, 0xa8, 0x80,
-	0x34, 0xd0, 0x5f, 0x72, 0x1f, 0xfb, 0x6d, 0x27, 0xf0, 0xa5, 0x8a, 0x8d, 0xfd, 0xbb, 0xcb, 0x20,
-	0x58, 0x7a, 0x38, 0x63, 0x6b, 0x3e, 0x63, 0xbe, 0x1f, 0x28, 0xa6, 0x78, 0xe0, 0xcb, 0xd8, 0x3b,
-	0x3e, 0x87, 0xe1, 0x67, 0xe8, 0xa1, 0xc2, 0x2f, 0x13, 0x4c, 0x2b, 0x81, 0xb4, 0xf0, 0xbb, 0x10,
-	0xa5, 0x22, 0x03, 0x30, 0xdd, 0x60, 0xc5, 0xb8, 0x6f, 0x73, 0x97, 0x1a, 0x23, 0x63, 0x52, 0xb5,
-	0x5a, 0xb1, 0xe1, 0xb1, 0x4b, 0x3a, 0x50, 0xe1, 0x2e, 0xad, 0x68, 0x6b, 0x85, 0xbb, 0xe3, 0x2f,
-	0x60, 0x60, 0x21, 0x73, 0xff, 0x13, 0x2c, 0x17, 0x86, 0x17, 0xc8, 0x84, 0xf3, 0x6d, 0x11, 0x1a,
-	0x81, 0xda, 0x9a, 0x2d, 0x51, 0x03, 0xd5, 0x2d, 0xbd, 0x8e, 0x6c, 0x92, 0x3f, 0x47, 0x0d, 0x53,
-	0xb7, 0xf4, 0x7a, 0x37, 0x6b, 0x75, 0x37, 0xeb, 0xf8, 0xf7, 0x1a, 0x0c, 0x9e, 0x30, 0x55, 0x98,
-	0x24, 0xae, 0xca, 0x48, 0xab, 0xda, 0x05, 0xab, 0xec, 0x1d, 0xa1, 0x0b, 0x75, 0x8f, 0xaf, 0xb8,
-	0xd2, 0x59, 0xea, 0x56, 0xbc, 0x21, 0x14, 0x9a, 0xe8, 0xb3, 0x85, 0x87, 0x2e, 0xad, 0x8d, 0x8c,
-	0x49, 0xcb, 0x4a, 0xb7, 0xe4, 0x04, 0xaa, 0x62, 0x2d, 0x69, 0x5d, 0x47, 0x47, 0xcb, 0x28, 0x56,
-	0xa0, 0x44, 0xb1, 0x41, 0xda, 0x88, 0x63, 0x93, 0x2d, 0x79, 0x02, 0xe6, 0x86, 0x09, 0x1e, 0xfd,
-	0x50, 0xd2, 0xe6, 0xa8, 0x3a, 0x69, 0xcf, 0xe7, 0xd3, 0x98, 0xef, 0x69, 0xc9, 0x01, 0xa6, 0x5f,
-	0xa7, 0x3f, 0x3a, 0xf3, 0x95, 0xd8, 0x5a, 0x19, 0x08, 0xe9, 0x41, 0xc3, 0x0f, 0x57, 0x0b, 0x14,
-	0xb4, 0x35, 0x32, 0x26, 0xa6, 0x95, 0xec, 0xc8, 0x47, 0x70, 0xba, 0x62, 0xcf, 0x6c, 0x19, 0x3a,
-	0x0e, 0x4a, 0xc9, 0x37, 0xe8, 0x6d, 0x6d, 0x14, 0x22, 0x10, 0x92, 0x9a, 0xba, 0xd2, 0x37, 0x56,
-	0xec, 0xd9, 0xc5, 0x15, 0xef, 0x99, 0x76, 0x46, 0xbd, 0xf7, 0xd9, 0x0a, 0x29, 0x68, 0x34, 0xbd,
-	0x26, 0x6f, 0x41, 0xdb, 0xe5, 0xcc, 0xb3, 0xa5, 0x12, 0xdc, 0x5f, 0xd2, 0xb6, 0x76, 0x41, 0x64,
-	0xba, 0xd0, 0x96, 0xa8, 0x9f, 0x1a, 0xdb, 0xe6, 0xae, 0xa4, 0x47, 0xa3, 0xea, 0xc4, 0xb4, 0x5a,
-	0xda, 0xf0, 0xd8, 0xd5, 0x15, 0x7e, 0xc3, 0xd1, 0x73, 0x25, 0x3d, 0xd6, 0x9e, 0x64, 0x47, 0x26,
-	0xd0, 0x5c, 0x32, 0x85, 0xdf, 0xb3, 0x2d, 0xed, 0x8c, 0x8c, 0x49, 0x7b, 0xde, 0x49, 0x3b, 0x71,
-	0x1e, 0x04, 0x4f, 0xc3, 0xb5, 0x95, 0xba, 0xfb, 0x9f, 0x40, 0x67, 0xb7, 0x01, 0x51, 0xcf, 0x9f,
-	0xe2, 0x56, 0x33, 0x6a, 0x5a, 0xd1, 0x32, 0x62, 0x6d, 0xc3, 0xbc, 0x30, 0x16, 0x8d, 0x69, 0xc5,
-	0x9b, 0x07, 0x95, 0x8f, 0x8d, 0xf1, 0x2f, 0x35, 0x18, 0x7e, 0xb5, 0x76, 0x59, 0xf1, 0xed, 0xf8,
-	0xdf, 0xc8, 0xc3, 0xba, 0x2e, 0x8f, 0x0f, 0xd3, 0xa6, 0x94, 0x1e, 0xe1, 0x95, 0x16, 0xc8, 0x15,
-	0x21, 0x1c, 0xdf, 0xa6, 0x10, 0xfe, 0xaa, 0xc2, 0xf0, 0x53, 0x81, 0xec, 0x5f, 0x3e, 0x93, 0x97,
-	0xc4, 0x57, 0x0a, 0x88, 0xaf, 0xe6, 0x12, 0x5f, 0xcb, 0x25, 0xbe, 0x5e, 0x42, 0x7c, 0x63, 0x97,
-	0xf8, 0xd2, 0x92, 0x0f, 0x22, 0xbe, 0x79, 0x28, 0xf1, 0xad, 0x43, 0x88, 0x37, 0x8b, 0x89, 0x87,
-	0x72, 0xe2, 0xdb, 0xc5, 0xc4, 0x1f, 0xdd, 0x26, 0xf1, 0x2f, 0x1b, 0x70, 0xb2, 0xdf, 0xbf, 0x7f,
-	0x76, 0xe9, 0x87, 0x00, 0x8e, 0xa6, 0xc1, 0xb5, 0x99, 0x4a, 0xfe, 0x7e, 0xcc, 0xc4, 0xf2, 0x50,
-	0x91, 0xf7, 0x33, 0xf7, 0x62, 0xab, 0x19, 0xbf, 0x7e, 0x96, 0x34, 0xfc, 0xd1, 0x36, 0x42, 0x0b,
-	0xf5, 0x6d, 0xd6, 0x68, 0xf5, 0x18, 0x2d, 0xb1, 0xc4, 0x68, 0xa9, 0x7b, 0xb1, 0xd5, 0x4f, 0x44,
-	0x0e, 0x5a, 0x12, 0xf1, 0x68, 0x9b, 0xe9, 0xb2, 0x59, 0xa0, 0xcb, 0x56, 0xae, 0x2e, 0xcd, 0x5c,
-	0x5d, 0xc2, 0xae, 0x2e, 0xcf, 0xae, 0xea, 0xb2, 0xad, 0x75, 0xf9, 0x5e, 0x5a, 0xc9, 0x7e, 0x47,
-	0x0f, 0x92, 0xe2, 0xd1, 0xa1, 0x52, 0x3c, 0x3e, 0x44, 0x8a, 0x9d, 0x62, 0x29, 0xbe, 0x56, 0x2e,
-	0xc5, 0x93, 0x3d, 0x29, 0x8e, 0xe1, 0xd8, 0x63, 0x52, 0xd9, 0x69, 0x04, 0x7d, 0x5d, 0xff, 0xbe,
-	0x1d, 0x19, 0xcf, 0xe2, 0x20, 0x32, 0x83, 0x3b, 0x79, 0x95, 0x12, 0x5d, 0x29, 0x91, 0xd7, 0xcb,
-	0xdc, 0x05, 0x65, 0x8a, 0xde, 0xd1, 0x54, 0x67, 0xa0, 0x0f, 0xd5, 0xd5, 0x3b, 0xd0, 0xbd, 0xcd,
-	0x3b, 0xf0, 0x39, 0x74, 0xcf, 0xb9, 0x54, 0xd7, 0xae, 0xc1, 0x14, 0xea, 0x5c, 0xe1, 0x4a, 0x52,
-	0x43, 0xb3, 0x4b, 0x8b, 0xd8, 0xb5, 0xe2, 0xb0, 0xf9, 0x6f, 0x0d, 0x38, 0xdd, 0xf7, 0x5d, 0xa0,
-	0xd8, 0x70, 0x07, 0xc9, 0x8f, 0xd0, 0xcb, 0x7f, 0xac, 0xc8, 0x3b, 0x07, 0x3d, 0x66, 0xfd, 0xc2,
-	0xec, 0xe3, 0xb7, 0x7f, 0xfe, 0xe3, 0xcf, 0x5f, 0x2b, 0x83, 0x71, 0x6f, 0xe6, 0x30, 0xcf, 0xb3,
-	0x1d, 0xf4, 0x15, 0x8a, 0x59, 0x3a, 0x39, 0xcb, 0x07, 0xc6, 0x7d, 0xf2, 0x02, 0x7a, 0xf9, 0xa3,
-	0x66, 0x96, 0xbd, 0x74, 0x14, 0xed, 0xdf, 0xbd, 0xec, 0x7c, 0x4e, 0xa3, 0xc6, 0x6f, 0xea, 0x0a,
-	0x28, 0x29, 0xa8, 0x80, 0x3c, 0x87, 0x6e, 0xde, 0xd4, 0x4c, 0xee, 0xa5, 0xa8, 0x25, 0x33, 0x75,
-	0xc9, 0xc1, 0xef, 0xe9, 0xb4, 0x43, 0x32, 0xc8, 0x4f, 0x3b, 0xfb, 0x81, 0xbb, 0x2f, 0xc8, 0x4b,
-	0x03, 0x7a, 0xf9, 0xf3, 0x41, 0x76, 0xf6, 0xd2, 0xf9, 0xa1, 0xa4, 0x80, 0x77, 0x75, 0x01, 0xa3,
-	0x7e, 0x59, 0x01, 0x71, 0xfb, 0xbb, 0x79, 0x13, 0x6c, 0x76, 0xfe, 0x92, 0xf9, 0xf6, 0xe6, 0xf4,
-	0xf3, 0x9b, 0xd2, 0xff, 0x04, 0xbd, 0xfc, 0x4f, 0xa0, 0xac, 0x03, 0xa5, 0x9f, 0x48, 0x37, 0x53,
-	0x70, 0xbf, 0xac, 0x84, 0x45, 0x43, 0x7f, 0x89, 0x7d, 0xf0, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0xb0, 0xcb, 0x3c, 0xe5, 0xd7, 0x0d, 0x00, 0x00,
+	// 1163 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x58, 0x41, 0x6f, 0x1b, 0xc5,
+	0x17, 0xd7, 0xda, 0xb1, 0x63, 0x3f, 0x27, 0x69, 0xfe, 0xd3, 0xd4, 0x59, 0xd9, 0xf1, 0x1f, 0xb3,
+	0x31, 0x60, 0x59, 0xad, 0x2d, 0x92, 0xaa, 0x82, 0xd2, 0x4b, 0x4b, 0x83, 0x14, 0x14, 0x09, 0xd8,
+	0x08, 0xae, 0xd6, 0xd8, 0x3b, 0x98, 0x51, 0xd7, 0xbb, 0x66, 0x67, 0x6c, 0xea, 0x42, 0x8a, 0xca,
+	0x81, 0x13, 0xe2, 0xc2, 0xb5, 0x1c, 0x90, 0x38, 0xf0, 0x61, 0xb8, 0xf1, 0x15, 0xf8, 0x0c, 0x9c,
+	0xd1, 0xce, 0xee, 0xd4, 0xde, 0xf5, 0xec, 0x66, 0x0d, 0x0d, 0x82, 0xdb, 0xcc, 0x9b, 0xf1, 0x7b,
+	0xbf, 0x79, 0xbf, 0xdf, 0x8c, 0xdf, 0x5b, 0xd8, 0x77, 0xa7, 0x7c, 0xe0, 0x4e, 0x1d, 0xab, 0xef,
+	0x11, 0xe6, 0x4e, 0xbd, 0x21, 0xe9, 0x4e, 0x3c, 0x97, 0xbb, 0xa8, 0x48, 0x9c, 0x11, 0x75, 0x48,
+	0xad, 0x32, 0x74, 0x1d, 0xc6, 0x03, 0x63, 0xed, 0x60, 0xe4, 0xba, 0x23, 0x9b, 0xf4, 0xf0, 0x84,
+	0xf6, 0xb0, 0xe3, 0xb8, 0x1c, 0x73, 0xea, 0x3a, 0x2c, 0x58, 0x35, 0x38, 0xb4, 0x1e, 0x12, 0x9b,
+	0x70, 0xf2, 0x41, 0xe8, 0xd3, 0x0c, 0x5d, 0x3e, 0xa4, 0x6c, 0x62, 0xe3, 0xb9, 0x49, 0x3e, 0x9f,
+	0x12, 0xc6, 0xd1, 0x2b, 0x50, 0x91, 0xc1, 0xfa, 0xd4, 0xd2, 0xb5, 0xa6, 0xd6, 0xce, 0x9b, 0x20,
+	0x4d, 0xa7, 0x16, 0xda, 0x81, 0x1c, 0xb5, 0xf4, 0x9c, 0xb0, 0xe7, 0xa8, 0x85, 0xea, 0x50, 0xb6,
+	0xdc, 0x31, 0xa6, 0x8e, 0xbf, 0x3d, 0x2f, 0xcc, 0xa5, 0xc0, 0x70, 0x6a, 0x19, 0xdf, 0x6b, 0xd0,
+	0xfa, 0x78, 0x62, 0xe1, 0x97, 0x1f, 0x56, 0x87, 0x4d, 0x2b, 0x70, 0x21, 0x82, 0x96, 0x4d, 0x39,
+	0x8d, 0x02, 0xda, 0x88, 0x01, 0xf2, 0xc0, 0x30, 0x09, 0xb6, 0xfe, 0xd1, 0x24, 0x7c, 0xa7, 0x41,
+	0xeb, 0x9c, 0x60, 0x6f, 0xf8, 0xd9, 0xdf, 0x0d, 0x8b, 0x60, 0x63, 0x82, 0x47, 0x44, 0x04, 0x2e,
+	0x98, 0x62, 0xec, 0xdb, 0x18, 0x7d, 0x42, 0x44, 0xd4, 0x82, 0x29, 0xc6, 0xe9, 0x29, 0x38, 0x83,
+	0xfa, 0x19, 0x65, 0x3c, 0x01, 0x0b, 0xba, 0x05, 0x05, 0xca, 0xc9, 0x98, 0xe9, 0x5a, 0x33, 0xdf,
+	0xae, 0x1c, 0xed, 0x77, 0x03, 0xad, 0x75, 0xe3, 0x98, 0x83, 0x5d, 0xc6, 0x53, 0x68, 0xbd, 0xeb,
+	0x91, 0x97, 0x40, 0xf0, 0x12, 0xa1, 0xb9, 0x14, 0x42, 0xe3, 0xc9, 0x7d, 0x07, 0xae, 0xc5, 0x4f,
+	0x10, 0x90, 0xa3, 0xa9, 0xa4, 0x12, 0xf5, 0x6c, 0x9c, 0x41, 0x43, 0x7d, 0x29, 0x24, 0xea, 0x48,
+	0x68, 0x2d, 0x1a, 0x3a, 0x2e, 0x02, 0xe3, 0x7d, 0xa8, 0xab, 0xb4, 0xf5, 0x97, 0x7c, 0x59, 0xd0,
+	0x50, 0x4b, 0x46, 0x7a, 0x93, 0x52, 0xd0, 0x14, 0x52, 0xc8, 0x25, 0x49, 0x21, 0x9e, 0xbc, 0xe7,
+	0x1b, 0x70, 0xf0, 0x21, 0xe6, 0xc9, 0x51, 0xe2, 0xa9, 0x8c, 0x78, 0xcb, 0xc5, 0xce, 0xb0, 0x07,
+	0x05, 0x9b, 0x8e, 0x29, 0x0f, 0xa5, 0x18, 0x4c, 0xfc, 0xec, 0x13, 0x07, 0x0f, 0x6c, 0x12, 0x28,
+	0xb1, 0x64, 0xca, 0x29, 0xda, 0x85, 0xbc, 0x37, 0x61, 0x7a, 0x41, 0xec, 0xf6, 0x87, 0xfe, 0x5e,
+	0x8f, 0x30, 0xe2, 0xcd, 0x88, 0x5e, 0x0c, 0xf6, 0x86, 0x53, 0xf4, 0x11, 0x94, 0x67, 0xd8, 0xa3,
+	0xfe, 0x0f, 0x99, 0xbe, 0x29, 0x94, 0x79, 0x2c, 0x95, 0x99, 0x76, 0x82, 0xee, 0x27, 0xf2, 0x57,
+	0x27, 0x0e, 0xf7, 0xe6, 0xe6, 0xc2, 0x0b, 0xaa, 0x42, 0xd1, 0x99, 0x8e, 0x07, 0xc4, 0xd3, 0x4b,
+	0x42, 0x15, 0xe1, 0x0c, 0xdd, 0x81, 0xfd, 0x31, 0x7e, 0xdc, 0x67, 0xd3, 0xe1, 0x90, 0x30, 0x46,
+	0x67, 0xc4, 0x9e, 0xf7, 0x89, 0xe7, 0xb9, 0x1e, 0xd3, 0xcb, 0x02, 0xea, 0x8d, 0x31, 0x7e, 0x7c,
+	0xbe, 0xb4, 0x7a, 0x22, 0x16, 0xfd, 0xec, 0x3b, 0x78, 0x4c, 0x74, 0x10, 0xde, 0xc4, 0xd8, 0x57,
+	0xbd, 0x45, 0xb1, 0xdd, 0x67, 0xdc, 0xa3, 0xce, 0x48, 0xaf, 0x88, 0x25, 0xf0, 0x4d, 0xe7, 0xc2,
+	0xe2, 0x27, 0x54, 0xf8, 0xee, 0x53, 0x8b, 0xe9, 0x5b, 0xcd, 0x7c, 0xbb, 0x6c, 0x96, 0x84, 0xe1,
+	0xd4, 0x12, 0x08, 0x3f, 0xa5, 0xc4, 0xb6, 0x98, 0xbe, 0x2d, 0x56, 0xc2, 0x19, 0x6a, 0xc3, 0xe6,
+	0x08, 0x73, 0xf2, 0x05, 0x9e, 0xeb, 0x3b, 0x4d, 0xad, 0x5d, 0x39, 0xda, 0x91, 0xa9, 0x38, 0x73,
+	0xdd, 0x47, 0xd3, 0x89, 0x29, 0x97, 0x6b, 0xf7, 0x60, 0x27, 0x9a, 0x00, 0x3f, 0xe9, 0x8f, 0xc8,
+	0x5c, 0x50, 0x5a, 0x36, 0xfd, 0xa1, 0x4f, 0xdb, 0x0c, 0xdb, 0x53, 0x12, 0x5e, 0x8e, 0x60, 0x72,
+	0x37, 0xf7, 0x96, 0x66, 0x7c, 0xbb, 0x01, 0x0d, 0xf5, 0xeb, 0xfd, 0xaf, 0xd3, 0x87, 0xb9, 0xaa,
+	0x8f, 0xdb, 0x32, 0x29, 0xa9, 0x47, 0xf8, 0x4f, 0x0b, 0x64, 0x49, 0x08, 0xdb, 0x57, 0x29, 0x84,
+	0x3f, 0xf2, 0xd0, 0x50, 0xbf, 0xf2, 0x99, 0x1e, 0xb7, 0x17, 0xc4, 0xe7, 0x12, 0x88, 0xcf, 0x2b,
+	0x89, 0xdf, 0x50, 0x12, 0x5f, 0x48, 0x21, 0xbe, 0x18, 0x25, 0x3e, 0x15, 0x72, 0x26, 0xe2, 0x37,
+	0xb3, 0x12, 0x5f, 0xca, 0x42, 0x7c, 0x39, 0x99, 0x78, 0x48, 0x27, 0xbe, 0x92, 0x4c, 0xfc, 0xd6,
+	0x55, 0x12, 0xff, 0xac, 0x08, 0xbb, 0xf1, 0xfc, 0xad, 0x77, 0xe9, 0x1b, 0x00, 0x43, 0x41, 0x83,
+	0xd5, 0xc7, 0x3c, 0xfc, 0x03, 0x2a, 0x87, 0x96, 0xfb, 0x1c, 0xdd, 0x5a, 0x2c, 0x0f, 0xe6, 0x82,
+	0xf1, 0xd5, 0xb3, 0xc8, 0xed, 0x0f, 0xe6, 0xbe, 0xb7, 0xa9, 0xb8, 0xcd, 0xc2, 0x5b, 0x21, 0xf0,
+	0x16, 0x5a, 0x02, 0x6f, 0x72, 0x79, 0x30, 0x17, 0x4f, 0x84, 0xc2, 0x5b, 0xb8, 0xe3, 0xc1, 0x7c,
+	0xa1, 0xcb, 0xcd, 0x04, 0x5d, 0x96, 0x94, 0xba, 0x2c, 0x2b, 0x75, 0x09, 0x51, 0x5d, 0x9e, 0x2c,
+	0xeb, 0xb2, 0x22, 0x74, 0xf9, 0x86, 0x44, 0x12, 0xcf, 0x68, 0x26, 0x29, 0x6e, 0x65, 0x95, 0xe2,
+	0x76, 0x16, 0x29, 0xee, 0x24, 0x4b, 0xf1, 0x5a, 0xba, 0x14, 0x77, 0x63, 0x52, 0x34, 0x60, 0xdb,
+	0xc6, 0x8c, 0xf7, 0xe5, 0x0e, 0xfd, 0x7f, 0xe2, 0xf7, 0x15, 0xdf, 0x78, 0x12, 0x6c, 0x42, 0x3d,
+	0xb8, 0xae, 0x42, 0x8a, 0x04, 0x52, 0xc4, 0x56, 0x61, 0x46, 0x9d, 0x62, 0xae, 0x5f, 0x17, 0x54,
+	0x2f, 0x9c, 0xde, 0xe7, 0xcb, 0x77, 0x60, 0xef, 0x2a, 0xef, 0xc0, 0x7b, 0xb0, 0xa7, 0xaa, 0x97,
+	0x51, 0x37, 0x5a, 0x28, 0xeb, 0x49, 0xec, 0x86, 0x95, 0xf2, 0xd1, 0xaf, 0x5b, 0xb0, 0x1f, 0x5f,
+	0x3b, 0x27, 0xde, 0x8c, 0x0e, 0x09, 0xfa, 0x0a, 0xaa, 0xea, 0xc7, 0x0a, 0xbd, 0x96, 0xe9, 0x31,
+	0xab, 0x25, 0x46, 0x37, 0x5e, 0xfd, 0xe6, 0xb7, 0xdf, 0x7f, 0xc8, 0xd5, 0x8d, 0x6a, 0x6f, 0x88,
+	0x6d, 0xbb, 0x3f, 0x24, 0x0e, 0x27, 0x5e, 0x4f, 0x16, 0xde, 0xec, 0xae, 0xd6, 0x41, 0x17, 0x50,
+	0x55, 0x17, 0x9b, 0x8b, 0xe8, 0xa9, 0xc5, 0x68, 0xed, 0xe0, 0x45, 0xe6, 0x15, 0x89, 0x32, 0xfe,
+	0x2f, 0x10, 0xe8, 0x28, 0x01, 0x01, 0x7a, 0x02, 0x7b, 0xaa, 0xba, 0x19, 0x1d, 0x2e, 0x5a, 0x8f,
+	0xc4, 0xaa, 0x3a, 0xe5, 0xe0, 0x87, 0x22, 0x6c, 0x03, 0xd5, 0xd5, 0x61, 0x7b, 0x5f, 0x52, 0xeb,
+	0x02, 0x3d, 0xd3, 0xa0, 0xaa, 0xae, 0x0f, 0x16, 0x67, 0x4f, 0xad, 0x1f, 0x52, 0x00, 0xbc, 0x2e,
+	0x00, 0x34, 0x6b, 0x69, 0x00, 0xfc, 0xf4, 0x7f, 0x0d, 0x37, 0x94, 0x25, 0x2c, 0x6a, 0x65, 0xa9,
+	0x70, 0x2f, 0x07, 0x70, 0x74, 0x19, 0x80, 0xa7, 0x50, 0x55, 0xb7, 0x41, 0x8b, 0x1c, 0xa4, 0xb6,
+	0x49, 0x97, 0x93, 0xd0, 0x49, 0x25, 0xe1, 0xb9, 0x96, 0x54, 0x5e, 0xc8, 0x96, 0xee, 0x66, 0xfa,
+	0x2d, 0x88, 0xf6, 0x9a, 0xb5, 0xa4, 0x9e, 0xd5, 0xb8, 0x2d, 0xd0, 0x74, 0x3b, 0x37, 0x93, 0xd0,
+	0x2c, 0xb5, 0xa8, 0x17, 0x3d, 0xd9, 0x7f, 0xfe, 0xa2, 0x25, 0x35, 0x63, 0x2b, 0xf0, 0xb2, 0xb4,
+	0xf9, 0xb5, 0xc3, 0xb4, 0xdb, 0x12, 0x83, 0x8a, 0xd6, 0x83, 0xfa, 0xa3, 0xa6, 0xee, 0x41, 0x25,
+	0xd0, 0x4e, 0xda, 0x95, 0xca, 0x9a, 0xc5, 0xb7, 0x05, 0xb4, 0x63, 0xf4, 0xe6, 0x3a, 0xd0, 0x02,
+	0xa6, 0x7f, 0xd6, 0x92, 0x3a, 0x8a, 0x95, 0x54, 0x66, 0xf9, 0x6c, 0x94, 0x8c, 0xf1, 0x9e, 0xc0,
+	0x78, 0xa7, 0xb6, 0x3e, 0x46, 0xff, 0x42, 0xfc, 0xa4, 0x25, 0x7d, 0x18, 0x58, 0x81, 0x99, 0xe5,
+	0xa3, 0xda, 0xa5, 0xa9, 0xec, 0xac, 0x0f, 0x73, 0x50, 0x14, 0xdf, 0xf5, 0x8e, 0xff, 0x0c, 0x00,
+	0x00, 0xff, 0xff, 0xed, 0x86, 0x61, 0x6e, 0x25, 0x14, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -908,10 +1307,20 @@ type OutboundResourceServiceClient interface {
 	ReadOutboundResource(ctx context.Context, in *ReadOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
 	// Update OutboundResource
 	UpdateOutboundResource(ctx context.Context, in *UpdateOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
-	// Path OutboundResource
-	PathOutboundResource(ctx context.Context, in *PathOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
+	// Patch OutboundResource
+	PatchOutboundResource(ctx context.Context, in *PatchOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
 	// Remove OutboundResource
 	DeleteOutboundResource(ctx context.Context, in *DeleteOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error)
+	// Create CreateOutboundResourceDisplay
+	CreateOutboundResourceDisplay(ctx context.Context, in *CreateOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error)
+	// List of ResourceDisplay
+	SearchOutboundResourceDisplay(ctx context.Context, in *SearchOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ListOutboundResourceDisplay, error)
+	// ResourceDisplay item
+	ReadOutboundResourceDisplay(ctx context.Context, in *ReadOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error)
+	// Update ResourceDisplay
+	UpdateOutboundResourceDisplay(ctx context.Context, in *UpdateOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error)
+	// Remove ResourceDisplay
+	DeleteOutboundResourceDisplay(ctx context.Context, in *DeleteOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error)
 }
 
 type outboundResourceServiceClient struct {
@@ -958,9 +1367,9 @@ func (c *outboundResourceServiceClient) UpdateOutboundResource(ctx context.Conte
 	return out, nil
 }
 
-func (c *outboundResourceServiceClient) PathOutboundResource(ctx context.Context, in *PathOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
+func (c *outboundResourceServiceClient) PatchOutboundResource(ctx context.Context, in *PatchOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
 	out := new(OutboundResource)
-	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/PathOutboundResource", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/PatchOutboundResource", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -970,6 +1379,51 @@ func (c *outboundResourceServiceClient) PathOutboundResource(ctx context.Context
 func (c *outboundResourceServiceClient) DeleteOutboundResource(ctx context.Context, in *DeleteOutboundResourceRequest, opts ...grpc.CallOption) (*OutboundResource, error) {
 	out := new(OutboundResource)
 	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/DeleteOutboundResource", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *outboundResourceServiceClient) CreateOutboundResourceDisplay(ctx context.Context, in *CreateOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error) {
+	out := new(ResourceDisplay)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/CreateOutboundResourceDisplay", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *outboundResourceServiceClient) SearchOutboundResourceDisplay(ctx context.Context, in *SearchOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ListOutboundResourceDisplay, error) {
+	out := new(ListOutboundResourceDisplay)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/SearchOutboundResourceDisplay", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *outboundResourceServiceClient) ReadOutboundResourceDisplay(ctx context.Context, in *ReadOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error) {
+	out := new(ResourceDisplay)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/ReadOutboundResourceDisplay", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *outboundResourceServiceClient) UpdateOutboundResourceDisplay(ctx context.Context, in *UpdateOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error) {
+	out := new(ResourceDisplay)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/UpdateOutboundResourceDisplay", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *outboundResourceServiceClient) DeleteOutboundResourceDisplay(ctx context.Context, in *DeleteOutboundResourceDisplayRequest, opts ...grpc.CallOption) (*ResourceDisplay, error) {
+	out := new(ResourceDisplay)
+	err := c.cc.Invoke(ctx, "/engine.OutboundResourceService/DeleteOutboundResourceDisplay", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -986,10 +1440,20 @@ type OutboundResourceServiceServer interface {
 	ReadOutboundResource(context.Context, *ReadOutboundResourceRequest) (*OutboundResource, error)
 	// Update OutboundResource
 	UpdateOutboundResource(context.Context, *UpdateOutboundResourceRequest) (*OutboundResource, error)
-	// Path OutboundResource
-	PathOutboundResource(context.Context, *PathOutboundResourceRequest) (*OutboundResource, error)
+	// Patch OutboundResource
+	PatchOutboundResource(context.Context, *PatchOutboundResourceRequest) (*OutboundResource, error)
 	// Remove OutboundResource
 	DeleteOutboundResource(context.Context, *DeleteOutboundResourceRequest) (*OutboundResource, error)
+	// Create CreateOutboundResourceDisplay
+	CreateOutboundResourceDisplay(context.Context, *CreateOutboundResourceDisplayRequest) (*ResourceDisplay, error)
+	// List of ResourceDisplay
+	SearchOutboundResourceDisplay(context.Context, *SearchOutboundResourceDisplayRequest) (*ListOutboundResourceDisplay, error)
+	// ResourceDisplay item
+	ReadOutboundResourceDisplay(context.Context, *ReadOutboundResourceDisplayRequest) (*ResourceDisplay, error)
+	// Update ResourceDisplay
+	UpdateOutboundResourceDisplay(context.Context, *UpdateOutboundResourceDisplayRequest) (*ResourceDisplay, error)
+	// Remove ResourceDisplay
+	DeleteOutboundResourceDisplay(context.Context, *DeleteOutboundResourceDisplayRequest) (*ResourceDisplay, error)
 }
 
 // UnimplementedOutboundResourceServiceServer can be embedded to have forward compatible implementations.
@@ -1008,11 +1472,26 @@ func (*UnimplementedOutboundResourceServiceServer) ReadOutboundResource(ctx cont
 func (*UnimplementedOutboundResourceServiceServer) UpdateOutboundResource(ctx context.Context, req *UpdateOutboundResourceRequest) (*OutboundResource, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateOutboundResource not implemented")
 }
-func (*UnimplementedOutboundResourceServiceServer) PathOutboundResource(ctx context.Context, req *PathOutboundResourceRequest) (*OutboundResource, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PathOutboundResource not implemented")
+func (*UnimplementedOutboundResourceServiceServer) PatchOutboundResource(ctx context.Context, req *PatchOutboundResourceRequest) (*OutboundResource, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchOutboundResource not implemented")
 }
 func (*UnimplementedOutboundResourceServiceServer) DeleteOutboundResource(ctx context.Context, req *DeleteOutboundResourceRequest) (*OutboundResource, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteOutboundResource not implemented")
+}
+func (*UnimplementedOutboundResourceServiceServer) CreateOutboundResourceDisplay(ctx context.Context, req *CreateOutboundResourceDisplayRequest) (*ResourceDisplay, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOutboundResourceDisplay not implemented")
+}
+func (*UnimplementedOutboundResourceServiceServer) SearchOutboundResourceDisplay(ctx context.Context, req *SearchOutboundResourceDisplayRequest) (*ListOutboundResourceDisplay, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOutboundResourceDisplay not implemented")
+}
+func (*UnimplementedOutboundResourceServiceServer) ReadOutboundResourceDisplay(ctx context.Context, req *ReadOutboundResourceDisplayRequest) (*ResourceDisplay, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReadOutboundResourceDisplay not implemented")
+}
+func (*UnimplementedOutboundResourceServiceServer) UpdateOutboundResourceDisplay(ctx context.Context, req *UpdateOutboundResourceDisplayRequest) (*ResourceDisplay, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateOutboundResourceDisplay not implemented")
+}
+func (*UnimplementedOutboundResourceServiceServer) DeleteOutboundResourceDisplay(ctx context.Context, req *DeleteOutboundResourceDisplayRequest) (*ResourceDisplay, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteOutboundResourceDisplay not implemented")
 }
 
 func RegisterOutboundResourceServiceServer(s *grpc.Server, srv OutboundResourceServiceServer) {
@@ -1091,20 +1570,20 @@ func _OutboundResourceService_UpdateOutboundResource_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OutboundResourceService_PathOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PathOutboundResourceRequest)
+func _OutboundResourceService_PatchOutboundResource_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchOutboundResourceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OutboundResourceServiceServer).PathOutboundResource(ctx, in)
+		return srv.(OutboundResourceServiceServer).PatchOutboundResource(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/engine.OutboundResourceService/PathOutboundResource",
+		FullMethod: "/engine.OutboundResourceService/PatchOutboundResource",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OutboundResourceServiceServer).PathOutboundResource(ctx, req.(*PathOutboundResourceRequest))
+		return srv.(OutboundResourceServiceServer).PatchOutboundResource(ctx, req.(*PatchOutboundResourceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1123,6 +1602,96 @@ func _OutboundResourceService_DeleteOutboundResource_Handler(srv interface{}, ct
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OutboundResourceServiceServer).DeleteOutboundResource(ctx, req.(*DeleteOutboundResourceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OutboundResourceService_CreateOutboundResourceDisplay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOutboundResourceDisplayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OutboundResourceServiceServer).CreateOutboundResourceDisplay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.OutboundResourceService/CreateOutboundResourceDisplay",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OutboundResourceServiceServer).CreateOutboundResourceDisplay(ctx, req.(*CreateOutboundResourceDisplayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OutboundResourceService_SearchOutboundResourceDisplay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOutboundResourceDisplayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OutboundResourceServiceServer).SearchOutboundResourceDisplay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.OutboundResourceService/SearchOutboundResourceDisplay",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OutboundResourceServiceServer).SearchOutboundResourceDisplay(ctx, req.(*SearchOutboundResourceDisplayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OutboundResourceService_ReadOutboundResourceDisplay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReadOutboundResourceDisplayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OutboundResourceServiceServer).ReadOutboundResourceDisplay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.OutboundResourceService/ReadOutboundResourceDisplay",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OutboundResourceServiceServer).ReadOutboundResourceDisplay(ctx, req.(*ReadOutboundResourceDisplayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OutboundResourceService_UpdateOutboundResourceDisplay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateOutboundResourceDisplayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OutboundResourceServiceServer).UpdateOutboundResourceDisplay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.OutboundResourceService/UpdateOutboundResourceDisplay",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OutboundResourceServiceServer).UpdateOutboundResourceDisplay(ctx, req.(*UpdateOutboundResourceDisplayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OutboundResourceService_DeleteOutboundResourceDisplay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteOutboundResourceDisplayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OutboundResourceServiceServer).DeleteOutboundResourceDisplay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.OutboundResourceService/DeleteOutboundResourceDisplay",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OutboundResourceServiceServer).DeleteOutboundResourceDisplay(ctx, req.(*DeleteOutboundResourceDisplayRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1148,12 +1717,32 @@ var _OutboundResourceService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _OutboundResourceService_UpdateOutboundResource_Handler,
 		},
 		{
-			MethodName: "PathOutboundResource",
-			Handler:    _OutboundResourceService_PathOutboundResource_Handler,
+			MethodName: "PatchOutboundResource",
+			Handler:    _OutboundResourceService_PatchOutboundResource_Handler,
 		},
 		{
 			MethodName: "DeleteOutboundResource",
 			Handler:    _OutboundResourceService_DeleteOutboundResource_Handler,
+		},
+		{
+			MethodName: "CreateOutboundResourceDisplay",
+			Handler:    _OutboundResourceService_CreateOutboundResourceDisplay_Handler,
+		},
+		{
+			MethodName: "SearchOutboundResourceDisplay",
+			Handler:    _OutboundResourceService_SearchOutboundResourceDisplay_Handler,
+		},
+		{
+			MethodName: "ReadOutboundResourceDisplay",
+			Handler:    _OutboundResourceService_ReadOutboundResourceDisplay_Handler,
+		},
+		{
+			MethodName: "UpdateOutboundResourceDisplay",
+			Handler:    _OutboundResourceService_UpdateOutboundResourceDisplay_Handler,
+		},
+		{
+			MethodName: "DeleteOutboundResourceDisplay",
+			Handler:    _OutboundResourceService_DeleteOutboundResourceDisplay_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

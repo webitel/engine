@@ -18,6 +18,12 @@ type OutboundCallResource struct {
 	Gateway               *Lookup     `json:"gateway" db:"gateway"`
 }
 
+type ResourceDisplay struct {
+	Id         int64  `json:"id" db:"id"`
+	Display    string `json:"display" db:"display"`
+	ResourceId int64  `json:"resource_id" db:"resource_id"`
+}
+
 type OutboundCallResourcePath struct {
 	Limit                 *int         `json:"limit" db:"limit"`
 	Enabled               *bool        `json:"enabled" db:"enabled"`
@@ -33,6 +39,11 @@ func (r *OutboundCallResource) GetGatewayId() *int {
 	if r.Gateway != nil {
 		return NewInt(r.Gateway.Id)
 	}
+	return nil
+}
+
+func (d *ResourceDisplay) IsValid() *AppError {
+	//FIXME
 	return nil
 }
 

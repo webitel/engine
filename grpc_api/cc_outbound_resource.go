@@ -191,7 +191,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 	return transformOutboundResource(resource), nil
 }
 
-func (api *outboundResource) PathOutboundResource(ctx context.Context, in *engine.PathOutboundResourceRequest) (*engine.OutboundResource, error) {
+func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engine.PatchOutboundResourceRequest) (*engine.OutboundResource, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -272,6 +272,196 @@ func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *eng
 	}
 
 	return transformOutboundResource(resource), nil
+}
+
+func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, in *engine.CreateOutboundResourceDisplayRequest) (*engine.ResourceDisplay, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	display := &model.ResourceDisplay{
+		Display:    in.GetDisplay(),
+		ResourceId: in.GetResourceId(),
+	}
+
+	if err = display.IsValid(); err != nil {
+		return nil, err
+	}
+
+	display, err = api.app.CreateOutboundResourceDisplay(display)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineResourceDisplay(display), nil
+}
+
+func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, in *engine.SearchOutboundResourceDisplayRequest) (*engine.ListOutboundResourceDisplay, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.ResourceDisplay
+
+	list, err = api.app.GetOutboundResourceDisplayPage(session.Domain(in.DomainId), in.GetResourceId(), int(in.GetPage()), int(in.GetSize()))
+
+	items := make([]*engine.ResourceDisplay, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineResourceDisplay(v))
+	}
+	return &engine.ListOutboundResourceDisplay{
+		Items: items,
+	}, nil
+}
+
+func (api *outboundResource) ReadOutboundResourceDisplay(ctx context.Context, in *engine.ReadOutboundResourceDisplayRequest) (*engine.ResourceDisplay, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var display *model.ResourceDisplay
+	display, err = api.app.GetOutboundResourceDisplay(session.Domain(in.GetDomainId()), in.GetResourceId(), in.GetId())
+
+	if err != nil {
+		return nil, err
+	} else {
+		return toEngineResourceDisplay(display), nil
+	}
+}
+
+func (api *outboundResource) UpdateOutboundResourceDisplay(ctx context.Context, in *engine.UpdateOutboundResourceDisplayRequest) (*engine.ResourceDisplay, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	display := &model.ResourceDisplay{
+		Id:         in.GetId(),
+		Display:    in.GetDisplay(),
+		ResourceId: in.GetResourceId(),
+	}
+
+	if err = display.IsValid(); err != nil {
+		return nil, err
+	}
+
+	display, err = api.app.UpdateOutboundResourceDisplay(session.Domain(in.GetDomainId()), display)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineResourceDisplay(display), nil
+}
+
+func (api *outboundResource) DeleteOutboundResourceDisplay(ctx context.Context, in *engine.DeleteOutboundResourceDisplayRequest) (*engine.ResourceDisplay, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var display *model.ResourceDisplay
+	display, err = api.app.RemoveOutboundResourceDisplay(session.Domain(in.GetDomainId()), in.GetResourceId(), in.GetId())
+
+	if err != nil {
+		return nil, err
+	} else {
+		return toEngineResourceDisplay(display), nil
+	}
+
+}
+
+func toEngineResourceDisplay(src *model.ResourceDisplay) *engine.ResourceDisplay {
+	return &engine.ResourceDisplay{
+		Id:      src.Id,
+		Display: src.Display,
+	}
 }
 
 func transformOutboundResource(src *model.OutboundCallResource) *engine.OutboundResource {
