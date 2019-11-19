@@ -22,12 +22,12 @@ func NewSqlMemberStore(sqlStore SqlStore) store.MemberStore {
 func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppError) {
 	var out *model.Member
 	if err := s.GetMaster().SelectOne(&out, `with m as (
-			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id)
-			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId)
+			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills)
+			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :Skills)
 			returning *
 		)
 		select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-			   m.communications,  cc_get_lookup(qb.id, qb.name::text) as bucket
+			   m.communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, skills
 		from m
 			left join calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id`,
@@ -40,6 +40,7 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 			"TimezoneId":     member.Timezone.Id,
 			"Communications": member.ToJsonCommunications(),
 			"BucketId":       member.GetBucketId(),
+			"Skills":         pq.Array(member.Skills),
 		}); nil != err {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", member.Name, err.Error()), http.StatusInternalServerError)
@@ -63,7 +64,7 @@ func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) ([]in
 	}
 
 	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
-		"timezone_id", "communications", "bucket_id"))
+		"timezone_id", "communications", "bucket_id", "skills"))
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -71,7 +72,8 @@ func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) ([]in
 	defer stmp.Close()
 	result := make([]int64, 0, len(members))
 	for k, v := range members {
-		_, err = stmp.Exec(k, queueId, v.Priority, v.GetExpireAt(), v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(), v.GetBucketId())
+		_, err = stmp.Exec(k, queueId, v.Priority, v.GetExpireAt(), v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(),
+			v.GetBucketId(), pq.Array(v.Skills))
 		if err != nil {
 			goto _error
 		}
@@ -83,8 +85,8 @@ func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) ([]in
 	} else {
 
 		_, err = tx.Select(&result, `with i as (
-			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id)
-			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id
+			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills)
+			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills
 			from cc_member_tmp
 			returning id
 		)
@@ -132,7 +134,7 @@ offset :Offset`, map[string]interface{}{
 func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.AppError) {
 	var member *model.Member
 	if err := s.GetReplica().SelectOne(&member, `select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-				   m.communications, null as bucket
+				   m.communications, null as bucket, skills
 			from cc_member m
 				left join calendar_timezones ct on m.timezone_id = ct.id
 	where m.id = :Id and m.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`, map[string]interface{}{
@@ -156,12 +158,13 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
             name = :Name,
             timezone_id = :TimezoneId,
             communications = :Communications,
-            bucket_id = :BucketId
+            bucket_id = :BucketId,
+			skills = :Skills
     where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )
 select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-       m.communications,  cc_get_lookup(qb.id, qb.name::text) as bucket
+       m.communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, m.skills
 from m
     left join calendar_timezones ct on m.timezone_id = ct.id
     left join cc_bucket qb on m.bucket_id = qb.id`, map[string]interface{}{
@@ -175,6 +178,7 @@ from m
 		"Id":             member.Id,
 		"QueueId":        member.QueueId,
 		"DomainId":       domainId,
+		"Skills":         pq.Array(member.Skills),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.app_error", nil,

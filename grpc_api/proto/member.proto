@@ -63,7 +63,9 @@ message UpdateMemberRequest {
     Lookup timezone = 7;
     repeated MemberCommunicationCreateRequest communications = 8;
     Lookup bucket = 9;
-    int64 domain_id = 10;
+    repeated int64 skills = 10;
+
+    int64 domain_id = 11;
 }
 
 message ReadMemberRequest {
@@ -86,6 +88,7 @@ message CreateMemberBulkItem {
     Lookup timezone = 5;
     repeated MemberCommunicationCreateRequest communications = 6;
     Lookup bucket = 7;
+    repeated int64 skills = 8;
 }
 
 message MemberBulkResponse {
@@ -112,8 +115,9 @@ message CreateMemberRequest {
     Lookup timezone = 6;
     repeated MemberCommunicationCreateRequest communications = 7;
     Lookup bucket = 8;
+    repeated int64 skills = 9;
 
-    int64 domain_id = 9;
+    int64 domain_id = 10;
 }
 
 message Member {
@@ -126,10 +130,11 @@ message Member {
     Lookup timezone = 7;
     repeated MemberCommunication communications = 8;
     Lookup bucket = 9;
+    repeated int64 skills = 10;
 
-    string stop_cause = 10;
-    int64 last_activity_at = 11;
-    int32 attempts = 12;
+    string stop_cause = 11;
+    int64 last_activity_at = 12;
+    int32 attempts = 13;
 }
 
 message MemberCommunication {

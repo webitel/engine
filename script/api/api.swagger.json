@@ -5758,6 +5758,13 @@
         },
         "bucket": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
         }
       }
     },
@@ -5815,6 +5822,13 @@
         },
         "bucket": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
         },
         "domain_id": {
           "type": "string",
@@ -6521,6 +6535,13 @@
         },
         "bucket": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
         },
         "stop_cause": {
           "type": "string"
@@ -7507,6 +7528,13 @@
         },
         "bucket": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
         },
         "domain_id": {
           "type": "string",

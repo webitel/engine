@@ -15,6 +15,7 @@ type Member struct {
 	Timezone       Lookup                `json:"timezone" db:"timezone"`
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
+	Skills         Int64Array            `json:"skills" db:"skills"`
 }
 
 type MemberCommunication struct {

@@ -35,6 +35,7 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	oldMember.Timezone = member.Timezone
 	oldMember.Communications = member.Communications
 	oldMember.Bucket = member.Bucket
+	oldMember.Skills = member.Skills
 
 	oldMember, err = app.Store.Member().Update(domainId, oldMember)
 	if err != nil {

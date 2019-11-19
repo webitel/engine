@@ -48,6 +48,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 			Id: int(in.GetTimezone().GetId()),
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
+		Skills:         in.GetSkills(),
 	}
 
 	if in.Bucket != nil {
@@ -112,6 +113,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 				Id: int(v.GetTimezone().GetId()),
 			},
 			Communications: toModelMemberCommunications(v.GetCommunications()),
+			Skills:         v.GetSkills(),
 		}
 		if v.GetExpireAt() != 0 {
 			member.ExpireAt = model.NewInt64(v.GetExpireAt())
@@ -241,6 +243,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 			Id: int(in.GetTimezone().GetId()),
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
+		Skills:         in.GetSkills(),
 	}
 
 	if in.ExpireAt != 0 {
@@ -313,6 +316,7 @@ func toEngineMember(src *model.Member) *engine.Member {
 		Communications: toEngineMemberCommunications(src.Communications),
 		LastActivityAt: src.LastActivityAt,
 		Attempts:       int32(src.Attempts),
+		Skills:         src.Skills,
 	}
 
 	if src.Bucket != nil {
