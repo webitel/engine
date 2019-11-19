@@ -6,10 +6,10 @@ func (app *App) CreateMember(member *model.Member) (*model.Member, *model.AppErr
 	return app.Store.Member().Create(member)
 }
 
-func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Member) *model.AppError {
+func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError) {
 	_, err := app.GetQueueById(domainId, queueId)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	return app.Store.Member().BulkCreate(queueId, members)
 }

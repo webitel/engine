@@ -6536,7 +6536,16 @@
       }
     },
     "engineMemberBulkResponse": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        }
+      }
     },
     "engineMemberCommunication": {
       "type": "object",

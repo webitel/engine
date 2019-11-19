@@ -129,13 +129,16 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 
 		members = append(members, member)
 	}
+	var inserted []int64
 
-	err = api.app.BulkCreateMember(session.Domain(in.GetDomainId()), in.GetQueueId(), members)
+	inserted, err = api.app.BulkCreateMember(session.Domain(in.GetDomainId()), in.GetQueueId(), members)
 	if err != nil {
 		return nil, err
 	}
 
-	return &engine.MemberBulkResponse{}, nil
+	return &engine.MemberBulkResponse{
+		Ids: inserted,
+	}, nil
 }
 
 func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest) (*engine.Member, error) {

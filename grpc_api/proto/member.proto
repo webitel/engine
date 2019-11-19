@@ -89,7 +89,7 @@ message CreateMemberBulkItem {
 }
 
 message MemberBulkResponse {
-
+    repeated int64 ids = 1;
 }
 
 message SearchMemberRequest {

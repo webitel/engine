@@ -48,44 +48,62 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 	}
 }
 
-func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) *model.AppError {
+func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) ([]int64, *model.AppError) {
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
 	tx, err = s.GetMaster().Begin()
 	if err != nil {
-		return model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	stmp, err = tx.Prepare(pq.CopyIn("cc_member", "queue_id", "priority", "expire_at", "variables", "name",
+	_, err = tx.Exec("CREATE temp table cc_member_tmp ON COMMIT DROP as table cc_member with no data")
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
 		"timezone_id", "communications", "bucket_id"))
 	if err != nil {
-		return model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	defer stmp.Close()
-
-	for _, v := range members {
-		_, err = stmp.Exec(queueId, v.Priority, v.GetExpireAt(), v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(), v.GetBucketId())
+	result := make([]int64, 0, len(members))
+	for k, v := range members {
+		_, err = stmp.Exec(k, queueId, v.Priority, v.GetExpireAt(), v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(), v.GetBucketId())
 		if err != nil {
 			goto _error
 		}
 	}
+
 	_, err = stmp.Exec()
 	if err != nil {
 		goto _error
+	} else {
+
+		_, err = tx.Select(&result, `with i as (
+			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id)
+			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id
+			from cc_member_tmp
+			returning id
+		)
+		select id from i`)
+		if err != nil {
+			goto _error
+		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
 	}
 
-	return nil
+	return result, nil
 
 _error:
 	tx.Rollback()
-	return model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
+	return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
 }
 
 func (s SqlMemberStore) GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.Member, *model.AppError) {
