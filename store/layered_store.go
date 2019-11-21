@@ -120,3 +120,7 @@ func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
 func (s *LayeredStore) Member() MemberStore {
 	return s.DatabaseLayer.Member()
 }
+
+func (s *LayeredStore) List() ListStore {
+	return s.DatabaseLayer.List()
+}

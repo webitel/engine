@@ -22,6 +22,7 @@ type API struct {
 	member                *member
 	bucket                *bucket
 	queueBucket           *queueBucket
+	list                  *list
 
 	routingScheme       *routingScheme
 	routingOutboundCall *routingOutboundCall
@@ -49,6 +50,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.communicationType = NewCommunicationTypeApi(a)
 	api.bucket = NewBucketApi(a)
 	api.queueBucket = NewQueueBucketApi(a)
+	api.list = NewListApi(a)
 
 	api.member = NewMemberApi(a)
 
@@ -66,6 +68,7 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterCommunicationTypeServiceServer(server, api.communicationType)
 	engine.RegisterBucketServiceServer(server, api.bucket)
 	engine.RegisterQueueBucketServiceServer(server, api.queueBucket)
+	engine.RegisterListServiceServer(server, api.list)
 
 	engine.RegisterMemberServiceServer(server, api.member)
 

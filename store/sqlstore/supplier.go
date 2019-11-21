@@ -48,6 +48,7 @@ type SqlSupplierOldStores struct {
 	queueRouting            store.QueueRoutingStore
 	supervisorTeam          store.SupervisorTeamStore
 	communicationType       store.CommunicationTypeStore
+	list                    store.ListStore
 
 	member store.MemberStore
 
@@ -94,6 +95,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.queueRouting = NewSqlQueueRoutingStore(supplier)
 	supplier.oldStores.supervisorTeam = NewSqlSupervisorTeamStore(supplier)
 	supplier.oldStores.communicationType = NewSqlCommunicationTypeStore(supplier)
+	supplier.oldStores.list = NewSqlListStore(supplier)
 
 	supplier.oldStores.member = NewSqlMemberStore(supplier)
 
@@ -292,6 +294,10 @@ func (ss *SqlSupplier) SupervisorTeam() store.SupervisorTeamStore {
 
 func (ss *SqlSupplier) Member() store.MemberStore {
 	return ss.oldStores.member
+}
+
+func (ss *SqlSupplier) List() store.ListStore {
+	return ss.oldStores.list
 }
 
 type typeConverter struct{}

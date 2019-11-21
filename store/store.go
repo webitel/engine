@@ -52,6 +52,7 @@ type Store interface {
 	OutboundResourceGroup() OutboundResourceGroupStore
 	OutboundResourceInGroup() OutboundResourceInGroupStore
 	CommunicationType() CommunicationTypeStore
+	List() ListStore
 
 	Member() MemberStore
 
@@ -260,4 +261,21 @@ type BucketInQueueStore interface {
 	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueBucket, *model.AppError)
 	Update(domainId int64, queueBucket *model.QueueBucket) (*model.QueueBucket, *model.AppError)
 	Delete(queueId, id int64) *model.AppError
+}
+
+type ListStore interface {
+	Create(list *model.List) (*model.List, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.List, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.List, *model.AppError)
+	Get(domainId int64, id int64) (*model.List, *model.AppError)
+	Update(list *model.List) (*model.List, *model.AppError)
+	Delete(domainId, id int64) *model.AppError
+
+	//Communications
+	CreateCommunication(comm *model.ListCommunication) (*model.ListCommunication, *model.AppError)
+	GetAllPageCommunication(domainId, listId int64, offset, limit int) ([]*model.ListCommunication, *model.AppError)
+	GetCommunication(domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError)
+	UpdateCommunication(domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError)
+	DeleteCommunication(domainId, listId, id int64) *model.AppError
 }

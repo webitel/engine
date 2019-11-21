@@ -28,6 +28,7 @@ type SqlStore interface {
 	QueueRouting() store.QueueRoutingStore
 	SupervisorTeam() store.SupervisorTeamStore
 	CommunicationType() store.CommunicationTypeStore
+	List() store.ListStore
 
 	Member() store.MemberStore
 

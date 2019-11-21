@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package engine;
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+service ListService {
+    // Create List
+    rpc CreateList (CreateListRequest) returns (List) {
+        option (google.api.http) = {
+            post: "/call_center/list"
+            body: "*"
+        };
+    }
+
+    // List of List
+    rpc SearchList(SearchListRequest) returns (ListOfList) {
+        option (google.api.http) = {
+            get: "/call_center/list"
+        };
+    }
+    // List item
+    rpc ReadList(ReadListRequest) returns (List) {
+        option (google.api.http) = {
+            get: "/call_center/list/{id}"
+        };
+    }
+
+    // Update list
+    rpc UpdateList(UpdateListRequest) returns (List) {
+        option (google.api.http) = {
+            put: "/call_center/list/{id}"
+            body: "*"
+        };
+    }
+    // Remove list
+    rpc DeleteList(DeleteListRequest) returns (List) {
+        option (google.api.http) = {
+            delete: "/call_center/list/{id}"
+        };
+    }
+
+    // Create ListCommunication
+    rpc CreateListCommunication (CreateListCommunicationRequest) returns (ListCommunication) {
+        option (google.api.http) = {
+            post: "/call_center/list/{list_id}/communication"
+            body: "*"
+        };
+    }
+    // List of List
+    rpc SearchListCommunication(SearchListCommunicationRequest) returns (ListOfListCommunication) {
+        option (google.api.http) = {
+            get: "/call_center/list/{list_id}/communication"
+        };
+    }
+
+    // List item
+    rpc ReadListCommunication(ReadListCommunicationRequest) returns (ListCommunication) {
+        option (google.api.http) = {
+            get: "/call_center/list/{list_id}/communication/{id}"
+        };
+    }
+
+    // Update ListCommunication
+    rpc UpdateListCommunication(UpdateListCommunicationRequest) returns (ListCommunication) {
+        option (google.api.http) = {
+            put: "/call_center/list/{list_id}/communication/{id}"
+            body: "*"
+        };
+    }
+
+    // Remove ListCommunication
+    rpc DeleteListCommunication(DeleteListCommunicationRequest) returns (ListCommunication) {
+        option (google.api.http) = {
+            delete: "/call_center/list/{list_id}/communication/{id}"
+        };
+    }
+}
+
+message DeleteListCommunicationRequest {
+    int64 list_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
+}
+
+message UpdateListCommunicationRequest {
+    int64 list_id = 1;
+    int64 id = 2;
+    string number = 3;
+    string description = 4;
+    int64 domain_id = 5;
+}
+
+message ReadListCommunicationRequest {
+    int64 list_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
+}
+
+message SearchListCommunicationRequest {
+    int64 list_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message ListOfListCommunication {
+    repeated ListCommunication items = 1;
+}
+
+message CreateListCommunicationRequest {
+    string number = 1;
+    string description = 2;
+    int64 list_id = 3;
+    int64 domain_id = 4;
+}
+
+message ListCommunication {
+    int64 id = 1;
+    int64 list_id = 2;
+    string number = 3;
+    string description = 4;
+}
+
+message DeleteListRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateListRequest {
+    int64 id = 1;
+
+    string name = 2;
+    string description = 3;
+
+    int64 domain_id = 4;
+}
+
+
+message ReadListRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message ListOfList {
+    repeated List items = 1;
+}
+
+message SearchListRequest {
+    int32 page = 1;
+    int32 size = 2;
+    int64 domain_id = 3;
+}
+
+message CreateListRequest {
+    string name = 1;
+    string description = 2;
+
+    int64 domain_id = 3;
+}
+
+message List {
+    int64 id = 1;
+    int64 created_at = 2;
+    Lookup created_by = 3;
+    int64 updated_at = 4;
+    Lookup updated_by = 5;
+    int64 domain_id = 6;
+    string name = 7;
+    string description = 8;
+}
