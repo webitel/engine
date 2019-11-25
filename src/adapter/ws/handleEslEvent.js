@@ -59,6 +59,7 @@ function handleEslEvent(application) {
                             // "variable_webitel_data": "'" + jsonEvent['variable_webitel_data'] + "'",
                             "variable_w_transfer_result": jsonEvent['variable_w_transfer_result'],
                             "variable_signal_bond": jsonEvent['variable_signal_bond'],
+                            "variable_billsec": +(jsonEvent['variable_billsec'] || 0)
 
                         };
                         if (jsonEvent.hasOwnProperty('variable_dlr_session_id')) {
