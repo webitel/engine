@@ -27,7 +27,7 @@ func (cm *callManager) getClient(nodeId string) (CallClient, *model.AppError) {
 
 //FIXME
 func (cm *callManager) SipRouteUri() string {
-	return "sip:192.168.177.9"
+	return "sip:192.168.177.10"
 }
 
 func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.AppError) {

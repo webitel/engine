@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -29,6 +30,25 @@ func (s SqlBucketStore) Create(bucket *model.Bucket) (*model.Bucket, *model.AppE
 	}
 }
 
+func (s SqlBucketStore) CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+
+	res, err := s.GetReplica().SelectNullInt(`select 1
+		where exists(
+          select 1
+          from cc_bucket_acl a
+          where a.dc = :DomainId
+            and a.object = :Id
+            and a.subject = any (:Groups::int[])
+            and a.access & :Access = :Access
+        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
+
+	if err != nil {
+		return false, nil
+	}
+
+	return res.Valid && res.Int64 == 1, nil
+}
+
 func (s SqlBucketStore) GetAllPage(domainId int64, offset, limit int) ([]*model.Bucket, *model.AppError) {
 	var buckets []*model.Bucket
 
@@ -41,6 +61,28 @@ where b.domain_id = :DomainId
 order by b.id
 limit :Limit
 offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+		return nil, model.NewAppError("SqlBucketStore.GetAllPage", "store.sql_bucket.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return buckets, nil
+	}
+}
+
+func (s SqlBucketStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Bucket, *model.AppError) {
+	var buckets []*model.Bucket
+
+	if _, err := s.GetReplica().Select(&buckets,
+		`select b.id,
+       b.name,
+       b.description
+from cc_bucket b
+where b.domain_id = :DomainId and (
+    exists(select 1
+      from cc_bucket_acl a
+      where a.dc = b.domain_id and a.object = b.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+  )
+order by b.id
+limit :Limit
+offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": model.PERMISSION_ACCESS_READ.Value()}); err != nil {
 		return nil, model.NewAppError("SqlBucketStore.GetAllPage", "store.sql_bucket.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return buckets, nil

@@ -108,7 +108,7 @@ func (s SqlCalendarStore) CheckAccess(domainId, id int64, groups []int, access m
 		return false, nil
 	}
 
-	return (res.Valid && res.Int64 == 1), nil
+	return res.Valid && res.Int64 == 1, nil
 }
 
 func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Calendar, *model.AppError) {

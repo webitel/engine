@@ -249,7 +249,9 @@ type MemberStore interface {
 
 type BucketSore interface {
 	Create(bucket *model.Bucket) (*model.Bucket, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.Bucket, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Bucket, *model.AppError)
 	Get(domainId int64, id int64) (*model.Bucket, *model.AppError)
 	Update(bucket *model.Bucket) (*model.Bucket, *model.AppError)
 	Delete(domainId int64, id int64) *model.AppError

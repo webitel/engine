@@ -6,12 +6,20 @@ func (app *App) CreateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppErr
 	return app.Store.Bucket().Create(bucket)
 }
 
+func (a *App) BucketCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.Bucket().CheckAccess(domainId, id, groups, access)
+}
+
 func (app *App) GetBucket(id, domainId int64) (*model.Bucket, *model.AppError) {
 	return app.Store.Bucket().Get(domainId, id)
 }
 
 func (app *App) GetBucketsPage(domainId int64, page, perPage int) ([]*model.Bucket, *model.AppError) {
 	return app.Store.Bucket().GetAllPage(domainId, page*perPage, perPage)
+}
+
+func (a *App) GetBucketsPageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.Bucket, *model.AppError) {
+	return a.Store.Bucket().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
 }
 
 func (app *App) UpdateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppError) {

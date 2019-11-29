@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 const (
 	CALL_DIRECTION_INTERNAL = "internal"
@@ -75,30 +78,41 @@ type CallRequest struct {
 }
 
 type Call struct {
-	Event       string  `json:"event"`
-	Id          string  `json:"id"`
-	DomainId    int     `json:"domain_id"`
-	UserId      int     `json:"user_id"`
-	State       int     `json:"state"`
-	StateName   string  `json:"state_name"`
-	ToNumber    string  `json:"to_number"`
-	ToName      string  `json:"to_name"`
-	FromNumber  string  `json:"from_number"`
-	FromName    string  `json:"from_name"`
-	Destination string  `json:"destination"`
-	Direction   string  `json:"direction"`
-	ParentId    *string `json:"parent_id"`
-	NodeName    string  `json:"node_name"`
-	HangupCause string  `json:"hangup_cause"`
+	Action      string `json:"action"`
+	Id          string `json:"id"`
+	DomainId    string `json:"domain_id"`
+	UserId      string `json:"user_id,omitempty"`
+	Application string `json:"application,omitempty"`
+	ToNumber    string `json:"to_number,omitempty"`
+	ToName      string `json:"to_name,omitempty"`
+	FromNumber  string `json:"from_number,omitempty"`
+	FromName    string `json:"from_name,omitempty"`
+	Destination string `json:"destination,omitempty"`
+	Direction   string `json:"direction,omitempty"`
+	ParentId    string `json:"parent_id,omitempty"`
+	NodeName    string `json:"node_name,omitempty"`
+	HangupCause string `json:"cause,omitempty"`
+	Digit       string `json:"digit,omitempty"`
 
-	Debug map[string]interface{}
+	Debug   map[string]interface{} `json:"debug,omitempty"`
+	Payload *CallPayload           `json:"payload,string,omitempty"`
+}
+
+type CallPayload map[string]interface{}
+
+func (cp CallPayload) MarshalJSON() ([]byte, error) {
+	return json.Marshal((*map[string]interface{})(&cp))
+}
+
+func (cp *CallPayload) UnmarshalText(b []byte) error {
+	return json.Unmarshal(b, (*map[string]interface{})(cp))
 }
 
 func (cr *CallRequest) AddUserVariable(name, value string) {
 	if cr.Variables == nil {
 		cr.Variables = make(map[string]string)
 	}
-	cr.Variables[fmt.Sprintf("usr_%s", name)] = value
+	cr.Variables[fmt.Sprintf("wbt_%s", name)] = value
 }
 
 type CallEvent interface {
@@ -111,24 +125,7 @@ type CallEvent interface {
 
 func NewWebSocketCallEvent(call *Call) *WebSocketEvent {
 	e := NewWebSocketEvent(WEBSOCKET_EVENT_CALL)
-	e.Add("event", call.Event)
-	e.Add("id", call.Id)
-	e.Add("domain_id", call.DomainId)
-	e.Add("node_name", call.NodeName)
-	e.Add("user_id", call.UserId)
-	e.Add("state", call.State)
-	e.Add("state_name", call.StateName)
-	e.Add("to_number", call.ToNumber)
-	e.Add("to_name", call.ToName)
-	e.Add("from_number", call.FromNumber)
-	e.Add("from_name", call.FromName)
-	e.Add("destination", call.Destination)
-	e.Add("direction", call.Direction)
-	e.Add("parent_id", call.ParentId)
-
-	if call.HangupCause != "" {
-		e.Add("hangup_cause", call.HangupCause)
-	}
+	e.Add("call", call)
 
 	if call.Debug != nil {
 		e.Add("debug", call.Debug)

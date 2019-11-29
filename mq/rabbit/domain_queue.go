@@ -131,101 +131,12 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 }
 
 func parseCallEvent(data []byte) (*model.Call, error) {
-	var e REvent
-	err := json.Unmarshal(data, &e)
+	fmt.Println(string(data))
+	var call model.Call
+	err := json.Unmarshal(data, &call)
 	if err != nil {
 		return nil, err
 	}
-
-	var call model.Call
-
-	call.Debug = e
-
-	call.Id = e.Id()
-	call.NodeName = e.GetStringVariable(model.CALL_EVENT_HEADER_NODE_NAME)
-	call.DomainId, _ = e.GetIntVariable(model.CALL_EVENT_HEADER_DOMAIN_ID)
-	call.UserId, _ = e.GetIntVariable(model.CALL_EVENT_HEADER_USER_ID)
-
-	//call.State, _ = e.GetIntVariable(model.CALL_EVENT_HEADER_STATE_NUMBER)
-	//call.StateName = e.GetStringVariable(model.CALL_EVENT_HEADER_STATE)
-	call.StateName = e.GetStringVariable("Event-Name")
-
-	call.HangupCause = e.GetStringVariable(model.CALL_EVENT_HEADER_HANGUP_CAUSE)
-
-	eventName := e.GetStringVariable("Event-Name")
-	switch eventName {
-	case model.EVENT_CHANNEL_CREATE:
-		call.Event = model.CALL_STATE_RINGING
-	case model.EVENT_CHANNEL_ANSWER, model.EVENT_CHANNEL_UNHOLD, model.EVENT_CHANNEL_BRIDGE:
-		call.Event = model.CALL_STATE_ACTIVE
-	case model.EVENT_CHANNEL_HOLD:
-		call.Event = model.CALL_STATE_HOLD
-	case model.EVENT_CHANNEL_HANGUP_COMPLETE:
-		call.Event = model.CALL_STATE_HANGUP
-	default:
-		fmt.Println("UNHANDLE CALL EVENT ERROR: >>>>>>>>>>>> ", eventName)
-		call.Event = model.CALL_STATE_ACTIVE
-	}
-
-	lastBridgedTo := e.GetStringVariable("Other-Leg-Unique-ID")
-
-	if lastBridgedTo != "" {
-		call.ParentId = model.NewString(lastBridgedTo)
-	}
-
-	//var bridgeA, bridgeB string
-	//bridgeA = e.GetStringVariable("Bridge-A-Unique-ID")
-	//bridgeB = e.GetStringVariable("Bridge-B-Unique-ID")
-	//
-	//if bridgeA != "" && bridgeB != "" {
-	//	if call.Id == bridgeA {
-	//		call.ParentId = model.NewString(bridgeB)
-	//	} else {
-	//		call.ParentId = model.NewString(bridgeA)
-	//	}
-	//}
-
-	displayDirection := e.GetStringVariable(model.CALL_EVENT_HEADER_CALL_DISPLAY_DIRECTION)
-	direction := e.GetStringVariable(model.CALL_EVENT_HEADER_CALL_DIRECTION)
-
-	if displayDirection != "" {
-		call.Direction = displayDirection
-	} else if direction == model.CALL_DIRECTION_INBOUND {
-		call.Direction = model.CALL_DIRECTION_INBOUND
-	} else {
-		call.Direction = model.CALL_DIRECTION_OUTBOUND
-	}
-
-	tst, _ := e.GetIntVariable("Caller-Channel-Answered-Time")
-	tstDirection := e.GetStringVariable(model.CALL_EVENT_HEADER_CALL_DIRECTION)
-
-	if call.Direction == model.CALL_DIRECTION_OUTBOUND && tstDirection == model.CALL_DIRECTION_INTERNAL && (tst == 0 || eventName == "CHANNEL_ANSWER") {
-		call.Destination = e.GetStringVariable(model.CALL_EVENT_HEADER_DESTINATION)
-
-		call.FromNumber = e.GetStringVariable(model.CALL_EVENT_HEADER_TO_NUMBER)
-		call.FromName = e.GetStringVariable(model.CALL_EVENT_HEADER_TO_NAME)
-
-		call.ToNumber = e.GetStringVariable(model.CALL_EVENT_HEADER_FROM_NUMBER)
-		call.ToName = e.GetStringVariable(model.CALL_EVENT_HEADER_FROM_NAME)
-	} else {
-		call.Destination = e.GetStringVariable(model.CALL_EVENT_HEADER_FROM_DESTINATION)
-
-		call.FromNumber = e.GetStringVariable(model.CALL_EVENT_HEADER_FROM_NUMBER)
-		call.FromName = e.GetStringVariable(model.CALL_EVENT_HEADER_FROM_NAME)
-
-		call.ToNumber = e.GetStringVariable(model.CALL_EVENT_HEADER_TO_NUMBER)
-		call.ToName = e.GetStringVariable(model.CALL_EVENT_HEADER_TO_NAME)
-	}
-
-	if call.ToNumber == "" {
-		call.ToNumber = call.Destination
-	}
-
-	if call.ToName == "" {
-		call.ToName = call.ToNumber
-	}
-
-	//fmt.Println(e.GetStringVariable("Event-Name"), " -> ", e.GetStringVariable("Channel-State-Number"), " -> ", e.GetStringVariable("Channel-State"))
 
 	return &call, nil
 }
@@ -238,7 +149,7 @@ func (dq *DomainQueue) readCallMessage(data []byte, rk string) {
 		return
 	}
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.NodeName, e.Id, e.StateName, rk))
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.NodeName, e.Id, e.Action, rk))
 	dq.callEvents <- e
 }
 

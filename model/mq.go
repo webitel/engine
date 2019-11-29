@@ -3,7 +3,7 @@ package model
 const (
 	MQ_CALL_EXCHANGE = "call"
 
-	MQ_CALL_TEMPLATE_ROUTING_KEY = "events.%d.%d"
+	MQ_CALL_TEMPLATE_ROUTING_KEY = "events.#.%d.%d"
 
 	MQ_DIRECT = "direct"
 	MQ_TOPIC  = "topic"
