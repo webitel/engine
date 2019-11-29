@@ -220,7 +220,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 			"absolute_codec_string": "pcma",
 
 			"hangup_after_bridge":        "true",
-			"effective_caller_id_number": info.TelNumber,
+			"effective_caller_id_number": info.Extension,
 			"effective_caller_id_name":   info.Name,
 			"effective_callee_id_name":   destinationName,
 			"effective_callee_id_number": destinationNumber,
@@ -228,7 +228,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 			"origination_caller_id_name":   destinationName,
 			"origination_caller_id_number": destinationNumber,
 			"origination_callee_id_name":   info.Name,
-			"origination_callee_id_number": info.TelNumber,
+			"origination_callee_id_number": info.Extension,
 		},
 		Timeout:      0,
 		CallerName:   destinationName,
