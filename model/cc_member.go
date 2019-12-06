@@ -18,6 +18,32 @@ type Member struct {
 	Skills         Int64Array            `json:"skills" db:"skills"`
 }
 
+type MemberAttempt struct {
+	Id          int64   `json:"id" db:"id"`
+	CreatedAt   int64   `json:"created_at" db:"created_at"`
+	Destination string  `json:"destination" db:"destination"`
+	Weight      int     `json:"weight" db:"weight"`
+	OriginateAt int64   `json:"originate_at" db:"originate_at"`
+	AnsweredAt  int64   `json:"answered_at" db:"answered_at"`
+	BridgedAt   int64   `json:"bridged_at" db:"bridged_at"`
+	HangupAt    int64   `json:"hangup_at" db:"hangup_at"`
+	Resource    Lookup  `json:"resource" db:"resource"`
+	LegAId      *string `json:"leg_a_id" db:"leg_a_id"`
+	LegBId      *string `json:"leg_b_id" db:"leg_b_id"`
+	Node        *string `json:"node" json:"node"`
+	Result      *string `json:"result" db:"result"`
+	Agent       *Lookup `json:"agent" db:"agent"`
+	Bucket      *Lookup `json:"bucket" db:"bucket"`
+	Logs        []byte  `json:"logs" db:"logs"`
+	Success     *bool   `json:"success" db:"success"`
+	Active      bool    `json:"active" db:"active"`
+}
+
+func (a *MemberAttempt) IsValid() *AppError {
+	//FIXME
+	return nil
+}
+
 type MemberCommunication struct {
 	Id             int64  `json:"id"`
 	Priority       int    `json:"priority" db:"priority"`

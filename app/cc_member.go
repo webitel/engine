@@ -58,3 +58,7 @@ func (app *App) RemoveMember(domainId, queueId, id int64) (*model.Member, *model
 	}
 	return member, nil
 }
+
+func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
+	return app.Store.Member().AttemptsList(memberId)
+}

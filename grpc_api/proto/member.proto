@@ -3,6 +3,7 @@ syntax = "proto3";
 package engine;
 
 import "const.proto";
+import "google/protobuf/struct.proto";
 import "google/api/annotations.proto";
 
 service MemberService {
@@ -45,6 +46,45 @@ service MemberService {
             delete: "/call_center/queues/{queue_id}/members/{id}"
         };
     }
+
+    // SearchMemberAttempts
+    rpc SearchMemberAttempts(SearchMemberAttemptsRequest) returns (ListMemberAttempt) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/members/{member_id}/attempts"
+        };
+    }
+}
+
+message ListMemberAttempt {
+    repeated MemberAttempt items = 1;
+}
+
+message SearchMemberAttemptsRequest {
+    int64 member_id = 1;
+    int64 queue_id = 2;
+    int64 domain_id = 3;
+}
+
+message MemberAttempt {
+    int64 id = 1;
+
+    int64 created_at = 2;
+    string destination = 3;
+    int32 weight = 4;
+    int64 originate_at = 5;
+    int64 answered_at = 6;
+    int64 bridged_at = 7;
+    int64 hangup_at = 8;
+    Lookup resource = 9;
+    string leg_a_id = 10;
+    string leg_b_id = 11;
+    string node = 12;
+    string result = 13;
+    Lookup agent = 14;
+    Lookup bucket = 15;
+    google.protobuf.Value logs = 16;
+    bool success = 17;
+    bool active = 18;
 }
 
 message DeleteMemberRequest {

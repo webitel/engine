@@ -195,3 +195,73 @@ func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
 	}
 	return nil
 }
+
+func (s SqlMemberStore) AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
+	var attempts []*model.MemberAttempt
+	//FIXME
+	if _, err := s.GetReplica().Select(&attempts, `with active as (
+    select a.id,
+           --a.member_id,
+           (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
+           'TODO' as destination,
+           a.weight,
+           a.originate_at,
+           a.answered_at,
+           a.bridged_at,
+           a.hangup_at,
+           cc_get_lookup(cor.id, cor.name) as resource,
+           leg_a_id,
+           leg_b_id,
+           node_id as node,
+           result,
+           cc_get_lookup(u.id, u.name) as agent,
+           cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
+           logs,
+           success,
+           false as active
+    from cc_member_attempt a
+        left join cc_outbound_resource cor on a.resource_id = cor.id
+        left join cc_agent ca on a.agent_id = ca.id
+        left join directory.wbt_user u on u.id = ca.user_id
+        left join cc_bucket cb on a.bucket_id = cb.id
+    where a.member_id = :MemberId
+    order by a.created_at
+), log as (
+    select a.id,
+          -- a.member_id,
+           (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
+           'TODO' as destination,
+           a.weight,
+           a.originate_at,
+           a.answered_at,
+           a.bridged_at,
+           a.hangup_at,
+           cc_get_lookup(cor.id, cor.name) as resource,
+           leg_a_id,
+           leg_b_id,
+           node_id as node,
+           result,
+           cc_get_lookup(u.id, u.name) as agent,
+           cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
+           logs,
+           success,
+           false as active
+    from cc_member_attempt_log a
+        left join cc_outbound_resource cor on a.resource_id = cor.id
+        left join cc_agent ca on a.agent_id = ca.id
+        left join directory.wbt_user u on u.id = ca.user_id
+        left join cc_bucket cb on a.bucket_id = cb.id
+    where a.member_id = :MemberId
+    order by a.created_at
+)
+select *
+from active a
+union all
+select *
+from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
+		return nil, model.NewAppError("SqlMemberStore.AttemptsList", "store.sql_member.get_attempts_all.app_error", nil,
+			fmt.Sprintf("MemberId=%v, %s", memberId, err.Error()), extractCodeFromErr(err))
+	}
+
+	return attempts, nil
+}

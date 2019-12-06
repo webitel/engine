@@ -272,12 +272,6 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
-	if msg.EventType() == "CHANNEL_CALLSTATE" || true {
-		return true
-	} else {
-		return false
-	}
-
 	if _, ok := webCon.listenEvents[msg.EventType()]; !ok {
 		return true
 	}
