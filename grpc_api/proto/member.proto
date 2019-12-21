@@ -104,8 +104,9 @@ message UpdateMemberRequest {
     repeated MemberCommunicationCreateRequest communications = 8;
     Lookup bucket = 9;
     repeated int64 skills = 10;
+    int64 min_offering_at = 11;
 
-    int64 domain_id = 11;
+    int64 domain_id = 12;
 }
 
 message ReadMemberRequest {
@@ -129,6 +130,7 @@ message CreateMemberBulkItem {
     repeated MemberCommunicationCreateRequest communications = 6;
     Lookup bucket = 7;
     repeated int64 skills = 8;
+    int64 min_offering_at = 9;
 }
 
 message MemberBulkResponse {
@@ -156,8 +158,9 @@ message CreateMemberRequest {
     repeated MemberCommunicationCreateRequest communications = 7;
     Lookup bucket = 8;
     repeated int64 skills = 9;
+    int64 min_offering_at = 10;
 
-    int64 domain_id = 10;
+    int64 domain_id = 11;
 }
 
 message Member {
@@ -171,24 +174,30 @@ message Member {
     repeated MemberCommunication communications = 8;
     Lookup bucket = 9;
     repeated int64 skills = 10;
+    int64 min_offering_at = 11;
 
-    string stop_cause = 11;
-    int64 last_activity_at = 12;
-    int32 attempts = 13;
+    string stop_cause = 12;
+    int64 last_activity_at = 13;
+    int32 attempts = 14;
 }
 
 message MemberCommunication {
     int64 id = 1;
     int32 priority = 2;
     string destination = 3;
-    int32 state = 4;
-    string description = 5;
-    int64 last_activity_at = 6;
-    int32 attempts = 7;
-    string last_cause = 8;
+    string description = 4;
+    int64 resource_id = 5;
+    string display = 6;
+
+    int32 state = 7;
+    int64 last_activity_at = 8;
+    int32 attempts = 9;
+    string last_cause = 10;
 }
 message MemberCommunicationCreateRequest {
     int32 priority = 1;
     string destination = 2;
     string description = 3;
+    int64 resource_id = 4;
+    string display = 5;
 }

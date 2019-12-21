@@ -71,7 +71,7 @@ func (dq *DomainQueue) BindUserCall(id string, userId int64) *model.BindQueueEve
 	b := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
-		Routing:  "#", //fmt.Sprintf(model.MQ_CALL_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
+		Routing:  fmt.Sprintf(model.MQ_CALL_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
 		Exchange: model.MQ_CALL_EXCHANGE,
 	}
 

@@ -49,6 +49,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		Skills:         in.GetSkills(),
+		MinOfferingAt:  in.MinOfferingAt,
 	}
 
 	if in.Bucket != nil {
@@ -114,6 +115,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			},
 			Communications: toModelMemberCommunications(v.GetCommunications()),
 			Skills:         v.GetSkills(),
+			MinOfferingAt:  v.MinOfferingAt,
 		}
 		if v.GetExpireAt() != 0 {
 			member.ExpireAt = model.NewInt64(v.GetExpireAt())
@@ -244,6 +246,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		Skills:         in.GetSkills(),
+		MinOfferingAt:  in.MinOfferingAt,
 	}
 
 	if in.ExpireAt != 0 {
@@ -405,6 +408,7 @@ func toEngineMember(src *model.Member) *engine.Member {
 		LastActivityAt: src.LastActivityAt,
 		Attempts:       int32(src.Attempts),
 		Skills:         src.Skills,
+		MinOfferingAt:  src.MinOfferingAt,
 	}
 
 	if src.Bucket != nil {
@@ -433,6 +437,8 @@ func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.Mem
 			LastActivityAt: v.LastActivityAt,
 			Attempts:       int32(v.Attempts),
 			LastCause:      v.LastCause,
+			ResourceId:     int64(v.ResourceId),
+			Display:        v.Display,
 		})
 	}
 
@@ -447,6 +453,8 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 			Priority:    int(v.GetPriority()),
 			Destination: v.GetDestination(),
 			Description: v.GetDescription(),
+			ResourceId:  int(v.ResourceId),
+			Display:     v.Display,
 		})
 	}
 

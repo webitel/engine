@@ -7,6 +7,7 @@ type Member struct {
 	QueueId        int64                 `json:"queue_id" db:"queue_id"`
 	Priority       int                   `json:"priority" db:"priority"`
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
+	MinOfferingAt  int64                 `json:"min_offering_at" db:"min_offering_at"`
 	Name           string                `json:"name" db:"name"`
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Variables      StringMap             `json:"variables" db:"variables"`
@@ -53,6 +54,8 @@ type MemberCommunication struct {
 	LastActivityAt int64  `json:"last_activity_at" db:"last_activity_at"`
 	Attempts       int    `json:"attempts" db:"attempts"`
 	LastCause      string `json:"last_cause" db:"last_cause"`
+	ResourceId     int    `json:"resource_id" db:"resource_id"`
+	Display        string `json:"display" db:"display"`
 }
 
 func (m *Member) ToJsonCommunications() string {

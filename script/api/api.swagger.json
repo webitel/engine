@@ -6317,6 +6317,10 @@
             "type": "string",
             "format": "int64"
           }
+        },
+        "min_offering_at": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -6381,6 +6385,10 @@
             "type": "string",
             "format": "int64"
           }
+        },
+        "min_offering_at": {
+          "type": "string",
+          "format": "int64"
         },
         "domain_id": {
           "type": "string",
@@ -7180,6 +7188,10 @@
             "format": "int64"
           }
         },
+        "min_offering_at": {
+          "type": "string",
+          "format": "int64"
+        },
         "stop_cause": {
           "type": "string"
         },
@@ -7287,12 +7299,19 @@
         "destination": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
+        "resource_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "display": {
+          "type": "string"
+        },
         "state": {
           "type": "integer",
           "format": "int32"
-        },
-        "description": {
-          "type": "string"
         },
         "last_activity_at": {
           "type": "string",
@@ -7318,6 +7337,13 @@
           "type": "string"
         },
         "description": {
+          "type": "string"
+        },
+        "resource_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "display": {
           "type": "string"
         }
       }
@@ -8282,6 +8308,10 @@
             "type": "string",
             "format": "int64"
           }
+        },
+        "min_offering_at": {
+          "type": "string",
+          "format": "int64"
         },
         "domain_id": {
           "type": "string",
