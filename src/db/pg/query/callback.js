@@ -253,7 +253,8 @@ function add(pool) {
                       m.callback_time,
                       m.done,
                       c2.name as queue_name,
-                      c2.id as queue_id
+                      c2.id as queue_id,
+                      (extract(EPOCH from m.created_on) * 1000)::int8 created_on
                     from callback_members m
                       inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$5]::VARCHAR(100)[]
                     where m.domain = $1 and not done is true and callback_time < $2 ${filter ? "AND number like $6 || '%'" : ""}
@@ -289,7 +290,8 @@ function add(pool) {
                       m.callback_time,
                       m.done,
                       c2.name as queue_name,
-                      c2.id as queue_id
+                      c2.id as queue_id,
+                      (extract(EPOCH from m.created_on) * 1000)::int8 created_on
                     from callback_members m
                       inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$5]::VARCHAR(100)[]
                     where m.domain = $1 and not done is true and callback_time >= $2 ${filter ? "AND number like $6 || '%'" : ""}
@@ -325,7 +327,8 @@ function add(pool) {
                       m.done,
                       m.done_at,
                       c2.name as queue_name,
-                      c2.id as queue_id
+                      c2.id as queue_id,
+                      (extract(EPOCH from m.created_on) * 1000)::int8 created_on
                     from callback_members m
                       inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$4]::VARCHAR(100)[]
                     where m.domain = $1 and done is true ${filter ? "AND number like $5 || '%'" : ""}
@@ -360,7 +363,8 @@ function add(pool) {
                       m.callback_time,
                       m.done,
                       c2.name as queue_name,
-                      c2.id as queue_id
+                      c2.id as queue_id,
+                      (extract(EPOCH from m.created_on) * 1000)::int8 created_on
                     from callback_members m
                       inner join callback_queue c2 on m.queue_id = c2.id and c2.agents @> ARRAY[$4]::VARCHAR(100)[]
                     where m.domain = $1 and not done is true and callback_time is null ${filter ? "AND number like $5 || '%'" : ""}
