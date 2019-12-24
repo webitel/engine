@@ -22,6 +22,8 @@ type CallManager interface {
 	MakeOutboundCall(req *model.CallRequest) (string, *model.AppError)
 	Bridge(legA, legANode, legB, legBNode string)
 	CallClient(id string) (CallClient, *model.AppError)
+
+	SipWsAddress() string
 }
 
 type CallClient interface {
@@ -48,6 +50,7 @@ type CallClient interface {
 }
 
 type callManager struct {
+	sipServerAddr    string
 	serviceDiscovery discovery.ServiceDiscovery
 	poolConnections  discovery.Pool
 
@@ -59,12 +62,22 @@ type callManager struct {
 
 func NewCallManager(serviceDiscovery discovery.ServiceDiscovery) CallManager {
 	return &callManager{
+		sipServerAddr:    "192.168.177.9",
 		serviceDiscovery: serviceDiscovery,
 		poolConnections:  discovery.NewPoolConnections(),
 
 		stop:    make(chan struct{}),
 		stopped: make(chan struct{}),
 	}
+}
+
+//FIXME
+func (cm *callManager) SipRouteUri() string {
+	return "sip:" + cm.sipServerAddr
+}
+
+func (cm *callManager) SipWsAddress() string {
+	return "ws://" + cm.sipServerAddr + ":5080"
 }
 
 func (c *callManager) CallClient(id string) (CallClient, *model.AppError) {

@@ -64,6 +64,7 @@ type Store interface {
 
 type UserStore interface {
 	GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError)
+	DefaultDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError)
 }
 
 type CalendarStore interface {

@@ -131,7 +131,6 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 }
 
 func parseCallEvent(data []byte) (*model.Call, error) {
-	fmt.Println(string(data))
 	var call model.Call
 	err := json.Unmarshal(data, &call)
 	if err != nil {

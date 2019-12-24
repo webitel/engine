@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type User struct {
 	Id       *int64  `json:"id"`
@@ -23,4 +26,20 @@ func (u *UserCallInfo) GetCallEndpoints() []string {
 
 func (u *User) Root() bool {
 	return u.Id == nil && u.DomainId == nil
+}
+
+type UserDeviceConfig struct {
+	Server            string `json:"server" db:"server"`
+	Extension         string `json:"extension" db:"extension"`
+	Realm             string `json:"realm" db:"realm"`
+	Uri               string `json:"uri" db:"uri"`
+	AuthorizationUser string `json:"authorization_user" db:"authorization_user"`
+	Ha1               string `json:"ha1" db:"ha1"`
+}
+
+func (d UserDeviceConfig) ToMap() map[string]interface{} {
+	out := make(map[string]interface{})
+	data, _ := json.Marshal(d)
+	_ = json.Unmarshal(data, &out)
+	return out
 }
