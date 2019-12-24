@@ -410,6 +410,9 @@ module.exports = class Dialer extends EventEmitter2 {
             if (this._amd.hasOwnProperty('initialSilence')) {
                 amdParams.push(`initial_silence=${this._amd.initialSilence}`);
             }
+            if (this._amd.hasOwnProperty('silenceNotSure')) {
+                amdParams.push(`silence_notsure=${this._amd.silenceNotSure ? 1 : 0}`);
+            }
 
             this._amd._string = amdParams.join(' ');
 
