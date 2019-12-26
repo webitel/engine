@@ -17,7 +17,7 @@ func NewSqlUserStore(sqlStore SqlStore) store.UserStore {
 
 func (s SqlUserStore) GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError) {
 	var info *model.UserCallInfo
-	err := s.GetReplica().SelectOne(&info, `select u.name, u.extension, d.name as domain_name, u.envars as variables
+	err := s.GetReplica().SelectOne(&info, `(u.name)::text as name, u.extension, d.name as domain_name, u.profile as variables
 from directory.wbt_user u
     inner join directory.wbt_domain d on d.dc = u.dc
 where u.id = :UserId
