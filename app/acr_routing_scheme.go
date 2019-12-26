@@ -24,6 +24,8 @@ func (a *App) UpdateRoutingScheme(scheme *model.RoutingScheme) (*model.RoutingSc
 	oldScheme.Type = scheme.Type
 	oldScheme.Debug = scheme.Debug
 	oldScheme.Description = scheme.Description
+	oldScheme.Payload = scheme.Payload
+	oldScheme.Scheme = scheme.Scheme
 
 	oldScheme.UpdatedAt = scheme.UpdatedAt
 	oldScheme.UpdatedBy = model.Lookup{
