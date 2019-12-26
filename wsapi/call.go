@@ -216,10 +216,12 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 
 			"sip_h_X-Webitel-Destination": destinationNumber,
 
-			"origination_uuid":      callId,
-			"absolute_codec_string": "pcma",
+			"origination_uuid": callId,
+			//"media_webrtc":     "true",
+			//"absolute_codec_string": "VP8",
 
 			"hangup_after_bridge":        "true",
+			"hold_music":                 "silence",
 			"effective_caller_id_number": info.Extension,
 			"effective_caller_id_name":   info.Name,
 			"effective_callee_id_name":   destinationName,
