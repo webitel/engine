@@ -121,6 +121,10 @@ type AgentStore interface {
 	Update(agent *model.Agent) (*model.Agent, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 	SetStatus(domainId, agentId int64, status string, payload interface{}) (bool, *model.AppError)
+
+	/* view */
+	InTeam(domainId, id int64, offset, limit int) ([]*model.AgentInTeam, *model.AppError)
+	InQueue(domainId, id int64, offset, limit int) ([]*model.AgentInQueue, *model.AppError)
 }
 
 type AgentSkillStore interface {

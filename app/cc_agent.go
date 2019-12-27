@@ -66,3 +66,11 @@ func (a *App) SetAgentStatus(domainId, id int64, status model.AgentStatus) *mode
 		return model.NewAppError("SetAgentStatus.IsValid", "app.set_agent_status.is_valid.status.app_error", nil, status.String(), http.StatusBadRequest)
 	}
 }
+
+func (a *App) GetAgentInTeamPage(domainId, id int64, page, perPage int) ([]*model.AgentInTeam, *model.AppError) {
+	return a.Store.Agent().InTeam(domainId, id, page*perPage, perPage)
+}
+
+func (a *App) GetAgentInQueuePage(domainId, id int64, page, perPage int) ([]*model.AgentInQueue, *model.AppError) {
+	return a.Store.Agent().InQueue(domainId, id, page*perPage, perPage)
+}

@@ -211,6 +211,92 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 	return ResponseOk, nil
 }
 
+func (api *agent) SearchAgentInTeam(ctx context.Context, in *engine.SearchAgentInTeamRequest) (*engine.ListAgentInTeam, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.AgentInTeam
+	list, err = api.app.GetAgentInTeamPage(session.Domain(in.GetDomainId()), in.GetId(), int(in.GetPage()), int(in.GetSize()))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentInTeam, 0, len(list))
+
+	for _, v := range list {
+		items = append(items, &engine.AgentInTeam{
+			Team:     GetProtoLookup(&v.Team),
+			Strategy: v.Strategy,
+		})
+	}
+
+	return &engine.ListAgentInTeam{
+		Items: items,
+	}, nil
+}
+
+func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgentInQueueRequest) (*engine.ListAgentInQueue, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.AgentInQueue
+	list, err = api.app.GetAgentInQueuePage(session.Domain(in.GetDomainId()), in.GetId(), int(in.GetPage()), int(in.GetSize()))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentInQueue, 0, len(list))
+
+	for _, v := range list {
+		items = append(items, &engine.AgentInQueue{
+			Queue:         GetProtoLookup(&v.Queue),
+			Priority:      int32(v.Priority),
+			Type:          int32(v.Type),
+			Strategy:      v.Strategy,
+			Enabled:       v.Enabled,
+			CountMember:   int32(v.CountMembers),
+			WaitingMember: int32(v.WaitingMembers),
+			ActiveMember:  int32(v.ActiveMembers),
+		})
+	}
+
+	return &engine.ListAgentInQueue{
+		Items: items,
+	}, nil
+}
+
 func getAgentStatus(name string) model.AgentStatus {
 	return model.AgentStatus{name}
 }

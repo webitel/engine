@@ -50,7 +50,353 @@ func (x AgentStatusRequest_Status) String() string {
 }
 
 func (AgentStatusRequest_Status) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{6, 0}
+	return fileDescriptor_56ede974c0020f77, []int{12, 0}
+}
+
+type AgentInQueue struct {
+	Queue                *Lookup  `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+	Priority             int32    `protobuf:"varint,2,opt,name=priority,proto3" json:"priority,omitempty"`
+	Type                 int32    `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
+	Strategy             string   `protobuf:"bytes,4,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Enabled              bool     `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	CountMember          int32    `protobuf:"varint,6,opt,name=count_member,json=countMember,proto3" json:"count_member,omitempty"`
+	WaitingMember        int32    `protobuf:"varint,7,opt,name=waiting_member,json=waitingMember,proto3" json:"waiting_member,omitempty"`
+	ActiveMember         int32    `protobuf:"varint,8,opt,name=active_member,json=activeMember,proto3" json:"active_member,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AgentInQueue) Reset()         { *m = AgentInQueue{} }
+func (m *AgentInQueue) String() string { return proto.CompactTextString(m) }
+func (*AgentInQueue) ProtoMessage()    {}
+func (*AgentInQueue) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{0}
+}
+
+func (m *AgentInQueue) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentInQueue.Unmarshal(m, b)
+}
+func (m *AgentInQueue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentInQueue.Marshal(b, m, deterministic)
+}
+func (m *AgentInQueue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentInQueue.Merge(m, src)
+}
+func (m *AgentInQueue) XXX_Size() int {
+	return xxx_messageInfo_AgentInQueue.Size(m)
+}
+func (m *AgentInQueue) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentInQueue.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentInQueue proto.InternalMessageInfo
+
+func (m *AgentInQueue) GetQueue() *Lookup {
+	if m != nil {
+		return m.Queue
+	}
+	return nil
+}
+
+func (m *AgentInQueue) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *AgentInQueue) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
+
+func (m *AgentInQueue) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+func (m *AgentInQueue) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
+	}
+	return false
+}
+
+func (m *AgentInQueue) GetCountMember() int32 {
+	if m != nil {
+		return m.CountMember
+	}
+	return 0
+}
+
+func (m *AgentInQueue) GetWaitingMember() int32 {
+	if m != nil {
+		return m.WaitingMember
+	}
+	return 0
+}
+
+func (m *AgentInQueue) GetActiveMember() int32 {
+	if m != nil {
+		return m.ActiveMember
+	}
+	return 0
+}
+
+type ListAgentInQueue struct {
+	Items                []*AgentInQueue `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *ListAgentInQueue) Reset()         { *m = ListAgentInQueue{} }
+func (m *ListAgentInQueue) String() string { return proto.CompactTextString(m) }
+func (*ListAgentInQueue) ProtoMessage()    {}
+func (*ListAgentInQueue) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{1}
+}
+
+func (m *ListAgentInQueue) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListAgentInQueue.Unmarshal(m, b)
+}
+func (m *ListAgentInQueue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListAgentInQueue.Marshal(b, m, deterministic)
+}
+func (m *ListAgentInQueue) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListAgentInQueue.Merge(m, src)
+}
+func (m *ListAgentInQueue) XXX_Size() int {
+	return xxx_messageInfo_ListAgentInQueue.Size(m)
+}
+func (m *ListAgentInQueue) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListAgentInQueue.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListAgentInQueue proto.InternalMessageInfo
+
+func (m *ListAgentInQueue) GetItems() []*AgentInQueue {
+	if m != nil {
+		return m.Items
+	}
+	return nil
+}
+
+type SearchAgentInQueueRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchAgentInQueueRequest) Reset()         { *m = SearchAgentInQueueRequest{} }
+func (m *SearchAgentInQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchAgentInQueueRequest) ProtoMessage()    {}
+func (*SearchAgentInQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{2}
+}
+
+func (m *SearchAgentInQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchAgentInQueueRequest.Unmarshal(m, b)
+}
+func (m *SearchAgentInQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchAgentInQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchAgentInQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchAgentInQueueRequest.Merge(m, src)
+}
+func (m *SearchAgentInQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchAgentInQueueRequest.Size(m)
+}
+func (m *SearchAgentInQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchAgentInQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchAgentInQueueRequest proto.InternalMessageInfo
+
+func (m *SearchAgentInQueueRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *SearchAgentInQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchAgentInQueueRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchAgentInQueueRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type SearchAgentInTeamRequest struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Size                 int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	Page                 int32    `protobuf:"varint,4,opt,name=page,proto3" json:"page,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SearchAgentInTeamRequest) Reset()         { *m = SearchAgentInTeamRequest{} }
+func (m *SearchAgentInTeamRequest) String() string { return proto.CompactTextString(m) }
+func (*SearchAgentInTeamRequest) ProtoMessage()    {}
+func (*SearchAgentInTeamRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{3}
+}
+
+func (m *SearchAgentInTeamRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SearchAgentInTeamRequest.Unmarshal(m, b)
+}
+func (m *SearchAgentInTeamRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SearchAgentInTeamRequest.Marshal(b, m, deterministic)
+}
+func (m *SearchAgentInTeamRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SearchAgentInTeamRequest.Merge(m, src)
+}
+func (m *SearchAgentInTeamRequest) XXX_Size() int {
+	return xxx_messageInfo_SearchAgentInTeamRequest.Size(m)
+}
+func (m *SearchAgentInTeamRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SearchAgentInTeamRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SearchAgentInTeamRequest proto.InternalMessageInfo
+
+func (m *SearchAgentInTeamRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *SearchAgentInTeamRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+func (m *SearchAgentInTeamRequest) GetSize() int32 {
+	if m != nil {
+		return m.Size
+	}
+	return 0
+}
+
+func (m *SearchAgentInTeamRequest) GetPage() int32 {
+	if m != nil {
+		return m.Page
+	}
+	return 0
+}
+
+type AgentInTeam struct {
+	Team                 *Lookup  `protobuf:"bytes,1,opt,name=team,proto3" json:"team,omitempty"`
+	Strategy             string   `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *AgentInTeam) Reset()         { *m = AgentInTeam{} }
+func (m *AgentInTeam) String() string { return proto.CompactTextString(m) }
+func (*AgentInTeam) ProtoMessage()    {}
+func (*AgentInTeam) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{4}
+}
+
+func (m *AgentInTeam) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AgentInTeam.Unmarshal(m, b)
+}
+func (m *AgentInTeam) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AgentInTeam.Marshal(b, m, deterministic)
+}
+func (m *AgentInTeam) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AgentInTeam.Merge(m, src)
+}
+func (m *AgentInTeam) XXX_Size() int {
+	return xxx_messageInfo_AgentInTeam.Size(m)
+}
+func (m *AgentInTeam) XXX_DiscardUnknown() {
+	xxx_messageInfo_AgentInTeam.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AgentInTeam proto.InternalMessageInfo
+
+func (m *AgentInTeam) GetTeam() *Lookup {
+	if m != nil {
+		return m.Team
+	}
+	return nil
+}
+
+func (m *AgentInTeam) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+type ListAgentInTeam struct {
+	Items                []*AgentInTeam `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
+}
+
+func (m *ListAgentInTeam) Reset()         { *m = ListAgentInTeam{} }
+func (m *ListAgentInTeam) String() string { return proto.CompactTextString(m) }
+func (*ListAgentInTeam) ProtoMessage()    {}
+func (*ListAgentInTeam) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{5}
+}
+
+func (m *ListAgentInTeam) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListAgentInTeam.Unmarshal(m, b)
+}
+func (m *ListAgentInTeam) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListAgentInTeam.Marshal(b, m, deterministic)
+}
+func (m *ListAgentInTeam) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListAgentInTeam.Merge(m, src)
+}
+func (m *ListAgentInTeam) XXX_Size() int {
+	return xxx_messageInfo_ListAgentInTeam.Size(m)
+}
+func (m *ListAgentInTeam) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListAgentInTeam.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListAgentInTeam proto.InternalMessageInfo
+
+func (m *ListAgentInTeam) GetItems() []*AgentInTeam {
+	if m != nil {
+		return m.Items
+	}
+	return nil
 }
 
 type UpdateAgentRequest struct {
@@ -67,7 +413,7 @@ func (m *UpdateAgentRequest) Reset()         { *m = UpdateAgentRequest{} }
 func (m *UpdateAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateAgentRequest) ProtoMessage()    {}
 func (*UpdateAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{0}
+	return fileDescriptor_56ede974c0020f77, []int{6}
 }
 
 func (m *UpdateAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -128,7 +474,7 @@ func (m *ReadAgentRequest) Reset()         { *m = ReadAgentRequest{} }
 func (m *ReadAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadAgentRequest) ProtoMessage()    {}
 func (*ReadAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{1}
+	return fileDescriptor_56ede974c0020f77, []int{7}
 }
 
 func (m *ReadAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -175,7 +521,7 @@ func (m *DeleteAgentRequest) Reset()         { *m = DeleteAgentRequest{} }
 func (m *DeleteAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteAgentRequest) ProtoMessage()    {}
 func (*DeleteAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{2}
+	return fileDescriptor_56ede974c0020f77, []int{8}
 }
 
 func (m *DeleteAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -223,7 +569,7 @@ func (m *SearchAgentRequest) Reset()         { *m = SearchAgentRequest{} }
 func (m *SearchAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchAgentRequest) ProtoMessage()    {}
 func (*SearchAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{3}
+	return fileDescriptor_56ede974c0020f77, []int{9}
 }
 
 func (m *SearchAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -278,7 +624,7 @@ func (m *CreateAgentRequest) Reset()         { *m = CreateAgentRequest{} }
 func (m *CreateAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateAgentRequest) ProtoMessage()    {}
 func (*CreateAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{4}
+	return fileDescriptor_56ede974c0020f77, []int{10}
 }
 
 func (m *CreateAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -334,7 +680,7 @@ func (m *SkillAgent) Reset()         { *m = SkillAgent{} }
 func (m *SkillAgent) String() string { return proto.CompactTextString(m) }
 func (*SkillAgent) ProtoMessage()    {}
 func (*SkillAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{5}
+	return fileDescriptor_56ede974c0020f77, []int{11}
 }
 
 func (m *SkillAgent) XXX_Unmarshal(b []byte) error {
@@ -396,7 +742,7 @@ func (m *AgentStatusRequest) Reset()         { *m = AgentStatusRequest{} }
 func (m *AgentStatusRequest) String() string { return proto.CompactTextString(m) }
 func (*AgentStatusRequest) ProtoMessage()    {}
 func (*AgentStatusRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{6}
+	return fileDescriptor_56ede974c0020f77, []int{12}
 }
 
 func (m *AgentStatusRequest) XXX_Unmarshal(b []byte) error {
@@ -454,7 +800,7 @@ func (m *Agent) Reset()         { *m = Agent{} }
 func (m *Agent) String() string { return proto.CompactTextString(m) }
 func (*Agent) ProtoMessage()    {}
 func (*Agent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{7}
+	return fileDescriptor_56ede974c0020f77, []int{13}
 }
 
 func (m *Agent) XXX_Unmarshal(b []byte) error {
@@ -528,7 +874,7 @@ func (m *ListAgent) Reset()         { *m = ListAgent{} }
 func (m *ListAgent) String() string { return proto.CompactTextString(m) }
 func (*ListAgent) ProtoMessage()    {}
 func (*ListAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_56ede974c0020f77, []int{8}
+	return fileDescriptor_56ede974c0020f77, []int{14}
 }
 
 func (m *ListAgent) XXX_Unmarshal(b []byte) error {
@@ -558,6 +904,12 @@ func (m *ListAgent) GetItems() []*Agent {
 
 func init() {
 	proto.RegisterEnum("engine.AgentStatusRequest_Status", AgentStatusRequest_Status_name, AgentStatusRequest_Status_value)
+	proto.RegisterType((*AgentInQueue)(nil), "engine.AgentInQueue")
+	proto.RegisterType((*ListAgentInQueue)(nil), "engine.ListAgentInQueue")
+	proto.RegisterType((*SearchAgentInQueueRequest)(nil), "engine.SearchAgentInQueueRequest")
+	proto.RegisterType((*SearchAgentInTeamRequest)(nil), "engine.SearchAgentInTeamRequest")
+	proto.RegisterType((*AgentInTeam)(nil), "engine.AgentInTeam")
+	proto.RegisterType((*ListAgentInTeam)(nil), "engine.ListAgentInTeam")
 	proto.RegisterType((*UpdateAgentRequest)(nil), "engine.UpdateAgentRequest")
 	proto.RegisterType((*ReadAgentRequest)(nil), "engine.ReadAgentRequest")
 	proto.RegisterType((*DeleteAgentRequest)(nil), "engine.DeleteAgentRequest")
@@ -572,46 +924,62 @@ func init() {
 func init() { proto.RegisterFile("agent.proto", fileDescriptor_56ede974c0020f77) }
 
 var fileDescriptor_56ede974c0020f77 = []byte{
-	// 613 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0xdd, 0x6a, 0xd4, 0x40,
-	0x14, 0x76, 0xb2, 0x9b, 0x6d, 0xf7, 0x44, 0xcb, 0x76, 0xfc, 0x21, 0xa4, 0xfe, 0x84, 0x69, 0x2f,
-	0x96, 0x45, 0x1a, 0x59, 0xef, 0x7a, 0x23, 0x45, 0x5b, 0x28, 0x2c, 0xad, 0x64, 0xa9, 0x58, 0x41,
-	0xca, 0x98, 0x0c, 0xeb, 0xd0, 0x6c, 0x12, 0x33, 0xb3, 0x8a, 0x8a, 0x37, 0x22, 0xf8, 0x00, 0xbe,
-	0x84, 0x2f, 0xe2, 0x13, 0xf8, 0x0a, 0x3e, 0x88, 0x64, 0x66, 0x7f, 0xb2, 0xc9, 0x46, 0xa4, 0xbd,
-	0x9b, 0x39, 0x27, 0xf3, 0x9d, 0x6f, 0xbe, 0xf3, 0xcd, 0x09, 0x58, 0x74, 0xc4, 0x62, 0xb9, 0x9b,
-	0x66, 0x89, 0x4c, 0x70, 0x8b, 0xc5, 0x23, 0x1e, 0x33, 0xc7, 0x0a, 0x92, 0x58, 0x4c, 0x83, 0xce,
-	0xdd, 0x51, 0x92, 0x8c, 0x22, 0xe6, 0xd1, 0x94, 0x7b, 0x34, 0x8e, 0x13, 0x49, 0x25, 0x4f, 0x62,
-	0xa1, 0xb3, 0xe4, 0x3b, 0x02, 0x7c, 0x9a, 0x86, 0x54, 0xb2, 0xfd, 0x1c, 0xc8, 0x67, 0xef, 0x26,
-	0x4c, 0x48, 0xbc, 0x01, 0x06, 0x0f, 0x6d, 0xe4, 0xa2, 0x6e, 0xc3, 0x37, 0x78, 0x88, 0xb7, 0xa0,
-	0x1d, 0x26, 0x63, 0xca, 0xe3, 0x73, 0x1e, 0xda, 0x86, 0x0a, 0xaf, 0xeb, 0xc0, 0x51, 0x88, 0x09,
-	0x34, 0x27, 0x82, 0x65, 0x76, 0xc3, 0x45, 0x5d, 0xab, 0xbf, 0xb1, 0xab, 0x59, 0xec, 0x0e, 0x92,
-	0xe4, 0x62, 0x92, 0xfa, 0x2a, 0x87, 0x5d, 0xb0, 0x42, 0x26, 0x82, 0x8c, 0xa7, 0x79, 0x75, 0xbb,
-	0xe9, 0xa2, 0x6e, 0xdb, 0x2f, 0x86, 0xc8, 0x13, 0xe8, 0xf8, 0x8c, 0x86, 0x97, 0xa6, 0x41, 0xf6,
-	0x01, 0x3f, 0x63, 0x11, 0xbb, 0xc2, 0x4d, 0xc8, 0x19, 0xe0, 0x21, 0xa3, 0x59, 0xf0, 0x76, 0x09,
-	0x62, 0xe9, 0x08, 0x2a, 0x5d, 0x1e, 0x43, 0x53, 0xf0, 0x4f, 0x4c, 0x41, 0x99, 0xbe, 0x5a, 0xe7,
-	0xb1, 0x94, 0x8e, 0x98, 0x12, 0xc4, 0xf4, 0xd5, 0x9a, 0x7c, 0x00, 0xfc, 0x34, 0x63, 0x65, 0x9d,
-	0xff, 0x09, 0x3d, 0xd3, 0xd5, 0xf8, 0x7f, 0x5d, 0x1b, 0x55, 0x5d, 0xbf, 0x21, 0x80, 0xe1, 0x05,
-	0x8f, 0x22, 0x55, 0xb8, 0xa2, 0xc7, 0x0e, 0x98, 0x22, 0xcf, 0xd6, 0x54, 0xd1, 0xc9, 0xfc, 0x2b,
-	0x65, 0xb4, 0x9a, 0x1e, 0xeb, 0x24, 0x76, 0x60, 0x3d, 0xa0, 0x29, 0x0d, 0xb8, 0xfc, 0xa8, 0x3a,
-	0x6c, 0xfa, 0xf3, 0xbd, 0x32, 0x9a, 0x62, 0x30, 0x94, 0x54, 0x4e, 0xc4, 0xa5, 0x8c, 0x76, 0x07,
-	0x5a, 0x42, 0x9d, 0x9e, 0xde, 0x73, 0xba, 0x23, 0x0f, 0xa1, 0xa5, 0x51, 0x31, 0x40, 0xeb, 0xe4,
-	0x78, 0x70, 0x74, 0x7c, 0xd0, 0xb9, 0x86, 0x2d, 0x58, 0x3b, 0x39, 0x3c, 0x54, 0x1b, 0x84, 0xdb,
-	0x60, 0x3e, 0xdf, 0x3f, 0x1d, 0x1e, 0x74, 0x0c, 0xf2, 0x13, 0x81, 0xb9, 0x5a, 0x8b, 0x2b, 0xbb,
-	0x7c, 0x41, 0xb0, 0x59, 0x24, 0x88, 0x6f, 0x81, 0x99, 0xaf, 0x98, 0x6d, 0xaa, 0xb0, 0xde, 0x94,
-	0x7b, 0xb7, 0x56, 0xed, 0xdd, 0x23, 0x68, 0x0f, 0xb8, 0x90, 0x9a, 0xed, 0x36, 0x98, 0x5c, 0xb2,
-	0xb1, 0xb0, 0x91, 0xdb, 0xe8, 0x5a, 0xfd, 0x1b, 0x33, 0x06, 0xda, 0x50, 0x3a, 0xd7, 0xff, 0xd5,
-	0x84, 0xeb, 0x5a, 0x66, 0x96, 0xbd, 0xe7, 0x01, 0xc3, 0x2f, 0xc1, 0x2a, 0xf8, 0x0e, 0x3b, 0xb3,
-	0x53, 0x55, 0x33, 0x3a, 0xcb, 0x88, 0xe4, 0xfe, 0xd7, 0xdf, 0x7f, 0x7e, 0x18, 0x36, 0xb9, 0xe9,
-	0x05, 0x34, 0x8a, 0xce, 0x03, 0x16, 0x4b, 0x96, 0x79, 0xaa, 0xd3, 0x62, 0x0f, 0xf5, 0xf0, 0x19,
-	0x58, 0x85, 0xc7, 0xb2, 0x40, 0xae, 0xbe, 0x20, 0x67, 0x73, 0xae, 0xd6, 0xec, 0x36, 0x64, 0x4b,
-	0xa1, 0xdf, 0xc6, 0xab, 0xd0, 0xf1, 0x0b, 0x68, 0xcf, 0x67, 0x01, 0xb6, 0x67, 0x87, 0xcb, 0xe3,
-	0xa1, 0x4c, 0xd8, 0x55, 0x90, 0x0e, 0xb6, 0x57, 0x40, 0x7a, 0x9f, 0x79, 0xf8, 0x05, 0xbf, 0x06,
-	0xab, 0x30, 0xec, 0x16, 0x94, 0xab, 0x13, 0xb0, 0x8c, 0xbd, 0xad, 0xb0, 0xef, 0x39, 0xb5, 0xd8,
-	0xb9, 0x22, 0xaf, 0xc0, 0x2a, 0x4c, 0xa0, 0x05, 0x7c, 0x75, 0x2c, 0xd5, 0x50, 0xef, 0xd5, 0x53,
-	0x1f, 0xc3, 0x66, 0x81, 0xe5, 0xd4, 0xee, 0xce, 0x12, 0xca, 0xd2, 0xcb, 0x72, 0x3a, 0x0b, 0xd9,
-	0x44, 0x9a, 0xc4, 0x82, 0x91, 0x9e, 0x2a, 0xb2, 0xd3, 0x7f, 0x50, 0x57, 0xc4, 0xd3, 0x76, 0xdd,
-	0x43, 0xbd, 0x37, 0x2d, 0xf5, 0x7b, 0x78, 0xfc, 0x37, 0x00, 0x00, 0xff, 0xff, 0x60, 0xc9, 0x2a,
-	0x3d, 0x60, 0x06, 0x00, 0x00,
+	// 877 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xef, 0x6e, 0xe3, 0x44,
+	0x10, 0xc7, 0x4e, 0x9c, 0x36, 0xe3, 0xb6, 0xa4, 0x7b, 0x07, 0x18, 0x1f, 0x1c, 0xbe, 0x6d, 0x41,
+	0xa1, 0x42, 0x0d, 0x2a, 0xdf, 0x10, 0x02, 0x55, 0x70, 0x27, 0x55, 0xea, 0xdd, 0x81, 0xc3, 0x21,
+	0x0e, 0x09, 0x55, 0x5b, 0x7b, 0x14, 0x56, 0x97, 0xd8, 0x3e, 0x7b, 0xd3, 0x53, 0x40, 0x7c, 0x41,
+	0x48, 0x88, 0xcf, 0xbc, 0x04, 0x8f, 0xc0, 0x7b, 0xf0, 0x0a, 0x3c, 0x08, 0xda, 0xb1, 0x9d, 0xd8,
+	0x71, 0x8c, 0x4e, 0xad, 0xf8, 0xb6, 0x3b, 0x33, 0xfe, 0xcd, 0xcc, 0x6f, 0xfe, 0x78, 0xc1, 0x16,
+	0x13, 0x8c, 0xd4, 0x71, 0x92, 0xc6, 0x2a, 0x66, 0x3d, 0x8c, 0x26, 0x32, 0x42, 0xd7, 0x0e, 0xe2,
+	0x28, 0x2b, 0x84, 0xee, 0x5b, 0x93, 0x38, 0x9e, 0x4c, 0x71, 0x24, 0x12, 0x39, 0x12, 0x51, 0x14,
+	0x2b, 0xa1, 0x64, 0x1c, 0x65, 0xb9, 0x96, 0xff, 0x6e, 0xc2, 0xce, 0xa9, 0x86, 0x38, 0x8b, 0xbe,
+	0x9a, 0xe3, 0x1c, 0xd9, 0x21, 0x58, 0xcf, 0xf5, 0xc1, 0x31, 0x3c, 0x63, 0x68, 0x9f, 0xec, 0x1d,
+	0xe7, 0x98, 0xc7, 0xe7, 0x71, 0xfc, 0x6c, 0x9e, 0xf8, 0xb9, 0x92, 0xb9, 0xb0, 0x9d, 0xa4, 0x32,
+	0x4e, 0xa5, 0x5a, 0x38, 0xa6, 0x67, 0x0c, 0x2d, 0x7f, 0x79, 0x67, 0x0c, 0xba, 0x6a, 0x91, 0xa0,
+	0xd3, 0x21, 0x39, 0x9d, 0xb5, 0x7d, 0xa6, 0x52, 0xa1, 0x70, 0xb2, 0x70, 0xba, 0x9e, 0x31, 0xec,
+	0xfb, 0xcb, 0x3b, 0x73, 0x60, 0x0b, 0x23, 0x71, 0x39, 0xc5, 0xd0, 0xb1, 0x3c, 0x63, 0xb8, 0xed,
+	0x97, 0x57, 0x76, 0x0f, 0x76, 0x82, 0x78, 0x1e, 0xa9, 0x8b, 0x19, 0xce, 0x2e, 0x31, 0x75, 0x7a,
+	0x84, 0x68, 0x93, 0xec, 0x21, 0x89, 0xd8, 0xbb, 0xb0, 0xf7, 0x42, 0x48, 0x25, 0xa3, 0x49, 0x69,
+	0xb4, 0x45, 0x46, 0xbb, 0x85, 0xb4, 0x30, 0x3b, 0x80, 0x5d, 0x11, 0x28, 0x79, 0x85, 0xa5, 0xd5,
+	0x36, 0x59, 0xed, 0xe4, 0xc2, 0xdc, 0x88, 0x7f, 0x0a, 0x83, 0x73, 0x99, 0xa9, 0x1a, 0x1d, 0x47,
+	0x60, 0x49, 0x85, 0xb3, 0xcc, 0x31, 0xbc, 0xce, 0xd0, 0x3e, 0xb9, 0x5d, 0xd2, 0x51, 0x35, 0xf2,
+	0x73, 0x13, 0x9e, 0xc0, 0x9b, 0x63, 0x14, 0x69, 0xf0, 0x43, 0x4d, 0x89, 0xcf, 0xe7, 0x98, 0x29,
+	0xb6, 0x07, 0xa6, 0x0c, 0x89, 0xd4, 0x8e, 0x6f, 0xca, 0x90, 0xdd, 0x81, 0x7e, 0x18, 0xcf, 0x84,
+	0x8c, 0x2e, 0x64, 0x48, 0x14, 0x76, 0xfc, 0xed, 0x5c, 0x70, 0x16, 0x6a, 0x0a, 0x33, 0xf9, 0xe3,
+	0x92, 0x42, 0x7d, 0xd6, 0xb2, 0x44, 0x4c, 0x90, 0xe8, 0xb3, 0x7c, 0x3a, 0xf3, 0x18, 0x9c, 0x9a,
+	0xc7, 0xaf, 0x51, 0xcc, 0xfe, 0x57, 0x87, 0x0f, 0xc1, 0xae, 0xb8, 0x62, 0x1c, 0xba, 0x0a, 0xc5,
+	0xac, 0xa5, 0x57, 0x48, 0x57, 0x2b, 0xbd, 0x59, 0x2f, 0x3d, 0xff, 0x04, 0x5e, 0xad, 0x30, 0x4e,
+	0x90, 0xef, 0xd7, 0x09, 0xbf, 0xb5, 0x46, 0x38, 0x65, 0x58, 0xf0, 0xfd, 0x9b, 0x01, 0xec, 0x49,
+	0x12, 0x0a, 0x85, 0xa4, 0xbc, 0x56, 0xe2, 0x1c, 0xba, 0xf3, 0x0c, 0x53, 0x4a, 0x7c, 0x43, 0x06,
+	0x5a, 0xc7, 0x3c, 0xb0, 0x43, 0xcc, 0x82, 0x54, 0x26, 0x7a, 0x72, 0x8a, 0xfe, 0xad, 0x8a, 0xf8,
+	0x67, 0x30, 0xf0, 0x51, 0x84, 0xd7, 0x0e, 0x83, 0x9f, 0x02, 0xfb, 0x02, 0xa7, 0x78, 0x83, 0x4c,
+	0xf8, 0x53, 0x60, 0x95, 0x5e, 0x28, 0x21, 0x6a, 0x9f, 0x18, 0x2d, 0x55, 0x37, 0x37, 0x54, 0xbd,
+	0x53, 0xa9, 0xfa, 0x0b, 0x60, 0x9f, 0xa7, 0xb8, 0xce, 0xf3, 0x7f, 0x42, 0x97, 0xbc, 0x9a, 0x2f,
+	0xcf, 0x6b, 0xa7, 0xc9, 0xeb, 0xaf, 0x06, 0xc0, 0xf8, 0x99, 0x9c, 0x4e, 0xc9, 0x71, 0x83, 0x8f,
+	0x43, 0xb0, 0x32, 0xad, 0x6d, 0xf1, 0x92, 0x2b, 0xb5, 0x15, 0x2d, 0xc9, 0x96, 0x1a, 0xe7, 0x4a,
+	0xdd, 0xa6, 0x81, 0x48, 0x44, 0xa0, 0x37, 0x5a, 0xde, 0xf1, 0xcb, 0x3b, 0x35, 0x1a, 0x45, 0x30,
+	0x56, 0x42, 0xcd, 0xb3, 0x6b, 0x35, 0xda, 0xeb, 0xd0, 0xcb, 0xe8, 0xeb, 0x22, 0xcf, 0xe2, 0xc6,
+	0x3f, 0x80, 0x5e, 0x8e, 0xca, 0x00, 0x7a, 0x8f, 0x1f, 0x9d, 0x9f, 0x3d, 0xba, 0x3f, 0x78, 0x85,
+	0xd9, 0xb0, 0xf5, 0xf8, 0xc1, 0x03, 0xba, 0x18, 0xac, 0x0f, 0xd6, 0x97, 0xa7, 0x4f, 0xc6, 0xf7,
+	0x07, 0x26, 0xff, 0xd3, 0x00, 0x6b, 0x33, 0x17, 0x37, 0xee, 0xf2, 0x55, 0x80, 0xdd, 0x6a, 0x80,
+	0xec, 0x36, 0x58, 0xfa, 0x84, 0xb4, 0x9c, 0xfb, 0x7e, 0x7e, 0x59, 0xaf, 0xdd, 0x56, 0xb3, 0x76,
+	0x1f, 0x42, 0x7f, 0x39, 0xdb, 0xec, 0xa0, 0x3e, 0xd5, 0xbb, 0xb5, 0xa9, 0x2e, 0xe6, 0xf9, 0xe4,
+	0xaf, 0x5e, 0xf1, 0x2f, 0x1a, 0x63, 0x7a, 0x25, 0x03, 0x64, 0xdf, 0x82, 0x5d, 0xe9, 0x3b, 0xe6,
+	0x96, 0x5f, 0x35, 0x9b, 0xd1, 0xad, 0x23, 0xf2, 0xbb, 0xbf, 0xfc, 0xfd, 0xcf, 0x1f, 0xa6, 0xc3,
+	0x6f, 0x8d, 0x02, 0x31, 0x9d, 0x5e, 0x04, 0x18, 0x29, 0x4c, 0x47, 0x54, 0xe9, 0xec, 0x63, 0xe3,
+	0x88, 0x3d, 0x05, 0xbb, 0x32, 0x2c, 0x2b, 0xe4, 0xe6, 0x04, 0xb9, 0xfb, 0x4b, 0xb6, 0xca, 0x6c,
+	0xf8, 0x1d, 0x42, 0x7f, 0x8d, 0x6d, 0x42, 0x67, 0xdf, 0x40, 0x7f, 0xb9, 0x0b, 0x98, 0x53, 0x7e,
+	0xbc, 0xbe, 0x1e, 0xd6, 0x03, 0xf6, 0x08, 0xd2, 0x65, 0xce, 0x06, 0xc8, 0xd1, 0x4f, 0x32, 0xfc,
+	0x99, 0x7d, 0x0f, 0x76, 0x65, 0xd9, 0xad, 0x42, 0x6e, 0x6e, 0xc0, 0x75, 0xec, 0x03, 0xc2, 0x7e,
+	0xdb, 0x6d, 0xc5, 0xd6, 0x8c, 0x7c, 0x07, 0x76, 0x65, 0x03, 0xad, 0xe0, 0x9b, 0x6b, 0xa9, 0x25,
+	0xf4, 0xa3, 0xf6, 0xd0, 0x67, 0xb0, 0x5f, 0x89, 0xb2, 0x68, 0x77, 0xb7, 0x86, 0x52, 0x9b, 0x2c,
+	0x77, 0xb0, 0xa2, 0x2d, 0x4b, 0xe2, 0x28, 0x43, 0x7e, 0x44, 0x4e, 0x0e, 0x4f, 0xde, 0x69, 0x73,
+	0x32, 0xca, 0xdb, 0x55, 0xa7, 0x72, 0x05, 0xfb, 0x8d, 0xbf, 0x22, 0xf3, 0x36, 0x94, 0xb8, 0xf6,
+	0xc3, 0x74, 0xdf, 0x68, 0x14, 0x3a, 0xd7, 0xf3, 0xf7, 0xc8, 0xb7, 0xc7, 0xee, 0xb6, 0xfa, 0xd6,
+	0x3f, 0xba, 0x8c, 0x2d, 0x6a, 0x1b, 0xb8, 0x7c, 0x41, 0xdc, 0xdb, 0xe8, 0xb8, 0xfa, 0x36, 0x70,
+	0x9d, 0x0d, 0x9e, 0xc9, 0xe0, 0x25, 0x5c, 0xd3, 0x7b, 0xec, 0xb2, 0x47, 0xaf, 0xb9, 0x8f, 0xfe,
+	0x0d, 0x00, 0x00, 0xff, 0xff, 0x89, 0x64, 0xd9, 0x60, 0x0f, 0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -638,6 +1006,8 @@ type AgentServiceClient interface {
 	DeleteAgent(ctx context.Context, in *DeleteAgentRequest, opts ...grpc.CallOption) (*Agent, error)
 	// Change agent status
 	UpdateAgentStatus(ctx context.Context, in *AgentStatusRequest, opts ...grpc.CallOption) (*Response, error)
+	SearchAgentInTeam(ctx context.Context, in *SearchAgentInTeamRequest, opts ...grpc.CallOption) (*ListAgentInTeam, error)
+	SearchAgentInQueue(ctx context.Context, in *SearchAgentInQueueRequest, opts ...grpc.CallOption) (*ListAgentInQueue, error)
 }
 
 type agentServiceClient struct {
@@ -702,6 +1072,24 @@ func (c *agentServiceClient) UpdateAgentStatus(ctx context.Context, in *AgentSta
 	return out, nil
 }
 
+func (c *agentServiceClient) SearchAgentInTeam(ctx context.Context, in *SearchAgentInTeamRequest, opts ...grpc.CallOption) (*ListAgentInTeam, error) {
+	out := new(ListAgentInTeam)
+	err := c.cc.Invoke(ctx, "/engine.AgentService/SearchAgentInTeam", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentServiceClient) SearchAgentInQueue(ctx context.Context, in *SearchAgentInQueueRequest, opts ...grpc.CallOption) (*ListAgentInQueue, error) {
+	out := new(ListAgentInQueue)
+	err := c.cc.Invoke(ctx, "/engine.AgentService/SearchAgentInQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServiceServer is the server API for AgentService service.
 type AgentServiceServer interface {
 	// Create Agent
@@ -716,6 +1104,8 @@ type AgentServiceServer interface {
 	DeleteAgent(context.Context, *DeleteAgentRequest) (*Agent, error)
 	// Change agent status
 	UpdateAgentStatus(context.Context, *AgentStatusRequest) (*Response, error)
+	SearchAgentInTeam(context.Context, *SearchAgentInTeamRequest) (*ListAgentInTeam, error)
+	SearchAgentInQueue(context.Context, *SearchAgentInQueueRequest) (*ListAgentInQueue, error)
 }
 
 // UnimplementedAgentServiceServer can be embedded to have forward compatible implementations.
@@ -739,6 +1129,12 @@ func (*UnimplementedAgentServiceServer) DeleteAgent(ctx context.Context, req *De
 }
 func (*UnimplementedAgentServiceServer) UpdateAgentStatus(ctx context.Context, req *AgentStatusRequest) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateAgentStatus not implemented")
+}
+func (*UnimplementedAgentServiceServer) SearchAgentInTeam(ctx context.Context, req *SearchAgentInTeamRequest) (*ListAgentInTeam, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAgentInTeam not implemented")
+}
+func (*UnimplementedAgentServiceServer) SearchAgentInQueue(ctx context.Context, req *SearchAgentInQueueRequest) (*ListAgentInQueue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchAgentInQueue not implemented")
 }
 
 func RegisterAgentServiceServer(s *grpc.Server, srv AgentServiceServer) {
@@ -853,6 +1249,42 @@ func _AgentService_UpdateAgentStatus_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AgentService_SearchAgentInTeam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchAgentInTeamRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).SearchAgentInTeam(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.AgentService/SearchAgentInTeam",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).SearchAgentInTeam(ctx, req.(*SearchAgentInTeamRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AgentService_SearchAgentInQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchAgentInQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServiceServer).SearchAgentInQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.AgentService/SearchAgentInQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServiceServer).SearchAgentInQueue(ctx, req.(*SearchAgentInQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _AgentService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "engine.AgentService",
 	HandlerType: (*AgentServiceServer)(nil),
@@ -880,6 +1312,14 @@ var _AgentService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateAgentStatus",
 			Handler:    _AgentService_UpdateAgentStatus_Handler,
+		},
+		{
+			MethodName: "SearchAgentInTeam",
+			Handler:    _AgentService_SearchAgentInTeam_Handler,
+		},
+		{
+			MethodName: "SearchAgentInQueue",
+			Handler:    _AgentService_SearchAgentInQueue_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

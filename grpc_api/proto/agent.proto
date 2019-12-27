@@ -46,7 +46,57 @@ service AgentService {
         };
     }
 
+    rpc SearchAgentInTeam(SearchAgentInTeamRequest) returns (ListAgentInTeam) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}/teams"
+        };
+    }
+
+    rpc SearchAgentInQueue(SearchAgentInQueueRequest) returns (ListAgentInQueue) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}/queue"
+        };
+    }
+
 //    rpc AddSkill(SkillAgent) returns (SkillAgent) {}
+}
+
+message AgentInQueue {
+    Lookup queue = 1;
+    int32 priority = 2;
+    int32 type = 3;
+    string strategy = 4;
+    bool enabled = 5;
+    int32 count_member = 6;
+    int32 waiting_member = 7;
+    int32 active_member = 8;
+}
+
+message ListAgentInQueue {
+    repeated AgentInQueue items = 1;
+}
+
+message SearchAgentInQueueRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int32 size = 3;
+    int32 page = 4;
+}
+
+message SearchAgentInTeamRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int32 size = 3;
+    int32 page = 4;
+}
+
+message AgentInTeam {
+    Lookup team = 1;
+    string strategy = 2;
+}
+
+message ListAgentInTeam {
+    repeated AgentInTeam items = 1;
 }
 
 message UpdateAgentRequest {
