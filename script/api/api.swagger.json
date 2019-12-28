@@ -1226,7 +1226,7 @@
         ]
       }
     },
-    "/call_center/agents/{id}/queue": {
+    "/call_center/agents/{id}/queues": {
       "get": {
         "operationId": "SearchAgentInQueue",
         "responses": {
