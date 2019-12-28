@@ -27,8 +27,8 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	oldRouting.Disabled = routing.Disabled
 	oldRouting.UpdatedAt = routing.UpdatedAt
 
-	if routing.GetSchemeId() != nil {
-		oldRouting.Scheme.Id = routing.Scheme.Id
+	if routing.GetSchemaId() != nil {
+		oldRouting.Schema.Id = routing.Schema.Id
 	}
 
 	oldRouting, err = app.Store.RoutingOutboundCall().Update(oldRouting)
@@ -51,4 +51,26 @@ func (a *App) RemoveRoutingOutboundCall(domainId, id int64) (*model.RoutingOutbo
 		return nil, err
 	}
 	return routing, nil
+}
+
+func (a *App) PatchRoutingOutboundCall(domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, *model.AppError) {
+	old, err := a.GetRoutingOutboundCallById(domainId, id)
+	if err != nil {
+		return nil, err
+	}
+	old.Patch(patch)
+
+	old.UpdatedAt = model.GetMillis()
+	old.UpdatedBy.Id = patch.UpdatedById
+
+	if err = old.IsValid(); err != nil {
+		return nil, err
+	}
+
+	old, err = a.Store.RoutingOutboundCall().Update(old)
+	if err != nil {
+		return nil, err
+	}
+
+	return old, nil
 }

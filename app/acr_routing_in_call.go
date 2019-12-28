@@ -28,15 +28,15 @@ func (app *App) UpdateRoutingInboundCall(routing *model.RoutingInboundCall) (*mo
 	oldRouting.Debug = routing.Debug
 	oldRouting.Timezone.Id = routing.Timezone.Id
 
-	if routing.GetStartSchemeId() != nil {
-		oldRouting.StartScheme.Id = routing.StartScheme.Id
+	if routing.GetStartSchemaId() != nil {
+		oldRouting.StartSchema.Id = routing.StartSchema.Id
 	}
-	if routing.GetStopSchemeId() != nil {
-		oldRouting.StopScheme = &model.Lookup{
-			Id: routing.StopScheme.Id,
+	if routing.GetStopSchemaId() != nil {
+		oldRouting.StopSchema = &model.Lookup{
+			Id: routing.StopSchema.Id,
 		}
 	} else {
-		oldRouting.StopScheme = nil
+		oldRouting.StopSchema = nil
 	}
 
 	oldRouting, err = app.Store.RoutingInboundCall().Update(oldRouting)

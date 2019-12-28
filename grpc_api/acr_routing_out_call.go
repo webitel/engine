@@ -42,8 +42,8 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 		Description: in.Description,
 		Pattern:     in.Pattern,
 		Priority:    int(in.Priority),
-		Scheme: model.Lookup{
-			Id: int(in.GetScheme().GetId()),
+		Schema: model.Lookup{
+			Id: int(in.GetSchema().GetId()),
 		},
 		Disabled: in.Disabled,
 	}
@@ -131,8 +131,8 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 		},
 		Name:        in.Name,
 		Description: in.Description,
-		Scheme: model.Lookup{
-			Id: int(in.GetScheme().GetId()),
+		Schema: model.Lookup{
+			Id: int(in.GetSchema().GetId()),
 		},
 		Pattern:  in.Pattern,
 		Priority: int(in.Priority),
@@ -144,6 +144,53 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 	}
 
 	routing, err = api.app.UpdateRoutingOutboundCall(routing)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformRoutingOutboundCall(routing), nil
+}
+
+func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in *engine.PatchRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	var routing *model.RoutingOutboundCall
+	patch := &model.RoutingOutboundCallPatch{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "name":
+			patch.Name = model.NewString(in.Name)
+		case "description":
+			patch.Description = model.NewString(in.Description)
+		case "schema":
+			patch.Schema = &model.Lookup{
+				Id: int(in.GetSchema().GetId()),
+			}
+		case "priority":
+			patch.Priority = model.NewInt(int(in.GetPriority()))
+		case "string":
+			patch.Pattern = model.NewString(in.GetPattern())
+		case "disabled":
+			patch.Disabled = model.NewBool(in.GetDisabled())
+		}
+	}
+	patch.UpdatedById = int(session.UserId)
+	routing, err = api.app.PatchRoutingOutboundCall(session.Domain(in.GetDomainId()), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -193,10 +240,10 @@ func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.Routin
 		Disabled:    src.Disabled,
 	}
 
-	if src.GetSchemeId() != nil {
-		dst.Scheme = &engine.Lookup{
-			Id:   int64(*src.GetSchemeId()),
-			Name: src.Scheme.Name,
+	if src.GetSchemaId() != nil {
+		dst.Schema = &engine.Lookup{
+			Id:   int64(*src.GetSchemaId()),
+			Name: src.Schema.Name,
 		}
 	}
 

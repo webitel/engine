@@ -32,7 +32,7 @@ type SqlStore interface {
 
 	Member() store.MemberStore
 
-	RoutingScheme() store.RoutingSchemeStore
+	RoutingSchema() store.RoutingSchemaStore
 	RoutingInboundCall() store.RoutingInboundCallStore
 	RoutingOutboundCall() store.RoutingOutboundCallStore
 	RoutingVariable() store.RoutingVariableStore

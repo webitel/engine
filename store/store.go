@@ -56,7 +56,7 @@ type Store interface {
 
 	Member() MemberStore
 
-	RoutingScheme() RoutingSchemeStore
+	RoutingSchema() RoutingSchemaStore
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
 	RoutingVariable() RoutingVariableStore
@@ -177,11 +177,11 @@ type OutboundResourceInGroupStore interface {
 	Delete(domainId, groupId, id int64) *model.AppError
 }
 
-type RoutingSchemeStore interface {
-	Create(scheme *model.RoutingScheme) (*model.RoutingScheme, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingScheme, *model.AppError)
-	Get(domainId int64, id int64) (*model.RoutingScheme, *model.AppError)
-	Update(scheme *model.RoutingScheme) (*model.RoutingScheme, *model.AppError)
+type RoutingSchemaStore interface {
+	Create(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError)
+	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingSchema, *model.AppError)
+	Get(domainId int64, id int64) (*model.RoutingSchema, *model.AppError)
+	Update(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 }
 

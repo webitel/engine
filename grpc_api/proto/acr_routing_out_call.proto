@@ -32,12 +32,36 @@ service RoutingOutboundCallService {
             body: "*"
         };
     }
+
+    // Patch RoutingOutboundCall
+    rpc PatchRoutingOutboundCall(PatchRoutingOutboundCallRequest) returns (RoutingOutboundCall) {
+        option (google.api.http) = {
+            patch: "/routing/outbound/calls/{id}"
+            body: "*"
+        };
+    }
+
+
     // Remove RoutingOutboundCall
     rpc DeleteRoutingOutboundCall(DeleteRoutingOutboundCallRequest) returns (RoutingOutboundCall) {
         option (google.api.http) = {
             delete: "/routing/outbound/calls/{id}"
         };
     }
+}
+
+message PatchRoutingOutboundCallRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+
+    string name = 3;
+    string description = 4;
+    Lookup schema = 5;
+    string pattern = 6;
+    int32 priority = 7;
+    bool disabled = 8;
+
+    repeated string fields = 9;
 }
 
 message DeleteRoutingOutboundCallRequest {
@@ -50,7 +74,7 @@ message UpdateRoutingOutboundCallRequest {
     int64 domain_id = 2;
     string name = 3;
     string description = 4;
-    Lookup scheme = 5;
+    Lookup schema = 5;
     string pattern = 6;
     int32 priority = 7;
     bool disabled = 8;
@@ -71,7 +95,7 @@ message CreateRoutingOutboundCallRequest {
     int64 domain_id = 1;
     string name = 2;
     string description = 3;
-    Lookup scheme = 4;
+    Lookup schema = 4;
     string pattern = 5;
     int32 priority = 6;
     bool disabled = 7;
@@ -86,7 +110,7 @@ message RoutingOutboundCall {
     Lookup updated_by = 6;
     string name = 7;
     string description = 8;
-    Lookup scheme = 9;
+    Lookup schema = 9;
     string pattern = 10;
     int32 priority = 11;
     bool disabled = 12;

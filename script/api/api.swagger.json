@@ -5474,17 +5474,60 @@
         "tags": [
           "RoutingOutboundCallService"
         ]
-      }
-    },
-    "/routing/schemes": {
-      "get": {
-        "summary": "List RoutingScheme",
-        "operationId": "SearchRoutingScheme",
+      },
+      "patch": {
+        "summary": "Patch RoutingOutboundCall",
+        "operationId": "PatchRoutingOutboundCall",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineListRoutingScheme"
+              "$ref": "#/definitions/engineRoutingOutboundCall"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/enginePatchRoutingOutboundCallRequest"
+            }
+          }
+        ],
+        "tags": [
+          "RoutingOutboundCallService"
+        ]
+      }
+    },
+    "/routing/schema": {
+      "get": {
+        "summary": "List RoutingSchema",
+        "operationId": "SearchRoutingSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListRoutingSchema"
             }
           },
           "403": {
@@ -5523,17 +5566,17 @@
           }
         ],
         "tags": [
-          "RoutingSchemeService"
+          "RoutingSchemaService"
         ]
       },
       "post": {
-        "summary": "Create RoutingScheme",
-        "operationId": "CreateRoutingScheme",
+        "summary": "Create RoutingSchema",
+        "operationId": "CreateRoutingSchema",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineRoutingScheme"
+              "$ref": "#/definitions/engineRoutingSchema"
             }
           },
           "403": {
@@ -5554,24 +5597,24 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineCreateRoutingSchemeRequest"
+              "$ref": "#/definitions/engineCreateRoutingSchemaRequest"
             }
           }
         ],
         "tags": [
-          "RoutingSchemeService"
+          "RoutingSchemaService"
         ]
       }
     },
-    "/routing/schemes/{id}": {
+    "/routing/schema/{id}": {
       "get": {
-        "summary": "RoutingScheme item",
-        "operationId": "ReadRoutingScheme",
+        "summary": "RoutingSchema item",
+        "operationId": "ReadRoutingSchema",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineRoutingScheme"
+              "$ref": "#/definitions/engineRoutingSchema"
             }
           },
           "403": {
@@ -5603,17 +5646,17 @@
           }
         ],
         "tags": [
-          "RoutingSchemeService"
+          "RoutingSchemaService"
         ]
       },
       "delete": {
-        "summary": "Remove RoutingScheme",
-        "operationId": "DeleteRoutingScheme",
+        "summary": "Remove RoutingSchema",
+        "operationId": "DeleteRoutingSchema",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineRoutingScheme"
+              "$ref": "#/definitions/engineRoutingSchema"
             }
           },
           "403": {
@@ -5645,17 +5688,17 @@
           }
         ],
         "tags": [
-          "RoutingSchemeService"
+          "RoutingSchemaService"
         ]
       },
       "put": {
-        "summary": "Update RoutingScheme",
-        "operationId": "UpdateRoutingScheme",
+        "summary": "Update RoutingSchema",
+        "operationId": "UpdateRoutingSchema",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineRoutingScheme"
+              "$ref": "#/definitions/engineRoutingSchema"
             }
           },
           "403": {
@@ -5683,12 +5726,55 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineUpdateRoutingSchemeRequest"
+              "$ref": "#/definitions/engineUpdateRoutingSchemaRequest"
             }
           }
         ],
         "tags": [
-          "RoutingSchemeService"
+          "RoutingSchemaService"
+        ]
+      },
+      "patch": {
+        "summary": "Patch RoutingSchema",
+        "operationId": "PatchRoutingSchema",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineRoutingSchema"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/enginePatchRoutingSchemaRequest"
+            }
+          }
+        ],
+        "tags": [
+          "RoutingSchemaService"
         ]
       }
     },
@@ -6794,6 +6880,9 @@
         "skill": {
           "$ref": "#/definitions/engineLookup"
         },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "lvl": {
           "type": "integer",
           "format": "int32"
@@ -6821,7 +6910,7 @@
         "description": {
           "type": "string"
         },
-        "scheme": {
+        "schema": {
           "$ref": "#/definitions/engineLookup"
         },
         "pattern": {
@@ -6837,7 +6926,7 @@
         }
       }
     },
-    "engineCreateRoutingSchemeRequest": {
+    "engineCreateRoutingSchemaRequest": {
       "type": "object",
       "properties": {
         "domain_id": {
@@ -6854,7 +6943,7 @@
           "type": "integer",
           "format": "int32"
         },
-        "scheme": {
+        "schema": {
           "type": "object"
         },
         "payload": {
@@ -7234,17 +7323,6 @@
         }
       }
     },
-    "engineListRoutingInboundCall": {
-      "type": "object",
-      "properties": {
-        "items": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/engineRoutingInboundCall"
-          }
-        }
-      }
-    },
     "engineListRoutingOutboundCall": {
       "type": "object",
       "properties": {
@@ -7256,13 +7334,13 @@
         }
       }
     },
-    "engineListRoutingScheme": {
+    "engineListRoutingSchema": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engineRoutingScheme"
+            "$ref": "#/definitions/engineRoutingSchema"
           }
         }
       }
@@ -7770,6 +7848,84 @@
         }
       }
     },
+    "enginePatchRoutingOutboundCallRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "schema": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "enginePatchRoutingSchemaRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "type": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "schema": {
+          "type": "object"
+        },
+        "payload": {
+          "type": "object"
+        },
+        "debug": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "engineQueue": {
       "type": "object",
       "properties": {
@@ -7926,6 +8082,9 @@
         "skill": {
           "$ref": "#/definitions/engineLookup"
         },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "lvl": {
           "type": "integer",
           "format": "int32"
@@ -7945,65 +8104,6 @@
       "properties": {
         "status": {
           "type": "string"
-        }
-      }
-    },
-    "engineRoutingInboundCall": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "domain_id": {
-          "type": "string",
-          "format": "int64"
-        },
-        "created_at": {
-          "type": "string",
-          "format": "int64"
-        },
-        "created_by": {
-          "$ref": "#/definitions/engineLookup"
-        },
-        "updated_at": {
-          "type": "string",
-          "format": "int64"
-        },
-        "updated_by": {
-          "$ref": "#/definitions/engineLookup"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "start_scheme": {
-          "$ref": "#/definitions/engineLookup"
-        },
-        "stop_scheme": {
-          "$ref": "#/definitions/engineLookup"
-        },
-        "numbers": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "host": {
-          "type": "string"
-        },
-        "timezone": {
-          "$ref": "#/definitions/engineLookup"
-        },
-        "debug": {
-          "type": "boolean",
-          "format": "boolean"
-        },
-        "disabled": {
-          "type": "boolean",
-          "format": "boolean"
         }
       }
     },
@@ -8038,7 +8138,7 @@
         "description": {
           "type": "string"
         },
-        "scheme": {
+        "schema": {
           "$ref": "#/definitions/engineLookup"
         },
         "pattern": {
@@ -8054,7 +8154,7 @@
         }
       }
     },
-    "engineRoutingScheme": {
+    "engineRoutingSchema": {
       "type": "object",
       "properties": {
         "id": {
@@ -8089,7 +8189,7 @@
           "type": "integer",
           "format": "int32"
         },
-        "scheme": {
+        "schema": {
           "type": "object"
         },
         "payload": {
@@ -8771,6 +8871,9 @@
         "skill": {
           "$ref": "#/definitions/engineLookup"
         },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "lvl": {
           "type": "integer",
           "format": "int32"
@@ -8802,7 +8905,7 @@
         "description": {
           "type": "string"
         },
-        "scheme": {
+        "schema": {
           "$ref": "#/definitions/engineLookup"
         },
         "pattern": {
@@ -8818,7 +8921,7 @@
         }
       }
     },
-    "engineUpdateRoutingSchemeRequest": {
+    "engineUpdateRoutingSchemaRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -8839,7 +8942,7 @@
           "type": "integer",
           "format": "int32"
         },
-        "scheme": {
+        "schema": {
           "type": "object"
         },
         "payload": {

@@ -26,6 +26,7 @@ func (app *App) UpdateResourceTeam(domainId int64, resource *model.ResourceInTea
 	oldRes.Lvl = resource.Lvl
 	oldRes.MinCapacity = resource.MinCapacity
 	oldRes.MaxCapacity = resource.MaxCapacity
+	oldRes.Bucket = resource.Bucket
 
 	_, err = app.Store.ResourceTeam().Update(oldRes)
 	if err != nil {

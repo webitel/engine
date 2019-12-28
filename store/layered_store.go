@@ -77,8 +77,8 @@ func (s *LayeredStore) OutboundResourceInGroup() OutboundResourceInGroupStore {
 	return s.DatabaseLayer.OutboundResourceInGroup()
 }
 
-func (s *LayeredStore) RoutingScheme() RoutingSchemeStore {
-	return s.DatabaseLayer.RoutingScheme()
+func (s *LayeredStore) RoutingSchema() RoutingSchemaStore {
+	return s.DatabaseLayer.RoutingSchema()
 }
 
 func (s *LayeredStore) RoutingInboundCall() RoutingInboundCallStore {

@@ -24,7 +24,7 @@ type API struct {
 	queueBucket           *queueBucket
 	list                  *list
 
-	routingScheme       *routingScheme
+	routingSchema       *routingSchema
 	routingOutboundCall *routingOutboundCall
 	routingVariable     *routingVariable
 	resourceTeam        *resourceTeam
@@ -44,7 +44,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.queueRouting = NewQueueRoutingApi(a)
 	api.supervisorInTeam = NewSupervisorInTeamApi(a)
 
-	api.routingScheme = NewRoutingSchemeApi(a)
+	api.routingSchema = NewRoutingSchemaApi(a)
 	api.routingOutboundCall = NewRoutingOutboundCallApi(a)
 	api.routingVariable = NewRoutingVariableApi(a)
 	api.communicationType = NewCommunicationTypeApi(a)
@@ -72,7 +72,7 @@ func Init(a *app.App, server *grpc.Server) {
 
 	engine.RegisterMemberServiceServer(server, api.member)
 
-	engine.RegisterRoutingSchemeServiceServer(server, api.routingScheme)
+	engine.RegisterRoutingSchemaServiceServer(server, api.routingSchema)
 	engine.RegisterRoutingOutboundCallServiceServer(server, api.routingOutboundCall)
 	engine.RegisterRoutingVariableServiceServer(server, api.routingVariable)
 }
