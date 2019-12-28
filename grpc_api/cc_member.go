@@ -402,7 +402,7 @@ func toEngineMember(src *model.Member) *engine.Member {
 		Name:      src.Name,
 		Timezone: &engine.Lookup{
 			Id:   int64(src.Timezone.Id),
-			Name: src.Name,
+			Name: src.Timezone.Name,
 		},
 		Communications: toEngineMemberCommunications(src.Communications),
 		LastActivityAt: src.LastActivityAt,
