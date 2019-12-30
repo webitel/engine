@@ -41,7 +41,7 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 			"Communications": member.ToJsonCommunications(),
 			"BucketId":       member.GetBucketId(),
 			"MinOfferingAt":  member.MinOfferingAt,
-			"Skills":         pq.Array(member.Skills),
+			"Skills":         pq.Array(member.GetSkills()), //FIXME - set pointer
 		}); nil != err {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", member.Name, err.Error()), http.StatusInternalServerError)

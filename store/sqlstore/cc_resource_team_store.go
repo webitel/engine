@@ -81,7 +81,7 @@ where i.id = :Id and i.team_id = :TeamId and exists (select 1 from cc_team t whe
 	}
 }
 
-func (s SqlResourceTeamStore) GetAllPage(domainId, teamId int64, offset, limit int) ([]*model.ResourceInTeam, *model.AppError) {
+func (s SqlResourceTeamStore) GetAllPage(domainId, teamId int64, offset, limit int, onlyAgents bool) ([]*model.ResourceInTeam, *model.AppError) {
 	var resources []*model.ResourceInTeam
 
 	if _, err := s.GetReplica().Select(&resources,
@@ -99,13 +99,15 @@ from cc_agent_in_team i
 		 left join cc_bucket b on b.id = i.bucket_id
          left join cc_skill s on s.id = i.skill_id
 where i.team_id = :TeamId and exists (select 1 from cc_team t where t.id = :TeamId and t.domain_id = :DomainId)
+	and case when :OnlyAgents is true then i.skill_id isnull else i.agent_id isnull end
 order by i.id
 limit :Limit
 offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"TeamId":   teamId,
-			"Limit":    limit,
-			"Offset":   offset,
+			"DomainId":   domainId,
+			"TeamId":     teamId,
+			"Limit":      limit,
+			"Offset":     offset,
+			"OnlyAgents": onlyAgents,
 		}); err != nil {
 		return nil, model.NewAppError("SqlResourceTeamStore.GetAllPage", "store.sql_resource_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {

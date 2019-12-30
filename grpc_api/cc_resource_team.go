@@ -15,7 +15,7 @@ func NewResourceTeamApi(app *app.App) *resourceTeam {
 	return &resourceTeam{app: app}
 }
 
-func (api *resourceTeam) CreateResourceTeam(ctx context.Context, in *engine.CreateResourceTeamRequest) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) CreateResourceTeamAgent(ctx context.Context, in *engine.CreateResourceTeamAgentRequest) (*engine.ResourceTeamAgent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,6 @@ func (api *resourceTeam) CreateResourceTeam(ctx context.Context, in *engine.Crea
 	teamResource := &model.ResourceInTeam{
 		TeamId:      in.TeamId,
 		Agent:       GetLookup(in.Agent),
-		Skill:       GetLookup(in.Skill),
 		Bucket:      GetLookup(in.Bucket),
 		Lvl:         int(in.Lvl),
 		MinCapacity: int(in.MinCapacity),
@@ -53,15 +52,15 @@ func (api *resourceTeam) CreateResourceTeam(ctx context.Context, in *engine.Crea
 		return nil, err
 	}
 
-	teamResource, err = api.app.CreateResourceTeam(teamResource)
+	teamResource, err = api.app.CreateResourceTeamAgent(teamResource)
 	if err != nil {
 		return nil, err
 	}
 
-	return transformResourceTeam(teamResource), nil
+	return transformResourceTeamAgent(teamResource), nil
 }
 
-func (api *resourceTeam) ReadResourceTeam(ctx context.Context, in *engine.ReadResourceTeamRequest) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) ReadResourceTeamAgent(ctx context.Context, in *engine.ReadResourceTeamAgentRequest) (*engine.ResourceTeamAgent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -82,13 +81,13 @@ func (api *resourceTeam) ReadResourceTeam(ctx context.Context, in *engine.ReadRe
 	}
 
 	var resource *model.ResourceInTeam
-	if resource, err = api.app.GetResourceTeam(session.Domain(in.DomainId), in.GetTeamId(), in.GetId()); err != nil {
+	if resource, err = api.app.GetResourceTeamAgent(session.Domain(in.DomainId), in.GetTeamId(), in.GetId()); err != nil {
 		return nil, err
 	}
-	return transformResourceTeam(resource), nil
+	return transformResourceTeamAgent(resource), nil
 }
 
-func (api *resourceTeam) SearchResourceTeam(ctx context.Context, in *engine.SearchResourceTeamRequest) (*engine.ListResourceTeam, error) {
+func (api *resourceTeam) SearchResourceTeamAgent(ctx context.Context, in *engine.SearchResourceTeamAgentRequest) (*engine.ListResourceTeamAgent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -109,21 +108,21 @@ func (api *resourceTeam) SearchResourceTeam(ctx context.Context, in *engine.Sear
 	}
 
 	var list []*model.ResourceInTeam
-	list, err = api.app.GetResourceTeamPage(session.Domain(int64(in.DomainId)), in.GetTeamId(), int(in.Page), int(in.Size))
+	list, err = api.app.GetResourceTeamAgentPage(session.Domain(in.DomainId), in.GetTeamId(), int(in.Page), int(in.Size))
 	if err != nil {
 		return nil, err
 	}
 
-	items := make([]*engine.ResourceTeam, 0, len(list))
+	items := make([]*engine.ResourceTeamAgent, 0, len(list))
 	for _, v := range list {
-		items = append(items, transformResourceTeam(v))
+		items = append(items, transformResourceTeamAgent(v))
 	}
-	return &engine.ListResourceTeam{
+	return &engine.ListResourceTeamAgent{
 		Items: items,
 	}, nil
 }
 
-func (api *resourceTeam) UpdateResourceTeam(ctx context.Context, in *engine.UpdateResourceTeamRequest) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) UpdateResourceTeamAgent(ctx context.Context, in *engine.UpdateResourceTeamAgentRequest) (*engine.ResourceTeamAgent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -149,10 +148,195 @@ func (api *resourceTeam) UpdateResourceTeam(ctx context.Context, in *engine.Upda
 
 	var resource *model.ResourceInTeam
 
-	resource, err = api.app.UpdateResourceTeam(session.Domain(in.GetDomainId()), &model.ResourceInTeam{
+	resource, err = api.app.UpdateResourceTeamAgent(session.Domain(in.GetDomainId()), &model.ResourceInTeam{
 		Id:          in.Id,
 		TeamId:      in.TeamId,
 		Agent:       GetLookup(in.Agent),
+		Bucket:      GetLookup(in.Bucket),
+		Lvl:         int(in.Lvl),
+		MinCapacity: int(in.MinCapacity),
+		MaxCapacity: int(in.MaxCapacity),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformResourceTeamAgent(resource), nil
+}
+
+func (api *resourceTeam) DeleteResourceTeamAgent(ctx context.Context, in *engine.DeleteResourceTeamAgentRequest) (*engine.ResourceTeamAgent, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var resource *model.ResourceInTeam
+
+	resource, err = api.app.RemoveResourceTeamAgent(session.Domain(in.GetDomainId()), in.GetTeamId(), in.GetId())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformResourceTeamAgent(resource), nil
+}
+
+//Skill
+func (api *resourceTeam) CreateResourceTeamSkill(ctx context.Context, in *engine.CreateResourceTeamSkillRequest) (*engine.ResourceTeamSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	teamResource := &model.ResourceInTeam{
+		TeamId:      in.TeamId,
+		Skill:       GetLookup(in.Skill),
+		Bucket:      GetLookup(in.Bucket),
+		Lvl:         int(in.Lvl),
+		MinCapacity: int(in.MinCapacity),
+		MaxCapacity: int(in.MaxCapacity),
+	}
+
+	if err = teamResource.IsValid(); err != nil {
+		return nil, err
+	}
+
+	teamResource, err = api.app.CreateResourceTeamSkill(teamResource)
+	if err != nil {
+		return nil, err
+	}
+
+	return transformResourceTeamSkill(teamResource), nil
+}
+
+func (api *resourceTeam) ReadResourceTeamSkill(ctx context.Context, in *engine.ReadResourceTeamSkillRequest) (*engine.ResourceTeamSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var resource *model.ResourceInTeam
+	if resource, err = api.app.GetResourceTeamAgent(session.Domain(in.DomainId), in.GetTeamId(), in.GetId()); err != nil {
+		return nil, err
+	}
+	return transformResourceTeamSkill(resource), nil
+}
+
+func (api *resourceTeam) SearchResourceTeamSkill(ctx context.Context, in *engine.SearchResourceTeamSkillRequest) (*engine.ListResourceTeamSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.ResourceInTeam
+	list, err = api.app.GetResourceTeamSkillPage(session.Domain(in.DomainId), in.GetTeamId(), int(in.Page), int(in.Size))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.ResourceTeamSkill, 0, len(list))
+	for _, v := range list {
+		items = append(items, transformResourceTeamSkill(v))
+	}
+	return &engine.ListResourceTeamSkill{
+		Items: items,
+	}, nil
+}
+
+func (api *resourceTeam) UpdateResourceTeamSkill(ctx context.Context, in *engine.UpdateResourceTeamSkillRequest) (*engine.ResourceTeamSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var resource *model.ResourceInTeam
+
+	resource, err = api.app.UpdateResourceTeamSkill(session.Domain(in.GetDomainId()), &model.ResourceInTeam{
+		Id:          in.Id,
+		TeamId:      in.TeamId,
 		Skill:       GetLookup(in.Skill),
 		Bucket:      GetLookup(in.Bucket),
 		Lvl:         int(in.Lvl),
@@ -164,10 +348,10 @@ func (api *resourceTeam) UpdateResourceTeam(ctx context.Context, in *engine.Upda
 		return nil, err
 	}
 
-	return transformResourceTeam(resource), nil
+	return transformResourceTeamSkill(resource), nil
 }
 
-func (api *resourceTeam) DeleteResourceTeam(ctx context.Context, in *engine.DeleteResourceTeamRequest) (*engine.ResourceTeam, error) {
+func (api *resourceTeam) DeleteResourceTeamSkill(ctx context.Context, in *engine.DeleteResourceTeamSkillRequest) (*engine.ResourceTeamSkill, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -193,20 +377,31 @@ func (api *resourceTeam) DeleteResourceTeam(ctx context.Context, in *engine.Dele
 
 	var resource *model.ResourceInTeam
 
-	resource, err = api.app.RemoveResourceTeam(session.Domain(in.GetDomainId()), in.GetTeamId(), in.GetId())
+	resource, err = api.app.RemoveResourceTeamSkill(session.Domain(in.GetDomainId()), in.GetTeamId(), in.GetId())
 
 	if err != nil {
 		return nil, err
 	}
 
-	return transformResourceTeam(resource), nil
+	return transformResourceTeamSkill(resource), nil
 }
 
-func transformResourceTeam(src *model.ResourceInTeam) *engine.ResourceTeam {
-	return &engine.ResourceTeam{
+func transformResourceTeamAgent(src *model.ResourceInTeam) *engine.ResourceTeamAgent {
+	return &engine.ResourceTeamAgent{
 		Id:          src.Id,
 		TeamId:      src.TeamId,
 		Agent:       GetProtoLookup(src.Agent),
+		Bucket:      GetProtoLookup(src.Bucket),
+		Lvl:         int32(src.Lvl),
+		MinCapacity: int32(src.MinCapacity),
+		MaxCapacity: int32(src.MaxCapacity),
+	}
+}
+
+func transformResourceTeamSkill(src *model.ResourceInTeam) *engine.ResourceTeamSkill {
+	return &engine.ResourceTeamSkill{
+		Id:          src.Id,
+		TeamId:      src.TeamId,
 		Skill:       GetProtoLookup(src.Skill),
 		Bucket:      GetProtoLookup(src.Bucket),
 		Lvl:         int32(src.Lvl),

@@ -45,6 +45,13 @@ func (a *MemberAttempt) IsValid() *AppError {
 	return nil
 }
 
+func (member *Member) GetSkills() Int64Array {
+	if member.Skills == nil {
+		return Int64Array{}
+	}
+	return member.Skills
+}
+
 type MemberCommunication struct {
 	Id             int64  `json:"id"`
 	Priority       int    `json:"priority" db:"priority"`

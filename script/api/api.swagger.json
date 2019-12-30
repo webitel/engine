@@ -4758,15 +4758,15 @@
         ]
       }
     },
-    "/call_center/teams/{team_id}/resources": {
+    "/call_center/teams/{team_id}/agents": {
       "get": {
-        "summary": "List of ResourceTeam",
-        "operationId": "SearchResourceTeam",
+        "summary": "List of ResourceTeamAgent",
+        "operationId": "SearchResourceTeamAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineListResourceTeam"
+              "$ref": "#/definitions/engineListResourceTeamAgent"
             }
           },
           "403": {
@@ -4790,11 +4790,11 @@
             "format": "int64"
           },
           {
-            "name": "domain_id",
+            "name": "page",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "integer",
+            "format": "int32"
           },
           {
             "name": "size",
@@ -4804,11 +4804,11 @@
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "domain_id",
             "in": "query",
             "required": false,
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -4816,13 +4816,13 @@
         ]
       },
       "post": {
-        "summary": "Create ResourceTeam",
-        "operationId": "CreateResourceTeam",
+        "summary": "Create ResourceTeamAgent",
+        "operationId": "CreateResourceTeamAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineResourceTeam"
+              "$ref": "#/definitions/engineResourceTeamAgent"
             }
           },
           "403": {
@@ -4850,7 +4850,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineCreateResourceTeamRequest"
+              "$ref": "#/definitions/engineCreateResourceTeamAgentRequest"
             }
           }
         ],
@@ -4859,15 +4859,15 @@
         ]
       }
     },
-    "/call_center/teams/{team_id}/resources/{id}": {
+    "/call_center/teams/{team_id}/agents/{id}": {
       "get": {
-        "summary": "ResourceTeam item",
-        "operationId": "ReadResourceTeam",
+        "summary": "ResourceTeamAgent item",
+        "operationId": "ReadResourceTeamAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineResourceTeam"
+              "$ref": "#/definitions/engineResourceTeamAgent"
             }
           },
           "403": {
@@ -4910,13 +4910,13 @@
         ]
       },
       "delete": {
-        "summary": "Remove ResourceTeam",
-        "operationId": "DeleteResourceTeam",
+        "summary": "Remove ResourceTeamAgent",
+        "operationId": "DeleteResourceTeamAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineResourceTeam"
+              "$ref": "#/definitions/engineResourceTeamAgent"
             }
           },
           "403": {
@@ -4959,13 +4959,13 @@
         ]
       },
       "put": {
-        "summary": "Update ResourceTeam",
-        "operationId": "UpdateResourceTeam",
+        "summary": "Update ResourceTeamAgent",
+        "operationId": "UpdateResourceTeamAgent",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineResourceTeam"
+              "$ref": "#/definitions/engineResourceTeamAgent"
             }
           },
           "403": {
@@ -5000,7 +5000,258 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/engineUpdateResourceTeamRequest"
+              "$ref": "#/definitions/engineUpdateResourceTeamAgentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
+      }
+    },
+    "/call_center/teams/{team_id}/skills": {
+      "get": {
+        "summary": "List of ResourceTeamSkill",
+        "operationId": "SearchResourceTeamSkill",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListResourceTeamSkill"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
+      },
+      "post": {
+        "summary": "SKill\nCreate ResourceTeamSkill",
+        "operationId": "CreateResourceTeamSkill",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceTeamSkill"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateResourceTeamSkillRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
+      }
+    },
+    "/call_center/teams/{team_id}/skills/{id}": {
+      "get": {
+        "summary": "ResourceTeamSkill item",
+        "operationId": "ReadResourceTeamSkill",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceTeamSkill"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
+      },
+      "delete": {
+        "summary": "Remove ResourceTeamSkill",
+        "operationId": "DeleteResourceTeamSkill",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceTeamSkill"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
+      },
+      "put": {
+        "summary": "Update ResourceTeamSkill",
+        "operationId": "UpdateResourceTeamSkill",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceTeamSkill"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineUpdateResourceTeamSkillRequest"
             }
           }
         ],
@@ -6863,19 +7114,43 @@
         }
       }
     },
-    "engineCreateResourceTeamRequest": {
+    "engineCreateResourceTeamAgentRequest": {
       "type": "object",
       "properties": {
         "team_id": {
           "type": "string",
           "format": "int64"
         },
+        "agent": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "lvl": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "min_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "max_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
         "domain_id": {
           "type": "string",
           "format": "int64"
-        },
-        "agent": {
-          "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "engineCreateResourceTeamSkillRequest": {
+      "type": "object",
+      "properties": {
+        "team_id": {
+          "type": "string",
+          "format": "int64"
         },
         "skill": {
           "$ref": "#/definitions/engineLookup"
@@ -6894,6 +7169,10 @@
         "max_capacity": {
           "type": "integer",
           "format": "int32"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -7312,13 +7591,24 @@
         }
       }
     },
-    "engineListResourceTeam": {
+    "engineListResourceTeamAgent": {
       "type": "object",
       "properties": {
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engineResourceTeam"
+            "$ref": "#/definitions/engineResourceTeamAgent"
+          }
+        }
+      }
+    },
+    "engineListResourceTeamSkill": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineResourceTeamSkill"
           }
         }
       }
@@ -8061,7 +8351,7 @@
         }
       }
     },
-    "engineResourceTeam": {
+    "engineResourceTeamAgent": {
       "type": "object",
       "properties": {
         "id": {
@@ -8072,12 +8362,36 @@
           "type": "string",
           "format": "int64"
         },
-        "domain_id": {
+        "agent": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "lvl": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "min_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "max_capacity": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "engineResourceTeamSkill": {
+      "type": "object",
+      "properties": {
+        "id": {
           "type": "string",
           "format": "int64"
         },
-        "agent": {
-          "$ref": "#/definitions/engineLookup"
+        "team_id": {
+          "type": "string",
+          "format": "int64"
         },
         "skill": {
           "$ref": "#/definitions/engineLookup"
@@ -8850,7 +9164,7 @@
         }
       }
     },
-    "engineUpdateResourceTeamRequest": {
+    "engineUpdateResourceTeamAgentRequest": {
       "type": "object",
       "properties": {
         "id": {
@@ -8861,12 +9175,40 @@
           "type": "string",
           "format": "int64"
         },
+        "agent": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "lvl": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "min_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "max_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
         "domain_id": {
           "type": "string",
           "format": "int64"
+        }
+      }
+    },
+    "engineUpdateResourceTeamSkillRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
         },
-        "agent": {
-          "$ref": "#/definitions/engineLookup"
+        "team_id": {
+          "type": "string",
+          "format": "int64"
         },
         "skill": {
           "$ref": "#/definitions/engineLookup"
@@ -8885,6 +9227,10 @@
         "max_capacity": {
           "type": "integer",
           "format": "int32"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

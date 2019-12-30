@@ -6,94 +6,187 @@ import "google/api/annotations.proto";
 package engine;
 
 service ResourceTeamService {
-    // Create ResourceTeam
-    rpc CreateResourceTeam(CreateResourceTeamRequest) returns (ResourceTeam) {
+    // Create ResourceTeamAgent
+    rpc CreateResourceTeamAgent(CreateResourceTeamAgentRequest) returns (ResourceTeamAgent) {
         option (google.api.http) = {
-            post: "/call_center/teams/{team_id}/resources"
+            post: "/call_center/teams/{team_id}/agents"
             body: "*"
         };
     }
-    // List of ResourceTeam
-    rpc SearchResourceTeam(SearchResourceTeamRequest) returns (ListResourceTeam) {
+    // List of ResourceTeamAgent
+    rpc SearchResourceTeamAgent(SearchResourceTeamAgentRequest) returns (ListResourceTeamAgent) {
         option (google.api.http) = {
-            get: "/call_center/teams/{team_id}/resources"
+            get: "/call_center/teams/{team_id}/agents"
         };
     }
-    // ResourceTeam item
-    rpc ReadResourceTeam(ReadResourceTeamRequest) returns (ResourceTeam) {
+    // ResourceTeamAgent item
+    rpc ReadResourceTeamAgent(ReadResourceTeamAgentRequest) returns (ResourceTeamAgent) {
         option (google.api.http) = {
-            get: "/call_center/teams/{team_id}/resources/{id}"
+            get: "/call_center/teams/{team_id}/agents/{id}"
         };
     }
-    // Update ResourceTeam
-    rpc UpdateResourceTeam(UpdateResourceTeamRequest) returns (ResourceTeam) {
+    // Update ResourceTeamAgent
+    rpc UpdateResourceTeamAgent(UpdateResourceTeamAgentRequest) returns (ResourceTeamAgent) {
         option (google.api.http) = {
-            put: "/call_center/teams/{team_id}/resources/{id}"
+            put: "/call_center/teams/{team_id}/agents/{id}"
             body: "*"
         };
     }
-    // Remove ResourceTeam
-    rpc DeleteResourceTeam(DeleteResourceTeamRequest) returns (ResourceTeam) {
+    // Remove ResourceTeamAgent
+    rpc DeleteResourceTeamAgent(DeleteResourceTeamAgentRequest) returns (ResourceTeamAgent) {
         option (google.api.http) = {
-            delete: "/call_center/teams/{team_id}/resources/{id}"
+            delete: "/call_center/teams/{team_id}/agents/{id}"
+        };
+    }
+
+    //SKill
+    // Create ResourceTeamSkill
+    rpc CreateResourceTeamSkill(CreateResourceTeamSkillRequest) returns (ResourceTeamSkill) {
+        option (google.api.http) = {
+            post: "/call_center/teams/{team_id}/skills"
+            body: "*"
+        };
+    }
+    // List of ResourceTeamSkill
+    rpc SearchResourceTeamSkill(SearchResourceTeamSkillRequest) returns (ListResourceTeamSkill) {
+        option (google.api.http) = {
+            get: "/call_center/teams/{team_id}/skills"
+        };
+    }
+    // ResourceTeamSkill item
+    rpc ReadResourceTeamSkill(ReadResourceTeamSkillRequest) returns (ResourceTeamSkill) {
+        option (google.api.http) = {
+            get: "/call_center/teams/{team_id}/skills/{id}"
+        };
+    }
+    // Update ResourceTeamSkill
+    rpc UpdateResourceTeamSkill(UpdateResourceTeamSkillRequest) returns (ResourceTeamSkill) {
+        option (google.api.http) = {
+            put: "/call_center/teams/{team_id}/skills/{id}"
+            body: "*"
+        };
+    }
+    // Remove ResourceTeamSkill
+    rpc DeleteResourceTeamSkill(DeleteResourceTeamSkillRequest) returns (ResourceTeamSkill) {
+        option (google.api.http) = {
+            delete: "/call_center/teams/{team_id}/skills/{id}"
         };
     }
 }
 
-message UpdateResourceTeamRequest {
+message UpdateResourceTeamAgentRequest {
     int64 id = 1;
     int64 team_id = 2;
-    int64 domain_id = 3;
-    Lookup agent = 4;
-    Lookup skill = 5;
-    Lookup bucket = 6;
-    int32 lvl = 7;
-    int32 min_capacity = 8;
-    int32 max_capacity = 9;
-}
-
-message SearchResourceTeamRequest {
-    int64 domain_id = 1;
-    int64 team_id = 2;
-    int32 size = 3;
-    int32 page = 4;
-}
-
-message CreateResourceTeamRequest {
-    int64 team_id = 1;
-    int64 domain_id = 2;
     Lookup agent = 3;
-    Lookup skill = 4;
-    Lookup bucket = 5;
-    int32 lvl = 6;
-    int32 min_capacity = 7;
-    int32 max_capacity = 8;
+    Lookup bucket = 4;
+    int32 lvl = 5;
+    int32 min_capacity = 6;
+    int32 max_capacity = 7;
+
+    int64 domain_id = 8;
 }
 
-message ReadResourceTeamRequest {
+message SearchResourceTeamAgentRequest {
+    int64 team_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message CreateResourceTeamAgentRequest {
+    int64 team_id = 1;
+
+    Lookup agent = 2;
+    Lookup bucket = 3;
+    int32 lvl = 4;
+    int32 min_capacity = 5;
+    int32 max_capacity = 6;
+
+    int64 domain_id = 7;
+}
+
+message ReadResourceTeamAgentRequest {
     int64 id = 1;
     int64 team_id = 2;
     int64 domain_id = 3;
 }
 
-message DeleteResourceTeamRequest {
+message DeleteResourceTeamAgentRequest {
     int64 id = 1;
     int64 team_id = 2;
     int64 domain_id = 3;
 }
 
-message ResourceTeam {
+message ResourceTeamAgent {
+    int64 id = 1;
+    int64 team_id = 2;
+    Lookup agent = 3;
+    Lookup bucket = 4;
+    int32 lvl = 5;
+    int32 min_capacity = 6;
+    int32 max_capacity = 7;
+}
+
+message ListResourceTeamAgent {
+    repeated ResourceTeamAgent items = 1;
+}
+
+//Skill
+
+
+message UpdateResourceTeamSkillRequest {
+    int64 id = 1;
+    int64 team_id = 2;
+    Lookup skill = 3;
+    Lookup bucket = 4;
+    int32 lvl = 5;
+    int32 min_capacity = 6;
+    int32 max_capacity = 7;
+
+    int64 domain_id = 8;
+}
+
+message SearchResourceTeamSkillRequest {
+    int64 team_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message CreateResourceTeamSkillRequest {
+    int64 team_id = 1;
+
+    Lookup skill = 2;
+    Lookup bucket = 3;
+    int32 lvl = 4;
+    int32 min_capacity = 5;
+    int32 max_capacity = 6;
+
+    int64 domain_id = 7;
+}
+
+message ReadResourceTeamSkillRequest {
     int64 id = 1;
     int64 team_id = 2;
     int64 domain_id = 3;
-    Lookup agent = 4;
-    Lookup skill = 5;
-    Lookup bucket = 6;
-    int32 lvl = 7;
-    int32 min_capacity = 8;
-    int32 max_capacity = 9;
 }
 
-message ListResourceTeam {
-    repeated ResourceTeam items = 1;
+message DeleteResourceTeamSkillRequest {
+    int64 id = 1;
+    int64 team_id = 2;
+    int64 domain_id = 3;
+}
+
+message ResourceTeamSkill {
+    int64 id = 1;
+    int64 team_id = 2;
+    Lookup skill = 3;
+    Lookup bucket = 4;
+    int32 lvl = 5;
+    int32 min_capacity = 6;
+    int32 max_capacity = 7;
+}
+
+message ListResourceTeamSkill {
+    repeated ResourceTeamSkill items = 1;
 }
