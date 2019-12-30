@@ -5,7 +5,7 @@ import "sync"
 type Hubs struct {
 	app  *App
 	hubs map[int64]*Hub
-	sync.Mutex
+	sync.RWMutex
 }
 
 func NewHubs(a *App) *Hubs {
@@ -16,8 +16,18 @@ func NewHubs(a *App) *Hubs {
 }
 
 func (hs *Hubs) Get(id int64) (*Hub, bool) {
+	hs.RLock()
+	defer hs.RUnlock()
+
 	h, ok := hs.hubs[id]
 	return h, ok
+}
+
+func (hs *Hubs) Remove(id int64) {
+	hs.Lock()
+	defer hs.Unlock()
+
+	delete(hs.hubs, id)
 }
 
 func (hs *Hubs) Register(id int64, name string) *Hub {

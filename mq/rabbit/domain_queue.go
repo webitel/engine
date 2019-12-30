@@ -222,6 +222,10 @@ func (dq *DomainQueue) rebindingUsers() {
 	}
 }
 
+func (dq *DomainQueue) removeQueue() {
+	dq.channel.QueueDelete(dq.queue.Name, false, false, true)
+}
+
 func (dq *DomainQueue) Listen() error {
 	var ok bool
 	var err error
@@ -237,6 +241,9 @@ func (dq *DomainQueue) Listen() error {
 			}
 			return err
 		case <-dq.stop:
+			dq.removeQueue()
+			dq.client.RemoveDomainQueue(dq)
+			close(dq.stopped)
 			return nil
 		case m, ok := <-dq.delivery:
 			if !ok {

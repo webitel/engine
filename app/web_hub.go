@@ -15,6 +15,7 @@ const (
 )
 
 type Hub struct {
+	id               int64
 	name             string
 	connectionCount  int64
 	app              *App
@@ -31,6 +32,7 @@ type Hub struct {
 
 func (a *App) NewWebHub(name string, id int64) *Hub {
 	hub := &Hub{
+		id:               id,
 		app:              a,
 		name:             name,
 		register:         make(chan *WebConn, 1),
@@ -70,10 +72,13 @@ func (wh *Hub) start() {
 	for {
 		select {
 		case <-ticker.C:
-			if wh.connectionCount == 0 && (wh.lastUnregisterAt+(5*60*1000)) < model.GetMillis() {
 
+			if wh.connectionCount == 0 && (wh.lastUnregisterAt+(5*60*1000)) < model.GetMillis() {
+				wh.domainQueue.Stop()
+				wh.app.DeleteHub(wh.id)
+				wlog.Debug(fmt.Sprintf("shutdown domain=%s hub", wh.name))
+				return
 			}
-			wlog.Error("TODO SHUTDOWN_TICKER check stop hub")
 		case webCon := <-wh.register:
 			connections.Add(webCon)
 			atomic.StoreInt64(&wh.connectionCount, int64(len(connections.All())))
@@ -137,6 +142,10 @@ func (a *App) GetHubById(id int64) (*Hub, *model.AppError) {
 		h = a.Hubs.Register(id, "TODO")
 		return h, nil
 	}
+}
+
+func (a *App) DeleteHub(id int64) {
+	a.Hubs.Remove(id)
 }
 
 func (a *App) HubRegister(webCon *WebConn) {

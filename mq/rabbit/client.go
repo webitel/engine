@@ -86,7 +86,7 @@ func (a *AMQP) addDomainQueue(id int64, q mq.DomainQueue) {
 	wlog.Debug(fmt.Sprintf("added domain queue[%d]", id))
 }
 
-func (a *AMQP) removeDomainQueue(q *DomainQueue) {
+func (a *AMQP) RemoveDomainQueue(q *DomainQueue) {
 	a.mx.Lock()
 	defer a.mx.Unlock()
 
