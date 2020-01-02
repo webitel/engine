@@ -1097,7 +1097,7 @@
         ]
       }
     },
-    "/call_center/agents/{agent_id}/status/history": {
+    "/call_center/agents/{agent_id}/states/history": {
       "get": {
         "summary": "List of Agent",
         "operationId": "SearchAgentStateHistory",

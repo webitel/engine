@@ -49,7 +49,7 @@ service AgentService {
     // List of Agent
     rpc SearchAgentStateHistory(SearchAgentStateHistoryRequest) returns (ListAgentStateHistory) {
         option (google.api.http) = {
-            get: "/call_center/agents/{agent_id}/status/history"
+            get: "/call_center/agents/{agent_id}/states/history"
         };
     }
 
@@ -64,8 +64,7 @@ service AgentService {
             get: "/call_center/agents/{id}/queues"
         };
     }
-
-//    rpc AddSkill(SkillAgent) returns (SkillAgent) {}
+    
 }
 
 message SearchAgentStateHistoryRequest {
