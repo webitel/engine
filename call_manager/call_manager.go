@@ -51,6 +51,7 @@ type CallClient interface {
 
 type callManager struct {
 	sipServerAddr    string
+	sipProxy         string
 	serviceDiscovery discovery.ServiceDiscovery
 	poolConnections  discovery.Pool
 
@@ -63,6 +64,7 @@ type callManager struct {
 func NewCallManager(serviceDiscovery discovery.ServiceDiscovery) CallManager {
 	return &callManager{
 		sipServerAddr:    "dev.webitel.com",
+		sipProxy:         "192.168.177.9",
 		serviceDiscovery: serviceDiscovery,
 		poolConnections:  discovery.NewPoolConnections(),
 
@@ -73,7 +75,7 @@ func NewCallManager(serviceDiscovery discovery.ServiceDiscovery) CallManager {
 
 //FIXME
 func (cm *callManager) SipRouteUri() string {
-	return "sip:" + cm.sipServerAddr
+	return "sip:" + cm.sipProxy
 }
 
 func (cm *callManager) SipWsAddress() string {
