@@ -297,20 +297,83 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	}, nil
 }
 
+func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.SearchAgentStateHistoryRequest) (*engine.ListAgentStateHistory, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, model.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.AgentState
+	list, err = api.app.GetAgentStateHistoryPage(in.GetAgentId(), in.GetFromTime(), in.GetToTime(), int(in.GetPage()), int(in.GetSize()))
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentState, 0, len(list))
+
+	for _, v := range list {
+		items = append(items, toEngineAgentState(v))
+	}
+
+	return &engine.ListAgentStateHistory{
+		Items: items,
+	}, nil
+}
+
 func getAgentStatus(name string) model.AgentStatus {
 	return model.AgentStatus{name}
 }
 
 func transformAgent(src *model.Agent) *engine.Agent {
-	return &engine.Agent{
-		Id:       src.Id,
-		DomainId: src.DomainId,
+	agent := &engine.Agent{
+		Id: src.Id,
 		User: &engine.Lookup{
 			Id:   int64(src.User.Id),
 			Name: src.User.Name,
 		},
-		Status:      src.Status,
-		State:       src.State,
-		Description: src.Description,
+		LastStateChange: src.LastStateChange,
+		Status:          src.Status,
+		State:           src.State,
+		Description:     src.Description,
 	}
+
+	if src.StateTimeout != nil {
+		agent.StateTimeout = *src.StateTimeout
+	}
+
+	return agent
+}
+
+func toEngineAgentState(src *model.AgentState) *engine.AgentState {
+	st := &engine.AgentState{
+		Id:        src.Id,
+		JoinedAt:  src.JoinedAt,
+		State:     src.State,
+		TimeoutAt: 0,
+		QueueId:   0,
+	}
+
+	if src.QueueId != nil {
+		st.QueueId = *src.QueueId
+	}
+
+	if src.TimeoutAt != nil {
+		st.TimeoutAt = *src.TimeoutAt
+	}
+
+	return st
 }

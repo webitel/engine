@@ -125,6 +125,7 @@ type AgentStore interface {
 	/* view */
 	InTeam(domainId, id int64, offset, limit int) ([]*model.AgentInTeam, *model.AppError)
 	InQueue(domainId, id int64, offset, limit int) ([]*model.AgentInQueue, *model.AppError)
+	HistoryState(agentId, from, to int64, offset, limit int) ([]*model.AgentState, *model.AppError)
 }
 
 type AgentSkillStore interface {

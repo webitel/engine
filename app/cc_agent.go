@@ -21,6 +21,10 @@ func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, page, perPage 
 	return a.Store.Agent().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
 }
 
+func (a *App) GetAgentStateHistoryPage(agentId, from, to int64, page, perPage int) ([]*model.AgentState, *model.AppError) {
+	return a.Store.Agent().HistoryState(agentId, from, to, page*perPage, perPage)
+}
+
 func (a *App) GetAgentById(domainId, id int64) (*model.Agent, *model.AppError) {
 	return a.Store.Agent().Get(domainId, id)
 }

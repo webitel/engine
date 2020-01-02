@@ -46,6 +46,13 @@ service AgentService {
         };
     }
 
+    // List of Agent
+    rpc SearchAgentStateHistory(SearchAgentStateHistoryRequest) returns (ListAgentStateHistory) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{agent_id}/status/history"
+        };
+    }
+
     rpc SearchAgentInTeam(SearchAgentInTeamRequest) returns (ListAgentInTeam) {
         option (google.api.http) = {
             get: "/call_center/agents/{id}/teams"
@@ -59,6 +66,27 @@ service AgentService {
     }
 
 //    rpc AddSkill(SkillAgent) returns (SkillAgent) {}
+}
+
+message SearchAgentStateHistoryRequest {
+    int64 agent_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+    int64 from_time = 5;
+    int64 to_time = 6;
+}
+
+message AgentState {
+    int64 id = 1;
+    int64 joined_at = 2;
+    string state = 3;
+    int64 timeout_at = 4;
+    int64 queue_id = 5;
+}
+
+message ListAgentStateHistory {
+    repeated AgentState items = 1;
 }
 
 message AgentInQueue {
@@ -149,11 +177,12 @@ message AgentStatusRequest {
 
 message Agent {
     int64 id = 1;
-    int64 domain_id = 2;
-    Lookup user = 3;
-    string status = 4;
-    string state = 5;
-    string description = 7;
+    Lookup user = 2;
+    string status = 3;
+    string state = 4;
+    string description = 5;
+    int64 last_state_change = 6;
+    int64 state_timeout = 7;
 }
 
 message ListAgent {

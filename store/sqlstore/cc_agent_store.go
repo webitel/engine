@@ -44,7 +44,7 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 			values (:UserId, :Description, :DomainId)
 			returning *
 		)
-		select i.id, i.status, i.state, i.description, i.domain_id, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		select i.id, i.status, i.state, i.description,  i.last_state_change, i.state_timeout, i.domain_id, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from i
 		  inner join directory.wbt_user ct on ct.id = i.user_id`,
 		map[string]interface{}{"UserId": agent.User.Id, "Description": agent.Description,
@@ -60,7 +60,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, offset, limit int) ([]*model.A
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, state, description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId
@@ -77,7 +77,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, offset, 
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, state, description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and (
@@ -97,7 +97,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, offset, 
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `
-			select a.id, a.status, state, domain_id, description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+			select a.id, a.status, a.state, a.domain_id, a.description, a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and a.id = :Id 	
@@ -122,7 +122,7 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
-		select u.id, u.status, u.state, u.domain_id, u.description, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		select u.id, u.status, u.state, u.domain_id, u.description, u.last_state_change, u.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from u
 			inner join directory.wbt_user ct on ct.id = u.user_id
 		order by id`, map[string]interface{}{
@@ -244,6 +244,29 @@ offset :Offset`, map[string]interface{}{
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.InQueue", "store.sql_agent.get_queue.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
+func (s SqlAgentStore) HistoryState(agentId, from, to int64, offset, limit int) ([]*model.AgentState, *model.AppError) {
+	var res []*model.AgentState
+	_, err := s.GetReplica().Select(&res, `select h.id, (extract(EPOCH from h.joined_at) * 1000)::int8 as joined_at, h.state, h.timeout_at, h.queue_id
+from cc_agent_state_history h
+where h.agent_id = :AgentId and h.joined_at between to_timestamp( (:From::int8)/1000)::timestamp and to_timestamp(:To::int8/1000)::timestamp
+order by h.joined_at desc
+limit :Limit
+offset :Offset`, map[string]interface{}{
+		"AgentId": agentId,
+		"From":    from,
+		"To":      to,
+		"Limit":   limit,
+		"Offset":  offset,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.HistoryState", "store.sql_agent.get_state_history.app_error", nil,
+			fmt.Sprintf("AgentId=%v, %s", agentId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
