@@ -72,8 +72,8 @@ message SearchAgentStateHistoryRequest {
     int32 page = 2;
     int32 size = 3;
     int64 domain_id = 4;
-    int64 from_time = 5;
-    int64 to_time = 6;
+    int64 time_from = 5;
+    int64 time_to = 6;
 }
 
 message AgentState {
@@ -81,7 +81,7 @@ message AgentState {
     int64 joined_at = 2;
     string state = 3;
     int64 timeout_at = 4;
-    int64 queue_id = 5;
+    Lookup queue = 5;
 }
 
 message ListAgentStateHistory {

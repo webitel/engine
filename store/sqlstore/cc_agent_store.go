@@ -251,8 +251,9 @@ offset :Offset`, map[string]interface{}{
 
 func (s SqlAgentStore) HistoryState(agentId, from, to int64, offset, limit int) ([]*model.AgentState, *model.AppError) {
 	var res []*model.AgentState
-	_, err := s.GetReplica().Select(&res, `select h.id, (extract(EPOCH from h.joined_at) * 1000)::int8 as joined_at, h.state, h.timeout_at, h.queue_id
+	_, err := s.GetReplica().Select(&res, `select h.id, (extract(EPOCH from h.joined_at) * 1000)::int8 as joined_at, h.state, h.timeout_at, cc_get_lookup(h.queue_id, q.name) queue
 from cc_agent_state_history h
+    left join cc_queue q on q.id = h.queue_id
 where h.agent_id = :AgentId and h.joined_at between to_timestamp( (:From::int8)/1000)::timestamp and to_timestamp(:To::int8/1000)::timestamp
 order by h.joined_at desc
 limit :Limit

@@ -318,7 +318,7 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 	}
 
 	var list []*model.AgentState
-	list, err = api.app.GetAgentStateHistoryPage(in.GetAgentId(), in.GetFromTime(), in.GetToTime(), int(in.GetPage()), int(in.GetSize()))
+	list, err = api.app.GetAgentStateHistoryPage(in.GetAgentId(), in.GetTimeFrom(), in.GetTimeTo(), int(in.GetPage()), int(in.GetSize()))
 	if err != nil {
 		return nil, err
 	}
@@ -364,11 +364,13 @@ func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 		JoinedAt:  src.JoinedAt,
 		State:     src.State,
 		TimeoutAt: 0,
-		QueueId:   0,
 	}
 
-	if src.QueueId != nil {
-		st.QueueId = *src.QueueId
+	if src.Queue != nil {
+		st.Queue = &engine.Lookup{
+			Id:   int64(src.Queue.Id),
+			Name: src.Queue.Name,
+		}
 	}
 
 	if src.TimeoutAt != nil {

@@ -26,11 +26,11 @@ type Agent struct {
 }
 
 type AgentState struct {
-	Id        int64  `json:"id" db:"id"`
-	JoinedAt  int64  `json:"joined_at" db:"joined_at"`
-	State     string `json:"state" db:"state"`
-	TimeoutAt *int64 `json:"timeout_at" db:"timeout_at"`
-	QueueId   *int64 `json:"queue_id" db:"queue_id"`
+	Id        int64   `json:"id" db:"id"`
+	JoinedAt  int64   `json:"joined_at" db:"joined_at"`
+	State     string  `json:"state" db:"state"`
+	TimeoutAt *int64  `json:"timeout_at" db:"timeout_at"`
+	Queue     *Lookup `json:"queue" db:"queue"`
 }
 
 func (a *Agent) IsValid() *AppError {

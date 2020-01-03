@@ -1150,14 +1150,14 @@
             "format": "int64"
           },
           {
-            "name": "from_time",
+            "name": "time_from",
             "in": "query",
             "required": false,
             "type": "string",
             "format": "int64"
           },
           {
-            "name": "to_time",
+            "name": "time_to",
             "in": "query",
             "required": false,
             "type": "string",
@@ -6533,9 +6533,8 @@
           "type": "string",
           "format": "int64"
         },
-        "queue_id": {
-          "type": "string",
-          "format": "int64"
+        "queue": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
