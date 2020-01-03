@@ -2880,6 +2880,49 @@
           "MemberService"
         ]
       },
+      "delete": {
+        "summary": "DeleteMembers",
+        "operationId": "DeleteMembers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListMember"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineDeleteMembersRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      },
       "post": {
         "summary": "Create Member",
         "operationId": "CreateMember",
@@ -7377,6 +7420,26 @@
         },
         "agent": {
           "$ref": "#/definitions/engineLookup"
+        }
+      }
+    },
+    "engineDeleteMembersRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

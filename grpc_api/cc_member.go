@@ -304,6 +304,48 @@ func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequ
 	return toEngineMember(member), nil
 }
 
+func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRequest) (*engine.ListMember, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var list []*model.Member
+
+	list, err = api.app.RemoveMembersByIds(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetIds())
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.Member, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineMember(v))
+	}
+
+	return &engine.ListMember{
+		Items: items,
+	}, nil
+}
+
 func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMemberAttemptsRequest) (*engine.ListMemberAttempt, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

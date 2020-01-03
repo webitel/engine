@@ -47,12 +47,27 @@ service MemberService {
         };
     }
 
+    // DeleteMembers
+    rpc DeleteMembers(DeleteMembersRequest) returns (ListMember) {
+        option (google.api.http) = {
+            delete: "/call_center/queues/{queue_id}/members"
+            body: "*"
+        };
+    }
+
     // SearchMemberAttempts
     rpc SearchMemberAttempts(SearchMemberAttemptsRequest) returns (ListMemberAttempt) {
         option (google.api.http) = {
             get: "/call_center/queues/{queue_id}/members/{member_id}/attempts"
         };
     }
+}
+
+message DeleteMembersRequest {
+    int64 queue_id = 1;
+    repeated int64 ids = 2;
+
+    int64 domain_id = 3;
 }
 
 message ListMemberAttempt {

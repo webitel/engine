@@ -60,6 +60,10 @@ func (app *App) RemoveMember(domainId, queueId, id int64) (*model.Member, *model
 	return member, nil
 }
 
+func (app *App) RemoveMembersByIds(domainId, queueId int64, ids []int64) ([]*model.Member, *model.AppError) {
+	return app.Store.Member().MultiDelete(queueId, ids)
+}
+
 func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
 	return app.Store.Member().AttemptsList(memberId)
 }
