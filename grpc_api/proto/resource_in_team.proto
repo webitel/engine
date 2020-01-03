@@ -80,10 +80,8 @@ message UpdateResourceTeamAgentRequest {
     Lookup agent = 3;
     Lookup bucket = 4;
     int32 lvl = 5;
-    int32 min_capacity = 6;
-    int32 max_capacity = 7;
 
-    int64 domain_id = 8;
+    int64 domain_id = 6;
 }
 
 message SearchResourceTeamAgentRequest {
@@ -99,10 +97,8 @@ message CreateResourceTeamAgentRequest {
     Lookup agent = 2;
     Lookup bucket = 3;
     int32 lvl = 4;
-    int32 min_capacity = 5;
-    int32 max_capacity = 6;
 
-    int64 domain_id = 7;
+    int64 domain_id = 5;
 }
 
 message ReadResourceTeamAgentRequest {
@@ -123,8 +119,6 @@ message ResourceTeamAgent {
     Lookup agent = 3;
     Lookup bucket = 4;
     int32 lvl = 5;
-    int32 min_capacity = 6;
-    int32 max_capacity = 7;
 }
 
 message ListResourceTeamAgent {

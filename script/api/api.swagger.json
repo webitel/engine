@@ -7274,14 +7274,6 @@
           "type": "integer",
           "format": "int32"
         },
-        "min_capacity": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "max_capacity": {
-          "type": "integer",
-          "format": "int32"
-        },
         "domain_id": {
           "type": "string",
           "format": "int64"
@@ -8545,14 +8537,6 @@
         "lvl": {
           "type": "integer",
           "format": "int32"
-        },
-        "min_capacity": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "max_capacity": {
-          "type": "integer",
-          "format": "int32"
         }
       }
     },
@@ -9356,14 +9340,6 @@
           "$ref": "#/definitions/engineLookup"
         },
         "lvl": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "min_capacity": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "max_capacity": {
           "type": "integer",
           "format": "int32"
         },

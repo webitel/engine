@@ -40,12 +40,10 @@ func (api *resourceTeam) CreateResourceTeamAgent(ctx context.Context, in *engine
 	}
 
 	teamResource := &model.ResourceInTeam{
-		TeamId:      in.TeamId,
-		Agent:       GetLookup(in.Agent),
-		Bucket:      GetLookup(in.Bucket),
-		Lvl:         int(in.Lvl),
-		MinCapacity: int(in.MinCapacity),
-		MaxCapacity: int(in.MaxCapacity),
+		TeamId: in.TeamId,
+		Agent:  GetLookup(in.Agent),
+		Bucket: GetLookup(in.Bucket),
+		Lvl:    int(in.Lvl),
 	}
 
 	if err = teamResource.IsValid(); err != nil {
@@ -149,13 +147,11 @@ func (api *resourceTeam) UpdateResourceTeamAgent(ctx context.Context, in *engine
 	var resource *model.ResourceInTeam
 
 	resource, err = api.app.UpdateResourceTeamAgent(session.Domain(in.GetDomainId()), &model.ResourceInTeam{
-		Id:          in.Id,
-		TeamId:      in.TeamId,
-		Agent:       GetLookup(in.Agent),
-		Bucket:      GetLookup(in.Bucket),
-		Lvl:         int(in.Lvl),
-		MinCapacity: int(in.MinCapacity),
-		MaxCapacity: int(in.MaxCapacity),
+		Id:     in.Id,
+		TeamId: in.TeamId,
+		Agent:  GetLookup(in.Agent),
+		Bucket: GetLookup(in.Bucket),
+		Lvl:    int(in.Lvl),
 	})
 
 	if err != nil {
@@ -388,13 +384,11 @@ func (api *resourceTeam) DeleteResourceTeamSkill(ctx context.Context, in *engine
 
 func transformResourceTeamAgent(src *model.ResourceInTeam) *engine.ResourceTeamAgent {
 	return &engine.ResourceTeamAgent{
-		Id:          src.Id,
-		TeamId:      src.TeamId,
-		Agent:       GetProtoLookup(src.Agent),
-		Bucket:      GetProtoLookup(src.Bucket),
-		Lvl:         int32(src.Lvl),
-		MinCapacity: int32(src.MinCapacity),
-		MaxCapacity: int32(src.MaxCapacity),
+		Id:     src.Id,
+		TeamId: src.TeamId,
+		Agent:  GetProtoLookup(src.Agent),
+		Bucket: GetProtoLookup(src.Bucket),
+		Lvl:    int32(src.Lvl),
 	}
 }
 
