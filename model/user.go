@@ -17,11 +17,12 @@ type UserCallInfo struct {
 	Name       string                  `json:"name" db:"name"`
 	DomainName string                  `json:"domain_name" db:"domain_name"`
 	Extension  string                  `json:"tel_number" db:"extension"`
+	Endpoint   string                  `json:"endpoint" db:"endpoint"`
 	Variables  *map[string]interface{} `json:"variables" db:"variables"`
 }
 
 func (u *UserCallInfo) GetCallEndpoints() []string {
-	return []string{fmt.Sprintf("sofia/sip/%s@%s", u.Extension, u.DomainName)}
+	return []string{fmt.Sprintf("sofia/sip/%s@%s", u.Endpoint, u.DomainName)}
 }
 
 func (u *User) Root() bool {
