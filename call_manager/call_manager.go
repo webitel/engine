@@ -64,7 +64,7 @@ type callManager struct {
 func NewCallManager(serviceDiscovery discovery.ServiceDiscovery) CallManager {
 	return &callManager{
 		sipServerAddr:    "dev.webitel.com",
-		sipProxy:         "192.168.77.9",
+		sipProxy:         "192.168.177.9",
 		serviceDiscovery: serviceDiscovery,
 		poolConnections:  discovery.NewPoolConnections(),
 
