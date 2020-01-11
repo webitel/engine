@@ -97,6 +97,10 @@ func (s *LayeredStore) Queue() QueueStore {
 	return s.DatabaseLayer.Queue()
 }
 
+func (s *LayeredStore) QueueResource() QueueResourceStore {
+	return s.DatabaseLayer.QueueResource()
+}
+
 func (s *LayeredStore) Bucket() BucketSore {
 	return s.DatabaseLayer.Bucket()
 }

@@ -54,67 +54,75 @@ service RoutingSchemaService {
 
 message PatchRoutingSchemaRequest {
     int64 id = 1;
-    int64 domain_id = 2;
 
-    string name = 3;
-    string description = 4;
-    int32 type = 5;
-    google.protobuf.Value schema = 6;
-    google.protobuf.Value payload = 7;
-    bool debug = 8;
-    repeated string fields = 9;
-}
-
-message DeleteRoutingSchemaRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
-}
-
-message UpdateRoutingSchemaRequest {
-    int64 id = 1;
-    int64 domain_id = 2;
-    string name = 3;
-    string description = 4;
-    int32 type = 5;
-    google.protobuf.Value schema = 6;
-    google.protobuf.Value payload = 7;
-    bool debug = 8;
-}
-
-message ReadRoutingSchemaRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
-}
-
-message SearchRoutingSchemaRequest {
-    int64 domain_id = 1;
-    int32 size = 2;
-    int32 page = 3;
-}
-
-message CreateRoutingSchemaRequest {
-    int64 domain_id = 1;
     string name = 2;
     string description = 3;
     int32 type = 4;
     google.protobuf.Value schema = 5;
     google.protobuf.Value payload = 6;
     bool debug = 7;
+    repeated string fields = 8;
+
+    int64 domain_id = 9;
+}
+
+message DeleteRoutingSchemaRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateRoutingSchemaRequest {
+    int64 id = 1;
+
+    string name = 2;
+    string description = 3;
+    int32 type = 4;
+    google.protobuf.Value schema = 5;
+    google.protobuf.Value payload = 6;
+    bool debug = 7;
+
+    int64 domain_id = 8;
+}
+
+message ReadRoutingSchemaRequest {
+    int64 id = 1;
+
+    int64 domain_id = 2;
+}
+
+message SearchRoutingSchemaRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    int64 domain_id = 3;
+}
+
+message CreateRoutingSchemaRequest {
+    string name = 1;
+    string description = 2;
+    int32 type = 3;
+    google.protobuf.Value schema = 4;
+    google.protobuf.Value payload = 5;
+    bool debug = 6;
+
+    int64 domain_id = 7;
 }
 
 message RoutingSchema {
     int64 id = 1;
-    int64 domain_id = 2;
-    int64 created_at = 3;
-    Lookup created_by = 4;
-    int64 updated_at = 5;
-    Lookup updated_by = 6;
-    string name = 7;
-    string description = 8;
-    int32 type = 9;
-    google.protobuf.Value schema = 10;
-    google.protobuf.Value payload = 11;
-    bool debug = 12;
+
+    int64 created_at = 2;
+    Lookup created_by = 3;
+    int64 updated_at = 4;
+    Lookup updated_by = 5;
+    string name = 6;
+    string description = 7;
+    int32 type = 8;
+    google.protobuf.Value schema = 9;
+    google.protobuf.Value payload = 10;
+    bool debug = 11;
+
+    int64 domain_id = 12;
 }
 
 message ListRoutingSchema {

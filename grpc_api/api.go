@@ -16,6 +16,7 @@ type API struct {
 	outboundResource      *outboundResource
 	outboundResourceGroup *outboundResourceGroup
 	queue                 *queue
+	queueResource         *queueResource
 	queueRouting          *queueRouting
 	supervisorInTeam      *supervisorInTeam
 	communicationType     *communicationType
@@ -41,6 +42,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.outboundResource = NewOutboundResourceApi(a)
 	api.outboundResourceGroup = NewOutboundResourceGroupApi(a)
 	api.queue = NewQueueApi(a)
+	api.queueResource = NewQueueResourceApi(a)
 	api.queueRouting = NewQueueRoutingApi(a)
 	api.supervisorInTeam = NewSupervisorInTeamApi(a)
 
@@ -63,6 +65,7 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterOutboundResourceServiceServer(server, api.outboundResource)
 	engine.RegisterOutboundResourceGroupServiceServer(server, api.outboundResourceGroup)
 	engine.RegisterQueueServiceServer(server, api.queue)
+	engine.RegisterQueueResourcesServiceServer(server, api.queueResource)
 	engine.RegisterQueueRoutingServiceServer(server, api.queueRouting)
 	engine.RegisterSupervisorInTeamServiceServer(server, api.supervisorInTeam)
 	engine.RegisterCommunicationTypeServiceServer(server, api.communicationType)

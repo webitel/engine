@@ -62,9 +62,10 @@ message ReadQueueRoutingRequest {
 
 message SearchQueueRoutingRequest {
     int64 queue_id = 1;
-    int64 domain_id = 2;
+    int32 page = 2;
     int32 size = 3;
-    int32 page = 4;
+
+    int64 domain_id = 4;
 }
 
 message ListQueueRouting {

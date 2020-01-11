@@ -46,9 +46,10 @@ message DeleteRoutingVariableRequest {
 
 message UpdateRoutingVariableRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    string key = 3;
-    string value = 4;
+    string key = 2;
+    string value = 3;
+
+    int64 domain_id = 4;
 }
 
 message ReadRoutingVariableRequest {
@@ -57,15 +58,15 @@ message ReadRoutingVariableRequest {
 }
 
 message CreateRoutingVariableRequest {
-    int64 domain_id = 1;
-    string key = 2;
-    string value = 3;
+    string key = 1;
+    string value = 2;
+    int64 domain_id = 3;
 }
 
 message SearchRoutingVariableRequest {
-    int64 domain_id = 1;
+    int32 page = 1;
     int32 size = 2;
-    int32 page = 3;
+    int64 domain_id = 3;
 }
 
 message RoutingVariable {

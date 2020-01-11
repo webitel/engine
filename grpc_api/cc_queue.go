@@ -41,22 +41,20 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		},
 		Strategy: in.Strategy,
 		Enabled:  in.Enabled,
-		Payload:  []byte("{}"), //FIXME
+		Payload:  MarshalJsonpb(in.Payload),
 		Calendar: model.Lookup{
 			Id:   int(in.GetCalendar().GetId()),
 			Name: in.GetCalendar().GetName(),
 		},
-		Priority:          int(in.Priority),
-		MaxCalls:          int(in.MaxCalls),
-		SecBetweenRetries: int(in.SecBetweenRetries),
-		Name:              in.Name,
-		MaxOfRetry:        int(in.MaxOfRetry),
-		Variables:         nil, //FIXME
-		Timeout:           int(in.Timeout),
-		DncList:           GetLookup(in.GetDncList()),
-		SecLocateAgent:    int(in.SecLocateAgent),
-		Type:              int8(in.Type),
-		Team:              GetLookup(in.GetTeam()),
+		Priority:       int(in.Priority),
+		Name:           in.Name,
+		Variables:      in.Variables,
+		Timeout:        int(in.Timeout),
+		DncList:        GetLookup(in.GetDncList()),
+		SecLocateAgent: int(in.SecLocateAgent),
+		Type:           int8(in.Type),
+		Team:           GetLookup(in.GetTeam()),
+		Description:    in.Description,
 	}
 
 	if err = queue.IsValid(); err != nil {
@@ -134,6 +132,72 @@ func (api *queue) ReadQueue(ctx context.Context, in *engine.ReadQueueRequest) (*
 	return transformQueue(queue), nil
 }
 
+func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) (*engine.Queue, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var queue *model.Queue
+	patch := &model.QueuePatch{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "strategy":
+			patch.Strategy = model.NewString(in.Strategy)
+		case "enabled":
+			patch.Enabled = model.NewBool(in.Enabled)
+		case "payload":
+			patch.Payload = MarshalJsonpb(in.Payload)
+		case "calendar":
+			patch.Calendar = GetLookup(in.Calendar)
+		case "priority":
+			patch.Priority = model.NewInt(int(in.Priority))
+		case "name":
+			patch.Name = model.NewString(in.Name)
+		case "variables":
+			patch.Variables = in.Variables
+		case "timeout":
+			patch.Timeout = model.NewInt(int(in.Timeout))
+		case "dnc_list":
+			patch.DncList = GetLookup(in.DncList)
+		case "sec_locate_agent":
+			patch.SecLocateAgent = model.NewInt(int(in.SecLocateAgent))
+		case "team":
+			patch.Team = GetLookup(in.Team)
+		case "description":
+			patch.Description = model.NewString(in.Description)
+		}
+	}
+
+	queue, err = api.app.PatchQueue(session.Domain(in.GetDomainId()), in.GetId(), patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformQueue(queue), nil
+}
+
 func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest) (*engine.Queue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -171,21 +235,19 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		},
 		Strategy: in.Strategy,
 		Enabled:  in.Enabled,
-		Payload:  []byte("{}"), //FIXME
+		Payload:  MarshalJsonpb(in.Payload),
 		Calendar: model.Lookup{
 			Id: int(in.GetCalendar().GetId()),
 		},
-		Priority:          int(in.Priority),
-		MaxCalls:          int(in.MaxCalls),
-		SecBetweenRetries: int(in.SecBetweenRetries),
-		Name:              in.Name,
-		MaxOfRetry:        int(in.MaxOfRetry),
-		Variables:         in.Variables,
-		Timeout:           int(in.Timeout),
-		DncList:           GetLookup(in.DncList),
-		SecLocateAgent:    int(in.SecLocateAgent),
-		Type:              int8(in.Type),
-		Team:              GetLookup(in.Team),
+		Priority:       int(in.Priority),
+		Name:           in.Name,
+		Variables:      in.Variables,
+		Timeout:        int(in.Timeout),
+		DncList:        GetLookup(in.DncList),
+		SecLocateAgent: int(in.SecLocateAgent),
+		Type:           int8(in.Type),
+		Team:           GetLookup(in.Team),
+		Description:    in.Description,
 	})
 
 	if err != nil {
@@ -245,16 +307,14 @@ func transformQueue(src *model.Queue) *engine.Queue {
 			Id:   int64(src.Calendar.Id),
 			Name: src.Calendar.Name,
 		},
-		Priority:          int32(src.Priority),
-		MaxCalls:          int32(src.MaxCalls),
-		SecBetweenRetries: int32(src.SecBetweenRetries),
-		Name:              src.Name,
-		MaxOfRetry:        int32(src.MaxOfRetry),
-		Variables:         nil,
-		Timeout:           int32(src.Timeout),
-		DncList:           GetProtoLookup(src.DncList),
-		SecLocateAgent:    int32(src.SecLocateAgent),
-		Type:              int32(src.Type),
-		Team:              GetProtoLookup(src.Team),
+		Priority:       int32(src.Priority),
+		Name:           src.Name,
+		Variables:      src.Variables,
+		Timeout:        int32(src.Timeout),
+		DncList:        GetProtoLookup(src.DncList),
+		SecLocateAgent: int32(src.SecLocateAgent),
+		Type:           int32(src.Type),
+		Team:           GetProtoLookup(src.Team),
+		Description:    src.Description,
 	}
 }

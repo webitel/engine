@@ -42,36 +42,36 @@ service AgentSkillService {
 
 message UpdateAgentSkillRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    int64 agent_id = 3;
-    Lookup skill = 4;
-    int32 capacity = 5;
-}
-
-message SearchAgentSkillRequest {
-    int64 domain_id = 1;
-    int64 agent_id = 2;
-    int32 size = 3;
-    int32 page = 4;
-}
-
-message CreateAgentSkillRequest {
-    int64 domain_id = 1;
     int64 agent_id = 2;
     Lookup skill = 3;
     int32 capacity = 4;
+    int64 domain_id = 5;
+}
+
+message SearchAgentSkillRequest {
+    int64 agent_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message CreateAgentSkillRequest {
+    int64 agent_id = 1;
+    Lookup skill = 2;
+    int32 capacity = 3;
+    int64 domain_id = 4;
 }
 
 message AgentSkillItemRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    int64 agent_id = 3;
+    int64 agent_id = 2;
+    int64 domain_id = 3;
 }
 
 message DeleteAgentSkillRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    int64 agent_id = 3;
+    int64 agent_id = 2;
+    int64 domain_id = 3;
 }
 
 message AgentSkillItem {

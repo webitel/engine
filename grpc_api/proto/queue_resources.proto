@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+package engine;
+
+service QueueResourcesService {
+    //CreateQueueResourceGroup
+    rpc CreateQueueResourceGroup (CreateQueueResourceGroupRequest) returns (QueueResourceGroup) {
+        option (google.api.http) = {
+            post: "/call_center/queues/{queue_id}/resource_groups"
+            body: "*"
+        };
+    }
+
+    // SearchQueueResourceGroup
+    rpc SearchQueueResourceGroup(SearchQueueResourceGroupRequest) returns (ListQueueResourceGroup) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/resource_groups"
+        };
+    }
+
+    // ReadQueueResourceGroup
+    rpc ReadQueueResourceGroup(ReadQueueResourceGroupRequest) returns (QueueResourceGroup) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/resource_groups/{id}"
+        };
+    }
+
+    // UpdateQueueResourceGroup
+    rpc UpdateQueueResourceGroup(UpdateQueueResourceGroupRequest) returns (QueueResourceGroup) {
+        option (google.api.http) = {
+            put: "/call_center/queues/{queue_id}/resource_groups/{id}"
+            body: "*"
+        };
+    }
+
+    // DeleteQueueResourceGroup
+    rpc DeleteQueueResourceGroup(DeleteQueueResourceGroupRequest) returns (QueueResourceGroup) {
+        option (google.api.http) = {
+            delete: "/call_center/queues/{queue_id}/resource_groups/{id}"
+        };
+    }
+}
+
+message DeleteQueueResourceGroupRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int64 domain_id = 3;
+}
+
+message UpdateQueueResourceGroupRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    Lookup resource_group = 3;
+    int64 domain_id = 4;
+}
+
+message ReadQueueResourceGroupRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int64 domain_id = 3;
+}
+
+message QueueResourceGroup {
+    int64 id = 1;
+    Lookup resource_group = 2;
+}
+
+message SearchQueueResourceGroupRequest {
+    int64 queue_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message ListQueueResourceGroup {
+    repeated QueueResourceGroup items = 1;
+}
+
+message CreateQueueResourceGroupRequest {
+    int64 queue_id = 1;
+    Lookup resource_group = 2;
+    int64 domain_id = 3;
+}

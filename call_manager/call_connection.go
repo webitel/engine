@@ -25,19 +25,21 @@ var patternVersion = regexp.MustCompile(`^.*?\s(\d+[\.\S]+[^\s]).*`)
 type CallConnection struct {
 	name        string
 	host        string
+	port        int
 	rateLimiter ratelimit.Limiter
 	client      *grpc.ClientConn
 	api         fs.ApiClient
 }
 
-func NewCallConnection(name, url string) (CallClient, *model.AppError) {
+func NewCallConnection(name, host string, port int) (CallClient, *model.AppError) {
 	var err error
 	c := &CallConnection{
 		name: name,
-		host: url,
+		host: host,
+		port: port,
 	}
 
-	c.client, err = grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(FS_CONNECTION_TIMEOUT))
+	c.client, err = grpc.Dial(fmt.Sprintf("%s:%d", c.host, c.port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(FS_CONNECTION_TIMEOUT))
 
 	if err != nil {
 		return nil, model.NewAppError("NewCallConnection", "grpc.create_connection.app_error", nil, err.Error(), http.StatusInternalServerError)

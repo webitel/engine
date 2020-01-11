@@ -26,9 +26,168 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type PatchQueueRequest struct {
+	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Strategy             string            `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Enabled              bool              `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Payload              *_struct.Value    `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
+	Calendar             *Lookup           `protobuf:"bytes,5,opt,name=calendar,proto3" json:"calendar,omitempty"`
+	Priority             int32             `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
+	Name                 string            `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	Variables            map[string]string `protobuf:"bytes,8,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Timeout              int32             `protobuf:"varint,9,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	DncList              *Lookup           `protobuf:"bytes,10,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
+	SecLocateAgent       int32             `protobuf:"varint,11,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
+	Type                 int32             `protobuf:"varint,12,opt,name=type,proto3" json:"type,omitempty"`
+	Team                 *Lookup           `protobuf:"bytes,13,opt,name=team,proto3" json:"team,omitempty"`
+	Description          string            `protobuf:"bytes,14,opt,name=description,proto3" json:"description,omitempty"`
+	Fields               []string          `protobuf:"bytes,15,rep,name=fields,proto3" json:"fields,omitempty"`
+	DomainId             int64             `protobuf:"varint,16,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *PatchQueueRequest) Reset()         { *m = PatchQueueRequest{} }
+func (m *PatchQueueRequest) String() string { return proto.CompactTextString(m) }
+func (*PatchQueueRequest) ProtoMessage()    {}
+func (*PatchQueueRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_96e4d7d76a734cd8, []int{0}
+}
+
+func (m *PatchQueueRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PatchQueueRequest.Unmarshal(m, b)
+}
+func (m *PatchQueueRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PatchQueueRequest.Marshal(b, m, deterministic)
+}
+func (m *PatchQueueRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PatchQueueRequest.Merge(m, src)
+}
+func (m *PatchQueueRequest) XXX_Size() int {
+	return xxx_messageInfo_PatchQueueRequest.Size(m)
+}
+func (m *PatchQueueRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PatchQueueRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PatchQueueRequest proto.InternalMessageInfo
+
+func (m *PatchQueueRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *PatchQueueRequest) GetStrategy() string {
+	if m != nil {
+		return m.Strategy
+	}
+	return ""
+}
+
+func (m *PatchQueueRequest) GetEnabled() bool {
+	if m != nil {
+		return m.Enabled
+	}
+	return false
+}
+
+func (m *PatchQueueRequest) GetPayload() *_struct.Value {
+	if m != nil {
+		return m.Payload
+	}
+	return nil
+}
+
+func (m *PatchQueueRequest) GetCalendar() *Lookup {
+	if m != nil {
+		return m.Calendar
+	}
+	return nil
+}
+
+func (m *PatchQueueRequest) GetPriority() int32 {
+	if m != nil {
+		return m.Priority
+	}
+	return 0
+}
+
+func (m *PatchQueueRequest) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *PatchQueueRequest) GetVariables() map[string]string {
+	if m != nil {
+		return m.Variables
+	}
+	return nil
+}
+
+func (m *PatchQueueRequest) GetTimeout() int32 {
+	if m != nil {
+		return m.Timeout
+	}
+	return 0
+}
+
+func (m *PatchQueueRequest) GetDncList() *Lookup {
+	if m != nil {
+		return m.DncList
+	}
+	return nil
+}
+
+func (m *PatchQueueRequest) GetSecLocateAgent() int32 {
+	if m != nil {
+		return m.SecLocateAgent
+	}
+	return 0
+}
+
+func (m *PatchQueueRequest) GetType() int32 {
+	if m != nil {
+		return m.Type
+	}
+	return 0
+}
+
+func (m *PatchQueueRequest) GetTeam() *Lookup {
+	if m != nil {
+		return m.Team
+	}
+	return nil
+}
+
+func (m *PatchQueueRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *PatchQueueRequest) GetFields() []string {
+	if m != nil {
+		return m.Fields
+	}
+	return nil
+}
+
+func (m *PatchQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type DeleteQueueRequest struct {
-	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -38,7 +197,7 @@ func (m *DeleteQueueRequest) Reset()         { *m = DeleteQueueRequest{} }
 func (m *DeleteQueueRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteQueueRequest) ProtoMessage()    {}
 func (*DeleteQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{0}
+	return fileDescriptor_96e4d7d76a734cd8, []int{1}
 }
 
 func (m *DeleteQueueRequest) XXX_Unmarshal(b []byte) error {
@@ -59,13 +218,6 @@ func (m *DeleteQueueRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteQueueRequest proto.InternalMessageInfo
 
-func (m *DeleteQueueRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
 func (m *DeleteQueueRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
@@ -73,24 +225,29 @@ func (m *DeleteQueueRequest) GetId() int64 {
 	return 0
 }
 
+func (m *DeleteQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type UpdateQueueRequest struct {
-	DomainId             int64             `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Strategy             string            `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
 	Enabled              bool              `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
 	Payload              *_struct.Value    `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
 	Calendar             *Lookup           `protobuf:"bytes,5,opt,name=calendar,proto3" json:"calendar,omitempty"`
 	Priority             int32             `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
-	MaxCalls             int32             `protobuf:"varint,7,opt,name=max_calls,json=maxCalls,proto3" json:"max_calls,omitempty"`
-	SecBetweenRetries    int32             `protobuf:"varint,8,opt,name=sec_between_retries,json=secBetweenRetries,proto3" json:"sec_between_retries,omitempty"`
-	Name                 string            `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
-	MaxOfRetry           int32             `protobuf:"varint,10,opt,name=max_of_retry,json=maxOfRetry,proto3" json:"max_of_retry,omitempty"`
-	Variables            map[string]string `protobuf:"bytes,11,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Timeout              int32             `protobuf:"varint,12,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	DncList              *Lookup           `protobuf:"bytes,13,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
-	SecLocateAgent       int32             `protobuf:"varint,14,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
-	Type                 int32             `protobuf:"varint,15,opt,name=type,proto3" json:"type,omitempty"`
-	Team                 *Lookup           `protobuf:"bytes,16,opt,name=team,proto3" json:"team,omitempty"`
-	Id                   int64             `protobuf:"varint,17,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string            `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	Variables            map[string]string `protobuf:"bytes,8,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Timeout              int32             `protobuf:"varint,9,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	DncList              *Lookup           `protobuf:"bytes,10,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
+	SecLocateAgent       int32             `protobuf:"varint,11,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
+	Type                 int32             `protobuf:"varint,12,opt,name=type,proto3" json:"type,omitempty"`
+	Team                 *Lookup           `protobuf:"bytes,13,opt,name=team,proto3" json:"team,omitempty"`
+	Description          string            `protobuf:"bytes,14,opt,name=description,proto3" json:"description,omitempty"`
+	DomainId             int64             `protobuf:"varint,15,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -100,7 +257,7 @@ func (m *UpdateQueueRequest) Reset()         { *m = UpdateQueueRequest{} }
 func (m *UpdateQueueRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateQueueRequest) ProtoMessage()    {}
 func (*UpdateQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{1}
+	return fileDescriptor_96e4d7d76a734cd8, []int{2}
 }
 
 func (m *UpdateQueueRequest) XXX_Unmarshal(b []byte) error {
@@ -121,9 +278,9 @@ func (m *UpdateQueueRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateQueueRequest proto.InternalMessageInfo
 
-func (m *UpdateQueueRequest) GetDomainId() int64 {
+func (m *UpdateQueueRequest) GetId() int64 {
 	if m != nil {
-		return m.DomainId
+		return m.Id
 	}
 	return 0
 }
@@ -163,32 +320,11 @@ func (m *UpdateQueueRequest) GetPriority() int32 {
 	return 0
 }
 
-func (m *UpdateQueueRequest) GetMaxCalls() int32 {
-	if m != nil {
-		return m.MaxCalls
-	}
-	return 0
-}
-
-func (m *UpdateQueueRequest) GetSecBetweenRetries() int32 {
-	if m != nil {
-		return m.SecBetweenRetries
-	}
-	return 0
-}
-
 func (m *UpdateQueueRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
-}
-
-func (m *UpdateQueueRequest) GetMaxOfRetry() int32 {
-	if m != nil {
-		return m.MaxOfRetry
-	}
-	return 0
 }
 
 func (m *UpdateQueueRequest) GetVariables() map[string]string {
@@ -233,16 +369,23 @@ func (m *UpdateQueueRequest) GetTeam() *Lookup {
 	return nil
 }
 
-func (m *UpdateQueueRequest) GetId() int64 {
+func (m *UpdateQueueRequest) GetDescription() string {
 	if m != nil {
-		return m.Id
+		return m.Description
+	}
+	return ""
+}
+
+func (m *UpdateQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
 	}
 	return 0
 }
 
 type ReadQueueRequest struct {
-	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -252,7 +395,7 @@ func (m *ReadQueueRequest) Reset()         { *m = ReadQueueRequest{} }
 func (m *ReadQueueRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadQueueRequest) ProtoMessage()    {}
 func (*ReadQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{2}
+	return fileDescriptor_96e4d7d76a734cd8, []int{3}
 }
 
 func (m *ReadQueueRequest) XXX_Unmarshal(b []byte) error {
@@ -273,13 +416,6 @@ func (m *ReadQueueRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReadQueueRequest proto.InternalMessageInfo
 
-func (m *ReadQueueRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
 func (m *ReadQueueRequest) GetId() int64 {
 	if m != nil {
 		return m.Id
@@ -287,10 +423,17 @@ func (m *ReadQueueRequest) GetId() int64 {
 	return 0
 }
 
+func (m *ReadQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type SearchQueueRequest struct {
-	DomainId             int64    `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	Page                 int32    `protobuf:"varint,1,opt,name=page,proto3" json:"page,omitempty"`
 	Size                 int32    `protobuf:"varint,2,opt,name=size,proto3" json:"size,omitempty"`
-	Page                 int32    `protobuf:"varint,3,opt,name=page,proto3" json:"page,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -300,7 +443,7 @@ func (m *SearchQueueRequest) Reset()         { *m = SearchQueueRequest{} }
 func (m *SearchQueueRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchQueueRequest) ProtoMessage()    {}
 func (*SearchQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{3}
+	return fileDescriptor_96e4d7d76a734cd8, []int{4}
 }
 
 func (m *SearchQueueRequest) XXX_Unmarshal(b []byte) error {
@@ -321,9 +464,9 @@ func (m *SearchQueueRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SearchQueueRequest proto.InternalMessageInfo
 
-func (m *SearchQueueRequest) GetDomainId() int64 {
+func (m *SearchQueueRequest) GetPage() int32 {
 	if m != nil {
-		return m.DomainId
+		return m.Page
 	}
 	return 0
 }
@@ -335,30 +478,28 @@ func (m *SearchQueueRequest) GetSize() int32 {
 	return 0
 }
 
-func (m *SearchQueueRequest) GetPage() int32 {
+func (m *SearchQueueRequest) GetDomainId() int64 {
 	if m != nil {
-		return m.Page
+		return m.DomainId
 	}
 	return 0
 }
 
 type CreateQueueRequest struct {
-	DomainId             int64             `protobuf:"varint,1,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	Strategy             string            `protobuf:"bytes,2,opt,name=strategy,proto3" json:"strategy,omitempty"`
-	Enabled              bool              `protobuf:"varint,3,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	Payload              *_struct.Value    `protobuf:"bytes,4,opt,name=payload,proto3" json:"payload,omitempty"`
-	Calendar             *Lookup           `protobuf:"bytes,5,opt,name=calendar,proto3" json:"calendar,omitempty"`
-	Priority             int32             `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
-	MaxCalls             int32             `protobuf:"varint,7,opt,name=max_calls,json=maxCalls,proto3" json:"max_calls,omitempty"`
-	SecBetweenRetries    int32             `protobuf:"varint,8,opt,name=sec_between_retries,json=secBetweenRetries,proto3" json:"sec_between_retries,omitempty"`
-	Name                 string            `protobuf:"bytes,9,opt,name=name,proto3" json:"name,omitempty"`
-	MaxOfRetry           int32             `protobuf:"varint,10,opt,name=max_of_retry,json=maxOfRetry,proto3" json:"max_of_retry,omitempty"`
-	Variables            map[string]string `protobuf:"bytes,11,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Timeout              int32             `protobuf:"varint,12,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	DncList              *Lookup           `protobuf:"bytes,13,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
-	SecLocateAgent       int32             `protobuf:"varint,14,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
-	Type                 int32             `protobuf:"varint,15,opt,name=type,proto3" json:"type,omitempty"`
-	Team                 *Lookup           `protobuf:"bytes,16,opt,name=team,proto3" json:"team,omitempty"`
+	Strategy             string            `protobuf:"bytes,1,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	Enabled              bool              `protobuf:"varint,2,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	Payload              *_struct.Value    `protobuf:"bytes,3,opt,name=payload,proto3" json:"payload,omitempty"`
+	Calendar             *Lookup           `protobuf:"bytes,4,opt,name=calendar,proto3" json:"calendar,omitempty"`
+	Priority             int32             `protobuf:"varint,5,opt,name=priority,proto3" json:"priority,omitempty"`
+	Name                 string            `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Variables            map[string]string `protobuf:"bytes,7,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Timeout              int32             `protobuf:"varint,8,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	DncList              *Lookup           `protobuf:"bytes,9,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
+	SecLocateAgent       int32             `protobuf:"varint,10,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
+	Type                 int32             `protobuf:"varint,11,opt,name=type,proto3" json:"type,omitempty"`
+	Team                 *Lookup           `protobuf:"bytes,12,opt,name=team,proto3" json:"team,omitempty"`
+	Description          string            `protobuf:"bytes,13,opt,name=description,proto3" json:"description,omitempty"`
+	DomainId             int64             `protobuf:"varint,14,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -368,7 +509,7 @@ func (m *CreateQueueRequest) Reset()         { *m = CreateQueueRequest{} }
 func (m *CreateQueueRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateQueueRequest) ProtoMessage()    {}
 func (*CreateQueueRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{4}
+	return fileDescriptor_96e4d7d76a734cd8, []int{5}
 }
 
 func (m *CreateQueueRequest) XXX_Unmarshal(b []byte) error {
@@ -388,13 +529,6 @@ func (m *CreateQueueRequest) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_CreateQueueRequest proto.InternalMessageInfo
-
-func (m *CreateQueueRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
 
 func (m *CreateQueueRequest) GetStrategy() string {
 	if m != nil {
@@ -431,32 +565,11 @@ func (m *CreateQueueRequest) GetPriority() int32 {
 	return 0
 }
 
-func (m *CreateQueueRequest) GetMaxCalls() int32 {
-	if m != nil {
-		return m.MaxCalls
-	}
-	return 0
-}
-
-func (m *CreateQueueRequest) GetSecBetweenRetries() int32 {
-	if m != nil {
-		return m.SecBetweenRetries
-	}
-	return 0
-}
-
 func (m *CreateQueueRequest) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
-}
-
-func (m *CreateQueueRequest) GetMaxOfRetry() int32 {
-	if m != nil {
-		return m.MaxOfRetry
-	}
-	return 0
 }
 
 func (m *CreateQueueRequest) GetVariables() map[string]string {
@@ -501,6 +614,20 @@ func (m *CreateQueueRequest) GetTeam() *Lookup {
 	return nil
 }
 
+func (m *CreateQueueRequest) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *CreateQueueRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type Queue struct {
 	Id                   int64             `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	DomainId             int64             `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
@@ -513,16 +640,14 @@ type Queue struct {
 	Payload              *_struct.Value    `protobuf:"bytes,9,opt,name=payload,proto3" json:"payload,omitempty"`
 	Calendar             *Lookup           `protobuf:"bytes,10,opt,name=calendar,proto3" json:"calendar,omitempty"`
 	Priority             int32             `protobuf:"varint,11,opt,name=priority,proto3" json:"priority,omitempty"`
-	MaxCalls             int32             `protobuf:"varint,12,opt,name=max_calls,json=maxCalls,proto3" json:"max_calls,omitempty"`
-	SecBetweenRetries    int32             `protobuf:"varint,13,opt,name=sec_between_retries,json=secBetweenRetries,proto3" json:"sec_between_retries,omitempty"`
-	Name                 string            `protobuf:"bytes,14,opt,name=name,proto3" json:"name,omitempty"`
-	MaxOfRetry           int32             `protobuf:"varint,15,opt,name=max_of_retry,json=maxOfRetry,proto3" json:"max_of_retry,omitempty"`
-	Variables            map[string]string `protobuf:"bytes,16,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	Timeout              int32             `protobuf:"varint,17,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	DncList              *Lookup           `protobuf:"bytes,18,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
-	SecLocateAgent       int32             `protobuf:"varint,19,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
-	Type                 int32             `protobuf:"varint,20,opt,name=type,proto3" json:"type,omitempty"`
-	Team                 *Lookup           `protobuf:"bytes,21,opt,name=team,proto3" json:"team,omitempty"`
+	Name                 string            `protobuf:"bytes,12,opt,name=name,proto3" json:"name,omitempty"`
+	Variables            map[string]string `protobuf:"bytes,13,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Timeout              int32             `protobuf:"varint,14,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	DncList              *Lookup           `protobuf:"bytes,15,opt,name=dnc_list,json=dncList,proto3" json:"dnc_list,omitempty"`
+	SecLocateAgent       int32             `protobuf:"varint,16,opt,name=sec_locate_agent,json=secLocateAgent,proto3" json:"sec_locate_agent,omitempty"`
+	Type                 int32             `protobuf:"varint,17,opt,name=type,proto3" json:"type,omitempty"`
+	Description          string            `protobuf:"bytes,18,opt,name=description,proto3" json:"description,omitempty"`
+	Team                 *Lookup           `protobuf:"bytes,19,opt,name=team,proto3" json:"team,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
 	XXX_sizecache        int32             `json:"-"`
@@ -532,7 +657,7 @@ func (m *Queue) Reset()         { *m = Queue{} }
 func (m *Queue) String() string { return proto.CompactTextString(m) }
 func (*Queue) ProtoMessage()    {}
 func (*Queue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{5}
+	return fileDescriptor_96e4d7d76a734cd8, []int{6}
 }
 
 func (m *Queue) XXX_Unmarshal(b []byte) error {
@@ -630,32 +755,11 @@ func (m *Queue) GetPriority() int32 {
 	return 0
 }
 
-func (m *Queue) GetMaxCalls() int32 {
-	if m != nil {
-		return m.MaxCalls
-	}
-	return 0
-}
-
-func (m *Queue) GetSecBetweenRetries() int32 {
-	if m != nil {
-		return m.SecBetweenRetries
-	}
-	return 0
-}
-
 func (m *Queue) GetName() string {
 	if m != nil {
 		return m.Name
 	}
 	return ""
-}
-
-func (m *Queue) GetMaxOfRetry() int32 {
-	if m != nil {
-		return m.MaxOfRetry
-	}
-	return 0
 }
 
 func (m *Queue) GetVariables() map[string]string {
@@ -693,6 +797,13 @@ func (m *Queue) GetType() int32 {
 	return 0
 }
 
+func (m *Queue) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
 func (m *Queue) GetTeam() *Lookup {
 	if m != nil {
 		return m.Team
@@ -711,7 +822,7 @@ func (m *ListQueue) Reset()         { *m = ListQueue{} }
 func (m *ListQueue) String() string { return proto.CompactTextString(m) }
 func (*ListQueue) ProtoMessage()    {}
 func (*ListQueue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_96e4d7d76a734cd8, []int{6}
+	return fileDescriptor_96e4d7d76a734cd8, []int{7}
 }
 
 func (m *ListQueue) XXX_Unmarshal(b []byte) error {
@@ -740,6 +851,8 @@ func (m *ListQueue) GetItems() []*Queue {
 }
 
 func init() {
+	proto.RegisterType((*PatchQueueRequest)(nil), "engine.PatchQueueRequest")
+	proto.RegisterMapType((map[string]string)(nil), "engine.PatchQueueRequest.VariablesEntry")
 	proto.RegisterType((*DeleteQueueRequest)(nil), "engine.DeleteQueueRequest")
 	proto.RegisterType((*UpdateQueueRequest)(nil), "engine.UpdateQueueRequest")
 	proto.RegisterMapType((map[string]string)(nil), "engine.UpdateQueueRequest.VariablesEntry")
@@ -755,62 +868,65 @@ func init() {
 func init() { proto.RegisterFile("queue.proto", fileDescriptor_96e4d7d76a734cd8) }
 
 var fileDescriptor_96e4d7d76a734cd8 = []byte{
-	// 872 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xef, 0x6a, 0x24, 0x45,
-	0x10, 0x67, 0x76, 0x33, 0xd9, 0x9d, 0x9a, 0x64, 0x6f, 0xd3, 0xb9, 0x93, 0x66, 0xee, 0x4e, 0x96,
-	0xbd, 0x2f, 0x7b, 0x01, 0x77, 0x8f, 0xf8, 0x45, 0x82, 0x20, 0xc9, 0x29, 0x22, 0x04, 0xc4, 0x39,
-	0x0c, 0x9e, 0x20, 0x4b, 0xef, 0x4c, 0x65, 0x6d, 0x6e, 0x76, 0x66, 0x32, 0xdd, 0x13, 0x33, 0x8a,
-	0x5f, 0x7c, 0x04, 0x7d, 0x03, 0xf1, 0x8d, 0x04, 0x9f, 0xc0, 0x07, 0x91, 0xae, 0xd9, 0xd9, 0xff,
-	0x1b, 0x13, 0x45, 0x44, 0xf0, 0x5b, 0x57, 0x55, 0xd7, 0xaf, 0xab, 0x8a, 0xdf, 0xaf, 0xbb, 0xc1,
-	0xbd, 0xca, 0x31, 0xc7, 0x7e, 0x9a, 0x25, 0x3a, 0x61, 0xbb, 0x18, 0x8f, 0x65, 0x8c, 0x9e, 0x1b,
-	0x24, 0xb1, 0xd2, 0xa5, 0xd3, 0x7b, 0x32, 0x4e, 0x92, 0x71, 0x84, 0x03, 0xb2, 0x46, 0xf9, 0xe5,
-	0x40, 0xe9, 0x2c, 0x0f, 0x56, 0xa3, 0x22, 0x95, 0x03, 0x11, 0xc7, 0x89, 0x16, 0x5a, 0x26, 0xb1,
-	0x2a, 0xa3, 0xdd, 0x53, 0x60, 0x1f, 0x62, 0x84, 0x1a, 0x3f, 0x33, 0xa7, 0xf8, 0x78, 0x95, 0xa3,
-	0xd2, 0xec, 0x31, 0x38, 0x61, 0x32, 0x11, 0x32, 0x1e, 0xca, 0x90, 0x5b, 0x1d, 0xab, 0x57, 0xf7,
-	0x9b, 0xa5, 0xe3, 0x93, 0x90, 0xb5, 0xa0, 0x26, 0x43, 0x5e, 0x23, 0x6f, 0x4d, 0x86, 0xdd, 0x9f,
-	0x6d, 0x60, 0x9f, 0xa7, 0xa1, 0xb8, 0x0f, 0x86, 0x07, 0x4d, 0xa5, 0x33, 0xa1, 0x71, 0x5c, 0x10,
-	0x92, 0xe3, 0xcf, 0x6c, 0xc6, 0xa1, 0x81, 0xb1, 0x18, 0x45, 0x18, 0xf2, 0x7a, 0xc7, 0xea, 0x35,
-	0xfd, 0xca, 0x64, 0x2f, 0xa0, 0x91, 0x8a, 0x22, 0x4a, 0x44, 0xc8, 0x77, 0x3a, 0x56, 0xcf, 0x3d,
-	0x7e, 0xab, 0x5f, 0x36, 0xd7, 0xaf, 0x5a, 0xef, 0x5f, 0x88, 0x28, 0x47, 0xbf, 0xda, 0xc6, 0x8e,
-	0xa0, 0x19, 0x88, 0x08, 0xe3, 0x50, 0x64, 0xdc, 0xa6, 0x94, 0x56, 0xbf, 0x1c, 0x61, 0xff, 0x3c,
-	0x49, 0xde, 0xe4, 0xa9, 0x3f, 0x8b, 0x9b, 0x9a, 0xd2, 0x4c, 0x26, 0x99, 0xd4, 0x05, 0xdf, 0xed,
-	0x58, 0x3d, 0xdb, 0x9f, 0xd9, 0xa6, 0x99, 0x89, 0xb8, 0x19, 0x06, 0x22, 0x8a, 0x14, 0x6f, 0x94,
-	0xc1, 0x89, 0xb8, 0x79, 0x69, 0x6c, 0xd6, 0x87, 0x43, 0x85, 0xc1, 0x70, 0x84, 0xfa, 0x1b, 0xc4,
-	0x78, 0x98, 0xa1, 0xce, 0x24, 0x2a, 0xde, 0xa4, 0x6d, 0x07, 0x0a, 0x83, 0xb3, 0x32, 0xe2, 0x97,
-	0x01, 0xc6, 0x60, 0x27, 0x16, 0x13, 0xe4, 0x0e, 0x35, 0x4e, 0x6b, 0xd6, 0x81, 0x3d, 0x73, 0x40,
-	0x72, 0x49, 0xe9, 0x05, 0x07, 0x4a, 0x86, 0x89, 0xb8, 0xf9, 0xf4, 0xd2, 0xe4, 0x15, 0xec, 0x63,
-	0x70, 0xae, 0x45, 0x26, 0xcd, 0x24, 0x14, 0x77, 0x3b, 0xf5, 0x9e, 0x7b, 0xfc, 0xbc, 0xea, 0x65,
-	0x7d, 0xfc, 0xfd, 0x8b, 0x6a, 0xef, 0x47, 0xb1, 0xce, 0x0a, 0x7f, 0x9e, 0x6b, 0xe6, 0xab, 0xe5,
-	0x04, 0x93, 0x5c, 0xf3, 0x3d, 0x3a, 0xa5, 0x32, 0xd9, 0x73, 0x68, 0x86, 0x71, 0x30, 0x8c, 0xa4,
-	0xd2, 0x7c, 0x7f, 0xe3, 0xb4, 0x1a, 0x61, 0x1c, 0x9c, 0x4b, 0xa5, 0x59, 0x0f, 0xda, 0xa6, 0xe7,
-	0x28, 0x09, 0x84, 0xc6, 0xa1, 0x18, 0x63, 0xac, 0x79, 0x8b, 0xd0, 0x5a, 0x0a, 0x83, 0x73, 0x72,
-	0x9f, 0x1a, 0xaf, 0xe9, 0x56, 0x17, 0x29, 0xf2, 0x07, 0x14, 0xa5, 0x35, 0xeb, 0xc2, 0x8e, 0x46,
-	0x31, 0xe1, 0xed, 0x8d, 0x87, 0x50, 0x6c, 0x4a, 0xb3, 0x83, 0x8a, 0x66, 0xde, 0xfb, 0xd0, 0x5a,
-	0xee, 0x89, 0xb5, 0xa1, 0xfe, 0x06, 0x0b, 0xe2, 0x96, 0xe3, 0x9b, 0x25, 0x7b, 0x08, 0xf6, 0xb5,
-	0x21, 0xc0, 0x94, 0x53, 0xa5, 0x71, 0x52, 0x7b, 0xcf, 0xea, 0x7e, 0x00, 0x6d, 0x1f, 0x45, 0xf8,
-	0xd7, 0x59, 0xfe, 0x1a, 0xd8, 0x2b, 0x14, 0x59, 0xf0, 0xf5, 0xdd, 0x21, 0x18, 0xec, 0x28, 0xf9,
-	0x6d, 0x59, 0x8c, 0xed, 0xd3, 0xda, 0xf8, 0x52, 0x31, 0x46, 0x62, 0xb6, 0xed, 0xd3, 0xba, 0xfb,
-	0xa3, 0x0d, 0xec, 0x65, 0x86, 0xff, 0x0b, 0xe8, 0xdf, 0x13, 0xd0, 0xfa, 0xf8, 0xff, 0xf3, 0x02,
-	0xfa, 0x9b, 0x82, 0xf9, 0x65, 0x17, 0x6c, 0x9a, 0xc7, 0x54, 0x09, 0x56, 0xa5, 0x84, 0x65, 0x5e,
-	0xd6, 0x56, 0x78, 0xf9, 0x14, 0x20, 0xa0, 0x59, 0x86, 0x43, 0xa1, 0x89, 0x7e, 0x75, 0xdf, 0x99,
-	0x7a, 0x4e, 0x35, 0x7b, 0x67, 0x1e, 0x1e, 0x15, 0x53, 0x0e, 0xae, 0x56, 0x5f, 0x6d, 0x3f, 0x2b,
-	0x0c, 0x5a, 0x4e, 0x57, 0x1b, 0xa1, 0xd9, 0x25, 0xda, 0xd4, 0x53, 0xa2, 0x55, 0xe1, 0x51, 0x49,
-	0xb9, 0x0d, 0x68, 0xd3, 0x1d, 0x67, 0xc5, 0x92, 0x66, 0x1a, 0xdb, 0x35, 0xd3, 0xdc, 0xaa, 0x19,
-	0xe7, 0xfe, 0x9a, 0x81, 0x7b, 0x68, 0xc6, 0xbd, 0x4d, 0x33, 0x7b, 0x77, 0xd3, 0xcc, 0xfe, 0x9f,
-	0x69, 0xa6, 0x75, 0x8b, 0x66, 0x1e, 0xac, 0x69, 0xe6, 0x64, 0x51, 0x33, 0x6d, 0xd2, 0xcc, 0x93,
-	0xaa, 0x17, 0x62, 0xc7, 0xdd, 0x64, 0x72, 0xb0, 0x5d, 0x26, 0xec, 0xfe, 0x32, 0x39, 0xbc, 0x55,
-	0x26, 0x0f, 0x37, 0xc8, 0xe4, 0xd1, 0x3f, 0x26, 0x93, 0x17, 0xe0, 0x98, 0x3a, 0x4b, 0xa5, 0x3c,
-	0x03, 0x5b, 0x6a, 0x9c, 0x28, 0x6e, 0xd1, 0xa4, 0xf6, 0x97, 0x26, 0xe5, 0x97, 0xb1, 0xe3, 0xdf,
-	0xea, 0xb0, 0x47, 0x8e, 0x57, 0x98, 0x5d, 0xcb, 0x00, 0xd9, 0x17, 0xe0, 0x2e, 0x5c, 0x3f, 0xcc,
-	0xdb, 0x7e, 0x27, 0x79, 0xcb, 0x88, 0xdd, 0xb7, 0x7f, 0xf8, 0xf5, 0xf7, 0x9f, 0x6a, 0xbc, 0x7b,
-	0x38, 0x30, 0x1c, 0x19, 0x06, 0x18, 0x6b, 0xcc, 0x06, 0xf4, 0x5f, 0x54, 0x27, 0xd6, 0x11, 0x7b,
-	0x0d, 0xee, 0xc2, 0x9b, 0x35, 0x47, 0x5e, 0x7f, 0xc8, 0xbc, 0x83, 0xd9, 0x6c, 0xaa, 0x6e, 0xba,
-	0x8f, 0x09, 0xfd, 0x11, 0xdb, 0x84, 0xce, 0x2e, 0xc0, 0x99, 0xbd, 0xa7, 0x8c, 0x57, 0xc9, 0xab,
-	0x4f, 0xec, 0x6a, 0xc1, 0x1d, 0x82, 0xf4, 0x18, 0xdf, 0x00, 0x39, 0xf8, 0x4e, 0x86, 0xdf, 0xb3,
-	0xaf, 0xc0, 0x5d, 0xf8, 0xcc, 0xcc, 0x4b, 0x5e, 0xff, 0xe1, 0xac, 0x62, 0x3f, 0x23, 0xec, 0xa7,
-	0xde, 0x56, 0x6c, 0x33, 0x91, 0x2f, 0xc1, 0x5d, 0xf8, 0xee, 0xce, 0xe1, 0xd7, 0xff, 0xc0, 0x5b,
-	0x4a, 0x3f, 0xda, 0x0a, 0x3f, 0xda, 0xa5, 0xfb, 0xe0, 0xdd, 0x3f, 0x02, 0x00, 0x00, 0xff, 0xff,
-	0x75, 0xa3, 0x45, 0x22, 0xb1, 0x0b, 0x00, 0x00,
+	// 923 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x96, 0xdd, 0x8e, 0xdb, 0x44,
+	0x14, 0xc7, 0xe5, 0xc4, 0xde, 0xc4, 0xc7, 0xbb, 0xd9, 0xec, 0x14, 0xaa, 0xc1, 0x6d, 0x91, 0x95,
+	0xde, 0xb8, 0x2b, 0x91, 0x54, 0xcb, 0x0d, 0x5a, 0x21, 0xa1, 0x2d, 0x5f, 0x42, 0xda, 0x0b, 0x70,
+	0xc5, 0x8a, 0x82, 0x50, 0x34, 0xb1, 0x4f, 0xc3, 0xa8, 0x8e, 0xed, 0xda, 0xe3, 0x95, 0x0c, 0xe2,
+	0x86, 0x57, 0xe0, 0x51, 0x78, 0x06, 0x9e, 0x00, 0x21, 0x5e, 0x80, 0x3b, 0x5e, 0x02, 0x79, 0x1c,
+	0x27, 0x76, 0x92, 0xd9, 0x6e, 0xa0, 0x57, 0x70, 0x37, 0x73, 0xce, 0xf8, 0xef, 0x33, 0x67, 0x7e,
+	0x67, 0xe6, 0x80, 0xf5, 0x32, 0xc7, 0x1c, 0xc7, 0x49, 0x1a, 0x8b, 0x98, 0x1c, 0x60, 0x34, 0xe7,
+	0x11, 0xda, 0x96, 0x1f, 0x47, 0x99, 0xa8, 0x8c, 0xf6, 0xfd, 0x79, 0x1c, 0xcf, 0x43, 0x9c, 0xc8,
+	0xd9, 0x2c, 0x7f, 0x3e, 0xc9, 0x44, 0x9a, 0xfb, 0x9b, 0x5e, 0x96, 0xf0, 0x09, 0x8b, 0xa2, 0x58,
+	0x30, 0xc1, 0xe3, 0x28, 0xab, 0xbc, 0xa3, 0xbf, 0x74, 0x38, 0xf9, 0x9c, 0x09, 0xff, 0xbb, 0x2f,
+	0xca, 0xbf, 0x78, 0xf8, 0x32, 0xc7, 0x4c, 0x90, 0x01, 0x74, 0x78, 0x40, 0x35, 0x47, 0x73, 0xbb,
+	0x5e, 0x87, 0x07, 0xc4, 0x86, 0x7e, 0x26, 0x52, 0x26, 0x70, 0x5e, 0xd0, 0x8e, 0xa3, 0xb9, 0xa6,
+	0xb7, 0x9a, 0x13, 0x0a, 0x3d, 0x8c, 0xd8, 0x2c, 0xc4, 0x80, 0x76, 0x1d, 0xcd, 0xed, 0x7b, 0xf5,
+	0x94, 0x3c, 0x86, 0x5e, 0xc2, 0x8a, 0x30, 0x66, 0x01, 0xd5, 0x1d, 0xcd, 0xb5, 0xce, 0xee, 0x8e,
+	0xab, 0x58, 0xc6, 0x75, 0xa4, 0xe3, 0x2b, 0x16, 0xe6, 0xe8, 0xd5, 0xcb, 0xc8, 0x29, 0xf4, 0x7d,
+	0x16, 0x62, 0x14, 0xb0, 0x94, 0x1a, 0xf2, 0x93, 0xc1, 0xb8, 0xda, 0xf1, 0xf8, 0x32, 0x8e, 0x5f,
+	0xe4, 0x89, 0xb7, 0xf2, 0x97, 0x31, 0x25, 0x29, 0x8f, 0x53, 0x2e, 0x0a, 0x7a, 0xe0, 0x68, 0xae,
+	0xe1, 0xad, 0xe6, 0x84, 0x80, 0x1e, 0xb1, 0x05, 0xd2, 0x9e, 0x8c, 0x55, 0x8e, 0xc9, 0x27, 0x60,
+	0x5e, 0xb3, 0x94, 0x97, 0xa1, 0x65, 0xb4, 0xef, 0x74, 0x5d, 0xeb, 0xcc, 0xad, 0xc5, 0xb7, 0x32,
+	0x30, 0xbe, 0xaa, 0x97, 0x7e, 0x1c, 0x89, 0xb4, 0xf0, 0xd6, 0x9f, 0x96, 0xfb, 0x15, 0x7c, 0x81,
+	0x71, 0x2e, 0xa8, 0x29, 0x7f, 0x5b, 0x4f, 0xc9, 0x23, 0xe8, 0x07, 0x91, 0x3f, 0x0d, 0x79, 0x26,
+	0x28, 0xec, 0x8c, 0xbe, 0x17, 0x44, 0xfe, 0x25, 0xcf, 0x04, 0x71, 0x61, 0x98, 0xa1, 0x3f, 0x0d,
+	0x63, 0x9f, 0x09, 0x9c, 0xb2, 0x39, 0x46, 0x82, 0x5a, 0x52, 0x6d, 0x90, 0xa1, 0x7f, 0x29, 0xcd,
+	0x17, 0xa5, 0xb5, 0xdc, 0x8a, 0x28, 0x12, 0xa4, 0x87, 0xd2, 0x2b, 0xc7, 0x64, 0x04, 0xba, 0x40,
+	0xb6, 0xa0, 0x47, 0x3b, 0x7f, 0x22, 0x7d, 0xc4, 0x01, 0x2b, 0xc0, 0xcc, 0x4f, 0x79, 0x52, 0x1e,
+	0x37, 0x1d, 0xc8, 0x4c, 0x34, 0x4d, 0xe4, 0x2e, 0x1c, 0x3c, 0xe7, 0x18, 0x06, 0x19, 0x3d, 0x76,
+	0xba, 0xae, 0xe9, 0x2d, 0x67, 0xe4, 0x1e, 0x98, 0x41, 0xbc, 0x60, 0x3c, 0x9a, 0xf2, 0x80, 0x0e,
+	0x25, 0x03, 0xfd, 0xca, 0xf0, 0x59, 0x60, 0xbf, 0x0f, 0x83, 0x76, 0x6a, 0xc8, 0x10, 0xba, 0x2f,
+	0xb0, 0x90, 0xb0, 0x98, 0x5e, 0x39, 0x24, 0x6f, 0x80, 0x71, 0x5d, 0x9e, 0xeb, 0x12, 0x95, 0x6a,
+	0x72, 0xde, 0x79, 0x4f, 0x1b, 0x5d, 0x00, 0xf9, 0x08, 0x43, 0x14, 0x78, 0x23, 0x6d, 0xad, 0x00,
+	0x3a, 0xed, 0x00, 0x46, 0xbf, 0xeb, 0x40, 0xbe, 0x4c, 0x02, 0xf6, 0x0a, 0x8d, 0xff, 0x02, 0xb1,
+	0x9f, 0x6e, 0x13, 0xfb, 0xa8, 0x16, 0xdf, 0x4e, 0xc1, 0xff, 0x01, 0xd9, 0x16, 0x19, 0xc7, 0xaf,
+	0x15, 0xcd, 0x0f, 0x60, 0xe8, 0x21, 0x0b, 0xfe, 0x39, 0x98, 0xcf, 0x80, 0x3c, 0x45, 0x96, 0x6e,
+	0xdc, 0xa4, 0x04, 0xf4, 0x84, 0xcd, 0x51, 0x8a, 0x18, 0x9e, 0x1c, 0x97, 0xb6, 0x8c, 0x7f, 0x5f,
+	0xc5, 0x60, 0x78, 0x72, 0xdc, 0x96, 0xee, 0x6e, 0x48, 0xff, 0xaa, 0x03, 0xf9, 0x30, 0xc5, 0x4d,
+	0xe6, 0x9b, 0x8c, 0x6b, 0x6a, 0xc6, 0x3b, 0x4a, 0xc6, 0xbb, 0xfb, 0x33, 0xae, 0xef, 0xc1, 0xb8,
+	0xa1, 0x60, 0xfc, 0x40, 0xc5, 0x78, 0xaf, 0xcd, 0xf8, 0xf6, 0x96, 0x6f, 0xc7, 0x78, 0x5f, 0xcd,
+	0xb8, 0xb9, 0x3f, 0xe3, 0x70, 0x23, 0xe3, 0xd6, 0x0e, 0xc6, 0x0f, 0x6f, 0xcf, 0xf8, 0xd1, 0x2b,
+	0x18, 0x1f, 0xbc, 0x56, 0xc6, 0xff, 0x30, 0xc0, 0x90, 0xe9, 0xdc, 0x8b, 0x6c, 0xf2, 0x00, 0xc0,
+	0x97, 0x47, 0x11, 0x4c, 0x99, 0x58, 0xc2, 0x69, 0x2e, 0x2d, 0x17, 0x82, 0xbc, 0xb3, 0x76, 0xcf,
+	0x0a, 0x05, 0x20, 0xf5, 0xf2, 0x27, 0x45, 0xa9, 0x96, 0xcb, 0xcb, 0x4b, 0xaa, 0x19, 0x95, 0xda,
+	0xd2, 0x52, 0xa9, 0xd5, 0xee, 0x59, 0x75, 0x4d, 0xee, 0x50, 0x5b, 0xae, 0x78, 0x52, 0xb4, 0x6a,
+	0xa0, 0xa7, 0xae, 0x81, 0xbe, 0xb2, 0x06, 0xcc, 0xfd, 0x6b, 0x00, 0xf6, 0xa8, 0x01, 0x4b, 0x51,
+	0x03, 0x87, 0x8d, 0x1a, 0x38, 0x6f, 0xd6, 0xc0, 0x91, 0xac, 0x81, 0xfb, 0xb5, 0xb8, 0x3c, 0xae,
+	0xdb, 0x61, 0x3f, 0x50, 0x63, 0x7f, 0xbc, 0x3f, 0xf6, 0xc3, 0x1b, 0xb1, 0x3f, 0x69, 0x60, 0xbf,
+	0x81, 0x34, 0xd9, 0x46, 0xba, 0x2e, 0x8c, 0x3b, 0xea, 0xc2, 0xf8, 0x97, 0x64, 0x3f, 0x06, 0xb3,
+	0xdc, 0x49, 0x05, 0xf7, 0x43, 0x30, 0xb8, 0xc0, 0x45, 0x46, 0x35, 0x99, 0xcb, 0xa3, 0x56, 0x2e,
+	0xbd, 0xca, 0x77, 0xf6, 0x8b, 0x0e, 0x87, 0xd2, 0xf0, 0x14, 0xd3, 0x6b, 0xee, 0x23, 0xf9, 0x0a,
+	0xac, 0xc6, 0x85, 0x43, 0x6c, 0xf5, 0x2d, 0x64, 0xb7, 0x15, 0x47, 0x6f, 0xff, 0xf4, 0xdb, 0x9f,
+	0x3f, 0x77, 0xe8, 0xe8, 0xce, 0xc4, 0x67, 0x61, 0x38, 0xf5, 0x31, 0x12, 0x98, 0x4e, 0x64, 0xdb,
+	0x9e, 0x9d, 0x6b, 0xa7, 0xe4, 0x19, 0x58, 0x8d, 0x97, 0x61, 0xad, 0xbc, 0xfd, 0x5c, 0xd8, 0x27,
+	0xab, 0xdc, 0xd4, 0xbb, 0x19, 0xdd, 0x93, 0xea, 0x6f, 0x92, 0x5d, 0xea, 0xe4, 0x0a, 0xcc, 0xd5,
+	0xab, 0x45, 0x68, 0xfd, 0xf1, 0xe6, 0x43, 0xb6, 0x19, 0xb0, 0x23, 0x25, 0x6d, 0x42, 0x77, 0x48,
+	0x4e, 0x7e, 0xe0, 0xc1, 0x8f, 0xe4, 0x1b, 0x80, 0x75, 0x4f, 0x4c, 0xde, 0x52, 0xf6, 0xc9, 0x9b,
+	0xca, 0x0f, 0xa5, 0xf2, 0x83, 0x33, 0xa5, 0x72, 0x99, 0x8f, 0x6f, 0xc1, 0x6a, 0xb4, 0x2f, 0xeb,
+	0x7c, 0x6c, 0xf7, 0x34, 0x0a, 0x79, 0xfb, 0x46, 0xf9, 0xaf, 0xc1, 0x6a, 0x34, 0x99, 0x6b, 0xf9,
+	0xed, 0xce, 0x53, 0x91, 0x97, 0x53, 0xa5, 0xfc, 0xec, 0x40, 0xde, 0x0f, 0xef, 0xfe, 0x1d, 0x00,
+	0x00, 0xff, 0xff, 0x09, 0x9c, 0x76, 0x43, 0x95, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -831,6 +947,8 @@ type QueueServiceClient interface {
 	SearchQueue(ctx context.Context, in *SearchQueueRequest, opts ...grpc.CallOption) (*ListQueue, error)
 	// Queue item
 	ReadQueue(ctx context.Context, in *ReadQueueRequest, opts ...grpc.CallOption) (*Queue, error)
+	// Patch Queue
+	PatchQueue(ctx context.Context, in *PatchQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// Update Queue
 	UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// Remove Queue
@@ -872,6 +990,15 @@ func (c *queueServiceClient) ReadQueue(ctx context.Context, in *ReadQueueRequest
 	return out, nil
 }
 
+func (c *queueServiceClient) PatchQueue(ctx context.Context, in *PatchQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
+	out := new(Queue)
+	err := c.cc.Invoke(ctx, "/engine.QueueService/PatchQueue", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queueServiceClient) UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
 	err := c.cc.Invoke(ctx, "/engine.QueueService/UpdateQueue", in, out, opts...)
@@ -898,6 +1025,8 @@ type QueueServiceServer interface {
 	SearchQueue(context.Context, *SearchQueueRequest) (*ListQueue, error)
 	// Queue item
 	ReadQueue(context.Context, *ReadQueueRequest) (*Queue, error)
+	// Patch Queue
+	PatchQueue(context.Context, *PatchQueueRequest) (*Queue, error)
 	// Update Queue
 	UpdateQueue(context.Context, *UpdateQueueRequest) (*Queue, error)
 	// Remove Queue
@@ -916,6 +1045,9 @@ func (*UnimplementedQueueServiceServer) SearchQueue(ctx context.Context, req *Se
 }
 func (*UnimplementedQueueServiceServer) ReadQueue(ctx context.Context, req *ReadQueueRequest) (*Queue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadQueue not implemented")
+}
+func (*UnimplementedQueueServiceServer) PatchQueue(ctx context.Context, req *PatchQueueRequest) (*Queue, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchQueue not implemented")
 }
 func (*UnimplementedQueueServiceServer) UpdateQueue(ctx context.Context, req *UpdateQueueRequest) (*Queue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateQueue not implemented")
@@ -982,6 +1114,24 @@ func _QueueService_ReadQueue_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _QueueService_PatchQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchQueueRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueueServiceServer).PatchQueue(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.QueueService/PatchQueue",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueueServiceServer).PatchQueue(ctx, req.(*PatchQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _QueueService_UpdateQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateQueueRequest)
 	if err := dec(in); err != nil {
@@ -1033,6 +1183,10 @@ var _QueueService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ReadQueue",
 			Handler:    _QueueService_ReadQueue_Handler,
+		},
+		{
+			MethodName: "PatchQueue",
+			Handler:    _QueueService_PatchQueue_Handler,
 		},
 		{
 			MethodName: "UpdateQueue",

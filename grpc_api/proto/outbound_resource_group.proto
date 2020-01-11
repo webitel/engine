@@ -112,9 +112,9 @@ message ListOutboundResourceInGroup {
 }
 
 message CreateOutboundResourceInGroupRequest {
-    int64 domain_id = 1;
-    int64 group_id = 2;
-    Lookup resource = 3;
+    int64 group_id = 1;
+    Lookup resource = 2;
+    int64 domain_id = 3;
 }
 
 message OutboundResourceInGroup {
@@ -130,12 +130,12 @@ message DeleteOutboundResourceGroupRequest {
 
 message UpdateOutboundResourceGroupRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    string name = 3;
-    string strategy = 4;
-    string description = 5;
-    Lookup communication = 6;
-    repeated OutboundResourceTimeRange time = 7;
+    string name = 2;
+    string strategy = 3;
+    string description = 4;
+    Lookup communication = 5;
+    repeated OutboundResourceTimeRange time = 6;
+    int64 domain_id = 7;
 }
 
 message ReadOutboundResourceGroupRequest {
@@ -154,12 +154,12 @@ message ListOutboundResourceGroup {
 }
 
 message CreateOutboundResourceGroupRequest {
-    int64 domain_id = 1;
-    string name = 2;
-    string strategy = 3;
-    string description = 4;
-    Lookup communication = 5;
-    repeated OutboundResourceTimeRange time = 6;
+    string name = 1;
+    string strategy = 2;
+    string description = 3;
+    Lookup communication = 4;
+    repeated OutboundResourceTimeRange time = 5;
+    int64 domain_id = 6;
 }
 
 message OutboundResourceTimeRange {

@@ -23,6 +23,7 @@ type SqlStore interface {
 	OutboundResourceGroup() store.OutboundResourceGroupStore
 	OutboundResourceInGroup() store.OutboundResourceInGroupStore
 	Queue() store.QueueStore
+	QueueResource() store.QueueResourceStore
 	Bucket() store.BucketSore
 	BucketInQueue() store.BucketInQueueStore
 	QueueRouting() store.QueueRoutingStore

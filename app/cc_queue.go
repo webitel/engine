@@ -22,6 +22,26 @@ func (a *App) GetQueueById(domainId, id int64) (*model.Queue, *model.AppError) {
 	return a.Store.Queue().Get(domainId, id)
 }
 
+func (a *App) PatchQueue(domainId, id int64, patch *model.QueuePatch) (*model.Queue, *model.AppError) {
+	oldQueue, err := a.GetQueueById(domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldQueue.Patch(patch)
+
+	if err = oldQueue.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldQueue, err = a.Store.Queue().Update(oldQueue)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldQueue, nil
+}
+
 func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue, err := a.GetQueueById(queue.DomainId, queue.Id)
 	if err != nil {
@@ -35,16 +55,14 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue.Payload = queue.Payload
 	oldQueue.Calendar.Id = queue.Calendar.Id
 	oldQueue.Priority = queue.Priority
-	oldQueue.MaxCalls = queue.MaxCalls
-	oldQueue.SecBetweenRetries = queue.SecBetweenRetries
 	oldQueue.Name = queue.Name
-	oldQueue.MaxOfRetry = queue.MaxOfRetry
 	oldQueue.Variables = queue.Variables
 	oldQueue.Timeout = queue.Timeout
 	oldQueue.DncList = queue.DncList
 	oldQueue.SecLocateAgent = queue.SecLocateAgent
 	oldQueue.Type = queue.Type
 	oldQueue.Team = queue.Team
+	oldQueue.Description = queue.Description
 
 	oldQueue, err = a.Store.Queue().Update(oldQueue)
 	if err != nil {

@@ -155,7 +155,7 @@ func (c *callManager) wakeUp() {
 func (c *callManager) registerConnection(v *discovery.ServiceConnection) {
 	var version string
 	var sps int
-	client, err := NewCallConnection(v.Id, fmt.Sprintf("%s:%d", v.Host, v.Port))
+	client, err := NewCallConnection(v.Id, v.Host, v.Port)
 	if err != nil {
 		wlog.Error(fmt.Sprintf("connection %s error: %s", v.Id, err.Error()))
 		return

@@ -122,9 +122,7 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
 	}
 
-	var scheme *model.RoutingSchema
-
-	scheme, err = api.app.UpdateRoutingSchema(&model.RoutingSchema{
+	scheme := &model.RoutingSchema{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -139,7 +137,13 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 		Schema:      MarshalJsonpb(in.Schema),
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
-	})
+	}
+
+	if err = scheme.IsValid(); err != nil {
+		return nil, err
+	}
+
+	scheme, err = api.app.UpdateRoutingSchema(scheme)
 
 	if err != nil {
 		return nil, err

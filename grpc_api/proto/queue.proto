@@ -26,6 +26,15 @@ service QueueService {
             get: "/call_center/queues/{id}"
         };
     }
+
+    // Patch Queue
+    rpc PatchQueue(PatchQueueRequest) returns (Queue) {
+        option (google.api.http) = {
+            patch: "/call_center/queues/{id}"
+            body: "*"
+        };
+    }
+
     // Update Queue
     rpc UpdateQueue(UpdateQueueRequest) returns (Queue) {
         option (google.api.http) = {
@@ -41,59 +50,84 @@ service QueueService {
     }
 }
 
+message PatchQueueRequest {
+    int64 id =1;
+    string strategy = 2;
+    bool enabled = 3;
+    google.protobuf.Value payload = 4;
+    Lookup calendar = 5;
+    int32 priority = 6;
+
+    string name = 7;
+
+    map<string, string> variables = 8;
+    int32 timeout = 9;
+    Lookup dnc_list = 10;
+    int32 sec_locate_agent = 11;
+    int32 type = 12;
+    Lookup team = 13;
+    string description = 14;
+
+    repeated string fields = 15;
+    int64 domain_id = 16;
+}
+
 message DeleteQueueRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
+    int64 id = 1;
+    int64 domain_id = 2;
 }
 
 message UpdateQueueRequest {
-    int64 domain_id = 1;
+    int64 id =1;
     string strategy = 2;
     bool enabled = 3;
     google.protobuf.Value payload = 4;
     Lookup calendar = 5;
     int32 priority = 6;
-    int32 max_calls = 7;
-    int32 sec_between_retries = 8;
-    string name = 9;
-    int32 max_of_retry = 10;
-    map<string, string> variables = 11;
-    int32 timeout = 12;
-    Lookup dnc_list = 13;
-    int32 sec_locate_agent = 14;
-    int32 type = 15;
-    Lookup team = 16;
-    int64 id =17;
+
+    string name = 7;
+
+    map<string, string> variables = 8;
+    int32 timeout = 9;
+    Lookup dnc_list = 10;
+    int32 sec_locate_agent = 11;
+    int32 type = 12;
+    Lookup team = 13;
+    string description = 14;
+
+    int64 domain_id = 15;
 }
 
 message ReadQueueRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
+    int64 id = 1;
+    int64 domain_id = 2;
 }
 
 message SearchQueueRequest {
-    int64 domain_id = 1;
+    int32 page = 1;
     int32 size = 2;
-    int32 page = 3;
+    int64 domain_id = 3;
 }
 
 message CreateQueueRequest {
-    int64 domain_id = 1;
-    string strategy = 2;
-    bool enabled = 3;
-    google.protobuf.Value payload = 4;
-    Lookup calendar = 5;
-    int32 priority = 6;
-    int32 max_calls = 7;
-    int32 sec_between_retries = 8;
-    string name = 9;
-    int32 max_of_retry = 10;
-    map<string, string> variables = 11;
-    int32 timeout = 12;
-    Lookup dnc_list = 13;
-    int32 sec_locate_agent = 14;
-    int32 type = 15;
-    Lookup team = 16;
+    string strategy = 1;
+    bool enabled = 2;
+    google.protobuf.Value payload = 3;
+    Lookup calendar = 4;
+    int32 priority = 5;
+
+
+    string name = 6;
+
+    map<string, string> variables = 7;
+    int32 timeout = 8;
+    Lookup dnc_list = 9;
+    int32 sec_locate_agent = 10;
+    int32 type = 11;
+    Lookup team = 12;
+    string description = 13;
+
+    int64 domain_id = 14;
 }
 
 message Queue {
@@ -109,16 +143,17 @@ message Queue {
     google.protobuf.Value payload = 9;
     Lookup calendar = 10;
     int32 priority = 11;
-    int32 max_calls = 12;
-    int32 sec_between_retries = 13;
-    string name = 14;
-    int32 max_of_retry = 15;
-    map<string, string> variables = 16;
-    int32 timeout = 17;
-    Lookup dnc_list = 18;
-    int32 sec_locate_agent = 19;
-    int32 type = 20;
-    Lookup team = 21;
+
+
+    string name = 12;
+
+    map<string, string> variables = 13;
+    int32 timeout = 14;
+    Lookup dnc_list = 15;
+    int32 sec_locate_agent = 16;
+    int32 type = 17;
+    string description = 18;
+    Lookup team = 19;
 }
 
 message ListQueue {

@@ -71,9 +71,9 @@ message SearchAgentStateHistoryRequest {
     int64 agent_id = 1;
     int32 page = 2;
     int32 size = 3;
-    int64 domain_id = 4;
-    int64 time_from = 5;
-    int64 time_to = 6;
+    int64 time_from = 4;
+    int64 time_to = 5;
+    int64 domain_id = 6;
 }
 
 message AgentState {
@@ -105,16 +105,17 @@ message ListAgentInQueue {
 
 message SearchAgentInQueueRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    int32 size = 3;
-    int32 page = 4;
+    int32 size = 2;
+    int32 page = 3;
+
+    int64 domain_id = 4;
 }
 
 message SearchAgentInTeamRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    int32 size = 3;
-    int32 page = 4;
+    int32 size = 2;
+    int32 page = 3;
+    int64 domain_id = 4;
 }
 
 message AgentInTeam {
@@ -128,9 +129,9 @@ message ListAgentInTeam {
 
 message UpdateAgentRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    Lookup user = 3;
-    string description = 4;
+    Lookup user = 2;
+    string description = 3;
+    int64 domain_id = 4;
 }
 
 message ReadAgentRequest {
@@ -143,15 +144,16 @@ message DeleteAgentRequest {
 }
 
 message SearchAgentRequest {
-    int64 domain_id = 1;
+    int32 page = 1;
     int32 size = 2;
-    int32 page = 3;
+
+    int64 domain_id = 3;
 }
 
 message CreateAgentRequest {
-    int64 domain_id = 1;
-    Lookup user = 2;
-    string description = 3;
+    Lookup user = 1;
+    string description = 2;
+    int64 domain_id = 3;
 }
 
 message SkillAgent {
@@ -163,7 +165,6 @@ message SkillAgent {
 
 message AgentStatusRequest {
     int64 id = 1;
-    int64 domain_id = 2;
 
     enum Status {
         ONLINE = 0;
@@ -171,7 +172,8 @@ message AgentStatusRequest {
         PAUSE = 2;
     }
 
-    string status = 3; //FIXME enumerate
+    string status = 2; //FIXME enumerate
+    int64 domain_id = 3;
 }
 
 message Agent {

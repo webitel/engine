@@ -44,6 +44,7 @@ type Store interface {
 	AgentSkill() AgentSkillStore
 	ResourceTeam() ResourceTeamStore
 	Queue() QueueStore
+	QueueResource() QueueResourceStore
 	Bucket() BucketSore
 	BucketInQueue() BucketInQueueStore
 	QueueRouting() QueueRoutingStore
@@ -218,6 +219,14 @@ type QueueStore interface {
 	Get(domainId int64, id int64) (*model.Queue, *model.AppError)
 	Update(queue *model.Queue) (*model.Queue, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+}
+
+type QueueResourceStore interface {
+	Create(queueResource *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError)
+	Get(domainId, queueId, id int64) (*model.QueueResourceGroup, *model.AppError)
+	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueResourceGroup, *model.AppError)
+	Update(domainId int64, queueResourceGroup *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError)
+	Delete(queueId, id int64) *model.AppError
 }
 
 type QueueRoutingStore interface {

@@ -50,22 +50,23 @@ message DeleteSkillRequest {
 }
 
 message SearchSkillRequest {
-    int64 domain_id = 1;
+    int32 page = 1;
     int32 size = 2;
-    int32 page = 3;
+
+    int64 domain_id = 3;
 }
 
 message CreateSkillRequest {
-    int64 domain_id = 1;
-    string name = 2;
-    string description = 3;
+    string name = 1;
+    string description = 2;
+    int64 domain_id = 3;
 }
 
 message UpdateSkillRequest {
     int64 id = 1;
-    int64 domain_id = 2;
-    string name = 3;
-    string description = 4;
+    string name = 2;
+    string description = 3;
+    int64 domain_id = 4;
 }
 
 message Skill {

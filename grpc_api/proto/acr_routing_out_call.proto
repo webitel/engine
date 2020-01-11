@@ -52,68 +52,76 @@ service RoutingOutboundCallService {
 
 message PatchRoutingOutboundCallRequest {
     int64 id = 1;
-    int64 domain_id = 2;
 
-    string name = 3;
-    string description = 4;
-    Lookup schema = 5;
-    string pattern = 6;
-    int32 priority = 7;
-    bool disabled = 8;
-
-    repeated string fields = 9;
-}
-
-message DeleteRoutingOutboundCallRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
-}
-
-message UpdateRoutingOutboundCallRequest {
-    int64 id = 1;
-    int64 domain_id = 2;
-    string name = 3;
-    string description = 4;
-    Lookup schema = 5;
-    string pattern = 6;
-    int32 priority = 7;
-    bool disabled = 8;
-}
-
-message ReadRoutingOutboundCallRequest {
-    int64 domain_id = 1;
-    int64 id = 2;
-}
-
-message SearchRoutingOutboundCallRequest {
-    int64 domain_id = 1;
-    int32 size = 2;
-    int32 page = 3;
-}
-
-message CreateRoutingOutboundCallRequest {
-    int64 domain_id = 1;
     string name = 2;
     string description = 3;
     Lookup schema = 4;
     string pattern = 5;
     int32 priority = 6;
     bool disabled = 7;
+
+    repeated string fields = 8;
+
+    int64 domain_id = 9;
+}
+
+message DeleteRoutingOutboundCallRequest {
+    int64 id = 1;
+
+    int64 domain_id = 2;
+}
+
+message UpdateRoutingOutboundCallRequest {
+    int64 id = 1;
+
+    string name = 2;
+    string description = 3;
+    Lookup schema = 4;
+    string pattern = 5;
+    int32 priority = 6;
+    bool disabled = 7;
+
+    int64 domain_id = 8;
+}
+
+message ReadRoutingOutboundCallRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchRoutingOutboundCallRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    int64 domain_id = 3;
+}
+
+message CreateRoutingOutboundCallRequest {
+    string name = 1;
+    string description = 2;
+    Lookup schema = 3;
+    string pattern = 4;
+    int32 priority = 5;
+    bool disabled = 6;
+
+    int64 domain_id = 7;
 }
 
 message RoutingOutboundCall {
     int64 id = 1;
-    int64 domain_id = 2;
-    int64 created_at = 3;
-    Lookup created_by = 4;
-    int64 updated_at = 5;
-    Lookup updated_by = 6;
-    string name = 7;
-    string description = 8;
-    Lookup schema = 9;
-    string pattern = 10;
-    int32 priority = 11;
-    bool disabled = 12;
+
+    int64 created_at = 2;
+    Lookup created_by = 3;
+    int64 updated_at = 4;
+    Lookup updated_by = 5;
+    string name = 6;
+    string description = 7;
+    Lookup schema = 8;
+    string pattern = 9;
+    int32 priority = 10;
+    bool disabled = 11;
+
+    int64 domain_id = 12;
 }
 
 message ListRoutingOutboundCall {
