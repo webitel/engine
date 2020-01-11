@@ -472,6 +472,7 @@ func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.Mem
 
 	for _, v := range src {
 		res = append(res, &engine.MemberCommunication{
+			Id:             v.Id,
 			Priority:       int32(v.Priority),
 			Destination:    v.Destination,
 			State:          int32(v.State),
@@ -479,8 +480,12 @@ func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.Mem
 			LastActivityAt: v.LastActivityAt,
 			Attempts:       int32(v.Attempts),
 			LastCause:      v.LastCause,
-			ResourceId:     int64(v.ResourceId),
-			Display:        v.Display,
+			Type: &engine.Lookup{
+				Id:   int64(v.Type.Id),
+				Name: v.Type.Name,
+			},
+			Resource: GetProtoLookup(v.Resource),
+			Display:  v.Display,
 		})
 	}
 
@@ -495,8 +500,11 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 			Priority:    int(v.GetPriority()),
 			Destination: v.GetDestination(),
 			Description: v.GetDescription(),
-			ResourceId:  int(v.ResourceId),
-			Display:     v.Display,
+			Type: model.Lookup{
+				Id: int(v.GetType().GetId()),
+			},
+			Resource: GetLookup(v.Resource),
+			Display:  v.Display,
 		})
 	}
 

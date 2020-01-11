@@ -8319,19 +8319,21 @@
           "type": "string",
           "format": "int64"
         },
+        "destination": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "priority": {
           "type": "integer",
           "format": "int32"
         },
-        "destination": {
-          "type": "string"
-        },
         "description": {
           "type": "string"
         },
-        "resource_id": {
-          "type": "string",
-          "format": "int64"
+        "resource": {
+          "$ref": "#/definitions/engineLookup"
         },
         "display": {
           "type": "string"
@@ -8356,19 +8358,21 @@
     "engineMemberCommunicationCreateRequest": {
       "type": "object",
       "properties": {
+        "destination": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "priority": {
           "type": "integer",
           "format": "int32"
         },
-        "destination": {
-          "type": "string"
-        },
         "description": {
           "type": "string"
         },
-        "resource_id": {
-          "type": "string",
-          "format": "int64"
+        "resource": {
+          "$ref": "#/definitions/engineLookup"
         },
         "display": {
           "type": "string"

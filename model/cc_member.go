@@ -53,16 +53,17 @@ func (member *Member) GetSkills() Int64Array {
 }
 
 type MemberCommunication struct {
-	Id             int64  `json:"id"`
-	Priority       int    `json:"priority" db:"priority"`
-	Destination    string `json:"destination" db:"destination"`
-	State          int    `json:"state" db:"state"`
-	Description    string `json:"description" db:"description"`
-	LastActivityAt int64  `json:"last_activity_at" db:"last_activity_at"`
-	Attempts       int    `json:"attempts" db:"attempts"`
-	LastCause      string `json:"last_cause" db:"last_cause"`
-	ResourceId     int    `json:"resource_id" db:"resource_id"`
-	Display        string `json:"display" db:"display"`
+	Id             int64   `json:"id"`
+	Destination    string  `json:"destination" db:"destination"`
+	Type           Lookup  `json:"type"`
+	Priority       int     `json:"priority" db:"priority"`
+	State          int     `json:"state" db:"state"`
+	Description    string  `json:"description" db:"description"`
+	LastActivityAt int64   `json:"last_activity_at" db:"last_activity_at"`
+	Attempts       int     `json:"attempts" db:"attempts"`
+	LastCause      string  `json:"last_cause" db:"last_cause"`
+	Resource       *Lookup `json:"resource" db:"resource"`
+	Display        string  `json:"display" db:"display"`
 }
 
 func (m *Member) ToJsonCommunications() string {

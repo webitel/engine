@@ -198,21 +198,25 @@ message Member {
 
 message MemberCommunication {
     int64 id = 1;
-    int32 priority = 2;
-    string destination = 3;
-    string description = 4;
-    int64 resource_id = 5;
-    string display = 6;
+    string destination = 2;
+    Lookup type = 3;
+    int32 priority = 4;
+    string description = 5;
 
-    int32 state = 7;
-    int64 last_activity_at = 8;
-    int32 attempts = 9;
-    string last_cause = 10;
+    Lookup resource = 6;
+    string display = 7;
+
+    int32 state = 8;
+    int64 last_activity_at = 9;
+    int32 attempts = 10;
+    string last_cause = 11;
 }
 message MemberCommunicationCreateRequest {
-    int32 priority = 1;
-    string destination = 2;
-    string description = 3;
-    int64 resource_id = 4;
-    string display = 5;
+    string destination = 1;
+    Lookup type = 2;
+    int32 priority = 3;
+    string description = 4;
+
+    Lookup resource = 5;
+    string display = 6;
 }
