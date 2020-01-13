@@ -193,7 +193,7 @@ from m
 }
 
 func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_member c where c.id=:Id and c.queue_id = :QueueId and  and not exists(select 1 from cc_member_attempt a where a.member_id = c.id)`,
+	if _, err := s.GetMaster().Exec(`delete from cc_member c where c.id=:Id and c.queue_id = :QueueId and not exists(select 1 from cc_member_attempt a where a.member_id = c.id)`,
 		map[string]interface{}{"Id": id, "QueueId": queueId}); err != nil {
 		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -207,7 +207,7 @@ func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64) ([]*model.Member
 	//FIXME exists
 	_, err := s.GetMaster().Select(&res, `with m as (
     delete from cc_member m
-    where m.id = any(:Ids::int8[]) and m.queue_id = :QueueId and  and not exists(select 1 from cc_member_attempt a where a.member_id = m.id) 
+    where m.id = any(:Ids::int8[]) and m.queue_id = :QueueId and not exists(select 1 from cc_member_attempt a where a.member_id = m.id) 
     returning *
 )
 select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
