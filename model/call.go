@@ -78,21 +78,23 @@ type CallRequest struct {
 }
 
 type Call struct {
-	Action      string `json:"action"`
-	Id          string `json:"id"`
-	DomainId    string `json:"domain_id"`
-	UserId      string `json:"user_id,omitempty"`
-	Application string `json:"application,omitempty"`
-	ToNumber    string `json:"to_number,omitempty"`
-	ToName      string `json:"to_name,omitempty"`
-	FromNumber  string `json:"from_number,omitempty"`
-	FromName    string `json:"from_name,omitempty"`
-	Destination string `json:"destination,omitempty"`
-	Direction   string `json:"direction,omitempty"`
-	ParentId    string `json:"parent_id,omitempty"`
-	NodeName    string `json:"node_name,omitempty"`
-	HangupCause string `json:"cause,omitempty"`
-	Digit       string `json:"digit,omitempty"`
+	Action       string `json:"action"`
+	Id           string `json:"id"`
+	DomainId     string `json:"domain_id"`
+	UserId       string `json:"user_id,omitempty"`
+	Application  string `json:"application,omitempty"`
+	ToNumber     string `json:"to_number,omitempty"`
+	ToName       string `json:"to_name,omitempty"`
+	FromNumber   string `json:"from_number,omitempty"`
+	FromName     string `json:"from_name,omitempty"`
+	Destination  string `json:"destination,omitempty"`
+	Direction    string `json:"direction,omitempty"`
+	ParentId     string `json:"parent_id,omitempty"`
+	NodeName     string `json:"node_name,omitempty"`
+	HangupCause  string `json:"cause,omitempty"`
+	VideoFlow    string `json:"video_flow,omitempty"`
+	VideoRequest bool   `json:"video_request,string,omitempty"`
+	Digit        string `json:"digit,omitempty"`
 
 	Debug   map[string]interface{} `json:"debug,omitempty"`
 	Payload *CallPayload           `json:"payload,string,omitempty"`
@@ -109,10 +111,13 @@ func (cp *CallPayload) UnmarshalText(b []byte) error {
 }
 
 func (cr *CallRequest) AddUserVariable(name, value string) {
+	cr.AddVariable(fmt.Sprintf("wbt_%s", name), value)
+}
+func (cr *CallRequest) AddVariable(name, value string) {
 	if cr.Variables == nil {
 		cr.Variables = make(map[string]string)
 	}
-	cr.Variables[fmt.Sprintf("wbt_%s", name)] = value
+	cr.Variables[name] = value
 }
 
 type CallEvent interface {

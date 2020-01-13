@@ -183,7 +183,7 @@ func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[
 }
 
 func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	var ok bool
+	var ok, useVideo bool
 	var callId string
 	var destinationNumber, destinationName string
 	var variables map[string]interface{}
@@ -252,6 +252,10 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 				invite.AddUserVariable(k, fmt.Sprintf("%v", v))
 			}
 		}
+	}
+
+	if useVideo, ok = req.Data["useVideo"].(bool); ok && useVideo {
+		invite.AddVariable("video_request", "true")
 	}
 
 	_, err = api.App.CallManager().MakeOutboundCall(invite)
