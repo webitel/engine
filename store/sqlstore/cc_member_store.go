@@ -114,9 +114,10 @@ func (s SqlMemberStore) GetAllPage(domainId, queueId int64, offset, limit int) (
 
 	if _, err := s.GetReplica().Select(&members,
 		`select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-			   cc_member_communications(m.communications) as communications, null as bucket, m.min_offering_at
+			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, m.min_offering_at
 		from cc_member m
 			left join calendar_timezones ct on m.timezone_id = ct.id
+			left join cc_bucket qb on m.bucket_id = qb.id
 where m.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)
 order by m.id
 limit :Limit
@@ -135,9 +136,10 @@ offset :Offset`, map[string]interface{}{
 func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.AppError) {
 	var member *model.Member
 	if err := s.GetReplica().SelectOne(&member, `select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-				   cc_member_communications(m.communications) as communications, null as bucket, skills, min_offering_at
+				   cc_member_communications(m.communications) as communications, cc_get_lookup(qb.id, qb.name::text) as bucket, skills, min_offering_at
 			from cc_member m
 				left join calendar_timezones ct on m.timezone_id = ct.id
+				left join cc_bucket qb on m.bucket_id = qb.id
 	where m.id = :Id and m.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
