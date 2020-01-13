@@ -27,7 +27,7 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 			returning *
 		)
 		select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, skills, min_offering_at
+			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(skills, '{}'::int4[]) skills, min_offering_at
 		from m
 			left join calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id`,
@@ -136,7 +136,7 @@ offset :Offset`, map[string]interface{}{
 func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.AppError) {
 	var member *model.Member
 	if err := s.GetReplica().SelectOne(&member, `select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-				   cc_member_communications(m.communications) as communications, cc_get_lookup(qb.id, qb.name::text) as bucket, skills, min_offering_at
+				   cc_member_communications(m.communications) as communications, cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(skills, '{}'::int4[]) skills, min_offering_at
 			from cc_member m
 				left join calendar_timezones ct on m.timezone_id = ct.id
 				left join cc_bucket qb on m.bucket_id = qb.id
@@ -168,7 +168,7 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
     returning *
 )
 select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-       cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, m.skills, m.min_offering_at
+       cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(m.skills, '{}'::int4[]) skills, m.min_offering_at
 from m
     left join calendar_timezones ct on m.timezone_id = ct.id
     left join cc_bucket qb on m.bucket_id = qb.id`, map[string]interface{}{
@@ -182,7 +182,7 @@ from m
 		"Id":             member.Id,
 		"QueueId":        member.QueueId,
 		"DomainId":       domainId,
-		"Skills":         pq.Array(member.Skills),
+		"Skills":         nil, //pq.Array(member.Skills),
 		"MinOfferingAt":  member.MinOfferingAt,
 	})
 	if err != nil {
