@@ -4,6 +4,7 @@ import "encoding/json"
 
 type Member struct {
 	Id             int64                 `json:"id" db:"id"`
+	CreatedAt      int64                 `json:"created_at" db:"created_at"`
 	QueueId        int64                 `json:"queue_id" db:"queue_id"`
 	Priority       int                   `json:"priority" db:"priority"`
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
@@ -11,12 +12,13 @@ type Member struct {
 	Name           string                `json:"name" db:"name"`
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Variables      StringMap             `json:"variables" db:"variables"`
-	LastActivityAt int64                 `json:"last_activity_at" db:"last_activity_at"`
+	LastActivityAt int64                 `json:"last_hangup_at" db:"last_hangup_at"`
 	Attempts       int                   `json:"attempts" db:"attempts"`
 	Timezone       Lookup                `json:"timezone" db:"timezone"`
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
 	Skills         Int64Array            `json:"skills" db:"skills"`
+	StopAt         *int64                `json:"stop_at" db:"stop_at"`
 }
 
 type MemberAttempt struct {

@@ -26,7 +26,7 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :Skills, :MinOfferingAt)
 			returning *
 		)
-		select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
+		select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(skills, '{}'::int4[]) skills, min_offering_at
 		from m
 			left join calendar_timezones ct on m.timezone_id = ct.id
@@ -113,7 +113,7 @@ func (s SqlMemberStore) GetAllPage(domainId, queueId int64, offset, limit int) (
 	var members []*model.Member
 
 	if _, err := s.GetReplica().Select(&members,
-		`select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
+		`select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, m.min_offering_at
 		from cc_member m
 			left join calendar_timezones ct on m.timezone_id = ct.id
@@ -135,8 +135,9 @@ offset :Offset`, map[string]interface{}{
 
 func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.AppError) {
 	var member *model.Member
-	if err := s.GetReplica().SelectOne(&member, `select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-				   cc_member_communications(m.communications) as communications, cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(skills, '{}'::int4[]) skills, min_offering_at
+	if err := s.GetReplica().SelectOne(&member, `select m.id, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
+				   cc_member_communications(m.communications) as communications, cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(skills, '{}'::int4[]) skills, min_offering_at,
+				   m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at
 			from cc_member m
 				left join calendar_timezones ct on m.timezone_id = ct.id
 				left join cc_bucket qb on m.bucket_id = qb.id
@@ -167,7 +168,7 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
     where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )
-select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
+select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
        cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, coalesce(m.skills, '{}'::int4[]) skills, m.min_offering_at
 from m
     left join calendar_timezones ct on m.timezone_id = ct.id
@@ -210,7 +211,7 @@ func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64) ([]*model.Member
     where m.id = any(:Ids::int8[]) and m.queue_id = :QueueId and not exists(select 1 from cc_member_attempt a where a.member_id = m.id) 
     returning *
 )
-select m.id, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
+select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
        cc_member_communications(m.communications) as communications, null as bucket, skills, min_offering_at
 from m
     left join calendar_timezones ct on m.timezone_id = ct.id`, map[string]interface{}{

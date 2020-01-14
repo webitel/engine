@@ -8187,6 +8187,10 @@
           "type": "string",
           "format": "int64"
         },
+        "created_at": {
+          "type": "string",
+          "format": "int64"
+        },
         "variables": {
           "type": "object",
           "additionalProperties": {

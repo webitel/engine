@@ -437,6 +437,7 @@ func toEngineMemberAttempt(src *model.MemberAttempt) *engine.MemberAttempt {
 func toEngineMember(src *model.Member) *engine.Member {
 	res := &engine.Member{
 		Id:        src.Id,
+		CreatedAt: src.CreatedAt,
 		QueueId:   src.QueueId,
 		Priority:  int32(src.Priority),
 		ExpireAt:  src.GetExpireAt(),

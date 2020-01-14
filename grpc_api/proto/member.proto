@@ -183,17 +183,18 @@ message Member {
     int64 queue_id = 2;
     int32 priority = 3;
     int64 expire_at = 4;
-    map<string, string> variables = 5;
-    string name = 6;
-    Lookup timezone = 7;
-    repeated MemberCommunication communications = 8;
-    Lookup bucket = 9;
-    repeated int64 skills = 10;
-    int64 min_offering_at = 11;
+    int64 created_at = 5;
+    map<string, string> variables = 6;
+    string name = 7;
+    Lookup timezone = 8;
+    repeated MemberCommunication communications = 9;
+    Lookup bucket = 10;
+    repeated int64 skills = 11;
+    int64 min_offering_at = 12;
 
-    string stop_cause = 12;
-    int64 last_activity_at = 13;
-    int32 attempts = 14;
+    string stop_cause = 13;
+    int64 last_activity_at = 14;
+    int32 attempts = 15;
 }
 
 message MemberCommunication {
