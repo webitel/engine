@@ -102,7 +102,8 @@ func (wh *Hub) start() {
 			msg.PrecomputeJSON()
 			candidates := connections.All()
 			for _, webCon := range candidates {
-				if webCon.ShouldSendEvent(msg) {
+				//FIXME permission call events
+				if webCon.ShouldSendEvent(msg) && fmt.Sprintf("%d", webCon.UserId) == ev.UserId {
 					select {
 					case webCon.Send <- msg:
 					default:

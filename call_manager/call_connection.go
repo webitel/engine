@@ -308,3 +308,16 @@ func parseSps(str string) int {
 	i, _ := strconv.Atoi(patternSps.ReplaceAllString(str, ""))
 	return i
 }
+
+func (c *CallConnection) Execute(app string, args string) *model.AppError {
+	_, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
+		Command: app,
+		Args:    args,
+	})
+
+	if err != nil {
+		return model.NewAppError("BlindTransfer", "external.blind_transfer.app_error", nil, err.Error(),
+			http.StatusInternalServerError)
+	}
+	return nil
+}

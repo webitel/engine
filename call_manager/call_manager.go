@@ -30,6 +30,10 @@ type CallClient interface {
 	Name() string
 	Ready() bool
 
+	Host() string
+
+	Execute(app string, args string) *model.AppError
+
 	GetServerVersion() (string, *model.AppError)
 	SetConnectionSps(sps int) (int, *model.AppError)
 	GetRemoteSps() (int, *model.AppError)

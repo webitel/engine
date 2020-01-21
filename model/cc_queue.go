@@ -14,6 +14,7 @@ type Queue struct {
 	SecLocateAgent int       `json:"sec_locate_agent" db:"sec_locate_agent"`
 	Type           int8      `json:"type" db:"type"`
 	Team           *Lookup   `json:"team" db:"team"`
+	Schema         *Lookup   `json:"schema" db:"schema"`
 	Description    string    `json:"description" db:"description"`
 }
 

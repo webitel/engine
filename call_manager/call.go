@@ -48,7 +48,7 @@ func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.
 }
 
 func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) {
-	var cli CallClient
+	var cli, cli2 CallClient
 	var err *model.AppError
 
 	cli, err = cm.getClient(legANode)
@@ -59,31 +59,18 @@ func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) {
 	if legANode == legBNode {
 		_, err = cli.BridgeCall(legA, legB, "")
 	} else {
-		newUuid := model.NewUuid()
 
-		r1 := &model.CallRequest{
-			Endpoints: []string{"sofia/sip/bridge@test.com"},
-			Variables: map[string]string{
-				"sip_h_X-Webitel-ParentId": legB,
-				"sip_route_uri":            "sip:10.10.10.25:5080",
-				"origination_uuid":         newUuid,
-				"ignore_early_media":       "true",
-			},
-			Timeout:      10,
-			CallerName:   "",
-			CallerNumber: "",
-			Applications: []*model.CallRequestApplication{
-				{
-					AppName: "answer",
-				},
-				{
-					AppName: "set",
-					Args:    fmt.Sprintf("res=${uuid_bridge %s %s}", newUuid, legA),
-				},
-			},
+		cli2, err = cm.getClient(legBNode)
+		if err != nil {
+			panic(1)
 		}
 
-		_, _, err = cli.NewCall(r1)
+		cli.SetCallVariables(legA, map[string]string{
+			"sip_h_X-Webitel-Fwd": fmt.Sprintf("sip:w@%s:5080", cli2.Host()),
+		})
+
+		fmt.Println(fmt.Sprintf("%s sip:w@%s:5080", legA, cli2.Host()))
+		err = cli.Execute("uuid_deflect", fmt.Sprintf("%s sip:w@%s:5080", legA, cli2.Host()))
 	}
 
 	if err != nil {

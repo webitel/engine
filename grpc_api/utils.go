@@ -72,7 +72,7 @@ func MarshalJsonpb(pb *structpb.Value) []byte {
 }
 
 func GetLookup(src *engine.Lookup) *model.Lookup {
-	if src == nil {
+	if src == nil || src.Id == 0 {
 		return nil
 	}
 
