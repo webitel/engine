@@ -45,132 +45,6 @@ service CalendarService {
             get: "/calendars/timezones"
         };
     }
-
-
-    // Create AcceptOfDay
-    rpc CreateAcceptOfDay(CreateAcceptOfDayRequest) returns (AcceptOfDay) {
-        option (google.api.http) = {
-            post: "/calendars/{calendar_id}/accepts"
-            body: "*"
-        };
-    }
-
-    // List AcceptOfDay
-    rpc SearchAcceptOfDay(AcceptOfDayRequest) returns (ListAcceptOfDay) {
-        option (google.api.http) = {
-            get: "/calendars/{calendar_id}/accepts"
-        };
-    }
-
-    // Read AcceptOfDay
-    rpc ReadAcceptOfDay(ReadAcceptOfDayRequest) returns (AcceptOfDay) {
-        option (google.api.http) = {
-            get: "/calendars/{calendar_id}/accepts/{id}"
-        };
-    }
-
-    // Update AcceptOfDay
-    rpc UpdateAcceptOfDay(UpdateAcceptOfDayRequest) returns (AcceptOfDay) {
-        option (google.api.http) = {
-            put: "/calendars/{calendar_id}/accepts/{id}"
-            body: "*"
-        };
-    }
-    // Delete AcceptOfDay
-    rpc DeleteAcceptOfDay(DeleteAcceptOfDayRequest) returns (AcceptOfDay) {
-        option (google.api.http) = {
-            delete: "/calendars/{calendar_id}/accepts/{id}"
-        };
-    }
-
-    // Create ExceptDate
-    rpc CreateExceptDate(CreateExceptDateRequest) returns (ExceptDate) {
-        option (google.api.http) = {
-            post: "/calendars/{calendar_id}/excepts"
-            body: "*"
-        };
-    }
-
-    // List ExceptDate
-    rpc SearchExceptDate(SearchExceptDateRequest) returns (ListExceptDate) {
-        option (google.api.http) = {
-            get: "/calendars/{calendar_id}/excepts"
-        };
-    }
-
-    // Read ExceptDate
-    rpc ReadExceptDate(ReadExceptDateRequest) returns (ExceptDate) {
-        option (google.api.http) = {
-            get: "/calendars/{calendar_id}/excepts/{id}"
-        };
-    }
-
-    // Update ExceptDate
-    rpc UpdateExceptDate(UpdateExceptDateRequest) returns (ExceptDate) {
-        option (google.api.http) = {
-            put: "/calendars/{calendar_id}/excepts/{id}"
-            body: "*"
-        };
-    }
-    // Delete ExceptDate
-    rpc DeleteExceptDate(DeleteExceptDateRequest) returns (ExceptDate) {
-        option (google.api.http) = {
-            delete: "/calendars/{calendar_id}/excepts/{id}"
-        };
-    }
-}
-
-message DeleteExceptDateRequest {
-    int64 calendar_id = 1;
-    int64 id = 2;
-    int64 domain_id = 3;
-}
-
-message UpdateExceptDateRequest {
-    int64 id = 1;
-    int64 calendar_id = 2;
-    string name = 3;
-    int64 date = 4;
-    bool repeat = 5;
-    bool disabled = 6;
-    int64 domain_id = 7;
-}
-
-message SearchExceptDateRequest {
-    int64 calendar_id = 1;
-    int64 domain_id = 2;
-}
-
-message ListExceptDate {
-    repeated ExceptDate items = 1;
-}
-
-message ReadExceptDateRequest {
-    int64 calendar_id = 1;
-    int64 id = 2;
-    int64 domain_id = 3;
-}
-
-message CreateExceptDateRequest {
-    int64 calendar_id = 1;
-    string name = 2;
-    int64 date = 3;
-    bool repeat = 4;
-    bool disabled = 5;
-    int64 domain_id = 6;
-}
-
-message ExceptDate {
-    int64 id = 1;
-    int64 calendar_id = 2;
-    string name = 3;
-    int64 date = 4;
-    bool repeat = 5;
-    bool disabled = 6;
-}
-
-message ListCalendar {
-    repeated Calendar items = 1;
 }
 
 message Calendar {
@@ -186,19 +60,29 @@ message Calendar {
     int64 end_at = 9;
     Lookup timezone = 10;
     string description = 11;
+
+    repeated AcceptOfDay accepts = 12;
+    repeated ExceptDate excepts = 13;
 }
 
-message ReadAcceptOfDayRequest {
-    int64 calendar_id = 1;
-    int64 id = 2;
-    int64 domain_id = 3;
+message ExceptDate {
+    string name = 3;
+    int64 date = 4;
+    bool repeat = 5;
+    bool disabled = 6;
 }
 
-message DeleteAcceptOfDayRequest {
-    int64 calendar_id = 1;
-    int64 id = 2;
-    int64 domain_id = 3;
+message AcceptOfDay {
+    int32 day = 2;
+    int32 start_time_of_day = 3;
+    int32 end_time_of_day = 4;
+    bool disabled = 5;
 }
+
+message ListCalendar {
+    repeated Calendar items = 1;
+}
+
 
 message CreateCalendarRequest {
     string name = 1;
@@ -206,7 +90,9 @@ message CreateCalendarRequest {
     int64 end_at = 3;
     Lookup timezone = 4;
     string description = 5;
-    int64 domain_id = 6;
+    repeated AcceptOfDay accepts = 6;
+    repeated ExceptDate excepts = 7;
+    int64 domain_id = 8;
 }
 
 message SearchCalendarRequest {
@@ -233,8 +119,10 @@ message UpdateCalendarRequest {
     int64 end_at = 4;
     Lookup timezone = 5;
     string description = 6;
+    repeated AcceptOfDay accepts = 7;
+    repeated ExceptDate excepts = 8;
 
-    int64 domain_id = 7;
+    int64 domain_id = 9;
 }
 
 message SearchTimezonesRequest {
@@ -250,40 +138,4 @@ message Timezone {
     int64 id = 1;
     string name = 2;
     string offset = 3;
-}
-
-message CreateAcceptOfDayRequest {
-    int64 calendar_id = 1;
-    int64 domain_id = 2;
-    int32 day = 3;
-    int32 start_time_of_day = 4;
-    int32 end_time_of_day = 5;
-    bool disabled = 6;
-}
-
-message UpdateAcceptOfDayRequest {
-    int64 calendar_id = 1;
-    int64 domain_id = 2;
-    int32 day = 3;
-    int32 start_time_of_day = 4;
-    int32 end_time_of_day = 5;
-    bool disabled = 6;
-    int64 id = 7;
-}
-
-message AcceptOfDay {
-    int64 id = 1;
-    int32 day = 2;
-    int32 start_time_of_day = 3;
-    int32 end_time_of_day = 4;
-    bool disabled = 5;
-}
-
-message AcceptOfDayRequest {
-    int64 calendar_id = 1;
-    int64 domain_id = 2;
-}
-
-message ListAcceptOfDay {
-    repeated AcceptOfDay items = 1;
 }

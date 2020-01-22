@@ -25,508 +25,30 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type DeleteExceptDateRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
-	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DeleteExceptDateRequest) Reset()         { *m = DeleteExceptDateRequest{} }
-func (m *DeleteExceptDateRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteExceptDateRequest) ProtoMessage()    {}
-func (*DeleteExceptDateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{0}
-}
-
-func (m *DeleteExceptDateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteExceptDateRequest.Unmarshal(m, b)
-}
-func (m *DeleteExceptDateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteExceptDateRequest.Marshal(b, m, deterministic)
-}
-func (m *DeleteExceptDateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteExceptDateRequest.Merge(m, src)
-}
-func (m *DeleteExceptDateRequest) XXX_Size() int {
-	return xxx_messageInfo_DeleteExceptDateRequest.Size(m)
-}
-func (m *DeleteExceptDateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteExceptDateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DeleteExceptDateRequest proto.InternalMessageInfo
-
-func (m *DeleteExceptDateRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *DeleteExceptDateRequest) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *DeleteExceptDateRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type UpdateExceptDateRequest struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	CalendarId           int64    `protobuf:"varint,2,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Date                 int64    `protobuf:"varint,4,opt,name=date,proto3" json:"date,omitempty"`
-	Repeat               bool     `protobuf:"varint,5,opt,name=repeat,proto3" json:"repeat,omitempty"`
-	Disabled             bool     `protobuf:"varint,6,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	DomainId             int64    `protobuf:"varint,7,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateExceptDateRequest) Reset()         { *m = UpdateExceptDateRequest{} }
-func (m *UpdateExceptDateRequest) String() string { return proto.CompactTextString(m) }
-func (*UpdateExceptDateRequest) ProtoMessage()    {}
-func (*UpdateExceptDateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{1}
-}
-
-func (m *UpdateExceptDateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateExceptDateRequest.Unmarshal(m, b)
-}
-func (m *UpdateExceptDateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateExceptDateRequest.Marshal(b, m, deterministic)
-}
-func (m *UpdateExceptDateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateExceptDateRequest.Merge(m, src)
-}
-func (m *UpdateExceptDateRequest) XXX_Size() int {
-	return xxx_messageInfo_UpdateExceptDateRequest.Size(m)
-}
-func (m *UpdateExceptDateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateExceptDateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateExceptDateRequest proto.InternalMessageInfo
-
-func (m *UpdateExceptDateRequest) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *UpdateExceptDateRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *UpdateExceptDateRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *UpdateExceptDateRequest) GetDate() int64 {
-	if m != nil {
-		return m.Date
-	}
-	return 0
-}
-
-func (m *UpdateExceptDateRequest) GetRepeat() bool {
-	if m != nil {
-		return m.Repeat
-	}
-	return false
-}
-
-func (m *UpdateExceptDateRequest) GetDisabled() bool {
-	if m != nil {
-		return m.Disabled
-	}
-	return false
-}
-
-func (m *UpdateExceptDateRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type SearchExceptDateRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *SearchExceptDateRequest) Reset()         { *m = SearchExceptDateRequest{} }
-func (m *SearchExceptDateRequest) String() string { return proto.CompactTextString(m) }
-func (*SearchExceptDateRequest) ProtoMessage()    {}
-func (*SearchExceptDateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{2}
-}
-
-func (m *SearchExceptDateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_SearchExceptDateRequest.Unmarshal(m, b)
-}
-func (m *SearchExceptDateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_SearchExceptDateRequest.Marshal(b, m, deterministic)
-}
-func (m *SearchExceptDateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SearchExceptDateRequest.Merge(m, src)
-}
-func (m *SearchExceptDateRequest) XXX_Size() int {
-	return xxx_messageInfo_SearchExceptDateRequest.Size(m)
-}
-func (m *SearchExceptDateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_SearchExceptDateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_SearchExceptDateRequest proto.InternalMessageInfo
-
-func (m *SearchExceptDateRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *SearchExceptDateRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type ListExceptDate struct {
-	Items                []*ExceptDate `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
-}
-
-func (m *ListExceptDate) Reset()         { *m = ListExceptDate{} }
-func (m *ListExceptDate) String() string { return proto.CompactTextString(m) }
-func (*ListExceptDate) ProtoMessage()    {}
-func (*ListExceptDate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{3}
-}
-
-func (m *ListExceptDate) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListExceptDate.Unmarshal(m, b)
-}
-func (m *ListExceptDate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListExceptDate.Marshal(b, m, deterministic)
-}
-func (m *ListExceptDate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListExceptDate.Merge(m, src)
-}
-func (m *ListExceptDate) XXX_Size() int {
-	return xxx_messageInfo_ListExceptDate.Size(m)
-}
-func (m *ListExceptDate) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListExceptDate.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ListExceptDate proto.InternalMessageInfo
-
-func (m *ListExceptDate) GetItems() []*ExceptDate {
-	if m != nil {
-		return m.Items
-	}
-	return nil
-}
-
-type ReadExceptDateRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
-	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ReadExceptDateRequest) Reset()         { *m = ReadExceptDateRequest{} }
-func (m *ReadExceptDateRequest) String() string { return proto.CompactTextString(m) }
-func (*ReadExceptDateRequest) ProtoMessage()    {}
-func (*ReadExceptDateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{4}
-}
-
-func (m *ReadExceptDateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReadExceptDateRequest.Unmarshal(m, b)
-}
-func (m *ReadExceptDateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReadExceptDateRequest.Marshal(b, m, deterministic)
-}
-func (m *ReadExceptDateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReadExceptDateRequest.Merge(m, src)
-}
-func (m *ReadExceptDateRequest) XXX_Size() int {
-	return xxx_messageInfo_ReadExceptDateRequest.Size(m)
-}
-func (m *ReadExceptDateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReadExceptDateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReadExceptDateRequest proto.InternalMessageInfo
-
-func (m *ReadExceptDateRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *ReadExceptDateRequest) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *ReadExceptDateRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type CreateExceptDateRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Date                 int64    `protobuf:"varint,3,opt,name=date,proto3" json:"date,omitempty"`
-	Repeat               bool     `protobuf:"varint,4,opt,name=repeat,proto3" json:"repeat,omitempty"`
-	Disabled             bool     `protobuf:"varint,5,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	DomainId             int64    `protobuf:"varint,6,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateExceptDateRequest) Reset()         { *m = CreateExceptDateRequest{} }
-func (m *CreateExceptDateRequest) String() string { return proto.CompactTextString(m) }
-func (*CreateExceptDateRequest) ProtoMessage()    {}
-func (*CreateExceptDateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{5}
-}
-
-func (m *CreateExceptDateRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateExceptDateRequest.Unmarshal(m, b)
-}
-func (m *CreateExceptDateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateExceptDateRequest.Marshal(b, m, deterministic)
-}
-func (m *CreateExceptDateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateExceptDateRequest.Merge(m, src)
-}
-func (m *CreateExceptDateRequest) XXX_Size() int {
-	return xxx_messageInfo_CreateExceptDateRequest.Size(m)
-}
-func (m *CreateExceptDateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateExceptDateRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateExceptDateRequest proto.InternalMessageInfo
-
-func (m *CreateExceptDateRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *CreateExceptDateRequest) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *CreateExceptDateRequest) GetDate() int64 {
-	if m != nil {
-		return m.Date
-	}
-	return 0
-}
-
-func (m *CreateExceptDateRequest) GetRepeat() bool {
-	if m != nil {
-		return m.Repeat
-	}
-	return false
-}
-
-func (m *CreateExceptDateRequest) GetDisabled() bool {
-	if m != nil {
-		return m.Disabled
-	}
-	return false
-}
-
-func (m *CreateExceptDateRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type ExceptDate struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	CalendarId           int64    `protobuf:"varint,2,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Date                 int64    `protobuf:"varint,4,opt,name=date,proto3" json:"date,omitempty"`
-	Repeat               bool     `protobuf:"varint,5,opt,name=repeat,proto3" json:"repeat,omitempty"`
-	Disabled             bool     `protobuf:"varint,6,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ExceptDate) Reset()         { *m = ExceptDate{} }
-func (m *ExceptDate) String() string { return proto.CompactTextString(m) }
-func (*ExceptDate) ProtoMessage()    {}
-func (*ExceptDate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{6}
-}
-
-func (m *ExceptDate) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ExceptDate.Unmarshal(m, b)
-}
-func (m *ExceptDate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ExceptDate.Marshal(b, m, deterministic)
-}
-func (m *ExceptDate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ExceptDate.Merge(m, src)
-}
-func (m *ExceptDate) XXX_Size() int {
-	return xxx_messageInfo_ExceptDate.Size(m)
-}
-func (m *ExceptDate) XXX_DiscardUnknown() {
-	xxx_messageInfo_ExceptDate.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ExceptDate proto.InternalMessageInfo
-
-func (m *ExceptDate) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *ExceptDate) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *ExceptDate) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *ExceptDate) GetDate() int64 {
-	if m != nil {
-		return m.Date
-	}
-	return 0
-}
-
-func (m *ExceptDate) GetRepeat() bool {
-	if m != nil {
-		return m.Repeat
-	}
-	return false
-}
-
-func (m *ExceptDate) GetDisabled() bool {
-	if m != nil {
-		return m.Disabled
-	}
-	return false
-}
-
-type ListCalendar struct {
-	Items                []*Calendar `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
-	XXX_unrecognized     []byte      `json:"-"`
-	XXX_sizecache        int32       `json:"-"`
-}
-
-func (m *ListCalendar) Reset()         { *m = ListCalendar{} }
-func (m *ListCalendar) String() string { return proto.CompactTextString(m) }
-func (*ListCalendar) ProtoMessage()    {}
-func (*ListCalendar) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{7}
-}
-
-func (m *ListCalendar) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListCalendar.Unmarshal(m, b)
-}
-func (m *ListCalendar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListCalendar.Marshal(b, m, deterministic)
-}
-func (m *ListCalendar) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListCalendar.Merge(m, src)
-}
-func (m *ListCalendar) XXX_Size() int {
-	return xxx_messageInfo_ListCalendar.Size(m)
-}
-func (m *ListCalendar) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListCalendar.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ListCalendar proto.InternalMessageInfo
-
-func (m *ListCalendar) GetItems() []*Calendar {
-	if m != nil {
-		return m.Items
-	}
-	return nil
-}
-
 type Calendar struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	CreatedAt            int64    `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	CreatedBy            *Lookup  `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
-	UpdatedAt            int64    `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	UpdatedBy            *Lookup  `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
-	Name                 string   `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
-	StartAt              int64    `protobuf:"varint,8,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
-	EndAt                int64    `protobuf:"varint,9,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
-	Timezone             *Lookup  `protobuf:"bytes,10,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	Description          string   `protobuf:"bytes,11,opt,name=description,proto3" json:"description,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Id                   int64          `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	DomainId             int64          `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	CreatedAt            int64          `protobuf:"varint,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CreatedBy            *Lookup        `protobuf:"bytes,4,opt,name=created_by,json=createdBy,proto3" json:"created_by,omitempty"`
+	UpdatedAt            int64          `protobuf:"varint,5,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	UpdatedBy            *Lookup        `protobuf:"bytes,6,opt,name=updated_by,json=updatedBy,proto3" json:"updated_by,omitempty"`
+	Name                 string         `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	StartAt              int64          `protobuf:"varint,8,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                int64          `protobuf:"varint,9,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	Timezone             *Lookup        `protobuf:"bytes,10,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Description          string         `protobuf:"bytes,11,opt,name=description,proto3" json:"description,omitempty"`
+	Accepts              []*AcceptOfDay `protobuf:"bytes,12,rep,name=accepts,proto3" json:"accepts,omitempty"`
+	Excepts              []*ExceptDate  `protobuf:"bytes,13,rep,name=excepts,proto3" json:"excepts,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
 }
 
 func (m *Calendar) Reset()         { *m = Calendar{} }
 func (m *Calendar) String() string { return proto.CompactTextString(m) }
 func (*Calendar) ProtoMessage()    {}
 func (*Calendar) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{8}
+	return fileDescriptor_e3d25d49f056cdb2, []int{0}
 }
 
 func (m *Calendar) XXX_Unmarshal(b []byte) error {
@@ -624,133 +146,204 @@ func (m *Calendar) GetDescription() string {
 	return ""
 }
 
-type ReadAcceptOfDayRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
-	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+func (m *Calendar) GetAccepts() []*AcceptOfDay {
+	if m != nil {
+		return m.Accepts
+	}
+	return nil
+}
+
+func (m *Calendar) GetExcepts() []*ExceptDate {
+	if m != nil {
+		return m.Excepts
+	}
+	return nil
+}
+
+type ExceptDate struct {
+	Name                 string   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Date                 int64    `protobuf:"varint,4,opt,name=date,proto3" json:"date,omitempty"`
+	Repeat               bool     `protobuf:"varint,5,opt,name=repeat,proto3" json:"repeat,omitempty"`
+	Disabled             bool     `protobuf:"varint,6,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ReadAcceptOfDayRequest) Reset()         { *m = ReadAcceptOfDayRequest{} }
-func (m *ReadAcceptOfDayRequest) String() string { return proto.CompactTextString(m) }
-func (*ReadAcceptOfDayRequest) ProtoMessage()    {}
-func (*ReadAcceptOfDayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{9}
+func (m *ExceptDate) Reset()         { *m = ExceptDate{} }
+func (m *ExceptDate) String() string { return proto.CompactTextString(m) }
+func (*ExceptDate) ProtoMessage()    {}
+func (*ExceptDate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{1}
 }
 
-func (m *ReadAcceptOfDayRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ReadAcceptOfDayRequest.Unmarshal(m, b)
+func (m *ExceptDate) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ExceptDate.Unmarshal(m, b)
 }
-func (m *ReadAcceptOfDayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ReadAcceptOfDayRequest.Marshal(b, m, deterministic)
+func (m *ExceptDate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ExceptDate.Marshal(b, m, deterministic)
 }
-func (m *ReadAcceptOfDayRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReadAcceptOfDayRequest.Merge(m, src)
+func (m *ExceptDate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ExceptDate.Merge(m, src)
 }
-func (m *ReadAcceptOfDayRequest) XXX_Size() int {
-	return xxx_messageInfo_ReadAcceptOfDayRequest.Size(m)
+func (m *ExceptDate) XXX_Size() int {
+	return xxx_messageInfo_ExceptDate.Size(m)
 }
-func (m *ReadAcceptOfDayRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReadAcceptOfDayRequest.DiscardUnknown(m)
+func (m *ExceptDate) XXX_DiscardUnknown() {
+	xxx_messageInfo_ExceptDate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ReadAcceptOfDayRequest proto.InternalMessageInfo
+var xxx_messageInfo_ExceptDate proto.InternalMessageInfo
 
-func (m *ReadAcceptOfDayRequest) GetCalendarId() int64 {
+func (m *ExceptDate) GetName() string {
 	if m != nil {
-		return m.CalendarId
+		return m.Name
+	}
+	return ""
+}
+
+func (m *ExceptDate) GetDate() int64 {
+	if m != nil {
+		return m.Date
 	}
 	return 0
 }
 
-func (m *ReadAcceptOfDayRequest) GetId() int64 {
+func (m *ExceptDate) GetRepeat() bool {
 	if m != nil {
-		return m.Id
+		return m.Repeat
 	}
-	return 0
+	return false
 }
 
-func (m *ReadAcceptOfDayRequest) GetDomainId() int64 {
+func (m *ExceptDate) GetDisabled() bool {
 	if m != nil {
-		return m.DomainId
+		return m.Disabled
 	}
-	return 0
+	return false
 }
 
-type DeleteAcceptOfDayRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	Id                   int64    `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
-	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+type AcceptOfDay struct {
+	Day                  int32    `protobuf:"varint,2,opt,name=day,proto3" json:"day,omitempty"`
+	StartTimeOfDay       int32    `protobuf:"varint,3,opt,name=start_time_of_day,json=startTimeOfDay,proto3" json:"start_time_of_day,omitempty"`
+	EndTimeOfDay         int32    `protobuf:"varint,4,opt,name=end_time_of_day,json=endTimeOfDay,proto3" json:"end_time_of_day,omitempty"`
+	Disabled             bool     `protobuf:"varint,5,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *DeleteAcceptOfDayRequest) Reset()         { *m = DeleteAcceptOfDayRequest{} }
-func (m *DeleteAcceptOfDayRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteAcceptOfDayRequest) ProtoMessage()    {}
-func (*DeleteAcceptOfDayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{10}
+func (m *AcceptOfDay) Reset()         { *m = AcceptOfDay{} }
+func (m *AcceptOfDay) String() string { return proto.CompactTextString(m) }
+func (*AcceptOfDay) ProtoMessage()    {}
+func (*AcceptOfDay) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{2}
 }
 
-func (m *DeleteAcceptOfDayRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DeleteAcceptOfDayRequest.Unmarshal(m, b)
+func (m *AcceptOfDay) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_AcceptOfDay.Unmarshal(m, b)
 }
-func (m *DeleteAcceptOfDayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DeleteAcceptOfDayRequest.Marshal(b, m, deterministic)
+func (m *AcceptOfDay) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_AcceptOfDay.Marshal(b, m, deterministic)
 }
-func (m *DeleteAcceptOfDayRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DeleteAcceptOfDayRequest.Merge(m, src)
+func (m *AcceptOfDay) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AcceptOfDay.Merge(m, src)
 }
-func (m *DeleteAcceptOfDayRequest) XXX_Size() int {
-	return xxx_messageInfo_DeleteAcceptOfDayRequest.Size(m)
+func (m *AcceptOfDay) XXX_Size() int {
+	return xxx_messageInfo_AcceptOfDay.Size(m)
 }
-func (m *DeleteAcceptOfDayRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_DeleteAcceptOfDayRequest.DiscardUnknown(m)
+func (m *AcceptOfDay) XXX_DiscardUnknown() {
+	xxx_messageInfo_AcceptOfDay.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_DeleteAcceptOfDayRequest proto.InternalMessageInfo
+var xxx_messageInfo_AcceptOfDay proto.InternalMessageInfo
 
-func (m *DeleteAcceptOfDayRequest) GetCalendarId() int64 {
+func (m *AcceptOfDay) GetDay() int32 {
 	if m != nil {
-		return m.CalendarId
+		return m.Day
 	}
 	return 0
 }
 
-func (m *DeleteAcceptOfDayRequest) GetId() int64 {
+func (m *AcceptOfDay) GetStartTimeOfDay() int32 {
 	if m != nil {
-		return m.Id
+		return m.StartTimeOfDay
 	}
 	return 0
 }
 
-func (m *DeleteAcceptOfDayRequest) GetDomainId() int64 {
+func (m *AcceptOfDay) GetEndTimeOfDay() int32 {
 	if m != nil {
-		return m.DomainId
+		return m.EndTimeOfDay
 	}
 	return 0
+}
+
+func (m *AcceptOfDay) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
+}
+
+type ListCalendar struct {
+	Items                []*Calendar `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *ListCalendar) Reset()         { *m = ListCalendar{} }
+func (m *ListCalendar) String() string { return proto.CompactTextString(m) }
+func (*ListCalendar) ProtoMessage()    {}
+func (*ListCalendar) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e3d25d49f056cdb2, []int{3}
+}
+
+func (m *ListCalendar) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListCalendar.Unmarshal(m, b)
+}
+func (m *ListCalendar) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListCalendar.Marshal(b, m, deterministic)
+}
+func (m *ListCalendar) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListCalendar.Merge(m, src)
+}
+func (m *ListCalendar) XXX_Size() int {
+	return xxx_messageInfo_ListCalendar.Size(m)
+}
+func (m *ListCalendar) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListCalendar.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ListCalendar proto.InternalMessageInfo
+
+func (m *ListCalendar) GetItems() []*Calendar {
+	if m != nil {
+		return m.Items
+	}
+	return nil
 }
 
 type CreateCalendarRequest struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	StartAt              int64    `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
-	EndAt                int64    `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
-	Timezone             *Lookup  `protobuf:"bytes,4,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	Description          string   `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
-	DomainId             int64    `protobuf:"varint,6,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Name                 string         `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	StartAt              int64          `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                int64          `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	Timezone             *Lookup        `protobuf:"bytes,4,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Description          string         `protobuf:"bytes,5,opt,name=description,proto3" json:"description,omitempty"`
+	Accepts              []*AcceptOfDay `protobuf:"bytes,6,rep,name=accepts,proto3" json:"accepts,omitempty"`
+	Excepts              []*ExceptDate  `protobuf:"bytes,7,rep,name=excepts,proto3" json:"excepts,omitempty"`
+	DomainId             int64          `protobuf:"varint,8,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
 }
 
 func (m *CreateCalendarRequest) Reset()         { *m = CreateCalendarRequest{} }
 func (m *CreateCalendarRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateCalendarRequest) ProtoMessage()    {}
 func (*CreateCalendarRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{11}
+	return fileDescriptor_e3d25d49f056cdb2, []int{4}
 }
 
 func (m *CreateCalendarRequest) XXX_Unmarshal(b []byte) error {
@@ -806,6 +399,20 @@ func (m *CreateCalendarRequest) GetDescription() string {
 	return ""
 }
 
+func (m *CreateCalendarRequest) GetAccepts() []*AcceptOfDay {
+	if m != nil {
+		return m.Accepts
+	}
+	return nil
+}
+
+func (m *CreateCalendarRequest) GetExcepts() []*ExceptDate {
+	if m != nil {
+		return m.Excepts
+	}
+	return nil
+}
+
 func (m *CreateCalendarRequest) GetDomainId() int64 {
 	if m != nil {
 		return m.DomainId
@@ -826,7 +433,7 @@ func (m *SearchCalendarRequest) Reset()         { *m = SearchCalendarRequest{} }
 func (m *SearchCalendarRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchCalendarRequest) ProtoMessage()    {}
 func (*SearchCalendarRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{12}
+	return fileDescriptor_e3d25d49f056cdb2, []int{5}
 }
 
 func (m *SearchCalendarRequest) XXX_Unmarshal(b []byte) error {
@@ -880,7 +487,7 @@ func (m *ReadCalendarRequest) Reset()         { *m = ReadCalendarRequest{} }
 func (m *ReadCalendarRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadCalendarRequest) ProtoMessage()    {}
 func (*ReadCalendarRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{13}
+	return fileDescriptor_e3d25d49f056cdb2, []int{6}
 }
 
 func (m *ReadCalendarRequest) XXX_Unmarshal(b []byte) error {
@@ -927,7 +534,7 @@ func (m *DeleteCalendarRequest) Reset()         { *m = DeleteCalendarRequest{} }
 func (m *DeleteCalendarRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteCalendarRequest) ProtoMessage()    {}
 func (*DeleteCalendarRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{14}
+	return fileDescriptor_e3d25d49f056cdb2, []int{7}
 }
 
 func (m *DeleteCalendarRequest) XXX_Unmarshal(b []byte) error {
@@ -963,23 +570,25 @@ func (m *DeleteCalendarRequest) GetDomainId() int64 {
 }
 
 type UpdateCalendarRequest struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	StartAt              int64    `protobuf:"varint,3,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
-	EndAt                int64    `protobuf:"varint,4,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
-	Timezone             *Lookup  `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	Description          string   `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
-	DomainId             int64    `protobuf:"varint,7,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Id                   int64          `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string         `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	StartAt              int64          `protobuf:"varint,3,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                int64          `protobuf:"varint,4,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	Timezone             *Lookup        `protobuf:"bytes,5,opt,name=timezone,proto3" json:"timezone,omitempty"`
+	Description          string         `protobuf:"bytes,6,opt,name=description,proto3" json:"description,omitempty"`
+	Accepts              []*AcceptOfDay `protobuf:"bytes,7,rep,name=accepts,proto3" json:"accepts,omitempty"`
+	Excepts              []*ExceptDate  `protobuf:"bytes,8,rep,name=excepts,proto3" json:"excepts,omitempty"`
+	DomainId             int64          `protobuf:"varint,9,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
+	XXX_unrecognized     []byte         `json:"-"`
+	XXX_sizecache        int32          `json:"-"`
 }
 
 func (m *UpdateCalendarRequest) Reset()         { *m = UpdateCalendarRequest{} }
 func (m *UpdateCalendarRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateCalendarRequest) ProtoMessage()    {}
 func (*UpdateCalendarRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{15}
+	return fileDescriptor_e3d25d49f056cdb2, []int{8}
 }
 
 func (m *UpdateCalendarRequest) XXX_Unmarshal(b []byte) error {
@@ -1042,6 +651,20 @@ func (m *UpdateCalendarRequest) GetDescription() string {
 	return ""
 }
 
+func (m *UpdateCalendarRequest) GetAccepts() []*AcceptOfDay {
+	if m != nil {
+		return m.Accepts
+	}
+	return nil
+}
+
+func (m *UpdateCalendarRequest) GetExcepts() []*ExceptDate {
+	if m != nil {
+		return m.Excepts
+	}
+	return nil
+}
+
 func (m *UpdateCalendarRequest) GetDomainId() int64 {
 	if m != nil {
 		return m.DomainId
@@ -1061,7 +684,7 @@ func (m *SearchTimezonesRequest) Reset()         { *m = SearchTimezonesRequest{}
 func (m *SearchTimezonesRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchTimezonesRequest) ProtoMessage()    {}
 func (*SearchTimezonesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{16}
+	return fileDescriptor_e3d25d49f056cdb2, []int{9}
 }
 
 func (m *SearchTimezonesRequest) XXX_Unmarshal(b []byte) error {
@@ -1107,7 +730,7 @@ func (m *ListTimezoneResponse) Reset()         { *m = ListTimezoneResponse{} }
 func (m *ListTimezoneResponse) String() string { return proto.CompactTextString(m) }
 func (*ListTimezoneResponse) ProtoMessage()    {}
 func (*ListTimezoneResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{17}
+	return fileDescriptor_e3d25d49f056cdb2, []int{10}
 }
 
 func (m *ListTimezoneResponse) XXX_Unmarshal(b []byte) error {
@@ -1148,7 +771,7 @@ func (m *Timezone) Reset()         { *m = Timezone{} }
 func (m *Timezone) String() string { return proto.CompactTextString(m) }
 func (*Timezone) ProtoMessage()    {}
 func (*Timezone) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{18}
+	return fileDescriptor_e3d25d49f056cdb2, []int{11}
 }
 
 func (m *Timezone) XXX_Unmarshal(b []byte) error {
@@ -1190,341 +813,11 @@ func (m *Timezone) GetOffset() string {
 	return ""
 }
 
-type CreateAcceptOfDayRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	Day                  int32    `protobuf:"varint,3,opt,name=day,proto3" json:"day,omitempty"`
-	StartTimeOfDay       int32    `protobuf:"varint,4,opt,name=start_time_of_day,json=startTimeOfDay,proto3" json:"start_time_of_day,omitempty"`
-	EndTimeOfDay         int32    `protobuf:"varint,5,opt,name=end_time_of_day,json=endTimeOfDay,proto3" json:"end_time_of_day,omitempty"`
-	Disabled             bool     `protobuf:"varint,6,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *CreateAcceptOfDayRequest) Reset()         { *m = CreateAcceptOfDayRequest{} }
-func (m *CreateAcceptOfDayRequest) String() string { return proto.CompactTextString(m) }
-func (*CreateAcceptOfDayRequest) ProtoMessage()    {}
-func (*CreateAcceptOfDayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{19}
-}
-
-func (m *CreateAcceptOfDayRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_CreateAcceptOfDayRequest.Unmarshal(m, b)
-}
-func (m *CreateAcceptOfDayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_CreateAcceptOfDayRequest.Marshal(b, m, deterministic)
-}
-func (m *CreateAcceptOfDayRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateAcceptOfDayRequest.Merge(m, src)
-}
-func (m *CreateAcceptOfDayRequest) XXX_Size() int {
-	return xxx_messageInfo_CreateAcceptOfDayRequest.Size(m)
-}
-func (m *CreateAcceptOfDayRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateAcceptOfDayRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_CreateAcceptOfDayRequest proto.InternalMessageInfo
-
-func (m *CreateAcceptOfDayRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *CreateAcceptOfDayRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-func (m *CreateAcceptOfDayRequest) GetDay() int32 {
-	if m != nil {
-		return m.Day
-	}
-	return 0
-}
-
-func (m *CreateAcceptOfDayRequest) GetStartTimeOfDay() int32 {
-	if m != nil {
-		return m.StartTimeOfDay
-	}
-	return 0
-}
-
-func (m *CreateAcceptOfDayRequest) GetEndTimeOfDay() int32 {
-	if m != nil {
-		return m.EndTimeOfDay
-	}
-	return 0
-}
-
-func (m *CreateAcceptOfDayRequest) GetDisabled() bool {
-	if m != nil {
-		return m.Disabled
-	}
-	return false
-}
-
-type UpdateAcceptOfDayRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	Day                  int32    `protobuf:"varint,3,opt,name=day,proto3" json:"day,omitempty"`
-	StartTimeOfDay       int32    `protobuf:"varint,4,opt,name=start_time_of_day,json=startTimeOfDay,proto3" json:"start_time_of_day,omitempty"`
-	EndTimeOfDay         int32    `protobuf:"varint,5,opt,name=end_time_of_day,json=endTimeOfDay,proto3" json:"end_time_of_day,omitempty"`
-	Disabled             bool     `protobuf:"varint,6,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	Id                   int64    `protobuf:"varint,7,opt,name=id,proto3" json:"id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *UpdateAcceptOfDayRequest) Reset()         { *m = UpdateAcceptOfDayRequest{} }
-func (m *UpdateAcceptOfDayRequest) String() string { return proto.CompactTextString(m) }
-func (*UpdateAcceptOfDayRequest) ProtoMessage()    {}
-func (*UpdateAcceptOfDayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{20}
-}
-
-func (m *UpdateAcceptOfDayRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_UpdateAcceptOfDayRequest.Unmarshal(m, b)
-}
-func (m *UpdateAcceptOfDayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_UpdateAcceptOfDayRequest.Marshal(b, m, deterministic)
-}
-func (m *UpdateAcceptOfDayRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_UpdateAcceptOfDayRequest.Merge(m, src)
-}
-func (m *UpdateAcceptOfDayRequest) XXX_Size() int {
-	return xxx_messageInfo_UpdateAcceptOfDayRequest.Size(m)
-}
-func (m *UpdateAcceptOfDayRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_UpdateAcceptOfDayRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_UpdateAcceptOfDayRequest proto.InternalMessageInfo
-
-func (m *UpdateAcceptOfDayRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *UpdateAcceptOfDayRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-func (m *UpdateAcceptOfDayRequest) GetDay() int32 {
-	if m != nil {
-		return m.Day
-	}
-	return 0
-}
-
-func (m *UpdateAcceptOfDayRequest) GetStartTimeOfDay() int32 {
-	if m != nil {
-		return m.StartTimeOfDay
-	}
-	return 0
-}
-
-func (m *UpdateAcceptOfDayRequest) GetEndTimeOfDay() int32 {
-	if m != nil {
-		return m.EndTimeOfDay
-	}
-	return 0
-}
-
-func (m *UpdateAcceptOfDayRequest) GetDisabled() bool {
-	if m != nil {
-		return m.Disabled
-	}
-	return false
-}
-
-func (m *UpdateAcceptOfDayRequest) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-type AcceptOfDay struct {
-	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Day                  int32    `protobuf:"varint,2,opt,name=day,proto3" json:"day,omitempty"`
-	StartTimeOfDay       int32    `protobuf:"varint,3,opt,name=start_time_of_day,json=startTimeOfDay,proto3" json:"start_time_of_day,omitempty"`
-	EndTimeOfDay         int32    `protobuf:"varint,4,opt,name=end_time_of_day,json=endTimeOfDay,proto3" json:"end_time_of_day,omitempty"`
-	Disabled             bool     `protobuf:"varint,5,opt,name=disabled,proto3" json:"disabled,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *AcceptOfDay) Reset()         { *m = AcceptOfDay{} }
-func (m *AcceptOfDay) String() string { return proto.CompactTextString(m) }
-func (*AcceptOfDay) ProtoMessage()    {}
-func (*AcceptOfDay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{21}
-}
-
-func (m *AcceptOfDay) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AcceptOfDay.Unmarshal(m, b)
-}
-func (m *AcceptOfDay) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AcceptOfDay.Marshal(b, m, deterministic)
-}
-func (m *AcceptOfDay) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AcceptOfDay.Merge(m, src)
-}
-func (m *AcceptOfDay) XXX_Size() int {
-	return xxx_messageInfo_AcceptOfDay.Size(m)
-}
-func (m *AcceptOfDay) XXX_DiscardUnknown() {
-	xxx_messageInfo_AcceptOfDay.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AcceptOfDay proto.InternalMessageInfo
-
-func (m *AcceptOfDay) GetId() int64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
-func (m *AcceptOfDay) GetDay() int32 {
-	if m != nil {
-		return m.Day
-	}
-	return 0
-}
-
-func (m *AcceptOfDay) GetStartTimeOfDay() int32 {
-	if m != nil {
-		return m.StartTimeOfDay
-	}
-	return 0
-}
-
-func (m *AcceptOfDay) GetEndTimeOfDay() int32 {
-	if m != nil {
-		return m.EndTimeOfDay
-	}
-	return 0
-}
-
-func (m *AcceptOfDay) GetDisabled() bool {
-	if m != nil {
-		return m.Disabled
-	}
-	return false
-}
-
-type AcceptOfDayRequest struct {
-	CalendarId           int64    `protobuf:"varint,1,opt,name=calendar_id,json=calendarId,proto3" json:"calendar_id,omitempty"`
-	DomainId             int64    `protobuf:"varint,2,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *AcceptOfDayRequest) Reset()         { *m = AcceptOfDayRequest{} }
-func (m *AcceptOfDayRequest) String() string { return proto.CompactTextString(m) }
-func (*AcceptOfDayRequest) ProtoMessage()    {}
-func (*AcceptOfDayRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{22}
-}
-
-func (m *AcceptOfDayRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AcceptOfDayRequest.Unmarshal(m, b)
-}
-func (m *AcceptOfDayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AcceptOfDayRequest.Marshal(b, m, deterministic)
-}
-func (m *AcceptOfDayRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AcceptOfDayRequest.Merge(m, src)
-}
-func (m *AcceptOfDayRequest) XXX_Size() int {
-	return xxx_messageInfo_AcceptOfDayRequest.Size(m)
-}
-func (m *AcceptOfDayRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_AcceptOfDayRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AcceptOfDayRequest proto.InternalMessageInfo
-
-func (m *AcceptOfDayRequest) GetCalendarId() int64 {
-	if m != nil {
-		return m.CalendarId
-	}
-	return 0
-}
-
-func (m *AcceptOfDayRequest) GetDomainId() int64 {
-	if m != nil {
-		return m.DomainId
-	}
-	return 0
-}
-
-type ListAcceptOfDay struct {
-	Items                []*AcceptOfDay `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}       `json:"-"`
-	XXX_unrecognized     []byte         `json:"-"`
-	XXX_sizecache        int32          `json:"-"`
-}
-
-func (m *ListAcceptOfDay) Reset()         { *m = ListAcceptOfDay{} }
-func (m *ListAcceptOfDay) String() string { return proto.CompactTextString(m) }
-func (*ListAcceptOfDay) ProtoMessage()    {}
-func (*ListAcceptOfDay) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e3d25d49f056cdb2, []int{23}
-}
-
-func (m *ListAcceptOfDay) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ListAcceptOfDay.Unmarshal(m, b)
-}
-func (m *ListAcceptOfDay) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ListAcceptOfDay.Marshal(b, m, deterministic)
-}
-func (m *ListAcceptOfDay) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ListAcceptOfDay.Merge(m, src)
-}
-func (m *ListAcceptOfDay) XXX_Size() int {
-	return xxx_messageInfo_ListAcceptOfDay.Size(m)
-}
-func (m *ListAcceptOfDay) XXX_DiscardUnknown() {
-	xxx_messageInfo_ListAcceptOfDay.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ListAcceptOfDay proto.InternalMessageInfo
-
-func (m *ListAcceptOfDay) GetItems() []*AcceptOfDay {
-	if m != nil {
-		return m.Items
-	}
-	return nil
-}
-
 func init() {
-	proto.RegisterType((*DeleteExceptDateRequest)(nil), "engine.DeleteExceptDateRequest")
-	proto.RegisterType((*UpdateExceptDateRequest)(nil), "engine.UpdateExceptDateRequest")
-	proto.RegisterType((*SearchExceptDateRequest)(nil), "engine.SearchExceptDateRequest")
-	proto.RegisterType((*ListExceptDate)(nil), "engine.ListExceptDate")
-	proto.RegisterType((*ReadExceptDateRequest)(nil), "engine.ReadExceptDateRequest")
-	proto.RegisterType((*CreateExceptDateRequest)(nil), "engine.CreateExceptDateRequest")
-	proto.RegisterType((*ExceptDate)(nil), "engine.ExceptDate")
-	proto.RegisterType((*ListCalendar)(nil), "engine.ListCalendar")
 	proto.RegisterType((*Calendar)(nil), "engine.Calendar")
-	proto.RegisterType((*ReadAcceptOfDayRequest)(nil), "engine.ReadAcceptOfDayRequest")
-	proto.RegisterType((*DeleteAcceptOfDayRequest)(nil), "engine.DeleteAcceptOfDayRequest")
+	proto.RegisterType((*ExceptDate)(nil), "engine.ExceptDate")
+	proto.RegisterType((*AcceptOfDay)(nil), "engine.AcceptOfDay")
+	proto.RegisterType((*ListCalendar)(nil), "engine.ListCalendar")
 	proto.RegisterType((*CreateCalendarRequest)(nil), "engine.CreateCalendarRequest")
 	proto.RegisterType((*SearchCalendarRequest)(nil), "engine.SearchCalendarRequest")
 	proto.RegisterType((*ReadCalendarRequest)(nil), "engine.ReadCalendarRequest")
@@ -1533,92 +826,64 @@ func init() {
 	proto.RegisterType((*SearchTimezonesRequest)(nil), "engine.SearchTimezonesRequest")
 	proto.RegisterType((*ListTimezoneResponse)(nil), "engine.ListTimezoneResponse")
 	proto.RegisterType((*Timezone)(nil), "engine.Timezone")
-	proto.RegisterType((*CreateAcceptOfDayRequest)(nil), "engine.CreateAcceptOfDayRequest")
-	proto.RegisterType((*UpdateAcceptOfDayRequest)(nil), "engine.UpdateAcceptOfDayRequest")
-	proto.RegisterType((*AcceptOfDay)(nil), "engine.AcceptOfDay")
-	proto.RegisterType((*AcceptOfDayRequest)(nil), "engine.AcceptOfDayRequest")
-	proto.RegisterType((*ListAcceptOfDay)(nil), "engine.ListAcceptOfDay")
 }
 
 func init() { proto.RegisterFile("calendar.proto", fileDescriptor_e3d25d49f056cdb2) }
 
 var fileDescriptor_e3d25d49f056cdb2 = []byte{
-	// 1197 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xdd, 0x6e, 0xe3, 0x44,
-	0x14, 0x96, 0x93, 0x38, 0x4d, 0x4f, 0x8a, 0x93, 0xcc, 0x36, 0x89, 0xf1, 0x76, 0xd9, 0xc8, 0x52,
-	0xa1, 0x1b, 0xb4, 0x2d, 0x2a, 0x12, 0x17, 0x2b, 0x84, 0x68, 0xb7, 0x20, 0xad, 0xb4, 0x12, 0x92,
-	0x97, 0x7f, 0x81, 0xaa, 0x69, 0x3c, 0xed, 0x5a, 0xb4, 0x76, 0xb0, 0x27, 0xcb, 0x66, 0x61, 0x6f,
-	0x78, 0x05, 0xae, 0xb8, 0xe0, 0x29, 0x78, 0x04, 0x6e, 0xb8, 0xe7, 0x86, 0x07, 0x40, 0x82, 0x57,
-	0xe0, 0x0e, 0xcd, 0x8c, 0x7f, 0xc6, 0xf6, 0x38, 0x49, 0x0b, 0x95, 0xd0, 0xde, 0xd9, 0x33, 0xc7,
-	0xdf, 0x37, 0xe7, 0x7c, 0xe7, 0x9c, 0x19, 0x0f, 0x18, 0x13, 0x7c, 0x4e, 0x7c, 0x17, 0x87, 0xbb,
-	0xd3, 0x30, 0xa0, 0x01, 0x6a, 0x12, 0xff, 0xcc, 0xf3, 0x89, 0xd5, 0x9e, 0x04, 0x7e, 0x44, 0xc5,
-	0xa0, 0xb5, 0x75, 0x16, 0x04, 0x67, 0xe7, 0x64, 0x0f, 0x4f, 0xbd, 0x3d, 0xec, 0xfb, 0x01, 0xc5,
-	0xd4, 0x0b, 0xfc, 0x48, 0xcc, 0xda, 0x67, 0x30, 0x3c, 0x22, 0xe7, 0x84, 0x92, 0xf7, 0x9e, 0x4e,
-	0xc8, 0x94, 0x1e, 0x61, 0x4a, 0x1c, 0xf2, 0xf5, 0x8c, 0x44, 0x14, 0xdd, 0x86, 0x76, 0x82, 0x7f,
-	0xec, 0xb9, 0xa6, 0x36, 0xd2, 0x76, 0xea, 0x0e, 0x24, 0x43, 0x0f, 0x5c, 0x64, 0x40, 0xcd, 0x73,
-	0xcd, 0x1a, 0x1f, 0xaf, 0x79, 0x2e, 0xba, 0x09, 0xeb, 0x6e, 0x70, 0x81, 0x3d, 0x9f, 0x99, 0xd7,
-	0xf9, 0x70, 0x4b, 0x0c, 0x3c, 0x70, 0xed, 0x5f, 0x34, 0x18, 0x7e, 0x34, 0x75, 0xb1, 0x8a, 0x49,
-	0x00, 0x69, 0x29, 0x50, 0x81, 0xb9, 0x56, 0x62, 0x46, 0xd0, 0xf0, 0xf1, 0x05, 0xe1, 0x24, 0xeb,
-	0x0e, 0x7f, 0x66, 0x63, 0x0c, 0xdd, 0x6c, 0x70, 0x6b, 0xfe, 0x8c, 0x06, 0xd0, 0x0c, 0xc9, 0x94,
-	0x60, 0x6a, 0xea, 0x23, 0x6d, 0xa7, 0xe5, 0xc4, 0x6f, 0xc8, 0x82, 0x96, 0xeb, 0x45, 0xf8, 0xe4,
-	0x9c, 0xb8, 0x66, 0x93, 0xcf, 0xa4, 0xef, 0x79, 0x2f, 0xd6, 0x0a, 0x5e, 0x7c, 0x02, 0xc3, 0x47,
-	0x04, 0x87, 0x93, 0xc7, 0x57, 0x08, 0x57, 0x0e, 0xb8, 0x56, 0x00, 0xbe, 0x07, 0xc6, 0x43, 0x2f,
-	0xa2, 0x19, 0x2c, 0xda, 0x01, 0xdd, 0xa3, 0xe4, 0x22, 0x32, 0xb5, 0x51, 0x7d, 0xa7, 0xbd, 0x8f,
-	0x76, 0x85, 0xb8, 0xbb, 0x12, 0xb3, 0x30, 0xb0, 0x09, 0xf4, 0x1d, 0x82, 0xdd, 0xeb, 0x56, 0xf0,
-	0x67, 0x0d, 0x86, 0xf7, 0x43, 0x82, 0xaf, 0x94, 0x2b, 0x89, 0x62, 0x35, 0x85, 0x62, 0x75, 0xa5,
-	0x62, 0x8d, 0x4a, 0xc5, 0xf4, 0x45, 0x8a, 0x35, 0x0b, 0xab, 0xfe, 0x51, 0x03, 0x90, 0xa2, 0xfa,
-	0x7f, 0x4a, 0x35, 0xfb, 0x2d, 0xd8, 0x60, 0xa2, 0xdf, 0x8f, 0xd9, 0xd0, 0xab, 0x79, 0xc9, 0xbb,
-	0x89, 0xe4, 0x89, 0x41, 0x22, 0xf8, 0x9f, 0x35, 0x68, 0xa5, 0x1f, 0x15, 0x3d, 0x5a, 0x94, 0x66,
-	0xe8, 0x16, 0xc0, 0x84, 0x4b, 0xe8, 0x1e, 0x63, 0x1a, 0x07, 0x7e, 0x3d, 0x1e, 0x39, 0xa0, 0xe8,
-	0x6e, 0x36, 0x7d, 0x32, 0xe7, 0xee, 0xb5, 0xf7, 0x8d, 0x64, 0x15, 0x0f, 0x83, 0xe0, 0xab, 0xd9,
-	0x34, 0x35, 0x3f, 0x9c, 0x33, 0xb4, 0x19, 0x2f, 0x69, 0x8e, 0xa6, 0x0b, 0xb4, 0x78, 0x44, 0xa0,
-	0x25, 0xd3, 0x27, 0x73, 0xee, 0xbc, 0x02, 0x2d, 0xb6, 0x38, 0x9c, 0xa7, 0x91, 0x5e, 0x93, 0x22,
-	0xfd, 0x32, 0xb4, 0x22, 0x8a, 0x43, 0xca, 0xf0, 0x5b, 0x1c, 0x7f, 0x8d, 0xbf, 0x1f, 0x50, 0xd4,
-	0x87, 0x26, 0xf1, 0x39, 0xf1, 0x3a, 0x9f, 0xd0, 0x89, 0xcf, 0x48, 0xc7, 0xd0, 0xa2, 0xde, 0x05,
-	0x79, 0x16, 0xf8, 0xc4, 0x04, 0x25, 0x65, 0x3a, 0x8f, 0x46, 0xd0, 0x76, 0x49, 0x34, 0x09, 0xbd,
-	0x29, 0x6b, 0x89, 0x66, 0x9b, 0x13, 0xcb, 0x43, 0xf6, 0x29, 0x0c, 0x58, 0x69, 0x1d, 0x4c, 0x58,
-	0x02, 0x7d, 0x70, 0x7a, 0x84, 0xe7, 0xd7, 0x53, 0x5b, 0x8f, 0xc1, 0x14, 0x6d, 0xf8, 0xda, 0x99,
-	0x7e, 0xd5, 0xa0, 0x2f, 0xaa, 0x38, 0xcd, 0xaa, 0x98, 0x27, 0x89, 0xbf, 0x56, 0x11, 0xff, 0x5a,
-	0x55, 0xfc, 0xeb, 0x55, 0xf1, 0x6f, 0x5c, 0x2e, 0xfe, 0x7a, 0x29, 0xfe, 0x8b, 0x4b, 0xfb, 0x0b,
-	0xe8, 0x8b, 0x66, 0xac, 0xf0, 0x64, 0x8a, 0xcf, 0x84, 0x27, 0xba, 0xc3, 0x9f, 0xd9, 0x58, 0xe4,
-	0x3d, 0x13, 0x0d, 0x48, 0x77, 0xf8, 0xf3, 0xe2, 0x40, 0x1d, 0xc2, 0x0d, 0x26, 0x7d, 0x11, 0xfb,
-	0x32, 0xe5, 0x66, 0x1f, 0x41, 0x5f, 0xc8, 0xfa, 0xaf, 0x50, 0x7e, 0xd7, 0xa0, 0x2f, 0xb6, 0xce,
-	0x65, 0x30, 0xaa, 0x2e, 0x2b, 0x4b, 0x58, 0xaf, 0x92, 0xb0, 0x51, 0x25, 0xa1, 0x7e, 0x39, 0x09,
-	0x9b, 0x4b, 0x24, 0x2c, 0xee, 0xa7, 0xef, 0xc2, 0x40, 0x48, 0xf8, 0x61, 0x0c, 0x18, 0x5d, 0x52,
-	0x43, 0xfb, 0x1d, 0xd8, 0x64, 0x3d, 0x34, 0xf9, 0xde, 0x21, 0xd1, 0x34, 0xf0, 0x23, 0x52, 0xd9,
-	0x4b, 0x53, 0xc3, 0xb8, 0x97, 0xbe, 0x0f, 0xad, 0x64, 0x68, 0xa5, 0x70, 0x0e, 0xa0, 0x19, 0x9c,
-	0x9e, 0x46, 0x84, 0xc6, 0x3b, 0x42, 0xfc, 0xc6, 0x44, 0x32, 0x45, 0x5d, 0x5d, 0xa5, 0x84, 0x17,
-	0x36, 0xed, 0x2e, 0xd4, 0x5d, 0x3c, 0xe7, 0x7c, 0xba, 0xc3, 0x1e, 0xd1, 0x1d, 0xe8, 0x09, 0x4d,
-	0x99, 0x0e, 0xc7, 0xc1, 0xe9, 0x31, 0x9b, 0x6f, 0xf0, 0x79, 0x83, 0x4f, 0x30, 0x97, 0xf8, 0x0a,
-	0xd0, 0x36, 0x74, 0x98, 0xc6, 0xb2, 0xa1, 0xce, 0x0d, 0x37, 0x88, 0xef, 0x66, 0x66, 0x8b, 0xb6,
-	0xa9, 0xbf, 0x34, 0x30, 0x45, 0xfe, 0xbd, 0x68, 0xae, 0xc5, 0x8a, 0xaf, 0x25, 0x8a, 0xdb, 0x3f,
-	0x69, 0xd0, 0x96, 0x9c, 0x2c, 0x65, 0x44, 0xbc, 0xde, 0xda, 0x92, 0xf5, 0xd6, 0x57, 0x5d, 0x6f,
-	0x63, 0xc9, 0x7a, 0x0b, 0x47, 0x1d, 0xdb, 0x01, 0xf4, 0x5f, 0x6b, 0x60, 0xbf, 0x0d, 0x1d, 0x56,
-	0x41, 0xb2, 0xdb, 0x77, 0xf2, 0xc5, 0x73, 0x23, 0x29, 0x1e, 0x99, 0x5b, 0x58, 0xec, 0xff, 0xfd,
-	0x12, 0x74, 0x92, 0xb6, 0xf4, 0x88, 0x84, 0x4f, 0xbc, 0x09, 0x41, 0x9f, 0x82, 0x91, 0xdf, 0x62,
-	0xd0, 0xad, 0xf4, 0x28, 0xa3, 0xda, 0x7a, 0xac, 0xd2, 0x49, 0xc7, 0xee, 0x7f, 0xff, 0xdb, 0x1f,
-	0x3f, 0xd4, 0x3a, 0x36, 0xec, 0x25, 0x6e, 0x44, 0xf7, 0xb4, 0x31, 0xfa, 0x0c, 0x8c, 0x7c, 0xcb,
-	0xcf, 0x90, 0x95, 0x5b, 0x81, 0xb5, 0x99, 0x76, 0x2e, 0xe9, 0xa0, 0x65, 0x23, 0x8e, 0xbe, 0x81,
-	0x24, 0x74, 0xf4, 0x31, 0x6c, 0xc8, 0xfd, 0x1e, 0xdd, 0x4c, 0xbe, 0x54, 0xec, 0x02, 0x8a, 0x05,
-	0x0f, 0x39, 0x64, 0x0f, 0x75, 0x32, 0xc8, 0xbd, 0x6f, 0x3d, 0xf7, 0x39, 0xfa, 0x12, 0x8c, 0x7c,
-	0xf3, 0xce, 0x96, 0xac, 0x6c, 0xea, 0x0a, 0x6c, 0x8b, 0x63, 0x6f, 0x5a, 0x45, 0x6c, 0x16, 0x91,
-	0xcf, 0xc1, 0xc8, 0x6f, 0x31, 0x19, 0xbc, 0x72, 0xeb, 0xa9, 0x5e, 0xfa, 0xb8, 0xb4, 0xf4, 0x0b,
-	0xe8, 0x14, 0xba, 0x33, 0x7a, 0x25, 0x1f, 0xee, 0x62, 0xdb, 0xb6, 0xb6, 0xe4, 0x78, 0x17, 0x9b,
-	0xb2, 0xbd, 0xc5, 0x99, 0x06, 0x68, 0x53, 0x62, 0xa2, 0x29, 0xf6, 0x37, 0xd0, 0x2b, 0x75, 0x50,
-	0x34, 0xca, 0x67, 0x4e, 0x39, 0xfb, 0x2d, 0x55, 0x76, 0xda, 0xaf, 0x73, 0xa6, 0x6d, 0x7b, 0x24,
-	0xfb, 0x24, 0x15, 0xc9, 0xf3, 0x3d, 0xcc, 0xad, 0x79, 0x56, 0x85, 0xd0, 0x13, 0xee, 0xc8, 0xc4,
-	0x96, 0x2a, 0xe9, 0x63, 0xca, 0xa1, 0xec, 0xa5, 0x4c, 0xbb, 0xc3, 0x69, 0x6d, 0xb4, 0x94, 0x16,
-	0xcd, 0xa0, 0x53, 0x38, 0x59, 0x66, 0xb1, 0x55, 0x1f, 0x39, 0xd5, 0x8e, 0xde, 0xe5, 0x8c, 0xaf,
-	0xa1, 0xed, 0x65, 0x8c, 0x42, 0xd2, 0xef, 0xa0, 0x57, 0x6a, 0xe5, 0x59, 0x8c, 0xab, 0xba, 0xbc,
-	0x9a, 0xfa, 0x0d, 0x4e, 0x3d, 0xb6, 0x56, 0xa3, 0x66, 0x81, 0x9e, 0x43, 0xaf, 0x74, 0xcc, 0xcd,
-	0xd8, 0xab, 0x4e, 0xc0, 0x0b, 0x1d, 0x1f, 0xaf, 0xe8, 0x38, 0x85, 0x6e, 0xf1, 0xe7, 0x15, 0xdd,
-	0xce, 0xe7, 0x56, 0xe9, 0xb7, 0xd6, 0x52, 0xfc, 0x74, 0xaf, 0x90, 0x59, 0xe4, 0x69, 0x9a, 0x59,
-	0x33, 0xe8, 0x16, 0xef, 0x0b, 0x32, 0xd6, 0x8a, 0x9b, 0x04, 0x6b, 0x20, 0x67, 0x97, 0xc4, 0xbc,
-	0x3c, 0xb9, 0x62, 0x66, 0x14, 0x82, 0x91, 0xbf, 0x11, 0xc8, 0x9a, 0x82, 0xf2, 0xa6, 0x40, 0xe9,
-	0xe8, 0xf2, 0xcc, 0x8a, 0xe9, 0x44, 0x80, 0xe7, 0xd0, 0x2d, 0xde, 0xef, 0x64, 0xae, 0x56, 0xdc,
-	0xfc, 0x28, 0x79, 0x97, 0xa7, 0x95, 0xcc, 0xcb, 0xa2, 0xfc, 0x04, 0xba, 0xc5, 0x4b, 0xac, 0x8c,
-	0xba, 0xe2, 0x7a, 0x6b, 0x91, 0xcb, 0xe3, 0xd5, 0xa8, 0x4f, 0x9a, 0xfc, 0x0e, 0xed, 0xcd, 0x7f,
-	0x02, 0x00, 0x00, 0xff, 0xff, 0x0c, 0xea, 0xf0, 0x2c, 0x88, 0x13, 0x00, 0x00,
+	// 832 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0xcd, 0x8e, 0xe3, 0x44,
+	0x10, 0x96, 0xed, 0xd8, 0x71, 0x2a, 0xc1, 0xd9, 0xed, 0x9d, 0x0c, 0xc6, 0x3b, 0x8b, 0x22, 0x4b,
+	0xa0, 0x61, 0xc4, 0xce, 0x48, 0x83, 0xc4, 0x81, 0x03, 0x62, 0x66, 0x03, 0x12, 0xd2, 0x4a, 0x48,
+	0xde, 0x05, 0x01, 0x02, 0x45, 0x1d, 0xbb, 0x92, 0x6d, 0x91, 0xd8, 0xc6, 0xdd, 0x83, 0xc8, 0x22,
+	0x2e, 0xdc, 0x39, 0xf1, 0x0c, 0x3c, 0x02, 0x6f, 0xc0, 0x81, 0x3b, 0xaf, 0xc0, 0x83, 0x20, 0xb7,
+	0x7f, 0x62, 0x7b, 0xec, 0x9d, 0xf5, 0xad, 0xbb, 0xaa, 0xfa, 0xeb, 0xf2, 0xd7, 0xdf, 0x57, 0x09,
+	0x58, 0x3e, 0xdd, 0x62, 0x18, 0xd0, 0xe4, 0x3c, 0x4e, 0x22, 0x11, 0x11, 0x03, 0xc3, 0x0d, 0x0b,
+	0xd1, 0x19, 0xfb, 0x51, 0xc8, 0x45, 0x16, 0x74, 0x4e, 0x36, 0x51, 0xb4, 0xd9, 0xe2, 0x05, 0x8d,
+	0xd9, 0x05, 0x0d, 0xc3, 0x48, 0x50, 0xc1, 0xa2, 0x90, 0x67, 0x59, 0xf7, 0x6f, 0x0d, 0xcc, 0x27,
+	0x39, 0x0a, 0xb1, 0x40, 0x65, 0x81, 0xad, 0xcc, 0x95, 0x53, 0xcd, 0x53, 0x59, 0x40, 0x1e, 0xc2,
+	0x28, 0x88, 0x76, 0x94, 0x85, 0x4b, 0x16, 0xd8, 0xaa, 0x0c, 0x9b, 0x59, 0xe0, 0xf3, 0x80, 0x3c,
+	0x02, 0xf0, 0x13, 0xa4, 0x02, 0x83, 0x25, 0x15, 0xb6, 0x26, 0xb3, 0xa3, 0x3c, 0x72, 0x25, 0xc8,
+	0xe3, 0x43, 0x7a, 0xb5, 0xb7, 0x07, 0x73, 0xe5, 0x74, 0x7c, 0x69, 0x9d, 0x67, 0x0d, 0x9e, 0x3f,
+	0x8d, 0xa2, 0x1f, 0x6e, 0xe2, 0xb2, 0xfc, 0x7a, 0x9f, 0xa2, 0xdd, 0xc4, 0x41, 0x81, 0xa6, 0x67,
+	0x68, 0x79, 0x24, 0x43, 0x2b, 0xd2, 0xab, 0xbd, 0x6d, 0xb4, 0xa3, 0xe5, 0x15, 0xd7, 0x7b, 0x42,
+	0x60, 0x10, 0xd2, 0x1d, 0xda, 0xc3, 0xb9, 0x72, 0x3a, 0xf2, 0xe4, 0x9a, 0xbc, 0x05, 0x26, 0x17,
+	0x34, 0x11, 0x29, 0xbe, 0x29, 0xf1, 0x87, 0x72, 0x7f, 0x25, 0xc8, 0x0c, 0x0c, 0x0c, 0xe5, 0xc5,
+	0x23, 0x99, 0xd0, 0x31, 0x4c, 0x2f, 0x3d, 0x03, 0x53, 0xb0, 0x1d, 0xbe, 0x8c, 0x42, 0xb4, 0xa1,
+	0xf5, 0xca, 0x32, 0x4f, 0xe6, 0x30, 0x0e, 0x90, 0xfb, 0x09, 0x8b, 0x53, 0x76, 0xed, 0xb1, 0xbc,
+	0xb8, 0x1a, 0x22, 0x8f, 0x61, 0x48, 0x7d, 0x1f, 0x63, 0xc1, 0xed, 0xc9, 0x5c, 0x3b, 0x1d, 0x5f,
+	0x3e, 0x28, 0xc0, 0xae, 0x64, 0xf8, 0x8b, 0xf5, 0x82, 0xee, 0xbd, 0xa2, 0x86, 0xbc, 0x0f, 0x43,
+	0xfc, 0x39, 0x2b, 0x7f, 0x43, 0x96, 0x93, 0xa2, 0xfc, 0x53, 0x19, 0x5e, 0x50, 0x81, 0x5e, 0x51,
+	0xe2, 0xbe, 0x00, 0x38, 0x84, 0xcb, 0xcf, 0xd7, 0x2a, 0x9f, 0x4f, 0x60, 0x90, 0xb2, 0x23, 0x5f,
+	0x42, 0xf3, 0xe4, 0x9a, 0x1c, 0x83, 0x91, 0x60, 0x8c, 0x39, 0xe1, 0xa6, 0x97, 0xef, 0x88, 0x03,
+	0x66, 0xc0, 0x38, 0x5d, 0x6d, 0x31, 0x90, 0x5c, 0x9b, 0x5e, 0xb9, 0x77, 0x7f, 0x57, 0x60, 0x5c,
+	0x69, 0x98, 0xdc, 0x03, 0x2d, 0xa0, 0x7b, 0xa9, 0x0e, 0xdd, 0x4b, 0x97, 0xe4, 0x3d, 0xb8, 0x9f,
+	0x11, 0x9d, 0x92, 0xb3, 0x8c, 0xd6, 0xcb, 0x34, 0xaf, 0xc9, 0xbc, 0x25, 0x13, 0xcf, 0xd9, 0x0e,
+	0xb3, 0xc3, 0xef, 0xc0, 0x34, 0x25, 0xbe, 0x5a, 0x38, 0x90, 0x85, 0x13, 0x0c, 0x83, 0x43, 0x59,
+	0xb5, 0x1f, 0xbd, 0xd1, 0xcf, 0x87, 0x30, 0x79, 0xca, 0xb8, 0x28, 0x35, 0xfc, 0x2e, 0xe8, 0x4c,
+	0xe0, 0x8e, 0xdb, 0x8a, 0x64, 0xed, 0x5e, 0xc1, 0x5a, 0x51, 0xe0, 0x65, 0x69, 0xf7, 0x4f, 0x15,
+	0x66, 0x4f, 0xa4, 0xfc, 0xca, 0x0c, 0xfe, 0x78, 0x83, 0x5c, 0x94, 0xec, 0x29, 0x1d, 0xe2, 0x51,
+	0xbb, 0xc4, 0xa3, 0x75, 0x89, 0x67, 0xd0, 0x4f, 0x3c, 0xfa, 0x2b, 0xc5, 0x63, 0xf4, 0x13, 0xcf,
+	0xf0, 0x4e, 0xf1, 0xd4, 0x6d, 0x6e, 0xd6, 0x6d, 0xee, 0x7e, 0x07, 0xb3, 0x67, 0x48, 0x13, 0xff,
+	0x45, 0x0b, 0x4d, 0x31, 0xdd, 0x64, 0x34, 0xe9, 0x9e, 0x5c, 0xa7, 0x31, 0xce, 0x5e, 0x62, 0xae,
+	0x06, 0xb9, 0xae, 0xa3, 0x6b, 0x0d, 0xf4, 0x6b, 0x78, 0xe0, 0x21, 0x0d, 0x9a, 0xd8, 0x7d, 0x06,
+	0x91, 0xbb, 0x80, 0xd9, 0x02, 0xb7, 0x78, 0xfb, 0x21, 0x7b, 0xa1, 0xfc, 0xa5, 0xc2, 0xec, 0x4b,
+	0x39, 0x40, 0xee, 0x82, 0x29, 0xf4, 0xa1, 0x76, 0xe8, 0x43, 0xeb, 0xd2, 0xc7, 0xa0, 0x4b, 0x1f,
+	0x7a, 0x3f, 0x7d, 0x18, 0xaf, 0xd4, 0xc7, 0xb0, 0x9f, 0x3e, 0xcc, 0x9e, 0xfa, 0x18, 0x35, 0x78,
+	0xfb, 0x04, 0x8e, 0x33, 0x7d, 0x3c, 0xcf, 0xbb, 0xe5, 0x3d, 0x05, 0xe2, 0x7e, 0x0c, 0x47, 0xa9,
+	0x83, 0x8b, 0xf3, 0x1e, 0xf2, 0x38, 0x0a, 0x39, 0x76, 0x3a, 0xb9, 0x2c, 0xcc, 0x9d, 0xfc, 0x19,
+	0x98, 0x45, 0xe8, 0xb5, 0xde, 0xea, 0x18, 0x8c, 0x68, 0xbd, 0xe6, 0x28, 0xf2, 0xf9, 0x98, 0xef,
+	0x2e, 0xff, 0x19, 0xc0, 0xb4, 0x78, 0xfb, 0x67, 0x98, 0xfc, 0xc4, 0x7c, 0x24, 0x5f, 0x83, 0x55,
+	0x1f, 0x12, 0xe4, 0x51, 0x39, 0x50, 0xda, 0x86, 0x87, 0x73, 0x6b, 0xde, 0xb8, 0xb3, 0xdf, 0xfe,
+	0xfd, 0xef, 0x0f, 0x75, 0xea, 0xc2, 0x45, 0xf1, 0x6b, 0xcd, 0x3f, 0x52, 0xce, 0xc8, 0x37, 0x60,
+	0xd5, 0x7d, 0x75, 0x40, 0x6e, 0xf5, 0x9b, 0x73, 0x54, 0xca, 0xa3, 0x32, 0xee, 0x5c, 0x22, 0xd1,
+	0x27, 0xa4, 0x82, 0x4e, 0xbe, 0x82, 0x49, 0xd5, 0x54, 0xe4, 0x61, 0x71, 0xb2, 0xc5, 0x6a, 0x2d,
+	0x0d, 0xbf, 0x29, 0x21, 0xef, 0x93, 0xe9, 0x01, 0xf2, 0xe2, 0x17, 0x16, 0xfc, 0x4a, 0xbe, 0x07,
+	0xab, 0xee, 0x90, 0x43, 0xcb, 0xad, 0xce, 0x69, 0xc1, 0x76, 0x24, 0xf6, 0x91, 0xd3, 0xc4, 0x4e,
+	0x19, 0xf9, 0x16, 0xac, 0xba, 0x8f, 0x0f, 0xf0, 0xad, 0xfe, 0xee, 0x6e, 0xfd, 0xec, 0x56, 0xeb,
+	0x3b, 0x98, 0x36, 0x54, 0x4a, 0xde, 0xae, 0xd3, 0xdd, 0x94, 0xaf, 0x73, 0x52, 0xe5, 0xbb, 0x29,
+	0x4e, 0xf7, 0x44, 0xde, 0x74, 0x4c, 0x8e, 0x2a, 0x37, 0x15, 0x7e, 0xe5, 0x2b, 0x43, 0xfe, 0xb9,
+	0xfa, 0xe0, 0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd1, 0xae, 0xc7, 0xe1, 0xa1, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1645,26 +910,6 @@ type CalendarServiceClient interface {
 	DeleteCalendar(ctx context.Context, in *DeleteCalendarRequest, opts ...grpc.CallOption) (*Calendar, error)
 	// List timezones
 	SearchTimezones(ctx context.Context, in *SearchTimezonesRequest, opts ...grpc.CallOption) (*ListTimezoneResponse, error)
-	// Create AcceptOfDay
-	CreateAcceptOfDay(ctx context.Context, in *CreateAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error)
-	// List AcceptOfDay
-	SearchAcceptOfDay(ctx context.Context, in *AcceptOfDayRequest, opts ...grpc.CallOption) (*ListAcceptOfDay, error)
-	// Read AcceptOfDay
-	ReadAcceptOfDay(ctx context.Context, in *ReadAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error)
-	// Update AcceptOfDay
-	UpdateAcceptOfDay(ctx context.Context, in *UpdateAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error)
-	// Delete AcceptOfDay
-	DeleteAcceptOfDay(ctx context.Context, in *DeleteAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error)
-	// Create ExceptDate
-	CreateExceptDate(ctx context.Context, in *CreateExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error)
-	// List ExceptDate
-	SearchExceptDate(ctx context.Context, in *SearchExceptDateRequest, opts ...grpc.CallOption) (*ListExceptDate, error)
-	// Read ExceptDate
-	ReadExceptDate(ctx context.Context, in *ReadExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error)
-	// Update ExceptDate
-	UpdateExceptDate(ctx context.Context, in *UpdateExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error)
-	// Delete ExceptDate
-	DeleteExceptDate(ctx context.Context, in *DeleteExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error)
 }
 
 type calendarServiceClient struct {
@@ -1729,96 +974,6 @@ func (c *calendarServiceClient) SearchTimezones(ctx context.Context, in *SearchT
 	return out, nil
 }
 
-func (c *calendarServiceClient) CreateAcceptOfDay(ctx context.Context, in *CreateAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error) {
-	out := new(AcceptOfDay)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/CreateAcceptOfDay", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) SearchAcceptOfDay(ctx context.Context, in *AcceptOfDayRequest, opts ...grpc.CallOption) (*ListAcceptOfDay, error) {
-	out := new(ListAcceptOfDay)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/SearchAcceptOfDay", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) ReadAcceptOfDay(ctx context.Context, in *ReadAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error) {
-	out := new(AcceptOfDay)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/ReadAcceptOfDay", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) UpdateAcceptOfDay(ctx context.Context, in *UpdateAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error) {
-	out := new(AcceptOfDay)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/UpdateAcceptOfDay", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) DeleteAcceptOfDay(ctx context.Context, in *DeleteAcceptOfDayRequest, opts ...grpc.CallOption) (*AcceptOfDay, error) {
-	out := new(AcceptOfDay)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/DeleteAcceptOfDay", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) CreateExceptDate(ctx context.Context, in *CreateExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error) {
-	out := new(ExceptDate)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/CreateExceptDate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) SearchExceptDate(ctx context.Context, in *SearchExceptDateRequest, opts ...grpc.CallOption) (*ListExceptDate, error) {
-	out := new(ListExceptDate)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/SearchExceptDate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) ReadExceptDate(ctx context.Context, in *ReadExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error) {
-	out := new(ExceptDate)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/ReadExceptDate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) UpdateExceptDate(ctx context.Context, in *UpdateExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error) {
-	out := new(ExceptDate)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/UpdateExceptDate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *calendarServiceClient) DeleteExceptDate(ctx context.Context, in *DeleteExceptDateRequest, opts ...grpc.CallOption) (*ExceptDate, error) {
-	out := new(ExceptDate)
-	err := c.cc.Invoke(ctx, "/engine.CalendarService/DeleteExceptDate", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // CalendarServiceServer is the server API for CalendarService service.
 type CalendarServiceServer interface {
 	// Create calendar
@@ -1833,26 +988,6 @@ type CalendarServiceServer interface {
 	DeleteCalendar(context.Context, *DeleteCalendarRequest) (*Calendar, error)
 	// List timezones
 	SearchTimezones(context.Context, *SearchTimezonesRequest) (*ListTimezoneResponse, error)
-	// Create AcceptOfDay
-	CreateAcceptOfDay(context.Context, *CreateAcceptOfDayRequest) (*AcceptOfDay, error)
-	// List AcceptOfDay
-	SearchAcceptOfDay(context.Context, *AcceptOfDayRequest) (*ListAcceptOfDay, error)
-	// Read AcceptOfDay
-	ReadAcceptOfDay(context.Context, *ReadAcceptOfDayRequest) (*AcceptOfDay, error)
-	// Update AcceptOfDay
-	UpdateAcceptOfDay(context.Context, *UpdateAcceptOfDayRequest) (*AcceptOfDay, error)
-	// Delete AcceptOfDay
-	DeleteAcceptOfDay(context.Context, *DeleteAcceptOfDayRequest) (*AcceptOfDay, error)
-	// Create ExceptDate
-	CreateExceptDate(context.Context, *CreateExceptDateRequest) (*ExceptDate, error)
-	// List ExceptDate
-	SearchExceptDate(context.Context, *SearchExceptDateRequest) (*ListExceptDate, error)
-	// Read ExceptDate
-	ReadExceptDate(context.Context, *ReadExceptDateRequest) (*ExceptDate, error)
-	// Update ExceptDate
-	UpdateExceptDate(context.Context, *UpdateExceptDateRequest) (*ExceptDate, error)
-	// Delete ExceptDate
-	DeleteExceptDate(context.Context, *DeleteExceptDateRequest) (*ExceptDate, error)
 }
 
 // UnimplementedCalendarServiceServer can be embedded to have forward compatible implementations.
@@ -1876,36 +1011,6 @@ func (*UnimplementedCalendarServiceServer) DeleteCalendar(ctx context.Context, r
 }
 func (*UnimplementedCalendarServiceServer) SearchTimezones(ctx context.Context, req *SearchTimezonesRequest) (*ListTimezoneResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchTimezones not implemented")
-}
-func (*UnimplementedCalendarServiceServer) CreateAcceptOfDay(ctx context.Context, req *CreateAcceptOfDayRequest) (*AcceptOfDay, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAcceptOfDay not implemented")
-}
-func (*UnimplementedCalendarServiceServer) SearchAcceptOfDay(ctx context.Context, req *AcceptOfDayRequest) (*ListAcceptOfDay, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchAcceptOfDay not implemented")
-}
-func (*UnimplementedCalendarServiceServer) ReadAcceptOfDay(ctx context.Context, req *ReadAcceptOfDayRequest) (*AcceptOfDay, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReadAcceptOfDay not implemented")
-}
-func (*UnimplementedCalendarServiceServer) UpdateAcceptOfDay(ctx context.Context, req *UpdateAcceptOfDayRequest) (*AcceptOfDay, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateAcceptOfDay not implemented")
-}
-func (*UnimplementedCalendarServiceServer) DeleteAcceptOfDay(ctx context.Context, req *DeleteAcceptOfDayRequest) (*AcceptOfDay, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteAcceptOfDay not implemented")
-}
-func (*UnimplementedCalendarServiceServer) CreateExceptDate(ctx context.Context, req *CreateExceptDateRequest) (*ExceptDate, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateExceptDate not implemented")
-}
-func (*UnimplementedCalendarServiceServer) SearchExceptDate(ctx context.Context, req *SearchExceptDateRequest) (*ListExceptDate, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchExceptDate not implemented")
-}
-func (*UnimplementedCalendarServiceServer) ReadExceptDate(ctx context.Context, req *ReadExceptDateRequest) (*ExceptDate, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ReadExceptDate not implemented")
-}
-func (*UnimplementedCalendarServiceServer) UpdateExceptDate(ctx context.Context, req *UpdateExceptDateRequest) (*ExceptDate, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateExceptDate not implemented")
-}
-func (*UnimplementedCalendarServiceServer) DeleteExceptDate(ctx context.Context, req *DeleteExceptDateRequest) (*ExceptDate, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteExceptDate not implemented")
 }
 
 func RegisterCalendarServiceServer(s *grpc.Server, srv CalendarServiceServer) {
@@ -2020,186 +1125,6 @@ func _CalendarService_SearchTimezones_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CalendarService_CreateAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAcceptOfDayRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).CreateAcceptOfDay(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/CreateAcceptOfDay",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).CreateAcceptOfDay(ctx, req.(*CreateAcceptOfDayRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_SearchAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AcceptOfDayRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).SearchAcceptOfDay(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/SearchAcceptOfDay",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).SearchAcceptOfDay(ctx, req.(*AcceptOfDayRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_ReadAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReadAcceptOfDayRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).ReadAcceptOfDay(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/ReadAcceptOfDay",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).ReadAcceptOfDay(ctx, req.(*ReadAcceptOfDayRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_UpdateAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateAcceptOfDayRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).UpdateAcceptOfDay(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/UpdateAcceptOfDay",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).UpdateAcceptOfDay(ctx, req.(*UpdateAcceptOfDayRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_DeleteAcceptOfDay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteAcceptOfDayRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).DeleteAcceptOfDay(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/DeleteAcceptOfDay",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).DeleteAcceptOfDay(ctx, req.(*DeleteAcceptOfDayRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_CreateExceptDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateExceptDateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).CreateExceptDate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/CreateExceptDate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).CreateExceptDate(ctx, req.(*CreateExceptDateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_SearchExceptDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchExceptDateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).SearchExceptDate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/SearchExceptDate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).SearchExceptDate(ctx, req.(*SearchExceptDateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_ReadExceptDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ReadExceptDateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).ReadExceptDate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/ReadExceptDate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).ReadExceptDate(ctx, req.(*ReadExceptDateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_UpdateExceptDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateExceptDateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).UpdateExceptDate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/UpdateExceptDate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).UpdateExceptDate(ctx, req.(*UpdateExceptDateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CalendarService_DeleteExceptDate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteExceptDateRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CalendarServiceServer).DeleteExceptDate(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/engine.CalendarService/DeleteExceptDate",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CalendarServiceServer).DeleteExceptDate(ctx, req.(*DeleteExceptDateRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _CalendarService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "engine.CalendarService",
 	HandlerType: (*CalendarServiceServer)(nil),
@@ -2227,46 +1152,6 @@ var _CalendarService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchTimezones",
 			Handler:    _CalendarService_SearchTimezones_Handler,
-		},
-		{
-			MethodName: "CreateAcceptOfDay",
-			Handler:    _CalendarService_CreateAcceptOfDay_Handler,
-		},
-		{
-			MethodName: "SearchAcceptOfDay",
-			Handler:    _CalendarService_SearchAcceptOfDay_Handler,
-		},
-		{
-			MethodName: "ReadAcceptOfDay",
-			Handler:    _CalendarService_ReadAcceptOfDay_Handler,
-		},
-		{
-			MethodName: "UpdateAcceptOfDay",
-			Handler:    _CalendarService_UpdateAcceptOfDay_Handler,
-		},
-		{
-			MethodName: "DeleteAcceptOfDay",
-			Handler:    _CalendarService_DeleteAcceptOfDay_Handler,
-		},
-		{
-			MethodName: "CreateExceptDate",
-			Handler:    _CalendarService_CreateExceptDate_Handler,
-		},
-		{
-			MethodName: "SearchExceptDate",
-			Handler:    _CalendarService_SearchExceptDate_Handler,
-		},
-		{
-			MethodName: "ReadExceptDate",
-			Handler:    _CalendarService_ReadExceptDate_Handler,
-		},
-		{
-			MethodName: "UpdateExceptDate",
-			Handler:    _CalendarService_UpdateExceptDate_Handler,
-		},
-		{
-			MethodName: "DeleteExceptDate",
-			Handler:    _CalendarService_DeleteExceptDate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

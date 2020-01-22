@@ -43,7 +43,25 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 		Timezone: model.Lookup{
 			Id: int(in.GetTimezone().GetId()),
 		},
-		Description: nil, //TODO
+		Description: in.GetDescription(),
+	}
+
+	for _, v := range in.Accepts {
+		calendar.Accepts = append(calendar.Accepts, model.CalendarAcceptOfDay{
+			Day:            int8(v.GetDay()),
+			StartTimeOfDay: int16(v.GetStartTimeOfDay()),
+			EndTimeOfDay:   int16(v.GetEndTimeOfDay()),
+			Disabled:       v.GetDisabled(),
+		})
+	}
+
+	for _, v := range in.Excepts {
+		calendar.Excepts = append(calendar.Excepts, &model.CalendarExceptDate{
+			Name:     v.GetName(),
+			Repeat:   v.GetRepeat(),
+			Date:     v.GetDate(),
+			Disabled: v.GetDisabled(),
+		})
 	}
 
 	if in.StartAt > 0 {
@@ -153,9 +171,7 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 		}
 	}
 
-	var calendar *model.Calendar
-
-	calendar, err = api.app.UpdateCalendar(&model.Calendar{
+	calendar := &model.Calendar{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -170,8 +186,32 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 		Timezone: model.Lookup{
 			Id: int(in.GetTimezone().GetId()),
 		},
-		Description: &in.Description,
-	})
+		Description: in.Description,
+	}
+
+	for _, v := range in.Accepts {
+		calendar.Accepts = append(calendar.Accepts, model.CalendarAcceptOfDay{
+			Day:            int8(v.GetDay()),
+			StartTimeOfDay: int16(v.GetStartTimeOfDay()),
+			EndTimeOfDay:   int16(v.GetEndTimeOfDay()),
+			Disabled:       v.GetDisabled(),
+		})
+	}
+
+	for _, v := range in.Excepts {
+		calendar.Excepts = append(calendar.Excepts, &model.CalendarExceptDate{
+			Name:     v.GetName(),
+			Repeat:   v.GetRepeat(),
+			Date:     v.GetDate(),
+			Disabled: v.GetDisabled(),
+		})
+	}
+
+	if err = calendar.IsValid(); err != nil {
+		return nil, err
+	}
+
+	calendar, err = api.app.UpdateCalendar(calendar)
 
 	if err != nil {
 		return nil, err
@@ -225,369 +265,6 @@ func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimez
 	}, nil
 }
 
-func (api *calendar) CreateAcceptOfDay(ctx context.Context, in *engine.CreateAcceptOfDayRequest) (*engine.AcceptOfDay, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(0), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var accept *model.CalendarAcceptOfDay
-
-	accept, err = api.app.CreateCalendarAcceptOfDay(session.Domain(in.GetDomainId()), in.GetCalendarId(), &model.CalendarAcceptOfDay{
-		Day:            int8(in.GetDay()),
-		StartTimeOfDay: int16(in.GetStartTimeOfDay()),
-		EndTimeOfDay:   int16(in.GetEndTimeOfDay()),
-		Disabled:       in.GetDisabled(),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return transformAcceptOfDay(accept), nil
-}
-
-func (api *calendar) SearchAcceptOfDay(ctx context.Context, in *engine.AcceptOfDayRequest) (*engine.ListAcceptOfDay, error) {
-
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(0), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var list []*model.CalendarAcceptOfDay
-
-	list, err = api.app.GetCalendarAcceptOfDayAllPage(in.GetCalendarId())
-	if err != nil {
-		return nil, err
-	}
-
-	result := &engine.ListAcceptOfDay{
-		Items: make([]*engine.AcceptOfDay, 0, len(list)),
-	}
-
-	for _, v := range list {
-		result.Items = append(result.Items, transformAcceptOfDay(v))
-	}
-
-	return result, nil
-}
-
-func (api *calendar) ReadAcceptOfDay(ctx context.Context, in *engine.ReadAcceptOfDayRequest) (*engine.AcceptOfDay, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(0), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var accept *model.CalendarAcceptOfDay
-	accept, err = api.app.GetCalendarAcceptOfDayById(session.Domain(in.GetDomainId()), in.GetCalendarId(), in.GetId())
-	if err != nil {
-		return nil, err
-	}
-
-	return transformAcceptOfDay(accept), nil
-}
-
-func (api *calendar) UpdateAcceptOfDay(ctx context.Context, in *engine.UpdateAcceptOfDayRequest) (*engine.AcceptOfDay, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var accept = &model.CalendarAcceptOfDay{
-		Id:             in.GetId(),
-		Day:            int8(in.GetDay()),
-		StartTimeOfDay: int16(in.GetStartTimeOfDay()),
-		EndTimeOfDay:   int16(in.GetEndTimeOfDay()),
-		Disabled:       in.GetDisabled(),
-	}
-
-	if err = accept.IsValid(); err != nil {
-		return nil, err
-	}
-
-	accept, err = api.app.UpdateCalendarAcceptOfDay(session.Domain(in.GetDomainId()), in.GetCalendarId(), accept)
-	if err != nil {
-		return nil, err
-	}
-	return transformAcceptOfDay(accept), nil
-}
-
-func (api *calendar) DeleteAcceptOfDay(ctx context.Context, in *engine.DeleteAcceptOfDayRequest) (*engine.AcceptOfDay, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var accept *model.CalendarAcceptOfDay
-	accept, err = api.app.RemoveCalendarAcceptOfDay(session.Domain(in.GetDomainId()), in.GetCalendarId(), in.GetId())
-	if err != nil {
-		return nil, err
-	}
-
-	return transformAcceptOfDay(accept), nil
-}
-
-func (api *calendar) CreateExceptDate(ctx context.Context, in *engine.CreateExceptDateRequest) (*engine.ExceptDate, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(0), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var except *model.CalendarExceptDate
-
-	except, err = api.app.CreateCalendarExceptDate(session.Domain(in.GetDomainId()), in.GetCalendarId(), &model.CalendarExceptDate{
-		CalendarId: in.GetCalendarId(),
-		Name:       in.GetName(),
-		Repeat:     in.GetRepeat(),
-		Date:       in.GetDate(),
-		Disabled:   in.GetDisabled(),
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return transformExceptDate(except), nil
-}
-
-func (api *calendar) SearchExceptDate(ctx context.Context, in *engine.SearchExceptDateRequest) (*engine.ListExceptDate, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(0), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var list []*model.CalendarExceptDate
-
-	list, err = api.app.CalendarExceptDateAllPage(in.GetCalendarId())
-	if err != nil {
-		return nil, err
-	}
-
-	result := &engine.ListExceptDate{
-		Items: make([]*engine.ExceptDate, 0, len(list)),
-	}
-
-	for _, v := range list {
-		result.Items = append(result.Items, transformExceptDate(v))
-	}
-
-	return result, nil
-}
-
-func (api *calendar) ReadExceptDate(ctx context.Context, in *engine.ReadExceptDateRequest) (*engine.ExceptDate, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(0), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var except *model.CalendarExceptDate
-	except, err = api.app.GetCalendarExceptDateById(session.Domain(in.GetDomainId()), in.GetCalendarId(), in.GetId())
-	if err != nil {
-		return nil, err
-	}
-
-	return transformExceptDate(except), nil
-}
-
-func (api *calendar) UpdateExceptDate(ctx context.Context, in *engine.UpdateExceptDateRequest) (*engine.ExceptDate, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var except = &model.CalendarExceptDate{
-		Id:         in.GetId(),
-		CalendarId: in.GetCalendarId(),
-		Name:       in.GetName(),
-		Repeat:     in.GetRepeat(),
-		Date:       in.GetDate(),
-		Disabled:   in.GetDisabled(),
-	}
-
-	if err = except.IsValid(); err != nil {
-		return nil, err
-	}
-
-	except, err = api.app.UpdateCalendarExceptDate(session.Domain(in.GetDomainId()), in.GetCalendarId(), except)
-	if err != nil {
-		return nil, err
-	}
-	return transformExceptDate(except), nil
-}
-
-func (api *calendar) DeleteExceptDate(ctx context.Context, in *engine.DeleteExceptDateRequest) (*engine.ExceptDate, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetCalendarId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetCalendarId(), permission, model.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var except *model.CalendarExceptDate
-	except, err = api.app.RemoveCalendarExceptDate(session.Domain(in.GetDomainId()), in.GetCalendarId(), in.GetId())
-	if err != nil {
-		return nil, err
-	}
-
-	return transformExceptDate(except), nil
-}
-
 func transformCalendar(src *model.Calendar) *engine.Calendar {
 	item := &engine.Calendar{
 		Id:        src.Id,
@@ -609,10 +286,21 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 			Id:   int64(src.Timezone.Id),
 			Name: src.Timezone.Name,
 		},
+		Description: src.Description,
 	}
 
-	if src.Description != nil {
-		item.Description = *src.Description
+	if len(src.Accepts) > 0 {
+		item.Accepts = make([]*engine.AcceptOfDay, 0, len(src.Accepts))
+		for _, v := range src.Accepts {
+			item.Accepts = append(item.Accepts, transformAcceptOfDay(v))
+		}
+	}
+
+	if len(src.Excepts) > 0 {
+		item.Excepts = make([]*engine.ExceptDate, 0, len(src.Excepts))
+		for _, v := range src.Excepts {
+			item.Excepts = append(item.Excepts, transformExceptDate(v))
+		}
 	}
 
 	if src.StartAt != nil {
@@ -634,9 +322,8 @@ func transformTimezone(src *model.Timezone) *engine.Timezone {
 	}
 }
 
-func transformAcceptOfDay(src *model.CalendarAcceptOfDay) *engine.AcceptOfDay {
+func transformAcceptOfDay(src model.CalendarAcceptOfDay) *engine.AcceptOfDay {
 	return &engine.AcceptOfDay{
-		Id:             src.Id,
 		Day:            int32(src.Day),
 		StartTimeOfDay: int32(src.StartTimeOfDay),
 		EndTimeOfDay:   int32(src.EndTimeOfDay),
@@ -646,11 +333,9 @@ func transformAcceptOfDay(src *model.CalendarAcceptOfDay) *engine.AcceptOfDay {
 
 func transformExceptDate(src *model.CalendarExceptDate) *engine.ExceptDate {
 	return &engine.ExceptDate{
-		Id:         src.Id,
-		CalendarId: src.CalendarId,
-		Name:       src.Name,
-		Date:       int64(src.Date),
-		Repeat:     src.Repeat,
-		Disabled:   src.Disabled,
+		Name:     src.Name,
+		Date:     src.Date,
+		Repeat:   src.Repeat,
+		Disabled: src.Disabled,
 	}
 }

@@ -24,8 +24,8 @@ func (s *SqlCalendarStore) CreateTableIfNotExists() {
 func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
 	var out *model.Calendar
 	if err := s.GetMaster().SelectOne(&out, `with c as (
-		  insert into calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by)
-		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+		  insert into calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by, accepts, excepts)
+		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, calendar_json_to_accepts(:Accepts), calendar_json_to_excepts(:Excepts::jsonb))
 		  returning *
 		)
 		select
@@ -39,7 +39,9 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 		    c.created_at,
 		    cc_get_lookup(uc.id, uc.name) as created_by,
 		    c.updated_at,
-		    cc_get_lookup(u.id, u.name) as updated_by
+		    cc_get_lookup(u.id, u.name) as updated_by,
+		    calendar_accepts_to_jsonb(c.accepts)::jsonb as accepts,
+		    cc_arr_type_to_jsonb(c.excepts)::jsonb as excepts
 		from c
 		  inner join calendar_timezones ct on ct.id = c.timezone_id
 	      left join directory.wbt_user uc on uc.id = c.created_by
@@ -55,6 +57,8 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 			"CreatedBy":   calendar.CreatedBy.Id,
 			"UpdatedAt":   calendar.UpdatedAt,
 			"UpdatedBy":   calendar.UpdatedBy.Id,
+			"Accepts":     calendar.AcceptsToJson(),
+			"Excepts":     calendar.ExceptsToJson(),
 		}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.Save", "store.sql_calendar.save.app_error", nil,
 			fmt.Sprintf("id=%v, %v", calendar.Id, err.Error()), http.StatusInternalServerError)
@@ -77,7 +81,9 @@ func (s SqlCalendarStore) GetAllPage(domainId int64, offset, limit int) ([]*mode
 	   c.created_at,
 	   cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
+       cc_get_lookup(u.id, u.name) as updated_by,
+	   calendar_accepts_to_jsonb(c.accepts) as accepts,
+	   cc_arr_type_to_jsonb(c.excepts) as excepts
 	from calendar c
        left join calendar_timezones ct on c.timezone_id = ct.id
 	   left join directory.wbt_user uc on uc.id = c.created_by
@@ -125,7 +131,9 @@ func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, offse
 	   c.created_at,
 	   cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
+       cc_get_lookup(u.id, u.name) as updated_by,
+	   calendar_accepts_to_jsonb(c.accepts) as accepts,
+	   cc_arr_type_to_jsonb(c.excepts) as excepts
 from calendar c
        left join calendar_timezones ct on c.timezone_id = ct.id
 	   left join directory.wbt_user uc on uc.id = c.created_by
@@ -158,7 +166,9 @@ func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model
 			   c.created_at,
 			   cc_get_lookup(uc.id, uc.name) as created_by,
 			   c.updated_at,
-			   cc_get_lookup(u.id, u.name) as updated_by
+			   cc_get_lookup(u.id, u.name) as updated_by,
+			   calendar_accepts_to_jsonb(c.accepts) as accepts,
+			   cc_arr_type_to_jsonb(c.excepts) as excepts
 		from calendar c
 			   left join calendar_timezones ct on c.timezone_id = ct.id
 			   left join directory.wbt_user uc on uc.id = c.created_by
@@ -186,7 +196,9 @@ func (s SqlCalendarStore) Update(calendar *model.Calendar) (*model.Calendar, *mo
     end_at = :EndAt,
     start_at = :StartAt,
     updated_at = :UpdatedAt,
-	updated_by = :UpdatedBy
+	updated_by = :UpdatedBy,
+	accepts = calendar_json_to_accepts(:Accepts),
+	excepts = calendar_json_to_excepts(:Excepts::jsonb)
 where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -200,7 +212,9 @@ select c.id,
        c.created_at,
        cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
+       cc_get_lookup(u.id, u.name) as updated_by,
+	   calendar_accepts_to_jsonb(c.accepts) as accepts,
+	   cc_arr_type_to_jsonb(c.excepts) as excepts
 from c
        left join calendar_timezones ct on c.timezone_id = ct.id
        left join directory.wbt_user uc on uc.id = c.created_by
@@ -214,6 +228,8 @@ from c
 		"DomainId":    calendar.DomainId,
 		"UpdatedAt":   calendar.UpdatedAt,
 		"UpdatedBy":   calendar.UpdatedBy.Id,
+		"Accepts":     calendar.AcceptsToJson(),
+		"Excepts":     calendar.ExceptsToJson(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.Update", "store.sql_calendar.update.app_error", nil,
@@ -240,187 +256,4 @@ func (s SqlCalendarStore) GetTimezoneAllPage(offset, limit int) ([]*model.Timezo
 	} else {
 		return timezones, nil
 	}
-}
-
-func (s SqlCalendarStore) GetAcceptOfDayAllPage(calendarId int64) ([]*model.CalendarAcceptOfDay, *model.AppError) {
-	var list []*model.CalendarAcceptOfDay
-
-	if _, err := s.GetReplica().Select(&list, `select id, day, start_time_of_day, end_time_of_day, disabled
-		from calendar_accept_of_day a
-		where a.calendar_id = :CalendarId
-		order by a.day, a.start_time_of_day`, map[string]interface{}{"CalendarId": calendarId}); err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.GetAcceptOfDay", "store.sql_calendar_accept.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return list, nil
-	}
-}
-
-func (s SqlCalendarStore) CreateAcceptOfDay(domainId, calendarId int64, timeRange *model.CalendarAcceptOfDay) (*model.CalendarAcceptOfDay, *model.AppError) {
-	var out *model.CalendarAcceptOfDay
-	err := s.GetMaster().SelectOne(&out, `insert into calendar_accept_of_day (calendar_id, day, start_time_of_day, end_time_of_day, disabled)
-select c.id, :Day, :StartTimeOfDay, :EndTimeOfDay, :Disabled
-from calendar c
-where c.id = :CalendarId and c.domain_id = :DomainId
-returning id, day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
-		"Day":            timeRange.Day,
-		"StartTimeOfDay": timeRange.StartTimeOfDay,
-		"EndTimeOfDay":   timeRange.EndTimeOfDay,
-		"Disabled":       timeRange.Disabled,
-		"CalendarId":     calendarId,
-		"DomainId":       domainId,
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.CreateAcceptOfDay", "store.sql_calendar_accept_range.save.app_error", nil,
-			fmt.Sprintf("Calendarid=%v, %v", calendarId, err.Error()), extractCodeFromErr(err))
-	}
-
-	return out, nil
-}
-
-//TODO check domain_id
-func (s SqlCalendarStore) GetAcceptOfDayById(domainId, calendarId, id int64) (*model.CalendarAcceptOfDay, *model.AppError) {
-	var out *model.CalendarAcceptOfDay
-	err := s.GetReplica().SelectOne(&out, `select id, day, start_time_of_day, end_time_of_day, disabled
-		from calendar_accept_of_day a
-		where a.id = :Id and a.calendar_id = :CalendarId`, map[string]interface{}{
-		"Id":         id,
-		"CalendarId": calendarId,
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.CreateAcceptOfDay", "store.sql_calendar_accept_range.get.app_error", nil,
-			fmt.Sprintf("Id=%v, Calendarid=%v, %v", id, calendarId, err.Error()), extractCodeFromErr(err))
-	}
-
-	return out, nil
-}
-
-func (s SqlCalendarStore) UpdateAcceptOfDay(calendarId int64, rangeTime *model.CalendarAcceptOfDay) (*model.CalendarAcceptOfDay, *model.AppError) {
-	err := s.GetMaster().SelectOne(&rangeTime, `update calendar_accept_of_day
-set start_time_of_day = :StartTimeOfDay,
-    end_time_of_day = :EndTimeOfDay,
-    disabled = :Disabled,
-    day = :Day
-where id = :Id and calendar_id = :CalendarId
-returning id, day, start_time_of_day, end_time_of_day, disabled`, map[string]interface{}{
-		"StartTimeOfDay": rangeTime.StartTimeOfDay,
-		"EndTimeOfDay":   rangeTime.EndTimeOfDay,
-		"Disabled":       rangeTime.Disabled,
-		"Day":            rangeTime.Day,
-		"Id":             rangeTime.Id,
-		"CalendarId":     calendarId,
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.UpdateAcceptOfDay", "store.sql_calendar_accept_range.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", rangeTime.Id, err.Error()), extractCodeFromErr(err))
-	}
-
-	return rangeTime, nil
-}
-
-//TODO check domain_id ?
-func (s SqlCalendarStore) DeleteAcceptOfDay(domainId, calendarId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from calendar_accept_of_day c where c.id=:Id and c.calendar_id = :CalendarId`,
-		map[string]interface{}{
-			"Id":         id,
-			"CalendarId": calendarId,
-			"DomainId":   domainId,
-		}); err != nil {
-		return model.NewAppError("SqlCalendarStore.DeleteAcceptOfDay", "store.sql_calendar_accept_range.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
-	}
-	return nil
-}
-
-func (s SqlCalendarStore) CreateExcept(domainId, calendarId int64, except *model.CalendarExceptDate) (*model.CalendarExceptDate, *model.AppError) {
-	var out *model.CalendarExceptDate
-	err := s.GetMaster().SelectOne(&out, `insert into calendar_except (calendar_id, name, date, repeat, disabled)
-select c.id, :Name, :Date, :Repeat, :Disabled
-from calendar c
-where c.id = :CalendarId and c.domain_id = :DomainId
-returning id, name, date, repeat, disabled`, map[string]interface{}{
-		"Name":       except.Name,
-		"Date":       except.Date,
-		"Repeat":     except.Repeat,
-		"Disabled":   except.Disabled,
-		"CalendarId": calendarId,
-		"DomainId":   domainId,
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.CreateExcept", "store.sql_calendar_except.save.app_error", nil,
-			fmt.Sprintf("Calendarid=%v, %v", calendarId, err.Error()), extractCodeFromErr(err))
-	}
-
-	return out, nil
-}
-
-func (s SqlCalendarStore) GetExceptById(domainId, calendarId, id int64) (*model.CalendarExceptDate, *model.AppError) {
-	var out *model.CalendarExceptDate
-	err := s.GetReplica().SelectOne(&out, `select id, name, date, repeat, disabled
-from calendar_except a
-where a.id = :Id and a.calendar_id = :CalendarId`, map[string]interface{}{
-		"Id":         id,
-		"CalendarId": calendarId,
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.GetExceptById", "store.sql_calendar_except.get.app_error", nil,
-			fmt.Sprintf("Id=%v, CalendarId=%v, %v", id, calendarId, err.Error()), extractCodeFromErr(err))
-	}
-
-	return out, nil
-}
-
-func (s SqlCalendarStore) GetExceptAllPage(calendarId int64) ([]*model.CalendarExceptDate, *model.AppError) {
-	var list []*model.CalendarExceptDate
-
-	if _, err := s.GetReplica().Select(&list, `select id, name, date, repeat, disabled
-		from calendar_except a
-		where a.calendar_id = :CalendarId
-		order by a.id`, map[string]interface{}{"CalendarId": calendarId}); err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.GetExceptAllPage", "store.sql_calendar_except.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return list, nil
-	}
-}
-
-func (s SqlCalendarStore) UpdateExceptDate(calendarId int64, except *model.CalendarExceptDate) (*model.CalendarExceptDate, *model.AppError) {
-	err := s.GetMaster().SelectOne(&except, `update calendar_except
-set name = :Name,
-    date = :Date,
-    repeat = :Repeat,
-    disabled = :Disabled
-where id = :Id and calendar_id = :CalendarId
-returning id, name, date, repeat, disabled`, map[string]interface{}{
-		"Name":       except.Name,
-		"Date":       except.Date,
-		"Repeat":     except.Repeat,
-		"Disabled":   except.Disabled,
-		"Id":         except.Id,
-		"CalendarId": calendarId,
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.UpdateExceptDate", "store.sql_calendar_except.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", except.Id, err.Error()), extractCodeFromErr(err))
-	}
-
-	return except, nil
-}
-
-//TODO check domain_id ?
-func (s SqlCalendarStore) DeleteExceptDate(domainId, calendarId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from calendar_except c where c.id=:Id and c.calendar_id = :CalendarId`,
-		map[string]interface{}{
-			"Id":         id,
-			"CalendarId": calendarId,
-			"DomainId":   domainId,
-		}); err != nil {
-		return model.NewAppError("SqlCalendarStore.DeleteExceptDate", "store.sql_calendar_except.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
-	}
-	return nil
 }

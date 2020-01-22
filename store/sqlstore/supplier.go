@@ -328,16 +328,21 @@ func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
 
 func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
-	case *[]model.MemberCommunication, *[]model.OutboundResourceGroupTime:
+	case *[]model.MemberCommunication,
+		*[]model.OutboundResourceGroupTime,
+		*[]model.CalendarAcceptOfDay,
+		*[]*model.CalendarExceptDate:
 		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
+			s, ok := holder.(*[]byte)
 			if !ok {
 				return errors.New(utils.T("store.sql.convert_member_communication"))
 			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
+			if *s == nil {
+				return nil
+			}
+			return json.Unmarshal(*s, target)
 		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+		return gorp.CustomScanner{Holder: &[]byte{}, Target: target, Binder: binder}, true
 
 	case *model.Lookup:
 		binder := func(holder, target interface{}) error {
