@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -17,7 +18,7 @@ func NewSqlOutboundResourceGroupStore(sqlStore SqlStore) store.OutboundResourceG
 	return us
 }
 
-func (s SqlOutboundResourceGroupStore) CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (s SqlOutboundResourceGroupStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
@@ -106,7 +107,7 @@ func (s SqlOutboundResourceGroupStore) GetAllPageByGroups(domainId int64, groups
 		order by s.id
 		limit :Limit
 		offset :Offset
-		`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": model.PERMISSION_ACCESS_READ.Value()}); err != nil {
+		`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {

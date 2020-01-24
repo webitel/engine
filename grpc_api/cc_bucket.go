@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,7 +24,7 @@ func (api *bucket) CreateBucket(ctx context.Context, in *engine.CreateBucketRequ
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
 	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	bucket := &model.Bucket{
@@ -51,7 +52,7 @@ func (api *bucket) SearchBucket(ctx context.Context, in *engine.SearchBucketRequ
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var list []*model.Bucket
@@ -84,15 +85,15 @@ func (api *bucket) ReadBucket(ctx context.Context, in *engine.ReadBucketRequest)
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -112,19 +113,19 @@ func (api *bucket) UpdateBucket(ctx context.Context, in *engine.UpdateBucketRequ
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -152,15 +153,15 @@ func (api *bucket) DeleteBucket(ctx context.Context, in *engine.DeleteBucketRequ
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
 	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_DELETE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
 		}
 	}
 

@@ -1,6 +1,7 @@
 package store
 
 import (
+	"github.com/webitel/engine/auth_manager"
 	"time"
 
 	"github.com/webitel/engine/model"
@@ -78,7 +79,7 @@ type CalendarStore interface {
 
 	GetTimezoneAllPage(offset, limit int) ([]*model.Timezone, *model.AppError)
 
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 }
 
 type SkillStore interface {
@@ -90,7 +91,7 @@ type SkillStore interface {
 }
 
 type AgentTeamStore interface {
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 
 	Create(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.AgentTeam, *model.AppError)
@@ -101,7 +102,7 @@ type AgentTeamStore interface {
 }
 
 type AgentStore interface {
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 
 	Create(agent *model.Agent) (*model.Agent, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.Agent, *model.AppError)
@@ -134,7 +135,7 @@ type ResourceTeamStore interface {
 }
 
 type OutboundResourceStore interface {
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundCallResource, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundCallResource, *model.AppError)
@@ -150,7 +151,7 @@ type OutboundResourceStore interface {
 }
 
 type OutboundResourceGroupStore interface {
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
@@ -200,7 +201,7 @@ type RoutingVariableStore interface {
 }
 
 type QueueStore interface {
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(queue *model.Queue) (*model.Queue, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.Queue, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Queue, *model.AppError)
@@ -254,7 +255,7 @@ type MemberStore interface {
 
 type BucketSore interface {
 	Create(bucket *model.Bucket) (*model.Bucket, *model.AppError)
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.Bucket, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Bucket, *model.AppError)
 	Get(domainId int64, id int64) (*model.Bucket, *model.AppError)
@@ -272,7 +273,7 @@ type BucketInQueueStore interface {
 
 type ListStore interface {
 	Create(list *model.List) (*model.List, *model.AppError)
-	CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError)
+	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	GetAllPage(domainId int64, offset, limit int) ([]*model.List, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.List, *model.AppError)
 	Get(domainId int64, id int64) (*model.List, *model.AppError)

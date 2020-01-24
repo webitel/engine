@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,11 +24,11 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_CREATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	scheme := &model.RoutingSchema{
@@ -70,7 +71,7 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 	var list []*model.RoutingSchema
 
@@ -97,7 +98,7 @@ func (api *routingSchema) ReadRoutingSchema(ctx context.Context, in *engine.Read
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	scheme, err := api.app.GetRoutingSchemaById(session.Domain(in.DomainId), in.Id)
@@ -115,11 +116,11 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	scheme := &model.RoutingSchema{
@@ -160,11 +161,11 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	var scheme *model.RoutingSchema
@@ -205,7 +206,7 @@ func (api *routingSchema) DeleteRoutingSchema(ctx context.Context, in *engine.De
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	var scheme *model.RoutingSchema

@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
@@ -12,7 +13,7 @@ import (
 type Context struct {
 	App            *app.App
 	Log            *wlog.Logger
-	Session        model.Session
+	Session        auth_manager.Session
 	RequestId      string
 	IpAddress      string
 	UserAgent      string

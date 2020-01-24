@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,7 +24,7 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_CREATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	calendar := &model.Calendar{
@@ -92,7 +93,7 @@ func (api *calendar) SearchCalendar(ctx context.Context, in *engine.SearchCalend
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var list []*model.Calendar
@@ -124,17 +125,17 @@ func (api *calendar) ReadCalendar(ctx context.Context, in *engine.ReadCalendarRe
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var calendar *model.Calendar
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -155,19 +156,19 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -228,15 +229,15 @@ func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalend
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_DELETE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
 		}
 	}
 

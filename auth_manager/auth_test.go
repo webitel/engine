@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	TEST_NODE_ID = "call-center-test"
-	TOKEN        = "USER_TOKEN"
+	TOKEN = "USER_TOKEN"
 )
 
 func TestAuthManager(t *testing.T) {
@@ -20,7 +19,7 @@ func TestAuthManager(t *testing.T) {
 		panic(err.Error())
 	}
 
-	am := NewAuthManager(sd)
+	am := NewAuthManager(1, 10000, sd)
 	am.Start()
 	defer am.Stop()
 

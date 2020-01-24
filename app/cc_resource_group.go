@@ -1,8 +1,11 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/model"
+)
 
-func (a *App) OutboundResourceGroupCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (a *App) OutboundResourceGroupCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	return a.Store.OutboundResourceGroup().CheckAccess(domainId, id, groups, access)
 }
 

@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,7 +24,7 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_CREATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	team := &model.AgentTeam{
@@ -60,7 +61,7 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var list []*model.AgentTeam
@@ -93,17 +94,17 @@ func (api *agentTeam) ReadAgentTeam(ctx context.Context, in *engine.ReadAgentTea
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var team *model.AgentTeam
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -124,19 +125,19 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -171,15 +172,15 @@ func (api *agentTeam) DeleteAgentTeam(ctx context.Context, in *engine.DeleteAgen
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, model.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, model.PERMISSION_ACCESS_DELETE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
 		}
 	}
 

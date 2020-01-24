@@ -1,12 +1,15 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/model"
+)
 
 func (app *App) CreateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
 	return app.Store.Bucket().Create(bucket)
 }
 
-func (a *App) BucketCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (a *App) BucketCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	return a.Store.Bucket().CheckAccess(domainId, id, groups, access)
 }
 

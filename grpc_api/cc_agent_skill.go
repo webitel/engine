@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,15 +24,15 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -77,15 +78,15 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -119,15 +120,15 @@ func (api *agentSkill) ReadAgentSkill(ctx context.Context, in *engine.AgentSkill
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, model.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, model.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -148,15 +149,15 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -199,15 +200,15 @@ func (api *agentSkill) DeleteAgentSkill(ctx context.Context, in *engine.DeleteAg
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, model.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, model.PERMISSION_ACCESS_UPDATE)
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 

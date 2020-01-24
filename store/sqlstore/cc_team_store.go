@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -43,7 +44,7 @@ func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *mod
 	}
 }
 
-func (s SqlAgentTeamStore) CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (s SqlAgentTeamStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
@@ -92,7 +93,7 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, offs
 			  )
 			order by id
 			limit :Limit
-			offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": model.PERMISSION_ACCESS_READ.Value()}); err != nil {
+			offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.GetAllPageByGroups", "store.sql_agent_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return teams, nil

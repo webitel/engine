@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
@@ -108,8 +109,8 @@ func (a *App) StartGrpcServer() error {
 	return nil
 }
 
-func (a *App) GetSessionFromCtx(ctx context.Context) (*model.Session, *model.AppError) {
-	var session *model.Session
+func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, *model.AppError) {
+	var session *auth_manager.Session
 	var err *model.AppError
 	var token []string
 
@@ -123,7 +124,7 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*model.Session, *model.App
 		return nil, model.NewAppError("GetSessionFromCtx", "api.context.session_expired.app_error", nil, "token not found", http.StatusUnauthorized)
 	}
 
-	session, err = a.sessionManager.GetSession(token[0])
+	session, err = a.GetSession(token[0])
 	if err != nil {
 		return nil, err
 	}

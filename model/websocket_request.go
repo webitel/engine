@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/webitel/engine/auth_manager"
 	"io"
 )
 
@@ -13,9 +14,9 @@ type WebSocketRequest struct {
 	Action string                 `json:"action"`
 	Data   map[string]interface{} `json:"data"`
 
-	Session Session            `json:"-"`
-	T       i18n.TranslateFunc `json:"-"`
-	Locale  string             `json:"-"`
+	Session auth_manager.Session `json:"-"`
+	T       i18n.TranslateFunc   `json:"-"`
+	Locale  string               `json:"-"`
 }
 
 func (o *WebSocketRequest) ToJson() string {

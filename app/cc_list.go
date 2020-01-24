@@ -1,12 +1,15 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/model"
+)
 
 func (a *App) CreateList(list *model.List) (*model.List, *model.AppError) {
 	return a.Store.List().Create(list)
 }
 
-func (a *App) ListCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (a *App) ListCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	return a.Store.List().CheckAccess(domainId, id, groups, access)
 }
 

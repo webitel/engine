@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	wlog "github.com/webitel/wlog"
 	"sync"
@@ -44,7 +45,7 @@ type WebConn struct {
 	//Sip *SipProxy
 }
 
-func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t i18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18n.TranslateFunc, locale string) *WebConn {
 	wc := &WebConn{
 		id:                 model.NewId(),
 		App:                a,
@@ -227,11 +228,11 @@ func (c *WebConn) SetSessionToken(v string) {
 	c.sessionToken.Store(v)
 }
 
-func (c *WebConn) GetSession() *model.Session {
-	return c.session.Load().(*model.Session)
+func (c *WebConn) GetSession() *auth_manager.Session {
+	return c.session.Load().(*auth_manager.Session)
 }
 
-func (c *WebConn) SetSession(v *model.Session) {
+func (c *WebConn) SetSession(v *auth_manager.Session) {
 	c.session.Store(v)
 }
 

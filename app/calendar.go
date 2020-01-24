@@ -1,6 +1,9 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/model"
+)
 
 func (a *App) GetCalendarsPage(domainId int64, page, perPage int) ([]*model.Calendar, *model.AppError) {
 	return a.Store.Calendar().GetAllPage(domainId, page*perPage, perPage)
@@ -34,7 +37,7 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	return oldCalendar, nil
 }
 
-func (a *App) CalendarCheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (a *App) CalendarCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	return a.Store.Calendar().CheckAccess(domainId, id, groups, access)
 }
 

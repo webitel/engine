@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,11 +24,11 @@ func (api *routingVariable) CreateRoutingVariable(ctx context.Context, in *engin
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_CREATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	variable := &model.RoutingVariable{
@@ -54,7 +55,7 @@ func (api *routingVariable) SearchRoutingVariable(ctx context.Context, in *engin
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 	var list []*model.RoutingVariable
 
@@ -81,7 +82,7 @@ func (api *routingVariable) ReadRoutingVariable(ctx context.Context, in *engine.
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var variable *model.RoutingVariable
@@ -100,11 +101,11 @@ func (api *routingVariable) UpdateRoutingVariable(ctx context.Context, in *engin
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	var variable *model.RoutingVariable
@@ -131,7 +132,7 @@ func (api *routingVariable) DeleteRoutingVariable(ctx context.Context, in *engin
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	var variable *model.RoutingVariable

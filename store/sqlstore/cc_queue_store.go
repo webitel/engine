@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -17,7 +18,7 @@ func NewSqlQueueStore(sqlStore SqlStore) store.QueueStore {
 	return us
 }
 
-func (s SqlQueueStore) CheckAccess(domainId, id int64, groups []int, access model.PermissionAccess) (bool, *model.AppError) {
+func (s SqlQueueStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
@@ -128,7 +129,7 @@ where q.domain_id = :DomainId  and (
   )
 order by q.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": model.PERMISSION_ACCESS_READ.Value()}); err != nil {
+offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
 		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return queues, nil

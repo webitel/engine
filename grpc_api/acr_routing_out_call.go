@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
@@ -23,7 +24,7 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_CREATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	routing := &model.RoutingOutboundCall{
@@ -67,7 +68,7 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 	var list []*model.RoutingOutboundCall
 
@@ -94,7 +95,7 @@ func (api *routingOutboundCall) ReadRoutingOutboundCall(ctx context.Context, in 
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	var routing *model.RoutingOutboundCall
@@ -113,11 +114,11 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	var routing = &model.RoutingOutboundCall{
@@ -160,11 +161,11 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_UPDATE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	var routing *model.RoutingOutboundCall
@@ -207,7 +208,7 @@ func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, i
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, model.PERMISSION_ACCESS_DELETE)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	var routing *model.RoutingOutboundCall

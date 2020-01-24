@@ -4,11 +4,7 @@ import (
 	"fmt"
 	"github.com/webitel/call_center/discovery"
 	"github.com/webitel/call_center/utils"
-	"github.com/webitel/engine/external_commands"
-	"github.com/webitel/engine/external_commands/grpc"
-	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
-	"net/http"
 	"sync"
 )
 
@@ -21,9 +17,9 @@ const (
 )
 
 type AuthManager interface {
-	Start() *model.AppError
+	Start() error
 	Stop()
-	GetSession(token string) (*model.Session, *model.AppError)
+	GetSession(token string) (*Session, error)
 }
 
 type authManager struct {
@@ -37,21 +33,21 @@ type authManager struct {
 	stopped   chan struct{}
 }
 
-func NewAuthManager(serviceDiscovery discovery.ServiceDiscovery) AuthManager {
+func NewAuthManager(cacheSize int, cacheTime int64, serviceDiscovery discovery.ServiceDiscovery) AuthManager {
 	return &authManager{
 		stop:             make(chan struct{}),
 		stopped:          make(chan struct{}),
 		poolConnections:  discovery.NewPoolConnections(),
-		session:          utils.NewLruWithParams(model.SESSION_CACHE_SIZE, "auth manager", model.SESSION_CACHE_TIME, ""), //TODO session from config ?
+		session:          utils.NewLruWithParams(cacheSize, "auth manager", cacheTime, ""), //TODO session from config ?
 		serviceDiscovery: serviceDiscovery,
 	}
 }
 
-func (am *authManager) Start() *model.AppError {
+func (am *authManager) Start() error {
 	wlog.Debug("starting auth service")
 
 	if services, err := am.serviceDiscovery.GetByName(AUTH_SERVICE_NAME); err != nil {
-		return model.NewAppError("authManager.Start", "", nil, err.Error(), http.StatusInternalServerError) //
+		return err
 	} else {
 		for _, v := range services {
 			am.registerConnection(v)
@@ -92,17 +88,17 @@ func (am *authManager) Stop() {
 	<-am.stopped
 }
 
-func (am *authManager) getAuthClient() (external_commands.AuthClient, *model.AppError) {
+func (am *authManager) getAuthClient() (AuthClient, error) {
 	conn, err := am.poolConnections.Get(discovery.StrategyRoundRobin)
 	if err != nil {
-		return nil, model.NewAppError("AuthManager", "auth_manager.get_all_client.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, err
 	}
-	return conn.(external_commands.AuthClient), nil
+	return conn.(AuthClient), nil
 }
 
 func (am *authManager) registerConnection(v *discovery.ServiceConnection) {
 	addr := fmt.Sprintf("%s:%d", v.Host, v.Port)
-	client, err := grpc.NewAuthServiceConnection(v.Id, addr)
+	client, err := NewAuthServiceConnection(v.Id, addr)
 	if err != nil {
 		wlog.Error(fmt.Sprintf("connection %s [%s] error: %s", v.Id, addr, err.Error()))
 		return
