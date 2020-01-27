@@ -2,14 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/webitel/engine/model"
+	wlog "github.com/webitel/wlog"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
-
-	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/webitel/engine/model"
-	wlog "github.com/webitel/wlog"
 )
 
 var T i18n.TranslateFunc
@@ -18,7 +17,7 @@ var locales map[string]string = make(map[string]string)
 var settings model.LocalizationSettings
 
 // this functions loads translations from filesystem
-// and assign english while loading server config
+// and assign english while loading server configb cds
 func TranslationsPreInit() error {
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
