@@ -4,8 +4,9 @@ FROM golang:1.12
 COPY . /go/src/github.com/webitel/engine
 WORKDIR /go/src/github.com/webitel/engine/
 
-RUN GOOS=linux go get -d ./...
-RUN GOOS=linux go install
+ENV GO111MODULE=on
+RUN go mod download
+
 RUN GIT_COMMIT=$(git rev-list -1 HEAD) && \
     CGO_ENABLED=0 GOOS=linux go build -ldflags "-X github.com/webitel/engine/model.BuildNumber=$GIT_COMMIT" -a -o engine .
 
