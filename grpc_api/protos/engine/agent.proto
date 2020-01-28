@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+package engine;
+
+service AgentService {
+    // Create Agent
+    rpc CreateAgent(CreateAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            post: "/call_center/agents"
+            body: "*"
+        };
+    }
+    // List of Agent
+    rpc SearchAgent(SearchAgentRequest) returns (ListAgent) {
+        option (google.api.http) = {
+            get: "/call_center/agents"
+        };
+    }
+    // Agent item
+    rpc ReadAgent(ReadAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}"
+        };
+    }
+    // Update Agent
+    rpc UpdateAgent(UpdateAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            put: "/call_center/agents/{id}"
+            body: "*"
+        };
+    }
+    // Remove Agent
+    rpc DeleteAgent(DeleteAgentRequest) returns (Agent) {
+        option (google.api.http) = {
+            delete: "/call_center/agents/{id}"
+        };
+    }
+    // Change agent status
+    rpc UpdateAgentStatus(AgentStatusRequest) returns (Response) {
+        option (google.api.http) = {
+            patch: "/call_center/agents/{id}/status"
+            body: "*"
+        };
+    }
+
+    // List of Agent
+    rpc SearchAgentStateHistory(SearchAgentStateHistoryRequest) returns (ListAgentStateHistory) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{agent_id}/states/history"
+        };
+    }
+
+    rpc SearchAgentInTeam(SearchAgentInTeamRequest) returns (ListAgentInTeam) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}/teams"
+        };
+    }
+
+    rpc SearchAgentInQueue(SearchAgentInQueueRequest) returns (ListAgentInQueue) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}/queues"
+        };
+    }
+    
+}
+
+message SearchAgentStateHistoryRequest {
+    int64 agent_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 time_from = 4;
+    int64 time_to = 5;
+    int64 domain_id = 6;
+}
+
+message AgentState {
+    int64 id = 1;
+    int64 joined_at = 2;
+    string state = 3;
+    int64 timeout_at = 4;
+    Lookup queue = 5;
+}
+
+message ListAgentStateHistory {
+    repeated AgentState items = 1;
+}
+
+message AgentInQueue {
+    Lookup queue = 1;
+    int32 priority = 2;
+    int32 type = 3;
+    string strategy = 4;
+    bool enabled = 5;
+    int32 count_member = 6;
+    int32 waiting_member = 7;
+    int32 active_member = 8;
+}
+
+message ListAgentInQueue {
+    repeated AgentInQueue items = 1;
+}
+
+message SearchAgentInQueueRequest {
+    int64 id = 1;
+    int32 size = 2;
+    int32 page = 3;
+
+    int64 domain_id = 4;
+}
+
+message SearchAgentInTeamRequest {
+    int64 id = 1;
+    int32 size = 2;
+    int32 page = 3;
+    int64 domain_id = 4;
+}
+
+message AgentInTeam {
+    Lookup team = 1;
+    string strategy = 2;
+}
+
+message ListAgentInTeam {
+    repeated AgentInTeam items = 1;
+}
+
+message UpdateAgentRequest {
+    int64 id = 1;
+    Lookup user = 2;
+    string description = 3;
+    int64 domain_id = 4;
+}
+
+message ReadAgentRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+message DeleteAgentRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchAgentRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    int64 domain_id = 3;
+}
+
+message CreateAgentRequest {
+    Lookup user = 1;
+    string description = 2;
+    int64 domain_id = 3;
+}
+
+message SkillAgent {
+    int64 id = 1;
+    Lookup skill = 2;
+    Lookup agent = 3;
+    int32 capacity = 4;
+}
+
+message AgentStatusRequest {
+    int64 id = 1;
+
+    enum Status {
+        ONLINE = 0;
+        OFFLINE = 1;
+        PAUSE = 2;
+    }
+
+    string status = 2; //FIXME enumerate
+    int64 domain_id = 3;
+}
+
+message Agent {
+    int64 id = 1;
+    Lookup user = 2;
+    string status = 3;
+    string state = 4;
+    string description = 5;
+    int64 last_state_change = 6;
+    int64 state_timeout = 7;
+}
+
+message ListAgent {
+    repeated Agent items = 1;
+}

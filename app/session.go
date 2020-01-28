@@ -15,19 +15,19 @@ func (app *App) GetSession(token string) (*auth_manager.Session, *model.AppError
 			return nil, model.NewAppError("App.GetSession", "app.session.app_error", nil, err.Error(), http.StatusInternalServerError)
 
 		case auth_manager.ErrStatusForbidden:
-			return nil, model.NewAppError("App.GetSession", "app.session.forbidden", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("App.GetSession", "app.session.forbidden", nil, err.Error(), http.StatusForbidden)
 
 		case auth_manager.ErrValidId:
-			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.id.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.id.app_error", nil, err.Error(), http.StatusBadRequest)
 
 		case auth_manager.ErrValidUserId:
-			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.user_id.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.user_id.app_error", nil, err.Error(), http.StatusBadRequest)
 
 		case auth_manager.ErrValidToken:
-			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.token.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.token.app_error", nil, err.Error(), http.StatusBadRequest)
 
 		case auth_manager.ErrValidRoleIds:
-			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.role_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.role_ids.app_error", nil, err.Error(), http.StatusBadRequest)
 
 		}
 	}

@@ -1,0 +1,219 @@
+syntax = "proto3";
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+package engine;
+
+service OutboundResourceService {
+    // Create OutboundResource
+    rpc CreateOutboundResource(CreateOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            post: "/call_center/resources"
+            body: "*"
+        };
+    }
+    // List of OutboundResource
+    rpc SearchOutboundResource(SearchOutboundResourceRequest) returns (ListOutboundResource) {
+        option (google.api.http) = {
+            get: "/call_center/resources"
+        };
+    }
+    // OutboundResource item
+    rpc ReadOutboundResource(ReadOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            get: "/call_center/resources/{id}"
+        };
+    }
+    // Update OutboundResource
+    rpc UpdateOutboundResource(UpdateOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            put: "/call_center/resources/{id}"
+            body: "*"
+        };
+    }
+    // Patch OutboundResource
+    rpc PatchOutboundResource(PatchOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            patch: "/call_center/resources/{id}"
+            body: "*"
+        };
+    }
+    // Remove OutboundResource
+    rpc DeleteOutboundResource(DeleteOutboundResourceRequest) returns (OutboundResource) {
+        option (google.api.http) = {
+            delete: "/call_center/resources/{id}"
+        };
+    }
+    // Create CreateOutboundResourceDisplay
+    rpc CreateOutboundResourceDisplay(CreateOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            post: "/call_center/resources/{resource_id}/display"
+            body: "*"
+        };
+    }
+    // List of ResourceDisplay
+    rpc SearchOutboundResourceDisplay(SearchOutboundResourceDisplayRequest) returns (ListOutboundResourceDisplay) {
+        option (google.api.http) = {
+            get: "/call_center/resources/{resource_id}/display"
+        };
+    }
+    // ResourceDisplay item
+    rpc ReadOutboundResourceDisplay(ReadOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            get: "/call_center/resources/{resource_id}/display/{id}"
+        };
+    }
+    // Update ResourceDisplay
+    rpc UpdateOutboundResourceDisplay(UpdateOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            put: "/call_center/resources/{resource_id}/display/{id}"
+            body: "*"
+        };
+    }
+    // Remove ResourceDisplay
+    rpc DeleteOutboundResourceDisplay(DeleteOutboundResourceDisplayRequest) returns (ResourceDisplay) {
+        option (google.api.http) = {
+            delete: "/call_center/resources/{resource_id}/display/{id}"
+        };
+    }
+}
+
+message DeleteOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
+}
+
+message UpdateOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int64 id = 2;
+    string display = 3;
+    int64 domain_id = 4;
+}
+
+message ReadOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int64 id = 2;
+    int64 domain_id = 3;
+}
+
+message SearchOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message ListOutboundResourceDisplay {
+    repeated ResourceDisplay items = 1;
+}
+
+message CreateOutboundResourceDisplayRequest {
+    int64 resource_id = 1;
+    string display = 2;
+    int64 domain_id = 3;
+}
+
+message ResourceDisplay {
+    int64 id = 1;
+    string display = 2;
+}
+
+message DeleteOutboundResourceRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message ReadOutboundResourceRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchOutboundResourceRequest {
+    int32 page = 1;
+    int32 size = 2;
+    int64 domain_id = 3;
+}
+
+message PatchOutboundResourceRequest {
+    int64 id = 1;
+
+    int32 limit = 2;
+    bool enabled = 3;
+    int32 rps = 4;
+    bool reserve = 5;
+    map<string, string> variables = 6;
+    string number = 7;
+    int32 max_successively_errors = 8;
+    string name = 9;
+    string dial_string = 10;
+    repeated string error_ids = 11;
+
+    repeated string fields = 12;
+    Lookup gateway = 13;
+
+    int64 domain_id = 14;
+}
+
+message UpdateOutboundResourceRequest {
+    int64 id = 1;
+
+    int32 limit = 2;
+    bool enabled = 3;
+    int32 rps = 4;
+    bool reserve = 5;
+    map<string, string> variables = 6;
+    string number = 7;
+    int32 max_successively_errors = 8;
+    string name = 9;
+    string dial_string = 10;
+    repeated string error_ids = 11;
+    Lookup gateway = 12;
+
+    int64 domain_id = 13;
+}
+
+message CreateOutboundResourceRequest {
+    int32 limit = 1;
+    bool enabled = 2;
+    int32 rps = 3;
+    bool reserve = 4;
+    map<string, string> variables = 5;
+    string number = 6;
+    int32 max_successively_errors = 7;
+    string name = 8;
+    string dial_string = 9;
+    repeated string error_ids = 10;
+    Lookup gateway = 11;
+
+    int64 domain_id = 12;
+}
+
+message OutboundResource {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+
+    int32 limit = 7;
+    bool enabled = 8;
+    int32 rps = 9;
+    bool reserve = 10;
+    map<string, string> variables = 11;
+    string number = 12;
+    int32 max_successively_errors = 13;
+    string name = 14;
+    string dial_string = 15;
+    repeated string error_ids = 16;
+    string last_error_id = 17;
+    int32 successively_errors = 18;
+    int64 last_error_at = 19;
+    Lookup gateway = 20;
+}
+
+message ListOutboundResource {
+    repeated OutboundResource items = 1;
+}

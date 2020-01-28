@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package engine;
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+service CalendarService {
+    // Create calendar
+    rpc CreateCalendar(CreateCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            post: "/calendars"
+            body: "*"
+        };
+    }
+    // List of calendar
+    rpc SearchCalendar(SearchCalendarRequest) returns (ListCalendar) {
+        option (google.api.http) = {
+            get: "/calendars"
+        };
+    }
+    // Calendar item
+    rpc ReadCalendar(ReadCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            get: "/calendars/{id}"
+        };
+    }
+    // Update calendar
+    rpc UpdateCalendar(UpdateCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            put: "/calendars/{id}"
+            body: "*"
+        };
+    }
+    // Remove calendar
+    rpc DeleteCalendar(DeleteCalendarRequest) returns (Calendar) {
+        option (google.api.http) = {
+            delete: "/calendars/{id}"
+        };
+    }
+
+    // List timezones
+    rpc SearchTimezones(SearchTimezonesRequest) returns (ListTimezoneResponse) {
+        option (google.api.http) = {
+            get: "/calendars/timezones"
+        };
+    }
+}
+
+message Calendar {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+
+    string name = 7;
+    int64 start_at = 8;
+    int64 end_at = 9;
+    Lookup timezone = 10;
+    string description = 11;
+
+    repeated AcceptOfDay accepts = 12;
+    repeated ExceptDate excepts = 13;
+}
+
+message ExceptDate {
+    string name = 3;
+    int64 date = 4;
+    bool repeat = 5;
+    bool disabled = 6;
+}
+
+message AcceptOfDay {
+    int32 day = 2;
+    int32 start_time_of_day = 3;
+    int32 end_time_of_day = 4;
+    bool disabled = 5;
+}
+
+message ListCalendar {
+    repeated Calendar items = 1;
+}
+
+
+message CreateCalendarRequest {
+    string name = 1;
+    int64 start_at = 2;
+    int64 end_at = 3;
+    Lookup timezone = 4;
+    string description = 5;
+    repeated AcceptOfDay accepts = 6;
+    repeated ExceptDate excepts = 7;
+    int64 domain_id = 8;
+}
+
+message SearchCalendarRequest {
+    int32 page = 1;
+    int32 size = 2;
+    int64 domain_id = 3;
+}
+
+message ReadCalendarRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message DeleteCalendarRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateCalendarRequest {
+    int64 id = 1;
+
+    string name = 2;
+    int64 start_at = 3;
+    int64 end_at = 4;
+    Lookup timezone = 5;
+    string description = 6;
+    repeated AcceptOfDay accepts = 7;
+    repeated ExceptDate excepts = 8;
+
+    int64 domain_id = 9;
+}
+
+message SearchTimezonesRequest {
+    int32 page = 1;
+    int32 size = 2;
+}
+
+message ListTimezoneResponse {
+    repeated Timezone items = 1;
+}
+
+message Timezone {
+    int64 id = 1;
+    string name = 2;
+    string offset = 3;
+}

@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+package engine;
+
+service QueueRoutingService {
+    // CreateQueueRouting
+    rpc CreateQueueRouting(CreateQueueRoutingRequest) returns (QueueRouting) {
+        option (google.api.http) = {
+            post: "/call_center/queues/{queue_id}/routings"
+            body: "*"
+        };
+    }
+    // SearchQueueRouting
+    rpc SearchQueueRouting(SearchQueueRoutingRequest) returns (ListQueueRouting) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/routings"
+        };
+    }
+    // ReadQueueRouting
+    rpc ReadQueueRouting(ReadQueueRoutingRequest) returns (QueueRouting) {
+        option (google.api.http) = {
+            get: "/call_center/queues/{queue_id}/routings/{id}"
+        };
+    }
+    // UpdateQueueRouting
+    rpc UpdateQueueRouting(UpdateQueueRoutingRequest) returns (QueueRouting) {
+        option (google.api.http) = {
+            put: "/call_center/queues/{queue_id}/routings/{id}"
+            body: "*"
+        };
+    }
+    // DeleteQueueRouting
+    rpc DeleteQueueRouting(DeleteQueueRoutingRequest) returns (QueueRouting) {
+        option (google.api.http) = {
+            delete: "/call_center/queues/{queue_id}/routings/{id}"
+        };
+    }
+}
+
+message DeleteQueueRoutingRequest {
+    int64 queue_id = 1;
+    int64 domain_id = 2;
+    int64 id = 3;
+}
+
+message UpdateQueueRoutingRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    string pattern = 3;
+    int32 priority = 4;
+    bool disabled = 5;
+    int64 domain_id = 6;
+}
+
+message ReadQueueRoutingRequest {
+    int64 queue_id = 1;
+    int64 domain_id = 2;
+    int64 id = 3;
+}
+
+message SearchQueueRoutingRequest {
+    int64 queue_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+
+    int64 domain_id = 4;
+}
+
+message ListQueueRouting {
+    repeated QueueRouting items = 1;
+}
+
+message CreateQueueRoutingRequest {
+    int64 queue_id = 1;
+    string pattern = 2;
+    int32 priority = 3;
+    bool disabled = 4;
+    int64 domain_id = 5;
+}
+
+message QueueRouting {
+    int64 id = 1;
+    int64 queue_id = 2;
+    string pattern = 3;
+    int32 priority = 4;
+    bool disabled = 5;
+}

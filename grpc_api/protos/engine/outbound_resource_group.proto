@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+package engine;
+
+service OutboundResourceGroupService {
+    // Create OutboundResourceGroup
+    rpc CreateOutboundResourceGroup (CreateOutboundResourceGroupRequest) returns (OutboundResourceGroup) {
+        option (google.api.http) = {
+            post: "/call_center/resource_group"
+            body: "*"
+        };
+    }
+
+    // List of OutboundResourceGroup
+    rpc SearchOutboundResourceGroup(SearchOutboundResourceGroupRequest) returns (ListOutboundResourceGroup) {
+        option (google.api.http) = {
+            get: "/call_center/resource_group"
+        };
+    }
+
+    // OutboundResourceGroup item
+    rpc ReadOutboundResourceGroup(ReadOutboundResourceGroupRequest) returns (OutboundResourceGroup) {
+        option (google.api.http) = {
+            get: "/call_center/resource_group/{id}"
+        };
+    }
+
+    // Update OutboundResourceGroup
+    rpc UpdateOutboundResourceGroup(UpdateOutboundResourceGroupRequest) returns (OutboundResourceGroup) {
+        option (google.api.http) = {
+            put: "/call_center/resource_group/{id}"
+            body: "*"
+        };
+    }
+
+    // Remove OutboundResourceGroup
+    rpc DeleteOutboundResourceGroup(DeleteOutboundResourceGroupRequest) returns (OutboundResourceGroup) {
+        option (google.api.http) = {
+            delete: "/call_center/resource_group/{id}"
+        };
+    }
+
+    // Create OutboundResourceGroup
+    rpc CreateOutboundResourceInGroup (CreateOutboundResourceInGroupRequest) returns (OutboundResourceInGroup) {
+        option (google.api.http) = {
+            post: "/call_center/resource_group/{group_id}/resource"
+            body: "*"
+        };
+    }
+
+    // List of OutboundResourceInGroup
+    rpc SearchOutboundResourceInGroup(SearchOutboundResourceInGroupRequest) returns (ListOutboundResourceInGroup) {
+        option (google.api.http) = {
+            get: "/call_center/resource_group/{group_id}/resource"
+        };
+    }
+
+    // OutboundResourceInGroup item
+    rpc ReadOutboundResourceInGroup(ReadOutboundResourceInGroupRequest) returns (OutboundResourceInGroup) {
+        option (google.api.http) = {
+            get: "/call_center/resource_group/{group_id}/resource/{id}"
+        };
+    }
+
+    // Update OutboundResourceInGroup
+    rpc UpdateOutboundResourceInGroup(UpdateOutboundResourceInGroupRequest) returns (OutboundResourceInGroup) {
+        option (google.api.http) = {
+            put: "/call_center/resource_group/{group_id}/resource/{id}"
+            body: "*"
+        };
+    }
+
+    // Remove OutboundResourceInGroup
+    rpc DeleteOutboundResourceInGroup(DeleteOutboundResourceInGroupRequest) returns (OutboundResourceInGroup) {
+        option (google.api.http) = {
+            delete: "/call_center/resource_group/{group_id}/resource/{id}"
+        };
+    }
+}
+
+message DeleteOutboundResourceInGroupRequest {
+    int64 id = 1;
+    int64 group_id = 2;
+    int64 domain_id = 3;
+}
+
+message UpdateOutboundResourceInGroupRequest {
+    int64 id = 1;
+    int64 group_id = 2;
+    Lookup resource = 3;
+    int64 domain_id = 4;
+}
+
+message ReadOutboundResourceInGroupRequest {
+    int64 id = 1;
+    int64 group_id = 2;
+    int64 domain_id = 3;
+}
+
+message SearchOutboundResourceInGroupRequest {
+    int64 group_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 domain_id = 4;
+}
+
+message ListOutboundResourceInGroup {
+    repeated OutboundResourceInGroup items = 1;
+}
+
+message CreateOutboundResourceInGroupRequest {
+    int64 group_id = 1;
+    Lookup resource = 2;
+    int64 domain_id = 3;
+}
+
+message OutboundResourceInGroup {
+    int64 id = 1;
+    int64 group_id = 2;
+    Lookup resource = 3;
+}
+
+message DeleteOutboundResourceGroupRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message UpdateOutboundResourceGroupRequest {
+    int64 id = 1;
+    string name = 2;
+    string strategy = 3;
+    string description = 4;
+    Lookup communication = 5;
+    repeated OutboundResourceTimeRange time = 6;
+    int64 domain_id = 7;
+}
+
+message ReadOutboundResourceGroupRequest {
+    int64 id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchOutboundResourceGroupRequest {
+    int32 page = 1;
+    int32 size = 2;
+    int64 domain_id = 3;
+}
+
+message ListOutboundResourceGroup {
+    repeated OutboundResourceViewGroup items = 1;
+}
+
+message CreateOutboundResourceGroupRequest {
+    string name = 1;
+    string strategy = 2;
+    string description = 3;
+    Lookup communication = 4;
+    repeated OutboundResourceTimeRange time = 5;
+    int64 domain_id = 6;
+}
+
+message OutboundResourceTimeRange {
+    int32 start_time_of_day = 1;
+    int32 end_time_of_day = 2;
+}
+
+message OutboundResourceGroup {
+    int64 id = 1;
+    int64 domain_id = 2;
+    int64 created_at = 3;
+    Lookup created_by = 4;
+    int64 updated_at = 5;
+    Lookup updated_by = 6;
+
+    string name = 7;
+    string strategy = 8;
+    string description = 9;
+    Lookup communication = 10;
+    repeated OutboundResourceTimeRange time = 11;
+}
+
+message OutboundResourceViewGroup {
+    int64 id = 1;
+
+    string name = 2;
+    string strategy = 3;
+    string description = 4;
+    Lookup communication = 5;
+}
