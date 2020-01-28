@@ -132,7 +132,8 @@ function originate (req, res, next) {
     var option = {
         "auto_answer_param": auto_answer_param,
         "extension": extension,
-        "user": user || req.webitelUser.id
+        "user": user || req.webitelUser.id,
+        "variables": req.body.variables
     };
 
     channelService.makeCall(req.webitelUser, option,

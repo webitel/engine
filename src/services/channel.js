@@ -11,6 +11,28 @@ const log = require(__appRoot + '/lib/log')(module),
 
 const VAR_SEPARATOR = String.fromCharCode(27);
 
+const PROTECTED_VARS = [
+    "api_on_",
+    "execute_on_",
+    "exec_",
+    "api_after_bridge",
+    "api_before_bridge",
+    "api_hangup_hook",
+    "api_reporting_hook",
+    "record_post_process_exec_api",
+    "session_in_hangup_hook",
+    "domain_name"
+];
+
+function isProtectedVariable(name) {
+    for (let p of PROTECTED_VARS) {
+        if (name.startsWith(p) ) {
+            return true
+        }
+    }
+    return false
+}
+
 var Service = {
     bgApi: function (execString, cb) {
         log.debug('Exec: %s', execString);
@@ -57,6 +79,14 @@ var Service = {
             'ignore_early_media=true'
         );
 
+        if (options.variables instanceof Object) {
+            for (let key in options.variables) {
+                if (options.variables.hasOwnProperty(key) && typeof options.variables[key] === 'string' && !isProtectedVariable(key)) {
+                    _originatorParam.push(`${key}=\'${(options.variables[key].replace(/\'|\r|\n|\t|\\/g, ``))}\'`)
+                }
+            }
+        }
+
         const dialString = `originate {${_originatorParam.join(',')}}user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
 
         Service.bgApi(dialString, cb);
@@ -95,14 +125,14 @@ var Service = {
             cb
         );
     },
-    
+
     bridge: function (caller, options, cb) {
         Service.bgApi(
             'uuid_bridge ' + options['channel_uuid_A'] + ' ' + options['channel_uuid_B'],
             cb
         );
     },
-    
+
     videoRefresh: function (caller, options, cb) {
         Service.bgApi(
             'uuid_video_refresh ' + options['uuid'],
@@ -116,7 +146,7 @@ var Service = {
             cb
         );
     },
-    
+
     hold: function (caller, options, cb) {
         Service.bgApi(
             'uuid_hold ' + options['channel-uuid'],
@@ -130,7 +160,7 @@ var Service = {
             cb
         );
     },
-    
+
     dtmf: function (caller, options, cb) {
         var _digits = options['digits'];
         Service.bgApi(
@@ -214,7 +244,7 @@ var Service = {
             cb
         );
     },
-    
+
     dump: function (caller, options, cb) {
         Service.bgApi(
             'uuid_dump ' + options['uuid'] + ' json',
