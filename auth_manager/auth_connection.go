@@ -62,13 +62,14 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 	}
 
 	session := &Session{
-		Id:       resp.Session.Uuid,
-		UserId:   resp.Session.UserId,
-		DomainId: resp.Session.Dc,
-		Expire:   resp.Session.ExpiresAt,
-		Token:    token,
-		Scopes:   transformScopes(resp.Scope),
-		RoleIds:  transformRoles(resp.Roles),
+		Id:         resp.Session.Uuid,
+		UserId:     resp.Session.UserId,
+		DomainId:   resp.Session.Dc,
+		DomainName: resp.Session.Domain,
+		Expire:     resp.Session.ExpiresAt,
+		Token:      token,
+		Scopes:     transformScopes(resp.Scope),
+		RoleIds:    transformRoles(resp.Roles),
 	}
 	return session, nil
 }

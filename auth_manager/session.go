@@ -5,11 +5,12 @@ import (
 )
 
 type Session struct {
-	Id       string `json:"id"`
-	DomainId int64  `json:"domain_id"`
-	Expire   int64  `json:"expire"`
-	UserId   int64  `json:"user_id"`
-	RoleIds  []int  `json:"role_ids"`
+	Id         string `json:"id"`
+	DomainId   int64  `json:"domain_id"`
+	DomainName string `json:"domain_name"`
+	Expire     int64  `json:"expire"`
+	UserId     int64  `json:"user_id"`
+	RoleIds    []int  `json:"role_ids"`
 
 	Token  string              `json:"token"`
 	Scopes []SessionPermission `json:"scopes"`
