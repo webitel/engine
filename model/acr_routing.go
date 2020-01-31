@@ -100,7 +100,7 @@ type RoutingOutboundCall struct {
 	Name        string `json:"name" db:"name"`
 	Description string `json:"description" db:"description"`
 	Schema      Lookup `json:"schema" db:"scheme"`
-	Priority    int    `json:"priority" db:"priority"`
+	Position    int    `json:"position" db:"position"`
 	Pattern     string `json:"pattern" db:"pattern"`
 	Disabled    bool   `json:"disabled" db:"disabled"`
 }
@@ -110,7 +110,6 @@ type RoutingOutboundCallPatch struct {
 	Name        *string `json:"name" db:"name"`
 	Description *string `json:"description" db:"description"`
 	Schema      *Lookup `json:"schema" db:"scheme"`
-	Priority    *int    `json:"priority" db:"priority"`
 	Pattern     *string `json:"pattern" db:"pattern"`
 	Disabled    *bool   `json:"disabled" db:"disabled"`
 }
@@ -126,10 +125,6 @@ func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
 
 	if patch.Schema != nil {
 		r.Schema = *patch.Schema
-	}
-
-	if patch.Priority != nil {
-		r.Priority = *patch.Priority
 	}
 
 	if patch.Pattern != nil {

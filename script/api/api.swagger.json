@@ -5533,6 +5533,58 @@
         ]
       }
     },
+    "/routing/outbound/calls/{from_id}/to/{to_id}": {
+      "patch": {
+        "summary": "Move RoutingOutboundCall",
+        "operationId": "MovePositionRoutingOutboundCall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMovePositionRoutingOutboundCallResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "from_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "to_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineMovePositionRoutingOutboundCallRequest"
+            }
+          }
+        ],
+        "tags": [
+          "RoutingOutboundCallService"
+        ]
+      }
+    },
     "/routing/outbound/calls/{id}": {
       "get": {
         "summary": "RoutingOutboundCall item",
@@ -7115,10 +7167,6 @@
         "pattern": {
           "type": "string"
         },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
-        },
         "disabled": {
           "type": "boolean",
           "format": "boolean"
@@ -7555,7 +7603,7 @@
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engineRoutingOutboundCall"
+            "$ref": "#/definitions/engineRoutingOutboundCallCompact"
           }
         }
       }
@@ -7839,6 +7887,32 @@
         },
         "display": {
           "type": "string"
+        }
+      }
+    },
+    "engineMovePositionRoutingOutboundCallRequest": {
+      "type": "object",
+      "properties": {
+        "from_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "to_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineMovePositionRoutingOutboundCallResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
@@ -8167,10 +8241,6 @@
         "pattern": {
           "type": "string"
         },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
-        },
         "disabled": {
           "type": "boolean",
           "format": "boolean"
@@ -8459,13 +8529,42 @@
         "pattern": {
           "type": "string"
         },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
+        "disabled": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineRoutingOutboundCallCompact": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "schema": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "pattern": {
+          "type": "string"
         },
         "disabled": {
           "type": "boolean",
           "format": "boolean"
+        },
+        "position": {
+          "type": "integer",
+          "format": "int32"
         },
         "domain_id": {
           "type": "string",
@@ -9207,10 +9306,6 @@
         },
         "pattern": {
           "type": "string"
-        },
-        "priority": {
-          "type": "integer",
-          "format": "int32"
         },
         "disabled": {
           "type": "boolean",

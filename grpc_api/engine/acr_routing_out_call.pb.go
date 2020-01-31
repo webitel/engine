@@ -25,13 +25,110 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+type MovePositionRoutingOutboundCallRequest struct {
+	FromId               int64    `protobuf:"varint,1,opt,name=from_id,json=fromId,proto3" json:"from_id,omitempty"`
+	ToId                 int64    `protobuf:"varint,2,opt,name=to_id,json=toId,proto3" json:"to_id,omitempty"`
+	DomainId             int64    `protobuf:"varint,3,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *MovePositionRoutingOutboundCallRequest) Reset() {
+	*m = MovePositionRoutingOutboundCallRequest{}
+}
+func (m *MovePositionRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
+func (*MovePositionRoutingOutboundCallRequest) ProtoMessage()    {}
+func (*MovePositionRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{0}
+}
+
+func (m *MovePositionRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MovePositionRoutingOutboundCallRequest.Unmarshal(m, b)
+}
+func (m *MovePositionRoutingOutboundCallRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MovePositionRoutingOutboundCallRequest.Marshal(b, m, deterministic)
+}
+func (m *MovePositionRoutingOutboundCallRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MovePositionRoutingOutboundCallRequest.Merge(m, src)
+}
+func (m *MovePositionRoutingOutboundCallRequest) XXX_Size() int {
+	return xxx_messageInfo_MovePositionRoutingOutboundCallRequest.Size(m)
+}
+func (m *MovePositionRoutingOutboundCallRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MovePositionRoutingOutboundCallRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MovePositionRoutingOutboundCallRequest proto.InternalMessageInfo
+
+func (m *MovePositionRoutingOutboundCallRequest) GetFromId() int64 {
+	if m != nil {
+		return m.FromId
+	}
+	return 0
+}
+
+func (m *MovePositionRoutingOutboundCallRequest) GetToId() int64 {
+	if m != nil {
+		return m.ToId
+	}
+	return 0
+}
+
+func (m *MovePositionRoutingOutboundCallRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
+type MovePositionRoutingOutboundCallResponse struct {
+	Success              bool     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *MovePositionRoutingOutboundCallResponse) Reset() {
+	*m = MovePositionRoutingOutboundCallResponse{}
+}
+func (m *MovePositionRoutingOutboundCallResponse) String() string { return proto.CompactTextString(m) }
+func (*MovePositionRoutingOutboundCallResponse) ProtoMessage()    {}
+func (*MovePositionRoutingOutboundCallResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{1}
+}
+
+func (m *MovePositionRoutingOutboundCallResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_MovePositionRoutingOutboundCallResponse.Unmarshal(m, b)
+}
+func (m *MovePositionRoutingOutboundCallResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_MovePositionRoutingOutboundCallResponse.Marshal(b, m, deterministic)
+}
+func (m *MovePositionRoutingOutboundCallResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MovePositionRoutingOutboundCallResponse.Merge(m, src)
+}
+func (m *MovePositionRoutingOutboundCallResponse) XXX_Size() int {
+	return xxx_messageInfo_MovePositionRoutingOutboundCallResponse.Size(m)
+}
+func (m *MovePositionRoutingOutboundCallResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MovePositionRoutingOutboundCallResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MovePositionRoutingOutboundCallResponse proto.InternalMessageInfo
+
+func (m *MovePositionRoutingOutboundCallResponse) GetSuccess() bool {
+	if m != nil {
+		return m.Success
+	}
+	return false
+}
+
 type PatchRoutingOutboundCallRequest struct {
 	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name                 string   `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Description          string   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Schema               *Lookup  `protobuf:"bytes,4,opt,name=schema,proto3" json:"schema,omitempty"`
 	Pattern              string   `protobuf:"bytes,5,opt,name=pattern,proto3" json:"pattern,omitempty"`
-	Priority             int32    `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
 	Disabled             bool     `protobuf:"varint,7,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	Fields               []string `protobuf:"bytes,8,rep,name=fields,proto3" json:"fields,omitempty"`
 	DomainId             int64    `protobuf:"varint,9,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
@@ -44,7 +141,7 @@ func (m *PatchRoutingOutboundCallRequest) Reset()         { *m = PatchRoutingOut
 func (m *PatchRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
 func (*PatchRoutingOutboundCallRequest) ProtoMessage()    {}
 func (*PatchRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{0}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{2}
 }
 
 func (m *PatchRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
@@ -100,13 +197,6 @@ func (m *PatchRoutingOutboundCallRequest) GetPattern() string {
 	return ""
 }
 
-func (m *PatchRoutingOutboundCallRequest) GetPriority() int32 {
-	if m != nil {
-		return m.Priority
-	}
-	return 0
-}
-
 func (m *PatchRoutingOutboundCallRequest) GetDisabled() bool {
 	if m != nil {
 		return m.Disabled
@@ -140,7 +230,7 @@ func (m *DeleteRoutingOutboundCallRequest) Reset()         { *m = DeleteRoutingO
 func (m *DeleteRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteRoutingOutboundCallRequest) ProtoMessage()    {}
 func (*DeleteRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{1}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{3}
 }
 
 func (m *DeleteRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
@@ -181,7 +271,6 @@ type UpdateRoutingOutboundCallRequest struct {
 	Description          string   `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Schema               *Lookup  `protobuf:"bytes,4,opt,name=schema,proto3" json:"schema,omitempty"`
 	Pattern              string   `protobuf:"bytes,5,opt,name=pattern,proto3" json:"pattern,omitempty"`
-	Priority             int32    `protobuf:"varint,6,opt,name=priority,proto3" json:"priority,omitempty"`
 	Disabled             bool     `protobuf:"varint,7,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	DomainId             int64    `protobuf:"varint,8,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -193,7 +282,7 @@ func (m *UpdateRoutingOutboundCallRequest) Reset()         { *m = UpdateRoutingO
 func (m *UpdateRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateRoutingOutboundCallRequest) ProtoMessage()    {}
 func (*UpdateRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{2}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{4}
 }
 
 func (m *UpdateRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
@@ -249,13 +338,6 @@ func (m *UpdateRoutingOutboundCallRequest) GetPattern() string {
 	return ""
 }
 
-func (m *UpdateRoutingOutboundCallRequest) GetPriority() int32 {
-	if m != nil {
-		return m.Priority
-	}
-	return 0
-}
-
 func (m *UpdateRoutingOutboundCallRequest) GetDisabled() bool {
 	if m != nil {
 		return m.Disabled
@@ -282,7 +364,7 @@ func (m *ReadRoutingOutboundCallRequest) Reset()         { *m = ReadRoutingOutbo
 func (m *ReadRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadRoutingOutboundCallRequest) ProtoMessage()    {}
 func (*ReadRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{3}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{5}
 }
 
 func (m *ReadRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
@@ -330,7 +412,7 @@ func (m *SearchRoutingOutboundCallRequest) Reset()         { *m = SearchRoutingO
 func (m *SearchRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchRoutingOutboundCallRequest) ProtoMessage()    {}
 func (*SearchRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{4}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{6}
 }
 
 func (m *SearchRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
@@ -377,7 +459,6 @@ type CreateRoutingOutboundCallRequest struct {
 	Description          string   `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	Schema               *Lookup  `protobuf:"bytes,3,opt,name=schema,proto3" json:"schema,omitempty"`
 	Pattern              string   `protobuf:"bytes,4,opt,name=pattern,proto3" json:"pattern,omitempty"`
-	Priority             int32    `protobuf:"varint,5,opt,name=priority,proto3" json:"priority,omitempty"`
 	Disabled             bool     `protobuf:"varint,6,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	DomainId             int64    `protobuf:"varint,7,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -389,7 +470,7 @@ func (m *CreateRoutingOutboundCallRequest) Reset()         { *m = CreateRoutingO
 func (m *CreateRoutingOutboundCallRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateRoutingOutboundCallRequest) ProtoMessage()    {}
 func (*CreateRoutingOutboundCallRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{5}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{7}
 }
 
 func (m *CreateRoutingOutboundCallRequest) XXX_Unmarshal(b []byte) error {
@@ -438,13 +519,6 @@ func (m *CreateRoutingOutboundCallRequest) GetPattern() string {
 	return ""
 }
 
-func (m *CreateRoutingOutboundCallRequest) GetPriority() int32 {
-	if m != nil {
-		return m.Priority
-	}
-	return 0
-}
-
 func (m *CreateRoutingOutboundCallRequest) GetDisabled() bool {
 	if m != nil {
 		return m.Disabled
@@ -469,7 +543,6 @@ type RoutingOutboundCall struct {
 	Description          string   `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
 	Schema               *Lookup  `protobuf:"bytes,8,opt,name=schema,proto3" json:"schema,omitempty"`
 	Pattern              string   `protobuf:"bytes,9,opt,name=pattern,proto3" json:"pattern,omitempty"`
-	Priority             int32    `protobuf:"varint,10,opt,name=priority,proto3" json:"priority,omitempty"`
 	Disabled             bool     `protobuf:"varint,11,opt,name=disabled,proto3" json:"disabled,omitempty"`
 	DomainId             int64    `protobuf:"varint,12,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -481,7 +554,7 @@ func (m *RoutingOutboundCall) Reset()         { *m = RoutingOutboundCall{} }
 func (m *RoutingOutboundCall) String() string { return proto.CompactTextString(m) }
 func (*RoutingOutboundCall) ProtoMessage()    {}
 func (*RoutingOutboundCall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{6}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{8}
 }
 
 func (m *RoutingOutboundCall) XXX_Unmarshal(b []byte) error {
@@ -565,13 +638,6 @@ func (m *RoutingOutboundCall) GetPattern() string {
 	return ""
 }
 
-func (m *RoutingOutboundCall) GetPriority() int32 {
-	if m != nil {
-		return m.Priority
-	}
-	return 0
-}
-
 func (m *RoutingOutboundCall) GetDisabled() bool {
 	if m != nil {
 		return m.Disabled
@@ -586,18 +652,113 @@ func (m *RoutingOutboundCall) GetDomainId() int64 {
 	return 0
 }
 
+type RoutingOutboundCallCompact struct {
+	Id                   int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name                 string   `protobuf:"bytes,6,opt,name=name,proto3" json:"name,omitempty"`
+	Description          string   `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	Schema               *Lookup  `protobuf:"bytes,8,opt,name=schema,proto3" json:"schema,omitempty"`
+	Pattern              string   `protobuf:"bytes,9,opt,name=pattern,proto3" json:"pattern,omitempty"`
+	Disabled             bool     `protobuf:"varint,11,opt,name=disabled,proto3" json:"disabled,omitempty"`
+	Position             int32    `protobuf:"varint,12,opt,name=position,proto3" json:"position,omitempty"`
+	DomainId             int64    `protobuf:"varint,13,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RoutingOutboundCallCompact) Reset()         { *m = RoutingOutboundCallCompact{} }
+func (m *RoutingOutboundCallCompact) String() string { return proto.CompactTextString(m) }
+func (*RoutingOutboundCallCompact) ProtoMessage()    {}
+func (*RoutingOutboundCallCompact) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1f0c72a243c9a3d, []int{9}
+}
+
+func (m *RoutingOutboundCallCompact) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RoutingOutboundCallCompact.Unmarshal(m, b)
+}
+func (m *RoutingOutboundCallCompact) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RoutingOutboundCallCompact.Marshal(b, m, deterministic)
+}
+func (m *RoutingOutboundCallCompact) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RoutingOutboundCallCompact.Merge(m, src)
+}
+func (m *RoutingOutboundCallCompact) XXX_Size() int {
+	return xxx_messageInfo_RoutingOutboundCallCompact.Size(m)
+}
+func (m *RoutingOutboundCallCompact) XXX_DiscardUnknown() {
+	xxx_messageInfo_RoutingOutboundCallCompact.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RoutingOutboundCallCompact proto.InternalMessageInfo
+
+func (m *RoutingOutboundCallCompact) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *RoutingOutboundCallCompact) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *RoutingOutboundCallCompact) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *RoutingOutboundCallCompact) GetSchema() *Lookup {
+	if m != nil {
+		return m.Schema
+	}
+	return nil
+}
+
+func (m *RoutingOutboundCallCompact) GetPattern() string {
+	if m != nil {
+		return m.Pattern
+	}
+	return ""
+}
+
+func (m *RoutingOutboundCallCompact) GetDisabled() bool {
+	if m != nil {
+		return m.Disabled
+	}
+	return false
+}
+
+func (m *RoutingOutboundCallCompact) GetPosition() int32 {
+	if m != nil {
+		return m.Position
+	}
+	return 0
+}
+
+func (m *RoutingOutboundCallCompact) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type ListRoutingOutboundCall struct {
-	Items                []*RoutingOutboundCall `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	Items                []*RoutingOutboundCallCompact `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
 }
 
 func (m *ListRoutingOutboundCall) Reset()         { *m = ListRoutingOutboundCall{} }
 func (m *ListRoutingOutboundCall) String() string { return proto.CompactTextString(m) }
 func (*ListRoutingOutboundCall) ProtoMessage()    {}
 func (*ListRoutingOutboundCall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1f0c72a243c9a3d, []int{7}
+	return fileDescriptor_b1f0c72a243c9a3d, []int{10}
 }
 
 func (m *ListRoutingOutboundCall) XXX_Unmarshal(b []byte) error {
@@ -618,7 +779,7 @@ func (m *ListRoutingOutboundCall) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ListRoutingOutboundCall proto.InternalMessageInfo
 
-func (m *ListRoutingOutboundCall) GetItems() []*RoutingOutboundCall {
+func (m *ListRoutingOutboundCall) GetItems() []*RoutingOutboundCallCompact {
 	if m != nil {
 		return m.Items
 	}
@@ -626,6 +787,8 @@ func (m *ListRoutingOutboundCall) GetItems() []*RoutingOutboundCall {
 }
 
 func init() {
+	proto.RegisterType((*MovePositionRoutingOutboundCallRequest)(nil), "engine.MovePositionRoutingOutboundCallRequest")
+	proto.RegisterType((*MovePositionRoutingOutboundCallResponse)(nil), "engine.MovePositionRoutingOutboundCallResponse")
 	proto.RegisterType((*PatchRoutingOutboundCallRequest)(nil), "engine.PatchRoutingOutboundCallRequest")
 	proto.RegisterType((*DeleteRoutingOutboundCallRequest)(nil), "engine.DeleteRoutingOutboundCallRequest")
 	proto.RegisterType((*UpdateRoutingOutboundCallRequest)(nil), "engine.UpdateRoutingOutboundCallRequest")
@@ -633,57 +796,65 @@ func init() {
 	proto.RegisterType((*SearchRoutingOutboundCallRequest)(nil), "engine.SearchRoutingOutboundCallRequest")
 	proto.RegisterType((*CreateRoutingOutboundCallRequest)(nil), "engine.CreateRoutingOutboundCallRequest")
 	proto.RegisterType((*RoutingOutboundCall)(nil), "engine.RoutingOutboundCall")
+	proto.RegisterType((*RoutingOutboundCallCompact)(nil), "engine.RoutingOutboundCallCompact")
 	proto.RegisterType((*ListRoutingOutboundCall)(nil), "engine.ListRoutingOutboundCall")
 }
 
 func init() { proto.RegisterFile("acr_routing_out_call.proto", fileDescriptor_b1f0c72a243c9a3d) }
 
 var fileDescriptor_b1f0c72a243c9a3d = []byte{
-	// 691 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x56, 0x4f, 0x6f, 0xd3, 0x3e,
-	0x18, 0x96, 0x93, 0x36, 0x6d, 0xdf, 0xfe, 0xb4, 0x83, 0x7f, 0x12, 0x4b, 0xb3, 0xb1, 0x85, 0x0a,
-	0x6d, 0xd1, 0x24, 0x56, 0x51, 0x6e, 0xdc, 0xd8, 0xb8, 0x20, 0x0d, 0x0d, 0x65, 0xe2, 0x5c, 0xb9,
-	0xb1, 0xe9, 0x2c, 0xd2, 0x38, 0x24, 0x0e, 0x52, 0x41, 0x5c, 0x10, 0xe2, 0x8f, 0x90, 0xb8, 0x20,
-	0xf1, 0xc5, 0x38, 0x72, 0xe5, 0xce, 0x47, 0x00, 0xd5, 0x49, 0x5a, 0x5a, 0x1a, 0xb7, 0x93, 0xb8,
-	0x70, 0xb3, 0xdf, 0xd7, 0x7a, 0xfc, 0xbc, 0xcf, 0x63, 0xfb, 0x35, 0x38, 0x24, 0x48, 0x06, 0x89,
-	0xc8, 0x24, 0x8f, 0x46, 0x03, 0x91, 0xc9, 0x41, 0x40, 0xc2, 0xf0, 0x38, 0x4e, 0x84, 0x14, 0xd8,
-	0x62, 0xd1, 0x88, 0x47, 0xcc, 0x69, 0x07, 0x22, 0x4a, 0x65, 0x1e, 0x74, 0x76, 0x47, 0x42, 0x8c,
-	0x42, 0xd6, 0x23, 0x31, 0xef, 0x91, 0x28, 0x12, 0x92, 0x48, 0x2e, 0xa2, 0x34, 0xcf, 0x76, 0xbf,
-	0x18, 0xb0, 0xff, 0x88, 0xc8, 0xe0, 0xd2, 0xcf, 0x21, 0xcf, 0x33, 0x39, 0x14, 0x59, 0x44, 0x4f,
-	0x49, 0x18, 0xfa, 0xec, 0x59, 0xc6, 0x52, 0x89, 0xb7, 0xc0, 0xe0, 0xd4, 0x46, 0x2e, 0xf2, 0x4c,
-	0xdf, 0xe0, 0x14, 0x63, 0xa8, 0x45, 0x64, 0xcc, 0x6c, 0xc3, 0x45, 0x5e, 0xcb, 0x57, 0x63, 0xec,
-	0x42, 0x9b, 0xb2, 0x34, 0x48, 0x78, 0x3c, 0x45, 0xb7, 0x4d, 0x95, 0xfa, 0x3d, 0x84, 0x0f, 0xc0,
-	0x4a, 0x83, 0x4b, 0x36, 0x26, 0x76, 0xcd, 0x45, 0x5e, 0xbb, 0xbf, 0x75, 0x9c, 0xb3, 0x3d, 0x3e,
-	0x13, 0xe2, 0x69, 0x16, 0xfb, 0x45, 0x16, 0xdb, 0xd0, 0x88, 0x89, 0x94, 0x2c, 0x89, 0xec, 0xba,
-	0x42, 0x29, 0xa7, 0xd8, 0x81, 0x66, 0x9c, 0x70, 0x91, 0x70, 0x39, 0xb1, 0x2d, 0x17, 0x79, 0x75,
-	0x7f, 0x36, 0x9f, 0xe6, 0x28, 0x4f, 0xc9, 0x30, 0x64, 0xd4, 0x6e, 0xb8, 0xc8, 0x6b, 0xfa, 0xb3,
-	0x39, 0xbe, 0x06, 0xd6, 0x13, 0xce, 0x42, 0x9a, 0xda, 0x4d, 0xd7, 0xf4, 0x5a, 0x7e, 0x31, 0xc3,
-	0x3b, 0xd0, 0xa2, 0x62, 0x4c, 0x78, 0x34, 0xe0, 0xd4, 0x6e, 0xa9, 0xf2, 0x9a, 0x79, 0xe0, 0x01,
-	0xed, 0x9e, 0x83, 0x7b, 0x9f, 0x85, 0x4c, 0xb2, 0x2b, 0x08, 0xb3, 0x00, 0x68, 0x2c, 0x01, 0xfe,
-	0x44, 0xe0, 0x3e, 0x8e, 0x29, 0xb9, 0x12, 0xe2, 0xbf, 0x26, 0xf5, 0x82, 0x02, 0xcd, 0x25, 0x05,
-	0x1e, 0xc2, 0x9e, 0xcf, 0x08, 0xfd, 0x5b, 0x82, 0x8e, 0xc0, 0xbd, 0x60, 0x24, 0xd1, 0x1e, 0x5d,
-	0x0c, 0xb5, 0x98, 0x8c, 0x98, 0x82, 0xac, 0xfb, 0x6a, 0x3c, 0x8d, 0xa5, 0xfc, 0x45, 0xae, 0x69,
-	0xdd, 0x57, 0xe3, 0xc5, 0x8d, 0xcc, 0xa5, 0x8d, 0x7e, 0x20, 0x70, 0x4f, 0x13, 0xa6, 0x77, 0xae,
-	0x74, 0x0a, 0x55, 0x3b, 0x65, 0xe8, 0x9c, 0x32, 0x37, 0x75, 0xaa, 0x56, 0xed, 0x54, 0x5d, 0xe3,
-	0x94, 0xa5, 0x73, 0xaa, 0xb1, 0x54, 0xf1, 0x27, 0x13, 0xfe, 0x5f, 0x51, 0xeb, 0x1f, 0xfe, 0x5c,
-	0x07, 0x08, 0x94, 0x30, 0x74, 0x40, 0x64, 0x61, 0x50, 0xab, 0x88, 0xdc, 0x93, 0xf8, 0xd6, 0x3c,
-	0x3d, 0x9c, 0x54, 0x54, 0x58, 0x2e, 0x3f, 0x99, 0x4c, 0xd1, 0x32, 0x75, 0x41, 0x14, 0x5a, 0x2d,
-	0x47, 0x2b, 0x22, 0x39, 0x5a, 0x99, 0x1e, 0xe6, 0xb5, 0xae, 0x40, 0x2b, 0x56, 0x9c, 0x4c, 0x66,
-	0x86, 0x58, 0xd5, 0x86, 0x34, 0x74, 0x86, 0x34, 0x37, 0x35, 0xa4, 0x55, 0x6d, 0x08, 0x68, 0x0c,
-	0x69, 0xeb, 0x0c, 0xf9, 0x6f, 0xc9, 0x90, 0x33, 0xd8, 0x3e, 0xe3, 0xa9, 0x5c, 0xe5, 0xc9, 0x6d,
-	0xa8, 0x73, 0xc9, 0xc6, 0xa9, 0x8d, 0x5c, 0xd3, 0x6b, 0xf7, 0x77, 0x4a, 0xc2, 0xab, 0xce, 0x6a,
-	0xbe, 0xb2, 0xff, 0xcd, 0x02, 0x67, 0x45, 0xfa, 0x82, 0x25, 0xcf, 0x79, 0xc0, 0xf0, 0x5b, 0x04,
-	0x9d, 0xca, 0xf3, 0x8e, 0xbd, 0x72, 0x83, 0x75, 0x57, 0xc2, 0xd1, 0x51, 0xe9, 0x76, 0x5f, 0x7f,
-	0xfd, 0xfe, 0xd9, 0xd8, 0xed, 0x6e, 0xf7, 0x8a, 0x66, 0xd6, 0x13, 0x45, 0xba, 0x37, 0xed, 0x68,
-	0xe9, 0x5d, 0x74, 0x84, 0xdf, 0x21, 0xe8, 0x54, 0x5e, 0xf1, 0x39, 0x91, 0x75, 0xaf, 0x80, 0xb3,
-	0x3f, 0x33, 0x71, 0xb5, 0x86, 0xdd, 0x7d, 0x45, 0xa6, 0x83, 0xab, 0xc8, 0xe0, 0x37, 0x08, 0xb6,
-	0x2b, 0xde, 0x2e, 0x7c, 0x30, 0x2b, 0x53, 0xfb, 0xb8, 0xe9, 0xe5, 0xb8, 0xa9, 0x18, 0xec, 0xe1,
-	0xdd, 0x0a, 0x06, 0xbd, 0x97, 0x9c, 0xbe, 0xc2, 0x1f, 0x11, 0x74, 0x2a, 0x7b, 0xc8, 0x5c, 0x90,
-	0x75, 0x6d, 0x46, 0x4f, 0xe5, 0x50, 0x51, 0xb9, 0xe1, 0x68, 0xa9, 0x4c, 0xed, 0xf9, 0x80, 0xc0,
-	0xae, 0xfa, 0x3b, 0xe0, 0xc3, 0x72, 0x8b, 0x35, 0xbf, 0x8b, 0x8d, 0xb8, 0xf4, 0xd7, 0x72, 0x79,
-	0x8f, 0xa0, 0x53, 0xd9, 0xaf, 0xe7, 0xca, 0xac, 0x6b, 0xe9, 0x1b, 0x99, 0x74, 0xa4, 0x65, 0x33,
-	0xb4, 0xd4, 0xcf, 0xea, 0xce, 0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x51, 0xcc, 0x1c, 0xa8, 0xaa,
-	0x09, 0x00, 0x00,
+	// 806 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x56, 0xcd, 0x6e, 0xeb, 0x44,
+	0x14, 0xd6, 0xe4, 0xd7, 0x39, 0x81, 0xbb, 0x98, 0x2b, 0x91, 0xc4, 0xb7, 0xdc, 0x18, 0x0b, 0xb5,
+	0xd1, 0x15, 0xc4, 0x22, 0x2c, 0x40, 0xec, 0x68, 0xd8, 0x54, 0x6a, 0xd5, 0xca, 0x15, 0xeb, 0x68,
+	0x62, 0x4f, 0xd3, 0x11, 0x8e, 0xc7, 0x78, 0xc6, 0x95, 0x42, 0xd5, 0x0d, 0x42, 0xfc, 0x88, 0x25,
+	0x2b, 0x9e, 0x85, 0xc7, 0xe8, 0x23, 0xc0, 0x13, 0xb0, 0x83, 0x15, 0xf2, 0xd8, 0x4e, 0x48, 0xc8,
+	0xd8, 0xa9, 0xc4, 0xa2, 0x3b, 0xcf, 0x39, 0xe3, 0x33, 0xdf, 0xf7, 0x9d, 0xf9, 0xf9, 0xc0, 0x24,
+	0x5e, 0x3c, 0x8b, 0x79, 0x22, 0x59, 0xb8, 0x98, 0xf1, 0x44, 0xce, 0x3c, 0x12, 0x04, 0xe3, 0x28,
+	0xe6, 0x92, 0xe3, 0x16, 0x0d, 0x17, 0x2c, 0xa4, 0x66, 0xd7, 0xe3, 0xa1, 0x90, 0x59, 0xd0, 0x3c,
+	0x5a, 0x70, 0xbe, 0x08, 0xa8, 0x43, 0x22, 0xe6, 0x90, 0x30, 0xe4, 0x92, 0x48, 0xc6, 0x43, 0x91,
+	0x65, 0x6d, 0x01, 0xc7, 0x17, 0xfc, 0x8e, 0x5e, 0x71, 0xc1, 0xd2, 0xb0, 0x9b, 0x15, 0xbe, 0x4c,
+	0xe4, 0x9c, 0x27, 0xa1, 0x3f, 0x25, 0x41, 0xe0, 0xd2, 0xaf, 0x13, 0x2a, 0x24, 0xee, 0x41, 0xfb,
+	0x26, 0xe6, 0xcb, 0x19, 0xf3, 0xfb, 0xc8, 0x42, 0xa3, 0xba, 0xdb, 0x4a, 0x87, 0x67, 0x3e, 0x7e,
+	0x09, 0x4d, 0xc9, 0xd3, 0x70, 0x4d, 0x85, 0x1b, 0x92, 0x9f, 0xf9, 0xf8, 0x15, 0x74, 0x7c, 0xbe,
+	0x24, 0x2c, 0x4c, 0x13, 0x75, 0x95, 0x30, 0xb2, 0xc0, 0x99, 0x6f, 0x4f, 0xe1, 0xa4, 0x72, 0x51,
+	0x11, 0xf1, 0x50, 0x50, 0xdc, 0x87, 0xb6, 0x48, 0x3c, 0x8f, 0x0a, 0xa1, 0x56, 0x35, 0xdc, 0x62,
+	0x68, 0xff, 0x8d, 0x60, 0x78, 0x45, 0xa4, 0x77, 0x5b, 0x82, 0xf9, 0x05, 0xd4, 0xd6, 0x70, 0x6b,
+	0xcc, 0xc7, 0x18, 0x1a, 0x21, 0x59, 0x52, 0x85, 0xb4, 0xe3, 0xaa, 0x6f, 0x6c, 0x41, 0xd7, 0xa7,
+	0xc2, 0x8b, 0x59, 0x94, 0x62, 0x51, 0x58, 0x3b, 0xee, 0xbf, 0x43, 0xf8, 0x18, 0x5a, 0xc2, 0xbb,
+	0xa5, 0x4b, 0xd2, 0x6f, 0x58, 0x68, 0xd4, 0x9d, 0xbc, 0x18, 0x67, 0x3a, 0x8f, 0xcf, 0x39, 0xff,
+	0x2a, 0x89, 0xdc, 0x3c, 0x9b, 0x62, 0x8d, 0x88, 0x94, 0x34, 0x0e, 0xfb, 0x4d, 0x55, 0xa5, 0x18,
+	0x62, 0x13, 0x0c, 0x9f, 0x09, 0x32, 0x0f, 0xa8, 0xdf, 0x6f, 0x2b, 0x1a, 0xeb, 0x31, 0x7e, 0x07,
+	0x5a, 0x37, 0x8c, 0x06, 0xbe, 0xe8, 0x1b, 0x56, 0x7d, 0xd4, 0x71, 0xf3, 0xd1, 0xb6, 0x82, 0x9d,
+	0x1d, 0x05, 0x2f, 0xc1, 0xfa, 0x82, 0x06, 0x54, 0xd2, 0x27, 0x90, 0xdf, 0x2a, 0x58, 0xdb, 0x29,
+	0xf8, 0x3b, 0x02, 0xeb, 0xcb, 0xc8, 0x27, 0x4f, 0xaa, 0xf8, 0x1c, 0xe5, 0xdc, 0x62, 0x69, 0xec,
+	0xb0, 0xbc, 0x80, 0xd7, 0x2e, 0x25, 0xfe, 0xff, 0x25, 0xda, 0x02, 0xac, 0x6b, 0x4a, 0xe2, 0xd2,
+	0x2d, 0x88, 0xa1, 0x11, 0x91, 0x05, 0x55, 0x25, 0x9b, 0xae, 0xfa, 0x4e, 0x63, 0x82, 0x7d, 0x93,
+	0xe9, 0xd6, 0x74, 0xd5, 0x77, 0xf9, 0x81, 0x79, 0x44, 0x60, 0x4d, 0x63, 0x5a, 0xde, 0x9d, 0xa2,
+	0x1b, 0x48, 0xdf, 0x8d, 0x5a, 0x59, 0x37, 0xea, 0x87, 0x76, 0xa3, 0xa1, 0xef, 0x46, 0xab, 0xac,
+	0x1b, 0xed, 0x1d, 0x56, 0x7f, 0xd6, 0xe0, 0xe5, 0x1e, 0x3e, 0xff, 0xe9, 0xc1, 0xbb, 0x00, 0x9e,
+	0x22, 0xef, 0xcf, 0x88, 0xcc, 0x9b, 0xd0, 0xc9, 0x23, 0x9f, 0x4b, 0xfc, 0xe1, 0x26, 0x3d, 0x5f,
+	0x69, 0x58, 0x14, 0xd3, 0x4f, 0x57, 0x69, 0xb5, 0x44, 0x6d, 0x74, 0x55, 0xad, 0x91, 0x55, 0xcb,
+	0x23, 0x59, 0xb5, 0x22, 0x3d, 0x5f, 0xa9, 0x8d, 0xb7, 0xa7, 0x5a, 0x3e, 0xe3, 0x74, 0xb5, 0x16,
+	0xbd, 0xa5, 0x17, 0xbd, 0x5d, 0x26, 0xba, 0x71, 0xa8, 0xe8, 0x1d, 0xbd, 0xe8, 0xdd, 0x32, 0xd1,
+	0xdf, 0xda, 0x11, 0xfd, 0x2f, 0x04, 0xe6, 0x1e, 0xd1, 0xa7, 0x7c, 0x19, 0x11, 0x4f, 0x7f, 0xc4,
+	0x9f, 0x13, 0x3f, 0x13, 0x8c, 0x28, 0x7f, 0x3a, 0x14, 0xbd, 0xa6, 0xbb, 0x1e, 0x6f, 0x73, 0x7f,
+	0x7b, 0x87, 0xfb, 0x35, 0xf4, 0xce, 0x99, 0x90, 0xfb, 0xf6, 0xdc, 0xa7, 0xd0, 0x64, 0x92, 0x2e,
+	0xd3, 0x57, 0xa6, 0x3e, 0xea, 0x4e, 0xec, 0x02, 0xb0, 0x5e, 0x2a, 0x37, 0xfb, 0x61, 0xf2, 0xab,
+	0xb1, 0x57, 0xd0, 0x6b, 0x1a, 0xdf, 0x31, 0x8f, 0xe2, 0xef, 0x11, 0x0c, 0xb4, 0x47, 0x17, 0x8f,
+	0x8a, 0x75, 0xaa, 0x4e, 0xb7, 0xf9, 0xaa, 0x04, 0x91, 0x6d, 0x7f, 0xfb, 0xf8, 0xc7, 0x2f, 0xb5,
+	0x23, 0xbb, 0xe7, 0xe4, 0xce, 0xc0, 0xe1, 0x79, 0xda, 0x49, 0xed, 0x81, 0xf8, 0x0c, 0xbd, 0xc1,
+	0x3f, 0x20, 0x18, 0x68, 0x6f, 0xab, 0x0d, 0x90, 0xaa, 0x0b, 0xcd, 0x1c, 0xae, 0x7b, 0xb9, 0x5f,
+	0x4a, 0x7b, 0xa8, 0xc0, 0x0c, 0xb0, 0x0e, 0x0c, 0xfe, 0x0e, 0x41, 0x4f, 0x73, 0x0d, 0xe3, 0xe3,
+	0x35, 0xcd, 0xd2, 0x7b, 0xba, 0x5c, 0x8e, 0xf7, 0x15, 0x82, 0xd7, 0xf8, 0x48, 0x83, 0xc0, 0xb9,
+	0x67, 0xfe, 0x03, 0xfe, 0x19, 0xc1, 0x40, 0xfb, 0xe4, 0x6d, 0x04, 0xa9, 0x7a, 0x15, 0xcb, 0xa1,
+	0x9c, 0x28, 0x28, 0xef, 0x99, 0xa5, 0x50, 0xd2, 0xf6, 0xfc, 0x84, 0xa0, 0xaf, 0xb3, 0x33, 0xf8,
+	0xa4, 0x58, 0xa2, 0xc2, 0xf0, 0x1c, 0x84, 0x65, 0x52, 0x89, 0xe5, 0x37, 0x04, 0xc3, 0x0a, 0x83,
+	0x86, 0xc7, 0xc5, 0x4a, 0x87, 0xd9, 0x47, 0xd3, 0x39, 0x78, 0x7e, 0xe6, 0xfc, 0xec, 0x4f, 0x14,
+	0xda, 0x8f, 0x26, 0x1f, 0x68, 0xd1, 0xe6, 0x76, 0xf4, 0xc1, 0x91, 0xdc, 0xb9, 0x57, 0x16, 0x54,
+	0xa1, 0xff, 0x11, 0xc1, 0x40, 0x6b, 0x8e, 0x36, 0x7d, 0xad, 0xf2, 0x4f, 0x07, 0x6d, 0xb1, 0x37,
+	0xa5, 0x5a, 0xce, 0x5b, 0xca, 0x64, 0x7f, 0xfc, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb7, 0x03,
+	0x80, 0xe3, 0xb5, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -708,6 +879,8 @@ type RoutingOutboundCallServiceClient interface {
 	UpdateRoutingOutboundCall(ctx context.Context, in *UpdateRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
 	// Patch RoutingOutboundCall
 	PatchRoutingOutboundCall(ctx context.Context, in *PatchRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
+	// Move RoutingOutboundCall
+	MovePositionRoutingOutboundCall(ctx context.Context, in *MovePositionRoutingOutboundCallRequest, opts ...grpc.CallOption) (*MovePositionRoutingOutboundCallResponse, error)
 	// Remove RoutingOutboundCall
 	DeleteRoutingOutboundCall(ctx context.Context, in *DeleteRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error)
 }
@@ -765,6 +938,15 @@ func (c *routingOutboundCallServiceClient) PatchRoutingOutboundCall(ctx context.
 	return out, nil
 }
 
+func (c *routingOutboundCallServiceClient) MovePositionRoutingOutboundCall(ctx context.Context, in *MovePositionRoutingOutboundCallRequest, opts ...grpc.CallOption) (*MovePositionRoutingOutboundCallResponse, error) {
+	out := new(MovePositionRoutingOutboundCallResponse)
+	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/MovePositionRoutingOutboundCall", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *routingOutboundCallServiceClient) DeleteRoutingOutboundCall(ctx context.Context, in *DeleteRoutingOutboundCallRequest, opts ...grpc.CallOption) (*RoutingOutboundCall, error) {
 	out := new(RoutingOutboundCall)
 	err := c.cc.Invoke(ctx, "/engine.RoutingOutboundCallService/DeleteRoutingOutboundCall", in, out, opts...)
@@ -786,6 +968,8 @@ type RoutingOutboundCallServiceServer interface {
 	UpdateRoutingOutboundCall(context.Context, *UpdateRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
 	// Patch RoutingOutboundCall
 	PatchRoutingOutboundCall(context.Context, *PatchRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
+	// Move RoutingOutboundCall
+	MovePositionRoutingOutboundCall(context.Context, *MovePositionRoutingOutboundCallRequest) (*MovePositionRoutingOutboundCallResponse, error)
 	// Remove RoutingOutboundCall
 	DeleteRoutingOutboundCall(context.Context, *DeleteRoutingOutboundCallRequest) (*RoutingOutboundCall, error)
 }
@@ -808,6 +992,9 @@ func (*UnimplementedRoutingOutboundCallServiceServer) UpdateRoutingOutboundCall(
 }
 func (*UnimplementedRoutingOutboundCallServiceServer) PatchRoutingOutboundCall(ctx context.Context, req *PatchRoutingOutboundCallRequest) (*RoutingOutboundCall, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PatchRoutingOutboundCall not implemented")
+}
+func (*UnimplementedRoutingOutboundCallServiceServer) MovePositionRoutingOutboundCall(ctx context.Context, req *MovePositionRoutingOutboundCallRequest) (*MovePositionRoutingOutboundCallResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MovePositionRoutingOutboundCall not implemented")
 }
 func (*UnimplementedRoutingOutboundCallServiceServer) DeleteRoutingOutboundCall(ctx context.Context, req *DeleteRoutingOutboundCallRequest) (*RoutingOutboundCall, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoutingOutboundCall not implemented")
@@ -907,6 +1094,24 @@ func _RoutingOutboundCallService_PatchRoutingOutboundCall_Handler(srv interface{
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoutingOutboundCallService_MovePositionRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MovePositionRoutingOutboundCallRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoutingOutboundCallServiceServer).MovePositionRoutingOutboundCall(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.RoutingOutboundCallService/MovePositionRoutingOutboundCall",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoutingOutboundCallServiceServer).MovePositionRoutingOutboundCall(ctx, req.(*MovePositionRoutingOutboundCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _RoutingOutboundCallService_DeleteRoutingOutboundCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteRoutingOutboundCallRequest)
 	if err := dec(in); err != nil {
@@ -948,6 +1153,10 @@ var _RoutingOutboundCallService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "PatchRoutingOutboundCall",
 			Handler:    _RoutingOutboundCallService_PatchRoutingOutboundCall_Handler,
+		},
+		{
+			MethodName: "MovePositionRoutingOutboundCall",
+			Handler:    _RoutingOutboundCallService_MovePositionRoutingOutboundCall_Handler,
 		},
 		{
 			MethodName: "DeleteRoutingOutboundCall",

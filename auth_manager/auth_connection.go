@@ -52,7 +52,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 
 	if err != nil {
 		if status.Code(err) == codes.Unauthenticated {
-			return nil, ErrStatusForbidden
+			return nil, ErrStatusUnauthenticated
 		}
 		return nil, ErrInternal
 	}

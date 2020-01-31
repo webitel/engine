@@ -23,7 +23,6 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	oldRouting.Name = routing.Name
 	oldRouting.Description = routing.Description
 	oldRouting.Pattern = routing.Pattern
-	oldRouting.Priority = routing.Priority
 	oldRouting.Disabled = routing.Disabled
 	oldRouting.UpdatedAt = routing.UpdatedAt
 
@@ -37,6 +36,10 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	}
 
 	return oldRouting, nil
+}
+
+func (app *App) ChangePositionOutboundCall(domainId, fromId, toId int64) *model.AppError {
+	return app.Store.RoutingOutboundCall().ChangePosition(domainId, fromId, toId)
 }
 
 func (a *App) RemoveRoutingOutboundCall(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {

@@ -190,6 +190,8 @@ type RoutingOutboundCallStore interface {
 	Get(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError)
 	Update(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+
+	ChangePosition(domainId, fromId, toId int64) *model.AppError
 }
 
 type RoutingVariableStore interface {

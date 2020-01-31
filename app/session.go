@@ -17,6 +17,9 @@ func (app *App) GetSession(token string) (*auth_manager.Session, *model.AppError
 		case auth_manager.ErrStatusForbidden:
 			return nil, model.NewAppError("App.GetSession", "app.session.forbidden", nil, err.Error(), http.StatusForbidden)
 
+		case auth_manager.ErrStatusUnauthenticated:
+			return nil, model.NewAppError("App.GetSession", "app.session.unauthenticated", nil, err.Error(), http.StatusUnauthorized)
+
 		case auth_manager.ErrValidId:
 			return nil, model.NewAppError("App.GetSession", "app.session.is_valid.id.app_error", nil, err.Error(), http.StatusBadRequest)
 

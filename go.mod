@@ -11,6 +11,7 @@ require (
 	github.com/gorilla/websocket v1.4.1
 	github.com/grpc-ecosystem/grpc-gateway v1.12.2
 	github.com/hashicorp/consul/api v1.3.0 // indirect
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
 	github.com/mattn/go-sqlite3 v2.0.2+incompatible // indirect
 	github.com/nicksnyder/go-i18n v1.10.1

@@ -41,6 +41,13 @@ service RoutingOutboundCallService {
         };
     }
 
+    // Move RoutingOutboundCall
+    rpc MovePositionRoutingOutboundCall(MovePositionRoutingOutboundCallRequest) returns (MovePositionRoutingOutboundCallResponse) {
+        option (google.api.http) = {
+            patch: "/routing/outbound/calls/{from_id}/to/{to_id}"
+            body: "*"
+        };
+    }
 
     // Remove RoutingOutboundCall
     rpc DeleteRoutingOutboundCall(DeleteRoutingOutboundCallRequest) returns (RoutingOutboundCall) {
@@ -50,6 +57,17 @@ service RoutingOutboundCallService {
     }
 }
 
+message MovePositionRoutingOutboundCallRequest {
+    int64 from_id = 1;
+    int64 to_id = 2;
+
+    int64 domain_id = 3;
+}
+
+message MovePositionRoutingOutboundCallResponse {
+    bool success = 1;
+}
+
 message PatchRoutingOutboundCallRequest {
     int64 id = 1;
 
@@ -57,7 +75,6 @@ message PatchRoutingOutboundCallRequest {
     string description = 3;
     Lookup schema = 4;
     string pattern = 5;
-    int32 priority = 6;
     bool disabled = 7;
 
     repeated string fields = 8;
@@ -78,7 +95,6 @@ message UpdateRoutingOutboundCallRequest {
     string description = 3;
     Lookup schema = 4;
     string pattern = 5;
-    int32 priority = 6;
     bool disabled = 7;
 
     int64 domain_id = 8;
@@ -101,7 +117,6 @@ message CreateRoutingOutboundCallRequest {
     string description = 2;
     Lookup schema = 3;
     string pattern = 4;
-    int32 priority = 5;
     bool disabled = 6;
 
     int64 domain_id = 7;
@@ -118,12 +133,24 @@ message RoutingOutboundCall {
     string description = 7;
     Lookup schema = 8;
     string pattern = 9;
-    int32 priority = 10;
     bool disabled = 11;
 
     int64 domain_id = 12;
 }
 
+message RoutingOutboundCallCompact {
+    int64 id = 1;
+
+    string name = 6;
+    string description = 7;
+    Lookup schema = 8;
+    string pattern = 9;
+    bool disabled = 11;
+    int32 position = 12;
+
+    int64 domain_id = 13;
+}
+
 message ListRoutingOutboundCall {
-    repeated RoutingOutboundCall items = 1;
+    repeated RoutingOutboundCallCompact items = 1;
 }

@@ -42,7 +42,6 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 		Name:        in.Name,
 		Description: in.Description,
 		Pattern:     in.Pattern,
-		Priority:    int(in.Priority),
 		Schema: model.Lookup{
 			Id: int(in.GetSchema().GetId()),
 		},
@@ -78,9 +77,9 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 		return nil, err
 	}
 
-	items := make([]*engine.RoutingOutboundCall, 0, len(list))
+	items := make([]*engine.RoutingOutboundCallCompact, 0, len(list))
 	for _, v := range list {
-		items = append(items, transformRoutingOutboundCall(v))
+		items = append(items, toRoutingOutboundCallCompact(v))
 	}
 	return &engine.ListRoutingOutboundCall{
 		Items: items,
@@ -136,7 +135,6 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 			Id: int(in.GetSchema().GetId()),
 		},
 		Pattern:  in.Pattern,
-		Priority: int(in.Priority),
 		Disabled: in.Disabled,
 	}
 
@@ -182,8 +180,6 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 			patch.Schema = &model.Lookup{
 				Id: int(in.GetSchema().GetId()),
 			}
-		case "priority":
-			patch.Priority = model.NewInt(int(in.GetPriority()))
 		case "string":
 			patch.Pattern = model.NewString(in.GetPattern())
 		case "disabled":
@@ -198,6 +194,32 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 	}
 
 	return transformRoutingOutboundCall(routing), nil
+}
+
+func (api *routingOutboundCall) MovePositionRoutingOutboundCall(ctx context.Context,
+	in *engine.MovePositionRoutingOutboundCallRequest) (*engine.MovePositionRoutingOutboundCallResponse, error) {
+
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	err = api.app.ChangePositionOutboundCall(session.Domain(in.GetDomainId()), in.GetFromId(), in.GetToId())
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.MovePositionRoutingOutboundCallResponse{Success: true}, nil
 }
 
 func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, in *engine.DeleteRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
@@ -237,8 +259,28 @@ func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.Routin
 		Description: src.Description,
 		Name:        src.Name,
 		Pattern:     src.Pattern,
-		Priority:    int32(src.Priority),
 		Disabled:    src.Disabled,
+	}
+
+	if src.GetSchemaId() != nil {
+		dst.Schema = &engine.Lookup{
+			Id:   int64(*src.GetSchemaId()),
+			Name: src.Schema.Name,
+		}
+	}
+
+	return dst
+}
+
+func toRoutingOutboundCallCompact(src *model.RoutingOutboundCall) *engine.RoutingOutboundCallCompact {
+	dst := &engine.RoutingOutboundCallCompact{
+		Id:          src.Id,
+		DomainId:    src.DomainId,
+		Description: src.Description,
+		Name:        src.Name,
+		Pattern:     src.Pattern,
+		Disabled:    src.Disabled,
+		Position:    int32(src.Position),
 	}
 
 	if src.GetSchemaId() != nil {

@@ -22,13 +22,13 @@ func (s SqlRoutingOutboundCallStore) Create(routing *model.RoutingOutboundCall) 
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
     insert into acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
-                                      scheme_id, pattern, priority, disabled)
-	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Priority, :Disabled)
+                                      scheme_id, pattern, disabled)
+	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Disabled)
 	returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id,c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as scheme,
-	   tmp.pattern, tmp.priority, disabled
+	   tmp.pattern, disabled
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
@@ -43,7 +43,6 @@ from tmp
 			"UpdatedBy":   routing.UpdatedBy.Id,
 			"SchemeId":    routing.Schema.Id,
 			"Pattern":     routing.Pattern,
-			"Priority":    routing.Priority,
 			"Disabled":    routing.Disabled,
 		})
 
@@ -66,13 +65,14 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, offset, limit in
 
 	if _, err := s.GetReplica().Select(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name)::jsonb as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.pattern, tmp.priority, disabled, cc_get_lookup(arst.id, arst.name) as scheme
+       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.pattern, disabled, cc_get_lookup(arst.id, arst.name) as scheme,
+       row_number() over (order by tmp.pos desc) as position
 from acr_routing_outbound_call tmp
 	inner join acr_routing_scheme arst on tmp.scheme_id = arst.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
 where tmp.domain_id = :DomainId
-order by tmp.id
+order by tmp.pos desc
 limit :Limit
 offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
 		return nil, model.NewAppError("SqlRoutingOutboundCallStore.GetAllPage", "store.sql_routing_out_call.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -87,7 +87,7 @@ func (s SqlRoutingOutboundCallStore) Get(domainId, id int64) (*model.RoutingOutb
 	if err := s.GetReplica().SelectOne(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as scheme, 
-		tmp.pattern, tmp.priority, disabled
+		tmp.pattern, disabled
 from acr_routing_outbound_call tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
@@ -113,14 +113,13 @@ func (s SqlRoutingOutboundCallStore) Update(routing *model.RoutingOutboundCall) 
         updated_by = :UpdatedBy,
         scheme_id = :SchemeId,
         pattern = :Pattern,
-        priority = :Priority,
         disabled = :Disabled
     where r.id = :Id and r.domain_id = :Domain
     returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as scheme, 
-		tmp.pattern, tmp.priority, disabled
+		tmp.pattern, disabled
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
@@ -134,7 +133,6 @@ from tmp
 			"UpdatedBy":   routing.UpdatedBy.Id,
 			"SchemeId":    routing.Schema.Id,
 			"Pattern":     routing.Pattern,
-			"Priority":    routing.Priority,
 			"Disabled":    routing.Disabled,
 		})
 
@@ -150,6 +148,39 @@ from tmp
 			fmt.Sprintf("Id=%v, %s", routing.Id, err.Error()), code)
 	}
 	return out, nil
+}
+
+func (s SqlRoutingOutboundCallStore) ChangePosition(domainId, fromId, toId int64) *model.AppError {
+	i, err := s.GetMaster().SelectInt(`with t as (
+		select f.id, case when f.id = :FromId then lag(f.pos) over () else lead(f.pos) over () end as new_pos, count(*) over () cnt
+		from acr_routing_outbound_call f
+		where f.id in (:FromId, :ToId) and f.domain_id = :DomainId
+	),
+	u as (
+		update acr_routing_outbound_call u
+		set pos = t.new_pos
+		from t
+		where t.id = u.id and t.cnt = 2 and  :FromId != :ToId
+		returning u.id
+	)
+	select count(*)
+	from u`, map[string]interface{}{
+		"FromId":   fromId,
+		"ToId":     toId,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlRoutingOutboundCallStore.ChangePosition", "store.sql_routing_out_call.change_position.app_error", nil,
+			fmt.Sprintf("FromId=%v, ToId=%v %s", fromId, toId, err.Error()), extractCodeFromErr(err))
+	}
+
+	if i == 0 {
+		return model.NewAppError("SqlRoutingOutboundCallStore.ChangePosition", "store.sql_routing_out_call.change_position.not_found", nil,
+			fmt.Sprintf("FromId=%v, ToId=%v", fromId, toId), http.StatusNotFound)
+	}
+
+	return nil
 }
 
 func (s SqlRoutingOutboundCallStore) Delete(domainId, id int64) *model.AppError {

@@ -1,10 +1,9 @@
 package sqlstore
 
 import (
+	"github.com/go-gorp/gorp"
 	_ "github.com/lib/pq"
 	"github.com/webitel/engine/store"
-
-	"github.com/go-gorp/gorp"
 )
 
 type SqlStore interface {
