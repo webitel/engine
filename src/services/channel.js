@@ -80,11 +80,21 @@ var Service = {
         );
 
         if (options.variables instanceof Object) {
+            const webitelData = {};
+
             for (let key in options.variables) {
                 if (options.variables.hasOwnProperty(key) && typeof options.variables[key] === 'string' && !isProtectedVariable(key)) {
-                    _originatorParam.push(`${key}=\'${(options.variables[key].replace(/\'|\r|\n|\t|\\/g, ``))}\'`)
+                    _originatorParam.push(`${key}=\'${(options.variables[key].replace(/\'|\r|\n|\t|\\/g, ``))}\'`);
+                    webitelData[key] = options.variables[key];
                 }
             }
+
+            try {
+                _originatorParam.push("webitel_data=\\'" + JSON.stringify(webitelData).replace(/\s/g, '\\s') + "\\'");
+            } catch (e) {
+                return cb(e)
+            }
+
         }
 
         const dialString = `originate {${_originatorParam.join(',')}}user/${options['user']} ${_extension} XML default ${_extension} ${_extension}`;
