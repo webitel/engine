@@ -2,7 +2,9 @@ package auth_manager
 
 import (
 	"context"
-	"github.com/webitel/engine/auth_manager/auth"
+	"google.golang.org/grpc/metadata"
+
+	"github.com/webitel/engine/auth_manager/api"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/connectivity"
@@ -25,7 +27,7 @@ type authConnection struct {
 	name   string
 	host   string
 	client *grpc.ClientConn
-	api    auth.SAClient
+	api    api.AuthClient
 }
 
 func NewAuthServiceConnection(name, url string) (AuthClient, error) {
@@ -41,14 +43,17 @@ func NewAuthServiceConnection(name, url string) (AuthClient, error) {
 		return nil, err
 	}
 
-	connection.api = auth.NewSAClient(connection.client)
+	connection.api = api.NewAuthClient(connection.client)
 
 	return connection, nil
 }
 
 func (ac *authConnection) GetSession(token string) (*Session, error) {
+	//FIXME
+	header := metadata.New(map[string]string{"x-webitel-access": token})
+	ctx := metadata.NewOutgoingContext(context.TODO(), header)
 
-	resp, err := ac.api.Current(context.TODO(), &auth.VerifyTokenRequest{token})
+	resp, err := ac.api.UserInfo(ctx, &api.UserinfoRequest{})
 
 	if err != nil {
 		if status.Code(err) == codes.Unauthenticated {
@@ -57,16 +62,16 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		return nil, ErrInternal
 	}
 
-	if resp.Session == nil {
-		return nil, ErrStatusForbidden
+	if resp == nil {
+		return nil, ErrStatusUnauthenticated
 	}
 
 	session := &Session{
-		Id:         resp.Session.Uuid,
-		UserId:     resp.Session.UserId,
-		DomainId:   resp.Session.Dc,
-		DomainName: resp.Session.Domain,
-		Expire:     resp.Session.ExpiresAt,
+		Id:         token,
+		UserId:     resp.UserId,
+		DomainId:   resp.Dc,
+		DomainName: resp.Domain,
+		Expire:     resp.ExpiresAt,
 		Token:      token,
 		Scopes:     transformScopes(resp.Scope),
 		RoleIds:    transformRoles(resp.Roles),
@@ -94,25 +99,52 @@ func (ac *authConnection) Close() error {
 	return nil
 }
 
-func transformScopes(src []*auth.AccessScope) []SessionPermission {
+func transformScopes(src []*api.Objclass) []SessionPermission {
 	dst := make([]SessionPermission, 0, len(src))
+	var access int
 	for _, v := range src {
+		access, _ = parseAccess(v.Access) //
 		dst = append(dst, SessionPermission{
 			Id:   int(v.Id),
 			Name: v.Class,
 			//Abac:   v.Abac,
 			Obac:   v.Obac,
 			Rbac:   v.Rbac,
-			Access: v.Access,
+			Access: uint32(access),
 		})
 	}
 	return dst
 }
 
-func transformRoles(src map[string]int64) []int {
+func transformRoles(src []*api.ObjectId) []int {
 	dst := make([]int, 0, len(src))
 	for _, v := range src {
-		dst = append(dst, int(v))
+		dst = append(dst, int(v.Id))
 	}
 	return dst
+}
+
+func parseAccess(s string) (grants int, err error) {
+	// grants = 0 // NoAccess
+	var grant int
+	for _, c := range s {
+		switch c {
+		case 'x':
+			grant = 8 // XMode
+		case 'r':
+			grant = 4 // ReadMode
+		case 'w':
+			grant = 2 // WriteMode
+		case 'd':
+			grant = 1 // DeleteMode
+		default:
+			return 0, ErrValidScope
+		}
+		if (grants & grant) == grant { // grants.HasMode(grant)
+			grants |= (grant << 4) // grants.GrantMode(grant)
+			continue
+		}
+		grants |= grant // grants.SetMode(grant)
+	}
+	return grants, nil
 }

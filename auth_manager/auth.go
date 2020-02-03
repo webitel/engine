@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	AUTH_SERVICE_NAME = "go.webitel.dsa"
+	AUTH_SERVICE_NAME = "go.webitel.app"
 )
 
 const (

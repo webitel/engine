@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package api;
+
+// 
+message ObjectId {
+
+    int64  id = 1;   // identifier
+    string name = 2; // display name
+}

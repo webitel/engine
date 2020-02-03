@@ -73,7 +73,6 @@ func httpCodeToGrpc(c int) codes.Code {
 		return codes.PermissionDenied
 	default:
 		return codes.Internal
-
 	}
 }
 
