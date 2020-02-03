@@ -9,6 +9,10 @@ type CommunicationType struct {
 	Description string `json:"description" db:"description"`
 }
 
+type SearchCommunicationType struct {
+	ListRequest
+}
+
 func (s *CommunicationType) IsValid() *AppError {
 	return nil
 }

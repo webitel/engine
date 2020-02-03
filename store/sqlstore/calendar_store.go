@@ -68,7 +68,7 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 	}
 }
 
-func (s SqlCalendarStore) GetAllPage(domainId int64, offset, limit int) ([]*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) GetAllPage(domainId int64, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
 	var calendars []*model.Calendar
 
 	if _, err := s.GetReplica().Select(&calendars,
@@ -89,10 +89,15 @@ func (s SqlCalendarStore) GetAllPage(domainId int64, offset, limit int) ([]*mode
        left join calendar_timezones ct on c.timezone_id = ct.id
 	   left join directory.wbt_user uc on uc.id = c.created_by
 	   left join directory.wbt_user u on u.id = c.updated_by
-where c.domain_id = :DomainId
+where c.domain_id = :DomainId and ( (:Q::varchar isnull or c.name ilike :Q::varchar) or (:Q::varchar isnull or c.description ilike :Q::varchar))
 order by id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetAllPage", "store.sql_calendar.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return calendars, nil
@@ -118,7 +123,7 @@ func (s SqlCalendarStore) CheckAccess(domainId, id int64, groups []int, access a
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
 	var calendars []*model.Calendar
 
 	if _, err := s.GetReplica().Select(&calendars,
@@ -144,10 +149,17 @@ where c.domain_id = :DomainId
     exists(select 1
       from calendar_acl a
       where a.dc = c.domain_id and a.object = c.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  )
+  ) and ( (:Q::varchar isnull or c.name ilike :Q::varchar) or (:Q::varchar isnull or c.description ilike :Q::varchar))
 order by id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+			"Groups":   pq.Array(groups),
+			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetAllPage", "store.sql_calendar.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return calendars, nil
@@ -248,11 +260,17 @@ func (s SqlCalendarStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-func (s SqlCalendarStore) GetTimezoneAllPage(offset, limit int) ([]*model.Timezone, *model.AppError) {
+func (s SqlCalendarStore) GetTimezoneAllPage(search *model.SearchTimezone) ([]*model.Timezone, *model.AppError) {
 	var timezones []*model.Timezone
 
-	if _, err := s.GetReplica().Select(&timezones, `select id, name || ' ' || utc_offset::text as name, utc_offset::text as "offset" from calendar_timezones 
-		order by name limit :Limit offset :Offset`, map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
+	if _, err := s.GetReplica().Select(&timezones, `select id, name || ' ' || utc_offset::text as name, utc_offset::text as "offset" 
+		from calendar_timezones  t
+		where  (:Q::varchar isnull or t.name ilike :Q::varchar)
+		order by name limit :Limit offset :Offset`, map[string]interface{}{
+		"Limit":  search.GetLimit(),
+		"Offset": search.GetOffset(),
+		"Q":      search.GetQ(),
+	}); err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetTimezoneAllPage", "store.sql_calendar_timezone.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return timezones, nil

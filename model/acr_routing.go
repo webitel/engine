@@ -10,6 +10,10 @@ type RoutingSchema struct {
 	Debug       bool   `json:"debug" db:"debug"`
 }
 
+type SearchRoutingSchema struct {
+	ListRequest
+}
+
 type RoutingSchemaPath struct {
 	UpdatedById int
 	Name        *string `json:"name" db:"name"`
@@ -103,6 +107,10 @@ type RoutingOutboundCall struct {
 	Position    int    `json:"position" db:"position"`
 	Pattern     string `json:"pattern" db:"pattern"`
 	Disabled    bool   `json:"disabled" db:"disabled"`
+}
+
+type SearchRoutingOutboundCall struct {
+	ListRequest
 }
 
 type RoutingOutboundCallPatch struct {

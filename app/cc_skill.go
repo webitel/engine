@@ -10,8 +10,13 @@ func (app *App) GetSkill(id, domainId int64) (*model.Skill, *model.AppError) {
 	return app.Store.Skill().Get(domainId, id)
 }
 
-func (app *App) GetSkillsPage(domainId int64, page, perPage int) ([]*model.Skill, *model.AppError) {
-	return app.Store.Skill().GetAllPage(domainId, page*perPage, perPage)
+func (app *App) GetSkillsPage(domainId int64, search *model.SearchSkill) ([]*model.Skill, bool, *model.AppError) {
+	list, err := app.Store.Skill().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) RemoveSkill(domainId, id int64) (*model.Skill, *model.AppError) {

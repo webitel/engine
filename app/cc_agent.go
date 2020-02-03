@@ -14,12 +14,22 @@ func (app *App) CreateAgent(agent *model.Agent) (*model.Agent, *model.AppError) 
 	return app.Store.Agent().Create(agent)
 }
 
-func (a *App) GetAgentsPage(domainId int64, page, perPage int) ([]*model.Agent, *model.AppError) {
-	return a.Store.Agent().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetAgentsPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
+	list, err := a.Store.Agent().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.Agent, *model.AppError) {
-	return a.Store.Agent().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
+func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
+	list, err := a.Store.Agent().GetAllPageByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetAgentStateHistoryPage(agentId, from, to int64, page, perPage int) ([]*model.AgentState, *model.AppError) {

@@ -13,12 +13,22 @@ func (app *App) CreateAgentTeam(team *model.AgentTeam) (*model.AgentTeam, *model
 	return app.Store.AgentTeam().Create(team)
 }
 
-func (a *App) GetAgentTeamsPage(domainId int64, page, perPage int) ([]*model.AgentTeam, *model.AppError) {
-	return a.Store.AgentTeam().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetAgentTeamsPage(domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, bool, *model.AppError) {
+	list, err := a.Store.AgentTeam().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentTeamsPageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.AgentTeam, *model.AppError) {
-	return a.Store.AgentTeam().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
+func (a *App) GetAgentTeamsPageByGroups(domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, bool, *model.AppError) {
+	list, err := a.Store.AgentTeam().GetAllPageByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetAgentTeamById(domainId, id int64) (*model.AgentTeam, *model.AppError) {

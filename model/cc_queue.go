@@ -18,6 +18,10 @@ type Queue struct {
 	Description    string    `json:"description" db:"description"`
 }
 
+type SearchQueue struct {
+	ListRequest
+}
+
 type QueuePatch struct {
 	Strategy       *string   `json:"strategy" db:"strategy"`
 	Enabled        *bool     `json:"enabled" db:"enabled"`

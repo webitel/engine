@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option go_package = "github.com/webitel/engine/grpc_api/engine";
+
 import "const.proto";
 import "google/api/annotations.proto";
 
@@ -108,8 +110,9 @@ message ReadRoutingOutboundCallRequest {
 message SearchRoutingOutboundCallRequest {
     int32 page = 1;
     int32 size = 2;
+    string q = 3;
 
-    int64 domain_id = 3;
+    int64 domain_id = 4;
 }
 
 message CreateRoutingOutboundCallRequest {
@@ -152,5 +155,6 @@ message RoutingOutboundCallCompact {
 }
 
 message ListRoutingOutboundCall {
-    repeated RoutingOutboundCallCompact items = 1;
+    bool next = 1;
+    repeated RoutingOutboundCallCompact items = 2;
 }

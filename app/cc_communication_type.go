@@ -6,8 +6,13 @@ func (app *App) CreateCommunicationType(comm *model.CommunicationType) (*model.C
 	return app.Store.CommunicationType().Create(comm)
 }
 
-func (app *App) GetCommunicationTypePage(domainId int64, page, perPage int) ([]*model.CommunicationType, *model.AppError) {
-	return app.Store.CommunicationType().GetAllPage(domainId, page*perPage, perPage)
+func (app *App) GetCommunicationTypePage(domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, bool, *model.AppError) {
+	list, err := app.Store.CommunicationType().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetCommunicationType(id, domainId int64) (*model.CommunicationType, *model.AppError) {

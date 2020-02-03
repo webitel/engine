@@ -102,11 +102,14 @@ message SearchListCommunicationRequest {
     int64 list_id = 1;
     int32 page = 2;
     int32 size = 3;
-    int64 domain_id = 4;
+    string q = 4;
+
+    int64 domain_id = 5;
 }
 
 message ListOfListCommunication {
-    repeated ListCommunication items = 1;
+    bool next = 1;
+    repeated ListCommunication items = 2;
 }
 
 message CreateListCommunicationRequest {
@@ -144,13 +147,16 @@ message ReadListRequest {
 }
 
 message ListOfList {
-    repeated List items = 1;
+    bool next = 1;
+    repeated List items = 2;
 }
 
 message SearchListRequest {
     int32 page = 1;
     int32 size = 2;
-    int64 domain_id = 3;
+    string q = 3;
+
+    int64 domain_id = 4;
 }
 
 message CreateListRequest {

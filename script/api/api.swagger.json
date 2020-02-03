@@ -64,6 +64,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -149,6 +155,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -322,6 +334,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -1022,6 +1040,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -1238,6 +1262,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -1452,6 +1482,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -1675,6 +1711,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -1919,6 +1961,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -3323,6 +3371,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -3788,6 +3842,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -4300,6 +4360,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -4514,6 +4580,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -5485,6 +5557,12 @@
             "format": "int32"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -5794,6 +5872,12 @@
             "required": false,
             "type": "integer",
             "format": "int32"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "domain_id",
@@ -7328,6 +7412,10 @@
     "engineListAgent": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7383,6 +7471,10 @@
     "engineListAgentTeam": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7394,6 +7486,10 @@
     "engineListBucket": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7405,6 +7501,10 @@
     "engineListCalendar": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7435,6 +7535,10 @@
     "engineListCommunicationType": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7468,6 +7572,10 @@
     "engineListOfList": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7479,6 +7587,10 @@
     "engineListOfListCommunication": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7490,6 +7602,10 @@
     "engineListOutboundResource": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7512,6 +7628,10 @@
     "engineListOutboundResourceGroup": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7534,6 +7654,10 @@
     "engineListQueue": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7600,6 +7724,10 @@
     "engineListRoutingOutboundCall": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7611,6 +7739,10 @@
     "engineListRoutingSchema": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7633,6 +7765,10 @@
     "engineListSkill": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {
@@ -7655,6 +7791,10 @@
     "engineListTimezoneResponse": {
       "type": "object",
       "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
         "items": {
           "type": "array",
           "items": {

@@ -6,8 +6,13 @@ func (app *App) CreateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	return app.Store.RoutingOutboundCall().Create(routing)
 }
 
-func (app *App) GetRoutingOutboundCallPage(domainId int64, page, perPage int) ([]*model.RoutingOutboundCall, *model.AppError) {
-	return app.Store.RoutingOutboundCall().GetAllPage(domainId, page*perPage, perPage)
+func (app *App) GetRoutingOutboundCallPage(domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, *model.AppError) {
+	list, err := app.Store.RoutingOutboundCall().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetRoutingOutboundCallById(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {

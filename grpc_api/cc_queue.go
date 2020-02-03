@@ -82,11 +82,20 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 	}
 
 	var list []*model.Queue
+	var endList bool
+	req := &model.SearchQueue{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
 	if permission.Rbac {
-		list, err = api.app.GetQueuePageByGroups(session.Domain(in.DomainId), session.RoleIds, int(in.Page), int(in.Size))
+		list, endList, err = api.app.GetQueuePageByGroups(session.Domain(in.DomainId), session.RoleIds, req)
 	} else {
-		list, err = api.app.GetQueuePage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+		list, endList, err = api.app.GetQueuePage(session.Domain(in.DomainId), req)
 	}
 
 	if err != nil {
@@ -98,6 +107,7 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 		items = append(items, transformQueue(v))
 	}
 	return &engine.ListQueue{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

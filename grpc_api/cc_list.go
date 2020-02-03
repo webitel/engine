@@ -64,11 +64,20 @@ func (api *list) SearchList(ctx context.Context, in *engine.SearchListRequest) (
 	}
 
 	var list []*model.List
+	var endList bool
+	req := &model.SearchList{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
 	if permission.Rbac {
-		list, err = api.app.GetListPageByGroups(session.Domain(in.DomainId), session.RoleIds, int(in.Page), int(in.Size))
+		list, endList, err = api.app.GetListPageByGroups(session.Domain(in.DomainId), session.RoleIds, req)
 	} else {
-		list, err = api.app.GetListPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+		list, endList, err = api.app.GetListPage(session.Domain(in.DomainId), req)
 	}
 
 	if err != nil {
@@ -80,6 +89,7 @@ func (api *list) SearchList(ctx context.Context, in *engine.SearchListRequest) (
 		items = append(items, toEngineList(v))
 	}
 	return &engine.ListOfList{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -254,14 +264,28 @@ func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchL
 	}
 
 	var communication []*model.ListCommunication
+	var endList bool
+	req := &model.SearchListCommunication{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
-	communication, err = api.app.GetListCommunicationPage(session.Domain(in.DomainId), in.GetListId(), int(in.GetPage()), int(in.GetSize()))
+	communication, endList, err = api.app.GetListCommunicationPage(session.Domain(in.DomainId), in.GetListId(), req)
+
+	if err != nil {
+		return nil, err
+	}
 
 	items := make([]*engine.ListCommunication, 0, len(communication))
 	for _, v := range communication {
 		items = append(items, toEngineListCommunication(v))
 	}
 	return &engine.ListOfListCommunication{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

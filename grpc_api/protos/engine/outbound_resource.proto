@@ -133,7 +133,9 @@ message ReadOutboundResourceRequest {
 message SearchOutboundResourceRequest {
     int32 page = 1;
     int32 size = 2;
-    int64 domain_id = 3;
+    string q = 3;
+
+    int64 domain_id = 4;
 }
 
 message PatchOutboundResourceRequest {
@@ -215,5 +217,6 @@ message OutboundResource {
 }
 
 message ListOutboundResource {
-    repeated OutboundResource items = 1;
+    bool next = 1;
+    repeated OutboundResource items = 2;
 }

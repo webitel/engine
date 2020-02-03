@@ -13,12 +13,22 @@ func (a *App) CreateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	return a.Store.Queue().Create(queue)
 }
 
-func (a *App) GetQueuePage(domainId int64, page, perPage int) ([]*model.Queue, *model.AppError) {
-	return a.Store.Queue().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetQueuePage(domainId int64, search *model.SearchQueue) ([]*model.Queue, bool, *model.AppError) {
+	list, err := a.Store.Queue().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetQueuePageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.Queue, *model.AppError) {
-	return a.Store.Queue().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
+func (a *App) GetQueuePageByGroups(domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, bool, *model.AppError) {
+	list, err := a.Store.Queue().GetAllPageByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetQueueById(domainId, id int64) (*model.Queue, *model.AppError) {

@@ -71,13 +71,13 @@ type UserStore interface {
 
 type CalendarStore interface {
 	Create(calendar *model.Calendar) (*model.Calendar, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.Calendar, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Calendar, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError)
 	Get(domainId int64, id int64) (*model.Calendar, *model.AppError)
 	Update(calendar *model.Calendar) (*model.Calendar, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 
-	GetTimezoneAllPage(offset, limit int) ([]*model.Timezone, *model.AppError)
+	GetTimezoneAllPage(search *model.SearchTimezone) ([]*model.Timezone, *model.AppError)
 
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 }
@@ -85,7 +85,7 @@ type CalendarStore interface {
 type SkillStore interface {
 	Create(skill *model.Skill) (*model.Skill, *model.AppError)
 	Get(domainId int64, id int64) (*model.Skill, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.Skill, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchSkill) ([]*model.Skill, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 	Update(skill *model.Skill) (*model.Skill, *model.AppError)
 }
@@ -94,8 +94,8 @@ type AgentTeamStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 
 	Create(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.AgentTeam, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.AgentTeam, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError)
 	Get(domainId int64, id int64) (*model.AgentTeam, *model.AppError)
 	Update(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -105,8 +105,8 @@ type AgentStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 
 	Create(agent *model.Agent) (*model.Agent, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.Agent, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Agent, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, *model.AppError)
 	Get(domainId int64, id int64) (*model.Agent, *model.AppError)
 	Update(agent *model.Agent) (*model.Agent, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -137,8 +137,8 @@ type ResourceTeamStore interface {
 type OutboundResourceStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundCallResource, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundCallResource, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError)
 	Get(domainId int64, id int64) (*model.OutboundCallResource, *model.AppError)
 	Update(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -153,8 +153,8 @@ type OutboundResourceStore interface {
 type OutboundResourceGroupStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundResourceGroup, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, *model.AppError)
 	Get(domainId int64, id int64) (*model.OutboundResourceGroup, *model.AppError)
 	Update(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -170,7 +170,7 @@ type OutboundResourceInGroupStore interface {
 
 type RoutingSchemaStore interface {
 	Create(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingSchema, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, *model.AppError)
 	Get(domainId int64, id int64) (*model.RoutingSchema, *model.AppError)
 	Update(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -186,7 +186,7 @@ type RoutingInboundCallStore interface {
 
 type RoutingOutboundCallStore interface {
 	Create(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingOutboundCall, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, *model.AppError)
 	Get(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError)
 	Update(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -205,8 +205,8 @@ type RoutingVariableStore interface {
 type QueueStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	Create(queue *model.Queue) (*model.Queue, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.Queue, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Queue, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchQueue) ([]*model.Queue, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, *model.AppError)
 	Get(domainId int64, id int64) (*model.Queue, *model.AppError)
 	Update(queue *model.Queue) (*model.Queue, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
@@ -238,7 +238,7 @@ type SupervisorTeamStore interface {
 
 type CommunicationTypeStore interface {
 	Create(comm *model.CommunicationType) (*model.CommunicationType, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.CommunicationType, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, *model.AppError)
 	Get(domainId int64, id int64) (*model.CommunicationType, *model.AppError)
 	Update(cType *model.CommunicationType) (*model.CommunicationType, *model.AppError)
 	Delete(domainId int64, id int64) *model.AppError
@@ -258,8 +258,8 @@ type MemberStore interface {
 type BucketSore interface {
 	Create(bucket *model.Bucket) (*model.Bucket, *model.AppError)
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.Bucket, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Bucket, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchBucket) ([]*model.Bucket, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchBucket) ([]*model.Bucket, *model.AppError)
 	Get(domainId int64, id int64) (*model.Bucket, *model.AppError)
 	Update(bucket *model.Bucket) (*model.Bucket, *model.AppError)
 	Delete(domainId int64, id int64) *model.AppError
@@ -276,15 +276,15 @@ type BucketInQueueStore interface {
 type ListStore interface {
 	Create(list *model.List) (*model.List, *model.AppError)
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.List, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.List, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchList) ([]*model.List, *model.AppError)
+	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchList) ([]*model.List, *model.AppError)
 	Get(domainId int64, id int64) (*model.List, *model.AppError)
 	Update(list *model.List) (*model.List, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 
 	//Communications
 	CreateCommunication(comm *model.ListCommunication) (*model.ListCommunication, *model.AppError)
-	GetAllPageCommunication(domainId, listId int64, offset, limit int) ([]*model.ListCommunication, *model.AppError)
+	GetAllPageCommunication(domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, *model.AppError)
 	GetCommunication(domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError)
 	UpdateCommunication(domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError)
 	DeleteCommunication(domainId, listId, id int64) *model.AppError

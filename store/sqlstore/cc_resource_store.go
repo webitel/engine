@@ -77,7 +77,7 @@ func (s SqlOutboundResourceStore) CheckAccess(domainId, id int64, groups []int, 
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlOutboundResourceStore) GetAllPage(domainId int64, offset, limit int) ([]*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) GetAllPage(domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError) {
 	var resources []*model.OutboundCallResource
 	if _, err := s.GetReplica().Select(&resources, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
@@ -88,11 +88,16 @@ func (s SqlOutboundResourceStore) GetAllPage(domainId int64, offset, limit int) 
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
 				left join directory.sip_gateway gw on gw.id = s.gateway_id
-		where s.domain_id = :DomainId
+		where s.domain_id = :DomainId and ( (:Q::varchar isnull or (s.name ilike :Q::varchar ) )) 
 		order by s.id
 		limit :Limit
 		offset :Offset
-		`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+		`, map[string]interface{}{
+		"DomainId": domainId,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
+	}); err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -100,7 +105,7 @@ func (s SqlOutboundResourceStore) GetAllPage(domainId int64, offset, limit int) 
 	}
 }
 
-func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError) {
 	var resources []*model.OutboundCallResource
 	if _, err := s.GetReplica().Select(&resources, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
@@ -115,11 +120,18 @@ func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []in
 			exists(select 1
 			  from cc_outbound_resource_acl a
 			  where a.dc = s.domain_id and a.object = s.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-		  )
+		  ) and ( (:Q::varchar isnull or (s.name ilike :Q::varchar ) )) 
 		order by s.id
 		limit :Limit
 		offset :Offset
-		`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
+		`, map[string]interface{}{
+		"DomainId": domainId,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+	}); err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {

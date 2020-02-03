@@ -18,6 +18,10 @@ type OutboundCallResource struct {
 	Gateway               *Lookup     `json:"gateway" db:"gateway"`
 }
 
+type SearchOutboundCallResource struct {
+	ListRequest
+}
+
 type ResourceDisplay struct {
 	Id         int64  `json:"id" db:"id"`
 	Display    string `json:"display" db:"display"`

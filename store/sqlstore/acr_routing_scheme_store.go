@@ -48,7 +48,7 @@ from s
 	}
 }
 
-func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, *model.AppError) {
 	var schemes []*model.RoutingSchema
 
 	if _, err := s.GetReplica().Select(&schemes,
@@ -57,10 +57,15 @@ func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, offset, limit int) ([]
 from acr_routing_scheme s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by
-where s.domain_id = :DomainId
+where s.domain_id = :DomainId and ( (:Q::varchar isnull or s.name ilike :Q::varchar) )
 order by s.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlRoutingSchemaStore.GetAllPage", "store.sql_routing_schema.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return schemes, nil

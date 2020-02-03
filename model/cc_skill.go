@@ -7,6 +7,10 @@ type Skill struct {
 	Description string `json:"description" db:"description"`
 }
 
+type SearchSkill struct {
+	ListRequest
+}
+
 func (s *Skill) IsValid() *AppError {
 	return nil
 }

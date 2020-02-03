@@ -57,24 +57,29 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 	}
 }
 
-func (s SqlAgentStore) GetAllPage(domainId int64, offset, limit int) ([]*model.Agent, *model.AppError) {
+func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, *model.AppError) {
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
 		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
-				where domain_id = :DomainId
+				where domain_id = :DomainId and ( (:Q::varchar isnull or (a.description ilike :Q::varchar or a.status ilike :Q::varchar or ct.name ilike :Q::varchar ) ))  
 				order by a.id
 			limit :Limit
-			offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+			offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return agents, nil
 	}
 }
 
-func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Agent, *model.AppError) {
+func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, *model.AppError) {
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
@@ -85,10 +90,17 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, offset, 
 					exists(select 1
 					  from cc_agent_acl acl
 					  where acl.dc = a.domain_id and acl.object = a.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
-				  )
+				  ) and ( (:Q::varchar isnull or (a.description ilike :Q::varchar or a.status ilike :Q::varchar or ct.name ilike :Q::varchar ) ))
 				order by a.id
 			limit :Limit
-			offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
+			offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+			"Groups":   pq.Array(groups),
+			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return agents, nil

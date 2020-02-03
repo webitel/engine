@@ -25,6 +25,10 @@ type Agent struct {
 	Description     string `json:"description" db:"description"`
 }
 
+type SearchAgent struct {
+	ListRequest
+}
+
 type AgentState struct {
 	Id        int64   `json:"id" db:"id"`
 	JoinedAt  int64   `json:"joined_at" db:"joined_at"`

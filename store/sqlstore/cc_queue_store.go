@@ -84,7 +84,7 @@ from q
 	}
 }
 
-func (s SqlQueueStore) GetAllPage(domainId int64, offset, limit int) ([]*model.Queue, *model.AppError) {
+func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
 	var queues []*model.Queue
 
 	if _, err := s.GetReplica().Select(&queues,
@@ -98,17 +98,22 @@ from cc_queue q
 	left join directory.wbt_user u on u.id = q.updated_by
     left join cc_list cl on q.dnc_list_id = cl.id
     left join cc_team ct on q.team_id = ct.id
-where q.domain_id = :DomainId
+where q.domain_id = :DomainId and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
 order by q.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return queues, nil
 	}
 }
 
-func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.Queue, *model.AppError) {
+func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
 	var queues []*model.Queue
 
 	if _, err := s.GetReplica().Select(&queues,
@@ -126,10 +131,17 @@ where q.domain_id = :DomainId  and (
     exists(select 1
       from cc_queue_acl a
       where a.dc = c.domain_id and a.object = q.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  )
+  ) and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
 order by q.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+			"Groups":   pq.Array(groups),
+			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return queues, nil

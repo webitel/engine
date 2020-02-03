@@ -7,6 +7,10 @@ type Bucket struct {
 	Description string `json:"description" db:"description"`
 }
 
+type SearchBucket struct {
+	ListRequest
+}
+
 type QueueBucket struct {
 	Id      int64  `json:"id" db:"id"`
 	QueueId int64  `json:"queue_id" db:"queue_id"`

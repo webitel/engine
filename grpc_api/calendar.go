@@ -2,29 +2,22 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
 
 type calendar struct {
-	app *app.App
+	*API
 }
 
-func NewCalendarApi(app *app.App) *calendar {
+func NewCalendarApi(app *API) *calendar {
 	return &calendar{app}
 }
 
 func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalendarRequest) (*engine.Calendar, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	calendar := &model.Calendar{
@@ -72,11 +65,7 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 		calendar.EndAt = model.NewInt64(in.EndAt)
 	}
 
-	if err = calendar.IsValid(); err != nil {
-		return nil, err
-	}
-
-	calendar, err = api.app.CreateCalendar(calendar)
+	calendar, err = api.ctrl.CreateCalendar(session, calendar)
 	if err != nil {
 		return nil, err
 	}
@@ -91,18 +80,18 @@ func (api *calendar) SearchCalendar(ctx context.Context, in *engine.SearchCalend
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
 	var list []*model.Calendar
-
-	if permission.Rbac {
-		list, err = api.app.GetCalendarPageByGroups(session.Domain(in.DomainId), session.RoleIds, int(in.Page), int(in.Size))
-	} else {
-		list, err = api.app.GetCalendarsPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchCalendar{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
 	}
+
+	list, endList, err = api.ctrl.SearchCalendar(session, req)
 
 	if err != nil {
 		return nil, err
@@ -113,6 +102,7 @@ func (api *calendar) SearchCalendar(ctx context.Context, in *engine.SearchCalend
 		items = append(items, transformCalendar(v))
 	}
 	return &engine.ListCalendar{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -122,24 +112,8 @@ func (api *calendar) ReadCalendar(ctx context.Context, in *engine.ReadCalendarRe
 	if err != nil {
 		return nil, err
 	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
 	var calendar *model.Calendar
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	calendar, err = api.app.GetCalendarById(session.Domain(in.DomainId), in.Id)
+	calendar, err = api.ctrl.GetCalendar(session, in.DomainId, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -152,24 +126,6 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-		}
 	}
 
 	calendar := &model.Calendar{
@@ -208,11 +164,7 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 		})
 	}
 
-	if err = calendar.IsValid(); err != nil {
-		return nil, err
-	}
-
-	calendar, err = api.app.UpdateCalendar(calendar)
+	calendar, err = api.ctrl.UpdateCalendar(session, calendar)
 
 	if err != nil {
 		return nil, err
@@ -227,22 +179,8 @@ func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalend
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
-	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.CalendarCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
-		}
-	}
-
 	var calendar *model.Calendar
-	calendar, err = api.app.RemoveCalendar(session.Domain(in.DomainId), in.Id)
+	calendar, err = api.ctrl.DeleteCalendar(session, in.DomainId, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +189,15 @@ func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalend
 }
 
 func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimezonesRequest) (*engine.ListTimezoneResponse, error) {
-	list, err := api.app.GetCalendarTimezoneAllPage(int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchTimezone{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+		},
+	}
+	list, endList, err := api.app.GetCalendarTimezoneAllPage(req)
 	if err != nil {
 		return nil, err
 	}
@@ -262,6 +208,7 @@ func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimez
 	}
 
 	return &engine.ListTimezoneResponse{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

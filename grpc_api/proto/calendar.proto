@@ -80,7 +80,8 @@ message AcceptOfDay {
 }
 
 message ListCalendar {
-    repeated Calendar items = 1;
+    bool next = 1;
+    repeated Calendar items = 2;
 }
 
 
@@ -98,7 +99,9 @@ message CreateCalendarRequest {
 message SearchCalendarRequest {
     int32 page = 1;
     int32 size = 2;
-    int64 domain_id = 3;
+    string q = 3;
+
+    int64 domain_id = 4;
 }
 
 message ReadCalendarRequest {
@@ -128,10 +131,13 @@ message UpdateCalendarRequest {
 message SearchTimezonesRequest {
     int32 page = 1;
     int32 size = 2;
+
+    string q = 3;
 }
 
 message ListTimezoneResponse {
-    repeated Timezone items = 1;
+    bool next = 1;
+    repeated Timezone items = 2;
 }
 
 message Timezone {

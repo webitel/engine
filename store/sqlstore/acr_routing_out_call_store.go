@@ -60,7 +60,7 @@ from tmp
 	return out, nil
 }
 
-func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, *model.AppError) {
 	var routing []*model.RoutingOutboundCall
 
 	if _, err := s.GetReplica().Select(&routing,
@@ -71,10 +71,15 @@ from acr_routing_outbound_call tmp
 	inner join acr_routing_scheme arst on tmp.scheme_id = arst.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
-where tmp.domain_id = :DomainId
+where tmp.domain_id = :DomainId and ( (:Q::varchar isnull or tmp.name ilike :Q::varchar) or (:Q::varchar isnull or tmp.description ilike :Q::varchar))
 order by tmp.pos desc
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlRoutingOutboundCallStore.GetAllPage", "store.sql_routing_out_call.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return routing, nil
@@ -152,9 +157,12 @@ from tmp
 
 func (s SqlRoutingOutboundCallStore) ChangePosition(domainId, fromId, toId int64) *model.AppError {
 	i, err := s.GetMaster().SelectInt(`with t as (
-		select f.id, case when f.id = :FromId then lag(f.pos) over () else lead(f.pos) over () end as new_pos, count(*) over () cnt
-		from acr_routing_outbound_call f
-		where f.id in (:FromId, :ToId) and f.domain_id = :DomainId
+		select f.id,
+           case when f.pos > lead(f.pos) over () then lead(f.pos) over () else lag(f.pos) over (order by f.pos desc) end as new_pos,
+           count(*) over () cnt
+        from acr_routing_outbound_call f
+        where f.id in (:FromId, :ToId) and f.domain_id = :DomainId
+        order by f.pos desc
 	),
 	u as (
 		update acr_routing_outbound_call u

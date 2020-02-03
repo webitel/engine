@@ -15,6 +15,10 @@ type AgentTeam struct {
 	UpdatedAt         int64  `json:"updated_at" db:"updated_at"`
 }
 
+type SearchAgentTeam struct {
+	ListRequest
+}
+
 func (team *AgentTeam) IsValid() *AppError {
 	return nil
 }

@@ -47,7 +47,7 @@ func (s SqlSkillStore) Get(domainId int64, id int64) (*model.Skill, *model.AppEr
 	}
 }
 
-func (s SqlSkillStore) GetAllPage(domainId int64, offset, limit int) ([]*model.Skill, *model.AppError) {
+func (s SqlSkillStore) GetAllPage(domainId int64, search *model.SearchSkill) ([]*model.Skill, *model.AppError) {
 	var skills []*model.Skill
 
 	if _, err := s.GetReplica().Select(&skills,
@@ -55,10 +55,15 @@ func (s SqlSkillStore) GetAllPage(domainId int64, offset, limit int) ([]*model.S
        c.name,
        c.description
 from cc_skill c
-where c.domain_id = :DomainId
+where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar ) )) 
 order by id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlSkillStore.GetAllPage", "store.sql_skill.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return skills, nil

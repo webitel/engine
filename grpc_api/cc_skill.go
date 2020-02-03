@@ -47,7 +47,17 @@ func (api *skill) SearchSkill(ctx context.Context, in *engine.SearchSkillRequest
 	}
 
 	var list []*model.Skill
-	list, err = api.app.GetSkillsPage(session.Domain(int64(in.DomainId)), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchSkill{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetSkillsPage(session.Domain(in.DomainId), req)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +67,7 @@ func (api *skill) SearchSkill(ctx context.Context, in *engine.SearchSkillRequest
 		items = append(items, transformSkill(v))
 	}
 	return &engine.ListSkill{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

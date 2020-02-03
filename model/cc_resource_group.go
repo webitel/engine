@@ -11,6 +11,10 @@ type OutboundResourceGroup struct {
 	Time          []OutboundResourceGroupTime `json:"time" db:"time"`
 }
 
+type SearchOutboundResourceGroup struct {
+	ListRequest
+}
+
 type OutboundResourceGroupTime struct {
 	StartTimeOfDay int16 `json:"start_time_of_day" db:"start_time_of_day"`
 	EndTimeOfDay   int16 `json:"end_time_of_day" db:"end_time_of_day"`

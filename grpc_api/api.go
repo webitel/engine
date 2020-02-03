@@ -2,12 +2,14 @@ package grpc_api
 
 import (
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/controller"
 	"github.com/webitel/engine/grpc_api/engine"
 	"google.golang.org/grpc"
 )
 
 type API struct {
 	app                   *app.App
+	ctrl                  *controller.Controller
 	calendar              *calendar
 	skill                 *skill
 	agentTeam             *agentTeam
@@ -32,8 +34,11 @@ type API struct {
 }
 
 func Init(a *app.App, server *grpc.Server) {
-	api := &API{app: a}
-	api.calendar = NewCalendarApi(a)
+	api := &API{
+		app:  a,
+		ctrl: controller.NewController(a),
+	}
+	api.calendar = NewCalendarApi(api)
 	api.skill = NewSkillApi(a)
 	api.agentTeam = NewAgentTeamApi(a)
 	api.agent = NewAgentApi(a)
@@ -47,7 +52,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.supervisorInTeam = NewSupervisorInTeamApi(a)
 
 	api.routingSchema = NewRoutingSchemaApi(a)
-	api.routingOutboundCall = NewRoutingOutboundCallApi(a)
+	api.routingOutboundCall = NewRoutingOutboundCallApi(api)
 	api.routingVariable = NewRoutingVariableApi(a)
 	api.communicationType = NewCommunicationTypeApi(a)
 	api.bucket = NewBucketApi(a)

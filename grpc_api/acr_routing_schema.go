@@ -74,8 +74,18 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 	var list []*model.RoutingSchema
+	var endList bool
 
-	list, err = api.app.GetRoutingSchemaPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+	req := &model.SearchRoutingSchema{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetRoutingSchemaPage(session.Domain(in.DomainId), req)
 
 	if err != nil {
 		return nil, err
@@ -86,6 +96,7 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 		items = append(items, transformRoutingSchema(v))
 	}
 	return &engine.ListRoutingSchema{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

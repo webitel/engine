@@ -93,8 +93,9 @@ message ReadRoutingSchemaRequest {
 message SearchRoutingSchemaRequest {
     int32 page = 1;
     int32 size = 2;
+    string q = 3;
 
-    int64 domain_id = 3;
+    int64 domain_id = 4;
 }
 
 message CreateRoutingSchemaRequest {
@@ -126,5 +127,6 @@ message RoutingSchema {
 }
 
 message ListRoutingSchema {
-    repeated RoutingSchema items = 1;
+    bool next = 1;
+    repeated RoutingSchema items = 2;
 }

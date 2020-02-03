@@ -73,7 +73,7 @@ func (s SqlListStore) CheckAccess(domainId, id int64, groups []int, access auth_
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlListStore) GetAllPage(domainId int64, offset, limit int) ([]*model.List, *model.AppError) {
+func (s SqlListStore) GetAllPage(domainId int64, search *model.SearchList) ([]*model.List, *model.AppError) {
 	var list []*model.List
 
 	if _, err := s.GetReplica().Select(&list,
@@ -89,17 +89,22 @@ func (s SqlListStore) GetAllPage(domainId int64, offset, limit int) ([]*model.Li
 from cc_list i
     left join directory.wbt_user uc on uc.id = i.created_by
     left join directory.wbt_user u on u.id = i.updated_by
-where i.domain_id = :DomainId
+where i.domain_id = :DomainId and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.name ilike :Q::varchar ) )) 
 order by i.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlListStore.GetAllPage", "store.sql_list.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return list, nil
 	}
 }
 
-func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, offset, limit int) ([]*model.List, *model.AppError) {
+func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchList) ([]*model.List, *model.AppError) {
 	var list []*model.List
 
 	if _, err := s.GetReplica().Select(&list,
@@ -120,10 +125,17 @@ where i.domain_id = :DomainId
     exists(select 1
       from cc_list_acl a
       where a.dc = i.domain_id and a.object = i.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  )
+  ) and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.name ilike :Q::varchar ) )) 
 order by i.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "Groups": pq.Array(groups), "Access": auth_manager.PERMISSION_ACCESS_READ.Value()}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+			"Groups":   pq.Array(groups),
+			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlListStore.GetAllPage", "store.sql_list.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return list, nil
@@ -219,16 +231,23 @@ returning *`,
 	}
 }
 
-func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, offset, limit int) ([]*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, *model.AppError) {
 	var communication []*model.ListCommunication
 
 	if _, err := s.GetReplica().Select(&communication,
 		`select i.id, i.number, i.description, i.list_id
 from cc_list_communications i
 where i.list_id = :ListId  and exists(select 1 from cc_list l where l.id = i.list_id and l.domain_id = :DomainId)
+	and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.number ilike :Q::varchar ) )) 
 order by i.id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "ListId": listId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"ListId":   listId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlListStore.GetAllPageCommunication", "store.sql_list.get_all_communication.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return communication, nil

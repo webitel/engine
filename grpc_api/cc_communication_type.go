@@ -49,7 +49,17 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 	}
 
 	var list []*model.CommunicationType
-	list, err = api.app.GetCommunicationTypePage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchCommunicationType{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetCommunicationTypePage(session.Domain(in.DomainId), req)
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +69,7 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 		items = append(items, toEngineCommunicationType(v))
 	}
 	return &engine.ListCommunicationType{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

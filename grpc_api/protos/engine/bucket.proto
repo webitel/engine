@@ -54,11 +54,14 @@ message UpdateBucketRequest {
 message SearchBucketRequest {
     int32 page = 1;
     int32 size = 2;
-    int64 domain_id = 3;
+    string q = 3;
+
+    int64 domain_id = 4;
 }
 
 message ListBucket {
-    repeated Bucket items = 1;
+    bool next = 1;
+    repeated Bucket items = 2;
 }
 
 message ReadBucketRequest {

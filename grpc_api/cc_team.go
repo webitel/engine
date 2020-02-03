@@ -65,11 +65,20 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 	}
 
 	var list []*model.AgentTeam
+	var endList bool
+	req := &model.SearchAgentTeam{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
 	if permission.Rbac {
-		list, err = api.app.GetAgentTeamsPageByGroups(session.Domain(in.DomainId), session.RoleIds, int(in.Page), int(in.Size))
+		list, endList, err = api.app.GetAgentTeamsPageByGroups(session.Domain(in.DomainId), session.RoleIds, req)
 	} else {
-		list, err = api.app.GetAgentTeamsPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+		list, endList, err = api.app.GetAgentTeamsPage(session.Domain(in.DomainId), req)
 	}
 
 	if err != nil {
@@ -82,6 +91,7 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 	}
 
 	return &engine.ListAgentTeam{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

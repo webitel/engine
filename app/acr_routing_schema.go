@@ -6,8 +6,13 @@ func (a *App) CreateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSc
 	return a.Store.RoutingSchema().Create(scheme)
 }
 
-func (a *App) GetRoutingSchemaPage(domainId int64, page, perPage int) ([]*model.RoutingSchema, *model.AppError) {
-	return a.Store.RoutingSchema().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetRoutingSchemaPage(domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, *model.AppError) {
+	list, err := a.Store.RoutingSchema().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetRoutingSchemaById(domainId, id int64) (*model.RoutingSchema, *model.AppError) {

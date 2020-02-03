@@ -35,16 +35,21 @@ func (s SqlCommunicationTypeStore) Create(comm *model.CommunicationType) (*model
 	}
 }
 
-func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, offset, limit int) ([]*model.CommunicationType, *model.AppError) {
+func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, *model.AppError) {
 	var communications []*model.CommunicationType
 
 	if _, err := s.GetReplica().Select(&communications,
 		`select id, name, code, description, type
 from cc_communication c
-where c.domain_id = :DomainId
+where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.description ilike :Q::varchar or c.name ilike :Q::varchar or c.code ilike :Q::varchar ) )) 
 order by id
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
 		return nil, model.NewAppError("SqlCommunicationTypeStore.GetAllPage", "store.sql_communication_type.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return communications, nil

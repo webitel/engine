@@ -37,12 +37,20 @@ type Calendar struct {
 	Excepts     []*CalendarExceptDate `json:"excepts" db:"excepts"`
 }
 
+type SearchCalendar struct {
+	ListRequest
+}
+
 // Description of the Timezone
 // swagger:model Timezone
 type Timezone struct {
 	Id     int64  `json:"id" db:"id"`
 	Name   string `json:"name" db:"name"`
 	Offset string `json:"offset" db:"offset"`
+}
+
+type SearchTimezone struct {
+	ListRequest
 }
 
 func (a *CalendarAcceptOfDay) IsValid() *AppError {

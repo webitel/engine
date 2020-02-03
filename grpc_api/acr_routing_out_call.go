@@ -2,29 +2,23 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
 
 type routingOutboundCall struct {
-	app *app.App
+	*API
 }
 
-func NewRoutingOutboundCallApi(app *app.App) *routingOutboundCall {
-	return &routingOutboundCall{app: app}
+func NewRoutingOutboundCallApi(api *API) *routingOutboundCall {
+	return &routingOutboundCall{api}
 }
 
 func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, in *engine.CreateRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
-	if !permission.CanCreate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	routing := &model.RoutingOutboundCall{
@@ -48,11 +42,7 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 		Disabled: in.Disabled,
 	}
 
-	if err = routing.IsValid(); err != nil {
-		return nil, err
-	}
-
-	if routing, err = api.app.CreateRoutingOutboundCall(routing); err != nil {
+	if routing, err = api.ctrl.CreateRoutingOutboundCall(session, routing); err != nil {
 		return nil, err
 	} else {
 		return transformRoutingOutboundCall(routing), nil
@@ -65,13 +55,18 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
 	var list []*model.RoutingOutboundCall
+	var isEndList bool
+	req := &model.SearchRoutingOutboundCall{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
-	list, err = api.app.GetRoutingOutboundCallPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+	list, isEndList, err = api.ctrl.SearchRoutingOutboundCall(session, req)
 
 	if err != nil {
 		return nil, err
@@ -82,6 +77,7 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 		items = append(items, toRoutingOutboundCallCompact(v))
 	}
 	return &engine.ListRoutingOutboundCall{
+		Next:  !isEndList,
 		Items: items,
 	}, nil
 }
@@ -98,7 +94,7 @@ func (api *routingOutboundCall) ReadRoutingOutboundCall(ctx context.Context, in 
 	}
 
 	var routing *model.RoutingOutboundCall
-	routing, err = api.app.GetRoutingOutboundCallById(session.Domain(in.DomainId), in.Id)
+	routing, err = api.ctrl.GetRoutingOutboundCall(session, in.DomainId, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -109,15 +105,6 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	var routing = &model.RoutingOutboundCall{
@@ -138,11 +125,7 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 		Disabled: in.Disabled,
 	}
 
-	if err = routing.IsValid(); err != nil {
-		return nil, err
-	}
-
-	routing, err = api.app.UpdateRoutingOutboundCall(routing)
+	routing, err = api.ctrl.UpdateRoutingOutboundCall(session, routing)
 
 	if err != nil {
 		return nil, err
@@ -155,15 +138,6 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	var routing *model.RoutingOutboundCall
@@ -186,8 +160,8 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 			patch.Disabled = model.NewBool(in.GetDisabled())
 		}
 	}
-	patch.UpdatedById = int(session.UserId)
-	routing, err = api.app.PatchRoutingOutboundCall(session.Domain(in.GetDomainId()), in.GetId(), patch)
+
+	routing, err = api.ctrl.PatchRoutingOutboundCall(session, in.GetDomainId(), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -204,16 +178,7 @@ func (api *routingOutboundCall) MovePositionRoutingOutboundCall(ctx context.Cont
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
-
-	err = api.app.ChangePositionOutboundCall(session.Domain(in.GetDomainId()), in.GetFromId(), in.GetToId())
+	err = api.ctrl.ChangePositionOutboundCall(session, in.GetDomainId(), in.GetFromId(), in.GetToId())
 
 	if err != nil {
 		return nil, err
@@ -228,13 +193,8 @@ func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, i
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
-	if !permission.CanDelete() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
-	}
-
 	var routing *model.RoutingOutboundCall
-	routing, err = api.app.RemoveRoutingOutboundCall(session.Domain(in.DomainId), in.Id)
+	routing, err = api.ctrl.DeleteRoutingOutboundCall(session, in.DomainId, in.Id)
 	if err != nil {
 		return nil, err
 	}

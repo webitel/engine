@@ -5,8 +5,22 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) GetCalendarsPage(domainId int64, page, perPage int) ([]*model.Calendar, *model.AppError) {
-	return a.Store.Calendar().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetCalendarsPage(domainId int64, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
+	list, err := a.Store.Calendar().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (a *App) GetCalendarPageByGroups(domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
+	list, err := a.Store.Calendar().GetAllPageByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) CreateCalendar(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
@@ -41,10 +55,6 @@ func (a *App) CalendarCheckAccess(domainId, id int64, groups []int, access auth_
 	return a.Store.Calendar().CheckAccess(domainId, id, groups, access)
 }
 
-func (a *App) GetCalendarPageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.Calendar, *model.AppError) {
-	return a.Store.Calendar().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
-}
-
 func (a *App) GetCalendarById(domainId, id int64) (*model.Calendar, *model.AppError) {
 	return a.Store.Calendar().Get(domainId, id)
 }
@@ -63,6 +73,11 @@ func (a *App) RemoveCalendar(domainId, id int64) (*model.Calendar, *model.AppErr
 	return calendar, nil
 }
 
-func (a *App) GetCalendarTimezoneAllPage(page, perPage int) ([]*model.Timezone, *model.AppError) {
-	return a.Store.Calendar().GetTimezoneAllPage(page*perPage, perPage)
+func (a *App) GetCalendarTimezoneAllPage(search *model.SearchTimezone) ([]*model.Timezone, bool, *model.AppError) {
+	list, err := a.Store.Calendar().GetTimezoneAllPage(search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }

@@ -13,12 +13,22 @@ func (a *App) ListCheckAccess(domainId, id int64, groups []int, access auth_mana
 	return a.Store.List().CheckAccess(domainId, id, groups, access)
 }
 
-func (a *App) GetListPage(domainId int64, page, perPage int) ([]*model.List, *model.AppError) {
-	return a.Store.List().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetListPage(domainId int64, search *model.SearchList) ([]*model.List, bool, *model.AppError) {
+	list, err := a.Store.List().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetListPageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.List, *model.AppError) {
-	return a.Store.List().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
+func (a *App) GetListPageByGroups(domainId int64, groups []int, search *model.SearchList) ([]*model.List, bool, *model.AppError) {
+	list, err := a.Store.List().GetAllPageByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetListById(domainId, id int64) (*model.List, *model.AppError) {
@@ -62,8 +72,13 @@ func (a *App) CreateListCommunication(comm *model.ListCommunication) (*model.Lis
 	return a.Store.List().CreateCommunication(comm)
 }
 
-func (a *App) GetListCommunicationPage(domainId, listId int64, page, perPage int) ([]*model.ListCommunication, *model.AppError) {
-	return a.Store.List().GetAllPageCommunication(domainId, listId, page*perPage, perPage)
+func (a *App) GetListCommunicationPage(domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, bool, *model.AppError) {
+	list, err := a.Store.List().GetAllPageCommunication(domainId, listId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetListCommunicationById(domainId, listId, id int64) (*model.ListCommunication, *model.AppError) {

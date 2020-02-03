@@ -17,12 +17,22 @@ func (app *App) GetOutboundResource(domainId, id int64) (*model.OutboundCallReso
 	return app.Store.OutboundResource().Get(domainId, id)
 }
 
-func (a *App) GetOutboundResourcePage(domainId int64, page, perPage int) ([]*model.OutboundCallResource, *model.AppError) {
-	return a.Store.OutboundResource().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetOutboundResourcePage(domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
+	list, err := a.Store.OutboundResource().GetAllPage(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetOutboundResourcePageByGroups(domainId int64, groups []int, page, perPage int) ([]*model.OutboundCallResource, *model.AppError) {
-	return a.Store.OutboundResource().GetAllPageByGroups(domainId, groups, page*perPage, perPage)
+func (a *App) GetOutboundResourcePageByGroups(domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
+	list, err := a.Store.OutboundResource().GetAllPageByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) PatchOutboundResource(domainId, id int64, patch *model.OutboundCallResourcePath) (*model.OutboundCallResource, *model.AppError) {
