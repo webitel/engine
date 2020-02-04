@@ -1,9 +1,11 @@
 package call_manager
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/webitel/call_center/discovery"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/wlog"
 	"net/http"
 )
 
@@ -35,7 +37,7 @@ func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.
 	}
 
 	req.Variables["sip_route_uri"] = cm.SipRouteUri()
-
+	//DUMP(req)
 	uuid, cause, err := cli.NewCall(req)
 	if err != nil {
 		return "", err
@@ -45,6 +47,12 @@ func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.
 	}
 
 	return uuid, nil
+}
+
+func DUMP(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "\t")
+	wlog.Error(string(s))
+	return string(s)
 }
 
 func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) {

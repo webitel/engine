@@ -24,6 +24,7 @@ type CallManager interface {
 	CallClient(id string) (CallClient, *model.AppError)
 
 	SipWsAddress() string
+	SipRouteUri() string
 }
 
 type CallClient interface {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
+	"strings"
 	"time"
 )
 
@@ -11,6 +12,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("subscribe_call", api.ApiWebSocketHandler(api.subscribeSelfCalls))
 	api.Router.Handle("un_subscribe_call", api.ApiWebSocketHandler(api.unSubscribeSelfCalls))
 	api.Router.Handle("call_invite", api.ApiAsyncWebSocketHandler(api.callInvite))
+	api.Router.Handle("call_user", api.ApiAsyncWebSocketHandler(api.callToUser))
 	api.Router.Handle("call_hangup", api.ApiWebSocketHandler(api.callHangup))
 	api.Router.Handle("call_hold", api.ApiWebSocketHandler(api.callHold))
 	api.Router.Handle("call_unhold", api.ApiWebSocketHandler(api.callUnHold))
@@ -183,9 +185,9 @@ func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[
 }
 
 func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	var ok, useVideo bool
+	var ok, useVideo, useScreen bool
 	var callId string
-	var destinationNumber, destinationName string
+	var destinationNumber, destinationName, parentCallId string
 	var variables map[string]interface{}
 
 	callId = model.NewUuid()
@@ -258,6 +260,112 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		invite.AddVariable("video_request", "true")
 	}
 
+	if useScreen, ok = req.Data["useScreen"].(bool); ok && useScreen {
+		invite.AddVariable("screen_request", "true")
+	}
+
+	if parentCallId, ok = req.Data["parentCallId"].(string); ok && parentCallId != "" {
+		invite.AddVariable("request_parent_call_id", parentCallId)
+	}
+
+	_, err = api.App.CallManager().MakeOutboundCall(invite)
+
+	if err != nil {
+		return nil, err
+	}
+
+	data := map[string]interface{}{}
+	data["call_id"] = callId
+	return data, nil
+}
+
+func (api *API) callToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var ok, useVideo, useScreen bool
+	var callId, callToId, parentCallId, sendToCallId string
+	var toUserId float64
+	var variables map[string]interface{}
+
+	if toUserId, ok = req.Data["toUserId"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "toUserId")
+	}
+	sendToCallId, _ = req.Data["sendToCallId"].(string)
+
+	callId = model.NewUuid()
+	callToId = model.NewUuid()
+
+	info, err := api.App.GetUserCallInfo(conn.UserId, conn.DomainId)
+	if err != nil {
+		return nil, err
+	}
+
+	infoTo, err := api.App.GetUserCallInfo(int64(toUserId), conn.DomainId)
+	if err != nil {
+		return nil, err
+	}
+
+	invite := &model.CallRequest{
+		Endpoints: info.GetCallEndpoints(),
+		Variables: map[string]string{
+			model.CALL_VARIABLE_ID:                callId,
+			model.CALL_VARIABLE_DIRECTION:         model.CALL_DIRECTION_INTERNAL,
+			model.CALL_VARIABLE_DISPLAY_DIRECTION: model.CALL_DIRECTION_OUTBOUND,
+			model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", conn.UserId),
+			model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", conn.DomainId),
+			model.CALL_VARIABLE_SOCK_ID:           conn.Id(),
+
+			"sip_h_X-Webitel-Destination": infoTo.Extension,
+
+			"origination_uuid": callId,
+			//"media_webrtc":     "true",
+			//"absolute_codec_string": "VP8",
+
+			"hangup_after_bridge":        "true",
+			"hold_music":                 "silence",
+			"effective_caller_id_number": info.Extension,
+			"effective_caller_id_name":   info.Name,
+			"effective_callee_id_name":   infoTo.Name,
+			"effective_callee_id_number": infoTo.Extension,
+
+			"origination_caller_id_name":   infoTo.Name,
+			"origination_caller_id_number": infoTo.Extension,
+			"origination_callee_id_name":   info.Name,
+			"origination_callee_id_number": info.Extension,
+		},
+		Timeout:      0,
+		CallerName:   infoTo.Name,
+		CallerNumber: infoTo.Extension,
+		Applications: []*model.CallRequestApplication{
+			{
+				AppName: "bridge",
+				Args: fmt.Sprintf("{sip_route_uri=%s,request_parent_call_id=%s,origination_uuid=%s,sip_h_X-Webitel-Uuid=%s, sip_h_X-Webitel-User-Id=%d}%s", api.App.CallManager().SipRouteUri(),
+					sendToCallId, callToId, callToId, int64(toUserId), strings.Join(infoTo.GetCallEndpoints(), ",")),
+			},
+		},
+	}
+
+	if variables, ok = req.Data["variables"].(map[string]interface{}); ok {
+		for k, v := range variables {
+			switch v.(type) {
+			case string:
+				invite.AddUserVariable(k, v.(string))
+			case interface{}:
+				invite.AddUserVariable(k, fmt.Sprintf("%v", v))
+			}
+		}
+	}
+
+	if useVideo, ok = req.Data["useVideo"].(bool); ok && useVideo {
+		invite.AddVariable("video_request", "true")
+	}
+
+	if useScreen, ok = req.Data["useScreen"].(bool); ok && useScreen {
+		invite.AddVariable("screen_request", "true")
+	}
+
+	if parentCallId, ok = req.Data["parentCallId"].(string); ok && parentCallId != "" {
+		invite.AddVariable("request_parent_call_id", parentCallId)
+	}
+
 	_, err = api.App.CallManager().MakeOutboundCall(invite)
 
 	if err != nil {
@@ -296,6 +404,28 @@ func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 }
 
 func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var ok bool
+	var id, nodeId, id2, nodeId2 string
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+	if nodeId, ok = req.Data["node_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	}
+	if id2, ok = req.Data["parent_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "parent_id")
+	}
+	if nodeId2, ok = req.Data["parent_node_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "parent_node_id")
+	}
+
+	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
+
+	return nil, nil
+}
+
+func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	var id, nodeId, id2, nodeId2 string
 

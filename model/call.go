@@ -78,23 +78,25 @@ type CallRequest struct {
 }
 
 type Call struct {
-	Action       string `json:"action"`
-	Id           string `json:"id"`
-	DomainId     string `json:"domain_id"`
-	UserId       string `json:"user_id,omitempty"`
-	Application  string `json:"application,omitempty"`
-	ToNumber     string `json:"to_number,omitempty"`
-	ToName       string `json:"to_name,omitempty"`
-	FromNumber   string `json:"from_number,omitempty"`
-	FromName     string `json:"from_name,omitempty"`
-	Destination  string `json:"destination,omitempty"`
-	Direction    string `json:"direction,omitempty"`
-	ParentId     string `json:"parent_id,omitempty"`
-	NodeName     string `json:"node_name,omitempty"`
-	HangupCause  string `json:"cause,omitempty"`
-	VideoFlow    string `json:"video_flow,omitempty"`
-	VideoRequest bool   `json:"video_request,string,omitempty"`
-	Digit        string `json:"digit,omitempty"`
+	Action        string `json:"action"`
+	Id            string `json:"id"`
+	DomainId      string `json:"domain_id"`
+	UserId        string `json:"user_id,omitempty"`
+	Application   string `json:"application,omitempty"`
+	ToNumber      string `json:"to_number,omitempty"`
+	ToName        string `json:"to_name,omitempty"`
+	FromNumber    string `json:"from_number,omitempty"`
+	FromName      string `json:"from_name,omitempty"`
+	Destination   string `json:"destination,omitempty"`
+	Direction     string `json:"direction,omitempty"`
+	ParentId      string `json:"parent_id,omitempty"`
+	OwnerId       string `json:"owner_id,omitempty"`
+	NodeName      string `json:"node_name,omitempty"`
+	HangupCause   string `json:"cause,omitempty"`
+	VideoFlow     string `json:"video_flow,omitempty"`
+	VideoRequest  bool   `json:"video_request,string,omitempty"`
+	ScreenRequest bool   `json:"screen_request,string,omitempty"`
+	Digit         string `json:"digit,omitempty"`
 
 	Debug   map[string]interface{} `json:"debug,omitempty"`
 	Payload *CallPayload           `json:"payload,string,omitempty"`
