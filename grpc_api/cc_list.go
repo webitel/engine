@@ -75,7 +75,7 @@ func (api *list) SearchList(ctx context.Context, in *engine.SearchListRequest) (
 	}
 
 	if permission.Rbac {
-		list, endList, err = api.app.GetListPageByGroups(session.Domain(in.DomainId), session.RoleIds, req)
+		list, endList, err = api.app.GetListPageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
 	} else {
 		list, endList, err = api.app.GetListPage(session.Domain(in.DomainId), req)
 	}
@@ -109,7 +109,7 @@ func (api *list) ReadList(ctx context.Context, in *engine.ReadListRequest) (*eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -142,7 +142,7 @@ func (api *list) UpdateList(ctx context.Context, in *engine.UpdateListRequest) (
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -184,7 +184,7 @@ func (api *list) DeleteList(ctx context.Context, in *engine.DeleteListRequest) (
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -217,7 +217,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -256,7 +256,7 @@ func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchL
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -303,7 +303,7 @@ func (api *list) ReadListCommunication(ctx context.Context, in *engine.ReadListC
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -337,7 +337,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -381,7 +381,7 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)

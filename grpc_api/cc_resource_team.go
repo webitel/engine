@@ -33,7 +33,7 @@ func (api *resourceTeam) CreateResourceTeamAgent(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -72,7 +72,7 @@ func (api *resourceTeam) ReadResourceTeamAgent(ctx context.Context, in *engine.R
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -99,7 +99,7 @@ func (api *resourceTeam) SearchResourceTeamAgent(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -138,7 +138,7 @@ func (api *resourceTeam) UpdateResourceTeamAgent(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -179,7 +179,7 @@ func (api *resourceTeam) DeleteResourceTeamAgent(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -215,7 +215,7 @@ func (api *resourceTeam) CreateResourceTeamSkill(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -256,7 +256,7 @@ func (api *resourceTeam) ReadResourceTeamSkill(ctx context.Context, in *engine.R
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -283,7 +283,7 @@ func (api *resourceTeam) SearchResourceTeamSkill(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -322,7 +322,7 @@ func (api *resourceTeam) UpdateResourceTeamSkill(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -365,7 +365,7 @@ func (api *resourceTeam) DeleteResourceTeamSkill(ctx context.Context, in *engine
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)

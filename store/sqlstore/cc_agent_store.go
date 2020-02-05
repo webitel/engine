@@ -41,15 +41,22 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent
 	if err := s.GetMaster().SelectOne(&out, `with i as (
-			insert into cc_agent ( user_id, description, domain_id)
-			values (:UserId, :Description, :DomainId)
+			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by)
+			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
 			returning *
 		)
 		select i.id, i.status, i.state, i.description,  i.last_state_change, i.state_timeout, i.domain_id, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from i
 		  inner join directory.wbt_user ct on ct.id = i.user_id`,
-		map[string]interface{}{"UserId": agent.User.Id, "Description": agent.Description,
-			"DomainId": agent.DomainId}); err != nil {
+		map[string]interface{}{
+			"UserId":      agent.User.Id,
+			"Description": agent.Description,
+			"DomainId":    agent.DomainId,
+			"CreatedAt":   agent.CreatedAt,
+			"CreatedBy":   agent.CreatedBy.Id,
+			"UpdatedAt":   agent.UpdatedAt,
+			"UpdatedBy":   agent.UpdatedBy.Id,
+		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
 			fmt.Sprintf("record=%v, %v", agent, err.Error()), http.StatusInternalServerError)
 	} else {
@@ -131,7 +138,9 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 	err := s.GetMaster().SelectOne(&agent, `with u as (
 			update cc_agent
 			set user_id = :UserId,
-				description = :Description
+				description = :Description,
+				updated_at = :UpdatedAt,
+				updated_by = :UpdatedBy
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
@@ -143,6 +152,8 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 		"Description": agent.Description,
 		"Id":          agent.Id,
 		"DomainId":    agent.DomainId,
+		"UpdatedAt":   agent.UpdatedAt,
+		"UpdatedBy":   agent.UpdatedBy.Id,
 	})
 	if err != nil {
 		code := http.StatusInternalServerError

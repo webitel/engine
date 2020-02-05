@@ -20,10 +20,18 @@ func NewSqlBucketStore(sqlStore SqlStore) store.BucketSore {
 
 func (s SqlBucketStore) Create(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
 	var out *model.Bucket
-	if err := s.GetMaster().SelectOne(&out, `insert into cc_bucket (name, domain_id, description)
-		values (:Name, :DomainId, :Description)
-		returning *`,
-		map[string]interface{}{"Name": bucket.Name, "DomainId": bucket.DomainId, "Description": bucket.Description}); nil != err {
+	if err := s.GetMaster().SelectOne(&out, `insert into cc_bucket (name, domain_id, description, created_at, created_by, updated_at, updated_by)
+		values (:Name, :DomainId, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+		returning id, name, description, domain_id`,
+		map[string]interface{}{
+			"Name":        bucket.Name,
+			"DomainId":    bucket.DomainId,
+			"Description": bucket.Description,
+			"CreatedAt":   bucket.CreatedAt,
+			"CreatedBy":   bucket.CreatedBy.Id,
+			"UpdatedAt":   bucket.UpdatedAt,
+			"UpdatedBy":   bucket.UpdatedBy.Id,
+		}); nil != err {
 		return nil, model.NewAppError("SqlBucketStore.Save", "store.sql_bucket.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", bucket.Name, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -104,7 +112,7 @@ offset :Offset`, map[string]interface{}{
 
 func (s SqlBucketStore) Get(domainId int64, id int64) (*model.Bucket, *model.AppError) {
 	var bucket *model.Bucket
-	if err := s.GetReplica().SelectOne(&bucket, `select *
+	if err := s.GetReplica().SelectOne(&bucket, `select id, name, description, domain_id
 		from cc_bucket b
 		where b.id = :Id and b.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlBucketStore.Get", "store.sql_bucket.get.app_error", nil,
@@ -117,12 +125,16 @@ func (s SqlBucketStore) Get(domainId int64, id int64) (*model.Bucket, *model.App
 func (s SqlBucketStore) Update(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
 	err := s.GetMaster().SelectOne(&bucket, `update cc_bucket
 	set name = :Name,
-    description = :Description
-		where id = :Id and domain_id = :DomainId returning *`, map[string]interface{}{
+    description = :Description,
+	updated_at = :UpdatedAt,
+	updated_by = :UpdatedBy
+		where id = :Id and domain_id = :DomainId returning id, name, description, domain_id`, map[string]interface{}{
 		"Id":          bucket.Id,
 		"Name":        bucket.Name,
 		"Description": bucket.Description,
 		"DomainId":    bucket.DomainId,
+		"UpdatedAt":   bucket.UpdatedAt,
+		"UpdatedBy":   bucket.UpdatedBy.Id,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlBucketStore.Update", "store.sql_bucket.update.app_error", nil,

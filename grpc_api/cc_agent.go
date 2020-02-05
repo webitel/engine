@@ -28,7 +28,17 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 	}
 
 	agent := &model.Agent{
-		DomainId: session.Domain(in.GetDomainId()),
+		DomainRecord: model.DomainRecord{
+			DomainId:  session.Domain(in.GetDomainId()),
+			CreatedAt: model.GetMillis(),
+			CreatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+			UpdatedAt: model.GetMillis(),
+			UpdatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+		},
 		User: model.Lookup{
 			Id: int(in.GetUser().GetId()),
 		},
@@ -71,7 +81,7 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 	}
 
 	if permission.Rbac {
-		list, endList, err = api.app.GetAgentsPageByGroups(session.Domain(in.DomainId), session.RoleIds, req)
+		list, endList, err = api.app.GetAgentsPageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
 	} else {
 		list, endList, err = api.app.GetAgentsPage(session.Domain(in.DomainId), req)
 	}
@@ -106,7 +116,7 @@ func (api *agent) ReadAgent(ctx context.Context, in *engine.ReadAgentRequest) (*
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -139,7 +149,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -149,8 +159,14 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 	var agent *model.Agent
 
 	agent, err = api.app.UpdateAgent(&model.Agent{
-		Id:       in.Id,
-		DomainId: session.Domain(in.GetDomainId()),
+		DomainRecord: model.DomainRecord{
+			Id:        in.Id,
+			DomainId:  session.Domain(in.GetDomainId()),
+			UpdatedAt: model.GetMillis(),
+			UpdatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+		},
 		User: model.Lookup{
 			Id: int(in.GetUser().GetId()),
 		},
@@ -177,7 +193,7 @@ func (api *agent) DeleteAgent(ctx context.Context, in *engine.DeleteAgentRequest
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -207,7 +223,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 
 		if permission.Rbac {
 			var perm bool
-			if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 				return nil, err
 			} else if !perm {
 				return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -235,7 +251,7 @@ func (api *agent) SearchAgentInTeam(ctx context.Context, in *engine.SearchAgentI
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -275,7 +291,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -321,7 +337,7 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_READ)

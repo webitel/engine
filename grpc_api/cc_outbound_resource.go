@@ -92,7 +92,7 @@ func (api *outboundResource) SearchOutboundResource(ctx context.Context, in *eng
 	}
 
 	if permission.Rbac {
-		list, endList, err = api.app.GetOutboundResourcePageByGroups(session.Domain(in.DomainId), session.RoleIds, req)
+		list, endList, err = api.app.GetOutboundResourcePageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
 	} else {
 		list, endList, err = api.app.GetOutboundResourcePage(session.Domain(in.DomainId), req)
 	}
@@ -126,7 +126,7 @@ func (api *outboundResource) ReadOutboundResource(ctx context.Context, in *engin
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -159,7 +159,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -219,7 +219,7 @@ func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engi
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -269,7 +269,7 @@ func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -302,7 +302,7 @@ func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, 
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -340,7 +340,7 @@ func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, 
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -373,7 +373,7 @@ func (api *outboundResource) ReadOutboundResourceDisplay(ctx context.Context, in
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -407,7 +407,7 @@ func (api *outboundResource) UpdateOutboundResourceDisplay(ctx context.Context, 
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -450,7 +450,7 @@ func (api *outboundResource) DeleteOutboundResourceDisplay(ctx context.Context, 
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)

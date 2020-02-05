@@ -11,6 +11,7 @@ import (
 func (api *API) InitCall() {
 	api.Router.Handle("subscribe_call", api.ApiWebSocketHandler(api.subscribeSelfCalls))
 	api.Router.Handle("un_subscribe_call", api.ApiWebSocketHandler(api.unSubscribeSelfCalls))
+
 	api.Router.Handle("call_invite", api.ApiAsyncWebSocketHandler(api.callInvite))
 	api.Router.Handle("call_user", api.ApiAsyncWebSocketHandler(api.callToUser))
 	api.Router.Handle("call_hangup", api.ApiWebSocketHandler(api.callHangup))

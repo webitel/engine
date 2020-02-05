@@ -15,8 +15,7 @@ func (status AgentStatus) String() string {
 }
 
 type Agent struct {
-	Id              int64  `json:"id" db:"id"`
-	DomainId        int64  `json:"domain_id" db:"domain_id"`
+	DomainRecord
 	User            Lookup `json:"user" db:"user"`
 	Status          string `json:"status" db:"status"`
 	State           string `json:"state" db:"state"`

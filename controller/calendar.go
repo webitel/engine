@@ -30,7 +30,7 @@ func (c *Controller) UpdateCalendar(session *auth_manager.Session, calendar *mod
 	}
 
 	if permission.Rbac {
-		if perm, err := c.app.CalendarCheckAccess(session.Domain(calendar.DomainId), calendar.Id, session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err := c.app.CalendarCheckAccess(session.Domain(calendar.DomainId), calendar.Id, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, c.app.MakeResourcePermissionError(session, calendar.Id, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -53,7 +53,7 @@ func (c *Controller) SearchCalendar(session *auth_manager.Session, search *model
 	}
 
 	if permission.Rbac {
-		return c.app.GetCalendarPageByGroups(session.Domain(search.DomainId), session.RoleIds, search)
+		return c.app.GetCalendarPageByGroups(session.Domain(search.DomainId), session.GetAclRoles(), search)
 	} else {
 		return c.app.GetCalendarsPage(session.Domain(search.DomainId), search)
 	}
@@ -66,7 +66,7 @@ func (c *Controller) GetCalendar(session *auth_manager.Session, domainId, id int
 	}
 
 	if permission.Rbac {
-		if perm, err := c.app.CalendarCheckAccess(session.Domain(domainId), id, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err := c.app.CalendarCheckAccess(session.Domain(domainId), id, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -83,7 +83,7 @@ func (c *Controller) DeleteCalendar(session *auth_manager.Session, domainId, id 
 	}
 
 	if permission.Rbac {
-		if perm, err := c.app.CalendarCheckAccess(session.Domain(domainId), id, session.RoleIds, auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err := c.app.CalendarCheckAccess(session.Domain(domainId), id, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_DELETE)

@@ -51,6 +51,9 @@ func (a *App) UpdateAgentTeam(team *model.AgentTeam) (*model.AgentTeam, *model.A
 	oldTeam.NoAnswerDelayTime = team.NoAnswerDelayTime
 	oldTeam.CallTimeout = team.CallTimeout
 
+	oldTeam.UpdatedAt = team.UpdatedAt
+	oldTeam.UpdatedBy.Id = team.UpdatedBy.Id
+
 	oldTeam, err = a.Store.AgentTeam().Update(oldTeam)
 	if err != nil {
 		return nil, err

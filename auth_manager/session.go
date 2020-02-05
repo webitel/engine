@@ -16,6 +16,10 @@ type Session struct {
 	Scopes []SessionPermission `json:"scopes"`
 }
 
+func (self *Session) GetAclRoles() []int {
+	return self.RoleIds
+}
+
 func (self *Session) HasLicense() bool {
 	return true
 }

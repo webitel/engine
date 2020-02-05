@@ -21,10 +21,10 @@ func NewSqlAgentTeamStore(sqlStore SqlStore) store.AgentTeamStore {
 func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
 	var out *model.AgentTeam
 	if err := s.GetMaster().SelectOne(&out, `insert into cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time,
-                     busy_delay_time, no_answer_delay_time, call_timeout)
+                     busy_delay_time, no_answer_delay_time, call_timeout, created_at, created_by, updated_at, updated_by)
 		values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime, :RejectDelayTime,
-				:BusyDelayTime, :NoAnswerDelayTime, :CallTimeout)
-		returning *`,
+				:BusyDelayTime, :NoAnswerDelayTime, :CallTimeout, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+		returning id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time, busy_delay_time, no_answer_delay_time, call_timeout, updated_at`,
 		map[string]interface{}{
 			"DomainId":          team.DomainId,
 			"Name":              team.Name,
@@ -36,6 +36,10 @@ func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *mod
 			"BusyDelayTime":     team.BusyDelayTime,
 			"NoAnswerDelayTime": team.NoAnswerDelayTime,
 			"CallTimeout":       team.CallTimeout,
+			"CreatedAt":         team.CreatedAt,
+			"CreatedBy":         team.CreatedBy.Id,
+			"UpdatedAt":         team.UpdatedAt,
+			"UpdatedBy":         team.UpdatedBy.Id,
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
@@ -135,9 +139,11 @@ set name = :Name,
     reject_delay_time = :RejectDelayTime,
     busy_delay_time = :BusyDelayTime,
     no_answer_delay_time = :NoAnswerDelayTime,
-    call_timeout = :CallTimeout
+    call_timeout = :CallTimeout,
+	updated_at = :UpdatedAt,
+	updated_by = :UpdatedBy
 where id = :Id and domain_id = :DomainId
-returning *`, map[string]interface{}{
+returning id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time, busy_delay_time, no_answer_delay_time, call_timeout, updated_at`, map[string]interface{}{
 		"Id":                team.Id,
 		"DomainId":          team.DomainId,
 		"Name":              team.Name,
@@ -149,6 +155,8 @@ returning *`, map[string]interface{}{
 		"BusyDelayTime":     team.BusyDelayTime,
 		"NoAnswerDelayTime": team.NoAnswerDelayTime,
 		"CallTimeout":       team.CallTimeout,
+		"UpdatedAt":         team.UpdatedAt,
+		"UpdatedBy":         team.UpdatedBy.Id,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.Update", "store.sql_agent_team.update.app_error", nil,

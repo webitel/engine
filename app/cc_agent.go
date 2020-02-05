@@ -49,6 +49,9 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 	oldAgent.Description = agent.Description
 	oldAgent.User.Id = agent.User.Id
 
+	oldAgent.UpdatedAt = agent.UpdatedAt
+	oldAgent.UpdatedBy.Id = agent.UpdatedBy.Id
+
 	oldAgent, err = a.Store.Agent().Update(oldAgent)
 	if err != nil {
 		return nil, err

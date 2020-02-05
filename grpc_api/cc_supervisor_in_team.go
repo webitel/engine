@@ -33,7 +33,7 @@ func (api *supervisorInTeam) CreateSupervisorInTeam(ctx context.Context, in *eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -72,7 +72,7 @@ func (api *supervisorInTeam) SearchSupervisorInTeam(ctx context.Context, in *eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -107,7 +107,7 @@ func (api *supervisorInTeam) ReadSupervisorInTeam(ctx context.Context, in *engin
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -138,7 +138,7 @@ func (api *supervisorInTeam) UpdateSupervisorInTeam(ctx context.Context, in *eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -179,7 +179,7 @@ func (api *supervisorInTeam) DeleteSupervisorInTeam(ctx context.Context, in *eng
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.RoleIds, auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
