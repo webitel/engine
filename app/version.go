@@ -10,5 +10,5 @@ func (app *App) Version() string {
 }
 
 func Version() string {
-	return fmt.Sprintf("%s [build:%s %s]", model.CurrentVersion, model.BuildNumber, model.BuildTime)
+	return fmt.Sprintf("%s [build:%s]", model.CurrentVersion, model.BuildNumber)
 }

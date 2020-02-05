@@ -7,10 +7,9 @@ WORKDIR /go/src/github.com/webitel/engine/
 ENV GO111MODULE=on
 RUN go mod download
 
-RUN GIT_COMMIT=$(git rev-parse --short HEAD) && \
-    GIT_COMMIT_TIME=$(git log -1 --format=%cd) && \
-    CGO_ENABLED=0 GOOS=linux go build -ldflags "-X github.com/webitel/engine/model.BuildNumber=$GIT_COMMIT -X github.com/webitel/engine/model.BuildTime=$GIT_COMMIT_TIME" \
-     -a -o engine .
+RUN GIT_COMMIT=$(git log -1 --format='%h %ci') && \
+        CGO_ENABLED=0 GOOS=linux go build -ldflags "-X 'github.com/webitel/engine/model.BuildNumber=$GIT_COMMIT'" \
+         -a -o engine .
 
 FROM scratch
 

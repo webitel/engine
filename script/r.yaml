@@ -1,0 +1,53 @@
+---
+cdr_view:
+  description: "Provide the minimum permissions for logstash and beats in hopsworks"
+  reserved: false
+  hidden: false
+  tenant_permissions:
+    - tenant_patterns:
+        - "human_resources"
+      allowed_actions:
+        - "kibana_all_read"
+  static: false
+  index_permissions:
+    - index_patterns:
+        - "cdr-*-*-*-${attr.jwt.domain}"
+      dls: ""
+      fls: []
+      masked_fields: []
+      allowed_actions:
+        - indices_all
+        - crud
+        - create_index
+        - indices:monitor/settings/get
+        - indices:monitor/stats
+  cluster_permissions:
+    - cluster_monitor
+    - cluster_composite_ops
+    - indices:admin/template/get
+    - cluster:admin/ingest/pipeline/put
+    - cluster:admin/ingest/pipeline/get
+    - indices:monitor/settings/get
+
+
+
+test-role:
+  reserved: false
+  hidden: false
+  cluster_permissions:
+    - "cluster_composite_ops"
+    - "indices_monitor"
+  index_permissions:
+    - index_patterns:
+        - "movies*"
+      dls: ""
+      fls: []
+      masked_fields: []
+      allowed_actions:
+        - "read"
+  tenant_permissions:
+    - tenant_patterns:
+        - "human_resources"
+      allowed_actions:
+        - "kibana_all_read"
+  static: false
