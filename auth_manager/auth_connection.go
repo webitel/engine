@@ -74,7 +74,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		Expire:     resp.ExpiresAt,
 		Token:      token,
 		Scopes:     transformScopes(resp.Scope),
-		RoleIds:    transformRoles(resp.Roles),
+		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
 	}
 	return session, nil
 }
@@ -116,8 +116,9 @@ func transformScopes(src []*api.Objclass) []SessionPermission {
 	return dst
 }
 
-func transformRoles(src []*api.ObjectId) []int {
-	dst := make([]int, 0, len(src))
+func transformRoles(userId int64, src []*api.ObjectId) []int {
+	dst := make([]int, 0, len(src)+1)
+	dst = append(dst, int(userId))
 	for _, v := range src {
 		dst = append(dst, int(v.Id))
 	}
