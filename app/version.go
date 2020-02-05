@@ -6,5 +6,9 @@ import (
 )
 
 func (app *App) Version() string {
-	return fmt.Sprintf("%s [build:%s]", model.CurrentVersion, model.BuildNumber)
+	return Version()
+}
+
+func Version() string {
+	return fmt.Sprintf("%s [build:%s %s]", model.CurrentVersion, model.BuildNumber, model.BuildTime)
 }

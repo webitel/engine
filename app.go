@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+
 	interruptChan := make(chan os.Signal, 1)
 	a, err := app.New()
 	if err != nil {
@@ -22,6 +23,8 @@ func main() {
 		return
 	}
 	defer a.Shutdown()
+
+	wlog.Info(fmt.Sprintf("server build version: %s", app.Version()))
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
@@ -38,8 +41,6 @@ func main() {
 	if a.Config().Dev {
 		setDebug()
 	}
-
-	wlog.Info(fmt.Sprintf("server version: %s", a.Version()))
 
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan

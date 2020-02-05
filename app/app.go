@@ -99,7 +99,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
-	app.callManager = call_manager.NewCallManager(app.cluster.discovery)
+	app.callManager = call_manager.NewCallManager(app.Config().SipSettings.ServerAddr, app.Config().SipSettings.Proxy, app.cluster.discovery)
 	if err := app.callManager.Start(); err != nil {
 		return nil, err
 	}

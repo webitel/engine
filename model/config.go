@@ -28,6 +28,11 @@ func (s *LocalizationSettings) SetDefaults() {
 	}
 }
 
+type SipSettings struct {
+	ServerAddr string
+	Proxy      string
+}
+
 type Config struct {
 	TranslationsDirectory *string              `json:"translations_directory"`
 	NodeName              string               `json:"node_name"`
@@ -38,6 +43,7 @@ type Config struct {
 	ServerSettings        ServerSettings       `json:"server_settings"`
 	WebSocketSettings     WebSocketSettings    `json:"web_socket_settings"`
 	Dev                   bool                 `json:"dev"`
+	SipSettings           SipSettings          `json:"sip_settings"`
 }
 
 type DiscoverySettings struct {

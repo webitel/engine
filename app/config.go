@@ -12,6 +12,8 @@ var (
 	dataSource     = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10&search_path=call_center", "Data source")
 	amqpSource     = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
 	grpcServerPort = flag.Int("grpc_port", 0, "GRPC port")
+	openSipAddr    = flag.String("open_sip_addr", "opensips", "OpenSip address")
+	wsSipAddr      = flag.String("ws_sip_addr", "", "Sip websocket address")
 	dev            = flag.Bool("dev", false, "enable dev mode")
 )
 
@@ -34,6 +36,10 @@ func loadConfig() (*model.Config, error) {
 			Address: "",
 			Port:    *grpcServerPort,
 			Network: "tcp",
+		},
+		SipSettings: model.SipSettings{
+			ServerAddr: *wsSipAddr,
+			Proxy:      *openSipAddr,
 		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  model.NewString("postgres"),

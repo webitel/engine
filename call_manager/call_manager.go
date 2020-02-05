@@ -66,10 +66,10 @@ type callManager struct {
 	stopped   chan struct{}
 }
 
-func NewCallManager(serviceDiscovery discovery.ServiceDiscovery) CallManager {
+func NewCallManager(addr, proxy string, serviceDiscovery discovery.ServiceDiscovery) CallManager {
 	return &callManager{
-		sipServerAddr:    "dev.webitel.com",
-		sipProxy:         "192.168.177.9",
+		sipServerAddr:    getWsAddress(addr),
+		sipProxy:         proxy,
 		serviceDiscovery: serviceDiscovery,
 		poolConnections:  discovery.NewPoolConnections(),
 
@@ -78,13 +78,20 @@ func NewCallManager(serviceDiscovery discovery.ServiceDiscovery) CallManager {
 	}
 }
 
-//FIXME
 func (cm *callManager) SipRouteUri() string {
 	return "sip:" + cm.sipProxy
 }
 
+func getWsAddress(addr string) string {
+	if addr == "" {
+		return "/sip"
+	} else {
+		return "wss://" + addr + "/sip"
+	}
+}
+
 func (cm *callManager) SipWsAddress() string {
-	return "wss://" + cm.sipServerAddr + "/sip"
+	return cm.sipServerAddr
 }
 
 func (c *callManager) CallClient(id string) (CallClient, *model.AppError) {
@@ -96,7 +103,7 @@ func (c *callManager) CallClient(id string) (CallClient, *model.AppError) {
 }
 
 func (c *callManager) Start() error {
-	wlog.Debug("starting call service")
+	wlog.Debug(fmt.Sprintf("starting call manager [ws: %s, proxy: %s]", c.SipWsAddress(), c.SipRouteUri()))
 
 	if services, err := c.serviceDiscovery.GetByName(CLUSTER_CALL_SERVICE_NAME); err != nil {
 		return model.NewAppError("callManager.Start", "", nil, err.Error(), http.StatusInternalServerError) //

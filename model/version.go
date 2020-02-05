@@ -6,3 +6,4 @@ var versions = []string{
 
 var CurrentVersion string = versions[0]
 var BuildNumber string
+var BuildTime string
