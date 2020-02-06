@@ -105,16 +105,16 @@ message ListAgentInQueue {
 
 message SearchAgentInQueueRequest {
     int64 id = 1;
-    int32 size = 2;
-    int32 page = 3;
+    int32 page = 2;
+    int32 size = 3;
 
     int64 domain_id = 4;
 }
 
 message SearchAgentInTeamRequest {
     int64 id = 1;
-    int32 size = 2;
-    int32 page = 3;
+    int32 page = 2;
+    int32 size = 3;
     int64 domain_id = 4;
 }
 

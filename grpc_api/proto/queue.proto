@@ -67,9 +67,10 @@ message PatchQueueRequest {
     int32 type = 12;
     Lookup team = 13;
     string description = 14;
+    Lookup schema = 15;
 
-    repeated string fields = 15;
-    int64 domain_id = 16;
+    repeated string fields = 16;
+    int64 domain_id = 17;
 }
 
 message DeleteQueueRequest {
@@ -94,8 +95,9 @@ message UpdateQueueRequest {
     int32 type = 12;
     Lookup team = 13;
     string description = 14;
+    Lookup schema = 15;
 
-    int64 domain_id = 15;
+    int64 domain_id = 16;
 }
 
 message ReadQueueRequest {
@@ -128,8 +130,9 @@ message CreateQueueRequest {
     int32 type = 11;
     Lookup team = 12;
     string description = 13;
+    Lookup schema = 14;
 
-    int64 domain_id = 14;
+    int64 domain_id = 15;
 }
 
 message Queue {
@@ -156,6 +159,8 @@ message Queue {
     int32 type = 17;
     string description = 18;
     Lookup team = 19;
+
+    Lookup schema = 20;
 }
 
 message ListQueue {

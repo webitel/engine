@@ -34,6 +34,7 @@ type QueuePatch struct {
 	DncList        *Lookup   `json:"dnc_list" db:"dnc_list"`
 	SecLocateAgent *int      `json:"sec_locate_agent" db:"sec_locate_agent"`
 	Team           *Lookup   `json:"team" db:"team"`
+	Schema         *Lookup   `json:"schema" db:"schema"`
 	Description    *string   `json:"description" db:"description"`
 }
 
@@ -102,6 +103,13 @@ func (q *Queue) DncListId() *int64 {
 func (q *Queue) TeamId() *int64 {
 	if q.Team != nil {
 		return NewInt64(int64(q.Team.Id))
+	}
+	return nil
+}
+
+func (q *Queue) SchemaId() *int64 {
+	if q.Schema != nil {
+		return NewInt64(int64(q.Schema.Id))
 	}
 	return nil
 }

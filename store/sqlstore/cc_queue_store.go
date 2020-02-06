@@ -42,20 +42,22 @@ func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError
 	if err := s.GetMaster().SelectOne(&out, `with q as (
     insert into cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, timeout, domain_id, dnc_list_id, sec_locate_agent, type, team_id,
-                      created_at, created_by, updated_by, description)
+                      created_at, created_by, updated_by, description, schema_id)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
-        :Variables, :Timeout, :DomainId, :DncListId, :SecLocateAgent, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description)
+        :Variables, :Timeout, :DomainId, :DncListId, :SecLocateAgent, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :SchemaId)
     returning *
 )
 select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
           q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description
+          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
+		  cc_get_lookup(s.id, s.name) as schema 
 from q
     inner join calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
     left join cc_list cl on q.dnc_list_id = cl.id
+	left join acr_routing_scheme s on q.schema_id = s.id
     left join cc_team ct on q.team_id = ct.id`,
 		map[string]interface{}{
 			"Strategy":       queue.Strategy,
@@ -76,6 +78,7 @@ from q
 			"CreatedBy":      queue.CreatedBy.Id,
 			"UpdatedBy":      queue.UpdatedBy.Id,
 			"Description":    queue.Description,
+			"SchemaId":       queue.SchemaId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
@@ -91,11 +94,13 @@ func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]
 		`select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
           q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description
+          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
+		  cc_get_lookup(s.id, s.name) as schema
 from cc_queue q
     inner join calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
+	left join acr_routing_scheme s on q.schema_id = s.id
     left join cc_list cl on q.dnc_list_id = cl.id
     left join cc_team ct on q.team_id = ct.id
 where q.domain_id = :DomainId and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
@@ -120,11 +125,13 @@ func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *
 		`select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
           q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description
+          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
+		  cc_get_lookup(s.id, s.name) as schema
 from cc_queue q
     inner join calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
+	left join acr_routing_scheme s on q.schema_id = s.id
     left join cc_list cl on q.dnc_list_id = cl.id
     left join cc_team ct on q.team_id = ct.id
 where q.domain_id = :DomainId  and (
@@ -154,11 +161,13 @@ func (s SqlQueueStore) Get(domainId int64, id int64) (*model.Queue, *model.AppEr
 			select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
           q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description
+          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
+		  cc_get_lookup(s.id, s.name) as schema
 from cc_queue q
     inner join calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
+	left join acr_routing_scheme s on q.schema_id = s.id
     left join cc_list cl on q.dnc_list_id = cl.id
     left join cc_team ct on q.team_id = ct.id
 where q.domain_id = :DomainId and q.id = :Id 	
@@ -187,18 +196,21 @@ set updated_at = :UpdatedAt,
     sec_locate_agent = :SecLocateAgent,
     type = :Type,
     team_id = :TeamId,
-	description = :Description
+	description = :Description,
+	schema_id = :SchemaId
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
 select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
           q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description
+          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
+		  cc_get_lookup(s.id, s.name) as schema
 from q
     inner join calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
+	left join acr_routing_scheme s on q.schema_id = s.id
     left join cc_list cl on q.dnc_list_id = cl.id
     left join cc_team ct on q.team_id = ct.id;`, map[string]interface{}{
 		"UpdatedAt":      queue.UpdatedAt,
@@ -215,6 +227,7 @@ from q
 		"SecLocateAgent": queue.SecLocateAgent,
 		"Type":           queue.Type,
 		"TeamId":         queue.TeamId(),
+		"SchemaId":       queue.SchemaId(),
 		"Id":             queue.Id,
 		"DomainId":       queue.DomainId,
 		"Description":    queue.Description,

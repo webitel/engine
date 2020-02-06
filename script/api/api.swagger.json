@@ -873,14 +873,14 @@
             "format": "int64"
           },
           {
-            "name": "size",
+            "name": "page",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "size",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -975,14 +975,14 @@
             "format": "int64"
           },
           {
-            "name": "size",
+            "name": "page",
             "in": "query",
             "required": false,
             "type": "integer",
             "format": "int32"
           },
           {
-            "name": "page",
+            "name": "size",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -7136,6 +7136,9 @@
         "description": {
           "type": "string"
         },
+        "schema": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "domain_id": {
           "type": "string",
           "format": "int64"
@@ -8350,6 +8353,9 @@
         "description": {
           "type": "string"
         },
+        "schema": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "fields": {
           "type": "array",
           "items": {
@@ -8506,6 +8512,9 @@
           "type": "string"
         },
         "team": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "schema": {
           "$ref": "#/definitions/engineLookup"
         }
       }
@@ -9311,6 +9320,9 @@
         },
         "description": {
           "type": "string"
+        },
+        "schema": {
+          "$ref": "#/definitions/engineLookup"
         },
         "domain_id": {
           "type": "string",

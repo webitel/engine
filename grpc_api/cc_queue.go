@@ -55,6 +55,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		SecLocateAgent: int(in.SecLocateAgent),
 		Type:           int8(in.Type),
 		Team:           GetLookup(in.GetTeam()),
+		Schema:         GetLookup(in.GetSchema()),
 		Description:    in.Description,
 	}
 
@@ -195,6 +196,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.SecLocateAgent = model.NewInt(int(in.SecLocateAgent))
 		case "team":
 			patch.Team = GetLookup(in.Team)
+		case "schema":
+			patch.Schema = GetLookup(in.Schema)
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		}
@@ -258,6 +261,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		SecLocateAgent: int(in.SecLocateAgent),
 		Type:           int8(in.Type),
 		Team:           GetLookup(in.Team),
+		Schema:         GetLookup(in.Schema),
 		Description:    in.Description,
 	})
 
@@ -326,6 +330,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		SecLocateAgent: int32(src.SecLocateAgent),
 		Type:           int32(src.Type),
 		Team:           GetProtoLookup(src.Team),
+		Schema:         GetProtoLookup(src.Schema),
 		Description:    src.Description,
 	}
 }
