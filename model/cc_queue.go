@@ -79,6 +79,10 @@ func (q *Queue) Patch(p *QueuePatch) {
 		q.SecLocateAgent = *p.SecLocateAgent
 	}
 
+	if p.Schema != nil {
+		q.Schema = p.Schema
+	}
+
 	if p.Team != nil {
 		q.Team = p.Team
 	}

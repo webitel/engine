@@ -75,6 +75,7 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue.SecLocateAgent = queue.SecLocateAgent
 	oldQueue.Type = queue.Type
 	oldQueue.Team = queue.Team
+	oldQueue.Schema = queue.Schema
 	oldQueue.Description = queue.Description
 
 	oldQueue, err = a.Store.Queue().Update(oldQueue)
