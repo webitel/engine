@@ -51,22 +51,11 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		Skills:         in.GetSkills(),
 		MinOfferingAt:  in.MinOfferingAt,
-	}
-
-	if in.Bucket != nil {
-		member.Bucket = &model.Lookup{
-			Id: int(in.GetBucket().GetId()),
-		}
+		Bucket:         GetLookup(in.Bucket),
 	}
 
 	if in.GetExpireAt() != 0 {
 		member.ExpireAt = model.NewInt64(in.GetExpireAt())
-	}
-
-	if in.Bucket != nil {
-		member.Bucket = &model.Lookup{
-			Id: int(in.GetBucket().GetId()),
-		}
 	}
 
 	if err = member.IsValid(); err != nil {
@@ -117,15 +106,10 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			Communications: toModelMemberCommunications(v.GetCommunications()),
 			Skills:         v.GetSkills(),
 			MinOfferingAt:  v.MinOfferingAt,
+			Bucket:         GetLookup(v.GetBucket()),
 		}
 		if v.GetExpireAt() != 0 {
 			member.ExpireAt = model.NewInt64(v.GetExpireAt())
-		}
-
-		if v.Bucket != nil {
-			member.Bucket = &model.Lookup{
-				Id: int(v.GetBucket().GetId()),
-			}
 		}
 
 		if err = member.IsValid(); err != nil {
@@ -239,7 +223,6 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		QueueId:   in.GetQueueId(),
 		Priority:  int(in.GetPriority()),
 		ExpireAt:  nil,
-		Bucket:    nil,
 		Name:      in.GetName(),
 		Variables: in.GetVariables(),
 		Timezone: model.Lookup{
@@ -248,18 +231,13 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		Skills:         in.GetSkills(),
 		MinOfferingAt:  in.MinOfferingAt,
+		Bucket:         GetLookup(in.Bucket),
 	}
 
 	if in.ExpireAt != 0 {
 		member.ExpireAt = model.NewInt64(in.ExpireAt)
 	} else {
 		member.ExpireAt = nil
-	}
-
-	if in.Bucket != nil {
-		member.Bucket = &model.Lookup{
-			Id: int(in.GetBucket().GetId()),
-		}
 	}
 
 	if err = member.IsValid(); err != nil {
