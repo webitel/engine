@@ -8,6 +8,10 @@ type AgentSkill struct {
 	Capacity int    `json:"capacity" db:"capacity"`
 }
 
+type SearchAgentSkill struct {
+	ListRequest
+}
+
 func (as *AgentSkill) IsValid() *AppError {
 	//FIXME
 	return nil

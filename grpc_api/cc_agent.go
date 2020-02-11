@@ -259,7 +259,17 @@ func (api *agent) SearchAgentInTeam(ctx context.Context, in *engine.SearchAgentI
 	}
 
 	var list []*model.AgentInTeam
-	list, err = api.app.GetAgentInTeamPage(session.Domain(in.GetDomainId()), in.GetId(), int(in.GetPage()), int(in.GetSize()))
+	var endList bool
+	req := &model.SearchAgentInTeam{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetAgentInTeamPage(session.Domain(in.GetDomainId()), in.GetId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -274,6 +284,7 @@ func (api *agent) SearchAgentInTeam(ctx context.Context, in *engine.SearchAgentI
 	}
 
 	return &engine.ListAgentInTeam{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -299,7 +310,16 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	}
 
 	var list []*model.AgentInQueue
-	list, err = api.app.GetAgentInQueuePage(session.Domain(in.GetDomainId()), in.GetId(), int(in.GetPage()), int(in.GetSize()))
+	var endList bool
+	req := &model.SearchAgentInQueue{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+	list, endList, err = api.app.GetAgentInQueuePage(session.Domain(in.GetDomainId()), in.GetId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -320,6 +340,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	}
 
 	return &engine.ListAgentInQueue{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -345,7 +366,18 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 	}
 
 	var list []*model.AgentState
-	list, err = api.app.GetAgentStateHistoryPage(in.GetAgentId(), in.GetTimeFrom(), in.GetTimeTo(), int(in.GetPage()), int(in.GetSize()))
+	var endList bool
+	req := &model.SearchAgentState{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+		From: in.GetTimeFrom(),
+		To:   in.GetTimeTo(),
+	}
+	list, endList, err = api.app.GetAgentStateHistoryPage(in.GetAgentId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -357,6 +389,50 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 	}
 
 	return &engine.ListAgentStateHistory{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
+func (api *agent) SearchLookupUsersAgentNotExists(ctx context.Context, in *engine.SearchLookupUsersAgentNotExistsRequest) (*engine.ListAgentUser, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_USERS)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	var list []*model.AgentUser
+	var endList bool
+	req := &model.SearchAgentUser{
+		ListRequest: model.ListRequest{
+			//DomainId: in.GetDomainId(),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+		},
+	}
+
+	items := make([]*engine.AgentUser, 0, len(list))
+
+	if permission.Rbac {
+		list, endList, err = api.app.AgentsLookupNotExistsUsersByGroups(session.Domain(in.GetDomainId()), session.GetAclRoles(), req)
+	} else {
+		list, endList, err = api.app.AgentsLookupNotExistsUsers(session.Domain(in.GetDomainId()), req)
+	}
+
+	for _, v := range list {
+		items = append(items, &engine.AgentUser{
+			Id:   v.Id,
+			Name: v.Name,
+		})
+	}
+
+	return &engine.ListAgentUser{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

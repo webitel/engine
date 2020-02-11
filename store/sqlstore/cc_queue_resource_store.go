@@ -53,7 +53,7 @@ func (s SqlQueueResourceStore) Get(domainId, queueId, id int64) (*model.QueueRes
 	}
 }
 
-func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueResourceGroup, *model.AppError) {
+func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, search *model.SearchQueueResourceGroup) ([]*model.QueueResourceGroup, *model.AppError) {
 	var out []*model.QueueResourceGroup
 
 	if _, err := s.GetReplica().Select(&out,
@@ -61,12 +61,14 @@ func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, offset, limit
 			from cc_queue_resource q
 				inner join cc_outbound_resource_group g on q.resource_group_id = g.id
 			where q.queue_id = :QueueId and g.domain_id = :DomainId
+				and ( (:Q::varchar isnull or (g.name ilike :Q::varchar ) ))
 			order by q.id
 			limit :Limit
 			offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
-			"Limit":    limit,
-			"Offset":   offset,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
 			"QueueId":  queueId,
 		}); err != nil {
 		return nil, model.NewAppError("SqlQueueResourceStore.GetAllPage", "store.sql_queue_resource.get_all.app_error",

@@ -32,8 +32,13 @@ func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, search *model.
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentStateHistoryPage(agentId, from, to int64, page, perPage int) ([]*model.AgentState, *model.AppError) {
-	return a.Store.Agent().HistoryState(agentId, from, to, page*perPage, perPage)
+func (a *App) GetAgentStateHistoryPage(agentId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
+	list, err := a.Store.Agent().HistoryState(agentId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetAgentById(domainId, id int64) (*model.Agent, *model.AppError) {
@@ -85,10 +90,38 @@ func (a *App) SetAgentStatus(domainId, id int64, status model.AgentStatus) *mode
 	}
 }
 
-func (a *App) GetAgentInTeamPage(domainId, id int64, page, perPage int) ([]*model.AgentInTeam, *model.AppError) {
-	return a.Store.Agent().InTeam(domainId, id, page*perPage, perPage)
+func (a *App) GetAgentInTeamPage(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, bool, *model.AppError) {
+	list, err := a.Store.Agent().InTeam(domainId, id, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentInQueuePage(domainId, id int64, page, perPage int) ([]*model.AgentInQueue, *model.AppError) {
-	return a.Store.Agent().InQueue(domainId, id, page*perPage, perPage)
+func (a *App) GetAgentInQueuePage(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, bool, *model.AppError) {
+	list, err := a.Store.Agent().InQueue(domainId, id, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (a *App) AgentsLookupNotExistsUsers(domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
+	list, err := a.Store.Agent().LookupNotExistsUsers(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (a *App) AgentsLookupNotExistsUsersByGroups(domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
+	list, err := a.Store.Agent().LookupNotExistsUsersByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }

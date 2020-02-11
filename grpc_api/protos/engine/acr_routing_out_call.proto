@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-option go_package = "github.com/webitel/engine/grpc_api/engine";
-
 import "const.proto";
 import "google/api/annotations.proto";
 

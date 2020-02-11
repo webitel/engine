@@ -274,7 +274,16 @@ func (api *outboundResourceGroup) SearchOutboundResourceInGroup(ctx context.Cont
 	}
 
 	var list []*model.OutboundResourceInGroup
-	list, err = api.app.GetOutboundResourceInGroupPage(session.Domain(in.DomainId), in.GetGroupId(), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchOutboundResourceInGroup{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+	list, endList, err = api.app.GetOutboundResourceInGroupPage(session.Domain(in.DomainId), in.GetGroupId(), req)
 
 	if err != nil {
 		return nil, err
@@ -285,6 +294,7 @@ func (api *outboundResourceGroup) SearchOutboundResourceInGroup(ctx context.Cont
 		items = append(items, toEngineOutboundResourceInGroup(v))
 	}
 	return &engine.ListOutboundResourceInGroup{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

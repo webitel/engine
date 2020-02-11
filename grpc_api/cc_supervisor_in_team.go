@@ -80,7 +80,17 @@ func (api *supervisorInTeam) SearchSupervisorInTeam(ctx context.Context, in *eng
 	}
 
 	var list []*model.SupervisorInTeam
-	list, err = api.app.GetSupervisorsPage(session.Domain(int64(in.DomainId)), in.GetTeamId(), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchSupervisorInTeam{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetSupervisorsPage(session.Domain(int64(in.DomainId)), in.GetTeamId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -90,6 +100,7 @@ func (api *supervisorInTeam) SearchSupervisorInTeam(ctx context.Context, in *eng
 		items = append(items, transformSupervisorTeam(v))
 	}
 	return &engine.ListSupervisorInTeam{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

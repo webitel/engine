@@ -36,6 +36,10 @@ type OutboundResourceInGroup struct {
 	Resource Lookup `json:"resource" db:"resource"`
 }
 
+type SearchOutboundResourceInGroup struct {
+	ListRequest
+}
+
 func (r *OutboundResourceInGroup) IsValid() *AppError {
 	///FIXME
 	return nil

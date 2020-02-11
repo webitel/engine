@@ -196,7 +196,7 @@ func (s SqlAgentStore) SetStatus(domainId, agentId int64, status string, payload
 	}
 }
 
-func (s SqlAgentStore) InTeam(domainId, id int64, offset, limit int) ([]*model.AgentInTeam, *model.AppError) {
+func (s SqlAgentStore) InTeam(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, *model.AppError) {
 	var res []*model.AgentInTeam
 
 	_, err := s.GetReplica().Select(&res, `select cc_get_lookup(t.id, t.name) as team, t.strategy
@@ -211,13 +211,15 @@ where t.id in (
         where s.agent_id = :AgentId
     )
 ) and t.domain_id = :DomainId
+  and ( (:Q::varchar isnull or (t.name ilike :Q::varchar ) ))
 order by t.id
 			limit :Limit
 			offset :Offset`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,
-		"Limit":    limit,
-		"Offset":   offset,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
 	})
 
 	if err != nil {
@@ -228,7 +230,7 @@ order by t.id
 	return res, nil
 }
 
-func (s SqlAgentStore) InQueue(domainId, id int64, offset, limit int) ([]*model.AgentInQueue, *model.AppError) {
+func (s SqlAgentStore) InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError) {
 	var res []*model.AgentInQueue
 
 	_, err := s.GetReplica().Select(&res, `select cc_get_lookup(q.id, q.name) as queue,
@@ -254,15 +256,16 @@ where q.domain_id = :DomainId and q.team_id in (
             where s.agent_id = :AgentId
         )
     ) and t.domain_id = :DomainId
-)
+) and ( (:Q::varchar isnull or (q.name ilike :Q::varchar ) ))
 group by q.id, q.priority
 order by q.priority desc
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,
-		"Limit":    limit,
-		"Offset":   offset,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"Q":        search.GetQ(),
 	})
 
 	if err != nil {
@@ -273,20 +276,22 @@ offset :Offset`, map[string]interface{}{
 	return res, nil
 }
 
-func (s SqlAgentStore) HistoryState(agentId, from, to int64, offset, limit int) ([]*model.AgentState, *model.AppError) {
+func (s SqlAgentStore) HistoryState(agentId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError) {
 	var res []*model.AgentState
 	_, err := s.GetReplica().Select(&res, `select h.id, (extract(EPOCH from h.joined_at) * 1000)::int8 as joined_at, h.state, h.timeout_at, cc_get_lookup(h.queue_id, q.name) queue
 from cc_agent_state_history h
     left join cc_queue q on q.id = h.queue_id
 where h.agent_id = :AgentId and h.joined_at between to_timestamp( (:From::int8)/1000)::timestamp and to_timestamp(:To::int8/1000)::timestamp
+	and ( (:Q::varchar isnull or (q.name ilike :Q::varchar ) ))
 order by h.joined_at desc
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"AgentId": agentId,
-		"From":    from,
-		"To":      to,
-		"Limit":   limit,
-		"Offset":  offset,
+		"From":    search.From,
+		"To":      search.To,
+		"Limit":   search.GetLimit(),
+		"Offset":  search.GetOffset(),
+		"Q":       search.GetQ(),
 	})
 
 	if err != nil {
@@ -295,4 +300,57 @@ offset :Offset`, map[string]interface{}{
 	}
 
 	return res, nil
+}
+
+func (s SqlAgentStore) LookupNotExistsUsers(domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, *model.AppError) {
+	var users []*model.AgentUser
+
+	if _, err := s.GetReplica().Select(&users,
+		`select u.id, u.name
+from directory.wbt_user u
+where u.dc = :DomainId
+  and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
+  and   ( (:Q::varchar isnull or (u.name ilike :Q::varchar ) ))
+order by u.id
+limit :Limit
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+		}); err != nil {
+		return nil, model.NewAppError("SqlAgentStore.LookupNotExistsUsers", "store.sql_agent.lookup.users.app_error", nil, err.Error(), extractCodeFromErr(err))
+	} else {
+		return users, nil
+	}
+}
+
+func (s SqlAgentStore) LookupNotExistsUsersByGroups(domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, *model.AppError) {
+	var users []*model.AgentUser
+
+	if _, err := s.GetReplica().Select(&users,
+		`select u.id, u.name
+from directory.wbt_user u
+where u.dc = :DomainId
+  and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
+  and and (
+	exists(select 1
+	  from directory.wbt_auth_acl acl
+	  where acl.dc = u.dc and acl.object = u.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
+  ) 
+  and   ( (:Q::varchar isnull or (u.name ilike :Q::varchar ) ))
+order by u.id
+limit :Limit
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+			"Groups":   pq.Array(groups),
+			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		}); err != nil {
+		return nil, model.NewAppError("SqlAgentStore.LookupNotExistsUsers", "store.sql_agent.lookup.users.app_error", nil, err.Error(), extractCodeFromErr(err))
+	} else {
+		return users, nil
+	}
 }

@@ -55,6 +55,7 @@ func (s *RoutingSchema) Patch(in *RoutingSchemaPath) {
 	}
 }
 
+//FIXME delete type
 type RoutingInboundCall struct {
 	DomainRecord
 	Name        string      `json:"name" db:"name"`

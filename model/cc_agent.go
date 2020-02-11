@@ -28,12 +28,27 @@ type SearchAgent struct {
 	ListRequest
 }
 
+type AgentUser struct {
+	Id   int64
+	Name string
+}
+
+type SearchAgentUser struct {
+	ListRequest
+}
+
 type AgentState struct {
 	Id        int64   `json:"id" db:"id"`
 	JoinedAt  int64   `json:"joined_at" db:"joined_at"`
 	State     string  `json:"state" db:"state"`
 	TimeoutAt *int64  `json:"timeout_at" db:"timeout_at"`
 	Queue     *Lookup `json:"queue" db:"queue"`
+}
+
+type SearchAgentState struct {
+	ListRequest
+	From int64
+	To   int64
 }
 
 func (a *Agent) IsValid() *AppError {
@@ -43,6 +58,14 @@ func (a *Agent) IsValid() *AppError {
 type AgentInTeam struct {
 	Team     Lookup `json:"team" db:"team"`
 	Strategy string `json:"strategy" json:"strategy"`
+}
+
+type SearchAgentInTeam struct {
+	ListRequest
+}
+
+type SearchAgentInQueue struct {
+	ListRequest
 }
 
 type AgentInQueue struct {

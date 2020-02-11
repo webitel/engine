@@ -58,8 +58,9 @@ message SearchSupervisorInTeamRequest {
     int64 team_id = 1;
     int32 page = 2;
     int32 size = 3;
+    string q = 4;
 
-    int64 domain_id = 4;
+    int64 domain_id = 5;
 }
 
 message CreateSupervisorInTeamRequest {
@@ -82,5 +83,6 @@ message SupervisorInTeam {
 }
 
 message ListSupervisorInTeam {
-    repeated SupervisorInTeam items = 1;
+    bool next = 1;
+    repeated SupervisorInTeam items = 2;
 }

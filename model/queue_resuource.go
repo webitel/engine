@@ -6,6 +6,10 @@ type QueueResourceGroup struct {
 	ResourceGroup Lookup `json:"resource_group" db:"resource_group"`
 }
 
+type SearchQueueResourceGroup struct {
+	ListRequest
+}
+
 func (q *QueueResourceGroup) IsValid() *AppError {
 	//FIXME
 	return nil

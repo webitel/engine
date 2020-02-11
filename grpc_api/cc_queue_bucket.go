@@ -109,7 +109,17 @@ func (api *queueBucket) SearchQueueBucket(ctx context.Context, in *engine.Search
 	}
 
 	var list []*model.QueueBucket
-	list, err = api.app.GetQueueBucketPage(session.Domain(in.DomainId), in.GetQueueId(), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchQueueBucket{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetQueueBucketPage(session.Domain(in.DomainId), in.GetQueueId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -126,6 +136,7 @@ func (api *queueBucket) SearchQueueBucket(ctx context.Context, in *engine.Search
 		})
 	}
 	return &engine.ListQueueBucket{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

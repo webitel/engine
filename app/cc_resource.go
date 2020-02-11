@@ -101,8 +101,13 @@ func (a *App) CreateOutboundResourceDisplay(display *model.ResourceDisplay) (*mo
 	return a.Store.OutboundResource().SaveDisplay(display)
 }
 
-func (a *App) GetOutboundResourceDisplayPage(domainId, resourceId int64, page, perPage int) ([]*model.ResourceDisplay, *model.AppError) {
-	return a.Store.OutboundResource().GetDisplayAllPage(domainId, resourceId, page*perPage, perPage)
+func (a *App) GetOutboundResourceDisplayPage(domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, *model.AppError) {
+	list, err := a.Store.OutboundResource().GetDisplayAllPage(domainId, resourceId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (a *App) GetOutboundResourceDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {

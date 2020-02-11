@@ -6,8 +6,13 @@ func (app *App) CreateQueueBucket(queueBucket *model.QueueBucket) (*model.QueueB
 	return app.Store.BucketInQueue().Create(queueBucket)
 }
 
-func (app *App) GetQueueBucketPage(domainId, queueId int64, page, perPage int) ([]*model.QueueBucket, *model.AppError) {
-	return app.Store.BucketInQueue().GetAllPage(domainId, queueId, page*perPage, perPage)
+func (app *App) GetQueueBucketPage(domainId, queueId int64, search *model.SearchQueueBucket) ([]*model.QueueBucket, bool, *model.AppError) {
+	list, err := app.Store.BucketInQueue().GetAllPage(domainId, queueId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetQueueBucket(domainId, queueId, id int64) (*model.QueueBucket, *model.AppError) {

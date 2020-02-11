@@ -17,6 +17,10 @@ type QueueBucket struct {
 	Ratio   int    `json:"ratio" db:"ratio"`
 }
 
+type SearchQueueBucket struct {
+	ListRequest
+}
+
 func (b *Bucket) IsValid() *AppError {
 	//FIXME
 	return nil

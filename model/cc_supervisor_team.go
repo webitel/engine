@@ -6,6 +6,10 @@ type SupervisorInTeam struct {
 	Agent  Lookup `json:"agent" db:"agent"`
 }
 
+type SearchSupervisorInTeam struct {
+	ListRequest
+}
+
 func (s *SupervisorInTeam) IsValid() *AppError {
 	//FIXME
 	return nil

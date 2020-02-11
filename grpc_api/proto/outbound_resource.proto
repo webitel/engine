@@ -102,11 +102,14 @@ message SearchOutboundResourceDisplayRequest {
     int64 resource_id = 1;
     int32 page = 2;
     int32 size = 3;
-    int64 domain_id = 4;
+    string q = 4;
+
+    int64 domain_id = 5;
 }
 
 message ListOutboundResourceDisplay {
-    repeated ResourceDisplay items = 1;
+    bool next = 1;
+    repeated ResourceDisplay items = 2;
 }
 
 message CreateOutboundResourceDisplayRequest {

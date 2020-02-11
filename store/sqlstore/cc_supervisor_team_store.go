@@ -38,7 +38,7 @@ from i
 	}
 }
 
-func (s SqlSupervisorTeamStore) GetAllPage(domainId, teamId int64, offset, limit int) ([]*model.SupervisorInTeam, *model.AppError) {
+func (s SqlSupervisorTeamStore) GetAllPage(domainId, teamId int64, search *model.SearchSupervisorInTeam) ([]*model.SupervisorInTeam, *model.AppError) {
 	var supervisors []*model.SupervisorInTeam
 
 	if _, err := s.GetReplica().Select(&supervisors,
@@ -48,13 +48,15 @@ func (s SqlSupervisorTeamStore) GetAllPage(domainId, teamId int64, offset, limit
 					inner join cc_agent ca on i.agent_id = ca.id
 					inner join directory.wbt_user u on u.id = ca.user_id
 				where i.team_id = :TeamId and te.domain_id = :DomainId
+					and ( (:Q::varchar isnull or (u.name ilike :Q::varchar ) ))
 				order by i.id
 				limit :Limit
 				offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
 			"TeamId":   teamId,
-			"Limit":    limit,
-			"Offset":   offset,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
 		}); err != nil {
 		return nil, model.NewAppError("SqlSupervisorTeamStore.GetAllPage", "store.sql_supervisor_team.get_all.app_error",
 			nil, err.Error(), extractCodeFromErr(err))

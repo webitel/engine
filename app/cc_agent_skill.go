@@ -6,8 +6,13 @@ func (app *App) CreateAgentSkill(as *model.AgentSkill) (*model.AgentSkill, *mode
 	return app.Store.AgentSkill().Create(as)
 }
 
-func (app *App) GetAgentsSkillPage(domainId, agentId int64, page, perPage int) ([]*model.AgentSkill, *model.AppError) {
-	return app.Store.AgentSkill().GetAllPage(domainId, agentId, page*perPage, perPage)
+func (app *App) GetAgentsSkillPage(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, bool, *model.AppError) {
+	list, err := app.Store.AgentSkill().GetAllPage(domainId, agentId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetAgentsSkillById(domainId, agentId, id int64) (*model.AgentSkill, *model.AppError) {
@@ -46,4 +51,13 @@ func (a *App) RemoveAgentSkill(domainId, agentId, id int64) (*model.AgentSkill, 
 		return nil, err
 	}
 	return agentSkill, nil
+}
+
+func (app *App) LookupSkillIfNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, bool, *model.AppError) {
+	list, err := app.Store.AgentSkill().LookupNotExistsAgent(domainId, agentId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }

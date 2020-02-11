@@ -47,7 +47,7 @@ from tmp
 	}
 }
 
-func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, offset, limit int) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
 	var agentSkill []*model.AgentSkill
 
 	if _, err := s.GetReplica().Select(&agentSkill,
@@ -57,9 +57,16 @@ from cc_skill_in_agent sa
     inner join directory.wbt_user u on u.id = ca.user_id
     inner join cc_skill cs on sa.skill_id = cs.id
 where sa.agent_id = :AgentId and ca.domain_id = :DomainId
+	and ( (:Q::varchar isnull or (cs.description ilike :Q::varchar or cs.name ilike :Q::varchar ) ))
 order by sa.capacity desc
 limit :Limit
-offset :Offset`, map[string]interface{}{"DomainId": domainId, "Limit": limit, "Offset": offset, "AgentId": agentId}); err != nil {
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
+			"AgentId":  agentId,
+		}); err != nil {
 		return nil, model.NewAppError("SqlAgentSkillStore.GetAllPage", "store.sql_skill_in_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return agentSkill, nil
@@ -127,4 +134,29 @@ where a.id = :Id and a.agent_id = :AgentId`,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
+}
+
+func (s SqlAgentSkillStore) LookupNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, *model.AppError) {
+	var skills []*model.Skill
+
+	if _, err := s.GetReplica().Select(&skills,
+		`select c.id,
+       c.name,
+       c.description
+from cc_skill c
+where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar ) )) 
+	and not exists(select 1 from cc_skill_in_agent sa where sa.agent_id = :AgentId and sa.skill_id = c.id)
+order by id
+limit :Limit
+offset :Offset`, map[string]interface{}{
+			"DomainId": domainId,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"AgentId":  agentId,
+			"Q":        search.GetQ(),
+		}); err != nil {
+		return nil, model.NewAppError("SqlSkillStore.LookupNotExistsAgent", "store.sql_skill_in_agent.lookup.skill.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return skills, nil
+	}
 }

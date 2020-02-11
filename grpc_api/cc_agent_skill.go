@@ -91,7 +91,16 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 	}
 
 	var list []*model.AgentSkill
-	list, err = api.app.GetAgentsSkillPage(session.Domain(int64(in.DomainId)), in.GetAgentId(), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchAgentSkill{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.GetAgentsSkillPage(session.Domain(in.DomainId), in.GetAgentId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +117,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 		})
 	}
 	return &engine.ListAgentSkill{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -220,6 +230,55 @@ func (api *agentSkill) DeleteAgentSkill(ctx context.Context, in *engine.DeleteAg
 	}
 
 	return transformAgentSkill(agentSkill), nil
+}
+
+func (api *agentSkill) SearchLookupAgentNotExistsSkill(ctx context.Context, in *engine.SearchLookupAgentNotExistsSkillRequest) (*engine.ListSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var list []*model.Skill
+	var endList bool
+	req := &model.SearchAgentSkill{
+		ListRequest: model.ListRequest{
+			//DomainId: in.GetDomainId(),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+		},
+	}
+
+	list, endList, err = api.app.LookupSkillIfNotExistsAgent(session.Domain(in.DomainId), in.GetAgentId(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.Skill, 0, len(list))
+	for _, v := range list {
+		items = append(items, &engine.Skill{
+			Id:   v.Id,
+			Name: v.Name,
+		})
+	}
+	return &engine.ListSkill{
+		Next:  !endList,
+		Items: items,
+	}, nil
 }
 
 func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {

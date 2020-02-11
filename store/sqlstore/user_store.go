@@ -2,6 +2,8 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 )
@@ -13,6 +15,25 @@ type SqlUserStore struct {
 func NewSqlUserStore(sqlStore SqlStore) store.UserStore {
 	us := &SqlUserStore{sqlStore}
 	return us
+}
+
+func (s SqlUserStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+
+	res, err := s.GetReplica().SelectNullInt(`select 1
+		where exists(
+          select 1
+          from directory.wbt_auth_acl a
+          where a.dc = :DomainId
+            and a.object = :Id
+            and a.subject = any (:Groups::int[])
+            and a.access & :Access = :Access
+        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
+
+	if err != nil {
+		return false, nil
+	}
+
+	return res.Valid && res.Int64 == 1, nil
 }
 
 func (s SqlUserStore) GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError) {

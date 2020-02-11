@@ -6,8 +6,13 @@ func (app *App) CreateQueueResourceGroup(queueResourceGroup *model.QueueResource
 	return app.Store.QueueResource().Create(queueResourceGroup)
 }
 
-func (app *App) GetQueueResourceGroupPage(domainId, queueId int64, page, perPage int) ([]*model.QueueResourceGroup, *model.AppError) {
-	return app.Store.QueueResource().GetAllPage(domainId, queueId, page*perPage, perPage)
+func (app *App) GetQueueResourceGroupPage(domainId, queueId int64, search *model.SearchQueueResourceGroup) ([]*model.QueueResourceGroup, bool, *model.AppError) {
+	list, err := app.Store.QueueResource().GetAllPage(domainId, queueId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetQueueResourceGroup(domainId, queueId, id int64) (*model.QueueResourceGroup, *model.AppError) {

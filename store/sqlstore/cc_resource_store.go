@@ -239,21 +239,23 @@ returning *`, map[string]interface{}{
 	return out, nil
 }
 
-func (s SqlOutboundResourceStore) GetDisplayAllPage(domainId, resourceId int64, offset, limit int) ([]*model.ResourceDisplay, *model.AppError) {
+func (s SqlOutboundResourceStore) GetDisplayAllPage(domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, *model.AppError) {
 	var list []*model.ResourceDisplay
 	if _, err := s.GetReplica().Select(&list, `
 		select d.id, d.display, d.resource_id
 		from cc_outbound_resource_display d
 		where d.resource_id = :ResourceId and exists (select 1
 				from cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)
+   			  and ( (:Q::varchar isnull or (d.display ilike :Q::varchar ) )) 
 		order by d.id
 		limit :Limit
 		offset :Offset
 		`, map[string]interface{}{
 		"ResourceId": resourceId,
 		"DomainId":   domainId,
-		"Limit":      limit,
-		"Offset":     offset,
+		"Limit":      search.GetLimit(),
+		"Offset":     search.GetOffset(),
+		"Q":          search.GetQ(),
 	}); err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetDisplayAllPage", "store.sql_out_resource.get_display_all.app_error", nil,
 			fmt.Sprintf("ResourceId=%v, %s", resourceId, err.Error()), extractCodeFromErr(err))

@@ -11,6 +11,11 @@ type ResourceInTeam struct {
 	MaxCapacity int     `json:"max_capacity" db:"max_capacity"`
 }
 
+type SearchResourceInTeam struct {
+	ListRequest
+	OnlyAgents bool
+}
+
 func (r *ResourceInTeam) AgentId() *int64 {
 	if r.Agent == nil {
 		return nil

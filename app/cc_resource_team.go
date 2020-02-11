@@ -6,8 +6,14 @@ func (a *App) CreateResourceTeamAgent(resource *model.ResourceInTeam) (*model.Re
 	return a.Store.ResourceTeam().Create(resource)
 }
 
-func (a *App) GetResourceTeamAgentPage(domainId, teamId int64, page, perPage int) ([]*model.ResourceInTeam, *model.AppError) {
-	return a.Store.ResourceTeam().GetAllPage(domainId, teamId, page*perPage, perPage, true)
+func (a *App) GetResourceTeamAgentPage(domainId, teamId int64, search *model.SearchResourceInTeam) ([]*model.ResourceInTeam, bool, *model.AppError) {
+	search.OnlyAgents = true
+	list, err := a.Store.ResourceTeam().GetAllPage(domainId, teamId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetResourceTeamAgent(domainId, teamId, id int64) (*model.ResourceInTeam, *model.AppError) {
@@ -54,8 +60,14 @@ func (a *App) CreateResourceTeamSkill(resource *model.ResourceInTeam) (*model.Re
 	return a.Store.ResourceTeam().Create(resource)
 }
 
-func (a *App) GetResourceTeamSkillPage(domainId, teamId int64, page, perPage int) ([]*model.ResourceInTeam, *model.AppError) {
-	return a.Store.ResourceTeam().GetAllPage(domainId, teamId, page*perPage, perPage, false)
+func (a *App) GetResourceTeamSkillPage(domainId, teamId int64, search *model.SearchResourceInTeam) ([]*model.ResourceInTeam, bool, *model.AppError) {
+	search.OnlyAgents = false
+	list, err := a.Store.ResourceTeam().GetAllPage(domainId, teamId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetResourceTeamSkill(domainId, teamId, id int64) (*model.ResourceInTeam, *model.AppError) {

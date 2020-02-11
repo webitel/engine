@@ -107,7 +107,16 @@ func (api *resourceTeam) SearchResourceTeamAgent(ctx context.Context, in *engine
 	}
 
 	var list []*model.ResourceInTeam
-	list, err = api.app.GetResourceTeamAgentPage(session.Domain(in.DomainId), in.GetTeamId(), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchResourceInTeam{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+	list, endList, err = api.app.GetResourceTeamAgentPage(session.Domain(in.DomainId), in.GetTeamId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +126,7 @@ func (api *resourceTeam) SearchResourceTeamAgent(ctx context.Context, in *engine
 		items = append(items, transformResourceTeamAgent(v))
 	}
 	return &engine.ListResourceTeamAgent{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -291,7 +301,16 @@ func (api *resourceTeam) SearchResourceTeamSkill(ctx context.Context, in *engine
 	}
 
 	var list []*model.ResourceInTeam
-	list, err = api.app.GetResourceTeamSkillPage(session.Domain(in.DomainId), in.GetTeamId(), int(in.Page), int(in.Size))
+	var endList bool
+	req := &model.SearchResourceInTeam{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+	list, endList, err = api.app.GetResourceTeamSkillPage(session.Domain(in.DomainId), in.GetTeamId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +320,7 @@ func (api *resourceTeam) SearchResourceTeamSkill(ctx context.Context, in *engine
 		items = append(items, transformResourceTeamSkill(v))
 	}
 	return &engine.ListResourceTeamSkill{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

@@ -114,7 +114,7 @@ func (c *callManager) Start() error {
 	}
 
 	c.startOnce.Do(func() {
-		c.watcher = utils.MakeWatcher("auth manager", WATCHER_INTERVAL, c.wakeUp)
+		c.watcher = utils.MakeWatcher("call manager", WATCHER_INTERVAL, c.wakeUp)
 		go c.watcher.Start()
 		go func() {
 			defer func() {

@@ -28,6 +28,10 @@ type ResourceDisplay struct {
 	ResourceId int64  `json:"resource_id" db:"resource_id"`
 }
 
+type SearchResourceDisplay struct {
+	ListRequest
+}
+
 type OutboundCallResourcePath struct {
 	Limit                 *int         `json:"limit" db:"limit"`
 	Enabled               *bool        `json:"enabled" db:"enabled"`

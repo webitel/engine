@@ -6,8 +6,13 @@ func (app *App) CreateSupervisorInTeam(supervisor *model.SupervisorInTeam) (*mod
 	return app.Store.SupervisorTeam().Create(supervisor)
 }
 
-func (app *App) GetSupervisorsPage(domainId, teamId int64, page, perPage int) ([]*model.SupervisorInTeam, *model.AppError) {
-	return app.Store.SupervisorTeam().GetAllPage(domainId, teamId, page*perPage, perPage)
+func (app *App) GetSupervisorsPage(domainId, teamId int64, search *model.SearchSupervisorInTeam) ([]*model.SupervisorInTeam, bool, *model.AppError) {
+	list, err := app.Store.SupervisorTeam().GetAllPage(domainId, teamId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetSupervisorsInTeam(domainId, teamId, id int64) (*model.SupervisorInTeam, *model.AppError) {

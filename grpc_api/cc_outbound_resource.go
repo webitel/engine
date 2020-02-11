@@ -348,14 +348,24 @@ func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, 
 	}
 
 	var list []*model.ResourceDisplay
+	var endList bool
+	req := &model.SearchResourceDisplay{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Q:        in.GetQ(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
-	list, err = api.app.GetOutboundResourceDisplayPage(session.Domain(in.DomainId), in.GetResourceId(), int(in.GetPage()), int(in.GetSize()))
+	list, endList, err = api.app.GetOutboundResourceDisplayPage(session.Domain(in.DomainId), in.GetResourceId(), req)
 
 	items := make([]*engine.ResourceDisplay, 0, len(list))
 	for _, v := range list {
 		items = append(items, toEngineResourceDisplay(v))
 	}
 	return &engine.ListOutboundResourceDisplay{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }

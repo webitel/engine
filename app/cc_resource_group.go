@@ -75,12 +75,17 @@ func (a *App) CreateOutboundResourceInGroup(domainId, resourceId, groupId int64)
 	return a.Store.OutboundResourceInGroup().Create(domainId, resourceId, groupId)
 }
 
-func (a *App) CreateOutboundResourceInGroupPage(domainId, resourceId, groupId int64, page, perPage int) (*model.OutboundResourceInGroup, *model.AppError) {
+func (a *App) CreateOutboundResourceInGroupPage(domainId, resourceId, groupId int64) (*model.OutboundResourceInGroup, *model.AppError) {
 	return a.Store.OutboundResourceInGroup().Create(domainId, resourceId, groupId)
 }
 
-func (a *App) GetOutboundResourceInGroupPage(domainId, groupId int64, page, perPage int) ([]*model.OutboundResourceInGroup, *model.AppError) {
-	return a.Store.OutboundResourceInGroup().GetAllPage(domainId, groupId, page*perPage, perPage)
+func (a *App) GetOutboundResourceInGroupPage(domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, bool, *model.AppError) {
+	list, err := a.Store.OutboundResourceInGroup().GetAllPage(domainId, groupId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetOutboundResourceInGroup(domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError) {

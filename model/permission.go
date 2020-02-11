@@ -10,4 +10,6 @@ const (
 	PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP = "cc_resource_group"
 	PERMISSION_SCOPE_CC_LIST                    = "cc_list"
 	PERMISSION_SCOPE_ACR_ROUTING                = "acr_routing"
+
+	PERMISSION_SCOPE_USERS = "users"
 )

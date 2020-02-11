@@ -54,7 +54,7 @@ func (s SqlBucketInQueueStore) Get(domainId, queueId, id int64) (*model.QueueBuc
 	}
 }
 
-func (s SqlBucketInQueueStore) GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueBucket, *model.AppError) {
+func (s SqlBucketInQueueStore) GetAllPage(domainId, queueId int64, search *model.SearchQueueBucket) ([]*model.QueueBucket, *model.AppError) {
 	var out []*model.QueueBucket
 
 	if _, err := s.GetReplica().Select(&out,
@@ -62,12 +62,14 @@ func (s SqlBucketInQueueStore) GetAllPage(domainId, queueId int64, offset, limit
 				from cc_bucket_in_queue q
 					inner join cc_bucket cb on q.bucket_id = cb.id
 				where q.queue_id = :QueueId and cb.domain_id = :DomainId
+					and ( (:Q::varchar isnull or (cb.name ilike :Q::varchar ) ))
 			order by q.id
 			limit :Limit
 			offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
-			"Limit":    limit,
-			"Offset":   offset,
+			"Limit":    search.GetLimit(),
+			"Offset":   search.GetOffset(),
+			"Q":        search.GetQ(),
 			"QueueId":  queueId,
 		}); err != nil {
 		return nil, model.NewAppError("SqlBucketInQueueStore.GetAllPage", "store.sql_queue_bucket.get_all.app_error",
