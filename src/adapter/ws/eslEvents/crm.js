@@ -154,7 +154,7 @@ function onDomainDelete (domainName) {
         }
         log.debug('Domain settings destroy %s from domain %s', result && result.n, domainName);
     });
-    
+
     callCenterService._removeByDomainName(domainName, function (err, result) {
         if (err) {
             return log.error(err);
@@ -198,6 +198,10 @@ function onUserStatus (jsonEvent) {
 
     if (user) {
         user.setState(state, status, description);
+        if (jsonEvent.hasOwnProperty("Account-Agent-Status") ) {
+            user['cc-logged'] = jsonEvent["Account-Agent-Status"] !== "Logged%20Out"
+        }
+
         jsonEvent['Account-Online'] = true;
         jsonEvent['cc_logged'] = !!user['cc-logged'];
     } else {
