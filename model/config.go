@@ -34,7 +34,7 @@ type SipSettings struct {
 }
 
 type Config struct {
-	TranslationsDirectory *string              `json:"translations_directory"`
+	TranslationsDirectory string               `json:"translations_directory"`
 	NodeName              string               `json:"node_name"`
 	DiscoverySettings     DiscoverySettings    `json:"discovery_settings"`
 	LocalizationSettings  LocalizationSettings `json:"localization_settings"`

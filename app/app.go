@@ -52,7 +52,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
 
 	if utils.T == nil {
-		if err := utils.TranslationsPreInit(); err != nil {
+		if err := utils.TranslationsPreInit(config.TranslationsDirectory); err != nil {
 			return nil, errors.Wrapf(err, "unable to load translation files")
 		}
 	}

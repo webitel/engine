@@ -18,13 +18,13 @@ var settings model.LocalizationSettings
 
 // this functions loads translations from filesystem
 // and assign english while loading server configb cds
-func TranslationsPreInit() error {
+func TranslationsPreInit(dir string) error {
 	// Set T even if we fail to load the translations. Lots of shutdown handling code will
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
 
-	if err := InitTranslationsWithDir("i18n"); err != nil {
+	if err := InitTranslationsWithDir(dir); err != nil {
 		return err
 	}
 
