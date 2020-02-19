@@ -424,6 +424,10 @@ func (api *agent) SearchLookupUsersAgentNotExists(ctx context.Context, in *engin
 		list, endList, err = api.app.AgentsLookupNotExistsUsers(session.Domain(in.GetDomainId()), req)
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
 	for _, v := range list {
 		items = append(items, &engine.AgentUser{
 			Id:   v.Id,
