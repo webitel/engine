@@ -1,9 +1,10 @@
-package utils
+package localization
 
 import (
 	"fmt"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 	wlog "github.com/webitel/wlog"
 	"io/ioutil"
 	"net/http"
@@ -40,7 +41,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 }
 
 func InitTranslationsWithDir(dir string) error {
-	i18nDirectory, found := FindDir(dir)
+	i18nDirectory, found := utils.FindDir(dir)
 	if !found {
 		return fmt.Errorf("Unable to find i18n directory")
 	}

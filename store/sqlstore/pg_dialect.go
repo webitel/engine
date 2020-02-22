@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
-	"github.com/webitel/call_center/model"
+	"github.com/webitel/engine/model"
 	"net/http"
 	"reflect"
 )

@@ -5,12 +5,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/call_manager"
+	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/engine/mq/rabbit"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
-	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 )
@@ -51,12 +51,12 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
 
-	if utils.T == nil {
-		if err := utils.TranslationsPreInit(config.TranslationsDirectory); err != nil {
+	if localization.T == nil {
+		if err := localization.TranslationsPreInit(config.TranslationsDirectory); err != nil {
 			return nil, errors.Wrapf(err, "unable to load translation files")
 		}
 	}
-	model.AppErrorInit(utils.T)
+	model.AppErrorInit(localization.T)
 
 	app.Log = wlog.NewLogger(&wlog.LoggerConfiguration{
 		EnableConsole: true,
@@ -66,7 +66,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
-	if err := utils.InitTranslations(model.LocalizationSettings{
+	if err := localization.InitTranslations(model.LocalizationSettings{
 		DefaultClientLocale: model.NewString(model.DEFAULT_LOCALE),
 		DefaultServerLocale: model.NewString(model.DEFAULT_LOCALE),
 		AvailableLocales:    model.NewString(model.DEFAULT_LOCALE),

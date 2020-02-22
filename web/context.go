@@ -4,8 +4,8 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
 	"net/http"
 )
@@ -28,7 +28,7 @@ func (c *Context) LogError(err *model.AppError) {
 		c.LogDebug(err)
 	} else {
 		c.Log.Error(
-			err.SystemMessage(utils.TDefault),
+			err.SystemMessage(localization.TDefault),
 			wlog.String("err_where", err.Where),
 			wlog.Int("http_code", err.StatusCode),
 			wlog.String("err_details", err.DetailedError),
@@ -42,7 +42,7 @@ func (c *Context) LogInfo(err *model.AppError) {
 		c.LogDebug(err)
 	} else {
 		c.Log.Info(
-			err.SystemMessage(utils.TDefault),
+			err.SystemMessage(localization.TDefault),
 			wlog.String("err_where", err.Where),
 			wlog.Int("http_code", err.StatusCode),
 			wlog.String("err_details", err.DetailedError),
@@ -52,7 +52,7 @@ func (c *Context) LogInfo(err *model.AppError) {
 
 func (c *Context) LogDebug(err *model.AppError) {
 	c.Log.Debug(
-		err.SystemMessage(utils.TDefault),
+		err.SystemMessage(localization.TDefault),
 		wlog.String("err_where", err.Where),
 		wlog.Int("http_code", err.StatusCode),
 		wlog.String("err_details", err.DetailedError),

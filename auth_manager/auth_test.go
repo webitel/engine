@@ -1,7 +1,7 @@
 package auth_manager
 
 import (
-	"github.com/webitel/call_center/cluster"
+	"github.com/webitel/engine/discovery"
 	"testing"
 )
 
@@ -9,10 +9,12 @@ const (
 	TOKEN = "USER_TOKEN"
 )
 
+var TEST_CONSUL = "localhost:8500"
+
 func TestAuthManager(t *testing.T) {
 	t.Log("AuthManager")
 
-	sd, err := cluster.NewServiceDiscovery(AUTH_SERVICE_NAME, "192.168.177.199:8500", func() (b bool, appError error) {
+	sd, err := discovery.NewServiceDiscovery(AUTH_SERVICE_NAME, TEST_CONSUL, func() (b bool, appError error) {
 		return true, nil
 	})
 	if err != nil {

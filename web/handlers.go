@@ -3,8 +3,8 @@ package web
 import (
 	"fmt"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
 	"net/http"
 )
@@ -25,7 +25,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = h.App
 	c.RequestId = model.NewId()
 	c.UserAgent = r.UserAgent()
-	c.T, _ = utils.GetTranslationsAndLocale(w, r)
+	c.T, _ = localization.GetTranslationsAndLocale(w, r)
 	c.AcceptLanguage = r.Header.Get("Accept-Language")
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)

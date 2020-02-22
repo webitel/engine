@@ -3,7 +3,7 @@ package call_manager
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/webitel/call_center/discovery"
+	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 	"net/http"

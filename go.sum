@@ -112,8 +112,6 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/webitel/call_center v0.0.0-20191212110439-9f94c6f5d657 h1:alhu0cCSwv1mTrPcm9cJfD8P6TobAEjfuf2JFR4lzAs=
-github.com/webitel/call_center v0.0.0-20191212110439-9f94c6f5d657/go.mod h1:BMwPPaNZdojJabezElftgJDckLzAtv+vife36d9BMIc=
 github.com/webitel/storage v0.0.0-20191016123834-a35810d997e8 h1:AuSFC8KEtn0Uv8eCoLJRs3GpKF+8tL8QTIQ3JfNMrfE=
 github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e h1:y4XHuersmLNU1JVPHfjICyJMdVBItWw0MfIRdERj1b8=
 github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e/go.mod h1:crQlNxndYVOAdxGKuCQZ0MZmE44lAyOZ+yzGv53g+iM=

@@ -3,8 +3,7 @@ package call_manager
 import (
 	"context"
 	"fmt"
-	"github.com/webitel/call_center/discovery"
-	"github.com/webitel/call_center/utils"
+	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 	"net/http"
@@ -60,7 +59,7 @@ type callManager struct {
 	serviceDiscovery discovery.ServiceDiscovery
 	poolConnections  discovery.Pool
 
-	watcher   *utils.Watcher
+	watcher   *discovery.Watcher
 	startOnce sync.Once
 	stop      chan struct{}
 	stopped   chan struct{}
@@ -114,7 +113,7 @@ func (c *callManager) Start() error {
 	}
 
 	c.startOnce.Do(func() {
-		c.watcher = utils.MakeWatcher("call manager", WATCHER_INTERVAL, c.wakeUp)
+		c.watcher = discovery.MakeWatcher("call manager", WATCHER_INTERVAL, c.wakeUp)
 		go c.watcher.Start()
 		go func() {
 			defer func() {

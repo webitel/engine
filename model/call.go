@@ -78,28 +78,14 @@ type CallRequest struct {
 }
 
 type Call struct {
-	Action        string `json:"action"`
-	Id            string `json:"id"`
-	DomainId      string `json:"domain_id"`
-	UserId        string `json:"user_id,omitempty"`
-	Application   string `json:"application,omitempty"`
-	ToNumber      string `json:"to_number,omitempty"`
-	ToName        string `json:"to_name,omitempty"`
-	FromNumber    string `json:"from_number,omitempty"`
-	FromName      string `json:"from_name,omitempty"`
-	Destination   string `json:"destination,omitempty"`
-	Direction     string `json:"direction,omitempty"`
-	ParentId      string `json:"parent_id,omitempty"`
-	OwnerId       string `json:"owner_id,omitempty"`
-	NodeName      string `json:"node_name,omitempty"`
-	HangupCause   string `json:"cause,omitempty"`
-	VideoFlow     string `json:"video_flow,omitempty"`
-	VideoRequest  bool   `json:"video_request,string,omitempty"`
-	ScreenRequest bool   `json:"screen_request,string,omitempty"`
-	Digit         string `json:"digit,omitempty"`
-
-	Debug   map[string]interface{} `json:"debug,omitempty"`
-	Payload *CallPayload           `json:"payload,string,omitempty"`
+	Id            string      `json:"id"`
+	Action        string      `json:"action"`
+	ActivityAt    float64     `json:"activity_at,string"`
+	DomainId      string      `json:"domain_id"`
+	UserId        string      `json:"user_id,omitempty"`
+	NodeName      string      `json:"node_name,omitempty"`
+	QueueNodeName string      `json:"queue_node_name,omitempty"`
+	Body          CallPayload `json:"data,string,omitempty"`
 }
 
 type CallPayload map[string]interface{}
@@ -133,10 +119,6 @@ type CallEvent interface {
 func NewWebSocketCallEvent(call *Call) *WebSocketEvent {
 	e := NewWebSocketEvent(WEBSOCKET_EVENT_CALL)
 	e.Add("call", call)
-
-	if call.Debug != nil {
-		e.Add("debug", call.Debug)
-	}
 
 	return e
 }

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/webitel/call_center/discovery"
+	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
 )
 

@@ -3,8 +3,8 @@ package wsapi
 import (
 	"fmt"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
 	"net/http"
 )
@@ -27,7 +27,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
-		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error()))
+		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(localization.T), sessionErr.Error()))
 		sessionErr.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
@@ -48,7 +48,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 
 	if data, err = wh.handlerFunc(conn, r); err != nil {
 		wlog.Error(fmt.Sprintf("%v %v seq=%vq [details: %v]", "websocket", r.Action, r.Seq, err.DetailedError))
-		err.DetailedError = ""
+		//err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 
 		conn.Send <- errResp

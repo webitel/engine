@@ -2,8 +2,8 @@ package auth_manager
 
 import (
 	"fmt"
-	"github.com/webitel/call_center/discovery"
-	"github.com/webitel/call_center/utils"
+	"github.com/webitel/engine/discovery"
+	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
 	"sync"
 )
@@ -27,7 +27,7 @@ type authManager struct {
 	serviceDiscovery discovery.ServiceDiscovery
 	poolConnections  discovery.Pool
 
-	watcher   *utils.Watcher
+	watcher   *discovery.Watcher
 	startOnce sync.Once
 	stop      chan struct{}
 	stopped   chan struct{}
@@ -55,7 +55,7 @@ func (am *authManager) Start() error {
 	}
 
 	am.startOnce.Do(func() {
-		am.watcher = utils.MakeWatcher("auth manager", WATCHER_INTERVAL, am.wakeUp)
+		am.watcher = discovery.MakeWatcher("auth manager", WATCHER_INTERVAL, am.wakeUp)
 		go am.watcher.Start()
 		go func() {
 			defer func() {
