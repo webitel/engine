@@ -59,14 +59,14 @@ func (s SqlUserStore) DefaultDeviceConfig(userId, domainId int64) (*model.UserDe
 
 	err := s.GetReplica().SelectOne(&deviceConfig, `select u.extension,
        dom.name as realm,
-       'sip:' || u.username || '@' || dom.name as uri,
+       'sip:' || u.extension || '@' || dom.name as uri,
        d.account as authorization_user,
        d.password as ha1,
        '' as server
 from directory.wbt_user u
     inner join directory.wbt_device d on d.id = u.device_id
     inner join directory.wbt_domain dom on dom.dc = u.dc
-where u.id = :UserId and u.dc = :DomainId`, map[string]interface{}{
+where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
