@@ -28,7 +28,8 @@ function addQuery(db) {
                 .update({
                         "domain": data['domain'],
                         "name": data['name'],
-                        "number": data['number']
+                        "number": data['number'],
+                        "createdAt": data['createdAt'],
                     },
                     data,
                     {upsert: true},
@@ -58,7 +59,7 @@ function addQuery(db) {
         },
 
         /**
-         * 
+         *
          * @param domain
          * @param option
          * @param cb
@@ -123,7 +124,7 @@ function addQuery(db) {
 
             return 1;
         },
-        
+
         removeByDomain: function (domain, cb) {
             db
                 .collection(blacklistCollectionName)

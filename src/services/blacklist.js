@@ -23,6 +23,7 @@ var Service = {
                 return cb(new CodeError(400, 'Bad request: domain, name or number is required.'));
             };
             option['number'] = option['number'].toString();
+            option['createdAt'] = Date.now();
 
             // if (/\/|\\/.test(option['number']) || /\/|\\/.test(option['name']))
             //     return cb(new CodeError(400, `Bad symbol \.`));
@@ -31,7 +32,7 @@ var Service = {
             return dbBlacklist.createOrUpdate(option, cb);
         });
     },
-    
+
     getNames: function (caller, domain, cb) {
         checkPermissions(caller, 'blacklist', 'r', function (err) {
             if (err)
@@ -107,7 +108,7 @@ var Service = {
             return Service.search(caller, option['domain'], query, cb);
         });
     },
-    
+
     remove: function (caller, domain, option, cb) {
         checkPermissions(caller, 'blacklist', 'd', function (err) {
             if (err)
