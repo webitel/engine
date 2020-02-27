@@ -113,6 +113,25 @@ func (wh *Hub) start() {
 					}
 				}
 			}
+
+		case ev := <-wh.domainQueue.UserStateEvents():
+
+			msg := model.NewWebSocketUserStateEvent(ev)
+
+			msg.PrecomputeJSON()
+			candidates := connections.All()
+			for _, webCon := range candidates {
+				//FIXME permission call events
+				if webCon.ShouldSendEvent(msg) {
+					select {
+					case webCon.Send <- msg:
+					default:
+						wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+						close(webCon.Send)
+						connections.Remove(webCon)
+					}
+				}
+			}
 		}
 	}
 }
@@ -132,6 +151,15 @@ func (wh *Hub) SubscribeSessionCalls(conn *WebConn) *model.AppError {
 	b := wh.domainQueue.BindUserCall(conn.Id(), conn.GetSession().UserId)
 	//TODO
 	conn.SetListenEvent("call", b)
+
+	return nil
+}
+
+func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) *model.AppError {
+
+	b := wh.domainQueue.BindUsersStatus(conn.Id(), conn.GetSession().UserId)
+	//TODO
+	conn.SetListenEvent("status", b)
 
 	return nil
 }

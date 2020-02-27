@@ -69,8 +69,8 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 
 	var cause = req.GetFieldString("cause")
@@ -94,8 +94,8 @@ func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 	if destination, ok = req.Data["destination"].(string); !ok || len(destination) < 1 {
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
@@ -120,8 +120,8 @@ func (api *API) callHold(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 
 	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
@@ -144,8 +144,8 @@ func (api *API) callDTMF(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 	if key, ok = req.Data["dtmf"].(string); !ok || len(key) < 1 {
 		return nil, NewInvalidWebSocketParamError(req.Action, "dtmf")
@@ -169,8 +169,8 @@ func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 
 	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
@@ -385,8 +385,8 @@ func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 	if mute, ok = req.Data["mute"].(bool); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "mute")
@@ -411,14 +411,14 @@ func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 	if id2, ok = req.Data["parent_id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "parent_id")
 	}
-	if nodeId2, ok = req.Data["parent_node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "parent_node_id")
+	if nodeId2, ok = req.Data["parent_app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "parent_app_id")
 	}
 
 	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
@@ -433,14 +433,14 @@ func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (m
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "node_id")
+	if nodeId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 	if id2, ok = req.Data["parent_id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "parent_id")
 	}
-	if nodeId2, ok = req.Data["parent_node_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "parent_node_id")
+	if nodeId2, ok = req.Data["parent_app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "parent_app_id")
 	}
 
 	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)

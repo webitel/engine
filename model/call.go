@@ -9,29 +9,6 @@ const (
 	CALL_DIRECTION_INTERNAL = "internal"
 	CALL_DIRECTION_INBOUND  = "inbound"
 	CALL_DIRECTION_OUTBOUND = "outbound"
-
-	CALL_STATE_RINGING = "ringing"
-	CALL_STATE_ACTIVE  = "active"
-	CALL_STATE_HOLD    = "hold"
-	CALL_STATE_HANGUP  = "hangup"
-
-	CALL_EVENT_HEADER_NODE_NAME              = "FreeSWITCH-Switchname"
-	CALL_EVENT_HEADER_ID                     = "Unique-ID"
-	CALL_EVENT_HEADER_DIRECTION              = "Presence-Call-Direction" //"Call-Direction"
-	CALL_EVENT_HEADER_CALL_DIRECTION         = "variable_sip_h_X-Webitel-Direction"
-	CALL_EVENT_HEADER_CALL_DISPLAY_DIRECTION = "variable_sip_h_X-Webitel-Display-Direction"
-	CALL_EVENT_HEADER_DOMAIN_ID              = "variable_sip_h_X-Webitel-Domain-Id"
-	CALL_EVENT_HEADER_DOMAIN_NAME            = "variable_sip_h_X-Webitel-Domain"
-	CALL_EVENT_HEADER_USER_ID                = "variable_sip_h_X-Webitel-User-Id"
-	CALL_EVENT_HEADER_DESTINATION            = "variable_sip_h_X-Webitel-Destination"
-	CALL_EVENT_HEADER_STATE                  = "Answer-State"
-	CALL_EVENT_HEADER_STATE_NUMBER           = "Channel-State-Number"
-	CALL_EVENT_HEADER_TO_NUMBER              = "Caller-Callee-ID-Number"
-	CALL_EVENT_HEADER_TO_NAME                = "Caller-Callee-ID-Name"
-	CALL_EVENT_HEADER_FROM_NUMBER            = "Caller-Caller-ID-Number"
-	CALL_EVENT_HEADER_FROM_NAME              = "Caller-Caller-ID-Name"
-	CALL_EVENT_HEADER_FROM_DESTINATION       = "Caller-Destination-Number"
-	CALL_EVENT_HEADER_HANGUP_CAUSE           = "variable_hangup_cause"
 )
 
 const (
@@ -42,17 +19,6 @@ const (
 	CALL_VARIABLE_SOCK_ID           = "sip_h_X-Webitel-Sock-Id"
 	CALL_VARIABLE_ID                = "sip_h_X-Webitel-Uuid"
 )
-
-const (
-	EVENT_CHANNEL_CREATE          = "CHANNEL_CREATE"
-	EVENT_CHANNEL_ANSWER          = "CHANNEL_ANSWER"
-	EVENT_CHANNEL_DESTROY         = "CHANNEL_DESTROY"
-	EVENT_CHANNEL_UNHOLD          = "CHANNEL_UNHOLD"
-	EVENT_CHANNEL_BRIDGE          = "CHANNEL_BRIDGE"
-	EVENT_CHANNEL_HOLD            = "CHANNEL_HOLD"
-	EVENT_CHANNEL_HANGUP_COMPLETE = "CHANNEL_HANGUP_COMPLETE"
-)
-
 const (
 	CALL_STRATEGY_DEFAULT = iota
 	CALL_STRATEGY_FAILOVER
@@ -78,14 +44,14 @@ type CallRequest struct {
 }
 
 type Call struct {
-	Id            string      `json:"id"`
-	Action        string      `json:"action"`
-	ActivityAt    float64     `json:"activity_at,string"`
-	DomainId      string      `json:"domain_id"`
-	UserId        string      `json:"user_id,omitempty"`
-	NodeName      string      `json:"node_name,omitempty"`
-	QueueNodeName string      `json:"queue_node_name,omitempty"`
-	Body          CallPayload `json:"data,string,omitempty"`
+	Id        string      `json:"id"`
+	Event     string      `json:"event"`
+	Timestamp float64     `json:"timestamp,string"`
+	DomainId  string      `json:"domain_id"`
+	UserId    string      `json:"user_id,omitempty"`
+	AppId     string      `json:"app_id,omitempty"`
+	CCAppId   string      `json:"cc_app_id,omitempty"`
+	Body      CallPayload `json:"data,string,omitempty"`
 }
 
 type CallPayload map[string]interface{}

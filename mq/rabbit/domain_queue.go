@@ -18,8 +18,9 @@ type DomainQueue struct {
 	channel      *amqp.Channel
 	closeChannel chan *amqp.Error
 
-	queue      amqp.Queue
-	callEvents chan *model.Call
+	queue           amqp.Queue
+	callEvents      chan *model.Call
+	userStateEvents chan *model.UserState
 
 	bindChan chan *model.BindQueueEvent
 
@@ -48,6 +49,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		name:   fmt.Sprintf("domain.%v", id),
 
 		callEvents:       make(chan *model.Call),
+		userStateEvents:  make(chan *model.UserState),
 		fnGetAllBindings: bindings,
 
 		bindChan: make(chan *model.BindQueueEvent, 100), //TODO
@@ -73,6 +75,18 @@ func (dq *DomainQueue) BindUserCall(id string, userId int64) *model.BindQueueEve
 		Id:       id,
 		Routing:  fmt.Sprintf(model.MQ_CALL_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
 		Exchange: model.MQ_CALL_EXCHANGE,
+	}
+
+	dq.bindChan <- b
+	return b
+}
+
+func (dq *DomainQueue) BindUsersStatus(id string, userId int64) *model.BindQueueEvent {
+	b := &model.BindQueueEvent{
+		UserId:   userId,
+		Id:       id,
+		Routing:  fmt.Sprintf(model.MQ_USER_STATUS_TEMPLATE_ROUTING_KEY, dq.Id()),
+		Exchange: model.MQ_USER_STATUS_EXCHANGE,
 	}
 
 	dq.bindChan <- b
@@ -110,9 +124,9 @@ func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
 			"x-sock-id": b.Id,
 		})
 	if err != nil {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to call events: %s", dq.Id(), b.UserId, b.Id, err.Error()))
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to %s events: %s", dq.Id(), b.UserId, b.Id, b.Routing, err.Error()))
 	} else {
-		wlog.Debug(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to call events", dq.Id(), b.UserId, b.Id))
+		wlog.Debug(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to %s events", dq.Id(), b.UserId, b.Id, b.Routing))
 	}
 }
 
@@ -125,6 +139,9 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 	switch m.Exchange {
 	case model.MQ_CALL_EXCHANGE:
 		dq.readCallMessage(m.Body, m.RoutingKey)
+
+	case model.MQ_USER_STATUS_EXCHANGE:
+		dq.readUserStateMessage(m.Body, m.RoutingKey)
 	default:
 		wlog.Error(fmt.Sprintf("DomainQueue [%d] not implement parser from exchange %s", dq.Id(), m.Exchange))
 	}
@@ -148,8 +165,30 @@ func (dq *DomainQueue) readCallMessage(data []byte, rk string) {
 		return
 	}
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.NodeName, e.Id, e.Action, rk))
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive call event %v:%v [%v] rk=%s", dq.Id(), e.AppId, e.Id, e.Event, rk))
 	dq.callEvents <- e
+}
+
+func parseUserStateEvent(data []byte) (*model.UserState, error) {
+	var state model.UserState
+	err := json.Unmarshal(data, &state)
+	if err != nil {
+		return nil, err
+	}
+
+	return &state, nil
+}
+
+func (dq *DomainQueue) readUserStateMessage(data []byte, rk string) {
+	e, err := parseUserStateEvent(data)
+	if err != nil {
+		wlog.Warn(err.Error())
+		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), string(data)))
+		return
+	}
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.AppId, e.UserId, e.State, rk))
+	dq.userStateEvents <- e
+
 }
 
 func (dq *DomainQueue) connect() error {
@@ -258,6 +297,10 @@ func (dq *DomainQueue) Listen() error {
 
 func (dq *DomainQueue) CallEvents() <-chan *model.Call {
 	return dq.callEvents
+}
+
+func (dq *DomainQueue) UserStateEvents() <-chan *model.UserState {
+	return dq.userStateEvents
 }
 
 func (dq *DomainQueue) Stop() {

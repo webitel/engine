@@ -42,6 +42,7 @@ func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.
 	if err != nil {
 		return "", err
 	}
+
 	if cause != "" {
 		//FIXME
 	}

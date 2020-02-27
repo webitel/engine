@@ -9,8 +9,9 @@ import (
 const (
 	WEBSOCKET_EVENT_HELLO = "hello"
 
-	WEBSOCKET_EVENT_RESPONSE = "response"
-	WEBSOCKET_EVENT_CALL     = "call"
+	WEBSOCKET_EVENT_RESPONSE   = "response"
+	WEBSOCKET_EVENT_CALL       = "call"
+	WEBSOCKET_EVENT_USER_STATE = "user_state"
 
 	WEBSOCKET_EVENT_PROGRESS_CALL = "call_progress"
 	WEBSOCKET_EVENT_ACCEPTED_CALL = "call_accepted"

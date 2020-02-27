@@ -17,9 +17,13 @@ type DomainQueue interface {
 	Start()
 	Stop()
 	CallEvents() <-chan *model.Call
+	UserStateEvents() <-chan *model.UserState
+
 	BindUserCall(id string, userId int64) *model.BindQueueEvent
 	BulkUnbind(b []*model.BindQueueEvent) *model.AppError
 	Unbind(bind *model.BindQueueEvent) *model.AppError
+
+	BindUsersStatus(id string, userId int64) *model.BindQueueEvent
 
 	Listen() error
 }
