@@ -19,7 +19,7 @@ type DomainQueue struct {
 	closeChannel chan *amqp.Error
 
 	queue           amqp.Queue
-	callEvents      chan *model.Call
+	callEvents      chan *model.CallEvent
 	userStateEvents chan *model.UserState
 
 	bindChan chan *model.BindQueueEvent
@@ -48,7 +48,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		client: client,
 		name:   fmt.Sprintf("domain.%v", id),
 
-		callEvents:       make(chan *model.Call),
+		callEvents:       make(chan *model.CallEvent),
 		userStateEvents:  make(chan *model.UserState),
 		fnGetAllBindings: bindings,
 
@@ -147,8 +147,8 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 	}
 }
 
-func parseCallEvent(data []byte) (*model.Call, error) {
-	var call model.Call
+func parseCallEvent(data []byte) (*model.CallEvent, error) {
+	var call model.CallEvent
 	err := json.Unmarshal(data, &call)
 	if err != nil {
 		return nil, err
@@ -295,7 +295,7 @@ func (dq *DomainQueue) Listen() error {
 	}
 }
 
-func (dq *DomainQueue) CallEvents() <-chan *model.Call {
+func (dq *DomainQueue) CallEvents() <-chan *model.CallEvent {
 	return dq.callEvents
 }
 
@@ -309,7 +309,7 @@ func (dq *DomainQueue) Stop() {
 	<-dq.stopped
 }
 
-func (dq *DomainQueue) getCallEvent(data []byte) *model.Call {
+func (dq *DomainQueue) getCallEvent(data []byte) *model.CallEvent {
 	e := &REvent{}
 	err := json.Unmarshal(data, e)
 	if err != nil {

@@ -44,3 +44,11 @@ func (l *LayeredMQ) UnBindCallEvents(domainId, userId int64) error {
 func (l *LayeredMQ) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (DomainQueue, *model.AppError) {
 	return l.MQLayer.NewDomainQueue(domainId, bindings)
 }
+
+func (l *LayeredMQ) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+	return l.MQLayer.RegisterWebsocket(domainId, event)
+}
+
+func (l *LayeredMQ) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+	return l.MQLayer.UnRegisterWebsocket(domainId, event)
+}

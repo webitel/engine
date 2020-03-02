@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/wlog"
+	"net/http"
 	"os"
 	"sync"
 	"time"
@@ -38,7 +39,6 @@ type AMQP struct {
 	errorChan          chan *amqp.Error
 	stop               chan struct{}
 	stopped            chan struct{}
-	callEvent          chan model.CallEvent
 	domainQueues       map[int64]mq.DomainQueue
 
 	registerDomainQueue   chan mq.DomainQueue
@@ -52,7 +52,6 @@ func NewRabbitMQ(nodeName string, settings *model.MessageQueueSettings) mq.Layer
 		settings:     settings,
 		errorChan:    make(chan *amqp.Error, 1),
 		domainQueues: make(map[int64]mq.DomainQueue),
-		callEvent:    make(chan model.CallEvent),
 		stop:         make(chan struct{}),
 		stopped:      make(chan struct{}),
 
@@ -119,9 +118,41 @@ func (a *AMQP) initConnection() {
 			time.Sleep(time.Second)
 			os.Exit(1)
 		} else {
+			if err := a.createAppExchange(); err != nil {
+				panic(err.Error())
+			}
 			wlog.Info(fmt.Sprintf("success opened AMQP connection"))
 		}
 	}
+}
+
+func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+	err := a.channel.Publish(model.MQ_APP_EXCHANGE, fmt.Sprintf("event.open_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
+		ContentType: "text,json",
+		Body:        []byte(event.ToJson()),
+	})
+	if err != nil {
+		return model.NewAppError("AMQP.RegisterWebsocket", "amqp.register_socket.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *AMQP) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+	err := a.channel.Publish(model.MQ_APP_EXCHANGE, fmt.Sprintf("event.close_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
+		ContentType: "text,json",
+		Body:        []byte(event.ToJson()),
+	})
+	if err != nil {
+		return model.NewAppError("AMQP.UnRegisterWebsocket", "amqp.unregister_socket.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *AMQP) createAppExchange() *model.AppError {
+	if err := a.channel.ExchangeDeclare(model.MQ_APP_EXCHANGE, "topic", true, false, false, true, nil); err != nil {
+		return model.NewAppError("AMQP", "amqp.declare.exchange.app_err", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (a *AMQP) Channel() *amqp.Channel {

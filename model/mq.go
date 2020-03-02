@@ -1,6 +1,7 @@
 package model
 
 const (
+	MQ_APP_EXCHANGE         = "engine"
 	MQ_CALL_EXCHANGE        = "call"
 	MQ_USER_STATUS_EXCHANGE = "webitel"
 

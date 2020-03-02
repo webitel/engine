@@ -83,6 +83,17 @@ func (wh *Hub) start() {
 			connections.Add(webCon)
 			atomic.StoreInt64(&wh.connectionCount, int64(len(connections.All())))
 
+			err := wh.app.MessageQueue.RegisterWebsocket(webCon.DomainId, &model.RegisterToWebsocketEvent{
+				AppId:     wh.app.nodeId,
+				Timestamp: model.GetMillis(),
+				UserId:    webCon.UserId,
+				Addr:      webCon.WebSocket.RemoteAddr().String(),
+				SocketId:  webCon.id,
+			})
+			if err != nil {
+				wlog.Error(err.Error())
+			}
+
 			wlog.Debug(fmt.Sprintf("register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
 
 		case webCon := <-wh.unregister:
@@ -92,6 +103,17 @@ func (wh *Hub) start() {
 			wh.lastUnregisterAt = model.GetMillis()
 
 			wh.domainQueue.BulkUnbind(webCon.GetAllBindings())
+
+			err := wh.app.MessageQueue.UnRegisterWebsocket(webCon.DomainId, &model.RegisterToWebsocketEvent{
+				AppId:     wh.app.nodeId,
+				Timestamp: model.GetMillis(),
+				UserId:    webCon.UserId,
+				Addr:      webCon.WebSocket.RemoteAddr().String(),
+				SocketId:  webCon.id,
+			})
+			if err != nil {
+				wlog.Error(err.Error())
+			}
 
 			wlog.Debug(fmt.Sprintf("un-register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
 

@@ -11,12 +11,15 @@ type MQ interface {
 	Start()
 	Close()
 	NewDomainQueue(domainId int64, bindings model.GetAllBindings) (DomainQueue, *model.AppError)
+
+	RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError
+	UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError
 }
 
 type DomainQueue interface {
 	Start()
 	Stop()
-	CallEvents() <-chan *model.Call
+	CallEvents() <-chan *model.CallEvent
 	UserStateEvents() <-chan *model.UserState
 
 	BindUserCall(id string, userId int64) *model.BindQueueEvent
