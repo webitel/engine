@@ -128,7 +128,7 @@ func (a *AMQP) initConnection() {
 
 func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
 	err := a.channel.Publish(model.MQ_APP_EXCHANGE, fmt.Sprintf("event.open_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
-		ContentType: "text,json",
+		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
 	if err != nil {
@@ -139,7 +139,7 @@ func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocke
 
 func (a *AMQP) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
 	err := a.channel.Publish(model.MQ_APP_EXCHANGE, fmt.Sprintf("event.close_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
-		ContentType: "text,json",
+		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
 	if err != nil {
