@@ -8,7 +8,7 @@ const log = require(__appRoot + '/lib/log')(module),
     async = require('async'),
     moment = require('moment-timezone')
     ;
-    
+
 function checkDialerDeadline(dialerManager, dialerDb, calendarDb, cb) {
     dialerDb._getActiveDialer({calendar: 1, domain: 1, state: 1, "stats.lockStatsRange": 1, autoResetStats: 1}, (err, res) => {
         if (err)
@@ -23,6 +23,10 @@ function checkDialerDeadline(dialerManager, dialerDb, calendarDb, cb) {
                 calendarDb.findById(dialer.domain, calendarId, (err, calendar) => {
                     if (err) {
                         return callback(err);
+                    }
+
+                    if ( !(calendar instanceof Object)) {
+                        return callback(new Error(`not found calendar ${calendarId}`))
                     }
 
                     dialerManager.emit('changeDialerState', dialer, calendar, getCurrentTimeOfDay(calendar));
