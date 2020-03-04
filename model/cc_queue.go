@@ -16,6 +16,9 @@ type Queue struct {
 	Team           *Lookup   `json:"team" db:"team"`
 	Schema         *Lookup   `json:"schema" db:"schema"`
 	Description    string    `json:"description" db:"description"`
+	Count          int       `json:"count" db:"count"`
+	Waiting        int       `json:"waiting" db:"waiting"`
+	Active         int       `json:"active" db:"active"`
 }
 
 type SearchQueue struct {

@@ -385,7 +385,6 @@ from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
 }
 
 func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError) {
-	domainId = 50
 	var att []*model.Attempt
 	_, err := s.GetReplica().Select(&att, `select a.id,
        cc_get_lookup(a.member_id, m.name) as member,

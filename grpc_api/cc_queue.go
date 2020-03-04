@@ -332,5 +332,8 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Team:           GetProtoLookup(src.Team),
 		Schema:         GetProtoLookup(src.Schema),
 		Description:    src.Description,
+		Count:          int32(src.Count),
+		Waiting:        int32(src.Waiting),
+		Active:         int32(src.Active),
 	}
 }

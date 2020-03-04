@@ -161,6 +161,10 @@ message Queue {
     Lookup team = 19;
 
     Lookup schema = 20;
+
+    int32 count = 21;
+    int32 waiting = 22;
+    int32 active = 23;
 }
 
 message ListQueue {

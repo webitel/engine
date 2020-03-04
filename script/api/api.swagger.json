@@ -7349,7 +7349,7 @@
           "format": "int64"
         },
         "destination": {
-          "type": "string"
+          "$ref": "#/definitions/engineMemberCommunication"
         },
         "weight": {
           "type": "integer",
