@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package engine;
+
+import "const.proto";
+import "google/api/annotations.proto";
+
+service CallService {
+    // List of call
+    rpc SearchCall(SearchCallRequest) returns (ListCall) {
+        option (google.api.http) = {
+            get: "/calls"
+        };
+    }
+    // Call item
+    rpc ReadCall(ReadCallRequest) returns (Call) {
+        option (google.api.http) = {
+            get: "/calls/{id}"
+        };
+    }
+
+    // Create e call
+    rpc CreateCall (CreateCallRequest) returns (CreateCallResponse) {
+        option (google.api.http) = {
+            post: "/calls"
+            body: "*"
+        };
+    }
+
+    rpc HangupCall (HangupCallRequest) returns (HangupCallResponse) {
+        option (google.api.http) = {
+            delete: "/calls/{id}"
+            body: "*"
+        };
+    }
+
+    rpc HoldCall (UserCallRequest) returns (HoldCallResponse) {
+        option (google.api.http) = {
+            patch: "/calls/{id}/hold"
+            body: "*"
+        };
+    }
+
+    rpc UnHoldCall (UserCallRequest) returns (HoldCallResponse) {
+        option (google.api.http) = {
+            patch: "/calls/{id}/hold"
+            body: "*"
+        };
+    }
+
+    rpc DtmfCall (DtmfCallRequest) returns (DtmfCallResponse) {
+        option (google.api.http) = {
+            patch: "/calls/{id}/dtmf"
+            body: "*"
+        };
+    }
+
+    rpc BlindTransferCall (BlindTransferCallRequest) returns (BlindTransferCallResponse) {
+        option (google.api.http) = {
+            patch: "/calls/{id}/transfer"
+            body: "*"
+        };
+    }
+
+    rpc EavesdropCall (EavesdropCallRequest) returns (CreateCallResponse) {
+        option (google.api.http) = {
+            post: "/calls/{id}/eavesdrop"
+            body: "*"
+        };
+    }
+}
+
+message EavesdropCallRequest {
+    string id = 1;
+    string app_id = 2;
+
+    bool dtmf = 3;
+    bool a_leg = 4;
+    bool b_leg = 5;
+    bool whisper_a_leg = 6;
+    bool whisper_b_leg = 7;
+
+    int64 domain_id = 8;
+}
+
+message BlindTransferCallRequest {
+    string id = 1;
+    string app_id = 2;
+    string destination = 3;
+
+    int64 domain_id = 4;
+}
+
+message BlindTransferCallResponse {
+
+}
+
+message DtmfCallResponse {
+
+}
+
+message DtmfCallRequest {
+    string id = 1;
+    string app_id = 2;
+    string digit = 3;
+
+    int64 domain_id = 4;
+}
+
+message UserCallRequest {
+    string id = 1;
+    string app_id = 2;
+    int64 domain_id  = 3;
+}
+
+message HoldCallResponse {
+    string state = 1;
+}
+
+message CreateCallResponse {
+    string id = 1;
+}
+
+
+message HangupCallResponse {
+
+}
+
+
+message HangupCallRequest {
+    string id = 1;
+    string cause = 2;
+    string app_id = 3;
+    int64 domain_id = 4;
+}
+
+
+message ReadCallRequest {
+    string id = 1;
+    int64 domain_id = 2;
+}
+
+message SearchCallRequest {
+    int32 page = 1;
+    int32 size = 2;
+    string q = 3;
+
+    int64 domain_id = 4;
+}
+
+message ListCall {
+    bool next = 1;
+    repeated Call items = 2;
+}
+
+message CreateCallRequest {
+    message CallSettings {
+        int32 timeout = 1;
+        bool audio = 2;
+        bool video = 3;
+        bool screen = 4;
+        bool record = 5;
+        map<string,string> variables = 6;
+    }
+
+    message EndpointRequest {
+        string app_id = 1;
+        string type = 2;
+        int64 id = 3;
+    }
+
+    EndpointRequest from = 1;
+    EndpointRequest to = 2;
+    string destination = 3;
+
+    CallSettings params = 4;
+
+    int64 domain_id = 5;
+}
+
+message Endpoint {
+    string type = 1;
+    string number = 2;
+    int64 id = 3;
+    string name = 4;
+}
+
+message Call {
+    string id = 1;
+    int64 created_at = 2;
+    Lookup created_by = 3;
+
+    int64 timestamp = 4;
+    string parent_id = 5;
+    string app_id = 6;
+    string state = 7;
+    string direction = 8;
+    Endpoint from = 9;
+    Endpoint to = 10;
+}

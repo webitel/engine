@@ -75,7 +75,7 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 
 	var cause = req.GetFieldString("cause")
 
-	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
+	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
 		return nil, err
 	} else {
 		err = cli.HangupCall(id, cause)
@@ -101,7 +101,7 @@ func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
+	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
 		return nil, err
 	} else {
 		err = cli.BlindTransfer(id, destination)
@@ -124,7 +124,7 @@ func (api *API) callHold(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 
-	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
+	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
 		return nil, err
 	} else {
 		err = cli.Hold(id)
@@ -151,7 +151,7 @@ func (api *API) callDTMF(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 		return nil, NewInvalidWebSocketParamError(req.Action, "dtmf")
 	}
 
-	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
+	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
 		return nil, err
 	} else {
 		err = cli.DTMF(id, []rune(key)[0])
@@ -173,7 +173,7 @@ func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 
-	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
+	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
 		return nil, err
 	} else {
 		err = cli.UnHold(id)
@@ -392,7 +392,7 @@ func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 		return nil, NewInvalidWebSocketParamError(req.Action, "mute")
 	}
 
-	if cli, err := api.App.CallManager().CallClient(nodeId); err != nil {
+	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
 		return nil, err
 	} else {
 		err = cli.Mute(id, mute)

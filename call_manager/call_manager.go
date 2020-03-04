@@ -20,7 +20,8 @@ type CallManager interface {
 	Stop()
 	MakeOutboundCall(req *model.CallRequest) (string, *model.AppError)
 	Bridge(legA, legANode, legB, legBNode string)
-	CallClient(id string) (CallClient, *model.AppError)
+	CallClient() (CallClient, *model.AppError)
+	CallClientById(id string) (CallClient, *model.AppError)
 
 	SipWsAddress() string
 	SipRouteUri() string
@@ -37,6 +38,8 @@ type CallClient interface {
 	GetServerVersion() (string, *model.AppError)
 	SetConnectionSps(sps int) (int, *model.AppError)
 	GetRemoteSps() (int, *model.AppError)
+
+	MakeOutboundCall(req *model.CallRequest) (string, *model.AppError)
 
 	NewCall(settings *model.CallRequest) (string, string, *model.AppError)
 	NewCallContext(ctx context.Context, settings *model.CallRequest) (string, string, *model.AppError)
@@ -93,10 +96,18 @@ func (cm *callManager) SipWsAddress() string {
 	return cm.sipServerAddr
 }
 
-func (c *callManager) CallClient(id string) (CallClient, *model.AppError) {
-	cli, err := c.poolConnections.GetById(id)
+func (c *callManager) CallClient() (CallClient, *model.AppError) {
+	cli, err := c.poolConnections.Get(discovery.StrategyRoundRobin)
 	if err != nil {
 		return nil, model.NewAppError("CallClient", "call.get_client.not_found", nil, err.Error(), http.StatusNotFound)
+	}
+	return cli.(CallClient), nil
+}
+
+func (c *callManager) CallClientById(id string) (CallClient, *model.AppError) {
+	cli, err := c.poolConnections.GetById(id)
+	if err != nil {
+		return nil, model.NewAppError("CallClient", "call.get_client_by_id.not_found", nil, err.Error(), http.StatusNotFound)
 	}
 	return cli.(CallClient), nil
 }
@@ -166,7 +177,12 @@ func (c *callManager) wakeUp() {
 func (c *callManager) registerConnection(v *discovery.ServiceConnection) {
 	var version string
 	var sps int
-	client, err := NewCallConnection(v.Id, v.Host, v.Port)
+
+	if v.Id != "igor" {
+		return
+	}
+
+	client, err := NewCallConnection(v.Id, v.Host, c.SipRouteUri(), v.Port)
 	if err != nil {
 		wlog.Error(fmt.Sprintf("connection %s error: %s", v.Id, err.Error()))
 		return

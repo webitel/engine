@@ -19,7 +19,7 @@ type Handler struct {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	wlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
+	wlog.Debug(fmt.Sprintf("%v - %v %s", r.Method, r.URL.Path, r.RemoteAddr))
 
 	c := &Context{}
 	c.App = h.App

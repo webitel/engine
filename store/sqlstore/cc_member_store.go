@@ -19,11 +19,11 @@ func NewSqlMemberStore(sqlStore SqlStore) store.MemberStore {
 	return us
 }
 
-func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppError) {
+func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
 	var out *model.Member
 	if err := s.GetMaster().SelectOne(&out, `with m as (
-			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills, min_offering_at)
-			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :Skills, :MinOfferingAt)
+			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills, min_offering_at, domain_id)
+			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :Skills, :MinOfferingAt, :DomainId)
 			returning *
 		)
 		select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
@@ -32,6 +32,7 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 			left join calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id`,
 		map[string]interface{}{
+			"DomainId":       domainId,
 			"QueueId":        member.QueueId,
 			"Priority":       member.Priority,
 			"ExpireAt":       member.GetExpireAt(),
@@ -50,7 +51,7 @@ func (s SqlMemberStore) Create(member *model.Member) (*model.Member, *model.AppE
 	}
 }
 
-func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) ([]int64, *model.AppError) {
+func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError) {
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
@@ -86,12 +87,14 @@ func (s SqlMemberStore) BulkCreate(queueId int64, members []*model.Member) ([]in
 	} else {
 
 		_, err = tx.Select(&result, `with i as (
-			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills, min_offering_at)
-			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills, min_offering_at
+			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills, min_offering_at, domain_id)
+			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, skills, min_offering_at, :DomainId
 			from cc_member_tmp
 			returning id
 		)
-		select id from i`)
+		select id from i`, map[string]interface{}{
+			"DomainId": domainId,
+		})
 		if err != nil {
 			goto _error
 		}
@@ -109,23 +112,109 @@ _error:
 	return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
 }
 
-func (s SqlMemberStore) GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
 	var members []*model.Member
 
 	if _, err := s.GetReplica().Select(&members,
-		`select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
-			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, m.min_offering_at
-		from cc_member m
-			left join calendar_timezones ct on m.timezone_id = ct.id
-			left join cc_bucket qb on m.bucket_id = qb.id
-where m.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)
-order by m.id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"QueueId":  queueId,
-			"DomainId": domainId,
-			"Limit":    limit,
-			"Offset":   offset,
+		`with comm as (
+    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
+    from cc_communication c
+    where c.domain_id = :Domain
+)
+,resources as (
+    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
+    from cc_outbound_resource r
+    where r.domain_id = :Domain
+)
+, result as (
+    select m.id
+    from cc_member m
+    where m.domain_id = :Domain and ( (:QueueId::int8 isnull or m.queue_id = :QueueId) and (:Id::int8 isnull or m.id = :Id)  
+		and (:Destination::varchar isnull or m.communications @> ('[{"destination": '|| quote_ident(:Destination) || '}]')::jsonb))
+    limit :Limit
+    offset :Offset
+)
+select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destination',
+								resources.j,
+                                comm.j,
+                                (x -> 'priority')::int ,
+                                (x -> 'state')::int  ,
+                                x -> 'description'  ,
+                                (x -> 'last_activity_at')::int8,
+                                (x -> 'attempts')::int,
+                                x ->> 'last_cause',
+                                x ->> 'display'    )::cc_member_destination_view
+                         from jsonb_array_elements(m.communications) x
+                            left join comm on comm.id = (x -> 'type' -> 'id')::int
+                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
+       cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
+       cc_get_lookup(m.bucket_id, cb.name::varchar) bucket, m.skills, m.min_offering_at, m.stop_cause, m.stop_at, m.last_hangup_at, m.attempts,
+		exists (select 1 from cc_member_attempt a where a.member_id = m.id) as reserved
+from cc_member m
+    inner join result on m.id = result.id
+    inner join cc_queue cq on m.queue_id = cq.id
+    left join calendar_timezones ct on ct.id = m.timezone_id
+    left join cc_bucket cb on m.bucket_id = cb.id`, map[string]interface{}{
+			"Id":          search.Id,
+			"QueueId":     search.QueueId,
+			"Destination": search.Destination,
+			"Domain":      domainId,
+			"Limit":       search.GetLimit(),
+			"Offset":      search.GetOffset(),
+		}); err != nil {
+		return nil, model.NewAppError("SqlMemberStore.GetAllPage", "store.sql_member.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return members, nil
+	}
+}
+
+func (s SqlMemberStore) GetAllPage(domainId, queueId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
+	var members []*model.Member
+
+	if _, err := s.GetReplica().Select(&members,
+		`with comm as (
+    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
+    from cc_communication c
+    where c.domain_id = :Domain
+)
+,resources as (
+    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
+    from cc_outbound_resource r
+    where r.domain_id = :Domain
+)
+, result as (
+    select m.id
+    from cc_member m
+    where m.domain_id = :Domain and m.queue_id = :QueueId and (:Q::varchar isnull or m.name ilike :Q)
+    limit :Limit
+    offset :Offset
+)
+select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destination',
+								resources.j,
+                                comm.j,
+                                (x -> 'priority')::int ,
+                                (x -> 'state')::int  ,
+                                x -> 'description'  ,
+                                (x -> 'last_activity_at')::int8,
+                                (x -> 'attempts')::int,
+                                x ->> 'last_cause',
+                                x ->> 'display'    )::cc_member_destination_view
+                         from jsonb_array_elements(m.communications) x
+                            left join comm on comm.id = (x -> 'type' -> 'id')::int
+                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
+       cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
+       cc_get_lookup(m.bucket_id, cb.name::varchar) bucket, m.skills, m.min_offering_at, m.stop_cause, m.stop_at, m.last_hangup_at, m.attempts,
+		exists (select 1 from cc_member_attempt a where a.member_id = m.id) as reserved
+from cc_member m
+    inner join result on m.id = result.id
+    inner join cc_queue cq on m.queue_id = cq.id
+    left join calendar_timezones ct on ct.id = m.timezone_id
+    left join cc_bucket cb on m.bucket_id = cb.id`, map[string]interface{}{
+			"QueueId": queueId,
+			"Domain":  domainId,
+			"Q":       search.GetQ(),
+			"Limit":   search.GetLimit(),
+			"Offset":  search.GetOffset(),
 		}); err != nil {
 		return nil, model.NewAppError("SqlMemberStore.GetAllPage", "store.sql_member.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
@@ -248,7 +337,6 @@ func (s SqlMemberStore) AttemptsList(memberId int64) ([]*model.MemberAttempt, *m
            cc_get_lookup(u.id, u.name) as agent,
            cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
            logs,
-           success,
            false as active
     from cc_member_attempt a
         left join cc_outbound_resource cor on a.resource_id = cor.id
@@ -275,7 +363,6 @@ func (s SqlMemberStore) AttemptsList(memberId int64) ([]*model.MemberAttempt, *m
            cc_get_lookup(u.id, u.name) as agent,
            cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
            logs,
-           success,
            false as active
     from cc_member_attempt_log a
         left join cc_outbound_resource cor on a.resource_id = cor.id
@@ -295,4 +382,57 @@ from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
 	}
 
 	return attempts, nil
+}
+
+func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError) {
+	var att []*model.Attempt
+	_, err := s.GetReplica().Select(&att, `select a.id,
+       cc_get_lookup(a.member_id, m.name) as member,
+       (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
+       cc_get_lookup(q.id, q.name) queue,
+       destination as destination,
+       a.weight,
+       a.originate_at,
+       a.answered_at,
+       a.bridged_at,
+       a.hangup_at,
+       cc_get_lookup(cor.id, cor.name) as resource,
+       leg_a_id,
+       leg_b_id,
+       result,
+       cc_get_lookup(ca.id, u.name) as agent,
+       cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
+       m.variables
+    from cc_member_attempt a
+        inner join cc_queue as q on q.id = a.queue_id
+        inner join cc_member m on m.id = a.member_id
+        left join cc_outbound_resource cor on a.resource_id = cor.id
+        left join cc_agent ca on a.agent_id = ca.id
+        left join directory.wbt_user u on u.id = ca.user_id
+        left join cc_bucket cb on a.bucket_id = cb.id
+where m.domain_id = :Domain and a.created_at between to_timestamp( (:From::int8 / 1000)::int8 ) and to_timestamp( (:To::int8 / 1000)::int8 )
+	and (:Id::int8 isnull or a.id = :Id) and (:MemberId::int8 isnull or a.member_id = :MemberId) and (:Result::varchar isnull or a.result = :Result) 
+	and (:QueueId::int8 isnull or a.queue_id = :QueueId) and (:AgentId::int8 isnull or a.agent_id = :AgentId) and (:BucketId::int8 isnull or a.bucket_id = :BucketId)
+order by a.created_at
+limit :Limit
+offset :Offset`, map[string]interface{}{
+		"Domain":   domainId,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"From":     search.CreatedAt.From,
+		"To":       search.CreatedAt.To,
+		"Id":       search.Id,
+		"MemberId": search.MemberId,
+		"Result":   search.Result,
+		"QueueId":  search.QueueId,
+		"AgentId":  search.AgentId,
+		"BucketId": search.BucketId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.SqlMemberStore", "store.sql_member.attempts_history.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	return att, nil
 }

@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 
 service MemberService {
     // Create Member
-    rpc CreateMember (CreateMemberRequest) returns (Member) {
+    rpc CreateMember (CreateMemberRequest) returns (MemberInQueue) {
         option (google.api.http) = {
             post: "/call_center/queues/{queue_id}/members"
             body: "*"
@@ -21,27 +21,35 @@ service MemberService {
             body: "*"
         };
     }
+
+    // Search of Member
+    rpc SearchMembers(SearchMembersRequest) returns (ListMember) {
+        option (google.api.http) = {
+            get: "/call_center/members" //fixme ?
+        };
+    }
+
     // List of Member
-    rpc SearchMember(SearchMemberRequest) returns (ListMember) {
+    rpc SearchMemberInQueue(SearchMemberInQueueRequest) returns (ListMember) {
         option (google.api.http) = {
             get: "/call_center/queues/{queue_id}/members"
         };
     }
     // ReadQueueRouting
-    rpc ReadMember(ReadMemberRequest) returns (Member) {
+    rpc ReadMember(ReadMemberRequest) returns (MemberInQueue) {
         option (google.api.http) = {
             get: "/call_center/queues/{queue_id}/members/{id}"
         };
     }
     // UpdateMember
-    rpc UpdateMember(UpdateMemberRequest) returns (Member) {
+    rpc UpdateMember(UpdateMemberRequest) returns (MemberInQueue) {
         option (google.api.http) = {
             put: "/call_center/queues/{queue_id}/members/{id}"
             body: "*"
         };
     }
     // DeleteMember
-    rpc DeleteMember(DeleteMemberRequest) returns (Member) {
+    rpc DeleteMember(DeleteMemberRequest) returns (MemberInQueue) {
         option (google.api.http) = {
             delete: "/call_center/queues/{queue_id}/members/{id}"
         };
@@ -61,6 +69,85 @@ service MemberService {
             get: "/call_center/queues/{queue_id}/members/{member_id}/attempts"
         };
     }
+
+    // SearchMemberAttempts
+    rpc SearchAttempts(SearchAttemptsRequest) returns (ListAttempt) {
+        option (google.api.http) = {
+            get: "/call_center/queues/attempts/history"
+        };
+    }
+
+}
+
+message ListAttempt {
+    bool next = 1;
+    repeated Attempt items = 2;
+}
+
+message Attempt {
+    int64 id = 1;
+    Lookup member = 2;
+
+    int64 created_at = 3;
+    string destination = 4;
+    int32 weight = 5;
+    int64 originate_at = 6;
+    int64 answered_at = 7;
+    int64 bridged_at = 8;
+    int64 hangup_at = 9;
+    Lookup resource = 10;
+    string leg_a_id = 11;
+    string leg_b_id = 12;
+    string result = 13;
+    Lookup agent = 14;
+    Lookup bucket = 15;
+    bool active = 17;
+    Lookup queue = 18;
+    map<string,string> variables = 19;
+}
+
+message SearchAttemptsRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    FilterBetween created_at = 3;
+    int64 id = 4;
+    int64 member_id = 5;
+    int64 queue_id = 7;
+    int64 agent_id = 10;
+    string result = 11;
+    int64 bucket_id = 12;
+
+    int64 domain_id = 13;
+}
+
+message SearchMembersRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    int64 id = 3;
+    int64 queue_id = 4;
+    int32 bucket_id = 5;
+    string destination = 6;
+
+    int64 domain_id = 7;
+}
+
+message SearchMembersAttemptsRequest {
+    int64 queue_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+    int64 time_from = 4;
+    int64 time_to = 5;
+
+    int64 member_id = 6;
+
+    int32 state = 7;
+    string result = 8;
+    int32 agent_id = 9;
+    int32 resource_id = 10;
+
+    int64 domain_id = 11;
 }
 
 message DeleteMembersRequest {
@@ -71,7 +158,8 @@ message DeleteMembersRequest {
 }
 
 message ListMemberAttempt {
-    repeated MemberAttempt items = 1;
+    bool next = 1;
+    repeated MemberAttempt items = 2;
 }
 
 message SearchMemberAttemptsRequest {
@@ -82,24 +170,24 @@ message SearchMemberAttemptsRequest {
 
 message MemberAttempt {
     int64 id = 1;
+    Lookup member = 2;
 
-    int64 created_at = 2;
-    string destination = 3;
-    int32 weight = 4;
-    int64 originate_at = 5;
-    int64 answered_at = 6;
-    int64 bridged_at = 7;
-    int64 hangup_at = 8;
-    Lookup resource = 9;
-    string leg_a_id = 10;
-    string leg_b_id = 11;
-    string node = 12;
-    string result = 13;
-    Lookup agent = 14;
-    Lookup bucket = 15;
-    google.protobuf.Value logs = 16;
-    bool success = 17;
-    bool active = 18;
+    int64 created_at = 3;
+    string destination = 4;
+    int32 weight = 5;
+    int64 originate_at = 6;
+    int64 answered_at = 7;
+    int64 bridged_at = 8;
+    int64 hangup_at = 9;
+    Lookup resource = 10;
+    string leg_a_id = 11;
+    string leg_b_id = 12;
+    string node = 13;
+    string result = 14;
+    Lookup agent = 15;
+    Lookup bucket = 16;
+    google.protobuf.Value logs = 17;
+    bool active = 19;
 }
 
 message DeleteMemberRequest {
@@ -152,7 +240,7 @@ message MemberBulkResponse {
     repeated int64 ids = 1;
 }
 
-message SearchMemberRequest {
+message SearchMemberInQueueRequest {
     int64 queue_id = 1;
     int32 page = 2;
     int32 size = 3;
@@ -160,7 +248,8 @@ message SearchMemberRequest {
 }
 
 message ListMember {
-    repeated Member items = 1;
+    bool next = 1;
+    repeated MemberInQueue items = 2;
 }
 
 message CreateMemberRequest {
@@ -178,7 +267,27 @@ message CreateMemberRequest {
     int64 domain_id = 11;
 }
 
-message Member {
+message MemberInQueue {
+    int64 id = 1;
+    Lookup queue = 2;
+    int32 priority = 3;
+    int64 expire_at = 4;
+    int64 created_at = 5;
+    map<string, string> variables = 6;
+    string name = 7;
+    Lookup timezone = 8;
+    repeated MemberCommunication communications = 9;
+    Lookup bucket = 10;
+    repeated int64 skills = 11;
+    int64 min_offering_at = 12;
+
+    string stop_cause = 13;
+    int64 last_activity_at = 14;
+    int32 attempts = 15;
+    bool reserved = 16;
+}
+
+message Member1 {
     int64 id = 1;
     int64 queue_id = 2;
     int32 priority = 3;

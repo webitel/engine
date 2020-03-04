@@ -4,8 +4,9 @@ import "encoding/json"
 
 type Member struct {
 	Id             int64                 `json:"id" db:"id"`
+	Queue          Lookup                `json:"queue" db:"queue"`
 	CreatedAt      int64                 `json:"created_at" db:"created_at"`
-	QueueId        int64                 `json:"queue_id" db:"queue_id"`
+	QueueId        int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
 	Priority       int                   `json:"priority" db:"priority"`
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
 	MinOfferingAt  int64                 `json:"min_offering_at" db:"min_offering_at"`
@@ -19,27 +20,78 @@ type Member struct {
 	Communications []MemberCommunication `json:"communications" db:"communications"`
 	Skills         Int64Array            `json:"skills" db:"skills"`
 	StopAt         *int64                `json:"stop_at" db:"stop_at"`
+	Reserved       bool                  `json:"reserved" db:"reserved"`
+}
+
+type MemberView struct {
+}
+
+type SearchMemberRequest struct {
+	ListRequest
+	Id          *int64
+	QueueId     *int64
+	Destination *string
+	BucketId    *int32
+}
+
+type Attempt struct {
+	Id          int64             `json:"id" db:"id"`
+	Member      Lookup            `json:"member" db:"member"`
+	Queue       Lookup            `json:"queue" db:"queue"`
+	CreatedAt   int64             `json:"created_at" db:"created_at"`
+	Destination string            `json:"destination" db:"destination"`
+	Weight      int               `json:"weight" db:"weight"`
+	OriginateAt int64             `json:"originate_at" db:"originate_at"`
+	AnsweredAt  int64             `json:"answered_at" db:"answered_at"`
+	BridgedAt   int64             `json:"bridged_at" db:"bridged_at"`
+	HangupAt    int64             `json:"hangup_at" db:"hangup_at"`
+	Resource    *Lookup           `json:"resource" db:"resource"`
+	LegAId      *string           `json:"leg_a_id" db:"leg_a_id"`
+	LegBId      *string           `json:"leg_b_id" db:"leg_b_id"`
+	Result      *string           `json:"result" db:"result"`
+	Agent       *Lookup           `json:"agent" db:"agent"`
+	Bucket      *Lookup           `json:"bucket" db:"bucket"`
+	Variables   map[string]string `json:"variables" db:"variables"`
+	Active      bool              `json:"active" db:"active"`
 }
 
 type MemberAttempt struct {
-	Id          int64   `json:"id" db:"id"`
-	CreatedAt   int64   `json:"created_at" db:"created_at"`
-	Destination string  `json:"destination" db:"destination"`
-	Weight      int     `json:"weight" db:"weight"`
-	OriginateAt int64   `json:"originate_at" db:"originate_at"`
-	AnsweredAt  int64   `json:"answered_at" db:"answered_at"`
-	BridgedAt   int64   `json:"bridged_at" db:"bridged_at"`
-	HangupAt    int64   `json:"hangup_at" db:"hangup_at"`
-	Resource    Lookup  `json:"resource" db:"resource"`
-	LegAId      *string `json:"leg_a_id" db:"leg_a_id"`
-	LegBId      *string `json:"leg_b_id" db:"leg_b_id"`
-	Node        *string `json:"node" json:"node"`
-	Result      *string `json:"result" db:"result"`
-	Agent       *Lookup `json:"agent" db:"agent"`
-	Bucket      *Lookup `json:"bucket" db:"bucket"`
-	Logs        []byte  `json:"logs" db:"logs"`
-	Success     *bool   `json:"success" db:"success"`
-	Active      bool    `json:"active" db:"active"`
+	Id          int64             `json:"id" db:"id"`
+	CreatedAt   int64             `json:"created_at" db:"created_at"`
+	Destination string            `json:"destination" db:"destination"`
+	Weight      int               `json:"weight" db:"weight"`
+	OriginateAt int64             `json:"originate_at" db:"originate_at"`
+	AnsweredAt  int64             `json:"answered_at" db:"answered_at"`
+	BridgedAt   int64             `json:"bridged_at" db:"bridged_at"`
+	HangupAt    int64             `json:"hangup_at" db:"hangup_at"`
+	Resource    Lookup            `json:"resource" db:"resource"`
+	LegAId      *string           `json:"leg_a_id" db:"leg_a_id"`
+	LegBId      *string           `json:"leg_b_id" db:"leg_b_id"`
+	Node        *string           `json:"node" json:"node"`
+	Result      *string           `json:"result" db:"result"`
+	Agent       *Lookup           `json:"agent" db:"agent"`
+	Bucket      *Lookup           `json:"bucket" db:"bucket"`
+	Logs        []byte            `json:"logs" db:"logs"`
+	Active      bool              `json:"active" db:"active"`
+	Variables   map[string]string `json:"variables" db:"variables"`
+}
+
+type SearchAttempts struct {
+	ListRequest
+	CreatedAt FilterBetween `json:"created_at" db:"created_at"`
+	Id        *int64        `json:"id" db:"id"`
+	MemberId  *int64        `json:"member_id" db:"member_id"`
+	//ResourceId  *int32        `json:"resource_id" db:"resource_id" `
+	QueueId  *int64 `json:"queue_id" db:"queue_id"`
+	BucketId *int64 `json:"bucket_id" db:"bucket_id"`
+	//Destination *string       `json:"destination" db:"destination"`
+	AgentId *int64  `json:"agent_id" db:"agent_id"`
+	Result  *string `json:"result" db:"result"`
+}
+
+type MembersAttempt struct {
+	Member Lookup
+	MemberAttempt
 }
 
 func (a *MemberAttempt) IsValid() *AppError {

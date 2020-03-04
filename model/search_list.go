@@ -20,6 +20,11 @@ type ListRequest struct {
 	endList  bool
 }
 
+type FilterBetween struct {
+	From int64
+	To   int64
+}
+
 func (l *ListRequest) RemoveLastElemIfNeed(slicePtr interface{}) {
 	s := reflect.ValueOf(slicePtr)
 	if s.Kind() != reflect.Ptr || s.Type().Elem().Kind() != reflect.Slice {

@@ -11,6 +11,7 @@ import (
 	"github.com/webitel/engine/mq/rabbit"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
+	flow "github.com/webitel/flow_manager/client"
 	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 )
@@ -28,6 +29,7 @@ type App struct {
 	cluster        *cluster
 	sessionManager auth_manager.AuthManager
 	callManager    call_manager.CallManager
+	flowManager    flow.FlowManager
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -104,6 +106,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
+	app.flowManager = flow.NewFlowManager(app.cluster.discovery)
+	if err := app.flowManager.Start(); err != nil {
+		return nil, err
+	}
+
 	return app, outErr
 }
 
@@ -120,6 +127,10 @@ func (app *App) Shutdown() {
 
 	if app.callManager != nil {
 		app.callManager.Stop()
+	}
+
+	if app.flowManager != nil {
+		app.flowManager.Stop()
 	}
 
 	app.cluster.Stop()

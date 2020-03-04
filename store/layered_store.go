@@ -128,3 +128,7 @@ func (s *LayeredStore) Member() MemberStore {
 func (s *LayeredStore) List() ListStore {
 	return s.DatabaseLayer.List()
 }
+
+func (s *LayeredStore) Call() CallStore {
+	return s.DatabaseLayer.Call()
+}

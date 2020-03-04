@@ -1,6 +1,7 @@
 package model
 
 const (
+	PERMISSION_SCOPE_CALL                       = "call"
 	PERMISSION_SCOPE_CALENDAR                   = "calendars"
 	PERMISSION_SCOPE_CC_TEAM                    = "cc_team"
 	PERMISSION_SCOPE_CC_AGENT                   = "cc_agent"

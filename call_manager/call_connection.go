@@ -23,6 +23,7 @@ var patternSps = regexp.MustCompile(`\D+`)
 var patternVersion = regexp.MustCompile(`^.*?\s(\d+[\.\S]+[^\s]).*`)
 
 type CallConnection struct {
+	proxy       string
 	name        string
 	host        string
 	port        int
@@ -31,12 +32,13 @@ type CallConnection struct {
 	api         fs.ApiClient
 }
 
-func NewCallConnection(name, host string, port int) (CallClient, *model.AppError) {
+func NewCallConnection(name, host, proxy string, port int) (CallClient, *model.AppError) {
 	var err error
 	c := &CallConnection{
-		name: name,
-		host: host,
-		port: port,
+		proxy: proxy,
+		name:  name,
+		host:  host,
+		port:  port,
 	}
 
 	c.client, err = grpc.Dial(fmt.Sprintf("%s:%d", c.host, c.port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(FS_CONNECTION_TIMEOUT))
@@ -47,6 +49,25 @@ func NewCallConnection(name, host string, port int) (CallClient, *model.AppError
 
 	c.api = fs.NewApiClient(c.client)
 	return c, nil
+}
+
+func (c *CallConnection) MakeOutboundCall(req *model.CallRequest) (string, *model.AppError) {
+	if req.Variables == nil {
+		req.Variables = make(map[string]string)
+	}
+
+	req.Variables["sip_route_uri"] = c.proxy
+	//DUMP(req)
+	uuid, cause, err := c.NewCall(req)
+	if err != nil {
+		return "", err
+	}
+
+	if cause != "" {
+		//FIXME
+	}
+
+	return uuid, nil
 }
 
 func (c *CallConnection) Ready() bool {
@@ -160,6 +181,7 @@ func (c *CallConnection) NewCallContext(ctx context.Context, settings *model.Cal
 }
 
 func (c *CallConnection) NewCall(settings *model.CallRequest) (string, string, *model.AppError) {
+	DUMP(settings)
 	return c.NewCallContext(context.Background(), settings)
 }
 

@@ -31,6 +31,8 @@ type API struct {
 	routingOutboundCall *routingOutboundCall
 	routingVariable     *routingVariable
 	resourceTeam        *resourceTeam
+
+	call *call
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -61,6 +63,8 @@ func Init(a *app.App, server *grpc.Server) {
 
 	api.member = NewMemberApi(a)
 
+	api.call = NewCallApi(api)
+
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
 	engine.RegisterAgentTeamServiceServer(server, api.agentTeam)
@@ -83,4 +87,6 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterRoutingSchemaServiceServer(server, api.routingSchema)
 	engine.RegisterRoutingOutboundCallServiceServer(server, api.routingOutboundCall)
 	engine.RegisterRoutingVariableServiceServer(server, api.routingVariable)
+
+	engine.RegisterCallServiceServer(server, api.call)
 }

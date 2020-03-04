@@ -32,22 +32,7 @@ func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.
 	if err != nil {
 		return "", err
 	}
-	if req.Variables == nil {
-		req.Variables = make(map[string]string)
-	}
-
-	req.Variables["sip_route_uri"] = cm.SipRouteUri()
-	//DUMP(req)
-	uuid, cause, err := cli.NewCall(req)
-	if err != nil {
-		return "", err
-	}
-
-	if cause != "" {
-		//FIXME
-	}
-
-	return uuid, nil
+	return cli.MakeOutboundCall(req)
 }
 
 func DUMP(i interface{}) string {

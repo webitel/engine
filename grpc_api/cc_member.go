@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"net/http"
 )
 
 type member struct {
@@ -16,7 +17,7 @@ func NewMemberApi(app *app.App) *member {
 	return &member{app: app}
 }
 
-func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequest) (*engine.Member, error) {
+func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequest) (*engine.MemberInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		return nil, err
 	}
 
-	if member, err = api.app.CreateMember(member); err != nil {
+	if member, err = api.app.CreateMember(session.DomainId, member); err != nil {
 		return nil, err
 	}
 
@@ -130,7 +131,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 	}, nil
 }
 
-func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest) (*engine.Member, error) {
+func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest) (*engine.MemberInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -158,7 +159,7 @@ func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest)
 	return toEngineMember(out), nil
 }
 
-func (api *member) SearchMember(ctx context.Context, in *engine.SearchMemberRequest) (*engine.ListMember, error) {
+func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMemberInQueueRequest) (*engine.ListMember, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -179,22 +180,31 @@ func (api *member) SearchMember(ctx context.Context, in *engine.SearchMemberRequ
 	}
 
 	var list []*model.Member
+	var endList bool
+	req := &model.SearchMemberRequest{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
 
-	if list, err = api.app.GetMemberPage(session.Domain(in.GetDomainId()), in.GetQueueId(), int(in.GetPage()), int(in.GetSize())); err != nil {
+	if list, endList, err = api.app.GetMemberPage(session.Domain(in.GetDomainId()), in.GetQueueId(), req); err != nil {
 		return nil, err
 	}
 
-	items := make([]*engine.Member, 0, len(list))
+	items := make([]*engine.MemberInQueue, 0, len(list))
 	for _, v := range list {
 		items = append(items, toEngineMember(v))
 	}
 
 	return &engine.ListMember{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
 
-func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequest) (*engine.Member, error) {
+func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequest) (*engine.MemberInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -251,7 +261,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 	}
 }
 
-func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequest) (*engine.Member, error) {
+func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequest) (*engine.MemberInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -315,7 +325,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 		return nil, err
 	}
 
-	items := make([]*engine.Member, 0, len(list))
+	items := make([]*engine.MemberInQueue, 0, len(list))
 	for _, v := range list {
 		items = append(items, toEngineMember(v))
 	}
@@ -356,6 +366,125 @@ func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMe
 	}
 
 	return &engine.ListMemberAttempt{
+		Items: items,
+	}, nil
+}
+
+func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttemptsRequest) (*engine.ListAttempt, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	//FIXME check queue PERMISSION
+
+	if in.GetCreatedAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchAttempts", "grpc.member.search_attempt", nil, "filter created_at is required", http.StatusBadRequest)
+	}
+
+	var list []*model.Attempt
+	var endList bool
+	req := &model.SearchAttempts{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+		CreatedAt: model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		},
+	}
+
+	if in.GetId() != 0 {
+		req.Id = &in.Id
+	}
+
+	if in.GetMemberId() != 0 {
+		req.MemberId = &in.MemberId
+	}
+
+	if in.GetResult() != "" {
+		req.Result = &in.Result
+	}
+
+	if in.GetQueueId() != 0 {
+		req.QueueId = &in.QueueId
+	}
+
+	if in.GetAgentId() != 0 {
+		req.AgentId = &in.AgentId
+	}
+
+	if in.GetBucketId() != 0 {
+		req.BucketId = &in.BucketId
+	}
+
+	if list, endList, err = api.app.SearchAttempts(session.Domain(in.GetDomainId()), req); err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.Attempt, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineAttempt(v))
+	}
+
+	return &engine.ListAttempt{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
+func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRequest) (*engine.ListMember, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+	//FIXME check queue PERMISSION
+
+	var list []*model.Member
+	var endList bool
+	req := &model.SearchMemberRequest{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	if in.GetId() != 0 {
+		req.Id = &in.Id
+	}
+
+	if in.GetQueueId() != 0 {
+		req.QueueId = &in.QueueId
+	}
+
+	if in.GetDestination() != "" {
+		req.Destination = &in.Destination
+	}
+
+	if list, endList, err = api.app.SearchMembers(session.Domain(in.GetDomainId()), req); err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.MemberInQueue, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineMember(v))
+	}
+
+	return &engine.ListMember{
+		Next:  !endList,
 		Items: items,
 	}, nil
 }
@@ -406,18 +535,14 @@ func toEngineMemberAttempt(src *model.MemberAttempt) *engine.MemberAttempt {
 		}
 	}
 
-	if src.Success != nil {
-		res.Success = *src.Success
-	}
-
 	return res
 }
 
-func toEngineMember(src *model.Member) *engine.Member {
-	res := &engine.Member{
+func toEngineMember(src *model.Member) *engine.MemberInQueue {
+	res := &engine.MemberInQueue{
 		Id:        src.Id,
 		CreatedAt: src.CreatedAt,
-		QueueId:   src.QueueId,
+		Queue:     GetProtoLookup(&src.Queue),
 		Priority:  int32(src.Priority),
 		ExpireAt:  src.GetExpireAt(),
 		Variables: src.Variables,
@@ -431,6 +556,7 @@ func toEngineMember(src *model.Member) *engine.Member {
 		Attempts:       int32(src.Attempts),
 		Skills:         src.Skills,
 		MinOfferingAt:  src.MinOfferingAt,
+		Reserved:       src.Reserved,
 	}
 
 	if src.Bucket != nil {
@@ -489,4 +615,36 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 	}
 
 	return res
+}
+
+func toEngineAttempt(src *model.Attempt) *engine.Attempt {
+	item := &engine.Attempt{
+		Id:          src.Id,
+		Member:      GetProtoLookup(&src.Member),
+		CreatedAt:   src.CreatedAt,
+		Destination: src.Destination,
+		Weight:      int32(src.Weight),
+		OriginateAt: src.OriginateAt,
+		AnsweredAt:  src.AnsweredAt,
+		BridgedAt:   src.BridgedAt,
+		HangupAt:    src.HangupAt,
+		Queue:       GetProtoLookup(&src.Queue),
+		Resource:    GetProtoLookup(src.Resource),
+		Agent:       GetProtoLookup(src.Agent),
+		Bucket:      GetProtoLookup(src.Bucket),
+		Variables:   src.Variables,
+	}
+
+	if src.LegAId != nil {
+		item.LegAId = *src.LegAId
+	}
+	if src.LegBId != nil {
+		item.LegBId = *src.LegBId
+	}
+
+	if src.Result != nil {
+		item.Result = *src.Result
+	}
+
+	return item
 }

@@ -38,7 +38,7 @@ func (s SqlUserStore) CheckAccess(domainId, id int64, groups []int, access auth_
 
 func (s SqlUserStore) GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError) {
 	var info *model.UserCallInfo
-	err := s.GetReplica().SelectOne(&info, `select coalesce( (u.name)::varchar, u.username) as name, u.extension, u.extension endpoint, d.name as domain_name, u.profile as variables
+	err := s.GetReplica().SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name, u.extension, u.extension endpoint, d.name as domain_name, u.profile as variables
 from directory.wbt_user u
     inner join directory.wbt_domain d on d.dc = u.dc
 where u.id = :UserId

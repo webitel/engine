@@ -2,8 +2,17 @@ package app
 
 import "github.com/webitel/engine/model"
 
-func (app *App) CreateMember(member *model.Member) (*model.Member, *model.AppError) {
-	return app.Store.Member().Create(member)
+func (app *App) CreateMember(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+	return app.Store.Member().Create(domainId, member)
+}
+
+func (a *App) SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, *model.AppError) {
+	list, err := a.Store.Member().SearchMembers(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError) {
@@ -11,11 +20,16 @@ func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Membe
 	if err != nil {
 		return nil, err
 	}
-	return app.Store.Member().BulkCreate(queueId, members)
+	return app.Store.Member().BulkCreate(domainId, queueId, members)
 }
 
-func (app *App) GetMemberPage(domainId, queueId int64, page, perPage int) ([]*model.Member, *model.AppError) {
-	return app.Store.Member().GetAllPage(domainId, queueId, page*perPage, perPage)
+func (app *App) GetMemberPage(domainId, queueId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, *model.AppError) {
+	list, err := app.Store.Member().GetAllPage(domainId, queueId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
 
 func (app *App) GetMember(domainId, queueId, id int64) (*model.Member, *model.AppError) {
@@ -66,4 +80,13 @@ func (app *App) RemoveMembersByIds(domainId, queueId int64, ids []int64) ([]*mod
 
 func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
 	return app.Store.Member().AttemptsList(memberId)
+}
+
+func (app *App) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, bool, *model.AppError) {
+	list, err := app.Store.Member().SearchAttempts(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }

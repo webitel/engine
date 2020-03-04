@@ -2,8 +2,6 @@ package store
 
 import (
 	"github.com/webitel/engine/auth_manager"
-	"time"
-
 	"github.com/webitel/engine/model"
 )
 
@@ -23,17 +21,6 @@ func Do(f func(result *StoreResult)) StoreChannel {
 		close(storeChannel)
 	}()
 	return storeChannel
-}
-
-func Must(sc StoreChannel) interface{} {
-	r := <-sc
-	if r.Err != nil {
-
-		time.Sleep(time.Second)
-		panic(r.Err)
-	}
-
-	return r.Data
 }
 
 type Store interface {
@@ -62,6 +49,8 @@ type Store interface {
 	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
 	RoutingVariable() RoutingVariableStore
+
+	Call() CallStore
 }
 
 type UserStore interface {
@@ -254,15 +243,17 @@ type CommunicationTypeStore interface {
 }
 
 type MemberStore interface {
-	Create(member *model.Member) (*model.Member, *model.AppError)
-	BulkCreate(queueId int64, members []*model.Member) ([]int64, *model.AppError)
-	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.Member, *model.AppError) //FIXME
+	Create(domainId int64, member *model.Member) (*model.Member, *model.AppError)
+	BulkCreate(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError)
+	GetAllPage(domainId, queueId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError)
+	SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError)
 	Get(domainId, queueId, id int64) (*model.Member, *model.AppError)
 	Update(domainId int64, member *model.Member) (*model.Member, *model.AppError)
 	Delete(queueId, id int64) *model.AppError
 	MultiDelete(queueId int64, ids []int64) ([]*model.Member, *model.AppError)
 
 	AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) //FIXME
+	SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError)
 }
 
 type BucketSore interface {
@@ -298,4 +289,10 @@ type ListStore interface {
 	GetCommunication(domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError)
 	UpdateCommunication(domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError)
 	DeleteCommunication(domainId, listId, id int64) *model.AppError
+}
+
+type CallStore interface {
+	GetAllPage(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError)
+	Get(domainId int64, id string) (*model.Call, *model.AppError)
+	GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError)
 }

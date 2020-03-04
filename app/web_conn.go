@@ -99,6 +99,7 @@ func (c *WebConn) Pump() {
 
 func (c *WebConn) readPump() {
 	defer func() {
+		fmt.Sprintf("close " + c.WebSocket.RemoteAddr().String())
 		c.WebSocket.Close()
 	}()
 
