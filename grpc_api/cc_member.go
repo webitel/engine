@@ -474,6 +474,10 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 		req.Destination = &in.Destination
 	}
 
+	if in.GetBucketId() != 0 {
+		req.BucketId = &in.BucketId
+	}
+
 	if list, endList, err = api.app.SearchMembers(session.Domain(in.GetDomainId()), req); err != nil {
 		return nil, err
 	}
@@ -577,25 +581,29 @@ func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.Mem
 	res := make([]*engine.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
-		res = append(res, &engine.MemberCommunication{
-			Id:             v.Id,
-			Priority:       int32(v.Priority),
-			Destination:    v.Destination,
-			State:          int32(v.State),
-			Description:    v.Description,
-			LastActivityAt: v.LastActivityAt,
-			Attempts:       int32(v.Attempts),
-			LastCause:      v.LastCause,
-			Type: &engine.Lookup{
-				Id:   int64(v.Type.Id),
-				Name: v.Type.Name,
-			},
-			Resource: GetProtoLookup(v.Resource),
-			Display:  v.Display,
-		})
+		res = append(res, toEngineDestination(v))
 	}
 
 	return res
+}
+
+func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunication {
+	return &engine.MemberCommunication{
+		Id:             v.Id,
+		Priority:       int32(v.Priority),
+		Destination:    v.Destination,
+		State:          int32(v.State),
+		Description:    v.Description,
+		LastActivityAt: v.LastActivityAt,
+		Attempts:       int32(v.Attempts),
+		LastCause:      v.LastCause,
+		Type: &engine.Lookup{
+			Id:   int64(v.Type.Id),
+			Name: v.Type.Name,
+		},
+		Resource: GetProtoLookup(v.Resource),
+		Display:  v.Display,
+	}
 }
 
 func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest) []model.MemberCommunication {
@@ -622,7 +630,7 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 		Id:          src.Id,
 		Member:      GetProtoLookup(&src.Member),
 		CreatedAt:   src.CreatedAt,
-		Destination: src.Destination,
+		Destination: toEngineDestination(src.Destination),
 		Weight:      int32(src.Weight),
 		OriginateAt: src.OriginateAt,
 		AnsweredAt:  src.AnsweredAt,

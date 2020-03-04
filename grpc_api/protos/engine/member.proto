@@ -89,7 +89,7 @@ message Attempt {
     Lookup member = 2;
 
     int64 created_at = 3;
-    string destination = 4;
+    MemberCommunication destination = 4;
     int32 weight = 5;
     int64 originate_at = 6;
     int64 answered_at = 7;

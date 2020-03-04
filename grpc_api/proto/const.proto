@@ -8,8 +8,8 @@ message Lookup {
 }
 
 message FilterBetween {
-    int64 From = 1;
-    int64 To = 2;
+    int64 from = 1;
+    int64 to = 2;
 }
 
 message ListRequest {

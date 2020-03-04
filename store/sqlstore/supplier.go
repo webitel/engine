@@ -337,6 +337,7 @@ func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
 func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
 	case *[]model.MemberCommunication,
+		*model.MemberCommunication,
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
 		*[]*model.CalendarExceptDate:
