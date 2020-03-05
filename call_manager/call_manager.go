@@ -178,10 +178,6 @@ func (c *callManager) registerConnection(v *discovery.ServiceConnection) {
 	var version string
 	var sps int
 
-	if v.Id != "igor" {
-		return
-	}
-
 	client, err := NewCallConnection(v.Id, v.Host, c.SipRouteUri(), v.Port)
 	if err != nil {
 		wlog.Error(fmt.Sprintf("connection %s error: %s", v.Id, err.Error()))
