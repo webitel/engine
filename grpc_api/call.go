@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"net/http"
 )
 
 type call struct {
@@ -12,6 +13,45 @@ type call struct {
 
 func NewCallApi(app *API) *call {
 	return &call{app}
+}
+
+func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if in.GetCreatedAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at is required", http.StatusBadRequest)
+	}
+
+	var list []*model.HistoryCall
+	var endList bool
+	req := &model.SearchHistoryCall{
+		CreatedAt: model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		},
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+		},
+	}
+
+	if list, endList, err = api.ctrl.SearchHistoryCall(session, req); err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.HistoryCall, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineHistoryCall(v))
+	}
+
+	return &engine.ListHistoryCall{
+		Next:  !endList,
+		Items: items,
+	}, nil
 }
 
 func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*engine.Call, error) {
@@ -29,7 +69,7 @@ func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*eng
 	return toEngineCall(call), nil
 }
 
-func (api *call) SearchCall(ctx context.Context, in *engine.SearchCallRequest) (*engine.ListCall, error) {
+func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequest) (*engine.ListCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -88,6 +128,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 		if in.To.Id != 0 {
 			req.To.UserId = model.NewInt64(in.To.Id)
 		}
+
 	}
 
 	if in.From != nil {
@@ -237,20 +278,18 @@ func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequ
 func toEngineCall(src *model.Call) *engine.Call {
 	item := &engine.Call{
 		Id:        src.Id,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: GetProtoLookup(src.User),
 		Timestamp: src.Timestamp,
 		State:     src.State,
 		Direction: src.Direction,
 		From: &engine.Endpoint{
 			Type:   src.From.Type,
-			Id:     int64(src.From.Id),
+			Id:     src.From.Id,
 			Name:   src.From.Name,
 			Number: src.From.Number,
 		},
 		To: &engine.Endpoint{
 			Type:   src.To.Type,
-			Id:     int64(src.To.Id),
+			Id:     src.To.Id,
 			Name:   src.To.Name,
 			Number: src.To.Number,
 		},
@@ -262,6 +301,48 @@ func toEngineCall(src *model.Call) *engine.Call {
 
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
+	}
+
+	return item
+}
+
+func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
+	item := &engine.HistoryCall{
+		Id:          src.Id,
+		AppId:       src.AppId,
+		Direction:   src.Direction,
+		Destination: src.Destination,
+		CreatedAt:   src.CreatedAt,
+		AnsweredAt:  src.AnsweredAt,
+		BridgedAt:   src.BridgedAt,
+		HangupAt:    src.HangupAt,
+		HoldSec:     int32(src.HoldSec),
+		Cause:       src.Cause,
+	}
+	if src.ParentId != nil {
+		item.ParentId = *src.ParentId
+	}
+
+	if src.From != nil {
+		item.From = &engine.Endpoint{
+			Type:   src.From.Type,
+			Number: src.From.Number,
+			Id:     src.From.Id,
+			Name:   src.From.Name,
+		}
+	}
+
+	if src.To != nil {
+		item.To = &engine.Endpoint{
+			Type:   src.To.Type,
+			Number: src.To.Number,
+			Id:     src.To.Id,
+			Name:   src.To.Name,
+		}
+	}
+
+	if src.SipCode != nil {
+		item.SipCode = int32(*src.SipCode)
 	}
 
 	return item

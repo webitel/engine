@@ -38,7 +38,7 @@ const (
 type Endpoint struct {
 	Type   string
 	Number string
-	Id     int
+	Id     string
 	Name   string
 }
 
@@ -115,26 +115,47 @@ func (r *OutboundCallRequest) IsValid() *AppError {
 }
 
 type CallInstance struct {
-	Id    string  `json:"id" db:"id"`
-	AppId *string `json:"app_id" db:"app_id"`
-	State string  `json:"state" db:"state"`
+	Id        string  `json:"id" db:"id"`
+	AppId     *string `json:"app_id" db:"app_id"`
+	State     string  `json:"state" db:"state"`
+	Timestamp int64   `json:"timestamp" db:"timestamp"`
 }
 
 type Call struct {
 	CallInstance
-	CreatedAt int64   `json:"created_at" db:"created_at"`
-	User      *Lookup `json:"created_by" db:"created_by"`
+	Direction   string  `json:"direction" db:"direction"`
+	Destination string  `json:"destination" db:"destination"`
+	ParentId    *string `json:"parent_id" db:"parent_id"`
 
-	Timestamp int64   `json:"timestamp" db:"timestamp"`
-	ParentId  *string `json:"parent_id" db:"parent_id"`
+	From Endpoint `json:"from" db:"from"`
+	To   Endpoint `json:"to" db:"to"`
+}
 
-	Direction string    `json:"direction" db:"direction"`
-	From      Endpoint  `json:"from" db:"from"`
-	To        *Endpoint `json:"to" db:"to"`
+type HistoryCall struct {
+	Id          string       `json:"id" db:"id"`
+	AppId       string       `json:"app_id" db:"app_id"`
+	Direction   string       `json:"direction" db:"direction"`
+	Destination string       `json:"destination" db:"destination"`
+	ParentId    *string      `json:"parent_id" db:"parent_id"`
+	From        *Endpoint    `json:"from" db:"from"`
+	To          *Endpoint    `json:"to" db:"to"`
+	Payload     *CallPayload `json:"payload" db:"payload"`
+	CreatedAt   int64        `json:"created_at" db:"created_at"`
+	AnsweredAt  int64        `json:"answered_at" db:"answered_at"`
+	BridgedAt   int64        `json:"bridged_at" db:"bridged_at"`
+	HangupAt    int64        `json:"hangup_at" db:"hangup_at"`
+	HoldSec     int          `json:"hold_sec" db:"hold_sec"`
+	Cause       string       `json:"cause" db:"cause"`
+	SipCode     *int         `json:"sip_code" db:"sip_code"`
 }
 
 type SearchCall struct {
 	ListRequest
+}
+
+type SearchHistoryCall struct {
+	ListRequest
+	CreatedAt FilterBetween
 }
 
 type CallEvent struct {

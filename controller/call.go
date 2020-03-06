@@ -29,7 +29,16 @@ func (c *Controller) SearchCall(session *auth_manager.Session, search *model.Sea
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetCallPage(session.DomainId, search)
+	return c.app.GetActiveCallPage(session.DomainId, search)
+}
+
+func (c *Controller) SearchHistoryCall(session *auth_manager.Session, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanRead() {
+		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.GetHistoryCallPage(session.Domain(search.DomainId), search)
 }
 
 func (c *Controller) GetCall(session *auth_manager.Session, domainId int64, id string) (*model.Call, *model.AppError) {

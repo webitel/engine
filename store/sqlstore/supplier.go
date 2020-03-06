@@ -338,6 +338,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
 	case *[]model.MemberCommunication,
 		*model.MemberCommunication,
+		*model.Endpoint,
+		**model.Endpoint,
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
 		*[]*model.CalendarExceptDate:

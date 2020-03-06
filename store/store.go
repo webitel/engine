@@ -292,7 +292,8 @@ type ListStore interface {
 }
 
 type CallStore interface {
-	GetAllPage(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError)
+	GetHistory(domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError)
+	GetActive(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError)
 	Get(domainId int64, id string) (*model.Call, *model.AppError)
 	GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError)
 }

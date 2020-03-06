@@ -7,15 +7,21 @@ import "google/api/annotations.proto";
 
 service CallService {
     // List of call
-    rpc SearchCall(SearchCallRequest) returns (ListCall) {
+    rpc SearchHistoryCall(SearchHistoryCallRequest) returns (ListHistoryCall) {
         option (google.api.http) = {
-            get: "/calls"
+            get: "/calls/history"
+        };
+    }
+
+    rpc SearchActiveCall(SearchCallRequest) returns (ListCall) {
+        option (google.api.http) = {
+            get: "/calls/active"
         };
     }
     // Call item
     rpc ReadCall(ReadCallRequest) returns (Call) {
         option (google.api.http) = {
-            get: "/calls/{id}"
+            get: "/calls/active/{id}"
         };
     }
 
@@ -29,45 +35,76 @@ service CallService {
 
     rpc HangupCall (HangupCallRequest) returns (HangupCallResponse) {
         option (google.api.http) = {
-            delete: "/calls/{id}"
+            delete: "/calls/active/{id}"
             body: "*"
         };
     }
 
     rpc HoldCall (UserCallRequest) returns (HoldCallResponse) {
         option (google.api.http) = {
-            patch: "/calls/{id}/hold"
+            patch: "/calls/active/{id}/hold"
             body: "*"
         };
     }
 
     rpc UnHoldCall (UserCallRequest) returns (HoldCallResponse) {
         option (google.api.http) = {
-            patch: "/calls/{id}/hold"
+            patch: "/calls/active/{id}/hold"
             body: "*"
         };
     }
 
     rpc DtmfCall (DtmfCallRequest) returns (DtmfCallResponse) {
         option (google.api.http) = {
-            patch: "/calls/{id}/dtmf"
+            patch: "/calls/active/{id}/dtmf"
             body: "*"
         };
     }
 
     rpc BlindTransferCall (BlindTransferCallRequest) returns (BlindTransferCallResponse) {
         option (google.api.http) = {
-            patch: "/calls/{id}/transfer"
+            patch: "/calls/active/{id}/transfer"
             body: "*"
         };
     }
 
     rpc EavesdropCall (EavesdropCallRequest) returns (CreateCallResponse) {
         option (google.api.http) = {
-            post: "/calls/{id}/eavesdrop"
+            post: "/calls/active/{id}/eavesdrop"
             body: "*"
         };
     }
+}
+
+message SearchHistoryCallRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    FilterBetween created_at = 3;
+
+    int64 domain_id = 4;
+}
+
+message ListHistoryCall {
+    bool next = 1;
+    repeated HistoryCall items = 2;
+}
+
+message HistoryCall {
+    string id = 1;
+    string app_id = 2;
+    string direction = 3;
+    string destination = 4;
+    string parent_id = 5;
+    Endpoint from = 6;
+    Endpoint to = 7;
+    int64 created_at = 8;
+    int64 answered_at = 9;
+    int64 bridged_at = 10;
+    int64 hangup_at = 11;
+    int32 hold_sec = 12;
+    string cause = 13;
+    int32 sip_code = 14;
 }
 
 message EavesdropCallRequest {
@@ -181,7 +218,7 @@ message CreateCallRequest {
 message Endpoint {
     string type = 1;
     string number = 2;
-    int64 id = 3;
+    string id = 3;
     string name = 4;
 }
 

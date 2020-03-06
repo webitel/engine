@@ -42,7 +42,7 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 			return "", err
 		}
 		toEndpoint.Type = model.EndpointTypeUser
-		toEndpoint.Id = int(to.Id)
+		toEndpoint.Id = fmt.Sprintf("%v", to.Id)
 		toEndpoint.Name = to.Name
 	} else if req.To.Destination != nil {
 		toEndpoint.Type = model.EndpointTypeDestination
@@ -117,8 +117,17 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 	}
 }
 
-func (app *App) GetCallPage(domainId int64, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
-	list, err := app.Store.Call().GetAllPage(domainId, search)
+func (app *App) GetActiveCallPage(domainId int64, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
+	list, err := app.Store.Call().GetActive(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (app *App) GetHistoryCallPage(domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+	list, err := app.Store.Call().GetHistory(domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
