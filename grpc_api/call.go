@@ -39,6 +39,10 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		},
 	}
 
+	if in.GetUserId() != 0 {
+		req.UserId = model.NewInt64(in.UserId)
+	}
+
 	if list, endList, err = api.ctrl.SearchHistoryCall(session, req); err != nil {
 		return nil, err
 	}
@@ -109,7 +113,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}
 
 	var req = &model.OutboundCallRequest{
-		To: model.EndpointRequest{},
+		Destination: in.GetDestination(),
 		Params: model.CallParameters{
 			Timeout:   int(in.GetParams().GetTimeout()),
 			Audio:     in.GetParams().GetAudio(),
@@ -121,6 +125,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}
 
 	if in.To != nil {
+		req.To = &model.EndpointRequest{}
 		if in.To.AppId != "" {
 			req.To.AppId = model.NewString(in.To.AppId)
 		}
@@ -143,7 +148,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}
 
 	var id string
-	id, err = api.ctrl.CreateCall(session, req)
+	id, err = api.ctrl.CreateCall(session, req, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +277,30 @@ func (api *call) BlindTransferCall(ctx context.Context, in *engine.BlindTransfer
 }
 
 func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequest) (*engine.CreateCallResponse, error) {
-	return nil, nil
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	req := model.EavesdropCall{
+		UserCallRequest: model.UserCallRequest{
+			Id: in.GetId(),
+		},
+		//Dtmf:        false,
+		//ALeg:        false,
+		//BLeg:        false,
+		//WhisperALeg: false,
+		//WhisperBLeg: false,
+	}
+	if in.GetAppId() != "" {
+		req.AppId = model.NewString(in.GetAppId())
+	}
+
+	_, err = api.ctrl.EavesdropCall(session, session.Domain(in.DomainId), &req, nil)
+	if err != nil {
+		return nil, err
+	}
+	return &engine.CreateCallResponse{}, nil
 }
 
 func toEngineCall(src *model.Call) *engine.Call {

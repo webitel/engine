@@ -13,6 +13,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("un_subscribe_call", api.ApiWebSocketHandler(api.unSubscribeSelfCalls))
 
 	api.Router.Handle("call_invite", api.ApiAsyncWebSocketHandler(api.callInvite))
+	api.Router.Handle("call_eavesdrop", api.ApiAsyncWebSocketHandler(api.callEavesdrop))
 	api.Router.Handle("call_user", api.ApiAsyncWebSocketHandler(api.callToUser))
 	api.Router.Handle("call_hangup", api.ApiWebSocketHandler(api.callHangup))
 	api.Router.Handle("call_hold", api.ApiWebSocketHandler(api.callHold))
@@ -62,6 +63,33 @@ func (api *API) unSubscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequ
 	return nil, h.UnSubscribeCalls(conn)
 }
 
+func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var ok bool
+	reqEa := &model.EavesdropCall{
+		Dtmf:        false,
+		ALeg:        false,
+		BLeg:        false,
+		WhisperALeg: false,
+		WhisperBLeg: false,
+	}
+
+	if reqEa.Id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	vars := make(map[string]string)
+	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
+
+	callId, err := api.ctrl.EavesdropCall(conn.GetSession(), req.Session.DomainId, reqEa, vars)
+	if err != nil {
+		return nil, err
+	}
+	res := make(map[string]interface{})
+	res["id"] = callId
+
+	return res, nil
+}
+
 func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	var id, nodeId string
@@ -69,6 +97,7 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
+
 	if nodeId, ok = req.Data["app_id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
@@ -186,98 +215,44 @@ func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[
 }
 
 func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	var ok, useVideo, useScreen bool
-	var callId string
-	var destinationNumber, destinationName, parentCallId string
-	var variables map[string]interface{}
-
-	callId = model.NewUuid()
-
-	if destinationNumber, ok = req.Data["toNumber"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "toNumber")
+	var callReq = &model.OutboundCallRequest{}
+	var ok bool
+	var props map[string]interface{}
+	if callReq.Destination, ok = req.Data["destination"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	if destinationName, ok = req.Data["toName"].(string); !ok {
-		destinationName = destinationNumber
-	}
+	if props, ok = req.Data["params"].(map[string]interface{}); ok {
+		var variables map[string]interface{}
 
-	info, err := api.App.GetUserCallInfo(conn.UserId, conn.DomainId)
-	if err != nil {
-		return nil, err
-	}
+		callReq.Params.Timeout, _ = props["timeout"].(int)
+		callReq.Params.Video, _ = props["video"].(bool)
+		callReq.Params.Screen, _ = props["screen"].(bool)
+		callReq.Params.Record, _ = props["record"].(bool)
 
-	invite := &model.CallRequest{
-		Endpoints:   info.GetCallEndpoints(),
-		Destination: destinationNumber,
-		Variables: map[string]string{
-			model.CALL_VARIABLE_ID:                callId,
-			model.CALL_VARIABLE_DIRECTION:         model.CALL_DIRECTION_INTERNAL,
-			model.CALL_VARIABLE_DISPLAY_DIRECTION: model.CALL_DIRECTION_OUTBOUND,
-			model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", conn.UserId),
-			model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", conn.DomainId),
-			model.CALL_VARIABLE_SOCK_ID:           conn.Id(),
-
-			"sip_h_X-Webitel-Destination": destinationNumber,
-
-			"origination_uuid": callId,
-			//"media_webrtc":     "true",
-			//"absolute_codec_string": "VP8",
-
-			"hangup_after_bridge":        "true",
-			"hold_music":                 "silence",
-			"effective_caller_id_number": info.Extension,
-			"effective_caller_id_name":   info.Name,
-			"effective_callee_id_name":   destinationName,
-			"effective_callee_id_number": destinationNumber,
-
-			"origination_caller_id_name":   destinationName,
-			"origination_caller_id_number": destinationNumber,
-			"origination_callee_id_name":   info.Name,
-			"origination_callee_id_number": info.Extension,
-		},
-		Timeout:      0,
-		CallerName:   destinationName,
-		CallerNumber: destinationNumber,
-		//Applications: []*model.CallRequestApplication{
-		//	{
-		//		AppName: "transfer",
-		//		Args:    "9999",
-		//	},
-		//},
-	}
-
-	if variables, ok = req.Data["variables"].(map[string]interface{}); ok {
-		for k, v := range variables {
-			switch v.(type) {
-			case string:
-				invite.AddUserVariable(k, v.(string))
-			case interface{}:
-				invite.AddUserVariable(k, fmt.Sprintf("%v", v))
+		if variables, ok = props["variables"].(map[string]interface{}); ok {
+			callReq.Params.Variables = make(map[string]string)
+			for k, v := range variables {
+				switch v.(type) {
+				case string:
+					callReq.Params.Variables[k] = v.(string)
+				case interface{}:
+					callReq.Params.Variables[k] = fmt.Sprintf("%v", v)
+				}
 			}
 		}
 	}
 
-	if useVideo, ok = req.Data["useVideo"].(bool); ok && useVideo {
-		invite.AddVariable("video_request", "true")
-	}
+	vars := make(map[string]string)
+	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
 
-	if useScreen, ok = req.Data["useScreen"].(bool); ok && useScreen {
-		invite.AddVariable("screen_request", "true")
-	}
-
-	if parentCallId, ok = req.Data["parentCallId"].(string); ok && parentCallId != "" {
-		invite.AddVariable("request_parent_call_id", parentCallId)
-	}
-
-	_, err = api.App.CallManager().MakeOutboundCall(invite)
-
-	if err != nil {
+	if id, err := api.ctrl.CreateCall(conn.GetSession(), callReq, vars); err != nil {
 		return nil, err
+	} else {
+		data := make(map[string]interface{})
+		data["id"] = id
+		return data, nil
 	}
-
-	data := map[string]interface{}{}
-	data["call_id"] = callId
-	return data, nil
 }
 
 func (api *API) callToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

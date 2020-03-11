@@ -79,9 +79,9 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 select c.id, c.app_id, c.direction, c.destination, c.parent_id,
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
-   c.payload, (extract(EPOCH from c.created_at ) * 1000)::int8 as created_at, c.answered_at, c.bridged_at, c.hangup_at, c.hold_sec, c.cause, c.sip_code
+   c.payload, c.created_at as created_at, c.answered_at, c.bridged_at, c.hangup_at, c.hold_sec, c.cause, c.sip_code
 from cc_calls_history c
-where c.domain_id = :Domain and c.created_at between to_timestamp(:From::int8/1000) and to_timestamp(:To::int8/1000)
+where c.domain_id = :Domain and c.created_at between :From::int8 and :To::int8 and (:UserId::int8 isnull or c.user_id = :UserId) 
 order by c.created_at desc
 limit :Limit
 offset :Offset`, map[string]interface{}{
@@ -90,6 +90,7 @@ offset :Offset`, map[string]interface{}{
 		"Offset": search.GetOffset(),
 		"From":   search.CreatedAt.From,
 		"To":     search.CreatedAt.To,
+		"UserId": search.UserId,
 	})
 
 	if err != nil {

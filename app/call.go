@@ -7,13 +7,12 @@ import (
 	"net/http"
 )
 
-func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallRequest) (string, *model.AppError) {
+func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, *model.AppError) {
 	var callCli call_manager.CallClient
 	var err *model.AppError
 	var id string
 
-	var from, to *model.UserCallInfo
-	var toEndpoint model.Endpoint
+	var from *model.UserCallInfo
 
 	if req.From.AppId != nil {
 		callCli, err = app.CallManager().CallClientById(*req.From.AppId)
@@ -37,29 +36,20 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.from", nil, "", http.StatusBadRequest)
 	}
 
-	if req.To.UserId != nil {
-		if to, err = app.GetUserCallInfo(*req.To.UserId, domainId); err != nil {
-			return "", err
-		}
-		toEndpoint.Type = model.EndpointTypeUser
-		toEndpoint.Id = fmt.Sprintf("%v", to.Id)
-		toEndpoint.Name = to.Name
-	} else if req.To.Destination != nil {
-		toEndpoint.Type = model.EndpointTypeDestination
-		toEndpoint.Name = *req.To.Destination
-
-		to = &model.UserCallInfo{
-			Id:        0,
-			Name:      *req.To.Destination,
-			Extension: *req.To.Destination,
-		}
-	} else {
-		return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.to", nil, "", http.StatusBadRequest)
-	}
-
-	invite := inviteFromUser(domainId, req, from, to, toEndpoint)
+	invite := inviteFromUser(domainId, req, from)
 	for k, v := range req.Params.Variables {
 		invite.AddUserVariable(k, v)
+	}
+	for k, v := range variables {
+		invite.AddVariable(k, v)
+	}
+
+	if req.Params.Video {
+		invite.AddVariable(model.CALL_VARIABLE_USE_VIDEO, "true")
+	}
+
+	if req.Params.Screen {
+		invite.AddVariable(model.CALL_VARIABLE_USE_SCREEN, "true")
 	}
 
 	id, err = callCli.MakeOutboundCall(invite)
@@ -75,39 +65,116 @@ func (app *App) GetCall(domainId int64, callId string) (*model.Call, *model.AppE
 	return app.Store.Call().Get(domainId, callId)
 }
 
-func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.UserCallInfo, to *model.UserCallInfo, toEndpoint model.Endpoint) *model.CallRequest {
+func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
+	var call *model.Call
+	var cli call_manager.CallClient
+
+	usr, err := app.GetUserCallInfo(userId, domainId)
+	if err != nil {
+		return "", err
+	}
+
+	call, err = app.GetCall(domainId, req.Id)
+	if err != nil {
+		return "", err
+	}
+
+	cli, err = app.getCallCli(domainId, req.Id, req.AppId)
+	if err != nil {
+		return "", err
+	}
+
+	invite := &model.CallRequest{
+		Endpoints:   usr.GetCallEndpoints(),
+		Destination: call.Destination,
+		Variables: model.UnionStringMaps(
+			usr.GetVariables(),
+			variables,
+			map[string]string{
+				model.CALL_VARIABLE_DIRECTION:         model.CALL_DIRECTION_INTERNAL,
+				model.CALL_VARIABLE_DISPLAY_DIRECTION: model.CALL_DIRECTION_OUTBOUND,
+				model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", usr.Id),
+				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
+				"hangup_after_bridge":                 "true",
+
+				"variable_sip_h_X-Webitel-User-Id": fmt.Sprintf("%d", usr.Id),
+				"wbt_destination":                  call.Destination,
+				"wbt_from_id":                      fmt.Sprintf("%v", usr.Id),
+				"wbt_from_number":                  usr.Endpoint,
+				"wbt_from_name":                    usr.Name,
+				"wbt_from_type":                    model.EndpointTypeUser,
+				"wbt_parent_id":                    call.Id,
+
+				"wbt_to_id":     fmt.Sprintf("%v", call.From.Id),
+				"wbt_to_name":   call.From.Name,
+				"wbt_to_number": call.From.Number,
+				"wbt_to_type":   call.From.Type,
+
+				"effective_caller_id_number": call.From.Number,
+				"effective_caller_id_name":   call.From.Name,
+
+				"effective_callee_id_name":   usr.Name,
+				"effective_callee_id_number": usr.Extension,
+
+				"origination_caller_id_name":   call.From.Name,
+				"origination_caller_id_number": call.From.Number,
+				"origination_callee_id_name":   usr.Name,
+				"origination_callee_id_number": usr.Extension,
+			},
+		),
+		CallerName:   usr.Name,
+		CallerNumber: usr.Extension,
+		Applications: []*model.CallRequestApplication{
+			{
+				AppName: "eavesdrop",
+				Args:    call.Id,
+			},
+		},
+	}
+
+	var id string
+	id, err = cli.MakeOutboundCall(invite)
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.UserCallInfo) *model.CallRequest {
 	return &model.CallRequest{
 		Endpoints:   usr.GetCallEndpoints(),
 		Timeout:     uint16(req.Params.Timeout),
-		Destination: to.Extension,
+		Destination: req.Destination,
 		Variables: model.UnionStringMaps(
 			usr.GetVariables(),
 			map[string]string{
-				model.CALL_VARIABLE_DIRECTION: model.CALL_DIRECTION_INTERNAL,
-				model.CALL_VARIABLE_USER_ID:   fmt.Sprintf("%v", usr.Id),
-				model.CALL_VARIABLE_DOMAIN_ID: fmt.Sprintf("%v", domainId),
-				"hangup_after_bridge":         "true",
+				model.CALL_VARIABLE_DIRECTION:         model.CALL_DIRECTION_INTERNAL,
+				model.CALL_VARIABLE_DISPLAY_DIRECTION: model.CALL_DIRECTION_OUTBOUND,
+				model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", usr.Id),
+				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
+				"hangup_after_bridge":                 "true",
 
 				"sip_h_X-Webitel-Origin":           "request",
 				"variable_sip_h_X-Webitel-User-Id": fmt.Sprintf("%d", usr.Id),
 				"wbt_created_by":                   fmt.Sprintf("%v", usr.Id),
-				"wbt_destination":                  toEndpoint.Name,
+				"wbt_destination":                  req.Destination,
 				"wbt_from_id":                      fmt.Sprintf("%v", usr.Id),
 				"wbt_from_number":                  usr.Endpoint,
 				"wbt_from_name":                    usr.Name,
 				"wbt_from_type":                    model.EndpointTypeUser,
 
-				"wbt_to_id":   fmt.Sprintf("%v", toEndpoint.Id),
-				"wbt_to_name": toEndpoint.Name,
-				"wbt_to_type": toEndpoint.Type,
+				//"wbt_to_id":   fmt.Sprintf("%v", toEndpoint.Id),
+				//"wbt_to_name": toEndpoint.Name,
+				//"wbt_to_type": toEndpoint.Type,
 
 				"effective_caller_id_number": usr.Extension,
 				"effective_caller_id_name":   usr.Name,
-				"effective_callee_id_name":   to.Name,
-				"effective_callee_id_number": to.Extension,
+				"effective_callee_id_name":   req.Destination,
+				"effective_callee_id_number": req.Destination,
 
-				"origination_caller_id_name":   to.Name,
-				"origination_caller_id_number": to.Extension,
+				"origination_caller_id_name":   req.Destination,
+				"origination_caller_id_number": req.Destination,
 				"origination_callee_id_name":   usr.Name,
 				"origination_callee_id_number": usr.Extension,
 			},
@@ -213,36 +280,6 @@ func (app *App) BlindTransferCall(domainId int64, req *model.BlindTransferCall) 
 	}
 
 	return cli.BlindTransfer(req.Id, req.Destination)
-}
-
-func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall) (string, *model.AppError) {
-	//var call *model.Call
-	//var to *model.UserCallInfo
-	//var toEndpoint model.Endpoint
-	//
-	//usr, err := app.GetUserCallInfo(userId, domainId)
-	//if err != nil {
-	//	return "", err
-	//}
-	//
-	//call, err = app.GetCall(domainId, req.Id)
-	//if err != nil {
-	//	return "", err
-	//}
-	//
-	//if call.Direction == model.CALL_DIRECTION_OUTBOUND {
-	//	toEndpoint = call.From
-	//	to = &model.UserCallInfo{
-	//		Id:         0,
-	//		Name:       "",
-	//		DomainName: "",
-	//		Extension:  "",
-	//		Endpoint:   "",
-	//		Variables:  nil,
-	//	}
-	//}
-	//
-	return "", nil
 }
 
 /*

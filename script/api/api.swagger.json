@@ -9666,6 +9666,18 @@
         },
         "schema": {
           "$ref": "#/definitions/engineLookup"
+        },
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "waiting": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "active": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

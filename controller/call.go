@@ -5,7 +5,7 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) CreateCall(session *auth_manager.Session, req *model.OutboundCallRequest) (string, *model.AppError) {
+func (c *Controller) CreateCall(session *auth_manager.Session, req *model.OutboundCallRequest, variables map[string]string) (string, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {
 		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -20,7 +20,7 @@ func (c *Controller) CreateCall(session *auth_manager.Session, req *model.Outbou
 		}
 	}
 
-	return c.app.CreateOutboundCall(session.DomainId, req)
+	return c.app.CreateOutboundCall(session.DomainId, req, variables)
 }
 
 func (c *Controller) SearchCall(session *auth_manager.Session, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
@@ -93,4 +93,12 @@ func (c *Controller) BlindTransferCall(session *auth_manager.Session, domainId i
 	}
 
 	return c.app.BlindTransferCall(session.Domain(domainId), req)
+}
+func (c *Controller) EavesdropCall(session *auth_manager.Session, domainId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.EavesdropCall(session.Domain(domainId), session.UserId, req, variables)
 }

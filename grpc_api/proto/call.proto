@@ -81,8 +81,9 @@ message SearchHistoryCallRequest {
     int32 size = 2;
 
     FilterBetween created_at = 3;
+    int64 user_id = 4;
 
-    int64 domain_id = 4;
+    int64 domain_id = 5;
 }
 
 message ListHistoryCall {

@@ -18,6 +18,8 @@ const (
 	CALL_VARIABLE_DOMAIN_ID         = "sip_h_X-Webitel-Domain-Id"
 	CALL_VARIABLE_SOCK_ID           = "sip_h_X-Webitel-Sock-Id"
 	CALL_VARIABLE_ID                = "sip_h_X-Webitel-Uuid"
+	CALL_VARIABLE_USE_VIDEO         = "wbt_video"
+	CALL_VARIABLE_USE_SCREEN        = "wbt_screen"
 )
 const (
 	CALL_STRATEGY_DEFAULT = iota
@@ -66,7 +68,8 @@ type OutboundCallRequest struct {
 	CreatedAt   int64            `json:"created_at"`
 	CreatedById int64            `json:"created_by_id"`
 	From        *EndpointRequest `json:"from"`
-	To          EndpointRequest  `json:"to"`
+	To          *EndpointRequest `json:"to"`
+	Destination string           `json:"destination"`
 	Params      CallParameters   `json:"params"`
 }
 
@@ -156,6 +159,7 @@ type SearchCall struct {
 type SearchHistoryCall struct {
 	ListRequest
 	CreatedAt FilterBetween
+	UserId    *int64
 }
 
 type CallEvent struct {
