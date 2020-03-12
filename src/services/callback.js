@@ -499,6 +499,7 @@ const Service = {
                             `w_jsclient_originate_number='${res.number}'`,
                             `cc_queue='${res.queue_name}'`,
                             `cc_agent=${caller.id}`,
+                            `domain_name=${caller.domain}`,
                             `cc_type=cb`,
                             `cc_side=agent`
                         ];
