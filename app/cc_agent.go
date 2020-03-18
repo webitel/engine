@@ -148,7 +148,7 @@ func (a *App) LogoutAgent(domainId, agentId int64) *model.AppError {
 	return nil
 }
 
-func (a *App) PauseAgent(domainId, agentId int64, payload []byte, timeout int) *model.AppError {
+func (a *App) PauseAgent(domainId, agentId int64, payload string, timeout int) *model.AppError {
 	err := a.cc.Agent().Pause(domainId, agentId, payload, timeout)
 	if err != nil {
 		return model.NewAppError("PauseAgent", "app.agent.pause.app_err", nil, err.Error(), http.StatusBadRequest)

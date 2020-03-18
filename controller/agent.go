@@ -57,7 +57,7 @@ func (c *Controller) LogoutAgent(session *auth_manager.Session, domainId, agentI
 	return c.app.LogoutAgent(session.Domain(domainId), agentId)
 }
 
-func (c *Controller) PauseAgent(session *auth_manager.Session, domainId, agentId int64, payload []byte, timeout int) *model.AppError {
+func (c *Controller) PauseAgent(session *auth_manager.Session, domainId, agentId int64, payload string, timeout int) *model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

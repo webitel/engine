@@ -1,0 +1,9 @@
+Поиск истории статусов оператора
+curl -X GET "https://demo.webitel.com/api/call_center/agents/:AGENT_ID/states/history?page=:PAGE&size=:SIZE&time_from=:FROM&time_to=:TO" -H "accept: application/json" -H "X-Webitel-Access: ТОКЕН"
+
+где:
+    AGENT_ID - ид агента
+    PAGE - страница
+    SIZE - количество заисей на страницу
+    FROM - время в timestamp метка времени с которой изменился статус агента - обязательное
+    TO - время в timestamp метка времени до которой изменился статус агента - обязательное

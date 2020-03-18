@@ -111,7 +111,7 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	payload, _ = req.Data["payload"].(string)
 	timeout, _ = req.Data["timeout"].(float64)
 
-	err := api.ctrl.PauseAgent(conn.GetSession(), int64(domainId), int64(agentId), []byte(payload), int(timeout))
+	err := api.ctrl.PauseAgent(conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
 	if err != nil {
 		return nil, err
 	}
