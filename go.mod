@@ -17,7 +17,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
 	github.com/stretchr/testify v1.5.1 // indirect
-	github.com/webitel/call_center v0.0.0-20200316150536-5ed37d7ee9ee
+	github.com/webitel/call_center v0.0.0-20200318123740-00a5602d9c03
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/atomic v1.5.1
 	go.uber.org/ratelimit v0.1.0
