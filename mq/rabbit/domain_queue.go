@@ -156,13 +156,35 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 		dq.readCallMessage(m.Body, m.RoutingKey)
 
 	case model.CallCenterExchange:
-		fmt.Println(string(m.Body), m.RoutingKey)
+		dq.readAgentStatusEvent(m.Body, m.RoutingKey)
 
 	case model.MQ_USER_STATUS_EXCHANGE:
 		dq.readUserStateMessage(m.Body, m.RoutingKey)
 	default:
 		wlog.Error(fmt.Sprintf("DomainQueue [%d] not implement parser from exchange %s", dq.Id(), m.Exchange))
 	}
+}
+
+func (dq *DomainQueue) readAgentStatusEvent(data []byte, rk string) {
+	e, err := parseAgentStatusEvent(data)
+	if err != nil {
+		wlog.Warn(err.Error())
+		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), string(data)))
+		return
+	}
+
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive agent status event %v [%v] rk=%s", dq.Id(), e.AgentId, e.Status, rk))
+	dq.events <- model.NewWebSocketAgentStatusEvent(e)
+}
+
+func parseAgentStatusEvent(data []byte) (*model.AgentStatusEvent, error) {
+	var e *model.AgentStatusEvent
+	err := json.Unmarshal(data, &e)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, nil
 }
 
 func parseCallEvent(data []byte) (*model.CallEvent, error) {

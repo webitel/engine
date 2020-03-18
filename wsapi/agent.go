@@ -96,7 +96,7 @@ func (api *API) logoutAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var agentId float64
 	var domainId float64
-	var payload []byte
+	var payload string
 	var timeout float64
 	var ok bool
 
@@ -108,10 +108,10 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		domainId = float64(conn.DomainId)
 	}
 
-	payload, _ = req.Data["payload"].([]byte)
+	payload, _ = req.Data["payload"].(string)
 	timeout, _ = req.Data["timeout"].(float64)
 
-	err := api.ctrl.PauseAgent(conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
+	err := api.ctrl.PauseAgent(conn.GetSession(), int64(domainId), int64(agentId), []byte(payload), int(timeout))
 	if err != nil {
 		return nil, err
 	}

@@ -286,11 +286,11 @@ func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequ
 		UserCallRequest: model.UserCallRequest{
 			Id: in.GetId(),
 		},
-		//Dtmf:        false,
-		//ALeg:        false,
-		//BLeg:        false,
-		//WhisperALeg: false,
-		//WhisperBLeg: false,
+		Dtmf:        in.Control,
+		ALeg:        in.ListenA,
+		BLeg:        in.ListenB,
+		WhisperALeg: in.WhisperA,
+		WhisperBLeg: in.WhisperB,
 	}
 	if in.GetAppId() != "" {
 		req.AppId = model.NewString(in.GetAppId())

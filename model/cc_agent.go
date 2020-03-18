@@ -95,3 +95,19 @@ type AgentInQueue struct {
 	WaitingMembers int    `json:"waiting_members" db:"waiting_members"`
 	ActiveMembers  int    `json:"active_members" db:"active_members"`
 }
+
+type AgentStatusEvent struct {
+	UserId        int64  `json:"user_id"`
+	AgentId       int    `json:"agent_id"`
+	Timestamp     int64  `json:"timestamp"`
+	Status        string `json:"status"`
+	StatusPayload string `json:"status_payload"`
+	Timeout       *int   `json:"timeout"`
+}
+
+func NewWebSocketAgentStatusEvent(status *AgentStatusEvent) *WebSocketEvent {
+	e := NewWebSocketEvent(WebsocketEventAgentStatus)
+	e.Add("status", status)
+
+	return e
+}

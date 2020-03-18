@@ -65,17 +65,17 @@ func (api *API) unSubscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequ
 
 func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
-	reqEa := &model.EavesdropCall{
-		Dtmf:        true,
-		ALeg:        true,
-		BLeg:        true,
-		WhisperALeg: true,
-		WhisperBLeg: true,
-	}
+	reqEa := &model.EavesdropCall{}
 
 	if reqEa.Id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
+
+	reqEa.Dtmf, _ = req.Data["control"].(bool)
+	reqEa.ALeg, _ = req.Data["listenA"].(bool)
+	reqEa.BLeg, _ = req.Data["listenB"].(bool)
+	reqEa.WhisperALeg, _ = req.Data["whisperA"].(bool)
+	reqEa.WhisperBLeg, _ = req.Data["whisperB"].(bool)
 
 	vars := make(map[string]string)
 	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()

@@ -112,11 +112,11 @@ message EavesdropCallRequest {
     string id = 1;
     string app_id = 2;
 
-    bool dtmf = 3;
-    bool a_leg = 4;
-    bool b_leg = 5;
-    bool whisper_a_leg = 6;
-    bool whisper_b_leg = 7;
+    bool control = 3;
+    bool listen_a = 4;
+    bool listen_b = 5;
+    bool whisper_a = 6;
+    bool whisper_b = 7;
 
     int64 domain_id = 8;
 }

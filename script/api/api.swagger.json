@@ -5890,9 +5890,46 @@
       }
     },
     "/calls": {
+      "post": {
+        "summary": "Create e call",
+        "operationId": "CreateCall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineCreateCallResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateCallRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CallService"
+        ]
+      }
+    },
+    "/calls/active": {
       "get": {
-        "summary": "List of call",
-        "operationId": "SearchCall",
+        "operationId": "SearchActiveCall",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -5944,45 +5981,9 @@
         "tags": [
           "CallService"
         ]
-      },
-      "post": {
-        "summary": "Create e call",
-        "operationId": "CreateCall",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/engineCreateCallResponse"
-            }
-          },
-          "403": {
-            "description": "Returned when the user does not have permission to access the resource.",
-            "schema": {}
-          },
-          "404": {
-            "description": "Returned when the resource does not exist.",
-            "schema": {
-              "type": "string",
-              "format": "string"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/engineCreateCallRequest"
-            }
-          }
-        ],
-        "tags": [
-          "CallService"
-        ]
       }
     },
-    "/calls/{id}": {
+    "/calls/active/{id}": {
       "get": {
         "summary": "Call item",
         "operationId": "ReadCall",
@@ -6066,7 +6067,7 @@
         ]
       }
     },
-    "/calls/{id}/dtmf": {
+    "/calls/active/{id}/dtmf": {
       "patch": {
         "operationId": "DtmfCall",
         "responses": {
@@ -6109,7 +6110,7 @@
         ]
       }
     },
-    "/calls/{id}/eavesdrop": {
+    "/calls/active/{id}/eavesdrop": {
       "post": {
         "operationId": "EavesdropCall",
         "responses": {
@@ -6152,7 +6153,7 @@
         ]
       }
     },
-    "/calls/{id}/hold": {
+    "/calls/active/{id}/hold": {
       "patch": {
         "operationId": "UnHoldCall",
         "responses": {
@@ -6195,7 +6196,7 @@
         ]
       }
     },
-    "/calls/{id}/transfer": {
+    "/calls/active/{id}/transfer": {
       "patch": {
         "operationId": "BlindTransferCall",
         "responses": {
@@ -6231,6 +6232,78 @@
             "schema": {
               "$ref": "#/definitions/engineBlindTransferCallRequest"
             }
+          }
+        ],
+        "tags": [
+          "CallService"
+        ]
+      }
+    },
+    "/calls/history": {
+      "get": {
+        "summary": "List of call",
+        "operationId": "SearchHistoryCall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListHistoryCall"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "created_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "created_at.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -8324,23 +8397,23 @@
         "app_id": {
           "type": "string"
         },
-        "dtmf": {
+        "control": {
           "type": "boolean",
           "format": "boolean"
         },
-        "a_leg": {
+        "listen_a": {
           "type": "boolean",
           "format": "boolean"
         },
-        "b_leg": {
+        "listen_b": {
           "type": "boolean",
           "format": "boolean"
         },
-        "whisper_a_leg": {
+        "whisper_a": {
           "type": "boolean",
           "format": "boolean"
         },
-        "whisper_b_leg": {
+        "whisper_b": {
           "type": "boolean",
           "format": "boolean"
         },
@@ -8360,8 +8433,7 @@
           "type": "string"
         },
         "id": {
-          "type": "string",
-          "format": "int64"
+          "type": "string"
         },
         "name": {
           "type": "string"
@@ -8421,6 +8493,59 @@
     },
     "engineHangupCallResponse": {
       "type": "object"
+    },
+    "engineHistoryCall": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "app_id": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "from": {
+          "$ref": "#/definitions/engineEndpoint"
+        },
+        "to": {
+          "$ref": "#/definitions/engineEndpoint"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "answered_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bridged_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "hangup_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "hold_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "sip_code": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
     },
     "engineHoldCallResponse": {
       "type": "object",
@@ -8658,6 +8783,21 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineCommunicationType"
+          }
+        }
+      }
+    },
+    "engineListHistoryCall": {
+      "type": "object",
+      "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineHistoryCall"
           }
         }
       }

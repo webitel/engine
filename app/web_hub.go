@@ -117,8 +117,19 @@ func (wh *Hub) start() {
 
 			wlog.Debug(fmt.Sprintf("un-register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
 
-		case ev := <-wh.domainQueue.Events():
-			fmt.Println(ev)
+		case msg := <-wh.domainQueue.Events():
+			candidates := connections.All()
+			for _, webCon := range candidates {
+				if webCon.ShouldSendEvent(msg) {
+					select {
+					case webCon.Send <- msg:
+					default:
+						wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+						close(webCon.Send)
+						connections.Remove(webCon)
+					}
+				}
+			}
 
 		case ev := <-wh.domainQueue.CallEvents():
 
