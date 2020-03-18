@@ -1,9 +1,9 @@
 package model
 
 type UserState struct {
+	Id        string `json:"id"`
 	AppId     string `json:"app_id"`
 	Timestamp string `json:"timestamp"`
-	UserId    string `json:"user_id"`
 	Channels  string `json:"channels"`
 	State     string `json:"state"`
 }
