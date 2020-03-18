@@ -8,7 +8,7 @@ import (
 func (api *API) InitAgent() {
 	api.Router.Handle("cc_agent_session", api.ApiWebSocketHandler(api.getAgentSession))
 	api.Router.Handle("cc_agent_subscribe_status", api.ApiWebSocketHandler(api.subscribeAgentsStatus))
-	api.Router.Handle("cc_agent_login", api.ApiWebSocketHandler(api.loginAgent))   //FIXME /cc.AgentService/Login
+	api.Router.Handle("cc_agent_waiting", api.ApiWebSocketHandler(api.loginAgent)) //FIXME /cc.AgentService/Login
 	api.Router.Handle("cc_agent_logout", api.ApiWebSocketHandler(api.logoutAgent)) //FIXME /cc.AgentService/Login
 	api.Router.Handle("cc_agent_pause", api.ApiWebSocketHandler(api.pauseAgent))   //FIXME /cc.AgentService/Login
 }

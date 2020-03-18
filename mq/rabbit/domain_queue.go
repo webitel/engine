@@ -226,7 +226,7 @@ func (dq *DomainQueue) readUserStateMessage(data []byte, rk string) {
 		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), string(data)))
 		return
 	}
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.AppId, e.Id, e.State, rk))
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.App, e.Id, e.Status, rk))
 	dq.userStateEvents <- e
 
 }
