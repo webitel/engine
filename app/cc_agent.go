@@ -125,3 +125,34 @@ func (a *App) AgentsLookupNotExistsUsersByGroups(domainId int64, groups []int, s
 	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
 }
+
+func (a *App) GetAgentSession(domainId, id int64) (*model.AgentSession, *model.AppError) {
+	return a.Store.Agent().GetSession(domainId, id)
+}
+
+func (a *App) LoginAgent(domainId, agentId int64) *model.AppError {
+	err := a.cc.Agent().Login(domainId, agentId)
+	if err != nil {
+		return model.NewAppError("LoginAgent", "app.agent.login.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (a *App) LogoutAgent(domainId, agentId int64) *model.AppError {
+	err := a.cc.Agent().Logout(domainId, agentId)
+	if err != nil {
+		return model.NewAppError("LogoutAgent", "app.agent.logout.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (a *App) PauseAgent(domainId, agentId int64, payload []byte, timeout int) *model.AppError {
+	err := a.cc.Agent().Pause(domainId, agentId, payload, timeout)
+	if err != nil {
+		return model.NewAppError("PauseAgent", "app.agent.pause.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}

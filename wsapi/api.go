@@ -20,4 +20,5 @@ func Init(a *app.App, router *app.WebSocketRouter) {
 
 	api.InitUser()
 	api.InitCall()
+	api.InitAgent()
 }

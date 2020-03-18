@@ -1,8 +1,10 @@
 package model
 
 const (
-	MQ_APP_EXCHANGE         = "engine"
-	MQ_CALL_EXCHANGE        = "call"
+	MQ_APP_EXCHANGE    = "engine"
+	CallExchange       = "call"
+	CallCenterExchange = "callcenter"
+
 	MQ_USER_STATUS_EXCHANGE = "webitel"
 
 	MQ_CALL_TEMPLATE_ROUTING_KEY        = "events.*.%d.%d"
@@ -10,6 +12,10 @@ const (
 
 	MQ_DIRECT = "direct"
 	MQ_TOPIC  = "topic"
+)
+
+const (
+	CallCenterAgentStateTemplate = "events.status.%d.%d"
 )
 
 type BindQueueEvent struct {

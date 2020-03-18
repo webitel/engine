@@ -329,7 +329,7 @@ func (s SqlAgentStore) LookupNotExistsUsersByGroups(domainId int64, groups []int
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().Select(&users,
-		`select u.id, u.name
+		`select u.id, coalesce( (u.name)::varchar, u.username) as name
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
@@ -353,4 +353,24 @@ offset :Offset`, map[string]interface{}{
 	} else {
 		return users, nil
 	}
+}
+
+func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, *model.AppError) {
+	var agent *model.AgentSession
+	err := s.GetMaster().SelectOne(&agent, `select a.id as agent_id,
+       case when a.status = 'online' then a.state else a.status end status,
+       a.state_timeout,
+       a.status_payload,
+       a.last_state_change
+from cc_agent a
+where a.user_id = :UserId and a.domain_id = :DomainId
+limit 1`, map[string]interface{}{
+		"UserId":   userId,
+		"DomainId": domainId,
+	}) //FIXME LIMIT
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.GetSession", "store.sql_agent.get_session.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+	return agent, nil
 }

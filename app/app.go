@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
+	"github.com/webitel/call_center/grpc_api/client"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/localization"
@@ -28,6 +29,7 @@ type App struct {
 	cluster        *cluster
 	sessionManager auth_manager.AuthManager
 	callManager    call_manager.CallManager
+	cc             client.CCManager
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -101,6 +103,11 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.callManager = call_manager.NewCallManager(app.Config().SipSettings.ServerAddr, app.Config().SipSettings.Proxy, app.cluster.discovery)
 	if err := app.callManager.Start(); err != nil {
+		return nil, err
+	}
+
+	app.cc = client.NewCCManager(app.cluster.discovery)
+	if err := app.cc.Start(); err != nil {
 		return nil, err
 	}
 

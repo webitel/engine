@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 type AgentStatus struct {
 	Name string
 }
@@ -22,6 +24,21 @@ type Agent struct {
 	LastStateChange int64  `json:"last_state_change" db:"last_state_change"`
 	StateTimeout    *int64 `json:"state_timeout" db:"state_timeout"`
 	Description     string `json:"description" db:"description"`
+}
+
+type AgentSession struct {
+	AgentId         int64  `json:"agent_id" db:"agent_id"`
+	Status          string `json:"status" db:"status"`
+	LastStateChange int64  `json:"last_state_change" db:"last_state_change"`
+	StateTimeout    *int64 `json:"state_timeout" db:"state_timeout"`
+	StatusPayload   []byte `json:"status_payload" db:"status_payload"`
+}
+
+func (a AgentSession) ToMap() map[string]interface{} {
+	out := make(map[string]interface{})
+	data, _ := json.Marshal(a)
+	_ = json.Unmarshal(data, &out)
+	return out
 }
 
 type SearchAgent struct {

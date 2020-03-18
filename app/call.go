@@ -132,6 +132,26 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		},
 	}
 
+	if req.Dtmf {
+		invite.AddVariable("eavesdrop_enable_dtmf", "true")
+	}
+
+	if req.ALeg {
+		invite.AddVariable("eavesdrop_bridge_aleg", "true")
+	}
+
+	if req.BLeg {
+		invite.AddVariable("eavesdrop_bridge_bleg", "true")
+	}
+
+	if req.WhisperALeg {
+		invite.AddVariable("eavesdrop_whisper_aleg", "true")
+	}
+
+	if req.WhisperBLeg {
+		invite.AddVariable("eavesdrop_whisper_bleg", "true")
+	}
+
 	var id string
 	id, err = cli.MakeOutboundCall(invite)
 	if err != nil {

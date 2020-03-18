@@ -66,11 +66,11 @@ func (api *API) unSubscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequ
 func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	reqEa := &model.EavesdropCall{
-		Dtmf:        false,
-		ALeg:        false,
-		BLeg:        false,
-		WhisperALeg: false,
-		WhisperBLeg: false,
+		Dtmf:        true,
+		ALeg:        true,
+		BLeg:        true,
+		WhisperALeg: true,
+		WhisperBLeg: true,
 	}
 
 	if reqEa.Id, ok = req.Data["id"].(string); !ok {

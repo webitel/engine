@@ -163,14 +163,14 @@ type SearchHistoryCall struct {
 }
 
 type CallEvent struct {
-	Id        string      `json:"id"`
-	Event     string      `json:"event"`
-	Timestamp float64     `json:"timestamp,string"`
-	DomainId  string      `json:"domain_id"`
-	UserId    string      `json:"user_id,omitempty"`
-	AppId     string      `json:"app_id,omitempty"`
-	CCAppId   string      `json:"cc_app_id,omitempty"`
-	Body      CallPayload `json:"data,string,omitempty"`
+	Id        string  `json:"id"`
+	Event     string  `json:"event"`
+	Timestamp float64 `json:"timestamp,string"`
+	DomainId  string  `json:"domain_id"`
+	UserId    string  `json:"user_id,omitempty"`
+	AppId     string  `json:"app_id,omitempty"`
+	//CCAppId   string      `json:"cc_app_id,omitempty"`
+	Body CallPayload `json:"data,string,omitempty"`
 }
 
 type CallPayload map[string]interface{}

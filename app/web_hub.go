@@ -117,6 +117,9 @@ func (wh *Hub) start() {
 
 			wlog.Debug(fmt.Sprintf("un-register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
 
+		case ev := <-wh.domainQueue.Events():
+			fmt.Println(ev)
+
 		case ev := <-wh.domainQueue.CallEvents():
 
 			msg := model.NewWebSocketCallEvent(ev)
@@ -182,6 +185,15 @@ func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) *model.AppError {
 	b := wh.domainQueue.BindUsersStatus(conn.Id(), conn.GetSession().UserId)
 	//TODO
 	conn.SetListenEvent("status", b)
+
+	return nil
+}
+
+func (wh *Hub) SubscribeSessionAgentStatus(conn *WebConn, agentId int) *model.AppError {
+
+	b := wh.domainQueue.BindAgentStatusEvents(conn.Id(), conn.GetSession().UserId, agentId)
+	//TODO
+	conn.SetListenEvent("agent_status", b)
 
 	return nil
 }

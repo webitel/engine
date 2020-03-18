@@ -13,18 +13,21 @@ service AgentService {
             body: "*"
         };
     }
+
     // List of Agent
     rpc SearchAgent(SearchAgentRequest) returns (ListAgent) {
         option (google.api.http) = {
             get: "/call_center/agents"
         };
     }
+
     // Agent item
     rpc ReadAgent(ReadAgentRequest) returns (Agent) {
         option (google.api.http) = {
             get: "/call_center/agents/{id}"
         };
     }
+
     // Update Agent
     rpc UpdateAgent(UpdateAgentRequest) returns (Agent) {
         option (google.api.http) = {
@@ -32,12 +35,14 @@ service AgentService {
             body: "*"
         };
     }
+
     // Remove Agent
     rpc DeleteAgent(DeleteAgentRequest) returns (Agent) {
         option (google.api.http) = {
             delete: "/call_center/agents/{id}"
         };
     }
+
     // Change agent status
     rpc UpdateAgentStatus(AgentStatusRequest) returns (Response) {
         option (google.api.http) = {
@@ -138,7 +143,6 @@ message SearchAgentInQueueRequest {
     int32 size = 3;
     string q = 4;
 
-
     int64 domain_id = 5;
 }
 
@@ -165,6 +169,7 @@ message UpdateAgentRequest {
     int64 id = 1;
     Lookup user = 2;
     string description = 3;
+
     int64 domain_id = 4;
 }
 

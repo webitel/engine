@@ -18,7 +18,9 @@ type DomainQueue struct {
 	channel      *amqp.Channel
 	closeChannel chan *amqp.Error
 
-	queue           amqp.Queue
+	queue  amqp.Queue
+	events chan *model.WebSocketEvent
+
 	callEvents      chan *model.CallEvent
 	userStateEvents chan *model.UserState
 
@@ -47,6 +49,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		id:     id,
 		client: client,
 		name:   fmt.Sprintf("domain.%v", id),
+		events: make(chan *model.WebSocketEvent),
 
 		callEvents:       make(chan *model.CallEvent),
 		userStateEvents:  make(chan *model.UserState),
@@ -74,7 +77,7 @@ func (dq *DomainQueue) BindUserCall(id string, userId int64) *model.BindQueueEve
 		UserId:   userId,
 		Id:       id,
 		Routing:  fmt.Sprintf(model.MQ_CALL_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
-		Exchange: model.MQ_CALL_EXCHANGE,
+		Exchange: model.CallExchange,
 	}
 
 	dq.bindChan <- b
@@ -87,6 +90,18 @@ func (dq *DomainQueue) BindUsersStatus(id string, userId int64) *model.BindQueue
 		Id:       id,
 		Routing:  fmt.Sprintf(model.MQ_USER_STATUS_TEMPLATE_ROUTING_KEY, dq.Id()),
 		Exchange: model.MQ_USER_STATUS_EXCHANGE,
+	}
+
+	dq.bindChan <- b
+	return b
+}
+
+func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId int) *model.BindQueueEvent {
+	b := &model.BindQueueEvent{
+		UserId:   userId,
+		Id:       id,
+		Routing:  fmt.Sprintf(model.CallCenterAgentStateTemplate, dq.id, agentId),
+		Exchange: model.CallCenterExchange,
 	}
 
 	dq.bindChan <- b
@@ -137,8 +152,11 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 	}
 
 	switch m.Exchange {
-	case model.MQ_CALL_EXCHANGE:
+	case model.CallExchange:
 		dq.readCallMessage(m.Body, m.RoutingKey)
+
+	case model.CallCenterExchange:
+		fmt.Println(string(m.Body), m.RoutingKey)
 
 	case model.MQ_USER_STATUS_EXCHANGE:
 		dq.readUserStateMessage(m.Body, m.RoutingKey)
@@ -293,6 +311,10 @@ func (dq *DomainQueue) Listen() error {
 			dq.bind(b)
 		}
 	}
+}
+
+func (dq *DomainQueue) Events() <-chan *model.WebSocketEvent {
+	return dq.events
 }
 
 func (dq *DomainQueue) CallEvents() <-chan *model.CallEvent {

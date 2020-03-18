@@ -117,6 +117,7 @@ func (c *consul) update() {
 			wlog.Error(agentErr.Error())
 		}
 	} else {
+		//FIXME register new instance...
 		if agentErr := c.agent.PassTTL(c.checkId, "ready..."); agentErr != nil {
 			wlog.Error(agentErr.Error())
 		}
