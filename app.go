@@ -15,16 +15,14 @@ import (
 )
 
 func main() {
-
 	interruptChan := make(chan os.Signal, 1)
 	a, err := app.New()
+	wlog.Info(fmt.Sprintf("server build version: %s", app.Version()))
 	if err != nil {
 		wlog.Critical(err.Error())
 		return
 	}
 	defer a.Shutdown()
-
-	wlog.Info(fmt.Sprintf("server build version: %s", app.Version()))
 
 	serverErr := a.StartServer()
 	if serverErr != nil {
