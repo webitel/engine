@@ -398,11 +398,16 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 			return json.Unmarshal(b, target)
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
-	case *model.StringArray:
+	case *model.StringArray,
+		**model.StringArray:
 		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
+			s, ok := holder.(*[]byte)
 			if !ok {
 				return errors.New(localization.T("store.sql.convert_string_array"))
+			}
+
+			if *s == nil {
+				return nil
 			}
 
 			var a pq.StringArray
@@ -414,7 +419,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 				return nil
 			}
 		}
-		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+		return gorp.CustomScanner{Holder: &[]byte{}, Target: target, Binder: binder}, true
 	case *model.StringInterface:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)

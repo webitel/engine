@@ -49,7 +49,7 @@ service CallService {
 
     rpc UnHoldCall (UserCallRequest) returns (HoldCallResponse) {
         option (google.api.http) = {
-            patch: "/calls/active/{id}/hold"
+            patch: "/calls/active/{id}/unhold"
             body: "*"
         };
     }
