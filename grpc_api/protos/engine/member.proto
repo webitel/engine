@@ -77,6 +77,33 @@ service MemberService {
         };
     }
 
+    rpc AttemptResult(AttemptResultRequest) returns (AttemptResultResponse) {
+        option (google.api.http) = {
+            patch: "/call_center/queues/{queue_id}/members/{member_id}/attempts/{attempt_id}"
+            body: "*"
+        };
+    }
+
+}
+
+message AttemptResultRequest {
+    int32 queue_id = 1;
+    int32 member_id = 2;
+    int32 attempt_id = 3;
+
+    string status = 4;
+
+    int64 min_offering_at = 5;
+    int64 expire_at = 6;
+    map<string, string> variables = 7;
+    bool display = 8;
+    string description = 9;
+    int64 transfer_queue_id = 10;
+    int64 next_member_id = 11;
+}
+
+message AttemptResultResponse {
+    string status = 1;
 }
 
 message ListAttempt {

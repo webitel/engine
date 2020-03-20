@@ -577,6 +577,11 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 	return res
 }
 
+func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRequest) (*engine.AttemptResultResponse, error) {
+	//TODO validate && proxy cc
+	return nil, nil
+}
+
 func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.MemberCommunication {
 	res := make([]*engine.MemberCommunication, 0, len(src))
 

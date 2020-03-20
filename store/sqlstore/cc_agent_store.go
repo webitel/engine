@@ -45,7 +45,7 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
 			returning *
 		)
-		select i.id, i.status, i.state, i.description,  i.last_state_change, i.state_timeout, i.domain_id, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		select i.id, i.status, i.state, i.description,  i.last_state_change, i.state_timeout, i.domain_id, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 		from i
 		  inner join directory.wbt_user ct on ct.id = i.user_id`,
 		map[string]interface{}{
@@ -68,7 +68,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and ( (:Q::varchar isnull or (a.description ilike :Q::varchar or a.status ilike :Q::varchar or ct.name ilike :Q::varchar ) ))  
@@ -90,7 +90,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and (
@@ -117,7 +117,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `
-			select a.id, a.status, a.state, a.domain_id, a.description, a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+			select a.id, a.status, a.state, a.domain_id, a.description, a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and a.id = :Id 	
@@ -306,7 +306,7 @@ func (s SqlAgentStore) LookupNotExistsUsers(domainId int64, search *model.Search
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().Select(&users,
-		`select u.id, u.name
+		`select u.id, coalesce( (u.name)::varchar, u.username) as name
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)

@@ -3165,6 +3165,64 @@
         ]
       }
     },
+    "/call_center/queues/{queue_id}/members/{member_id}/attempts/{attempt_id}": {
+      "patch": {
+        "operationId": "AttemptResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAttemptResultResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "attempt_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineAttemptResultRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
+      }
+    },
     "/call_center/queues/{queue_id}/resource_groups": {
       "get": {
         "summary": "SearchQueueResourceGroup",
@@ -7517,6 +7575,63 @@
           "additionalProperties": {
             "type": "string"
           }
+        }
+      }
+    },
+    "engineAttemptResultRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "member_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "attempt_id": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "type": "string"
+        },
+        "min_offering_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "display": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "transfer_queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "next_member_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineAttemptResultResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
         }
       }
     },
