@@ -41,13 +41,13 @@ func DUMP(i interface{}) string {
 	return string(s)
 }
 
-func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) {
+func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) *model.AppError {
 	var cli, cli2 CallClient
 	var err *model.AppError
 
 	cli, err = cm.getClient(legANode)
 	if err != nil {
-		panic(1)
+		return err
 	}
 
 	if legANode == legBNode {
@@ -67,9 +67,5 @@ func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) {
 		err = cli.Execute("uuid_deflect", fmt.Sprintf("%s sip:w@%s:5080", legA, cli2.Host()))
 	}
 
-	if err != nil {
-		fmt.Println("ERROR ", err.Error())
-	} else {
-		fmt.Println("OK")
-	}
+	return err
 }

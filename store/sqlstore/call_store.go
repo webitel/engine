@@ -99,3 +99,20 @@ offset :Offset`, map[string]interface{}{
 
 	return out, nil
 }
+
+func (s SqlCallStore) BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError) {
+	var res *model.BridgeCall
+	err := s.GetMaster().SelectOne(&res, `select coalesce(c.parent_id, c.id) from_id, coalesce(c2.parent_id, c2.id) to_id, c.app_id
+from cc_calls c,
+     cc_calls c2
+where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
+		"DomainId": domainId,
+		"FromId":   fromId,
+		"ToId":     toId,
+	})
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.GetBridgeInfo", "store.sql_call.get_bridge_info.app_error", nil, err.Error(), extractCodeFromErr(err))
+	} else {
+		return res, nil
+	}
+}

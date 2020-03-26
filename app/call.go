@@ -175,14 +175,13 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
 				"hangup_after_bridge":                 "true",
 
-				"sip_h_X-Webitel-Origin":           "request",
-				"variable_sip_h_X-Webitel-User-Id": fmt.Sprintf("%d", usr.Id),
-				"wbt_created_by":                   fmt.Sprintf("%v", usr.Id),
-				"wbt_destination":                  req.Destination,
-				"wbt_from_id":                      fmt.Sprintf("%v", usr.Id),
-				"wbt_from_number":                  usr.Endpoint,
-				"wbt_from_name":                    usr.Name,
-				"wbt_from_type":                    model.EndpointTypeUser,
+				"sip_h_X-Webitel-Origin": "request",
+				"wbt_created_by":         fmt.Sprintf("%v", usr.Id),
+				"wbt_destination":        req.Destination,
+				"wbt_from_id":            fmt.Sprintf("%v", usr.Id),
+				"wbt_from_number":        usr.Endpoint,
+				"wbt_from_name":          usr.Name,
+				"wbt_from_type":          model.EndpointTypeUser,
 
 				//"wbt_to_id":   fmt.Sprintf("%v", toEndpoint.Id),
 				//"wbt_to_name": toEndpoint.Name,
@@ -300,6 +299,22 @@ func (app *App) BlindTransferCall(domainId int64, req *model.BlindTransferCall) 
 	}
 
 	return cli.BlindTransfer(req.Id, req.Destination)
+}
+
+func (app *App) BridgeCall(domainId int64, fromId, toId string) *model.AppError {
+	var cli call_manager.CallClient
+	info, err := app.Store.Call().BridgeInfo(domainId, fromId, toId)
+	if err != nil {
+		return err
+	}
+
+	cli, err = app.getCallCli(domainId, info.FromId, &info.AppId)
+	if err != nil {
+		return err
+	}
+
+	_, err = cli.BridgeCall(info.FromId, info.ToId, "")
+	return err
 }
 
 /*

@@ -381,24 +381,19 @@ func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 
 func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
-	var id, nodeId, id2, nodeId2 string
+	var fromId, toId string
 
-	if id, ok = req.Data["id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "id")
-	}
-	if nodeId, ok = req.Data["app_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
-	}
-	if id2, ok = req.Data["parent_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "parent_id")
-	}
-	if nodeId2, ok = req.Data["parent_app_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "parent_app_id")
+	if fromId, ok = req.Data["from_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "from_id")
 	}
 
-	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
-
-	return nil, nil
+	if toId, ok = req.Data["to_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "to_id")
+	}
+	res := make(map[string]interface{})
+	err := api.App.BridgeCall(conn.DomainId, fromId, toId)
+	//FIXME set result
+	return res, err
 }
 
 func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

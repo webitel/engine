@@ -298,4 +298,5 @@ type CallStore interface {
 	GetActive(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError)
 	Get(domainId int64, id string) (*model.Call, *model.AppError)
 	GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError)
+	BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError)
 }

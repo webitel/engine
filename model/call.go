@@ -93,6 +93,12 @@ type BlindTransferCall struct {
 	Destination string
 }
 
+type BridgeCall struct {
+	FromId string `json:"from_id" db:"from_id"`
+	ToId   string `json:"to_id" db:"to_id"`
+	AppId  string `json:"app_id" db:"app_id"`
+}
+
 type EavesdropCall struct {
 	UserCallRequest
 	//Group       string //TODO https://freeswitch.org/confluence/display/FREESWITCH/mod_dptools%3A+eavesdrop
