@@ -114,7 +114,7 @@ from cc_queue q
         where a.queue_id = q.id and a.hangup_at = 0
     ) act on true
 where q.domain_id = :DomainId and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
-order by q.id
+order by q.priority DESC
 limit :Limit
 offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
@@ -159,7 +159,7 @@ where q.domain_id = :DomainId  and (
       from cc_queue_acl a
       where a.dc = c.domain_id and a.object = q.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
   ) and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
-order by q.id
+order by q.priority DESC
 limit :Limit
 offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
