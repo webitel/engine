@@ -333,7 +333,7 @@ func (s SqlAgentStore) LookupNotExistsUsersByGroups(domainId int64, groups []int
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
-  and and (
+  and (
 	exists(select 1
 	  from directory.wbt_auth_acl acl
 	  where acl.dc = u.dc and acl.object = u.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
