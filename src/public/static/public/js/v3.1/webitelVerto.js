@@ -4532,7 +4532,7 @@
             });
 
             if (verto.options.ringFile) {
-                verto.ringer = $('<video>', {id: "verto_ringer", preload:"auto", src: verto.options.ringFile}).css('display', 'none');
+                verto.ringer = $('<video>', {id: "verto_ringer", preload:"auto", src: verto.options.ringFile, muted: "muted"}).css('display', 'none');
             };
 
             verto.rpcClient.call('login', {});
@@ -6239,7 +6239,7 @@
 
             return this._autoAnsverDialogs.push(id);
         };
-        
+
 
         $.verto.dialog.prototype.invite = function() {
             var dialog = this;
