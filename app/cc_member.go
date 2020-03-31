@@ -1,6 +1,9 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"github.com/webitel/engine/model"
+	"net/http"
+)
 
 func (app *App) CreateMember(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
 	return app.Store.Member().Create(domainId, member)
@@ -49,7 +52,6 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	oldMember.Timezone = member.Timezone
 	oldMember.Communications = member.Communications
 	oldMember.Bucket = member.Bucket
-	oldMember.Skills = member.Skills
 	oldMember.MinOfferingAt = member.MinOfferingAt
 
 	oldMember, err = app.Store.Member().Update(domainId, oldMember)
@@ -89,4 +91,13 @@ func (app *App) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]
 	}
 	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
+}
+
+func (app *App) DirectAgentToMember(domainId, memberId int64, agentId int64) (int64, *model.AppError) {
+	attemptId, err := app.cc.Member().DirectAgentToMember(domainId, memberId, agentId)
+	if err != nil {
+		return 0, model.NewAppError("DirectAgentToMember", "app.cc_member.direct_agent.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return attemptId, nil
 }

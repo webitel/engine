@@ -18,9 +18,9 @@ type Member struct {
 	Timezone       Lookup                `json:"timezone" db:"timezone"`
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
-	Skills         Int64Array            `json:"skills" db:"skills"`
-	StopAt         *int64                `json:"stop_at" db:"stop_at"`
-	Reserved       bool                  `json:"reserved" db:"reserved"`
+	//Skills         Int64Array            `json:"skills" db:"skills"`
+	StopAt   *int64 `json:"stop_at" db:"stop_at"`
+	Reserved bool   `json:"reserved" db:"reserved"`
 }
 
 type MemberView struct {
@@ -97,13 +97,6 @@ type MembersAttempt struct {
 func (a *MemberAttempt) IsValid() *AppError {
 	//FIXME
 	return nil
-}
-
-func (member *Member) GetSkills() Int64Array {
-	if member.Skills == nil {
-		return Int64Array{}
-	}
-	return member.Skills
 }
 
 type MemberCommunication struct {
