@@ -50,6 +50,8 @@ func (a *App) UpdateAgentTeam(team *model.AgentTeam) (*model.AgentTeam, *model.A
 	oldTeam.BusyDelayTime = team.BusyDelayTime
 	oldTeam.NoAnswerDelayTime = team.NoAnswerDelayTime
 	oldTeam.CallTimeout = team.CallTimeout
+	oldTeam.PostProcessing = team.PostProcessing
+	oldTeam.PostProcessingTimeout = team.PostProcessingTimeout
 
 	oldTeam.UpdatedAt = team.UpdatedAt
 	oldTeam.UpdatedBy.Id = team.UpdatedBy.Id
