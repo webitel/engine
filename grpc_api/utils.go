@@ -82,6 +82,38 @@ func GetLookup(src *engine.Lookup) *model.Lookup {
 	}
 }
 
+func GetLookups(src []*engine.Lookup) []*model.Lookup {
+	length := len(src)
+	if length == 0 {
+		return nil
+	}
+	res := make([]*model.Lookup, 0, length)
+
+	for _, v := range src {
+		res = append(res, &model.Lookup{
+			Id:   int(v.Id),
+			Name: v.Name,
+		})
+	}
+	return res
+}
+
+func GetProtoLookups(src []*model.Lookup) []*engine.Lookup {
+	length := len(src)
+	if length == 0 {
+		return nil
+	}
+	res := make([]*engine.Lookup, 0, length)
+
+	for _, v := range src {
+		res = append(res, &engine.Lookup{
+			Id:   int64(v.Id),
+			Name: v.Name,
+		})
+	}
+	return res
+}
+
 func GetProtoLookup(src *model.Lookup) *engine.Lookup {
 	if src == nil {
 		return nil

@@ -340,6 +340,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.MemberCommunication,
 		*model.Endpoint,
 		**model.Endpoint,
+		*[]model.Lookup,
+		*[]*model.Lookup,
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
 		*[]*model.CalendarExceptDate:

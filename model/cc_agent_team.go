@@ -1,14 +1,14 @@
 package model
 
 type ResourceInTeam struct {
-	Id          int64   `json:"id" db:"id"`
-	TeamId      int64   `json:"team_id" db:"team_id"`
-	Agent       *Lookup `json:"agent" db:"agent"`
-	Skill       *Lookup `json:"skill" db:"skill"`
-	Bucket      *Lookup `json:"bucket" db:"bucket"`
-	Lvl         int     `json:"lvl" db:"lvl"`
-	MinCapacity int     `json:"min_capacity" db:"min_capacity"`
-	MaxCapacity int     `json:"max_capacity" db:"max_capacity"`
+	Id          int64     `json:"id" db:"id"`
+	TeamId      int64     `json:"team_id" db:"team_id"`
+	Agent       *Lookup   `json:"agent" db:"agent"`
+	Skill       *Lookup   `json:"skill" db:"skill"`
+	Buckets     []*Lookup `json:"buckets" db:"buckets"`
+	Lvl         int       `json:"lvl" db:"lvl"`
+	MinCapacity int       `json:"min_capacity" db:"min_capacity"`
+	MaxCapacity int       `json:"max_capacity" db:"max_capacity"`
 }
 
 type SearchResourceInTeam struct {
@@ -30,11 +30,16 @@ func (r *ResourceInTeam) SkillId() *int64 {
 	return NewInt64(int64(r.Skill.Id))
 }
 
-func (r *ResourceInTeam) BucketId() *int {
-	if r.Bucket == nil {
+func (r *ResourceInTeam) BucketIds() []int {
+	if r.Buckets == nil {
 		return nil
 	}
-	return NewInt(r.Bucket.Id)
+
+	var res = make([]int, 0, len(r.Buckets))
+	for _, v := range r.Buckets {
+		res = append(res, v.Id)
+	}
+	return res
 }
 
 func (a *ResourceInTeam) IsValid() *AppError {

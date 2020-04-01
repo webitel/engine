@@ -31,7 +31,7 @@ func (app *App) UpdateResourceTeamAgent(domainId int64, resource *model.Resource
 	oldRes.Lvl = resource.Lvl
 	oldRes.MinCapacity = resource.MinCapacity
 	oldRes.MaxCapacity = resource.MaxCapacity
-	oldRes.Bucket = resource.Bucket
+	oldRes.Buckets = resource.Buckets
 
 	_, err = app.Store.ResourceTeam().Update(oldRes)
 	if err != nil {
@@ -86,7 +86,7 @@ func (app *App) UpdateResourceTeamSkill(domainId int64, resource *model.Resource
 	oldRes.Lvl = resource.Lvl
 	oldRes.MinCapacity = resource.MinCapacity
 	oldRes.MaxCapacity = resource.MaxCapacity
-	oldRes.Bucket = resource.Bucket
+	oldRes.Buckets = resource.Buckets
 
 	_, err = app.Store.ResourceTeam().Update(oldRes)
 	if err != nil {

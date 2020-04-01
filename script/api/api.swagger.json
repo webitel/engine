@@ -8362,7 +8362,10 @@
           "$ref": "#/definitions/engineLookup"
         },
         "bucket": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
         },
         "lvl": {
           "type": "integer",
@@ -8385,7 +8388,10 @@
           "$ref": "#/definitions/engineLookup"
         },
         "bucket": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
         },
         "lvl": {
           "type": "integer",
@@ -10058,7 +10064,10 @@
           "$ref": "#/definitions/engineLookup"
         },
         "bucket": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
         },
         "lvl": {
           "type": "integer",
@@ -10081,7 +10090,10 @@
           "$ref": "#/definitions/engineLookup"
         },
         "bucket": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
         },
         "lvl": {
           "type": "integer",
@@ -10853,7 +10865,10 @@
           "$ref": "#/definitions/engineLookup"
         },
         "bucket": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
         },
         "lvl": {
           "type": "integer",
@@ -10880,7 +10895,10 @@
           "$ref": "#/definitions/engineLookup"
         },
         "bucket": {
-          "$ref": "#/definitions/engineLookup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
         },
         "lvl": {
           "type": "integer",

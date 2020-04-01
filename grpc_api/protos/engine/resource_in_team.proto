@@ -78,7 +78,7 @@ message UpdateResourceTeamAgentRequest {
     int64 id = 1;
     int64 team_id = 2;
     Lookup agent = 3;
-    Lookup bucket = 4;
+    repeated Lookup bucket = 4;
     int32 lvl = 5;
 
     int64 domain_id = 6;
@@ -96,7 +96,7 @@ message CreateResourceTeamAgentRequest {
     int64 team_id = 1;
 
     Lookup agent = 2;
-    Lookup bucket = 3;
+    repeated Lookup bucket = 3;
     int32 lvl = 4;
 
     int64 domain_id = 5;
@@ -118,7 +118,7 @@ message ResourceTeamAgent {
     int64 id = 1;
     int64 team_id = 2;
     Lookup agent = 3;
-    Lookup bucket = 4;
+    repeated Lookup bucket = 4;
     int32 lvl = 5;
 }
 
@@ -134,7 +134,7 @@ message UpdateResourceTeamSkillRequest {
     int64 id = 1;
     int64 team_id = 2;
     Lookup skill = 3;
-    Lookup bucket = 4;
+    repeated Lookup bucket = 4;
     int32 lvl = 5;
     int32 min_capacity = 6;
     int32 max_capacity = 7;
@@ -155,7 +155,7 @@ message CreateResourceTeamSkillRequest {
     int64 team_id = 1;
 
     Lookup skill = 2;
-    Lookup bucket = 3;
+    repeated Lookup bucket = 3;
     int32 lvl = 4;
     int32 min_capacity = 5;
     int32 max_capacity = 6;
@@ -179,7 +179,7 @@ message ResourceTeamSkill {
     int64 id = 1;
     int64 team_id = 2;
     Lookup skill = 3;
-    Lookup bucket = 4;
+    repeated Lookup bucket = 4;
     int32 lvl = 5;
     int32 min_capacity = 6;
     int32 max_capacity = 7;

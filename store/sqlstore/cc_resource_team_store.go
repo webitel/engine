@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -19,27 +20,28 @@ func NewSqlResourceTeamStore(sqlStore SqlStore) store.ResourceTeamStore {
 func (s SqlResourceTeamStore) Create(in *model.ResourceInTeam) (*model.ResourceInTeam, *model.AppError) {
 	var out *model.ResourceInTeam
 	err := s.GetMaster().SelectOne(&out, `with i as (
-    insert into cc_agent_in_team (team_id, agent_id, skill_id, bucket_id, lvl, min_capacity, max_capacity)
-        values (:TeamId, :AgentId, :SkillId, :BucketId, :Lvl, :MinCapacity, :MaxCapacity)
+    insert into cc_agent_in_team (team_id, agent_id, skill_id, bucket_ids, lvl, min_capacity, max_capacity)
+        values (:TeamId, :AgentId, :SkillId, :BucketIds, :Lvl, :MinCapacity, :MaxCapacity)
         returning *
 )
 select i.id,
        i.team_id,
-       cc_get_lookup(a.id::int, u.name) as agent,
-       cc_get_lookup(s.id::int, s.name) as skill,
-       cc_get_lookup(b.id::int, b.name::varchar) as bucket,
+       cc_get_lookup(a.id, u.name) as agent,
+       cc_get_lookup(s.id, s.name) as skill,
+	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
+        from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
        i.lvl,
        i.min_capacity,
        i.max_capacity
 from i
+         left join cc_team t on t.id = i.team_id
          left join cc_agent a on a.id = i.agent_id
          left join directory.wbt_user u on u.id = a.user_id
-		 left join cc_bucket b on b.id = i.bucket_id
          left join cc_skill s on s.id = i.skill_id`, map[string]interface{}{
 		"TeamId":      in.TeamId,
 		"AgentId":     in.AgentId(),
 		"SkillId":     in.SkillId(),
-		"BucketId":    in.BucketId(),
+		"BucketIds":   pq.Array(in.BucketIds()),
 		"Lvl":         in.Lvl,
 		"MinCapacity": in.MinCapacity,
 		"MaxCapacity": in.MaxCapacity,
@@ -59,13 +61,14 @@ func (s SqlResourceTeamStore) Get(domainId, teamId int64, id int64) (*model.Reso
        i.team_id,
        cc_get_lookup(a.id, u.name) as agent,
        cc_get_lookup(s.id, s.name) as skill,
-	   cc_get_lookup(b.id::int, b.name::varchar) as bucket,
+	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
+        from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
        i.lvl,
        i.min_capacity,
        i.max_capacity
 from cc_agent_in_team i
+         left join cc_team t on t.id = i.team_id
          left join cc_agent a on a.id = i.agent_id
-		 left join cc_bucket b on b.id = i.bucket_id
          left join directory.wbt_user u on u.id = a.user_id
          left join cc_skill s on s.id = i.skill_id
 where i.id = :Id and i.team_id = :TeamId and exists (select 1 from cc_team t where t.id = :TeamId and t.domain_id = :DomainId)`,
@@ -89,14 +92,15 @@ func (s SqlResourceTeamStore) GetAllPage(domainId, teamId int64, search *model.S
        i.team_id,
        cc_get_lookup(a.id, u.name) as agent,
        cc_get_lookup(s.id, s.name) as skill,
-	   cc_get_lookup(b.id::int, b.name::varchar) as bucket,
+	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
+        from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
        i.lvl,
        i.min_capacity,
        i.max_capacity
 from cc_agent_in_team i
+         left join cc_team t on t.id = i.team_id
          left join cc_agent a on a.id = i.agent_id
          left join directory.wbt_user u on u.id = a.user_id
-		 left join cc_bucket b on b.id = i.bucket_id
          left join cc_skill s on s.id = i.skill_id
 where i.team_id = :TeamId and exists (select 1 from cc_team t where t.id = :TeamId and t.domain_id = :DomainId)
 	and ( (:Q::varchar isnull or (u.name ilike :Q::varchar ) ))
@@ -122,7 +126,7 @@ func (s SqlResourceTeamStore) Update(resource *model.ResourceInTeam) (*model.Res
     update cc_agent_in_team at
     set agent_id = :AgentId,
         skill_id = :SkillId,
-	    bucket_id = :BucketId,
+	    bucket_ids = :BucketIds,
         lvl = :Lvl,
         min_capacity = :MinCapacity,
         max_capacity = :MaxCapacity
@@ -133,18 +137,19 @@ select i.id,
        i.team_id,
        cc_get_lookup(a.id, u.name) as agent,
        cc_get_lookup(s.id, s.name) as skill,
-	   cc_get_lookup(b.id::int, b.name::varchar) as bucket,
+	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
+        from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
        i.lvl,
        i.min_capacity,
        i.max_capacity
-from i
+from  i
+         left join cc_team t on t.id = i.team_id
          left join cc_agent a on a.id = i.agent_id
-		 left join cc_bucket b on b.id = i.bucket_id
          left join directory.wbt_user u on u.id = a.user_id
          left join cc_skill s on s.id = i.skill_id`, map[string]interface{}{
 		"AgentId":     resource.AgentId(),
 		"SkillId":     resource.SkillId(),
-		"BucketId":    resource.BucketId(),
+		"BucketIds":   pq.Array(resource.BucketIds()),
 		"Lvl":         resource.Lvl,
 		"MinCapacity": resource.MinCapacity,
 		"MaxCapacity": resource.MaxCapacity,

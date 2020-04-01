@@ -41,10 +41,10 @@ func (api *resourceTeam) CreateResourceTeamAgent(ctx context.Context, in *engine
 	}
 
 	teamResource := &model.ResourceInTeam{
-		TeamId: in.TeamId,
-		Agent:  GetLookup(in.Agent),
-		Bucket: GetLookup(in.Bucket),
-		Lvl:    int(in.Lvl),
+		TeamId:  in.TeamId,
+		Agent:   GetLookup(in.Agent),
+		Buckets: GetLookups(in.Buckets),
+		Lvl:     int(in.Lvl),
 	}
 
 	if err = teamResource.IsValid(); err != nil {
@@ -158,11 +158,11 @@ func (api *resourceTeam) UpdateResourceTeamAgent(ctx context.Context, in *engine
 	var resource *model.ResourceInTeam
 
 	resource, err = api.app.UpdateResourceTeamAgent(session.Domain(in.GetDomainId()), &model.ResourceInTeam{
-		Id:     in.Id,
-		TeamId: in.TeamId,
-		Agent:  GetLookup(in.Agent),
-		Bucket: GetLookup(in.Bucket),
-		Lvl:    int(in.Lvl),
+		Id:      in.Id,
+		TeamId:  in.TeamId,
+		Agent:   GetLookup(in.Agent),
+		Buckets: GetLookups(in.Buckets),
+		Lvl:     int(in.Lvl),
 	})
 
 	if err != nil {
@@ -235,7 +235,7 @@ func (api *resourceTeam) CreateResourceTeamSkill(ctx context.Context, in *engine
 	teamResource := &model.ResourceInTeam{
 		TeamId:      in.TeamId,
 		Skill:       GetLookup(in.Skill),
-		Bucket:      GetLookup(in.Bucket),
+		Buckets:     GetLookups(in.Buckets),
 		Lvl:         int(in.Lvl),
 		MinCapacity: int(in.MinCapacity),
 		MaxCapacity: int(in.MaxCapacity),
@@ -355,7 +355,7 @@ func (api *resourceTeam) UpdateResourceTeamSkill(ctx context.Context, in *engine
 		Id:          in.Id,
 		TeamId:      in.TeamId,
 		Skill:       GetLookup(in.Skill),
-		Bucket:      GetLookup(in.Bucket),
+		Buckets:     GetLookups(in.Buckets),
 		Lvl:         int(in.Lvl),
 		MinCapacity: int(in.MinCapacity),
 		MaxCapacity: int(in.MaxCapacity),
@@ -405,11 +405,11 @@ func (api *resourceTeam) DeleteResourceTeamSkill(ctx context.Context, in *engine
 
 func transformResourceTeamAgent(src *model.ResourceInTeam) *engine.ResourceTeamAgent {
 	return &engine.ResourceTeamAgent{
-		Id:     src.Id,
-		TeamId: src.TeamId,
-		Agent:  GetProtoLookup(src.Agent),
-		Bucket: GetProtoLookup(src.Bucket),
-		Lvl:    int32(src.Lvl),
+		Id:      src.Id,
+		TeamId:  src.TeamId,
+		Agent:   GetProtoLookup(src.Agent),
+		Buckets: GetProtoLookups(src.Buckets),
+		Lvl:     int32(src.Lvl),
 	}
 }
 
@@ -418,7 +418,7 @@ func transformResourceTeamSkill(src *model.ResourceInTeam) *engine.ResourceTeamS
 		Id:          src.Id,
 		TeamId:      src.TeamId,
 		Skill:       GetProtoLookup(src.Skill),
-		Bucket:      GetProtoLookup(src.Bucket),
+		Buckets:     GetProtoLookups(src.Buckets),
 		Lvl:         int32(src.Lvl),
 		MinCapacity: int32(src.MinCapacity),
 		MaxCapacity: int32(src.MaxCapacity),
