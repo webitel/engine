@@ -433,3 +433,59 @@ offset :Offset`, map[string]interface{}{
 
 	return att, nil
 }
+
+func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError) {
+	var att []*model.OfflineMember
+	_, err := s.GetReplica().Select(&att, `with comm as (
+    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
+    from cc_communication c
+    where c.domain_id = :Domain
+)
+
+,resources as (
+    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
+    from cc_outbound_resource r
+    where r.domain_id = :Domain
+)
+, result as (
+    select m.id
+    from cc_member m
+        inner join cc_queue cq2 on m.queue_id = cq2.id
+    where m.domain_id = :Domain and cq2.type = 0 and (:Q::varchar isnull or m.name ilike :Q)
+        and not exists (select 1 from cc_member_attempt a where a.member_id = m.id)
+        and m.stop_at = 0
+    order by cq2.priority desc , m.priority desc, m.created_at
+    limit :Limit
+    offset :Offset
+)
+select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destination',
+								resources.j,
+                                comm.j,
+                                (x -> 'priority')::int ,
+                                (x -> 'state')::int  ,
+                                x -> 'description'  ,
+                                (x -> 'last_activity_at')::int8,
+                                (x -> 'attempts')::int,
+                                x ->> 'last_cause',
+                                x ->> 'display'    )::cc_member_destination_view
+                         from jsonb_array_elements(m.communications) x
+                            left join comm on comm.id = (x -> 'type' -> 'id')::int
+                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
+       cc_get_lookup(cq.id, cq.name::varchar) queue, m.expire_at, m.created_at, m.variables, m.name
+from cc_member m
+    inner join result on m.id = result.id
+    inner join cc_queue cq on m.queue_id = cq.id`, map[string]interface{}{
+		"Domain":  domainId,
+		"Limit":   search.GetLimit(),
+		"Offset":  search.GetOffset(),
+		"Q":       search.GetQ(),
+		"AgentId": search.AgentId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.ListOfflineQueueForAgent", "store.sql_member.list_offline_queue.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	return att, nil
+}

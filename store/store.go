@@ -256,6 +256,7 @@ type MemberStore interface {
 
 	AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) //FIXME
 	SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError)
+	ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError)
 }
 
 type BucketSore interface {

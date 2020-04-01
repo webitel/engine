@@ -34,6 +34,16 @@ type SearchMemberRequest struct {
 	BucketId    *int32
 }
 
+type OfflineMember struct {
+	Id             int64                 `json:"id" db:"id"`
+	Name           string                `json:"name" db:"name"`
+	Communications []MemberCommunication `json:"communications" db:"communications"`
+	Queue          Lookup                `json:"queue" db:"queue"`
+	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
+	CreatedAt      int64                 `json:"created_at" db:"created_at"`
+	Variables      StringMap             `json:"variables" db:"variables"`
+}
+
 type Attempt struct {
 	Id          int64               `json:"id" db:"id"`
 	Member      Lookup              `json:"member" db:"member"`
@@ -87,6 +97,11 @@ type SearchAttempts struct {
 	//Destination *string       `json:"destination" db:"destination"`
 	AgentId *int64  `json:"agent_id" db:"agent_id"`
 	Result  *string `json:"result" db:"result"`
+}
+
+type SearchOfflineQueueMembers struct {
+	ListRequest
+	AgentId int
 }
 
 type MembersAttempt struct {

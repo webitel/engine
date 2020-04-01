@@ -93,11 +93,20 @@ func (app *App) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) DirectAgentToMember(domainId, memberId int64, agentId int64) (int64, *model.AppError) {
-	attemptId, err := app.cc.Member().DirectAgentToMember(domainId, memberId, agentId)
+func (app *App) DirectAgentToMember(domainId, memberId int64, communicationId int, agentId int64) (int64, *model.AppError) {
+	attemptId, err := app.cc.Member().DirectAgentToMember(domainId, memberId, communicationId, agentId)
 	if err != nil {
 		return 0, model.NewAppError("DirectAgentToMember", "app.cc_member.direct_agent.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return attemptId, nil
+}
+
+func (app *App) ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, bool, *model.AppError) {
+	list, err := app.Store.Member().ListOfflineQueueForAgent(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
