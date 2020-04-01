@@ -13,9 +13,8 @@
     }
   },
   "host": "dev.webitel.com",
-  "basePath": "/",
+  "basePath": "/api",
   "schemes": [
-    "http",
     "https"
   ],
   "consumes": [
@@ -3163,6 +3162,55 @@
         "tags": [
           "MemberService"
         ]
+      },
+      "post": {
+        "operationId": "CreateAttempt",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineCreateAttemptResponse"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "member_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineCreateAttemptRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
       }
     },
     "/call_center/queues/{queue_id}/members/{member_id}/attempts/{attempt_id}": {
@@ -5431,6 +5479,56 @@
         "tags": [
           "ResourceTeamService"
         ]
+      },
+      "patch": {
+        "summary": "Patch ResourceTeamAgent",
+        "operationId": "PatchResourceTeamAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceTeamAgent"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/enginePatchResourceTeamAgentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
       }
     },
     "/call_center/teams/{team_id}/skills": {
@@ -5682,6 +5780,56 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/engineUpdateResourceTeamSkillRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ResourceTeamService"
+        ]
+      },
+      "patch": {
+        "summary": "Patch ResourceTeamAgent",
+        "operationId": "PatchResourceTeamSkill",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineResourceTeamSkill"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/enginePatchResourceTeamSkillRequest"
             }
           }
         ],
@@ -7493,6 +7641,14 @@
         "updated_at": {
           "type": "string",
           "format": "int64"
+        },
+        "post_processing": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "post_processing_timeout": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -7881,7 +8037,45 @@
           "type": "integer",
           "format": "int32"
         },
+        "post_processing": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "post_processing_timeout": {
+          "type": "integer",
+          "format": "int32"
+        },
         "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineCreateAttemptRequest": {
+      "type": "object",
+      "properties": {
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "member_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "agent_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineCreateAttemptResponse": {
+      "type": "object",
+      "properties": {
+        "attempt_id": {
           "type": "string",
           "format": "int64"
         }
@@ -8361,7 +8555,7 @@
         "agent": {
           "$ref": "#/definitions/engineLookup"
         },
-        "bucket": {
+        "buckets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineLookup"
@@ -8387,7 +8581,7 @@
         "skill": {
           "$ref": "#/definitions/engineLookup"
         },
-        "bucket": {
+        "buckets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineLookup"
@@ -9822,6 +10016,86 @@
         }
       }
     },
+    "enginePatchResourceTeamAgentRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "team_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "agent": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "buckets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
+        },
+        "lvl": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "enginePatchResourceTeamSkillRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "team_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "buckets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineLookup"
+          }
+        },
+        "lvl": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "min_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "max_capacity": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "enginePatchRoutingOutboundCallRequest": {
       "type": "object",
       "properties": {
@@ -10063,7 +10337,7 @@
         "agent": {
           "$ref": "#/definitions/engineLookup"
         },
-        "bucket": {
+        "buckets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineLookup"
@@ -10089,7 +10363,7 @@
         "skill": {
           "$ref": "#/definitions/engineLookup"
         },
-        "bucket": {
+        "buckets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineLookup"
@@ -10393,6 +10667,14 @@
           "format": "int32"
         },
         "call_timeout": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "post_processing": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "post_processing_timeout": {
           "type": "integer",
           "format": "int32"
         },
@@ -10864,7 +11146,7 @@
         "agent": {
           "$ref": "#/definitions/engineLookup"
         },
-        "bucket": {
+        "buckets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineLookup"
@@ -10894,7 +11176,7 @@
         "skill": {
           "$ref": "#/definitions/engineLookup"
         },
-        "bucket": {
+        "buckets": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineLookup"
