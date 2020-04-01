@@ -48,12 +48,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		MaxSuccessivelyErrors: int(in.MaxSuccessivelyErrors),
 		Name:                  in.Name,
 		DialString:            in.DialString,
-		ErrorIds:              nil,
-	}
-
-	if in.ErrorIds != nil {
-		ids := model.StringArray(in.ErrorIds)
-		resource.ErrorIds = &ids
+		ErrorIds:              in.ErrorIds,
 	}
 
 	if in.Gateway != nil {
@@ -189,12 +184,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		MaxSuccessivelyErrors: int(in.MaxSuccessivelyErrors),
 		Name:                  in.Name,
 		DialString:            in.DialString,
-		ErrorIds:              nil,
-	}
-
-	if in.ErrorIds != nil {
-		ids := model.StringArray(in.ErrorIds)
-		resource.ErrorIds = &ids
+		ErrorIds:              in.ErrorIds,
 	}
 
 	if in.Gateway != nil {
@@ -518,16 +508,10 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		Name:                  src.Name,
 		DialString:            src.DialString,
 		Variables:             src.Variables,
-		ErrorIds:              nil,
+		ErrorIds:              src.ErrorIds,
 		LastErrorId:           src.LastError(),
 		SuccessivelyErrors:    int32(src.SuccessivelyErrors),
 		LastErrorAt:           src.LastErrorAt,
-	}
-
-	if src.ErrorIds != nil {
-		res.ErrorIds = *src.ErrorIds
-	} else {
-		res.ErrorIds = []string{}
 	}
 
 	if src.Gateway != nil {

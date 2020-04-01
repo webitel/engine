@@ -199,7 +199,7 @@ from s
 		"Number":     resource.Number,
 		"MaxSErrors": resource.MaxSuccessivelyErrors,
 		"Name":       resource.Name,
-		"ErrorIds":   resource.ErrorIds,
+		"ErrorIds":   pq.Array(resource.ErrorIds),
 		"Id":         resource.Id,
 		"DomainId":   resource.DomainId,
 		"GatewayId":  resource.GetGatewayId(),
