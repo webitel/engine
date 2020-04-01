@@ -208,7 +208,7 @@ where t.id in (
        or a.skill_id in (
         select s.skill_id
         from cc_skill_in_agent s
-        where s.agent_id = :AgentId
+        where s.agent_id = :AgentId and s.capacity between a.min_capacity and a.max_capacity
     )
 ) and t.domain_id = :DomainId
   and ( (:Q::varchar isnull or (t.name ilike :Q::varchar ) ))
@@ -253,7 +253,7 @@ where q.domain_id = :DomainId and q.team_id in (
            or a.skill_id in (
             select s.skill_id
             from cc_skill_in_agent s
-            where s.agent_id = :AgentId
+            where s.agent_id = :AgentId and s.capacity between a.min_capacity and a.max_capacity
         )
     ) and t.domain_id = :DomainId
 ) and ( (:Q::varchar isnull or (q.name ilike :Q::varchar ) ))
