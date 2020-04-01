@@ -84,6 +84,23 @@ service MemberService {
         };
     }
 
+    rpc CreateAttempt(CreateAttemptRequest) returns (CreateAttemptResponse) {
+        option (google.api.http) = {
+            post: "/call_center/queues/{queue_id}/members/{member_id}/attempts"
+            body: "*"
+        };
+    }
+}
+
+message CreateAttemptRequest {
+    int64 member_id = 1;
+    int64 agent_id = 2;
+
+    int64 domain_id = 3;
+}
+
+message CreateAttemptResponse {
+    int64 attempt_id = 1;
 }
 
 message AttemptResultRequest {

@@ -55,8 +55,10 @@ message UpdateAgentTeamRequest {
     int32 busy_delay_time = 8;
     int32 no_answer_delay_time = 9;
     int32 call_timeout = 10;
+    bool post_processing = 11;
+    int32 post_processing_timeout = 12;
 
-    int64 domain_id = 11;
+    int64 domain_id = 13;
 }
 
 message ReadAgentTeamRequest {
@@ -82,8 +84,10 @@ message CreateAgentTeamRequest {
     int32 busy_delay_time = 7;
     int32 no_answer_delay_time = 8;
     int32 call_timeout = 9;
+    bool post_processing = 10;
+    int32 post_processing_timeout = 11;
 
-    int64 domain_id = 10;
+    int64 domain_id = 12;
 }
 
 message AgentTeam {
@@ -99,6 +103,8 @@ message AgentTeam {
     int32 no_answer_delay_time = 10;
     int32 call_timeout = 11;
     int64 updated_at = 12;
+    bool post_processing = 13;
+    int32 post_processing_timeout = 14;
 }
 
 message ListAgentTeam {
