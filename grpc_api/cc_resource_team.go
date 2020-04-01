@@ -172,6 +172,54 @@ func (api *resourceTeam) UpdateResourceTeamAgent(ctx context.Context, in *engine
 	return transformResourceTeamAgent(resource), nil
 }
 
+func (api *resourceTeam) PatchResourceTeamAgent(ctx context.Context, in *engine.PatchResourceTeamAgentRequest) (*engine.ResourceTeamAgent, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var resource *model.ResourceInTeam
+	patch := &model.ResourceInTeamPatch{}
+	patch.Skill = nil
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "agent":
+			patch.Agent = GetLookup(in.Agent)
+		case "buckets":
+			patch.Buckets = GetLookups(in.Buckets)
+		case "lvl":
+			patch.Lvl = model.NewInt(int(in.GetLvl()))
+		}
+	}
+
+	resource, err = api.app.PatchResourceTeamSkill(session.Domain(in.GetDomainId()), in.GetTeamId(), in.GetId(), patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformResourceTeamAgent(resource), nil
+}
+
 func (api *resourceTeam) DeleteResourceTeamAgent(ctx context.Context, in *engine.DeleteResourceTeamAgentRequest) (*engine.ResourceTeamAgent, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -360,6 +408,58 @@ func (api *resourceTeam) UpdateResourceTeamSkill(ctx context.Context, in *engine
 		MinCapacity: int(in.MinCapacity),
 		MaxCapacity: int(in.MaxCapacity),
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformResourceTeamSkill(resource), nil
+}
+
+func (api *resourceTeam) PatchResourceTeamSkill(ctx context.Context, in *engine.PatchResourceTeamSkillRequest) (*engine.ResourceTeamSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentTeamCheckAccess(session.Domain(in.GetDomainId()), in.GetTeamId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetTeamId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var resource *model.ResourceInTeam
+	patch := &model.ResourceInTeamPatch{}
+	patch.Agent = nil
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "skill":
+			patch.Skill = GetLookup(in.Skill)
+		case "buckets":
+			patch.Buckets = GetLookups(in.Buckets)
+		case "lvl":
+			patch.Lvl = model.NewInt(int(in.GetLvl()))
+		case "min_capacity":
+			patch.MinCapacity = model.NewInt(int(in.GetMinCapacity()))
+		case "max_capacity":
+			patch.MaxCapacity = model.NewInt(int(in.GetMaxCapacity()))
+		}
+	}
+
+	resource, err = api.app.PatchResourceTeamSkill(session.Domain(in.GetDomainId()), in.GetTeamId(), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err

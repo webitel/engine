@@ -96,6 +96,26 @@ func (app *App) UpdateResourceTeamSkill(domainId int64, resource *model.Resource
 	return oldRes, nil
 }
 
+func (app *App) PatchResourceTeamSkill(domainId, teamId, id int64, patch *model.ResourceInTeamPatch) (*model.ResourceInTeam, *model.AppError) {
+	oldRes, err := app.Store.ResourceTeam().Get(domainId, teamId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldRes.Patch(patch)
+
+	if err = oldRes.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldRes, err = app.Store.ResourceTeam().Update(oldRes)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldRes, nil
+}
+
 func (a *App) RemoveResourceTeamSkill(domainId, teamId, id int64) (*model.ResourceInTeam, *model.AppError) {
 	resource, err := a.Store.ResourceTeam().Get(domainId, teamId, id)
 

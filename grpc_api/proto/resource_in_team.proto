@@ -32,6 +32,15 @@ service ResourceTeamService {
             body: "*"
         };
     }
+
+    // Patch ResourceTeamAgent
+    rpc PatchResourceTeamAgent(PatchResourceTeamAgentRequest) returns (ResourceTeamAgent) {
+        option (google.api.http) = {
+            patch: "/call_center/teams/{team_id}/agents/{id}"
+            body: "*"
+        };
+    }
+
     // Remove ResourceTeamAgent
     rpc DeleteResourceTeamAgent(DeleteResourceTeamAgentRequest) returns (ResourceTeamAgent) {
         option (google.api.http) = {
@@ -66,6 +75,15 @@ service ResourceTeamService {
             body: "*"
         };
     }
+
+    // Patch ResourceTeamAgent
+    rpc PatchResourceTeamSkill(PatchResourceTeamSkillRequest) returns (ResourceTeamSkill) {
+        option (google.api.http) = {
+            patch: "/call_center/teams/{team_id}/skills/{id}"
+            body: "*"
+        };
+    }
+
     // Remove ResourceTeamSkill
     rpc DeleteResourceTeamSkill(DeleteResourceTeamSkillRequest) returns (ResourceTeamSkill) {
         option (google.api.http) = {
@@ -82,6 +100,17 @@ message UpdateResourceTeamAgentRequest {
     int32 lvl = 5;
 
     int64 domain_id = 6;
+}
+
+message PatchResourceTeamAgentRequest {
+    int64 id = 1;
+    int64 team_id = 2;
+    Lookup agent = 3;
+    repeated Lookup buckets = 4;
+    int32 lvl = 5;
+
+    repeated string fields = 6;
+    int64 domain_id = 7;
 }
 
 message SearchResourceTeamAgentRequest {
@@ -140,6 +169,19 @@ message UpdateResourceTeamSkillRequest {
     int32 max_capacity = 7;
 
     int64 domain_id = 8;
+}
+
+message PatchResourceTeamSkillRequest {
+    int64 id = 1;
+    int64 team_id = 2;
+    Lookup skill = 3;
+    repeated Lookup buckets = 4;
+    int32 lvl = 5;
+    int32 min_capacity = 6;
+    int32 max_capacity = 7;
+
+    repeated string fields = 8;
+    int64 domain_id = 9;
 }
 
 message SearchResourceTeamSkillRequest {

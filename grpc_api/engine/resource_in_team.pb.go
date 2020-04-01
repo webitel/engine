@@ -104,6 +104,93 @@ func (m *UpdateResourceTeamAgentRequest) GetDomainId() int64 {
 	return 0
 }
 
+type PatchResourceTeamAgentRequest struct {
+	Id                   int64     `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TeamId               int64     `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	Agent                *Lookup   `protobuf:"bytes,3,opt,name=agent,proto3" json:"agent,omitempty"`
+	Buckets              []*Lookup `protobuf:"bytes,4,rep,name=buckets,proto3" json:"buckets,omitempty"`
+	Lvl                  int32     `protobuf:"varint,5,opt,name=lvl,proto3" json:"lvl,omitempty"`
+	Fields               []string  `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
+	DomainId             int64     `protobuf:"varint,7,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
+}
+
+func (m *PatchResourceTeamAgentRequest) Reset()         { *m = PatchResourceTeamAgentRequest{} }
+func (m *PatchResourceTeamAgentRequest) String() string { return proto.CompactTextString(m) }
+func (*PatchResourceTeamAgentRequest) ProtoMessage()    {}
+func (*PatchResourceTeamAgentRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{1}
+}
+
+func (m *PatchResourceTeamAgentRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PatchResourceTeamAgentRequest.Unmarshal(m, b)
+}
+func (m *PatchResourceTeamAgentRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PatchResourceTeamAgentRequest.Marshal(b, m, deterministic)
+}
+func (m *PatchResourceTeamAgentRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PatchResourceTeamAgentRequest.Merge(m, src)
+}
+func (m *PatchResourceTeamAgentRequest) XXX_Size() int {
+	return xxx_messageInfo_PatchResourceTeamAgentRequest.Size(m)
+}
+func (m *PatchResourceTeamAgentRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PatchResourceTeamAgentRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PatchResourceTeamAgentRequest proto.InternalMessageInfo
+
+func (m *PatchResourceTeamAgentRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamAgentRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamAgentRequest) GetAgent() *Lookup {
+	if m != nil {
+		return m.Agent
+	}
+	return nil
+}
+
+func (m *PatchResourceTeamAgentRequest) GetBuckets() []*Lookup {
+	if m != nil {
+		return m.Buckets
+	}
+	return nil
+}
+
+func (m *PatchResourceTeamAgentRequest) GetLvl() int32 {
+	if m != nil {
+		return m.Lvl
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamAgentRequest) GetFields() []string {
+	if m != nil {
+		return m.Fields
+	}
+	return nil
+}
+
+func (m *PatchResourceTeamAgentRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type SearchResourceTeamAgentRequest struct {
 	TeamId               int64    `protobuf:"varint,1,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
 	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
@@ -119,7 +206,7 @@ func (m *SearchResourceTeamAgentRequest) Reset()         { *m = SearchResourceTe
 func (m *SearchResourceTeamAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchResourceTeamAgentRequest) ProtoMessage()    {}
 func (*SearchResourceTeamAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{1}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{2}
 }
 
 func (m *SearchResourceTeamAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -190,7 +277,7 @@ func (m *CreateResourceTeamAgentRequest) Reset()         { *m = CreateResourceTe
 func (m *CreateResourceTeamAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateResourceTeamAgentRequest) ProtoMessage()    {}
 func (*CreateResourceTeamAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{2}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{3}
 }
 
 func (m *CreateResourceTeamAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -259,7 +346,7 @@ func (m *ReadResourceTeamAgentRequest) Reset()         { *m = ReadResourceTeamAg
 func (m *ReadResourceTeamAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadResourceTeamAgentRequest) ProtoMessage()    {}
 func (*ReadResourceTeamAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{3}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{4}
 }
 
 func (m *ReadResourceTeamAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -314,7 +401,7 @@ func (m *DeleteResourceTeamAgentRequest) Reset()         { *m = DeleteResourceTe
 func (m *DeleteResourceTeamAgentRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteResourceTeamAgentRequest) ProtoMessage()    {}
 func (*DeleteResourceTeamAgentRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{4}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{5}
 }
 
 func (m *DeleteResourceTeamAgentRequest) XXX_Unmarshal(b []byte) error {
@@ -371,7 +458,7 @@ func (m *ResourceTeamAgent) Reset()         { *m = ResourceTeamAgent{} }
 func (m *ResourceTeamAgent) String() string { return proto.CompactTextString(m) }
 func (*ResourceTeamAgent) ProtoMessage()    {}
 func (*ResourceTeamAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{5}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{6}
 }
 
 func (m *ResourceTeamAgent) XXX_Unmarshal(b []byte) error {
@@ -439,7 +526,7 @@ func (m *ListResourceTeamAgent) Reset()         { *m = ListResourceTeamAgent{} }
 func (m *ListResourceTeamAgent) String() string { return proto.CompactTextString(m) }
 func (*ListResourceTeamAgent) ProtoMessage()    {}
 func (*ListResourceTeamAgent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{6}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{7}
 }
 
 func (m *ListResourceTeamAgent) XXX_Unmarshal(b []byte) error {
@@ -492,7 +579,7 @@ func (m *UpdateResourceTeamSkillRequest) Reset()         { *m = UpdateResourceTe
 func (m *UpdateResourceTeamSkillRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateResourceTeamSkillRequest) ProtoMessage()    {}
 func (*UpdateResourceTeamSkillRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{7}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{8}
 }
 
 func (m *UpdateResourceTeamSkillRequest) XXX_Unmarshal(b []byte) error {
@@ -569,6 +656,109 @@ func (m *UpdateResourceTeamSkillRequest) GetDomainId() int64 {
 	return 0
 }
 
+type PatchResourceTeamSkillRequest struct {
+	Id                   int64     `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	TeamId               int64     `protobuf:"varint,2,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
+	Skill                *Lookup   `protobuf:"bytes,3,opt,name=skill,proto3" json:"skill,omitempty"`
+	Buckets              []*Lookup `protobuf:"bytes,4,rep,name=buckets,proto3" json:"buckets,omitempty"`
+	Lvl                  int32     `protobuf:"varint,5,opt,name=lvl,proto3" json:"lvl,omitempty"`
+	MinCapacity          int32     `protobuf:"varint,6,opt,name=min_capacity,json=minCapacity,proto3" json:"min_capacity,omitempty"`
+	MaxCapacity          int32     `protobuf:"varint,7,opt,name=max_capacity,json=maxCapacity,proto3" json:"max_capacity,omitempty"`
+	Fields               []string  `protobuf:"bytes,8,rep,name=fields,proto3" json:"fields,omitempty"`
+	DomainId             int64     `protobuf:"varint,9,opt,name=domain_id,json=domainId,proto3" json:"domain_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
+}
+
+func (m *PatchResourceTeamSkillRequest) Reset()         { *m = PatchResourceTeamSkillRequest{} }
+func (m *PatchResourceTeamSkillRequest) String() string { return proto.CompactTextString(m) }
+func (*PatchResourceTeamSkillRequest) ProtoMessage()    {}
+func (*PatchResourceTeamSkillRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{9}
+}
+
+func (m *PatchResourceTeamSkillRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PatchResourceTeamSkillRequest.Unmarshal(m, b)
+}
+func (m *PatchResourceTeamSkillRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PatchResourceTeamSkillRequest.Marshal(b, m, deterministic)
+}
+func (m *PatchResourceTeamSkillRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PatchResourceTeamSkillRequest.Merge(m, src)
+}
+func (m *PatchResourceTeamSkillRequest) XXX_Size() int {
+	return xxx_messageInfo_PatchResourceTeamSkillRequest.Size(m)
+}
+func (m *PatchResourceTeamSkillRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PatchResourceTeamSkillRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PatchResourceTeamSkillRequest proto.InternalMessageInfo
+
+func (m *PatchResourceTeamSkillRequest) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamSkillRequest) GetTeamId() int64 {
+	if m != nil {
+		return m.TeamId
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamSkillRequest) GetSkill() *Lookup {
+	if m != nil {
+		return m.Skill
+	}
+	return nil
+}
+
+func (m *PatchResourceTeamSkillRequest) GetBuckets() []*Lookup {
+	if m != nil {
+		return m.Buckets
+	}
+	return nil
+}
+
+func (m *PatchResourceTeamSkillRequest) GetLvl() int32 {
+	if m != nil {
+		return m.Lvl
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamSkillRequest) GetMinCapacity() int32 {
+	if m != nil {
+		return m.MinCapacity
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamSkillRequest) GetMaxCapacity() int32 {
+	if m != nil {
+		return m.MaxCapacity
+	}
+	return 0
+}
+
+func (m *PatchResourceTeamSkillRequest) GetFields() []string {
+	if m != nil {
+		return m.Fields
+	}
+	return nil
+}
+
+func (m *PatchResourceTeamSkillRequest) GetDomainId() int64 {
+	if m != nil {
+		return m.DomainId
+	}
+	return 0
+}
+
 type SearchResourceTeamSkillRequest struct {
 	TeamId               int64    `protobuf:"varint,1,opt,name=team_id,json=teamId,proto3" json:"team_id,omitempty"`
 	Page                 int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
@@ -584,7 +774,7 @@ func (m *SearchResourceTeamSkillRequest) Reset()         { *m = SearchResourceTe
 func (m *SearchResourceTeamSkillRequest) String() string { return proto.CompactTextString(m) }
 func (*SearchResourceTeamSkillRequest) ProtoMessage()    {}
 func (*SearchResourceTeamSkillRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{8}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{10}
 }
 
 func (m *SearchResourceTeamSkillRequest) XXX_Unmarshal(b []byte) error {
@@ -657,7 +847,7 @@ func (m *CreateResourceTeamSkillRequest) Reset()         { *m = CreateResourceTe
 func (m *CreateResourceTeamSkillRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateResourceTeamSkillRequest) ProtoMessage()    {}
 func (*CreateResourceTeamSkillRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{9}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{11}
 }
 
 func (m *CreateResourceTeamSkillRequest) XXX_Unmarshal(b []byte) error {
@@ -740,7 +930,7 @@ func (m *ReadResourceTeamSkillRequest) Reset()         { *m = ReadResourceTeamSk
 func (m *ReadResourceTeamSkillRequest) String() string { return proto.CompactTextString(m) }
 func (*ReadResourceTeamSkillRequest) ProtoMessage()    {}
 func (*ReadResourceTeamSkillRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{10}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{12}
 }
 
 func (m *ReadResourceTeamSkillRequest) XXX_Unmarshal(b []byte) error {
@@ -795,7 +985,7 @@ func (m *DeleteResourceTeamSkillRequest) Reset()         { *m = DeleteResourceTe
 func (m *DeleteResourceTeamSkillRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteResourceTeamSkillRequest) ProtoMessage()    {}
 func (*DeleteResourceTeamSkillRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{11}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{13}
 }
 
 func (m *DeleteResourceTeamSkillRequest) XXX_Unmarshal(b []byte) error {
@@ -854,7 +1044,7 @@ func (m *ResourceTeamSkill) Reset()         { *m = ResourceTeamSkill{} }
 func (m *ResourceTeamSkill) String() string { return proto.CompactTextString(m) }
 func (*ResourceTeamSkill) ProtoMessage()    {}
 func (*ResourceTeamSkill) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{12}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{14}
 }
 
 func (m *ResourceTeamSkill) XXX_Unmarshal(b []byte) error {
@@ -936,7 +1126,7 @@ func (m *ListResourceTeamSkill) Reset()         { *m = ListResourceTeamSkill{} }
 func (m *ListResourceTeamSkill) String() string { return proto.CompactTextString(m) }
 func (*ListResourceTeamSkill) ProtoMessage()    {}
 func (*ListResourceTeamSkill) Descriptor() ([]byte, []int) {
-	return fileDescriptor_d5a3bd9f62e0a29d, []int{13}
+	return fileDescriptor_d5a3bd9f62e0a29d, []int{15}
 }
 
 func (m *ListResourceTeamSkill) XXX_Unmarshal(b []byte) error {
@@ -973,6 +1163,7 @@ func (m *ListResourceTeamSkill) GetItems() []*ResourceTeamSkill {
 
 func init() {
 	proto.RegisterType((*UpdateResourceTeamAgentRequest)(nil), "engine.UpdateResourceTeamAgentRequest")
+	proto.RegisterType((*PatchResourceTeamAgentRequest)(nil), "engine.PatchResourceTeamAgentRequest")
 	proto.RegisterType((*SearchResourceTeamAgentRequest)(nil), "engine.SearchResourceTeamAgentRequest")
 	proto.RegisterType((*CreateResourceTeamAgentRequest)(nil), "engine.CreateResourceTeamAgentRequest")
 	proto.RegisterType((*ReadResourceTeamAgentRequest)(nil), "engine.ReadResourceTeamAgentRequest")
@@ -980,6 +1171,7 @@ func init() {
 	proto.RegisterType((*ResourceTeamAgent)(nil), "engine.ResourceTeamAgent")
 	proto.RegisterType((*ListResourceTeamAgent)(nil), "engine.ListResourceTeamAgent")
 	proto.RegisterType((*UpdateResourceTeamSkillRequest)(nil), "engine.UpdateResourceTeamSkillRequest")
+	proto.RegisterType((*PatchResourceTeamSkillRequest)(nil), "engine.PatchResourceTeamSkillRequest")
 	proto.RegisterType((*SearchResourceTeamSkillRequest)(nil), "engine.SearchResourceTeamSkillRequest")
 	proto.RegisterType((*CreateResourceTeamSkillRequest)(nil), "engine.CreateResourceTeamSkillRequest")
 	proto.RegisterType((*ReadResourceTeamSkillRequest)(nil), "engine.ReadResourceTeamSkillRequest")
@@ -991,55 +1183,61 @@ func init() {
 func init() { proto.RegisterFile("resource_in_team.proto", fileDescriptor_d5a3bd9f62e0a29d) }
 
 var fileDescriptor_d5a3bd9f62e0a29d = []byte{
-	// 767 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x97, 0x41, 0x6f, 0xd3, 0x3c,
-	0x18, 0xc7, 0xe5, 0xb4, 0x69, 0x37, 0x77, 0x9a, 0xde, 0xd7, 0x68, 0xb4, 0x94, 0x51, 0x95, 0x30,
-	0x50, 0x54, 0x44, 0x83, 0xb6, 0x1b, 0x37, 0x34, 0x2e, 0x93, 0x76, 0xca, 0xe0, 0x86, 0x54, 0x79,
-	0x89, 0x29, 0xd6, 0x52, 0xa7, 0x4b, 0xdc, 0x69, 0x30, 0xed, 0xc2, 0x11, 0x8d, 0x49, 0x88, 0x3b,
-	0x5f, 0x03, 0x3e, 0x02, 0x77, 0xbe, 0xc2, 0x3e, 0x07, 0x42, 0xb1, 0xbb, 0x76, 0xcd, 0x62, 0xcf,
-	0xdb, 0x00, 0x21, 0x6e, 0x9e, 0xed, 0xe6, 0xf9, 0xf9, 0xff, 0xfc, 0xfd, 0xf8, 0x19, 0xbc, 0x99,
-	0x90, 0x34, 0x1e, 0x25, 0x01, 0xe9, 0x51, 0xd6, 0xe3, 0x04, 0x0f, 0xba, 0xc3, 0x24, 0xe6, 0x31,
-	0xaa, 0x10, 0xd6, 0xa7, 0x8c, 0x34, 0x6b, 0x41, 0xcc, 0x52, 0x2e, 0x27, 0x9b, 0xcb, 0xfd, 0x38,
-	0xee, 0x47, 0xc4, 0xc3, 0x43, 0xea, 0x61, 0xc6, 0x62, 0x8e, 0x39, 0x8d, 0x59, 0x2a, 0x57, 0x9d,
-	0x6f, 0x00, 0xb6, 0x5e, 0x0c, 0x43, 0xcc, 0x89, 0x3f, 0xfe, 0xe6, 0x73, 0x82, 0x07, 0x4f, 0xfb,
-	0x84, 0x71, 0x9f, 0xec, 0x8e, 0x48, 0xca, 0xd1, 0x22, 0xb4, 0x68, 0xd8, 0x00, 0x6d, 0xe0, 0x96,
-	0x7c, 0x8b, 0x86, 0xa8, 0x0e, 0xab, 0x59, 0xcc, 0x1e, 0x0d, 0x1b, 0x96, 0x98, 0xac, 0x64, 0x7f,
-	0x6e, 0x84, 0x68, 0x05, 0xda, 0x38, 0xfb, 0x61, 0xa3, 0xd4, 0x06, 0x6e, 0x6d, 0x75, 0xb1, 0x2b,
-	0x71, 0xba, 0x9b, 0x71, 0xbc, 0x33, 0x1a, 0xfa, 0x72, 0x11, 0xb9, 0xb0, 0xba, 0x3d, 0x0a, 0x76,
-	0x08, 0x4f, 0x1b, 0xe5, 0x76, 0xa9, 0x60, 0xdf, 0xe9, 0x32, 0xfa, 0x0f, 0x96, 0xa2, 0xbd, 0xa8,
-	0x61, 0xb7, 0x81, 0x6b, 0xfb, 0xd9, 0x10, 0xdd, 0x86, 0xf3, 0x61, 0x3c, 0xc0, 0x94, 0x65, 0xc1,
-	0x2b, 0x22, 0xf8, 0x9c, 0x9c, 0xd8, 0x08, 0x9d, 0x23, 0x00, 0x5b, 0x5b, 0x04, 0x27, 0xc1, 0x6b,
-	0xe5, 0x51, 0xce, 0xa0, 0x83, 0x19, 0x74, 0x04, 0xcb, 0x43, 0xdc, 0x27, 0xe2, 0x40, 0xb6, 0x2f,
-	0xc6, 0xd9, 0x5c, 0x4a, 0xdf, 0x12, 0x71, 0x1a, 0xdb, 0x17, 0x63, 0xb4, 0x00, 0xc1, 0x6e, 0xa3,
-	0xdc, 0x06, 0xee, 0xbc, 0x0f, 0x76, 0x67, 0x71, 0xec, 0x1c, 0xce, 0x57, 0x00, 0x5b, 0xeb, 0x09,
-	0xd1, 0x29, 0xab, 0xc4, 0x99, 0x28, 0x69, 0x19, 0x2a, 0x59, 0x32, 0x52, 0xb2, 0xac, 0x50, 0x32,
-	0x8f, 0x1e, 0xc2, 0x65, 0x9f, 0xe0, 0xf0, 0xfa, 0x8e, 0x98, 0x89, 0x52, 0xca, 0x45, 0x79, 0x05,
-	0x5b, 0xcf, 0x48, 0x44, 0x7e, 0x85, 0xf3, 0xb4, 0x71, 0x3e, 0x03, 0xf8, 0xff, 0xb9, 0x10, 0x7f,
-	0x91, 0xab, 0x9d, 0x97, 0x70, 0x69, 0x93, 0xa6, 0xfc, 0x3c, 0x23, 0x82, 0x65, 0x46, 0xf6, 0xb9,
-	0xa0, 0x9c, 0xf3, 0xc5, 0x18, 0x79, 0xd0, 0xa6, 0x9c, 0x0c, 0xd2, 0x86, 0x25, 0xc2, 0xdc, 0x3a,
-	0x0d, 0x73, 0x5e, 0x44, 0xb9, 0xcf, 0x39, 0xb6, 0x8a, 0x6e, 0xf8, 0xd6, 0x0e, 0x8d, 0xa2, 0xab,
-	0xdc, 0xf0, 0x34, 0xfb, 0xa1, 0x4a, 0x0b, 0xb1, 0x78, 0xad, 0x1b, 0x7e, 0x17, 0x2e, 0x0c, 0x28,
-	0xeb, 0x05, 0x78, 0x88, 0x03, 0xca, 0xdf, 0x88, 0x4b, 0x6e, 0xfb, 0xb5, 0x01, 0x65, 0xeb, 0xe3,
-	0x29, 0xb1, 0x05, 0xef, 0x4f, 0xb7, 0x54, 0xc7, 0x5b, 0xf0, 0xfe, 0x64, 0xcb, 0x8c, 0x1f, 0xe6,
-	0x8c, 0xea, 0xc4, 0x8c, 0x20, 0x7f, 0xb2, 0x4e, 0xfc, 0x28, 0xac, 0x13, 0x66, 0x38, 0x93, 0x7c,
-	0x58, 0x86, 0xf9, 0xb8, 0x74, 0x9d, 0xc8, 0xe7, 0xc3, 0xbe, 0x38, 0x1f, 0x95, 0x0b, 0xf2, 0x51,
-	0xbd, 0xb8, 0xda, 0x5c, 0xcd, 0x9d, 0x97, 0xaf, 0x36, 0xbf, 0x21, 0xce, 0x49, 0xae, 0xda, 0x88,
-	0x10, 0xff, 0xdc, 0x0d, 0x2b, 0xaa, 0x59, 0xf2, 0xa4, 0x57, 0xad, 0x59, 0x32, 0x15, 0x72, 0xdf,
-	0xea, 0x97, 0x1a, 0xbc, 0x31, 0xb3, 0x48, 0x92, 0x3d, 0x1a, 0x10, 0x74, 0x04, 0x60, 0x5d, 0xf1,
-	0xa6, 0xa2, 0x07, 0xa7, 0x5f, 0xd5, 0x3f, 0xba, 0x4d, 0x75, 0xc5, 0x74, 0xba, 0xef, 0xbe, 0x9f,
-	0x7c, 0xb2, 0x5c, 0xe7, 0x9e, 0x17, 0xe0, 0x28, 0xea, 0x05, 0x84, 0x71, 0x92, 0x78, 0x59, 0x66,
-	0x52, 0xef, 0x60, 0x9c, 0xaf, 0x43, 0x4f, 0x14, 0xfc, 0xf4, 0x09, 0xe8, 0xa0, 0x0f, 0x00, 0xd6,
-	0x15, 0x1d, 0xc7, 0x14, 0x47, 0xdf, 0x92, 0x34, 0xef, 0x4c, 0x32, 0x57, 0xf4, 0x04, 0x38, 0x0f,
-	0x05, 0xd2, 0x7d, 0x64, 0x82, 0x84, 0xde, 0x03, 0xb8, 0x54, 0xf8, 0x70, 0xa3, 0x95, 0xe9, 0xa1,
-	0xd5, 0xef, 0xba, 0x4e, 0x9a, 0xc7, 0x82, 0xa3, 0x83, 0x5c, 0x03, 0x0e, 0xef, 0x80, 0x86, 0x87,
-	0xe8, 0x23, 0x80, 0x75, 0x45, 0x67, 0x39, 0x15, 0x47, 0xdf, 0x7a, 0xea, 0x80, 0xd6, 0x04, 0xd0,
-	0xa3, 0xa6, 0x31, 0x50, 0x96, 0xb0, 0x63, 0x00, 0xeb, 0x8a, 0x9e, 0x63, 0xca, 0xa4, 0x6f, 0x4a,
-	0x0c, 0x44, 0xea, 0x98, 0x8b, 0x54, 0x6c, 0x68, 0x79, 0x93, 0x34, 0x86, 0x3e, 0x5b, 0xb7, 0x9a,
-	0xea, 0xeb, 0x64, 0x68, 0x68, 0x51, 0x53, 0x34, 0x86, 0xce, 0xe1, 0xe8, 0xdf, 0x4e, 0xb5, 0xa1,
-	0x25, 0x92, 0x99, 0xa1, 0x25, 0x52, 0xa1, 0xa1, 0x25, 0x8d, 0xd2, 0xd0, 0xa6, 0xd2, 0x98, 0x19,
-	0x5a, 0x72, 0xe8, 0x0c, 0x9d, 0x13, 0x47, 0xdf, 0x69, 0xe9, 0x80, 0xcc, 0x0c, 0x7d, 0x06, 0x48,
-	0x6d, 0xe8, 0x1c, 0x93, 0xfe, 0xdd, 0x33, 0x10, 0xa9, 0x63, 0xcc, 0xb4, 0x5d, 0x11, 0xff, 0x56,
-	0xae, 0xfd, 0x0c, 0x00, 0x00, 0xff, 0xff, 0x67, 0x36, 0xdc, 0x57, 0xa3, 0x0e, 0x00, 0x00,
+	// 849 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0x4d, 0x6f, 0xd3, 0x30,
+	0x18, 0x96, 0xd3, 0xa6, 0x1f, 0xde, 0x98, 0xc0, 0x68, 0x6b, 0x28, 0x5b, 0x55, 0xca, 0x86, 0xa2,
+	0x22, 0x1a, 0xd4, 0xdd, 0xb8, 0xa1, 0x71, 0x99, 0xb4, 0x03, 0xca, 0xe0, 0x86, 0x54, 0x79, 0x89,
+	0x57, 0xac, 0xa5, 0x49, 0xd7, 0xa4, 0xd3, 0x60, 0xda, 0x85, 0x23, 0x1a, 0x43, 0x88, 0x3b, 0x37,
+	0xfe, 0x03, 0x3f, 0x81, 0x3b, 0x47, 0x0e, 0x5c, 0xf6, 0x3b, 0x10, 0x8a, 0xdd, 0x8f, 0x35, 0x8b,
+	0x3d, 0x77, 0x03, 0x04, 0xbb, 0xb9, 0xf6, 0xdb, 0xbe, 0xcf, 0xfb, 0xf1, 0x3c, 0x7e, 0x5d, 0xb8,
+	0xd0, 0x23, 0x61, 0xd0, 0xef, 0x39, 0xa4, 0x45, 0xfd, 0x56, 0x44, 0x70, 0xa7, 0xd1, 0xed, 0x05,
+	0x51, 0x80, 0x72, 0xc4, 0x6f, 0x53, 0x9f, 0x94, 0x67, 0x9c, 0xc0, 0x0f, 0x23, 0xbe, 0x59, 0x5e,
+	0x6c, 0x07, 0x41, 0xdb, 0x23, 0x16, 0xee, 0x52, 0x0b, 0xfb, 0x7e, 0x10, 0xe1, 0x88, 0x06, 0x7e,
+	0xc8, 0x4f, 0x6b, 0x5f, 0x01, 0xac, 0x3c, 0xef, 0xba, 0x38, 0x22, 0xf6, 0xe0, 0x37, 0x9f, 0x11,
+	0xdc, 0x79, 0xdc, 0x26, 0x7e, 0x64, 0x93, 0xdd, 0x3e, 0x09, 0x23, 0x34, 0x07, 0x35, 0xea, 0x1a,
+	0xa0, 0x0a, 0xcc, 0x8c, 0xad, 0x51, 0x17, 0x95, 0x60, 0x3e, 0xf6, 0xd9, 0xa2, 0xae, 0xa1, 0xb1,
+	0xcd, 0x5c, 0xfc, 0x71, 0xdd, 0x45, 0xcb, 0x50, 0xc7, 0xf1, 0x17, 0x8d, 0x4c, 0x15, 0x98, 0x33,
+	0xcd, 0xb9, 0x06, 0x87, 0xd3, 0xd8, 0x08, 0x82, 0x9d, 0x7e, 0xd7, 0xe6, 0x87, 0xc8, 0x84, 0xf9,
+	0xad, 0xbe, 0xb3, 0x43, 0xa2, 0xd0, 0xc8, 0x56, 0x33, 0x29, 0x76, 0xc3, 0x63, 0x74, 0x1d, 0x66,
+	0xbc, 0x3d, 0xcf, 0xd0, 0xab, 0xc0, 0xd4, 0xed, 0x78, 0x89, 0x6e, 0xc3, 0xa2, 0x1b, 0x74, 0x30,
+	0xf5, 0x63, 0xe7, 0x39, 0xe6, 0xbc, 0xc0, 0x37, 0xd6, 0xdd, 0xda, 0x0f, 0x00, 0x97, 0x9e, 0xe2,
+	0xc8, 0x79, 0xf9, 0x3f, 0x44, 0xb2, 0x00, 0x73, 0xdb, 0x94, 0x78, 0x6e, 0x68, 0xe4, 0xaa, 0x19,
+	0xb3, 0x68, 0x0f, 0x3e, 0x4d, 0x46, 0x98, 0x4f, 0x44, 0x78, 0x04, 0x60, 0x65, 0x93, 0xe0, 0x9e,
+	0x24, 0xc4, 0x53, 0x21, 0x81, 0x89, 0x90, 0x10, 0xcc, 0x76, 0x71, 0x9b, 0xb0, 0x40, 0x75, 0x9b,
+	0xad, 0xe3, 0xbd, 0x90, 0xbe, 0x26, 0x2c, 0x4a, 0xdd, 0x66, 0x6b, 0x34, 0x0b, 0xc1, 0xae, 0x91,
+	0xad, 0x02, 0xb3, 0x68, 0x83, 0xdd, 0x49, 0x38, 0x7a, 0x02, 0xce, 0x17, 0x00, 0x2b, 0x6b, 0x3d,
+	0x22, 0xeb, 0x1d, 0x21, 0x9c, 0x51, 0x86, 0x35, 0xc5, 0x0c, 0x67, 0x94, 0x32, 0x9c, 0x15, 0xf4,
+	0x4a, 0x12, 0xba, 0x0b, 0x17, 0x6d, 0x82, 0xdd, 0xcb, 0x77, 0xca, 0x84, 0x97, 0x4c, 0xc2, 0xcb,
+	0x36, 0xac, 0x3c, 0x21, 0x1e, 0xf9, 0x1d, 0xdc, 0x92, 0xfa, 0xf9, 0x04, 0xe0, 0x8d, 0x33, 0x2e,
+	0xfe, 0xa1, 0x6e, 0xaf, 0xbd, 0x80, 0xf3, 0x1b, 0x34, 0x8c, 0xce, 0x62, 0x44, 0x30, 0xeb, 0x93,
+	0xfd, 0x88, 0xa1, 0x2c, 0xd8, 0x6c, 0x8d, 0x2c, 0xa8, 0xd3, 0x88, 0x74, 0x42, 0x43, 0x63, 0x6e,
+	0x6e, 0x0d, 0xdd, 0x9c, 0x4d, 0x22, 0xb7, 0xab, 0x1d, 0x6b, 0x69, 0x1a, 0xb6, 0xb9, 0x43, 0x3d,
+	0xef, 0x22, 0xcc, 0x0f, 0xe3, 0x2f, 0x8a, 0x72, 0xc1, 0x0e, 0x2f, 0xc5, 0xfc, 0x3b, 0x70, 0xb6,
+	0x43, 0xfd, 0x96, 0x83, 0xbb, 0xd8, 0xa1, 0xd1, 0x2b, 0x26, 0x63, 0xba, 0x3d, 0xd3, 0xa1, 0xfe,
+	0xda, 0x60, 0x8b, 0x99, 0xe0, 0xfd, 0xb1, 0x49, 0x7e, 0x60, 0x82, 0xf7, 0x47, 0x26, 0x13, 0xfd,
+	0x50, 0x48, 0xf4, 0xc3, 0x67, 0x2d, 0x45, 0x09, 0xaf, 0x76, 0x3e, 0xc6, 0x7a, 0x5a, 0x10, 0xeb,
+	0x69, 0x51, 0x49, 0x4f, 0x27, 0x12, 0xf5, 0x37, 0xf5, 0xf4, 0x67, 0xaa, 0x9e, 0xaa, 0xc1, 0x19,
+	0xd5, 0x49, 0x53, 0xac, 0xd3, 0xd4, 0x7a, 0x9a, 0xac, 0x93, 0x7e, 0x7e, 0x9d, 0x72, 0xe7, 0xf4,
+	0x6d, 0xfe, 0x7c, 0x55, 0xbe, 0x58, 0xd7, 0x4e, 0xaf, 0xca, 0x7f, 0xc0, 0xcf, 0x49, 0x42, 0x95,
+	0x99, 0x8b, 0x2b, 0xc7, 0xbc, 0x34, 0x6d, 0xe7, 0x91, 0x5e, 0x54, 0xdb, 0x79, 0x29, 0xb8, 0x5d,
+	0xf3, 0xfb, 0x35, 0x78, 0x73, 0xe2, 0x90, 0xf4, 0xf6, 0xa8, 0x43, 0xd0, 0x11, 0x80, 0x25, 0xc1,
+	0xec, 0x81, 0xee, 0x0d, 0x7f, 0x55, 0x3e, 0x9c, 0x94, 0xc5, 0x37, 0x4b, 0xad, 0xf1, 0xe6, 0xdb,
+	0xc9, 0x47, 0xcd, 0xac, 0xdd, 0xb5, 0x1c, 0xec, 0x79, 0x2d, 0x87, 0xf8, 0x11, 0xe9, 0x59, 0x71,
+	0x65, 0x42, 0xeb, 0x60, 0x50, 0xaf, 0x43, 0x8b, 0x5d, 0x8c, 0xe1, 0x23, 0x50, 0x47, 0xef, 0x00,
+	0x2c, 0x09, 0x26, 0xb3, 0x31, 0x1c, 0xf9, 0xe8, 0x56, 0x5e, 0x1a, 0x55, 0x2e, 0xed, 0xaa, 0xac,
+	0xdd, 0x67, 0x90, 0x56, 0x90, 0x0a, 0x24, 0xf4, 0x16, 0xc0, 0xf9, 0xd4, 0x01, 0x07, 0x2d, 0x8f,
+	0x83, 0x16, 0xcf, 0x3f, 0xb2, 0xd4, 0x3c, 0x64, 0x38, 0xea, 0xc8, 0x54, 0xc0, 0x61, 0x1d, 0x50,
+	0xf7, 0x10, 0x7d, 0x00, 0xb0, 0x24, 0x78, 0x63, 0x8c, 0x93, 0x23, 0x7f, 0x84, 0xc8, 0x00, 0xad,
+	0x32, 0x40, 0x0f, 0xca, 0xca, 0x80, 0xe2, 0x82, 0xbd, 0x07, 0x70, 0x21, 0xfd, 0xb1, 0x80, 0x56,
+	0x86, 0xae, 0xa4, 0x8f, 0x09, 0x05, 0x44, 0xcd, 0xa9, 0x10, 0x1d, 0x03, 0x58, 0x12, 0x4c, 0x8b,
+	0xe3, 0x2c, 0xc9, 0xc7, 0x49, 0x85, 0xb2, 0xd5, 0xd5, 0xcb, 0x96, 0x4e, 0x31, 0xce, 0x6d, 0x09,
+	0xc5, 0x4e, 0x2b, 0x69, 0x59, 0x4c, 0x70, 0x45, 0x8a, 0x31, 0x95, 0x93, 0x50, 0x2c, 0x01, 0x47,
+	0x7e, 0x9b, 0x8b, 0x29, 0xc6, 0x21, 0xa9, 0x51, 0x8c, 0x43, 0x4a, 0xa5, 0x18, 0x47, 0x23, 0xa4,
+	0x98, 0x6a, 0x6a, 0xd4, 0x28, 0xc6, 0x71, 0xc8, 0x28, 0x96, 0x48, 0x8e, 0x7c, 0x46, 0x96, 0x01,
+	0x52, 0xa3, 0xd8, 0x29, 0x40, 0x42, 0x8a, 0x71, 0x48, 0x62, 0x8a, 0x4d, 0x89, 0xa8, 0x39, 0x15,
+	0xa2, 0x74, 0x8a, 0x25, 0xb2, 0x24, 0x9f, 0x0d, 0x14, 0xca, 0x56, 0x57, 0xc6, 0xb4, 0x95, 0x63,
+	0x7f, 0xc2, 0xac, 0xfe, 0x0a, 0x00, 0x00, 0xff, 0xff, 0x87, 0x92, 0xb1, 0x22, 0xd1, 0x11, 0x00,
+	0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1062,6 +1260,8 @@ type ResourceTeamServiceClient interface {
 	ReadResourceTeamAgent(ctx context.Context, in *ReadResourceTeamAgentRequest, opts ...grpc.CallOption) (*ResourceTeamAgent, error)
 	// Update ResourceTeamAgent
 	UpdateResourceTeamAgent(ctx context.Context, in *UpdateResourceTeamAgentRequest, opts ...grpc.CallOption) (*ResourceTeamAgent, error)
+	// Patch ResourceTeamAgent
+	PatchResourceTeamAgent(ctx context.Context, in *PatchResourceTeamAgentRequest, opts ...grpc.CallOption) (*ResourceTeamAgent, error)
 	// Remove ResourceTeamAgent
 	DeleteResourceTeamAgent(ctx context.Context, in *DeleteResourceTeamAgentRequest, opts ...grpc.CallOption) (*ResourceTeamAgent, error)
 	//SKill
@@ -1073,6 +1273,8 @@ type ResourceTeamServiceClient interface {
 	ReadResourceTeamSkill(ctx context.Context, in *ReadResourceTeamSkillRequest, opts ...grpc.CallOption) (*ResourceTeamSkill, error)
 	// Update ResourceTeamSkill
 	UpdateResourceTeamSkill(ctx context.Context, in *UpdateResourceTeamSkillRequest, opts ...grpc.CallOption) (*ResourceTeamSkill, error)
+	// Patch ResourceTeamAgent
+	PatchResourceTeamSkill(ctx context.Context, in *PatchResourceTeamSkillRequest, opts ...grpc.CallOption) (*ResourceTeamSkill, error)
 	// Remove ResourceTeamSkill
 	DeleteResourceTeamSkill(ctx context.Context, in *DeleteResourceTeamSkillRequest, opts ...grpc.CallOption) (*ResourceTeamSkill, error)
 }
@@ -1115,6 +1317,15 @@ func (c *resourceTeamServiceClient) ReadResourceTeamAgent(ctx context.Context, i
 func (c *resourceTeamServiceClient) UpdateResourceTeamAgent(ctx context.Context, in *UpdateResourceTeamAgentRequest, opts ...grpc.CallOption) (*ResourceTeamAgent, error) {
 	out := new(ResourceTeamAgent)
 	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/UpdateResourceTeamAgent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *resourceTeamServiceClient) PatchResourceTeamAgent(ctx context.Context, in *PatchResourceTeamAgentRequest, opts ...grpc.CallOption) (*ResourceTeamAgent, error) {
+	out := new(ResourceTeamAgent)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/PatchResourceTeamAgent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1166,6 +1377,15 @@ func (c *resourceTeamServiceClient) UpdateResourceTeamSkill(ctx context.Context,
 	return out, nil
 }
 
+func (c *resourceTeamServiceClient) PatchResourceTeamSkill(ctx context.Context, in *PatchResourceTeamSkillRequest, opts ...grpc.CallOption) (*ResourceTeamSkill, error) {
+	out := new(ResourceTeamSkill)
+	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/PatchResourceTeamSkill", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *resourceTeamServiceClient) DeleteResourceTeamSkill(ctx context.Context, in *DeleteResourceTeamSkillRequest, opts ...grpc.CallOption) (*ResourceTeamSkill, error) {
 	out := new(ResourceTeamSkill)
 	err := c.cc.Invoke(ctx, "/engine.ResourceTeamService/DeleteResourceTeamSkill", in, out, opts...)
@@ -1185,6 +1405,8 @@ type ResourceTeamServiceServer interface {
 	ReadResourceTeamAgent(context.Context, *ReadResourceTeamAgentRequest) (*ResourceTeamAgent, error)
 	// Update ResourceTeamAgent
 	UpdateResourceTeamAgent(context.Context, *UpdateResourceTeamAgentRequest) (*ResourceTeamAgent, error)
+	// Patch ResourceTeamAgent
+	PatchResourceTeamAgent(context.Context, *PatchResourceTeamAgentRequest) (*ResourceTeamAgent, error)
 	// Remove ResourceTeamAgent
 	DeleteResourceTeamAgent(context.Context, *DeleteResourceTeamAgentRequest) (*ResourceTeamAgent, error)
 	//SKill
@@ -1196,6 +1418,8 @@ type ResourceTeamServiceServer interface {
 	ReadResourceTeamSkill(context.Context, *ReadResourceTeamSkillRequest) (*ResourceTeamSkill, error)
 	// Update ResourceTeamSkill
 	UpdateResourceTeamSkill(context.Context, *UpdateResourceTeamSkillRequest) (*ResourceTeamSkill, error)
+	// Patch ResourceTeamAgent
+	PatchResourceTeamSkill(context.Context, *PatchResourceTeamSkillRequest) (*ResourceTeamSkill, error)
 	// Remove ResourceTeamSkill
 	DeleteResourceTeamSkill(context.Context, *DeleteResourceTeamSkillRequest) (*ResourceTeamSkill, error)
 }
@@ -1216,6 +1440,9 @@ func (*UnimplementedResourceTeamServiceServer) ReadResourceTeamAgent(ctx context
 func (*UnimplementedResourceTeamServiceServer) UpdateResourceTeamAgent(ctx context.Context, req *UpdateResourceTeamAgentRequest) (*ResourceTeamAgent, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateResourceTeamAgent not implemented")
 }
+func (*UnimplementedResourceTeamServiceServer) PatchResourceTeamAgent(ctx context.Context, req *PatchResourceTeamAgentRequest) (*ResourceTeamAgent, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchResourceTeamAgent not implemented")
+}
 func (*UnimplementedResourceTeamServiceServer) DeleteResourceTeamAgent(ctx context.Context, req *DeleteResourceTeamAgentRequest) (*ResourceTeamAgent, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteResourceTeamAgent not implemented")
 }
@@ -1230,6 +1457,9 @@ func (*UnimplementedResourceTeamServiceServer) ReadResourceTeamSkill(ctx context
 }
 func (*UnimplementedResourceTeamServiceServer) UpdateResourceTeamSkill(ctx context.Context, req *UpdateResourceTeamSkillRequest) (*ResourceTeamSkill, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateResourceTeamSkill not implemented")
+}
+func (*UnimplementedResourceTeamServiceServer) PatchResourceTeamSkill(ctx context.Context, req *PatchResourceTeamSkillRequest) (*ResourceTeamSkill, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchResourceTeamSkill not implemented")
 }
 func (*UnimplementedResourceTeamServiceServer) DeleteResourceTeamSkill(ctx context.Context, req *DeleteResourceTeamSkillRequest) (*ResourceTeamSkill, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteResourceTeamSkill not implemented")
@@ -1307,6 +1537,24 @@ func _ResourceTeamService_UpdateResourceTeamAgent_Handler(srv interface{}, ctx c
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ResourceTeamServiceServer).UpdateResourceTeamAgent(ctx, req.(*UpdateResourceTeamAgentRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ResourceTeamService_PatchResourceTeamAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchResourceTeamAgentRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceTeamServiceServer).PatchResourceTeamAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.ResourceTeamService/PatchResourceTeamAgent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceTeamServiceServer).PatchResourceTeamAgent(ctx, req.(*PatchResourceTeamAgentRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1401,6 +1649,24 @@ func _ResourceTeamService_UpdateResourceTeamSkill_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ResourceTeamService_PatchResourceTeamSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchResourceTeamSkillRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ResourceTeamServiceServer).PatchResourceTeamSkill(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/engine.ResourceTeamService/PatchResourceTeamSkill",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ResourceTeamServiceServer).PatchResourceTeamSkill(ctx, req.(*PatchResourceTeamSkillRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ResourceTeamService_DeleteResourceTeamSkill_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeleteResourceTeamSkillRequest)
 	if err := dec(in); err != nil {
@@ -1440,6 +1706,10 @@ var _ResourceTeamService_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ResourceTeamService_UpdateResourceTeamAgent_Handler,
 		},
 		{
+			MethodName: "PatchResourceTeamAgent",
+			Handler:    _ResourceTeamService_PatchResourceTeamAgent_Handler,
+		},
+		{
 			MethodName: "DeleteResourceTeamAgent",
 			Handler:    _ResourceTeamService_DeleteResourceTeamAgent_Handler,
 		},
@@ -1458,6 +1728,10 @@ var _ResourceTeamService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateResourceTeamSkill",
 			Handler:    _ResourceTeamService_UpdateResourceTeamSkill_Handler,
+		},
+		{
+			MethodName: "PatchResourceTeamSkill",
+			Handler:    _ResourceTeamService_PatchResourceTeamSkill_Handler,
 		},
 		{
 			MethodName: "DeleteResourceTeamSkill",
