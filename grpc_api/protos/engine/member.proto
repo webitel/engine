@@ -251,7 +251,7 @@ message UpdateMemberRequest {
     Lookup timezone = 7;
     repeated MemberCommunicationCreateRequest communications = 8;
     Lookup bucket = 9;
-    repeated int64 skills = 10;
+    Lookup skill = 10;
     int64 min_offering_at = 11;
 
     int64 domain_id = 12;
@@ -277,7 +277,7 @@ message CreateMemberBulkItem {
     Lookup timezone = 5;
     repeated MemberCommunicationCreateRequest communications = 6;
     Lookup bucket = 7;
-    repeated int64 skills = 8;
+    Lookup skill = 8;
     int64 min_offering_at = 9;
 }
 
@@ -306,7 +306,7 @@ message CreateMemberRequest {
     Lookup timezone = 6;
     repeated MemberCommunicationCreateRequest communications = 7;
     Lookup bucket = 8;
-    repeated int64 skills = 9;
+    Lookup skill = 9;
     int64 min_offering_at = 10;
 
     int64 domain_id = 11;
@@ -323,7 +323,7 @@ message MemberInQueue {
     Lookup timezone = 8;
     repeated MemberCommunication communications = 9;
     Lookup bucket = 10;
-    repeated int64 skills = 11;
+    Lookup skill = 11;
     int64 min_offering_at = 12;
 
     string stop_cause = 13;
@@ -343,7 +343,7 @@ message Member1 {
     Lookup timezone = 8;
     repeated MemberCommunication communications = 9;
     Lookup bucket = 10;
-    repeated int64 skills = 11;
+    Lookup skill = 11;
     int64 min_offering_at = 12;
 
     string stop_cause = 13;

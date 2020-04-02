@@ -18,9 +18,9 @@ type Member struct {
 	Timezone       Lookup                `json:"timezone" db:"timezone"`
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
-	//Skills         Int64Array            `json:"skills" db:"skills"`
-	StopAt   *int64 `json:"stop_at" db:"stop_at"`
-	Reserved bool   `json:"reserved" db:"reserved"`
+	Skill          *Lookup               `json:"skill" db:"skill"`
+	StopAt         *int64                `json:"stop_at" db:"stop_at"`
+	Reserved       bool                  `json:"reserved" db:"reserved"`
 }
 
 type MemberView struct {
@@ -137,6 +137,14 @@ func (m *Member) GetBucketId() *int64 {
 	if m.Bucket != nil {
 		return NewInt64(int64(m.Bucket.Id))
 	}
+	return nil
+}
+
+func (m *Member) GetSkillId() *int {
+	if m.Skill != nil {
+		return &m.Skill.Id
+	}
+
 	return nil
 }
 

@@ -52,6 +52,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		MinOfferingAt:  in.MinOfferingAt,
 		Bucket:         GetLookup(in.Bucket),
+		Skill:          GetLookup(in.Skill),
 	}
 
 	if in.GetExpireAt() != 0 {
@@ -106,6 +107,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			Communications: toModelMemberCommunications(v.GetCommunications()),
 			MinOfferingAt:  v.MinOfferingAt,
 			Bucket:         GetLookup(v.GetBucket()),
+			Skill:          GetLookup(v.GetSkill()),
 		}
 		if v.GetExpireAt() != 0 {
 			member.ExpireAt = model.NewInt64(v.GetExpireAt())
@@ -239,6 +241,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		MinOfferingAt:  in.MinOfferingAt,
 		Bucket:         GetLookup(in.Bucket),
+		Skill:          GetLookup(in.Skill),
 	}
 
 	if in.ExpireAt != 0 {
@@ -557,6 +560,7 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		Attempts:       int32(src.Attempts),
 		MinOfferingAt:  src.MinOfferingAt,
 		Reserved:       src.Reserved,
+		Skill:          GetProtoLookup(src.Skill),
 	}
 
 	if src.Bucket != nil {
