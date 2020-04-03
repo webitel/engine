@@ -165,7 +165,8 @@ message UpdateAgentRequest {
     int64 id = 1;
     Lookup user = 2;
     string description = 3;
-    int64 domain_id = 4;
+    int32 progressive_count = 4;
+    int64 domain_id = 5;
 }
 
 message ReadAgentRequest {
@@ -188,7 +189,8 @@ message SearchAgentRequest {
 message CreateAgentRequest {
     Lookup user = 1;
     string description = 2;
-    int64 domain_id = 3;
+    int32 progressive_count = 3;
+    int64 domain_id = 4;
 }
 
 message SkillAgent {
@@ -219,6 +221,7 @@ message Agent {
     string description = 5;
     int64 last_state_change = 6;
     int64 state_timeout = 7;
+    int32 progressive_count = 8;
 }
 
 message ListAgent {

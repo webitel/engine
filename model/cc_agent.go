@@ -18,12 +18,13 @@ func (status AgentStatus) String() string {
 
 type Agent struct {
 	DomainRecord
-	User            Lookup `json:"user" db:"user"`
-	Status          string `json:"status" db:"status"`
-	State           string `json:"state" db:"state"`
-	LastStateChange int64  `json:"last_state_change" db:"last_state_change"`
-	StateTimeout    *int64 `json:"state_timeout" db:"state_timeout"`
-	Description     string `json:"description" db:"description"`
+	User             Lookup `json:"user" db:"user"`
+	Status           string `json:"status" db:"status"`
+	State            string `json:"state" db:"state"`
+	LastStateChange  int64  `json:"last_state_change" db:"last_state_change"`
+	StateTimeout     *int64 `json:"state_timeout" db:"state_timeout"`
+	Description      string `json:"description" db:"description"`
+	ProgressiveCount int    `json:"progressive_count" db:"progressive_count"`
 }
 
 type AgentSession struct {

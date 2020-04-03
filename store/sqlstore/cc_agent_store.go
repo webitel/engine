@@ -41,21 +41,23 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent
 	if err := s.GetMaster().SelectOne(&out, `with i as (
-			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by)
-			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count)
+			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount)
 			returning *
 		)
-		select i.id, i.status, i.state, i.description,  i.last_state_change, i.state_timeout, i.domain_id, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
+		select i.id, i.status, i.state, i.description,  i.last_state_change, i.state_timeout, i.domain_id,  progressive_count,
+			json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 		from i
 		  inner join directory.wbt_user ct on ct.id = i.user_id`,
 		map[string]interface{}{
-			"UserId":      agent.User.Id,
-			"Description": agent.Description,
-			"DomainId":    agent.DomainId,
-			"CreatedAt":   agent.CreatedAt,
-			"CreatedBy":   agent.CreatedBy.Id,
-			"UpdatedAt":   agent.UpdatedAt,
-			"UpdatedBy":   agent.UpdatedBy.Id,
+			"UserId":           agent.User.Id,
+			"Description":      agent.Description,
+			"DomainId":         agent.DomainId,
+			"CreatedAt":        agent.CreatedAt,
+			"CreatedBy":        agent.CreatedBy.Id,
+			"UpdatedAt":        agent.UpdatedAt,
+			"UpdatedBy":        agent.UpdatedBy.Id,
+			"ProgressiveCount": agent.ProgressiveCount,
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
 			fmt.Sprintf("record=%v, %v", agent, err.Error()), http.StatusInternalServerError)
@@ -68,7 +70,8 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
+		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, progressive_count, 
+			json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and ( (:Q::varchar isnull or (a.description ilike :Q::varchar or a.status ilike :Q::varchar or ct.name ilike :Q::varchar ) ))  
@@ -90,7 +93,8 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	var agents []*model.Agent
 
 	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
+		`select a.id, a.status, a.state, a.description,  a.last_state_change, a.state_timeout, progressive_count,
+					json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and (
@@ -117,7 +121,8 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `
-			select a.id, a.status, a.state, a.domain_id, a.description, a.last_state_change, a.state_timeout, json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
+			select a.id, a.status, a.state, a.domain_id, a.description, a.last_state_change, a.state_timeout, progressive_count, 
+				json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
 				where domain_id = :DomainId and a.id = :Id 	
@@ -140,20 +145,23 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 			set user_id = :UserId,
 				description = :Description,
 				updated_at = :UpdatedAt,
-				updated_by = :UpdatedBy
+				updated_by = :UpdatedBy,
+			    progressive_count = :ProgressiveCount
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
-		select u.id, u.status, u.state, u.domain_id, u.description, u.last_state_change, u.state_timeout, json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+		select u.id, u.status, u.state, u.domain_id, u.description, u.last_state_change, u.state_timeout, progressive_count, 
+			json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from u
 			inner join directory.wbt_user ct on ct.id = u.user_id
 		order by id`, map[string]interface{}{
-		"UserId":      agent.User.Id,
-		"Description": agent.Description,
-		"Id":          agent.Id,
-		"DomainId":    agent.DomainId,
-		"UpdatedAt":   agent.UpdatedAt,
-		"UpdatedBy":   agent.UpdatedBy.Id,
+		"UserId":           agent.User.Id,
+		"Description":      agent.Description,
+		"ProgressiveCount": agent.ProgressiveCount,
+		"Id":               agent.Id,
+		"DomainId":         agent.DomainId,
+		"UpdatedAt":        agent.UpdatedAt,
+		"UpdatedBy":        agent.UpdatedBy.Id,
 	})
 	if err != nil {
 		code := http.StatusInternalServerError

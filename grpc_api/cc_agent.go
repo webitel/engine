@@ -42,7 +42,8 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		User: model.Lookup{
 			Id: int(in.GetUser().GetId()),
 		},
-		Description: in.Description,
+		Description:      in.Description,
+		ProgressiveCount: int(in.ProgressiveCount),
 	}
 
 	err = agent.IsValid()
@@ -170,7 +171,8 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		User: model.Lookup{
 			Id: int(in.GetUser().GetId()),
 		},
-		Description: in.Description,
+		Description:      in.Description,
+		ProgressiveCount: int(in.ProgressiveCount),
 	})
 
 	if err != nil {
@@ -452,10 +454,11 @@ func transformAgent(src *model.Agent) *engine.Agent {
 			Id:   int64(src.User.Id),
 			Name: src.User.Name,
 		},
-		LastStateChange: src.LastStateChange,
-		Status:          src.Status,
-		State:           src.State,
-		Description:     src.Description,
+		LastStateChange:  src.LastStateChange,
+		Status:           src.Status,
+		State:            src.State,
+		Description:      src.Description,
+		ProgressiveCount: int32(src.ProgressiveCount),
 	}
 
 	if src.StateTimeout != nil {

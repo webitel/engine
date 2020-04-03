@@ -8229,12 +8229,8 @@
         "bucket": {
           "$ref": "#/definitions/engineLookup"
         },
-        "skills": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "int64"
-          }
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
         },
         "min_offering_at": {
           "type": "string",
@@ -8297,12 +8293,8 @@
         "bucket": {
           "$ref": "#/definitions/engineLookup"
         },
-        "skills": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "int64"
-          }
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
         },
         "min_offering_at": {
           "type": "string",
@@ -9653,12 +9645,8 @@
         "bucket": {
           "$ref": "#/definitions/engineLookup"
         },
-        "skills": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "int64"
-          }
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
         },
         "min_offering_at": {
           "type": "string",
@@ -10852,12 +10840,8 @@
         "bucket": {
           "$ref": "#/definitions/engineLookup"
         },
-        "skills": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "format": "int64"
-          }
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
         },
         "min_offering_at": {
           "type": "string",
