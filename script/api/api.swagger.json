@@ -724,6 +724,49 @@
         ]
       }
     },
+    "/call_center/agents/{agent_id}/statistics/queues": {
+      "get": {
+        "operationId": "SearchAgentInQueueStatistics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAgentInQueueStatisticsList"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "agent_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "AgentService"
+        ]
+      }
+    },
     "/call_center/agents/{id}": {
       "get": {
         "summary": "Agent item",
@@ -7360,6 +7403,21 @@
     }
   },
   "definitions": {
+    "AgentInQueueStatisticsAgentInQueueStatisticsItem": {
+      "type": "object",
+      "properties": {
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "member_waiting": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "CreateCallRequestCallSettings": {
       "type": "object",
       "properties": {
@@ -7492,6 +7550,31 @@
         "active_member": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "engineAgentInQueueStatistics": {
+      "type": "object",
+      "properties": {
+        "queue": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "statistics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AgentInQueueStatisticsAgentInQueueStatisticsItem"
+          }
+        }
+      }
+    },
+    "engineAgentInQueueStatisticsList": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineAgentInQueueStatistics"
+          }
         }
       }
     },

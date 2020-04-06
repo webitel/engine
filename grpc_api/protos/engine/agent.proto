@@ -67,7 +67,7 @@ service AgentService {
 
     rpc SearchAgentInQueueStatistics(SearchAgentInQueueStatisticsRequest) returns (AgentInQueueStatisticsList) {
         option (google.api.http) = {
-            get: "/call_center/agents/{id}/statistics/queues"
+            get: "/call_center/agents/{agent_id}/statistics/queues"
         };
     }
 
