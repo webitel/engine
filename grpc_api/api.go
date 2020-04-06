@@ -43,7 +43,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.calendar = NewCalendarApi(api)
 	api.skill = NewSkillApi(a)
 	api.agentTeam = NewAgentTeamApi(a)
-	api.agent = NewAgentApi(a)
+	api.agent = NewAgentApi(api)
 	api.agentSkill = NewAgentSkillApi(a)
 	api.resourceTeam = NewResourceTeamApi(a)
 	api.outboundResource = NewOutboundResourceApi(a)

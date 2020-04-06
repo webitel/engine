@@ -109,6 +109,10 @@ func (a *App) GetAgentInQueuePage(domainId, id int64, search *model.SearchAgentI
 	return list, search.EndOfList(), nil
 }
 
+func (a *App) GetAgentInQueueStatistics(domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
+	return a.Store.Agent().QueueStatistic(domainId, agentId)
+}
+
 func (a *App) AgentsLookupNotExistsUsers(domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
 	list, err := a.Store.Agent().LookupNotExistsUsers(domainId, search)
 	if err != nil {

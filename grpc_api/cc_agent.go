@@ -2,18 +2,17 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
 )
 
 type agent struct {
-	app *app.App
+	*API
 }
 
-func NewAgentApi(app *app.App) *agent {
-	return &agent{app: app}
+func NewAgentApi(api *API) *agent {
+	return &agent{api}
 }
 
 func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest) (*engine.Agent, error) {
@@ -443,6 +442,34 @@ func (api *agent) SearchLookupUsersAgentNotExists(ctx context.Context, in *engin
 	}, nil
 }
 
+func (api *agent) SearchAgentInQueueStatistics(ctx context.Context, in *engine.SearchAgentInQueueStatisticsRequest) (*engine.AgentInQueueStatisticsList, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.AgentInQueueStatistic
+
+	list, err = api.ctrl.GetAgentInQueueStatistics(session, in.GetDomainId(), in.GetAgentId())
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*engine.AgentInQueueStatistics, 0, len(list))
+
+	for _, v := range list {
+		res = append(res, &engine.AgentInQueueStatistics{
+			Queue:      GetProtoLookup(&v.Queue),
+			Statistics: toAgentStats(v.Statistics),
+		})
+	}
+
+	return &engine.AgentInQueueStatisticsList{
+		Items: res,
+	}, nil
+}
+
 func getAgentStatus(name string) model.AgentStatus {
 	return model.AgentStatus{name}
 }
@@ -488,4 +515,17 @@ func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 	}
 
 	return st
+}
+
+func toAgentStats(src []*model.AgentInQueueStats) []*engine.AgentInQueueStatistics_AgentInQueueStatisticsItem {
+	res := make([]*engine.AgentInQueueStatistics_AgentInQueueStatisticsItem, 0, len(src))
+
+	for _, v := range src {
+		res = append(res, &engine.AgentInQueueStatistics_AgentInQueueStatisticsItem{
+			Bucket:        GetProtoLookup(v.Bucket),
+			Skill:         GetProtoLookup(v.Skill),
+			MemberWaiting: int32(v.MemberWaiting),
+		})
+	}
+	return res
 }

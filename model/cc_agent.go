@@ -97,6 +97,17 @@ type AgentInQueue struct {
 	ActiveMembers  int    `json:"active_members" db:"active_members"`
 }
 
+type AgentInQueueStatistic struct {
+	Queue      Lookup               `json:"queue" db:"queue"`
+	Statistics []*AgentInQueueStats `json:"statistics" db:"statistics"`
+}
+
+type AgentInQueueStats struct {
+	Bucket        *Lookup `json:"bucket" db:"bucket"`
+	Skill         *Lookup `json:"skill" db:"skill"`
+	MemberWaiting int     `json:"member_waiting" db:"member_waiting"`
+}
+
 type AgentStatusEvent struct {
 	UserId        int64  `json:"user_id"`
 	AgentId       int    `json:"agent_id"`

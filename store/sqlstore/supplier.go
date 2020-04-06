@@ -342,13 +342,14 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		**model.Endpoint,
 		*[]model.Lookup,
 		*[]*model.Lookup,
+		*[]*model.AgentInQueueStats,
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
 		*[]*model.CalendarExceptDate:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)
 			if !ok {
-				return errors.New(localization.T("store.sql.convert_member_communication"))
+				return errors.New(localization.T("store.sql.convert_member_communication")) // fixme json
 			}
 			if *s == nil {
 				return nil

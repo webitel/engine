@@ -65,6 +65,12 @@ service AgentService {
         };
     }
 
+    rpc SearchAgentInQueueStatistics(SearchAgentInQueueStatisticsRequest) returns (AgentInQueueStatisticsList) {
+        option (google.api.http) = {
+            get: "/call_center/agents/{id}/statistics/queues"
+        };
+    }
+
     // SearchLookupAgentNotExistsUser
     rpc SearchLookupUsersAgentNotExists(SearchLookupUsersAgentNotExistsRequest) returns (ListAgentUser) {
         option (google.api.http) = {
@@ -72,6 +78,26 @@ service AgentService {
         };
     }
     
+}
+
+message SearchAgentInQueueStatisticsRequest {
+    int64 agent_id = 1;
+    int64 domain_id = 2;
+}
+
+message AgentInQueueStatistics {
+    message AgentInQueueStatisticsItem {
+        Lookup bucket = 1;
+        Lookup skill = 2;
+        int32 member_waiting = 3;
+    }
+
+    Lookup queue = 1;
+    repeated AgentInQueueStatisticsItem statistics = 2;
+}
+
+message AgentInQueueStatisticsList {
+    repeated AgentInQueueStatistics items = 1;
 }
 
 message ListAgentUser {

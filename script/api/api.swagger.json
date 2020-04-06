@@ -7453,6 +7453,10 @@
         "state_timeout": {
           "type": "string",
           "format": "int64"
+        },
+        "progressive_count": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -7974,6 +7978,10 @@
         },
         "description": {
           "type": "string"
+        },
+        "progressive_count": {
+          "type": "integer",
+          "format": "int32"
         },
         "domain_id": {
           "type": "string",
@@ -10587,6 +10595,10 @@
         },
         "description": {
           "type": "string"
+        },
+        "progressive_count": {
+          "type": "integer",
+          "format": "int32"
         },
         "domain_id": {
           "type": "string",
