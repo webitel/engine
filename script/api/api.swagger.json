@@ -9045,6 +9045,9 @@
         "agent": {
           "$ref": "#/definitions/engineLookup"
         },
+        "member": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "files": {
           "type": "array",
           "items": {

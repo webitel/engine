@@ -120,7 +120,8 @@ message HistoryCall {
     Lookup queue = 15;
     Lookup team = 16;
     Lookup agent = 17;
-    repeated CallFile files = 18;
+    Lookup member = 18;
+    repeated CallFile files = 19;
 }
 
 message EavesdropCallRequest {

@@ -369,6 +369,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Queue:       GetProtoLookup(src.Queue),
 		Team:        GetProtoLookup(src.Team),
 		Agent:       GetProtoLookup(src.Agent),
+		Member:      GetProtoLookup(src.Member),
 		Files:       toCallFile(src.Files),
 	}
 	if src.ParentId != nil {
