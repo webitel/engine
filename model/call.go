@@ -141,9 +141,10 @@ type Call struct {
 }
 
 type CallFile struct {
-	Id   int64  `json:"id"`
-	Name string `json:"name"`
-	Size int64  `json:"size"`
+	Id       int64  `json:"id"`
+	Name     string `json:"name"`
+	Size     int64  `json:"size"`
+	MimeType string `json:"mime_type"`
 }
 
 type HistoryCall struct {

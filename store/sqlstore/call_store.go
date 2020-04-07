@@ -84,7 +84,7 @@ select c.id, c.app_id, c.direction, c.destination, c.parent_id,
    ,cc_get_lookup(cm.id, cm.name) member, f.files
 from cc_calls_history c
     left join lateral (
-        select json_agg(jsonb_build_object('id', f.id, 'name', f.name, 'size', f.size)) files
+        select json_agg(jsonb_build_object('id', f.id, 'name', f.name, 'size', f.size, 'mime_type', f.mime_type)) files
         from storage.files f
         where f.domain_id = c.domain_id and f.uuid = c.id
     ) f on true

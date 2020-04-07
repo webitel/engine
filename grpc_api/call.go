@@ -409,9 +409,10 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 	res := make([]*engine.CallFile, 0, len(src))
 	for _, v := range src {
 		res = append(res, &engine.CallFile{
-			Id:   v.Id,
-			Name: v.Name,
-			Size: v.Size,
+			Id:       v.Id,
+			Name:     v.Name,
+			Size:     v.Size,
+			MimeType: v.MimeType,
 		})
 	}
 
