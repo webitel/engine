@@ -66,10 +66,10 @@ func (l *ListRequest) GetLimit() int {
 
 func (l *ListRequest) GetOffset() int {
 	l.valid()
-	if l.Page == 1 {
+	if l.Page <= 1 {
 		return 0
 	}
-	return l.PerPage * l.Page
+	return l.PerPage * (l.Page - 1)
 }
 
 func (l *ListRequest) valid() {

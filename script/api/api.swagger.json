@@ -8054,6 +8054,9 @@
         "size": {
           "type": "string",
           "format": "int64"
+        },
+        "mime_type": {
+          "type": "string"
         }
       }
     },
