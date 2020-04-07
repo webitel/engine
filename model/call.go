@@ -140,6 +140,12 @@ type Call struct {
 	To   Endpoint `json:"to" db:"to"`
 }
 
+type CallFile struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+	Size int64  `json:"size"`
+}
+
 type HistoryCall struct {
 	Id          string       `json:"id" db:"id"`
 	AppId       string       `json:"app_id" db:"app_id"`
@@ -156,6 +162,11 @@ type HistoryCall struct {
 	HoldSec     int          `json:"hold_sec" db:"hold_sec"`
 	Cause       string       `json:"cause" db:"cause"`
 	SipCode     *int         `json:"sip_code" db:"sip_code"`
+	Queue       *Lookup      `json:"queue" db:"queue"`
+	Team        *Lookup      `json:"team" db:"team"`
+	Agent       *Lookup      `json:"agent" db:"agent"`
+	Member      *Lookup      `json:"member" db:"member"`
+	Files       []*CallFile  `json:"files" db:"files"`
 }
 
 type SearchCall struct {
@@ -166,6 +177,11 @@ type SearchHistoryCall struct {
 	ListRequest
 	CreatedAt FilterBetween
 	UserId    *int64
+	Number    *string
+	QueueId   *int64
+	TeamId    *int64
+	AgentId   *int64
+	MemberId  *int64
 }
 
 type CallEvent struct {

@@ -82,13 +82,24 @@ message SearchHistoryCallRequest {
 
     FilterBetween created_at = 3;
     int64 user_id = 4;
+    int64 agent_id = 5;
+    int64 queue_id = 6;
+    int64 team_id = 7;
+    int64 member_id = 8;
+    string number = 9;
 
-    int64 domain_id = 5;
+    int64 domain_id = 10;
 }
 
 message ListHistoryCall {
     bool next = 1;
     repeated HistoryCall items = 2;
+}
+
+message CallFile {
+    int64 id = 1;
+    string name = 2;
+    int64 size = 3;
 }
 
 message HistoryCall {
@@ -106,6 +117,10 @@ message HistoryCall {
     int32 hold_sec = 12;
     string cause = 13;
     int32 sip_code = 14;
+    Lookup queue = 15;
+    Lookup team = 16;
+    Lookup agent = 17;
+    repeated CallFile files = 18;
 }
 
 message EavesdropCallRequest {

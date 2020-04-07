@@ -43,6 +43,26 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.UserId = model.NewInt64(in.UserId)
 	}
 
+	if in.GetQueueId() != 0 {
+		req.QueueId = model.NewInt64(in.QueueId)
+	}
+
+	if in.GetTeamId() != 0 {
+		req.TeamId = model.NewInt64(in.TeamId)
+	}
+
+	if in.GetAgentId() != 0 {
+		req.AgentId = model.NewInt64(in.AgentId)
+	}
+
+	if in.GetMemberId() != 0 {
+		req.MemberId = model.NewInt64(in.MemberId)
+	}
+
+	if in.GetNumber() != "" {
+		req.Number = model.NewString(in.Number)
+	}
+
 	if list, endList, err = api.ctrl.SearchHistoryCall(session, req); err != nil {
 		return nil, err
 	}
@@ -346,6 +366,10 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		HangupAt:    src.HangupAt,
 		HoldSec:     int32(src.HoldSec),
 		Cause:       src.Cause,
+		Queue:       GetProtoLookup(src.Queue),
+		Team:        GetProtoLookup(src.Team),
+		Agent:       GetProtoLookup(src.Agent),
+		Files:       toCallFile(src.Files),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -374,4 +398,21 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 	}
 
 	return item
+}
+
+func toCallFile(src []*model.CallFile) []*engine.CallFile {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.CallFile, 0, len(src))
+	for _, v := range src {
+		res = append(res, &engine.CallFile{
+			Id:   v.Id,
+			Name: v.Name,
+			Size: v.Size,
+		})
+	}
+
+	return res
 }

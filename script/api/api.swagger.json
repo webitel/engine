@@ -6591,6 +6591,40 @@
             "format": "int64"
           },
           {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "queue_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "team_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "member_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "number",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
             "in": "query",
             "required": false,
@@ -8007,6 +8041,22 @@
         }
       }
     },
+    "engineCallFile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "size": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "engineCommunicationType": {
       "type": "object",
       "properties": {
@@ -8985,6 +9035,21 @@
         "sip_code": {
           "type": "integer",
           "format": "int32"
+        },
+        "queue": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "team": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "agent": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineCallFile"
+          }
         }
       }
     },

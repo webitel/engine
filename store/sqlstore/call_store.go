@@ -80,17 +80,37 @@ select c.id, c.app_id, c.direction, c.destination, c.parent_id,
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
    c.payload, c.created_at as created_at, c.answered_at, c.bridged_at, c.hangup_at, c.hold_sec, c.cause, c.sip_code
+   ,cc_get_lookup(cq.id, cq.name) as queue, cc_get_lookup(ct.id, ct.name) team, cc_get_lookup(ca.id, coalesce(ag.name, ag.username)) agent
+   ,cc_get_lookup(cm.id, cm.name) member, f.files
 from cc_calls_history c
+    left join lateral (
+        select json_agg(jsonb_build_object('id', f.id, 'name', f.name, 'size', f.size)) files
+        from storage.files f
+        where f.domain_id = c.domain_id and f.uuid = c.id
+    ) f on true
+    left join cc_queue cq on c.queue_id = cq.id
+    left join cc_team ct on c.team_id = ct.id
+    left join cc_agent ca on c.agent_id = ca.id
+    left join directory.wbt_user ag on ag.id = ca.user_id
+    left join cc_member cm on c.member_id = cm.id
 where c.domain_id = :Domain and c.created_at between :From::int8 and :To::int8 and (:UserId::int8 isnull or c.user_id = :UserId) 
+	and (:QueueId::int isnull or c.queue_id = :QueueId ) and (:TeamId::int isnull or c.team_id = :TeamId )  and (:AgentId::int isnull or c.agent_id = :AgentId )
+	and (:MemberId::int8 isnull or c.member_id = :MemberId )
+	and (:Number::varchar isnull or c.from_number ilike :Number::varchar or c.to_number ilike :Number::varchar)
 order by c.created_at desc
 limit :Limit
 offset :Offset`, map[string]interface{}{
-		"Domain": domainId,
-		"Limit":  search.GetLimit(),
-		"Offset": search.GetOffset(),
-		"From":   search.CreatedAt.From,
-		"To":     search.CreatedAt.To,
-		"UserId": search.UserId,
+		"Domain":   domainId,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"From":     search.CreatedAt.From,
+		"To":       search.CreatedAt.To,
+		"UserId":   search.UserId,
+		"QueueId":  search.QueueId,
+		"TeamId":   search.TeamId,
+		"AgentId":  search.AgentId,
+		"MemberId": search.MemberId,
+		"Number":   search.Number,
 	})
 
 	if err != nil {
