@@ -76,7 +76,7 @@ func (dq *DomainQueue) BindUserCall(id string, userId int64) *model.BindQueueEve
 	b := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
-		Routing:  fmt.Sprintf(model.CallRoutingTemplate, dq.Id(), userId),
+		Routing:  "#", //fmt.Sprintf(model.CallRoutingTemplate, dq.Id(), userId),
 		Exchange: model.CallExchange,
 	}
 
@@ -109,6 +109,11 @@ func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId in
 }
 
 func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
+	/*
+		2020-03-24T01:11:42.129+0200    debug   app/web_hub.go:67       hub TODO stopped
+		panic: runtime error: invalid memory address or nil pointer dereference
+
+	*/
 	dq.channel.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
 		"x-sock-id": bind.Id,
 	})
