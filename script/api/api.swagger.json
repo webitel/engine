@@ -6584,7 +6584,7 @@
             "format": "int64"
           },
           {
-            "name": "user_ids",
+            "name": "user_id",
             "in": "query",
             "required": false,
             "type": "array",
@@ -6595,7 +6595,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "agent_ids",
+            "name": "agent_id",
             "in": "query",
             "required": false,
             "type": "array",
@@ -6606,7 +6606,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "queue_ids",
+            "name": "queue_id",
             "in": "query",
             "required": false,
             "type": "array",
@@ -6617,7 +6617,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "team_ids",
+            "name": "team_id",
             "in": "query",
             "required": false,
             "type": "array",
@@ -6628,7 +6628,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "member_ids",
+            "name": "member_id",
             "in": "query",
             "required": false,
             "type": "array",
@@ -6639,7 +6639,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "gateway_ids",
+            "name": "gateway_id",
             "in": "query",
             "required": false,
             "type": "array",
