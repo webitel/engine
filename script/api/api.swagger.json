@@ -6677,6 +6677,12 @@
             "format": "boolean"
           },
           {
+            "name": "parent_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "sort",
             "in": "query",
             "required": false,

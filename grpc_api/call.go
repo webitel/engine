@@ -38,12 +38,12 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			To:   in.GetCreatedAt().GetTo(),
 		},
 		SkipParent: in.GetSkipParent(),
-		UserIds:    in.GetUserIds(),
-		QueueIds:   in.GetQueueIds(),
-		TeamIds:    in.GetTeamIds(),
-		AgentIds:   in.GetAgentIds(),
-		MemberIds:  in.GetMemberIds(),
-		GatewayIds: in.GetGatewayIds(),
+		UserIds:    in.GetUserId(),
+		QueueIds:   in.GetQueueId(),
+		TeamIds:    in.GetTeamId(),
+		AgentIds:   in.GetAgentId(),
+		MemberIds:  in.GetMemberId(),
+		GatewayIds: in.GetGatewayId(),
 	}
 
 	if in.GetDuration() != nil {

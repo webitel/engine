@@ -81,12 +81,12 @@ message SearchHistoryCallRequest {
     int32 size = 2;
 
     FilterBetween created_at = 3;
-    repeated int64 user_ids = 4;
-    repeated int64 agent_ids = 5;
-    repeated int64 queue_ids = 6;
-    repeated int64 team_ids = 7;
-    repeated int64 member_ids = 8;
-    repeated int64 gateway_ids = 9;
+    repeated int64 user_id = 4;
+    repeated int64 agent_id = 5;
+    repeated int64 queue_id = 6;
+    repeated int64 team_id = 7;
+    repeated int64 member_id = 8;
+    repeated int64 gateway_id = 9;
     string number = 10;
 
     FilterBetween duration = 11;
