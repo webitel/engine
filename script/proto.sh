@@ -5,5 +5,5 @@ protoc -I/usr/local/include -I../grpc_api/protos/engine -I$GOPATH/src/github.com
 
 
 protoc -I/usr/local/include -I../grpc_api/proto -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis  \
-  -I/home/igor/opt/Programs/golib/src/github.com/grpc-ecosystem/grpc-gateway \
+  -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway \
    --go_out=plugins=grpc:../grpc_api/engine ../grpc_api/proto/*.proto

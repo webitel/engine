@@ -28,35 +28,33 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	var list []*model.HistoryCall
 	var endList bool
 	req := &model.SearchHistoryCall{
-		CreatedAt: model.FilterBetween{
-			From: in.GetCreatedAt().GetFrom(),
-			To:   in.GetCreatedAt().GetTo(),
-		},
 		ListRequest: model.ListRequest{
 			DomainId: in.GetDomainId(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 		},
+		CreatedAt: model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		},
+		SkipParent: in.GetSkipParent(),
+		UserIds:    in.GetUserIds(),
+		QueueIds:   in.GetQueueIds(),
+		TeamIds:    in.GetTeamIds(),
+		AgentIds:   in.GetAgentIds(),
+		MemberIds:  in.GetMemberIds(),
+		GatewayIds: in.GetGatewayIds(),
 	}
 
-	if in.GetUserId() != 0 {
-		req.UserId = model.NewInt64(in.UserId)
+	if in.GetDuration() != nil {
+		req.Duration = &model.FilterBetween{
+			From: in.GetDuration().GetFrom(),
+			To:   in.GetDuration().GetTo(),
+		}
 	}
 
-	if in.GetQueueId() != 0 {
-		req.QueueId = model.NewInt64(in.QueueId)
-	}
-
-	if in.GetTeamId() != 0 {
-		req.TeamId = model.NewInt64(in.TeamId)
-	}
-
-	if in.GetAgentId() != 0 {
-		req.AgentId = model.NewInt64(in.AgentId)
-	}
-
-	if in.GetMemberId() != 0 {
-		req.MemberId = model.NewInt64(in.MemberId)
+	if in.GetParentId() != "" {
+		req.ParentId = &in.ParentId
 	}
 
 	if in.GetNumber() != "" {
@@ -365,6 +363,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		BridgedAt:   src.BridgedAt,
 		HangupAt:    src.HangupAt,
 		HoldSec:     int32(src.HoldSec),
+		Duration:    int32(src.Duration),
 		Cause:       src.Cause,
 		Queue:       GetProtoLookup(src.Queue),
 		Team:        GetProtoLookup(src.Team),

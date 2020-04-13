@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -81,7 +82,7 @@ select c.id, c.app_id, c.direction, c.destination, c.parent_id,
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
    c.payload, c.created_at as created_at, c.answered_at, c.bridged_at, c.hangup_at, c.hold_sec, c.cause, c.sip_code
    ,cc_get_lookup(cq.id, cq.name) as queue, cc_get_lookup(ct.id, ct.name) team, cc_get_lookup(ca.id, coalesce(ag.name, ag.username)) agent
-   ,cc_get_lookup(cm.id, cm.name) member, f.files
+   ,cc_get_lookup(cm.id, cm.name) member, f.files, c.duration
 from cc_calls_history c
     left join lateral (
         select json_agg(jsonb_build_object('id', f.id, 'name', f.name, 'size', f.size, 'mime_type', f.mime_type)) files
@@ -93,24 +94,30 @@ from cc_calls_history c
     left join cc_agent ca on c.agent_id = ca.id
     left join directory.wbt_user ag on ag.id = ca.user_id
     left join cc_member cm on c.member_id = cm.id
-where c.domain_id = :Domain and c.created_at between :From::int8 and :To::int8 and (:UserId::int8 isnull or c.user_id = :UserId) 
-	and (:QueueId::int isnull or c.queue_id = :QueueId ) and (:TeamId::int isnull or c.team_id = :TeamId )  and (:AgentId::int isnull or c.agent_id = :AgentId )
-	and (:MemberId::int8 isnull or c.member_id = :MemberId )
+where c.domain_id = :Domain and c.created_at between :From::int8 and :To::int8 and (:UserIds::int8[] isnull or c.user_id = any(:UserIds))
+	and (:QueueIds::int[] isnull or c.queue_id = any(:QueueIds) ) and (:TeamIds::int[] isnull or c.team_id = any(:TeamIds) )  and (:AgentIds::int[] isnull or c.agent_id = any(:AgentIds) )
+	and (:MemberIds::int8[] isnull or c.member_id = any(:MemberIds) )
+	and (:GatewayIds::int8[] isnull or c.gateway_id = any(:GatewayIds) )
 	and (:Number::varchar isnull or c.from_number ilike :Number::varchar or c.to_number ilike :Number::varchar)
+	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or c.parent_id isnull)
+	and (:ParentId::varchar isnull or c.parent_id = :ParentId )
 order by c.created_at desc
 limit :Limit
 offset :Offset`, map[string]interface{}{
-		"Domain":   domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
-		"From":     search.CreatedAt.From,
-		"To":       search.CreatedAt.To,
-		"UserId":   search.UserId,
-		"QueueId":  search.QueueId,
-		"TeamId":   search.TeamId,
-		"AgentId":  search.AgentId,
-		"MemberId": search.MemberId,
-		"Number":   search.Number,
+		"Domain":     domainId,
+		"Limit":      search.GetLimit(),
+		"Offset":     search.GetOffset(),
+		"From":       search.CreatedAt.From,
+		"To":         search.CreatedAt.To,
+		"UserIds":    pq.Array(search.UserIds),
+		"QueueIds":   pq.Array(search.QueueIds),
+		"TeamIds":    pq.Array(search.TeamIds),
+		"AgentIds":   pq.Array(search.AgentIds),
+		"MemberIds":  pq.Array(search.MemberIds),
+		"GatewayIds": pq.Array(search.GatewayIds),
+		"SkipParent": search.SkipParent,
+		"ParentId":   search.ParentId,
+		"Number":     search.Number,
 	})
 
 	if err != nil {

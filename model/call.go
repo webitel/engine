@@ -152,6 +152,7 @@ type HistoryCall struct {
 	AppId       string       `json:"app_id" db:"app_id"`
 	Direction   string       `json:"direction" db:"direction"`
 	Destination string       `json:"destination" db:"destination"`
+	Duration    int          `json:"duration" db:"duration"`
 	ParentId    *string      `json:"parent_id" db:"parent_id"`
 	From        *Endpoint    `json:"from" db:"from"`
 	To          *Endpoint    `json:"to" db:"to"`
@@ -176,13 +177,17 @@ type SearchCall struct {
 
 type SearchHistoryCall struct {
 	ListRequest
-	CreatedAt FilterBetween
-	UserId    *int64
-	Number    *string
-	QueueId   *int64
-	TeamId    *int64
-	AgentId   *int64
-	MemberId  *int64
+	CreatedAt  FilterBetween
+	Duration   *FilterBetween
+	Number     *string
+	ParentId   *string
+	SkipParent bool
+	UserIds    []int64
+	QueueIds   []int64
+	TeamIds    []int64
+	AgentIds   []int64
+	MemberIds  []int64
+	GatewayIds []int64
 }
 
 type CallEvent struct {

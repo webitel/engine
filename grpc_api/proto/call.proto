@@ -81,14 +81,20 @@ message SearchHistoryCallRequest {
     int32 size = 2;
 
     FilterBetween created_at = 3;
-    int64 user_id = 4;
-    int64 agent_id = 5;
-    int64 queue_id = 6;
-    int64 team_id = 7;
-    int64 member_id = 8;
-    string number = 9;
+    repeated int64 user_ids = 4;
+    repeated int64 agent_ids = 5;
+    repeated int64 queue_ids = 6;
+    repeated int64 team_ids = 7;
+    repeated int64 member_ids = 8;
+    repeated int64 gateway_ids = 9;
+    string number = 10;
 
-    int64 domain_id = 10;
+    FilterBetween duration = 11;
+    bool skip_parent = 12;
+    string parent_id = 13;
+
+    string sort = 14;
+    int64 domain_id = 15;
 }
 
 message ListHistoryCall {
@@ -111,18 +117,19 @@ message HistoryCall {
     string parent_id = 5;
     Endpoint from = 6;
     Endpoint to = 7;
-    int64 created_at = 8;
-    int64 answered_at = 9;
-    int64 bridged_at = 10;
-    int64 hangup_at = 11;
-    int32 hold_sec = 12;
-    string cause = 13;
-    int32 sip_code = 14;
-    Lookup queue = 15;
-    Lookup team = 16;
-    Lookup agent = 17;
-    Lookup member = 18;
-    repeated CallFile files = 19;
+    int32 duration = 8;
+    int64 created_at = 9;
+    int64 answered_at = 10;
+    int64 bridged_at = 11;
+    int64 hangup_at = 12;
+    int32 hold_sec = 13;
+    string cause = 14;
+    int32 sip_code = 15;
+    Lookup queue = 16;
+    Lookup team = 17;
+    Lookup agent = 18;
+    Lookup member = 19;
+    repeated CallFile files = 20;
 }
 
 message EavesdropCallRequest {

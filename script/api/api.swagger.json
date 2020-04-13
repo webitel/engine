@@ -6584,42 +6584,100 @@
             "format": "int64"
           },
           {
-            "name": "user_id",
+            "name": "user_ids",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
           },
           {
-            "name": "agent_id",
+            "name": "agent_ids",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
           },
           {
-            "name": "queue_id",
+            "name": "queue_ids",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
           },
           {
-            "name": "team_id",
+            "name": "team_ids",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
           },
           {
-            "name": "member_id",
+            "name": "member_ids",
             "in": "query",
             "required": false,
-            "type": "string",
-            "format": "int64"
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "gateway_ids",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
           },
           {
             "name": "number",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "duration.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "duration.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "skip_parent",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "sort",
             "in": "query",
             "required": false,
             "type": "string"
@@ -9011,6 +9069,10 @@
         },
         "to": {
           "$ref": "#/definitions/engineEndpoint"
+        },
+        "duration": {
+          "type": "integer",
+          "format": "int32"
         },
         "created_at": {
           "type": "string",
