@@ -176,11 +176,11 @@ function Handler(wss, application) {
             log.error('Socket error:', e);
         });
     });
-    
+
     application._getWSocketSessions = function () {
         return wss.clients.size
     };
-    
+
     application.broadcast = function (event, user) {
         if (user) {
             user.broadcastInDomain(event);
@@ -191,7 +191,7 @@ function Handler(wss, application) {
             root.sendObject(event);
         }
     };
-    
+
     application.broadcastInDomain = function (event, domainId) {
         if (!event || !domainId) {
             return log.error('broadcastInDomain bad parameters.');
@@ -215,15 +215,21 @@ function Handler(wss, application) {
             log.error(e);
         }
     };
-    
+
     application.Schedule(DIFF_AGENT_LOGOUT_SEC * 1000, function () {
         log.debug('Schedule logout agents.');
         if (application.loggedOutAgent.length() > 0) {
             var collection = application.loggedOutAgent.collection,
                 currentTime = Date.now();
             for (let key in collection) {
+                if (application.Users.existsKey(key)) {
+                    application.loggedOutAgent.remove(key);
+                    continue
+                }
+
                 if (collection[key] < currentTime) {
                     application.loggedOutAgent.remove(key);
+
                     application.Esl.bgapi('callcenter_config agent set status ' + key + " 'Logged Out'", function (res) {
                         log.debug('Logout agent %s [%s]', key, res.body && res.body.trim());
                     });
@@ -231,7 +237,7 @@ function Handler(wss, application) {
             };
         };
     });
-    
+
     application.Users.on('removed', function (user) {
         try {
             application.Broker.unBindChannelEvents(
