@@ -252,6 +252,7 @@ message Agent {
     int64 last_state_change = 6;
     int64 state_timeout = 7;
     int32 progressive_count = 8;
+    string name = 9;
 }
 
 message ListAgent {

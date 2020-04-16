@@ -139,7 +139,7 @@ func (wh *Hub) start() {
 			candidates := connections.All()
 			for _, webCon := range candidates {
 				//FIXME permission call events
-				if webCon.ShouldSendEvent(msg) && fmt.Sprintf("%d", webCon.UserId) == ev.UserId {
+				if webCon.ShouldSendEvent(msg) /*&& fmt.Sprintf("%d", webCon.UserId) == ev.UserId*/ {
 					select {
 					case webCon.Send <- msg:
 					default:

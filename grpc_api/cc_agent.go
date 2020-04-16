@@ -489,6 +489,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		State:            src.State,
 		Description:      src.Description,
 		ProgressiveCount: int32(src.ProgressiveCount),
+		Name:             src.Name,
 	}
 
 	if src.StateTimeout != nil {

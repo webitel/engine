@@ -19,6 +19,7 @@ func (status AgentStatus) String() string {
 type Agent struct {
 	DomainRecord
 	User             Lookup `json:"user" db:"user"`
+	Name             string `json:"name" db:"name"`
 	Status           string `json:"status" db:"status"`
 	State            string `json:"state" db:"state"`
 	LastStateChange  int64  `json:"last_state_change" db:"last_state_change"`
@@ -28,11 +29,11 @@ type Agent struct {
 }
 
 func (a Agent) AllowFields() []string {
-	return []string{"id", "status", "state", "description", "last_state_change", "state_timeout", "progressive_count", "user"}
+	return a.DefaultFields()
 }
 
 func (a Agent) DefaultFields() []string {
-	return []string{"id", "status", "state", "description", "last_state_change", "state_timeout", "progressive_count", "user"}
+	return []string{"id", "status", "name", "state", "description", "last_state_change", "state_timeout", "progressive_count", "user"}
 }
 
 func (a Agent) EntityName() string {
