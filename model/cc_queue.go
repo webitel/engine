@@ -21,8 +21,23 @@ type Queue struct {
 	Active         int       `json:"active" db:"active"`
 }
 
+func (q Queue) AllowFields() []string {
+	return q.DefaultFields()
+}
+
+func (q Queue) DefaultFields() []string {
+	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables", "timeout",
+		"domain_id", "sec_locate_agent", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
+		"schema", "count", "waiting", "active"}
+}
+
+func (q Queue) EntityName() string {
+	return "cc_queue_list"
+}
+
 type SearchQueue struct {
 	ListRequest
+	Ids []string
 }
 
 type QueuePatch struct {

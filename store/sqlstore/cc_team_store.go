@@ -71,53 +71,50 @@ func (s SqlAgentTeamStore) CheckAccess(domainId, id int64, groups []int, access 
 }
 
 func (s SqlAgentTeamStore) GetAllPage(domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError) {
+
 	var teams []*model.AgentTeam
 
-	if _, err := s.GetReplica().Select(&teams,
-		`select id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time, busy_delay_time, no_answer_delay_time, call_timeout, updated_at, 
-					post_processing, post_processing_timeout
-			from cc_team c
-			where domain_id = :DomainId  and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar or c.strategy ilike :Q::varchar ) ))
-			order by id
-			limit :Limit
-			offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlAgentTeamStore.GetAllPage", "store.sql_agent_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return teams, nil
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
 	}
+
+	err := s.ListQuery(&teams, search.ListRequest,
+		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) 
+			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
+		model.AgentTeam{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentTeamStore.GetAllPage", "store.sql_agent_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, nil
 }
 
 func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError) {
 	var teams []*model.AgentTeam
 
-	if _, err := s.GetReplica().Select(&teams,
-		`select c.id, c.name, c.description, c.strategy, c.max_no_answer, c.wrap_up_time, c.reject_delay_time, c.busy_delay_time, 
-					c.no_answer_delay_time, c.call_timeout, c.updated_at, c.post_processing, c.post_processing_timeout
-			from cc_team c
-			where domain_id = :DomainId and (
+	f := map[string]interface{}{
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&teams, search.ListRequest,
+		`domain_id = :DomainId and (
 				exists(select 1
 				  from cc_team_acl a
-				  where a.dc = c.domain_id and a.object = c.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-			  ) and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar or c.strategy ilike :Q::varchar ) ))
-			order by id
-			limit :Limit
-			offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"Groups":   pq.Array(groups),
-			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		}); err != nil {
+				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+			  ) and ( (:Ids::int[] isnull or id = any(:Ids) ) 
+			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
+		model.AgentTeam{}, f)
+	if err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.GetAllPageByGroups", "store.sql_agent_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return teams, nil
 	}
+
+	return teams, nil
 }
 
 func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *model.AppError) {

@@ -69,53 +69,46 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, *model.AppError) {
 	var agents []*model.Agent
 
-	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, a.state, a.description,  (extract(EPOCH from a.last_state_change) * 1000)::int8 last_state_change, a.state_timeout, progressive_count, 
-			json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
-				from cc_agent a
-					inner join directory.wbt_user ct on ct.id = a.user_id
-				where domain_id = :DomainId and ( (:Q::varchar isnull or (a.description ilike :Q::varchar or a.status ilike :Q::varchar or ct.name ilike :Q::varchar ) ))  
-				order by a.id
-			limit :Limit
-			offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return agents, nil
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
 	}
+
+	err := s.ListQuery(&agents, search.ListRequest,
+		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (description ilike :Q::varchar or status ilike :Q::varchar ) ))`,
+		model.Agent{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return agents, nil
 }
 
 func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, *model.AppError) {
 	var agents []*model.Agent
 
-	if _, err := s.GetReplica().Select(&agents,
-		`select a.id, a.status, a.state, a.description,  (extract(EPOCH from a.last_state_change) * 1000)::int8 last_state_change, a.state_timeout, progressive_count,
-					json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
-				from cc_agent a
-					inner join directory.wbt_user ct on ct.id = a.user_id
-				where domain_id = :DomainId and (
-					exists(select 1
-					  from cc_agent_acl acl
-					  where acl.dc = a.domain_id and acl.object = a.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
-				  ) and ( (:Q::varchar isnull or (a.description ilike :Q::varchar or a.status ilike :Q::varchar or ct.name ilike :Q::varchar ) ))
-				order by a.id
-			limit :Limit
-			offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"Groups":   pq.Array(groups),
-			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return agents, nil
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
 	}
+
+	err := s.ListQuery(&agents, search.ListRequest,
+		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (description ilike :Q::varchar or status ilike :Q::varchar ) )) and
+			(
+					exists(select 1
+					  from cc_agent_acl
+					  where cc_agent_acl.dc = t.domain_id and cc_agent_acl.object = t.id and cc_agent_acl.subject = any(:Groups::int[]) and cc_agent_acl.access&:Access = :Access)
+		  	) `,
+		model.Agent{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.GetAllPageByGroups", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return agents, nil
 }
 
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
@@ -411,7 +404,10 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        case when a.status = 'online' then a.state else a.status end status,
        a.state_timeout,
        a.status_payload,
-       (extract(EPOCH from last_state_change) * 1000)::int8 last_state_change
+       (extract(EPOCH from last_state_change) * 1000)::int8 last_state_change,
+       a.attempt_id,
+       (extract(EPOCH from now() - last_state_change) )::int8 state_duration
+	   	
 from cc_agent a
 where a.user_id = :UserId and a.domain_id = :DomainId
 limit 1`, map[string]interface{}{

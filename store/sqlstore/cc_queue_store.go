@@ -90,89 +90,45 @@ from q
 func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
 	var queues []*model.Queue
 
-	if _, err := s.GetReplica().Select(&queues,
-		`select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
-          q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
-          q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
-		  cc_get_lookup(s.id, s.name) as schema, coalesce(ss.member_count, 0) count, coalesce(ss.member_waiting, 0) waiting, coalesce(act.cnt, 0) active
-from cc_queue q
-    inner join calendar c on q.calendar_id = c.id
-    left join directory.wbt_user uc on uc.id = q.created_by
-	left join directory.wbt_user u on u.id = q.updated_by
-	left join acr_routing_scheme s on q.schema_id = s.id
-    left join cc_list cl on q.dnc_list_id = cl.id
-    left join cc_team ct on q.team_id = ct.id
-    left join lateral (
-        select sum(s.member_waiting) member_waiting, sum(s.member_count) member_count
-        from cc_queue_statistics s
-        where s.queue_id = q.id
-    ) ss on true
-    left join lateral (
-        select count(*) cnt
-        from cc_member_attempt a
-        where a.queue_id = q.id and a.hangup_at = 0
-    ) act on true
-where q.domain_id = :DomainId and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
-order by q.priority DESC
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return queues, nil
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
 	}
+
+	err := s.ListQuery(&queues, search.ListRequest,
+		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) )  and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
+		model.Queue{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return queues, nil
 }
 
 func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
 	var queues []*model.Queue
 
-	if _, err := s.GetReplica().Select(&queues,
-		`select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
-          q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
-          q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
-		  cc_get_lookup(s.id, s.name) as schema, coalesce(ss.member_count, 0) count, coalesce(ss.member_waiting, 0) waiting, coalesce(act.cnt, 0) active
-from cc_queue q
-    inner join calendar c on q.calendar_id = c.id
-    left join directory.wbt_user uc on uc.id = q.created_by
-	left join directory.wbt_user u on u.id = q.updated_by
-	left join acr_routing_scheme s on q.schema_id = s.id
-    left join cc_list cl on q.dnc_list_id = cl.id
-    left join cc_team ct on q.team_id = ct.id
-    left join lateral (
-        select sum(s.member_waiting) member_waiting, sum(s.member_count) member_count
-        from cc_queue_statistics s
-        where s.queue_id = q.id
-    ) ss on true
-    left join lateral (
-        select count(*) cnt
-        from cc_member_attempt a
-        where a.queue_id = q.id and a.hangup_at = 0
-    ) act on true
-where q.domain_id = :DomainId  and (
-    exists(select 1
-      from cc_queue_acl a
-      where a.dc = c.domain_id and a.object = q.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  ) and ( (:Q::varchar isnull or (q.name ilike :Q::varchar or q.description ilike :Q::varchar ) )) 
-order by q.priority DESC
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"Groups":   pq.Array(groups),
-			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return queues, nil
+	f := map[string]interface{}{
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
 	}
+
+	err := s.ListQuery(&queues, search.ListRequest,
+		`domain_id = :DomainId and  (
+					exists(select 1
+					  from cc_queue_acl acl
+					  where acl.dc = t.domain_id and acl.object = t.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
+		  	) and ( (:Ids::int[] isnull or id = any(:Ids) )  and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
+		model.Queue{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlQueueStore.GetAllPageByGroups", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return queues, nil
 }
 
 func (s SqlQueueStore) Get(domainId int64, id int64) (*model.Queue, *model.AppError) {

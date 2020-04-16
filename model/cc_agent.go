@@ -27,10 +27,24 @@ type Agent struct {
 	ProgressiveCount int    `json:"progressive_count" db:"progressive_count"`
 }
 
+func (a Agent) AllowFields() []string {
+	return []string{"id", "status", "state", "description", "last_state_change", "state_timeout", "progressive_count", "user"}
+}
+
+func (a Agent) DefaultFields() []string {
+	return []string{"id", "status", "state", "description", "last_state_change", "state_timeout", "progressive_count", "user"}
+}
+
+func (a Agent) EntityName() string {
+	return "cc_agent_list"
+}
+
 type AgentSession struct {
 	AgentId         int64  `json:"agent_id" db:"agent_id"`
 	Status          string `json:"status" db:"status"`
 	LastStateChange int64  `json:"last_state_change" db:"last_state_change"`
+	AttemptId       *int64 `json:"attempt_id" db:"attempt_id"`
+	StateDuration   int    `json:"state_duration" db:"state_duration"`
 	StateTimeout    *int64 `json:"state_timeout" db:"state_timeout"`
 	StatusPayload   []byte `json:"status_payload" db:"status_payload"`
 }
@@ -44,6 +58,7 @@ func (a AgentSession) ToMap() map[string]interface{} {
 
 type SearchAgent struct {
 	ListRequest
+	Ids []string
 }
 
 type AgentUser struct {
@@ -112,6 +127,7 @@ type AgentStatusEvent struct {
 	UserId        int64  `json:"user_id"`
 	AgentId       int    `json:"agent_id"`
 	Timestamp     int64  `json:"timestamp"`
+	AttemptId     *int64 `json:"attempt_id"`
 	Status        string `json:"status"`
 	StatusPayload string `json:"status_payload"`
 	Timeout       *int   `json:"timeout"`

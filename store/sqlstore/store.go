@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"github.com/go-gorp/gorp"
 	_ "github.com/lib/pq"
+	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 )
 
@@ -10,6 +11,8 @@ type SqlStore interface {
 	GetMaster() *gorp.DbMap
 	GetReplica() *gorp.DbMap
 	GetAllConns() []*gorp.DbMap
+
+	ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
 
 	User() store.UserStore
 	Calendar() store.CalendarStore

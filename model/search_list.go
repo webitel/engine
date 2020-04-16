@@ -18,6 +18,9 @@ type ListRequest struct {
 	PerPage  int
 	DomainId int64
 	endList  bool
+
+	Fields []string
+	Sort   string
 }
 
 type FilterBetween struct {

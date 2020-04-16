@@ -15,8 +15,22 @@ type AgentTeam struct {
 	PostProcessingTimeout int    `json:"post_processing_timeout" db:"post_processing_timeout"`
 }
 
+func (team AgentTeam) AllowFields() []string {
+	return team.DefaultFields()
+}
+
+func (team AgentTeam) DefaultFields() []string {
+	return []string{"id", "name", "description", "strategy", "max_no_answer", "wrap_up_time", "reject_delay_time", "busy_delay_time",
+		"no_answer_delay_time", "call_timeout", "updated_at", "post_processing", "post_processing_timeout"}
+}
+
+func (team AgentTeam) EntityName() string {
+	return "cc_team"
+}
+
 type SearchAgentTeam struct {
 	ListRequest
+	Ids []string
 }
 
 func (team *AgentTeam) IsValid() *AppError {

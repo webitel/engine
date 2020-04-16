@@ -77,7 +77,10 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 			Q:        in.GetQ(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
+			Fields:   in.Fields,
+			Sort:     in.Sort,
 		},
+		Ids: in.Id,
 	}
 
 	if permission.Rbac {
