@@ -32,6 +32,8 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			DomainId: in.GetDomainId(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
+			Sort:     in.Sort,
+			Fields:   in.Fields,
 		},
 		CreatedAt: model.FilterBetween{
 			From: in.GetCreatedAt().GetFrom(),
@@ -55,6 +57,10 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 
 	if in.GetParentId() != "" {
 		req.ParentId = &in.ParentId
+	}
+
+	if in.GetCause() != "" {
+		req.Cause = &in.Cause
 	}
 
 	if in.GetNumber() != "" {

@@ -92,9 +92,11 @@ message SearchHistoryCallRequest {
     FilterBetween duration = 11;
     bool skip_parent = 12;
     string parent_id = 13;
+    string cause = 14;
 
-    string sort = 14;
-    int64 domain_id = 15;
+    repeated string fields = 15;
+    string sort = 16;
+    int64 domain_id = 17;
 }
 
 message ListHistoryCall {

@@ -149,6 +149,7 @@ type CallFile struct {
 
 type HistoryCall struct {
 	Id          string       `json:"id" db:"id"`
+	Type        string       `json:"type" db:"type"`
 	AppId       string       `json:"app_id" db:"app_id"`
 	Direction   string       `json:"direction" db:"direction"`
 	Destination string       `json:"destination" db:"destination"`
@@ -181,6 +182,7 @@ type SearchHistoryCall struct {
 	Duration   *FilterBetween
 	Number     *string
 	ParentId   *string
+	Cause      *string
 	SkipParent bool
 	UserIds    []int64
 	QueueIds   []int64

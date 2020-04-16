@@ -111,6 +111,10 @@ message SearchQueueRequest {
     string q = 3;
 
     int64 domain_id = 4;
+
+    repeated string fields = 5;
+    string sort = 6;
+    repeated string id = 7;
 }
 
 message CreateQueueRequest {

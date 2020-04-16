@@ -101,6 +101,7 @@ where c.domain_id = :Domain and c.created_at between :From::int8 and :To::int8 a
 	and (:Number::varchar isnull or c.from_number ilike :Number::varchar or c.to_number ilike :Number::varchar)
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or c.parent_id isnull)
 	and (:ParentId::varchar isnull or c.parent_id = :ParentId )
+	and (:Cause::varchar isnull or c.cause = :Cause )
 order by c.created_at desc
 limit :Limit
 offset :Offset`, map[string]interface{}{
@@ -118,6 +119,7 @@ offset :Offset`, map[string]interface{}{
 		"SkipParent": search.SkipParent,
 		"ParentId":   search.ParentId,
 		"Number":     search.Number,
+		"Cause":      search.Cause,
 	})
 
 	if err != nil {
