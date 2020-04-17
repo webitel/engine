@@ -360,25 +360,45 @@ func toEngineCall(src *model.Call) *engine.Call {
 
 func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 	item := &engine.HistoryCall{
-		Id:          src.Id,
-		AppId:       src.AppId,
-		Direction:   src.Direction,
-		Destination: src.Destination,
-		CreatedAt:   src.CreatedAt,
-		AnsweredAt:  src.AnsweredAt,
-		BridgedAt:   src.BridgedAt,
-		HangupAt:    src.HangupAt,
-		HoldSec:     int32(src.HoldSec),
-		Duration:    int32(src.Duration),
-		Cause:       src.Cause,
-		Queue:       GetProtoLookup(src.Queue),
-		Team:        GetProtoLookup(src.Team),
-		Agent:       GetProtoLookup(src.Agent),
-		Member:      GetProtoLookup(src.Member),
-		Files:       toCallFile(src.Files),
+		Id:               src.Id,
+		AppId:            src.AppId,
+		Type:             src.Type,
+		User:             GetProtoLookup(src.User),
+		Gateway:          GetProtoLookup(src.Gateway),
+		Direction:        src.Direction,
+		Destination:      src.Destination,
+		Variables:        src.Variables,
+		CreatedAt:        src.CreatedAt,
+		AnsweredAt:       src.AnsweredAt,
+		BridgedAt:        src.BridgedAt,
+		HangupAt:         src.HangupAt,
+		HangupBy:         src.HangupBy,
+		Cause:            src.Cause,
+		Duration:         int32(src.Duration),
+		HoldSec:          int32(src.HoldSec),
+		WaitSec:          int32(src.WaitSec),
+		BillSec:          int32(src.BillSec),
+		SipCode:          defaultInt(src.SipCode),
+		Files:            toCallFile(src.Files),
+		Queue:            GetProtoLookup(src.Queue),
+		Member:           GetProtoLookup(src.Member),
+		Team:             GetProtoLookup(src.Team),
+		Agent:            GetProtoLookup(src.Agent),
+		JoinedAt:         defaultBigInt(src.JoinedAt),
+		LeavingAt:        defaultBigInt(src.LeavingAt),
+		ReportingAt:      defaultBigInt(src.ReportingAt),
+		QueueBridgedAt:   defaultBigInt(src.QueueBridgedAt),
+		QueueWaitSec:     defaultInt(src.QueueWaitSec),
+		QueueDurationSec: defaultInt(src.QueueDurationSec),
+		Result:           "",
+		ReportingSec:     defaultInt(src.ReportingSec),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
+	}
+
+	if src.Result != nil {
+		item.Result = *src.Result
 	}
 
 	if src.From != nil {
@@ -422,4 +442,20 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 	}
 
 	return res
+}
+
+func defaultInt(i *int) int32 {
+	if i != nil {
+
+		return int32(*i)
+	}
+	return 0
+}
+
+func defaultBigInt(i *int64) int64 {
+	if i != nil {
+
+		return *i
+	}
+	return 0
 }

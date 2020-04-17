@@ -7707,6 +7707,9 @@
         "progressive_count": {
           "type": "integer",
           "format": "int32"
+        },
+        "name": {
+          "type": "string"
         }
       }
     },
@@ -7866,6 +7869,10 @@
         },
         "status": {
           "type": "string"
+        },
+        "on_demand": {
+          "type": "boolean",
+          "format": "boolean"
         },
         "domain_id": {
           "type": "string",
@@ -9155,13 +9162,22 @@
         "app_id": {
           "type": "string"
         },
+        "type": {
+          "type": "string"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "gateway": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "direction": {
           "type": "string"
         },
         "destination": {
-          "type": "string"
-        },
-        "parent_id": {
           "type": "string"
         },
         "from": {
@@ -9170,9 +9186,11 @@
         "to": {
           "$ref": "#/definitions/engineEndpoint"
         },
-        "duration": {
-          "type": "integer",
-          "format": "int32"
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "created_at": {
           "type": "string",
@@ -9190,18 +9208,42 @@
           "type": "string",
           "format": "int64"
         },
+        "hangup_by": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "integer",
+          "format": "int32"
+        },
         "hold_sec": {
           "type": "integer",
           "format": "int32"
         },
-        "cause": {
-          "type": "string"
+        "wait_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bill_sec": {
+          "type": "integer",
+          "format": "int32"
         },
         "sip_code": {
           "type": "integer",
           "format": "int32"
         },
+        "files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineCallFile"
+          }
+        },
         "queue": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "member": {
           "$ref": "#/definitions/engineLookup"
         },
         "team": {
@@ -9210,14 +9252,36 @@
         "agent": {
           "$ref": "#/definitions/engineLookup"
         },
-        "member": {
-          "$ref": "#/definitions/engineLookup"
+        "joined_at": {
+          "type": "string",
+          "format": "int64"
         },
-        "files": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/engineCallFile"
-          }
+        "leaving_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "reporting_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_bridged_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_wait_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "queue_duration_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "result": {
+          "type": "string"
+        },
+        "reporting_sec": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

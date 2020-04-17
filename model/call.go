@@ -148,28 +148,62 @@ type CallFile struct {
 }
 
 type HistoryCall struct {
-	Id          string       `json:"id" db:"id"`
-	Type        string       `json:"type" db:"type"`
-	AppId       string       `json:"app_id" db:"app_id"`
-	Direction   string       `json:"direction" db:"direction"`
-	Destination string       `json:"destination" db:"destination"`
-	Duration    int          `json:"duration" db:"duration"`
-	ParentId    *string      `json:"parent_id" db:"parent_id"`
-	From        *Endpoint    `json:"from" db:"from"`
-	To          *Endpoint    `json:"to" db:"to"`
-	Payload     *CallPayload `json:"payload" db:"payload"`
-	CreatedAt   int64        `json:"created_at" db:"created_at"`
-	AnsweredAt  int64        `json:"answered_at" db:"answered_at"`
-	BridgedAt   int64        `json:"bridged_at" db:"bridged_at"`
-	HangupAt    int64        `json:"hangup_at" db:"hangup_at"`
-	HoldSec     int          `json:"hold_sec" db:"hold_sec"`
-	Cause       string       `json:"cause" db:"cause"`
-	SipCode     *int         `json:"sip_code" db:"sip_code"`
-	Queue       *Lookup      `json:"queue" db:"queue"`
-	Team        *Lookup      `json:"team" db:"team"`
-	Agent       *Lookup      `json:"agent" db:"agent"`
-	Member      *Lookup      `json:"member" db:"member"`
-	Files       []*CallFile  `json:"files" db:"files"`
+	Id          string            `json:"id" db:"id"`
+	AppId       string            `json:"app_id" db:"app_id"`
+	Type        string            `json:"type" db:"type"`
+	ParentId    *string           `json:"parent_id" db:"parent_id"`
+	User        *Lookup           `json:"user" db:"user"`
+	Gateway     *Lookup           `json:"gateway" db:"gateway"`
+	Direction   string            `json:"direction" db:"direction"`
+	Destination string            `json:"destination" db:"destination"`
+	From        *Endpoint         `json:"from" db:"from"`
+	To          *Endpoint         `json:"to" db:"to"`
+	Variables   map[string]string `json:"variables" db:"variables"`
+
+	CreatedAt  int64  `json:"created_at" db:"created_at"`
+	AnsweredAt int64  `json:"answered_at" db:"answered_at"`
+	BridgedAt  int64  `json:"bridged_at" db:"bridged_at"`
+	HangupAt   int64  `json:"hangup_at" db:"hangup_at"`
+	HangupBy   string `json:"hangup_by" db:"hangup_by"`
+	Cause      string `json:"cause" db:"cause"`
+
+	Duration int `json:"duration" db:"duration"`
+	HoldSec  int `json:"hold_sec" db:"hold_sec"`
+	WaitSec  int `json:"wait_sec" db:"wait_sec"`
+	BillSec  int `json:"bill_sec" db:"bill_sec"`
+
+	SipCode *int        `json:"sip_code" db:"sip_code"`
+	Files   []*CallFile `json:"files" db:"files"`
+
+	Queue  *Lookup `json:"queue" db:"queue"`
+	Member *Lookup `json:"member" db:"member"`
+	Team   *Lookup `json:"team" db:"team"`
+	Agent  *Lookup `json:"agent" db:"agent"`
+
+	JoinedAt         *int64  `json:"joined_at" db:"joined_at"`
+	LeavingAt        *int64  `json:"leaving_at" db:"leaving_at"`
+	ReportingAt      *int64  `json:"reporting_at" db:"reporting_at"`
+	QueueBridgedAt   *int64  `json:"queue_bridged_at" db:"queue_bridged_at"`
+	QueueWaitSec     *int    `json:"queue_wait_sec" db:"queue_wait_sec"`
+	QueueDurationSec *int    `json:"queue_duration_sec" db:"queue_duration_sec"`
+	Result           *string `json:"result" db:"result"`
+	ReportingSec     *int    `json:"reporting_sec" db:"reporting_sec"`
+}
+
+func (c HistoryCall) AllowFields() []string {
+	return c.DefaultFields()
+}
+
+func (c HistoryCall) DefaultFields() []string {
+	return []string{"id", "app_id", "parent_id", "user", "gateway", "direction", "destination", "from", "to", "variables",
+		"created_at", "answered_at", "bridged_at", "hangup_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
+		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec",
+	}
+}
+
+func (c HistoryCall) EntityName() string {
+	return "cc_call_history_list"
 }
 
 type SearchCall struct {

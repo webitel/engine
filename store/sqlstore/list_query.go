@@ -44,7 +44,7 @@ func GetOrderBy(s string) string {
 		}
 	}
 
-	return "order by id" //TODO
+	return "" //TODO
 }
 
 //TODO filter

@@ -240,7 +240,8 @@ message AgentStatusRequest {
     }
 
     string status = 2; //FIXME enumerate
-    int64 domain_id = 3;
+    bool on_demand = 3;
+    int64 domain_id = 4;
 }
 
 message Agent {

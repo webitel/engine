@@ -114,24 +114,44 @@ message CallFile {
 message HistoryCall {
     string id = 1;
     string app_id = 2;
-    string direction = 3;
-    string destination = 4;
-    string parent_id = 5;
-    Endpoint from = 6;
-    Endpoint to = 7;
-    int32 duration = 8;
-    int64 created_at = 9;
-    int64 answered_at = 10;
-    int64 bridged_at = 11;
-    int64 hangup_at = 12;
-    int32 hold_sec = 13;
-    string cause = 14;
-    int32 sip_code = 15;
-    Lookup queue = 16;
-    Lookup team = 17;
-    Lookup agent = 18;
-    Lookup member = 19;
-    repeated CallFile files = 20;
+    string type = 3;
+    string parent_id = 4;
+    Lookup user = 5;
+    Lookup gateway = 6;
+    string direction = 7;
+    string destination = 8;
+    Endpoint from = 9;
+    Endpoint to = 10;
+    map<string,string> variables = 11;
+
+    int64 created_at = 12;
+    int64 answered_at = 13;
+    int64 bridged_at = 14;
+    int64 hangup_at = 15;
+    string hangup_by = 16;
+    string cause = 17;
+
+    int32 duration = 18;
+    int32 hold_sec = 19;
+    int32 wait_sec = 20;
+    int32 bill_sec = 21;
+
+    int32 sip_code = 22;
+    repeated CallFile files = 23;
+
+    Lookup queue = 24;
+    Lookup member = 25;
+    Lookup team = 26;
+    Lookup agent = 27;
+
+    int64 joined_at = 28;
+    int64 leaving_at = 29;
+    int64 reporting_at = 30;
+    int64 queue_bridged_at = 31;
+    int32 queue_wait_sec = 32;
+    int32 queue_duration_sec = 33;
+    string result = 34;
+    int32 reporting_sec = 35;
 }
 
 message EavesdropCallRequest {
