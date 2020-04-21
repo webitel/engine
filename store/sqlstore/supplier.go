@@ -58,7 +58,8 @@ type SqlSupplierOldStores struct {
 	routingOutboundCall store.RoutingOutboundCallStore
 	routingVariable     store.RoutingVariableStore
 
-	call store.CallStore
+	call         store.CallStore
+	emailProfile store.EmailProfileStore
 }
 
 type SqlSupplier struct {
@@ -109,6 +110,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.routingVariable = NewSqlRoutingVariableStore(supplier)
 
 	supplier.oldStores.call = NewSqlCallStore(supplier)
+	supplier.oldStores.emailProfile = NewSqlEmailProfileStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -312,6 +314,10 @@ func (ss *SqlSupplier) List() store.ListStore {
 
 func (ss *SqlSupplier) Call() store.CallStore {
 	return ss.oldStores.call
+}
+
+func (ss *SqlSupplier) EmailProfile() store.EmailProfileStore {
+	return ss.oldStores.emailProfile
 }
 
 type typeConverter struct{}

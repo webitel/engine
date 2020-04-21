@@ -132,3 +132,7 @@ func (s *LayeredStore) List() ListStore {
 func (s *LayeredStore) Call() CallStore {
 	return s.DatabaseLayer.Call()
 }
+
+func (s *LayeredStore) EmailProfile() EmailProfileStore {
+	return s.DatabaseLayer.EmailProfile()
+}

@@ -51,6 +51,8 @@ type Store interface {
 	RoutingVariable() RoutingVariableStore
 
 	Call() CallStore
+
+	EmailProfile() EmailProfileStore
 }
 
 type UserStore interface {
@@ -301,4 +303,12 @@ type CallStore interface {
 	Get(domainId int64, id string) (*model.Call, *model.AppError)
 	GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError)
 	BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError)
+}
+
+type EmailProfileStore interface {
+	Create(p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, *model.AppError)
+	Get(domainId int64, id int) (*model.EmailProfile, *model.AppError)
+	Update(p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
+	Delete(domainId int64, id int) *model.AppError
 }

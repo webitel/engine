@@ -41,4 +41,5 @@ type SqlStore interface {
 	RoutingVariable() store.RoutingVariableStore
 
 	Call() store.CallStore
+	EmailProfile() store.EmailProfileStore
 }
