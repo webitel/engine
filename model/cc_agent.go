@@ -16,16 +16,22 @@ func (status AgentStatus) String() string {
 	return status.Name
 }
 
+type AgentChannel struct {
+	Channel  string `json:"channel"`
+	State    string `json:"state"`
+	JoinedAt int64  `json:"joined_at"`
+	Online   bool   `json:"online"`
+}
+
 type Agent struct {
 	DomainRecord
-	User             Lookup `json:"user" db:"user"`
-	Name             string `json:"name" db:"name"`
-	Status           string `json:"status" db:"status"`
-	State            string `json:"state" db:"state"`
-	LastStateChange  int64  `json:"last_state_change" db:"last_state_change"`
-	StateTimeout     *int64 `json:"state_timeout" db:"state_timeout"`
-	Description      string `json:"description" db:"description"`
-	ProgressiveCount int    `json:"progressive_count" db:"progressive_count"`
+	User             Lookup         `json:"user" db:"user"`
+	Name             string         `json:"name" db:"name"`
+	Status           string         `json:"status" db:"status"`
+	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
+	Description      string         `json:"description" db:"description"`
+	ProgressiveCount int            `json:"progressive_count" db:"progressive_count"`
+	Channels         []AgentChannel `json:"channels" db:"channels"`
 }
 
 func (a Agent) AllowFields() []string {
@@ -33,7 +39,7 @@ func (a Agent) AllowFields() []string {
 }
 
 func (a Agent) DefaultFields() []string {
-	return []string{"id", "status", "name", "state", "description", "last_state_change", "state_timeout", "progressive_count", "user"}
+	return []string{"id", "status", "name", "channels", "description", "last_status_change", "progressive_count", "user"}
 }
 
 func (a Agent) EntityName() string {

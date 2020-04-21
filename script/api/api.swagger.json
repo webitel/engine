@@ -7690,17 +7690,10 @@
         "status": {
           "type": "string"
         },
-        "state": {
-          "type": "string"
-        },
         "description": {
           "type": "string"
         },
-        "last_state_change": {
-          "type": "string",
-          "format": "int64"
-        },
-        "state_timeout": {
+        "last_status_change": {
           "type": "string",
           "format": "int64"
         },
@@ -7710,6 +7703,31 @@
         },
         "name": {
           "type": "string"
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineAgentChannel"
+          }
+        }
+      }
+    },
+    "engineAgentChannel": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "joined_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "online": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },

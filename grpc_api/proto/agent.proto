@@ -244,16 +244,22 @@ message AgentStatusRequest {
     int64 domain_id = 4;
 }
 
+message AgentChannel {
+    string channel = 1;
+    string state = 2;
+    int64 joined_at = 3;
+    bool online = 4;
+}
+
 message Agent {
     int64 id = 1;
     Lookup user = 2;
     string status = 3;
-    string state = 4;
-    string description = 5;
-    int64 last_state_change = 6;
-    int64 state_timeout = 7;
-    int32 progressive_count = 8;
-    string name = 9;
+    string description = 4;
+    int64 last_status_change = 5;
+    int32 progressive_count = 6;
+    string name = 7;
+    repeated AgentChannel channels = 8;
 }
 
 message ListAgent {

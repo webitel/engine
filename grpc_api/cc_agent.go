@@ -484,16 +484,23 @@ func transformAgent(src *model.Agent) *engine.Agent {
 			Id:   int64(src.User.Id),
 			Name: src.User.Name,
 		},
-		LastStateChange:  src.LastStateChange,
+		LastStatusChange: src.LastStatusChange,
 		Status:           src.Status,
-		State:            src.State,
 		Description:      src.Description,
 		ProgressiveCount: int32(src.ProgressiveCount),
 		Name:             src.Name,
 	}
 
-	if src.StateTimeout != nil {
-		agent.StateTimeout = *src.StateTimeout
+	if src.Channels != nil {
+		agent.Channels = make([]*engine.AgentChannel, 0, len(src.Channels))
+		for _, v := range src.Channels {
+			agent.Channels = append(agent.Channels, &engine.AgentChannel{
+				Channel:  v.Channel,
+				State:    v.State,
+				JoinedAt: v.JoinedAt,
+				Online:   v.Online,
+			})
+		}
 	}
 
 	return agent
