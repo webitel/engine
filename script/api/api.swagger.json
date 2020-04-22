@@ -6767,6 +6767,13 @@
             "type": "string"
           },
           {
+            "name": "exists_file",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
             "name": "fields",
             "in": "query",
             "required": false,

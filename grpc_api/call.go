@@ -40,6 +40,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			To:   in.GetCreatedAt().GetTo(),
 		},
 		SkipParent: in.GetSkipParent(),
+		ExistsFile: in.GetExistsFile(),
 		UserIds:    in.GetUserId(),
 		QueueIds:   in.GetQueueId(),
 		TeamIds:    in.GetTeamId(),

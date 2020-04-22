@@ -93,6 +93,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"ParentId":   search.ParentId,
 		"Number":     search.Number,
 		"Cause":      search.Cause,
+		"ExistsFile": search.ExistsFile,
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -103,9 +104,10 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
-	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar)
+	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and (:ExistsFile::bool is not true or files notnull )
 	and (:Cause::varchar isnull or cause = :Cause )`,
 		model.HistoryCall{}, f)
 	if err != nil {

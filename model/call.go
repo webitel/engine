@@ -218,6 +218,7 @@ type SearchHistoryCall struct {
 	ParentId   *string
 	Cause      *string
 	SkipParent bool
+	ExistsFile bool
 	UserIds    []int64
 	QueueIds   []int64
 	TeamIds    []int64
