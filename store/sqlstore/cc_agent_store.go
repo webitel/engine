@@ -114,7 +114,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `
-			select a.id, a.status, a.state, a.domain_id, a.description, (extract(EPOCH from a.last_state_change) * 1000)::int8 last_state_change, a.state_timeout, progressive_count, 
+			select a.id, a.status, a.domain_id, a.description, (extract(EPOCH from a.last_state_change) * 1000)::int8 last_status_change, progressive_count, 
 				json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
@@ -143,7 +143,7 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
-		select u.id, u.status, u.state, u.domain_id, u.description, (extract(EPOCH from u.last_state_change) * 1000)::int8 last_state_change, u.state_timeout, progressive_count, 
+		select u.id, u.status, u.domain_id, u.description, (extract(EPOCH from u.last_state_change) * 1000)::int8 last_status_change, progressive_count, 
 			json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
 		from u
 			inner join directory.wbt_user ct on ct.id = u.user_id
@@ -401,19 +401,21 @@ offset :Offset`, map[string]interface{}{
 func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, *model.AppError) {
 	var agent *model.AgentSession
 	err := s.GetMaster().SelectOne(&agent, `select a.id as agent_id,
-       case when a.status = 'online' then a.state else a.status end status,
-       a.state_timeout,
+       a.status,
        a.status_payload,
-       (extract(EPOCH from last_state_change) * 1000)::int8 last_state_change,
-       a.attempt_id,
-       (extract(EPOCH from now() - last_state_change) )::int8 state_duration
-	   	
+       (extract(EPOCH from last_state_change) * 1000)::int8 last_status_change,
+       (extract(EPOCH from now() - last_state_change) )::int8 status_duration,
+       ch.x as channels
 from cc_agent a
-where a.user_id = :UserId and a.domain_id = :DomainId
-limit 1`, map[string]interface{}{
+     LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'online', c.online, 'state',
+                                                       c.state, 'joined_at',
+                                                       (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
+                     FROM call_center.cc_agent_channels c
+                     WHERE c.agent_id = a.id) ch ON true
+where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
-	}) //FIXME LIMIT
+	})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.GetSession", "store.sql_agent.get_session.app_error", nil, err.Error(), extractCodeFromErr(err))
