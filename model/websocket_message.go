@@ -17,7 +17,8 @@ const (
 )
 
 const (
-	WebsocketEventAgentStatus = "agent_status"
+	WebsocketCCEventAgentStatus   = "agent_status"
+	WebsocketCCEventChannelStatus = "channel"
 )
 
 type WebSocketMessage interface {
@@ -52,6 +53,10 @@ func (m *WebSocketEvent) PrecomputeJSON() {
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
 	m.Data[key] = value
+}
+
+func (m *WebSocketEvent) SetData(data map[string]interface{}) {
+	m.Data = data
 }
 
 func (m *WebSocketEvent) GetString(key string) string {

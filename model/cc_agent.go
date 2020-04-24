@@ -1,6 +1,10 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+)
 
 type AgentStatus struct {
 	Name string
@@ -20,6 +24,7 @@ type AgentChannel struct {
 	Channel  string `json:"channel"`
 	State    string `json:"state"`
 	JoinedAt int64  `json:"joined_at"`
+	Timeout  *int64 `json:"timeout,omitempty"`
 	Online   bool   `json:"online"`
 }
 
@@ -108,6 +113,13 @@ type SearchAgentInQueue struct {
 	ListRequest
 }
 
+type CallCenterPayload map[string]interface{}
+
+type CallCenterEvent struct {
+	Event string            `json:"event"`
+	Body  CallCenterPayload `json:"data,string,omitempty"`
+}
+
 type AgentInQueue struct {
 	Queue          Lookup `json:"queue" db:"queue"`
 	Priority       int    `json:"priority" db:"priority"`
@@ -130,19 +142,18 @@ type AgentInQueueStats struct {
 	MemberWaiting int     `json:"member_waiting" db:"member_waiting"`
 }
 
-type AgentStatusEvent struct {
-	UserId        int64          `json:"user_id"`
-	AgentId       int            `json:"agent_id"`
-	Timestamp     int64          `json:"timestamp"`
-	Status        string         `json:"status"`
-	StatusPayload string         `json:"status_payload"`
-	OnDemand      *bool          `json:"on_demand,omitempty"`
-	Channels      []AgentChannel `json:"channels,omitempty"`
-}
+func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, *AppError) {
+	var e *WebSocketEvent
 
-func NewWebSocketAgentStatusEvent(status *AgentStatusEvent) *WebSocketEvent {
-	e := NewWebSocketEvent(WebsocketEventAgentStatus)
-	e.Add("status", status)
+	switch ev.Event {
+	case WebsocketCCEventAgentStatus, WebsocketCCEventChannelStatus:
+		e = NewWebSocketEvent(ev.Event)
+	default:
+		return nil, NewAppError("Event", "event.cc.valid.event", nil,
+			fmt.Sprintf("unknown event \"%s\"", ev.Event), http.StatusInternalServerError)
+	}
 
-	return e
+	e.SetData(ev.Body)
+
+	return e, nil
 }

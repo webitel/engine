@@ -136,7 +136,7 @@ func (a *App) GetAgentSession(domainId, id int64) (*model.AgentSession, *model.A
 }
 
 func (a *App) LoginAgent(domainId, agentId int64) *model.AppError {
-	err := a.cc.Agent().Login(domainId, agentId)
+	err := a.cc.Agent().Online(domainId, agentId)
 	if err != nil {
 		return model.NewAppError("LoginAgent", "app.agent.login.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -145,12 +145,21 @@ func (a *App) LoginAgent(domainId, agentId int64) *model.AppError {
 }
 
 func (a *App) LogoutAgent(domainId, agentId int64) *model.AppError {
-	err := a.cc.Agent().Logout(domainId, agentId)
+	err := a.cc.Agent().Offline(domainId, agentId)
 	if err != nil {
 		return model.NewAppError("LogoutAgent", "app.agent.logout.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return nil
+}
+
+func (a *App) WaitingAgentChannel(domainId int64, agentId int64, channel string) (int64, *model.AppError) {
+	timestamp, err := a.cc.Agent().WaitingChannel(int(agentId), channel)
+	if err != nil {
+		return 0, model.NewAppError("WaitingAgentChannel", "app.agent.waiting.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return timestamp, nil
 }
 
 func (a *App) PauseAgent(domainId, agentId int64, payload string, timeout int) *model.AppError {

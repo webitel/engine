@@ -104,7 +104,16 @@ func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId in
 		Exchange: model.CallCenterExchange,
 	}
 
+	// FIXME
+	b2 := &model.BindQueueEvent{
+		UserId:   userId,
+		Id:       id,
+		Routing:  fmt.Sprintf("events.channel.*.%d.*.%d", dq.id, agentId),
+		Exchange: model.CallCenterExchange,
+	}
+
 	dq.bindChan <- b
+	dq.bindChan <- b2
 	return b
 }
 
@@ -178,12 +187,18 @@ func (dq *DomainQueue) readAgentStatusEvent(data []byte, rk string) {
 		return
 	}
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive agent status event %v [%v] rk=%s", dq.Id(), e.AgentId, e.Status, rk))
-	dq.events <- model.NewWebSocketAgentStatusEvent(e)
+	if ev, appErr := model.NewWebSocketCallCenterEvent(e); appErr != nil {
+		wlog.Warn(appErr.Error())
+		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse event, skip %s", dq.Id(), string(data)))
+		return
+	} else {
+		wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive cc event %v <%v> rk=%s", dq.Id(), e.Event, string(data), rk))
+		dq.events <- ev
+	}
 }
 
-func parseAgentStatusEvent(data []byte) (*model.AgentStatusEvent, error) {
-	var e *model.AgentStatusEvent
+func parseAgentStatusEvent(data []byte) (*model.CallCenterEvent, error) {
+	var e *model.CallCenterEvent
 	err := json.Unmarshal(data, &e)
 	if err != nil {
 		return nil, err

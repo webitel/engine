@@ -74,6 +74,23 @@ func (c *Controller) PauseAgent(session *auth_manager.Session, domainId, agentId
 	return c.app.PauseAgent(session.Domain(domainId), agentId, payload, timeout)
 }
 
+func (c *Controller) WaitingAgent(session *auth_manager.Session, domainId, agentId int64, channel string) (int64, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return 0, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return 0, err
+		} else if !perm {
+			return 0, c.app.MakeResourcePermissionError(session, agentId, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.WaitingAgentChannel(session.Domain(domainId), agentId, channel)
+}
+
 func (c *Controller) GetAgentInQueueStatistics(session *auth_manager.Session, domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {

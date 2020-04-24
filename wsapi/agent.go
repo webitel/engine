@@ -8,9 +8,10 @@ import (
 func (api *API) InitAgent() {
 	api.Router.Handle("cc_agent_session", api.ApiWebSocketHandler(api.getAgentSession))
 	api.Router.Handle("cc_agent_subscribe_status", api.ApiWebSocketHandler(api.subscribeAgentsStatus))
-	api.Router.Handle("cc_agent_waiting", api.ApiWebSocketHandler(api.loginAgent)) //FIXME /cc.AgentService/Login
-	api.Router.Handle("cc_agent_logout", api.ApiWebSocketHandler(api.logoutAgent)) //FIXME /cc.AgentService/Login
-	api.Router.Handle("cc_agent_pause", api.ApiWebSocketHandler(api.pauseAgent))   //FIXME /cc.AgentService/Login
+	api.Router.Handle("cc_agent_online", api.ApiWebSocketHandler(api.onlineAgent))
+	api.Router.Handle("cc_agent_waiting", api.ApiWebSocketHandler(api.waitingAgent))
+	api.Router.Handle("cc_agent_offline", api.ApiWebSocketHandler(api.offlineAgent))
+	api.Router.Handle("cc_agent_pause", api.ApiWebSocketHandler(api.pauseAgent))
 }
 
 func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -49,7 +50,7 @@ func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) 
 	return sess.ToMap(), nil
 }
 
-func (api *API) loginAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var agentId float64
 	var domainId float64
 	var ok bool
@@ -71,7 +72,7 @@ func (api *API) loginAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return res, nil
 }
 
-func (api *API) logoutAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var agentId float64
 	var domainId float64
 	var ok bool
@@ -117,5 +118,33 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	}
 
 	res := make(map[string]interface{})
+	return res, nil
+}
+
+func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var agentId float64
+	var domainId float64
+	var channel string
+	var ok bool
+
+	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	}
+
+	if channel, ok = req.Data["channel"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel")
+	}
+
+	if domainId, ok = req.Data["domain_id"].(float64); !ok {
+		domainId = float64(conn.DomainId)
+	}
+
+	timestamp, err := api.ctrl.WaitingAgent(conn.GetSession(), int64(domainId), int64(agentId), channel)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	res["timestamp"] = timestamp
 	return res, nil
 }

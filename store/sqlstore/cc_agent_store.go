@@ -408,9 +408,8 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        ch.x as channels
 from cc_agent a
      LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'online', c.online, 'state',
-                                                       c.state, 'joined_at',
-                                                       (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
-                     FROM call_center.cc_agent_channels c
+                                                       c.state, 'joined_at', cc_view_timestamp(c.joined_at), 'timeout', cc_view_timestamp(c.timeout))) AS x
+                     FROM call_center.cc_agent_channel c
                      WHERE c.agent_id = a.id) ch ON true
 where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
 		"UserId":   userId,
