@@ -23,6 +23,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_blind_transfer", api.ApiWebSocketHandler(api.callBlindTransfer))
 	api.Router.Handle("call_bridge", api.ApiWebSocketHandler(api.callBridge))
 
+	api.Router.Handle("call_by_user", api.ApiAsyncWebSocketHandler(api.callByUser))
 	api.Router.Handle("test", api.ApiAsyncWebSocketHandler(api.test))
 
 	api.Router.Handle("sip_proxy", api.ApiWebSocketHandler(api.sipProxy))
@@ -31,6 +32,26 @@ func (api *API) InitCall() {
 func (api *API) test(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	time.Sleep(time.Second * 10)
 	return nil, nil
+}
+
+func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	calls, end, err := api.ctrl.SearchCall(conn.GetSession(), &model.SearchCall{
+		ListRequest: model.ListRequest{
+			Page:    1,
+			PerPage: 1000,
+			Sort:    "created_at",
+		},
+		UserId: model.NewInt64(conn.UserId),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	res["items"] = calls
+	res["next"] = !end
+	return res, nil
 }
 
 func (api *API) sipProxy(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

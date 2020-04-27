@@ -8,6 +8,27 @@ import (
 func (api *API) InitMember() {
 	api.Router.Handle("cc_member_direct", api.ApiWebSocketHandler(api.memberDirect))
 	api.Router.Handle("cc_fetch_offline_members", api.ApiWebSocketHandler(api.offlineMembers))
+	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
+}
+
+func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var attemptId float64
+	var status string
+	var ok bool
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	status, _ = req.Data["status"].(string)
+
+	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	return res, nil
 }
 
 func (api *API) memberDirect(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

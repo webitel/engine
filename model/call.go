@@ -208,6 +208,7 @@ func (c HistoryCall) EntityName() string {
 
 type SearchCall struct {
 	ListRequest
+	UserId *int64 `json:"user_id"`
 }
 
 type SearchHistoryCall struct {

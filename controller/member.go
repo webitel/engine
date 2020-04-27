@@ -30,3 +30,12 @@ func (c *Controller) ListOfflineQueueForAgent(session *auth_manager.Session, sea
 
 	return c.app.ListOfflineQueueForAgent(session.DomainId, search)
 }
+
+func (c *Controller) ReportingAttempt(session *auth_manager.Session, attemptId int64, status string) *model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.ReportingAttempt(attemptId, status)
+}

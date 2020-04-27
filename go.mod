@@ -16,7 +16,7 @@ require (
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v0.0.0-20200108173154-1c71cc93ed71
-	github.com/webitel/call_center v0.0.0-20200424105147-8fe159d29122
+	github.com/webitel/call_center v0.0.0-20200427101221-69b03da4b471
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/atomic v1.6.0
 	go.uber.org/ratelimit v0.1.0
