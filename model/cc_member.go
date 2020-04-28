@@ -157,6 +157,7 @@ func (c Attempt) DefaultFields() []string {
 		"reporting_at",
 		"leaving_at",
 		"timeout",
+		"result",
 	}
 }
 

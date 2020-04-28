@@ -365,7 +365,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		AppId:            src.AppId,
 		Type:             src.Type,
 		User:             GetProtoLookup(src.User),
-		Extension:        "FIXME!!!",
+		Extension:        "",
 		Gateway:          GetProtoLookup(src.Gateway),
 		Direction:        src.Direction,
 		Destination:      src.Destination,
@@ -424,6 +424,10 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 
 	if src.SipCode != nil {
 		item.SipCode = int32(*src.SipCode)
+	}
+
+	if src.Extension != nil {
+		item.Extension = *src.Extension
 	}
 
 	return item
