@@ -153,6 +153,7 @@ type HistoryCall struct {
 	Type        string            `json:"type" db:"type"`
 	ParentId    *string           `json:"parent_id" db:"parent_id"`
 	User        *Lookup           `json:"user" db:"user"`
+	Extension   *string           `json:"extension" db:"extension"`
 	Gateway     *Lookup           `json:"gateway" db:"gateway"`
 	Direction   string            `json:"direction" db:"direction"`
 	Destination string            `json:"destination" db:"destination"`
@@ -180,14 +181,15 @@ type HistoryCall struct {
 	Team   *Lookup `json:"team" db:"team"`
 	Agent  *Lookup `json:"agent" db:"agent"`
 
-	JoinedAt         *int64  `json:"joined_at" db:"joined_at"`
-	LeavingAt        *int64  `json:"leaving_at" db:"leaving_at"`
-	ReportingAt      *int64  `json:"reporting_at" db:"reporting_at"`
-	QueueBridgedAt   *int64  `json:"queue_bridged_at" db:"queue_bridged_at"`
-	QueueWaitSec     *int    `json:"queue_wait_sec" db:"queue_wait_sec"`
-	QueueDurationSec *int    `json:"queue_duration_sec" db:"queue_duration_sec"`
-	Result           *string `json:"result" db:"result"`
-	ReportingSec     *int    `json:"reporting_sec" db:"reporting_sec"`
+	JoinedAt         *int64      `json:"joined_at" db:"joined_at"`
+	LeavingAt        *int64      `json:"leaving_at" db:"leaving_at"`
+	ReportingAt      *int64      `json:"reporting_at" db:"reporting_at"`
+	QueueBridgedAt   *int64      `json:"queue_bridged_at" db:"queue_bridged_at"`
+	QueueWaitSec     *int        `json:"queue_wait_sec" db:"queue_wait_sec"`
+	QueueDurationSec *int        `json:"queue_duration_sec" db:"queue_duration_sec"`
+	ReportingSec     *int        `json:"reporting_sec" db:"reporting_sec"`
+	Result           *string     `json:"result" db:"result"`
+	Tags             StringArray `json:"tags" db:"tags"`
 }
 
 func (c HistoryCall) AllowFields() []string {
@@ -195,15 +197,23 @@ func (c HistoryCall) AllowFields() []string {
 }
 
 func (c HistoryCall) DefaultFields() []string {
-	return []string{"id", "app_id", "parent_id", "user", "gateway", "direction", "destination", "from", "to", "variables",
+	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags",
 	}
 }
 
 func (c HistoryCall) EntityName() string {
 	return "cc_call_history_list"
+}
+
+func (c *HistoryCall) GetResult() string {
+	if c.Result != nil {
+		return *c.Result
+	}
+
+	return ""
 }
 
 type SearchCall struct {

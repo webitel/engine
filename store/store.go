@@ -257,8 +257,10 @@ type MemberStore interface {
 	Delete(queueId, id int64) *model.AppError
 	MultiDelete(queueId int64, ids []int64) ([]*model.Member, *model.AppError)
 
+	// Move to new store
 	AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) //FIXME
 	SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError)
+	SearchAttemptsHistory(domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, *model.AppError)
 	ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError)
 }
 

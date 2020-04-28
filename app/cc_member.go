@@ -85,6 +85,15 @@ func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *mode
 	return app.Store.Member().AttemptsList(memberId)
 }
 
+func (app *App) SearchAttemptsHistory(domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, bool, *model.AppError) {
+	list, err := app.Store.Member().SearchAttemptsHistory(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
 func (app *App) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, bool, *model.AppError) {
 	list, err := app.Store.Member().SearchAttempts(domainId, search)
 	if err != nil {

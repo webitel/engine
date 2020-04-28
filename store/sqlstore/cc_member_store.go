@@ -396,53 +396,70 @@ from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
 	return attempts, nil
 }
 
+func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, *model.AppError) {
+	var att []*model.AttemptHistory
+
+	f := map[string]interface{}{
+		"Domain":    domainId,
+		"Limit":     search.GetLimit(),
+		"Offset":    search.GetOffset(),
+		"From":      search.JoinedAt.From,
+		"To":        search.JoinedAt.To,
+		"Ids":       pq.Array(search.Ids),
+		"QueueIds":  pq.Array(search.QueueIds),
+		"BucketIds": pq.Array(search.BucketIds),
+		"MemberIds": pq.Array(search.MemberIds),
+		"AgentIds":  pq.Array(search.AgentIds),
+		"Result":    search.Result,
+	}
+
+	err := s.ListQuery(&att, search.ListRequest,
+		`domain_id = :Domain
+	and joined_at_timestamp between to_timestamp( (:From::int8 / 1000)::int8 ) and to_timestamp( (:To::int8 / 1000)::int8 )
+	and (:Ids::int8[] isnull or id = any(:Ids))
+	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
+	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
+	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
+	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
+	and (:Result::varchar isnull or result = :Result )`,
+		model.AttemptHistory{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.SearchAttemptsHistory", "store.sql_member.attempts_history.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	return att, nil
+}
+
 func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError) {
 	var att []*model.Attempt
-	_, err := s.GetReplica().Select(&att, `select a.id,
-       cc_get_lookup(a.member_id, m.name) as member,
-       (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
-       cc_get_lookup(q.id, q.name) queue,
-       destination as destination,
-       a.weight,
-       a.originate_at,
-       a.answered_at,
-       a.bridged_at,
-       a.hangup_at,
-       cc_get_lookup(cor.id, cor.name) as resource,
-       leg_a_id,
-       leg_b_id,
-       result,
-       cc_get_lookup(ca.id, u.name) as agent,
-       cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
-       m.variables
-    from cc_member_attempt a
-        inner join cc_queue as q on q.id = a.queue_id
-        inner join cc_member m on m.id = a.member_id
-        left join cc_outbound_resource cor on a.resource_id = cor.id
-        left join cc_agent ca on a.agent_id = ca.id
-        left join directory.wbt_user u on u.id = ca.user_id
-        left join cc_bucket cb on a.bucket_id = cb.id
-where m.domain_id = :Domain and a.created_at between to_timestamp( (:From::int8 / 1000)::int8 ) and to_timestamp( (:To::int8 / 1000)::int8 )
-	and (:Id::int8 isnull or a.id = :Id) and (:MemberId::int8 isnull or a.member_id = :MemberId) and (:Result::varchar isnull or a.result = :Result) 
-	and (:QueueId::int8 isnull or a.queue_id = :QueueId) and (:AgentId::int8 isnull or a.agent_id = :AgentId) and (:BucketId::int8 isnull or a.bucket_id = :BucketId)
-order by a.created_at
-limit :Limit
-offset :Offset`, map[string]interface{}{
-		"Domain":   domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
-		"From":     search.CreatedAt.From,
-		"To":       search.CreatedAt.To,
-		"Id":       search.Id,
-		"MemberId": search.MemberId,
-		"Result":   search.Result,
-		"QueueId":  search.QueueId,
-		"AgentId":  search.AgentId,
-		"BucketId": search.BucketId,
-	})
 
+	f := map[string]interface{}{
+		"Domain":    domainId,
+		"Limit":     search.GetLimit(),
+		"Offset":    search.GetOffset(),
+		"From":      search.JoinedAt.From,
+		"To":        search.JoinedAt.To,
+		"Ids":       pq.Array(search.Ids),
+		"QueueIds":  pq.Array(search.QueueIds),
+		"BucketIds": pq.Array(search.BucketIds),
+		"MemberIds": pq.Array(search.MemberIds),
+		"AgentIds":  pq.Array(search.AgentIds),
+		"Result":    search.Result,
+	}
+
+	err := s.ListQuery(&att, search.ListRequest,
+		`domain_id = :Domain
+	and joined_at_timestamp between to_timestamp( (:From::int8 / 1000)::int8 ) and to_timestamp( (:To::int8 / 1000)::int8 )
+	and (:Ids::int8[] isnull or id = any(:Ids))
+	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
+	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
+	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
+	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
+	and (:Result::varchar isnull or result = :Result )`,
+		model.Attempt{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.SqlMemberStore", "store.sql_member.attempts_history.app_error", nil,
+		return nil, model.NewAppError("SqlMemberStore.SearchAttempts", "store.sql_member.attempts.app_error", nil,
 			err.Error(), extractCodeFromErr(err))
 	}
 

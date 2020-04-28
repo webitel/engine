@@ -383,8 +383,8 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 
 	//FIXME check queue PERMISSION
 
-	if in.GetCreatedAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchAttempts", "grpc.member.search_attempt", nil, "filter created_at is required", http.StatusBadRequest)
+	if in.GetJoinedAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchAttempts", "grpc.member.search_attempt", nil, "filter joined_at is required", http.StatusBadRequest)
 	}
 
 	var list []*model.Attempt
@@ -394,35 +394,22 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 			DomainId: in.GetDomainId(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
+			Fields:   in.GetFields(),
+			Sort:     in.GetSort(),
 		},
-		CreatedAt: model.FilterBetween{
-			From: in.GetCreatedAt().GetFrom(),
-			To:   in.GetCreatedAt().GetTo(),
+		JoinedAt: model.FilterBetween{
+			From: in.GetJoinedAt().GetFrom(),
+			To:   in.GetJoinedAt().GetTo(),
 		},
-	}
-
-	if in.GetId() != 0 {
-		req.Id = &in.Id
-	}
-
-	if in.GetMemberId() != 0 {
-		req.MemberId = &in.MemberId
+		Ids:       in.GetId(),
+		MemberIds: in.GetMemberId(),
+		QueueIds:  in.GetQueueId(),
+		BucketIds: in.GetBucketId(),
+		AgentIds:  in.GetAgentId(),
 	}
 
 	if in.GetResult() != "" {
 		req.Result = &in.Result
-	}
-
-	if in.GetQueueId() != 0 {
-		req.QueueId = &in.QueueId
-	}
-
-	if in.GetAgentId() != 0 {
-		req.AgentId = &in.AgentId
-	}
-
-	if in.GetBucketId() != 0 {
-		req.BucketId = &in.BucketId
 	}
 
 	if list, endList, err = api.app.SearchAttempts(session.Domain(in.GetDomainId()), req); err != nil {
@@ -435,6 +422,63 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 	}
 
 	return &engine.ListAttempt{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
+func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchAttemptsRequest) (*engine.ListHistoryAttempt, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	//FIXME check queue PERMISSION
+
+	if in.GetJoinedAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchAttempts", "grpc.member.search_attempt", nil, "filter joined_at is required", http.StatusBadRequest)
+	}
+
+	var list []*model.AttemptHistory
+	var endList bool
+	req := &model.SearchAttempts{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+			Fields:   in.GetFields(),
+			Sort:     in.GetSort(),
+		},
+		JoinedAt: model.FilterBetween{
+			From: in.GetJoinedAt().GetFrom(),
+			To:   in.GetJoinedAt().GetTo(),
+		},
+		Ids:       in.GetId(),
+		MemberIds: in.GetMemberId(),
+		QueueIds:  in.GetQueueId(),
+		BucketIds: in.GetBucketId(),
+		AgentIds:  in.GetAgentId(),
+	}
+
+	if in.GetResult() != "" {
+		req.Result = &in.Result
+	}
+
+	if list, endList, err = api.app.SearchAttemptsHistory(session.Domain(in.GetDomainId()), req); err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AttemptHistory, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineAttemptHistory(v))
+	}
+
+	return &engine.ListHistoryAttempt{
 		Next:  !endList,
 		Items: items,
 	}, nil
@@ -637,31 +681,76 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 
 func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 	item := &engine.Attempt{
-		Id:          src.Id,
-		Member:      GetProtoLookup(&src.Member),
-		CreatedAt:   src.CreatedAt,
-		Destination: toEngineDestination(src.Destination),
-		Weight:      int32(src.Weight),
-		OriginateAt: src.OriginateAt,
-		AnsweredAt:  src.AnsweredAt,
-		BridgedAt:   src.BridgedAt,
-		HangupAt:    src.HangupAt,
-		Queue:       GetProtoLookup(&src.Queue),
-		Resource:    GetProtoLookup(src.Resource),
-		Agent:       GetProtoLookup(src.Agent),
-		Bucket:      GetProtoLookup(src.Bucket),
-		Variables:   src.Variables,
+		Id:              src.Id,
+		State:           src.State,
+		LastStateChange: src.LastStateChange,
+		JoinedAt:        src.JoinedAt,
+		OfferingAt:      src.OfferingAt,
+		BridgedAt:       src.BridgedAt,
+		ReportingAt:     src.ReportingAt,
+		Timeout:         src.Timeout,
+		LeavingAt:       src.LeavingAt,
+		Channel:         src.Channel,
+		Queue:           GetProtoLookup(&src.Queue),
+		Member:          GetProtoLookup(src.Member),
+		MemberCallId:    "",
+		Variables:       src.Variables,
+		Agent:           GetProtoLookup(&src.Queue),
+		AgentCallId:     "",
+		Position:        int32(src.Position),
+		Resource:        GetProtoLookup(src.Resource),
+		Bucket:          GetProtoLookup(src.Bucket),
+		List:            GetProtoLookup(src.List),
+		Display:         src.Display,
+		Destination:     toEngineDestination(src.Destination),
+		Result:          "",
 	}
 
-	if src.LegAId != nil {
-		item.LegAId = *src.LegAId
+	if src.MemberCallId != nil {
+		item.MemberCallId = *src.MemberCallId
 	}
-	if src.LegBId != nil {
-		item.LegBId = *src.LegBId
+
+	if src.AgentCallId != nil {
+		item.AgentCallId = *src.AgentCallId
 	}
 
 	if src.Result != nil {
 		item.Result = *src.Result
+	}
+
+	return item
+}
+
+func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
+	item := &engine.AttemptHistory{
+		Id:           src.Id,
+		JoinedAt:     src.JoinedAt,
+		OfferingAt:   src.OfferingAt,
+		BridgedAt:    src.BridgedAt,
+		ReportingAt:  src.ReportingAt,
+		LeavingAt:    src.LeavingAt,
+		Channel:      src.Channel,
+		Queue:        GetProtoLookup(&src.Queue),
+		Member:       GetProtoLookup(src.Member),
+		MemberCallId: "",
+		Variables:    src.Variables,
+		Agent:        GetProtoLookup(&src.Queue),
+		AgentCallId:  "",
+		Position:     int32(src.Position),
+		Resource:     GetProtoLookup(src.Resource),
+		Bucket:       GetProtoLookup(src.Bucket),
+		List:         GetProtoLookup(src.List),
+		Display:      src.Display,
+		Destination:  toEngineDestination(src.Destination),
+		Result:       src.Result,
+	}
+
+	if src.MemberCallId != nil {
+		item.MemberCallId = *src.MemberCallId
+	}
+
+	if src.AgentCallId != nil {
+		item.AgentCallId = *src.AgentCallId
 	}
 
 	return item

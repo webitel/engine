@@ -70,8 +70,15 @@ service MemberService {
         };
     }
 
-    // SearchMemberAttempts
+    // SearchAttempts
     rpc SearchAttempts(SearchAttemptsRequest) returns (ListAttempt) {
+        option (google.api.http) = {
+            get: "/call_center/queues/attempts/active"
+        };
+    }
+
+    // SearchMemberAttempts
+    rpc SearchAttemptsHistory(SearchAttemptsRequest) returns (ListHistoryAttempt) {
         option (google.api.http) = {
             get: "/call_center/queues/attempts/history"
         };
@@ -84,6 +91,7 @@ service MemberService {
         };
     }
 
+    // Offline queue
     rpc CreateAttempt(CreateAttemptRequest) returns (CreateAttemptResponse) {
         option (google.api.http) = {
             post: "/call_center/queues/{queue_id}/members/{member_id}/attempts"
@@ -124,46 +132,84 @@ message AttemptResultResponse {
     string status = 1;
 }
 
+message ListHistoryAttempt {
+    bool next = 1;
+    repeated AttemptHistory items = 2;
+}
+
 message ListAttempt {
     bool next = 1;
     repeated Attempt items = 2;
 }
 
+message AttemptHistory {
+    int64 id = 1;
+    int64 joined_at = 4;
+    int64 offering_at = 5;
+    int64 bridged_at = 6;
+    int64 reporting_at = 7;
+    int64 leaving_at = 10;
+
+    string channel = 11;
+    Lookup queue = 12;
+    Lookup member = 13;
+    string member_call_id = 14;
+    map<string,string> variables = 15;
+
+    Lookup agent = 16;
+    string agent_call_id = 17;
+    int32 position = 18;
+    Lookup resource = 19;
+    Lookup bucket = 20;
+    Lookup list = 21; //black list ?
+    string display = 22;
+    MemberCommunication destination = 23;
+    string result = 24;
+}
+
 message Attempt {
     int64 id = 1;
-    Lookup member = 2;
+    string state = 2;
+    int64 last_state_change = 3;
+    int64 joined_at = 4;
+    int64 offering_at = 5;
+    int64 bridged_at = 6;
+    int64 reporting_at = 7;
+    int64 timeout = 9;
+    int64 leaving_at = 10;
+    string channel = 11;
+    Lookup queue = 12;
+    Lookup member = 13;
+    string member_call_id = 14;
+    map<string,string> variables = 15;
 
-    int64 created_at = 3;
-    MemberCommunication destination = 4;
-    int32 weight = 5;
-    int64 originate_at = 6;
-    int64 answered_at = 7;
-    int64 bridged_at = 8;
-    int64 hangup_at = 9;
-    Lookup resource = 10;
-    string leg_a_id = 11;
-    string leg_b_id = 12;
-    string result = 13;
-    Lookup agent = 14;
-    Lookup bucket = 15;
-    bool active = 17;
-    Lookup queue = 18;
-    map<string,string> variables = 19;
+    Lookup agent = 16;
+    string agent_call_id = 17;
+    int32 position = 18;
+    Lookup resource = 19;
+    Lookup bucket = 20;
+    Lookup list = 21; //black list ?
+    string display = 22;
+    MemberCommunication destination = 23;
+    string result = 24;
 }
+
 
 message SearchAttemptsRequest {
     int32 page = 1;
     int32 size = 2;
 
-    FilterBetween created_at = 3;
-    int64 id = 4;
-    int64 member_id = 5;
-    int64 queue_id = 7;
-    int64 agent_id = 10;
-    string result = 11;
-    int64 bucket_id = 12;
+    FilterBetween joined_at = 3;
+    repeated int64 id = 4;
+    repeated int64 queue_id = 5;
+    repeated int64 bucket_id = 6;
+    repeated int64 member_id = 7;
+    repeated int64 agent_id = 8;
+    string result = 9;
 
-    int64 domain_id = 13;
+    repeated string fields = 10;
+    string sort = 11;
+    int64 domain_id = 12;
 }
 
 message SearchMembersRequest {

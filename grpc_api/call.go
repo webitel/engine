@@ -365,6 +365,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		AppId:            src.AppId,
 		Type:             src.Type,
 		User:             GetProtoLookup(src.User),
+		Extension:        "FIXME!!!",
 		Gateway:          GetProtoLookup(src.Gateway),
 		Direction:        src.Direction,
 		Destination:      src.Destination,
@@ -391,8 +392,9 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		QueueBridgedAt:   defaultBigInt(src.QueueBridgedAt),
 		QueueWaitSec:     defaultInt(src.QueueWaitSec),
 		QueueDurationSec: defaultInt(src.QueueDurationSec),
-		Result:           "",
 		ReportingSec:     defaultInt(src.ReportingSec),
+		Result:           src.GetResult(),
+		Tags:             src.Tags, // TODO
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId

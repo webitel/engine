@@ -44,25 +44,124 @@ type OfflineMember struct {
 	Variables      StringMap             `json:"variables" db:"variables"`
 }
 
-type Attempt struct {
-	Id          int64               `json:"id" db:"id"`
-	Member      Lookup              `json:"member" db:"member"`
-	Queue       Lookup              `json:"queue" db:"queue"`
-	CreatedAt   int64               `json:"created_at" db:"created_at"`
-	Destination MemberCommunication `json:"destination" db:"destination"`
-	Weight      int                 `json:"weight" db:"weight"`
-	OriginateAt int64               `json:"originate_at" db:"originate_at"`
-	AnsweredAt  int64               `json:"answered_at" db:"answered_at"`
-	BridgedAt   int64               `json:"bridged_at" db:"bridged_at"`
-	HangupAt    int64               `json:"hangup_at" db:"hangup_at"`
-	Resource    *Lookup             `json:"resource" db:"resource"`
-	LegAId      *string             `json:"leg_a_id" db:"leg_a_id"`
-	LegBId      *string             `json:"leg_b_id" db:"leg_b_id"`
-	Result      *string             `json:"result" db:"result"`
+/*
+|id|state|last_state_change|timeout|channel|queue|member|variables|agent|position|resource|bucket|list|display|destination|joined_at|offering_at|bridged_at|reporting_at|leaving_at|active|
+*/
+
+type AttemptHistory struct {
+	Id           int64             `json:"id" db:"id"`
+	JoinedAt     int64             `json:"joined_at" db:"joined_at"`
+	OfferingAt   int64             `json:"offering_at" db:"offering_at"`
+	BridgedAt    int64             `json:"bridged_at" db:"bridged_at"`
+	ReportingAt  int64             `json:"reporting_at" db:"reporting_at"`
+	LeavingAt    int64             `json:"leaving_at" db:"leaving_at"`
+	Channel      string            `json:"channel" db:"channel"`
+	Queue        Lookup            `json:"queue" db:"queue"`
+	Member       *Lookup           `json:"member" db:"member"`
+	MemberCallId *string           `json:"member_call_id" db:"member_call_id"`
+	Variables    map[string]string `json:"variables" db:"variables"`
+
 	Agent       *Lookup             `json:"agent" db:"agent"`
+	AgentCallId *string             `json:"agent_call_id" db:"agent_call_id"`
+	Position    int                 `json:"position" db:"position"`
+	Resource    *Lookup             `json:"resource" db:"resource"`
 	Bucket      *Lookup             `json:"bucket" db:"bucket"`
-	Variables   map[string]string   `json:"variables" db:"variables"`
-	Active      bool                `json:"active" db:"active"`
+	List        *Lookup             `json:"list" db:"list"`
+	Display     string              `json:"display" db:"display"`
+	Destination MemberCommunication `json:"destination" db:"destination"`
+	Active      bool                `json:"active" db:"active"` // FIXME delete me
+	Result      string              `json:"result" db:"result"`
+}
+
+func (c AttemptHistory) AllowFields() []string {
+	return c.DefaultFields()
+}
+
+func (c AttemptHistory) DefaultFields() []string {
+	return []string{
+		"id",
+		"channel",
+		"queue",
+		"member",
+		"variables",
+		"agent",
+		"position",
+		"resource",
+		"bucket",
+		"list",
+		"display",
+		"destination",
+		"joined_at",
+		"offering_at",
+		"bridged_at",
+		"reporting_at",
+		"leaving_at",
+		"result",
+	}
+}
+
+func (c AttemptHistory) EntityName() string {
+	return "cc_member_view_attempt_history"
+}
+
+type Attempt struct {
+	Id              int64             `json:"id" db:"id"`
+	State           string            `json:"state" db:"state"`
+	LastStateChange int64             `json:"last_state_change" db:"last_state_change"`
+	JoinedAt        int64             `json:"joined_at" db:"joined_at"`
+	OfferingAt      int64             `json:"offering_at" db:"offering_at"`
+	BridgedAt       int64             `json:"bridged_at" db:"bridged_at"`
+	ReportingAt     int64             `json:"reporting_at" db:"reporting_at"`
+	Timeout         int64             `json:"timeout" db:"timeout"`
+	LeavingAt       int64             `json:"leaving_at" db:"leaving_at"`
+	Channel         string            `json:"channel" db:"channel"`
+	Queue           Lookup            `json:"queue" db:"queue"`
+	Member          *Lookup           `json:"member" db:"member"`
+	MemberCallId    *string           `json:"member_call_id" db:"member_call_id"`
+	Variables       map[string]string `json:"variables" db:"variables"`
+
+	Agent       *Lookup             `json:"agent" db:"agent"`
+	AgentCallId *string             `json:"agent_call_id" db:"agent_call_id"`
+	Position    int                 `json:"position" db:"position"`
+	Resource    *Lookup             `json:"resource" db:"resource"`
+	Bucket      *Lookup             `json:"bucket" db:"bucket"`
+	List        *Lookup             `json:"list" db:"list"`
+	Display     string              `json:"display" db:"display"`
+	Destination MemberCommunication `json:"destination" db:"destination"`
+	Result      *string             `json:"result" db:"result"`
+}
+
+func (c Attempt) AllowFields() []string {
+	return c.DefaultFields()
+}
+
+func (c Attempt) DefaultFields() []string {
+	return []string{
+		"id",
+		"state",
+		"last_state_change",
+		"channel",
+		"queue",
+		"member",
+		"variables",
+		"agent",
+		"position",
+		"resource",
+		"bucket",
+		"list",
+		"display",
+		"destination",
+		"joined_at",
+		"offering_at",
+		"bridged_at",
+		"reporting_at",
+		"leaving_at",
+		"timeout",
+	}
+}
+
+func (c Attempt) EntityName() string {
+	return "cc_member_view_attempt"
 }
 
 type MemberAttempt struct {
@@ -88,15 +187,15 @@ type MemberAttempt struct {
 
 type SearchAttempts struct {
 	ListRequest
-	CreatedAt FilterBetween `json:"created_at" db:"created_at"`
-	Id        *int64        `json:"id" db:"id"`
-	MemberId  *int64        `json:"member_id" db:"member_id"`
+	JoinedAt  FilterBetween `json:"joined_at" db:"joined_at"`
+	Ids       []int64       `json:"ids" db:"ids"`
+	MemberIds []int64       `json:"member_ids" db:"member_ids"`
 	//ResourceId  *int32        `json:"resource_id" db:"resource_id" `
-	QueueId  *int64 `json:"queue_id" db:"queue_id"`
-	BucketId *int64 `json:"bucket_id" db:"bucket_id"`
+	QueueIds  []int64 `json:"queue_ids" db:"queue_ids"`
+	BucketIds []int64 `json:"bucket_ids" db:"bucket_ids"`
 	//Destination *string       `json:"destination" db:"destination"`
-	AgentId *int64  `json:"agent_id" db:"agent_id"`
-	Result  *string `json:"result" db:"result"`
+	AgentIds []int64 `json:"agent_ids" db:"agent_ids"`
+	Result   *string `json:"result" db:"result"`
 }
 
 type SearchOfflineQueueMembers struct {
