@@ -38,17 +38,31 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 	return (res.Valid && res.Int64 == 1), nil
 }
 
+// FIXME
 func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent
-	if err := s.GetMaster().SelectOne(&out, `with i as (
+	if err := s.GetMaster().SelectOne(&out, `with a as (
 			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount)
 			returning *
 		)
-		select i.id, i.status, i.state, i.description,  (extract(EPOCH from i.last_state_change) * 1000)::int8 last_state_change, i.state_timeout, i.domain_id,  progressive_count,
-			json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
-		from i
-		  inner join directory.wbt_user ct on ct.id = i.user_id`,
+		SELECT a.domain_id,
+       a.id,
+       COALESCE(ct.name::character varying::name, ct.username)::character varying                             AS name,
+       a.status,
+       a.description,
+       (date_part('epoch'::text, a.last_state_change) *
+        1000::double precision)::bigint                                                                       AS last_status_change,
+       a.progressive_count,
+       ch.x                                                                                                   AS channels,
+       json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user"
+FROM a
+         LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
+         LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'online', c.online, 'state',
+                                                               c.state, 'joined_at',
+                                                               (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
+                             FROM call_center.cc_agent_channel c
+                             WHERE c.agent_id = a.id) ch ON true`,
 		map[string]interface{}{
 			"UserId":           agent.User.Id,
 			"Description":      agent.Description,
