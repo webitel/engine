@@ -421,11 +421,13 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        (extract(EPOCH from now() - last_state_change) )::int8 status_duration,
        ch.x as channels
 from cc_agent a
-     LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'online', c.online, 'state',
-                                                       c.state, 'joined_at', cc_view_timestamp(c.joined_at), 'timeout', cc_view_timestamp(c.timeout))) AS x
+     LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'active', c.online, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
+                                           'no_answer', c.no_answers,
+                                           'joined_at', cc_view_timestamp(c.joined_at),
+                                            'timeout', cc_view_timestamp(c.timeout))) AS x
                      FROM call_center.cc_agent_channel c
                      WHERE c.agent_id = a.id) ch ON true
-where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
+where a.user_id = :UserId and a.domain_id = :DomainId;`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})

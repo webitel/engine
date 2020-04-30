@@ -498,7 +498,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 				Channel:  v.Channel,
 				State:    v.State,
 				JoinedAt: v.JoinedAt,
-				Online:   v.Online,
+				Online:   v.Active,
 			})
 		}
 	}
