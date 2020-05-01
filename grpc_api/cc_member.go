@@ -695,7 +695,7 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 		Member:          GetProtoLookup(src.Member),
 		MemberCallId:    "",
 		Variables:       src.Variables,
-		Agent:           GetProtoLookup(&src.Queue),
+		Agent:           GetProtoLookup(src.Agent),
 		AgentCallId:     "",
 		Position:        int32(src.Position),
 		Resource:        GetProtoLookup(src.Resource),
