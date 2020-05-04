@@ -22,13 +22,13 @@ func (s SqlOutboundResourceStore) Create(resource *model.OutboundCallResource) (
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().SelectOne(&out, `with s as (
     insert into cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
-                                  max_successively_errors, name, dial_string, error_ids, created_at, created_by, updated_by, gateway_id)
+                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id)
 values (:Limit, :Enabled, :UpdatedAt, :Rps, :DomainId, :Reserve , :Variables, :Number,
-        :MaxSErrors, :Name, :Ds, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId)
+        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId)
 	returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-      s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
+      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
        s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(gw.id, gw.name) as gateway
 from s
     left join directory.wbt_user c on c.id = s.created_by
@@ -45,7 +45,6 @@ from s
 			"Number":     resource.Number,
 			"MaxSErrors": resource.MaxSuccessivelyErrors,
 			"Name":       resource.Name,
-			"Ds":         resource.DialString,
 			"ErrorIds":   pq.Array(resource.ErrorIds),
 			"CreatedAt":  resource.CreatedAt,
 			"CreatedBy":  resource.CreatedBy.Id,
@@ -81,7 +80,7 @@ func (s SqlOutboundResourceStore) GetAllPage(domainId int64, search *model.Searc
 	var resources []*model.OutboundCallResource
 	if _, err := s.GetReplica().Select(&resources, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
+				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
 				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
 					 cc_get_lookup(gw.id, gw.name) as gateway
 			from cc_outbound_resource s
@@ -109,7 +108,7 @@ func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []in
 	var resources []*model.OutboundCallResource
 	if _, err := s.GetReplica().Select(&resources, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
+				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
 				  s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
 				  cc_get_lookup(gw.id, gw.name) as gateway
 			from cc_outbound_resource s
@@ -143,7 +142,7 @@ func (s SqlOutboundResourceStore) Get(domainId int64, id int64) (*model.Outbound
 	var resource *model.OutboundCallResource
 	if err := s.GetReplica().SelectOne(&resource, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
+				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
 				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
 				  cc_get_lookup(gw.id, gw.name) as gateway
 			from cc_outbound_resource s
@@ -174,14 +173,13 @@ with s as (
             number = :Number,
             max_successively_errors = :MaxSErrors,
             name = :Name,
-            dial_string = :Ds,
             error_ids = :ErrorIds,
 			gateway_id = :GatewayId
         where id = :Id and domain_id = :DomainId
         returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-      s.max_successively_errors, s.name, s.dial_string, s.error_ids, s.last_error_id, s.successively_errors, 
+      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
        s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
 		cc_get_lookup(gw.id, gw.name) as gateway
 from s
@@ -193,7 +191,6 @@ from s
 		"UpdatedAt":  resource.UpdatedAt,
 		"UpdatedBy":  resource.UpdatedBy.Id,
 		"Rps":        resource.RPS,
-		"Ds":         resource.DialString,
 		"Reserve":    resource.Reserve,
 		"Variables":  resource.Variables.ToJson(),
 		"Number":     resource.Number,

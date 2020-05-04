@@ -10,7 +10,6 @@ type OutboundCallResource struct {
 	Number                string      `json:"number" db:"number"`
 	MaxSuccessivelyErrors int         `json:"max_successively_errors" db:"max_successively_errors"`
 	Name                  string      `json:"name" db:"name"`
-	DialString            string      `json:"dial_string" db:"dial_string"`
 	ErrorIds              StringArray `json:"error_ids" db:"error_ids"`
 	LastErrorId           *string     `json:"last_error_id" db:"last_error_id"`
 	SuccessivelyErrors    int         `json:"successively_errors" db:"successively_errors"`

@@ -152,13 +152,12 @@ message PatchOutboundResourceRequest {
     string number = 7;
     int32 max_successively_errors = 8;
     string name = 9;
-    string dial_string = 10;
-    repeated string error_ids = 11;
+    repeated string error_ids = 10;
 
-    repeated string fields = 12;
-    Lookup gateway = 13;
+    repeated string fields = 11;
+    Lookup gateway = 12;
 
-    int64 domain_id = 14;
+    int64 domain_id = 13;
 }
 
 message UpdateOutboundResourceRequest {
@@ -172,11 +171,10 @@ message UpdateOutboundResourceRequest {
     string number = 7;
     int32 max_successively_errors = 8;
     string name = 9;
-    string dial_string = 10;
-    repeated string error_ids = 11;
-    Lookup gateway = 12;
+    repeated string error_ids = 12;
+    Lookup gateway = 13;
 
-    int64 domain_id = 13;
+    int64 domain_id = 14;
 }
 
 message CreateOutboundResourceRequest {
@@ -188,11 +186,10 @@ message CreateOutboundResourceRequest {
     string number = 6;
     int32 max_successively_errors = 7;
     string name = 8;
-    string dial_string = 9;
-    repeated string error_ids = 10;
-    Lookup gateway = 11;
+    repeated string error_ids = 9;
+    Lookup gateway = 10;
 
-    int64 domain_id = 12;
+    int64 domain_id = 11;
 }
 
 message OutboundResource {
@@ -211,12 +208,11 @@ message OutboundResource {
     string number = 12;
     int32 max_successively_errors = 13;
     string name = 14;
-    string dial_string = 15;
-    repeated string error_ids = 16;
-    string last_error_id = 17;
-    int32 successively_errors = 18;
-    int64 last_error_at = 19;
-    Lookup gateway = 20;
+    repeated string error_ids = 15;
+    string last_error_id = 16;
+    int32 successively_errors = 17;
+    int64 last_error_at = 18;
+    Lookup gateway = 19;
 }
 
 message ListOutboundResource {

@@ -9284,9 +9284,6 @@
         "name": {
           "type": "string"
         },
-        "dial_string": {
-          "type": "string"
-        },
         "error_ids": {
           "type": "array",
           "items": {
@@ -10811,9 +10808,6 @@
         "name": {
           "type": "string"
         },
-        "dial_string": {
-          "type": "string"
-        },
         "error_ids": {
           "type": "array",
           "items": {
@@ -10968,9 +10962,6 @@
           "format": "int32"
         },
         "name": {
-          "type": "string"
-        },
-        "dial_string": {
           "type": "string"
         },
         "error_ids": {
@@ -12070,9 +12061,6 @@
           "format": "int32"
         },
         "name": {
-          "type": "string"
-        },
-        "dial_string": {
           "type": "string"
         },
         "error_ids": {

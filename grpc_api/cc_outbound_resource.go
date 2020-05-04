@@ -47,7 +47,6 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		Number:                in.Number,
 		MaxSuccessivelyErrors: int(in.MaxSuccessivelyErrors),
 		Name:                  in.Name,
-		DialString:            in.DialString,
 		ErrorIds:              in.ErrorIds,
 	}
 
@@ -183,7 +182,6 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		Number:                in.Number,
 		MaxSuccessivelyErrors: int(in.MaxSuccessivelyErrors),
 		Name:                  in.Name,
-		DialString:            in.DialString,
 		ErrorIds:              in.ErrorIds,
 	}
 
@@ -506,7 +504,6 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		Number:                src.Number,
 		MaxSuccessivelyErrors: int32(src.MaxSuccessivelyErrors),
 		Name:                  src.Name,
-		DialString:            src.DialString,
 		Variables:             src.Variables,
 		ErrorIds:              src.ErrorIds,
 		LastErrorId:           src.LastError(),

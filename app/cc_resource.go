@@ -71,7 +71,6 @@ func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*mod
 	oldResource.Number = resource.Number
 	oldResource.MaxSuccessivelyErrors = resource.MaxSuccessivelyErrors
 	oldResource.Name = resource.Name
-	oldResource.DialString = resource.DialString
 	oldResource.ErrorIds = resource.ErrorIds
 	oldResource.Gateway = resource.Gateway
 
