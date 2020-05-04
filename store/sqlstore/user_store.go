@@ -61,7 +61,7 @@ func (s SqlUserStore) DefaultDeviceConfig(userId, domainId int64) (*model.UserDe
        dom.name as realm,
        'sip:' || u.extension || '@' || dom.name as uri,
        d.account as authorization_user,
-       d.password as ha1,
+       md5(d.account||':'||dom.name||':'||d.password) as ha1,
        '' as server
 from directory.wbt_user u
     inner join directory.wbt_device d on d.id = u.device_id
