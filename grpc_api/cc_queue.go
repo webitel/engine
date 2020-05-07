@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"net/http"
 )
 
 type queue struct {
@@ -302,6 +303,72 @@ func (api *queue) DeleteQueue(ctx context.Context, in *engine.DeleteQueueRequest
 	}
 
 	return transformQueue(queue), nil
+}
+
+// FIXME RBAC
+func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.SearchQueueReportGeneralRequest) (*engine.ListReportGeneral, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if in.GetJoinedAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchQueueReportGeneral", "grpc.queue.report.general", nil, "filter joined_at is required", http.StatusBadRequest)
+	}
+
+	var list []*model.QueueReportGeneral
+	var endList bool
+	req := &model.SearchQueueReportGeneral{
+		ListRequest: model.ListRequest{
+			DomainId: session.Domain(in.DomainId),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+			Fields:   in.Fields,
+			Sort:     in.Sort,
+		},
+		JoinedAt: model.FilterBetween{
+			From: in.GetJoinedAt().GetFrom(),
+			To:   in.GetJoinedAt().GetTo(),
+		},
+		QueueIds: in.QueueId,
+		TeamIds:  in.TeamId,
+	}
+
+	list, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.QueueReportGeneral, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineQueueReportGeneral(v))
+	}
+	return &engine.ListReportGeneral{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
+func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {
+	return &engine.QueueReportGeneral{
+		Queue:      GetProtoLookup(&src.Queue),
+		Team:       GetProtoLookup(src.Team),
+		Waiting:    src.Waiting,
+		Processed:  src.Processed,
+		Count:      src.Count,
+		Abandoned:  src.Abandoned,
+		SumBillSec: src.SumBillSec,
+		AvgWrapSec: src.AvgWrapSec,
+		AvgAwtSec:  src.AvgAwtSec,
+		MaxAwtSec:  src.MaxAwtSec,
+		AvgAsaSec:  src.AvgAsaSec,
+		AvgAhtSec:  src.AvgAhtSec,
+	}
 }
 
 func transformQueue(src *model.Queue) *engine.Queue {

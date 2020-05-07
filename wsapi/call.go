@@ -139,25 +139,24 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 
 func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
-	var id, nodeId, destination string
+	var id, destination string
 
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
-	}
-	if nodeId, ok = req.Data["app_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 	if destination, ok = req.Data["destination"].(string); !ok || len(destination) < 1 {
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
+	err := api.ctrl.BlindTransferCall(conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
+		UserCallRequest: model.UserCallRequest{
+			Id: id,
+		},
+		Destination: destination,
+	})
+
+	if err != nil {
 		return nil, err
-	} else {
-		err = cli.BlindTransfer(id, destination)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return nil, nil

@@ -40,6 +40,28 @@ type SearchQueue struct {
 	Ids []string
 }
 
+type SearchQueueReportGeneral struct {
+	ListRequest
+	JoinedAt FilterBetween
+	QueueIds []int32
+	TeamIds  []int32
+}
+
+type QueueReportGeneral struct {
+	Queue      Lookup  `json:"queue" db:"queue"`
+	Team       *Lookup `json:"team" db:"team"`
+	Waiting    int64   `json:"waiting" db:"waiting"`
+	Processed  int64   `json:"processed" db:"processed"`
+	Count      int64   `json:"count" db:"count"`
+	Abandoned  float32 `json:"abandoned" db:"abandoned"`
+	SumBillSec float32 `json:"sum_bill_sec" db:"sum_bill_sec"`
+	AvgWrapSec float32 `json:"avg_wrap_sec" db:"avg_wrap_sec"`
+	AvgAwtSec  float32 `json:"avg_awt_sec" db:"avg_awt_sec"`
+	MaxAwtSec  float32 `json:"max_awt_sec" db:"max_awt_sec"`
+	AvgAsaSec  float32 `json:"avg_asa_sec" db:"avg_asa_sec"`
+	AvgAhtSec  float32 `json:"avg_aht_sec" db:"avg_aht_sec"`
+}
+
 type QueuePatch struct {
 	Strategy       *string   `json:"strategy" db:"strategy"`
 	Enabled        *bool     `json:"enabled" db:"enabled"`

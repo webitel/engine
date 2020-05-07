@@ -48,6 +48,46 @@ service QueueService {
             delete: "/call_center/queues/{id}"
         };
     }
+
+
+    rpc SearchQueueReportGeneral(SearchQueueReportGeneralRequest) returns (ListReportGeneral) {
+        option (google.api.http) = {
+            get: "/call_center/queues/reports/general"
+        };
+    }
+}
+
+message SearchQueueReportGeneralRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    FilterBetween joined_at = 3;
+    int64 domain_id = 4;
+
+    repeated string fields = 5;
+    string sort = 6;
+    repeated int32 queue_id = 7;
+    repeated int32 team_id = 8;
+}
+
+message ListReportGeneral {
+    bool next = 1;
+    repeated QueueReportGeneral items = 2;
+}
+
+message QueueReportGeneral {
+    Lookup queue = 1;
+    Lookup team = 2;
+    int64 waiting = 3;
+    int64 processed = 4;
+    int64 count = 5;
+    float abandoned = 6;
+    float sum_bill_sec = 7;
+    float avg_wrap_sec = 8;
+    float avg_awt_sec = 9;
+    float max_awt_sec = 10;
+    float avg_asa_sec = 11;
+    float avg_aht_sec = 12;
 }
 
 message PatchQueueRequest {
