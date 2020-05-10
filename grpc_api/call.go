@@ -395,6 +395,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		ReportingSec:     defaultInt(src.ReportingSec),
 		Result:           src.GetResult(),
 		Tags:             src.Tags, // TODO
+		Display:          defaultString(src.Display),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -465,4 +466,12 @@ func defaultBigInt(i *int64) int64 {
 		return *i
 	}
 	return 0
+}
+
+func defaultString(s *string) string {
+	if s != nil {
+		return *s
+	}
+
+	return ""
 }

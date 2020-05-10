@@ -155,6 +155,7 @@ message HistoryCall {
     int32 reporting_sec = 35;
     string result = 36;
     repeated string tags = 37;
+    string display = 38;
 }
 
 message EavesdropCallRequest {

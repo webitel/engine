@@ -190,6 +190,7 @@ type HistoryCall struct {
 	ReportingSec     *int        `json:"reporting_sec" db:"reporting_sec"`
 	Result           *string     `json:"result" db:"result"`
 	Tags             StringArray `json:"tags" db:"tags"`
+	Display          *string     `json:"display" db:"display"`
 }
 
 func (c HistoryCall) AllowFields() []string {
@@ -200,7 +201,7 @@ func (c HistoryCall) DefaultFields() []string {
 	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display",
 	}
 }
 
