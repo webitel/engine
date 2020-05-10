@@ -4,6 +4,7 @@ type List struct {
 	DomainRecord
 	Name        string `json:"name" db:"name"`
 	Description string `json:"description,omitempty"`
+	Count       int64  `json:"count" db:"count"`
 }
 
 type SearchList struct {

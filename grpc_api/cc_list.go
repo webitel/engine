@@ -414,6 +414,7 @@ func toEngineList(src *model.List) *engine.List {
 		},
 		Name:        src.Name,
 		Description: src.Description,
+		Count:       src.Count,
 	}
 
 	return item

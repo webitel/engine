@@ -175,4 +175,5 @@ message List {
     int64 domain_id = 6;
     string name = 7;
     string description = 8;
+    int64 count = 9;
 }

@@ -85,10 +85,12 @@ func (s SqlListStore) GetAllPage(domainId int64, search *model.SearchList) ([]*m
        i.created_at,
        cc_get_lookup(uc.id, uc.name) as created_by,
        i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
+       cc_get_lookup(u.id, u.name) as updated_by,
+       coalesce(cls.count, 0) count
 from cc_list i
     left join directory.wbt_user uc on uc.id = i.created_by
     left join directory.wbt_user u on u.id = i.updated_by
+    left join cc_list_statistics cls on i.id = cls.list_id
 where i.domain_id = :DomainId and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.name ilike :Q::varchar ) )) 
 order by i.id
 limit :Limit
@@ -116,10 +118,12 @@ func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *m
        i.created_at,
        cc_get_lookup(uc.id, uc.name) as created_by,
        i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
+       cc_get_lookup(u.id, u.name) as updated_by,
+       coalesce(cls.count, 0) count
 from cc_list i
     left join directory.wbt_user uc on uc.id = i.created_by
     left join directory.wbt_user u on u.id = i.updated_by
+    left join cc_list_statistics cls on i.id = cls.list_id
 where i.domain_id = :DomainId
   and (
     exists(select 1
@@ -153,11 +157,12 @@ func (s SqlListStore) Get(domainId int64, id int64) (*model.List, *model.AppErro
 			   i.created_at,
 			   cc_get_lookup(uc.id, uc.name) as created_by,
 			   i.updated_at,
-			   cc_get_lookup(u.id, u.name) as updated_by
-		
+			   cc_get_lookup(u.id, u.name) as updated_by,
+			   coalesce(cls.count, 0) count
 		from cc_list i
 			left join directory.wbt_user uc on uc.id = i.created_by
 			left join directory.wbt_user u on u.id = i.updated_by
+			left join cc_list_statistics cls on i.id = cls.list_id
 		where i.domain_id = :DomainId and i.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlListStore.Get", "store.sql_list.get.app_error", nil,
@@ -185,11 +190,12 @@ select
        i.created_at,
        cc_get_lookup(uc.id, uc.name) as created_by,
        i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
-
+       cc_get_lookup(u.id, u.name) as updated_by,
+       coalesce(cls.count, 0) count
 from i
     left join directory.wbt_user uc on uc.id = i.created_by
-    left join directory.wbt_user u on u.id = i.updated_by`, map[string]interface{}{
+    left join directory.wbt_user u on u.id = i.updated_by
+    left join cc_list_statistics cls on i.id = cls.list_id`, map[string]interface{}{
 		"Name":        list.Name,
 		"Description": list.Description,
 		"UpdatedAt":   list.UpdatedAt,
