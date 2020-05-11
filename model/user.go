@@ -15,12 +15,12 @@ type User struct {
 }
 
 type UserCallInfo struct {
-	Id         int64              `json:"id" db:"id"`
-	Name       string             `json:"name" db:"name"`
-	DomainName string             `json:"domain_name" db:"domain_name"`
-	Extension  string             `json:"tel_number" db:"extension"`
-	Endpoint   string             `json:"endpoint" db:"endpoint"`
-	Variables  *map[string]string `json:"variables" db:"variables"`
+	Id         int64             `json:"id" db:"id"`
+	Name       string            `json:"name" db:"name"`
+	DomainName string            `json:"domain_name" db:"domain_name"`
+	Extension  string            `json:"tel_number" db:"extension"`
+	Endpoint   string            `json:"endpoint" db:"endpoint"`
+	Variables  map[string]string `json:"variables" db:"variables"`
 }
 
 func (u *UserCallInfo) GetCallEndpoints() []string {
@@ -29,7 +29,7 @@ func (u *UserCallInfo) GetCallEndpoints() []string {
 
 func (u UserCallInfo) GetVariables() map[string]string {
 	if u.Variables != nil {
-		return *u.Variables
+		return u.Variables
 	}
 
 	return make(map[string]string)
