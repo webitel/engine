@@ -34,7 +34,9 @@ func main() {
 	apis.Init(a, a.Srv.Router)
 	grpc_api.Init(a, a.GrpcServer.Server())
 
-	a.StartGrpcServer()
+	if err := a.StartGrpcServer(); err != nil {
+		panic(err.Error())
+	}
 
 	if a.Config().Dev {
 		setDebug()
