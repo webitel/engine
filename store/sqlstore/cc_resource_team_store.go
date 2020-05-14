@@ -59,7 +59,7 @@ func (s SqlResourceTeamStore) Get(domainId, teamId int64, id int64) (*model.Reso
 	var resource *model.ResourceInTeam
 	if err := s.GetReplica().SelectOne(&resource, `select i.id,
        i.team_id,
-       cc_get_lookup(a.id, u.name) as agent,
+       cc_get_lookup(a.id, coalesce(u.name, u.username)) as agent,
        cc_get_lookup(s.id, s.name) as skill,
 	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
         from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
@@ -90,7 +90,7 @@ func (s SqlResourceTeamStore) GetAllPage(domainId, teamId int64, search *model.S
 	if _, err := s.GetReplica().Select(&resources,
 		`select i.id,
        i.team_id,
-       cc_get_lookup(a.id, u.name) as agent,
+       cc_get_lookup(a.id, coalesce(u.name, u.username)) as agent,
        cc_get_lookup(s.id, s.name) as skill,
 	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
         from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
@@ -135,7 +135,7 @@ func (s SqlResourceTeamStore) Update(resource *model.ResourceInTeam) (*model.Res
 )
 select i.id,
        i.team_id,
-       cc_get_lookup(a.id, u.name) as agent,
+       cc_get_lookup(a.id, coalesce(u.name, u.username)) as agent,
        cc_get_lookup(s.id, s.name) as skill,
 	   (select jsonb_agg(cc_get_lookup(b.id::int, b.name::varchar))
         from cc_bucket b where b.domain_id = t.domain_id and b.id = any(i.bucket_ids)) as buckets,
