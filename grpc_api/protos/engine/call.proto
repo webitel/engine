@@ -87,7 +87,7 @@ message SearchHistoryCallRequest {
     repeated int64 team_id = 7;
     repeated int64 member_id = 8;
     repeated int64 gateway_id = 9;
-    string number = 10;
+    string q = 10;
 
     FilterBetween duration = 11;
     bool skip_parent = 12;
@@ -98,6 +98,7 @@ message SearchHistoryCallRequest {
     repeated string fields = 16;
     string sort = 17;
     int64 domain_id = 18;
+    string number = 19;
 }
 
 message ListHistoryCall {

@@ -10022,6 +10022,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "display": {
+          "type": "string"
         }
       }
     },
@@ -10063,6 +10066,10 @@
         },
         "description": {
           "type": "string"
+        },
+        "count": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

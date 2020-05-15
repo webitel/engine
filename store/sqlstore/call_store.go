@@ -83,6 +83,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Offset":     search.GetOffset(),
 		"From":       search.CreatedAt.From,
 		"To":         search.CreatedAt.To,
+		"Q":          search.GetQ(),
 		"UserIds":    pq.Array(search.UserIds),
 		"QueueIds":   pq.Array(search.QueueIds),
 		"TeamIds":    pq.Array(search.TeamIds),
@@ -98,6 +99,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 
 	err := s.ListQuery(&out, search.ListRequest,
 		`domain_id = :Domain and created_at between :From::int8 and :To::int8 
+	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  

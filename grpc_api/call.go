@@ -32,6 +32,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			DomainId: in.GetDomainId(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
+			Q:        in.GetQ(),
 			Sort:     in.Sort,
 			Fields:   in.Fields,
 		},
