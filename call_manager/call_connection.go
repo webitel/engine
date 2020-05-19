@@ -205,7 +205,7 @@ func (c *CallConnection) HangupCall(id, cause string) *model.AppError {
 
 func (c *CallConnection) SetCallVariables(id string, variables map[string]string) *model.AppError {
 
-	res, err := c.api.SetVariables(context.Background(), &fs.SetVariablesReqeust{
+	res, err := c.api.SetVariables(context.Background(), &fs.SetVariablesRequest{
 		Uuid:      id,
 		Variables: variables,
 	})
