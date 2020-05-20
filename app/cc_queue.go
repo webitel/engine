@@ -76,6 +76,7 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue.Type = queue.Type
 	oldQueue.Team = queue.Team
 	oldQueue.Schema = queue.Schema
+	oldQueue.Ringtone = queue.Ringtone
 	oldQueue.Description = queue.Description
 
 	oldQueue, err = a.Store.Queue().Update(oldQueue)

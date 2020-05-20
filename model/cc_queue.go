@@ -19,6 +19,7 @@ type Queue struct {
 	Count          int       `json:"count" db:"count"`
 	Waiting        int       `json:"waiting" db:"waiting"`
 	Active         int       `json:"active" db:"active"`
+	Ringtone       *Lookup   `json:"ringtone" db:"ringtone"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -28,7 +29,7 @@ func (q Queue) AllowFields() []string {
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables", "timeout",
 		"domain_id", "sec_locate_agent", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
-		"schema", "count", "waiting", "active"}
+		"schema", "count", "waiting", "active", "ringtone"}
 }
 
 func (q Queue) EntityName() string {
@@ -75,6 +76,7 @@ type QueuePatch struct {
 	SecLocateAgent *int      `json:"sec_locate_agent" db:"sec_locate_agent"`
 	Team           *Lookup   `json:"team" db:"team"`
 	Schema         *Lookup   `json:"schema" db:"schema"`
+	Ringtone       *Lookup   `json:"ringtone" db:"ringtone"`
 	Description    *string   `json:"description" db:"description"`
 }
 
@@ -129,6 +131,10 @@ func (q *Queue) Patch(p *QueuePatch) {
 
 	if p.Description != nil {
 		q.Description = *p.Description
+	}
+
+	if p.Ringtone != nil {
+		q.Ringtone = p.Ringtone
 	}
 }
 

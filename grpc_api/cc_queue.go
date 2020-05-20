@@ -53,6 +53,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		Variables:      in.Variables,
 		Timeout:        int(in.Timeout),
 		DncList:        GetLookup(in.GetDncList()),
+		Ringtone:       GetLookup(in.GetRingtone()),
 		SecLocateAgent: int(in.SecLocateAgent),
 		Type:           int8(in.Type),
 		Team:           GetLookup(in.GetTeam()),
@@ -202,6 +203,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.Team = GetLookup(in.Team)
 		case "schema":
 			patch.Schema = GetLookup(in.Schema)
+		case "ringtone":
+			patch.Ringtone = GetLookup(in.Ringtone)
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		}
@@ -266,6 +269,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		Type:           int8(in.Type),
 		Team:           GetLookup(in.Team),
 		Schema:         GetLookup(in.Schema),
+		Ringtone:       GetLookup(in.Ringtone),
 		Description:    in.Description,
 	})
 
@@ -401,6 +405,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Type:           int32(src.Type),
 		Team:           GetProtoLookup(src.Team),
 		Schema:         GetProtoLookup(src.Schema),
+		Ringtone:       GetProtoLookup(src.Ringtone),
 		Description:    src.Description,
 		Count:          int32(src.Count),
 		Waiting:        int32(src.Waiting),

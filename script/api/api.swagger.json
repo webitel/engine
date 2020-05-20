@@ -7009,7 +7009,7 @@
             "collectionFormat": "multi"
           },
           {
-            "name": "number",
+            "name": "q",
             "in": "query",
             "required": false,
             "type": "string"
@@ -7076,6 +7076,12 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "number",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
