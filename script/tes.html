@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<table border="1" style="border-collapse:collapse">
+    <tr>
+        <th>QUERY PLAN</th>
+    </tr>
+    <tr>
+        <td>Limit  (cost=80226.50..80252.25 rows=10 width=1339) (actual time=90.207..90.331 rows=10 loops=1)</td>
+    </tr>
+    <tr>
+        <td>  -&gt;  Result  (cost=80226.50..95153.78 rows=5797 width=1339) (actual time=90.206..90.329 rows=10 loops=1)</td>
+    </tr>
+    <tr>
+        <td>        -&gt;  Sort  (cost=80226.50..80241.00 rows=5797 width=1850) (actual time=90.157..90.158 rows=10 loops=1)</td>
+    </tr>
+    <tr>
+        <td>              Sort Key: c.created_at DESC</td>
+    </tr>
+    <tr>
+        <td>              Sort Method: top-N heapsort  Memory: 37kB</td>
+    </tr>
+    <tr>
+        <td>              -&gt;  Nested Loop Left Join  (cost=9.81..80101.23 rows=5797 width=1850) (actual time=0.102..86.007 rows=5796 loops=1)</td>
+    </tr>
+    <tr>
+        <td>                    Join Filter: (gw.id = c.gateway_id)</td>
+    </tr>
+    <tr>
+        <td>                    Rows Removed by Join Filter: 17305</td>
+    </tr>
+    <tr>
+        <td>                    -&gt;  Nested Loop Left Join  (cost=9.81..79708.92 rows=5797 width=1013) (actual time=0.085..59.435 rows=5796 loops=1)</td>
+    </tr>
+    <tr>
+        <td>                          Join Filter: (u.id = c.user_id)</td>
+    </tr>
+</table>
+</body>
+</html>

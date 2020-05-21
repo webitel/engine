@@ -1,0 +1,18 @@
+https://demo.webitel.com/swagger/#/MemberService/AttemptResult
+
+curl -X PATCH "http://dev.webitel.com/call_center/queues/queue_id/members/member_id/attempts/1" -H "accept: application/json" \\
+ -H "Content-Type: application/json" -d \\
+ "{ \"attempt_id\": 0, \"description\": \"string\", \"display\": true, \"expire_at\": \"string\", \"member_id\": 0, \"min_offering_at\": \"string\", \"next_member_id\": \"string\", \"queue_id\": 0, \"status\": \"string\", \"transfer_queue_id\": \"string\", \"variables\": { \"additionalProp1\": \"string\", \"additionalProp2\": \"string\", \"additionalProp3\": \"string\" }}"
+
+ queue_id - ід черги
+ member_id - ід мембера
+ attempt_id - ід спроби
+ status - SUCCESS / CANCEL - абонент виключається з черги з цим статусом, якщо пусто то: якщо остання спроба то ABANDONED або буде очікувати наступний дзвінок
+
+ min_offering_at - змінити час відколи можна знову дзвонити абоненту, не обовязкове timestamp
+ expire_at - встановити новий дедлайн
+ variables - змінити варібли
+ display - якщо true тоді за цим номером прикріпляється ресурс + номер який відображається абоненту
+ description - коментар
+ transfer_queue_id - перекинути в іншу чергу (крім вхідної)
+ next_member_id - ід наступного абонента, підвязується до агента (тут буде помилка якщо по вибраному мемберу не буде ресурсу)
