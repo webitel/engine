@@ -66,8 +66,10 @@ message SearchQueueReportGeneralRequest {
 
     repeated string fields = 5;
     string sort = 6;
-    repeated int32 queue_id = 7;
-    repeated int32 team_id = 8;
+    string q = 7;
+    repeated int32 queue_id = 8;
+    repeated int32 team_id = 9;
+    repeated int32 type = 10;
 }
 
 message ListReportGeneral {

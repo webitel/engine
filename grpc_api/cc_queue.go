@@ -332,6 +332,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 			DomainId: session.Domain(in.DomainId),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
+			Q:        in.GetQ(),
 			Fields:   in.Fields,
 			Sort:     in.Sort,
 		},
@@ -341,6 +342,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 		},
 		QueueIds: in.QueueId,
 		TeamIds:  in.TeamId,
+		Types:    in.GetType(),
 	}
 
 	list, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), req)

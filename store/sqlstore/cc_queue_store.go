@@ -248,7 +248,9 @@ from cc_member_attempt_history t
     left join cc_team ct on q.team_id = ct.id
 where q.domain_id = :DomainId and t.joined_at between to_timestamp(:From::int8/1000) and to_timestamp(:To::int8/1000)
 	and ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
+	and ( :Types::int[] isnull or q.type = any(:Types) )
 	and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
+	and (:Q::varchar isnull or (q.name ilike :Q::varchar or ct.name ilike :Q::varchar ) ) 
 group by q.id, ct.id
 order by q.priority desc
 limit :Limit
@@ -257,8 +259,10 @@ offset :Offset
 		"DomainId": domainId,
 		"From":     search.JoinedAt.From,
 		"To":       search.JoinedAt.To,
+		"Q":        search.GetQ(),
 		"QueueIds": pq.Array(search.QueueIds),
 		"TeamIds":  pq.Array(search.TeamIds),
+		"Types":    pq.Array(search.Types),
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
 	})

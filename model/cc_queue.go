@@ -46,6 +46,7 @@ type SearchQueueReportGeneral struct {
 	JoinedAt FilterBetween
 	QueueIds []int32
 	TeamIds  []int32
+	Types    []int32
 }
 
 type QueueReportGeneral struct {

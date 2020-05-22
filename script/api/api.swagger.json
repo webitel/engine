@@ -9480,6 +9480,9 @@
         "schema": {
           "$ref": "#/definitions/engineLookup"
         },
+        "ringtone": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "domain_id": {
           "type": "string",
           "format": "int64"
@@ -11172,6 +11175,9 @@
         "schema": {
           "$ref": "#/definitions/engineLookup"
         },
+        "ringtone": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "fields": {
           "type": "array",
           "items": {
@@ -11424,6 +11430,9 @@
         "active": {
           "type": "integer",
           "format": "int32"
+        },
+        "ringtone": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
@@ -12338,6 +12347,9 @@
           "type": "string"
         },
         "schema": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "ringtone": {
           "$ref": "#/definitions/engineLookup"
         },
         "domain_id": {
