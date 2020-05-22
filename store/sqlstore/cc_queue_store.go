@@ -233,20 +233,20 @@ func (s SqlQueueStore) QueueReportGeneral(domainId int64, search *model.SearchQu
 	_, err := s.GetReplica().Select(&report, `
 select cc_get_lookup(q.id, q.name) queue,
        cc_get_lookup(ct.id, ct.name) team,
-       (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) waiting,
+       coalesce( (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id), 0) waiting,
        (select count(*) from cc_member_attempt a where a.queue_id = q.id) processed,
        count(*) filter ( where t.offering_at notnull ) as count,
        count(*) filter ( where t.result = 'abandoned' ) * 100.0 / count(*) as abandoned,
-       extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec, -- fixme (hangup_at)
-       extract(EPOCH from avg(t.leaving_at - t.reporting_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
-       extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
-       extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) max_awt_sec,
-       extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )) avg_asa_sec,
-       extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
+       coalesce(extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )), 0) sum_bill_sec, -- fixme (hangup_at)
+       coalesce(extract(EPOCH from avg(t.leaving_at - t.reporting_at) filter ( where t.reporting_at notnull )), 0) avg_wrap_sec,
+       coalesce(extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )), 0) avg_awt_sec,
+       coalesce(extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )), 0) max_awt_sec,
+       coalesce(extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )), 0) avg_asa_sec,
+       coalesce(extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )), 0) avg_aht_sec
 from cc_member_attempt_history t
     inner join cc_queue q on q.id = t.queue_id
     left join cc_team ct on q.team_id = ct.id
-where q.domain_id = :DomainId and t.joined_at between to_timestamp(:From) and to_timestamp(:To)
+where q.domain_id = :DomainId and t.joined_at between to_timestamp(:From::int8/1000) and to_timestamp(:To::int8/1000)
 	and ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
 	and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
 group by q.id, ct.id
