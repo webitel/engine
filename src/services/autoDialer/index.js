@@ -774,7 +774,7 @@ class AutoDialer extends EventEmitter2 {
     clearAttemptOnDeadlineResultStatus (cb) {
         dialerService.members._updateMultiMembers(
             {
-                _waitingForResultStatus: {$lte: Date.now()},
+                _waitingForResultStatus: {$lte: Date.now(), $gt: Date.now() - (2 * 86400)},
                 _waitingForResultStatusCb: 1,
                 "communications": {$elemMatch: {checkResult: 1}},
                 _lock: null
@@ -864,7 +864,7 @@ class AutoDialer extends EventEmitter2 {
 
     clearAttemptOnDeadlineResultStatusAddAttempts (cb) {
         const cursor = dialerService.members._getCursor({
-            _waitingForResultStatus: {$lte: Date.now()},
+            _waitingForResultStatus: {$lte: Date.now(), $gt: Date.now() - (2 * 86400)},
             _waitingForResultStatusCb: 1,
             communications: {$elemMatch: {checkResult: 1}},
             _lock: null
