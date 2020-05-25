@@ -171,6 +171,10 @@ var Indexes = {
             "name" : 1
         },
         {
+            "expire" : 1,
+            "_endCause" : 1
+        },
+        {
             "_waitingForResultStatus" : 1,
             "_waitingForResultStatusCb" : 1
         },
