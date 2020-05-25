@@ -171,7 +171,8 @@ var Indexes = {
             "name" : 1
         },
         {
-            "_waitingForResultStatus" : 1
+            "_waitingForResultStatus" : 1,
+            "_waitingForResultStatusCb" : 1
         },
         {
             "priority" : 1
