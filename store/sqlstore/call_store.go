@@ -78,23 +78,28 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	var out []*model.HistoryCall
 
 	f := map[string]interface{}{
-		"Domain":     domainId,
-		"Limit":      search.GetLimit(),
-		"Offset":     search.GetOffset(),
-		"From":       search.CreatedAt.From,
-		"To":         search.CreatedAt.To,
-		"Q":          search.GetQ(),
-		"UserIds":    pq.Array(search.UserIds),
-		"QueueIds":   pq.Array(search.QueueIds),
-		"TeamIds":    pq.Array(search.TeamIds),
-		"AgentIds":   pq.Array(search.AgentIds),
-		"MemberIds":  pq.Array(search.MemberIds),
-		"GatewayIds": pq.Array(search.GatewayIds),
-		"SkipParent": search.SkipParent,
-		"ParentId":   search.ParentId,
-		"Number":     search.Number,
-		"Cause":      search.Cause,
-		"ExistsFile": search.ExistsFile,
+		"Domain":       domainId,
+		"Limit":        search.GetLimit(),
+		"Offset":       search.GetOffset(),
+		"From":         search.CreatedAt.From,
+		"To":           search.CreatedAt.To,
+		"Q":            search.GetQ(),
+		"UserIds":      pq.Array(search.UserIds),
+		"QueueIds":     pq.Array(search.QueueIds),
+		"TeamIds":      pq.Array(search.TeamIds),
+		"AgentIds":     pq.Array(search.AgentIds),
+		"MemberIds":    pq.Array(search.MemberIds),
+		"GatewayIds":   pq.Array(search.GatewayIds),
+		"SkipParent":   search.SkipParent,
+		"ParentId":     search.ParentId,
+		"Number":       search.Number,
+		"Cause":        search.Cause,
+		"ExistsFile":   search.ExistsFile,
+		"Direction":    search.Direction,
+		"AnsweredFrom": model.GetBetweenFrom(search.AnsweredAt),
+		"AnsweredTo":   model.GetBetweenTo(search.AnsweredAt),
+		"DurationFrom": model.GetBetweenFrom(search.Duration),
+		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -110,7 +115,10 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
 	and (:ExistsFile::bool is not true or files notnull )
-	and (:Cause::varchar isnull or cause = :Cause )`,
+	and (:Cause::varchar isnull or cause = :Cause )
+	and ( (:AnsweredFrom::int8 isnull or :AnsweredTo::int8 isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
+	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
+	and (:Direction::varchar isnull or direction = :Direction )`,
 		model.HistoryCall{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlCallStore.GetHistory", "store.sql_call.get_history.app_error", nil, err.Error(), http.StatusInternalServerError)

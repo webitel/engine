@@ -226,9 +226,11 @@ type SearchHistoryCall struct {
 	ListRequest
 	CreatedAt  FilterBetween
 	Duration   *FilterBetween
+	AnsweredAt *FilterBetween
 	Number     *string
 	ParentId   *string
 	Cause      *string
+	Direction  *string
 	SkipParent bool
 	ExistsFile bool
 	UserIds    []int64

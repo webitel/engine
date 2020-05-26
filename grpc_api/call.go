@@ -57,6 +57,17 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		}
 	}
 
+	if in.GetAnsweredAt() != nil {
+		req.AnsweredAt = &model.FilterBetween{
+			From: in.GetAnsweredAt().GetFrom(),
+			To:   in.GetAnsweredAt().GetTo(),
+		}
+	}
+
+	if in.GetDirection() != "" {
+		req.Direction = &in.Direction
+	}
+
 	if in.GetParentId() != "" {
 		req.ParentId = &in.ParentId
 	}

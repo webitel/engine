@@ -28,6 +28,22 @@ type FilterBetween struct {
 	To   int64
 }
 
+func GetBetweenFrom(src *FilterBetween) *int64 {
+	if src != nil {
+		return &src.From
+	}
+
+	return nil
+}
+
+func GetBetweenTo(src *FilterBetween) *int64 {
+	if src != nil {
+		return &src.To
+	}
+
+	return nil
+}
+
 func (l *ListRequest) RemoveLastElemIfNeed(slicePtr interface{}) {
 	s := reflect.ValueOf(slicePtr)
 	if s.Kind() != reflect.Ptr || s.Type().Elem().Kind() != reflect.Slice {

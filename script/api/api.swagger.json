@@ -2693,6 +2693,12 @@
             "type": "string"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "queue_id",
             "in": "query",
             "required": false,
@@ -2705,6 +2711,17 @@
           },
           {
             "name": "team_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "type",
             "in": "query",
             "required": false,
             "type": "array",
@@ -7082,6 +7099,26 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "answered_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "answered_at.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [

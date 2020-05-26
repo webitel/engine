@@ -316,3 +316,6 @@ type EmailProfileStore interface {
 	Update(p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
 	Delete(domainId int64, id int) *model.AppError
 }
+
+type NotificationStore interface {
+}
