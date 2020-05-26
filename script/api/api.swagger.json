@@ -11498,6 +11498,18 @@
         "team": {
           "$ref": "#/definitions/engineLookup"
         },
+        "online": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "pause": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bridged": {
+          "type": "number",
+          "format": "float"
+        },
         "waiting": {
           "type": "string",
           "format": "int64"

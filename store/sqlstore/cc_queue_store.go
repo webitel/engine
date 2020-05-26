@@ -231,27 +231,75 @@ func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
 func (s SqlQueueStore) QueueReportGeneral(domainId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, *model.AppError) {
 	var report []*model.QueueReportGeneral
 	_, err := s.GetReplica().Select(&report, `
+with queues  as  (
+    select *
+    from cc_queue q
+    where q.enabled is true and q.domain_id = :DomainId
+        and ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
+        and ( :Types::int[] isnull or q.type = any(:Types) )
+        and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
+        and (:Q::varchar isnull or (q.name ilike :Q::varchar ) )
+),
+     teams as (
+         SELECT s.team_id,
+                count(*) filter ( where a.status = 'online' ) online,
+                count(*) filter ( where a.status = 'pause' )  pause
+         FROM (SELECT aq.team_id,
+                      sa.agent_id
+               FROM call_center.cc_agent_in_team aq
+                        JOIN call_center.cc_skill_in_agent sa ON sa.skill_id = aq.skill_id
+                        LEFT JOIN LATERAL unnest(aq.bucket_ids) x(x) ON true
+               WHERE aq.skill_id IS NOT NULL
+                 AND sa.capacity >= aq.min_capacity
+                 AND sa.capacity <= aq.max_capacity
+               UNION
+               SELECT aq.team_id,
+                      aq.agent_id
+               FROM call_center.cc_agent_in_team aq
+                        LEFT JOIN LATERAL unnest(aq.bucket_ids) x(x) ON true
+               WHERE aq.agent_id IS NOT NULL) s
+                  inner join cc_agent a on a.id = s.agent_id
+         where s.team_id in (
+             select distinct queues.team_id
+             from queues
+         )
+         GROUP BY 1
+     )
 select cc_get_lookup(q.id, q.name) queue,
        cc_get_lookup(ct.id, ct.name) team,
-       coalesce( (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id), 0) waiting,
-       (select count(*) from cc_member_attempt a where a.queue_id = q.id) processed,
-       count(*) filter ( where t.offering_at notnull ) as count,
-       count(*) filter ( where t.result = 'abandoned' ) * 100.0 / count(*) as abandoned,
-       coalesce(extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )), 0) sum_bill_sec, -- fixme (hangup_at)
-       coalesce(extract(EPOCH from avg(t.leaving_at - t.reporting_at) filter ( where t.reporting_at notnull )), 0) avg_wrap_sec,
-       coalesce(extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )), 0) avg_awt_sec,
-       coalesce(extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )), 0) max_awt_sec,
-       coalesce(extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )), 0) avg_asa_sec,
-       coalesce(extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )), 0) avg_aht_sec
-from cc_member_attempt_history t
-    inner join cc_queue q on q.id = t.queue_id
+       coalesce(teams.online, 0) online,
+       coalesce(teams.pause, 0) pause,
+       coalesce(ag.waiting, 0) waiting,
+       coalesce(ag.processed, 0) processed,
+       coalesce(ag.count, 0) count,
+       coalesce(ag.bridged, 0) bridged,
+       coalesce(ag.abandoned, 0) abandoned,
+       coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
+       coalesce(ag.avg_wrap_sec, 0) avg_wrap_sec,
+       coalesce(ag.avg_awt_sec, 0) avg_awt_sec,
+       coalesce(ag.max_awt_sec, 0) max_awt_sec,
+       coalesce(ag.avg_asa_sec, 0) avg_asa_sec,
+       coalesce(ag.avg_aht_sec, 0) avg_aht_sec
+from queues q
+    left join teams on teams.team_id = q.team_id
     left join cc_team ct on q.team_id = ct.id
-where q.domain_id = :DomainId and t.joined_at between to_timestamp(:From::int8/1000) and to_timestamp(:To::int8/1000)
-	and ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
-	and ( :Types::int[] isnull or q.type = any(:Types) )
-	and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
-	and (:Q::varchar isnull or (q.name ilike :Q::varchar or ct.name ilike :Q::varchar ) ) 
-group by q.id, ct.id
+    left join (
+        select t.queue_id,
+               (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = t.queue_id) waiting,
+               (select count(*) from cc_member_attempt a where a.queue_id = t.queue_id) processed,
+               count(*) filter ( where t.offering_at notnull ) as count,
+               count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
+               count(*) filter ( where t.result = 'abandoned' ) * 100.0 / count(*) as abandoned,
+               extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec, -- fixme (hangup_at)
+               extract(EPOCH from avg(t.leaving_at - t.reporting_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
+               extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
+               extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) max_awt_sec,
+               extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )) avg_asa_sec,
+               extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
+        from cc_member_attempt_history t
+        where t.joined_at between to_timestamp(:From::int8/1000) and to_timestamp(:To::int8/1000)
+        group by 1
+) ag on ag.queue_id = q.id
 order by q.priority desc
 limit :Limit
 offset :Offset

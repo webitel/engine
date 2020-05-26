@@ -80,16 +80,19 @@ message ListReportGeneral {
 message QueueReportGeneral {
     Lookup queue = 1;
     Lookup team = 2;
-    int64 waiting = 3;
-    int64 processed = 4;
-    int64 count = 5;
-    float abandoned = 6;
-    float sum_bill_sec = 7;
-    float avg_wrap_sec = 8;
-    float avg_awt_sec = 9;
-    float max_awt_sec = 10;
-    float avg_asa_sec = 11;
-    float avg_aht_sec = 12;
+    int32 online = 3;
+    int32 pause = 4;
+    float bridged = 5;
+    int64 waiting = 6;
+    int64 processed = 7;
+    int64 count = 8;
+    float abandoned = 9;
+    float sum_bill_sec = 10;
+    float avg_wrap_sec = 11;
+    float avg_awt_sec = 12;
+    float max_awt_sec = 13;
+    float avg_asa_sec = 14;
+    float avg_aht_sec = 15;
 }
 
 message PatchQueueRequest {

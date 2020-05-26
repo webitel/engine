@@ -52,6 +52,9 @@ type SearchQueueReportGeneral struct {
 type QueueReportGeneral struct {
 	Queue      Lookup  `json:"queue" db:"queue"`
 	Team       *Lookup `json:"team" db:"team"`
+	Online     int32   `json:"online" db:"online"`
+	Pause      int32   `json:"pause" db:"pause"`
+	Bridged    float32 `json:"bridged" db:"bridged"`
 	Waiting    int64   `json:"waiting" db:"waiting"`
 	Processed  int64   `json:"processed" db:"processed"`
 	Count      int64   `json:"count" db:"count"`

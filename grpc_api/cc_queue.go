@@ -364,6 +364,9 @@ func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueRepo
 	return &engine.QueueReportGeneral{
 		Queue:      GetProtoLookup(&src.Queue),
 		Team:       GetProtoLookup(src.Team),
+		Online:     src.Online,
+		Pause:      src.Pause,
+		Bridged:    src.Bridged,
 		Waiting:    src.Waiting,
 		Processed:  src.Processed,
 		Count:      src.Count,
