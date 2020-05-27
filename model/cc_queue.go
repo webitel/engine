@@ -155,7 +155,7 @@ func (q *Queue) DncListId() *int64 {
 }
 
 func (q *Queue) RingtoneId() *int {
-	if q.Ringtone == nil {
+	if q.Ringtone != nil {
 		return &q.Ringtone.Id
 	}
 
