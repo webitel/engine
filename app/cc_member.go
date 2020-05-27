@@ -54,6 +54,27 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	oldMember.Bucket = member.Bucket
 	oldMember.Skill = member.Skill
 	oldMember.MinOfferingAt = member.MinOfferingAt
+	oldMember.StopCause = member.StopCause
+
+	oldMember, err = app.Store.Member().Update(domainId, oldMember)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldMember, nil
+}
+
+func (app *App) PatchMember(domainId, queueId, id int64, patch *model.MemberPatch) (*model.Member, *model.AppError) {
+	oldMember, err := app.GetMember(domainId, queueId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldMember.Patch(patch)
+
+	if err = oldMember.IsValid(); err != nil {
+		return nil, err
+	}
 
 	oldMember, err = app.Store.Member().Update(domainId, oldMember)
 	if err != nil {

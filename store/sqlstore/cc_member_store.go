@@ -260,7 +260,8 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
             communications = :Communications,
             bucket_id = :BucketId,
             skill_id = :SkillId,
-			min_offering_at = :MinOfferingAt
+			min_offering_at = :MinOfferingAt,
+			stop_cause = :StopCause
     where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )
@@ -283,6 +284,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 		"QueueId":        member.QueueId,
 		"DomainId":       domainId,
 		"MinOfferingAt":  member.MinOfferingAt,
+		"StopCause":      member.StopCause,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.app_error", nil,

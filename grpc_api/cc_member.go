@@ -250,6 +250,10 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		member.ExpireAt = nil
 	}
 
+	if in.StopCause != "" {
+		member.StopCause = &in.StopCause
+	}
+
 	if err = member.IsValid(); err != nil {
 		return nil, err
 	}
@@ -259,6 +263,69 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 	} else {
 		return toEngineMember(member), nil
 	}
+}
+
+func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberRequest) (*engine.MemberInQueue, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var member *model.Member
+	patch := &model.MemberPatch{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "priority":
+			patch.Priority = model.NewInt(int(in.Priority))
+		case "expire_at":
+			patch.ExpireAt = model.NewInt64(in.ExpireAt)
+		case "min_offering_at":
+			patch.MinOfferingAt = model.NewInt64(in.MinOfferingAt)
+		case "name":
+			patch.Name = model.NewString(in.Name)
+		case "variables":
+			patch.Variables = in.Variables
+		case "timezone":
+			patch.Timezone = GetLookup(in.Timezone)
+		case "bucket":
+			patch.Bucket = GetLookup(in.Bucket)
+		case "communications":
+			patch.Communications = toModelMemberCommunications(in.GetCommunications())
+		case "skill":
+			patch.Skill = GetLookup(in.Skill)
+		case "stop_cause":
+			patch.StopCause = model.NewString(in.StopCause)
+		}
+	}
+
+	member, err = api.app.PatchMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineMember(member), nil
+
 }
 
 func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequest) (*engine.MemberInQueue, error) {

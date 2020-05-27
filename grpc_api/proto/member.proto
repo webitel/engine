@@ -48,6 +48,15 @@ service MemberService {
             body: "*"
         };
     }
+
+    // Patch Member
+    rpc PatchMember(PatchMemberRequest) returns (MemberInQueue) {
+        option (google.api.http) = {
+            patch: "/call_center/queues/{queue_id}/members/{id}"
+            body: "*"
+        };
+    }
+
     // DeleteMember
     rpc DeleteMember(DeleteMemberRequest) returns (MemberInQueue) {
         option (google.api.http) = {
@@ -98,6 +107,24 @@ service MemberService {
             body: "*"
         };
     }
+}
+
+message PatchMemberRequest {
+    int64 id = 1;
+    int64 queue_id = 2;
+    int32 priority = 3;
+    int64 expire_at = 4;
+    map<string, string> variables = 5;
+    string name = 6;
+    Lookup timezone = 7;
+    repeated MemberCommunicationCreateRequest communications = 8;
+    Lookup bucket = 9;
+    Lookup skill = 10;
+    int64 min_offering_at = 11;
+    string stop_cause = 12;
+
+    repeated string fields = 13;
+    int64 domain_id = 14;
 }
 
 message CreateAttemptRequest {
@@ -299,8 +326,9 @@ message UpdateMemberRequest {
     Lookup bucket = 9;
     Lookup skill = 10;
     int64 min_offering_at = 11;
+    string stop_cause = 12;
 
-    int64 domain_id = 12;
+    int64 domain_id = 13;
 }
 
 message ReadMemberRequest {

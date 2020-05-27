@@ -11,7 +11,6 @@ type Member struct {
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
 	MinOfferingAt  int64                 `json:"min_offering_at" db:"min_offering_at"`
 	Name           string                `json:"name" db:"name"`
-	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Variables      StringMap             `json:"variables" db:"variables"`
 	LastActivityAt int64                 `json:"last_hangup_at" db:"last_hangup_at"`
 	Attempts       int                   `json:"attempts" db:"attempts"`
@@ -20,7 +19,63 @@ type Member struct {
 	Communications []MemberCommunication `json:"communications" db:"communications"`
 	Skill          *Lookup               `json:"skill" db:"skill"`
 	StopAt         *int64                `json:"stop_at" db:"stop_at"`
+	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Reserved       bool                  `json:"reserved" db:"reserved"`
+}
+
+type MemberPatch struct {
+	Priority       *int                  `json:"priority" db:"priority"`
+	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
+	MinOfferingAt  *int64                `json:"min_offering_at" db:"min_offering_at"`
+	Name           *string               `json:"name" db:"name"`
+	Variables      StringMap             `json:"variables" db:"variables"`
+	Timezone       *Lookup               `json:"timezone" db:"timezone"`
+	Bucket         *Lookup               `json:"bucket" db:"bucket"`
+	Communications []MemberCommunication `json:"communications" db:"communications"`
+	Skill          *Lookup               `json:"skill" db:"skill"`
+	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
+}
+
+func (m *Member) Patch(p *MemberPatch) {
+	if p.Priority != nil {
+		m.Priority = *p.Priority
+	}
+
+	if p.ExpireAt != nil {
+		m.ExpireAt = p.ExpireAt
+	}
+
+	if p.MinOfferingAt != nil {
+		m.MinOfferingAt = *p.MinOfferingAt
+	}
+
+	if p.Name != nil {
+		m.Name = *p.Name
+	}
+
+	if p.Variables != nil {
+		m.Variables = p.Variables
+	}
+
+	if p.Timezone != nil {
+		m.Timezone = *p.Timezone
+	}
+
+	if p.Bucket != nil {
+		m.Bucket = p.Bucket
+	}
+
+	if p.Communications != nil {
+		m.Communications = p.Communications
+	}
+
+	if p.Skill != nil {
+		m.Skill = p.Skill
+	}
+
+	if p.StopCause != nil {
+		m.StopCause = p.StopCause
+	}
 }
 
 type MemberView struct {
