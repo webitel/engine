@@ -3503,6 +3503,56 @@
         "tags": [
           "MemberService"
         ]
+      },
+      "patch": {
+        "summary": "Patch Member",
+        "operationId": "PatchMember",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineMemberInQueue"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "queue_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/enginePatchMemberRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MemberService"
+        ]
       }
     },
     "/call_center/queues/{queue_id}/members/{member_id}/attempts": {
@@ -11095,6 +11145,68 @@
         }
       }
     },
+    "enginePatchMemberRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_id": {
+          "type": "string",
+          "format": "int64"
+        },
+        "priority": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "timezone": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "communications": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineMemberCommunicationCreateRequest"
+          }
+        },
+        "bucket": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "skill": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "min_offering_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "stop_cause": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
     "enginePatchOutboundResourceRequest": {
       "type": "object",
       "properties": {
@@ -12185,6 +12297,9 @@
         "min_offering_at": {
           "type": "string",
           "format": "int64"
+        },
+        "stop_cause": {
+          "type": "string"
         },
         "domain_id": {
           "type": "string",

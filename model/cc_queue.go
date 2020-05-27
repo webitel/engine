@@ -154,6 +154,14 @@ func (q *Queue) DncListId() *int64 {
 	return nil
 }
 
+func (q *Queue) RingtoneId() *int {
+	if q.Ringtone == nil {
+		return &q.Ringtone.Id
+	}
+
+	return nil
+}
+
 func (q *Queue) TeamId() *int64 {
 	if q.Team != nil {
 		return NewInt64(int64(q.Team.Id))

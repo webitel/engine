@@ -175,7 +175,8 @@ set updated_at = :UpdatedAt,
     type = :Type,
     team_id = :TeamId,
 	description = :Description,
-	schema_id = :SchemaId
+	schema_id = :SchemaId,
+	ringtone_id = :RingtoneId
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
@@ -210,6 +211,7 @@ from q
 		"Id":             queue.Id,
 		"DomainId":       queue.DomainId,
 		"Description":    queue.Description,
+		"RingtoneId":     queue.RingtoneId(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,
