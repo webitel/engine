@@ -20,7 +20,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	var out []*model.Call
 
 	_, err := s.GetMaster().Select(&out, `
-select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.parent_id,
+select c.id, c.app_id, c.state, cc_view_timestamp(c."timestamp") as timestamp, c.direction, c.destination, c.parent_id,
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to"
 from cc_calls c
