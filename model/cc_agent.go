@@ -119,8 +119,9 @@ type SearchAgentInQueue struct {
 type CallCenterPayload map[string]interface{}
 
 type CallCenterEvent struct {
-	Event string            `json:"event"`
-	Body  CallCenterPayload `json:"data,string,omitempty"`
+	Event  string            `json:"event"`
+	UserId int64             `json:"user_id"`
+	Body   CallCenterPayload `json:"data,string,omitempty"`
 }
 
 type AgentInQueue struct {
@@ -155,7 +156,7 @@ func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, *AppErro
 		return nil, NewAppError("Event", "event.cc.valid.event", nil,
 			fmt.Sprintf("unknown event \"%s\"", ev.Event), http.StatusInternalServerError)
 	}
-
+	e.UserId = ev.UserId
 	e.SetData(ev.Body)
 
 	return e, nil

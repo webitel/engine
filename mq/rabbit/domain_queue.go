@@ -100,7 +100,7 @@ func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId in
 	b := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
-		Routing:  fmt.Sprintf(model.CallCenterAgentStateTemplate, dq.id, agentId),
+		Routing:  fmt.Sprintf(model.CallCenterAgentStateTemplate, dq.id, userId),
 		Exchange: model.CallCenterExchange,
 	}
 
@@ -108,7 +108,7 @@ func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId in
 	b2 := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
-		Routing:  fmt.Sprintf("events.channel.*.%d.*.%d", dq.id, agentId),
+		Routing:  fmt.Sprintf("events.channel.*.%d.*.%d", dq.id, userId),
 		Exchange: model.CallCenterExchange,
 	}
 
