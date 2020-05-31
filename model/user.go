@@ -49,6 +49,7 @@ type UserDeviceConfig struct {
 	Realm             string `json:"realm" db:"realm"`
 	Uri               string `json:"uri" db:"uri"`
 	AuthorizationUser string `json:"authorization_user" db:"authorization_user"`
+	DisplayName       string `json:"display_name" db:"display_name"`
 	Ha1               string `json:"ha1" db:"ha1"`
 }
 

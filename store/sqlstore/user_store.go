@@ -59,6 +59,7 @@ func (s SqlUserStore) DefaultDeviceConfig(userId, domainId int64) (*model.UserDe
 	var deviceConfig *model.UserDeviceConfig
 
 	err := s.GetReplica().SelectOne(&deviceConfig, `select u.extension,
+       replace(coalesce(u.name, u.username), '"', '') display_name,
        dom.name as realm,
        'sip:' || u.extension || '@' || dom.name as uri,
        d.account as authorization_user,
