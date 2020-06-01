@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 const (
@@ -147,6 +148,14 @@ type CallFile struct {
 	MimeType string `json:"mime_type"`
 }
 
+func TimeToInt64(t *time.Time) int64 {
+	if t == nil {
+		return 0
+	}
+
+	return t.UnixNano() / int64(time.Millisecond)
+}
+
 type HistoryCall struct {
 	Id          string            `json:"id" db:"id"`
 	AppId       string            `json:"app_id" db:"app_id"`
@@ -161,12 +170,12 @@ type HistoryCall struct {
 	To          *Endpoint         `json:"to" db:"to"`
 	Variables   map[string]string `json:"variables" db:"variables"`
 
-	CreatedAt  int64  `json:"created_at" db:"created_at"`
-	AnsweredAt int64  `json:"answered_at" db:"answered_at"`
-	BridgedAt  int64  `json:"bridged_at" db:"bridged_at"`
-	HangupAt   int64  `json:"hangup_at" db:"hangup_at"`
-	HangupBy   string `json:"hangup_by" db:"hangup_by"`
-	Cause      string `json:"cause" db:"cause"`
+	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
+	AnsweredAt *time.Time `json:"answered_at" db:"answered_at"`
+	BridgedAt  *time.Time `json:"bridged_at" db:"bridged_at"`
+	HangupAt   *time.Time `json:"hangup_at" db:"hangup_at"`
+	HangupBy   string     `json:"hangup_by" db:"hangup_by"`
+	Cause      string     `json:"cause" db:"cause"`
 
 	Duration int `json:"duration" db:"duration"`
 	HoldSec  int `json:"hold_sec" db:"hold_sec"`
@@ -181,10 +190,10 @@ type HistoryCall struct {
 	Team   *Lookup `json:"team" db:"team"`
 	Agent  *Lookup `json:"agent" db:"agent"`
 
-	JoinedAt         *int64      `json:"joined_at" db:"joined_at"`
-	LeavingAt        *int64      `json:"leaving_at" db:"leaving_at"`
-	ReportingAt      *int64      `json:"reporting_at" db:"reporting_at"`
-	QueueBridgedAt   *int64      `json:"queue_bridged_at" db:"queue_bridged_at"`
+	JoinedAt         *time.Time  `json:"joined_at" db:"joined_at"`
+	LeavingAt        *time.Time  `json:"leaving_at" db:"leaving_at"`
+	ReportingAt      *time.Time  `json:"reporting_at" db:"reporting_at"`
+	QueueBridgedAt   *time.Time  `json:"queue_bridged_at" db:"queue_bridged_at"`
 	QueueWaitSec     *int        `json:"queue_wait_sec" db:"queue_wait_sec"`
 	QueueDurationSec *int        `json:"queue_duration_sec" db:"queue_duration_sec"`
 	ReportingSec     *int        `json:"reporting_sec" db:"reporting_sec"`

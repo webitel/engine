@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
 
 const (
@@ -26,6 +27,22 @@ type ListRequest struct {
 type FilterBetween struct {
 	From int64
 	To   int64
+}
+
+func GetBetweenFromTime(src *FilterBetween) *time.Time {
+	if src == nil {
+		return nil
+	}
+	t := time.Unix(0, src.From*int64(time.Millisecond))
+	return &t
+}
+
+func GetBetweenToTime(src *FilterBetween) *time.Time {
+	if src == nil {
+		return nil
+	}
+	t := time.Unix(0, src.To*int64(time.Millisecond))
+	return &t
 }
 
 func GetBetweenFrom(src *FilterBetween) *int64 {

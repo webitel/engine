@@ -81,8 +81,8 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Domain":       domainId,
 		"Limit":        search.GetLimit(),
 		"Offset":       search.GetOffset(),
-		"From":         search.CreatedAt.From,
-		"To":           search.CreatedAt.To,
+		"From":         model.GetBetweenFromTime(&search.CreatedAt),
+		"To":           model.GetBetweenToTime(&search.CreatedAt),
 		"Q":            search.GetQ(),
 		"UserIds":      pq.Array(search.UserIds),
 		"QueueIds":     pq.Array(search.QueueIds),
@@ -96,14 +96,14 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Cause":        search.Cause,
 		"ExistsFile":   search.ExistsFile,
 		"Direction":    search.Direction,
-		"AnsweredFrom": model.GetBetweenFrom(search.AnsweredAt),
-		"AnsweredTo":   model.GetBetweenTo(search.AnsweredAt),
+		"AnsweredFrom": model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
 		"DurationFrom": model.GetBetweenFrom(search.Duration),
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
-		`domain_id = :Domain and created_at between :From::int8 and :To::int8 
+		`domain_id = :Domain and created_at between :From::timestamptz and :To::timestamptz 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
@@ -116,7 +116,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
 	and (:ExistsFile::bool is not true or files notnull )
 	and (:Cause::varchar isnull or cause = :Cause )
-	and ( (:AnsweredFrom::int8 isnull or :AnsweredTo::int8 isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
+	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
 	and (:Direction::varchar isnull or direction = :Direction )`,
 		model.HistoryCall{}, f)
