@@ -80,6 +80,10 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.Number = model.NewString(in.Number)
 	}
 
+	if in.GetMissed() {
+		req.Missed = model.NewBool(true)
+	}
+
 	if list, endList, err = api.ctrl.SearchHistoryCall(session, req); err != nil {
 		return nil, err
 	}

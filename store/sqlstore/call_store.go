@@ -96,6 +96,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Cause":        search.Cause,
 		"ExistsFile":   search.ExistsFile,
 		"Direction":    search.Direction,
+		"Missed":       search.Missed,
 		"AnsweredFrom": model.GetBetweenFromTime(search.AnsweredAt),
 		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
 		"DurationFrom": model.GetBetweenFrom(search.Duration),
@@ -118,7 +119,8 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:Cause::varchar isnull or cause = :Cause )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
-	and (:Direction::varchar isnull or direction = :Direction )`,
+	and (:Direction::varchar isnull or direction = :Direction )
+	and (:Missed::bool isnull or (:Missed and answered_at isnull))`,
 		model.HistoryCall{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlCallStore.GetHistory", "store.sql_call.get_history.app_error", nil, err.Error(), http.StatusInternalServerError)

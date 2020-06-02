@@ -240,6 +240,7 @@ type SearchHistoryCall struct {
 	ParentId   *string
 	Cause      *string
 	Direction  *string
+	Missed     *bool
 	SkipParent bool
 	ExistsFile bool
 	UserIds    []int64

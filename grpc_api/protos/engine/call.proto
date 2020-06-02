@@ -101,6 +101,7 @@ message SearchHistoryCallRequest {
     string number = 19;
     string direction = 20;
     FilterBetween answered_at = 21;
+    bool missed = 22;
 }
 
 message ListHistoryCall {
