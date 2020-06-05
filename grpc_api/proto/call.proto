@@ -102,6 +102,7 @@ message SearchHistoryCallRequest {
     string direction = 20;
     FilterBetween answered_at = 21;
     bool missed = 22;
+    FilterBetween stored_at = 23;
 }
 
 message ListHistoryCall {
@@ -160,6 +161,7 @@ message HistoryCall {
     string result = 36;
     repeated string tags = 37;
     string display = 38;
+    int64 stored_at = 39;
 }
 
 message EavesdropCallRequest {

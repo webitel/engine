@@ -174,6 +174,7 @@ type HistoryCall struct {
 	AnsweredAt *time.Time `json:"answered_at" db:"answered_at"`
 	BridgedAt  *time.Time `json:"bridged_at" db:"bridged_at"`
 	HangupAt   *time.Time `json:"hangup_at" db:"hangup_at"`
+	StoredAt   *time.Time `json:"stored_at" db:"stored_at"`
 	HangupBy   string     `json:"hangup_by" db:"hangup_by"`
 	Cause      string     `json:"cause" db:"cause"`
 
@@ -208,7 +209,7 @@ func (c HistoryCall) AllowFields() []string {
 
 func (c HistoryCall) DefaultFields() []string {
 	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
-		"created_at", "answered_at", "bridged_at", "hangup_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
+		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display",
 	}
@@ -233,9 +234,10 @@ type SearchCall struct {
 
 type SearchHistoryCall struct {
 	ListRequest
-	CreatedAt  FilterBetween
+	CreatedAt  *FilterBetween
 	Duration   *FilterBetween
 	AnsweredAt *FilterBetween
+	StoredAt   *FilterBetween
 	Number     *string
 	ParentId   *string
 	Cause      *string

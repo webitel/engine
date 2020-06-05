@@ -7176,6 +7176,20 @@
             "required": false,
             "type": "boolean",
             "format": "boolean"
+          },
+          {
+            "name": "stored_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "stored_at.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
           }
         ],
         "tags": [
@@ -10128,6 +10142,10 @@
         },
         "display": {
           "type": "string"
+        },
+        "stored_at": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

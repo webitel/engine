@@ -81,8 +81,8 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Domain":       domainId,
 		"Limit":        search.GetLimit(),
 		"Offset":       search.GetOffset(),
-		"From":         model.GetBetweenFromTime(&search.CreatedAt),
-		"To":           model.GetBetweenToTime(&search.CreatedAt),
+		"From":         model.GetBetweenFromTime(search.CreatedAt),
+		"To":           model.GetBetweenToTime(search.CreatedAt),
 		"Q":            search.GetQ(),
 		"UserIds":      pq.Array(search.UserIds),
 		"QueueIds":     pq.Array(search.QueueIds),
@@ -101,11 +101,15 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
 		"DurationFrom": model.GetBetweenFrom(search.Duration),
 		"DurationTo":   model.GetBetweenTo(search.Duration),
+		"StoredAtFrom": model.GetBetweenFromTime(search.StoredAt),
+		"StoredAtTo":   model.GetBetweenToTime(search.StoredAt),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
-		`domain_id = :Domain and created_at between :From::timestamptz and :To::timestamptz 
+		`domain_id = :Domain 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
+	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
+	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  

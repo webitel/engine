@@ -21,8 +21,8 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	if in.GetCreatedAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at is required", http.StatusBadRequest)
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at is required", http.StatusBadRequest)
 	}
 
 	var list []*model.HistoryCall
@@ -35,10 +35,6 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			Q:        in.GetQ(),
 			Sort:     in.Sort,
 			Fields:   in.Fields,
-		},
-		CreatedAt: model.FilterBetween{
-			From: in.GetCreatedAt().GetFrom(),
-			To:   in.GetCreatedAt().GetTo(),
 		},
 		SkipParent: in.GetSkipParent(),
 		ExistsFile: in.GetExistsFile(),
@@ -61,6 +57,20 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.AnsweredAt = &model.FilterBetween{
 			From: in.GetAnsweredAt().GetFrom(),
 			To:   in.GetAnsweredAt().GetTo(),
+		}
+	}
+
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+
+	if in.GetStoredAt() != nil {
+		req.StoredAt = &model.FilterBetween{
+			From: in.GetStoredAt().GetFrom(),
+			To:   in.GetStoredAt().GetTo(),
 		}
 	}
 
@@ -390,6 +400,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
 		BridgedAt:        model.TimeToInt64(src.BridgedAt),
 		HangupAt:         model.TimeToInt64(src.HangupAt),
+		StoredAt:         model.TimeToInt64(src.StoredAt),
 		HangupBy:         src.HangupBy,
 		Cause:            src.Cause,
 		Duration:         int32(src.Duration),
