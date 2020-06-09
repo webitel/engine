@@ -149,3 +149,17 @@ where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain
 		return res, nil
 	}
 }
+
+func (s SqlCallStore) BridgedId(id string) (string, *model.AppError) {
+	res, err := s.GetReplica().SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
+from call_center.cc_calls c
+where id = :Id`, map[string]string{
+		"Id": id,
+	})
+
+	if err != nil {
+		return "", model.NewAppError("SqlCallStore.BridgedId", "store.sql_call.get_bridge_id.app_error", nil, err.Error(), extractCodeFromErr(err))
+	} else {
+		return res, nil
+	}
+}

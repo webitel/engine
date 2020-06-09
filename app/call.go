@@ -292,13 +292,19 @@ func (app *App) DtmfCall(domainId int64, req *model.DtmfCall) *model.AppError {
 func (app *App) BlindTransferCall(domainId int64, req *model.BlindTransferCall) *model.AppError {
 	var cli call_manager.CallClient
 	var err *model.AppError
+	var id string
 
 	cli, err = app.getCallCli(domainId, req.Id, req.AppId)
 	if err != nil {
 		return err
 	}
 
-	return cli.BlindTransfer(req.Id, req.Destination)
+	id, err = app.Store.Call().BridgedId(req.Id)
+	if err != nil {
+		return err
+	}
+
+	return cli.BlindTransfer(id, req.Destination)
 }
 
 func (app *App) BridgeCall(domainId int64, fromId, toId string) *model.AppError {
