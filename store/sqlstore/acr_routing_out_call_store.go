@@ -21,7 +21,7 @@ func NewSqlRoutingOutboundCallStore(sqlStore SqlStore) store.RoutingOutboundCall
 func (s SqlRoutingOutboundCallStore) Create(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
-    insert into acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
+    insert into flow.acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
                                       scheme_id, pattern, disabled)
 	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Disabled)
 	returning *
@@ -32,7 +32,7 @@ select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
-    inner join acr_routing_scheme arst on tmp.scheme_id = arst.id`,
+    inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id`,
 		map[string]interface{}{
 			"DomainId":    routing.DomainId,
 			"Name":        routing.Name,
@@ -67,8 +67,8 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, search *model.Se
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name)::jsonb as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.pattern, disabled, cc_get_lookup(arst.id, arst.name) as scheme,
        row_number() over (order by tmp.pos desc) as position
-from acr_routing_outbound_call tmp
-	inner join acr_routing_scheme arst on tmp.scheme_id = arst.id
+from flow.acr_routing_outbound_call tmp
+	inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
 where tmp.domain_id = :DomainId and ( (:Q::varchar isnull or tmp.name ilike :Q::varchar) or (:Q::varchar isnull or tmp.description ilike :Q::varchar))
@@ -93,10 +93,10 @@ func (s SqlRoutingOutboundCallStore) Get(domainId, id int64) (*model.RoutingOutb
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as scheme, 
 		tmp.pattern, disabled
-from acr_routing_outbound_call tmp
+from flow.acr_routing_outbound_call tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
-    inner join acr_routing_scheme arst on tmp.scheme_id = arst.id
+    inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id
 where tmp.id = :Id and tmp.domain_id = :DomainId`, map[string]interface{}{"DomainId": domainId, "Id": id}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlRoutingOutboundCallStore.Get", "store.sql_routing_out_call.get.app_error", nil, err.Error(), http.StatusNotFound)
@@ -111,7 +111,7 @@ where tmp.id = :Id and tmp.domain_id = :DomainId`, map[string]interface{}{"Domai
 func (s SqlRoutingOutboundCallStore) Update(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
-    update acr_routing_outbound_call r
+    update flow.acr_routing_outbound_call r
     set name = :Name,
         description = :Description,
         updated_at = :UpdatedAt,
@@ -128,7 +128,7 @@ select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
-    inner join acr_routing_scheme arst on tmp.scheme_id = arst.id`,
+    inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id`,
 		map[string]interface{}{
 			"Id":          routing.Id,
 			"Domain":      routing.DomainId,
@@ -160,12 +160,12 @@ func (s SqlRoutingOutboundCallStore) ChangePosition(domainId, fromId, toId int64
 		select f.id,
            case when f.pos > lead(f.pos) over () then lead(f.pos) over () else lag(f.pos) over (order by f.pos desc) end as new_pos,
            count(*) over () cnt
-        from acr_routing_outbound_call f
+        from flow.acr_routing_outbound_call f
         where f.id in (:FromId, :ToId) and f.domain_id = :DomainId
         order by f.pos desc
 	),
 	u as (
-		update acr_routing_outbound_call u
+		update flow.acr_routing_outbound_call u
 		set pos = t.new_pos
 		from t
 		where t.id = u.id and t.cnt = 2 and  :FromId != :ToId
@@ -192,7 +192,7 @@ func (s SqlRoutingOutboundCallStore) ChangePosition(domainId, fromId, toId int64
 }
 
 func (s SqlRoutingOutboundCallStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from acr_routing_outbound_call c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from flow.acr_routing_outbound_call c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRoutingOutboundCallStore.Delete", "store.sql_routing_out_call.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

@@ -30,7 +30,7 @@ func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Mem
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
                cc_get_lookup(cs.id, cs.name::text) as skill
 		from m
-			left join calendar_timezones ct on m.timezone_id = ct.id
+			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
             left join cc_skill cs on m.skill_id = cs.id`,
 		map[string]interface{}{
@@ -156,7 +156,7 @@ select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destinatio
 from cc_member m
     inner join result on m.id = result.id
     inner join cc_queue cq on m.queue_id = cq.id
-    left join calendar_timezones ct on ct.id = m.timezone_id
+    left join flow.calendar_timezones ct on ct.id = m.timezone_id
     left join cc_bucket cb on m.bucket_id = cb.id
     left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 			"Id":          search.Id,
@@ -213,7 +213,7 @@ select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destinatio
 from cc_member m
     inner join result on m.id = result.id
     inner join cc_queue cq on m.queue_id = cq.id
-    left join calendar_timezones ct on ct.id = m.timezone_id
+    left join flow.calendar_timezones ct on ct.id = m.timezone_id
     left join cc_bucket cb on m.bucket_id = cb.id
     left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 			"QueueId": queueId,
@@ -234,7 +234,7 @@ func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
                cc_get_lookup(cs.id, cs.name::text) as skill
 		from cc_member m
-			left join calendar_timezones ct on m.timezone_id = ct.id
+			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
             left join cc_skill cs on m.skill_id = cs.id
 	where m.id = :Id and m.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`, map[string]interface{}{
@@ -269,7 +269,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
                cc_get_lookup(cs.id, cs.name::text) as skill
 		from m
-			left join calendar_timezones ct on m.timezone_id = ct.id
+			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
             left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 		"Priority":       member.Priority,
@@ -315,7 +315,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
                cc_get_lookup(cs.id, cs.name::text) as skill
 		from m
-			left join calendar_timezones ct on m.timezone_id = ct.id
+			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
             left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 		"Ids":     pq.Array(ids),
@@ -405,8 +405,8 @@ func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.Sear
 		"Domain":    domainId,
 		"Limit":     search.GetLimit(),
 		"Offset":    search.GetOffset(),
-		"From":      search.JoinedAt.From,
-		"To":        search.JoinedAt.To,
+		"From":      model.GetBetweenFromTime(&search.JoinedAt),
+		"To":        model.GetBetweenToTime(&search.JoinedAt),
 		"Ids":       pq.Array(search.Ids),
 		"QueueIds":  pq.Array(search.QueueIds),
 		"BucketIds": pq.Array(search.BucketIds),
@@ -417,7 +417,7 @@ func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.Sear
 
 	err := s.ListQuery(&att, search.ListRequest,
 		`domain_id = :Domain
-	and joined_at_timestamp between to_timestamp( (:From::int8 / 1000)::int8 ) and to_timestamp( (:To::int8 / 1000)::int8 )
+	and joined_at between :From::timestamptz and :To::timestamptz
 	and (:Ids::int8[] isnull or id = any(:Ids))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))

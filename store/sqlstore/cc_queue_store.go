@@ -53,11 +53,11 @@ select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
 		  cc_get_lookup(s.id, s.name) as schema, cc_get_lookup(q.ringtone_id, mf.name) as ringtone
 from q
-    inner join calendar c on q.calendar_id = c.id
+    inner join flow.calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
     left join cc_list cl on q.dnc_list_id = cl.id
-	left join acr_routing_scheme s on q.schema_id = s.id
+	left join flow.acr_routing_scheme s on q.schema_id = s.id
     left join cc_team ct on q.team_id = ct.id
     left join storage.media_files mf on mf.id = q.ringtone_id`,
 		map[string]interface{}{
@@ -141,11 +141,11 @@ func (s SqlQueueStore) Get(domainId int64, id int64) (*model.Queue, *model.AppEr
           cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
 		  cc_get_lookup(s.id, s.name) as schema, cc_get_lookup(q.ringtone_id, mf.name) as ringtone
 from cc_queue q
-    inner join calendar c on q.calendar_id = c.id
+    inner join flow.calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
     left join cc_list cl on q.dnc_list_id = cl.id
-	left join acr_routing_scheme s on q.schema_id = s.id
+	left join flow.acr_routing_scheme s on q.schema_id = s.id
     left join cc_team ct on q.team_id = ct.id
     left join storage.media_files mf on mf.id = q.ringtone_id
 where q.domain_id = :DomainId and q.id = :Id 	
@@ -186,11 +186,11 @@ select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
           cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
 		  cc_get_lookup(s.id, s.name) as schema, cc_get_lookup(q.ringtone_id, mf.name) as ringtone
 from q
-    inner join calendar c on q.calendar_id = c.id
+    inner join flow.calendar c on q.calendar_id = c.id
     left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
     left join cc_list cl on q.dnc_list_id = cl.id
-	left join acr_routing_scheme s on q.schema_id = s.id
+	left join flow.acr_routing_scheme s on q.schema_id = s.id
     left join cc_team ct on q.team_id = ct.id
     left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
 		"UpdatedAt":      queue.UpdatedAt,

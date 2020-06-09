@@ -1,6 +1,9 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Member struct {
 	Id             int64                 `json:"id" db:"id"`
@@ -105,11 +108,11 @@ type OfflineMember struct {
 
 type AttemptHistory struct {
 	Id           int64             `json:"id" db:"id"`
-	JoinedAt     int64             `json:"joined_at" db:"joined_at"`
-	OfferingAt   int64             `json:"offering_at" db:"offering_at"`
-	BridgedAt    int64             `json:"bridged_at" db:"bridged_at"`
-	ReportingAt  int64             `json:"reporting_at" db:"reporting_at"`
-	LeavingAt    int64             `json:"leaving_at" db:"leaving_at"`
+	JoinedAt     *time.Time        `json:"joined_at" db:"joined_at"`
+	OfferingAt   *time.Time        `json:"offering_at" db:"offering_at"`
+	BridgedAt    *time.Time        `json:"bridged_at" db:"bridged_at"`
+	ReportingAt  *time.Time        `json:"reporting_at" db:"reporting_at"`
+	LeavingAt    *time.Time        `json:"leaving_at" db:"leaving_at"`
 	Channel      string            `json:"channel" db:"channel"`
 	Queue        Lookup            `json:"queue" db:"queue"`
 	Member       *Lookup           `json:"member" db:"member"`

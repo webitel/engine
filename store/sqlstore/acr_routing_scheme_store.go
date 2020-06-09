@@ -20,7 +20,7 @@ func NewSqlRoutingSchemaStore(sqlStore SqlStore) store.RoutingSchemaStore {
 func (s SqlRoutingSchemaStore) Create(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
 	var out *model.RoutingSchema
 	if err := s.GetMaster().SelectOne(&out, `with s as (
-    insert into acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug)
+    insert into flow.acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug)
     values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug)
     returning *
 )
@@ -54,7 +54,7 @@ func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, search *model.SearchRo
 	if _, err := s.GetReplica().Select(&schemes,
 		`select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
     s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, debug
-from acr_routing_scheme s
+from flow.acr_routing_scheme s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by
 where s.domain_id = :DomainId and ( (:Q::varchar isnull or s.name ilike :Q::varchar) )
@@ -77,7 +77,7 @@ func (s SqlRoutingSchemaStore) Get(domainId int64, id int64) (*model.RoutingSche
 	if err := s.GetReplica().SelectOne(&rScheme, `
 			select s.id, s.domain_id, s.name, s.created_at, cc_get_lookup(c.id, c.name) as created_by,
 		s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.scheme, s.payload, debug
-	from acr_routing_scheme s
+	from flow.acr_routing_scheme s
 		left join directory.wbt_user c on c.id = s.created_by
 		left join directory.wbt_user u on u.id = s.updated_by
 	where s.id = :Id and s.domain_id = :DomainId
@@ -92,7 +92,7 @@ func (s SqlRoutingSchemaStore) Get(domainId int64, id int64) (*model.RoutingSche
 
 func (s SqlRoutingSchemaStore) Update(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
 	err := s.GetMaster().SelectOne(&scheme, `with s as (
-    update acr_routing_scheme s
+    update flow.acr_routing_scheme s
     set name = :Name,
         scheme = :Scheme,
         payload = :Payload,
@@ -135,7 +135,7 @@ from s
 }
 
 func (s SqlRoutingSchemaStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from acr_routing_scheme c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from flow.acr_routing_scheme c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRoutingSchemaStore.Delete", "store.sql_routing_schema.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

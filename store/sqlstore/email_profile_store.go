@@ -32,7 +32,7 @@ select t.id, t.domain_id, cc_view_timestamp(t.created_at) created_at, cc_get_loo
 from t
     left join directory.wbt_user cc on cc.id = t.created_by
     left join directory.wbt_user cu on cu.id = t.updated_by
-    left join acr_routing_scheme s on s.id = t.flow_id`, map[string]interface{}{
+    left join flow.acr_routing_scheme s on s.id = t.flow_id`, map[string]interface{}{
 		"DomainId":    p.DomainId,
 		"Name":        p.Name,
 		"Description": p.Description,
@@ -127,7 +127,7 @@ select t.id,
 from t
          left join directory.wbt_user cc on cc.id = t.created_by
          left join directory.wbt_user cu on cu.id = t.updated_by
-         left join acr_routing_scheme s on s.id = t.flow_id`, map[string]interface{}{
+         left join flow.acr_routing_scheme s on s.id = t.flow_id`, map[string]interface{}{
 		"Name":        p.Name,
 		"Description": p.Description,
 		"FlowId":      p.Schema.Id,

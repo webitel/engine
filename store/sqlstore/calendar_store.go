@@ -25,8 +25,8 @@ func (s *SqlCalendarStore) CreateTableIfNotExists() {
 func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
 	var out *model.Calendar
 	if err := s.GetMaster().SelectOne(&out, `with c as (
-		  insert into calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by, accepts, excepts)
-		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, calendar_json_to_accepts(:Accepts), calendar_json_to_excepts(:Excepts::jsonb))
+		  insert into flow.calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by, accepts, excepts)
+		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, flow.calendar_json_to_accepts(:Accepts::jsonb), flow.calendar_json_to_excepts(:Excepts::jsonb))
 		  returning *
 		)
 		select
@@ -41,10 +41,10 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 		    cc_get_lookup(uc.id, uc.name) as created_by,
 		    c.updated_at,
 		    cc_get_lookup(u.id, u.name) as updated_by,
-		    calendar_accepts_to_jsonb(c.accepts)::jsonb as accepts,
+		    flow.calendar_accepts_to_jsonb(c.accepts)::jsonb as accepts,
 		    cc_arr_type_to_jsonb(c.excepts)::jsonb as excepts
 		from c
-		  inner join calendar_timezones ct on ct.id = c.timezone_id
+		  inner join flow.calendar_timezones ct on ct.id = c.timezone_id
 	      left join directory.wbt_user uc on uc.id = c.created_by
 	      left join directory.wbt_user u on u.id = c.updated_by`,
 		map[string]interface{}{
@@ -83,10 +83,10 @@ func (s SqlCalendarStore) GetAllPage(domainId int64, search *model.SearchCalenda
 	   cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
        cc_get_lookup(u.id, u.name) as updated_by,
-	   calendar_accepts_to_jsonb(c.accepts) as accepts,
+	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
 	   cc_arr_type_to_jsonb(c.excepts) as excepts
-	from calendar c
-       left join calendar_timezones ct on c.timezone_id = ct.id
+	from flow.calendar c
+       left join flow.calendar_timezones ct on c.timezone_id = ct.id
 	   left join directory.wbt_user uc on uc.id = c.created_by
 	   left join directory.wbt_user u on u.id = c.updated_by
 where c.domain_id = :DomainId and ( (:Q::varchar isnull or c.name ilike :Q::varchar) or (:Q::varchar isnull or c.description ilike :Q::varchar))
@@ -109,7 +109,7 @@ func (s SqlCalendarStore) CheckAccess(domainId, id int64, groups []int, access a
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from calendar_acl a
+          from flow.calendar_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -138,16 +138,16 @@ func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, searc
 	   cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
        cc_get_lookup(u.id, u.name) as updated_by,
-	   calendar_accepts_to_jsonb(c.accepts) as accepts,
+	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
 	   cc_arr_type_to_jsonb(c.excepts) as excepts
-from calendar c
-       left join calendar_timezones ct on c.timezone_id = ct.id
+from flow.calendar c
+       left join flow.calendar_timezones ct on c.timezone_id = ct.id
 	   left join directory.wbt_user uc on uc.id = c.created_by
 	   left join directory.wbt_user u on u.id = c.updated_by
 where c.domain_id = :DomainId
   and (
     exists(select 1
-      from calendar_acl a
+      from flow.calendar_acl a
       where a.dc = c.domain_id and a.object = c.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
   ) and ( (:Q::varchar isnull or c.name ilike :Q::varchar) or (:Q::varchar isnull or c.description ilike :Q::varchar))
 order by id
@@ -180,10 +180,10 @@ func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model
 			   cc_get_lookup(uc.id, uc.name) as created_by,
 			   c.updated_at,
 			   cc_get_lookup(u.id, u.name) as updated_by,
-			   calendar_accepts_to_jsonb(c.accepts) as accepts,
+			   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
 			   cc_arr_type_to_jsonb(c.excepts) as excepts
-		from calendar c
-			   left join calendar_timezones ct on c.timezone_id = ct.id
+		from flow.calendar c
+			   left join flow.calendar_timezones ct on c.timezone_id = ct.id
 			   left join directory.wbt_user uc on uc.id = c.created_by
 			   left join directory.wbt_user u on u.id = c.updated_by
 		where c.domain_id = :DomainId and c.id = :Id 	
@@ -202,7 +202,7 @@ func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model
 
 func (s SqlCalendarStore) Update(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
 	err := s.GetMaster().SelectOne(&calendar, `with c as (
-    update calendar
+    update flow.calendar
 	set name = :Name,
     timezone_id = :TimezoneId,
     description = :Description,
@@ -210,8 +210,8 @@ func (s SqlCalendarStore) Update(calendar *model.Calendar) (*model.Calendar, *mo
     start_at = :StartAt,
     updated_at = :UpdatedAt,
 	updated_by = :UpdatedBy,
-	accepts = calendar_json_to_accepts(:Accepts),
-	excepts = calendar_json_to_excepts(:Excepts::jsonb)
+	accepts = flow.calendar_json_to_accepts(:Accepts),
+	excepts = flow.calendar_json_to_excepts(:Excepts::jsonb)
 where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -226,10 +226,10 @@ select c.id,
        cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
        cc_get_lookup(u.id, u.name) as updated_by,
-	   calendar_accepts_to_jsonb(c.accepts) as accepts,
+	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
 	   cc_arr_type_to_jsonb(c.excepts) as excepts
 from c
-       left join calendar_timezones ct on c.timezone_id = ct.id
+       left join flow.calendar_timezones ct on c.timezone_id = ct.id
        left join directory.wbt_user uc on uc.id = c.created_by
        left join directory.wbt_user u on u.id = c.updated_by`, map[string]interface{}{
 		"Name":        calendar.Name,
@@ -252,7 +252,7 @@ from c
 }
 
 func (s SqlCalendarStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from calendar c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from flow.calendar c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlCalendarStore.Delete", "store.sql_calendar.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -264,7 +264,7 @@ func (s SqlCalendarStore) GetTimezoneAllPage(search *model.SearchTimezone) ([]*m
 	var timezones []*model.Timezone
 
 	if _, err := s.GetReplica().Select(&timezones, `select id, name || ' ' || utc_offset::text as name, utc_offset::text as "offset" 
-		from calendar_timezones  t
+		from flow.calendar_timezones  t
 		where  (:Q::varchar isnull or t.name ilike :Q::varchar)
 		order by name limit :Limit offset :Offset`, map[string]interface{}{
 		"Limit":  search.GetLimit(),

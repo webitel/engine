@@ -791,11 +791,11 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 	item := &engine.AttemptHistory{
 		Id:           src.Id,
-		JoinedAt:     src.JoinedAt,
-		OfferingAt:   src.OfferingAt,
-		BridgedAt:    src.BridgedAt,
-		ReportingAt:  src.ReportingAt,
-		LeavingAt:    src.LeavingAt,
+		JoinedAt:     model.TimeToInt64(src.JoinedAt),
+		OfferingAt:   model.TimeToInt64(src.OfferingAt),
+		BridgedAt:    model.TimeToInt64(src.BridgedAt),
+		ReportingAt:  model.TimeToInt64(src.ReportingAt),
+		LeavingAt:    model.TimeToInt64(src.LeavingAt),
 		Channel:      src.Channel,
 		Queue:        GetProtoLookup(&src.Queue),
 		Member:       GetProtoLookup(src.Member),

@@ -21,7 +21,7 @@ func NewSqlRoutingInboundCallStore(sqlStore SqlStore) store.RoutingInboundCallSt
 func (s SqlRoutingInboundCallStore) Create(routing *model.RoutingInboundCall) (*model.RoutingInboundCall, *model.AppError) {
 	var out *model.RoutingInboundCall
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
-    insert into acr_routing_inbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
+    insert into flow.acr_routing_inbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
                                       start_scheme_id, stop_scheme_id, numbers, host, timezone_id, debug, disabled)
 	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :StartSchemeId, :StopSchemeId,
         :Numbers, :Host, :TimezoneId, :Debug, :Disabled)
@@ -34,9 +34,9 @@ select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
-    inner join acr_routing_scheme arst on tmp.start_scheme_id = arst.id
-    left join acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
-    inner join calendar_timezones ct on tmp.timezone_id = ct.id`,
+    inner join flow.acr_routing_scheme arst on tmp.start_scheme_id = arst.id
+    left join flow.acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
+    inner join flow.calendar_timezones ct on tmp.timezone_id = ct.id`,
 		map[string]interface{}{
 			"DomainId":      routing.DomainId,
 			"Name":          routing.Name,
@@ -75,10 +75,10 @@ func (s SqlRoutingInboundCallStore) GetAllPage(domainId int64, offset, limit int
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name)::jsonb as created_by,
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.numbers, tmp.host, cc_get_lookup(ct.id, ct.name) as timezone,
        debug, disabled
-from acr_routing_inbound_call tmp
+from flow.acr_routing_inbound_call tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
-inner join calendar_timezones ct on tmp.timezone_id = ct.id 
+inner join flow.calendar_timezones ct on tmp.timezone_id = ct.id 
 where tmp.domain_id = :DomainId
 order by tmp.id
 limit :Limit
@@ -97,12 +97,12 @@ func (s SqlRoutingInboundCallStore) Get(domainId, id int64) (*model.RoutingInbou
        tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as start_scheme,
       cc_get_lookup(arsp.id, arsp.name) as stop_scheme, tmp.numbers, tmp.host, cc_get_lookup(ct.id, ct.name) as timezone,
        debug, disabled
-from acr_routing_inbound_call tmp
+from flow.acr_routing_inbound_call tmp
     left join wbt_user c on c.id = tmp.created_by
     left join wbt_user u on u.id = tmp.updated_by
-    inner join acr_routing_scheme arst on tmp.start_scheme_id = arst.id
-    left join acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
-inner join calendar_timezones ct on tmp.timezone_id = ct.id 
+    inner join flow.acr_routing_scheme arst on tmp.start_scheme_id = arst.id
+    left join flow.acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
+inner join flow.calendar_timezones ct on tmp.timezone_id = ct.id 
 where tmp.id = :Id and tmp.domain_id = :DomainId`, map[string]interface{}{"DomainId": domainId, "Id": id}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlRoutingInboundCallStore.Get", "store.sql_routing_in_call.get.app_error", nil, err.Error(), http.StatusNotFound)
@@ -117,7 +117,7 @@ where tmp.id = :Id and tmp.domain_id = :DomainId`, map[string]interface{}{"Domai
 func (s SqlRoutingInboundCallStore) Update(routing *model.RoutingInboundCall) (*model.RoutingInboundCall, *model.AppError) {
 	var out *model.RoutingInboundCall
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
-    update acr_routing_inbound_call r
+    update flow.acr_routing_inbound_call r
     set name = :Name,
         description = :Description,
         updated_at = :UpdatedAt,
@@ -139,9 +139,9 @@ select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_
 from tmp
     left join wbt_user c on c.id = tmp.created_by
     left join wbt_user u on u.id = tmp.updated_by
-    inner join acr_routing_scheme arst on tmp.start_scheme_id = arst.id
-    left join acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
-    inner join calendar_timezones ct on tmp.timezone_id = ct.id`,
+    inner join flow.acr_routing_scheme arst on tmp.start_scheme_id = arst.id
+    left join flow.acr_routing_scheme arsp on tmp.stop_scheme_id = arsp.id
+    inner join flow.calendar_timezones ct on tmp.timezone_id = ct.id`,
 		map[string]interface{}{
 			"Id":            routing.Id,
 			"Domain":        routing.DomainId,
@@ -173,7 +173,7 @@ from tmp
 }
 
 func (s SqlRoutingInboundCallStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from acr_routing_inbound_call c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from flow.acr_routing_inbound_call c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRoutingInboundCallStore.Delete", "store.sql_routing_in_call.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
