@@ -135,7 +135,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 
 func (s SqlCallStore) BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError) {
 	var res *model.BridgeCall
-	err := s.GetMaster().SelectOne(&res, `select coalesce(c.parent_id, c.id) from_id, coalesce(c2.parent_id, c2.id) to_id, c.app_id
+	err := s.GetMaster().SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
 from cc_calls c,
      cc_calls c2
 where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
