@@ -269,6 +269,7 @@ module.exports = class Predictive extends Dialer {
         let agentVars = [
             `effective_callee_id_number=${agent.name.split('@')[0]}`,
             `cc_side=agent`,
+            `bridge_export_vars=effective_caller_id_name`,
             `cc_agent='${agent.name}'`,
             `cc_queue='${this.nameDialer}'`,
             `originate_timeout=${this.getAgentOriginateTimeout(agent)}`,
