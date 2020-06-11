@@ -110,6 +110,7 @@ module.exports = class Dialer extends EventEmitter2 {
 
             member.once('end', (m) => {
                 const $set = {
+                        successfulCount: m.successfulCount,
                        //variables: m.variables, //DEV-697
                         lastCall: m._minusProbe ? 0 : Date.now(),
                         // '_log.$': {}

@@ -21,7 +21,7 @@ module.exports = class VoiceBroadcast extends Dialer {
 
                     }
                     return this.huntingMember();
-                    
+
                     // let i = count - this._active;
                     //
                     // if (i < 1)
@@ -69,7 +69,7 @@ module.exports = class VoiceBroadcast extends Dialer {
                 }
             );
         });
-        
+
         this.getDialString = (member) => {
             const vars = [`presence_data='${member.getDomain()}'`, `cc_queue='${member.getQueueName()}'`, 'ignore_early_media=true', `originate_timeout=${this._originateTimeout}`];
 
@@ -153,6 +153,10 @@ module.exports = class VoiceBroadcast extends Dialer {
             } else {
                 apps.push(`transfer:${member.getQueueId()} XML dialer ${callerIdNumber} ${member.getQueueName()}`);
             }
+
+            vars.push(`cc_member_attempt_count=${member.currentProbe}`);
+            vars.push(`cc_member_successful_count=${member.successfulCount}`);
+            vars.push(`export_vars=cc_member_attempt_count,cc_member_successful_count`);
 
             return `originate {^^${VAR_SEPARATOR}${vars.join(VAR_SEPARATOR)}}${dialString} '${apps.join(',')}' inline`;
         };

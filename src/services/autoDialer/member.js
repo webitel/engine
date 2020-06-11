@@ -17,6 +17,8 @@ const generateUuid = require('node-uuid'),
     VARIABLES = require('./const').VARIABLES
 ;
 
+const SPAM_VARIABLE = "cc_min_count";
+
 module.exports = class Member extends EventEmitter2 {
 
     constructor (config, currentNumber, destination, dialer = {}) {
@@ -30,6 +32,7 @@ module.exports = class Member extends EventEmitter2 {
         this.callSuccessful = false;
         this.connectedCall = false;
         this.connectedAgent = false;
+        this.successfulCount = (config.successfulCount || 0);
 
         this.terminateOn = null;
 
@@ -410,6 +413,8 @@ module.exports = class Member extends EventEmitter2 {
 
         this.processEnd = true;
 
+        let spamCount = 0;
+
         log.trace(`end member ${this._id} cause: ${this.endCause || endCause || ''}`) ;
 
         if (e) {
@@ -426,7 +431,7 @@ module.exports = class Member extends EventEmitter2 {
 
             //this.setProbeQ850Code(e.getHeader('variable_hangup_cause_q850'));
             this.setCallUUID(e.getHeader('variable_uuid'));
-
+            spamCount = (+e.getHeader(`variable_${SPAM_VARIABLE}`))
         }
 
         if (endCause === END_CAUSE.MANAGER_REQUEST && this.terminateOn) {
@@ -475,12 +480,19 @@ module.exports = class Member extends EventEmitter2 {
         //TODO
         if (~this.getCausesSuccessful(endCause) && (this.bridgedCall || this.getDialerType() === DIALER_TYPES.VoiceBroadcasting)) {
             if (this.getTalkSec() >= this.getMinBillSec()) {
-                this.endCause = endCause;
-                this.log(`OK: ${endCause}`);
-                this.setCallSuccessful(true);
-                this._setStateCurrentNumber(MEMBER_STATE.End);
-                this.emit('end', this);
-                return;
+                this.successfulCount++;
+
+                if (spamCount > 0 && this.successfulCount < spamCount) {
+                    this.log(`check spam count ${this.successfulCount}`);
+                    skipOk = true;
+                } else {
+                    this.endCause = endCause;
+                    this.log(`OK: ${endCause}`);
+                    this.setCallSuccessful(true);
+                    this._setStateCurrentNumber(MEMBER_STATE.End);
+                    this.emit('end', this);
+                    return
+                }
             } else {
                 skipOk = true;
                 this.log(`skip ok: talk sec ${this.getTalkSec()}`)
