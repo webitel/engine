@@ -23,7 +23,7 @@ func (c *Controller) GetAgentSession(session *auth_manager.Session, domainId, us
 	return c.app.GetAgentSession(session.Domain(domainId), userId)
 }
 
-func (c *Controller) LoginAgent(session *auth_manager.Session, domainId, agentId int64) *model.AppError {
+func (c *Controller) LoginAgent(session *auth_manager.Session, domainId, agentId int64, channels []string, onDemand bool) *model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -37,7 +37,7 @@ func (c *Controller) LoginAgent(session *auth_manager.Session, domainId, agentId
 		}
 	}
 
-	return c.app.LoginAgent(session.Domain(domainId), agentId)
+	return c.app.LoginAgent(session.Domain(domainId), agentId, channels, onDemand)
 }
 
 func (c *Controller) LogoutAgent(session *auth_manager.Session, domainId, agentId int64) *model.AppError {

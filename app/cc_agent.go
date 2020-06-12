@@ -135,8 +135,8 @@ func (a *App) GetAgentSession(domainId, id int64) (*model.AgentSession, *model.A
 	return a.Store.Agent().GetSession(domainId, id)
 }
 
-func (a *App) LoginAgent(domainId, agentId int64) *model.AppError {
-	err := a.cc.Agent().Online(domainId, agentId)
+func (a *App) LoginAgent(domainId, agentId int64, channels []string, onDemand bool) *model.AppError {
+	err := a.cc.Agent().Online(domainId, agentId, channels, onDemand)
 	if err != nil {
 		return model.NewAppError("LoginAgent", "app.agent.login.app_err", nil, err.Error(), http.StatusBadRequest)
 	}

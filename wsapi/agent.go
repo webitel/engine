@@ -53,6 +53,7 @@ func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) 
 func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var agentId float64
 	var domainId float64
+	var onDemand bool
 	var ok bool
 
 	if agentId, ok = req.Data["agent_id"].(float64); !ok {
@@ -63,7 +64,9 @@ func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 		domainId = float64(conn.DomainId)
 	}
 
-	err := api.ctrl.LoginAgent(conn.GetSession(), int64(domainId), int64(agentId))
+	onDemand, _ = req.Data["on_demand"].(bool)
+	// TODO channels call, chat ...
+	err := api.ctrl.LoginAgent(conn.GetSession(), int64(domainId), int64(agentId), nil, onDemand)
 	if err != nil {
 		return nil, err
 	}
