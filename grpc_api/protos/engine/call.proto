@@ -19,7 +19,7 @@ service CallService {
         };
     }
     // Call item
-    rpc ReadCall(ReadCallRequest) returns (Call) {
+    rpc ReadCall(ReadCallRequest) returns (ActiveCall) {
         option (google.api.http) = {
             get: "/calls/active/{id}"
         };
@@ -237,14 +237,75 @@ message ReadCallRequest {
 message SearchCallRequest {
     int32 page = 1;
     int32 size = 2;
-    string q = 3;
 
-    int64 domain_id = 4;
+    FilterBetween created_at = 3;
+    repeated int64 user_id = 4;
+    repeated int64 agent_id = 5;
+    repeated int64 queue_id = 6;
+    repeated int64 team_id = 7;
+    repeated int64 member_id = 8;
+    repeated int64 gateway_id = 9;
+    string q = 10;
+
+    FilterBetween duration = 11;
+    bool skip_parent = 12;
+    string parent_id = 13;
+    string cause = 14;
+    bool exists_file = 15;
+
+    repeated string fields = 16;
+    string sort = 17;
+    int64 domain_id = 18;
+    string number = 19;
+    string direction = 20;
+    FilterBetween answered_at = 21;
+    bool missed = 22;
+    FilterBetween stored_at = 23;
+}
+
+message ActiveCall {
+    string id = 1;
+    string app_id = 2;
+    string state = 3;
+    int64 timestamp = 4;
+    string type = 5;
+    string parent_id = 6;
+    Lookup user = 7;
+    string extension = 8;
+    Lookup gateway = 9;
+    string direction = 10;
+    string destination = 11;
+    Endpoint from = 12;
+    Endpoint to = 13;
+    map<string,string> variables = 14;
+
+    int64 created_at = 15;
+    int64 answered_at = 16;
+    int64 bridged_at = 17;
+
+    int32 duration = 21;
+    int32 hold_sec = 22;
+    int32 wait_sec = 23;
+    int32 bill_sec = 24;
+
+    Lookup queue = 25;
+    Lookup member = 26;
+    Lookup team = 27;
+    Lookup agent = 28;
+
+    int64 joined_at = 29;
+    int64 leaving_at = 30;
+    int64 reporting_at = 31;
+    int64 queue_bridged_at = 32;
+    int32 queue_wait_sec = 33;
+    int32 queue_duration_sec = 34;
+    int32 reporting_sec = 35;
+    string display = 36;
 }
 
 message ListCall {
     bool next = 1;
-    repeated Call items = 2;
+    repeated ActiveCall items = 2;
 }
 
 message CreateCallRequest {

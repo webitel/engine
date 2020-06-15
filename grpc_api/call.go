@@ -109,7 +109,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	}, nil
 }
 
-func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*engine.Call, error) {
+func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*engine.ActiveCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 		return nil, err
 	}
 
-	items := make([]*engine.Call, 0, len(list))
+	items := make([]*engine.ActiveCall, 0, len(list))
 	for _, v := range list {
 		items = append(items, toEngineCall(v))
 	}
@@ -354,32 +354,64 @@ func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequ
 	return &engine.CreateCallResponse{}, nil
 }
 
-func toEngineCall(src *model.Call) *engine.Call {
-	item := &engine.Call{
-		Id:        src.Id,
-		Timestamp: src.Timestamp,
-		State:     src.State,
-		Direction: src.Direction,
-		From: &engine.Endpoint{
-			Type:   src.From.Type,
-			Id:     src.From.Id,
-			Name:   src.From.Name,
-			Number: src.From.Number,
-		},
-		To: &engine.Endpoint{
-			Type:   src.To.Type,
-			Id:     src.To.Id,
-			Name:   src.To.Name,
-			Number: src.To.Number,
-		},
-	}
-
-	if src.AppId != nil {
-		item.AppId = *src.AppId
+func toEngineCall(src *model.Call) *engine.ActiveCall {
+	item := &engine.ActiveCall{
+		Id:               src.Id,
+		AppId:            src.AppId,
+		Type:             src.Type,
+		State:            src.State,
+		Timestamp:        model.TimeToInt64(src.Timestamp),
+		User:             GetProtoLookup(src.User),
+		Extension:        "",
+		Gateway:          GetProtoLookup(src.Gateway),
+		Direction:        src.Direction,
+		Destination:      src.Destination,
+		Variables:        src.Variables,
+		CreatedAt:        model.TimeToInt64(&src.CreatedAt),
+		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
+		BridgedAt:        model.TimeToInt64(src.BridgedAt),
+		Duration:         int32(src.Duration),
+		HoldSec:          int32(src.HoldSec),
+		WaitSec:          int32(src.WaitSec),
+		BillSec:          int32(src.BillSec),
+		Queue:            GetProtoLookup(src.Queue),
+		Member:           GetProtoLookup(src.Member),
+		Team:             GetProtoLookup(src.Team),
+		Agent:            GetProtoLookup(src.Agent),
+		JoinedAt:         model.TimeToInt64(src.JoinedAt),
+		LeavingAt:        model.TimeToInt64(src.LeavingAt),
+		ReportingAt:      model.TimeToInt64(src.ReportingAt),
+		QueueBridgedAt:   model.TimeToInt64(src.QueueBridgedAt),
+		QueueWaitSec:     defaultInt(src.QueueWaitSec),
+		QueueDurationSec: defaultInt(src.QueueDurationSec),
+		ReportingSec:     defaultInt(src.ReportingSec),
+		Display:          defaultString(src.Display),
 	}
 
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
+	}
+
+	if src.From != nil {
+		item.From = &engine.Endpoint{
+			Type:   src.From.Type,
+			Number: src.From.Number,
+			Id:     src.From.Id,
+			Name:   src.From.Name,
+		}
+	}
+
+	if src.To != nil {
+		item.To = &engine.Endpoint{
+			Type:   src.To.Type,
+			Number: src.To.Number,
+			Id:     src.To.Id,
+			Name:   src.To.Name,
+		}
+	}
+
+	if src.Extension != nil {
+		item.Extension = *src.Extension
 	}
 
 	return item

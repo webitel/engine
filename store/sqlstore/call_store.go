@@ -19,21 +19,50 @@ func NewSqlCallStore(sqlStore SqlStore) store.CallStore {
 func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError) {
 	var out []*model.Call
 
-	_, err := s.GetMaster().Select(&out, `
-select c.id, c.app_id, c.state, cc_view_timestamp(c."timestamp") as timestamp, c.direction, c.destination, c.parent_id,
-   json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
-   json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to"
-from cc_calls c
-where c.domain_id = :Domain and c.state != 'hangup'
-limit :Limit
-offset :Offset`, map[string]interface{}{
-		"Domain": domainId,
-		"Limit":  search.GetLimit(),
-		"Offset": search.GetOffset(),
-	})
+	f := map[string]interface{}{
+		"Domain":       domainId,
+		"Limit":        search.GetLimit(),
+		"Offset":       search.GetOffset(),
+		"From":         model.GetBetweenFromTime(search.CreatedAt),
+		"To":           model.GetBetweenToTime(search.CreatedAt),
+		"Q":            search.GetQ(),
+		"UserIds":      pq.Array(search.UserIds),
+		"QueueIds":     pq.Array(search.QueueIds),
+		"TeamIds":      pq.Array(search.TeamIds),
+		"AgentIds":     pq.Array(search.AgentIds),
+		"MemberIds":    pq.Array(search.MemberIds),
+		"GatewayIds":   pq.Array(search.GatewayIds),
+		"SkipParent":   search.SkipParent,
+		"ParentId":     search.ParentId,
+		"Number":       search.Number,
+		"Direction":    search.Direction,
+		"Missed":       search.Missed,
+		"AnsweredFrom": model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom": model.GetBetweenFrom(search.Duration),
+		"DurationTo":   model.GetBetweenTo(search.Duration),
+	}
 
+	err := s.ListQuery(&out, search.ListRequest,
+		`domain_id = :Domain 
+	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
+	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
+	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
+	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
+	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
+	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
+	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
+	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
+	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
+	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
+	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
+	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
+	and (:Direction::varchar isnull or direction = :Direction )
+	and (:Missed::bool isnull or (:Missed and answered_at isnull))`,
+		model.Call{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlCallStore.GetAllPage", "store.sql_call.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlCallStore.GetActive", "store.sql_call.get_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return out, nil

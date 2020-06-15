@@ -41,7 +41,7 @@ func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 			PerPage: 1000,
 			Sort:    "created_at",
 		},
-		UserId: model.NewInt64(conn.UserId),
+		UserIds: []int64{conn.UserId},
 	})
 
 	if err != nil {

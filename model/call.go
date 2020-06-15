@@ -132,13 +132,59 @@ type CallInstance struct {
 }
 
 type Call struct {
-	CallInstance
-	Direction   string  `json:"direction" db:"direction"`
-	Destination string  `json:"destination" db:"destination"`
-	ParentId    *string `json:"parent_id" db:"parent_id"`
+	Id          string            `json:"id" db:"id"`
+	AppId       string            `json:"app_id" db:"app_id"`
+	State       string            `json:"state" db:"state"`
+	Timestamp   *time.Time        `json:"timestamp" db:"timestamp"`
+	Type        string            `json:"type" db:"type"`
+	ParentId    *string           `json:"parent_id" db:"parent_id"`
+	User        *Lookup           `json:"user" db:"user"`
+	Extension   *string           `json:"extension" db:"extension"`
+	Gateway     *Lookup           `json:"gateway" db:"gateway"`
+	Direction   string            `json:"direction" db:"direction"`
+	Destination string            `json:"destination" db:"destination"`
+	From        *Endpoint         `json:"from" db:"from"`
+	To          *Endpoint         `json:"to" db:"to"`
+	Variables   map[string]string `json:"variables" db:"variables"`
 
-	From Endpoint `json:"from" db:"from"`
-	To   Endpoint `json:"to" db:"to"`
+	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
+	AnsweredAt *time.Time `json:"answered_at" db:"answered_at"`
+	BridgedAt  *time.Time `json:"bridged_at" db:"bridged_at"`
+
+	Duration int `json:"duration" db:"duration"`
+	HoldSec  int `json:"hold_sec" db:"hold_sec"`
+	WaitSec  int `json:"wait_sec" db:"wait_sec"`
+	BillSec  int `json:"bill_sec" db:"bill_sec"`
+
+	Queue  *Lookup `json:"queue" db:"queue"`
+	Member *Lookup `json:"member" db:"member"`
+	Team   *Lookup `json:"team" db:"team"`
+	Agent  *Lookup `json:"agent" db:"agent"`
+
+	JoinedAt         *time.Time `json:"joined_at" db:"joined_at"`
+	LeavingAt        *time.Time `json:"leaving_at" db:"leaving_at"`
+	ReportingAt      *time.Time `json:"reporting_at" db:"reporting_at"`
+	QueueBridgedAt   *time.Time `json:"queue_bridged_at" db:"queue_bridged_at"`
+	QueueWaitSec     *int       `json:"queue_wait_sec" db:"queue_wait_sec"`
+	QueueDurationSec *int       `json:"queue_duration_sec" db:"queue_duration_sec"`
+	ReportingSec     *int       `json:"reporting_sec" db:"reporting_sec"`
+	Display          *string    `json:"display" db:"display"`
+}
+
+func (c Call) AllowFields() []string {
+	return c.DefaultFields()
+}
+
+func (c Call) DefaultFields() []string {
+	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
+		"created_at", "answered_at", "bridged_at", "duration", "hold_sec", "wait_sec", "bill_sec",
+		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
+		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display",
+	}
+}
+
+func (c Call) EntityName() string {
+	return "cc_call_active_list"
 }
 
 type CallFile struct {
@@ -229,7 +275,21 @@ func (c *HistoryCall) GetResult() string {
 
 type SearchCall struct {
 	ListRequest
-	UserId *int64 `json:"user_id"`
+	CreatedAt  *FilterBetween
+	Duration   *FilterBetween
+	AnsweredAt *FilterBetween
+	Number     *string
+	ParentId   *string
+	Direction  *string
+	Missed     *bool
+	SkipParent bool
+	ExistsFile bool
+	UserIds    []int64
+	QueueIds   []int64
+	TeamIds    []int64
+	AgentIds   []int64
+	MemberIds  []int64
+	GatewayIds []int64
 }
 
 type SearchHistoryCall struct {
