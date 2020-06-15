@@ -136,7 +136,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 
 	err := s.ListQuery(&out, search.ListRequest,
 		`domain_id = :Domain 
-	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
+	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))

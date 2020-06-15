@@ -6640,13 +6640,196 @@
             "format": "int32"
           },
           {
+            "name": "created_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "created_at.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "queue_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "team_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "member_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "gateway_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "name": "q",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
+            "name": "duration.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "duration.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "skip_parent",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "parent_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cause",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "exists_file",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "number",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "answered_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "answered_at.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "missed",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
+            "name": "stored_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "stored_at.to",
             "in": "query",
             "required": false,
             "type": "string",
@@ -6666,7 +6849,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/engineCall"
+              "$ref": "#/definitions/engineActiveCall"
             }
           },
           "403": {
@@ -8317,6 +8500,128 @@
         }
       }
     },
+    "engineActiveCall": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "app_id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "int64"
+        },
+        "type": {
+          "type": "string"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "user": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "gateway": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "destination": {
+          "type": "string"
+        },
+        "from": {
+          "$ref": "#/definitions/engineEndpoint"
+        },
+        "to": {
+          "$ref": "#/definitions/engineEndpoint"
+        },
+        "variables": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "answered_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "bridged_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "duration": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "hold_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "wait_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bill_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "queue": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "member": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "team": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "agent": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "joined_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "leaving_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "reporting_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_bridged_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "queue_wait_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "queue_duration_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "reporting_sec": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "display": {
+          "type": "string"
+        }
+      }
+    },
     "engineAgent": {
       "type": "object",
       "properties": {
@@ -8915,43 +9220,6 @@
           "items": {
             "$ref": "#/definitions/engineExceptDate"
           }
-        }
-      }
-    },
-    "engineCall": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "created_at": {
-          "type": "string",
-          "format": "int64"
-        },
-        "created_by": {
-          "$ref": "#/definitions/engineLookup"
-        },
-        "timestamp": {
-          "type": "string",
-          "format": "int64"
-        },
-        "parent_id": {
-          "type": "string"
-        },
-        "app_id": {
-          "type": "string"
-        },
-        "state": {
-          "type": "string"
-        },
-        "direction": {
-          "type": "string"
-        },
-        "from": {
-          "$ref": "#/definitions/engineEndpoint"
-        },
-        "to": {
-          "$ref": "#/definitions/engineEndpoint"
         }
       }
     },
@@ -10354,7 +10622,7 @@
         "items": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/engineCall"
+            "$ref": "#/definitions/engineActiveCall"
           }
         }
       }
