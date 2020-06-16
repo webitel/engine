@@ -575,10 +575,10 @@ func transformAgent(src *model.Agent) *engine.Agent {
 
 func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 	st := &engine.AgentState{
-		Id:        src.Id,
-		JoinedAt:  src.JoinedAt,
-		State:     src.State,
-		TimeoutAt: 0,
+		Id:       src.Id,
+		JoinedAt: src.JoinedAt,
+		State:    src.State,
+		Duration: src.Duration,
 	}
 
 	if src.Queue != nil {
@@ -588,8 +588,8 @@ func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 		}
 	}
 
-	if src.TimeoutAt != nil {
-		st.TimeoutAt = *src.TimeoutAt
+	if src.Payload != nil {
+		st.Payload = *src.Payload
 	}
 
 	return st

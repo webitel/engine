@@ -123,11 +123,12 @@ type SearchAgentUser struct {
 }
 
 type AgentState struct {
-	Id        int64   `json:"id" db:"id"`
-	JoinedAt  int64   `json:"joined_at" db:"joined_at"`
-	State     string  `json:"state" db:"state"`
-	TimeoutAt *int64  `json:"timeout_at" db:"timeout_at"`
-	Queue     *Lookup `json:"queue" db:"queue"`
+	Id       int64   `json:"id" db:"id"`
+	JoinedAt int64   `json:"joined_at" db:"joined_at"`
+	State    string  `json:"state" db:"state"`
+	Payload  *string `json:"payload" db:"payload"`
+	Duration int64   `json:"duration" db:"duration"`
+	Queue    *Lookup `json:"queue" db:"queue"`
 }
 
 type SearchAgentState struct {
