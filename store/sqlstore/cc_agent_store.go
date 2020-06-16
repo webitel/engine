@@ -8,6 +8,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
+	"strings"
 )
 
 type SqlAgentStore struct {
@@ -437,4 +438,63 @@ where a.user_id = :UserId and a.domain_id = :DomainId;`, map[string]interface{}{
 		return nil, model.NewAppError("SqlAgentStore.GetSession", "store.sql_agent.get_session.app_error", nil, err.Error(), extractCodeFromErr(err))
 	}
 	return agent, nil
+}
+
+func (s SqlAgentStore) CallStatistics(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError) {
+	var stats []*model.AgentCallStatistics
+
+	_, err := s.GetReplica().Select(&stats, `select `+strings.Join(GetFields(search.Fields, model.AgentCallStatistics{}), ", ")+`
+from (
+    select
+        coalesce(u.name, u.username) as name,
+        coalesce(res.count, 0) as count,
+        coalesce(res.abandoned, 0) as abandoned,
+        coalesce(res.handles, 0) as handles,
+        coalesce(res.sum_talk_sec, 0) as sum_talk_sec,
+        coalesce(res.avg_talk_sec, 0) as avg_talk_sec,
+        coalesce(res.min_talk_sec, 0) as min_talk_sec,
+        coalesce(res.max_talk_sec, 0) as max_talk_sec,
+        coalesce(res.sum_hold_sec, 0) as sum_hold_sec,
+        coalesce(res.avg_hold_sec, 0) as avg_hold_sec,
+        coalesce(res.min_hold_sec, 0) as min_hold_sec,
+        coalesce(res.max_hold_sec, 0) as max_hold_sec
+    from (
+         select c.agent_id,
+               count(*) as count,
+               count(*) filter ( where c.answered_at isnull ) as abandoned,
+               count(*) filter ( where c.answered_at notnull ) as handles,
+               extract(epoch from sum(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as sum_talk_sec,
+               extract(epoch from avg(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as avg_talk_sec,
+               extract(epoch from min(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as min_talk_sec,
+               extract(epoch from max(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as max_talk_sec,
+               sum(c.hold_sec) sum_hold_sec,
+               avg(c.hold_sec) avg_hold_sec,
+               min(c.hold_sec) min_hold_sec,
+               max(c.hold_sec) max_hold_sec
+        from cc_calls_history c
+            inner join cc_member_attempt_history cma on c.attempt_id = cma.id
+        where created_at between :From and :To
+            and c.domain_id = :DomainId and c.agent_id notnull
+			and (:AgentIds::int[] isnull or c.agent_id = any(:AgentIds) )
+        group by c.agent_id
+    ) res
+        inner join cc_agent a on a.id = res.agent_id
+        inner join directory.wbt_user u on u.id = a.user_id
+    where a.domain_id = :DomainId
+) agg
+limit :Limit
+offset :Offset`, map[string]interface{}{
+		"DomainId": domainId,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"From":     model.GetBetweenFromTime(&search.Time),
+		"To":       model.GetBetweenToTime(&search.Time),
+		"AgentIds": pq.Array(search.AgentIds),
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.CallStatistics", "store.sql_agent.get_call_stats.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return stats, nil
 }

@@ -81,6 +81,43 @@ type AgentUser struct {
 	Name string
 }
 
+type AgentCallStatistics struct {
+	Name      string `json:"name" db:"name"`
+	Count     int32  `json:"count" db:"count"`
+	Abandoned int32  `json:"abandoned" db:"abandoned"`
+	Handles   int32  `json:"handles" db:"handles"`
+
+	SumTalkSec float32 `json:"sum_talk_sec" db:"sum_talk_sec"`
+	AvgTalkSec float32 `json:"avg_talk_sec" db:"avg_talk_sec"`
+	MinTalkSec float32 `json:"min_talk_sec" db:"min_talk_sec"`
+	MaxTalkSec float32 `json:"max_talk_sec" db:"max_talk_sec"`
+
+	SumHoldSec float32 `json:"sum_hold_sec" db:"sum_hold_sec"`
+	AvgHoldSec float32 `json:"avg_hold_sec" db:"avg_hold_sec"`
+	MinHoldSec float32 `json:"min_hold_sec" db:"min_hold_sec"`
+	MaxHoldSec float32 `json:"max_hold_sec" db:"max_hold_sec"`
+}
+
+type SearchAgentCallStatistics struct {
+	ListRequest
+	Time     FilterBetween
+	AgentIds []int32
+}
+
+func (c AgentCallStatistics) AllowFields() []string {
+	return []string{"name", "count", "abandoned", "handles", "sum_talk_sec", "avg_talk_sec", "min_talk_sec", "max_talk_sec",
+		"sum_hold_sec", "avg_hold_sec", "min_hold_sec", "max_hold_sec",
+	}
+}
+
+func (c AgentCallStatistics) DefaultFields() []string {
+	return []string{"name", "count", "abandoned", "handles", "sum_talk_sec", "sum_hold_sec"}
+}
+
+func (c AgentCallStatistics) EntityName() string {
+	return ""
+}
+
 type SearchAgentUser struct {
 	ListRequest
 }

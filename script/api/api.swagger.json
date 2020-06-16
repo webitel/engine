@@ -415,6 +415,103 @@
         ]
       }
     },
+    "/call_center/agents/reports/call": {
+      "get": {
+        "operationId": "SearchAgentCallStatistics",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineAgentCallStatisticsList"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "time.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "time.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AgentService"
+        ]
+      }
+    },
     "/call_center/agents/{agent_id}/skills": {
       "get": {
         "summary": "List of AgentSkill",
@@ -8653,6 +8750,73 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineAgentChannel"
+          }
+        }
+      }
+    },
+    "engineAgentCallStatistics": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "abandoned": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "handles": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "sum_talk_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "avg_talk_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "min_talk_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "max_talk_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "sum_hold_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "avg_hold_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "min_hold_sec": {
+          "type": "number",
+          "format": "float"
+        },
+        "max_hold_sec": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
+    "engineAgentCallStatisticsList": {
+      "type": "object",
+      "properties": {
+        "next": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineAgentCallStatistics"
           }
         }
       }

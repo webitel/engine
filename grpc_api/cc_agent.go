@@ -5,6 +5,7 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"net/http"
 )
 
 type agent struct {
@@ -471,6 +472,72 @@ func (api *agent) SearchAgentInQueueStatistics(ctx context.Context, in *engine.S
 	return &engine.AgentInQueueStatisticsList{
 		Items: res,
 	}, nil
+}
+
+// FIXME RBAC
+func (api *agent) SearchAgentCallStatistics(ctx context.Context, in *engine.SearchAgentCallStatisticsRequest) (*engine.AgentCallStatisticsList, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if in.GetTime() == nil {
+		return nil, model.NewAppError("GRPC.SearchAgentCallStatistics", "grpc.agent.report.call", nil, "filter time is required", http.StatusBadRequest)
+	}
+
+	var list []*model.AgentCallStatistics
+	var endList bool
+	req := &model.SearchAgentCallStatistics{
+		ListRequest: model.ListRequest{
+			DomainId: session.Domain(in.DomainId),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+			Q:        in.GetQ(),
+			Fields:   in.Fields,
+			Sort:     in.Sort,
+		},
+		Time: model.FilterBetween{
+			From: in.GetTime().GetFrom(),
+			To:   in.GetTime().GetTo(),
+		},
+		AgentIds: in.AgentId,
+	}
+
+	list, endList, err = api.app.GetAgentReportCall(session.Domain(in.DomainId), req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentCallStatistics, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineAgentCallStatistics(v))
+	}
+	return &engine.AgentCallStatisticsList{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
+func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCallStatistics {
+	return &engine.AgentCallStatistics{
+		Name:       src.Name,
+		Count:      src.Count,
+		Abandoned:  src.Abandoned,
+		Handles:    src.Handles,
+		SumTalkSec: src.SumTalkSec,
+		AvgTalkSec: src.AvgTalkSec,
+		MinTalkSec: src.MinTalkSec,
+		MaxTalkSec: src.MaxTalkSec,
+		SumHoldSec: src.SumHoldSec,
+		AvgHoldSec: src.AvgHoldSec,
+		MinHoldSec: src.MinHoldSec,
+		MaxHoldSec: src.MaxHoldSec,
+	}
 }
 
 func getAgentStatus(name string) model.AgentStatus {

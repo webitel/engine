@@ -71,6 +71,12 @@ service AgentService {
         };
     }
 
+    rpc SearchAgentCallStatistics(SearchAgentCallStatisticsRequest) returns (AgentCallStatisticsList) {
+        option (google.api.http) = {
+            get: "/call_center/agents/reports/call"
+        };
+    }
+
     // SearchLookupAgentNotExistsUser
     rpc SearchLookupUsersAgentNotExists(SearchLookupUsersAgentNotExistsRequest) returns (ListAgentUser) {
         option (google.api.http) = {
@@ -78,6 +84,42 @@ service AgentService {
         };
     }
     
+}
+
+message AgentCallStatistics {
+    string name = 1;
+    int32 count = 2;
+    int32 abandoned = 3;
+    int32 handles = 4;
+
+    float sum_talk_sec = 5;
+    float avg_talk_sec = 6;
+    float min_talk_sec = 7;
+    float max_talk_sec = 8;
+
+    float sum_hold_sec = 9;
+    float avg_hold_sec = 10;
+    float min_hold_sec = 11;
+    float max_hold_sec = 12;
+}
+
+message SearchAgentCallStatisticsRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    FilterBetween time = 3;
+    repeated int32 agent_id = 4;
+
+    int64 domain_id = 5;
+
+    string q = 6;
+    repeated string fields = 7;
+    string sort = 8;
+}
+
+message AgentCallStatisticsList {
+    bool next = 1;
+    repeated AgentCallStatistics items = 2;
 }
 
 message SearchAgentInQueueStatisticsRequest {

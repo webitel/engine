@@ -106,6 +106,9 @@ type AgentStore interface {
 
 	GetSession(domainId, userId int64) (*model.AgentSession, *model.AppError)
 
+	/* stats */
+	CallStatistics(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError)
+
 	/* view */
 	InTeam(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, *model.AppError)
 	InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError)

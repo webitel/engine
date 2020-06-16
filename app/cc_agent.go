@@ -170,3 +170,12 @@ func (a *App) PauseAgent(domainId, agentId int64, payload string, timeout int) *
 
 	return nil
 }
+
+func (a *App) GetAgentReportCall(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, bool, *model.AppError) {
+	list, err := a.Store.Agent().CallStatistics(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
