@@ -73,8 +73,17 @@ module.exports = class VoiceBroadcast extends Dialer {
         this.getDialString = (member) => {
             const vars = [`presence_data='${member.getDomain()}'`, `cc_queue='${member.getQueueName()}'`, 'ignore_early_media=true', `originate_timeout=${this._originateTimeout}`];
 
+            let anonymous = null;
+
             for (let key in this._variables) {
                 if (this._variables.hasOwnProperty(key)) {
+
+                    if (key === 'cc_multiple_anonymous' && this._variables['cc_anonymous_name'] && !isNaN(+this._variables[key])) {
+                        if ((member.currentProbe % (+this._variables[key]) ) === 0) {
+                            anonymous = this._variables['cc_anonymous_name']
+                        }
+                    }
+
                     vars.push(`${key}='${this._variables[key]}'`);
                 }
             }
@@ -92,7 +101,7 @@ module.exports = class VoiceBroadcast extends Dialer {
                 `dlr_member_id=${member._id.toString()}`,
                 `dlr_current_attempt=${member.currentProbe}`,
                 `origination_caller_id_number='${callerIdNumber}'`,
-                `origination_caller_id_name='${member.getQueueName()}'`,
+                `origination_caller_id_name='${anonymous ? anonymous: member.getQueueName()}'`,
 
                 `origination_callee_id_number='${member.number}'`,
                 `origination_callee_id_name='${member.name}'`,
