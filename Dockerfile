@@ -1,4 +1,4 @@
-FROM node:slim
+FROM node:lts-slim
 MAINTAINER Vitaly Kovalyshyn "v.kovalyshyn@webitel.com"
 
 ENV VERSION
