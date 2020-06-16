@@ -303,6 +303,7 @@ message Agent {
     int32 progressive_count = 6;
     string name = 7;
     repeated AgentChannel channels = 8;
+    int64 status_duration = 9;
 }
 
 message ListAgent {

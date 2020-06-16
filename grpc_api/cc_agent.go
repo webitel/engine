@@ -556,6 +556,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		Description:      src.Description,
 		ProgressiveCount: int32(src.ProgressiveCount),
 		Name:             src.Name,
+		StatusDuration:   src.StatusDuration,
 	}
 
 	if src.Channels != nil {

@@ -175,8 +175,9 @@ message AgentState {
     int64 id = 1;
     int64 joined_at = 2;
     string state = 3;
-    int64 timeout_at = 4;
-    Lookup queue = 5;
+    string payload = 4;
+    int64 duration = 5;
+    Lookup queue = 6;
 }
 
 message ListAgentStateHistory {
@@ -302,6 +303,7 @@ message Agent {
     int32 progressive_count = 6;
     string name = 7;
     repeated AgentChannel channels = 8;
+    int64 status_duration = 9;
 }
 
 message ListAgent {

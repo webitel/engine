@@ -344,7 +344,7 @@ func (s SqlAgentStore) HistoryState(agentId int64, search *model.SearchAgentStat
         cc_get_lookup(h.queue_id, q.name) queue
 from cc_agent_state_history h
     left join cc_queue q on q.id = h.queue_id
-where h.agent_id = :AgentId and h.joined_at between to_timestamp( (:From::int8)/1000)::timestamp and to_timestamp(:To::int8/1000)::timestamp
+where h.agent_id = :AgentId and (h.channel = 'call' or h.channel isnull ) and h.joined_at between to_timestamp( (:From::int8)/1000)::timestamp and to_timestamp(:To::int8/1000)::timestamp
 	and ( (:Q::varchar isnull or (q.name ilike :Q::varchar ) ))
 order by h.joined_at desc
 limit :Limit

@@ -37,6 +37,7 @@ type Agent struct {
 	Name             string         `json:"name" db:"name"`
 	Status           string         `json:"status" db:"status"`
 	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
+	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
 	Description      string         `json:"description" db:"description"`
 	ProgressiveCount int            `json:"progressive_count" db:"progressive_count"`
 	Channels         []AgentChannel `json:"channels" db:"channels"`
@@ -47,7 +48,7 @@ func (a Agent) AllowFields() []string {
 }
 
 func (a Agent) DefaultFields() []string {
-	return []string{"id", "status", "name", "channels", "description", "last_status_change", "progressive_count", "user"}
+	return []string{"id", "status", "name", "channels", "description", "status_duration", "last_status_change", "progressive_count", "user"}
 }
 
 func (a Agent) EntityName() string {
