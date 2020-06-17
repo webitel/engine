@@ -634,7 +634,7 @@ func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 	}
 
 	if src.Agent != nil {
-		st.Queue = &engine.Lookup{
+		st.Agent = &engine.Lookup{
 			Id:   int64(src.Agent.Id),
 			Name: src.Agent.Name,
 		}

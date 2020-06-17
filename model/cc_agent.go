@@ -128,6 +128,7 @@ type AgentState struct {
 	Id       int64      `json:"id" db:"id"`
 	Channel  *string    `json:"channel" db:"channel"`
 	Agent    *Lookup    `json:"agent" db:"agent"`
+	Queue    *Lookup    `json:"queue" db:"queue"`
 	JoinedAt *time.Time `json:"joined_at" db:"joined_at"`
 	Duration int64      `json:"duration" db:"duration"`
 	State    string     `json:"state" db:"state"`
