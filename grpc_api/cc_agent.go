@@ -350,7 +350,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	}, nil
 }
 
-func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.SearchAgentStateHistoryRequest) (*engine.ListAgentStateHistory, error) {
+func (api *agent) AgentStateHistory(ctx context.Context, in *engine.AgentStateHistoryRequest) (*engine.ListAgentStateHistory, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -379,10 +379,57 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 		},
-		From: in.GetTimeFrom(),
-		To:   in.GetTimeTo(),
+		JoinedAt: model.FilterBetween{
+			From: in.GetTimeFrom(),
+			To:   in.GetTimeTo(),
+		},
+		AgentIds: []int64{in.AgentId},
 	}
-	list, endList, err = api.app.GetAgentStateHistoryPage(in.GetAgentId(), req)
+	list, endList, err = api.app.GetAgentStateHistoryPage(session.Domain(in.GetDomainId()), req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentState, 0, len(list))
+
+	for _, v := range list {
+		items = append(items, toEngineAgentState(v))
+	}
+
+	return &engine.ListAgentStateHistory{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
+//FIXME RBAC
+func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.SearchAgentStateHistoryRequest) (*engine.ListAgentStateHistory, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	var list []*model.AgentState
+	var endList bool
+	req := &model.SearchAgentState{
+		ListRequest: model.ListRequest{
+			DomainId: in.GetDomainId(),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+			Sort:     in.Sort,
+		},
+		JoinedAt: model.FilterBetween{
+			From: in.GetJoinedAt().GetFrom(),
+			To:   in.GetJoinedAt().GetTo(),
+		},
+		AgentIds: in.AgentId,
+	}
+	list, endList, err = api.app.GetAgentStateHistoryPage(session.Domain(in.GetDomainId()), req)
 	if err != nil {
 		return nil, err
 	}
@@ -577,15 +624,19 @@ func transformAgent(src *model.Agent) *engine.Agent {
 func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 	st := &engine.AgentState{
 		Id:       src.Id,
-		JoinedAt: src.JoinedAt,
+		JoinedAt: model.TimeToInt64(src.JoinedAt),
 		State:    src.State,
 		Duration: src.Duration,
 	}
 
-	if src.Queue != nil {
+	if src.Channel != nil {
+		st.Channel = *src.Channel
+	}
+
+	if src.Agent != nil {
 		st.Queue = &engine.Lookup{
-			Id:   int64(src.Queue.Id),
-			Name: src.Queue.Name,
+			Id:   int64(src.Agent.Id),
+			Name: src.Agent.Name,
 		}
 	}
 

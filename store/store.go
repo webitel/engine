@@ -113,7 +113,7 @@ type AgentStore interface {
 	InTeam(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, *model.AppError)
 	InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError)
 	QueueStatistic(domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError)
-	HistoryState(agentId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError)
+	HistoryState(domainId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError)
 
 	/*Lookups*/
 	LookupNotExistsUsers(domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, *model.AppError)

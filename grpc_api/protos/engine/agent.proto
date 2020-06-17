@@ -46,10 +46,15 @@ service AgentService {
         };
     }
 
-    // List of Agent
-    rpc SearchAgentStateHistory(SearchAgentStateHistoryRequest) returns (ListAgentStateHistory) {
+    rpc AgentStateHistory(AgentStateHistoryRequest) returns (ListAgentStateHistory) {
         option (google.api.http) = {
             get: "/call_center/agents/{agent_id}/states/history"
+        };
+    }
+
+    rpc SearchAgentStateHistory(SearchAgentStateHistoryRequest) returns (ListAgentStateHistory) {
+        option (google.api.http) = {
+            get: "/call_center/agents/states/history"
         };
     }
 
@@ -84,6 +89,17 @@ service AgentService {
         };
     }
     
+}
+
+message SearchAgentStateHistoryRequest {
+    int32 page = 1;
+    int32 size = 2;
+    FilterBetween joined_at = 3;
+    repeated int64 agent_id = 4;
+
+    string sort = 5;
+
+    int64 domain_id = 6;
 }
 
 message AgentCallStatistics {
@@ -160,7 +176,7 @@ message SearchLookupUsersAgentNotExistsRequest {
     int64 domain_id = 4;
 }
 
-message SearchAgentStateHistoryRequest {
+message AgentStateHistoryRequest {
     int64 agent_id = 1;
     int32 page = 2;
     int32 size = 3;
@@ -173,11 +189,13 @@ message SearchAgentStateHistoryRequest {
 
 message AgentState {
     int64 id = 1;
-    int64 joined_at = 2;
-    string state = 3;
-    string payload = 4;
-    int64 duration = 5;
-    Lookup queue = 6;
+    string channel = 2;
+    int64 joined_at = 3;
+    string state = 4;
+    string payload = 5;
+    int64 duration = 6;
+    Lookup queue = 7;
+    Lookup agent = 8;
 }
 
 message ListAgentStateHistory {

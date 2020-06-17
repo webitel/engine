@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type AgentStatus struct {
@@ -124,18 +125,19 @@ type SearchAgentUser struct {
 }
 
 type AgentState struct {
-	Id       int64   `json:"id" db:"id"`
-	JoinedAt int64   `json:"joined_at" db:"joined_at"`
-	State    string  `json:"state" db:"state"`
-	Payload  *string `json:"payload" db:"payload"`
-	Duration int64   `json:"duration" db:"duration"`
-	Queue    *Lookup `json:"queue" db:"queue"`
+	Id       int64      `json:"id" db:"id"`
+	Channel  *string    `json:"channel" db:"channel"`
+	Agent    *Lookup    `json:"agent" db:"agent"`
+	JoinedAt *time.Time `json:"joined_at" db:"joined_at"`
+	Duration int64      `json:"duration" db:"duration"`
+	State    string     `json:"state" db:"state"`
+	Payload  *string    `json:"payload" db:"payload"`
 }
 
 type SearchAgentState struct {
 	ListRequest
-	From int64
-	To   int64
+	JoinedAt FilterBetween
+	AgentIds []int64
 }
 
 func (a *Agent) IsValid() *AppError {

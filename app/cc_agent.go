@@ -32,8 +32,8 @@ func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, search *model.
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentStateHistoryPage(agentId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
-	list, err := a.Store.Agent().HistoryState(agentId, search)
+func (a *App) GetAgentStateHistoryPage(domainId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
+	list, err := a.Store.Agent().HistoryState(domainId, search)
 	if err != nil {
 		return nil, false, err
 	}

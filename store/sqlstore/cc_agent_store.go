@@ -334,32 +334,48 @@ func (s SqlAgentStore) QueueStatistic(domainId, agentId int64) ([]*model.AgentIn
 	return stats, nil
 }
 
-func (s SqlAgentStore) HistoryState(agentId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError) {
+func (s SqlAgentStore) HistoryState(domainId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError) {
 	var res []*model.AgentState
-	_, err := s.GetReplica().Select(&res, `select h.id,
-        (extract(EPOCH from h.joined_at) * 1000)::int8 as joined_at,
-        h.state,
-        h.payload,
-        extract(EPOCH from h.duration)::int8 duration,
-        cc_get_lookup(h.queue_id, q.name) queue
+
+	//fixme
+	order := GetOrderBy(search.Sort)
+	if order == "" {
+		order = "order by joined_at desc"
+	}
+
+	_, err := s.GetReplica().Select(&res, `with ags as (
+ select distinct a.id, cc_get_lookup(a.id, coalesce(u.name, u.username)) agent
+ from cc_agent a
+    inner join directory.wbt_user u on u.id = a.user_id
+ where a.domain_id = :DomainId
+
+)
+select
+    h.id,
+    h.channel,
+    ags.agent,
+    h.joined_at,
+    extract(epoch  from duration)::int8 duration,
+    h.state,
+    h.payload
 from cc_agent_state_history h
-    left join cc_queue q on q.id = h.queue_id
-where h.agent_id = :AgentId and (h.channel = 'call' or h.channel isnull ) and h.joined_at between to_timestamp( (:From::int8)/1000)::timestamp and to_timestamp(:To::int8/1000)::timestamp
-	and ( (:Q::varchar isnull or (q.name ilike :Q::varchar ) ))
-order by h.joined_at desc
+    inner join ags on ags.id = h.agent_id
+where h.joined_at between :From and :To 
+  and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds))
+`+order+`
 limit :Limit
 offset :Offset`, map[string]interface{}{
-		"AgentId": agentId,
-		"From":    search.From,
-		"To":      search.To,
-		"Limit":   search.GetLimit(),
-		"Offset":  search.GetOffset(),
-		"Q":       search.GetQ(),
+		"DomainId": domainId,
+		"From":     model.GetBetweenFromTime(&search.JoinedAt),
+		"To":       model.GetBetweenToTime(&search.JoinedAt),
+		"AgentIds": pq.Array(search.AgentIds),
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
 	})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.HistoryState", "store.sql_agent.get_state_history.app_error", nil,
-			fmt.Sprintf("AgentId=%v, %s", agentId, err.Error()), extractCodeFromErr(err))
+			err.Error(), extractCodeFromErr(err))
 	}
 
 	return res, nil

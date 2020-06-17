@@ -512,6 +512,87 @@
         ]
       }
     },
+    "/call_center/agents/states/history": {
+      "get": {
+        "operationId": "SearchAgentStateHistory",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListAgentStateHistory"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "joined_at.from",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "joined_at.to",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "agent_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "domain_id",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "AgentService"
+        ]
+      }
+    },
     "/call_center/agents/{agent_id}/skills": {
       "get": {
         "summary": "List of AgentSkill",
@@ -771,8 +852,7 @@
     },
     "/call_center/agents/{agent_id}/states/history": {
       "get": {
-        "summary": "List of Agent",
-        "operationId": "SearchAgentStateHistory",
+        "operationId": "AgentStateHistory",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -8751,6 +8831,10 @@
           "items": {
             "$ref": "#/definitions/engineAgentChannel"
           }
+        },
+        "status_duration": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -8971,6 +9055,9 @@
           "type": "string",
           "format": "int64"
         },
+        "channel": {
+          "type": "string"
+        },
         "joined_at": {
           "type": "string",
           "format": "int64"
@@ -8978,11 +9065,17 @@
         "state": {
           "type": "string"
         },
-        "timeout_at": {
+        "payload": {
+          "type": "string"
+        },
+        "duration": {
           "type": "string",
           "format": "int64"
         },
         "queue": {
+          "$ref": "#/definitions/engineLookup"
+        },
+        "agent": {
           "$ref": "#/definitions/engineLookup"
         }
       }

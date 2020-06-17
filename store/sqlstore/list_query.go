@@ -36,9 +36,9 @@ func GetFields(f []string, e Entity) []string {
 func GetOrderBy(s string) string {
 	if s != "" {
 		if s[0] == '+' {
-			return "order by " + s[1:] + " asc"
+			return "order by " + pq.QuoteIdentifier(s[1:]) + " asc"
 		} else if s[0] == '-' {
-			return "order by " + s[1:] + " desc"
+			return "order by " + pq.QuoteIdentifier(s[1:]) + " desc"
 		} else {
 			return "order by " + s
 		}
