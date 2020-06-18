@@ -323,6 +323,10 @@ func (app *App) BridgeCall(domainId int64, fromId, toId string) *model.AppError 
 	return err
 }
 
+func (app *App) GetLastCallFile(domainId int64, callId string) (int64, *model.AppError) {
+	return app.Store.Call().LastFile(domainId, callId)
+}
+
 /*
 
 func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, *model.AppError) {

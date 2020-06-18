@@ -179,6 +179,26 @@ where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain
 	}
 }
 
+func (s SqlCallStore) LastFile(domainId int64, id string) (int64, *model.AppError) {
+	fileId, err := s.GetReplica().SelectInt(`select f.id
+from storage.files f
+where f.domain_id = :DomainId and f.uuid = (
+    select coalesce(c.parent_id, c.id)
+    from cc_calls_history c
+    where c.id = :Id and c.domain_id = :DomainId
+    limit 1
+)`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+	})
+
+	if err != nil {
+		return 0, model.NewAppError("SqlCallStore.LastFile", "store.sql_call.get_last_file.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return fileId, nil
+}
+
 func (s SqlCallStore) BridgedId(id string) (string, *model.AppError) {
 	res, err := s.GetReplica().SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
 from call_center.cc_calls c

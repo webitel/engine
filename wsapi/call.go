@@ -22,6 +22,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_mute", api.ApiWebSocketHandler(api.callMute))
 	api.Router.Handle("call_blind_transfer", api.ApiWebSocketHandler(api.callBlindTransfer))
 	api.Router.Handle("call_bridge", api.ApiWebSocketHandler(api.callBridge))
+	api.Router.Handle("call_recordings", api.ApiWebSocketHandler(api.callRecording))
 
 	api.Router.Handle("call_by_user", api.ApiAsyncWebSocketHandler(api.callByUser))
 	api.Router.Handle("test", api.ApiAsyncWebSocketHandler(api.test))
@@ -414,6 +415,24 @@ func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	err := api.App.BridgeCall(conn.DomainId, fromId, toId)
 	//FIXME set result
 	return res, err
+}
+
+func (api *API) callRecording(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var id string
+	var ok bool
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	fileId, err := api.App.GetLastCallFile(conn.DomainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	res["file_id"] = fileId
+	return res, nil
 }
 
 func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
