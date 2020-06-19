@@ -287,19 +287,19 @@ from queues q
     left join cc_team ct on q.team_id = ct.id
     left join (
         select t.queue_id,
-               (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = t.queue_id) waiting,
-               (select count(*) from cc_member_attempt a where a.queue_id = t.queue_id) processed,
-               count(*) filter ( where t.offering_at notnull ) as count,
+               (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = t.queue_id) waiting, -- fixme inbound queue
+               (select count(*) from cc_member_attempt a where a.queue_id = t.queue_id and a.bridged_at notnull) processed, 
+               count(*) as count,
                count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
-               count(*) filter ( where t.result = 'abandoned' ) * 100.0 / count(*) as abandoned,
-               extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec, -- fixme (hangup_at)
-               extract(EPOCH from avg(t.leaving_at - t.reporting_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
+               count(*) filter ( where t.result != 'success' ) * 100.0 / count(*) as abandoned,
+               extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
+               extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
                extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
                extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) max_awt_sec,
                extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )) avg_asa_sec,
                extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
         from cc_member_attempt_history t
-        where t.joined_at between to_timestamp(:From::int8/1000) and to_timestamp(:To::int8/1000)
+        where t.domain_id = :DomainId and t.joined_at between :From::timestamptz and :To::timestamptz
         group by 1
 ) ag on ag.queue_id = q.id
 order by q.priority desc
@@ -307,8 +307,8 @@ limit :Limit
 offset :Offset
 `, map[string]interface{}{
 		"DomainId": domainId,
-		"From":     search.JoinedAt.From,
-		"To":       search.JoinedAt.To,
+		"From":     model.GetBetweenFromTime(&search.JoinedAt),
+		"To":       model.GetBetweenToTime(&search.JoinedAt),
 		"Q":        search.GetQ(),
 		"QueueIds": pq.Array(search.QueueIds),
 		"TeamIds":  pq.Array(search.TeamIds),
