@@ -93,7 +93,7 @@ message SearchHistoryCallRequest {
     bool skip_parent = 12;
     string parent_id = 13;
     string cause = 14;
-    bool exists_file = 15;
+    bool has_file = 15;
 
     repeated string fields = 16;
     string sort = 17;
@@ -167,7 +167,7 @@ message HistoryCall {
     int64 stored_at = 39;
     string transfer_from = 40;
     string transfer_to = 41;
-    bool exists_parent = 42;
+    bool has_children = 42;
 }
 
 message EavesdropCallRequest {

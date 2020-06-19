@@ -37,7 +37,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			Fields:   in.Fields,
 		},
 		SkipParent:      in.GetSkipParent(),
-		ExistsFile:      in.GetExistsFile(),
+		HasFile:         in.GetHasFile(),
 		UserIds:         in.GetUserId(),
 		QueueIds:        in.GetQueueId(),
 		TeamIds:         in.GetTeamId(),
@@ -458,7 +458,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Result:           src.GetResult(),
 		Tags:             src.Tags, // TODO
 		Display:          defaultString(src.Display),
-		ExistsParent:     src.ExistsParent,
+		HasChildren:      src.HasChildren,
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
