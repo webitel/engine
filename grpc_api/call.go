@@ -458,6 +458,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Result:           src.GetResult(),
 		Tags:             src.Tags, // TODO
 		Display:          defaultString(src.Display),
+		ExistsParent:     src.ExistsParent,
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
