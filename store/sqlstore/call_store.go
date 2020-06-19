@@ -107,31 +107,34 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	var out []*model.HistoryCall
 
 	f := map[string]interface{}{
-		"Domain":       domainId,
-		"Limit":        search.GetLimit(),
-		"Offset":       search.GetOffset(),
-		"From":         model.GetBetweenFromTime(search.CreatedAt),
-		"To":           model.GetBetweenToTime(search.CreatedAt),
-		"Q":            search.GetQ(),
-		"UserIds":      pq.Array(search.UserIds),
-		"QueueIds":     pq.Array(search.QueueIds),
-		"TeamIds":      pq.Array(search.TeamIds),
-		"AgentIds":     pq.Array(search.AgentIds),
-		"MemberIds":    pq.Array(search.MemberIds),
-		"GatewayIds":   pq.Array(search.GatewayIds),
-		"SkipParent":   search.SkipParent,
-		"ParentId":     search.ParentId,
-		"Number":       search.Number,
-		"Cause":        search.Cause,
-		"ExistsFile":   search.ExistsFile,
-		"Direction":    search.Direction,
-		"Missed":       search.Missed,
-		"AnsweredFrom": model.GetBetweenFromTime(search.AnsweredAt),
-		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
-		"DurationFrom": model.GetBetweenFrom(search.Duration),
-		"DurationTo":   model.GetBetweenTo(search.Duration),
-		"StoredAtFrom": model.GetBetweenFromTime(search.StoredAt),
-		"StoredAtTo":   model.GetBetweenToTime(search.StoredAt),
+		"Domain":          domainId,
+		"Limit":           search.GetLimit(),
+		"Offset":          search.GetOffset(),
+		"From":            model.GetBetweenFromTime(search.CreatedAt),
+		"To":              model.GetBetweenToTime(search.CreatedAt),
+		"Q":               search.GetQ(),
+		"UserIds":         pq.Array(search.UserIds),
+		"QueueIds":        pq.Array(search.QueueIds),
+		"TeamIds":         pq.Array(search.TeamIds),
+		"AgentIds":        pq.Array(search.AgentIds),
+		"MemberIds":       pq.Array(search.MemberIds),
+		"GatewayIds":      pq.Array(search.GatewayIds),
+		"SkipParent":      search.SkipParent,
+		"ParentId":        search.ParentId,
+		"Number":          search.Number,
+		"Cause":           search.Cause,
+		"ExistsFile":      search.ExistsFile,
+		"Direction":       search.Direction,
+		"Missed":          search.Missed,
+		"AnsweredFrom":    model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":      model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom":    model.GetBetweenFrom(search.Duration),
+		"DurationTo":      model.GetBetweenTo(search.Duration),
+		"StoredAtFrom":    model.GetBetweenFromTime(search.StoredAt),
+		"StoredAtTo":      model.GetBetweenToTime(search.StoredAt),
+		"Ids":             pq.Array(search.Ids),
+		"TransferFromIds": pq.Array(search.TransferFromIds),
+		"TransferToIds":   pq.Array(search.TransferToIds),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -140,6 +143,9 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
+	and (:Ids::varchar[] isnull or id = any(:Ids))
+	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
+	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )

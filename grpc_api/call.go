@@ -36,14 +36,17 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			Sort:     in.Sort,
 			Fields:   in.Fields,
 		},
-		SkipParent: in.GetSkipParent(),
-		ExistsFile: in.GetExistsFile(),
-		UserIds:    in.GetUserId(),
-		QueueIds:   in.GetQueueId(),
-		TeamIds:    in.GetTeamId(),
-		AgentIds:   in.GetAgentId(),
-		MemberIds:  in.GetMemberId(),
-		GatewayIds: in.GetGatewayId(),
+		SkipParent:      in.GetSkipParent(),
+		ExistsFile:      in.GetExistsFile(),
+		UserIds:         in.GetUserId(),
+		QueueIds:        in.GetQueueId(),
+		TeamIds:         in.GetTeamId(),
+		AgentIds:        in.GetAgentId(),
+		MemberIds:       in.GetMemberId(),
+		GatewayIds:      in.GetGatewayId(),
+		Ids:             in.GetId(),
+		TransferFromIds: in.GetTransferFrom(),
+		TransferToIds:   in.GetTransferTo(),
 	}
 
 	if in.GetDuration() != nil {
@@ -458,6 +461,14 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
+	}
+
+	if src.TransferFrom != nil {
+		item.TransferFrom = *src.TransferFrom
+	}
+
+	if src.TransferTo != nil {
+		item.TransferTo = *src.TransferTo
 	}
 
 	if src.Result != nil {

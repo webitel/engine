@@ -103,6 +103,9 @@ message SearchHistoryCallRequest {
     FilterBetween answered_at = 21;
     bool missed = 22;
     FilterBetween stored_at = 23;
+    repeated string id = 24;
+    repeated string transfer_from = 25;
+    repeated string transfer_to = 26;
 }
 
 message ListHistoryCall {
@@ -162,6 +165,8 @@ message HistoryCall {
     repeated string tags = 37;
     string display = 38;
     int64 stored_at = 39;
+    string transfer_from = 40;
+    string transfer_to = 41;
 }
 
 message EavesdropCallRequest {

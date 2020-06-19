@@ -247,10 +247,16 @@ type HistoryCall struct {
 	Result           *string     `json:"result" db:"result"`
 	Tags             StringArray `json:"tags" db:"tags"`
 	Display          *string     `json:"display" db:"display"`
+	TransferFrom     *string     `json:"transfer_from_id" db:"transfer_from_id"`
+	TransferTo       *string     `json:"transfer_to" db:"transfer_to"`
 }
 
 func (c HistoryCall) AllowFields() []string {
-	return c.DefaultFields()
+	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
+		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
+		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to",
+	}
 }
 
 func (c HistoryCall) DefaultFields() []string {
@@ -294,23 +300,26 @@ type SearchCall struct {
 
 type SearchHistoryCall struct {
 	ListRequest
-	CreatedAt  *FilterBetween
-	Duration   *FilterBetween
-	AnsweredAt *FilterBetween
-	StoredAt   *FilterBetween
-	Number     *string
-	ParentId   *string
-	Cause      *string
-	Direction  *string
-	Missed     *bool
-	SkipParent bool
-	ExistsFile bool
-	UserIds    []int64
-	QueueIds   []int64
-	TeamIds    []int64
-	AgentIds   []int64
-	MemberIds  []int64
-	GatewayIds []int64
+	CreatedAt       *FilterBetween
+	Duration        *FilterBetween
+	AnsweredAt      *FilterBetween
+	StoredAt        *FilterBetween
+	Number          *string
+	ParentId        *string
+	Cause           *string
+	Direction       *string
+	Missed          *bool
+	SkipParent      bool
+	ExistsFile      bool
+	UserIds         []int64
+	QueueIds        []int64
+	TeamIds         []int64
+	AgentIds        []int64
+	MemberIds       []int64
+	GatewayIds      []int64
+	Ids             []string
+	TransferFromIds []string
+	TransferToIds   []string
 }
 
 type CallEvent struct {
