@@ -7550,6 +7550,36 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "transfer_from",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "transfer_to",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           }
         ],
         "tags": [
@@ -10671,6 +10701,16 @@
         "stored_at": {
           "type": "string",
           "format": "int64"
+        },
+        "transfer_from": {
+          "type": "string"
+        },
+        "transfer_to": {
+          "type": "string"
+        },
+        "exists_parent": {
+          "type": "boolean",
+          "format": "boolean"
         }
       }
     },
