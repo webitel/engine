@@ -107,6 +107,13 @@ message AgentStatsStatistic {
     int64 online = 7;
     int64 offline = 8;
     int64 pause = 9;
+
+    float utilization = 10;
+    int64 call_time = 11;
+    int32 handles = 12;
+    int32 missed = 13;
+    int64 max_bridged_at = 14;
+    int64 max_offering_at = 15;
 }
 
 message ListAgentStatsStatistic {
@@ -120,10 +127,11 @@ message SearchAgentStatusStatisticRequest {
     int32 size = 2;
     FilterBetween time = 3;
     repeated int64 agent_id = 4;
+    repeated string status = 5;
 
-    string sort = 5;
+    string sort = 6;
 
-    int64 domain_id = 6;
+    int64 domain_id = 7;
 }
 
 message SearchAgentStateHistoryRequest {

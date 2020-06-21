@@ -45,21 +45,28 @@ type Agent struct {
 }
 
 type AgentStatusStatistics struct {
-	AgentId        int32     `json:"agent_id" db:"agent_id"`
-	Name           string    `json:"name" db:"name"`
-	Status         string    `json:"status" db:"status"`
-	StatusDuration int64     `json:"status_duration" db:"status_duration"`
-	User           Lookup    `json:"user" json:"user"`
-	Teams          []*Lookup `json:"teams" db:"teams"`
-	Online         int64     `json:"online" db:"online"`
-	Offline        int64     `json:"offline" db:"offline"`
-	Pause          int64     `json:"pause" db:"pause"`
+	AgentId        int32      `json:"agent_id" db:"agent_id"`
+	Name           string     `json:"name" db:"name"`
+	Status         string     `json:"status" db:"status"`
+	StatusDuration int64      `json:"status_duration" db:"status_duration"`
+	User           Lookup     `json:"user" json:"user"`
+	Teams          []*Lookup  `json:"teams" db:"teams"`
+	Online         int64      `json:"online" db:"online"`
+	Offline        int64      `json:"offline" db:"offline"`
+	Pause          int64      `json:"pause" db:"pause"`
+	Utilization    float32    `json:"utilization" db:"utilization"`
+	CallTime       int64      `json:"call_time" db:"call_time"`
+	Handles        int32      `json:"handles" db:"handles"`
+	Missed         int32      `json:"missed" db:"missed"`
+	MaxBridgedAt   *time.Time `json:"max_bridged_at" db:"max_bridged_at"`
+	MaxOfferingAt  *time.Time `json:"max_offering_at" db:"max_offering_at"`
 }
 
 type SearchAgentStatusStatistic struct {
 	ListRequest
 	Time     FilterBetween
 	AgentIds []int64
+	Status   []string
 }
 
 func (a Agent) AllowFields() []string {

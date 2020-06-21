@@ -600,6 +600,7 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 			To:   in.GetTime().GetTo(),
 		},
 		AgentIds: in.AgentId,
+		Status:   in.Status,
 	}
 
 	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(in.DomainId), req)
@@ -645,6 +646,12 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		Online:         src.Online,
 		Offline:        src.Offline,
 		Pause:          src.Pause,
+		Utilization:    src.Utilization,
+		CallTime:       src.CallTime,
+		Handles:        src.Handles,
+		Missed:         src.Missed,
+		MaxBridgedAt:   model.TimeToInt64(src.MaxBridgedAt),
+		MaxOfferingAt:  model.TimeToInt64(src.MaxOfferingAt),
 	}
 }
 
