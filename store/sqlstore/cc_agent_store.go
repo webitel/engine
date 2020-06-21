@@ -525,12 +525,13 @@ func (s SqlAgentStore) StatusStatistic(domainId int64, search *model.SearchAgent
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select
     agent_id, name, status, status_duration, "user", teams, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at
+       max_bridged_at, max_offering_at, extension
 from (
     select
         a.id agent_id,
         a.domain_id,
         coalesce(u.name, u.username) as name,
+		coalesce(u.extension, '') as extension,
         a.status,
         extract(epoch from x.t)::int status_duration,
         cc_get_lookup(u.id, coalesce(u.name, u.username)) as user,

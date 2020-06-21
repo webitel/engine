@@ -9221,6 +9221,9 @@
         "user": {
           "$ref": "#/definitions/engineLookup"
         },
+        "extension": {
+          "type": "string"
+        },
         "teams": {
           "type": "array",
           "items": {
@@ -9254,6 +9257,14 @@
         "missed": {
           "type": "integer",
           "format": "int32"
+        },
+        "max_bridged_at": {
+          "type": "string",
+          "format": "int64"
+        },
+        "max_offering_at": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

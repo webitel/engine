@@ -103,17 +103,18 @@ message AgentStatsStatistic {
     string status = 3;
     int64 status_duration = 4;
     Lookup user = 5;
-    repeated Lookup teams = 6;
-    int64 online = 7;
-    int64 offline = 8;
-    int64 pause = 9;
+    string extension = 6;
+    repeated Lookup teams = 7;
+    int64 online = 8;
+    int64 offline = 9;
+    int64 pause = 10;
 
-    float utilization = 10;
-    int64 call_time = 11;
-    int32 handles = 12;
-    int32 missed = 13;
-    int64 max_bridged_at = 14;
-    int64 max_offering_at = 15;
+    float utilization = 11;
+    int64 call_time = 12;
+    int32 handles = 13;
+    int32 missed = 14;
+    int64 max_bridged_at = 15;
+    int64 max_offering_at = 16;
 }
 
 message ListAgentStatsStatistic {
