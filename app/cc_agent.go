@@ -179,3 +179,12 @@ func (a *App) GetAgentReportCall(domainId int64, search *model.SearchAgentCallSt
 	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
 }
+
+func (a *App) GetAgentStatusStatistic(domainId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, *model.AppError) {
+	list, err := a.Store.Agent().StatusStatistic(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}

@@ -570,6 +570,53 @@ func (api *agent) SearchAgentCallStatistics(ctx context.Context, in *engine.Sear
 	}, nil
 }
 
+// FIXME RBAC
+func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.SearchAgentStatusStatisticRequest) (*engine.ListAgentStatsStatistic, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if in.GetTime() == nil {
+		return nil, model.NewAppError("GRPC.SearchAgentCallStatistics", "grpc.agent.report.call", nil, "filter time is required", http.StatusBadRequest)
+	}
+
+	var list []*model.AgentStatusStatistics
+	var endList bool
+	req := &model.SearchAgentStatusStatistic{
+		ListRequest: model.ListRequest{
+			DomainId: session.Domain(in.DomainId),
+			Page:     int(in.GetPage()),
+			PerPage:  int(in.GetSize()),
+			Sort:     in.Sort,
+		},
+		Time: model.FilterBetween{
+			From: in.GetTime().GetFrom(),
+			To:   in.GetTime().GetTo(),
+		},
+		AgentIds: in.AgentId,
+	}
+
+	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(in.DomainId), req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentStatsStatistic, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineAgentStatusStatistics(v))
+	}
+	return &engine.ListAgentStatsStatistic{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
 func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCallStatistics {
 	return &engine.AgentCallStatistics{
 		Name:       src.Name,
@@ -584,6 +631,20 @@ func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCa
 		AvgHoldSec: src.AvgHoldSec,
 		MinHoldSec: src.MinHoldSec,
 		MaxHoldSec: src.MaxHoldSec,
+	}
+}
+
+func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.AgentStatsStatistic {
+	return &engine.AgentStatsStatistic{
+		AgentId:        src.AgentId,
+		Name:           src.Name,
+		Status:         src.Status,
+		StatusDuration: src.StatusDuration,
+		User:           GetProtoLookup(&src.User),
+		Teams:          GetProtoLookups(src.Teams),
+		Online:         src.Online,
+		Offline:        src.Offline,
+		Pause:          src.Pause,
 	}
 }
 

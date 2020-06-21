@@ -82,6 +82,12 @@ service AgentService {
         };
     }
 
+    rpc SearchAgentStatusStatistic(SearchAgentStatusStatisticRequest) returns (ListAgentStatsStatistic) {
+        option (google.api.http) = {
+            get: "/call_center/agents/reports/statistics"
+        };
+    }
+
     // SearchLookupAgentNotExistsUser
     rpc SearchLookupUsersAgentNotExists(SearchLookupUsersAgentNotExistsRequest) returns (ListAgentUser) {
         option (google.api.http) = {
@@ -89,6 +95,35 @@ service AgentService {
         };
     }
     
+}
+
+message AgentStatsStatistic {
+    int32 agent_id = 1;
+    string name = 2;
+    string status = 3;
+    int64 status_duration = 4;
+    Lookup user = 5;
+    repeated Lookup teams = 6;
+    int64 online = 7;
+    int64 offline = 8;
+    int64 pause = 9;
+}
+
+message ListAgentStatsStatistic {
+    bool next = 1;
+    repeated AgentStatsStatistic items = 2;
+}
+
+
+message SearchAgentStatusStatisticRequest {
+    int32 page = 1;
+    int32 size = 2;
+    FilterBetween time = 3;
+    repeated int64 agent_id = 4;
+
+    string sort = 5;
+
+    int64 domain_id = 6;
 }
 
 message SearchAgentStateHistoryRequest {

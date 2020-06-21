@@ -519,3 +519,87 @@ offset :Offset`, map[string]interface{}{
 
 	return stats, nil
 }
+
+// FIXME add RBAC & sort, columns
+func (s SqlAgentStore) StatusStatistic(domainId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
+	var list []*model.AgentStatusStatistics
+	_, err := s.GetReplica().Select(&list, `select
+    agent_id, name, status, status_duration, "user", teams, online, offline, pause
+from (
+    select
+        a.id agent_id,
+        a.domain_id,
+        coalesce(u.name, u.username) as name,
+        a.status,
+        extract(epoch from x.t)::int status_duration,
+        cc_get_lookup(u.id, coalesce(u.name, u.username)) as user,
+
+        teams.v teams,
+
+        extract(epoch from coalesce(case when a.status = 'online' then ( x.t + coalesce(stat.online, interval '0')) else stat.online end, interval '0'))::int online,
+        extract(epoch from coalesce(case when a.status = 'offline' then ( x.t + coalesce(stat.offline, interval '0')) else stat.offline end, interval '0'))::int offline,
+        extract(epoch from coalesce(case when a.status = 'pause' then ( x.t + coalesce(stat.pause, interval '0')) else stat.pause end, interval '0'))::int pause
+    from cc_agent a
+        inner join lateral (select case when now() - a.last_state_change > :To::timestamptz - :From::timestamptz then (:To::timestamptz) - (:From::timestamptz) else now() - a.last_state_change end t) x on true
+        inner join directory.wbt_user u on u.id = a.user_id
+        left join lateral (
+            select
+                 ares.agent_id,
+                 case when l.state = 'online' then l.delta + ares.online else ares.online end online,
+                 case when l.state = 'offline' then l.delta + ares.offline else ares.offline end offline,
+                 case when l.state = 'pause' then l.delta + ares.pause else ares.pause end pause
+                from (
+                    select
+                        ah.agent_id,
+                        coalesce(sum(ah.duration) filter ( where ah.state = 'online' ), interval '0') online,
+                        coalesce(sum(ah.duration) filter ( where ah.state = 'offline' ), interval  '0') offline,
+                        coalesce(sum(ah.duration) filter ( where ah.state = 'pause' ), interval  '0') pause,
+                        min(joined_at)
+                    from cc_agent_state_history ah
+                    where ah.channel isnull and ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
+                        and ah.agent_id = a.id
+                    group by 1
+                ) ares
+                 left join lateral (
+                    select
+                        h2.state,
+                        ares.min - (:From::timestamptz) delta
+                    from cc_agent_state_history h2
+                    where h2.joined_at < ares.min and h2.agent_id = ares.agent_id and h2.state in ('online', 'offline', 'pause')
+                    order by h2.joined_at desc
+                    limit 1
+                 ) l on true
+        ) stat on stat.agent_id = a.id
+        LEFT JOIN LATERAL ( select json_agg(distinct cc_get_lookup(t.id, t.name)) v
+            from cc_team t
+            where t.id in (
+                select ait.team_id
+                from cc_agent_in_team ait
+                where ait.agent_id = a.id
+                   or ait.skill_id in (
+                    select s.skill_id
+                    from cc_skill_in_agent s
+                    where s.agent_id = a.id and s.capacity between ait.min_capacity and ait.max_capacity
+                )
+            ) and t.domain_id = a.domain_id
+            limit 5) teams ON true
+) t
+where t.domain_id = :DomainId
+    and (:AgentIds::int[] isnull or (t.agent_id = any(:AgentIds)))
+
+limit :Limit
+offset :Offset`, map[string]interface{}{
+		"DomainId": domainId,
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+		"From":     model.GetBetweenFromTime(&search.Time),
+		"To":       model.GetBetweenToTime(&search.Time),
+		"AgentIds": pq.Array(search.AgentIds),
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.StatusStatistic", "store.sql_agent.get_status_stats.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return list, nil
+}

@@ -44,6 +44,24 @@ type Agent struct {
 	Channels         []AgentChannel `json:"channels" db:"channels"`
 }
 
+type AgentStatusStatistics struct {
+	AgentId        int32     `json:"agent_id" db:"agent_id"`
+	Name           string    `json:"name" db:"name"`
+	Status         string    `json:"status" db:"status"`
+	StatusDuration int64     `json:"status_duration" db:"status_duration"`
+	User           Lookup    `json:"user" json:"user"`
+	Teams          []*Lookup `json:"teams" db:"teams"`
+	Online         int64     `json:"online" db:"online"`
+	Offline        int64     `json:"offline" db:"offline"`
+	Pause          int64     `json:"pause" db:"pause"`
+}
+
+type SearchAgentStatusStatistic struct {
+	ListRequest
+	Time     FilterBetween
+	AgentIds []int64
+}
+
 func (a Agent) AllowFields() []string {
 	return a.DefaultFields()
 }
