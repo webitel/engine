@@ -84,7 +84,7 @@ service AgentService {
 
     rpc SearchAgentStatusStatistic(SearchAgentStatusStatisticRequest) returns (ListAgentStatsStatistic) {
         option (google.api.http) = {
-            get: "/call_center/agents/reports/statistics"
+            get: "/call_center/agents/reports/status"
         };
     }
 

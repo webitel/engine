@@ -512,7 +512,7 @@
         ]
       }
     },
-    "/call_center/agents/reports/statistics": {
+    "/call_center/agents/reports/status": {
       "get": {
         "operationId": "SearchAgentStatusStatistic",
         "responses": {
