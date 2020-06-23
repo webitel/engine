@@ -53,6 +53,7 @@ type AgentStatusStatistics struct {
 	User           Lookup     `json:"user" json:"user"`
 	Extension      string     `json:"extension" db:"extension"`
 	Teams          []*Lookup  `json:"teams" db:"teams"`
+	Queues         []*Lookup  `json:"queues" db:"queues"`
 	Online         int64      `json:"online" db:"online"`
 	Offline        int64      `json:"offline" db:"offline"`
 	Pause          int64      `json:"pause" db:"pause"`
@@ -66,9 +67,10 @@ type AgentStatusStatistics struct {
 
 type SearchAgentStatusStatistic struct {
 	ListRequest
-	Time     FilterBetween
-	AgentIds []int64
-	Status   []string
+	Time        FilterBetween
+	Utilization *FilterBetween
+	AgentIds    []int64
+	Status      []string
 }
 
 func (a Agent) AllowFields() []string {

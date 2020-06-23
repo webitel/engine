@@ -527,93 +527,107 @@ offset :Offset`, map[string]interface{}{
 // FIXME add RBAC & sort, columns
 func (s SqlAgentStore) StatusStatistic(domainId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
-	_, err := s.GetReplica().Select(&list, `select
-    agent_id, name, status, status_duration, "user", teams, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at, extension
+	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", teams, online, offline, pause, utilization, call_time, handles, missed,
+       max_bridged_at, max_offering_at, extension, queues
 from (
-    select
-        a.id agent_id,
-        a.domain_id,
-        coalesce(u.name, u.username) as name,
-		coalesce(u.extension, '') as extension,
-        a.status,
-        extract(epoch from x.t)::int status_duration,
-        cc_get_lookup(u.id, coalesce(u.name, u.username)) as user,
+    select a.id                                                 agent_id,
+       a.domain_id,
+       coalesce(u.name, u.username)                      as name,
+       coalesce(u.extension, '')                         as extension,
+       a.status,
+       extract(epoch from x.t)::int                         status_duration,
+       cc_get_lookup(u.id, coalesce(u.name, u.username)) as user,
 
-        teams.v teams,
+       teams.v                                              teams,
+       teams.a                                              queues,
 
-        extract(epoch from coalesce(case when a.status = 'online' then ( x.t + coalesce(stat.online, interval '0')) else stat.online end, interval '0'))::int online,
-        extract(epoch from coalesce(case when a.status = 'offline' then ( x.t + coalesce(stat.offline, interval '0')) else stat.offline end, interval '0'))::int offline,
-        extract(epoch from coalesce(case when a.status = 'pause' then ( x.t + coalesce(stat.pause, interval '0')) else stat.pause end, interval '0'))::int pause,
-		coalesce(utilization, 0) utilization,
-		coalesce(extract(epoch from call_time)::int8, 0) call_time,
-		coalesce(handles, 0) handles,
-		coalesce(missed, 0) missed,
-        max_bridged_at,
-        max_offering_at
-    from cc_agent a
-        inner join directory.wbt_user u on u.id = a.user_id
-        left join lateral (
-            select
-                 ares.agent_id,
-                 case when l.state = 'online' then l.delta + ares.online else ares.online end online,
-                 case when l.state = 'offline' then l.delta + ares.offline else ares.offline end offline,
-                 case when l.state = 'pause' then l.delta + ares.pause else ares.pause end pause,
-				 (extract(epoch  from (ares.offering + ares.bridged + ares.wrap_time)) /
-					extract(epoch from :To::timestamptz - :From::timestamptz) ) * 100  as utilization,
-				 ares.bridged as call_time,
-				 ares.cnt handles,
-                 ares.missed,
-                 ares.max_bridged_at,
-                 ares.max_offering_at
-                from (
-                    select
-						ah.agent_id,
-						coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0') online,
-						coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval  '0') offline,
-						coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval  '0') pause,
-						coalesce(sum(duration) filter ( where ah.state = 'bridged' ), interval  '0') bridged,
-						coalesce(sum(duration) filter ( where ah.state = 'offering' ), interval  '0') offering,
-						coalesce(sum(duration) filter ( where ah.state = 'wrap_time' ), interval  '0') wrap_time,
-						coalesce(count(*) filter (where ah.state = 'bridged' ), 0) cnt,
-						coalesce(count(*) filter (where ah.state = 'missed' ), 0) missed,
-                        max(ah.joined_at) filter ( where ah.state = 'bridged' ) max_bridged_at,
-                        max(ah.joined_at) filter ( where ah.state = 'offering' ) max_offering_at,
-						min(ah.joined_at)
-					from cc_agent_state_history ah
-                    where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
-                        and ah.agent_id = a.id
-					group by 1
-                ) ares
-                 left join lateral (
-                    select
-                        h2.state,
-                        ares.min - (:From::timestamptz) delta
-                    from cc_agent_state_history h2
-                    where h2.joined_at < ares.min and h2.agent_id = ares.agent_id and h2.state in ('online', 'offline', 'pause')
-                    order by h2.joined_at desc
-                    limit 1
-                 ) l on true
-        ) stat on stat.agent_id = a.id
-		inner join lateral (select case when stat isnull or (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
-					then (:To::timestamptz) - (:From::timestamptz) else now() - a.last_state_change end t) x on true
-        LEFT JOIN LATERAL ( select json_agg(distinct cc_get_lookup(t.id, t.name)) v
-            from cc_team t
-            where t.id in (
-                select ait.team_id
-                from cc_agent_in_team ait
-                where ait.agent_id = a.id
-                   or ait.skill_id in (
-                    select s.skill_id
-                    from cc_skill_in_agent s
-                    where s.agent_id = a.id and s.capacity between ait.min_capacity and ait.max_capacity
-                )
-            ) and t.domain_id = a.domain_id
-            limit 5) teams ON true
+       extract(epoch from coalesce(
+               case when a.status = 'online' then (x.t + coalesce(stat.online, interval '0')) else stat.online end,
+               interval '0'))::int                          online,
+       extract(epoch from coalesce(
+               case when a.status = 'offline' then (x.t + coalesce(stat.offline, interval '0')) else stat.offline end,
+               interval '0'))::int                          offline,
+       extract(epoch from coalesce(
+               case when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0')) else stat.pause end,
+               interval '0'))::int                          pause,
+       coalesce(utilization, 0)                             utilization,
+       coalesce(extract(epoch from call_time)::int8, 0)     call_time,
+       coalesce(handles, 0)                                 handles,
+       coalesce(missed, 0)                                  missed,
+       max_bridged_at,
+       max_offering_at
+from cc_agent a
+         inner join directory.wbt_user u on u.id = a.user_id
+         LEFT JOIN LATERAL ( select array_agg(distinct t.id)                                                        tt,
+                                    json_agg(distinct cc_get_lookup(t.id, t.name))                                  v,
+                                    json_agg(distinct cc_get_lookup(cq.id, cq.name)) filter ( where cq.id notnull ) a
+                             from cc_team t
+                                      left join cc_queue cq on t.id = cq.team_id
+                             where t.id in (
+                                 select distinct ait.team_id
+                                 from cc_agent_in_team ait
+                                 where ait.agent_id = a.id
+                                    or ait.skill_id in (
+                                     select distinct s.skill_id
+                                     from cc_skill_in_agent s
+                                     where s.agent_id = a.id
+                                       and s.capacity between ait.min_capacity and ait.max_capacity
+                                 )
+                             )
+                               and t.domain_id = a.domain_id
+                             limit 10) teams ON true
+
+         left join lateral (
+    select ares.agent_id,
+           case when l.state = 'online' then l.delta + ares.online else ares.online end    online,
+           case when l.state = 'offline' then l.delta + ares.offline else ares.offline end offline,
+           case when l.state = 'pause' then l.delta + ares.pause else ares.pause end       pause,
+           (extract(epoch from (ares.offering + ares.bridged + ares.wrap_time)) /
+            extract(epoch from :To::timestamptz - :From::timestamptz)) * 100 as            utilization,
+           ares.bridged                                                      as            call_time,
+           ares.cnt                                                                        handles,
+           ares.missed,
+           ares.max_bridged_at,
+           ares.max_offering_at
+    from (
+             select ah.agent_id,
+                    coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0')    online,
+                    coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval '0')   offline,
+                    coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval '0')     pause,
+                    coalesce(sum(duration) filter ( where ah.state = 'bridged' ), interval '0')   bridged,
+                    coalesce(sum(duration) filter ( where ah.state = 'offering' ), interval '0')  offering,
+                    coalesce(sum(duration) filter ( where ah.state = 'wrap_time' ), interval '0') wrap_time,
+                    coalesce(count(*) filter (where ah.state = 'bridged' ), 0)                    cnt,
+                    coalesce(count(*) filter (where ah.state = 'missed' ), 0)                     missed,
+                    max(ah.joined_at) filter ( where ah.state = 'bridged' )                       max_bridged_at,
+                    max(ah.joined_at) filter ( where ah.state = 'offering' )                      max_offering_at,
+                    min(ah.joined_at)
+             from cc_agent_state_history ah
+             where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
+               and ah.agent_id = a.id
+             group by 1
+         ) ares
+             left join lateral (
+        select h2.state,
+               ares.min - (:From::timestamptz) delta
+        from cc_agent_state_history h2
+        where h2.joined_at < ares.min
+          and h2.agent_id = ares.agent_id
+          and h2.state in ('online', 'offline', 'pause')
+        order by h2.joined_at desc
+        limit 1
+        ) l on true
+    ) stat on stat.agent_id = a.id
+         inner join lateral (select case
+                                        when stat isnull or
+                                             (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
+                                            then (:To::timestamptz) - (:From::timestamptz)
+                                        else now() - a.last_state_change end t) x on true
 ) t
 where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
 and (:Status::varchar[] isnull or (t.status = any(:Status)))
+and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
@@ -621,6 +635,8 @@ offset :Offset`, map[string]interface{}{
 		"Offset":   search.GetOffset(),
 		"From":     model.GetBetweenFromTime(&search.Time),
 		"To":       model.GetBetweenToTime(&search.Time),
+		"UFrom":    model.GetBetweenFrom(search.Utilization),
+		"UTo":      model.GetBetweenFrom(search.Utilization),
 		"AgentIds": pq.Array(search.AgentIds),
 		"Status":   pq.Array(search.Status),
 	})

@@ -616,6 +616,13 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 		Status:   in.Status,
 	}
 
+	if in.Utilization != nil {
+		req.Utilization = &model.FilterBetween{
+			From: in.GetUtilization().GetFrom(),
+			To:   in.GetUtilization().GetTo(),
+		}
+	}
+
 	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(in.DomainId), req)
 	if err != nil {
 		return nil, err
@@ -657,6 +664,7 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		User:           GetProtoLookup(&src.User),
 		Extension:      src.Extension,
 		Teams:          GetProtoLookups(src.Teams),
+		Queues:         GetProtoLookups(src.Queues),
 		Online:         src.Online,
 		Offline:        src.Offline,
 		Pause:          src.Pause,

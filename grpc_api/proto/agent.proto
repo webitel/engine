@@ -105,16 +105,17 @@ message AgentStatsStatistic {
     Lookup user = 5;
     string extension = 6;
     repeated Lookup teams = 7;
-    int64 online = 8;
-    int64 offline = 9;
-    int64 pause = 10;
+    repeated Lookup queues = 8;
+    int64 online = 9;
+    int64 offline = 10;
+    int64 pause = 11;
 
-    float utilization = 11;
-    int64 call_time = 12;
-    int32 handles = 13;
-    int32 missed = 14;
-    int64 max_bridged_at = 15;
-    int64 max_offering_at = 16;
+    float utilization = 12;
+    int64 call_time = 13;
+    int32 handles = 14;
+    int32 missed = 15;
+    int64 max_bridged_at = 16;
+    int64 max_offering_at = 17;
 }
 
 message ListAgentStatsStatistic {
@@ -130,9 +131,11 @@ message SearchAgentStatusStatisticRequest {
     repeated int64 agent_id = 4;
     repeated string status = 5;
 
-    string sort = 6;
+    FilterBetween utilization = 6;
 
-    int64 domain_id = 7;
+    string sort = 7;
+
+    int64 domain_id = 8;
 }
 
 message SearchAgentStateHistoryRequest {
