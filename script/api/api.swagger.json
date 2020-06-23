@@ -9341,19 +9341,11 @@
           "type": "integer",
           "format": "int32"
         },
-        "wrap_up_time": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "reject_delay_time": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "busy_delay_time": {
-          "type": "integer",
-          "format": "int32"
-        },
         "no_answer_delay_time": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "wrap_up_time": {
           "type": "integer",
           "format": "int32"
         },
@@ -9368,10 +9360,6 @@
         "post_processing": {
           "type": "boolean",
           "format": "boolean"
-        },
-        "post_processing_timeout": {
-          "type": "integer",
-          "format": "int32"
         }
       }
     },
@@ -9817,19 +9805,11 @@
           "type": "integer",
           "format": "int32"
         },
-        "wrap_up_time": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "reject_delay_time": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "busy_delay_time": {
-          "type": "integer",
-          "format": "int32"
-        },
         "no_answer_delay_time": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "wrap_up_time": {
           "type": "integer",
           "format": "int32"
         },
@@ -9840,10 +9820,6 @@
         "post_processing": {
           "type": "boolean",
           "format": "boolean"
-        },
-        "post_processing_timeout": {
-          "type": "integer",
-          "format": "int32"
         },
         "domain_id": {
           "type": "string",
@@ -12835,19 +12811,11 @@
           "type": "integer",
           "format": "int32"
         },
-        "wrap_up_time": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "reject_delay_time": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "busy_delay_time": {
-          "type": "integer",
-          "format": "int32"
-        },
         "no_answer_delay_time": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "wrap_up_time": {
           "type": "integer",
           "format": "int32"
         },
@@ -12858,10 +12826,6 @@
         "post_processing": {
           "type": "boolean",
           "format": "boolean"
-        },
-        "post_processing_timeout": {
-          "type": "integer",
-          "format": "int32"
         },
         "domain_id": {
           "type": "string",

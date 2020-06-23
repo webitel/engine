@@ -50,15 +50,12 @@ message UpdateAgentTeamRequest {
     string description = 3;
     string strategy = 4;
     int32 max_no_answer = 5;
-    int32 wrap_up_time = 6;
-    int32 reject_delay_time = 7;
-    int32 busy_delay_time = 8;
-    int32 no_answer_delay_time = 9;
-    int32 call_timeout = 10;
-    bool post_processing = 11;
-    int32 post_processing_timeout = 12;
+    int32 no_answer_delay_time = 6;
+    int32 wrap_up_time = 7;
+    int32 call_timeout = 8;
+    bool post_processing = 9;
 
-    int64 domain_id = 13;
+    int64 domain_id = 10;
 }
 
 message ReadAgentTeamRequest {
@@ -83,15 +80,12 @@ message CreateAgentTeamRequest {
     string description = 2;
     string strategy = 3;
     int32 max_no_answer = 4;
-    int32 wrap_up_time = 5;
-    int32 reject_delay_time = 6;
-    int32 busy_delay_time = 7;
-    int32 no_answer_delay_time = 8;
-    int32 call_timeout = 9;
-    bool post_processing = 10;
-    int32 post_processing_timeout = 11;
+    int32 no_answer_delay_time = 5;
+    int32 wrap_up_time = 6;
+    int32 call_timeout = 7;
+    bool post_processing = 8;
 
-    int64 domain_id = 12;
+    int64 domain_id = 9;
 }
 
 message AgentTeam {
@@ -101,14 +95,11 @@ message AgentTeam {
     string description = 4;
     string strategy = 5;
     int32 max_no_answer = 6;
-    int32 wrap_up_time = 7;
-    int32 reject_delay_time = 8;
-    int32 busy_delay_time = 9;
-    int32 no_answer_delay_time = 10;
-    int32 call_timeout = 11;
-    int64 updated_at = 12;
-    bool post_processing = 13;
-    int32 post_processing_timeout = 14;
+    int32 no_answer_delay_time = 7;
+    int32 wrap_up_time = 8;
+    int32 call_timeout = 9;
+    int64 updated_at = 10;
+    bool post_processing = 11;
 }
 
 message ListAgentTeam {

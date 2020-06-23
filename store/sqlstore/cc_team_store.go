@@ -20,29 +20,26 @@ func NewSqlAgentTeamStore(sqlStore SqlStore) store.AgentTeamStore {
 
 func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
 	var out *model.AgentTeam
-	if err := s.GetMaster().SelectOne(&out, `insert into cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time,
-                     busy_delay_time, no_answer_delay_time, call_timeout, created_at, created_by, updated_at, updated_by, post_processing, post_processing_timeout)
-		values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime, :RejectDelayTime,
-				:BusyDelayTime, :NoAnswerDelayTime, :CallTimeout, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :PostProcessing, :PostProcessingTimeout)
-		returning id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time, busy_delay_time, 
-			no_answer_delay_time, call_timeout, updated_at, post_processing, post_processing_timeout`,
+	if err := s.GetMaster().SelectOne(&out, `insert into cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
+                     no_answer_delay_time, call_timeout, created_at, created_by, updated_at, updated_by, post_processing)
+		values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
+				:NoAnswerDelayTime, :CallTimeout, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :PostProcessing)
+		returning id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, 
+			no_answer_delay_time, call_timeout, updated_at, post_processing`,
 		map[string]interface{}{
-			"DomainId":              team.DomainId,
-			"Name":                  team.Name,
-			"Description":           team.Description,
-			"Strategy":              team.Strategy,
-			"MaxNoAnswer":           team.MaxNoAnswer,
-			"WrapUpTime":            team.WrapUpTime,
-			"RejectDelayTime":       team.RejectDelayTime,
-			"BusyDelayTime":         team.BusyDelayTime,
-			"NoAnswerDelayTime":     team.NoAnswerDelayTime,
-			"CallTimeout":           team.CallTimeout,
-			"CreatedAt":             team.CreatedAt,
-			"CreatedBy":             team.CreatedBy.Id,
-			"UpdatedAt":             team.UpdatedAt,
-			"UpdatedBy":             team.UpdatedBy.Id,
-			"PostProcessing":        team.PostProcessing,
-			"PostProcessingTimeout": team.PostProcessingTimeout,
+			"DomainId":          team.DomainId,
+			"Name":              team.Name,
+			"Description":       team.Description,
+			"Strategy":          team.Strategy,
+			"MaxNoAnswer":       team.MaxNoAnswer,
+			"WrapUpTime":        team.WrapUpTime,
+			"NoAnswerDelayTime": team.NoAnswerDelayTime,
+			"CallTimeout":       team.CallTimeout,
+			"CreatedAt":         team.CreatedAt,
+			"CreatedBy":         team.CreatedBy.Id,
+			"UpdatedAt":         team.UpdatedAt,
+			"UpdatedBy":         team.UpdatedBy.Id,
+			"PostProcessing":    team.PostProcessing,
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
@@ -119,8 +116,8 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, sear
 
 func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *model.AppError) {
 	var team *model.AgentTeam
-	if err := s.GetReplica().SelectOne(&team, `select id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time, 
-				busy_delay_time, no_answer_delay_time, call_timeout, updated_at, post_processing, post_processing_timeout
+	if err := s.GetReplica().SelectOne(&team, `select id, domain_id, name, description, strategy, max_no_answer, wrap_up_time,  
+				no_answer_delay_time, call_timeout, updated_at, post_processing
 			from cc_team
 			where id = :Id and domain_id = :DomainId
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
@@ -138,32 +135,26 @@ set name = :Name,
     strategy = :Strategy,
     max_no_answer = :MaxNoAnswer,
     wrap_up_time = :WrapUpTime,
-    reject_delay_time = :RejectDelayTime,
-    busy_delay_time = :BusyDelayTime,
     no_answer_delay_time = :NoAnswerDelayTime,
     call_timeout = :CallTimeout,
 	updated_at = :UpdatedAt,
 	updated_by = :UpdatedBy,
-	post_processing = :PostProcessing,
-	post_processing_timeout = :PostProcessingTimeout
+	post_processing = :PostProcessing
 where id = :Id and domain_id = :DomainId
-returning id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, reject_delay_time, busy_delay_time, 
-	no_answer_delay_time, call_timeout, updated_at, post_processing, post_processing_timeout`, map[string]interface{}{
-		"Id":                    team.Id,
-		"DomainId":              team.DomainId,
-		"Name":                  team.Name,
-		"Description":           team.Description,
-		"Strategy":              team.Strategy,
-		"MaxNoAnswer":           team.MaxNoAnswer,
-		"WrapUpTime":            team.WrapUpTime,
-		"RejectDelayTime":       team.RejectDelayTime,
-		"BusyDelayTime":         team.BusyDelayTime,
-		"NoAnswerDelayTime":     team.NoAnswerDelayTime,
-		"CallTimeout":           team.CallTimeout,
-		"UpdatedAt":             team.UpdatedAt,
-		"UpdatedBy":             team.UpdatedBy.Id,
-		"PostProcessing":        team.PostProcessing,
-		"PostProcessingTimeout": team.PostProcessingTimeout,
+returning id, domain_id, name, description, strategy, max_no_answer, wrap_up_time, 
+	no_answer_delay_time, call_timeout, updated_at, post_processing`, map[string]interface{}{
+		"Id":                team.Id,
+		"DomainId":          team.DomainId,
+		"Name":              team.Name,
+		"Description":       team.Description,
+		"Strategy":          team.Strategy,
+		"MaxNoAnswer":       team.MaxNoAnswer,
+		"WrapUpTime":        team.WrapUpTime,
+		"NoAnswerDelayTime": team.NoAnswerDelayTime,
+		"CallTimeout":       team.CallTimeout,
+		"UpdatedAt":         team.UpdatedAt,
+		"UpdatedBy":         team.UpdatedBy.Id,
+		"PostProcessing":    team.PostProcessing,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.Update", "store.sql_agent_team.update.app_error", nil,
