@@ -11,10 +11,10 @@ type AgentStatus struct {
 	Name string
 }
 
-var (
-	AgentStatusOnline  = AgentStatus{"online"}
-	AgentStatusOffline = AgentStatus{"offline"}
-	AgentStatusPause   = AgentStatus{"pause"}
+const (
+	AgentStatusOnline  = "online"
+	AgentStatusOffline = "offline"
+	AgentStatusPause   = "pause"
 )
 
 func (status AgentStatus) String() string {

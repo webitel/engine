@@ -80,17 +80,6 @@ func (a *App) RemoveAgent(domainId, id int64) (*model.Agent, *model.AppError) {
 	return agent, nil
 }
 
-func (a *App) SetAgentStatus(domainId, id int64, status model.AgentStatus) *model.AppError {
-	switch status {
-	case model.AgentStatusOnline, model.AgentStatusOffline, model.AgentStatusPause:
-		//FIXME fire event ?
-		_, err := a.Store.Agent().SetStatus(domainId, id, status.String(), nil)
-		return err
-	default:
-		return model.NewAppError("SetAgentStatus.IsValid", "app.set_agent_status.is_valid.status.app_error", nil, status.String(), http.StatusBadRequest)
-	}
-}
-
 func (a *App) GetAgentInTeamPage(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, bool, *model.AppError) {
 	list, err := a.Store.Agent().InTeam(domainId, id, search)
 	if err != nil {

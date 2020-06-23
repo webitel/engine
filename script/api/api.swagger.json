@@ -9282,6 +9282,15 @@
           "type": "boolean",
           "format": "boolean"
         },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "payload": {
+          "type": "string"
+        },
         "domain_id": {
           "type": "string",
           "format": "int64"

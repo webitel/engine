@@ -337,16 +337,11 @@ message SkillAgent {
 
 message AgentStatusRequest {
     int64 id = 1;
-
-    enum Status {
-        ONLINE = 0;
-        OFFLINE = 1;
-        PAUSE = 2;
-    }
-
     string status = 2; //FIXME enumerate
     bool on_demand = 3;
-    int64 domain_id = 4;
+    repeated string channels = 4;
+    string payload = 5;
+    int64 domain_id = 6;
 }
 
 message AgentChannel {

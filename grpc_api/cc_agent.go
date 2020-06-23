@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"fmt"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
@@ -236,7 +237,19 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 		}
 	}
 
-	if err = api.app.SetAgentStatus(session.Domain(in.GetDomainId()), in.GetId(), getAgentStatus(in.Status)); err != nil {
+	switch in.Status {
+	case model.AgentStatusOnline:
+		err = api.ctrl.LoginAgent(session, session.Domain(in.GetDomainId()), in.GetId(), in.GetChannels(), in.OnDemand)
+	case model.AgentStatusPause:
+		err = api.ctrl.PauseAgent(session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), 0)
+	case model.AgentStatusOffline:
+		err = api.ctrl.LogoutAgent(session, session.Domain(in.GetDomainId()), in.GetId())
+	default:
+		err = model.NewAppError("GRPC.UpdateAgentStatus", "grpc.agent.update_status", nil, fmt.Sprintf("not found status %s", in.Status),
+			http.StatusBadRequest)
+	}
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -654,10 +667,6 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		MaxBridgedAt:   model.TimeToInt64(src.MaxBridgedAt),
 		MaxOfferingAt:  model.TimeToInt64(src.MaxOfferingAt),
 	}
-}
-
-func getAgentStatus(name string) model.AgentStatus {
-	return model.AgentStatus{name}
 }
 
 func transformAgent(src *model.Agent) *engine.Agent {
