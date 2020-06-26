@@ -91,7 +91,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
-		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (description ilike :Q::varchar or status ilike :Q::varchar ) ))`,
+		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ) ))`,
 		model.Agent{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -112,7 +112,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
-		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (description ilike :Q::varchar or status ilike :Q::varchar ) )) and
+		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or  status ilike :Q::varchar ) )) and
 			(
 					exists(select 1
 					  from cc_agent_acl
