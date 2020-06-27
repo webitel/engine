@@ -247,7 +247,7 @@ type HistoryCall struct {
 	Result           *string     `json:"result" db:"result"`
 	Tags             StringArray `json:"tags" db:"tags"`
 	Display          *string     `json:"display" db:"display"`
-	TransferFrom     *string     `json:"transfer_from_id" db:"transfer_from_id"`
+	TransferFrom     *string     `json:"transfer_from" db:"transfer_from"`
 	TransferTo       *string     `json:"transfer_to" db:"transfer_to"`
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
 }
