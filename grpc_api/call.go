@@ -142,6 +142,50 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 		},
+		SkipParent: in.GetSkipParent(),
+		UserIds:    in.GetUserId(),
+		QueueIds:   in.GetQueueId(),
+		TeamIds:    in.GetTeamId(),
+		AgentIds:   in.GetAgentId(),
+		MemberIds:  in.GetMemberId(),
+		GatewayIds: in.GetGatewayId(),
+	}
+
+	if in.GetDuration() != nil {
+		req.Duration = &model.FilterBetween{
+			From: in.GetDuration().GetFrom(),
+			To:   in.GetDuration().GetTo(),
+		}
+	}
+
+	if in.GetAnsweredAt() != nil {
+		req.AnsweredAt = &model.FilterBetween{
+			From: in.GetAnsweredAt().GetFrom(),
+			To:   in.GetAnsweredAt().GetTo(),
+		}
+	}
+
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+
+	if in.GetDirection() != "" {
+		req.Direction = &in.Direction
+	}
+
+	if in.GetParentId() != "" {
+		req.ParentId = &in.ParentId
+	}
+
+	if in.GetNumber() != "" {
+		req.Number = model.NewString(in.Number)
+	}
+
+	if in.GetMissed() {
+		req.Missed = model.NewBool(true)
 	}
 
 	list, endList, err = api.ctrl.SearchCall(session, req)

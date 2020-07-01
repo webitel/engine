@@ -44,7 +44,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
-		`domain_id = :Domain 
+		`domain_id = :Domain and direction notnull
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
