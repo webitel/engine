@@ -13,16 +13,30 @@ func (api *API) InitMember() {
 
 func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var attemptId float64
-	var status string
 	var ok bool
+	var nextDistributeAt *int64
+	var expire *int64
+	var status string
 
 	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
 	}
 
-	status, _ = req.Data["status"].(string)
+	if ok, _ = req.Data["success"].(bool); ok {
+		status = "success" // TODO enum
+	}
+	description, _ := req.Data["description"].(string)
+	display, _ := req.Data["display"].(bool)
 
-	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status)
+	if tmp, ok := req.Data["next_distribute_at"].(float64); ok {
+		nextDistributeAt = model.NewInt64(int64(tmp))
+	}
+
+	if tmp, ok := req.Data["expire"].(float64); ok {
+		expire = model.NewInt64(int64(tmp))
+	}
+
+	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire, nil, display)
 	if err != nil {
 		return nil, err
 	}

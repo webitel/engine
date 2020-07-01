@@ -142,8 +142,11 @@ func (app *App) ListOfflineQueueForAgent(domainId int64, search *model.SearchOff
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) ReportingAttempt(attemptId int64, status string) *model.AppError {
-	err := app.cc.Member().AttemptResult(attemptId, status)
+func (app *App) ReportingAttempt(attemptId int64, status, description string, nextOffering *int64, expireAt *int64, vars map[string]string,
+	stickyDisplay bool) *model.AppError {
+
+	err := app.cc.Member().AttemptResult(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay)
+
 	if err != nil {
 		return model.NewAppError("ReportingAttempt", "app.cc_member.reporting.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
