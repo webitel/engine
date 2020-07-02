@@ -528,7 +528,7 @@ offset :Offset`, map[string]interface{}{
 func (s SqlAgentStore) StatusStatistic(domainId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", teams, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at, extension, queues
+       max_bridged_at, max_offering_at, extension, queues, active_call_id
 from (
     select a.id                                                 agent_id,
        a.domain_id,
@@ -555,7 +555,8 @@ from (
        coalesce(handles, 0)                                 handles,
        coalesce(missed, 0)                                  missed,
        max_bridged_at,
-       max_offering_at
+       max_offering_at,
+       active_call.id as active_call_id
 from cc_agent a
          inner join directory.wbt_user u on u.id = a.user_id
          LEFT JOIN LATERAL ( select array_agg(distinct t.id)                                                        tt,
@@ -618,6 +619,12 @@ from cc_agent a
         limit 1
         ) l on true
     ) stat on stat.agent_id = a.id
+         left join lateral (
+            select c.id
+            from cc_calls c
+            where c.agent_id = a.id and c.hangup_at isnull and c.direction notnull
+            limit 1
+         ) active_call on true
          inner join lateral (select case
                                         when stat isnull or
                                              (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)

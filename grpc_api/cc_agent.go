@@ -656,7 +656,7 @@ func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCa
 }
 
 func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.AgentStatsStatistic {
-	return &engine.AgentStatsStatistic{
+	item := &engine.AgentStatsStatistic{
 		AgentId:        src.AgentId,
 		Name:           src.Name,
 		Status:         src.Status,
@@ -675,6 +675,12 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		MaxBridgedAt:   model.TimeToInt64(src.MaxBridgedAt),
 		MaxOfferingAt:  model.TimeToInt64(src.MaxOfferingAt),
 	}
+
+	if src.ActiveCallId != nil {
+		item.ActiveCallId = *src.ActiveCallId
+	}
+
+	return item
 }
 
 func transformAgent(src *model.Agent) *engine.Agent {

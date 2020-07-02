@@ -96,6 +96,7 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 				model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", usr.Id),
 				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
 				"hangup_after_bridge":                 "true",
+				"absolute_codec_string":               "opus,pcmu,pcma",
 
 				"variable_sip_h_X-Webitel-User-Id": fmt.Sprintf("%d", usr.Id),
 				"wbt_destination":                  call.Destination,

@@ -59,6 +59,7 @@ type AgentStatusStatistics struct {
 	Pause          int64      `json:"pause" db:"pause"`
 	Utilization    float32    `json:"utilization" db:"utilization"`
 	CallTime       int64      `json:"call_time" db:"call_time"`
+	ActiveCallId   *string    `json:"active_call_id" db:"active_call_id"`
 	Handles        int32      `json:"handles" db:"handles"`
 	Missed         int32      `json:"missed" db:"missed"`
 	MaxBridgedAt   *time.Time `json:"max_bridged_at" db:"max_bridged_at"`

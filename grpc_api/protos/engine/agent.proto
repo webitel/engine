@@ -116,6 +116,7 @@ message AgentStatsStatistic {
     int32 missed = 15;
     int64 max_bridged_at = 16;
     int64 max_offering_at = 17;
+    string active_call_id = 18;
 }
 
 message ListAgentStatsStatistic {
