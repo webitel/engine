@@ -21,7 +21,7 @@ type Member struct {
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
 	Skill          *Lookup               `json:"skill" db:"skill"`
-	StopAt         *int64                `json:"stop_at" db:"stop_at"`
+	StopAt         *time.Time            `json:"stop_at" db:"stop_at"`
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Reserved       bool                  `json:"reserved" db:"reserved"`
 }
