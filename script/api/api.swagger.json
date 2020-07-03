@@ -9285,6 +9285,9 @@
         "max_offering_at": {
           "type": "string",
           "format": "int64"
+        },
+        "active_call_id": {
+          "type": "string"
         }
       }
     },
