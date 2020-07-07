@@ -621,6 +621,13 @@
             "format": "int64"
           },
           {
+            "name": "has_call",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "format": "boolean"
+          },
+          {
             "name": "sort",
             "in": "query",
             "required": false,

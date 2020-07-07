@@ -641,6 +641,7 @@ and (:Status::varchar[] isnull or (t.status = any(:Status)))
 and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
 and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
 and (:TeamIds::int[] isnull  or (t.team_ids notnull and t.team_ids::int[] && :TeamIds::int[]))
+and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
@@ -654,6 +655,7 @@ offset :Offset`, map[string]interface{}{
 		"Status":   pq.Array(search.Status),
 		"QueueIds": pq.Array(search.QueueIds),
 		"TeamIds":  pq.Array(search.TeamIds),
+		"HasCall":  search.HasCall,
 	})
 
 	if err != nil {

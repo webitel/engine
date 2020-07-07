@@ -74,6 +74,7 @@ type SearchAgentStatusStatistic struct {
 	Status      []string
 	TeamIds     []int32
 	QueueIds    []int32
+	HasCall     bool
 }
 
 func (a Agent) AllowFields() []string {

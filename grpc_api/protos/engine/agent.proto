@@ -135,10 +135,11 @@ message SearchAgentStatusStatisticRequest {
     repeated int32 team_id = 7;
 
     FilterBetween utilization = 8;
+    bool has_call = 9;
 
-    string sort = 9;
+    string sort = 10;
 
-    int64 domain_id = 10;
+    int64 domain_id = 11;
 }
 
 message SearchAgentStateHistoryRequest {
