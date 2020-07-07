@@ -637,6 +637,7 @@ from cc_agent a
 ) t
 where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
+and (:Q::varchar isnull or t.name ilike :Q::varchar)
 and (:Status::varchar[] isnull or (t.status = any(:Status)))
 and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
 and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
@@ -645,6 +646,7 @@ and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
+		"Q":        search.GetQ(),
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
 		"From":     model.GetBetweenFromTime(&search.Time),

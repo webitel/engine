@@ -129,17 +129,18 @@ message SearchAgentStatusStatisticRequest {
     int32 page = 1;
     int32 size = 2;
     FilterBetween time = 3;
-    repeated int64 agent_id = 4;
-    repeated string status = 5;
-    repeated int32 queue_id = 6;
-    repeated int32 team_id = 7;
+    string q = 4;
+    repeated int64 agent_id = 5;
+    repeated string status = 6;
+    repeated int32 queue_id = 7;
+    repeated int32 team_id = 8;
 
-    FilterBetween utilization = 8;
-    bool has_call = 9;
+    FilterBetween utilization = 9;
+    bool has_call = 10;
 
-    string sort = 10;
+    string sort = 11;
 
-    int64 domain_id = 11;
+    int64 domain_id = 12;
 }
 
 message SearchAgentStateHistoryRequest {

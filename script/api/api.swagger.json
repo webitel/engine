@@ -564,6 +564,12 @@
             "format": "int64"
           },
           {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
             "name": "agent_id",
             "in": "query",
             "required": false,

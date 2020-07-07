@@ -604,6 +604,7 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 	req := &model.SearchAgentStatusStatistic{
 		ListRequest: model.ListRequest{
 			DomainId: session.Domain(in.DomainId),
+			Q:        in.GetQ(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 			Sort:     in.Sort,
