@@ -25,6 +25,7 @@ func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	if ok, _ = req.Data["success"].(bool); ok {
 		status = "success" // TODO enum
 	}
+
 	description, _ := req.Data["description"].(string)
 	display, _ := req.Data["display"].(bool)
 

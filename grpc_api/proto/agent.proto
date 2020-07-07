@@ -131,12 +131,14 @@ message SearchAgentStatusStatisticRequest {
     FilterBetween time = 3;
     repeated int64 agent_id = 4;
     repeated string status = 5;
+    repeated int32 queue_id = 6;
+    repeated int32 team_id = 7;
 
-    FilterBetween utilization = 6;
+    FilterBetween utilization = 8;
 
-    string sort = 7;
+    string sort = 9;
 
-    int64 domain_id = 8;
+    int64 domain_id = 10;
 }
 
 message SearchAgentStateHistoryRequest {

@@ -556,11 +556,15 @@ from (
        coalesce(missed, 0)                                  missed,
        max_bridged_at,
        max_offering_at,
-       active_call.id as active_call_id
+       active_call.id as active_call_id,
+       teams.queue_ids,
+       teams.team_ids
 from cc_agent a
          inner join directory.wbt_user u on u.id = a.user_id
          LEFT JOIN LATERAL ( select array_agg(distinct t.id)                                                        tt,
                                     json_agg(distinct cc_get_lookup(t.id, t.name))                                  v,
+                                    array_agg(distinct t.id) filter ( where t.id notnull ) team_ids,
+                                    array_agg(distinct cq.id) filter ( where cq.id notnull ) queue_ids,
                                     json_agg(distinct cc_get_lookup(cq.id, cq.name)) filter ( where cq.id notnull ) a
                              from cc_team t
                                       left join cc_queue cq on t.id = cq.team_id
@@ -635,6 +639,8 @@ where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
 and (:Status::varchar[] isnull or (t.status = any(:Status)))
 and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
+and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
+and (:TeamIds::int[] isnull  or (t.team_ids notnull and t.team_ids::int[] && :TeamIds::int[]))
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"DomainId": domainId,
@@ -646,6 +652,8 @@ offset :Offset`, map[string]interface{}{
 		"UTo":      model.GetBetweenFrom(search.Utilization),
 		"AgentIds": pq.Array(search.AgentIds),
 		"Status":   pq.Array(search.Status),
+		"QueueIds": pq.Array(search.QueueIds),
+		"TeamIds":  pq.Array(search.TeamIds),
 	})
 
 	if err != nil {

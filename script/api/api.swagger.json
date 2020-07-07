@@ -585,6 +585,28 @@
             "collectionFormat": "multi"
           },
           {
+            "name": "queue_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "team_id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "collectionFormat": "multi"
+          },
+          {
             "name": "utilization.from",
             "in": "query",
             "required": false,

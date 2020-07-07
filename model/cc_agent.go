@@ -72,6 +72,8 @@ type SearchAgentStatusStatistic struct {
 	Utilization *FilterBetween
 	AgentIds    []int64
 	Status      []string
+	TeamIds     []int32
+	QueueIds    []int32
 }
 
 func (a Agent) AllowFields() []string {

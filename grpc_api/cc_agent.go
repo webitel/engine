@@ -614,6 +614,8 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 		},
 		AgentIds: in.AgentId,
 		Status:   in.Status,
+		QueueIds: in.QueueId,
+		TeamIds:  in.TeamId,
 	}
 
 	if in.Utilization != nil {
