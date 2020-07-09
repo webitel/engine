@@ -169,7 +169,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 			union all
 			select t.id
 			from cc_calls_history t, a
-			where t.parent_id = a.id or t.transfer_to = a.id
+			where t.parent_id = a.id or t.transfer_from = a.id
 		)
 		select id
 		from a
