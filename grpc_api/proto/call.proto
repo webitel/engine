@@ -106,6 +106,7 @@ message SearchHistoryCallRequest {
     repeated string id = 24;
     repeated string transfer_from = 25;
     repeated string transfer_to = 26;
+    repeated string dependency_id = 27;
 }
 
 message ListHistoryCall {

@@ -321,6 +321,7 @@ type SearchHistoryCall struct {
 	Ids             []string
 	TransferFromIds []string
 	TransferToIds   []string
+	DependencyIds   []string
 }
 
 type CallEvent struct {

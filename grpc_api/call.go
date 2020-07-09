@@ -47,6 +47,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		Ids:             in.GetId(),
 		TransferFromIds: in.GetTransferFrom(),
 		TransferToIds:   in.GetTransferTo(),
+		DependencyIds:   in.GetDependencyId(),
 	}
 
 	if in.GetDuration() != nil {

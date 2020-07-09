@@ -135,6 +135,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Ids":             pq.Array(search.Ids),
 		"TransferFromIds": pq.Array(search.TransferFromIds),
 		"TransferToIds":   pq.Array(search.TransferToIds),
+		"DependencyIds":   pq.Array(search.DependencyIds),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -159,7 +160,21 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
 	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and answered_at isnull))`,
+	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and (:DependencyIds::varchar[] isnull or id in (
+		with recursive a as (
+			select t.id
+			from cc_calls_history t
+			where id = any(:DependencyIds)
+			union all
+			select t.id
+			from cc_calls_history t, a
+			where t.parent_id = a.id or t.transfer_to = a.id
+		)
+		select id
+		from a
+	))
+`,
 		model.HistoryCall{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlCallStore.GetHistory", "store.sql_call.get_history.app_error", nil, err.Error(), http.StatusInternalServerError)
