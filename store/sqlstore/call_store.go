@@ -173,6 +173,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		)
 		select id
 		from a
+		where not a.id = any(:DependencyIds)
 	))
 `,
 		model.HistoryCall{}, f)
