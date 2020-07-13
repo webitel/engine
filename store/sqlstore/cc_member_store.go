@@ -136,7 +136,7 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
     limit :Limit
     offset :Offset
 )
-select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destination',
+select m.id, cc_member_destination_views_to_json(array(select (xid::int2, x ->> 'destination',
 								resources.j,
                                 comm.j,
                                 (x -> 'priority')::int ,
@@ -146,7 +146,7 @@ select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destinatio
                                 (x -> 'attempts')::int,
                                 x ->> 'last_cause',
                                 x ->> 'display'    )::cc_member_destination_view
-                         from jsonb_array_elements(m.communications) x
+                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
                             left join comm on comm.id = (x -> 'type' -> 'id')::int
                             left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
        cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
@@ -193,7 +193,7 @@ func (s SqlMemberStore) GetAllPage(domainId, queueId int64, search *model.Search
     limit :Limit
     offset :Offset
 )
-select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destination',
+select m.id, cc_member_destination_views_to_json(array(select (xid::int2, x ->> 'destination',
 								resources.j,
                                 comm.j,
                                 (x -> 'priority')::int ,
@@ -203,7 +203,7 @@ select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destinatio
                                 (x -> 'attempts')::int,
                                 x ->> 'last_cause',
                                 x ->> 'display'    )::cc_member_destination_view
-                         from jsonb_array_elements(m.communications) x
+                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
                             left join comm on comm.id = (x -> 'type' -> 'id')::int
                             left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
        cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
@@ -487,12 +487,12 @@ func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.S
         inner join cc_queue cq2 on m.queue_id = cq2.id
     where m.domain_id = :Domain and cq2.type = 0 and (:Q::varchar isnull or m.name ilike :Q)
         and not exists (select 1 from cc_member_attempt a where a.member_id = m.id)
-        and m.stop_at = 0
+        and m.stop_at isnull
     order by cq2.priority desc , m.priority desc, m.created_at
     limit :Limit
     offset :Offset
 )
-select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destination',
+select m.id, cc_member_destination_views_to_json(array(select ( xid::int2, x ->> 'destination',
 								resources.j,
                                 comm.j,
                                 (x -> 'priority')::int ,
@@ -502,7 +502,7 @@ select m.id, cc_member_destination_views_to_json(array(select (x ->> 'destinatio
                                 (x -> 'attempts')::int,
                                 x ->> 'last_cause',
                                 x ->> 'display'    )::cc_member_destination_view
-                         from jsonb_array_elements(m.communications) x
+                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
                             left join comm on comm.id = (x -> 'type' -> 'id')::int
                             left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
        cc_get_lookup(cq.id, cq.name::varchar) queue, m.expire_at, m.created_at, m.variables, m.name
