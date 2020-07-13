@@ -63,7 +63,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.queueBucket = NewQueueBucketApi(a)
 	api.list = NewListApi(a)
 
-	api.member = NewMemberApi(a)
+	api.member = NewMemberApi(api)
 
 	api.call = NewCallApi(api)
 	api.emailProfile = NewEmailProfileApi(api)

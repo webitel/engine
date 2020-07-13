@@ -100,6 +100,14 @@ service MemberService {
         };
     }
 
+
+    rpc AttemptCallback(AttemptCallbackRequest) returns (AttemptResultResponse) {
+        option (google.api.http) = {
+            patch: "/call_center/attempts/{attempt_id}"
+            body: "*"
+        };
+    }
+
     // Offline queue
     rpc CreateAttempt(CreateAttemptRequest) returns (CreateAttemptResponse) {
         option (google.api.http) = {
@@ -139,10 +147,22 @@ message CreateAttemptResponse {
     int64 attempt_id = 1;
 }
 
+message AttemptCallbackRequest {
+    int64 attempt_id = 1;
+
+    string status = 2;
+
+    int64 min_offering_at = 3;
+    int64 expire_at = 4;
+    map<string, string> variables = 5;
+    bool display = 6;
+    string description = 7;
+}
+
 message AttemptResultRequest {
     int32 queue_id = 1;
-    int32 member_id = 2;
-    int32 attempt_id = 3;
+    int64 member_id = 2;
+    int64 attempt_id = 3;
 
     string status = 4;
 

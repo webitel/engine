@@ -195,27 +195,9 @@ func (c Attempt) AllowFields() []string {
 
 func (c Attempt) DefaultFields() []string {
 	return []string{
-		"id",
-		"state",
-		"last_state_change",
-		"channel",
-		"queue",
-		"member",
-		"variables",
-		"agent",
-		"position",
-		"resource",
-		"bucket",
-		"list",
-		"display",
-		"destination",
-		"joined_at",
-		"offering_at",
-		"bridged_at",
-		"reporting_at",
-		"leaving_at",
-		"timeout",
-		"result",
+		"id", "state", "last_state_change", "joined_at", "offering_at", "bridged_at", "reporting_at", "leaving_at",
+		"timeout", "channel", "queue", "member", "member_call_id", "variables", "agent", "agent_call_id", "position",
+		"resource", "bucket", "list", "display", "destination", "result",
 	}
 }
 

@@ -2,7 +2,6 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
@@ -10,11 +9,11 @@ import (
 )
 
 type member struct {
-	app *app.App
+	*API
 }
 
-func NewMemberApi(app *app.App) *member {
-	return &member{app: app}
+func NewMemberApi(api *API) *member {
+	return &member{api}
 }
 
 func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequest) (*engine.MemberInQueue, error) {
@@ -694,8 +693,57 @@ func (api *member) CreateAttempt(ctx context.Context, in *engine.CreateAttemptRe
 }
 
 func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRequest) (*engine.AttemptResultResponse, error) {
-	//TODO validate && proxy cc
-	return nil, nil
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var nextOffering *int64
+	var expire *int64
+
+	if in.MinOfferingAt > 0 {
+		nextOffering = &in.MinOfferingAt
+	}
+
+	if in.ExpireAt > 0 {
+		expire = &in.ExpireAt
+	}
+
+	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables, in.Display)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.AttemptResultResponse{
+		Status: "success",
+	}, nil
+}
+
+func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallbackRequest) (*engine.AttemptResultResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var nextOffering *int64
+	var expire *int64
+
+	if in.MinOfferingAt > 0 {
+		nextOffering = &in.MinOfferingAt
+	}
+
+	if in.ExpireAt > 0 {
+		expire = &in.ExpireAt
+	}
+
+	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables, in.Display)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.AttemptResultResponse{
+		Status: "success",
+	}, nil
 }
 
 func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.MemberCommunication {
