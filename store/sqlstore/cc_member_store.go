@@ -485,7 +485,7 @@ func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.S
     select m.id
     from cc_member m
         inner join cc_queue cq2 on m.queue_id = cq2.id
-    where m.domain_id = :Domain and cq2.type = 0 and (:Q::varchar isnull or m.name ilike :Q)
+    where m.domain_id = :Domain and cq2.type = 0 and cq2.enabled and (:Q::varchar isnull or m.name ilike :Q)
         and not exists (select 1 from cc_member_attempt a where a.member_id = m.id)
         and m.stop_at isnull
     order by cq2.priority desc , m.priority desc, m.created_at
