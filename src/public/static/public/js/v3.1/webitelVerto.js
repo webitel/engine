@@ -2782,6 +2782,13 @@
                 self.options.useVideo.style.display = 'block';
             }
 
+            if (!self.options.useVideo) {
+                var videoTrack = stream.getVideoTracks();
+                if (videoTrack && videoTrack.length) {
+                    stream.removeTrack(videoTrack[0])
+                }
+            }
+
             var element = self.options.useAudio;
             console.log("REMOTE STREAM", stream, element);
 
