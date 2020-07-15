@@ -154,6 +154,11 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		invite.AddVariable("eavesdrop_whisper_bleg", "true")
 	}
 
+	if call.To != nil {
+		invite.AddUserVariable("eavesdrop_name", call.To.Name)
+		invite.AddUserVariable("eavesdrop_number", call.To.Number)
+	}
+
 	var id string
 	id, err = cli.MakeOutboundCall(invite)
 	if err != nil {
