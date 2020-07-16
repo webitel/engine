@@ -286,11 +286,12 @@ select cc_get_lookup(q.id, q.name) queue,
 from queues q
     left join teams on teams.team_id = q.team_id
     left join cc_team ct on q.team_id = ct.id
-    left join (
-        select t.queue_id,
+    left join lateral (
+        select
+               t.queue_id,
                count(*) as count,
                count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
-               count(*) filter ( where t.result != 'success' ) * 100.0 / count(*) as abandoned,
+               count(*) filter ( where t.bridged_at isnull  ) * 100.0 / count(*) as abandoned,
                extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
                extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
                extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
@@ -299,8 +300,9 @@ from queues q
                extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
         from cc_member_attempt_history t
         where t.domain_id = :DomainId and t.joined_at between :From::timestamptz and :To::timestamptz
+            and t.queue_id = q.id
         group by 1
-) ag on ag.queue_id = q.id
+) ag on true
 order by q.priority desc
 limit :Limit
 offset :Offset
