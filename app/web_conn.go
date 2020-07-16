@@ -19,7 +19,7 @@ const (
 	WRITE_WAIT                = 30 * time.Second
 	PONG_WAIT                 = 100 * time.Second
 	PING_PERIOD               = (PONG_WAIT * 6) / 10
-	AUTH_TIMEOUT              = 5 * time.Hour
+	AUTH_TIMEOUT              = 15 * time.Second
 	WEBCONN_MEMBER_CACHE_TIME = 1000 * 60 * 30 // 30 minutes
 )
 

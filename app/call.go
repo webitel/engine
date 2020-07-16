@@ -84,6 +84,20 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		return "", err
 	}
 
+	var agent, client model.Endpoint
+
+	if call.Direction == model.CALL_DIRECTION_INBOUND {
+		client = *call.From
+		if call.To != nil {
+			agent = *call.To
+		}
+	} else {
+		agent = *call.From
+		if call.To != nil {
+			client = *call.To
+		}
+	}
+
 	invite := &model.CallRequest{
 		Endpoints:   usr.GetCallEndpoints(),
 		Destination: call.Destination,
@@ -107,25 +121,25 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 				"wbt_from_name":                    usr.Name,
 				"wbt_from_type":                    model.EndpointTypeUser,
 
-				"wbt_to_id":     fmt.Sprintf("%v", call.From.Id),
-				"wbt_to_name":   call.From.Name,
-				"wbt_to_number": call.From.Number,
-				"wbt_to_type":   call.From.Type,
+				"wbt_to_id":     fmt.Sprintf("%v", agent.Id),
+				"wbt_to_name":   agent.Name,
+				"wbt_to_number": agent.Number,
+				"wbt_to_type":   agent.Type,
 
 				"effective_caller_id_number": usr.Extension,
 				"effective_caller_id_name":   usr.Name,
 
-				"effective_callee_id_name":   call.From.Name,
-				"effective_callee_id_number": call.From.Number,
+				"effective_callee_id_name":   agent.Name,
+				"effective_callee_id_number": agent.Number,
 
-				"origination_caller_id_name":   call.From.Name,
-				"origination_caller_id_number": call.From.Number,
+				"origination_caller_id_name":   agent.Name,
+				"origination_caller_id_number": agent.Number,
 				"origination_callee_id_name":   usr.Name,
 				"origination_callee_id_number": usr.Extension,
 			},
 		),
-		CallerName:   call.From.Name,
-		CallerNumber: call.From.Number,
+		CallerName:   agent.Name,
+		CallerNumber: agent.Number,
 		Applications: []*model.CallRequestApplication{
 			{
 				AppName: "eavesdrop",
@@ -154,10 +168,9 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		invite.AddVariable("eavesdrop_whisper_bleg", "true")
 	}
 
-	if call.To != nil {
-		invite.AddUserVariable("eavesdrop_name", call.To.Name)
-		invite.AddUserVariable("eavesdrop_number", call.To.Number)
-	}
+	invite.AddUserVariable("eavesdrop_name", client.Name)
+	invite.AddUserVariable("eavesdrop_number", client.Number)
+	invite.AddUserVariable("eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
 
 	var id string
 	id, err = cli.MakeOutboundCall(invite)
