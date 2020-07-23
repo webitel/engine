@@ -150,22 +150,32 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 
 	if req.Dtmf {
 		invite.AddVariable("eavesdrop_enable_dtmf", "true")
+	} else {
+		invite.AddVariable("eavesdrop_enable_dtmf", "false")
 	}
 
 	if req.ALeg {
 		invite.AddVariable("eavesdrop_bridge_aleg", "true")
+	} else {
+		invite.AddVariable("eavesdrop_bridge_aleg", "false")
 	}
 
 	if req.BLeg {
 		invite.AddVariable("eavesdrop_bridge_bleg", "true")
+	} else {
+		invite.AddVariable("eavesdrop_bridge_bleg", "false")
 	}
 
 	if req.WhisperALeg {
 		invite.AddVariable("eavesdrop_whisper_aleg", "true")
+	} else {
+		invite.AddVariable("eavesdrop_whisper_aleg", "false")
 	}
 
 	if req.WhisperBLeg {
 		invite.AddVariable("eavesdrop_whisper_bleg", "true")
+	} else {
+		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
 	invite.AddUserVariable("eavesdrop_name", client.Name)
