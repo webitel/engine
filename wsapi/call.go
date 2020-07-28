@@ -250,6 +250,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		callReq.Params.Video, _ = props["video"].(bool)
 		callReq.Params.Screen, _ = props["screen"].(bool)
 		callReq.Params.Record, _ = props["record"].(bool)
+		callReq.Params.AutoAnswer, _ = props["autoAnswer"].(bool)
 
 		if variables, ok = props["variables"].(map[string]interface{}); ok {
 			callReq.Params.Variables = make(map[string]string)

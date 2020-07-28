@@ -52,6 +52,12 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		invite.AddVariable(model.CALL_VARIABLE_USE_SCREEN, "true")
 	}
 
+	if req.Params.AutoAnswer {
+		invite.AddVariable(model.CALL_VARIABLE_SIP_AUTO_ANSWER, "true")
+		//FIXME
+		invite.AddVariable("wbt_auto_answer", "true")
+	}
+
 	id, err = callCli.MakeOutboundCall(invite)
 	if err != nil {
 		return "", err
@@ -114,12 +120,11 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 				"absolute_codec_string":               "opus,pcmu,pcma",
 				"wbt_parent_id":                       call.Id,
 
-				"variable_sip_h_X-Webitel-User-Id": fmt.Sprintf("%d", usr.Id),
-				"wbt_destination":                  call.Destination,
-				"wbt_from_id":                      fmt.Sprintf("%v", usr.Id),
-				"wbt_from_number":                  usr.Endpoint,
-				"wbt_from_name":                    usr.Name,
-				"wbt_from_type":                    model.EndpointTypeUser,
+				"wbt_destination": call.Destination,
+				"wbt_from_id":     fmt.Sprintf("%v", usr.Id),
+				"wbt_from_number": usr.Endpoint,
+				"wbt_from_name":   usr.Name,
+				"wbt_from_type":   model.EndpointTypeUser,
 
 				"wbt_to_id":     fmt.Sprintf("%v", agent.Id),
 				"wbt_to_name":   agent.Name,

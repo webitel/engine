@@ -21,6 +21,7 @@ const (
 	CALL_VARIABLE_ID                = "sip_h_X-Webitel-Uuid"
 	CALL_VARIABLE_USE_VIDEO         = "wbt_video"
 	CALL_VARIABLE_USE_SCREEN        = "wbt_screen"
+	CALL_VARIABLE_SIP_AUTO_ANSWER   = "sip_auto_answer"
 )
 const (
 	CALL_STRATEGY_DEFAULT = iota
@@ -116,8 +117,9 @@ type CallParameters struct {
 	Video   bool
 	Screen  bool
 
-	Record    bool
-	Variables map[string]string
+	Record     bool
+	AutoAnswer bool
+	Variables  map[string]string
 }
 
 func (r *OutboundCallRequest) IsValid() *AppError {
