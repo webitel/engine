@@ -10,6 +10,7 @@ const conf = require('../../conf'),
     User = require(__appRoot + '/models/user'),
     handleStatusDb = require(__appRoot + '/services/userStatus').insert,
     DIFF_AGENT_LOGOUT_SEC = conf.get('application:callCentre:diffAgentLogoutTimeSec') || 60,
+    PING_INTERVAL = +conf.get('server:socket:pingInterval') || 30000,
     getIp = require(__appRoot + '/utils/ip');
 
 let maxUniqueOnline = 0;
@@ -55,6 +56,12 @@ function sendMaxOpenedSocket(params, execId, ws, userId) {
     }
 }
 
+function noop() {}
+
+function heartbeat() {
+    this.isAlive = true;
+}
+
 function Handler(wss, application) {
     const controller = Controller(application);
 
@@ -63,6 +70,8 @@ function Handler(wss, application) {
         const ipAddr = getIp(req);
         ws.ipAddr = ipAddr;
         const sessionId = generateUuid.v4();
+
+        ws.isAlive = true;
 
         log.trace(`Receive new connection from IP: ${ipAddr} Origin: ${req.headers.origin} Agent: ${req.headers['user-agent']}`);
 
@@ -175,6 +184,21 @@ function Handler(wss, application) {
         ws.on('error', function(e) {
             log.error('Socket error:', e);
         });
+
+        ws.on('pong', heartbeat);
+    });
+
+    const interval = setInterval(function ping() {
+        wss.clients.forEach(function each(ws) {
+            if (ws.isAlive === false) return ws.terminate();
+
+            ws.isAlive = false;
+            ws.ping(noop);
+        });
+    }, PING_INTERVAL);
+
+    wss.on('close', function close() {
+        clearInterval(interval);
     });
 
     application._getWSocketSessions = function () {

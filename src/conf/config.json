@@ -10,7 +10,8 @@
         "host": "0.0.0.0",
         "port": 10022,
         "socket": {
-            "originHost": false
+          "originHost": false,
+          "pingInterval": 30000
         }
     },
     "pg": {
