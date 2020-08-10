@@ -131,6 +131,10 @@ type AttemptHistory struct {
 	Result      string              `json:"result" db:"result"`
 }
 
+func (c AttemptHistory) DefaultOrder() string {
+	return "-joined_at"
+}
+
 func (c AttemptHistory) AllowFields() []string {
 	return c.DefaultFields()
 }
@@ -187,6 +191,10 @@ type Attempt struct {
 	Display     string              `json:"display" db:"display"`
 	Destination MemberCommunication `json:"destination" db:"destination"`
 	Result      *string             `json:"result" db:"result"`
+}
+
+func (c Attempt) DefaultOrder() string {
+	return "-joined_at"
 }
 
 func (c Attempt) AllowFields() []string {

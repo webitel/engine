@@ -26,6 +26,10 @@ func (q Queue) AllowFields() []string {
 	return q.DefaultFields()
 }
 
+func (q Queue) DefaultOrder() string {
+	return "-priority"
+}
+
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables", "timeout",
 		"domain_id", "sec_locate_agent", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",

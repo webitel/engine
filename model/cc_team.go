@@ -12,6 +12,10 @@ type AgentTeam struct {
 	PostProcessing    bool   `json:"post_processing" db:"post_processing"`
 }
 
+func (team AgentTeam) DefaultOrder() string {
+	return "id"
+}
+
 func (team AgentTeam) AllowFields() []string {
 	return team.DefaultFields()
 }

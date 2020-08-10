@@ -177,6 +177,10 @@ func (c Call) AllowFields() []string {
 	return c.DefaultFields()
 }
 
+func (c Call) DefaultOrder() string {
+	return "-created_at"
+}
+
 func (c Call) DefaultFields() []string {
 	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "duration", "hold_sec", "wait_sec", "bill_sec",
@@ -252,6 +256,10 @@ type HistoryCall struct {
 	TransferFrom     *string     `json:"transfer_from" db:"transfer_from"`
 	TransferTo       *string     `json:"transfer_to" db:"transfer_to"`
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
+}
+
+func (c HistoryCall) DefaultOrder() string {
+	return "-created_at"
 }
 
 func (c HistoryCall) AllowFields() []string {

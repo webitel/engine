@@ -77,6 +77,10 @@ type SearchAgentStatusStatistic struct {
 	HasCall     bool
 }
 
+func (a Agent) DefaultOrder() string {
+	return "id"
+}
+
 func (a Agent) AllowFields() []string {
 	return a.DefaultFields()
 }
@@ -137,6 +141,10 @@ type SearchAgentCallStatistics struct {
 	ListRequest
 	Time     FilterBetween
 	AgentIds []int32
+}
+
+func (c AgentCallStatistics) DefaultOrder() string {
+	return "name"
 }
 
 func (c AgentCallStatistics) AllowFields() []string {

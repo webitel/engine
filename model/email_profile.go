@@ -16,6 +16,10 @@ type EmailProfile struct {
 	ImapPort    int    `json:"imap_port" db:"imap_port"`
 }
 
+func (p EmailProfile) DefaultOrder() string {
+	return "id"
+}
+
 func (p EmailProfile) AllowFields() []string {
 	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "name", "enabled", "schema", "host",
 		"mailbox", "description", "login", "smtp_port", "imap_port"}

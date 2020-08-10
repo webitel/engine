@@ -13,6 +13,7 @@ type Entity interface {
 	AllowFields() []string
 	DefaultFields() []string
 	EntityName() string
+	DefaultOrder() string
 }
 
 func GetFields(f []string, e Entity) []string {
@@ -50,6 +51,13 @@ func GetOrderBy(s string) string {
 //TODO filter
 func Build(req *model.ListRequest, where string, e Entity, args map[string]interface{}) string {
 	s := GetFields(req.Fields, e)
+	sort := ""
+
+	if req.Sort != "" {
+		sort = req.Sort
+	} else if e.DefaultOrder() != "" {
+		sort = e.DefaultOrder()
+	}
 
 	args["Offset"] = req.GetOffset()
 	args["Limit"] = req.GetLimit()
@@ -59,7 +67,7 @@ func Build(req *model.ListRequest, where string, e Entity, args map[string]inter
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), pq.QuoteIdentifier(e.EntityName()), where, GetOrderBy(req.Sort))
+	limit :Limit`, strings.Join(s, ", "), pq.QuoteIdentifier(e.EntityName()), where, GetOrderBy(sort))
 
 	return query
 }
