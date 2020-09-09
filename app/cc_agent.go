@@ -53,6 +53,7 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 
 	oldAgent.Description = agent.Description
 	oldAgent.ProgressiveCount = agent.ProgressiveCount
+	oldAgent.GreetingMedia = agent.GreetingMedia
 	oldAgent.User.Id = agent.User.Id
 
 	oldAgent.UpdatedAt = agent.UpdatedAt

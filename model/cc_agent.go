@@ -43,6 +43,7 @@ type Agent struct {
 	Description      string         `json:"description" db:"description"`
 	ProgressiveCount int            `json:"progressive_count" db:"progressive_count"`
 	Channels         []AgentChannel `json:"channels" db:"channels"`
+	GreetingMedia    *Lookup        `json:"greeting_media" db:"greeting_media"`
 }
 
 type AgentStatusStatistics struct {
@@ -86,11 +87,20 @@ func (a Agent) AllowFields() []string {
 }
 
 func (a Agent) DefaultFields() []string {
-	return []string{"id", "status", "name", "channels", "description", "status_duration", "last_status_change", "progressive_count", "user"}
+	return []string{"id", "status", "name", "channels", "description", "status_duration", "last_status_change",
+		"progressive_count", "user", "greeting_media"}
 }
 
 func (a Agent) EntityName() string {
 	return "cc_agent_list"
+}
+
+func (a *Agent) GreetingMediaId() *int {
+	if a.GreetingMedia != nil {
+		return &a.GreetingMedia.Id
+	}
+
+	return nil
 }
 
 type AgentSession struct {

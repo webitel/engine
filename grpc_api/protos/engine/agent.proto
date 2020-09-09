@@ -305,7 +305,8 @@ message UpdateAgentRequest {
     Lookup user = 2;
     string description = 3;
     int32 progressive_count = 4;
-    int64 domain_id = 5;
+    Lookup greeting_media = 5;
+    int64 domain_id = 6;
 }
 
 message ReadAgentRequest {
@@ -333,7 +334,8 @@ message CreateAgentRequest {
     Lookup user = 1;
     string description = 2;
     int32 progressive_count = 3;
-    int64 domain_id = 4;
+    Lookup greeting_media = 4;
+    int64 domain_id = 5;
 }
 
 message SkillAgent {
@@ -369,6 +371,7 @@ message Agent {
     string name = 7;
     repeated AgentChannel channels = 8;
     int64 status_duration = 9;
+    Lookup greeting_media = 10;
 }
 
 message ListAgent {

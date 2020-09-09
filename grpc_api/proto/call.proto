@@ -257,14 +257,15 @@ message SearchCallRequest {
     FilterBetween duration = 11;
     bool skip_parent = 12;
     string parent_id = 13;
-    string cause = 14;
+    repeated string cause = 14;
     bool exists_file = 15;
 
     repeated string fields = 16;
     string sort = 17;
     int64 domain_id = 18;
     string number = 19;
-    string direction = 20;
+
+    repeated string direction = 20;
     FilterBetween answered_at = 21;
     bool missed = 22;
     FilterBetween stored_at = 23;

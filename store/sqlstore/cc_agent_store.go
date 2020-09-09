@@ -43,8 +43,8 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent
 	if err := s.GetMaster().SelectOne(&out, `with a as (
-			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count)
-			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount)
+			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id)
+			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia)
 			returning *
 		)
 		SELECT a.domain_id,
@@ -56,9 +56,11 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
         1000::double precision)::bigint                                                                       AS last_status_change,
        a.progressive_count,
        ch.x                                                                                                   AS channels,
-       json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user"
+       json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user",
+	   cc_get_lookup(a.greeting_media_id, g.name) as greeting_media
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
+		 left join storage.media_files g on g.id = a.greeting_media_id
          LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'online', c.online, 'state',
                                                                c.state, 'joined_at',
                                                                (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
@@ -73,6 +75,7 @@ FROM a
 			"UpdatedAt":        agent.UpdatedAt,
 			"UpdatedBy":        agent.UpdatedBy.Id,
 			"ProgressiveCount": agent.ProgressiveCount,
+			"GreetingMedia":    agent.GreetingMediaId(),
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
 			fmt.Sprintf("record=%v, %v", agent, err.Error()), http.StatusInternalServerError)
@@ -130,10 +133,12 @@ func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppEr
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `
 			select a.id, a.status, a.domain_id, a.description, (extract(EPOCH from a.last_state_change) * 1000)::int8 last_status_change, progressive_count, 
-				json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user
+				json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user,
+			    cc_get_lookup(a.greeting_media_id, g.name) as greeting_media
 				from cc_agent a
 					inner join directory.wbt_user ct on ct.id = a.user_id
-				where domain_id = :DomainId and a.id = :Id 	
+				    left join storage.media_files g on g.id = a.greeting_media_id
+				where a.domain_id = :DomainId and a.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlAgentStore.Get", "store.sql_agent.get.app_error", nil,
@@ -154,13 +159,16 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 				description = :Description,
 				updated_at = :UpdatedAt,
 				updated_by = :UpdatedBy,
-			    progressive_count = :ProgressiveCount
+			    progressive_count = :ProgressiveCount,
+			    greeting_media_id = :GreetingMediaId
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
 		select u.id, u.status, u.domain_id, u.description, (extract(EPOCH from u.last_state_change) * 1000)::int8 last_status_change, progressive_count, 
-			json_build_object('id', ct.id, 'name', ct.name)::jsonb as user
+			json_build_object('id', ct.id, 'name', ct.name)::jsonb as user,
+			cc_get_lookup(u.greeting_media_id, g.name) as greeting_media
 		from u
+	        left join storage.media_files g on g.id = u.greeting_media_id
 			inner join directory.wbt_user ct on ct.id = u.user_id
 		order by id`, map[string]interface{}{
 		"UserId":           agent.User.Id,
@@ -170,6 +178,7 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 		"DomainId":         agent.DomainId,
 		"UpdatedAt":        agent.UpdatedAt,
 		"UpdatedBy":        agent.UpdatedBy.Id,
+		"GreetingMediaId":  agent.GreetingMediaId(),
 	})
 	if err != nil {
 		code := http.StatusInternalServerError

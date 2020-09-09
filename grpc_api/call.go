@@ -143,6 +143,7 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 		},
+		Direction:  in.Direction,
 		SkipParent: in.GetSkipParent(),
 		UserIds:    in.GetUserId(),
 		QueueIds:   in.GetQueueId(),
@@ -171,10 +172,6 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 			From: in.GetCreatedAt().GetFrom(),
 			To:   in.GetCreatedAt().GetTo(),
 		}
-	}
-
-	if in.GetDirection() != "" {
-		req.Direction = &in.Direction
 	}
 
 	if in.GetParentId() != "" {

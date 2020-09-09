@@ -264,7 +264,8 @@ message SearchCallRequest {
     string sort = 17;
     int64 domain_id = 18;
     string number = 19;
-    string direction = 20;
+
+    repeated string direction = 20;
     FilterBetween answered_at = 21;
     bool missed = 22;
     FilterBetween stored_at = 23;

@@ -45,6 +45,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		},
 		Description:      in.Description,
 		ProgressiveCount: int(in.ProgressiveCount),
+		GreetingMedia:    GetLookup(in.GreetingMedia),
 	}
 
 	err = agent.IsValid()
@@ -177,6 +178,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		},
 		Description:      in.Description,
 		ProgressiveCount: int(in.ProgressiveCount),
+		GreetingMedia:    GetLookup(in.GreetingMedia),
 	})
 
 	if err != nil {
@@ -700,6 +702,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		ProgressiveCount: int32(src.ProgressiveCount),
 		Name:             src.Name,
 		StatusDuration:   src.StatusDuration,
+		GreetingMedia:    GetProtoLookup(src.GreetingMedia),
 	}
 
 	if src.Channels != nil {

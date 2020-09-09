@@ -297,7 +297,7 @@ type SearchCall struct {
 	AnsweredAt *FilterBetween
 	Number     *string
 	ParentId   *string
-	Direction  *string
+	Direction  []string
 	Missed     *bool
 	SkipParent bool
 	HasFile    bool

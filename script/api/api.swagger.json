@@ -7159,7 +7159,11 @@
             "name": "direction",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           },
           {
             "name": "answered_at.from",
@@ -9059,6 +9063,9 @@
         "status_duration": {
           "type": "string",
           "format": "int64"
+        },
+        "greeting_media": {
+          "$ref": "#/definitions/engineLookup"
         }
       }
     },
@@ -9887,6 +9894,9 @@
         "progressive_count": {
           "type": "integer",
           "format": "int32"
+        },
+        "greeting_media": {
+          "$ref": "#/definitions/engineLookup"
         },
         "domain_id": {
           "type": "string",
@@ -12886,6 +12896,9 @@
           "type": "integer",
           "format": "int32"
         },
+        "greeting_media": {
+          "$ref": "#/definitions/engineLookup"
+        },
         "domain_id": {
           "type": "string",
           "format": "int64"
@@ -13660,7 +13673,7 @@
         "NULL_VALUE"
       ],
       "default": "NULL_VALUE",
-      "description": "`NullValue` is a singleton enumeration to represent the null value for the\r\n`Value` type union.\r\n\r\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
     }
   },
   "securityDefinitions": {

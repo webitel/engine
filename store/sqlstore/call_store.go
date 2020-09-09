@@ -35,7 +35,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 		"SkipParent":   search.SkipParent,
 		"ParentId":     search.ParentId,
 		"Number":       search.Number,
-		"Direction":    search.Direction,
+		"Direction":    pq.Array(search.Direction),
 		"Missed":       search.Missed,
 		"AnsweredFrom": model.GetBetweenFromTime(search.AnsweredAt),
 		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
@@ -58,7 +58,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
-	and (:Direction::varchar isnull or direction = :Direction )
+	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))`,
 		model.Call{}, f)
 	if err != nil {
