@@ -23,11 +23,12 @@ func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[
 }
 
 func (api *API) userDefaultDeviceConfig(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	config, err := api.App.GetUserDefaultDeviceConfig(conn.GetSession().UserId, conn.GetSession().DomainId)
+	typeName, _ := req.Data["name"].(string)
+	config, err := api.App.GetUserDefaultDeviceConfig(conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
 	if err != nil {
 		return nil, err
 	}
-	return config.ToMap(), nil
+	return config, nil
 }
 
 func (api *API) subscribeUsersStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

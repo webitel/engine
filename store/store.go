@@ -58,7 +58,8 @@ type Store interface {
 type UserStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError)
-	DefaultDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError)
+	DefaultWebRTCDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError)
+	DefaultSipDeviceConfig(userId, domainId int64) (*model.UserSipDeviceConfig, *model.AppError)
 }
 
 type CalendarStore interface {

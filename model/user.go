@@ -53,6 +53,21 @@ type UserDeviceConfig struct {
 	Ha1               string `json:"ha1" db:"ha1"`
 }
 
+type UserSipDeviceConfig struct {
+	Domain    string `json:"domain" db:"domain"`
+	Auth      string `json:"auth" db:"auth"`
+	Extension string `json:"extension" db:"extension"`
+	Password  string `json:"password" db:"password"`
+	Proxy     string `json:"proxy" db:"-"`
+}
+
+func (d UserSipDeviceConfig) ToMap() map[string]interface{} {
+	out := make(map[string]interface{})
+	data, _ := json.Marshal(d)
+	_ = json.Unmarshal(data, &out)
+	return out
+}
+
 func (d UserDeviceConfig) ToMap() map[string]interface{} {
 	out := make(map[string]interface{})
 	data, _ := json.Marshal(d)

@@ -18,9 +18,10 @@ func (api *API) deviceDefault(conn *app.WebConn, req *model.WebSocketRequest) (m
 	//	Ha1:               "865011debb10e1a281d090499180483d",
 	//}
 
-	config, err := api.App.GetUserDefaultDeviceConfig(conn.GetSession().UserId, conn.GetSession().DomainId)
+	typeName, _ := req.Data["name"].(string)
+	config, err := api.App.GetUserDefaultDeviceConfig(conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
 	if err != nil {
 		return nil, err
 	}
-	return config.ToMap(), nil
+	return config, nil
 }

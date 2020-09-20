@@ -44,6 +44,8 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		invite.AddVariable(k, v)
 	}
 
+	//invite.AddVariable("media_webrtc", "true")
+
 	if req.Params.Video {
 		invite.AddVariable(model.CALL_VARIABLE_USE_VIDEO, "true")
 	}

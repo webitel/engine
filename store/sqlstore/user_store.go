@@ -55,7 +55,7 @@ where u.id = :UserId
 	return info, nil
 }
 
-func (s SqlUserStore) DefaultDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError) {
+func (s SqlUserStore) DefaultWebRTCDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError) {
 	var deviceConfig *model.UserDeviceConfig
 
 	err := s.GetReplica().SelectOne(&deviceConfig, `select u.extension,
@@ -75,6 +75,29 @@ where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]i
 
 	if err != nil {
 		return nil, model.NewAppError("SqlUserStore.DefaultDeviceConfig", "store.sql_user.get_default_device.app_error", nil,
+			fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
+	}
+
+	return deviceConfig, nil
+}
+
+func (s SqlUserStore) DefaultSipDeviceConfig(userId, domainId int64) (*model.UserSipDeviceConfig, *model.AppError) {
+	var deviceConfig *model.UserSipDeviceConfig
+
+	err := s.GetReplica().SelectOne(&deviceConfig, `select u.extension,
+       d.account as auth,
+       dom.name as domain,
+       coalesce(d.password, '') as password
+from directory.wbt_user u
+    inner join directory.wbt_device d on d.id = u.device_id
+    inner join directory.wbt_domain dom on dom.dc = u.dc
+where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]interface{}{
+		"UserId":   userId,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.DefaultSipDeviceConfig", "store.sql_user.get_default_sip_device.app_error", nil,
 			fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
 
