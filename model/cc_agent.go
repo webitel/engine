@@ -190,6 +190,7 @@ type SearchAgentState struct {
 	ListRequest
 	JoinedAt FilterBetween
 	AgentIds []int64
+	FromId   *int64
 }
 
 func (a *Agent) IsValid() *AppError {

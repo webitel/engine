@@ -444,6 +444,11 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 		},
 		AgentIds: in.AgentId,
 	}
+
+	if in.GetFromId() > 0 {
+		req.FromId = &in.FromId
+	}
+
 	list, endList, err = api.app.GetAgentStateHistoryPage(session.Domain(in.GetDomainId()), req)
 	if err != nil {
 		return nil, err

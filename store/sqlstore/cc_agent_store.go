@@ -369,8 +369,9 @@ select
     h.payload
 from cc_agent_state_history h
     inner join ags on ags.id = h.agent_id
-where h.joined_at between :From and :To 
+where (:From::timestamp isnull or h.joined_at between :From and :To) 
   and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds))
+  and (:FromId::int8 isnull or h.id > :FromId::int8)
 `+order+`
 limit :Limit
 offset :Offset`, map[string]interface{}{
@@ -378,6 +379,7 @@ offset :Offset`, map[string]interface{}{
 		"From":     model.GetBetweenFromTime(&search.JoinedAt),
 		"To":       model.GetBetweenToTime(&search.JoinedAt),
 		"AgentIds": pq.Array(search.AgentIds),
+		"FromId":   search.FromId,
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
 	})

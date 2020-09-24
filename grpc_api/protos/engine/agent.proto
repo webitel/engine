@@ -152,6 +152,8 @@ message SearchAgentStateHistoryRequest {
     string sort = 5;
 
     int64 domain_id = 6;
+
+    int64 from_id = 7;
 }
 
 message AgentCallStatistics {
