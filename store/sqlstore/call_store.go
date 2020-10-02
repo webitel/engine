@@ -5,6 +5,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
+	"strings"
 )
 
 type SqlCallStore struct {
@@ -183,6 +184,165 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	}
 
 	return out, nil
+}
+
+//TODO
+func GroupData(group *model.AggregateGroup) string {
+	if group == nil || group.Id == "" {
+		return ""
+	}
+
+	return `group by ` + group.Id
+}
+
+func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
+	fields := []string{}
+
+	if agg.Group != nil && agg.Group.Id != "" {
+		fields = append(fields, QuoteIdentifier(agg.Group.Id))
+	}
+
+	for _, v := range agg.Sum {
+		fields = append(fields, "sum("+QuoteIdentifier(v)+") as "+QuoteIdentifier("sum_"+v))
+	}
+	for _, v := range agg.Avg {
+		fields = append(fields, "avg("+QuoteIdentifier(v)+") as "+QuoteIdentifier("avg_"+v))
+	}
+	for _, v := range agg.Max {
+		fields = append(fields, "max("+QuoteIdentifier(v)+") as "+QuoteIdentifier("max_"+v))
+	}
+	for _, v := range agg.Min {
+		fields = append(fields, "min("+QuoteIdentifier(v)+") as "+QuoteIdentifier("min_"+v))
+	}
+	for _, v := range agg.Count {
+		if v == "*" {
+			fields = append(fields, "count(*) as count")
+		} else {
+			fields = append(fields, "count("+QuoteIdentifier(v)+") as "+QuoteIdentifier("count_"+v))
+		}
+	}
+
+	if len(fields) < 1 {
+		//todo error
+	}
+
+	sql := `select json_agg(row_to_json(t)) as data
+    from (
+        select ` + strings.Join(fields, ", ") + `
+        from ` + table + `
+        ` + GroupData(agg.Group) + `
+        limit 1000
+    ) t`
+
+	return sql
+}
+
+func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
+
+	sql := `with calls as (
+    select h.hold_sec,
+           h.agent_id,
+           extract(EPOCH from h.hangup_at - h.created_at)::int duration,
+           case when bridged_at notnull then extract(EPOCH from h.hangup_at - h.bridged_at)::int else 0 end bill,
+           h.created_at,
+           h.answered_at,
+           h.bridged_at,
+           h.hangup_at,
+           h.user_id,
+           h.queue_id,
+           h.direction,
+           h.gateway_id,
+           h.team_id,
+           h.hangup_by
+    from cc_calls_history h
+	where domain_id = :Domain 
+		and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
+		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
+		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
+		and (:UserIds::int8[] isnull or user_id = any(:UserIds))
+		and (:Ids::varchar[] isnull or id = any(:Ids))
+		and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
+		and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
+		and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
+		and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
+		and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
+		and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
+		and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
+		and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
+		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
+		and (:ParentId::varchar isnull or parent_id = :ParentId )
+		and (:Cause::varchar isnull or cause = :Cause )
+		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
+		and (:Direction::varchar isnull or direction = :Direction )
+		and (:Missed::bool isnull or (:Missed and answered_at isnull))
+		and (:DependencyIds::varchar[] isnull or id in (
+			with recursive a as (
+				select t.id
+				from cc_calls_history t
+				where id = any(:DependencyIds)
+				union all
+				select t.id
+				from cc_calls_history t, a
+				where t.parent_id = a.id or t.transfer_from = a.id
+			)
+			select id
+			from a
+			where not a.id = any(:DependencyIds)
+		))
+)
+`
+
+	for _, v := range aggs.Aggs {
+		sql += `, ` + QuoteIdentifier(v.Name) + ` as (` + s.ParseAgg("calls", &v) + `) `
+	}
+
+	f := map[string]interface{}{
+		"Domain":          domainId,
+		"Limit":           aggs.GetLimit(),
+		"Offset":          aggs.GetOffset(),
+		"From":            model.GetBetweenFromTime(aggs.CreatedAt),
+		"To":              model.GetBetweenToTime(aggs.CreatedAt),
+		"Q":               aggs.GetQ(),
+		"UserIds":         pq.Array(aggs.UserIds),
+		"QueueIds":        pq.Array(aggs.QueueIds),
+		"TeamIds":         pq.Array(aggs.TeamIds),
+		"AgentIds":        pq.Array(aggs.AgentIds),
+		"MemberIds":       pq.Array(aggs.MemberIds),
+		"GatewayIds":      pq.Array(aggs.GatewayIds),
+		"SkipParent":      aggs.SkipParent,
+		"ParentId":        aggs.ParentId,
+		"Number":          aggs.Number,
+		"Cause":           aggs.Cause,
+		"Direction":       aggs.Direction,
+		"Missed":          aggs.Missed,
+		"AnsweredFrom":    model.GetBetweenFromTime(aggs.AnsweredAt),
+		"AnsweredTo":      model.GetBetweenToTime(aggs.AnsweredAt),
+		"DurationFrom":    model.GetBetweenFrom(aggs.Duration),
+		"DurationTo":      model.GetBetweenTo(aggs.Duration),
+		"StoredAtFrom":    model.GetBetweenFromTime(aggs.StoredAt),
+		"StoredAtTo":      model.GetBetweenToTime(aggs.StoredAt),
+		"Ids":             pq.Array(aggs.Ids),
+		"TransferFromIds": pq.Array(aggs.TransferFromIds),
+		"TransferToIds":   pq.Array(aggs.TransferToIds),
+		"DependencyIds":   pq.Array(aggs.DependencyIds),
+	}
+
+	for i, v := range aggs.Aggs {
+		if i > 0 {
+			sql += "union all"
+		}
+		sql += "select '" + v.Name + "' as name, (select data from " + QuoteIdentifier(v.Name) + ") as data"
+	}
+
+	var res []*model.AggregateResult
+
+	_, err := s.GetReplica().Select(&res, sql, f)
+	if err != nil {
+		return nil,
+			model.NewAppError("SqlCallStore.Aggregate", "store.sql_call.aggregate.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
 }
 
 func (s SqlCallStore) BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError) {

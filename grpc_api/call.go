@@ -113,6 +113,127 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	}, nil
 }
 
+func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateHistoryCallRequest) (*engine.ListAggregate, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil {
+		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at is required", http.StatusBadRequest)
+	}
+
+	//var list []*model.HistoryCall
+	//var endList bool
+	req := &model.CallAggregate{
+		SearchHistoryCall: model.SearchHistoryCall{
+			ListRequest: model.ListRequest{
+				DomainId: in.GetDomainId(),
+				Page:     int(in.GetPage()),
+				PerPage:  int(in.GetSize()),
+				Q:        in.GetQ(),
+			},
+			SkipParent:      in.GetSkipParent(),
+			HasFile:         in.GetHasFile(),
+			UserIds:         in.GetUserId(),
+			QueueIds:        in.GetQueueId(),
+			TeamIds:         in.GetTeamId(),
+			AgentIds:        in.GetAgentId(),
+			MemberIds:       in.GetMemberId(),
+			GatewayIds:      in.GetGatewayId(),
+			Ids:             in.GetId(),
+			TransferFromIds: in.GetTransferFrom(),
+			TransferToIds:   in.GetTransferTo(),
+			DependencyIds:   in.GetDependencyId(),
+		},
+	}
+
+	if in.GetDuration() != nil {
+		req.Duration = &model.FilterBetween{
+			From: in.GetDuration().GetFrom(),
+			To:   in.GetDuration().GetTo(),
+		}
+	}
+
+	if in.GetAnsweredAt() != nil {
+		req.AnsweredAt = &model.FilterBetween{
+			From: in.GetAnsweredAt().GetFrom(),
+			To:   in.GetAnsweredAt().GetTo(),
+		}
+	}
+
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+
+	if in.GetStoredAt() != nil {
+		req.StoredAt = &model.FilterBetween{
+			From: in.GetStoredAt().GetFrom(),
+			To:   in.GetStoredAt().GetTo(),
+		}
+	}
+
+	if in.GetDirection() != "" {
+		req.Direction = &in.Direction
+	}
+
+	if in.GetParentId() != "" {
+		req.ParentId = &in.ParentId
+	}
+
+	if in.GetCause() != "" {
+		req.Cause = &in.Cause
+	}
+
+	if in.GetNumber() != "" {
+		req.Number = model.NewString(in.Number)
+	}
+
+	if in.GetMissed() {
+		req.Missed = model.NewBool(true)
+	}
+
+	for _, v := range in.Aggs {
+		a := model.Aggregate{
+			Name:  v.Name,
+			Min:   v.Min,
+			Max:   v.Max,
+			Avg:   v.Avg,
+			Sum:   v.Sum,
+			Count: v.Count,
+		}
+		if v.Group != nil {
+			a.Group = &model.AggregateGroup{
+				Id:       v.Group.Id,
+				Interval: v.Group.Interval,
+			}
+		}
+		req.Aggs = append(req.Aggs, a)
+	}
+
+	list, err := api.ctrl.AggregateHistoryCall(session, req)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AggregateResult, 0, len(list))
+
+	for _, v := range list {
+		i := &engine.AggregateResult{
+			Name: v.Name,
+			Data: UnmarshalJsonpb(v.Data),
+		}
+		items = append(items, i)
+	}
+
+	return &engine.ListAggregate{
+		Items: items,
+	}, nil
+}
+
 func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*engine.ActiveCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

@@ -258,6 +258,10 @@ func (app *App) GetHistoryCallPage(domainId int64, search *model.SearchHistoryCa
 	return list, search.EndOfList(), nil
 }
 
+func (app *App) GetAggregateHistoryCallPage(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
+	return app.Store.Call().Aggregate(domainId, aggs)
+}
+
 func (app *App) getCallCli(domainId int64, id string, appId *string) (cli call_manager.CallClient, err *model.AppError) {
 
 	if appId != nil {

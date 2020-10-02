@@ -345,6 +345,33 @@ type CallEvent struct {
 	Body CallPayload `json:"data,string,omitempty"`
 }
 
+type AggregateGroup struct {
+	Id       string
+	Interval string
+}
+
+type Aggregate struct {
+	Name  string          `json:"name"`
+	Group *AggregateGroup `json:"group"`
+	Min   []string        `json:"min"`
+	Max   []string        `json:"max"`
+	Avg   []string        `json:"avg"`
+	Sum   []string        `json:"sum"`
+	Count []string        `json:"count"`
+}
+
+type CallAggregate struct {
+	SearchHistoryCall
+	Aggs []Aggregate
+}
+
+type AggregateData []byte
+
+type AggregateResult struct {
+	Name string `json:"name" db:"name"`
+	Data []byte `json:"data" db:"data"`
+}
+
 type CallPayload map[string]interface{}
 
 func (cp CallPayload) MarshalJSON() ([]byte, error) {

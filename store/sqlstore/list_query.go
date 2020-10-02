@@ -34,6 +34,10 @@ func GetFields(f []string, e Entity) []string {
 	return res
 }
 
+func QuoteIdentifier(name string) string {
+	return pq.QuoteIdentifier(name)
+}
+
 func GetOrderBy(s string) string {
 	if s != "" {
 		if s[0] == '+' {

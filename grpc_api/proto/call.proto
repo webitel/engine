@@ -4,12 +4,20 @@ package engine;
 
 import "const.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/struct.proto";
 
 service CallService {
     // List of call
     rpc SearchHistoryCall(SearchHistoryCallRequest) returns (ListHistoryCall) {
         option (google.api.http) = {
             get: "/calls/history"
+        };
+    }
+
+    rpc AggregateHistoryCall(AggregateHistoryCallRequest) returns (ListAggregate) {
+        option (google.api.http) = {
+            post: "/calls/history/aggregate"
+            body: "*"
         };
     }
 
@@ -107,6 +115,66 @@ message SearchHistoryCallRequest {
     repeated string transfer_from = 25;
     repeated string transfer_to = 26;
     repeated string dependency_id = 27;
+}
+
+message AggregateRequest {
+
+    message Group {
+        string id = 1;
+        string interval = 2;
+    }
+
+    string name = 1;
+    Group group = 2;
+
+    repeated string min = 3;
+    repeated string max = 4;
+    repeated string sum = 5;
+    repeated string avg = 6;
+    repeated string count = 7;
+}
+
+message AggregateHistoryCallRequest {
+    int32 page = 1;
+    int32 size = 2;
+
+    FilterBetween created_at = 3;
+    repeated int64 user_id = 4;
+    repeated int64 agent_id = 5;
+    repeated int64 queue_id = 6;
+    repeated int64 team_id = 7;
+    repeated int64 member_id = 8;
+    repeated int64 gateway_id = 9;
+    string q = 10;
+
+    FilterBetween duration = 11;
+    bool skip_parent = 12;
+    string parent_id = 13;
+    string cause = 14;
+    bool has_file = 15;
+
+    string number = 16;
+    string direction = 17;
+    FilterBetween answered_at = 18;
+    bool missed = 19;
+    FilterBetween stored_at = 20;
+    repeated string id = 21;
+    repeated string transfer_from = 22;
+    repeated string transfer_to = 23;
+    repeated string dependency_id = 24;
+
+    repeated AggregateRequest aggs = 25;
+
+    int64 domain_id = 26;
+}
+
+message AggregateResult {
+    string name = 1;
+    google.protobuf.Value data = 2;
+}
+
+message ListAggregate {
+    repeated AggregateResult items = 1;
 }
 
 message ListHistoryCall {

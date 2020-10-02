@@ -41,6 +41,15 @@ func (c *Controller) SearchHistoryCall(session *auth_manager.Session, search *mo
 	return c.app.GetHistoryCallPage(session.Domain(search.DomainId), search)
 }
 
+func (c *Controller) AggregateHistoryCall(session *auth_manager.Session, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.GetAggregateHistoryCallPage(session.Domain(aggs.DomainId), aggs)
+}
+
 func (c *Controller) GetCall(session *auth_manager.Session, domainId int64, id string) (*model.Call, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {

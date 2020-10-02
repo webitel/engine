@@ -309,6 +309,7 @@ type ListStore interface {
 
 type CallStore interface {
 	GetHistory(domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError)
+	Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError)
 	GetActive(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError)
 	Get(domainId int64, id string) (*model.Call, *model.AppError)
 	GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError)

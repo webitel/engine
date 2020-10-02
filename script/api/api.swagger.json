@@ -7124,7 +7124,11 @@
             "name": "cause",
             "in": "query",
             "required": false,
-            "type": "string"
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
           },
           {
             "name": "exists_file",
@@ -7785,6 +7789,43 @@
               "type": "string"
             },
             "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "CallService"
+        ]
+      }
+    },
+    "/calls/history/aggregate": {
+      "post": {
+        "operationId": "AggregateHistoryCall",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/engineListAggregate"
+            }
+          },
+          "403": {
+            "description": "Returned when the user does not have permission to access the resource.",
+            "schema": {}
+          },
+          "404": {
+            "description": "Returned when the resource does not exist.",
+            "schema": {
+              "type": "string",
+              "format": "string"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/engineAggregateHistoryCallRequest"
+            }
           }
         ],
         "tags": [
@@ -8845,6 +8886,17 @@
         }
       }
     },
+    "AggregateRequestGroup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "string"
+        }
+      }
+    },
     "CreateCallRequestCallSettings": {
       "type": "object",
       "properties": {
@@ -9478,6 +9530,186 @@
         },
         "name": {
           "type": "string"
+        }
+      }
+    },
+    "engineAggregateHistoryCallRequest": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "created_at": {
+          "$ref": "#/definitions/engineFilterBetween"
+        },
+        "user_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "agent_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "queue_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "team_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "member_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "gateway_id": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "int64"
+          }
+        },
+        "q": {
+          "type": "string"
+        },
+        "duration": {
+          "$ref": "#/definitions/engineFilterBetween"
+        },
+        "skip_parent": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "parent_id": {
+          "type": "string"
+        },
+        "cause": {
+          "type": "string"
+        },
+        "has_file": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "number": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "answered_at": {
+          "$ref": "#/definitions/engineFilterBetween"
+        },
+        "missed": {
+          "type": "boolean",
+          "format": "boolean"
+        },
+        "stored_at": {
+          "$ref": "#/definitions/engineFilterBetween"
+        },
+        "id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transfer_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transfer_to": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependency_id": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aggs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineAggregateRequest"
+          }
+        },
+        "domain_id": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "engineAggregateRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "group": {
+          "$ref": "#/definitions/AggregateRequestGroup"
+        },
+        "min": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "max": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sum": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "avg": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "count": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "engineAggregateResult": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "data": {
+          "type": "object"
         }
       }
     },
@@ -11180,6 +11412,17 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/engineAgentUser"
+          }
+        }
+      }
+    },
+    "engineListAggregate": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/engineAggregateResult"
           }
         }
       }
