@@ -36,7 +36,12 @@ api.use(morgan('api: [:webitelUser] > [:colorStatus] :realIp::realPort :method :
 
 require('./cdr/cdr.resource').addRoutes(api);
 
-api.use(bodyParser.json({limit: '2mb'}));
+var bodyLimit = '5mb';
+if (conf.get('server:bodyLimit')) {
+    bodyLimit = conf.get('server:bodyLimit').toString();
+}
+
+api.use(bodyParser.json({limit: bodyLimit}));
 
 if (conf.get('conference:enable').toString() === 'true') {
     api.use('/', express.static(path.join(__appRoot, '/public/conference')));
