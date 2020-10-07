@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -186,20 +187,35 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	return out, nil
 }
 
-//TODO
-func GroupData(group *model.AggregateGroup) string {
-	if group == nil || group.Id == "" {
-		return ""
+func AggregateField(group *model.AggregateGroup) string {
+	if group.Interval > 0 {
+		return fmt.Sprintf("round(extract('epoch' from %s) / %d)", QuoteIdentifier(group.Id), group.Interval)
 	}
 
-	return `group by ` + group.Id
+	return QuoteIdentifier(group.Id)
+}
+
+//TODO
+func GroupData(groups []model.AggregateGroup) string {
+	if len(groups) < 1 {
+		return ""
+	}
+	sql := "group by "
+	for i, v := range groups {
+		if i > 0 {
+			sql += ", "
+		}
+		sql += AggregateField(&v)
+	}
+
+	return sql
 }
 
 func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
 	fields := []string{}
 
-	if agg.Group != nil && agg.Group.Id != "" {
-		fields = append(fields, QuoteIdentifier(agg.Group.Id))
+	for _, v := range agg.Group {
+		fields = append(fields, fmt.Sprintf("%s as %s", AggregateField(&v), QuoteIdentifier(v.Id)))
 	}
 
 	for _, v := range agg.Sum {
@@ -239,53 +255,70 @@ func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
 
 func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
 
+	/*
+		часи в таймстемп
+	*/
 	sql := `with calls as (
     select h.hold_sec,
-           h.agent_id,
-           extract(EPOCH from h.hangup_at - h.created_at)::int duration,
-           case when bridged_at notnull then extract(EPOCH from h.hangup_at - h.bridged_at)::int else 0 end bill,
-           h.created_at,
-           h.answered_at,
-           h.bridged_at,
-           h.hangup_at,
-           h.user_id,
-           h.queue_id,
-           h.direction,
-           h.gateway_id,
-           h.team_id,
-           h.hangup_by
-    from cc_calls_history h
-	where domain_id = :Domain 
-		and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
-		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
-		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
-		and (:UserIds::int8[] isnull or user_id = any(:UserIds))
-		and (:Ids::varchar[] isnull or id = any(:Ids))
-		and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
-		and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
-		and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
-		and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
-		and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
-		and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
-		and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
-		and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
-		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
-		and (:ParentId::varchar isnull or parent_id = :ParentId )
-		and (:Cause::varchar isnull or cause = :Cause )
-		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
-		and (:Direction::varchar isnull or direction = :Direction )
-		and (:Missed::bool isnull or (:Missed and answered_at isnull))
-		and (:DependencyIds::varchar[] isnull or id in (
+		   h.agent_id,
+		   extract(EPOCH from h.hangup_at - h.created_at)::int duration,
+		   case when h.answered_at notnull then extract(EPOCH from h.hangup_at - h.created_at)::int end answer_sec,
+		   case when h.bridged_at notnull then extract(EPOCH from h.hangup_at - h.bridged_at)::int else 0 end bill,
+		   h.created_at,
+		   h.answered_at,
+		   h.bridged_at,
+		   h.hangup_at,
+		   h.hangup_by,
+		   h.user_id,
+		   coalesce(u.name, u.username) as user,
+		   h.direction,
+		   h.gateway_id,
+		   g.name as gateway,
+		   h.team_id,
+		   t.name team,
+		   coalesce(ua.name, ua.username) agent,
+		   h.cause,
+		   h.sip_code,
+		   h.queue_id,
+		   q.name as queue
+	from cc_calls_history h
+		left join cc_agent ca on h.agent_id = ca.id
+		left join directory.wbt_user ua on ua.id = ca.user_id
+		left join directory.wbt_user u on u.id = h.user_id
+		left join directory.sip_gateway g on g.id = h.gateway_id
+		left join cc_queue q on q.id = h.queue_id
+		left join cc_team t on t.id = h.team_id
+	where h.domain_id = :Domain 
+		and (:Q::text isnull or h.destination ~ :Q  or  h.from_number ~ :Q or  h.to_number ~ :Q or h.id = :Q)
+		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or h.created_at between :From and :To )
+		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or h.stored_at between :StoredAtFrom and :StoredAtTo )
+		and (:UserIds::int8[] isnull or h.user_id = any(:UserIds))
+		and (:Ids::varchar[] isnull or h.id = any(:Ids))
+		and (:TransferFromIds::varchar[] isnull or h.transfer_from = any(:TransferFromIds))
+		and (:TransferToIds::varchar[] isnull or h.transfer_to = any(:TransferToIds))
+		and (:QueueIds::int[] isnull or h.queue_id = any(:QueueIds) )
+		and (:TeamIds::int[] isnull or h.team_id = any(:TeamIds) )  
+		and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds) )
+		and (:MemberIds::int8[] isnull or h.member_id = any(:MemberIds) )
+		and (:GatewayIds::int8[] isnull or h.gateway_id = any(:GatewayIds) )
+		and (:Number::varchar isnull or h.from_number ilike :Number::varchar or h.to_number ilike :Number::varchar or h.destination ilike :Number::varchar)
+		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or h.parent_id isnull)
+		and (:ParentId::varchar isnull or h.parent_id = :ParentId )
+		and (:Cause::varchar isnull or h.cause = :Cause )
+		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or h.answered_at between :AnsweredFrom and :AnsweredTo )
+		and (:Direction::varchar isnull or h.direction = :Direction )
+		and (:Missed::bool isnull or (:Missed and h.answered_at isnull))
+		and (:DependencyIds::varchar[] isnull or h.id in (
 			with recursive a as (
 				select t.id
 				from cc_calls_history t
-				where id = any(:DependencyIds)
+				where t.id = any(:DependencyIds)
 				union all
 				select t.id
 				from cc_calls_history t, a
 				where t.parent_id = a.id or t.transfer_from = a.id
 			)
-			select id
+			select a.id
 			from a
 			where not a.id = any(:DependencyIds)
 		))

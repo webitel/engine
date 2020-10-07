@@ -8893,7 +8893,8 @@
           "type": "string"
         },
         "interval": {
-          "type": "string"
+          "type": "integer",
+          "format": "int32"
         }
       }
     },
@@ -9668,7 +9669,10 @@
           "type": "string"
         },
         "group": {
-          "$ref": "#/definitions/AggregateRequestGroup"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AggregateRequestGroup"
+          }
         },
         "min": {
           "type": "array",

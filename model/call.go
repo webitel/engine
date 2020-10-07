@@ -347,17 +347,18 @@ type CallEvent struct {
 
 type AggregateGroup struct {
 	Id       string
-	Interval string
+	Interval int32 // sec
 }
 
 type Aggregate struct {
-	Name  string          `json:"name"`
-	Group *AggregateGroup `json:"group"`
-	Min   []string        `json:"min"`
-	Max   []string        `json:"max"`
-	Avg   []string        `json:"avg"`
-	Sum   []string        `json:"sum"`
-	Count []string        `json:"count"`
+	Name     string           `json:"name"`
+	Relative bool             `json:"relative"` // %
+	Group    []AggregateGroup `json:"group"`
+	Min      []string         `json:"min"`
+	Max      []string         `json:"max"`
+	Avg      []string         `json:"avg"`
+	Sum      []string         `json:"sum"`
+	Count    []string         `json:"count"`
 }
 
 type CallAggregate struct {

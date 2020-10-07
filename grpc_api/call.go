@@ -206,9 +206,12 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			Count: v.Count,
 		}
 		if v.Group != nil {
-			a.Group = &model.AggregateGroup{
-				Id:       v.Group.Id,
-				Interval: v.Group.Interval,
+			a.Group = make([]model.AggregateGroup, 0, len(v.Group))
+			for _, j := range v.Group {
+				a.Group = append(a.Group, model.AggregateGroup{
+					Id:       j.Id,
+					Interval: j.Interval,
+				})
 			}
 		}
 		req.Aggs = append(req.Aggs, a)

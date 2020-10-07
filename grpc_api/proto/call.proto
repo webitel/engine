@@ -121,11 +121,11 @@ message AggregateRequest {
 
     message Group {
         string id = 1;
-        string interval = 2;
+        int32 interval = 2;
     }
 
     string name = 1;
-    Group group = 2;
+    repeated Group group = 2;
 
     repeated string min = 3;
     repeated string max = 4;
