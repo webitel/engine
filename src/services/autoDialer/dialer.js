@@ -477,6 +477,14 @@ module.exports = class Dialer extends EventEmitter2 {
         return null
     }
 
+    recordStereo() {
+        if (this._variables && this._variables.hasOwnProperty("RECORD_STEREO")) {
+            return this._variables["RECORD_STEREO"]
+        }
+
+        return "false"
+    }
+
     updateResources () {
         this._maxResources = 0;
         for (let resource of this.resources) {

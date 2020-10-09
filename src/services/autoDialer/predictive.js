@@ -206,7 +206,7 @@ module.exports = class Predictive extends Dialer {
             if (this._recordSession) {
                 vars.push(
                     `RECORD_MIN_SEC=2`,
-                    `RECORD_STEREO=false`,
+                    `RECORD_STEREO=${this.recordStereo()}`,
                     `RECORD_BRIDGE_REQ=true`,
                     `recording_follow_transfer=true`
                 );

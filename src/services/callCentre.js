@@ -203,12 +203,14 @@ var Service = {
             });
         });
     },
-    
+
+
     /**
      *
      * @param caller
      * @param option
      * @param cb
+     * @returns {*}
      */
     login: function (caller, option, cb) {
         let status = option['status']
@@ -272,7 +274,7 @@ var Service = {
 
     // TODO Deprecated (update to mod_crm)
     /**
-     * 
+     *
      * @param caller
      * @param option
      * @param cb
@@ -299,7 +301,7 @@ var Service = {
     },
 
     /**
-     * 
+     *
      * @param caller
      * @param queue
      * @param cb
@@ -419,7 +421,7 @@ var Service = {
     },
 
     /**
-     * 
+     *
      * @param caller
      * @param option
      * @param cb
@@ -499,7 +501,7 @@ var Service = {
     },
 
     /**
-     * 
+     *
      * @param caller
      * @param option
      * @param cb
@@ -613,7 +615,7 @@ var Service = {
             return db.list(domain, options.filter, options.project, cb);
         });
     },
-    
+
     _getAgentParams: function (agentId, cb) {
         application.Esl.bgapi(`callcenter_config agent list ${agentId}`,
             function (res) {
@@ -656,7 +658,7 @@ var Service = {
             }
         });
     },
-    
+
     _removeById: function (agentId, cb) {
         const db = application.DB._query.agent;
 
