@@ -1,8 +1,8 @@
 package grpc_api
 
 import (
-	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/engine"
 )
 
 var ResponseOk = &engine.Response{

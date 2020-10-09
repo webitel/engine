@@ -2,8 +2,8 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/engine"
 	"net/http"
 )
 

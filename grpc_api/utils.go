@@ -2,8 +2,8 @@ package grpc_api
 
 import (
 	"bytes"
-	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/engine"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/struct"

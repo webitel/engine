@@ -3,7 +3,7 @@ package grpc_api
 import (
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/controller"
-	"github.com/webitel/engine/grpc_api/engine"
+	"github.com/webitel/protos/engine"
 	"google.golang.org/grpc"
 )
 

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/webitel/engine/auth_manager"
-	"github.com/webitel/engine/grpc_api/engine"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/engine"
 	"net/http"
 )
 
