@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/call_center/grpc_api/client"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/call_manager"
+	"github.com/webitel/engine/chat_manager"
 	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
@@ -29,6 +30,7 @@ type App struct {
 	cluster        *cluster
 	sessionManager auth_manager.AuthManager
 	callManager    call_manager.CallManager
+	chatManager    chat_manager.ChatManager
 	cc             client.CCManager
 }
 
@@ -101,6 +103,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
+	app.chatManager = chat_manager.NewChatManager(app.cluster.discovery)
+	if err := app.chatManager.Start(); err != nil {
+		return nil, err
+	}
+
 	app.callManager = call_manager.NewCallManager(app.Config().SipSettings.ServerAddr, app.Config().SipSettings.Proxy, app.cluster.discovery)
 	if err := app.callManager.Start(); err != nil {
 		return nil, err
@@ -127,6 +134,10 @@ func (app *App) Shutdown() {
 
 	if app.callManager != nil {
 		app.callManager.Stop()
+	}
+
+	if app.chatManager != nil {
+		app.chatManager.Stop()
 	}
 
 	app.cluster.Stop()

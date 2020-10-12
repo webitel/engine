@@ -7,6 +7,8 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/wlog"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -23,6 +25,7 @@ type DomainQueue struct {
 
 	callEvents      chan *model.CallEvent
 	userStateEvents chan *model.UserState
+	chatEvents      chan *model.ChatEvent
 
 	bindChan chan *model.BindQueueEvent
 
@@ -53,6 +56,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 
 		callEvents:       make(chan *model.CallEvent),
 		userStateEvents:  make(chan *model.UserState),
+		chatEvents:       make(chan *model.ChatEvent),
 		fnGetAllBindings: bindings,
 
 		bindChan: make(chan *model.BindQueueEvent, 100), //TODO
@@ -90,6 +94,18 @@ func (dq *DomainQueue) BindUsersStatus(id string, userId int64) *model.BindQueue
 		Id:       id,
 		Routing:  fmt.Sprintf(model.MQ_USER_STATUS_TEMPLATE_ROUTING_KEY, dq.Id()),
 		Exchange: model.MQ_USER_STATUS_EXCHANGE,
+	}
+
+	dq.bindChan <- b
+	return b
+}
+
+func (dq *DomainQueue) BindUserChat(id string, userId int64) *model.BindQueueEvent {
+	b := &model.BindQueueEvent{
+		UserId:   userId,
+		Id:       id,
+		Routing:  fmt.Sprintf("event.*.%d.%d", dq.Id(), userId),
+		Exchange: model.ChatExchange,
 	}
 
 	dq.bindChan <- b
@@ -160,7 +176,7 @@ func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
 }
 
 func (dq *DomainQueue) readMessage(m amqp.Delivery) {
-	if m.ContentType != "text/json" {
+	if m.ContentType != "text/json" && m.Exchange != model.ChatExchange {
 		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed receive event content type: %v\n%s", dq.Id(), m.ContentType, m.Body))
 		return
 	}
@@ -172,11 +188,58 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 	case model.CallCenterExchange:
 		dq.readAgentStatusEvent(m.Body, m.RoutingKey)
 
+	case model.ChatExchange:
+		dq.readChatEvent(m.Body, m.RoutingKey)
+
 	case model.MQ_USER_STATUS_EXCHANGE:
 		dq.readUserStateMessage(m.Body, m.RoutingKey)
+
 	default:
 		wlog.Error(fmt.Sprintf("DomainQueue [%d] not implement parser from exchange %s", dq.Id(), m.Exchange))
 	}
+}
+
+func (dq *DomainQueue) readChatEvent(data []byte, rk string) {
+	ev := parseChatMessage(data, rk)
+	if ev != nil {
+		dq.chatEvents <- ev
+	}
+}
+
+func parseChatMessage(body []byte, rk string) *model.ChatEvent {
+	rks := strings.Split(rk, ".")
+	if len(rks) != 4 {
+		wlog.Error(fmt.Sprintf("event %s: bad rk format", rk))
+		return nil
+	}
+
+	domainId, err := strconv.Atoi(rks[2])
+	if err != nil {
+		wlog.Error(fmt.Sprintf("event %s: bad domainId", rk))
+		return nil
+
+	}
+
+	userId, err := strconv.Atoi(rks[3])
+	if err != nil {
+		wlog.Error(fmt.Sprintf("event %s: bad userId", rk))
+		return nil
+	}
+
+	ev := &model.ChatEvent{
+		Event:    rks[1],
+		DomainId: int64(domainId),
+		UserId:   int64(userId),
+		Data:     nil,
+	}
+
+	err = json.Unmarshal(body, &ev.Data)
+	if err != nil {
+		wlog.Error(fmt.Sprintf("event %s: %s", rk, err.Error()))
+		return nil
+	}
+
+	return ev
 }
 
 func (dq *DomainQueue) readAgentStatusEvent(data []byte, rk string) {
@@ -361,6 +424,10 @@ func (dq *DomainQueue) Events() <-chan *model.WebSocketEvent {
 
 func (dq *DomainQueue) CallEvents() <-chan *model.CallEvent {
 	return dq.callEvents
+}
+
+func (dq *DomainQueue) ChatEvents() <-chan *model.ChatEvent {
+	return dq.chatEvents
 }
 
 func (dq *DomainQueue) UserStateEvents() <-chan *model.UserState {

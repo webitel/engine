@@ -150,6 +150,19 @@ func (wh *Hub) start() {
 				}
 			}
 
+		case ev := <-wh.domainQueue.ChatEvents():
+			candidates := connections.ForUser(ev.UserId)
+			msg := model.NewWebSocketChatEvent(ev)
+			for _, webCon := range candidates {
+				select {
+				case webCon.Send <- msg:
+				default:
+					wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+					close(webCon.Send)
+					connections.Remove(webCon)
+				}
+			}
+
 		case ev := <-wh.domainQueue.UserStateEvents():
 
 			msg := model.NewWebSocketUserStateEvent(ev)
@@ -187,6 +200,15 @@ func (wh *Hub) SubscribeSessionCalls(conn *WebConn) *model.AppError {
 	b := wh.domainQueue.BindUserCall(conn.Id(), conn.GetSession().UserId)
 	//TODO
 	conn.SetListenEvent("call", b)
+
+	return nil
+}
+
+func (wh *Hub) SubscribeSessionChat(conn *WebConn) *model.AppError {
+
+	b := wh.domainQueue.BindUserChat(conn.Id(), conn.GetSession().UserId)
+	//TODO
+	conn.SetListenEvent("chat", b)
 
 	return nil
 }

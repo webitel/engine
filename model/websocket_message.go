@@ -11,6 +11,7 @@ const (
 
 	WEBSOCKET_EVENT_RESPONSE   = "response"
 	WEBSOCKET_EVENT_CALL       = "call"
+	WEBSOCKET_EVENT_CHAT       = "chat"
 	WEBSOCKET_EVENT_USER_STATE = "user_state"
 
 	WEBSOCKET_AUTHENTICATION_CHALLENGE = "authentication_challenge"

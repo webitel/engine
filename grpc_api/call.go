@@ -204,7 +204,10 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			Avg:   v.Avg,
 			Sum:   v.Sum,
 			Count: v.Count,
+			Sort:  v.Sort,
+			Limit: v.Limit,
 		}
+
 		if v.Group != nil {
 			a.Group = make([]model.AggregateGroup, 0, len(v.Group))
 			for _, j := range v.Group {

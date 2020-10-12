@@ -188,8 +188,9 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 }
 
 func AggregateField(group *model.AggregateGroup) string {
-	if group.Interval > 0 {
-		return fmt.Sprintf("round(extract('epoch' from %s) / %d)", QuoteIdentifier(group.Id), group.Interval)
+	if group.Interval != "" {
+		return fmt.Sprintf("to_timestamp(extract(epoch from (date_trunc('seconds', (%s - timestamptz 'epoch') / EXTRACT(EPOCH FROM INTERVAL %s)) * EXTRACT(EPOCH FROM INTERVAL %s) + timestamptz 'epoch')))",
+			QuoteIdentifier(group.Id), QuoteLiteral(group.Interval), QuoteLiteral(group.Interval))
 	}
 
 	return QuoteIdentifier(group.Id)
@@ -244,13 +245,17 @@ func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
 
 	sql := `select json_agg(row_to_json(t)) as data
     from (
-        select ` + strings.Join(fields, ", ") + `
-        from ` + table + `
-        ` + GroupData(agg.Group) + `
-        limit 1000
+        select *
+		from (
+          select ` + strings.Join(fields, ", ") + `
+          from ` + table + `
+		  ` + GroupData(agg.Group) + `
+		) l
+		` + GetOrderBy(agg.Sort) + `
+        limit %d 
     ) t`
 
-	return sql
+	return fmt.Sprintf(sql, model.GetLimit(agg.Limit))
 }
 
 func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
@@ -264,6 +269,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		   extract(EPOCH from h.hangup_at - h.created_at)::int duration,
 		   case when h.answered_at notnull then extract(EPOCH from h.hangup_at - h.created_at)::int end answer_sec,
 		   case when h.bridged_at notnull then extract(EPOCH from h.hangup_at - h.bridged_at)::int else 0 end bill,
+		   case when h.bridged_at notnull then true else false end bridged,
 		   h.created_at,
 		   h.answered_at,
 		   h.bridged_at,
@@ -362,9 +368,9 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 
 	for i, v := range aggs.Aggs {
 		if i > 0 {
-			sql += "union all"
+			sql += "union all "
 		}
-		sql += "select '" + v.Name + "' as name, (select data from " + QuoteIdentifier(v.Name) + ") as data"
+		sql += "select " + QuoteLiteral(v.Name) + " as name, (select data from " + QuoteIdentifier(v.Name) + ") as data "
 	}
 
 	var res []*model.AggregateResult

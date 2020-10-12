@@ -38,6 +38,10 @@ func QuoteIdentifier(name string) string {
 	return pq.QuoteIdentifier(name)
 }
 
+func QuoteLiteral(name string) string {
+	return pq.QuoteLiteral(name)
+}
+
 func GetOrderBy(s string) string {
 	if s != "" {
 		if s[0] == '+' {

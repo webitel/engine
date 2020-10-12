@@ -23,8 +23,10 @@ type DomainQueue interface {
 	Events() <-chan *model.WebSocketEvent
 	CallEvents() <-chan *model.CallEvent
 	UserStateEvents() <-chan *model.UserState
+	ChatEvents() <-chan *model.ChatEvent
 
 	BindUserCall(id string, userId int64) *model.BindQueueEvent
+	BindUserChat(id string, userId int64) *model.BindQueueEvent
 	BulkUnbind(b []*model.BindQueueEvent) *model.AppError
 	Unbind(bind *model.BindQueueEvent) *model.AppError
 

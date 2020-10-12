@@ -117,3 +117,11 @@ func (l *ListRequest) valid() {
 		l.PerPage = PER_PAGE_DEFAULT
 	}
 }
+
+func GetLimit(lim int32) int32 {
+	if lim == 0 {
+		return PER_PAGE_DEFAULT
+	}
+
+	return lim
+}

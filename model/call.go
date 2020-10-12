@@ -347,7 +347,7 @@ type CallEvent struct {
 
 type AggregateGroup struct {
 	Id       string
-	Interval int32 // sec
+	Interval string // sec
 }
 
 type Aggregate struct {
@@ -359,6 +359,8 @@ type Aggregate struct {
 	Avg      []string         `json:"avg"`
 	Sum      []string         `json:"sum"`
 	Count    []string         `json:"count"`
+	Limit    int32            `json:"limit"`
+	Sort     string           `json:"sort"`
 }
 
 type CallAggregate struct {

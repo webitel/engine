@@ -8893,8 +8893,7 @@
           "type": "string"
         },
         "interval": {
-          "type": "integer",
-          "format": "int32"
+          "type": "string"
         }
       }
     },

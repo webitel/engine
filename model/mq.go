@@ -4,6 +4,7 @@ const (
 	MQ_APP_EXCHANGE    = "engine"
 	CallExchange       = "call"
 	CallCenterExchange = "callcenter"
+	ChatExchange       = "chat"
 
 	MQ_USER_STATUS_EXCHANGE = "webitel"
 
