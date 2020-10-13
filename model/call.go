@@ -348,19 +348,28 @@ type CallEvent struct {
 type AggregateGroup struct {
 	Id       string
 	Interval string // sec
+
+	Aggregate string
+	Field     string
+	Top       int32
+	Desc      bool
+}
+
+type AggregateMetrics struct {
+	Min   []string `json:"min"`
+	Max   []string `json:"max"`
+	Avg   []string `json:"avg"`
+	Sum   []string `json:"sum"`
+	Count []string `json:"count"`
 }
 
 type Aggregate struct {
 	Name     string           `json:"name"`
 	Relative bool             `json:"relative"` // %
 	Group    []AggregateGroup `json:"group"`
-	Min      []string         `json:"min"`
-	Max      []string         `json:"max"`
-	Avg      []string         `json:"avg"`
-	Sum      []string         `json:"sum"`
-	Count    []string         `json:"count"`
-	Limit    int32            `json:"limit"`
-	Sort     string           `json:"sort"`
+	AggregateMetrics
+	Limit int32  `json:"limit"`
+	Sort  string `json:"sort"`
 }
 
 type CallAggregate struct {

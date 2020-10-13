@@ -212,6 +212,55 @@ func GroupData(groups []model.AggregateGroup) string {
 	return sql
 }
 
+func GroupWhere(table string, groups []model.AggregateGroup) string {
+	if len(groups) < 1 {
+		return ""
+	}
+
+	where := make([]string, 0, 1)
+	for _, v := range groups {
+		id := QuoteIdentifier(v.Id)
+		order := ""
+
+		switch v.Aggregate {
+		case "min":
+			order = fmt.Sprintf("min(%s)", QuoteIdentifier(v.Field))
+		case "max":
+			order = fmt.Sprintf("max(%s)", QuoteIdentifier(v.Field))
+		case "avg":
+			order = fmt.Sprintf("avg(%s)", QuoteIdentifier(v.Field))
+		case "sum":
+			order = fmt.Sprintf("sum(%s)", QuoteIdentifier(v.Field))
+		case "count":
+			if v.Field == "" {
+				order = "count(*)"
+			} else {
+				order = fmt.Sprintf("count(%s)", QuoteIdentifier(v.Field))
+			}
+		default:
+			continue
+		}
+
+		if v.Desc {
+			order += " desc"
+		}
+
+		where = append(where, fmt.Sprintf(`%s in (select
+				%s
+			from %s
+			where %s notnull
+			group by 1
+			order by %s
+			limit %d)`, id, id, QuoteIdentifier(table), id, order, v.Top))
+	}
+
+	if len(where) == 0 {
+		return ""
+	}
+
+	return "where " + strings.Join(where, " and")
+}
+
 func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
 	fields := []string{}
 
@@ -249,6 +298,7 @@ func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
 		from (
           select ` + strings.Join(fields, ", ") + `
           from ` + table + `
+		  ` + GroupWhere(table, agg.Group) + `	
 		  ` + GroupData(agg.Group) + `
 		) l
 		` + GetOrderBy(agg.Sort) + `

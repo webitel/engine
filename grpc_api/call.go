@@ -198,12 +198,14 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 
 	for _, v := range in.Aggs {
 		a := model.Aggregate{
-			Name:  v.Name,
-			Min:   v.Min,
-			Max:   v.Max,
-			Avg:   v.Avg,
-			Sum:   v.Sum,
-			Count: v.Count,
+			Name: v.Name,
+			AggregateMetrics: model.AggregateMetrics{
+				Min:   v.Min,
+				Max:   v.Max,
+				Avg:   v.Avg,
+				Sum:   v.Sum,
+				Count: v.Count,
+			},
 			Sort:  v.Sort,
 			Limit: v.Limit,
 		}
@@ -214,6 +216,11 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 				a.Group = append(a.Group, model.AggregateGroup{
 					Id:       j.Id,
 					Interval: j.Interval,
+
+					Aggregate: j.Aggregate,
+					Field:     j.Field,
+					Top:       j.Top,
+					Desc:      j.Desc,
 				})
 			}
 		}
