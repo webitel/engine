@@ -40,10 +40,10 @@ const (
 )
 
 type Endpoint struct {
-	Type   string
-	Number string
-	Id     string
-	Name   string
+	Type   string `json:"type"`
+	Number string `json:"number"`
+	Id     string `json:"id"`
+	Name   string `json:"name"`
 }
 
 type EndpointRequest struct {
@@ -152,6 +152,7 @@ type Call struct {
 	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
 	AnsweredAt *time.Time `json:"answered_at" db:"answered_at"`
 	BridgedAt  *time.Time `json:"bridged_at" db:"bridged_at"`
+	HangupAt   *time.Time `json:"hangup_at" db:"hangup_at"`
 
 	Duration int `json:"duration" db:"duration"`
 	HoldSec  int `json:"hold_sec" db:"hold_sec"`
@@ -173,6 +174,33 @@ type Call struct {
 	Display          *string    `json:"display" db:"display"`
 }
 
+func (c *Call) MarshalJSON() ([]byte, error) {
+	type Alias Call
+	return json.Marshal(&struct {
+		*Alias
+		CreatedAt  int64 `json:"created_at" db:"created_at"`
+		AnsweredAt int64 `json:"answered_at" db:"answered_at"`
+		BridgedAt  int64 `json:"bridged_at" db:"bridged_at"`
+		HangupAt   int64 `json:"hangup_at" db:"hangup_at"`
+
+		JoinedAt       int64 `json:"joined_at" db:"joined_at"`
+		LeavingAt      int64 `json:"leaving_at" db:"leaving_at"`
+		ReportingAt    int64 `json:"reporting_at" db:"reporting_at"`
+		QueueBridgedAt int64 `json:"queue_bridged_at" db:"queue_bridged_at"`
+	}{
+		Alias:      (*Alias)(c),
+		CreatedAt:  TimeToInt64(&c.CreatedAt),
+		AnsweredAt: TimeToInt64(c.AnsweredAt),
+		BridgedAt:  TimeToInt64(c.BridgedAt),
+		HangupAt:   TimeToInt64(c.HangupAt),
+
+		JoinedAt:       TimeToInt64(c.JoinedAt),
+		LeavingAt:      TimeToInt64(c.LeavingAt),
+		ReportingAt:    TimeToInt64(c.ReportingAt),
+		QueueBridgedAt: TimeToInt64(c.QueueBridgedAt),
+	})
+}
+
 func (c Call) AllowFields() []string {
 	return c.DefaultFields()
 }
@@ -183,7 +211,7 @@ func (c Call) DefaultOrder() string {
 
 func (c Call) DefaultFields() []string {
 	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
-		"created_at", "answered_at", "bridged_at", "duration", "hold_sec", "wait_sec", "bill_sec",
+		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display",
 	}

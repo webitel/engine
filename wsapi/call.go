@@ -39,7 +39,7 @@ func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	calls, end, err := api.ctrl.SearchCall(conn.GetSession(), &model.SearchCall{
 		ListRequest: model.ListRequest{
 			Page:    1,
-			PerPage: 1000,
+			PerPage: 10,
 			Sort:    "created_at",
 		},
 		UserIds: []int64{conn.UserId},
@@ -73,7 +73,12 @@ func (api *API) subscribeSelfCalls(conn *app.WebConn, req *model.WebSocketReques
 		return nil, e
 	}
 
-	return nil, h.SubscribeSessionCalls(conn)
+	e = h.SubscribeSessionCalls(conn)
+	if e != nil {
+		return nil, e
+	}
+
+	return api.callByUser(conn, req)
 }
 
 func (api *API) unSubscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
