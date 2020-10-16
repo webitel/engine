@@ -23,6 +23,10 @@ func (a *App) GetAgentsPage(domainId int64, search *model.SearchAgent) ([]*model
 	return list, search.EndOfList(), nil
 }
 
+func (a *App) GetAgentActiveTasks(domainId, agentId int64) ([]*model.AgentTask, *model.AppError) {
+	return a.Store.Agent().GetActiveTask(domainId, agentId)
+}
+
 func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
 	list, err := a.Store.Agent().GetAllPageByGroups(domainId, groups, search)
 	if err != nil {

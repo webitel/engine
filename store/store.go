@@ -100,6 +100,7 @@ type AgentStore interface {
 	Create(agent *model.Agent) (*model.Agent, *model.AppError)
 	GetAllPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, *model.AppError)
+	GetActiveTask(domainId, id int64) ([]*model.AgentTask, *model.AppError)
 	Get(domainId int64, id int64) (*model.Agent, *model.AppError)
 	Update(agent *model.Agent) (*model.Agent, *model.AppError)
 	Delete(domainId, id int64) *model.AppError

@@ -12,6 +12,7 @@ func (api *API) InitAgent() {
 	api.Router.Handle("cc_agent_waiting", api.ApiWebSocketHandler(api.waitingAgent))
 	api.Router.Handle("cc_agent_offline", api.ApiWebSocketHandler(api.offlineAgent))
 	api.Router.Handle("cc_agent_pause", api.ApiWebSocketHandler(api.pauseAgent))
+	api.Router.Handle("cc_agent_tasks", api.ApiWebSocketHandler(api.agentTasks))
 }
 
 func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -149,5 +150,27 @@ func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 
 	res := make(map[string]interface{})
 	res["timestamp"] = timestamp
+	return res, nil
+}
+
+func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var agentId, domainId float64
+	var ok bool
+
+	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	}
+
+	if domainId, ok = req.Data["domain_id"].(float64); !ok {
+		domainId = float64(conn.DomainId)
+	}
+
+	list, err := api.ctrl.ActiveAgentTasks(conn.GetSession(), int64(domainId), int64(agentId))
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	res["items"] = list
 	return res, nil
 }

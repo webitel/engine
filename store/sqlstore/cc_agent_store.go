@@ -129,6 +129,24 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	return agents, nil
 }
 
+func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *model.AppError) {
+	var res []*model.AgentTask
+	_, err := s.GetReplica().Select(&res, `select a.id as attempt_id, a.state, extract(epoch from now() - a.last_state_change )::int as duration
+from cc_member_attempt a
+    inner join cc_agent a2 on a2.id = a.agent_id
+where a.agent_id = :AgentId and a2.domain_id  = :DomainId`, map[string]interface{}{
+		"AgentId":  id,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.GetActiveTask", "store.sql_agent.get_tasks.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `

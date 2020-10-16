@@ -240,6 +240,12 @@ type AgentInQueueStats struct {
 	MemberWaiting int     `json:"member_waiting" db:"member_waiting"`
 }
 
+type AgentTask struct {
+	AttemptId int64  `json:"attempt_id" db:"attempt_id"`
+	State     string `json:"state" db:"state"`
+	Duration  string `json:"duration" db:"duration"`
+}
+
 func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, *AppError) {
 	var e *WebSocketEvent
 

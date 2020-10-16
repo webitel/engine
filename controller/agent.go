@@ -91,6 +91,23 @@ func (c *Controller) WaitingAgent(session *auth_manager.Session, domainId, agent
 	return c.app.WaitingAgentChannel(session.Domain(domainId), agentId, channel)
 }
 
+func (c *Controller) ActiveAgentTasks(session *auth_manager.Session, domainId, agentId int64) ([]*model.AgentTask, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, c.app.MakeResourcePermissionError(session, agentId, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.GetAgentActiveTasks(session.Domain(domainId), agentId)
+}
+
 func (c *Controller) GetAgentInQueueStatistics(session *auth_manager.Session, domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
