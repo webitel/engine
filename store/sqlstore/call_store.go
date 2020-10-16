@@ -261,30 +261,56 @@ func GroupWhere(table string, groups []model.AggregateGroup) string {
 	return "where " + strings.Join(where, " and")
 }
 
-func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
+func TimeHistogram(dateRange *model.FilterBetween, group *model.AggregateGroup) string {
+	if dateRange == nil || group == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("right join generate_series(%s::timestamptz, %s::timestamptz, interval %s) x on x = l.created_at",
+		QuoteLiteral(model.GetBetweenFromTime(dateRange).Format("2006-01-02 15:04:05")), QuoteLiteral(model.GetBetweenToTime(dateRange).Format("2006-01-02 15:04:05")), QuoteLiteral(group.Interval))
+}
+
+func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string, agg *model.Aggregate) string {
 	fields := []string{}
+	results := []string{}
+
+	var sql string
+	var histogramField *model.AggregateGroup
 
 	for _, v := range agg.Group {
 		fields = append(fields, fmt.Sprintf("%s as %s", AggregateField(&v), QuoteIdentifier(v.Id)))
+		if v.Interval != "" && histogramRange != nil {
+			histogramField = &v
+			results = append(results, fmt.Sprintf("x as %s", QuoteIdentifier(v.Id)))
+		} else {
+			results = append(results, QuoteIdentifier(v.Id))
+		}
 	}
 
 	for _, v := range agg.Sum {
 		fields = append(fields, "sum("+QuoteIdentifier(v)+") as "+QuoteIdentifier("sum_"+v))
+		results = append(results, QuoteIdentifier("sum_"+v))
 	}
 	for _, v := range agg.Avg {
 		fields = append(fields, "avg("+QuoteIdentifier(v)+") as "+QuoteIdentifier("avg_"+v))
+		results = append(results, QuoteIdentifier("avg_"+v))
 	}
 	for _, v := range agg.Max {
 		fields = append(fields, "max("+QuoteIdentifier(v)+") as "+QuoteIdentifier("max_"+v))
+		results = append(results, QuoteIdentifier("max_"+v))
 	}
 	for _, v := range agg.Min {
 		fields = append(fields, "min("+QuoteIdentifier(v)+") as "+QuoteIdentifier("min_"+v))
+		results = append(results, QuoteIdentifier("min_"+v))
 	}
+
 	for _, v := range agg.Count {
 		if v == "*" {
 			fields = append(fields, "count(*) as count")
+			results = append(results, "count")
 		} else {
 			fields = append(fields, "count("+QuoteIdentifier(v)+") as "+QuoteIdentifier("count_"+v))
+			results = append(results, QuoteIdentifier("count_"+v))
 		}
 	}
 
@@ -292,15 +318,16 @@ func (s SqlCallStore) ParseAgg(table string, agg *model.Aggregate) string {
 		//todo error
 	}
 
-	sql := `select json_agg(row_to_json(t)) as data
+	sql = `select json_agg(row_to_json(t)) as data
     from (
-        select *
+        select ` + strings.Join(results, ", ") + `
 		from (
           select ` + strings.Join(fields, ", ") + `
           from ` + table + `
 		  ` + GroupWhere(table, agg.Group) + `	
 		  ` + GroupData(agg.Group) + `
 		) l
+		` + TimeHistogram(histogramRange, histogramField) + `
 		` + GetOrderBy(agg.Sort) + `
         limit %d 
     ) t`
@@ -314,7 +341,8 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		часи в таймстемп
 	*/
 	sql := `with calls as (
-    select h.hold_sec,
+    select h.id,
+		   h.hold_sec,
 		   h.agent_id,
 		   extract(EPOCH from h.hangup_at - h.created_at)::int duration,
 		   case when h.answered_at notnull then extract(EPOCH from h.hangup_at - h.created_at)::int end answer_sec,
@@ -382,7 +410,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 `
 
 	for _, v := range aggs.Aggs {
-		sql += `, ` + QuoteIdentifier(v.Name) + ` as (` + s.ParseAgg("calls", &v) + `) `
+		sql += `, ` + QuoteIdentifier(v.Name) + ` as (` + s.ParseAgg(aggs.CreatedAt, "calls", &v) + `) `
 	}
 
 	f := map[string]interface{}{
