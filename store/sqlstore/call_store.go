@@ -266,8 +266,9 @@ func TimeHistogram(dateRange *model.FilterBetween, group *model.AggregateGroup) 
 		return ""
 	}
 
-	return fmt.Sprintf("right join generate_series(%s::timestamptz, %s::timestamptz, interval %s) x on x = l.created_at",
-		QuoteLiteral(model.GetBetweenFromTime(dateRange).Format("2006-01-02 15:04:05")), QuoteLiteral(model.GetBetweenToTime(dateRange).Format("2006-01-02 15:04:05")), QuoteLiteral(group.Interval))
+	return fmt.Sprintf("right join generate_series(%s::timestamptz, %s::timestamptz, interval %s) x on (l.created_at between x and (x + interval %s - interval '1 sec'))",
+		QuoteLiteral(model.GetBetweenFromTime(dateRange).Format("2006-01-02 15:04:05")), QuoteLiteral(model.GetBetweenToTime(dateRange).Format("2006-01-02 15:04:05")),
+		QuoteLiteral(group.Interval), QuoteLiteral(group.Interval))
 }
 
 func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string, agg *model.Aggregate) string {
@@ -275,12 +276,12 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 	results := []string{}
 
 	var sql string
-	var histogramField *model.AggregateGroup
+	var histogramField model.AggregateGroup
 
 	for _, v := range agg.Group {
 		fields = append(fields, fmt.Sprintf("%s as %s", AggregateField(&v), QuoteIdentifier(v.Id)))
 		if v.Interval != "" && histogramRange != nil {
-			histogramField = &v
+			histogramField = v
 			results = append(results, fmt.Sprintf("x as %s", QuoteIdentifier(v.Id)))
 		} else {
 			results = append(results, QuoteIdentifier(v.Id))
@@ -327,7 +328,7 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 		  ` + GroupWhere(table, agg.Group) + `	
 		  ` + GroupData(agg.Group) + `
 		) l
-		` + TimeHistogram(histogramRange, histogramField) + `
+		` + TimeHistogram(histogramRange, &histogramField) + `
 		` + GetOrderBy(agg.Sort) + `
         limit %d 
     ) t`
