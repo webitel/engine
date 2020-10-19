@@ -276,12 +276,13 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 	results := []string{}
 
 	var sql string
-	var histogramField model.AggregateGroup
+	var histogramField *model.AggregateGroup
 
 	for _, v := range agg.Group {
 		fields = append(fields, fmt.Sprintf("%s as %s", AggregateField(&v), QuoteIdentifier(v.Id)))
 		if v.Interval != "" && histogramRange != nil {
-			histogramField = v
+			histogramField = new(model.AggregateGroup)
+			*histogramField = v
 			results = append(results, fmt.Sprintf("x as %s", QuoteIdentifier(v.Id)))
 		} else {
 			results = append(results, QuoteIdentifier(v.Id))
@@ -328,7 +329,7 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 		  ` + GroupWhere(table, agg.Group) + `	
 		  ` + GroupData(agg.Group) + `
 		) l
-		` + TimeHistogram(histogramRange, &histogramField) + `
+		` + TimeHistogram(histogramRange, histogramField) + `
 		` + GetOrderBy(agg.Sort) + `
         limit %d 
     ) t`
