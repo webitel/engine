@@ -322,27 +322,51 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 
 	sql = `select json_agg(row_to_json(t)) as data
     from (
-        select ` + strings.Join(results, ", ") + `
+		select *
 		from (
-          select ` + strings.Join(fields, ", ") + `
-          from ` + table + `
-		  ` + GroupWhere(table, agg.Group) + `	
-		  ` + GroupData(agg.Group) + `
-		) l
-		` + TimeHistogram(histogramRange, histogramField) + `
-		` + GetOrderBy(agg.Sort) + `
+			select ` + strings.Join(results, ", ") + `
+			from (
+          		select ` + strings.Join(fields, ", ") + `
+          		from ` + table + `
+				` + GroupWhere(table, agg.Group) + `	
+		  		` + GroupData(agg.Group) + `
+			) l
+			` + TimeHistogram(histogramRange, histogramField) + `
+		) t
+		` + GetOrderArrayBy(agg.Sort) + `
         limit %d 
     ) t`
 
 	return fmt.Sprintf(sql, model.GetLimit(agg.Limit))
 }
 
+func GetOrderArrayBy(s []string) string {
+	if len(s) == 0 {
+		return ""
+	}
+
+	order := make([]string, 0, len(s))
+
+	for _, v := range s {
+		switch v[0] {
+		case '+':
+			order = append(order, QuoteIdentifier(v[1:])+" asc")
+		case '-':
+			order = append(order, QuoteIdentifier(v[1:])+" desc")
+		default:
+			order = append(order, QuoteIdentifier(v))
+		}
+	}
+
+	return "order by " + strings.Join(order, ",")
+}
+
 func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
 
 	/*
-		часи в таймстемп
+		todo materialized ??
 	*/
-	sql := `with calls as (
+	sql := `with calls as materialized (
     select h.id,
 		   h.hold_sec,
 		   h.agent_id,

@@ -396,8 +396,8 @@ type Aggregate struct {
 	Relative bool             `json:"relative"` // %
 	Group    []AggregateGroup `json:"group"`
 	AggregateMetrics
-	Limit int32  `json:"limit"`
-	Sort  string `json:"sort"`
+	Limit int32    `json:"limit"`
+	Sort  []string `json:"sort"`
 }
 
 type CallAggregate struct {
