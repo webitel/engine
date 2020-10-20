@@ -193,6 +193,10 @@ func AggregateField(group *model.AggregateGroup) string {
 			QuoteIdentifier(group.Id), QuoteLiteral(group.Interval), QuoteLiteral(group.Interval))
 	}
 
+	if strings.HasPrefix(group.Id, "variables.") {
+		return "payload->>" + QuoteLiteral(group.Id[10:])
+	}
+
 	return QuoteIdentifier(group.Id)
 }
 
@@ -380,6 +384,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		   h.hangup_at,
 		   h.hangup_by,
 		   h.user_id,
+		   h.payload,
 		   coalesce(u.name, u.username) as user,
 		   h.direction,
 		   h.gateway_id,
