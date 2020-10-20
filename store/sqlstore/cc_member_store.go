@@ -261,7 +261,8 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
             bucket_id = :BucketId,
             skill_id = :SkillId,
 			min_offering_at = :MinOfferingAt,
-			stop_cause = :StopCause
+			stop_cause = :StopCause::varchar,
+			stop_at = case when :StopCause::varchar notnull then now() else stop_at end
     where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )
