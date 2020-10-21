@@ -223,7 +223,13 @@ func GroupWhere(table string, groups []model.AggregateGroup) string {
 
 	where := make([]string, 0, 1)
 	for _, v := range groups {
-		id := QuoteIdentifier(v.Id)
+		id := ""
+		if strings.HasPrefix(v.Id, "variables.") {
+			id = "payload->>" + QuoteLiteral(v.Id[10:])
+		} else {
+			id = QuoteIdentifier(v.Id)
+		}
+
 		order := ""
 
 		switch v.Aggregate {
