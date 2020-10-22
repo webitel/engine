@@ -56,12 +56,6 @@ function sendMaxOpenedSocket(params, execId, ws, userId) {
     }
 }
 
-function noop() {}
-
-function heartbeat() {
-    this.isAlive = true;
-}
-
 function Handler(wss, application) {
     const controller = Controller(application);
 
@@ -185,24 +179,8 @@ function Handler(wss, application) {
             log.error('Socket error:', e);
         });
 
-        ws.on('pong', heartbeat);
     });
 
-    const interval = setInterval(function ping() {
-        wss.clients.forEach(function each(ws) {
-            if (ws.isAlive === false) {
-                log.warn(`terminate socket ${ws.webitelUserId}`);
-                return ws.terminate();
-            }
-
-            ws.isAlive = false;
-            ws.ping(noop);
-        });
-    }, PING_INTERVAL);
-
-    wss.on('close', function close() {
-        clearInterval(interval);
-    });
 
     application._getWSocketSessions = function () {
         return wss.clients.size
