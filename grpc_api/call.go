@@ -215,7 +215,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			for _, j := range v.Group {
 				a.Group = append(a.Group, model.AggregateGroup{
 					Id:       j.Id,
-					Interval: j.Interval,
+					Interval: getInterval(j.Interval), //TODO
 
 					Aggregate: j.Aggregate,
 					Field:     j.Field,
@@ -245,6 +245,15 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 	return &engine.ListAggregate{
 		Items: items,
 	}, nil
+}
+
+//TODO delete me
+func getInterval(in string) string {
+	if in == "auto" {
+		return "1 hour"
+	}
+
+	return in
 }
 
 func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*engine.ActiveCall, error) {

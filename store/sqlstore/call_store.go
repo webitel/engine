@@ -291,11 +291,6 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 	for _, v := range agg.Group {
 		fields = append(fields, fmt.Sprintf("%s as %s", AggregateField(&v), QuoteIdentifier(v.Id)))
 
-		if v.Interval == "auto" {
-			// TODO fixme calculate from / to
-			v.Interval = "1 hour"
-		}
-
 		if v.Interval != "" && histogramRange != nil {
 			histogramField = new(model.AggregateGroup)
 			*histogramField = v
