@@ -12,6 +12,9 @@ func (api *API) InitChat() {
 	api.Router.Handle("close_chat", api.ApiWebSocketHandler(api.closeChat))
 	api.Router.Handle("leave_chat", api.ApiWebSocketHandler(api.leaveChat))
 	api.Router.Handle("send_text_chat", api.ApiWebSocketHandler(api.sendTextChat))
+	api.Router.Handle("add_to_chat", api.ApiWebSocketHandler(api.addToChat))
+	api.Router.Handle("start_chat", api.ApiWebSocketHandler(api.startChat))
+	api.Router.Handle("update_channel_chat", api.ApiWebSocketHandler(api.updateChannelChat))
 }
 
 func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -118,5 +121,57 @@ func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	}
 
 	err := api.ctrl.SendTextChat(conn.GetSession(), channelId, conversationId, text)
+	return nil, err
+}
+
+func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var channelId, conversationId, title string
+	var userId int64
+	var ok bool
+
+	channelId, ok = req.Data["channel_id"].(string)
+	if !ok || channelId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	title, _ = req.Data["title"].(string)
+
+	conversationId, ok = req.Data["conversation_id"].(string)
+	if !ok || conversationId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "conversation_id")
+	}
+
+	userId, ok = req.Data["user_id"].(int64)
+	if !ok || userId == 0 {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	err := api.ctrl.AddToChat(conn.GetSession(), userId, channelId, conversationId, title)
+	return nil, err
+}
+
+func (api *API) startChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var userId int64
+	var ok bool
+
+	userId, ok = req.Data["user_id"].(int64)
+	if !ok || userId == 0 {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	err := api.ctrl.StartChat(conn.GetSession(), userId)
+	return nil, err
+}
+
+func (api *API) updateChannelChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var channelId string
+	var ok bool
+
+	channelId, ok = req.Data["channel_id"].(string)
+	if !ok || channelId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	err := api.ctrl.UpdateChannelChat(conn.GetSession(), channelId)
 	return nil, err
 }

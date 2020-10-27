@@ -12,20 +12,35 @@ func (c *Controller) DeclineChat(session *auth_manager.Session, inviteId string)
 
 func (c *Controller) JoinChat(session *auth_manager.Session, inviteId string) (string, *model.AppError) {
 	// FIXME PERMISSION
-	return c.app.JoinChat(inviteId)
+	return c.app.JoinChat(session.UserId, inviteId)
 }
 
 func (c *Controller) LeaveChat(session *auth_manager.Session, channelId, conversationId string) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.LeaveChat(channelId, conversationId)
+	return c.app.LeaveChat(session.UserId, channelId, conversationId)
 }
 
 func (c *Controller) CloseChat(session *auth_manager.Session, channelId, conversationId, cause string) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.CloseChat(channelId, conversationId, cause)
+	return c.app.CloseChat(session.UserId, channelId, conversationId, cause)
 }
 
 func (c *Controller) SendTextChat(session *auth_manager.Session, channelId, conversationId, text string) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.SendTextMessage(channelId, conversationId, text)
+	return c.app.SendTextMessage(session.UserId, channelId, conversationId, text)
+}
+
+func (c *Controller) AddToChat(session *auth_manager.Session, userId int64, channelId, conversationId, title string) *model.AppError {
+	// FIXME PERMISSION
+	return c.app.AddToChat(session.UserId, userId, channelId, conversationId, title)
+}
+
+func (c *Controller) StartChat(session *auth_manager.Session, userId int64) *model.AppError {
+	// FIXME PERMISSION
+	return c.app.StartChat(session.DomainId, session.UserId, userId)
+}
+
+func (c *Controller) UpdateChannelChat(session *auth_manager.Session, channelId string) *model.AppError {
+	// FIXME PERMISSION
+	return c.app.UpdateChannelChat(session.UserId, channelId)
 }
