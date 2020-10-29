@@ -16,12 +16,16 @@ type Chat interface {
 	Close() error
 	Ready() bool
 
-	Join(inviteId string) (string, error)
-	Decline(userId int64, inviteId string) error
-	Leave(channelId, conversationId string) error
-	CloseConversation(channelId, conversationId, cause string) error
+	Join(authUserId int64, inviteId string) (string, error)
+	Decline(authUserId int64, inviteId string) error
+	Leave(authUserId int64, channelId, conversationId string) error
+	CloseConversation(authUserId int64, channelId, conversationId, cause string) error
 
-	SendText(channelId, conversationId, text string) error
+	SendText(authUserId int64, channelId, conversationId, text string) error
+
+	AddToChat(authUserId, userId int64, channelId, conversationId, title string) error
+	NewInternalChat(domainId, authUserId, userId int64) error
+	UpdateChannel(authUserId int64, channelId string) error
 }
 
 type chatConnection struct {

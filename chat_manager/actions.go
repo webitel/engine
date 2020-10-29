@@ -5,18 +5,19 @@ import (
 	client "github.com/webitel/protos/chat"
 )
 
-func (cc *chatConnection) Decline(userId int64, inviteId string) error {
+func (cc *chatConnection) Decline(authUserId int64, inviteId string) error {
 	_, err := cc.api.DeclineInvitation(context.Background(), &client.DeclineInvitationRequest{
-		InviteId: inviteId,
-		UserId:   userId,
+		InviteId:   inviteId,
+		AuthUserId: authUserId,
 	})
 
 	return err
 }
 
-func (cc *chatConnection) Join(inviteId string) (string, error) {
+func (cc *chatConnection) Join(authUserId int64, inviteId string) (string, error) {
 	res, err := cc.api.JoinConversation(context.Background(), &client.JoinConversationRequest{
-		InviteId: inviteId,
+		InviteId:   inviteId,
+		AuthUserId: authUserId,
 	})
 
 	if err != nil {
@@ -26,27 +27,29 @@ func (cc *chatConnection) Join(inviteId string) (string, error) {
 	return res.ChannelId, nil
 }
 
-func (cc *chatConnection) Leave(channelId, conversationId string) error {
+func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId string) error {
 	_, err := cc.api.LeaveConversation(context.Background(), &client.LeaveConversationRequest{
 		ChannelId:      channelId,
 		ConversationId: conversationId,
+		AuthUserId:     authUserId,
 	})
 
 	return err
 }
 
-func (cc *chatConnection) CloseConversation(channelId, conversationId, cause string) error {
+func (cc *chatConnection) CloseConversation(authUserId int64, channelId, conversationId, cause string) error {
 	_, err := cc.api.CloseConversation(context.Background(), &client.CloseConversationRequest{
 		ConversationId:  conversationId,
 		CloserChannelId: channelId,
 		FromFlow:        false,
 		Cause:           cause,
+		AuthUserId:      authUserId,
 	})
 
 	return err
 }
 
-func (cc *chatConnection) SendText(channelId, conversationId, text string) error {
+func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, text string) error {
 	_, err := cc.api.SendMessage(context.Background(), &client.SendMessageRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
@@ -57,43 +60,62 @@ func (cc *chatConnection) SendText(channelId, conversationId, text string) error
 				Text: text,
 			},
 		},
+		AuthUserId: authUserId,
 	})
 
 	return err
 }
 
-func (cc *chatConnection) AddToChat() { // запросити
-	cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
+func (cc *chatConnection) AddToChat(authUserId, userId int64, channelId, conversationId, title string) error { // запросити
+	_, err := cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
 		User: &client.User{
-			UserId:     0,
+			UserId:     userId,
 			Type:       "webitel",
 			Connection: "", // profile
 			Internal:   true,
 		},
-		ConversationId:   "",
-		InviterChannelId: "",
+		FromFlow:         false,
+		ConversationId:   conversationId,
+		InviterChannelId: channelId,
+		AuthUserId:       authUserId,
+		Title:            title,
 	})
+	return err
 }
 
-func (cc *chatConnection) NewInternalChat() {
-	res, _ := cc.api.StartConversation(context.Background(), &client.StartConversationRequest{
+func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) error {
+	res, err := cc.api.StartConversation(context.Background(), &client.StartConversationRequest{
 		User: &client.User{ // caller
-			UserId:     0,
+			UserId:     authUserId,
 			Type:       "webitel",
 			Connection: "", // profile
 			Internal:   true,
 		},
-		DomainId: 0,
+		DomainId: domainId,
 	})
+	if err != nil {
+		return err
+	}
 
-	cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
+	_, err = cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
 		User: &client.User{
-			UserId:     0,
+			UserId:     userId,
 			Type:       "webitel",
 			Connection: "", // profile
 			Internal:   true,
 		},
 		ConversationId:   res.ConversationId,
 		InviterChannelId: res.ChannelId,
+		AuthUserId:       authUserId,
 	})
+
+	return err
+}
+
+func (cc *chatConnection) UpdateChannel(authUserId int64, channelId string) error { // запросити
+	_, err := cc.api.UpdateChannel(context.Background(), &client.UpdateChannelRequest{
+		ChannelId:  channelId,
+		AuthUserId: authUserId,
+	})
+	return err
 }
