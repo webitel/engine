@@ -2,16 +2,55 @@
  * Created by igor on 01.06.16.
  */
 
-module.export = {
+module.exports = {
     calcErlang: calcErlang,
     erlangCPODelayTime: erlangCPODelayTime,
     erlangB: erlangB,
-    erlangC: erlangC
+    erlangC: erlangC,
+    _broadcastMemberEnd: _broadcastMemberEnd
 };
 
 console.log(calcErlang({
     callsPerHour: 10
 }));
+
+
+function _broadcastMemberEnd(member, endCause, reason) {
+    const event = {
+        "Event-Name": "CUSTOM",
+        "Event-Subclass": "engine::dialer_member_end",
+        // TODO
+        "variable_domain_name": member.domain,
+        "dialerId": member.dialer,
+        "id": member._id.toString(),
+        "name": member.name,
+        "endCause": endCause,
+        "reason": reason,
+        "callback_user_id": "system"
+    };
+
+    if (member._probeCount) {
+        event.currentProbe = member._probeCount;
+    }
+
+    const lastNumber = isFinite(member._lastNumberId) && member.communications[member._lastNumberId]
+        ? member.communications[member._lastNumberId]
+        : null
+    ;
+
+
+    if (lastNumber) {
+        event.currentNumber = lastNumber.number;
+        event.dlr_member_number_description = lastNumber.description || ''
+    }
+
+    for (let key in member.variables) {
+        if (member.variables.hasOwnProperty(key))
+            event[`variable_${key}`] = member.variables[key]
+    }
+    // console.log(event);
+    application.Broker.publish(application.Broker.Exchange.FS_EVENT, `.CUSTOM.engine%3A%3Adialer_member_end..`, event);
+}
 
 function calcErlang(option) {
     let [

@@ -23,6 +23,7 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     EventEmitter2 = require('eventemitter2').EventEmitter2,
     dialerService = require(__appRoot + '/services/dialer'),
     async = require('async'),
+    _broadcastMemberEnd = require('./helper')._broadcastMemberEnd
     REG_ORIGINATE = /originate_timeout=(\d+),?/
 ;
 
@@ -886,7 +887,7 @@ module.exports = class Dialer extends EventEmitter2 {
                     $set[`communications.${data.len}.state`] = 2;
                 }
 
-                dialerService.members._updateOneMember({
+                dialerService.members._setExpireOnDay({
                     _id: data._id,
                     _lock: null,
                     _endCause: null
@@ -896,7 +897,9 @@ module.exports = class Dialer extends EventEmitter2 {
                         return log.error(e);
                     }
 
-                    //TODO fire event
+                    if (res && res.value) {
+                        _broadcastMemberEnd(res.value, END_CAUSE.MEMBER_EXPIRED, 'expire')
+                    }
                 });
             });
         });

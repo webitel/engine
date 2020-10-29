@@ -441,7 +441,7 @@ let Service = {
                 return db.memberCount(option, cb);
             });
         },
-        
+
         item: function (caller, option, cb) {
             checkPermissions(caller, 'dialer/members', 'r', function (err) {
                 if (err)
@@ -469,7 +469,7 @@ let Service = {
                 return db.memberById(option.id, option.dialer, cb);
             });
         },
-        
+
         create: function (caller, option, cb) {
             checkPermissions(caller, 'dialer/members', 'c', function (err) {
                 if (err)
@@ -623,7 +623,7 @@ let Service = {
 
             });
         },
-        
+
         aggregate: function (caller, option, cb) {
             checkPermissions(caller, 'dialer/members', 'r', function (err) {
                 if (err)
@@ -982,7 +982,7 @@ let Service = {
             let db = application.DB._query.dialer;
             return db._updateMember(filter, doc, sort, cb);
         },
-        
+
         _updateMultiMembers (filter, update, cb) {
             let db = application.DB._query.dialer;
             return db._updateMultiMembers(filter, update, cb);
@@ -1007,9 +1007,14 @@ let Service = {
         _updateOneMember: (filter, update, cb) => {
             const db = application.DB._query.dialer;
             return db._updateOneMember(filter, update, cb);
+        },
+
+        _setExpireOnDay: (filter, update, cb) => {
+            const db = application.DB._query.dialer;
+            return db._setExpireOnDay(filter, update, cb);
         }
     },
-    
+
     agents: {
         list: function (caller, option, cb) {
             checkPermissions(caller, 'dialer', 'r', function (err) {

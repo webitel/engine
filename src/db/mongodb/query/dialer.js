@@ -914,6 +914,23 @@ function addQuery (db) {
                 .updateOne(filter, update, {}, cb);
         },
 
+        _setExpireOnDay: (filter, update, cb) => {
+            return db
+                .collection(memberCollectionName)
+                .findOneAndUpdate(filter, update, {
+                    projection: {
+                        domain: 1,
+                        dialer: 1,
+                        id: 1,
+                        name: 1,
+                        variables: 1,
+                        _probeCount: 1,
+                        _lastNumberId: 1,
+                        communications: 1,
+                    }
+                }, cb);
+        },
+
         insertDialerHistory: (dialerId, data = {}, cb) => {
             data.createdOn = Date.now();
 
