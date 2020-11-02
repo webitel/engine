@@ -426,9 +426,9 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and (:Number::varchar isnull or h.from_number ilike :Number::varchar or h.to_number ilike :Number::varchar or h.destination ilike :Number::varchar)
 		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or h.parent_id isnull)
 		and (:ParentId::varchar isnull or h.parent_id = :ParentId )
-		and (:Cause::varchar isnull or h.cause = :Cause )
+		and (:CauseArr::varchar[] isnull or h.cause = any(:CauseArr) )
 		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or h.answered_at between :AnsweredFrom and :AnsweredTo )
-		and (:Direction::varchar isnull or h.direction = :Direction )
+		and (:Directions::varchar[] isnull or h.direction = any(:Directions) )
 		and (:Missed::bool isnull or (:Missed and h.answered_at isnull))
 		and (:DependencyIds::varchar[] isnull or h.id in (
 			with recursive a as (
@@ -467,8 +467,8 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"SkipParent":      aggs.SkipParent,
 		"ParentId":        aggs.ParentId,
 		"Number":          aggs.Number,
-		"Cause":           aggs.Cause,
-		"Direction":       aggs.Direction,
+		"CauseArr":        pq.Array(aggs.CauseArr),
+		"Directions":      pq.Array(aggs.Directions),
 		"Missed":          aggs.Missed,
 		"AnsweredFrom":    model.GetBetweenFromTime(aggs.AnsweredAt),
 		"AnsweredTo":      model.GetBetweenToTime(aggs.AnsweredAt),

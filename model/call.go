@@ -346,7 +346,9 @@ type SearchHistoryCall struct {
 	Number          *string
 	ParentId        *string
 	Cause           *string
+	CauseArr        []string // fixme
 	Direction       *string
+	Directions      []string //fixme
 	Missed          *bool
 	SkipParent      bool
 	HasFile         bool

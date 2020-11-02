@@ -145,6 +145,8 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			TransferFromIds: in.GetTransferFrom(),
 			TransferToIds:   in.GetTransferTo(),
 			DependencyIds:   in.GetDependencyId(),
+			Directions:      in.GetDirection(),
+			CauseArr:        in.GetCause(),
 		},
 	}
 
@@ -176,16 +178,8 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 		}
 	}
 
-	if in.GetDirection() != "" {
-		req.Direction = &in.Direction
-	}
-
 	if in.GetParentId() != "" {
 		req.ParentId = &in.ParentId
-	}
-
-	if in.GetCause() != "" {
-		req.Cause = &in.Cause
 	}
 
 	if in.GetNumber() != "" {
