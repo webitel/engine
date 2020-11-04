@@ -32,6 +32,7 @@ type DomainQueue interface {
 
 	BindUsersStatus(id string, userId int64) *model.BindQueueEvent
 	BindAgentStatusEvents(id string, userId int64, agentId int) *model.BindQueueEvent
+	BindAgentChannelEvents(id string, userId int64, agentId int) *model.BindQueueEvent
 
 	Listen() error
 }

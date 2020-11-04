@@ -228,6 +228,10 @@ func (wh *Hub) SubscribeSessionAgentStatus(conn *WebConn, agentId int) *model.Ap
 	//TODO
 	conn.SetListenEvent("agent_status", b)
 
+	b2 := wh.domainQueue.BindAgentChannelEvents(conn.Id(), conn.GetSession().UserId, agentId)
+	//TODO
+	conn.SetListenEvent("agent_channel", b2)
+
 	return nil
 }
 

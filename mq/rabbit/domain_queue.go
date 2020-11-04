@@ -120,7 +120,12 @@ func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId in
 		Exchange: model.CallCenterExchange,
 	}
 
-	// FIXME
+	dq.bindChan <- b
+
+	return b
+}
+
+func (dq *DomainQueue) BindAgentChannelEvents(id string, userId int64, agentId int) *model.BindQueueEvent {
 	b2 := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
@@ -128,9 +133,9 @@ func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId in
 		Exchange: model.CallCenterExchange,
 	}
 
-	dq.bindChan <- b
 	dq.bindChan <- b2
-	return b
+
+	return b2
 }
 
 func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
@@ -142,7 +147,7 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
 	dq.channel.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
 		"x-sock-id": bind.Id,
 	})
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s to call events", dq.Id(), bind.UserId, bind.Id))
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s from %s", dq.Id(), bind.UserId, bind.Id, bind.Exchange))
 	//TODO check error
 	return nil
 }
