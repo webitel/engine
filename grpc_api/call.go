@@ -48,6 +48,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		TransferFromIds: in.GetTransferFrom(),
 		TransferToIds:   in.GetTransferTo(),
 		DependencyIds:   in.GetDependencyId(),
+		Tags:            in.GetTags(),
 	}
 
 	if in.GetDuration() != nil {
@@ -147,6 +148,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			DependencyIds:   in.GetDependencyId(),
 			Directions:      in.GetDirection(),
 			CauseArr:        in.GetCause(),
+			Tags:            in.GetTags(),
 		},
 	}
 

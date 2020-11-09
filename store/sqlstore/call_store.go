@@ -139,6 +139,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"TransferFromIds": pq.Array(search.TransferFromIds),
 		"TransferToIds":   pq.Array(search.TransferToIds),
 		"DependencyIds":   pq.Array(search.DependencyIds),
+		"Tags":            pq.Array(search.Tags),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -164,6 +165,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:DependencyIds::varchar[] isnull or id in (
 		with recursive a as (
 			select t.id
@@ -402,7 +404,8 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		   h.cause,
 		   h.sip_code,
 		   h.queue_id,
-		   q.name as queue
+		   q.name as queue,
+		   h.tags	
 	from cc_calls_history h
 		left join cc_agent ca on h.agent_id = ca.id
 		left join directory.wbt_user ua on ua.id = ca.user_id
@@ -430,6 +433,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or h.answered_at between :AnsweredFrom and :AnsweredTo )
 		and (:Directions::varchar[] isnull or h.direction = any(:Directions) )
 		and (:Missed::bool isnull or (:Missed and h.answered_at isnull))
+		and (:Tags::varchar[] isnull or (h.tags && :Tags))
 		and (:DependencyIds::varchar[] isnull or h.id in (
 			with recursive a as (
 				select t.id
@@ -480,6 +484,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"TransferFromIds": pq.Array(aggs.TransferFromIds),
 		"TransferToIds":   pq.Array(aggs.TransferToIds),
 		"DependencyIds":   pq.Array(aggs.DependencyIds),
+		"Tags":            pq.Array(aggs.Tags),
 	}
 
 	for i, v := range aggs.Aggs {
