@@ -36,14 +36,7 @@ func (api *API) test(conn *app.WebConn, req *model.WebSocketRequest) (map[string
 }
 
 func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	calls, end, err := api.ctrl.SearchCall(conn.GetSession(), &model.SearchCall{
-		ListRequest: model.ListRequest{
-			Page:    1,
-			PerPage: 10,
-			Sort:    "created_at",
-		},
-		UserIds: []int64{conn.UserId},
-	})
+	calls, err := api.ctrl.UserActiveCall(conn.GetSession())
 
 	if err != nil {
 		return nil, err
@@ -51,7 +44,6 @@ func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 
 	res := make(map[string]interface{})
 	res["items"] = calls
-	res["next"] = !end
 	return res, nil
 }
 

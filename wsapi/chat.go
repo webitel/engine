@@ -3,6 +3,7 @@ package wsapi
 import (
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/chat"
 )
 
 func (api *API) InitChat() {
@@ -15,6 +16,7 @@ func (api *API) InitChat() {
 	api.Router.Handle("add_to_chat", api.ApiWebSocketHandler(api.addToChat))
 	api.Router.Handle("start_chat", api.ApiWebSocketHandler(api.startChat))
 	api.Router.Handle("update_channel_chat", api.ApiWebSocketHandler(api.updateChannelChat))
+	api.Router.Handle("list_active_chat", api.ApiWebSocketHandler(api.listActiveChat))
 }
 
 func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -23,7 +25,18 @@ func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest
 		return nil, e
 	}
 
-	return nil, h.SubscribeSessionChat(conn)
+	e = h.SubscribeSessionChat(conn)
+	if e != nil {
+		return nil, e
+	}
+
+	list, err := api.ctrl.ListActiveChat(conn.GetSession(), 0, model.PER_PAGE_DEFAULT)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return listChatResponse(list), nil
 }
 
 func (api *API) declineChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -174,4 +187,31 @@ func (api *API) updateChannelChat(conn *app.WebConn, req *model.WebSocketRequest
 
 	err := api.ctrl.UpdateChannelChat(conn.GetSession(), channelId)
 	return nil, err
+}
+
+func (api *API) listActiveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var page, size float64
+	var ok bool
+
+	page, _ = req.Data["page"].(float64)
+
+	if size, ok = req.Data["size"].(float64); !ok {
+		size = model.PER_PAGE_DEFAULT
+	}
+
+	list, err := api.ctrl.ListActiveChat(conn.GetSession(), int(page), int(size))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return listChatResponse(list), nil
+}
+
+func listChatResponse(list *chat.GetConversationsResponse) map[string]interface{} {
+	res := make(map[string]interface{})
+	res["next"] = list.Next
+	res["items"] = list.Items
+
+	return res
 }

@@ -249,6 +249,10 @@ func (app *App) GetActiveCallPage(domainId int64, search *model.SearchCall) ([]*
 	return list, search.EndOfList(), nil
 }
 
+func (app *App) GetUserActiveCalls(domainId, userId int64) ([]*model.Call, *model.AppError) {
+	return app.Store.Call().GetUserActiveCall(domainId, userId)
+}
+
 func (app *App) GetHistoryCallPage(domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
 	list, err := app.Store.Call().GetHistory(domainId, search)
 	if err != nil {

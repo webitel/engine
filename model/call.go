@@ -172,6 +172,19 @@ type Call struct {
 	QueueDurationSec *int       `json:"queue_duration_sec" db:"queue_duration_sec"`
 	ReportingSec     *int       `json:"reporting_sec" db:"reporting_sec"`
 	Display          *string    `json:"display" db:"display"`
+
+	Task *CCTask `json:"task"`
+}
+
+type CCTask struct {
+	Reporting    bool                 `json:"reporting"`
+	AttemptId    int64                `json:"attempt_id"`
+	Channel      string               `json:"channel"`
+	QueueId      int                  `json:"queue_id"`
+	MemberId     int64                `json:"member_id"`
+	MemberCallId *string              `json:"member_call_id"`
+	AgentCallId  *string              `json:"agent_call_id"`
+	Destination  *MemberCommunication `json:"destination"`
 }
 
 func (c *Call) MarshalJSON() ([]byte, error) {

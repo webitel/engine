@@ -32,6 +32,15 @@ func (c *Controller) SearchCall(session *auth_manager.Session, search *model.Sea
 	return c.app.GetActiveCallPage(session.DomainId, search)
 }
 
+func (c *Controller) UserActiveCall(session *auth_manager.Session) ([]*model.Call, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.GetUserActiveCalls(session.DomainId, session.UserId)
+}
+
 func (c *Controller) SearchHistoryCall(session *auth_manager.Session, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {

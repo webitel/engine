@@ -2,7 +2,9 @@ package chat_manager
 
 import (
 	"context"
+	"github.com/webitel/engine/model"
 	client "github.com/webitel/protos/chat"
+	"google.golang.org/grpc/metadata"
 )
 
 func (cc *chatConnection) Decline(authUserId int64, inviteId string) error {
@@ -41,7 +43,6 @@ func (cc *chatConnection) CloseConversation(authUserId int64, channelId, convers
 	_, err := cc.api.CloseConversation(context.Background(), &client.CloseConversationRequest{
 		ConversationId:  conversationId,
 		CloserChannelId: channelId,
-		FromFlow:        false,
 		Cause:           cause,
 		AuthUserId:      authUserId,
 	})
@@ -53,7 +54,6 @@ func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, 
 	_, err := cc.api.SendMessage(context.Background(), &client.SendMessageRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
-		FromFlow:       false,
 		Message: &client.Message{
 			Type: "text", // TODO
 			Value: &client.Message_Text{
@@ -74,7 +74,6 @@ func (cc *chatConnection) AddToChat(authUserId, userId int64, channelId, convers
 			Connection: "", // profile
 			Internal:   true,
 		},
-		FromFlow:         false,
 		ConversationId:   conversationId,
 		InviterChannelId: channelId,
 		AuthUserId:       authUserId,
@@ -118,4 +117,17 @@ func (cc *chatConnection) UpdateChannel(authUserId int64, channelId string) erro
 		AuthUserId: authUserId,
 	})
 	return err
+}
+
+func (cc *chatConnection) ListActive(token string, domainId, userId int64, page, size int) (*client.GetConversationsResponse, error) {
+	header := metadata.New(map[string]string{model.HEADER_TOKEN: token})
+	// this is the critical step that includes your headers
+	return cc.api.GetConversations(metadata.NewOutgoingContext(context.Background(), header), &client.GetConversationsRequest{
+		Active:      true,
+		Page:        int32(page),
+		Size:        int32(size),
+		DomainId:    domainId,
+		UserId:      userId,
+		MessageSize: 40, //TODO
+	})
 }

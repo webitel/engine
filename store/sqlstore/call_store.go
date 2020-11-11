@@ -70,6 +70,37 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	return out, nil
 }
 
+// fixme
+func (s SqlCallStore) GetUserActiveCall(domainId, userId int64) ([]*model.Call, *model.AppError) {
+	var res []*model.Call
+	_, err := s.GetMaster().Select(&res, `select
+       row_to_json(at) task,
+       "id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
+		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
+		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
+		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display"
+from cc_call_active_list c
+    left join lateral (
+    select a.id as attempt_id, a.channel, a.queue_id, a.member_id, a.member_call_id as member_channel_id,
+           a.agent_call_id as agent_channel_id, a.destination as communication,
+           t.post_processing as reporting
+    from cc_member_attempt a
+        inner join cc_queue q on q.id = a.queue_id
+        inner join cc_team t on t.id = q.team_id
+    where a.id = c.attempt_id and a.agent_call_id = c.id
+) at on true
+where user_id = :UserId and domain_id = :DomainId`, map[string]interface{}{
+		"UserId":   userId,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.GetUserActiveCall", "store.sql_call.get_user_active.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 func (s SqlCallStore) Get(domainId int64, id string) (*model.Call, *model.AppError) {
 	var out *model.Call
 

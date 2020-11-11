@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/webitel/engine/model"
+	client "github.com/webitel/protos/chat"
 	"net/http"
 )
 
@@ -116,4 +117,17 @@ func (a *App) UpdateChannelChat(authUserId int64, channelId string) *model.AppEr
 	}
 
 	return nil
+}
+
+func (a *App) ListActiveChat(token string, domainId, userId int64, page, size int) (*client.GetConversationsResponse, *model.AppError) {
+	chat, err := a.chatManager.Client()
+	if err != nil {
+		return nil, model.NewAppError("ListActiveChat", "chat.start.client_err", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if list, err := chat.ListActive(token, domainId, userId, page, size); err != nil {
+		return nil, model.NewAppError("ListActiveChat", "chat.list_active.app_err", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return list, nil
+	}
 }

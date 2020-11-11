@@ -317,6 +317,7 @@ type CallStore interface {
 	BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError)
 	BridgedId(id string) (string, *model.AppError)
 	LastFile(domainId int64, id string) (int64, *model.AppError)
+	GetUserActiveCall(domainId, userId int64) ([]*model.Call, *model.AppError)
 }
 
 type EmailProfileStore interface {

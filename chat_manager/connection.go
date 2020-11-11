@@ -26,6 +26,7 @@ type Chat interface {
 	AddToChat(authUserId, userId int64, channelId, conversationId, title string) error
 	NewInternalChat(domainId, authUserId, userId int64) error
 	UpdateChannel(authUserId int64, channelId string) error
+	ListActive(token string, domainId, userId int64, page, size int) (*client.GetConversationsResponse, error)
 }
 
 type chatConnection struct {
