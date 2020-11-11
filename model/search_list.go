@@ -95,6 +95,17 @@ func (l *ListRequest) GetQ() *string {
 	return nil
 }
 
+func (l *ListRequest) GetRegExpQ() *string {
+	if l.Q != "" {
+		if l.Q[0] == '+' {
+			l.Q = "\\" + l.Q
+		}
+		return NewString(strings.Replace(l.Q, "*", "%", -1))
+	}
+
+	return nil
+}
+
 func (l *ListRequest) GetLimit() int {
 	l.valid()
 	return l.PerPage + 1 //FIXME for next page...
