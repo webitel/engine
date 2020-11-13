@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -84,9 +85,12 @@ func (cm *callManager) SipRouteUri() string {
 	return "sip:" + cm.sipProxy
 }
 
+// todo bug if ""
 func getWsAddress(addr string) string {
 	if addr == "" {
 		return "/sip"
+	} else if strings.HasPrefix(addr, "wss://") || strings.HasPrefix(addr, "ws://") {
+		return addr
 	} else {
 		return "wss://" + addr + "/sip"
 	}
