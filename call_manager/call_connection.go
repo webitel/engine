@@ -224,17 +224,12 @@ func (c *CallConnection) SetCallVariables(id string, variables map[string]string
 }
 
 func (c *CallConnection) Hold(id string) *model.AppError {
-	res, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
-		Command: "uuid_hold",
-		Args:    id,
+	_, err := c.api.Hold(context.Background(), &fs.HoldRequest{
+		Id: []string{id},
 	})
+
 	if err != nil {
 		return model.NewAppError("Hold", "external.hold_call.app_error", nil, err.Error(),
-			http.StatusInternalServerError)
-	}
-
-	if res.Error != nil {
-		return model.NewAppError("Hold", "external.hold_call.app_error", nil, res.Error.String(),
 			http.StatusInternalServerError)
 	}
 
@@ -242,17 +237,12 @@ func (c *CallConnection) Hold(id string) *model.AppError {
 }
 
 func (c *CallConnection) UnHold(id string) *model.AppError {
-	res, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
-		Command: "uuid_hold",
-		Args:    fmt.Sprintf("off %s", id),
+	_, err := c.api.UnHold(context.Background(), &fs.UnHoldRequest{
+		Id: []string{id},
 	})
+
 	if err != nil {
 		return model.NewAppError("UnHold", "external.un_hold_call.app_error", nil, err.Error(),
-			http.StatusInternalServerError)
-	}
-
-	if res.Error != nil {
-		return model.NewAppError("UnHold", "external.un_hold_call.app_error", nil, res.Error.String(),
 			http.StatusInternalServerError)
 	}
 
