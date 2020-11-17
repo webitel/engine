@@ -42,24 +42,45 @@ func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError
 	if err := s.GetMaster().SelectOne(&out, `with q as (
     insert into cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, timeout, domain_id, dnc_list_id, sec_locate_agent, type, team_id,
-                      created_at, created_by, updated_by, description, schema_id)
+                      created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
-        :Variables, :Timeout, :DomainId, :DncListId, :SecLocateAgent, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :SchemaId)
+        :Variables, :Timeout, :DomainId, :DncListId, :SecLocateAgent, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
+		:SchemaId, :DoSchemaId, :AfterSchemaId)
     returning *
 )
-select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
-          q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
-          q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
-		  cc_get_lookup(s.id, s.name) as schema, cc_get_lookup(q.ringtone_id, mf.name) as ringtone
-from q
-    inner join flow.calendar c on q.calendar_id = c.id
-    left join directory.wbt_user uc on uc.id = q.created_by
-	left join directory.wbt_user u on u.id = q.updated_by
-    left join cc_list cl on q.dnc_list_id = cl.id
-	left join flow.acr_routing_scheme s on q.schema_id = s.id
-    left join cc_team ct on q.team_id = ct.id
-    left join storage.media_files mf on mf.id = q.ringtone_id`,
+select q.id,
+       q.strategy,
+       q.enabled,
+       q.payload,
+       q.priority,
+       q.updated_at,
+       q.name,
+       q.variables,
+       q.timeout,
+       q.domain_id,
+       q.sec_locate_agent,
+       q.type,
+       q.created_at,
+       cc_get_lookup(uc.id, uc.name)         as created_by,
+       cc_get_lookup(u.id, u.name)           as updated_by,
+       cc_get_lookup(c.id, c.name)           as calendar,
+       cc_get_lookup(cl.id, cl.name)         as dnc_list,
+       cc_get_lookup(ct.id, ct.name)         as team,
+       q.description,
+       cc_get_lookup(s.id, s.name)           as schema,
+       call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
+       call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
+       cc_get_lookup(q.ringtone_id, mf.name) as ringtone
+from cc_queue q
+         inner join flow.calendar c on q.calendar_id = c.id
+         left join directory.wbt_user uc on uc.id = q.created_by
+         left join directory.wbt_user u on u.id = q.updated_by
+         left join cc_list cl on q.dnc_list_id = cl.id
+         left join flow.acr_routing_scheme s on q.schema_id = s.id
+         LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
+         LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
+         left join cc_team ct on q.team_id = ct.id
+         left join storage.media_files mf on mf.id = q.ringtone_id`,
 		map[string]interface{}{
 			"Strategy":       queue.Strategy,
 			"Enabled":        queue.Enabled,
@@ -80,6 +101,9 @@ from q
 			"UpdatedBy":      queue.UpdatedBy.Id,
 			"Description":    queue.Description,
 			"SchemaId":       queue.SchemaId(),
+			"DoSchemaId":     queue.DoSchemaId(),
+			"AfterSchemaId":  queue.AfterSchemaId(),
+			"RingtoneId":     queue.RingtoneId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
@@ -135,19 +159,39 @@ func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *
 func (s SqlQueueStore) Get(domainId int64, id int64) (*model.Queue, *model.AppError) {
 	var queue *model.Queue
 	if err := s.GetReplica().SelectOne(&queue, `
-			select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
-          q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
-          q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
-		  cc_get_lookup(s.id, s.name) as schema, cc_get_lookup(q.ringtone_id, mf.name) as ringtone
+select q.id,
+       q.strategy,
+       q.enabled,
+       q.payload,
+       q.priority,
+       q.updated_at,
+       q.name,
+       q.variables,
+       q.timeout,
+       q.domain_id,
+       q.sec_locate_agent,
+       q.type,
+       q.created_at,
+       cc_get_lookup(uc.id, uc.name)         as created_by,
+       cc_get_lookup(u.id, u.name)           as updated_by,
+       cc_get_lookup(c.id, c.name)           as calendar,
+       cc_get_lookup(cl.id, cl.name)         as dnc_list,
+       cc_get_lookup(ct.id, ct.name)         as team,
+       q.description,
+       cc_get_lookup(s.id, s.name)           as schema,
+       call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
+       call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
+       cc_get_lookup(q.ringtone_id, mf.name) as ringtone
 from cc_queue q
-    inner join flow.calendar c on q.calendar_id = c.id
-    left join directory.wbt_user uc on uc.id = q.created_by
-	left join directory.wbt_user u on u.id = q.updated_by
-    left join cc_list cl on q.dnc_list_id = cl.id
-	left join flow.acr_routing_scheme s on q.schema_id = s.id
-    left join cc_team ct on q.team_id = ct.id
-    left join storage.media_files mf on mf.id = q.ringtone_id
+         inner join flow.calendar c on q.calendar_id = c.id
+         left join directory.wbt_user uc on uc.id = q.created_by
+         left join directory.wbt_user u on u.id = q.updated_by
+         left join cc_list cl on q.dnc_list_id = cl.id
+         left join flow.acr_routing_scheme s on q.schema_id = s.id
+         LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
+         LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
+         left join cc_team ct on q.team_id = ct.id
+         left join storage.media_files mf on mf.id = q.ringtone_id
 where q.domain_id = :DomainId and q.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Get", "store.sql_queue.get.app_error", nil,
@@ -176,23 +220,45 @@ set updated_at = :UpdatedAt,
     team_id = :TeamId,
 	description = :Description,
 	schema_id = :SchemaId,
-	ringtone_id = :RingtoneId
+	ringtone_id = :RingtoneId,
+	do_schema_id = :DoSchemaId,
+	after_schema_id = :AfterSchemaId
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
-select q.id, q.strategy, q.enabled, q.payload,  q.priority, q.updated_at,
-          q.name, q.variables, q.timeout, q.domain_id,  q.sec_locate_agent, q.type,
-          q.created_at, cc_get_lookup(uc.id, uc.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-          cc_get_lookup(c.id, c.name) as calendar, cc_get_lookup(cl.id, cl.name) as dnc_list, cc_get_lookup(ct.id, ct.name) as team, q.description,
-		  cc_get_lookup(s.id, s.name) as schema, cc_get_lookup(q.ringtone_id, mf.name) as ringtone
+select q.id,
+       q.strategy,
+       q.enabled,
+       q.payload,
+       q.priority,
+       q.updated_at,
+       q.name,
+       q.variables,
+       q.timeout,
+       q.domain_id,
+       q.sec_locate_agent,
+       q.type,
+       q.created_at,
+       cc_get_lookup(uc.id, uc.name)         as created_by,
+       cc_get_lookup(u.id, u.name)           as updated_by,
+       cc_get_lookup(c.id, c.name)           as calendar,
+       cc_get_lookup(cl.id, cl.name)         as dnc_list,
+       cc_get_lookup(ct.id, ct.name)         as team,
+       q.description,
+       cc_get_lookup(s.id, s.name)           as schema,
+       call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
+       call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
+       cc_get_lookup(q.ringtone_id, mf.name) as ringtone
 from q
-    inner join flow.calendar c on q.calendar_id = c.id
-    left join directory.wbt_user uc on uc.id = q.created_by
-	left join directory.wbt_user u on u.id = q.updated_by
-    left join cc_list cl on q.dnc_list_id = cl.id
-	left join flow.acr_routing_scheme s on q.schema_id = s.id
-    left join cc_team ct on q.team_id = ct.id
-    left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
+         inner join flow.calendar c on q.calendar_id = c.id
+         left join directory.wbt_user uc on uc.id = q.created_by
+         left join directory.wbt_user u on u.id = q.updated_by
+         left join cc_list cl on q.dnc_list_id = cl.id
+         left join flow.acr_routing_scheme s on q.schema_id = s.id
+         LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
+         LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
+         left join cc_team ct on q.team_id = ct.id
+         left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
 		"UpdatedAt":      queue.UpdatedAt,
 		"UpdatedBy":      queue.UpdatedBy.Id,
 		"Strategy":       queue.Strategy,
@@ -212,6 +278,8 @@ from q
 		"DomainId":       queue.DomainId,
 		"Description":    queue.Description,
 		"RingtoneId":     queue.RingtoneId(),
+		"DoSchemaId":     queue.DoSchemaId(),
+		"AfterSchemaId":  queue.AfterSchemaId(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,

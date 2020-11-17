@@ -20,6 +20,8 @@ type Queue struct {
 	Waiting        int       `json:"waiting" db:"waiting"`
 	Active         int       `json:"active" db:"active"`
 	Ringtone       *Lookup   `json:"ringtone" db:"ringtone"`
+	DoSchema       *Lookup   `json:"do_schema" db:"do_schema"`
+	AfterSchema    *Lookup   `json:"after_schema" db:"after_schema"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -33,7 +35,7 @@ func (q Queue) DefaultOrder() string {
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables", "timeout",
 		"domain_id", "sec_locate_agent", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
-		"schema", "count", "waiting", "active", "ringtone"}
+		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema"}
 }
 
 func (q Queue) EntityName() string {
@@ -85,6 +87,8 @@ type QueuePatch struct {
 	Team           *Lookup   `json:"team" db:"team"`
 	Schema         *Lookup   `json:"schema" db:"schema"`
 	Ringtone       *Lookup   `json:"ringtone" db:"ringtone"`
+	DoSchema       *Lookup   `json:"do_schema" db:"do_schema"`
+	AfterSchema    *Lookup   `json:"after_schema" db:"after_schema"`
 	Description    *string   `json:"description" db:"description"`
 }
 
@@ -144,6 +148,14 @@ func (q *Queue) Patch(p *QueuePatch) {
 	if p.Ringtone != nil {
 		q.Ringtone = p.Ringtone
 	}
+
+	if p.DoSchema != nil {
+		q.DoSchema = p.DoSchema
+	}
+
+	if p.AfterSchema != nil {
+		q.AfterSchema = p.AfterSchema
+	}
 }
 
 func (q *Queue) IsValid() *AppError {
@@ -176,6 +188,20 @@ func (q *Queue) TeamId() *int64 {
 func (q *Queue) SchemaId() *int64 {
 	if q.Schema != nil {
 		return NewInt64(int64(q.Schema.Id))
+	}
+	return nil
+}
+
+func (q *Queue) DoSchemaId() *int64 {
+	if q.DoSchema != nil {
+		return NewInt64(int64(q.DoSchema.Id))
+	}
+	return nil
+}
+
+func (q *Queue) AfterSchemaId() *int64 {
+	if q.AfterSchema != nil {
+		return NewInt64(int64(q.AfterSchema.Id))
 	}
 	return nil
 }

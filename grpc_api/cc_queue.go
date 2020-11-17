@@ -58,6 +58,8 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		Type:           int8(in.Type),
 		Team:           GetLookup(in.GetTeam()),
 		Schema:         GetLookup(in.GetSchema()),
+		DoSchema:       GetLookup(in.GetDoSchema()),
+		AfterSchema:    GetLookup(in.GetAfterSchema()),
 		Description:    in.Description,
 	}
 
@@ -205,6 +207,10 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.Schema = GetLookup(in.Schema)
 		case "ringtone":
 			patch.Ringtone = GetLookup(in.Ringtone)
+		case "do_schema":
+			patch.DoSchema = GetLookup(in.DoSchema)
+		case "after_schema":
+			patch.AfterSchema = GetLookup(in.AfterSchema)
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		}
@@ -270,6 +276,8 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		Team:           GetLookup(in.Team),
 		Schema:         GetLookup(in.Schema),
 		Ringtone:       GetLookup(in.Ringtone),
+		DoSchema:       GetLookup(in.DoSchema),
+		AfterSchema:    GetLookup(in.AfterSchema),
 		Description:    in.Description,
 	})
 
@@ -411,6 +419,8 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Team:           GetProtoLookup(src.Team),
 		Schema:         GetProtoLookup(src.Schema),
 		Ringtone:       GetProtoLookup(src.Ringtone),
+		DoSchema:       GetProtoLookup(src.DoSchema),
+		AfterSchema:    GetProtoLookup(src.AfterSchema),
 		Description:    src.Description,
 		Count:          int32(src.Count),
 		Waiting:        int32(src.Waiting),
