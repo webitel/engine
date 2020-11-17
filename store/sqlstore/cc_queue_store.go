@@ -71,7 +71,7 @@ select q.id,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone
-from cc_queue q
+from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
