@@ -2,8 +2,10 @@ package chat_manager
 
 import (
 	"context"
+	"fmt"
 	"github.com/webitel/engine/model"
 	client "github.com/webitel/protos/chat"
+	"github.com/webitel/wlog"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -63,6 +65,10 @@ func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, 
 		AuthUserId: authUserId,
 	})
 
+	if err != nil {
+		wlog.Error(fmt.Sprintf("[%s] error: %s", cc.host, err.Error()))
+	}
+
 	return err
 }
 
@@ -92,6 +98,7 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 		},
 		DomainId: domainId,
 	})
+
 	if err != nil {
 		return err
 	}

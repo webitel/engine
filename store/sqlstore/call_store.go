@@ -156,7 +156,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"SkipParent":      search.SkipParent,
 		"ParentId":        search.ParentId,
 		"Number":          search.Number,
-		"Cause":           search.Cause,
+		"CauseArr":        pq.Array(search.CauseArr),
 		"HasFile":         search.HasFile,
 		"Direction":       search.Direction,
 		"Missed":          search.Missed,
@@ -191,7 +191,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
 	and (:HasFile::bool is not true or files notnull )
-	and (:Cause::varchar isnull or cause = :Cause )
+	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
 	and (:Direction::varchar isnull or direction = :Direction )

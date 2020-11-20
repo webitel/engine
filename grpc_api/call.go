@@ -49,6 +49,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		TransferToIds:   in.GetTransferTo(),
 		DependencyIds:   in.GetDependencyId(),
 		Tags:            in.GetTags(),
+		CauseArr:        in.GetCause(),
 	}
 
 	if in.GetDuration() != nil {
@@ -85,10 +86,6 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 
 	if in.GetParentId() != "" {
 		req.ParentId = &in.ParentId
-	}
-
-	if in.GetCause() != "" {
-		req.Cause = &in.Cause
 	}
 
 	if in.GetNumber() != "" {
