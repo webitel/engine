@@ -515,7 +515,7 @@ from (
     from (
          select c.agent_id,
                count(*) as count,
-               count(*) filter ( where c.answered_at isnull ) as abandoned,
+               count(*) filter ( where c.answered_at isnull and c.cause in ('NO_ANSWER', 'ORIGINATOR_CANCEL') ) as abandoned, -- todo is missing
                count(*) filter ( where c.answered_at notnull ) as handles,
                extract(epoch from sum(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as sum_talk_sec,
                extract(epoch from avg(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as avg_talk_sec,
