@@ -2,8 +2,8 @@ package wsapi
 
 import (
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/chat"
 )
 
 func (api *API) InitChat() {

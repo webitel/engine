@@ -3,8 +3,8 @@ package chat_manager
 import (
 	"context"
 	"fmt"
+	client "github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
-	client "github.com/webitel/protos/chat"
 	"github.com/webitel/wlog"
 	"google.golang.org/grpc/metadata"
 )

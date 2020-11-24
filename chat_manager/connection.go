@@ -1,7 +1,7 @@
 package chat_manager
 
 import (
-	client "github.com/webitel/protos/chat"
+	client "github.com/webitel/engine/chat_manager/chat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"time"

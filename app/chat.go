@@ -1,8 +1,8 @@
 package app
 
 import (
+	client "github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
-	client "github.com/webitel/protos/chat"
 	"net/http"
 )
 

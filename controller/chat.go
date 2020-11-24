@@ -2,8 +2,8 @@ package controller
 
 import (
 	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/chat"
 )
 
 func (c *Controller) DeclineChat(session *auth_manager.Session, inviteId string) *model.AppError {
