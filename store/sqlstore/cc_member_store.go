@@ -294,6 +294,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	return member, nil
 }
 
+// FIXME no error if restrict reference
 func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
 	if _, err := s.GetMaster().Exec(`delete from cc_member c where c.id=:Id and c.queue_id = :QueueId and not exists(select 1 from cc_member_attempt a where a.member_id = c.id)`,
 		map[string]interface{}{"Id": id, "QueueId": queueId}); err != nil {

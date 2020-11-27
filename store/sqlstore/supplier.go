@@ -54,7 +54,6 @@ type SqlSupplierOldStores struct {
 	member store.MemberStore
 
 	routingSchema       store.RoutingSchemaStore
-	routingInboundCall  store.RoutingInboundCallStore
 	routingOutboundCall store.RoutingOutboundCallStore
 	routingVariable     store.RoutingVariableStore
 
@@ -107,7 +106,6 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.member = NewSqlMemberStore(supplier)
 
 	supplier.oldStores.routingSchema = NewSqlRoutingSchemaStore(supplier)
-	supplier.oldStores.routingInboundCall = NewSqlRoutingInboundCallStore(supplier)
 	supplier.oldStores.routingOutboundCall = NewSqlRoutingOutboundCallStore(supplier)
 	supplier.oldStores.routingVariable = NewSqlRoutingVariableStore(supplier)
 
@@ -267,10 +265,6 @@ func (ss *SqlSupplier) OutboundResourceInGroup() store.OutboundResourceInGroupSt
 
 func (ss *SqlSupplier) RoutingSchema() store.RoutingSchemaStore {
 	return ss.oldStores.routingSchema
-}
-
-func (ss *SqlSupplier) RoutingInboundCall() store.RoutingInboundCallStore {
-	return ss.oldStores.routingInboundCall
 }
 
 func (ss *SqlSupplier) RoutingOutboundCall() store.RoutingOutboundCallStore {

@@ -81,10 +81,6 @@ func (s *LayeredStore) RoutingSchema() RoutingSchemaStore {
 	return s.DatabaseLayer.RoutingSchema()
 }
 
-func (s *LayeredStore) RoutingInboundCall() RoutingInboundCallStore {
-	return s.DatabaseLayer.RoutingInboundCall()
-}
-
 func (s *LayeredStore) RoutingOutboundCall() RoutingOutboundCallStore {
 	return s.DatabaseLayer.RoutingOutboundCall()
 }

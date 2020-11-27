@@ -46,7 +46,6 @@ type Store interface {
 	Member() MemberStore
 
 	RoutingSchema() RoutingSchemaStore
-	RoutingInboundCall() RoutingInboundCallStore
 	RoutingOutboundCall() RoutingOutboundCallStore
 	RoutingVariable() RoutingVariableStore
 
@@ -187,15 +186,6 @@ type RoutingSchemaStore interface {
 	GetAllPage(domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, *model.AppError)
 	Get(domainId int64, id int64) (*model.RoutingSchema, *model.AppError)
 	Update(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError)
-	Delete(domainId, id int64) *model.AppError
-}
-
-//FIXME
-type RoutingInboundCallStore interface {
-	Create(routing *model.RoutingInboundCall) (*model.RoutingInboundCall, *model.AppError)
-	GetAllPage(domainId int64, offset, limit int) ([]*model.RoutingInboundCall, *model.AppError)
-	Get(domainId, id int64) (*model.RoutingInboundCall, *model.AppError)
-	Update(routing *model.RoutingInboundCall) (*model.RoutingInboundCall, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 }
 
