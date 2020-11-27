@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/webitel/engine/auth_manager"
-	"github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
 )
 
@@ -46,7 +45,7 @@ func (c *Controller) UpdateChannelChat(session *auth_manager.Session, channelId 
 	return c.app.UpdateChannelChat(session.UserId, channelId)
 }
 
-func (c *Controller) ListActiveChat(session *auth_manager.Session, page, size int) (*chat.GetConversationsResponse, *model.AppError) {
+func (c *Controller) ListActiveChat(session *auth_manager.Session, page, size int) ([]*model.Conversation, *model.AppError) {
 	// FIXME PERMISSION
 	return c.app.ListActiveChat(session.Token, session.DomainId, session.UserId, page, size)
 }

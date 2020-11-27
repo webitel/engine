@@ -53,6 +53,12 @@ type Store interface {
 	Call() CallStore
 
 	EmailProfile() EmailProfileStore
+	Chat() ChatStore
+}
+
+// todo deprecated
+type ChatStore interface {
+	OpenedConversations(domainId, userId int64) ([]*model.Conversation, *model.AppError)
 }
 
 type UserStore interface {

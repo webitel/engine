@@ -2,7 +2,6 @@ package wsapi
 
 import (
 	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
 )
 
@@ -139,7 +138,7 @@ func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 
 func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var channelId, conversationId, title string
-	var userId int64
+	var userId float64
 	var ok bool
 
 	channelId, ok = req.Data["channel_id"].(string)
@@ -154,12 +153,12 @@ func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 		return nil, NewInvalidWebSocketParamError(req.Action, "conversation_id")
 	}
 
-	userId, ok = req.Data["user_id"].(int64)
+	userId, ok = req.Data["user_id"].(float64)
 	if !ok || userId == 0 {
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
-	err := api.ctrl.AddToChat(conn.GetSession(), userId, channelId, conversationId, title)
+	err := api.ctrl.AddToChat(conn.GetSession(), int64(userId), channelId, conversationId, title)
 	return nil, err
 }
 
@@ -208,10 +207,9 @@ func (api *API) listActiveChat(conn *app.WebConn, req *model.WebSocketRequest) (
 	return listChatResponse(list), nil
 }
 
-func listChatResponse(list *chat.GetConversationsResponse) map[string]interface{} {
+func listChatResponse(list []*model.Conversation) map[string]interface{} {
 	res := make(map[string]interface{})
-	res["next"] = list.Next
-	res["items"] = list.Items
+	res["items"] = list
 
 	return res
 }

@@ -60,6 +60,8 @@ type SqlSupplierOldStores struct {
 
 	call         store.CallStore
 	emailProfile store.EmailProfileStore
+
+	chat store.ChatStore
 }
 
 type SqlSupplier struct {
@@ -111,6 +113,9 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.oldStores.call = NewSqlCallStore(supplier)
 	supplier.oldStores.emailProfile = NewSqlEmailProfileStore(supplier)
+
+	// todo deprecated
+	supplier.oldStores.chat = NewSqlChatStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -320,6 +325,10 @@ func (ss *SqlSupplier) EmailProfile() store.EmailProfileStore {
 	return ss.oldStores.emailProfile
 }
 
+func (ss *SqlSupplier) Chat() store.ChatStore {
+	return ss.oldStores.chat
+}
+
 type typeConverter struct{}
 
 func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
@@ -351,6 +360,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*[]*model.Lookup,
 		*[]*model.AgentInQueueStats,
 		*[]*model.CallFile,
+		*[]*model.ChatMember,
+		*[]*model.ChatMessage,
 		**model.CCTask,
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
