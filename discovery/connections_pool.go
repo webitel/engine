@@ -80,9 +80,9 @@ func (c *connectionsPool) Remove(id string) {
 		if v.Name() == id {
 			c.iterator.length = len(c.connections) - 1
 			c.connections[i] = c.connections[c.iterator.length]
-			if err := c.connections[c.iterator.length].Close(); err != nil {
-				wlog.Error(err.Error())
-			}
+			//if err := c.connections[c.iterator.length].Close(); err != nil {
+			//	wlog.Error(err.Error())
+			//}
 			c.connections[c.iterator.length] = nil
 			c.connections = c.connections[:len(c.connections)-1]
 			wlog.Debug(fmt.Sprintf("remove connection %s", v.Name()))
