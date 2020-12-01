@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/hex"
 	"encoding/pem"
+	"errors"
 	"io/ioutil"
 )
 
@@ -18,7 +19,6 @@ type PreSign interface {
 }
 
 type preSign struct {
-	block      *pem.Block
 	privateKey *rsa.PrivateKey
 }
 
@@ -30,24 +30,23 @@ func hash(msg []byte) []byte {
 }
 
 func NewPreSigned(pemLocation string) (PreSign, error) {
-	pubKey, err := ioutil.ReadFile(pemLocation)
+	cert, err := ioutil.ReadFile(pemLocation)
 	if err != nil {
 		return nil, err
 	}
 
-	block, _ := pem.Decode(pubKey)
+	block, _ := pem.Decode(cert)
 	if block == nil {
-		return nil, err
+		return nil, errors.New("decode certificate")
 	}
 
-	der, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	pkey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, err
 	}
 
 	return &preSign{
-		block:      block,
-		privateKey: der,
+		privateKey: pkey,
 	}, nil
 }
 
