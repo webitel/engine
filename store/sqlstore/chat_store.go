@@ -36,9 +36,9 @@ from (
         and inv.domain_id = :DomainId::int8
      union
 
-     select 2, ch.id, null::text invite_id, ch.joined_at, ch.conversation_id, ch.user_id, ch.updated_at
+     select 2, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at
      from (
-        select ch.id, ch.joined_at, ch.conversation_id, ch.user_id, ch.updated_at
+        select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at
         from chat.channel ch
         where ch.user_id = :UserId::int8 and ch.closed_at isnull
             and ch.domain_id = :DomainId::int8
@@ -51,7 +51,7 @@ from (
         select json_agg(t) messages
         from (
             select m.id, cc_view_timestamp(m.created_at) created_at,
-                   cc_view_timestamp(m.updated_at) updated_at, m.text, m.type, m.channel_id
+                   cc_view_timestamp(m.updated_at) updated_at, m.text as value, m.type, m.channel_id
             from chat.message m
             where m.conversation_id = ch.conversation_id
             order by m.created_at desc

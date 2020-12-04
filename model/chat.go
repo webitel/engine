@@ -12,7 +12,7 @@ type ChatMessage struct {
 	ChannelId string `json:"channel_id"`
 	CreatedAt int64  `json:"created_at"`
 	UpdatedAt int64  `json:"updated_at"`
-	Text      string `json:"text"`
+	Value     string `json:"value"`
 	Type      string `json:"type"`
 }
 
