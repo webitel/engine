@@ -22,6 +22,7 @@ type Chat interface {
 	CloseConversation(authUserId int64, channelId, conversationId, cause string) error
 
 	SendText(authUserId int64, channelId, conversationId, text string) error
+	SendFile(authUserId int64, channelId, conversationId, url, mimeType string) error
 
 	AddToChat(authUserId, userId int64, channelId, conversationId, title string) error
 	NewInternalChat(domainId, authUserId, userId int64) error

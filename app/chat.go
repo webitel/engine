@@ -51,12 +51,26 @@ func (a *App) LeaveChat(authUserId int64, channelId, conversationId string) *mod
 func (a *App) SendTextMessage(authUserId int64, channelId, conversationId, text string) *model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
-		return model.NewAppError("SendTextMessage", "chat.send.client_err", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendTextMessage", "chat.send.text.client_err.not_found", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	err = chat.SendText(authUserId, channelId, conversationId, text)
 	if err != nil {
-		return model.NewAppError("SendTextMessage", "chat.send.app_err", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SendTextMessage", "chat.send.text.app_err", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) SendFileMessage(authUserId int64, channelId, conversationId, url, mimeType string) *model.AppError {
+	chat, err := a.chatManager.Client()
+	if err != nil {
+		return model.NewAppError("SendFileMessage", "chat.send.file.client_err.not_found", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = chat.SendFile(authUserId, channelId, conversationId, url, mimeType)
+	if err != nil {
+		return model.NewAppError("SendFileMessage", "chat.send.file.app_err", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

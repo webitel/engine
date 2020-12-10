@@ -72,6 +72,29 @@ func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, 
 	return err
 }
 
+func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId, url, mimeType string) error {
+	_, err := cc.api.SendMessage(context.Background(), &client.SendMessageRequest{
+		ConversationId: conversationId,
+		ChannelId:      channelId,
+		Message: &client.Message{
+			Type: "file", // TODO
+			Value: &client.Message_File_{
+				File: &client.Message_File{
+					Url:      url,
+					MimeType: mimeType,
+				},
+			},
+		},
+		AuthUserId: authUserId,
+	})
+
+	if err != nil {
+		wlog.Error(fmt.Sprintf("[%s] error: %s", cc.host, err.Error()))
+	}
+
+	return err
+}
+
 func (cc *chatConnection) AddToChat(authUserId, userId int64, channelId, conversationId, title string) error { // запросити
 	_, err := cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
 		User: &client.User{

@@ -12,6 +12,7 @@ func (api *API) InitChat() {
 	api.Router.Handle("close_chat", api.ApiWebSocketHandler(api.closeChat))
 	api.Router.Handle("leave_chat", api.ApiWebSocketHandler(api.leaveChat))
 	api.Router.Handle("send_text_chat", api.ApiWebSocketHandler(api.sendTextChat))
+	api.Router.Handle("send_file_chat", api.ApiWebSocketHandler(api.sendFileChat))
 	api.Router.Handle("add_to_chat", api.ApiWebSocketHandler(api.addToChat))
 	api.Router.Handle("start_chat", api.ApiWebSocketHandler(api.startChat))
 	api.Router.Handle("update_channel_chat", api.ApiWebSocketHandler(api.updateChannelChat))
@@ -133,6 +134,30 @@ func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	}
 
 	err := api.ctrl.SendTextChat(conn.GetSession(), channelId, conversationId, text)
+	return nil, err
+}
+
+func (api *API) sendFileChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var channelId, conversationId, url, mimeType string
+	var ok bool
+
+	channelId, ok = req.Data["channel_id"].(string)
+	if !ok || channelId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	conversationId, ok = req.Data["conversation_id"].(string)
+	if !ok || conversationId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "conversation_id")
+	}
+
+	url, ok = req.Data["url"].(string)
+	if !ok || url == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "url")
+	}
+	mimeType, _ = req.Data["mime"].(string)
+
+	err := api.ctrl.SendFileChat(conn.GetSession(), channelId, conversationId, url, mimeType)
 	return nil, err
 }
 
