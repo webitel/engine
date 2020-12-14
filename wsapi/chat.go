@@ -139,17 +139,17 @@ func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 
 func (api *API) sendFileChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var channelId, conversationId, url, mimeType, name string
-	var id, size int64
+	var id, size float64
 	var ok bool
 
-	id, ok = req.Data["id"].(int64)
+	id, ok = req.Data["id"].(float64)
 	if !ok || id == 0 {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
 	name, _ = req.Data["name"].(string)
 
-	size, ok = req.Data["size"].(int64)
-	if !ok || size == 0 {
+	size, ok = req.Data["size"].(float64)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "size")
 	}
 
@@ -170,11 +170,11 @@ func (api *API) sendFileChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	mimeType, _ = req.Data["mime"].(string)
 
 	err := api.ctrl.SendFileChat(conn.GetSession(), channelId, conversationId, &model.ChatFile{
-		Id:   id,
+		Id:   int64(id),
 		Name: name,
 		Url:  url,
 		Mime: mimeType,
-		Size: size,
+		Size: int64(size),
 	})
 	return nil, err
 }
