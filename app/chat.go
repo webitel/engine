@@ -62,13 +62,13 @@ func (a *App) SendTextMessage(authUserId int64, channelId, conversationId, text 
 	return nil
 }
 
-func (a *App) SendFileMessage(authUserId int64, channelId, conversationId, url, mimeType string) *model.AppError {
+func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string, file *model.ChatFile) *model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewAppError("SendFileMessage", "chat.send.file.client_err.not_found", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = chat.SendFile(authUserId, channelId, conversationId, url, mimeType)
+	err = chat.SendFile(authUserId, channelId, conversationId, file)
 	if err != nil {
 		return model.NewAppError("SendFileMessage", "chat.send.file.app_err", nil, err.Error(), http.StatusInternalServerError)
 	}

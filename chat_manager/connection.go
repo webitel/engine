@@ -2,6 +2,7 @@ package chat_manager
 
 import (
 	client "github.com/webitel/engine/chat_manager/chat"
+	"github.com/webitel/engine/model"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"time"
@@ -22,7 +23,7 @@ type Chat interface {
 	CloseConversation(authUserId int64, channelId, conversationId, cause string) error
 
 	SendText(authUserId int64, channelId, conversationId, text string) error
-	SendFile(authUserId int64, channelId, conversationId, url, mimeType string) error
+	SendFile(authUserId int64, channelId, conversationId string, file *model.ChatFile) error
 
 	AddToChat(authUserId, userId int64, channelId, conversationId, title string) error
 	NewInternalChat(domainId, authUserId, userId int64) error

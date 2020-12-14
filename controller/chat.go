@@ -30,9 +30,9 @@ func (c *Controller) SendTextChat(session *auth_manager.Session, channelId, conv
 	return c.app.SendTextMessage(session.UserId, channelId, conversationId, text)
 }
 
-func (c *Controller) SendFileChat(session *auth_manager.Session, channelId, conversationId, url, mimeType string) *model.AppError {
+func (c *Controller) SendFileChat(session *auth_manager.Session, channelId, conversationId string, file *model.ChatFile) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.SendFileMessage(session.UserId, channelId, conversationId, url, mimeType)
+	return c.app.SendFileMessage(session.UserId, channelId, conversationId, file)
 }
 
 func (c *Controller) AddToChat(session *auth_manager.Session, userId int64, channelId, conversationId, title string) *model.AppError {

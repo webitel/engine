@@ -7,6 +7,14 @@ type ChatEvent struct {
 	Data     map[string]interface{}
 }
 
+type ChatFile struct {
+	Id   int64  `json:"id"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
+	Mime string `json:"mime"`
+	Size int64  `json:"size"`
+}
+
 type ChatMessage struct {
 	Id        int64                  `json:"id"`
 	ChannelId string                 `json:"channel_id"`

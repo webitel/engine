@@ -72,7 +72,7 @@ func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, 
 	return err
 }
 
-func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId, url, mimeType string) error {
+func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId string, file *model.ChatFile) error {
 	_, err := cc.api.SendMessage(context.Background(), &client.SendMessageRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
@@ -80,8 +80,10 @@ func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId, 
 			Type: "file", // TODO
 			Value: &client.Message_File_{
 				File: &client.Message_File{
-					Url:      url,
-					MimeType: mimeType,
+					Id:   file.Id,
+					Url:  file.Url,
+					Mime: file.Mime,
+					Size: file.Size,
 				},
 			},
 		},
