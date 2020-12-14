@@ -84,6 +84,7 @@ func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId s
 					Url:  file.Url,
 					Mime: file.Mime,
 					Size: file.Size,
+					Name: file.Name,
 				},
 			},
 		},
