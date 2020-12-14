@@ -8,12 +8,13 @@ type ChatEvent struct {
 }
 
 type ChatMessage struct {
-	Id        int64  `json:"id"`
-	ChannelId string `json:"channel_id"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
-	Value     string `json:"value"`
-	Type      string `json:"type"`
+	Id        int64                  `json:"id"`
+	ChannelId string                 `json:"channel_id"`
+	CreatedAt int64                  `json:"created_at"`
+	UpdatedAt int64                  `json:"updated_at"`
+	Type      string                 `json:"type"`
+	Text      *string                `json:"text,omitempty"`
+	File      map[string]interface{} `json:"file,omitempty"`
 }
 
 type ChatMember struct {

@@ -51,7 +51,7 @@ from (
         select json_agg(t) messages
         from (
             select m.id, cc_view_timestamp(m.created_at) created_at,
-                   cc_view_timestamp(m.updated_at) updated_at, m.text as value, m.type, m.channel_id
+                   cc_view_timestamp(m.updated_at) updated_at, m.text as text, m.variables as "file", m.type, m.channel_id
             from chat.message m
             where m.conversation_id = ch.conversation_id
             order by m.created_at desc
