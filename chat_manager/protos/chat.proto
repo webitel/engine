@@ -208,6 +208,7 @@ message InviteToConversationRequest {
   //  bool from_flow = 7;
   string title = 7;
   string app_id = 8;
+  map<string,string> variables = 9;
 }
 
 message InviteToConversationResponse {
