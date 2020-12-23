@@ -339,8 +339,8 @@ select cc_get_lookup(q.id, q.name) queue,
        cc_get_lookup(ct.id, ct.name) team,
        coalesce(teams.online, 0) online,
        coalesce(teams.pause, 0) pause,
-       case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
-           else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end waiting,
+       coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
+           else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
        (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
        coalesce(ag.count, 0) count,
        coalesce(ag.bridged, 0) bridged,
