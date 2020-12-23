@@ -408,3 +408,11 @@ func IsValidId(value string) bool {
 
 	return true
 }
+
+func InterfaceToMapString(val interface{}) map[string]interface{} {
+	var res map[string]interface{}
+	data, _ := json.Marshal(val)
+	json.Unmarshal(data, &res)
+
+	return res
+}

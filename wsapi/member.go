@@ -2,11 +2,13 @@ package wsapi
 
 import (
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
 func (api *API) InitMember() {
 	api.Router.Handle("cc_member_direct", api.ApiWebSocketHandler(api.memberDirect))
+	api.Router.Handle("cc_member_page", api.ApiWebSocketHandler(api.getMember))
 	api.Router.Handle("cc_fetch_offline_members", api.ApiWebSocketHandler(api.offlineMembers))
 	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
 }
@@ -117,4 +119,39 @@ func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (
 	res["items"] = list
 	res["next"] = !end
 	return res, nil
+}
+
+func (api *API) getMember(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var queueId float64
+	var memberId float64
+	var ok bool
+	var err *model.AppError
+	session := conn.GetSession()
+
+	if memberId, ok = req.Data["member_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "member_id")
+	}
+
+	if queueId, ok = req.Data["queue_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "queue_id")
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.App.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.App.QueueCheckAccess(session.Domain(0), int64(queueId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.App.MakeResourcePermissionError(session, int64(queueId), permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	var out *model.Member
+	out, err = api.App.GetMember(session.Domain(0), int64(queueId), int64(memberId))
+
+	return model.InterfaceToMapString(out), nil
 }
