@@ -297,6 +297,7 @@ type HistoryCall struct {
 	TransferFrom     *string     `json:"transfer_from" db:"transfer_from"`
 	TransferTo       *string     `json:"transfer_to" db:"transfer_to"`
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
+	AgentDescription *string     `json:"agent_description"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -308,6 +309,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
+		"agent_description",
 	}
 }
 
@@ -315,7 +317,7 @@ func (c HistoryCall) DefaultFields() []string {
 	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "agent_description",
 	}
 }
 

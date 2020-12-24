@@ -680,6 +680,10 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		item.Extension = *src.Extension
 	}
 
+	if src.AgentDescription != nil {
+		item.AgentDescription = *src.AgentDescription
+	}
+
 	return item
 }
 
