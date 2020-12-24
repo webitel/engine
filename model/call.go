@@ -297,7 +297,7 @@ type HistoryCall struct {
 	TransferFrom     *string     `json:"transfer_from" db:"transfer_from"`
 	TransferTo       *string     `json:"transfer_to" db:"transfer_to"`
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
-	AgentDescription *string     `json:"agent_description"`
+	AgentDescription *string     `json:"agent_description" db:"agent_description"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
