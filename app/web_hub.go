@@ -5,6 +5,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/wlog"
+	"strconv"
 	"sync/atomic"
 	"time"
 )
@@ -135,11 +136,13 @@ func (wh *Hub) start() {
 
 			msg := model.NewWebSocketCallEvent(ev)
 
+			usr, _ := strconv.Atoi(ev.UserId)
+
 			msg.PrecomputeJSON()
-			candidates := connections.All()
+			candidates := connections.ForUser(int64(usr))
 			for _, webCon := range candidates {
 				//FIXME permission call events
-				if webCon.ShouldSendEvent(msg) && fmt.Sprintf("%d", webCon.UserId) == ev.UserId {
+				if webCon.ShouldSendEvent(msg) {
 					select {
 					case webCon.Send <- msg:
 					default:
@@ -147,6 +150,8 @@ func (wh *Hub) start() {
 						close(webCon.Send)
 						connections.Remove(webCon)
 					}
+					// todo delete me DEV-1574
+					wlog.Debug(fmt.Sprintf("Hub [%d] send event %s [%s]  to %d [%s]", wh.id, ev.Event, ev.Id, webCon.UserId, webCon.id))
 				}
 			}
 
@@ -169,7 +174,7 @@ func (wh *Hub) start() {
 
 			msg.PrecomputeJSON()
 			candidates := connections.All()
-			for _, webCon := range candidates {
+			for webCon := range candidates {
 				//FIXME permission call events
 				if webCon.ShouldSendEvent(msg) {
 					select {
@@ -283,59 +288,60 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	}
 }
 
-type hubConnectionIndexIndexes struct {
-	connections         int
-	connectionsByUserId int
-}
-
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
+// It requires 3 functionalities which need to be very fast:
+// - check if a connection exists or not.
+// - get all connections for a given userID.
+// - get all connections.
 type hubConnectionIndex struct {
-	connections         []*WebConn
-	connectionsByUserId map[int64][]*WebConn
-	connectionIndexes   map[*WebConn]*hubConnectionIndexIndexes
+	// byUserId stores the list of connections for a given userID
+	byUserId map[int64][]*WebConn
+	// byConnection serves the dual purpose of storing the index of the webconn
+	// in the value of byUserId map, and also to get all connections.
+	byConnection map[*WebConn]int
 }
 
 func newHubConnectionIndex() *hubConnectionIndex {
 	return &hubConnectionIndex{
-		connections:         make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
-		connectionsByUserId: make(map[int64][]*WebConn),
-		connectionIndexes:   make(map[*WebConn]*hubConnectionIndexIndexes),
+		byUserId:     make(map[int64][]*WebConn),
+		byConnection: make(map[*WebConn]int),
 	}
 }
 
 func (i *hubConnectionIndex) Add(wc *WebConn) {
-	i.connections = append(i.connections, wc)
-	i.connectionsByUserId[wc.UserId] = append(i.connectionsByUserId[wc.UserId], wc)
-	i.connectionIndexes[wc] = &hubConnectionIndexIndexes{
-		connections:         len(i.connections) - 1,
-		connectionsByUserId: len(i.connectionsByUserId[wc.UserId]) - 1,
-	}
+	i.byUserId[wc.UserId] = append(i.byUserId[wc.UserId], wc)
+	i.byConnection[wc] = len(i.byUserId[wc.UserId]) - 1
 }
 
 func (i *hubConnectionIndex) Remove(wc *WebConn) {
-	indexes, ok := i.connectionIndexes[wc]
+	userConnIndex, ok := i.byConnection[wc]
 	if !ok {
 		return
 	}
 
-	last := i.connections[len(i.connections)-1]
-	i.connections[indexes.connections] = last
-	i.connections = i.connections[:len(i.connections)-1]
-	i.connectionIndexes[last].connections = indexes.connections
+	// get the conn slice.
+	userConnections := i.byUserId[wc.UserId]
+	// get the last connection.
+	last := userConnections[len(userConnections)-1]
+	// set the slot that we are trying to remove to be the last connection.
+	userConnections[userConnIndex] = last
+	// remove the last connection from the slice.
+	i.byUserId[wc.UserId] = userConnections[:len(userConnections)-1]
+	// set the index of the connection that was moved to the new index.
+	i.byConnection[last] = userConnIndex
 
-	userConnections := i.connectionsByUserId[wc.UserId]
-	last = userConnections[len(userConnections)-1]
-	userConnections[indexes.connectionsByUserId] = last
-	i.connectionsByUserId[wc.UserId] = userConnections[:len(userConnections)-1]
-	i.connectionIndexes[last].connectionsByUserId = indexes.connectionsByUserId
+	delete(i.byConnection, wc)
+}
 
-	delete(i.connectionIndexes, wc)
+func (i *hubConnectionIndex) Has(wc *WebConn) bool {
+	_, ok := i.byConnection[wc]
+	return ok
 }
 
 func (i *hubConnectionIndex) ForUser(id int64) []*WebConn {
-	return i.connectionsByUserId[id]
+	return i.byUserId[id]
 }
 
-func (i *hubConnectionIndex) All() []*WebConn {
-	return i.connections
+func (i *hubConnectionIndex) All() map[*WebConn]int {
+	return i.byConnection
 }
