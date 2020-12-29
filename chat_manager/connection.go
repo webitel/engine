@@ -1,8 +1,9 @@
 package chat_manager
 
 import (
-	client "github.com/webitel/engine/chat_manager/chat"
+	"context"
 	"github.com/webitel/engine/model"
+	client "github.com/webitel/protos/engine/chat"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"time"
@@ -29,6 +30,7 @@ type Chat interface {
 	NewInternalChat(domainId, authUserId, userId int64) error
 	UpdateChannel(authUserId int64, channelId string) error
 	ListActive(token string, domainId, userId int64, page, size int) (*client.GetConversationsResponse, error)
+	InviteToConversation(ctx context.Context, domainId, userId int64, conversationId, inviterId, invUserId, title string, timeout int, vars map[string]string) (string, error)
 }
 
 type chatConnection struct {

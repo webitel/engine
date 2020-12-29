@@ -206,15 +206,15 @@ func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 }
 
 func (api *API) startChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	var userId int64
+	var userId float64
 	var ok bool
 
-	userId, ok = req.Data["user_id"].(int64)
+	userId, ok = req.Data["user_id"].(float64)
 	if !ok || userId == 0 {
-		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+		return nil, NewInvalidWebSocketParamError(req.Action, "user_id")
 	}
 
-	err := api.ctrl.StartChat(conn.GetSession(), userId)
+	err := api.ctrl.StartChat(conn.GetSession(), int64(userId))
 	return nil, err
 }
 

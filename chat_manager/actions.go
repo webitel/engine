@@ -3,10 +3,11 @@ package chat_manager
 import (
 	"context"
 	"fmt"
-	client "github.com/webitel/engine/chat_manager/chat"
 	"github.com/webitel/engine/model"
+	client "github.com/webitel/protos/engine/chat"
 	"github.com/webitel/wlog"
 	"google.golang.org/grpc/metadata"
+	"strconv"
 )
 
 func (cc *chatConnection) Decline(authUserId int64, inviteId string) error {
@@ -58,9 +59,7 @@ func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, 
 		ChannelId:      channelId,
 		Message: &client.Message{
 			Type: "text", // TODO
-			Value: &client.Message_Text{
-				Text: text,
-			},
+			Text: text,
 		},
 		AuthUserId: authUserId,
 	})
@@ -78,14 +77,12 @@ func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId s
 		ChannelId:      channelId,
 		Message: &client.Message{
 			Type: "file", // TODO
-			Value: &client.Message_File_{
-				File: &client.Message_File{
-					Id:   file.Id,
-					Url:  file.Url,
-					Mime: file.Mime,
-					Size: file.Size,
-					Name: file.Name,
-				},
+			File: &client.File{
+				Id:   file.Id,
+				Url:  file.Url,
+				Mime: file.Mime,
+				Size: file.Size,
+				Name: file.Name,
 			},
 		},
 		AuthUserId: authUserId,
@@ -163,4 +160,31 @@ func (cc *chatConnection) ListActive(token string, domainId, userId int64, page,
 		UserId:      userId,
 		MessageSize: 40, //TODO
 	})
+}
+
+func (cc *chatConnection) InviteToConversation(ctx context.Context, domainId, userId int64, conversationId, inviterId, invUserId, title string, timeout int, vars map[string]string) (string, error) {
+
+	inviterUserId, _ := strconv.Atoi(invUserId)
+
+	res, err := cc.api.InviteToConversation(ctx, &client.InviteToConversationRequest{
+		User: &client.User{
+			UserId:   userId,
+			Type:     "webitel",
+			Internal: true,
+		},
+		InviterChannelId: inviterId,
+		AuthUserId:       int64(inviterUserId),
+		ConversationId:   conversationId,
+		Variables:        vars,
+		TimeoutSec:       int64(timeout),
+		DomainId:         domainId,
+		Title:            title,
+		AppId:            "",
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	return res.InviteId, nil
 }
