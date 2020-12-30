@@ -385,7 +385,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 
 	var list []*model.Member
 
-	list, err = api.app.RemoveMembersByIds(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetIds())
+	list, err = api.app.RemoveMultiMembers(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetIds(), in.GetBucketId(), in.GetStopCause())
 
 	if err != nil {
 		return nil, err
