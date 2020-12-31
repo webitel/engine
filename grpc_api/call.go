@@ -2,9 +2,11 @@ package grpc_api
 
 import (
 	"context"
+	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 	"net/http"
+	"strings"
 )
 
 type call struct {
@@ -608,7 +610,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Gateway:          GetProtoLookup(src.Gateway),
 		Direction:        src.Direction,
 		Destination:      src.Destination,
-		Variables:        src.Variables,
+		Variables:        prettyVariables(src.Variables),
 		CreatedAt:        model.TimeToInt64(&src.CreatedAt),
 		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
 		BridgedAt:        model.TimeToInt64(src.BridgedAt),
@@ -685,6 +687,27 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 	}
 
 	return item
+}
+
+// todo, change proto response
+func prettyVariables(src map[string]interface{}) map[string]string {
+	if len(src) > 0 {
+		res := make(map[string]string)
+		for k, v := range src {
+			switch r := v.(type) {
+			case string:
+				res[k] = r
+			case []string:
+				res[k] = strings.Join(r, ", ")
+			default:
+				res[k] = fmt.Sprintf("%v", v)
+
+			}
+		}
+		return res
+	}
+
+	return nil
 }
 
 func toCallFile(src []*model.CallFile) []*engine.CallFile {
