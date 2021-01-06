@@ -61,7 +61,7 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 		 left join storage.media_files g on g.id = a.greeting_media_id
-         LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'online', c.online, 'state',
+         LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'state',
                                                                c.state, 'joined_at',
                                                                (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
                              FROM call_center.cc_agent_channel c
