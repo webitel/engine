@@ -26,7 +26,6 @@ type AgentChannel struct {
 	State       string  `json:"state"`
 	JoinedAt    int64   `json:"joined_at"`
 	Timeout     *int64  `json:"timeout,omitempty"`
-	Active      bool    `json:"active"`
 	Open        int     `json:"open"`
 	MaxOpen     int     `json:"max_open"`
 	NoAnswer    int     `json:"no_answer"`

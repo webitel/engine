@@ -473,7 +473,7 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        ch.x as channels,
        a.on_demand
 from cc_agent a
-     LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'active', c.online, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
+     LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
                                            'no_answer', c.no_answers,
                                            'wrap_time_ids', (select array_agg(att.id)
                                                 from cc_member_attempt att
