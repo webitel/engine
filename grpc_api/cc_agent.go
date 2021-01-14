@@ -241,7 +241,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 
 	switch in.Status {
 	case model.AgentStatusOnline:
-		err = api.ctrl.LoginAgent(session, session.Domain(in.GetDomainId()), in.GetId(), in.GetChannels(), in.OnDemand)
+		err = api.ctrl.LoginAgent(session, session.Domain(in.GetDomainId()), in.GetId(), in.OnDemand)
 	case model.AgentStatusPause:
 		err = api.ctrl.PauseAgent(session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), 0)
 	case model.AgentStatusOffline:
@@ -710,15 +710,14 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		GreetingMedia:    GetProtoLookup(src.GreetingMedia),
 	}
 
-	if src.Channels != nil {
-		agent.Channels = make([]*engine.AgentChannel, 0, len(src.Channels))
-		for _, v := range src.Channels {
-			agent.Channels = append(agent.Channels, &engine.AgentChannel{
-				Channel:  v.Channel,
-				State:    v.State,
-				JoinedAt: v.JoinedAt,
-			})
-		}
+	agent.Channel = &engine.AgentChannel{
+		Channel:  src.Channel.Channel,
+		State:    src.Channel.State,
+		JoinedAt: src.Channel.JoinedAt,
+	}
+
+	if src.Channel.Timeout != nil {
+		agent.Channel.Timeout = *src.Channel.Timeout
 	}
 
 	return agent

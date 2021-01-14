@@ -34,15 +34,15 @@ type AgentChannel struct {
 
 type Agent struct {
 	DomainRecord
-	User             Lookup         `json:"user" db:"user"`
-	Name             string         `json:"name" db:"name"`
-	Status           string         `json:"status" db:"status"`
-	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
-	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
-	Description      string         `json:"description" db:"description"`
-	ProgressiveCount int            `json:"progressive_count" db:"progressive_count"`
-	Channels         []AgentChannel `json:"channels" db:"channels"`
-	GreetingMedia    *Lookup        `json:"greeting_media" db:"greeting_media"`
+	User             Lookup       `json:"user" db:"user"`
+	Name             string       `json:"name" db:"name"`
+	Status           string       `json:"status" db:"status"`
+	LastStatusChange int64        `json:"last_status_change" db:"last_status_change"`
+	StatusDuration   int64        `json:"status_duration" db:"status_duration"`
+	Description      string       `json:"description" db:"description"`
+	ProgressiveCount int          `json:"progressive_count" db:"progressive_count"`
+	Channel          AgentChannel `json:"channel" db:"channel"`
+	GreetingMedia    *Lookup      `json:"greeting_media" db:"greeting_media"`
 }
 
 type AgentStatusStatistics struct {
@@ -86,7 +86,7 @@ func (a Agent) AllowFields() []string {
 }
 
 func (a Agent) DefaultFields() []string {
-	return []string{"id", "status", "name", "channels", "description", "status_duration", "last_status_change",
+	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media"}
 }
 
@@ -103,13 +103,13 @@ func (a *Agent) GreetingMediaId() *int {
 }
 
 type AgentSession struct {
-	AgentId          int64          `json:"agent_id" db:"agent_id"`
-	Status           string         `json:"status" db:"status"`
-	StatusPayload    *string        `json:"status_payload" db:"status_payload"`
-	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
-	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
-	OnDemand         bool           `json:"on_demand" db:"on_demand"`
-	Channels         []AgentChannel `json:"channels" db:"channels"`
+	AgentId          int64        `json:"agent_id" db:"agent_id"`
+	Status           string       `json:"status" db:"status"`
+	StatusPayload    *string      `json:"status_payload" db:"status_payload"`
+	LastStatusChange int64        `json:"last_status_change" db:"last_status_change"`
+	StatusDuration   int64        `json:"status_duration" db:"status_duration"`
+	OnDemand         bool         `json:"on_demand" db:"on_demand"`
+	Channel          AgentChannel `json:"channel" db:"channel"`
 }
 
 func (a AgentSession) ToMap() map[string]interface{} {

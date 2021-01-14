@@ -129,8 +129,8 @@ func (a *App) GetAgentSession(domainId, id int64) (*model.AgentSession, *model.A
 	return a.Store.Agent().GetSession(domainId, id)
 }
 
-func (a *App) LoginAgent(domainId, agentId int64, channels []string, onDemand bool) *model.AppError {
-	err := a.cc.Agent().Online(domainId, agentId, channels, onDemand)
+func (a *App) LoginAgent(domainId, agentId int64, onDemand bool) *model.AppError {
+	err := a.cc.Agent().Online(domainId, agentId, onDemand)
 	if err != nil {
 		return model.NewAppError("LoginAgent", "app.agent.login.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -181,4 +181,21 @@ func (a *App) GetAgentStatusStatistic(domainId int64, search *model.SearchAgentS
 	}
 	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
+}
+
+// agent_id check
+func (a *App) AcceptTask(appId string, domainId int64, attemptId int64) *model.AppError {
+	err := a.cc.Agent().AcceptTask(appId, domainId, attemptId)
+	if err != nil {
+		return model.NewAppError("AcceptTask", "app.cc.accept_task", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
+func (a *App) CloseTask(appId string, domainId int64, attemptId int64) *model.AppError {
+	err := a.cc.Agent().CloseTask(appId, domainId, attemptId)
+	if err != nil {
+		return model.NewAppError("CloseTask", "app.cc.close_task", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }

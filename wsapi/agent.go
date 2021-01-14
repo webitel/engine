@@ -13,6 +13,8 @@ func (api *API) InitAgent() {
 	api.Router.Handle("cc_agent_offline", api.ApiWebSocketHandler(api.offlineAgent))
 	api.Router.Handle("cc_agent_pause", api.ApiWebSocketHandler(api.pauseAgent))
 	api.Router.Handle("cc_agent_tasks", api.ApiWebSocketHandler(api.agentTasks))
+	api.Router.Handle("cc_agent_task_accept", api.ApiWebSocketHandler(api.acceptAgentTask))
+	api.Router.Handle("cc_agent_task_close", api.ApiWebSocketHandler(api.closeAgentTask))
 }
 
 func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -66,8 +68,7 @@ func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 	}
 
 	onDemand, _ = req.Data["on_demand"].(bool)
-	// TODO channels call, chat ...
-	err := api.ctrl.LoginAgent(conn.GetSession(), int64(domainId), int64(agentId), nil, onDemand)
+	err := api.ctrl.LoginAgent(conn.GetSession(), int64(domainId), int64(agentId), onDemand)
 	if err != nil {
 		return nil, err
 	}
@@ -173,4 +174,54 @@ func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	res := make(map[string]interface{})
 	res["items"] = list
 	return res, nil
+}
+
+func (api *API) acceptAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var agentId, attemptId float64
+	var ok bool
+
+	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	}
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	appId, _ := req.Data["app_id"].(string)
+	if appId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
+	}
+
+	if agentId == 0 {
+		//todo
+	}
+
+	err := api.ctrl.AcceptAgentTask(conn.GetSession(), appId, int64(attemptId))
+	return nil, err
+}
+
+func (api *API) closeAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var agentId, attemptId float64
+	var ok bool
+
+	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	}
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	appId, _ := req.Data["app_id"].(string)
+	if appId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
+	}
+
+	if agentId == 0 {
+		//todo
+	}
+
+	err := api.ctrl.CloseAgentTask(conn.GetSession(), appId, int64(attemptId))
+	return nil, err
 }
