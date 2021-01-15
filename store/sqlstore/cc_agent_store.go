@@ -55,15 +55,15 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
        (date_part('epoch'::text, a.last_state_change) *
         1000::double precision)::bigint                                                                       AS last_status_change,
        a.progressive_count,
-       ch.x                                                                                                   AS channels,
+       ch.x                                                                                                   AS channel,
        json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user",
 	   cc_get_lookup(a.greeting_media_id, g.name) as greeting_media
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 		 left join storage.media_files g on g.id = a.greeting_media_id
-         LEFT JOIN LATERAL ( SELECT json_agg(json_build_object('channel', c.channel, 'state',
+         LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'state',
                                                                c.state, 'joined_at',
-                                                               (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
+                                                               (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true`,
 		map[string]interface{}{
