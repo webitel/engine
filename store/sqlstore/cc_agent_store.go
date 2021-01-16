@@ -418,8 +418,8 @@ func (s SqlAgentStore) LookupNotExistsUsers(domainId int64, search *model.Search
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
-  and   ( (:Q::varchar isnull or (u.name ilike :Q::varchar ) ))
-order by u.id
+  and   ( (:Q::varchar isnull or (coalesce( (u.name)::varchar, u.username) ilike :Q::varchar ) ))
+order by coalesce( (u.name)::varchar, u.username) 
 limit :Limit
 offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
