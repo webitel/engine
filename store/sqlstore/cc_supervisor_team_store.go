@@ -23,7 +23,7 @@ func (s SqlSupervisorTeamStore) Create(supervisor *model.SupervisorInTeam) (*mod
     values (:AgentId, :TeamId)
     returning *
 )
-select i.id, i.team_id, cc_get_lookup(ca.id, u.name) as agent
+select i.id, i.team_id, cc_get_lookup(ca.id, coalesce( (u.name)::varchar, u.username)::varchar) as agent
 from i
     inner join cc_agent ca on i.agent_id = ca.id
     inner join directory.wbt_user u on u.id = ca.user_id`,
@@ -42,7 +42,7 @@ func (s SqlSupervisorTeamStore) GetAllPage(domainId, teamId int64, search *model
 	var supervisors []*model.SupervisorInTeam
 
 	if _, err := s.GetReplica().Select(&supervisors,
-		`select i.id, i.team_id, cc_get_lookup(ca.id, u.name) as agent
+		`select i.id, i.team_id, cc_get_lookup(ca.id, coalesce( (u.name)::varchar, u.username)::varchar) as agent
 				from cc_supervisor_in_team i
 					inner join cc_team te on te.id = i.team_id
 					inner join cc_agent ca on i.agent_id = ca.id
@@ -69,7 +69,7 @@ func (s SqlSupervisorTeamStore) Get(domainId, teamId, id int64) (*model.Supervis
 	var supervisor *model.SupervisorInTeam
 
 	if err := s.GetReplica().SelectOne(&supervisor,
-		`select i.id, i.team_id, cc_get_lookup(ca.id, u.name) as agent
+		`select i.id, i.team_id, cc_get_lookup(ca.id, coalesce( (u.name)::varchar, u.username)::varchar) as agent
 				from cc_supervisor_in_team i
 					inner join cc_team te on te.id = i.team_id
 					inner join cc_agent ca on i.agent_id = ca.id
@@ -94,7 +94,7 @@ func (s SqlSupervisorTeamStore) Update(supervisor *model.SupervisorInTeam) (*mod
     where id = :Id and team_id = :TeamId
     returning *
 )
-select i.id, i.team_id, cc_get_lookup(ca.id, u.name) as agent
+select i.id, i.team_id, cc_get_lookup(ca.id, coalesce( (u.name)::varchar, u.username)::varchar) as agent
 from i
     inner join cc_team te on te.id = i.team_id
     inner join cc_agent ca on i.agent_id = ca.id
