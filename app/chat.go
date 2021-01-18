@@ -118,13 +118,13 @@ func (a *App) StartChat(domainId, authUserId, userId int64) *model.AppError {
 	return nil
 }
 
-func (a *App) UpdateChannelChat(authUserId int64, channelId string) *model.AppError {
+func (a *App) UpdateChannelChat(authUserId int64, channelId string, readUntil int64) *model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewAppError("StartChat", "chat.start.client_err", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = chat.UpdateChannel(authUserId, channelId)
+	err = chat.UpdateChannel(authUserId, channelId, readUntil)
 	if err != nil {
 		return model.NewAppError("StartChat", "chat.start.app_err", nil, err.Error(), http.StatusInternalServerError)
 	}

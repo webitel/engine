@@ -28,7 +28,7 @@ type Chat interface {
 
 	AddToChat(authUserId, userId int64, channelId, conversationId, title string) error
 	NewInternalChat(domainId, authUserId, userId int64) error
-	UpdateChannel(authUserId int64, channelId string) error
+	UpdateChannel(authUserId int64, channelId string, readUntil int64) error
 	ListActive(token string, domainId, userId int64, page, size int) (*client.GetConversationsResponse, error)
 	InviteToConversation(ctx context.Context, domainId, userId int64, conversationId, inviterId, invUserId, title string, timeout int, vars map[string]string) (string, error)
 }

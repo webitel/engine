@@ -141,10 +141,11 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 	return err
 }
 
-func (cc *chatConnection) UpdateChannel(authUserId int64, channelId string) error { // запросити
+func (cc *chatConnection) UpdateChannel(authUserId int64, channelId string, readUntil int64) error { // запросити
 	_, err := cc.api.UpdateChannel(context.Background(), &client.UpdateChannelRequest{
 		ChannelId:  channelId,
 		AuthUserId: authUserId,
+		ReadUntil:  readUntil, //
 	})
 	return err
 }

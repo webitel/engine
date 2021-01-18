@@ -45,9 +45,9 @@ func (c *Controller) StartChat(session *auth_manager.Session, userId int64) *mod
 	return c.app.StartChat(session.DomainId, session.UserId, userId)
 }
 
-func (c *Controller) UpdateChannelChat(session *auth_manager.Session, channelId string) *model.AppError {
+func (c *Controller) UpdateChannelChat(session *auth_manager.Session, channelId string, readUntil int64) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.UpdateChannelChat(session.UserId, channelId)
+	return c.app.UpdateChannelChat(session.UserId, channelId, readUntil)
 }
 
 func (c *Controller) ListActiveChat(session *auth_manager.Session, page, size int) ([]*model.Conversation, *model.AppError) {

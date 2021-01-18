@@ -40,6 +40,7 @@ type Conversation struct {
 	CreatedAt int64          `json:"created_at" db:"created_at"`
 	UpdatedAt int64          `json:"updated_at" db:"updated_at"`
 	JoinedAt  *int64         `json:"joined_at" db:"joined_at"`
+	Variables StringMap      `json:"variables"`
 	Members   []*ChatMember  `json:"members" db:"members"`
 	Messages  []*ChatMessage `json:"messages" db:"messages"`
 }

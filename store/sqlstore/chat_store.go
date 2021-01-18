@@ -24,21 +24,22 @@ select
     ch.invite_id,
     ch.id channel_id,
     c.title,
-    cc_view_timestamp(c.created_at) created_at, 
+    cc_view_timestamp(c.created_at) created_at,
     cc_view_timestamp(c.updated_at) updated_at,
     cc_view_timestamp(ch.joined_at) joined_at,
     m.messages,
-    mem.members
+    mem.members,
+    coalesce(ch.props, '{}')::jsonb as variables
 from (
-     select 1 pri, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at
+     select 1 pri, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props
      from chat.invite inv
      where inv.user_id = :UserId::int8 and inv.closed_at isnull
         and inv.domain_id = :DomainId::int8
      union
 
-     select 2, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at
+     select 2, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props
      from (
-        select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at
+        select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props
         from chat.channel ch
         where ch.user_id = :UserId::int8 and ch.closed_at isnull
             and ch.domain_id = :DomainId::int8
@@ -57,7 +58,7 @@ end) as "file", m.type, m.channel_id
             from chat.message m
             where m.conversation_id = ch.conversation_id
             order by m.created_at desc
-            limit 20
+            limit 250
        ) t
     ) m on true
     left join lateral (

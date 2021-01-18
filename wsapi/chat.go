@@ -221,13 +221,16 @@ func (api *API) startChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 func (api *API) updateChannelChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var channelId string
 	var ok bool
+	var readUntil float64
 
 	channelId, ok = req.Data["channel_id"].(string)
 	if !ok || channelId == "" {
 		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 	}
 
-	err := api.ctrl.UpdateChannelChat(conn.GetSession(), channelId)
+	readUntil, _ = req.Data["read_until"].(float64)
+
+	err := api.ctrl.UpdateChannelChat(conn.GetSession(), channelId, int64(readUntil))
 	return nil, err
 }
 
