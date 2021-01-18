@@ -263,7 +263,7 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
 			min_offering_at = :MinOfferingAt,
 			stop_cause = :StopCause::varchar,
 			stop_at = case when :StopCause::varchar notnull then now() else stop_at end
-    where m1.id = :Id and m1.queue_id = :QueueId
+    where m1.id = :Id and m1.queue_id = :QueueId and not exists(select 1 from cc_member_attempt am where am.member_id = m1.id for update)
     returning *
 )
 select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
@@ -288,8 +288,14 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 		"StopCause":      member.StopCause,
 	})
 	if err != nil {
+		code := extractCodeFromErr(err)
+		if code == http.StatusNotFound { //todo
+			return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.lock", nil,
+				fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), http.StatusNotAcceptable)
+		}
+
 		return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), extractCodeFromErr(err))
+			fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), code)
 	}
 	return member, nil
 }
