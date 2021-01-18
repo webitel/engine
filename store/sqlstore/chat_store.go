@@ -52,7 +52,7 @@ from (
         from (
             select m.id, cc_view_timestamp(m.created_at) created_at,
                    cc_view_timestamp(m.updated_at) updated_at, m.text as text, (case when m.file_id isnull then null else
-    json_build_object('id',m.file_id,'size',m.file_size,'type',m.file_type,'name',m.file_name)
+    json_build_object('id',m.file_id,'size',m.file_size,'mime',m.file_type,'name',m.file_name)
 end) as "file", m.type, m.channel_id
             from chat.message m
             where m.conversation_id = ch.conversation_id
