@@ -291,7 +291,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 		code := extractCodeFromErr(err)
 		if code == http.StatusNotFound { //todo
 			return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.lock", nil,
-				fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), http.StatusNotAcceptable)
+				fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), http.StatusBadRequest)
 		}
 
 		return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.app_error", nil,
