@@ -22,6 +22,7 @@ type Queue struct {
 	Ringtone       *Lookup   `json:"ringtone" db:"ringtone"`
 	DoSchema       *Lookup   `json:"do_schema" db:"do_schema"`
 	AfterSchema    *Lookup   `json:"after_schema" db:"after_schema"`
+	StickyAgent    bool      `json:"sticky_agent" db:"sticky_agent"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -35,7 +36,7 @@ func (q Queue) DefaultOrder() string {
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables", "timeout",
 		"domain_id", "sec_locate_agent", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
-		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema"}
+		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent"}
 }
 
 func (q Queue) EntityName() string {
@@ -90,6 +91,7 @@ type QueuePatch struct {
 	DoSchema       *Lookup   `json:"do_schema" db:"do_schema"`
 	AfterSchema    *Lookup   `json:"after_schema" db:"after_schema"`
 	Description    *string   `json:"description" db:"description"`
+	StickyAgent    *bool     `json:"sticky_agent" db:"sticky_agent"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {
@@ -155,6 +157,10 @@ func (q *Queue) Patch(p *QueuePatch) {
 
 	if p.AfterSchema != nil {
 		q.AfterSchema = p.AfterSchema
+	}
+
+	if p.StickyAgent != nil {
+		q.StickyAgent = *p.StickyAgent
 	}
 }
 

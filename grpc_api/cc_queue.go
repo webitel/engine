@@ -61,6 +61,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		DoSchema:       GetLookup(in.GetDoSchema()),
 		AfterSchema:    GetLookup(in.GetAfterSchema()),
 		Description:    in.Description,
+		StickyAgent:    in.StickyAgent,
 	}
 
 	if err = queue.IsValid(); err != nil {
@@ -213,6 +214,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.AfterSchema = GetLookup(in.AfterSchema)
 		case "description":
 			patch.Description = model.NewString(in.Description)
+		case "sticky_agent":
+			patch.StickyAgent = model.NewBool(in.StickyAgent)
 		}
 	}
 
@@ -279,6 +282,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		DoSchema:       GetLookup(in.DoSchema),
 		AfterSchema:    GetLookup(in.AfterSchema),
 		Description:    in.Description,
+		StickyAgent:    in.StickyAgent,
 	})
 
 	if err != nil {
@@ -425,5 +429,6 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Count:          int32(src.Count),
 		Waiting:        int32(src.Waiting),
 		Active:         int32(src.Active),
+		StickyAgent:    src.StickyAgent,
 	}
 }

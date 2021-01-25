@@ -80,6 +80,7 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue.DoSchema = queue.DoSchema
 	oldQueue.AfterSchema = queue.AfterSchema
 	oldQueue.Description = queue.Description
+	oldQueue.StickyAgent = queue.StickyAgent
 
 	oldQueue, err = a.Store.Queue().Update(oldQueue)
 	if err != nil {
