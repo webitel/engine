@@ -21,6 +21,7 @@ function authCtrl () {
     controller[WebitelCommandTypes.Auth.name] = auth;
     controller[WebitelCommandTypes.Logout.name] = logout;
     controller[WebitelCommandTypes.Login.name] = login;
+    controller["ping"] = ping;
     controller['list_sockets'] = getSockets;
     return controller;
 };
@@ -121,4 +122,8 @@ function getSockets(caller, execId, args, ws) {
     }
 
     getCommandResponseJSON(ws, execId, {body: res});
-}
+};
+
+function ping(caller, execId, args, ws) {
+    getCommandResponseJSON(ws, execId, {body: "pong"});
+};
