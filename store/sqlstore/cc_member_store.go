@@ -23,15 +23,16 @@ func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Mem
 	var out *model.Member
 	if err := s.GetMaster().SelectOne(&out, `with m as (
 			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, domain_id, skill_id)
-			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :MinOfferingAt, :DomainId, :SkillId)
+			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :MinOfferingAt, :DomainId, :SkillId, :AgentId)
 			returning *
 		)
 		select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
-               cc_get_lookup(cs.id, cs.name::text) as skill
+               cc_get_lookup(cs.id, cs.name::text) as skill,  cc_get_lookup(agn.id, agn.name::text) as agent
 		from m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
+			left join cc_agent_list agn on m.agent_id = agn.id
             left join cc_skill cs on m.skill_id = cs.id`,
 		map[string]interface{}{
 			"DomainId":       domainId,
@@ -45,6 +46,7 @@ func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Mem
 			"BucketId":       member.GetBucketId(),
 			"SkillId":        member.GetSkillId(),
 			"MinOfferingAt":  member.MinOfferingAt,
+			"AgentId":        member.GetAgentId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", member.Name, err.Error()), http.StatusInternalServerError)
@@ -68,7 +70,7 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	}
 
 	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
-		"timezone_id", "communications", "bucket_id", "min_offering_at", "skill_id"))
+		"timezone_id", "communications", "bucket_id", "min_offering_at", "skill_id", "agent_id"))
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -77,7 +79,7 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	result := make([]int64, 0, len(members))
 	for k, v := range members {
 		_, err = stmp.Exec(k, queueId, v.Priority, v.GetExpireAt(), v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(),
-			v.GetBucketId(), v.MinOfferingAt, v.GetSkillId())
+			v.GetBucketId(), v.MinOfferingAt, v.GetSkillId(), v.GetAgentId())
 		if err != nil {
 			goto _error
 		}
@@ -89,8 +91,8 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	} else {
 
 		_, err = tx.Select(&result, `with i as (
-			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, domain_id, skill_id)
-			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, :DomainId, skill_id
+			insert into cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, domain_id, skill_id, agent_id)
+			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, :DomainId, skill_id, agent_id
 			from cc_member_tmp
 			returning id
 		)
@@ -152,11 +154,13 @@ select m.id, cc_member_destination_views_to_json(array(select (xid::int2, x ->> 
        cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
        cc_get_lookup(m.bucket_id, cb.name::varchar) bucket, m.min_offering_at, m.stop_cause, m.stop_at, m.last_hangup_at, m.attempts,
        cc_get_lookup(cs.id, cs.name::varchar) skill,
+	   cc_get_lookup(agn.id, agn.name::varchar) agent,
 		exists (select 1 from cc_member_attempt a where a.member_id = m.id) as reserved
 from cc_member m
     inner join result on m.id = result.id
     inner join cc_queue cq on m.queue_id = cq.id
     left join flow.calendar_timezones ct on ct.id = m.timezone_id
+    left join cc_agent_list agn on m.agent_id = agn.id
     left join cc_bucket cb on m.bucket_id = cb.id
     left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 			"Id":          search.Id,
@@ -209,12 +213,14 @@ select m.id, cc_member_destination_views_to_json(array(select (xid::int2, x ->> 
        cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
        cc_get_lookup(m.bucket_id, cb.name::varchar) bucket, m.min_offering_at, m.stop_cause, m.stop_at, m.last_hangup_at, m.attempts,
        cc_get_lookup(cs.id, cs.name::varchar) skill,
+	   cc_get_lookup(agn.id, agn.name::varchar) agent,
 		exists (select 1 from cc_member_attempt a where a.member_id = m.id) as reserved
 from cc_member m
     inner join result on m.id = result.id
     inner join cc_queue cq on m.queue_id = cq.id
     left join flow.calendar_timezones ct on ct.id = m.timezone_id
     left join cc_bucket cb on m.bucket_id = cb.id
+    left join cc_agent_list agn on m.agent_id = agn.id
     left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 			"QueueId": queueId,
 			"Domain":  domainId,
@@ -232,11 +238,12 @@ func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.
 	var member *model.Member
 	if err := s.GetReplica().SelectOne(&member, `select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
-               cc_get_lookup(cs.id, cs.name::text) as skill
+               cc_get_lookup(cs.id, cs.name::text) as skill, cc_get_lookup(agn.id, agn.name::varchar) agent
 		from cc_member m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
             left join cc_skill cs on m.skill_id = cs.id
+			left join cc_agent_list agn on m.agent_id = agn.id
 	where m.id = :Id and m.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -262,16 +269,18 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
             skill_id = :SkillId,
 			min_offering_at = :MinOfferingAt,
 			stop_cause = :StopCause::varchar,
+			agent_id = :AgentId,
 			stop_at = case when :StopCause::varchar notnull then now() else stop_at end
     where m1.id = :Id and m1.queue_id = :QueueId and not exists(select 1 from cc_member_attempt am where am.member_id = m1.id for update)
     returning *
 )
 select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
-               cc_get_lookup(cs.id, cs.name::text) as skill
+               cc_get_lookup(cs.id, cs.name::text) as skill, cc_get_lookup(agn.id, agn.name::varchar) agent
 		from m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
+			left join cc_agent_list agn on m.agent_id = agn.id
             left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 		"Priority":       member.Priority,
 		"ExpireAt":       member.GetExpireAt(),
@@ -286,6 +295,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 		"DomainId":       domainId,
 		"MinOfferingAt":  member.MinOfferingAt,
 		"StopCause":      member.StopCause,
+		"AgentId":        member.GetAgentId(),
 	})
 	if err != nil {
 		code := extractCodeFromErr(err)
@@ -325,10 +335,11 @@ func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64, buckets []int64,
 )
 select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
 			   cc_member_communications(m.communications) as communications,  cc_get_lookup(qb.id, qb.name::text) as bucket, min_offering_at,
-               cc_get_lookup(cs.id, cs.name::text) as skill
+               cc_get_lookup(cs.id, cs.name::text) as skill, cc_get_lookup(agn.id, agn.name::varchar) agent
 		from m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join cc_bucket qb on m.bucket_id = qb.id
+			left join cc_agent_list agn on m.agent_id = agn.id
             left join cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
 		"Ids":     pq.Array(ids),
 		"Buckets": pq.Array(buckets),

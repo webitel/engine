@@ -52,6 +52,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		MinOfferingAt:  in.MinOfferingAt,
 		Bucket:         GetLookup(in.Bucket),
 		Skill:          GetLookup(in.Skill),
+		Agent:          GetLookup(in.Agent),
 	}
 
 	if in.GetExpireAt() != 0 {
@@ -107,6 +108,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			MinOfferingAt:  v.MinOfferingAt,
 			Bucket:         GetLookup(v.GetBucket()),
 			Skill:          GetLookup(v.GetSkill()),
+			Agent:          GetLookup(v.Agent),
 		}
 		if v.GetExpireAt() != 0 {
 			member.ExpireAt = model.NewInt64(v.GetExpireAt())
@@ -241,6 +243,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		MinOfferingAt:  in.MinOfferingAt,
 		Bucket:         GetLookup(in.Bucket),
 		Skill:          GetLookup(in.Skill),
+		Agent:          GetLookup(in.Agent),
 	}
 
 	if in.ExpireAt != 0 {
@@ -314,6 +317,8 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 			patch.Skill = GetLookup(in.Skill)
 		case "stop_cause":
 			patch.StopCause = model.NewString(in.StopCause)
+		case "agent":
+			patch.Agent = GetLookup(in.Agent)
 		}
 	}
 
@@ -671,6 +676,7 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		MinOfferingAt:  src.MinOfferingAt,
 		Reserved:       src.Reserved,
 		Skill:          GetProtoLookup(src.Skill),
+		Agent:          GetProtoLookup(src.Agent),
 	}
 
 	if src.Bucket != nil {
