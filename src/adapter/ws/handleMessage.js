@@ -197,7 +197,15 @@ function Handler(wss, application) {
             }
 
             ws.isAlive = false;
-            ws.ping(noop);
+            try {
+                ws.send(JSON.stringify({
+                    "webitel-event-name": "ping",
+                    "Event-Name": "ping"
+                }));
+            } catch (e) {
+                log.error(`error: ${e.message}`)
+            }
+            // ws.ping(noop);
         });
     }, PING_INTERVAL);
 
