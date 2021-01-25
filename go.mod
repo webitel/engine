@@ -23,7 +23,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
 	github.com/webitel/call_center v0.0.0-20210114122850-34459b3572e1
-	github.com/webitel/protos/engine v0.0.0-20210118122233-980467cfce49
+	github.com/webitel/protos/engine v0.0.0-20210125100324-e8f5e0813576
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect
