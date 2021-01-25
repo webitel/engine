@@ -22,7 +22,7 @@ func NewSqlMemberStore(sqlStore SqlStore) store.MemberStore {
 func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
 	var out *model.Member
 	if err := s.GetMaster().SelectOne(&out, `with m as (
-			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, domain_id, skill_id)
+			insert into cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, min_offering_at, domain_id, skill_id, agent_id)
 			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :MinOfferingAt, :DomainId, :SkillId, :AgentId)
 			returning *
 		)
