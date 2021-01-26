@@ -318,7 +318,14 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "stop_cause":
 			patch.StopCause = model.NewString(in.StopCause)
 		case "agent.id":
-			patch.Agent = GetLookup(in.Agent)
+			//todo
+			if in.Agent != nil && in.Agent.Id == 0 {
+				patch.Agent = &model.Lookup{
+					Id: 0,
+				}
+			} else {
+				patch.Agent = GetLookup(in.Agent)
+			}
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables

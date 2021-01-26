@@ -83,7 +83,12 @@ func (m *Member) Patch(p *MemberPatch) {
 	}
 
 	if p.Agent != nil {
-		m.Agent = p.Agent
+		//todo
+		if p.Agent.Id == 0 {
+			m.Agent = nil
+		} else {
+			m.Agent = p.Agent
+		}
 	}
 }
 
