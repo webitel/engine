@@ -150,11 +150,9 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 			patch.Name = model.NewString(in.Name)
 		case "description":
 			patch.Description = model.NewString(in.Description)
-		case "schema":
-			patch.Schema = &model.Lookup{
-				Id: int(in.GetSchema().GetId()),
-			}
-		case "string":
+		case "schema.id":
+			patch.Schema = GetLookup(in.Schema)
+		case "pattern":
 			patch.Pattern = model.NewString(in.GetPattern())
 		case "disabled":
 			patch.Disabled = model.NewBool(in.GetDisabled())

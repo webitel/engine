@@ -202,7 +202,7 @@ func (api *resourceTeam) PatchResourceTeamAgent(ctx context.Context, in *engine.
 	//TODO
 	for _, v := range in.Fields {
 		switch v {
-		case "agent":
+		case "agent.id":
 			patch.Agent = GetLookup(in.Agent)
 		case "buckets":
 			patch.Buckets = GetLookups(in.Buckets)
@@ -446,7 +446,7 @@ func (api *resourceTeam) PatchResourceTeamSkill(ctx context.Context, in *engine.
 	//TODO
 	for _, v := range in.Fields {
 		switch v {
-		case "skill":
+		case "skill.id":
 			patch.Skill = GetLookup(in.Skill)
 		case "buckets":
 			patch.Buckets = GetLookups(in.Buckets)

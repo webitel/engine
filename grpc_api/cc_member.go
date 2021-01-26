@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 	"net/http"
+	"strings"
 )
 
 type member struct {
@@ -294,7 +295,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 	var member *model.Member
 	patch := &model.MemberPatch{}
 
-	//TODO
+	//TODO FIXME
 	for _, v := range in.Fields {
 		switch v {
 		case "priority":
@@ -305,20 +306,22 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 			patch.MinOfferingAt = model.NewInt64(in.MinOfferingAt)
 		case "name":
 			patch.Name = model.NewString(in.Name)
-		case "variables":
-			patch.Variables = in.Variables
-		case "timezone":
+		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
-		case "bucket":
+		case "bucket.id":
 			patch.Bucket = GetLookup(in.Bucket)
 		case "communications":
 			patch.Communications = toModelMemberCommunications(in.GetCommunications())
-		case "skill":
+		case "skill.id":
 			patch.Skill = GetLookup(in.Skill)
 		case "stop_cause":
 			patch.StopCause = model.NewString(in.StopCause)
-		case "agent":
+		case "agent.id":
 			patch.Agent = GetLookup(in.Agent)
+		default:
+			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
+				patch.Variables = in.Variables
+			}
 		}
 	}
 

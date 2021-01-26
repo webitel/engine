@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 	"net/http"
+	"strings"
 )
 
 type queue struct {
@@ -186,36 +187,38 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.Strategy = model.NewString(in.Strategy)
 		case "enabled":
 			patch.Enabled = model.NewBool(in.Enabled)
-		case "payload":
-			patch.Payload = MarshalJsonpb(in.Payload)
-		case "calendar":
+		case "calendar.id":
 			patch.Calendar = GetLookup(in.Calendar)
 		case "priority":
 			patch.Priority = model.NewInt(int(in.Priority))
 		case "name":
 			patch.Name = model.NewString(in.Name)
-		case "variables":
-			patch.Variables = in.Variables
 		case "timeout":
 			patch.Timeout = model.NewInt(int(in.Timeout))
-		case "dnc_list":
+		case "dnc_list.id":
 			patch.DncList = GetLookup(in.DncList)
 		case "sec_locate_agent":
 			patch.SecLocateAgent = model.NewInt(int(in.SecLocateAgent))
-		case "team":
+		case "team.id":
 			patch.Team = GetLookup(in.Team)
-		case "schema":
+		case "schema.id":
 			patch.Schema = GetLookup(in.Schema)
-		case "ringtone":
+		case "ringtone.id":
 			patch.Ringtone = GetLookup(in.Ringtone)
-		case "do_schema":
+		case "do_schema.id":
 			patch.DoSchema = GetLookup(in.DoSchema)
-		case "after_schema":
+		case "after_schema.id":
 			patch.AfterSchema = GetLookup(in.AfterSchema)
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		case "sticky_agent":
 			patch.StickyAgent = model.NewBool(in.StickyAgent)
+		default:
+			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
+				patch.Variables = in.Variables
+			} else if patch.Payload == nil && strings.HasPrefix(v, "payload.") {
+				patch.Payload = MarshalJsonpb(in.Payload)
+			}
 		}
 	}
 

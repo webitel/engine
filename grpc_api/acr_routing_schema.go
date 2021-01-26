@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
+	"strings"
 )
 
 type routingSchema struct {
@@ -189,14 +190,16 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 			patch.Name = model.NewString(in.Name)
 		case "type":
 			patch.Type = model.NewInt8(int8(in.Type))
-		case "schema":
-			patch.Schema = MarshalJsonpb(in.Schema)
-		case "payload":
-			patch.Payload = MarshalJsonpb(in.Payload)
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		case "debug":
 			patch.Debug = model.NewBool(in.Debug)
+		default:
+			if patch.Schema == nil && strings.HasPrefix(v, "schema") {
+				patch.Schema = MarshalJsonpb(in.Schema)
+			} else if patch.Payload == nil && strings.HasPrefix(v, "payload") {
+				patch.Payload = MarshalJsonpb(in.Payload)
+			}
 		}
 	}
 	patch.UpdatedById = int(session.UserId)
