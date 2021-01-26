@@ -12,7 +12,7 @@ type Member struct {
 	QueueId        int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
 	Priority       int                   `json:"priority" db:"priority"`
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
-	MinOfferingAt  int64                 `json:"min_offering_at" db:"min_offering_at"`
+	MinOfferingAt  *time.Time            `json:"min_offering_at" db:"ready_at"`
 	Name           string                `json:"name" db:"name"`
 	Variables      StringMap             `json:"variables" db:"variables"`
 	LastActivityAt int64                 `json:"last_hangup_at" db:"last_hangup_at"`
@@ -30,7 +30,7 @@ type Member struct {
 type MemberPatch struct {
 	Priority       *int                  `json:"priority" db:"priority"`
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
-	MinOfferingAt  *int64                `json:"min_offering_at" db:"min_offering_at"`
+	MinOfferingAt  *time.Time            `json:"min_offering_at" db:"ready_at"`
 	Name           *string               `json:"name" db:"name"`
 	Variables      StringMap             `json:"variables" db:"variables"`
 	Timezone       *Lookup               `json:"timezone" db:"timezone"`
@@ -51,7 +51,7 @@ func (m *Member) Patch(p *MemberPatch) {
 	}
 
 	if p.MinOfferingAt != nil {
-		m.MinOfferingAt = *p.MinOfferingAt
+		m.MinOfferingAt = p.MinOfferingAt
 	}
 
 	if p.Name != nil {

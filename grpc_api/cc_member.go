@@ -50,10 +50,11 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 			Id: int(in.GetTimezone().GetId()),
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
-		MinOfferingAt:  in.MinOfferingAt,
-		Bucket:         GetLookup(in.Bucket),
-		Skill:          GetLookup(in.Skill),
-		Agent:          GetLookup(in.Agent),
+		MinOfferingAt:  model.Int64ToTime(in.MinOfferingAt),
+
+		Bucket: GetLookup(in.Bucket),
+		Skill:  GetLookup(in.Skill),
+		Agent:  GetLookup(in.Agent),
 	}
 
 	if in.GetExpireAt() != 0 {
@@ -106,7 +107,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 				Id: int(v.GetTimezone().GetId()),
 			},
 			Communications: toModelMemberCommunications(v.GetCommunications()),
-			MinOfferingAt:  v.MinOfferingAt,
+			MinOfferingAt:  model.Int64ToTime(v.MinOfferingAt),
 			Bucket:         GetLookup(v.GetBucket()),
 			Skill:          GetLookup(v.GetSkill()),
 			Agent:          GetLookup(v.Agent),
@@ -241,7 +242,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 			Id: int(in.GetTimezone().GetId()),
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
-		MinOfferingAt:  in.MinOfferingAt,
+		MinOfferingAt:  model.Int64ToTime(in.MinOfferingAt),
 		Bucket:         GetLookup(in.Bucket),
 		Skill:          GetLookup(in.Skill),
 		Agent:          GetLookup(in.Agent),
@@ -303,7 +304,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "expire_at":
 			patch.ExpireAt = model.NewInt64(in.ExpireAt)
 		case "min_offering_at":
-			patch.MinOfferingAt = model.NewInt64(in.MinOfferingAt)
+			patch.MinOfferingAt = model.Int64ToTime(in.MinOfferingAt)
 		case "name":
 			patch.Name = model.NewString(in.Name)
 		case "timezone.id":
@@ -676,7 +677,7 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		Communications: toEngineMemberCommunications(src.Communications),
 		LastActivityAt: src.LastActivityAt,
 		Attempts:       int32(src.Attempts),
-		MinOfferingAt:  src.MinOfferingAt,
+		MinOfferingAt:  model.TimeToInt64(src.MinOfferingAt),
 		Reserved:       src.Reserved,
 		Skill:          GetProtoLookup(src.Skill),
 		Agent:          GetProtoLookup(src.Agent),
