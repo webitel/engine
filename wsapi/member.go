@@ -14,7 +14,7 @@ func (api *API) InitMember() {
 }
 
 func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	var attemptId float64
+	var attemptId, agentId float64
 	var ok bool
 	var nextDistributeAt *int64
 	var expire *int64
@@ -39,7 +39,9 @@ func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 		expire = model.NewInt64(int64(tmp))
 	}
 
-	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire, nil, display)
+	agentId, _ = req.Data["agent_id"].(float64)
+
+	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire, nil, display, int32(agentId))
 	if err != nil {
 		return nil, err
 	}
