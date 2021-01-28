@@ -103,13 +103,13 @@ func (a *Agent) GreetingMediaId() *int {
 }
 
 type AgentSession struct {
-	AgentId          int64        `json:"agent_id" db:"agent_id"`
-	Status           string       `json:"status" db:"status"`
-	StatusPayload    *string      `json:"status_payload" db:"status_payload"`
-	LastStatusChange int64        `json:"last_status_change" db:"last_status_change"`
-	StatusDuration   int64        `json:"status_duration" db:"status_duration"`
-	OnDemand         bool         `json:"on_demand" db:"on_demand"`
-	Channel          AgentChannel `json:"channel" db:"channel"`
+	AgentId          int64          `json:"agent_id" db:"agent_id"`
+	Status           string         `json:"status" db:"status"`
+	StatusPayload    *string        `json:"status_payload" db:"status_payload"`
+	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
+	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
+	OnDemand         bool           `json:"on_demand" db:"on_demand"`
+	Channels         []AgentChannel `json:"channels" db:"channels"`
 }
 
 func (a AgentSession) ToMap() map[string]interface{} {
