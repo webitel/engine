@@ -135,7 +135,7 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *m
        destination as communication, a.channel
 from cc_member_attempt a
     inner join cc_agent a2 on a2.id = a.agent_id
-where a.agent_id = :AgentId and a2.domain_id  = :DomainId`, map[string]interface{}{
+where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leaving'`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,
 	})
