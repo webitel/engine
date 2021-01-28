@@ -240,9 +240,11 @@ type AgentInQueueStats struct {
 }
 
 type AgentTask struct {
-	AttemptId int64  `json:"attempt_id" db:"attempt_id"`
-	State     string `json:"state" db:"state"`
-	Duration  string `json:"duration" db:"duration"`
+	AttemptId     int64               `json:"attempt_id" db:"attempt_id"`
+	State         string              `json:"state" db:"state"`
+	Duration      string              `json:"duration" db:"duration"`
+	Channel       *string             `json:"channel" db:"channel"`
+	Communication MemberCommunication `json:"communication" db:"communication"`
 }
 
 func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, *AppError) {

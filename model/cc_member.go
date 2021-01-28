@@ -276,15 +276,15 @@ func (a *MemberAttempt) IsValid() *AppError {
 type MemberCommunication struct {
 	Id             int64   `json:"id"`
 	Destination    string  `json:"destination" db:"destination"`
-	Type           Lookup  `json:"type"`
+	Type           Lookup  `json:"type,omitempty"`
 	Priority       int     `json:"priority" db:"priority"`
-	State          int     `json:"state" db:"state"`
-	Description    string  `json:"description" db:"description"`
-	LastActivityAt int64   `json:"last_activity_at" db:"last_activity_at"`
-	Attempts       int     `json:"attempts" db:"attempts"`
-	LastCause      string  `json:"last_cause" db:"last_cause"`
-	Resource       *Lookup `json:"resource" db:"resource"`
-	Display        string  `json:"display" db:"display"`
+	State          int     `json:"state,omitempty" db:"state"`
+	Description    string  `json:"description,omitempty" db:"description"`
+	LastActivityAt int64   `json:"last_activity_at,omitempty" db:"last_activity_at"`
+	Attempts       int     `json:"attempts,omitempty" db:"attempts"`
+	LastCause      string  `json:"last_cause,omitempty" db:"last_cause"`
+	Resource       *Lookup `json:"resource,omitempty" db:"resource"`
+	Display        string  `json:"display,omitempty" db:"display"`
 }
 
 func (m *Member) ToJsonCommunications() string {
