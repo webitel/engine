@@ -152,7 +152,13 @@ function createMemberPublic(req, res, next) {
     if (req.query['domain'])
         options.domain = req.query['domain'];
 
-    callbackService.members.createPublic({ip: getIp(req), widget: req.query.widget}, options, (err, result) => {
+    let relip = getIp(req) || '';
+    const cflaer = relip.indexOf(',');
+    if (cflaer > 0) {
+        relip = relip.substr(0, cflaer)
+    }
+
+    callbackService.members.createPublic({ip: relip, widget: req.query.widget}, options, (err, result) => {
         if (err) {
             return next(err);
         }
