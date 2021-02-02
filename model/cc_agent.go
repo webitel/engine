@@ -240,11 +240,20 @@ type AgentInQueueStats struct {
 }
 
 type AgentTask struct {
-	AttemptId     int64               `json:"attempt_id" db:"attempt_id"`
-	State         string              `json:"state" db:"state"`
-	Duration      string              `json:"duration" db:"duration"`
-	Channel       *string             `json:"channel" db:"channel"`
-	Communication MemberCommunication `json:"communication" db:"communication"`
+	AttemptId       int64               `json:"attempt_id" db:"attempt_id"`
+	AppId           string              `json:"app_id" db:"app_id"`
+	Channel         *string             `json:"channel" db:"channel"`
+	QueueId         int                 `json:"queue_id" db:"queue_id"`
+	MemberId        int64               `json:"member_id" db:"member_id"`
+	AgentId         int                 `json:"agent_id" db:"agent_id"`
+	MemberChannelId *string             `json:"member_channel_id" db:"member_channel_id"`
+	AgentChannelId  *string             `json:"agent_channel_id" db:"agent_channel_id"`
+	Communication   MemberCommunication `json:"communication" db:"communication"`
+	HasReporting    bool                `json:"has_reporting" db:"has_reporting"`
+	State           string              `json:"state" db:"state"`
+	BridgedAt       *int64              `json:"bridged_at" db:"bridged_at"`
+	LeavingAt       *int64              `json:"leaving_at" db:"leaving_at"`
+	Duration        int                 `json:"duration" db:"duration"`
 }
 
 func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, *AppError) {
