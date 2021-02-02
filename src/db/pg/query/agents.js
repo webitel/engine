@@ -68,7 +68,7 @@ function add(pool) {
                          select ad.agent_name,
                                 ad.dialer_id,
                                case when a.status = 'Available' and a.state = 'Waiting' and ad.active notnull then
-                                   ad.idle_sec + extract(epoch from now() at time zone 'UTC') - greatest(extract(epoch from active), ad.last_offered_call, a.ready_time)
+                                    ad.idle_sec + extract(epoch from now() at time zone 'UTC')::int - greatest(extract(epoch from active)::int, ad.last_offered_call, a.ready_time, a.last_bridge_end + a.wrap_up_time)
                                else ad.idle_sec end idle
                         from agent_in_dialer ad
                             left join agents a on ad.agent_name = a.name
