@@ -20,7 +20,7 @@
     "express": "^4.15.3",
     "fs-extra": "^3.0.1",
     "http-proxy": "^1.16.2",
-    "jwt-simple": "^0.3.0",
+    "jwt-simple": "^0.5.6",
     "moment-timezone": "^0.5.13",
     "mongodb": "^2.2.36",
     "morgan": "^1.7.0",
