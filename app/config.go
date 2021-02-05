@@ -16,7 +16,8 @@ var (
 	grpcServerAddr        = flag.String("grpc_addr", "", "GRPC host")
 	openSipAddr           = flag.String("open_sip_addr", "opensips", "OpenSip address")
 	wsSipAddr             = flag.String("ws_sip_addr", "", "Sip websocket address")
-	dev                   = flag.Bool("dev", false, "enable dev mode")
+	dev                   = flag.Int("dev", 0, "enable dev mode")
+	cloudflare            = flag.Int("cloudflare", 0, "use cloudflare")
 )
 
 func (app *App) Config() *model.Config {
@@ -26,7 +27,8 @@ func (app *App) Config() *model.Config {
 func loadConfig() (*model.Config, error) {
 	flag.Parse()
 	config := &model.Config{
-		Dev:                   *dev,
+		Dev:                   *dev == 1,
+		Cloudflare:            *cloudflare == 1,
 		TranslationsDirectory: *translationsDirectory,
 		NodeName:              fmt.Sprintf("engine-%s", model.NewId()),
 		DiscoverySettings: model.DiscoverySettings{

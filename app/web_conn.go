@@ -23,6 +23,10 @@ const (
 	WEBCONN_MEMBER_CACHE_TIME = 1000 * 60 * 30 // 30 minutes
 )
 
+var (
+	spamMessage = []byte{0x0, 0x0, 0x0, 0x0}
+)
+
 type WebConn struct {
 	id                 string
 	sessionExpiresAt   int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
@@ -189,6 +193,8 @@ func (c *WebConn) writePump() {
 					wlog.Debug(fmt.Sprintf("websocket.ticker: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
 				}
 				return
+			} else if c.App.config.Cloudflare {
+				c.WebSocket.WriteMessage(websocket.TextMessage, spamMessage)
 			}
 		case <-c.endWritePump:
 			return

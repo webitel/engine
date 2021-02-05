@@ -44,6 +44,7 @@ type Config struct {
 	WebSocketSettings     WebSocketSettings    `json:"web_socket_settings"`
 	Dev                   bool                 `json:"dev"`
 	SipSettings           SipSettings          `json:"sip_settings"`
+	Cloudflare            bool                 `json:"cloudflare"`
 }
 
 type DiscoverySettings struct {
