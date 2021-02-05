@@ -314,6 +314,7 @@ type CallStore interface {
 	BridgedId(id string) (string, *model.AppError)
 	LastFile(domainId int64, id string) (int64, *model.AppError)
 	GetUserActiveCall(domainId, userId int64) ([]*model.Call, *model.AppError)
+	SetEmptySeverCall(domainId int64, id string) (*model.CallServiceHangup, *model.AppError)
 }
 
 type EmailProfileStore interface {

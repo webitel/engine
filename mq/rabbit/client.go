@@ -26,6 +26,10 @@ const (
 	EXIT_BIND             = 112
 )
 
+const (
+	callServiceHangupData = `{"hangup_by":"service","cause":"SYSTEM_SHUTDOWN","sip":501}`
+)
+
 var errMaxRegisterQueueSize = model.NewAppError("AMQP", "amqp.register_domain.max_queue_size", nil, "", 500)
 var errMaxUnRegisterQueueSize = model.NewAppError("AMQP", "amqp.un_register_domain.max_queue_size", nil, "", 500)
 
@@ -134,6 +138,24 @@ func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocke
 	if err != nil {
 		return model.NewAppError("AMQP.RegisterWebsocket", "amqp.register_socket.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	return nil
+}
+
+func (a *AMQP) SendStickingCall(e *model.CallServiceHangup) *model.AppError {
+	// fixme CC
+	e.Subclass = "Event-Subclass"
+	e.Event = "hangup"
+	e.Data = callServiceHangupData
+
+	err := a.channel.Publish(model.CallExchange, fmt.Sprintf("events.hangup.%s.%s.%s", e.CCAppId, e.DomainId, e.UserId), false, false, amqp.Publishing{
+		ContentType: "text/json",
+		Body:        e.MarshalJSON(),
+	})
+
+	if err != nil {
+		return model.NewAppError("AMQP.SendStickingCall", "amqp.publish.sticking_call.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	return nil
 }
 

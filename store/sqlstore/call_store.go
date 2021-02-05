@@ -588,3 +588,34 @@ where id = :Id`, map[string]string{
 		return res, nil
 	}
 }
+
+func (s SqlCallStore) SetEmptySeverCall(domainId int64, id string) (*model.CallServiceHangup, *model.AppError) {
+	var e *model.CallServiceHangup
+	err := s.GetMaster().SelectOne(&e, `with c as (
+    select
+        c.id,
+       cc_view_timestamp(now())::text as "timestamp",
+       c.domain_id::text,
+       c.user_id::text,
+       c.app_id,
+       coalesce(cma.node_id, '') as cc_app_id
+    from  cc_calls c
+        left join cc_member_attempt cma on c.attempt_id = cma.id
+    where c.id = :Id and c.domain_id = :DomainId and c.hangup_at isnull
+    and c.timestamp < now() - interval '15 sec' and c.hangup_by isnull
+)
+update cc_calls c1
+set hangup_by = 'service'
+from c
+where c.id = c1.id
+returning c.*;`, map[string]interface{}{
+		"Id":       id,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.SetEmptySeverCall", "store.sql_call.set.empty_call.app_error", nil, err.Error(), extractCodeFromErr(err))
+	} else {
+		return e, nil
+	}
+}

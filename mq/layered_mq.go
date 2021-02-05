@@ -52,3 +52,7 @@ func (l *LayeredMQ) RegisterWebsocket(domainId int64, event *model.RegisterToWeb
 func (l *LayeredMQ) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
 	return l.MQLayer.UnRegisterWebsocket(domainId, event)
 }
+
+func (l *LayeredMQ) SendStickingCall(event *model.CallServiceHangup) *model.AppError {
+	return l.MQLayer.SendStickingCall(event)
+}

@@ -15,6 +15,8 @@ type MQ interface {
 
 	RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError
 	UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError
+
+	SendStickingCall(e *model.CallServiceHangup) *model.AppError
 }
 
 type DomainQueue interface {

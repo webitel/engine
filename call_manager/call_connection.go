@@ -197,6 +197,12 @@ func (c *CallConnection) HangupCall(id, cause string) *model.AppError {
 	}
 
 	if res.Error != nil {
+		//todo
+		if res.Error.Message == "No such channel!" {
+
+			return NotFoundCall
+		}
+
 		return model.NewAppError("HangupCall", "external.hangup_call.app_error", nil, res.Error.String(),
 			http.StatusInternalServerError)
 	}

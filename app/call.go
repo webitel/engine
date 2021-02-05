@@ -295,7 +295,16 @@ func (app *App) HangupCall(domainId int64, req *model.HangupCall) *model.AppErro
 		cause = *req.Cause
 	}
 
-	return cli.HangupCall(req.Id, cause)
+	err = cli.HangupCall(req.Id, cause)
+	if err == call_manager.NotFoundCall {
+		var e *model.CallServiceHangup
+		if e, err = app.Store.Call().SetEmptySeverCall(domainId, req.Id); err == nil {
+			//fixme rollback
+			err = app.MessageQueue.SendStickingCall(e)
+		}
+	}
+
+	return err
 }
 
 func (app *App) HoldCall(domainId int64, req *model.UserCallRequest) *model.AppError {

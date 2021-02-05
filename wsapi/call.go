@@ -123,16 +123,21 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 
 	var cause = req.GetFieldString("cause")
 
-	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
-		return nil, err
-	} else {
-		err = cli.HangupCall(id, cause)
-		if err != nil {
-			return nil, err
-		}
+	cr := model.HangupCall{
+		UserCallRequest: model.UserCallRequest{
+			Id:    id,
+			AppId: &nodeId,
+		},
+		Cause: nil,
 	}
 
-	return nil, nil
+	if cause != "" {
+		cr.Cause = &cause
+	}
+
+	err := api.App.HangupCall(conn.GetSession().DomainId, &cr)
+
+	return nil, err
 }
 
 func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

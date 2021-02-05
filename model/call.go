@@ -389,15 +389,26 @@ type SearchHistoryCall struct {
 	Tags            []string
 }
 
+type CallEventInfo struct {
+	Id        string  `json:"id" db:"id"`
+	Event     string  `json:"event" db:"-"`
+	Timestamp float64 `json:"timestamp,string" db:"timestamp"`
+	DomainId  string  `json:"domain_id" db:"domain_id"`
+	UserId    string  `json:"user_id,omitempty" db:"user_id"`
+	AppId     string  `json:"app_id,omitempty" db:"app_id"`
+}
+
 type CallEvent struct {
-	Id        string  `json:"id"`
-	Event     string  `json:"event"`
-	Timestamp float64 `json:"timestamp,string"`
-	DomainId  string  `json:"domain_id"`
-	UserId    string  `json:"user_id,omitempty"`
-	AppId     string  `json:"app_id,omitempty"`
+	CallEventInfo
 	//CCAppId   string      `json:"cc_app_id,omitempty"`
-	Body CallPayload `json:"data,string,omitempty"`
+	Body CallPayload `json:"data,string,omitempty" db:"-"`
+}
+
+type CallServiceHangup struct {
+	Subclass string `json:"Event-Subclass" db:"-"`
+	CCAppId  string `json:"cc_app_id,omitempty" db:"cc_app_id"`
+	CallEventInfo
+	Data string `json:"data" db:"-"`
 }
 
 type AggregateGroup struct {
@@ -443,6 +454,11 @@ type CallPayload map[string]interface{}
 
 func (cp CallPayload) MarshalJSON() ([]byte, error) {
 	return json.Marshal((*map[string]interface{})(&cp))
+}
+
+func (e *CallServiceHangup) MarshalJSON() []byte {
+	d, _ := json.Marshal(e)
+	return d
 }
 
 func (cp *CallPayload) UnmarshalText(b []byte) error {
