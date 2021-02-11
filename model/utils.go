@@ -35,6 +35,15 @@ type Lookup struct {
 	Name string `json:"name"`
 }
 
+func (l *Lookup) GetSafeId() *int {
+	if l == nil {
+
+		return nil
+	}
+
+	return &l.Id
+}
+
 func (s StringMap) ToJson() string {
 	if s == nil {
 		return "{}"

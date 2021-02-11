@@ -193,12 +193,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.Priority = model.NewInt(int(in.Priority))
 		case "name":
 			patch.Name = model.NewString(in.Name)
-		case "timeout":
-			patch.Timeout = model.NewInt(int(in.Timeout))
 		case "dnc_list.id":
 			patch.DncList = GetLookup(in.DncList)
-		case "sec_locate_agent":
-			patch.SecLocateAgent = model.NewInt(int(in.SecLocateAgent))
 		case "team.id":
 			patch.Team = GetLookup(in.Team)
 		case "schema.id":

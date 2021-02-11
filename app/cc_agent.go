@@ -63,6 +63,18 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 	oldAgent.UpdatedAt = agent.UpdatedAt
 	oldAgent.UpdatedBy.Id = agent.UpdatedBy.Id
 
+	oldAgent.AllowChannels = agent.AllowChannels
+	oldAgent.ChatCount = agent.ChatCount
+	oldAgent.Supervisor = agent.Supervisor
+	oldAgent.Team = agent.Team
+	oldAgent.Region = agent.Region
+	oldAgent.Auditor = agent.Auditor
+	oldAgent.IsSupervisor = agent.IsSupervisor
+
+	if err = oldAgent.IsValid(); err != nil {
+		return nil, err
+	}
+
 	oldAgent, err = a.Store.Agent().Update(oldAgent)
 	if err != nil {
 		return nil, err

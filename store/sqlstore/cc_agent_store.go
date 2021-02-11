@@ -43,27 +43,41 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent
 	if err := s.GetMaster().SelectOne(&out, `with a as (
-			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id)
-			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia)
+			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
+				allow_channels, chat_count, supervisor_id, team_id, region_id, supervisor, auditor_id)
+			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
+					:AllowChannels, :ChatCount, :SupervisorId, :TeamId, :RegionId, :Supervisor, :AuditorId)
 			returning *
 		)
-		SELECT a.domain_id,
+	SELECT a.domain_id,
        a.id,
        COALESCE(ct.name::character varying::name, ct.username)::character varying                             AS name,
        a.status,
        a.description,
        (date_part('epoch'::text, a.last_state_change) *
         1000::double precision)::bigint                                                                       AS last_status_change,
+       date_part('epoch'::text, now() - a.last_state_change)::bigint                                          AS status_duration,
        a.progressive_count,
        ch.x                                                                                                   AS channel,
        json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user",
-	   cc_get_lookup(a.greeting_media_id, g.name) as greeting_media
+       call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
+	   a.allow_channels,
+       a.chat_count,
+       sup.user as supervisor,
+       cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+	   cc_get_lookup(t.id, t.name) as team,
+	   cc_get_lookup(r.id, r.name) as region,
+       a.supervisor as is_supervisor
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
-		 left join storage.media_files g on g.id = a.greeting_media_id
-         LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'state',
-                                                               c.state, 'joined_at',
-                                                               (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
+         LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
+         left join cc_agent_with_user sup on sup.id = a.supervisor_id
+         left join directory.wbt_user aud on aud.id = a.auditor_id
+         left join cc_team t on t.id = a.team_id
+         left join flow.region r on r.id = a.region_id
+         LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
+                                                      'joined_at',
+                                                      (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true`,
 		map[string]interface{}{
@@ -76,6 +90,13 @@ FROM a
 			"UpdatedBy":        agent.UpdatedBy.Id,
 			"ProgressiveCount": agent.ProgressiveCount,
 			"GreetingMedia":    agent.GreetingMediaId(),
+			"AllowChannels":    pq.Array(agent.AllowChannels),
+			"ChatCount":        agent.ChatCount,
+			"SupervisorId":     agent.Supervisor.GetSafeId(),
+			"TeamId":           agent.Team.GetSafeId(),
+			"RegionId":         agent.Region.GetSafeId(),
+			"AuditorId":        agent.Auditor.GetSafeId(),
+			"Supervisor":       agent.IsSupervisor,
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
 			fmt.Sprintf("record=%v, %v", agent, err.Error()), http.StatusInternalServerError)
@@ -88,13 +109,25 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 	var agents []*model.Agent
 
 	f := map[string]interface{}{
-		"DomainId": domainId,
-		"Ids":      pq.Array(search.Ids),
-		"Q":        search.GetQ(),
+		"DomainId":      domainId,
+		"Ids":           pq.Array(search.Ids),
+		"Q":             search.GetQ(),
+		"TeamIds":       pq.Array(search.TeamIds),
+		"AllowChannels": pq.Array(search.AllowChannels),
+		"SupervisorIds": pq.Array(search.SupervisorIds),
+		"RegionIds":     pq.Array(search.RegionIds),
+		"AuditorIds":    pq.Array(search.AuditorIds),
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
-		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ) ))`,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:TeamIds::int[] isnull or team_id = any(:TeamIds))
+				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
+				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
+				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
+				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
 		model.Agent{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -107,20 +140,32 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	var agents []*model.Agent
 
 	f := map[string]interface{}{
-		"DomainId": domainId,
-		"Groups":   pq.Array(groups),
-		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		"Ids":      pq.Array(search.Ids),
-		"Q":        search.GetQ(),
+		"Groups":        pq.Array(groups),
+		"Access":        auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId":      domainId,
+		"Ids":           pq.Array(search.Ids),
+		"Q":             search.GetQ(),
+		"TeamIds":       pq.Array(search.TeamIds),
+		"AllowChannels": pq.Array(search.AllowChannels),
+		"SupervisorIds": pq.Array(search.SupervisorIds),
+		"RegionIds":     pq.Array(search.RegionIds),
+		"AuditorIds":    pq.Array(search.AuditorIds),
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
-		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) and  (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or  status ilike :Q::varchar ) )) and
-			(
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:TeamIds::int[] isnull or team_id = any(:TeamIds))
+				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
+				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
+				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
+				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
+				and (
 					exists(select 1
 					  from cc_agent_acl
 					  where cc_agent_acl.dc = t.domain_id and cc_agent_acl.object = t.id and cc_agent_acl.subject = any(:Groups::int[]) and cc_agent_acl.access&:Access = :Access)
-		  	) `,
+		  		)`,
 		model.Agent{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.GetAllPageByGroups", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -165,12 +210,37 @@ where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leavin
 func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().SelectOne(&agent, `
-			select a.id, a.status, a.domain_id, a.description, (extract(EPOCH from a.last_state_change) * 1000)::int8 last_status_change, progressive_count, 
-				json_build_object('id', ct.id, 'name', coalesce( (ct.name)::varchar, ct.username))::jsonb as user,
-			    cc_get_lookup(a.greeting_media_id, g.name) as greeting_media
-				from cc_agent a
-					inner join directory.wbt_user ct on ct.id = a.user_id
-				    left join storage.media_files g on g.id = a.greeting_media_id
+		SELECT a.domain_id,
+			   a.id,
+			   COALESCE(ct.name::character varying::name, ct.username)::character varying                             AS name,
+			   a.status,
+			   a.description,
+			   (date_part('epoch'::text, a.last_state_change) *
+				1000::double precision)::bigint                                                                       AS last_status_change,
+			   date_part('epoch'::text, now() - a.last_state_change)::bigint                                          AS status_duration,
+			   a.progressive_count,
+			   ch.x                                                                                                   AS channel,
+			   json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user",
+			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
+			   a.allow_channels,
+			   a.chat_count,
+			   sup.user as supervisor,
+			   cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+			   cc_get_lookup(t.id, t.name) as team,
+			   cc_get_lookup(r.id, r.name) as region,
+			   a.supervisor as is_supervisor
+		FROM call_center.cc_agent a
+				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
+				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
+				 left join cc_agent_with_user sup on sup.id = a.supervisor_id
+				 left join directory.wbt_user aud on aud.id = a.auditor_id
+				 left join cc_team t on t.id = a.team_id
+				 left join flow.region r on r.id = a.region_id
+				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
+															  'joined_at',
+															  (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
+									 FROM call_center.cc_agent_channel c
+									 WHERE c.agent_id = a.id) ch ON true
 				where a.domain_id = :DomainId and a.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
@@ -186,24 +256,55 @@ func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppEr
 }
 
 func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError) {
-	err := s.GetMaster().SelectOne(&agent, `with u as (
+	err := s.GetMaster().SelectOne(&agent, `with a as (
 			update cc_agent
 			set user_id = :UserId,
 				description = :Description,
 				updated_at = :UpdatedAt,
 				updated_by = :UpdatedBy,
 			    progressive_count = :ProgressiveCount,
-			    greeting_media_id = :GreetingMediaId
+			    greeting_media_id = :GreetingMediaId,
+				allow_channels = :AllowChannels,
+				chat_count = :ChatCount,
+				supervisor_id = :SupervisorId,
+				team_id = :TeamId,
+				region_id = :RegionId,
+				supervisor = :Supervisor,
+				auditor_id = :AuditorId
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
-		select u.id, u.status, u.domain_id, u.description, (extract(EPOCH from u.last_state_change) * 1000)::int8 last_status_change, progressive_count, 
-			json_build_object('id', ct.id, 'name', ct.name)::jsonb as user,
-			cc_get_lookup(u.greeting_media_id, g.name) as greeting_media
-		from u
-	        left join storage.media_files g on g.id = u.greeting_media_id
-			inner join directory.wbt_user ct on ct.id = u.user_id
-		order by id`, map[string]interface{}{
+		SELECT a.domain_id,
+			   a.id,
+			   COALESCE(ct.name::character varying::name, ct.username)::character varying                             AS name,
+			   a.status,
+			   a.description,
+			   (date_part('epoch'::text, a.last_state_change) *
+				1000::double precision)::bigint                                                                       AS last_status_change,
+			   date_part('epoch'::text, now() - a.last_state_change)::bigint                                          AS status_duration,
+			   a.progressive_count,
+			   ch.x                                                                                                   AS channel,
+			   json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user",
+			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
+			   a.allow_channels,
+			   a.chat_count,
+			   sup.user as supervisor,
+			   cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+			   cc_get_lookup(t.id, t.name) as team,
+			   cc_get_lookup(r.id, r.name) as region,
+			   a.supervisor as is_supervisor
+		FROM  a
+				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
+				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
+				 left join cc_agent_with_user sup on sup.id = a.supervisor_id
+				 left join directory.wbt_user aud on aud.id = a.auditor_id
+				 left join cc_team t on t.id = a.team_id
+				 left join flow.region r on r.id = a.region_id
+				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
+															  'joined_at',
+															  (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
+									 FROM call_center.cc_agent_channel c
+									 WHERE c.agent_id = a.id) ch ON true`, map[string]interface{}{
 		"UserId":           agent.User.Id,
 		"Description":      agent.Description,
 		"ProgressiveCount": agent.ProgressiveCount,
@@ -212,6 +313,13 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 		"UpdatedAt":        agent.UpdatedAt,
 		"UpdatedBy":        agent.UpdatedBy.Id,
 		"GreetingMediaId":  agent.GreetingMediaId(),
+		"AllowChannels":    pq.Array(agent.AllowChannels),
+		"ChatCount":        agent.ChatCount,
+		"SupervisorId":     agent.Supervisor.GetSafeId(),
+		"TeamId":           agent.Team.GetSafeId(),
+		"RegionId":         agent.Region.GetSafeId(),
+		"AuditorId":        agent.Auditor.GetSafeId(),
+		"Supervisor":       agent.IsSupervisor,
 	})
 	if err != nil {
 		code := http.StatusInternalServerError

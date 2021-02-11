@@ -9,9 +9,9 @@ type Queue struct {
 	Priority       int       `json:"priority" db:"priority"`
 	Name           string    `json:"name" db:"name"`
 	Variables      StringMap `json:"variables" db:"variables"`
-	Timeout        int       `json:"timeout" db:"timeout"`
+	Timeout        int       `json:"timeout" db:"-"`          //todo del me
+	SecLocateAgent int       `json:"sec_locate_agent" db:"-"` //todo del me
 	DncList        *Lookup   `json:"dnc_list" db:"dnc_list"`
-	SecLocateAgent int       `json:"sec_locate_agent" db:"sec_locate_agent"`
 	Type           int8      `json:"type" db:"type"`
 	Team           *Lookup   `json:"team" db:"team"`
 	Schema         *Lookup   `json:"schema" db:"schema"`
@@ -34,8 +34,8 @@ func (q Queue) DefaultOrder() string {
 }
 
 func (q Queue) DefaultFields() []string {
-	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables", "timeout",
-		"domain_id", "sec_locate_agent", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
+	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
+		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent"}
 }
 
@@ -75,23 +75,21 @@ type QueueReportGeneral struct {
 }
 
 type QueuePatch struct {
-	Strategy       *string   `json:"strategy" db:"strategy"`
-	Enabled        *bool     `json:"enabled" db:"enabled"`
-	Payload        []byte    `json:"payload" db:"payload"`
-	Calendar       *Lookup   `json:"calendar" db:"calendar"`
-	Priority       *int      `json:"priority" db:"priority"`
-	Name           *string   `json:"name" db:"name"`
-	Variables      StringMap `json:"variables" db:"variables"`
-	Timeout        *int      `json:"timeout" db:"timeout"`
-	DncList        *Lookup   `json:"dnc_list" db:"dnc_list"`
-	SecLocateAgent *int      `json:"sec_locate_agent" db:"sec_locate_agent"`
-	Team           *Lookup   `json:"team" db:"team"`
-	Schema         *Lookup   `json:"schema" db:"schema"`
-	Ringtone       *Lookup   `json:"ringtone" db:"ringtone"`
-	DoSchema       *Lookup   `json:"do_schema" db:"do_schema"`
-	AfterSchema    *Lookup   `json:"after_schema" db:"after_schema"`
-	Description    *string   `json:"description" db:"description"`
-	StickyAgent    *bool     `json:"sticky_agent" db:"sticky_agent"`
+	Strategy    *string   `json:"strategy" db:"strategy"`
+	Enabled     *bool     `json:"enabled" db:"enabled"`
+	Payload     []byte    `json:"payload" db:"payload"`
+	Calendar    *Lookup   `json:"calendar" db:"calendar"`
+	Priority    *int      `json:"priority" db:"priority"`
+	Name        *string   `json:"name" db:"name"`
+	Variables   StringMap `json:"variables" db:"variables"`
+	DncList     *Lookup   `json:"dnc_list" db:"dnc_list"`
+	Team        *Lookup   `json:"team" db:"team"`
+	Schema      *Lookup   `json:"schema" db:"schema"`
+	Ringtone    *Lookup   `json:"ringtone" db:"ringtone"`
+	DoSchema    *Lookup   `json:"do_schema" db:"do_schema"`
+	AfterSchema *Lookup   `json:"after_schema" db:"after_schema"`
+	Description *string   `json:"description" db:"description"`
+	StickyAgent *bool     `json:"sticky_agent" db:"sticky_agent"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {
@@ -123,16 +121,8 @@ func (q *Queue) Patch(p *QueuePatch) {
 		q.Variables = p.Variables
 	}
 
-	if p.Timeout != nil {
-		q.Timeout = *p.Timeout
-	}
-
 	if p.DncList != nil {
 		q.DncList = p.DncList
-	}
-
-	if p.SecLocateAgent != nil {
-		q.SecLocateAgent = *p.SecLocateAgent
 	}
 
 	if p.Schema != nil {

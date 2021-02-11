@@ -43,6 +43,13 @@ type Agent struct {
 	ProgressiveCount int          `json:"progressive_count" db:"progressive_count"`
 	Channel          AgentChannel `json:"channel" db:"channel"`
 	GreetingMedia    *Lookup      `json:"greeting_media" db:"greeting_media"`
+	AllowChannels    StringArray  `json:"allow_channels" db:"allow_channels"`
+	ChatCount        uint32       `json:"chat_count" db:"chat_count"`
+	Supervisor       *Lookup      `json:"supervisor" db:"supervisor"`
+	Team             *Lookup      `json:"team" db:"team"`
+	Region           *Lookup      `json:"region" db:"region"`
+	Auditor          *Lookup      `json:"auditor" db:"auditor"`
+	IsSupervisor     bool         `json:"is_supervisor" db:"is_supervisor"`
 }
 
 type AgentStatusStatistics struct {
@@ -87,7 +94,7 @@ func (a Agent) AllowFields() []string {
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media"}
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region", "auditor", "is_supervisor"}
 }
 
 func (a Agent) EntityName() string {
@@ -121,7 +128,12 @@ func (a AgentSession) ToMap() map[string]interface{} {
 
 type SearchAgent struct {
 	ListRequest
-	Ids []string
+	Ids           []string
+	AllowChannels []string
+	SupervisorIds []uint32
+	TeamIds       []uint32
+	RegionIds     []uint32
+	AuditorIds    []uint32
 }
 
 type AgentUser struct {

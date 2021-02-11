@@ -46,6 +46,13 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		Description:      in.Description,
 		ProgressiveCount: int(in.ProgressiveCount),
 		GreetingMedia:    GetLookup(in.GreetingMedia),
+		AllowChannels:    in.AllowChannels,
+		ChatCount:        in.ChatCount,
+		Supervisor:       GetLookup(in.Supervisor),
+		Team:             GetLookup(in.Team),
+		Region:           GetLookup(in.Region),
+		Auditor:          GetLookup(in.Auditor),
+		IsSupervisor:     in.GetIsSupervisor(),
 	}
 
 	err = agent.IsValid()
@@ -83,7 +90,12 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 			Fields:   in.Fields,
 			Sort:     in.Sort,
 		},
-		Ids: in.Id,
+		Ids:           in.Id,
+		AllowChannels: in.GetAllowChannels(),
+		SupervisorIds: in.GetSupervisorId(),
+		TeamIds:       in.GetTeamId(),
+		RegionIds:     in.GetRegionId(),
+		AuditorIds:    in.GetAuditorId(),
 	}
 
 	if permission.Rbac {
@@ -179,6 +191,13 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		Description:      in.Description,
 		ProgressiveCount: int(in.ProgressiveCount),
 		GreetingMedia:    GetLookup(in.GreetingMedia),
+		AllowChannels:    in.AllowChannels,
+		ChatCount:        in.ChatCount,
+		Supervisor:       GetLookup(in.Supervisor),
+		Team:             GetLookup(in.Team),
+		Region:           GetLookup(in.Region),
+		Auditor:          GetLookup(in.Auditor),
+		IsSupervisor:     in.GetIsSupervisor(),
 	})
 
 	if err != nil {
@@ -701,13 +720,20 @@ func transformAgent(src *model.Agent) *engine.Agent {
 			Id:   int64(src.User.Id),
 			Name: src.User.Name,
 		},
-		LastStatusChange: src.LastStatusChange,
 		Status:           src.Status,
 		Description:      src.Description,
+		LastStatusChange: src.LastStatusChange,
 		ProgressiveCount: int32(src.ProgressiveCount),
 		Name:             src.Name,
 		StatusDuration:   src.StatusDuration,
 		GreetingMedia:    GetProtoLookup(src.GreetingMedia),
+		AllowChannels:    src.AllowChannels,
+		ChatCount:        src.ChatCount,
+		Supervisor:       GetProtoLookup(src.Supervisor),
+		Team:             GetProtoLookup(src.Team),
+		Region:           GetProtoLookup(src.Region),
+		Auditor:          GetProtoLookup(src.Auditor),
+		IsSupervisor:     src.IsSupervisor,
 	}
 
 	agent.Channel = &engine.AgentChannel{
