@@ -72,14 +72,15 @@ func (l *ListRequest) RemoveLastElemIfNeed(slicePtr interface{}) {
 
 	itr := s.Elem()
 
-	l.endList = itr.Len() <= l.PerPage
+	length := itr.Len()
+	l.endList = length <= l.GetLimit()-1
 
 	if l.endList {
 		return
 	}
 
-	newSlice := reflect.MakeSlice(itr.Type(), itr.Len()-1, itr.Len()-1)
-	reflect.Copy(newSlice.Slice(0, newSlice.Len()), itr.Slice(0, itr.Len()-1))
+	newSlice := reflect.MakeSlice(itr.Type(), length-1, length-1)
+	reflect.Copy(newSlice.Slice(0, newSlice.Len()), itr.Slice(0, length-1))
 	s.Elem().Set(newSlice)
 }
 

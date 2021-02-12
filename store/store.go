@@ -33,6 +33,7 @@ type Store interface {
 	ResourceTeam() ResourceTeamStore
 	Queue() QueueStore
 	QueueResource() QueueResourceStore
+	QueueSkill() QueueSkillStore
 	Bucket() BucketSore
 	BucketInQueue() BucketInQueueStore
 	QueueRouting() QueueRoutingStore
@@ -227,6 +228,14 @@ type QueueResourceStore interface {
 	GetAllPage(domainId, queueId int64, search *model.SearchQueueResourceGroup) ([]*model.QueueResourceGroup, *model.AppError)
 	Update(domainId int64, queueResourceGroup *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError)
 	Delete(queueId, id int64) *model.AppError
+}
+
+type QueueSkillStore interface {
+	Create(domainId int64, in *model.QueueSkill) (*model.QueueSkill, *model.AppError)
+	Get(domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, *model.AppError)
+	Update(domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError)
+	Delete(domainId int64, queueId, id uint32) *model.AppError
 }
 
 //FIXME delete

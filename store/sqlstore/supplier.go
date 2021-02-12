@@ -44,6 +44,7 @@ type SqlSupplierOldStores struct {
 	outboundResourceInGroup store.OutboundResourceInGroupStore
 	queue                   store.QueueStore
 	queueResource           store.QueueResourceStore
+	queueSkill              store.QueueSkillStore
 	bucket                  store.BucketSore
 	bucketInQueue           store.BucketInQueueStore
 	queueRouting            store.QueueRoutingStore
@@ -93,6 +94,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.outboundResourceInGroup = NewSqlOutboundResourceInGroupStore(supplier)
 	supplier.oldStores.queue = NewSqlQueueStore(supplier)
 	supplier.oldStores.queueResource = NewSqlQueueResourceStore(supplier)
+	supplier.oldStores.queueSkill = NewSqlQueueSkillStore(supplier)
 	supplier.oldStores.bucket = NewSqlBucketStore(supplier)
 	supplier.oldStores.bucketInQueue = NewSqlBucketInQueueStore(supplier)
 	supplier.oldStores.queueRouting = NewSqlQueueRoutingStore(supplier)
@@ -279,6 +281,10 @@ func (ss *SqlSupplier) Queue() store.QueueStore {
 
 func (ss *SqlSupplier) QueueResource() store.QueueResourceStore {
 	return ss.oldStores.queueResource
+}
+
+func (ss *SqlSupplier) QueueSkill() store.QueueSkillStore {
+	return ss.oldStores.queueSkill
 }
 
 func (ss *SqlSupplier) Bucket() store.BucketSore {
