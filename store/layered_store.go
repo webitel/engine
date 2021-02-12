@@ -136,3 +136,7 @@ func (s *LayeredStore) EmailProfile() EmailProfileStore {
 func (s *LayeredStore) Chat() ChatStore {
 	return s.DatabaseLayer.Chat()
 }
+
+func (s *LayeredStore) Region() RegionStore {
+	return s.DatabaseLayer.Region()
+}

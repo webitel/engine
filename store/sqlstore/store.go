@@ -13,6 +13,8 @@ type SqlStore interface {
 	GetAllConns() []*gorp.DbMap
 
 	ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
+	// todo
+	ListQueryFromSchema(out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
 
 	User() store.UserStore
 	Calendar() store.CalendarStore
@@ -42,4 +44,6 @@ type SqlStore interface {
 	Call() store.CallStore
 	EmailProfile() store.EmailProfileStore
 	Chat() store.ChatStore
+
+	Region() store.RegionStore
 }

@@ -13,7 +13,7 @@ const (
 	PERMISSION_SCOPE_ACR_ROUTING                = "acr_routing" //rename
 
 	PERMISSION_SCOPE_FLOW          = "flow"        // fixme
-	PERMISSION_SCOPE_LOOKUPS       = "lookups"     // fixme
+	PERMISSION_SCOPE_DICTIONARIES  = "users"       // "dictionaries"     // fixme
 	PERMISSION_SCOPE_EMAIL_PROFILE = "acr_routing" //FIXME add permission email_profile
 
 	PERMISSION_SCOPE_USERS = "users"

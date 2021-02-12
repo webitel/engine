@@ -57,7 +57,7 @@ func GetOrderBy(s string) string {
 }
 
 //TODO filter
-func Build(req *model.ListRequest, where string, e Entity, args map[string]interface{}) string {
+func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]interface{}) string {
 	s := GetFields(req.Fields, e)
 	sort := ""
 
@@ -70,18 +70,35 @@ func Build(req *model.ListRequest, where string, e Entity, args map[string]inter
 	args["Offset"] = req.GetOffset()
 	args["Limit"] = req.GetLimit()
 
+	t := pq.QuoteIdentifier(e.EntityName())
+
+	if schema != "" {
+		t = pq.QuoteIdentifier(schema) + "." + t
+	}
+
 	query := fmt.Sprintf(`select %s 
 	from %s as t
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), pq.QuoteIdentifier(e.EntityName()), where, GetOrderBy(sort))
+	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(sort))
 
 	return query
 }
 
 func (s *SqlSupplier) ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	q := Build(&req, where, e, params)
+	q := Build(&req, "", where, e, params)
+	_, err := s.GetReplica().Select(out, q, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//todo
+func (s *SqlSupplier) ListQueryFromSchema(out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
+	q := Build(&req, schema, where, e, params)
 	_, err := s.GetReplica().Select(out, q, params)
 	if err != nil {
 		return err

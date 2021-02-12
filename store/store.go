@@ -53,6 +53,8 @@ type Store interface {
 
 	EmailProfile() EmailProfileStore
 	Chat() ChatStore
+
+	Region() RegionStore
 }
 
 // todo deprecated
@@ -323,6 +325,14 @@ type EmailProfileStore interface {
 	Get(domainId int64, id int) (*model.EmailProfile, *model.AppError)
 	Update(p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
 	Delete(domainId int64, id int) *model.AppError
+}
+
+type RegionStore interface {
+	Create(domainId int64, region *model.Region) (*model.Region, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchRegion) ([]*model.Region, *model.AppError)
+	Get(domainId int64, id uint32) (*model.Region, *model.AppError)
+	Update(domainId int64, region *model.Region) (*model.Region, *model.AppError)
+	Delete(domainId int64, id uint32) *model.AppError
 }
 
 type NotificationStore interface {

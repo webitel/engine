@@ -35,6 +35,7 @@ type API struct {
 	call *call
 
 	emailProfile *emailProfile
+	region       *region
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -67,6 +68,7 @@ func Init(a *app.App, server *grpc.Server) {
 
 	api.call = NewCallApi(api)
 	api.emailProfile = NewEmailProfileApi(api)
+	api.region = NewRegionApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -93,4 +95,5 @@ func Init(a *app.App, server *grpc.Server) {
 
 	engine.RegisterCallServiceServer(server, api.call)
 	engine.RegisterEmailProfileServiceServer(server, api.emailProfile)
+	engine.RegisterRegionServiceServer(server, api.region)
 }

@@ -50,17 +50,14 @@ type SqlSupplierOldStores struct {
 	supervisorTeam          store.SupervisorTeamStore
 	communicationType       store.CommunicationTypeStore
 	list                    store.ListStore
-
-	member store.MemberStore
-
-	routingSchema       store.RoutingSchemaStore
-	routingOutboundCall store.RoutingOutboundCallStore
-	routingVariable     store.RoutingVariableStore
-
-	call         store.CallStore
-	emailProfile store.EmailProfileStore
-
-	chat store.ChatStore
+	member                  store.MemberStore
+	routingSchema           store.RoutingSchemaStore
+	routingOutboundCall     store.RoutingOutboundCallStore
+	routingVariable         store.RoutingVariableStore
+	call                    store.CallStore
+	emailProfile            store.EmailProfileStore
+	chat                    store.ChatStore
+	region                  store.RegionStore
 }
 
 type SqlSupplier struct {
@@ -111,6 +108,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	supplier.oldStores.call = NewSqlCallStore(supplier)
 	supplier.oldStores.emailProfile = NewSqlEmailProfileStore(supplier)
+	supplier.oldStores.region = NewSqlRegionStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -321,6 +319,10 @@ func (ss *SqlSupplier) EmailProfile() store.EmailProfileStore {
 
 func (ss *SqlSupplier) Chat() store.ChatStore {
 	return ss.oldStores.chat
+}
+
+func (ss *SqlSupplier) Region() store.RegionStore {
+	return ss.oldStores.region
 }
 
 type typeConverter struct{}
