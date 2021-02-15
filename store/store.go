@@ -100,7 +100,7 @@ type AgentTeamStore interface {
 	GetAllPage(domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError)
 	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError)
 	Get(domainId int64, id int64) (*model.AgentTeam, *model.AppError)
-	Update(team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
+	Update(domainId int64, team *model.AgentTeam) (*model.AgentTeam, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 }
 

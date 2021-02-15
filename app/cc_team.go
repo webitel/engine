@@ -35,7 +35,7 @@ func (a *App) GetAgentTeamById(domainId, id int64) (*model.AgentTeam, *model.App
 	return a.Store.AgentTeam().Get(domainId, id)
 }
 
-func (a *App) UpdateAgentTeam(team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
+func (a *App) UpdateAgentTeam(domainId int64, team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
 	oldTeam, err := a.GetAgentTeamById(team.DomainId, team.Id)
 	if err != nil {
 		return nil, err
@@ -48,12 +48,12 @@ func (a *App) UpdateAgentTeam(team *model.AgentTeam) (*model.AgentTeam, *model.A
 	oldTeam.WrapUpTime = team.WrapUpTime
 	oldTeam.NoAnswerDelayTime = team.NoAnswerDelayTime
 	oldTeam.CallTimeout = team.CallTimeout
-	oldTeam.PostProcessing = team.PostProcessing
+	oldTeam.Administrator = team.Administrator
 
 	oldTeam.UpdatedAt = team.UpdatedAt
 	oldTeam.UpdatedBy.Id = team.UpdatedBy.Id
 
-	oldTeam, err = a.Store.AgentTeam().Update(oldTeam)
+	oldTeam, err = a.Store.AgentTeam().Update(domainId, oldTeam)
 	if err != nil {
 		return nil, err
 	}
