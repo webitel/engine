@@ -47,4 +47,5 @@ type SqlStore interface {
 	Chat() store.ChatStore
 
 	Region() store.RegionStore
+	PauseCause() store.PauseCauseStore
 }

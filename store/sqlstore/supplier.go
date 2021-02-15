@@ -59,6 +59,7 @@ type SqlSupplierOldStores struct {
 	emailProfile            store.EmailProfileStore
 	chat                    store.ChatStore
 	region                  store.RegionStore
+	pauseCause              store.PauseCauseStore
 }
 
 type SqlSupplier struct {
@@ -111,6 +112,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.call = NewSqlCallStore(supplier)
 	supplier.oldStores.emailProfile = NewSqlEmailProfileStore(supplier)
 	supplier.oldStores.region = NewSqlRegionStore(supplier)
+	supplier.oldStores.pauseCause = NewSqlPauseCauseStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -329,6 +331,10 @@ func (ss *SqlSupplier) Chat() store.ChatStore {
 
 func (ss *SqlSupplier) Region() store.RegionStore {
 	return ss.oldStores.region
+}
+
+func (ss *SqlSupplier) PauseCause() store.PauseCauseStore {
+	return ss.oldStores.pauseCause
 }
 
 type typeConverter struct{}

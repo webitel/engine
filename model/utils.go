@@ -178,6 +178,11 @@ func NewRandomString(length int) string {
 	return b.String()
 }
 
+func GetTime() *time.Time {
+	t := time.Now()
+	return &t
+}
+
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)

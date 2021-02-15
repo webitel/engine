@@ -7,19 +7,11 @@ import (
 	"time"
 )
 
-type AgentStatus struct {
-	Name string
-}
-
 const (
 	AgentStatusOnline  = "online"
 	AgentStatusOffline = "offline"
 	AgentStatusPause   = "pause"
 )
-
-func (status AgentStatus) String() string {
-	return status.Name
-}
 
 type AgentChannel struct {
 	Channel     string  `json:"channel"`

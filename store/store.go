@@ -56,6 +56,8 @@ type Store interface {
 	Chat() ChatStore
 
 	Region() RegionStore
+
+	PauseCause() PauseCauseStore
 }
 
 // todo deprecated
@@ -341,6 +343,14 @@ type RegionStore interface {
 	GetAllPage(domainId int64, search *model.SearchRegion) ([]*model.Region, *model.AppError)
 	Get(domainId int64, id uint32) (*model.Region, *model.AppError)
 	Update(domainId int64, region *model.Region) (*model.Region, *model.AppError)
+	Delete(domainId int64, id uint32) *model.AppError
+}
+
+type PauseCauseStore interface {
+	Create(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchAgentPauseCause) ([]*model.AgentPauseCause, *model.AppError)
+	Get(domainId int64, id uint32) (*model.AgentPauseCause, *model.AppError)
+	Update(domainId int64, region *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError)
 	Delete(domainId int64, id uint32) *model.AppError
 }
 

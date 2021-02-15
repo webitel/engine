@@ -144,3 +144,7 @@ func (s *LayeredStore) Chat() ChatStore {
 func (s *LayeredStore) Region() RegionStore {
 	return s.DatabaseLayer.Region()
 }
+
+func (s *LayeredStore) PauseCause() PauseCauseStore {
+	return s.DatabaseLayer.PauseCause()
+}
