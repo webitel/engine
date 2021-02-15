@@ -54,6 +54,7 @@ func (api *queueSkill) SearchQueueSkill(ctx context.Context, in *engine.SearchQu
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
 		},
 		QueueId:     in.QueueId,
 		Ids:         in.GetId(),
