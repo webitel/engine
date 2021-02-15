@@ -1,6 +1,5 @@
 package controller
 
-import "C"
 import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
