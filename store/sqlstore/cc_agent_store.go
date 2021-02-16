@@ -184,7 +184,7 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *m
        a.member_call_id as member_channel_id,
        a.agent_call_id as agent_channel_id,
        destination as communication,
-       ct.post_processing as has_reporting,
+       cq.post_processing as has_reporting,
        a.state,
        a.agent_id,
        cc_view_timestamp(a.bridged_at) as bridged_at,
@@ -193,7 +193,6 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *m
 from cc_member_attempt a
     inner join cc_agent a2 on a2.id = a.agent_id
     inner join cc_queue cq on a.queue_id = cq.id
-    inner join cc_team ct on cq.team_id = ct.id
 where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leaving'`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,
