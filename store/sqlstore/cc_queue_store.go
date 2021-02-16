@@ -42,10 +42,11 @@ func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError
 	if err := s.GetMaster().SelectOne(&out, `with q as (
     insert into cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
-                      created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent)
+                      created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
+					  processing, processing_sec)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
         :Variables, :DomainId, :DncListId, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
-		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent)
+		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec)
     returning *
 )
 select q.id,
@@ -69,7 +70,9 @@ select q.id,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
-	   q.sticky_agent
+	   q.sticky_agent,
+	   q.processing,
+	   q.processing_sec
 from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -102,6 +105,8 @@ from q
 			"AfterSchemaId": queue.AfterSchemaId(),
 			"RingtoneId":    queue.RingtoneId(),
 			"StickyAgent":   queue.StickyAgent,
+			"Processing":    queue.Processing,
+			"ProcessingSec": queue.ProcessingSec,
 		}); nil != err {
 		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
@@ -178,7 +183,9 @@ select q.id,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
-	   q.sticky_agent
+	   q.sticky_agent,
+	   q.processing,
+	   q.processing_sec
 from cc_queue q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -218,7 +225,9 @@ set updated_at = :UpdatedAt,
 	ringtone_id = :RingtoneId,
 	do_schema_id = :DoSchemaId,
 	after_schema_id = :AfterSchemaId,
-	sticky_agent = :StickyAgent
+	sticky_agent = :StickyAgent,
+	processing = :Processing,
+	processing_sec = :ProcessingSec
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
@@ -243,7 +252,9 @@ select q.id,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
-	   q.sticky_agent	
+	   q.sticky_agent,
+	   q.processing,
+	   q.processing_sec
 from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -274,6 +285,8 @@ from q
 		"DoSchemaId":    queue.DoSchemaId(),
 		"AfterSchemaId": queue.AfterSchemaId(),
 		"StickyAgent":   queue.StickyAgent,
+		"Processing":    queue.Processing,
+		"ProcessingSec": queue.ProcessingSec,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,

@@ -23,6 +23,8 @@ type Queue struct {
 	DoSchema       *Lookup   `json:"do_schema" db:"do_schema"`
 	AfterSchema    *Lookup   `json:"after_schema" db:"after_schema"`
 	StickyAgent    bool      `json:"sticky_agent" db:"sticky_agent"`
+	Processing     bool      `json:"processing" db:"processing"`
+	ProcessingSec  uint32    `json:"processing_sec" db:"processing_sec"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -36,7 +38,7 @@ func (q Queue) DefaultOrder() string {
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
 		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
-		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent"}
+		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent", "processing", "processing_sec"}
 }
 
 func (q Queue) EntityName() string {
@@ -75,21 +77,23 @@ type QueueReportGeneral struct {
 }
 
 type QueuePatch struct {
-	Strategy    *string   `json:"strategy" db:"strategy"`
-	Enabled     *bool     `json:"enabled" db:"enabled"`
-	Payload     []byte    `json:"payload" db:"payload"`
-	Calendar    *Lookup   `json:"calendar" db:"calendar"`
-	Priority    *int      `json:"priority" db:"priority"`
-	Name        *string   `json:"name" db:"name"`
-	Variables   StringMap `json:"variables" db:"variables"`
-	DncList     *Lookup   `json:"dnc_list" db:"dnc_list"`
-	Team        *Lookup   `json:"team" db:"team"`
-	Schema      *Lookup   `json:"schema" db:"schema"`
-	Ringtone    *Lookup   `json:"ringtone" db:"ringtone"`
-	DoSchema    *Lookup   `json:"do_schema" db:"do_schema"`
-	AfterSchema *Lookup   `json:"after_schema" db:"after_schema"`
-	Description *string   `json:"description" db:"description"`
-	StickyAgent *bool     `json:"sticky_agent" db:"sticky_agent"`
+	Strategy      *string   `json:"strategy" db:"strategy"`
+	Enabled       *bool     `json:"enabled" db:"enabled"`
+	Payload       []byte    `json:"payload" db:"payload"`
+	Calendar      *Lookup   `json:"calendar" db:"calendar"`
+	Priority      *int      `json:"priority" db:"priority"`
+	Name          *string   `json:"name" db:"name"`
+	Variables     StringMap `json:"variables" db:"variables"`
+	DncList       *Lookup   `json:"dnc_list" db:"dnc_list"`
+	Team          *Lookup   `json:"team" db:"team"`
+	Schema        *Lookup   `json:"schema" db:"schema"`
+	Ringtone      *Lookup   `json:"ringtone" db:"ringtone"`
+	DoSchema      *Lookup   `json:"do_schema" db:"do_schema"`
+	AfterSchema   *Lookup   `json:"after_schema" db:"after_schema"`
+	Description   *string   `json:"description" db:"description"`
+	StickyAgent   *bool     `json:"sticky_agent" db:"sticky_agent"`
+	Processing    *bool     `json:"processing" db:"processing"`
+	ProcessingSec *uint32   `json:"processing_sec" db:"processing_sec"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {
@@ -151,6 +155,14 @@ func (q *Queue) Patch(p *QueuePatch) {
 
 	if p.StickyAgent != nil {
 		q.StickyAgent = *p.StickyAgent
+	}
+
+	if p.Processing != nil {
+		q.Processing = *p.Processing
+	}
+
+	if p.ProcessingSec != nil {
+		q.ProcessingSec = *p.ProcessingSec
 	}
 }
 
