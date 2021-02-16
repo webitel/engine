@@ -84,7 +84,7 @@ from cc_call_active_list c
     select a.id as attempt_id, a.channel, a.queue_id, a.member_id, a.member_call_id as member_channel_id,
            a.agent_call_id as agent_channel_id, a.destination as communication,
            a.state,
-           q.post_processing as reporting
+           q.processing as reporting
     from cc_member_attempt a
         inner join cc_queue q on q.id = a.queue_id
     where a.id = c.attempt_id and a.agent_call_id = c.id

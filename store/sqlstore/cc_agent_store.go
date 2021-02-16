@@ -184,7 +184,7 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *m
        a.member_call_id as member_channel_id,
        a.agent_call_id as agent_channel_id,
        destination as communication,
-       cq.post_processing as has_reporting,
+       cq.processing as has_reporting,
        a.state,
        a.agent_id,
        cc_view_timestamp(a.bridged_at) as bridged_at,
