@@ -43,10 +43,10 @@ func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError
     insert into cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
                       created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
-					  processing, processing_sec)
+					  processing, processing_sec, processing_notification)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
         :Variables, :DomainId, :DncListId, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
-		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec)
+		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingNotification)
     returning *
 )
 select q.id,
@@ -72,7 +72,8 @@ select q.id,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
 	   q.sticky_agent,
 	   q.processing,
-	   q.processing_sec
+	   q.processing_sec,
+	   q.processing_notification
 from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -84,29 +85,30 @@ from q
          left join cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`,
 		map[string]interface{}{
-			"Strategy":      queue.Strategy,
-			"Enabled":       queue.Enabled,
-			"Payload":       queue.Payload,
-			"CalendarId":    queue.Calendar.Id,
-			"Priority":      queue.Priority,
-			"UpdatedAt":     queue.UpdatedAt,
-			"Name":          queue.Name,
-			"Variables":     queue.Variables.ToJson(),
-			"DomainId":      queue.DomainId,
-			"DncListId":     queue.DncListId(),
-			"Type":          queue.Type,
-			"TeamId":        queue.TeamId(),
-			"CreatedAt":     queue.CreatedAt,
-			"CreatedBy":     queue.CreatedBy.Id,
-			"UpdatedBy":     queue.UpdatedBy.Id,
-			"Description":   queue.Description,
-			"SchemaId":      queue.SchemaId(),
-			"DoSchemaId":    queue.DoSchemaId(),
-			"AfterSchemaId": queue.AfterSchemaId(),
-			"RingtoneId":    queue.RingtoneId(),
-			"StickyAgent":   queue.StickyAgent,
-			"Processing":    queue.Processing,
-			"ProcessingSec": queue.ProcessingSec,
+			"Strategy":               queue.Strategy,
+			"Enabled":                queue.Enabled,
+			"Payload":                queue.Payload,
+			"CalendarId":             queue.Calendar.Id,
+			"Priority":               queue.Priority,
+			"UpdatedAt":              queue.UpdatedAt,
+			"Name":                   queue.Name,
+			"Variables":              queue.Variables.ToJson(),
+			"DomainId":               queue.DomainId,
+			"DncListId":              queue.DncListId(),
+			"Type":                   queue.Type,
+			"TeamId":                 queue.TeamId(),
+			"CreatedAt":              queue.CreatedAt,
+			"CreatedBy":              queue.CreatedBy.Id,
+			"UpdatedBy":              queue.UpdatedBy.Id,
+			"Description":            queue.Description,
+			"SchemaId":               queue.SchemaId(),
+			"DoSchemaId":             queue.DoSchemaId(),
+			"AfterSchemaId":          queue.AfterSchemaId(),
+			"RingtoneId":             queue.RingtoneId(),
+			"StickyAgent":            queue.StickyAgent,
+			"Processing":             queue.Processing,
+			"ProcessingSec":          queue.ProcessingSec,
+			"ProcessingNotification": queue.ProcessingNotification,
 		}); nil != err {
 		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
@@ -185,7 +187,8 @@ select q.id,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
 	   q.sticky_agent,
 	   q.processing,
-	   q.processing_sec
+	   q.processing_sec,
+       q.processing_notification
 from cc_queue q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -227,7 +230,8 @@ set updated_at = :UpdatedAt,
 	after_schema_id = :AfterSchemaId,
 	sticky_agent = :StickyAgent,
 	processing = :Processing,
-	processing_sec = :ProcessingSec
+	processing_sec = :ProcessingSec,
+    processing_notification = :ProcessingNotification
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
@@ -254,7 +258,8 @@ select q.id,
        cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
 	   q.sticky_agent,
 	   q.processing,
-	   q.processing_sec
+	   q.processing_sec,
+       q.processing_notification
 from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -265,28 +270,29 @@ from q
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
          left join cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
-		"UpdatedAt":     queue.UpdatedAt,
-		"UpdatedBy":     queue.UpdatedBy.Id,
-		"Strategy":      queue.Strategy,
-		"Enabled":       queue.Enabled,
-		"Payload":       queue.Payload,
-		"CalendarId":    queue.Calendar.Id,
-		"Priority":      queue.Priority,
-		"Name":          queue.Name,
-		"Variables":     queue.Variables.ToJson(),
-		"DncListId":     queue.DncListId(),
-		"Type":          queue.Type,
-		"TeamId":        queue.TeamId(),
-		"SchemaId":      queue.SchemaId(),
-		"Id":            queue.Id,
-		"DomainId":      queue.DomainId,
-		"Description":   queue.Description,
-		"RingtoneId":    queue.RingtoneId(),
-		"DoSchemaId":    queue.DoSchemaId(),
-		"AfterSchemaId": queue.AfterSchemaId(),
-		"StickyAgent":   queue.StickyAgent,
-		"Processing":    queue.Processing,
-		"ProcessingSec": queue.ProcessingSec,
+		"UpdatedAt":              queue.UpdatedAt,
+		"UpdatedBy":              queue.UpdatedBy.Id,
+		"Strategy":               queue.Strategy,
+		"Enabled":                queue.Enabled,
+		"Payload":                queue.Payload,
+		"CalendarId":             queue.Calendar.Id,
+		"Priority":               queue.Priority,
+		"Name":                   queue.Name,
+		"Variables":              queue.Variables.ToJson(),
+		"DncListId":              queue.DncListId(),
+		"Type":                   queue.Type,
+		"TeamId":                 queue.TeamId(),
+		"SchemaId":               queue.SchemaId(),
+		"Id":                     queue.Id,
+		"DomainId":               queue.DomainId,
+		"Description":            queue.Description,
+		"RingtoneId":             queue.RingtoneId(),
+		"DoSchemaId":             queue.DoSchemaId(),
+		"AfterSchemaId":          queue.AfterSchemaId(),
+		"StickyAgent":            queue.StickyAgent,
+		"Processing":             queue.Processing,
+		"ProcessingSec":          queue.ProcessingSec,
+		"ProcessingNotification": queue.ProcessingNotification,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,
