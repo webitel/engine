@@ -83,7 +83,7 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue.StickyAgent = queue.StickyAgent
 	oldQueue.Processing = queue.Processing
 	oldQueue.ProcessingSec = queue.ProcessingSec
-	oldQueue.ProcessingNotification = queue.ProcessingNotification
+	oldQueue.ProcessingRenewalSec = queue.ProcessingRenewalSec
 
 	oldQueue, err = a.Store.Queue().Update(oldQueue)
 	if err != nil {

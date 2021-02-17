@@ -20,8 +20,8 @@ func (s SqlQueueSkillStore) Create(domainId int64, in *model.QueueSkill) (*model
 	var qs *model.QueueSkill
 
 	err := s.GetMaster().SelectOne(&qs, `with s as (
-    insert into cc_queue_skill (queue_id, skill_id, bucket_ids, lvl, min_capacity, max_capacity, disabled)
-    select :QueueId, :SkillId, :BucketIds, :Lvl, :MinCapacity, :MaxCapacity, :Disabled
+    insert into cc_queue_skill (queue_id, skill_id, bucket_ids, lvl, min_capacity, max_capacity, enabled)
+    select :QueueId, :SkillId, :BucketIds, :Lvl, :MinCapacity, :MaxCapacity, :Enabled
     where exists(select 1 from cc_queue q where q.domain_id = :DomainId)
     returning *
 )
@@ -34,7 +34,7 @@ select s.id,
        s.lvl,
        s.min_capacity,
        s.max_capacity,
-       s.disabled
+       s.enabled
 from s
          inner join cc_skill cs on s.skill_id = cs.id`, map[string]interface{}{
 		"DomainId":    domainId,
@@ -44,7 +44,7 @@ from s
 		"Lvl":         in.Lvl,
 		"MinCapacity": in.MinCapacity,
 		"MaxCapacity": in.MaxCapacity,
-		"Disabled":    in.Disabled,
+		"Enabled":     in.Enabled,
 	})
 
 	if err != nil {
@@ -58,7 +58,7 @@ from s
 func (s SqlQueueSkillStore) Get(domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError) {
 	var qs *model.QueueSkill
 
-	err := s.GetReplica().SelectOne(&qs, `select "id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "disabled"
+	err := s.GetReplica().SelectOne(&qs, `select "id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "enabled"
 		from cc_queue_skill_list
 		where id = :Id and queue_id = :QueueId and domain_id = :DomainId
 	`, map[string]interface{}{
@@ -87,7 +87,7 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 		"Lvl":         pq.Array(search.Lvl),
 		"MinCapacity": pq.Array(search.MinCapacity),
 		"MaxCapacity": pq.Array(search.MaxCapacity),
-		"Disabled":    search.Disabled,
+		"Enabled":     search.Enabled,
 	}
 
 	err := s.ListQuery(&qs, search.ListRequest,
@@ -98,7 +98,7 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 				and (:Lvl::int4[] isnull or lvl = any(:Lvl))
 				and (:MinCapacity::int4[] isnull or min_capacity = any(:MinCapacity))
 				and (:MaxCapacity::int4[] isnull or max_capacity = any(:MaxCapacity))
-				and (:Disabled::bool isnull or disabled = :Disabled)
+				and (:Enabled::bool isnull or enabled = :Enabled)
 			`,
 		model.QueueSkill{}, f)
 	if err != nil {
@@ -117,7 +117,7 @@ func (s SqlQueueSkillStore) Update(domainId int64, skill *model.QueueSkill) (*mo
         lvl = :Lvl,
         min_capacity = :MinCapacity,
         max_capacity = :MaxCapacity,
-        disabled = :Disabled
+        enabled = :Enabled
     where s.id = :Id and exists(select 1 from cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)
     returning *
 )
@@ -130,7 +130,7 @@ select s.id,
        s.lvl,
        s.min_capacity,
        s.max_capacity,
-       s.disabled
+       s.enabled
 from s
          inner join cc_skill cs on s.skill_id = cs.id`, map[string]interface{}{
 		"Id":          skill.Id,
@@ -140,7 +140,7 @@ from s
 		"Lvl":         skill.Lvl,
 		"MinCapacity": skill.MinCapacity,
 		"MaxCapacity": skill.MaxCapacity,
-		"Disabled":    skill.Disabled,
+		"Enabled":     skill.Enabled,
 	})
 
 	if err != nil {

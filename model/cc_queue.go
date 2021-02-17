@@ -2,30 +2,30 @@ package model
 
 type Queue struct {
 	DomainRecord
-	Strategy               string    `json:"strategy" db:"strategy"`
-	Enabled                bool      `json:"enabled" db:"enabled"`
-	Payload                []byte    `json:"payload" db:"payload"`
-	Calendar               Lookup    `json:"calendar" db:"calendar"`
-	Priority               int       `json:"priority" db:"priority"`
-	Name                   string    `json:"name" db:"name"`
-	Variables              StringMap `json:"variables" db:"variables"`
-	Timeout                int       `json:"timeout" db:"-"`          //todo del me
-	SecLocateAgent         int       `json:"sec_locate_agent" db:"-"` //todo del me
-	DncList                *Lookup   `json:"dnc_list" db:"dnc_list"`
-	Type                   int8      `json:"type" db:"type"`
-	Team                   *Lookup   `json:"team" db:"team"`
-	Schema                 *Lookup   `json:"schema" db:"schema"`
-	Description            string    `json:"description" db:"description"`
-	Count                  int       `json:"count" db:"count"`
-	Waiting                int       `json:"waiting" db:"waiting"`
-	Active                 int       `json:"active" db:"active"`
-	Ringtone               *Lookup   `json:"ringtone" db:"ringtone"`
-	DoSchema               *Lookup   `json:"do_schema" db:"do_schema"`
-	AfterSchema            *Lookup   `json:"after_schema" db:"after_schema"`
-	StickyAgent            bool      `json:"sticky_agent" db:"sticky_agent"`
-	Processing             bool      `json:"processing" db:"processing"`
-	ProcessingSec          uint32    `json:"processing_sec" db:"processing_sec"`
-	ProcessingNotification uint32    `json:"processing_notification" db:"processing_notification"`
+	Strategy             string    `json:"strategy" db:"strategy"`
+	Enabled              bool      `json:"enabled" db:"enabled"`
+	Payload              []byte    `json:"payload" db:"payload"`
+	Calendar             Lookup    `json:"calendar" db:"calendar"`
+	Priority             int       `json:"priority" db:"priority"`
+	Name                 string    `json:"name" db:"name"`
+	Variables            StringMap `json:"variables" db:"variables"`
+	Timeout              int       `json:"timeout" db:"-"`          //todo del me
+	SecLocateAgent       int       `json:"sec_locate_agent" db:"-"` //todo del me
+	DncList              *Lookup   `json:"dnc_list" db:"dnc_list"`
+	Type                 int8      `json:"type" db:"type"`
+	Team                 *Lookup   `json:"team" db:"team"`
+	Schema               *Lookup   `json:"schema" db:"schema"`
+	Description          string    `json:"description" db:"description"`
+	Count                int       `json:"count" db:"count"`
+	Waiting              int       `json:"waiting" db:"waiting"`
+	Active               int       `json:"active" db:"active"`
+	Ringtone             *Lookup   `json:"ringtone" db:"ringtone"`
+	DoSchema             *Lookup   `json:"do_schema" db:"do_schema"`
+	AfterSchema          *Lookup   `json:"after_schema" db:"after_schema"`
+	StickyAgent          bool      `json:"sticky_agent" db:"sticky_agent"`
+	Processing           bool      `json:"processing" db:"processing"`
+	ProcessingSec        uint32    `json:"processing_sec" db:"processing_sec"`
+	ProcessingRenewalSec uint32    `json:"processing_renewal_sec" db:"processing_renewal_sec"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -40,7 +40,7 @@ func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
 		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
-		"processing", "processing_sec", "processing_notification"}
+		"processing", "processing_sec", "processing_renewal_sec"}
 }
 
 func (q Queue) EntityName() string {
@@ -79,24 +79,24 @@ type QueueReportGeneral struct {
 }
 
 type QueuePatch struct {
-	Strategy               *string   `json:"strategy" db:"strategy"`
-	Enabled                *bool     `json:"enabled" db:"enabled"`
-	Payload                []byte    `json:"payload" db:"payload"`
-	Calendar               *Lookup   `json:"calendar" db:"calendar"`
-	Priority               *int      `json:"priority" db:"priority"`
-	Name                   *string   `json:"name" db:"name"`
-	Variables              StringMap `json:"variables" db:"variables"`
-	DncList                *Lookup   `json:"dnc_list" db:"dnc_list"`
-	Team                   *Lookup   `json:"team" db:"team"`
-	Schema                 *Lookup   `json:"schema" db:"schema"`
-	Ringtone               *Lookup   `json:"ringtone" db:"ringtone"`
-	DoSchema               *Lookup   `json:"do_schema" db:"do_schema"`
-	AfterSchema            *Lookup   `json:"after_schema" db:"after_schema"`
-	Description            *string   `json:"description" db:"description"`
-	StickyAgent            *bool     `json:"sticky_agent" db:"sticky_agent"`
-	Processing             *bool     `json:"processing" db:"processing"`
-	ProcessingSec          *uint32   `json:"processing_sec" db:"processing_sec"`
-	ProcessingNotification *uint32   `json:"processing_notification" db:"processing_notification"`
+	Strategy             *string   `json:"strategy" db:"strategy"`
+	Enabled              *bool     `json:"enabled" db:"enabled"`
+	Payload              []byte    `json:"payload" db:"payload"`
+	Calendar             *Lookup   `json:"calendar" db:"calendar"`
+	Priority             *int      `json:"priority" db:"priority"`
+	Name                 *string   `json:"name" db:"name"`
+	Variables            StringMap `json:"variables" db:"variables"`
+	DncList              *Lookup   `json:"dnc_list" db:"dnc_list"`
+	Team                 *Lookup   `json:"team" db:"team"`
+	Schema               *Lookup   `json:"schema" db:"schema"`
+	Ringtone             *Lookup   `json:"ringtone" db:"ringtone"`
+	DoSchema             *Lookup   `json:"do_schema" db:"do_schema"`
+	AfterSchema          *Lookup   `json:"after_schema" db:"after_schema"`
+	Description          *string   `json:"description" db:"description"`
+	StickyAgent          *bool     `json:"sticky_agent" db:"sticky_agent"`
+	Processing           *bool     `json:"processing" db:"processing"`
+	ProcessingSec        *uint32   `json:"processing_sec" db:"processing_sec"`
+	ProcessingRenewalSec *uint32   `json:"processing_renewal_sec" db:"processing_renewal_sec"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {
@@ -168,8 +168,8 @@ func (q *Queue) Patch(p *QueuePatch) {
 		q.ProcessingSec = *p.ProcessingSec
 	}
 
-	if p.ProcessingNotification != nil {
-		q.ProcessingNotification = *p.ProcessingNotification
+	if p.ProcessingRenewalSec != nil {
+		q.ProcessingRenewalSec = *p.ProcessingRenewalSec
 	}
 }
 

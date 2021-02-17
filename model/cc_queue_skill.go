@@ -9,7 +9,7 @@ type QueueSkill struct {
 	Lvl         int       `json:"lvl" db:"lvl"`
 	MinCapacity int       `json:"min_capacity" db:"min_capacity"`
 	MaxCapacity int       `json:"max_capacity" db:"max_capacity"`
-	Disabled    bool      `json:"disabled" db:"disabled"`
+	Enabled     bool      `json:"enabled" json:"enabled"`
 }
 
 type QueueSkillPatch struct {
@@ -18,7 +18,7 @@ type QueueSkillPatch struct {
 	Lvl         *int      `json:"lvl" db:"lvl"`
 	MinCapacity *int      `json:"min_capacity" db:"min_capacity"`
 	MaxCapacity *int      `json:"max_capacity" db:"max_capacity"`
-	Disabled    *bool     `json:"disabled" db:"disabled"`
+	Enabled     *bool     `json:"enabled" db:"enabled"`
 }
 
 type SearchQueueSkill struct {
@@ -30,7 +30,7 @@ type SearchQueueSkill struct {
 	Lvl         []int32  `json:"lvl"`
 	MinCapacity []int32  `json:"min_capacity"`
 	MaxCapacity []int32  `json:"max_capacity"`
-	Disabled    *bool    `json:"disabled"`
+	Enabled     *bool    `json:"enabled"`
 }
 
 func (q QueueSkill) AllowFields() []string {
@@ -42,7 +42,7 @@ func (q QueueSkill) DefaultOrder() string {
 }
 
 func (q QueueSkill) DefaultFields() []string {
-	return []string{"id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "disabled"}
+	return []string{"id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "enabled"}
 }
 
 func (q QueueSkill) EntityName() string {
@@ -79,8 +79,8 @@ func (q *QueueSkill) Patch(patch *QueueSkillPatch) {
 	if patch.MaxCapacity != nil {
 		q.MaxCapacity = *patch.MaxCapacity
 	}
-	if patch.Disabled != nil {
-		q.Disabled = *patch.Disabled
+	if patch.Enabled != nil {
+		q.Enabled = *patch.Enabled
 	}
 }
 

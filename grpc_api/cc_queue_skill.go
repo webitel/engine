@@ -26,7 +26,7 @@ func (api *queueSkill) CreateQueueSkill(ctx context.Context, in *engine.CreateQu
 		Lvl:         int(in.Lvl),
 		MinCapacity: int(in.MinCapacity),
 		MaxCapacity: int(in.MaxCapacity),
-		Disabled:    in.Disabled,
+		Enabled:     in.Enabled,
 	}
 
 	if in.Skill != nil {
@@ -65,8 +65,8 @@ func (api *queueSkill) SearchQueueSkill(ctx context.Context, in *engine.SearchQu
 		MaxCapacity: in.MaxCapacity,
 	}
 
-	if in.Disabled {
-		req.Disabled = &in.Disabled
+	if in.Enabled {
+		req.Enabled = &in.Enabled
 	}
 
 	list, endList, err = api.ctrl.SearchQueueSkill(session, req)
@@ -114,7 +114,7 @@ func (api *queueSkill) UpdateQueueSkill(ctx context.Context, in *engine.UpdateQu
 		Lvl:         int(in.Lvl),
 		MinCapacity: int(in.MinCapacity),
 		MaxCapacity: int(in.MaxCapacity),
-		Disabled:    in.Disabled,
+		Enabled:     in.Enabled,
 	}
 
 	if in.Skill != nil {
@@ -152,8 +152,8 @@ func (api *queueSkill) PatchQueueSkill(ctx context.Context, in *engine.PatchQueu
 			patch.MinCapacity = model.NewInt(int(in.MinCapacity))
 		case "max_capacity":
 			patch.MaxCapacity = model.NewInt(int(in.MaxCapacity))
-		case "disabled":
-			patch.Disabled = &in.Disabled
+		case "enabled":
+			patch.Enabled = &in.Enabled
 		}
 	}
 
@@ -187,6 +187,6 @@ func toEngineQueueSkill(src *model.QueueSkill) *engine.QueueSkill {
 		Lvl:         int32(src.Lvl),
 		MinCapacity: int32(src.MinCapacity),
 		MaxCapacity: int32(src.MaxCapacity),
-		Disabled:    src.Disabled,
+		Enabled:     src.Enabled,
 	}
 }

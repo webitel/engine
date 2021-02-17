@@ -30,7 +30,7 @@ func (a *App) UpdateQueueSkill(domainId int64, qs *model.QueueSkill) (*model.Que
 	oldQs.MinCapacity = qs.MinCapacity
 	oldQs.Skill = qs.Skill
 	oldQs.Buckets = qs.Buckets
-	oldQs.Disabled = qs.Disabled
+	oldQs.Enabled = qs.Enabled
 
 	oldQs, err = a.Store.QueueSkill().Update(domainId, oldQs)
 	if err != nil {
