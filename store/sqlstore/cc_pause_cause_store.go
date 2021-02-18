@@ -71,7 +71,7 @@ func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchAgent
 
 	err := s.ListQuery(&causes, search.ListRequest,
 		`domain_id = :DomainId
-				and (name ilike :Q::varchar or description ilike :Q::varchar)
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
 			`,
 		model.AgentPauseCause{}, f)
