@@ -27,6 +27,7 @@ func (app *App) UpdateAgentsSkill(agentSkill *model.AgentSkill) (*model.AgentSki
 
 	oldAgentSkill.Capacity = agentSkill.Capacity
 	oldAgentSkill.Skill.Id = agentSkill.Skill.Id
+	oldAgentSkill.Enabled = agentSkill.Enabled
 
 	oldAgentSkill.UpdatedBy.Id = agentSkill.UpdatedBy.Id
 	oldAgentSkill.UpdatedAt = model.GetMillis()
@@ -37,6 +38,26 @@ func (app *App) UpdateAgentsSkill(agentSkill *model.AgentSkill) (*model.AgentSki
 	}
 
 	return oldAgentSkill, nil
+}
+
+func (a *App) PatchAgentSkill(domainId int64, agentId, id int64, patch *model.AgentSkillPatch) (*model.AgentSkill, *model.AppError) {
+	oldAs, err := a.GetAgentsSkillById(domainId, agentId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldAs.Patch(patch)
+
+	if err = oldAs.IsValid(); err != nil {
+		return nil, err
+	}
+	oldAs.DomainId = domainId
+	oldAs, err = a.Store.AgentSkill().Update(oldAs)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldAs, nil
 }
 
 func (a *App) RemoveAgentSkill(domainId, agentId, id int64) (*model.AgentSkill, *model.AppError) {

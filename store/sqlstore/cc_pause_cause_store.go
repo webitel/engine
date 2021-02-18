@@ -19,9 +19,9 @@ func NewSqlPauseCauseStore(sqlStore SqlStore) store.PauseCauseStore {
 func (s SqlPauseCauseStore) Create(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
 	err := s.GetMaster().SelectOne(&cause, `with s as (
     insert into cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
-                                      name, limit_per_day, allow_supervisor, allow_agent, description)
+                                      name, limit_min, allow_supervisor, allow_agent, allow_admin, description)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
-            :Name, :LimitPerDay, :AllowSupervisor, :AllowAgent, :Description)
+            :Name, :LimitMin, :AllowSupervisor, :AllowAgent, :AllowAdmin, :Description)
     returning *
 )
 select s.id,
@@ -31,9 +31,10 @@ select s.id,
        cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by,
        s.name,
        s.description,
-       s.limit_per_day,
+       s.limit_min,
        s.allow_agent,
-       s.allow_supervisor
+       s.allow_supervisor,
+	   s.allow_admin
 from s
          left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by`, map[string]interface{}{
@@ -43,9 +44,10 @@ from s
 		"CreatedBy":       cause.CreatedBy.Id,
 		"UpdatedBy":       cause.UpdatedBy.Id,
 		"Name":            cause.Name,
-		"LimitPerDay":     cause.LimitPerDay,
+		"LimitMin":        cause.LimitMin,
 		"AllowSupervisor": cause.AllowSupervisor,
 		"AllowAgent":      cause.AllowAgent,
+		"AllowAdmin":      cause.AllowAdmin,
 		"Description":     cause.Description,
 	})
 
@@ -91,7 +93,8 @@ func (s SqlPauseCauseStore) Get(domainId int64, id uint32) (*model.AgentPauseCau
        description,
        allow_agent,
        allow_supervisor,
-       limit_per_day
+	   allow_admin,
+       limit_min
 from cc_pause_cause_list
 where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
@@ -112,9 +115,10 @@ func (s SqlPauseCauseStore) Update(domainId int64, cause *model.AgentPauseCause)
             updated_by = :UpdatedBy,
             name = :Name,
             description = :Description,
-            limit_per_day = :LimitPerDay,
+            limit_min = :LimitMin,
             allow_supervisor = :AllowSupervisor,
-            allow_agent = :AllowAgent
+            allow_agent = :AllowAgent,
+			allow_admin = :AllowAdmin
         where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -125,9 +129,10 @@ select s.id,
        cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by,
        s.name,
        s.description,
-       s.limit_per_day,
+       s.limit_min,
        s.allow_agent,
-       s.allow_supervisor
+       s.allow_supervisor,
+	   s.allow_admin	
 from s
          left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by;`, map[string]interface{}{
@@ -135,9 +140,10 @@ from s
 		"Id":              cause.Id,
 		"Name":            cause.Name,
 		"Description":     cause.Description,
-		"LimitPerDay":     cause.LimitPerDay,
+		"LimitMin":        cause.LimitMin,
 		"AllowSupervisor": cause.AllowSupervisor,
 		"AllowAgent":      cause.AllowAgent,
+		"AllowAdmin":      cause.AllowAdmin,
 		"UpdatedAt":       cause.UpdatedAt,
 		"UpdatedBy":       cause.UpdatedBy.Id,
 	})

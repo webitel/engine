@@ -32,7 +32,8 @@ func (a *App) UpdatePauseCause(domainId int64, cause *model.AgentPauseCause) (*m
 	oldCause.Description = cause.Description
 	oldCause.AllowAgent = cause.AllowAgent
 	oldCause.AllowSupervisor = cause.AllowSupervisor
-	oldCause.LimitPerDay = cause.LimitPerDay
+	oldCause.AllowAdmin = cause.AllowAdmin
+	oldCause.LimitMin = cause.LimitMin
 
 	oldCause, err = a.Store.PauseCause().Update(domainId, oldCause)
 	if err != nil {

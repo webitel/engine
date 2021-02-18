@@ -6,8 +6,9 @@ type AgentPauseCause struct {
 	AclRecord
 	Name            string `json:"name" db:"name"`
 	Description     string `json:"description" db:"description"`
-	LimitPerDay     uint32 `json:"limit_per_day" db:"limit_per_day"`
+	LimitMin        uint32 `json:"limit_min" db:"limit_min"`
 	AllowSupervisor bool   `json:"allow_supervisor" db:"allow_supervisor"`
+	AllowAdmin      bool   `json:"allow_admin" db:"allow_admin"`
 	AllowAgent      bool   `json:"allow_agent" db:"allow_agent"`
 }
 
@@ -22,13 +23,14 @@ type AgentPauseCausePatch struct {
 	UpdatedBy       Lookup     `json:"updated_by"`
 	Name            *string    `json:"name"`
 	Description     *string    `json:"description"`
-	LimitPerDay     *uint32    `json:"limit_per_day"`
+	LimitMin        *uint32    `json:"limit_min"`
 	AllowSupervisor *bool      `json:"allow_supervisor"`
 	AllowAgent      *bool      `json:"allow_agent"`
+	AllowAdmin      *bool      `json:"allow_admin"`
 }
 
 func (p AgentPauseCause) AllowFields() []string {
-	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_per_day", "allow_agent", "allow_supervisor"}
+	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_per_day", "allow_agent", "allow_supervisor", "allow_admin"}
 }
 
 func (AgentPauseCause) DefaultOrder() string {
@@ -36,7 +38,7 @@ func (AgentPauseCause) DefaultOrder() string {
 }
 
 func (AgentPauseCause) DefaultFields() []string {
-	return []string{"id", "name", "description", "limit_per_day", "allow_agent", "allow_supervisor"}
+	return []string{"id", "name", "description", "limit_per_day", "allow_agent", "allow_supervisor", "allow_admin"}
 }
 
 func (AgentPauseCause) EntityName() string {
@@ -63,8 +65,12 @@ func (p *AgentPauseCause) Patch(patch *AgentPauseCausePatch) {
 		p.AllowSupervisor = *patch.AllowSupervisor
 	}
 
-	if patch.LimitPerDay != nil {
-		p.LimitPerDay = *patch.LimitPerDay
+	if patch.AllowAdmin != nil {
+		p.AllowAdmin = *patch.AllowAdmin
+	}
+
+	if patch.LimitMin != nil {
+		p.LimitMin = *patch.LimitMin
 	}
 }
 

@@ -23,8 +23,9 @@ func (api *pauseCause) CreateAgentPauseCause(ctx context.Context, in *engine.Cre
 	cause := &model.AgentPauseCause{
 		Name:            in.Name,
 		Description:     in.Description,
-		LimitPerDay:     in.LimitPerDay,
+		LimitMin:        in.LimitMin,
 		AllowSupervisor: in.AllowSupervisor,
+		AllowAdmin:      in.AllowAdmin,
 		AllowAgent:      in.AllowAgent,
 	}
 
@@ -101,10 +102,12 @@ func (api *pauseCause) PatchAgentPauseCause(ctx context.Context, in *engine.Patc
 			patch.Name = model.NewString(in.Name)
 		case "description":
 			patch.Description = model.NewString(in.Description)
-		case "limit_per_day":
-			patch.LimitPerDay = &in.LimitPerDay
+		case "limit_min":
+			patch.LimitMin = &in.LimitMin
 		case "allow_supervisor":
 			patch.AllowSupervisor = &in.AllowSupervisor
+		case "allow_admin":
+			patch.AllowAdmin = &in.AllowAdmin
 		case "allow_agent":
 			patch.AllowAgent = &in.AllowAgent
 
@@ -130,9 +133,10 @@ func (api *pauseCause) UpdateAgentPauseCause(ctx context.Context, in *engine.Upd
 		},
 		Name:            in.Name,
 		Description:     in.Description,
-		LimitPerDay:     in.LimitPerDay,
+		LimitMin:        in.LimitMin,
 		AllowSupervisor: in.AllowSupervisor,
 		AllowAgent:      in.AllowAgent,
+		AllowAdmin:      in.AllowAdmin,
 	}
 
 	cause, err = api.ctrl.UpdatePauseCause(session, cause)
@@ -167,8 +171,9 @@ func toEnginePauseCause(src *model.AgentPauseCause) *engine.AgentPauseCause {
 		UpdatedAt:       model.TimeToInt64(src.UpdatedAt),
 		UpdatedBy:       GetProtoLookup(&src.UpdatedBy),
 		Name:            src.Name,
-		LimitPerDay:     src.LimitPerDay,
+		LimitMin:        src.LimitMin,
 		AllowSupervisor: src.AllowSupervisor,
+		AllowAdmin:      src.AllowAdmin,
 		AllowAgent:      src.AllowAgent,
 		Description:     src.Description,
 	}

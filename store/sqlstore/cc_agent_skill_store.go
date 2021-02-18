@@ -19,12 +19,12 @@ func NewSqlAgentSkillStore(sqlStore SqlStore) store.AgentSkillStore {
 func (s SqlAgentSkillStore) Create(in *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
 	var out *model.AgentSkill
 	if err := s.GetMaster().SelectOne(&out, `with tmp as (
-    insert into cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by)
-    values (:SkillId, :AgentId, :Capacity, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
+    insert into cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled)
+    values (:SkillId, :AgentId, :Capacity, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Enabled)
     returning *
 )
 select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by
+	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
 from tmp
     inner join cc_skill s on s.id = tmp.skill_id
     inner join cc_agent a on a.id = tmp.agent_id
@@ -39,6 +39,7 @@ from tmp
 			"CreatedBy": in.CreatedBy.Id,
 			"UpdatedAt": in.UpdatedAt,
 			"UpdatedBy": in.UpdatedBy.Id,
+			"Enabled":   in.Enabled,
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentSkillStore.Create", "store.sql_skill_in_agent.create.app_error", nil,
 			fmt.Sprintf("AgentId=%v, SkillId=%v %s", in.Agent.Id, in.Skill.Id, err.Error()), extractCodeFromErr(err))
@@ -51,7 +52,7 @@ func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, search *model.Se
 	var agentSkill []*model.AgentSkill
 
 	if _, err := s.GetReplica().Select(&agentSkill,
-		`select sa.id, cc_get_lookup(cs.id, cs.name) as skill, cc_get_lookup(ca.id, u.name) as agent, sa.capacity
+		`select sa.id, cc_get_lookup(cs.id, cs.name) as skill, cc_get_lookup(ca.id, u.name) as agent, sa.capacity, sa.enabled
 from cc_skill_in_agent sa
     inner join cc_agent ca on sa.agent_id = ca.id
     inner join directory.wbt_user u on u.id = ca.user_id
@@ -78,7 +79,7 @@ func (s SqlAgentSkillStore) GetById(domainId, agentId, id int64) (*model.AgentSk
 
 	if err := s.GetReplica().SelectOne(&agentSkill,
 		`select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by
+	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
 from cc_skill_in_agent tmp
     inner join cc_skill s on s.id = tmp.skill_id
     inner join cc_agent a on a.id = tmp.agent_id
@@ -100,12 +101,13 @@ func (s SqlAgentSkillStore) Update(agentSkill *model.AgentSkill) (*model.AgentSk
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
             skill_id = :SkillId,
-            capacity = :Capacity
+            capacity = :Capacity,
+			enabled = :Enabled
     where s.id = :Id and s.agent_id = :AgentId
     returning *
 )
 select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by
+	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
 from tmp
     inner join cc_skill s on s.id = tmp.skill_id
     inner join cc_agent a on a.id = tmp.agent_id
@@ -118,6 +120,7 @@ from tmp
 		"Capacity":  agentSkill.Capacity,
 		"Id":        agentSkill.Id,
 		"AgentId":   agentSkill.Agent.Id,
+		"Enabled":   agentSkill.Enabled,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentSkillStore.Update", "store.sql_skill_in_agent.update.app_error", nil,

@@ -55,6 +55,7 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 			Id: int(in.GetSkill().GetId()),
 		},
 		Capacity: int(in.Capacity),
+		Enabled:  in.Enabled,
 	}
 
 	err = agentSkill.IsValid()
@@ -114,6 +115,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 				Name: v.Skill.Name,
 			},
 			Capacity: int32(v.Capacity),
+			Enabled:  v.Enabled,
 		})
 	}
 	return &engine.ListAgentSkill{
@@ -193,6 +195,77 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 			Id: int(in.GetSkill().GetId()),
 		},
 		Capacity: int(in.Capacity),
+		Enabled:  in.Enabled,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformAgentSkill(agentSkill), nil
+}
+
+func (api *agentSkill) PatchAgentSkill(ctx context.Context, in *engine.PatchAgentSkillRequest) (*engine.AgentSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var agentSkill *model.AgentSkill
+	patch := &model.AgentSkillPatch{
+		UpdatedAt: model.GetMillis(),
+		UpdatedBy: model.Lookup{
+			Id: int(session.UserId),
+		},
+	}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "skill.id":
+			patch.Skill = &model.Lookup{Id: int(in.GetSkill().GetId())}
+		case "capacity":
+			patch.Capacity = model.NewInt(int(in.Capacity))
+		case "enabled":
+			patch.Enabled = &in.Enabled
+		}
+	}
+
+	agentSkill, err = api.app.UpdateAgentsSkill(&model.AgentSkill{
+		DomainRecord: model.DomainRecord{
+			Id:        in.Id,
+			DomainId:  session.Domain(in.GetDomainId()),
+			CreatedAt: model.GetMillis(),
+			CreatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+			UpdatedAt: model.GetMillis(),
+			UpdatedBy: model.Lookup{
+				Id: int(session.UserId),
+			},
+		},
+		Agent: model.Lookup{
+			Id: int(in.GetAgentId()),
+		},
+		Skill: model.Lookup{
+			Id: int(in.GetSkill().GetId()),
+		},
+		Capacity: int(in.Capacity),
+		Enabled:  in.Enabled,
 	})
 
 	if err != nil {
@@ -303,5 +376,6 @@ func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
 			Name: src.Skill.Name,
 		},
 		Capacity: int32(src.Capacity),
+		Enabled:  src.Enabled,
 	}
 }
