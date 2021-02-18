@@ -30,7 +30,7 @@ type AgentPauseCausePatch struct {
 }
 
 func (p AgentPauseCause) AllowFields() []string {
-	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_per_day", "allow_agent", "allow_supervisor", "allow_admin"}
+	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
 }
 
 func (AgentPauseCause) DefaultOrder() string {
@@ -38,7 +38,7 @@ func (AgentPauseCause) DefaultOrder() string {
 }
 
 func (AgentPauseCause) DefaultFields() []string {
-	return []string{"id", "name", "description", "limit_per_day", "allow_agent", "allow_supervisor", "allow_admin"}
+	return []string{"id", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
 }
 
 func (AgentPauseCause) EntityName() string {
