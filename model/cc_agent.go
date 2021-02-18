@@ -42,6 +42,7 @@ type Agent struct {
 	Region           *Lookup      `json:"region" db:"region"`
 	Auditor          *Lookup      `json:"auditor" db:"auditor"`
 	IsSupervisor     bool         `json:"is_supervisor" db:"is_supervisor"`
+	Skills           []*Lookup    `json:"skills" db:"skills"`
 }
 
 type AgentStatusStatistics struct {
@@ -81,7 +82,8 @@ func (a Agent) DefaultOrder() string {
 }
 
 func (a Agent) AllowFields() []string {
-	return a.DefaultFields()
+	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region", "auditor", "is_supervisor", "skills"}
 }
 
 func (a Agent) DefaultFields() []string {

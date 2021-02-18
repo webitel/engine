@@ -734,6 +734,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		Region:           GetProtoLookup(src.Region),
 		Auditor:          GetProtoLookup(src.Auditor),
 		IsSupervisor:     src.IsSupervisor,
+		Skills:           GetProtoLookups(src.Skills),
 	}
 
 	agent.Channel = &engine.AgentChannel{
