@@ -45,7 +45,7 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 
 	f := map[string]interface{}{
 		"DomainId":    domainId,
-		"Q":           search.GetRegExpQ(),
+		"Q":           search.GetQ(),
 		"Ids":         pq.Array(search.Ids),
 		"Name":        search.Name,
 		"Description": search.Name,
@@ -54,7 +54,7 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 
 	err := s.ListQueryFromSchema(&region, "flow", search.ListRequest,
 		`domain_id = :DomainId
-				and (:Q::text isnull or description ~ :Q  or  name ~ :Q)
+				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
 				and (:TimezoneIds::int4[] isnull or timezone_id = any(:TimezoneIds))
 				and (:Name::text isnull or name = :Name)
