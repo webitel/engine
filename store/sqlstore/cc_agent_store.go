@@ -117,6 +117,8 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 		"SupervisorIds": pq.Array(search.SupervisorIds),
 		"RegionIds":     pq.Array(search.RegionIds),
 		"AuditorIds":    pq.Array(search.AuditorIds),
+		"SkillIds":      pq.Array(search.SkillIds),
+		"IsSupervisor":  search.IsSupervisor,
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
@@ -127,6 +129,8 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
 				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+				and (:IsSupervisor::bool isnull or supervisor = :IsSupervisor)
+				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
 		model.Agent{}, f)
 	if err != nil {
@@ -150,6 +154,8 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 		"SupervisorIds": pq.Array(search.SupervisorIds),
 		"RegionIds":     pq.Array(search.RegionIds),
 		"AuditorIds":    pq.Array(search.AuditorIds),
+		"SkillIds":      pq.Array(search.SkillIds),
+		"IsSupervisor":  search.IsSupervisor,
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
@@ -160,6 +166,8 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
 				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+			    and (:IsSupervisor::bool isnull or supervisor = :IsSupervisor)
+				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
 				and (
 					exists(select 1

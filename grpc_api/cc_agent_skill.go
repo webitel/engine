@@ -245,28 +245,7 @@ func (api *agentSkill) PatchAgentSkill(ctx context.Context, in *engine.PatchAgen
 		}
 	}
 
-	agentSkill, err = api.app.UpdateAgentsSkill(&model.AgentSkill{
-		DomainRecord: model.DomainRecord{
-			Id:        in.Id,
-			DomainId:  session.Domain(in.GetDomainId()),
-			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
-				Id: int(session.UserId),
-			},
-			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
-				Id: int(session.UserId),
-			},
-		},
-		Agent: model.Lookup{
-			Id: int(in.GetAgentId()),
-		},
-		Skill: model.Lookup{
-			Id: int(in.GetSkill().GetId()),
-		},
-		Capacity: int(in.Capacity),
-		Enabled:  in.Enabled,
-	})
+	agentSkill, err = api.app.PatchAgentSkill(session.Domain(in.GetDomainId()), in.GetAgentId(), in.Id, patch)
 
 	if err != nil {
 		return nil, err

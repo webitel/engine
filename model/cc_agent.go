@@ -45,6 +45,21 @@ type Agent struct {
 	Skills           []*Lookup    `json:"skills" db:"skills"`
 }
 
+type AgentPatch struct {
+	UpdatedBy        Lookup
+	UpdatedAt        int64
+	User             *Lookup
+	Description      *string
+	ProgressiveCount *int
+	GreetingMedia    *Lookup
+	ChatCount        *uint32
+	Supervisor       *Lookup
+	Team             *Lookup
+	Region           *Lookup
+	Auditor          *Lookup
+	IsSupervisor     *bool
+}
+
 type AgentStatusStatistics struct {
 	AgentId        int32      `json:"agent_id" db:"agent_id"`
 	Name           string     `json:"name" db:"name"`
@@ -75,6 +90,51 @@ type SearchAgentStatusStatistic struct {
 	TeamIds     []int32
 	QueueIds    []int32
 	HasCall     bool
+}
+
+func (a *Agent) Patch(patch *AgentPatch) {
+	a.UpdatedBy = patch.UpdatedBy
+	a.UpdatedAt = patch.UpdatedAt
+
+	if patch.User != nil {
+		a.User = *patch.User
+	}
+
+	if patch.Description != nil {
+		a.Description = *patch.Description
+	}
+
+	if patch.ProgressiveCount != nil {
+		a.ProgressiveCount = *patch.ProgressiveCount
+	}
+
+	if patch.GreetingMedia != nil {
+		a.GreetingMedia = patch.GreetingMedia
+	}
+
+	if patch.ChatCount != nil {
+		a.ChatCount = *patch.ChatCount
+	}
+
+	if patch.Supervisor != nil {
+		a.Supervisor = patch.Supervisor
+	}
+
+	if patch.Team != nil {
+		a.Team = patch.Team
+	}
+
+	if patch.Region != nil {
+		a.Region = patch.Region
+	}
+
+	if patch.Auditor != nil {
+		a.Auditor = patch.Auditor
+	}
+
+	if patch.IsSupervisor != nil {
+		a.IsSupervisor = *patch.IsSupervisor
+	}
 }
 
 func (a Agent) DefaultOrder() string {
@@ -128,6 +188,8 @@ type SearchAgent struct {
 	TeamIds       []uint32
 	RegionIds     []uint32
 	AuditorIds    []uint32
+	SkillIds      []uint32
+	IsSupervisor  *bool
 }
 
 type AgentUser struct {

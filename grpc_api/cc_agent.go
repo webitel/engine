@@ -96,6 +96,11 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		TeamIds:       in.GetTeamId(),
 		RegionIds:     in.GetRegionId(),
 		AuditorIds:    in.GetAuditorId(),
+		SkillIds:      in.GetSkillId(),
+	}
+
+	if in.IsSupervisor {
+		req.IsSupervisor = &in.IsSupervisor
 	}
 
 	if permission.Rbac {
@@ -199,6 +204,84 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		Auditor:          GetLookup(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
 	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformAgent(agent), nil
+}
+
+func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) (*engine.Agent, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if permission.Rbac {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var agent *model.Agent
+	patch := model.AgentPatch{
+		UpdatedBy: model.Lookup{
+			Id: int(session.UserId),
+		},
+		UpdatedAt: model.GetMillis(),
+	}
+
+	for _, v := range in.Fields {
+		switch v {
+		case "user.id":
+			patch.User = &model.Lookup{
+				Id: int(in.GetUser().GetId()),
+			}
+		case "description":
+			patch.Description = model.NewString(in.Description)
+		case "progressive_count":
+			patch.ProgressiveCount = model.NewInt(int(in.ProgressiveCount))
+		case "greeting_media.id":
+			patch.GreetingMedia = &model.Lookup{
+				Id: int(in.GetGreetingMedia().GetId()),
+			}
+		case "chat_count":
+			patch.ChatCount = &in.ChatCount
+		case "supervisor.id":
+			patch.Supervisor = &model.Lookup{
+				Id: int(in.GetSupervisor().GetId()),
+			}
+		case "team.id":
+			patch.Team = &model.Lookup{
+				Id: int(in.GetTeam().GetId()),
+			}
+		case "region.id":
+			patch.Region = &model.Lookup{
+				Id: int(in.GetRegion().GetId()),
+			}
+		case "auditor.id":
+			patch.Auditor = &model.Lookup{
+				Id: int(in.GetAuditor().GetId()),
+			}
+		case "is_supervisor":
+			patch.IsSupervisor = &in.IsSupervisor
+		}
+	}
+
+	agent, err = api.app.PatchAgent(session.Domain(0), in.GetId(), &patch)
 
 	if err != nil {
 		return nil, err

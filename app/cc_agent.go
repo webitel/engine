@@ -83,6 +83,26 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 	return oldAgent, nil
 }
 
+func (a *App) PatchAgent(domainId, id int64, patch *model.AgentPatch) (*model.Agent, *model.AppError) {
+	oldAgent, err := a.GetAgentById(domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldAgent.Patch(patch)
+
+	if err = oldAgent.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldAgent, err = a.Store.Agent().Update(oldAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldAgent, nil
+}
+
 func (a *App) RemoveAgent(domainId, id int64) (*model.Agent, *model.AppError) {
 	agent, err := a.GetAgentById(domainId, id)
 
