@@ -32,7 +32,6 @@ type SqlStore interface {
 	Bucket() store.BucketSore
 	BucketInQueue() store.BucketInQueueStore
 	QueueRouting() store.QueueRoutingStore
-	SupervisorTeam() store.SupervisorTeamStore
 	CommunicationType() store.CommunicationTypeStore
 	List() store.ListStore
 

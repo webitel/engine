@@ -113,10 +113,6 @@ func (s *LayeredStore) QueueRouting() QueueRoutingStore {
 	return s.DatabaseLayer.QueueRouting()
 }
 
-func (s *LayeredStore) SupervisorTeam() SupervisorTeamStore {
-	return s.DatabaseLayer.SupervisorTeam()
-}
-
 func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
 	return s.DatabaseLayer.CommunicationType()
 }

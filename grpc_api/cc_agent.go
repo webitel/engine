@@ -360,57 +360,6 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 	return ResponseOk, nil
 }
 
-func (api *agent) SearchAgentInTeam(ctx context.Context, in *engine.SearchAgentInTeamRequest) (*engine.ListAgentInTeam, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var list []*model.AgentInTeam
-	var endList bool
-	req := &model.SearchAgentInTeam{
-		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-		},
-	}
-
-	list, endList, err = api.app.GetAgentInTeamPage(session.Domain(in.GetDomainId()), in.GetId(), req)
-	if err != nil {
-		return nil, err
-	}
-
-	items := make([]*engine.AgentInTeam, 0, len(list))
-
-	for _, v := range list {
-		items = append(items, &engine.AgentInTeam{
-			Team:     GetProtoLookup(&v.Team),
-			Strategy: v.Strategy,
-		})
-	}
-
-	return &engine.ListAgentInTeam{
-		Next:  !endList,
-		Items: items,
-	}, nil
-}
-
 func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgentInQueueRequest) (*engine.ListAgentInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

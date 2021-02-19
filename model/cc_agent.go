@@ -264,15 +264,6 @@ func (a *Agent) IsValid() *AppError {
 	return nil //TODO
 }
 
-type AgentInTeam struct {
-	Team     Lookup `json:"team" db:"team"`
-	Strategy string `json:"strategy" json:"strategy"`
-}
-
-type SearchAgentInTeam struct {
-	ListRequest
-}
-
 type SearchAgentInQueue struct {
 	ListRequest
 }

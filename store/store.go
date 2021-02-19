@@ -37,7 +37,6 @@ type Store interface {
 	Bucket() BucketSore
 	BucketInQueue() BucketInQueueStore
 	QueueRouting() QueueRoutingStore
-	SupervisorTeam() SupervisorTeamStore
 	OutboundResource() OutboundResourceStore
 	OutboundResourceGroup() OutboundResourceGroupStore
 	OutboundResourceInGroup() OutboundResourceInGroupStore
@@ -122,7 +121,6 @@ type AgentStore interface {
 	CallStatistics(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError)
 
 	/* view */
-	InTeam(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, *model.AppError)
 	InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError)
 	QueueStatistic(domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError)
 	HistoryState(domainId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError)
@@ -247,14 +245,6 @@ type QueueRoutingStore interface {
 	Get(domainId, queueId int64, id int64) (*model.QueueRouting, *model.AppError)
 	Update(qr *model.QueueRouting) (*model.QueueRouting, *model.AppError)
 	Delete(queueId, id int64) *model.AppError
-}
-
-type SupervisorTeamStore interface {
-	Create(supervisor *model.SupervisorInTeam) (*model.SupervisorInTeam, *model.AppError)
-	GetAllPage(domainId, teamId int64, search *model.SearchSupervisorInTeam) ([]*model.SupervisorInTeam, *model.AppError)
-	Get(domainId, teamId, id int64) (*model.SupervisorInTeam, *model.AppError)
-	Update(supervisor *model.SupervisorInTeam) (*model.SupervisorInTeam, *model.AppError)
-	Delete(teamId, id int64) *model.AppError
 }
 
 type CommunicationTypeStore interface {

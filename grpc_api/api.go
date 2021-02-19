@@ -21,7 +21,6 @@ type API struct {
 	queueResource         *queueResource
 	queueSkill            *queueSkill
 	queueRouting          *queueRouting
-	supervisorInTeam      *supervisorInTeam
 	communicationType     *communicationType
 	member                *member
 	bucket                *bucket
@@ -57,7 +56,6 @@ func Init(a *app.App, server *grpc.Server) {
 	api.queueResource = NewQueueResourceApi(a)
 	api.queueSkill = NewQueueSkill(api)
 	api.queueRouting = NewQueueRoutingApi(a)
-	api.supervisorInTeam = NewSupervisorInTeamApi(a)
 
 	api.routingSchema = NewRoutingSchemaApi(a)
 	api.routingOutboundCall = NewRoutingOutboundCallApi(api)
@@ -86,7 +84,6 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterQueueResourcesServiceServer(server, api.queueResource)
 	engine.RegisterQueueSkillServiceServer(server, api.queueSkill)
 	engine.RegisterQueueRoutingServiceServer(server, api.queueRouting)
-	engine.RegisterSupervisorInTeamServiceServer(server, api.supervisorInTeam)
 	engine.RegisterCommunicationTypeServiceServer(server, api.communicationType)
 	engine.RegisterBucketServiceServer(server, api.bucket)
 	engine.RegisterQueueBucketServiceServer(server, api.queueBucket)

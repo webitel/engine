@@ -369,40 +369,6 @@ func (s SqlAgentStore) SetStatus(domainId, agentId int64, status string, payload
 	}
 }
 
-func (s SqlAgentStore) InTeam(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, *model.AppError) {
-	var res []*model.AgentInTeam
-
-	_, err := s.GetReplica().Select(&res, `select cc_get_lookup(t.id, t.name) as team, t.strategy
-from cc_team t
-where t.id in (
-    select a.team_id
-    from cc_agent_in_team a
-    where a.agent_id = :AgentId
-       or a.skill_id in (
-        select s.skill_id
-        from cc_skill_in_agent s
-        where s.agent_id = :AgentId and s.capacity between a.min_capacity and a.max_capacity
-    )
-) and t.domain_id = :DomainId
-  and ( (:Q::varchar isnull or (t.name ilike :Q::varchar ) ))
-order by t.id
-			limit :Limit
-			offset :Offset`, map[string]interface{}{
-		"AgentId":  id,
-		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
-		"Q":        search.GetQ(),
-	})
-
-	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.InTeam", "store.sql_agent.get_team.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
-	}
-
-	return res, nil
-}
-
 func (s SqlAgentStore) InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError) {
 	var res []*model.AgentInQueue
 

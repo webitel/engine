@@ -117,15 +117,6 @@ func (a *App) RemoveAgent(domainId, id int64) (*model.Agent, *model.AppError) {
 	return agent, nil
 }
 
-func (a *App) GetAgentInTeamPage(domainId, id int64, search *model.SearchAgentInTeam) ([]*model.AgentInTeam, bool, *model.AppError) {
-	list, err := a.Store.Agent().InTeam(domainId, id, search)
-	if err != nil {
-		return nil, false, err
-	}
-	search.RemoveLastElemIfNeed(&list)
-	return list, search.EndOfList(), nil
-}
-
 func (a *App) GetAgentInQueuePage(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, bool, *model.AppError) {
 	list, err := a.Store.Agent().InQueue(domainId, id, search)
 	if err != nil {
