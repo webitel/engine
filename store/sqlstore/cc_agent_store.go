@@ -406,30 +406,28 @@ order by t.id
 func (s SqlAgentStore) InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError) {
 	var res []*model.AgentInQueue
 
-	_, err := s.GetReplica().Select(&res, `select cc_get_lookup(q.id, q.name) as queue,
+	_, err := s.GetReplica().Select(&res, `select cc_get_lookup(q.id, q.name) as                           queue,
        q.priority,
        q.type,
        q.strategy,
        q.enabled,
-       coalesce(sum(cqs.member_count), 0) count_members,
-       coalesce(sum(cqs.member_waiting), 0) waiting_members,
+       coalesce(sum(cqs.member_count), 0)                                 count_members,
+       coalesce(sum(cqs.member_waiting), 0)                               waiting_members,
        (select count(*) from cc_member_attempt a where a.queue_id = q.id) active_members
-from cc_queue q
-    left join cc_queue_statistics cqs on q.id = cqs.queue_id
-where q.domain_id = :DomainId and q.team_id in (
-    select t.id
-    from cc_team t
-    where t.id in (
-        select a.team_id
-        from cc_agent_in_team a
-        where a.agent_id = :AgentId
-           or a.skill_id in (
-            select s.skill_id
-            from cc_skill_in_agent s
-            where s.agent_id = :AgentId and s.capacity between a.min_capacity and a.max_capacity
-        )
-    ) and t.domain_id = :DomainId
-) and ( (:Q::varchar isnull or (q.name ilike :Q::varchar ) ))
+from cc_agent a
+         inner join cc_queue q on q.team_id = a.team_id
+         left join cc_queue_statistics cqs on q.id = cqs.queue_id
+where a.id = :AgentId
+  and a.domain_id = :DomainId
+  and ((:Q::varchar isnull or (q.name ilike :Q::varchar)))
+  and exists(select qs.queue_id
+             from cc_queue_skill qs
+                      inner join cc_skill_in_agent csia on csia.skill_id = qs.skill_id
+             where qs.enabled
+               and csia.enabled
+               and csia.agent_id = a.id
+               and qs.queue_id = q.id
+               and csia.capacity between qs.min_capacity and qs.max_capacity)
 group by q.id, q.priority
 order by q.priority desc
 limit :Limit
