@@ -22,7 +22,6 @@ type SqlStore interface {
 	AgentTeam() store.AgentTeamStore
 	Agent() store.AgentStore
 	AgentSkill() store.AgentSkillStore
-	ResourceTeam() store.ResourceTeamStore
 	OutboundResource() store.OutboundResourceStore
 	OutboundResourceGroup() store.OutboundResourceGroupStore
 	OutboundResourceInGroup() store.OutboundResourceInGroupStore

@@ -61,10 +61,6 @@ func (s *LayeredStore) AgentSkill() AgentSkillStore {
 	return s.DatabaseLayer.AgentSkill()
 }
 
-func (s *LayeredStore) ResourceTeam() ResourceTeamStore {
-	return s.DatabaseLayer.ResourceTeam()
-}
-
 func (s *LayeredStore) OutboundResource() OutboundResourceStore {
 	return s.DatabaseLayer.OutboundResource()
 }

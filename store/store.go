@@ -30,7 +30,6 @@ type Store interface {
 	AgentTeam() AgentTeamStore
 	Agent() AgentStore
 	AgentSkill() AgentSkillStore
-	ResourceTeam() ResourceTeamStore
 	Queue() QueueStore
 	QueueResource() QueueResourceStore
 	QueueSkill() QueueSkillStore
@@ -140,14 +139,6 @@ type AgentSkillStore interface {
 	Delete(agentId, id int64) *model.AppError
 
 	LookupNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, *model.AppError)
-}
-
-type ResourceTeamStore interface {
-	Create(in *model.ResourceInTeam) (*model.ResourceInTeam, *model.AppError)
-	Get(domainId, teamId int64, id int64) (*model.ResourceInTeam, *model.AppError)
-	GetAllPage(domainId, teamId int64, search *model.SearchResourceInTeam) ([]*model.ResourceInTeam, *model.AppError)
-	Update(resource *model.ResourceInTeam) (*model.ResourceInTeam, *model.AppError)
-	Delete(domainId, teamId int64, id int64) *model.AppError
 }
 
 type OutboundResourceStore interface {

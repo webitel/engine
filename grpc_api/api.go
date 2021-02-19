@@ -30,7 +30,6 @@ type API struct {
 	routingSchema       *routingSchema
 	routingOutboundCall *routingOutboundCall
 	routingVariable     *routingVariable
-	resourceTeam        *resourceTeam
 
 	call *call
 
@@ -49,7 +48,6 @@ func Init(a *app.App, server *grpc.Server) {
 	api.agentTeam = NewAgentTeamApi(a)
 	api.agent = NewAgentApi(api)
 	api.agentSkill = NewAgentSkillApi(a)
-	api.resourceTeam = NewResourceTeamApi(a)
 	api.outboundResource = NewOutboundResourceApi(a)
 	api.outboundResourceGroup = NewOutboundResourceGroupApi(a)
 	api.queue = NewQueueApi(a)
@@ -77,7 +75,6 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterAgentTeamServiceServer(server, api.agentTeam)
 	engine.RegisterAgentServiceServer(server, api.agent)
 	engine.RegisterAgentSkillServiceServer(server, api.agentSkill)
-	engine.RegisterResourceTeamServiceServer(server, api.resourceTeam)
 	engine.RegisterOutboundResourceServiceServer(server, api.outboundResource)
 	engine.RegisterOutboundResourceGroupServiceServer(server, api.outboundResourceGroup)
 	engine.RegisterQueueServiceServer(server, api.queue)
