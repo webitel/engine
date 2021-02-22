@@ -156,7 +156,7 @@ func (a Agent) EntityName() string {
 }
 
 func (a *Agent) GreetingMediaId() *int {
-	if a.GreetingMedia != nil {
+	if a.GreetingMedia != nil && a.GreetingMedia.Id > 0 {
 		return &a.GreetingMedia.Id
 	}
 

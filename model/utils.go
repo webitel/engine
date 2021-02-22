@@ -36,7 +36,7 @@ type Lookup struct {
 }
 
 func (l *Lookup) GetSafeId() *int {
-	if l == nil {
+	if l == nil || l.Id == 0 {
 
 		return nil
 	}
