@@ -10,7 +10,7 @@ type AgentTeam struct {
 	NoAnswerDelayTime int16  `json:"no_answer_delay_time" db:"no_answer_delay_time"`
 	CallTimeout       int16  `json:"call_timeout" db:"call_timeout"`
 
-	Administrator *Lookup `json:"administrator" db:"administrator"`
+	Admin *Lookup `json:"admin" db:"admin"`
 }
 
 func (team AgentTeam) DefaultOrder() string {
@@ -23,7 +23,7 @@ func (team AgentTeam) AllowFields() []string {
 
 func (team AgentTeam) DefaultFields() []string {
 	return []string{"id", "name", "description", "strategy", "max_no_answer", "wrap_up_time",
-		"no_answer_delay_time", "call_timeout", "updated_at", "administrator"}
+		"no_answer_delay_time", "call_timeout", "updated_at", "admin"}
 }
 
 func (team AgentTeam) EntityName() string {
@@ -32,9 +32,9 @@ func (team AgentTeam) EntityName() string {
 
 type SearchAgentTeam struct {
 	ListRequest
-	Ids              []uint32
-	Strategy         []string
-	AdministratorIds []uint32
+	Ids      []uint32
+	Strategy []string
+	AdminIds []uint32
 }
 
 func (team *AgentTeam) IsValid() *AppError {

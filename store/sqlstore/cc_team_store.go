@@ -23,9 +23,9 @@ func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *mod
 	if err := s.GetMaster().SelectOne(&out, `with t as (
     insert into cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
                      no_answer_delay_time, call_timeout, updated_at, created_at, created_by, updated_by,
-                     administrator_id)
+                     admin_id)
     values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
-                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdministratorId)
+                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminId)
     returning *
 )
 select t.id,
@@ -37,10 +37,10 @@ select t.id,
        t.no_answer_delay_time,
        t.call_timeout,
        t.updated_at,
-       adm.user as administrator,
+       adm.user as admin,
        t.domain_id
 from t
-    left join cc_agent_with_user adm on adm.id = t.administrator_id`,
+    left join cc_agent_with_user adm on adm.id = t.admin_id`,
 		map[string]interface{}{
 			"DomainId":          team.DomainId,
 			"Name":              team.Name,
@@ -54,7 +54,7 @@ from t
 			"CreatedBy":         team.CreatedBy.Id,
 			"UpdatedAt":         team.UpdatedAt,
 			"UpdatedBy":         team.UpdatedBy.Id,
-			"AdministratorId":   team.Administrator.GetSafeId(),
+			"AdminId":           team.Admin.GetSafeId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
@@ -87,16 +87,16 @@ func (s SqlAgentTeamStore) GetAllPage(domainId int64, search *model.SearchAgentT
 	var teams []*model.AgentTeam
 
 	f := map[string]interface{}{
-		"DomainId":         domainId,
-		"Ids":              pq.Array(search.Ids),
-		"Q":                search.GetQ(),
-		"AdministratorIds": pq.Array(search.AdministratorIds),
-		"Strategy":         pq.Array(search.Strategy),
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+		"AdminIds": pq.Array(search.AdminIds),
+		"Strategy": pq.Array(search.Strategy),
 	}
 
 	err := s.ListQuery(&teams, search.ListRequest,
 		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) 
-			and (:AdministratorIds::int[] isnull or administrator_id = any(:AdministratorIds) )
+			and (:AdminIds::int[] isnull or admin_id = any(:AdminIds) )
 			and (:Strategy::varchar[] isnull or strategy = any(:Strategy) )
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
@@ -111,13 +111,13 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, sear
 	var teams []*model.AgentTeam
 
 	f := map[string]interface{}{
-		"Groups":           pq.Array(groups),
-		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
-		"DomainId":         domainId,
-		"Ids":              pq.Array(search.Ids),
-		"Q":                search.GetQ(),
-		"AdministratorIds": pq.Array(search.AdministratorIds),
-		"Strategy":         pq.Array(search.Strategy),
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+		"AdminIds": pq.Array(search.AdminIds),
+		"Strategy": pq.Array(search.Strategy),
 	}
 
 	err := s.ListQuery(&teams, search.ListRequest,
@@ -126,7 +126,7 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, sear
 				  from cc_team_acl a
 				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 			  ) and ( (:Ids::int[] isnull or id = any(:Ids) ) 
-			and (:AdministratorIds::int[] isnull or administrator_id = any(:AdministratorIds) )
+			and (:AdministratorIds::int[] isnull or admin_id = any(:AdministratorIds) )
 			and (:Strategy::varchar[] isnull or strategy = any(:Strategy) )
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
@@ -148,9 +148,9 @@ func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *mod
        t.no_answer_delay_time,
        t.call_timeout,
        t.updated_at,
-       adm.user as administrator
+       adm.user as admin
 from cc_team t
-    left join cc_agent_with_user adm on adm.id = t.administrator_id
+    left join cc_agent_with_user adm on adm.id = t.admin_id
 where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -174,7 +174,7 @@ func (s SqlAgentTeamStore) Update(domainId int64, team *model.AgentTeam) (*model
         call_timeout = :CallTimeout,
         updated_at = :UpdatedAt,
         updated_by = :UpdatedBy,
-        administrator_id = :AdministratorId
+        admin_id = :AdminId
     where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -187,10 +187,10 @@ select t.id,
        t.no_answer_delay_time,
        t.call_timeout,
        t.updated_at,
-       adm.user as administrator,
+       adm.user as admin,
        t.domain_id
 from t
-    left join cc_agent_with_user adm on adm.id = t.administrator_id`, map[string]interface{}{
+    left join cc_agent_with_user adm on adm.id = t.admin_id`, map[string]interface{}{
 		"Id":                team.Id,
 		"DomainId":          domainId,
 		"Name":              team.Name,
@@ -202,7 +202,7 @@ from t
 		"CallTimeout":       team.CallTimeout,
 		"UpdatedAt":         team.UpdatedAt,
 		"UpdatedBy":         team.UpdatedBy.Id,
-		"AdministratorId":   team.Administrator.GetSafeId(),
+		"AdminId":           team.Admin.GetSafeId(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.Update", "store.sql_agent_team.update.app_error", nil,

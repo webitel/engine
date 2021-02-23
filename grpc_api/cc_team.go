@@ -46,7 +46,7 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 		WrapUpTime:        int16(in.WrapUpTime),
 		NoAnswerDelayTime: int16(in.NoAnswerDelayTime),
 		CallTimeout:       int16(in.CallTimeout),
-		Administrator:     GetLookup(in.Administrator),
+		Admin:             GetLookup(in.Admin),
 	}
 
 	err = team.IsValid()
@@ -84,9 +84,9 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 			Sort:     in.Sort,
 			Fields:   in.Fields,
 		},
-		Ids:              in.Id,
-		Strategy:         in.Strategy,
-		AdministratorIds: in.AdministratorId,
+		Ids:      in.Id,
+		Strategy: in.Strategy,
+		AdminIds: in.AdminId,
 	}
 
 	if permission.Rbac {
@@ -183,7 +183,7 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		WrapUpTime:        int16(in.WrapUpTime),
 		NoAnswerDelayTime: int16(in.NoAnswerDelayTime),
 		CallTimeout:       int16(in.CallTimeout),
-		Administrator:     GetLookup(in.Administrator),
+		Admin:             GetLookup(in.Admin),
 	})
 
 	if err != nil {
@@ -233,6 +233,6 @@ func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {
 		WrapUpTime:        int32(src.WrapUpTime),
 		NoAnswerDelayTime: int32(src.NoAnswerDelayTime),
 		CallTimeout:       int32(src.CallTimeout),
-		Administrator:     GetProtoLookup(src.Administrator),
+		Admin:             GetProtoLookup(src.Admin),
 	}
 }

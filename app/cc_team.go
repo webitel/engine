@@ -48,7 +48,7 @@ func (a *App) UpdateAgentTeam(domainId int64, team *model.AgentTeam) (*model.Age
 	oldTeam.WrapUpTime = team.WrapUpTime
 	oldTeam.NoAnswerDelayTime = team.NoAnswerDelayTime
 	oldTeam.CallTimeout = team.CallTimeout
-	oldTeam.Administrator = team.Administrator
+	oldTeam.Admin = team.Admin
 
 	oldTeam.UpdatedAt = team.UpdatedAt
 	oldTeam.UpdatedBy.Id = team.UpdatedBy.Id
