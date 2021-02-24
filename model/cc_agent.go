@@ -189,6 +189,7 @@ type SearchAgent struct {
 	RegionIds     []uint32
 	AuditorIds    []uint32
 	SkillIds      []uint32
+	QueueIds      []uint32
 	IsSupervisor  *bool
 }
 

@@ -105,10 +105,6 @@ func (s *LayeredStore) BucketInQueue() BucketInQueueStore {
 	return s.DatabaseLayer.BucketInQueue()
 }
 
-func (s *LayeredStore) QueueRouting() QueueRoutingStore {
-	return s.DatabaseLayer.QueueRouting()
-}
-
 func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
 	return s.DatabaseLayer.CommunicationType()
 }

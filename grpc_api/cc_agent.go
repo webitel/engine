@@ -101,6 +101,7 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		RegionIds:     in.GetRegionId(),
 		AuditorIds:    in.GetAuditorId(),
 		SkillIds:      in.GetSkillId(),
+		QueueIds:      in.GetQueueId(),
 	}
 
 	if in.IsSupervisor {

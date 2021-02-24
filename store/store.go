@@ -35,7 +35,6 @@ type Store interface {
 	QueueSkill() QueueSkillStore
 	Bucket() BucketSore
 	BucketInQueue() BucketInQueueStore
-	QueueRouting() QueueRoutingStore
 	OutboundResource() OutboundResourceStore
 	OutboundResourceGroup() OutboundResourceGroupStore
 	OutboundResourceInGroup() OutboundResourceInGroupStore
@@ -227,15 +226,6 @@ type QueueSkillStore interface {
 	GetAllPage(domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, *model.AppError)
 	Update(domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError)
 	Delete(domainId int64, queueId, id uint32) *model.AppError
-}
-
-//FIXME delete
-type QueueRoutingStore interface {
-	Create(routing *model.QueueRouting) (*model.QueueRouting, *model.AppError)
-	GetAllPage(domainId, queueId int64, offset, limit int) ([]*model.QueueRouting, *model.AppError)
-	Get(domainId, queueId int64, id int64) (*model.QueueRouting, *model.AppError)
-	Update(qr *model.QueueRouting) (*model.QueueRouting, *model.AppError)
-	Delete(queueId, id int64) *model.AppError
 }
 
 type CommunicationTypeStore interface {

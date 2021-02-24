@@ -118,6 +118,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 		"RegionIds":     pq.Array(search.RegionIds),
 		"AuditorIds":    pq.Array(search.AuditorIds),
 		"SkillIds":      pq.Array(search.SkillIds),
+		"QueueIds":      pq.Array(search.QueueIds),
 		"IsSupervisor":  search.IsSupervisor,
 	}
 
@@ -129,6 +130,14 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
 				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+				and (:QueueIds::int[] isnull or id in (
+					select distinct a.id
+					from cc_queue q
+						inner join cc_agent a on a.team_id = q.team_id
+						inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+						inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+					where q.id = any(:QueueIds) and sia.capacity between qs.min_capacity and qs.max_capacity
+				))
 				and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
@@ -155,6 +164,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 		"RegionIds":     pq.Array(search.RegionIds),
 		"AuditorIds":    pq.Array(search.AuditorIds),
 		"SkillIds":      pq.Array(search.SkillIds),
+		"QueueIds":      pq.Array(search.QueueIds),
 		"IsSupervisor":  search.IsSupervisor,
 	}
 
@@ -167,6 +177,14 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
 				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
 			    and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
+				and (:QueueIds::int[] isnull or id in (
+					select distinct a.id
+					from cc_queue q
+						inner join cc_agent a on a.team_id = q.team_id
+						inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+						inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+					where q.id = any(:QueueIds) and sia.capacity between qs.min_capacity and qs.max_capacity
+				))
 				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
 				and (
