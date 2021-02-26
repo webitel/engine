@@ -191,6 +191,7 @@ type SearchAgent struct {
 	SkillIds      []uint32
 	QueueIds      []uint32
 	IsSupervisor  *bool
+	NotSupervisor *bool `json:"not_supervisor"`
 }
 
 type AgentUser struct {
@@ -262,6 +263,10 @@ type SearchAgentState struct {
 }
 
 func (a *Agent) IsValid() *AppError {
+	//todo fire error ?
+	if a.IsSupervisor && a.Supervisor != nil {
+		a.Supervisor = nil
+	}
 	return nil //TODO
 }
 

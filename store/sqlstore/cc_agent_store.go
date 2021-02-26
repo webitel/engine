@@ -120,6 +120,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 		"SkillIds":      pq.Array(search.SkillIds),
 		"QueueIds":      pq.Array(search.QueueIds),
 		"IsSupervisor":  search.IsSupervisor,
+		"NotSupervisor": search.NotSupervisor,
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
@@ -139,6 +140,7 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 					where q.id = any(:QueueIds) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
 				))
 				and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
+				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
 		model.Agent{}, f)
@@ -166,6 +168,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 		"SkillIds":      pq.Array(search.SkillIds),
 		"QueueIds":      pq.Array(search.QueueIds),
 		"IsSupervisor":  search.IsSupervisor,
+		"NotSupervisor": search.NotSupervisor,
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
@@ -177,6 +180,7 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
 				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
 			    and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
+				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
 					from cc_queue q

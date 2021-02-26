@@ -108,6 +108,10 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		req.IsSupervisor = &in.IsSupervisor
 	}
 
+	if in.NotSupervisor {
+		req.NotSupervisor = &in.NotSupervisor
+	}
+
 	if permission.Rbac {
 		list, endList, err = api.app.GetAgentsPageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
 	} else {
