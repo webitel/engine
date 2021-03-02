@@ -263,7 +263,7 @@ func (s SqlCalendarStore) Delete(domainId, id int64) *model.AppError {
 func (s SqlCalendarStore) GetTimezoneAllPage(search *model.SearchTimezone) ([]*model.Timezone, *model.AppError) {
 	var timezones []*model.Timezone
 
-	if _, err := s.GetReplica().Select(&timezones, `select id, name || ' ' || utc_offset::text as name, utc_offset::text as "offset" 
+	if _, err := s.GetReplica().Select(&timezones, `select id, name, utc_offset::text as "offset" 
 		from flow.calendar_timezones  t
 		where  (:Q::varchar isnull or t.name ilike :Q::varchar)
 		order by name limit :Limit offset :Offset`, map[string]interface{}{
