@@ -67,7 +67,7 @@ type AgentStatusStatistics struct {
 	StatusDuration int64      `json:"status_duration" db:"status_duration"`
 	User           Lookup     `json:"user" json:"user"`
 	Extension      string     `json:"extension" db:"extension"`
-	Teams          []*Lookup  `json:"teams" db:"teams"`
+	Team           *Lookup    `json:"team" db:"team"`
 	Queues         []*Lookup  `json:"queues" db:"queues"`
 	Online         int64      `json:"online" db:"online"`
 	Offline        int64      `json:"offline" db:"offline"`

@@ -672,7 +672,7 @@ offset :Offset`, map[string]interface{}{
 // FIXME add RBAC & sort, columns
 func (s SqlAgentStore) StatusStatistic(domainId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
-	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", teams, online, offline, pause, utilization, call_time, handles, missed,
+	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
        max_bridged_at, max_offering_at, extension, queues, active_call_id
 from (
     select a.id                                                 agent_id,
@@ -683,8 +683,8 @@ from (
        extract(epoch from x.t)::int                         status_duration,
        cc_get_lookup(u.id, coalesce(u.name, u.username)) as user,
 
-       teams.v                                              teams,
-       teams.a                                              queues,
+       cc_get_lookup(team.id, team.name) team,
+       q.queues                                              queues,
 
        extract(epoch from coalesce(
                case when a.status = 'online' then (x.t + coalesce(stat.online, interval '0')) else stat.online end,
@@ -702,31 +702,23 @@ from (
        max_bridged_at,
        max_offering_at,
        active_call.id as active_call_id,
-       teams.queue_ids,
-       teams.team_ids
+       queue_ids,
+       a.team_id
 from cc_agent a
          inner join directory.wbt_user u on u.id = a.user_id
-         LEFT JOIN LATERAL ( select array_agg(distinct t.id)                                                        tt,
-                                    json_agg(distinct cc_get_lookup(t.id, t.name))                                  v,
-                                    array_agg(distinct t.id) filter ( where t.id notnull ) team_ids,
-                                    array_agg(distinct cq.id) filter ( where cq.id notnull ) queue_ids,
-                                    json_agg(distinct cc_get_lookup(cq.id, cq.name)) filter ( where cq.id notnull ) a
-                             from cc_team t
-                                      left join cc_queue cq on t.id = cq.team_id
-                             where t.id in (
-                                 select distinct ait.team_id
-                                 from cc_agent_in_team ait
-                                 where ait.agent_id = a.id
-                                    or ait.skill_id in (
-                                     select distinct s.skill_id
-                                     from cc_skill_in_agent s
-                                     where s.agent_id = a.id
-                                       and s.capacity between ait.min_capacity and ait.max_capacity
-                                 )
-                             )
-                               and t.domain_id = a.domain_id
-                             limit 10) teams ON true
-
+         left join cc_team team on team.id = a.team_id
+         left join lateral (
+            select
+                array_agg(distinct q.id) queue_ids,
+                jsonb_agg(distinct cc_get_lookup(q.id, q.name)) queues
+            from cc_skill_in_agent sia
+                inner join cc_queue q on sia.agent_id = a.id and sia.enabled
+                inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+            where q.domain_id = a.domain_id
+                  and q.enabled
+                  and q.team_id = a.team_id
+                  and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
+         ) q on true
          left join lateral (
     select ares.agent_id,
            case when l.state = 'online' then l.delta + ares.online else ares.online end    online,
@@ -786,7 +778,7 @@ and (:Q::varchar isnull or t.name ilike :Q::varchar)
 and (:Status::varchar[] isnull or (t.status = any(:Status)))
 and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
 and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
-and (:TeamIds::int[] isnull  or (t.team_ids notnull and t.team_ids::int[] && :TeamIds::int[]))
+and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds::int[])))
 and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
 limit :Limit
 offset :Offset`, map[string]interface{}{

@@ -323,35 +323,22 @@ with queues  as  (
         and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
         and (:Q::varchar isnull or (q.name ilike :Q::varchar ) )
 ),
-     teams as (
-         SELECT s.team_id,
-                count(*) filter ( where a.status = 'online' ) online,
-                count(*) filter ( where a.status = 'pause' )  pause
-         FROM (SELECT aq.team_id,
-                      sa.agent_id
-               FROM call_center.cc_agent_in_team aq
-                        JOIN call_center.cc_skill_in_agent sa ON sa.skill_id = aq.skill_id
-                        LEFT JOIN LATERAL unnest(aq.bucket_ids) x(x) ON true
-               WHERE aq.skill_id IS NOT NULL
-                 AND sa.capacity >= aq.min_capacity
-                 AND sa.capacity <= aq.max_capacity
-               UNION
-               SELECT aq.team_id,
-                      aq.agent_id
-               FROM call_center.cc_agent_in_team aq
-                        LEFT JOIN LATERAL unnest(aq.bucket_ids) x(x) ON true
-               WHERE aq.agent_id IS NOT NULL) s
-                  inner join cc_agent a on a.id = s.agent_id
-         where s.team_id in (
-             select distinct queues.team_id
-             from queues
-         )
-         GROUP BY 1
+     queue_ag as (
+        select
+               q.id,
+               count(distinct a.id) filter ( where status = 'online' ) online,
+               count(distinct a.id) filter ( where status = 'pause' ) pause
+        from queues q
+            inner join cc_agent a on a.team_id = q.team_id
+            inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+            inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+        where q.team_id = a.team_id and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
+        group by 1
      )
 select cc_get_lookup(q.id, q.name) queue,
        cc_get_lookup(ct.id, ct.name) team,
-       coalesce(teams.online, 0) online,
-       coalesce(teams.pause, 0) pause,
+       coalesce(queue_ag.online, 0) online,
+       coalesce(queue_ag.pause, 0) pause,
        coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
            else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
        (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
@@ -365,7 +352,7 @@ select cc_get_lookup(q.id, q.name) queue,
        coalesce(ag.avg_asa_sec, 0) avg_asa_sec,
        coalesce(ag.avg_aht_sec, 0) avg_aht_sec
 from queues q
-    left join teams on teams.team_id = q.team_id
+    left join queue_ag on queue_ag.id = q.id
     left join cc_team ct on q.team_id = ct.id
     left join lateral (
         select

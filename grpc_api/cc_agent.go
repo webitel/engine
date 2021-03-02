@@ -734,7 +734,7 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		StatusDuration: src.StatusDuration,
 		User:           GetProtoLookup(&src.User),
 		Extension:      src.Extension,
-		Teams:          GetProtoLookups(src.Teams),
+		Team:           GetProtoLookup(src.Team),
 		Queues:         GetProtoLookups(src.Queues),
 		Online:         src.Online,
 		Offline:        src.Offline,
