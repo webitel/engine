@@ -126,7 +126,7 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, sear
 				  from cc_team_acl a
 				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 			  ) and ( (:Ids::int[] isnull or id = any(:Ids) ) 
-			and (:AdministratorIds::int[] isnull or admin_id = any(:AdministratorIds) )
+			and (:AdminIds::int[] isnull or admin_id = any(:AdminIds) )
 			and (:Strategy::varchar[] isnull or strategy = any(:Strategy) )
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
