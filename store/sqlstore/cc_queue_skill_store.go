@@ -81,6 +81,7 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 	f := map[string]interface{}{
 		"DomainId":    domainId,
 		"QueueId":     search.QueueId,
+		"Q":           search.GetQ(),
 		"Ids":         pq.Array(search.Ids),
 		"SkillIds":    pq.Array(search.SkillIds),
 		"BucketIds":   pq.Array(search.BucketIds),
@@ -93,6 +94,7 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 	err := s.ListQuery(&qs, search.ListRequest,
 		`queue_id = :QueueId and domain_id = :DomainId
 				and (:Ids::int4[] isnull or id = any(:Ids))
+				and (:Q::text isnull or skill->>'name' ilike :Q::text)
 				and (:SkillIds::int4[] isnull or skill_id = any(:SkillIds))
 				and (:BucketIds::int4[] isnull or bucket_ids && :BucketIds)
 				and (:Lvl::int4[] isnull or lvl = any(:Lvl))
