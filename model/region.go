@@ -26,7 +26,7 @@ func (r Region) AllowFields() []string {
 }
 
 func (r Region) DefaultOrder() string {
-	return "-name"
+	return "+name"
 }
 
 func (r Region) DefaultFields() []string {
