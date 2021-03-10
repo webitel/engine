@@ -107,8 +107,8 @@ func (a *App) RemoveQueue(domainId, id int64) (*model.Queue, *model.AppError) {
 	return queue, nil
 }
 
-func (a *App) GetQueueReportGeneral(domainId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, bool, *model.AppError) {
-	list, err := a.Store.Queue().QueueReportGeneral(domainId, search)
+func (a *App) GetQueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, bool, *model.AppError) {
+	list, err := a.Store.Queue().QueueReportGeneral(domainId, supervisorUserId, search)
 	if err != nil {
 		return nil, false, err
 	}

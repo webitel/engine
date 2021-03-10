@@ -311,13 +311,26 @@ func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
 }
 
 // FIXME RBAC
-func (s SqlQueueStore) QueueReportGeneral(domainId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, *model.AppError) {
+func (s SqlQueueStore) QueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, *model.AppError) {
 	var report []*model.QueueReportGeneral
 	_, err := s.GetReplica().Select(&report, `
 with queues  as  (
     select *
     from cc_queue q
     where q.enabled is true and q.domain_id = :DomainId
+		and q.id in (
+			select distinct qs.queue_id
+			from cc_agent a
+				inner join cc_skill_in_agent csia on a.id = csia.agent_id
+				inner join cc_queue_skill qs on qs.skill_id = csia.skill_id
+			where ((a.user_id = :SupervisorId and a.supervisor)
+				or a.supervisor_id = (
+					select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
+				))
+				and csia.enabled
+				and qs.enabled
+				and csia.capacity between qs.min_capacity and qs.max_capacity
+		)
         and ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
         and ( :Types::int[] isnull or q.type = any(:Types) )
         and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
@@ -375,15 +388,16 @@ order by q.priority desc
 limit :Limit
 offset :Offset
 `, map[string]interface{}{
-		"DomainId": domainId,
-		"From":     model.GetBetweenFromTime(&search.JoinedAt),
-		"To":       model.GetBetweenToTime(&search.JoinedAt),
-		"Q":        search.GetQ(),
-		"QueueIds": pq.Array(search.QueueIds),
-		"TeamIds":  pq.Array(search.TeamIds),
-		"Types":    pq.Array(search.Types),
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"DomainId":     domainId,
+		"SupervisorId": supervisorUserId,
+		"From":         model.GetBetweenFromTime(&search.JoinedAt),
+		"To":           model.GetBetweenToTime(&search.JoinedAt),
+		"Q":            search.GetQ(),
+		"QueueIds":     pq.Array(search.QueueIds),
+		"TeamIds":      pq.Array(search.TeamIds),
+		"Types":        pq.Array(search.Types),
+		"Limit":        search.GetLimit(),
+		"Offset":       search.GetOffset(),
 	})
 
 	if err != nil {
