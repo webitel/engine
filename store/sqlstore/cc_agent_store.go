@@ -670,7 +670,7 @@ offset :Offset`, map[string]interface{}{
 }
 
 // FIXME add RBAC & sort, columns
-func (s SqlAgentStore) StatusStatistic(domainId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
+func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
        max_bridged_at, max_offering_at, extension, queues, active_call_id
@@ -703,7 +703,8 @@ from (
        max_offering_at,
        active_call.id as active_call_id,
        queue_ids,
-       a.team_id
+       a.team_id,
+	   a.supervisor_id
 from cc_agent a
          inner join directory.wbt_user u on u.id = a.user_id
          left join cc_team team on team.id = a.team_id
@@ -771,6 +772,10 @@ from cc_agent a
                                              (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
                                             then (:To::timestamptz) - (:From::timestamptz)
                                         else now() - a.last_state_change end t) x on true
+	where (a.user_id = :SupervisorId and a.supervisor)
+		or a.supervisor_id = (
+			select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
+		)
 ) t
 where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
@@ -782,19 +787,20 @@ and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds:
 and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
 limit :Limit
 offset :Offset`, map[string]interface{}{
-		"DomainId": domainId,
-		"Q":        search.GetQ(),
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
-		"From":     model.GetBetweenFromTime(&search.Time),
-		"To":       model.GetBetweenToTime(&search.Time),
-		"UFrom":    model.GetBetweenFrom(search.Utilization),
-		"UTo":      model.GetBetweenFrom(search.Utilization),
-		"AgentIds": pq.Array(search.AgentIds),
-		"Status":   pq.Array(search.Status),
-		"QueueIds": pq.Array(search.QueueIds),
-		"TeamIds":  pq.Array(search.TeamIds),
-		"HasCall":  search.HasCall,
+		"DomainId":     domainId,
+		"SupervisorId": supervisorUserId,
+		"Q":            search.GetQ(),
+		"Limit":        search.GetLimit(),
+		"Offset":       search.GetOffset(),
+		"From":         model.GetBetweenFromTime(&search.Time),
+		"To":           model.GetBetweenToTime(&search.Time),
+		"UFrom":        model.GetBetweenFrom(search.Utilization),
+		"UTo":          model.GetBetweenFrom(search.Utilization),
+		"AgentIds":     pq.Array(search.AgentIds),
+		"Status":       pq.Array(search.Status),
+		"QueueIds":     pq.Array(search.QueueIds),
+		"TeamIds":      pq.Array(search.TeamIds),
+		"HasCall":      search.HasCall,
 	})
 
 	if err != nil {
