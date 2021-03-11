@@ -324,9 +324,14 @@ with queues  as  (
 				inner join cc_skill_in_agent csia on a.id = csia.agent_id
 				inner join cc_queue_skill qs on qs.skill_id = csia.skill_id
 			where ((a.user_id = :SupervisorId and a.supervisor)
-				or a.supervisor_id = (
-					select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
-				))
+					or a.supervisor_id = (
+						select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
+					)
+					or a.team_id in (
+						select te.id from cc_team te 
+						where te.admin_id = (select a2.id from cc_agent a2 where a2.user_id = :SupervisorId)
+					)
+				)
 				and csia.enabled
 				and qs.enabled
 				and csia.capacity between qs.min_capacity and qs.max_capacity

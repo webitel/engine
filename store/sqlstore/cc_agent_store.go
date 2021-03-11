@@ -776,6 +776,10 @@ from cc_agent a
 		or a.supervisor_id = (
 			select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
 		)
+		or a.team_id in (
+			select te.id from cc_team te 
+			where te.admin_id = (select a2.id from cc_agent a2 where a2.user_id = :SupervisorId)
+		)
 ) t
 where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
