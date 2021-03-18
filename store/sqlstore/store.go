@@ -28,6 +28,7 @@ type SqlStore interface {
 	Queue() store.QueueStore
 	QueueResource() store.QueueResourceStore
 	QueueSkill() store.QueueSkillStore
+	QueueHook() store.QueueHookStore
 	Bucket() store.BucketSore
 	BucketInQueue() store.BucketInQueueStore
 	CommunicationType() store.CommunicationTypeStore

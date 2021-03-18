@@ -51,14 +51,10 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		MinOfferingAt:  model.Int64ToTime(in.MinOfferingAt),
+		ExpireAt:       model.Int64ToTime(in.GetExpireAt()),
 
 		Bucket: GetLookup(in.Bucket),
-		Skill:  GetLookup(in.Skill),
 		Agent:  GetLookup(in.Agent),
-	}
-
-	if in.GetExpireAt() != 0 {
-		member.ExpireAt = model.NewInt64(in.GetExpireAt())
 	}
 
 	if err = member.IsValid(); err != nil {
@@ -108,12 +104,9 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			},
 			Communications: toModelMemberCommunications(v.GetCommunications()),
 			MinOfferingAt:  model.Int64ToTime(v.MinOfferingAt),
+			ExpireAt:       model.Int64ToTime(v.GetExpireAt()),
 			Bucket:         GetLookup(v.GetBucket()),
-			Skill:          GetLookup(v.GetSkill()),
 			Agent:          GetLookup(v.Agent),
-		}
-		if v.GetExpireAt() != 0 {
-			member.ExpireAt = model.NewInt64(v.GetExpireAt())
 		}
 
 		if err = member.IsValid(); err != nil {
@@ -235,7 +228,6 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		Id:        in.GetId(),
 		QueueId:   in.GetQueueId(),
 		Priority:  int(in.GetPriority()),
-		ExpireAt:  nil,
 		Name:      in.GetName(),
 		Variables: in.GetVariables(),
 		Timezone: model.Lookup{
@@ -243,15 +235,9 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		},
 		Communications: toModelMemberCommunications(in.GetCommunications()),
 		MinOfferingAt:  model.Int64ToTime(in.MinOfferingAt),
+		ExpireAt:       model.Int64ToTime(in.ExpireAt),
 		Bucket:         GetLookup(in.Bucket),
-		Skill:          GetLookup(in.Skill),
 		Agent:          GetLookup(in.Agent),
-	}
-
-	if in.ExpireAt != 0 {
-		member.ExpireAt = model.NewInt64(in.ExpireAt)
-	} else {
-		member.ExpireAt = nil
 	}
 
 	if in.StopCause != "" {
@@ -302,7 +288,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "priority":
 			patch.Priority = model.NewInt(int(in.Priority))
 		case "expire_at":
-			patch.ExpireAt = model.NewInt64(in.ExpireAt)
+			patch.ExpireAt = model.Int64ToTime(in.ExpireAt)
 		case "min_offering_at":
 			patch.MinOfferingAt = model.Int64ToTime(in.MinOfferingAt)
 		case "name":
@@ -313,8 +299,6 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 			patch.Bucket = GetLookup(in.Bucket)
 		case "communications":
 			patch.Communications = toModelMemberCommunications(in.GetCommunications())
-		case "skill.id":
-			patch.Skill = GetLookup(in.Skill)
 		case "stop_cause":
 			patch.StopCause = model.NewString(in.StopCause)
 		case "agent.id":
@@ -671,10 +655,10 @@ func toEngineMemberAttempt(src *model.MemberAttempt) *engine.MemberAttempt {
 func toEngineMember(src *model.Member) *engine.MemberInQueue {
 	res := &engine.MemberInQueue{
 		Id:        src.Id,
-		CreatedAt: src.CreatedAt,
+		CreatedAt: model.TimeToInt64(&src.CreatedAt),
 		Queue:     GetProtoLookup(&src.Queue),
 		Priority:  int32(src.Priority),
-		ExpireAt:  src.GetExpireAt(),
+		ExpireAt:  model.TimeToInt64(src.ExpireAt),
 		Variables: src.Variables,
 		Name:      src.Name,
 		Timezone: &engine.Lookup{
@@ -686,7 +670,6 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		Attempts:       int32(src.Attempts),
 		MinOfferingAt:  model.TimeToInt64(src.MinOfferingAt),
 		Reserved:       src.Reserved,
-		Skill:          GetProtoLookup(src.Skill),
 		Agent:          GetProtoLookup(src.Agent),
 	}
 

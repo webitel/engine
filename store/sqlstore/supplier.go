@@ -44,6 +44,7 @@ type SqlSupplierOldStores struct {
 	queue                   store.QueueStore
 	queueResource           store.QueueResourceStore
 	queueSkill              store.QueueSkillStore
+	queueHook               store.QueueHookStore
 	bucket                  store.BucketSore
 	bucketInQueue           store.BucketInQueueStore
 	communicationType       store.CommunicationTypeStore
@@ -92,6 +93,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.queue = NewSqlQueueStore(supplier)
 	supplier.oldStores.queueResource = NewSqlQueueResourceStore(supplier)
 	supplier.oldStores.queueSkill = NewSqlQueueSkillStore(supplier)
+	supplier.oldStores.queueHook = NewSqlQueueHookStore(supplier)
 	supplier.oldStores.bucket = NewSqlBucketStore(supplier)
 	supplier.oldStores.bucketInQueue = NewSqlBucketInQueueStore(supplier)
 	supplier.oldStores.communicationType = NewSqlCommunicationTypeStore(supplier)
@@ -277,6 +279,10 @@ func (ss *SqlSupplier) QueueResource() store.QueueResourceStore {
 
 func (ss *SqlSupplier) QueueSkill() store.QueueSkillStore {
 	return ss.oldStores.queueSkill
+}
+
+func (ss *SqlSupplier) QueueHook() store.QueueHookStore {
+	return ss.oldStores.queueHook
 }
 
 func (ss *SqlSupplier) Bucket() store.BucketSore {

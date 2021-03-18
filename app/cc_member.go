@@ -52,7 +52,6 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	oldMember.Timezone = member.Timezone
 	oldMember.Communications = member.Communications
 	oldMember.Bucket = member.Bucket
-	oldMember.Skill = member.Skill
 	oldMember.MinOfferingAt = member.MinOfferingAt
 	oldMember.StopCause = member.StopCause
 	oldMember.Agent = member.Agent
@@ -150,6 +149,15 @@ func (app *App) ReportingAttempt(attemptId int64, status, description string, ne
 
 	if err != nil {
 		return model.NewAppError("ReportingAttempt", "app.cc_member.reporting.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (app *App) RenewalAttempt(domainId, attemptId int64, renewal uint32) *model.AppError {
+	err := app.cc.Member().RenewalResult(domainId, attemptId, renewal)
+	if err != nil {
+		return model.NewAppError("RenewalAttempt", "app.cc_member.renewal_attempt.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return nil

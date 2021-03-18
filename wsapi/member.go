@@ -11,6 +11,27 @@ func (api *API) InitMember() {
 	api.Router.Handle("cc_member_page", api.ApiWebSocketHandler(api.getMember))
 	api.Router.Handle("cc_fetch_offline_members", api.ApiWebSocketHandler(api.offlineMembers))
 	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
+	api.Router.Handle("cc_renewal", api.ApiWebSocketHandler(api.renewalAttempt))
+}
+
+func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var attemptId, renewal float64
+	var ok bool
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	if renewal, ok = req.Data["renewal_sec"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "renewal_sec")
+	}
+
+	if err := api.ctrl.RenewalAttempt(conn.GetSession(), int64(attemptId), uint32(renewal)); err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	return res, nil
 }
 
 func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

@@ -40,3 +40,12 @@ func (c *Controller) ReportingAttempt(session *auth_manager.Session, attemptId i
 
 	return c.app.ReportingAttempt(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay, agentId)
 }
+
+func (c *Controller) RenewalAttempt(session *auth_manager.Session, attemptId int64, renewal uint32) *model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.RenewalAttempt(session.DomainId, attemptId, renewal)
+}

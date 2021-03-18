@@ -97,6 +97,10 @@ func (s *LayeredStore) QueueSkill() QueueSkillStore {
 	return s.DatabaseLayer.QueueSkill()
 }
 
+func (s *LayeredStore) QueueHook() QueueHookStore {
+	return s.DatabaseLayer.QueueHook()
+}
+
 func (s *LayeredStore) Bucket() BucketSore {
 	return s.DatabaseLayer.Bucket()
 }

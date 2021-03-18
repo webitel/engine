@@ -33,6 +33,7 @@ type Store interface {
 	Queue() QueueStore
 	QueueResource() QueueResourceStore
 	QueueSkill() QueueSkillStore
+	QueueHook() QueueHookStore
 	Bucket() BucketSore
 	BucketInQueue() BucketInQueueStore
 	OutboundResource() OutboundResourceStore
@@ -225,6 +226,14 @@ type QueueSkillStore interface {
 	Get(domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError)
 	GetAllPage(domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, *model.AppError)
 	Update(domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError)
+	Delete(domainId int64, queueId, id uint32) *model.AppError
+}
+
+type QueueHookStore interface {
+	Create(domainId int64, queueId uint32, in *model.QueueHook) (*model.QueueHook, *model.AppError)
+	Get(domainId int64, queueId, id uint32) (*model.QueueHook, *model.AppError)
+	GetAllPage(domainId int64, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, *model.AppError)
+	Update(domainId int64, queueId uint32, qh *model.QueueHook) (*model.QueueHook, *model.AppError)
 	Delete(domainId int64, queueId, id uint32) *model.AppError
 }
 

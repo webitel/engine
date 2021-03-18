@@ -8,10 +8,10 @@ import (
 type Member struct {
 	Id             int64                 `json:"id" db:"id"`
 	Queue          Lookup                `json:"queue" db:"queue"`
-	CreatedAt      int64                 `json:"created_at" db:"created_at"`
+	CreatedAt      time.Time             `json:"created_at" db:"created_at"`
 	QueueId        int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
 	Priority       int                   `json:"priority" db:"priority"`
-	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
+	ExpireAt       *time.Time            `json:"expire_at" db:"expire_at"`
 	MinOfferingAt  *time.Time            `json:"min_offering_at" db:"ready_at"`
 	Name           string                `json:"name" db:"name"`
 	Variables      StringMap             `json:"variables" db:"variables"`
@@ -20,7 +20,6 @@ type Member struct {
 	Timezone       Lookup                `json:"timezone" db:"timezone"`
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
-	Skill          *Lookup               `json:"skill" db:"skill"`
 	StopAt         *time.Time            `json:"stop_at" db:"stop_at"`
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Reserved       bool                  `json:"reserved" db:"reserved"`
@@ -29,14 +28,13 @@ type Member struct {
 
 type MemberPatch struct {
 	Priority       *int                  `json:"priority" db:"priority"`
-	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
+	ExpireAt       *time.Time            `json:"expire_at" db:"expire_at"`
 	MinOfferingAt  *time.Time            `json:"min_offering_at" db:"ready_at"`
 	Name           *string               `json:"name" db:"name"`
 	Variables      StringMap             `json:"variables" db:"variables"`
 	Timezone       *Lookup               `json:"timezone" db:"timezone"`
 	Bucket         *Lookup               `json:"bucket" db:"bucket"`
 	Communications []MemberCommunication `json:"communications" db:"communications"`
-	Skill          *Lookup               `json:"skill" db:"skill"`
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Agent          *Lookup               `json:"agent" db:"agent"`
 }
@@ -72,10 +70,6 @@ func (m *Member) Patch(p *MemberPatch) {
 
 	if p.Communications != nil {
 		m.Communications = p.Communications
-	}
-
-	if p.Skill != nil {
-		m.Skill = p.Skill
 	}
 
 	if p.StopCause != nil {
@@ -299,27 +293,12 @@ func (m *Member) GetBucketId() *int64 {
 	return nil
 }
 
-func (m *Member) GetSkillId() *int {
-	if m.Skill != nil {
-		return &m.Skill.Id
-	}
-
-	return nil
-}
-
 func (m *Member) GetAgentId() *int {
 	if m.Agent != nil {
 		return &m.Agent.Id
 	}
 
 	return nil
-}
-
-func (m *Member) GetExpireAt() int64 {
-	if m.ExpireAt != nil {
-		return *m.ExpireAt
-	}
-	return 0
 }
 
 func (m *Member) IsValid() *AppError {

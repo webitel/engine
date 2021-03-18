@@ -50,6 +50,7 @@ func (api *region) SearchRegion(ctx context.Context, in *engine.SearchRegionRequ
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
 			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
 		Ids:         in.GetId(),
 		TimezoneIds: in.GetTimezoneId(),
