@@ -51,6 +51,7 @@ func (api *pauseCause) SearchAgentPauseCause(ctx context.Context, in *engine.Sea
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
 			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
 		Ids: in.GetId(),
 	}

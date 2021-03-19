@@ -77,12 +77,11 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 	var endList bool
 	req := &model.SearchAgentTeam{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Sort:     in.Sort,
-			Fields:   in.Fields,
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Sort:    in.Sort,
+			Fields:  in.Fields,
 		},
 		Ids:      in.Id,
 		Strategy: in.Strategy,
@@ -90,9 +89,9 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 	}
 
 	if permission.Rbac {
-		list, endList, err = api.app.GetAgentTeamsPageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
+		list, endList, err = api.app.GetAgentTeamsPageByGroups(session.Domain(0), session.GetAclRoles(), req)
 	} else {
-		list, endList, err = api.app.GetAgentTeamsPage(session.Domain(in.DomainId), req)
+		list, endList, err = api.app.GetAgentTeamsPage(session.Domain(0), req)
 	}
 
 	if err != nil {
