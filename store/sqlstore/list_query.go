@@ -44,13 +44,21 @@ func QuoteLiteral(name string) string {
 
 func GetOrderBy(s string) string {
 	if s != "" {
+		sort := ""
+		field := ""
 		if s[0] == '+' {
-			return "order by " + pq.QuoteIdentifier(s[1:]) + " asc"
+			sort = "asc"
+			field = pq.QuoteIdentifier(s[1:])
 		} else if s[0] == '-' {
-			return "order by " + pq.QuoteIdentifier(s[1:]) + " desc"
+			sort = "desc"
+			field = pq.QuoteIdentifier(s[1:])
 		} else {
-			return "order by " + s
+			field = pq.QuoteIdentifier(s)
 		}
+
+		return fmt.Sprintf(`order by case when pg_typeof(%s) = 'jsonb'::regtype then (%s::text)::json->>'name' end %s,
+         case when pg_typeof(%s) != 'jsonb'::regtype then %s end %s`, field, field, sort, field, field, sort)
+
 	}
 
 	return "" //TODO
