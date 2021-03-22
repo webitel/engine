@@ -74,17 +74,19 @@ func (api *outboundResourceGroup) SearchOutboundResourceGroup(ctx context.Contex
 	var endList bool
 	req := &model.SearchOutboundResourceGroup{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
 	if permission.Rbac {
-		list, endList, err = api.app.GetOutboundResourceGroupPageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
+		list, endList, err = api.app.GetOutboundResourceGroupPageByGroups(session.Domain(0), session.GetAclRoles(), req)
 	} else {
-		list, endList, err = api.app.GetOutboundResourceGroupPage(session.Domain(in.DomainId), req)
+		list, endList, err = api.app.GetOutboundResourceGroupPage(session.Domain(0), req)
 	}
 
 	if err != nil {

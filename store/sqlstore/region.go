@@ -48,7 +48,7 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 		"Q":           search.GetQ(),
 		"Ids":         pq.Array(search.Ids),
 		"Name":        search.Name,
-		"Description": search.Name,
+		"Description": search.Description,
 		"TimezoneIds": pq.Array(search.TimezoneIds),
 	}
 

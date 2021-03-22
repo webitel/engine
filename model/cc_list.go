@@ -9,6 +9,23 @@ type List struct {
 
 type SearchList struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (List) DefaultOrder() string {
+	return "id"
+}
+
+func (a List) AllowFields() []string {
+	return []string{"id", "name", "description", "count", "domain_id", "created_at", "created_by", "updated_at", "updated_by"}
+}
+
+func (a List) DefaultFields() []string {
+	return []string{"id", "name", "description", "count"}
+}
+
+func (a List) EntityName() string {
+	return "cc_list_view"
 }
 
 func (l *List) IsValid() *AppError {

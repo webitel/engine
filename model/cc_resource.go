@@ -19,6 +19,25 @@ type OutboundCallResource struct {
 
 type SearchOutboundCallResource struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (OutboundCallResource) DefaultOrder() string {
+	return "id"
+}
+
+func (a OutboundCallResource) AllowFields() []string {
+	return []string{"id", "name", "gateway", "enabled", "reserve", "limit",
+		"domain_id", "rps", "variables", "number", "max_successively_errors", "error_ids", "last_error_id", "successively_errors", "last_error_at",
+		"created_at", "created_by", "updated_at", "updated_by"}
+}
+
+func (a OutboundCallResource) DefaultFields() []string {
+	return []string{"id", "name", "gateway", "enabled", "reserve", "limit"}
+}
+
+func (a OutboundCallResource) EntityName() string {
+	return "cc_outbound_resource_view"
 }
 
 type ResourceDisplay struct {

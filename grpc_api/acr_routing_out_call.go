@@ -59,11 +59,17 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 	var isEndList bool
 	req := &model.SearchRoutingOutboundCall{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids:         in.Id,
+		Name:        GetStringPointer(in.Name),
+		SchemaIds:   in.SchemaId,
+		Pattern:     GetStringPointer(in.Pattern),
+		Description: GetStringPointer(in.Description),
 	}
 
 	list, isEndList, err = api.ctrl.SearchRoutingOutboundCall(session, req)

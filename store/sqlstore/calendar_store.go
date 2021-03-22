@@ -71,33 +71,20 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 func (s SqlCalendarStore) GetAllPage(domainId int64, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
 	var calendars []*model.Calendar
 
-	if _, err := s.GetReplica().Select(&calendars,
-		`select c.id,
-       c.name,
-       c.start_at,
-       c.end_at,
-       c.description,
-	   c.domain_id,
-       cc_get_lookup(ct.id, ct.name) as timezone,
-	   c.created_at,
-	   cc_get_lookup(uc.id, uc.name) as created_by,
-       c.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by,
-	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
-	   cc_arr_type_to_jsonb(c.excepts) as excepts
-	from flow.calendar c
-       left join flow.calendar_timezones ct on c.timezone_id = ct.id
-	   left join directory.wbt_user uc on uc.id = c.created_by
-	   left join directory.wbt_user u on u.id = c.updated_by
-where c.domain_id = :DomainId and ( (:Q::varchar isnull or c.name ilike :Q::varchar) or (:Q::varchar isnull or c.description ilike :Q::varchar))
-order by id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Q":        search.GetQ(),
+		"Ids":      pq.Array(search.Ids),
+	}
+
+	err := s.ListQueryFromSchema(&calendars, "flow", search.ListRequest,
+		`domain_id = :DomainId
+				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
+				and (:Ids::int4[] isnull or id = any(:Ids))
+			`,
+		model.Calendar{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetAllPage", "store.sql_calendar.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return calendars, nil
@@ -126,40 +113,25 @@ func (s SqlCalendarStore) CheckAccess(domainId, id int64, groups []int, access a
 func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
 	var calendars []*model.Calendar
 
-	if _, err := s.GetReplica().Select(&calendars,
-		`select c.id,
-       c.name,
-       c.start_at,
-       c.end_at,
-       c.description,
-	   c.domain_id,
-       cc_get_lookup(ct.id, ct.name) as timezone,
-	   c.created_at,
-	   cc_get_lookup(uc.id, uc.name) as created_by,
-       c.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by,
-	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
-	   cc_arr_type_to_jsonb(c.excepts) as excepts
-from flow.calendar c
-       left join flow.calendar_timezones ct on c.timezone_id = ct.id
-	   left join directory.wbt_user uc on uc.id = c.created_by
-	   left join directory.wbt_user u on u.id = c.updated_by
-where c.domain_id = :DomainId
-  and (
-    exists(select 1
-      from flow.calendar_acl a
-      where a.dc = c.domain_id and a.object = c.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  ) and ( (:Q::varchar isnull or c.name ilike :Q::varchar) or (:Q::varchar isnull or c.description ilike :Q::varchar))
-order by id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"Groups":   pq.Array(groups),
-			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Q":        search.GetQ(),
+		"Ids":      pq.Array(search.Ids),
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+	}
+
+	err := s.ListQueryFromSchema(&calendars, "flow", search.ListRequest,
+		`domain_id = :DomainId
+				and exists(select 1
+				  from flow.calendar_acl a
+				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
+				and (:Ids::int4[] isnull or id = any(:Ids))
+			`,
+		model.Calendar{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlCalendarStore.GetAllPage", "store.sql_calendar.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return calendars, nil

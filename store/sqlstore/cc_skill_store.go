@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -50,20 +51,19 @@ func (s SqlSkillStore) Get(domainId int64, id int64) (*model.Skill, *model.AppEr
 func (s SqlSkillStore) GetAllPage(domainId int64, search *model.SearchSkill) ([]*model.Skill, *model.AppError) {
 	var skills []*model.Skill
 
-	if _, err := s.GetReplica().Select(&skills,
-		`select c.id,
-       c.name,
-       c.description
-from cc_skill c
-where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar ) )) 
-order by id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&skills, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.Skill{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlSkillStore.GetAllPage", "store.sql_skill.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return skills, nil

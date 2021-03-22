@@ -69,17 +69,19 @@ func (api *bucket) SearchBucket(ctx context.Context, in *engine.SearchBucketRequ
 	var endList bool
 	req := &model.SearchBucket{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
 	if permission.Rbac {
-		list, endList, err = api.app.GetBucketsPageByGroups(session.Domain(in.DomainId), session.GetAclRoles(), req)
+		list, endList, err = api.app.GetBucketsPageByGroups(session.Domain(0), session.GetAclRoles(), req)
 	} else {
-		list, endList, err = api.app.GetBucketsPage(session.Domain(in.DomainId), req)
+		list, endList, err = api.app.GetBucketsPage(session.Domain(0), req)
 	}
 
 	if err != nil {

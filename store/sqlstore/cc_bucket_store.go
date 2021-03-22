@@ -61,20 +61,19 @@ func (s SqlBucketStore) CheckAccess(domainId, id int64, groups []int, access aut
 func (s SqlBucketStore) GetAllPage(domainId int64, search *model.SearchBucket) ([]*model.Bucket, *model.AppError) {
 	var buckets []*model.Bucket
 
-	if _, err := s.GetReplica().Select(&buckets,
-		`select b.id,
-       b.name,
-       b.description
-from cc_bucket b
-where b.domain_id = :DomainId and ( (:Q::varchar isnull or (b.description ilike :Q::varchar or b.name ilike :Q::varchar ) )) 
-order by b.id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&buckets, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.Bucket{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlBucketStore.GetAllPage", "store.sql_bucket.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return buckets, nil
@@ -84,26 +83,25 @@ offset :Offset`, map[string]interface{}{
 func (s SqlBucketStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchBucket) ([]*model.Bucket, *model.AppError) {
 	var buckets []*model.Bucket
 
-	if _, err := s.GetReplica().Select(&buckets,
-		`select b.id,
-       b.name,
-       b.description
-from cc_bucket b
-where b.domain_id = :DomainId and (
-    exists(select 1
-      from cc_bucket_acl a
-      where a.dc = b.domain_id and a.object = b.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  ) and ( (:Q::varchar isnull or (b.description ilike :Q::varchar or b.name ilike :Q::varchar ) )) 
-order by b.id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"Groups":   pq.Array(groups),
-			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+	}
+
+	err := s.ListQuery(&buckets, search.ListRequest,
+		`domain_id = :DomainId
+				and exists(select 1
+				  from cc_bucket_acl a
+				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access
+				)
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.Bucket{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlBucketStore.GetAllPage", "store.sql_bucket.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return buckets, nil

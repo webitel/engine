@@ -71,23 +71,20 @@ from s
 
 func (s SqlOutboundResourceGroupStore) GetAllPage(domainId int64, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, *model.AppError) {
 	var groups []*model.OutboundResourceGroup
-	if _, err := s.GetReplica().Select(&groups, `
-			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
-			from cc_outbound_resource_group s
-				inner join cc_communication comm on comm.id = s.communication_id
-				left join directory.wbt_user c on c.id = s.created_by
-				left join directory.wbt_user u on u.id = s.updated_by
-		where s.domain_id = :DomainId and ( (:Q::varchar isnull or (s.name ilike :Q::varchar or s.description ilike :Q::varchar ) )) 
-		order by s.id
-		limit :Limit
-		offset :Offset
-		`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
-	}); err != nil {
+	}
+
+	err := s.ListQuery(&groups, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.OutboundResourceGroup{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceGroupStore.GetAllPage", "store.sql_out_resource_group.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -97,30 +94,26 @@ func (s SqlOutboundResourceGroupStore) GetAllPage(domainId int64, search *model.
 
 func (s SqlOutboundResourceGroupStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, *model.AppError) {
 	var res []*model.OutboundResourceGroup
-	if _, err := s.GetReplica().Select(&res, `
-			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by
-			from cc_outbound_resource_group s
-				inner join cc_communication comm on comm.id = s.communication_id
-				left join directory.wbt_user c on c.id = s.created_by
-				left join directory.wbt_user u on u.id = s.updated_by
-		where s.domain_id = :DomainId  and (
-			exists(select 1
-			  from cc_outbound_resource_group_acl a
-			  where a.dc = s.domain_id and a.object = s.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-		  )  and ( (:Q::varchar isnull or (s.name ilike :Q::varchar or s.description ilike :Q::varchar ) )) 
-		order by s.id
-		limit :Limit
-		offset :Offset
-		`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
 		"Groups":   pq.Array(groups),
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-	}); err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
+	}
+
+	err := s.ListQuery(&res, search.ListRequest,
+		`domain_id = :DomainId
+				and exists(select 1
+					  from cc_outbound_resource_group_acl a
+					  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.OutboundResourceGroup{}, f)
+
+	if err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceGroupStore.GetAllPage", "store.sql_out_resource_group.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return res, nil

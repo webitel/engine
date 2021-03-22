@@ -39,6 +39,24 @@ type Calendar struct {
 
 type SearchCalendar struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (Calendar) DefaultOrder() string {
+	return "id"
+}
+
+func (a Calendar) AllowFields() []string {
+	return []string{"id", "domain_id", "name", "description", "start_at", "end_at", "timezone", "created_at", "created_by", "updated_at", "updated_by",
+		"accepts", "excepts"}
+}
+
+func (a Calendar) DefaultFields() []string {
+	return []string{"id", "name", "description"}
+}
+
+func (a Calendar) EntityName() string {
+	return "calendar_view"
 }
 
 // Description of the Timezone

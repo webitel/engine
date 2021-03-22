@@ -52,14 +52,16 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 	var endList bool
 	req := &model.SearchCommunicationType{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetCommunicationTypePage(session.Domain(in.DomainId), req)
+	list, endList, err = api.app.GetCommunicationTypePage(session.Domain(0), req)
 	if err != nil {
 		return nil, err
 	}

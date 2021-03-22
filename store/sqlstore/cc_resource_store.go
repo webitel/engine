@@ -78,25 +78,20 @@ func (s SqlOutboundResourceStore) CheckAccess(domainId, id int64, groups []int, 
 
 func (s SqlOutboundResourceStore) GetAllPage(domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError) {
 	var resources []*model.OutboundCallResource
-	if _, err := s.GetReplica().Select(&resources, `
-			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
-				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-					 cc_get_lookup(gw.id, gw.name) as gateway
-			from cc_outbound_resource s
-				left join directory.wbt_user c on c.id = s.created_by
-				left join directory.wbt_user u on u.id = s.updated_by
-				left join directory.sip_gateway gw on gw.id = s.gateway_id
-		where s.domain_id = :DomainId and ( (:Q::varchar isnull or (s.name ilike :Q::varchar ) )) 
-		order by s.id
-		limit :Limit
-		offset :Offset
-		`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
-	}); err != nil {
+	}
+
+	err := s.ListQuery(&resources, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar))`,
+		model.OutboundCallResource{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -106,31 +101,25 @@ func (s SqlOutboundResourceStore) GetAllPage(domainId int64, search *model.Searc
 
 func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError) {
 	var resources []*model.OutboundCallResource
-	if _, err := s.GetReplica().Select(&resources, `
-			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
-				  s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-				  cc_get_lookup(gw.id, gw.name) as gateway
-			from cc_outbound_resource s
-				left join directory.wbt_user c on c.id = s.created_by
-				left join directory.wbt_user u on u.id = s.updated_by
-				left join directory.sip_gateway gw on gw.id = s.gateway_id
-		where s.domain_id = :DomainId  and (
-			exists(select 1
-			  from cc_outbound_resource_acl a
-			  where a.dc = s.domain_id and a.object = s.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-		  ) and ( (:Q::varchar isnull or (s.name ilike :Q::varchar ) )) 
-		order by s.id
-		limit :Limit
-		offset :Offset
-		`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
 		"Groups":   pq.Array(groups),
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-	}); err != nil {
+	}
+
+	err := s.ListQuery(&resources, search.ListRequest,
+		`domain_id = :DomainId
+				and exists(select 1
+				  from cc_outbound_resource_acl a
+				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar ))`,
+		model.OutboundCallResource{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {

@@ -27,7 +27,7 @@ func (s SqlRoutingOutboundCallStore) Create(routing *model.RoutingOutboundCall) 
 	returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id,c.name) as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as scheme,
+       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as schema,
 	   tmp.pattern, disabled
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
@@ -63,24 +63,28 @@ from tmp
 func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, *model.AppError) {
 	var routing []*model.RoutingOutboundCall
 
-	if _, err := s.GetReplica().Select(&routing,
-		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name)::jsonb as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.pattern, disabled, cc_get_lookup(arst.id, arst.name) as scheme,
-       row_number() over (order by tmp.pos desc) as position
-from flow.acr_routing_outbound_call tmp
-	inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id
-    left join directory.wbt_user c on c.id = tmp.created_by
-    left join directory.wbt_user u on u.id = tmp.updated_by
-where tmp.domain_id = :DomainId and ( (:Q::varchar isnull or tmp.name ilike :Q::varchar) or (:Q::varchar isnull or tmp.description ilike :Q::varchar))
-order by tmp.pos desc
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlRoutingOutboundCallStore.GetAllPage", "store.sql_routing_out_call.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	f := map[string]interface{}{
+		"DomainId":    domainId,
+		"Q":           search.GetQ(),
+		"Ids":         pq.Array(search.Ids),
+		"Name":        search.Name,
+		"Description": search.Description,
+		"SchemaIds":   pq.Array(search.SchemaIds),
+		"Pattern":     search.Pattern,
+	}
+
+	err := s.ListQueryFromSchema(&routing, "flow", search.ListRequest,
+		`domain_id = :DomainId
+				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
+				and (:Ids::int4[] isnull or id = any(:Ids))
+				and (:SchemaIds::int4[] isnull or schema_id = any(:SchemaIds))
+				and (:Name::text isnull or name = :Name)
+				and (:Description::text isnull or description = :Description)
+				and (:Pattern::text isnull or pattern = :Pattern)
+			`,
+		model.RoutingOutboundCall{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlRoutingOutboundCallStore.GetAllPage", "store.sql_routing_out_call.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
 	} else {
 		return routing, nil
 	}
@@ -91,7 +95,7 @@ func (s SqlRoutingOutboundCallStore) Get(domainId, id int64) (*model.RoutingOutb
 
 	if err := s.GetReplica().SelectOne(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as scheme, 
+       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as schema, 
 		tmp.pattern, disabled
 from flow.acr_routing_outbound_call tmp
     left join directory.wbt_user c on c.id = tmp.created_by
@@ -123,7 +127,7 @@ func (s SqlRoutingOutboundCallStore) Update(routing *model.RoutingOutboundCall) 
     returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as scheme, 
+       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as schema, 
 		tmp.pattern, disabled
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by

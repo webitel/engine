@@ -4,7 +4,7 @@ type RoutingSchema struct {
 	DomainRecord
 	Name        string `json:"name" db:"name"`
 	Type        int8   `json:"type" db:"type"`
-	Schema      []byte `json:"schema" db:"scheme"`
+	Schema      []byte `json:"schema" db:"schema"`
 	Payload     []byte `json:"payload" db:"payload"`
 	Description string `json:"description" db:"description"`
 	Debug       bool   `json:"debug" db:"debug"`
@@ -12,6 +12,25 @@ type RoutingSchema struct {
 
 type SearchRoutingSchema struct {
 	ListRequest
+	Ids  []uint32
+	Name *string
+}
+
+func (RoutingSchema) DefaultOrder() string {
+	return "id"
+}
+
+func (a RoutingSchema) AllowFields() []string {
+	return []string{"id", "domain_id", "name", "created_at", "created_by", "updated_at", "updated_by",
+		"debug", "schema", "payload"}
+}
+
+func (a RoutingSchema) DefaultFields() []string {
+	return []string{"id", "name"}
+}
+
+func (a RoutingSchema) EntityName() string {
+	return "acr_routing_scheme_view"
 }
 
 type RoutingSchemaPath struct {
@@ -55,20 +74,6 @@ func (s *RoutingSchema) Patch(in *RoutingSchemaPath) {
 	}
 }
 
-//FIXME delete type
-type RoutingInboundCall struct {
-	DomainRecord
-	Name        string      `json:"name" db:"name"`
-	Description string      `json:"description" db:"description"`
-	StartSchema Lookup      `json:"start_schema" db:"start_scheme"`
-	StopSchema  *Lookup     `json:"stop_schema" db:"stop_scheme"`
-	Numbers     StringArray `json:"numbers" db:"numbers"`
-	Host        string      `json:"host" db:"host"`
-	Timezone    Lookup      `json:"timezone" db:"timezone"`
-	Debug       bool        `json:"debug" db:"debug"`
-	Disabled    bool        `json:"disabled" db:"disabled"`
-}
-
 type RoutingVariable struct {
 	Id       int64  `json:"id" db:"id"`
 	DomainId int64  `json:"domain_id" db:"domain_id"`
@@ -81,30 +86,11 @@ func (r *RoutingVariable) IsValid() *AppError {
 	return nil
 }
 
-func (r *RoutingInboundCall) GetStopSchemaId() *int {
-	if r.StopSchema == nil {
-		return nil
-	}
-	return &r.StopSchema.Id
-}
-
-func (r *RoutingInboundCall) GetStartSchemaId() *int {
-	if r.StartSchema.Id == 0 {
-		return nil
-	}
-	return &r.StartSchema.Id
-}
-
-func (s *RoutingInboundCall) IsValid() *AppError {
-	//FIXME
-	return nil
-}
-
 type RoutingOutboundCall struct {
 	DomainRecord
 	Name        string `json:"name" db:"name"`
 	Description string `json:"description" db:"description"`
-	Schema      Lookup `json:"schema" db:"scheme"`
+	Schema      Lookup `json:"schema" db:"schema"`
 	Position    int    `json:"position" db:"position"`
 	Pattern     string `json:"pattern" db:"pattern"`
 	Disabled    bool   `json:"disabled" db:"disabled"`
@@ -112,6 +98,29 @@ type RoutingOutboundCall struct {
 
 type SearchRoutingOutboundCall struct {
 	ListRequest
+	Ids         []uint32
+	Name        *string
+	SchemaIds   []uint32
+	Pattern     *string
+	Description *string
+}
+
+func (RoutingOutboundCall) DefaultOrder() string {
+	return "-position"
+}
+
+func (a RoutingOutboundCall) AllowFields() []string {
+	return []string{"id", "domain_id", "name", "description", "created_at", "created_by", "updated_at", "updated_by",
+		"pattern", "disabled", "schema", "position"}
+}
+
+func (a RoutingOutboundCall) DefaultFields() []string {
+	return []string{"id", "name", "description",
+		"pattern", "disabled", "schema", "position"}
+}
+
+func (a RoutingOutboundCall) EntityName() string {
+	return "acr_routing_outbound_call_view"
 }
 
 type RoutingOutboundCallPatch struct {

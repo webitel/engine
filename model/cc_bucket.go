@@ -8,6 +8,7 @@ type Bucket struct {
 
 type SearchBucket struct {
 	ListRequest
+	Ids []uint32
 }
 
 type QueueBucket struct {
@@ -19,6 +20,22 @@ type QueueBucket struct {
 
 type SearchQueueBucket struct {
 	ListRequest
+}
+
+func (Bucket) DefaultOrder() string {
+	return "id"
+}
+
+func (a Bucket) AllowFields() []string {
+	return []string{"id", "domain_id", "name", "description"}
+}
+
+func (a Bucket) DefaultFields() []string {
+	return []string{"id", "name", "description"}
+}
+
+func (a Bucket) EntityName() string {
+	return "cc_bucket_view"
 }
 
 func (b *Bucket) IsValid() *AppError {

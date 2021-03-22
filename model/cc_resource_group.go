@@ -13,6 +13,24 @@ type OutboundResourceGroup struct {
 
 type SearchOutboundResourceGroup struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (OutboundResourceGroup) DefaultOrder() string {
+	return "id"
+}
+
+func (a OutboundResourceGroup) AllowFields() []string {
+	return []string{"id", "domain_id", "name", "description", "communication", "time", "communication_id",
+		"created_at", "created_by", "updated_at", "updated_by"}
+}
+
+func (a OutboundResourceGroup) DefaultFields() []string {
+	return []string{"id", "name", "description", "communication"}
+}
+
+func (a OutboundResourceGroup) EntityName() string {
+	return "cc_outbound_resource_group_view"
 }
 
 type OutboundResourceGroupTime struct {

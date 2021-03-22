@@ -124,3 +124,11 @@ func GetProtoLookup(src *model.Lookup) *engine.Lookup {
 		Name: src.Name,
 	}
 }
+
+func GetStringPointer(src string) *string {
+	if src == "" {
+		return nil
+	}
+
+	return &src
+}

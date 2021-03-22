@@ -76,30 +76,19 @@ func (s SqlListStore) CheckAccess(domainId, id int64, groups []int, access auth_
 func (s SqlListStore) GetAllPage(domainId int64, search *model.SearchList) ([]*model.List, *model.AppError) {
 	var list []*model.List
 
-	if _, err := s.GetReplica().Select(&list,
-		`select
-       i.id,
-       i.name,
-       i.description,
-       i.domain_id,
-       i.created_at,
-       cc_get_lookup(uc.id, uc.name) as created_by,
-       i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by,
-       coalesce(cls.count, 0) count
-from cc_list i
-    left join directory.wbt_user uc on uc.id = i.created_by
-    left join directory.wbt_user u on u.id = i.updated_by
-    left join cc_list_statistics cls on i.id = cls.list_id
-where i.domain_id = :DomainId and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.name ilike :Q::varchar ) )) 
-order by i.id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&list, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.List{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlListStore.GetAllPage", "store.sql_list.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return list, nil
@@ -109,37 +98,25 @@ offset :Offset`, map[string]interface{}{
 func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchList) ([]*model.List, *model.AppError) {
 	var list []*model.List
 
-	if _, err := s.GetReplica().Select(&list,
-		`select
-       i.id,
-       i.name,
-       i.description,
-       i.domain_id,
-       i.created_at,
-       cc_get_lookup(uc.id, uc.name) as created_by,
-       i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by,
-       coalesce(cls.count, 0) count
-from cc_list i
-    left join directory.wbt_user uc on uc.id = i.created_by
-    left join directory.wbt_user u on u.id = i.updated_by
-    left join cc_list_statistics cls on i.id = cls.list_id
-where i.domain_id = :DomainId
-  and (
-    exists(select 1
-      from cc_list_acl a
-      where a.dc = i.domain_id and a.object = i.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
-  ) and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.name ilike :Q::varchar ) )) 
-order by i.id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"Groups":   pq.Array(groups),
-			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+	}
+
+	err := s.ListQuery(&list, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
+			    and exists(select 1
+				  from cc_list_acl a
+ 				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access
+				)`,
+		model.List{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlListStore.GetAllPage", "store.sql_list.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return list, nil

@@ -50,14 +50,16 @@ func (api *skill) SearchSkill(ctx context.Context, in *engine.SearchSkillRequest
 	var endList bool
 	req := &model.SearchSkill{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetSkillsPage(session.Domain(in.DomainId), req)
+	list, endList, err = api.app.GetSkillsPage(session.Domain(0), req)
 	if err != nil {
 		return nil, err
 	}

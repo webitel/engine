@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -38,18 +39,19 @@ func (s SqlCommunicationTypeStore) Create(comm *model.CommunicationType) (*model
 func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, *model.AppError) {
 	var communications []*model.CommunicationType
 
-	if _, err := s.GetReplica().Select(&communications,
-		`select id, name, code, description, type
-from cc_communication c
-where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.description ilike :Q::varchar or c.name ilike :Q::varchar or c.code ilike :Q::varchar ) )) 
-order by id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&communications, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
+		model.CommunicationType{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlCommunicationTypeStore.GetAllPage", "store.sql_communication_type.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return communications, nil

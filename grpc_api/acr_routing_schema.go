@@ -79,14 +79,17 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 
 	req := &model.SearchRoutingSchema{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids:  in.Id,
+		Name: GetStringPointer(in.Name),
 	}
 
-	list, endList, err = api.app.GetRoutingSchemaPage(session.Domain(in.DomainId), req)
+	list, endList, err = api.app.GetRoutingSchemaPage(session.Domain(0), req)
 
 	if err != nil {
 		return nil, err

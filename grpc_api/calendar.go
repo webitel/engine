@@ -84,11 +84,13 @@ func (api *calendar) SearchCalendar(ctx context.Context, in *engine.SearchCalend
 	var endList bool
 	req := &model.SearchCalendar{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
 	list, endList, err = api.ctrl.SearchCalendar(session, req)
