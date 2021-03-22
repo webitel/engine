@@ -20,6 +20,23 @@ type QueueBucket struct {
 
 type SearchQueueBucket struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (QueueBucket) DefaultOrder() string {
+	return "bucket_name"
+}
+
+func (a QueueBucket) AllowFields() []string {
+	return []string{"id", "ratio", "bucket", "queue_id", "bucket_id", "domain_id", "bucket_name"}
+}
+
+func (a QueueBucket) DefaultFields() []string {
+	return []string{"id", "ratio", "bucket"}
+}
+
+func (a QueueBucket) EntityName() string {
+	return "cc_bucket_in_queue_view"
 }
 
 func (Bucket) DefaultOrder() string {

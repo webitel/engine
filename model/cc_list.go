@@ -42,6 +42,23 @@ type ListCommunication struct {
 
 type SearchListCommunication struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (ListCommunication) DefaultOrder() string {
+	return "number"
+}
+
+func (a ListCommunication) AllowFields() []string {
+	return []string{"id", "number", "description", "list_id", "domain_id"}
+}
+
+func (a ListCommunication) DefaultFields() []string {
+	return []string{"id", "number"}
+}
+
+func (a ListCommunication) EntityName() string {
+	return "cc_list_communications_view"
 }
 
 func (l *ListCommunication) IsValid() *AppError {

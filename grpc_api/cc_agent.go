@@ -381,7 +381,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -392,13 +392,14 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	var endList bool
 	req := &model.SearchAgentInQueue{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
 	}
-	list, endList, err = api.app.GetAgentInQueuePage(session.Domain(in.GetDomainId()), in.GetId(), req)
+	list, endList, err = api.app.GetAgentInQueuePage(session.Domain(0), in.GetId(), req)
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,23 @@ type QueueResourceGroup struct {
 
 type SearchQueueResourceGroup struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (QueueResourceGroup) DefaultOrder() string {
+	return "resource_group_name"
+}
+
+func (a QueueResourceGroup) AllowFields() []string {
+	return []string{"id", "resource_group", "queue_id", "resource_group_name", "domain_id"}
+}
+
+func (a QueueResourceGroup) DefaultFields() []string {
+	return []string{"id", "resource_group"}
+}
+
+func (a QueueResourceGroup) EntityName() string {
+	return "cc_queue_resource_view"
 }
 
 func (q *QueueResourceGroup) IsValid() *AppError {

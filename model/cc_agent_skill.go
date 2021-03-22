@@ -3,10 +3,10 @@ package model
 type AgentSkill struct {
 	DomainRecord
 	//Id       int64  `json:"id" db:"id"`
-	Agent    Lookup `json:"agent" json:"agent"`
-	Skill    Lookup `json:"skill" db:"skill"`
-	Capacity int    `json:"capacity" db:"capacity"`
-	Enabled  bool   `json:"enabled" db:"enabled"`
+	Agent    *Lookup `json:"agent" json:"agent"`
+	Skill    *Lookup `json:"skill" db:"skill"`
+	Capacity int     `json:"capacity" db:"capacity"`
+	Enabled  bool    `json:"enabled" db:"enabled"`
 }
 
 type AgentSkillPatch struct {
@@ -21,6 +21,25 @@ type AgentSkillPatch struct {
 
 type SearchAgentSkill struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (AgentSkill) DefaultOrder() string {
+	return "skill_name"
+}
+
+func (a AgentSkill) AllowFields() []string {
+	return []string{"id", "skill", "capacity", "enabled",
+		"created_at", "created_by", "updated_at", "updated_by",
+		"agent", "domain_id", "skill_id", "skill_name", "agent_id", "agent_name"}
+}
+
+func (a AgentSkill) DefaultFields() []string {
+	return []string{"id", "skill", "capacity", "enabled"}
+}
+
+func (a AgentSkill) EntityName() string {
+	return "cc_skill_in_agent_view"
 }
 
 func (as *AgentSkill) Patch(patch *AgentSkillPatch) {
@@ -28,11 +47,11 @@ func (as *AgentSkill) Patch(patch *AgentSkillPatch) {
 	as.UpdatedAt = patch.UpdatedAt
 
 	if patch.Agent != nil {
-		as.Agent = *patch.Agent
+		as.Agent = patch.Agent
 	}
 
 	if patch.Skill != nil {
-		as.Skill = *patch.Skill
+		as.Skill = patch.Skill
 	}
 
 	if patch.Capacity != nil {

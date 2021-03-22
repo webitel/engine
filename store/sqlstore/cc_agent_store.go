@@ -394,38 +394,17 @@ func (s SqlAgentStore) SetStatus(domainId, agentId int64, status string, payload
 func (s SqlAgentStore) InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError) {
 	var res []*model.AgentInQueue
 
-	_, err := s.GetReplica().Select(&res, `select cc_get_lookup(q.id, q.name) as                           queue,
-       q.priority,
-       q.type,
-       q.strategy,
-       q.enabled,
-       coalesce(sum(cqs.member_count), 0)                                 count_members,
-       coalesce(sum(cqs.member_waiting), 0)                               waiting_members,
-       (select count(*) from cc_member_attempt a where a.queue_id = q.id) active_members
-from cc_agent a
-         inner join cc_queue q on q.team_id = a.team_id
-         left join cc_queue_statistics cqs on q.id = cqs.queue_id
-where a.id = :AgentId
-  and a.domain_id = :DomainId
-  and ((:Q::varchar isnull or (q.name ilike :Q::varchar)))
-  and exists(select qs.queue_id
-             from cc_queue_skill qs
-                      inner join cc_skill_in_agent csia on csia.skill_id = qs.skill_id
-             where qs.enabled
-               and csia.enabled
-               and csia.agent_id = a.id
-               and qs.queue_id = q.id
-               and csia.capacity between qs.min_capacity and qs.max_capacity)
-group by q.id, q.priority
-order by q.priority desc
-limit :Limit
-offset :Offset`, map[string]interface{}{
-		"AgentId":  id,
+	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"AgentId":  id,
 		"Q":        search.GetQ(),
-	})
+	}
+
+	err := s.ListQuery(&res, search.ListRequest,
+		`domain_id = :DomainId
+				and agent_id = :AgentId
+				and (:Q::varchar isnull or (queue_name ilike :Q::varchar ))`,
+		model.AgentInQueue{}, f)
 
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentStore.InQueue", "store.sql_agent.get_queue.app_error", nil,

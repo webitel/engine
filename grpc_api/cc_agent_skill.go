@@ -48,10 +48,10 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 				Id: int(session.UserId),
 			},
 		},
-		Agent: model.Lookup{
+		Agent: &model.Lookup{
 			Id: int(in.GetAgentId()),
 		},
-		Skill: model.Lookup{
+		Skill: &model.Lookup{
 			Id: int(in.GetSkill().GetId()),
 		},
 		Capacity: int(in.Capacity),
@@ -84,7 +84,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetAgentId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -98,10 +98,12 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
 	}
 
-	list, endList, err = api.app.GetAgentsSkillPage(session.Domain(in.DomainId), in.GetAgentId(), req)
+	list, endList, err = api.app.GetAgentsSkillPage(session.Domain(0), in.GetAgentId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -109,11 +111,8 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.AgentSkillItem{
-			Id: v.Id,
-			Skill: &engine.Lookup{
-				Id:   int64(v.Skill.Id),
-				Name: v.Skill.Name,
-			},
+			Id:       v.Id,
+			Skill:    GetProtoLookup(v.Skill),
 			Capacity: int32(v.Capacity),
 			Enabled:  v.Enabled,
 		})
@@ -188,10 +187,10 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 				Id: int(session.UserId),
 			},
 		},
-		Agent: model.Lookup{
+		Agent: &model.Lookup{
 			Id: int(in.GetAgentId()),
 		},
-		Skill: model.Lookup{
+		Skill: &model.Lookup{
 			Id: int(in.GetSkill().GetId()),
 		},
 		Capacity: int(in.Capacity),
@@ -335,26 +334,14 @@ func (api *agentSkill) SearchLookupAgentNotExistsSkill(ctx context.Context, in *
 
 func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
 	return &engine.AgentSkill{
-		Id:        src.Id,
 		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
+		CreatedBy: GetProtoLookup(&src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
-		Agent: &engine.Lookup{
-			Id:   int64(src.Agent.Id),
-			Name: src.Agent.Name,
-		},
-		Skill: &engine.Lookup{
-			Id:   int64(src.Skill.Id),
-			Name: src.Skill.Name,
-		},
-		Capacity: int32(src.Capacity),
-		Enabled:  src.Enabled,
+		UpdatedBy: GetProtoLookup(&src.UpdatedBy),
+		Id:        src.Id,
+		Agent:     GetProtoLookup(src.Agent),
+		Skill:     GetProtoLookup(src.Skill),
+		Capacity:  int32(src.Capacity),
+		Enabled:   src.Enabled,
 	}
 }

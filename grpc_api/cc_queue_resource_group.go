@@ -72,7 +72,7 @@ func (api *queueResource) SearchQueueResourceGroup(ctx context.Context, in *engi
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -83,14 +83,17 @@ func (api *queueResource) SearchQueueResourceGroup(ctx context.Context, in *engi
 	var endList bool
 	req := &model.SearchQueueResourceGroup{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+
+			Fields: in.Fields,
+			Sort:   in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetQueueResourceGroupPage(session.Domain(in.DomainId), in.GetQueueId(), req)
+	list, endList, err = api.app.GetQueueResourceGroupPage(session.Domain(0), in.GetQueueId(), req)
 	if err != nil {
 		return nil, err
 	}

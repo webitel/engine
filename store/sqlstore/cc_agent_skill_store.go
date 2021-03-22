@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -51,23 +52,21 @@ from tmp
 func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
 	var agentSkill []*model.AgentSkill
 
-	if _, err := s.GetReplica().Select(&agentSkill,
-		`select sa.id, cc_get_lookup(cs.id, cs.name) as skill, cc_get_lookup(ca.id, u.name) as agent, sa.capacity, sa.enabled
-from cc_skill_in_agent sa
-    inner join cc_agent ca on sa.agent_id = ca.id
-    inner join directory.wbt_user u on u.id = ca.user_id
-    inner join cc_skill cs on sa.skill_id = cs.id
-where sa.agent_id = :AgentId and ca.domain_id = :DomainId
-	and ( (:Q::varchar isnull or (cs.description ilike :Q::varchar or cs.name ilike :Q::varchar ) ))
-order by sa.capacity desc
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"AgentId":  agentId,
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"AgentId":  agentId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&agentSkill, search.ListRequest,
+		`domain_id = :DomainId
+				and agent_id = :AgentId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (skill_name ilike :Q::varchar ))`,
+		model.AgentSkill{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlAgentSkillStore.GetAllPage", "store.sql_skill_in_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return agentSkill, nil

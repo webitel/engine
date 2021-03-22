@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 )
@@ -57,21 +58,21 @@ func (s SqlBucketInQueueStore) Get(domainId, queueId, id int64) (*model.QueueBuc
 func (s SqlBucketInQueueStore) GetAllPage(domainId, queueId int64, search *model.SearchQueueBucket) ([]*model.QueueBucket, *model.AppError) {
 	var out []*model.QueueBucket
 
-	if _, err := s.GetReplica().Select(&out,
-		`select q.id, q.ratio, cc_get_lookup(cb.id, cb.name::text) as bucket
-				from cc_bucket_in_queue q
-					inner join cc_bucket cb on q.bucket_id = cb.id
-				where q.queue_id = :QueueId and cb.domain_id = :DomainId
-					and ( (:Q::varchar isnull or (cb.name ilike :Q::varchar ) ))
-			order by q.id
-			limit :Limit
-			offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-			"QueueId":  queueId,
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"QueueId":  queueId,
+		"Q":        search.GetQ(),
+		"Ids":      pq.Array(search.Ids),
+	}
+
+	err := s.ListQuery(&out, search.ListRequest,
+		`domain_id = :DomainId
+				and queue_id = :QueueId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (bucket_name ilike :Q::varchar ))`,
+		model.QueueBucket{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlBucketInQueueStore.GetAllPage", "store.sql_queue_bucket.get_all.app_error",
 			nil, err.Error(), extractCodeFromErr(err))
 	} else {

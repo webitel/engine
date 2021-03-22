@@ -258,7 +258,7 @@ func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchL
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(0), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -269,14 +269,16 @@ func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchL
 	var endList bool
 	req := &model.SearchListCommunication{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	communication, endList, err = api.app.GetListCommunicationPage(session.Domain(in.DomainId), in.GetListId(), req)
+	communication, endList, err = api.app.GetListCommunicationPage(session.Domain(0), in.GetListId(), req)
 
 	if err != nil {
 		return nil, err

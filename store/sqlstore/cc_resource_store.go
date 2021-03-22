@@ -227,22 +227,22 @@ returning *`, map[string]interface{}{
 
 func (s SqlOutboundResourceStore) GetDisplayAllPage(domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, *model.AppError) {
 	var list []*model.ResourceDisplay
-	if _, err := s.GetReplica().Select(&list, `
-		select d.id, d.display, d.resource_id
-		from cc_outbound_resource_display d
-		where d.resource_id = :ResourceId and exists (select 1
-				from cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)
-   			  and ( (:Q::varchar isnull or (d.display ilike :Q::varchar ) )) 
-		order by d.id
-		limit :Limit
-		offset :Offset
-		`, map[string]interface{}{
-		"ResourceId": resourceId,
+
+	f := map[string]interface{}{
 		"DomainId":   domainId,
-		"Limit":      search.GetLimit(),
-		"Offset":     search.GetOffset(),
+		"ResourceId": resourceId,
+		"Ids":        pq.Array(search.Ids),
 		"Q":          search.GetQ(),
-	}); err != nil {
+	}
+
+	err := s.ListQuery(&list, search.ListRequest,
+		`domain_id = :DomainId
+				and resource_id = :ResourceId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (display ilike :Q::varchar ))`,
+		model.ResourceDisplay{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceStore.GetDisplayAllPage", "store.sql_out_resource.get_display_all.app_error", nil,
 			fmt.Sprintf("ResourceId=%v, %s", resourceId, err.Error()), extractCodeFromErr(err))
 	} else {

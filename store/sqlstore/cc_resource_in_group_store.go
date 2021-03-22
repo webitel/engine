@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -41,23 +42,22 @@ from s
 
 func (s SqlOutboundResourceInGroupStore) GetAllPage(domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, *model.AppError) {
 	var groups []*model.OutboundResourceInGroup
-	if _, err := s.GetReplica().Select(&groups, `
-			select s.id, s.group_id, cc_get_lookup(cor.id, cor.name) as resource
-from cc_outbound_resource_in_group s
-    inner join cc_outbound_resource cor on s.resource_id = cor.id
-    inner join cc_outbound_resource_group corg on s.group_id = corg.id
-where s.group_id = :GroupId and cor.domain_id = :DomainId and corg.domain_id = :DomainId
-		and ( (:Q::varchar isnull or (cor.name ilike :Q::varchar ) ))
-		order by s.id
-		limit :Limit
-		offset :Offset
-		`, map[string]interface{}{
+
+	f := map[string]interface{}{
 		"DomainId": domainId,
 		"GroupId":  groupId,
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
-	}); err != nil {
+	}
+
+	err := s.ListQuery(&groups, search.ListRequest,
+		`domain_id = :DomainId
+				and group_id = :GroupId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (resource_name ilike :Q::varchar ))`,
+		model.OutboundResourceInGroup{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceInGroupStore.GetAllPage", "store.sql_out_resource_in_group.get_all.app_error", nil,
 			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {

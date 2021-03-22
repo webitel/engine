@@ -56,6 +56,23 @@ type OutboundResourceInGroup struct {
 
 type SearchOutboundResourceInGroup struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (OutboundResourceInGroup) DefaultOrder() string {
+	return "resource_name"
+}
+
+func (a OutboundResourceInGroup) AllowFields() []string {
+	return []string{"id", "resource", "group_id", "resource_id", "resource_name", "domain_id"}
+}
+
+func (a OutboundResourceInGroup) DefaultFields() []string {
+	return []string{"id", "resource"}
+}
+
+func (a OutboundResourceInGroup) EntityName() string {
+	return "cc_outbound_resource_in_group_view"
 }
 
 func (r *OutboundResourceInGroup) IsValid() *AppError {

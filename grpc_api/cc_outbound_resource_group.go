@@ -268,7 +268,7 @@ func (api *outboundResourceGroup) SearchOutboundResourceInGroup(ctx context.Cont
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(0), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -279,13 +279,15 @@ func (api *outboundResourceGroup) SearchOutboundResourceInGroup(ctx context.Cont
 	var endList bool
 	req := &model.SearchOutboundResourceInGroup{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
-	list, endList, err = api.app.GetOutboundResourceInGroupPage(session.Domain(in.DomainId), in.GetGroupId(), req)
+	list, endList, err = api.app.GetOutboundResourceInGroupPage(session.Domain(0), in.GetGroupId(), req)
 
 	if err != nil {
 		return nil, err

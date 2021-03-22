@@ -340,7 +340,7 @@ func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, 
 
 	if permission.Rbac {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(0), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -351,14 +351,16 @@ func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, 
 	var endList bool
 	req := &model.SearchResourceDisplay{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
 		},
+		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetOutboundResourceDisplayPage(session.Domain(in.DomainId), in.GetResourceId(), req)
+	list, endList, err = api.app.GetOutboundResourceDisplayPage(session.Domain(0), in.GetResourceId(), req)
 
 	items := make([]*engine.ResourceDisplay, 0, len(list))
 	for _, v := range list {

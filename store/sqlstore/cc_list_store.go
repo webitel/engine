@@ -217,20 +217,21 @@ returning *`,
 func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, *model.AppError) {
 	var communication []*model.ListCommunication
 
-	if _, err := s.GetReplica().Select(&communication,
-		`select i.id, i.number, i.description, i.list_id
-from cc_list_communications i
-where i.list_id = :ListId  and exists(select 1 from cc_list l where l.id = i.list_id and l.domain_id = :DomainId)
-	and ( (:Q::varchar isnull or (i.description ilike :Q::varchar or i.number ilike :Q::varchar ) )) 
-order by i.id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"ListId":   listId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"Q":        search.GetQ(),
-		}); err != nil {
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"ListId":   listId,
+		"Ids":      pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(&communication, search.ListRequest,
+		`domain_id = :DomainId
+				and list_id = :ListId
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Q::varchar isnull or (number ilike :Q::varchar ))`,
+		model.ListCommunication{}, f)
+
+	if err != nil {
 		return nil, model.NewAppError("SqlListStore.GetAllPageCommunication", "store.sql_list.get_all_communication.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		return communication, nil

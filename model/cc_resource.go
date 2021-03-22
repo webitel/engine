@@ -48,6 +48,23 @@ type ResourceDisplay struct {
 
 type SearchResourceDisplay struct {
 	ListRequest
+	Ids []uint32
+}
+
+func (ResourceDisplay) DefaultOrder() string {
+	return "display"
+}
+
+func (a ResourceDisplay) AllowFields() []string {
+	return []string{"id", "display", "resource_id", "domain_id"}
+}
+
+func (a ResourceDisplay) DefaultFields() []string {
+	return []string{"id", "display"}
+}
+
+func (a ResourceDisplay) EntityName() string {
+	return "cc_outbound_resource_display_view"
 }
 
 type OutboundCallResourcePath struct {
