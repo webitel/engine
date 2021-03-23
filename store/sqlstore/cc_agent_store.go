@@ -460,7 +460,7 @@ func (s SqlAgentStore) HistoryState(domainId int64, search *model.SearchAgentSta
 	var res []*model.AgentState
 
 	//fixme
-	order := GetOrderBy(search.Sort)
+	order := GetOrderBy("cc_agent_state_history", search.Sort)
 	if order == "" {
 		order = "order by joined_at desc"
 	}

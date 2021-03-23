@@ -42,22 +42,23 @@ func QuoteLiteral(name string) string {
 	return pq.QuoteLiteral(name)
 }
 
-func GetOrderBy(s string) string {
+func GetOrderBy(t, s string) string {
 	if s != "" {
 		sort := ""
 		field := ""
 		if s[0] == '+' {
 			sort = "asc"
-			field = pq.QuoteIdentifier(s[1:])
+			field = s[1:]
 		} else if s[0] == '-' {
 			sort = "desc"
-			field = pq.QuoteIdentifier(s[1:])
+			field = s[1:]
 		} else {
-			field = pq.QuoteIdentifier(s)
+			field = s
 		}
 
-		return fmt.Sprintf(`order by case when pg_typeof(%s) = 'jsonb'::regtype then (%s::text)::json->>'name' end %s,
-         case when pg_typeof(%s) != 'jsonb'::regtype then %s end %s`, field, field, sort, field, field, sort)
+		return fmt.Sprintf(`order by case when cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s,
+         case when not cc_is_lookup(%s, %s) then %s end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field),
+			sort, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort)
 
 	}
 
@@ -89,7 +90,7 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(sort))
+	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(e.EntityName(), sort))
 
 	return query
 }
