@@ -408,14 +408,14 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 
 	for _, v := range list {
 		items = append(items, &engine.AgentInQueue{
-			Queue:         GetProtoLookup(&v.Queue),
-			Priority:      int32(v.Priority),
-			Type:          int32(v.Type),
-			Strategy:      v.Strategy,
-			Enabled:       v.Enabled,
-			CountMember:   int32(v.CountMembers),
-			WaitingMember: int32(v.WaitingMembers),
-			ActiveMember:  int32(v.ActiveMembers),
+			Queue:          GetProtoLookup(&v.Queue),
+			Priority:       int32(v.Priority),
+			Type:           int32(v.Type),
+			Strategy:       v.Strategy,
+			Enabled:        v.Enabled,
+			CountMembers:   int32(v.CountMembers),
+			WaitingMembers: int32(v.WaitingMembers),
+			ActiveMembers:  int32(v.ActiveMembers),
 		})
 	}
 
