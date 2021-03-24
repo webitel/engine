@@ -22,7 +22,7 @@ func (api *bucket) CreateBucket(ctx context.Context, in *engine.CreateBucketRequ
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanCreate() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
@@ -60,7 +60,7 @@ func (api *bucket) SearchBucket(ctx context.Context, in *engine.SearchBucketRequ
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
@@ -78,11 +78,7 @@ func (api *bucket) SearchBucket(ctx context.Context, in *engine.SearchBucketRequ
 		Ids: in.Id,
 	}
 
-	if permission.Rbac {
-		list, endList, err = api.app.GetBucketsPageByGroups(session.Domain(0), session.GetAclRoles(), req)
-	} else {
-		list, endList, err = api.app.GetBucketsPage(session.Domain(0), req)
-	}
+	list, endList, err = api.app.GetBucketsPage(session.Domain(0), req)
 
 	if err != nil {
 		return nil, err
@@ -105,18 +101,9 @@ func (api *bucket) ReadBucket(ctx context.Context, in *engine.ReadBucketRequest)
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
-		}
 	}
 
 	bucket, err = api.app.GetBucket(in.Id, session.Domain(in.GetDomainId()))
@@ -133,22 +120,13 @@ func (api *bucket) UpdateBucket(ctx context.Context, in *engine.UpdateBucketRequ
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-		}
 	}
 
 	var bucket *model.Bucket
@@ -179,18 +157,9 @@ func (api *bucket) DeleteBucket(ctx context.Context, in *engine.DeleteBucketRequ
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_BUCKET)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanDelete() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
-	}
-
-	if permission.Rbac {
-		var perm bool
-		if perm, err = api.app.BucketCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
-		}
 	}
 
 	var bucket *model.Bucket

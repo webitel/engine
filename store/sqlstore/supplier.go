@@ -45,7 +45,7 @@ type SqlSupplierOldStores struct {
 	queueResource           store.QueueResourceStore
 	queueSkill              store.QueueSkillStore
 	queueHook               store.QueueHookStore
-	bucket                  store.BucketSore
+	bucket                  store.BucketStore
 	bucketInQueue           store.BucketInQueueStore
 	communicationType       store.CommunicationTypeStore
 	list                    store.ListStore
@@ -285,7 +285,7 @@ func (ss *SqlSupplier) QueueHook() store.QueueHookStore {
 	return ss.oldStores.queueHook
 }
 
-func (ss *SqlSupplier) Bucket() store.BucketSore {
+func (ss *SqlSupplier) Bucket() store.BucketStore {
 	return ss.oldStores.bucket
 }
 

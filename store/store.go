@@ -34,7 +34,7 @@ type Store interface {
 	QueueResource() QueueResourceStore
 	QueueSkill() QueueSkillStore
 	QueueHook() QueueHookStore
-	Bucket() BucketSore
+	Bucket() BucketStore
 	BucketInQueue() BucketInQueueStore
 	OutboundResource() OutboundResourceStore
 	OutboundResourceGroup() OutboundResourceGroupStore
@@ -262,11 +262,10 @@ type MemberStore interface {
 	ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError)
 }
 
-type BucketSore interface {
+type BucketStore interface {
 	Create(bucket *model.Bucket) (*model.Bucket, *model.AppError)
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	GetAllPage(domainId int64, search *model.SearchBucket) ([]*model.Bucket, *model.AppError)
-	GetAllPageByGroups(domainId int64, groups []int, search *model.SearchBucket) ([]*model.Bucket, *model.AppError)
 	Get(domainId int64, id int64) (*model.Bucket, *model.AppError)
 	Update(bucket *model.Bucket) (*model.Bucket, *model.AppError)
 	Delete(domainId int64, id int64) *model.AppError

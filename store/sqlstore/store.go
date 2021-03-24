@@ -29,7 +29,7 @@ type SqlStore interface {
 	QueueResource() store.QueueResourceStore
 	QueueSkill() store.QueueSkillStore
 	QueueHook() store.QueueHookStore
-	Bucket() store.BucketSore
+	Bucket() store.BucketStore
 	BucketInQueue() store.BucketInQueueStore
 	CommunicationType() store.CommunicationTypeStore
 	List() store.ListStore

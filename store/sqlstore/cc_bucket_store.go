@@ -13,7 +13,7 @@ type SqlBucketStore struct {
 	SqlStore
 }
 
-func NewSqlBucketStore(sqlStore SqlStore) store.BucketSore {
+func NewSqlBucketStore(sqlStore SqlStore) store.BucketStore {
 	us := &SqlBucketStore{sqlStore}
 	return us
 }
@@ -69,34 +69,6 @@ func (s SqlBucketStore) GetAllPage(domainId int64, search *model.SearchBucket) (
 
 	err := s.ListQuery(&buckets, search.ListRequest,
 		`domain_id = :DomainId
-				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
-		model.Bucket{}, f)
-
-	if err != nil {
-		return nil, model.NewAppError("SqlBucketStore.GetAllPage", "store.sql_bucket.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return buckets, nil
-	}
-}
-
-func (s SqlBucketStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchBucket) ([]*model.Bucket, *model.AppError) {
-	var buckets []*model.Bucket
-
-	f := map[string]interface{}{
-		"DomainId": domainId,
-		"Ids":      pq.Array(search.Ids),
-		"Q":        search.GetQ(),
-		"Groups":   pq.Array(groups),
-		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-	}
-
-	err := s.ListQuery(&buckets, search.ListRequest,
-		`domain_id = :DomainId
-				and exists(select 1
-				  from cc_bucket_acl a
-				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access
-				)
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
 		model.Bucket{}, f)

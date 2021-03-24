@@ -101,7 +101,7 @@ func (s *LayeredStore) QueueHook() QueueHookStore {
 	return s.DatabaseLayer.QueueHook()
 }
 
-func (s *LayeredStore) Bucket() BucketSore {
+func (s *LayeredStore) Bucket() BucketStore {
 	return s.DatabaseLayer.Bucket()
 }
 

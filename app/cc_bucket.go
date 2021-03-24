@@ -26,15 +26,6 @@ func (app *App) GetBucketsPage(domainId int64, search *model.SearchBucket) ([]*m
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetBucketsPageByGroups(domainId int64, groups []int, search *model.SearchBucket) ([]*model.Bucket, bool, *model.AppError) {
-	list, err := a.Store.Bucket().GetAllPageByGroups(domainId, groups, search)
-	if err != nil {
-		return nil, false, err
-	}
-	search.RemoveLastElemIfNeed(&list)
-	return list, search.EndOfList(), nil
-}
-
 func (app *App) UpdateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
 	oldBucket, err := app.GetBucket(bucket.Id, bucket.DomainId)
 

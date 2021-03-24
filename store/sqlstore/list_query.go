@@ -46,7 +46,7 @@ func GetOrderBy(t, s string) string {
 	if s != "" {
 		sort := ""
 		field := ""
-		if s[0] == '+' {
+		if s[0] == '+' || s[0] == ' ' {
 			sort = "asc"
 			field = s[1:]
 		} else if s[0] == '-' {
