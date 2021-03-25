@@ -419,31 +419,30 @@ func (s SqlAgentStore) QueueStatistic(domainId, agentId int64) ([]*model.AgentIn
 	_, err := s.GetReplica().Select(&stats, `select cc_get_lookup(q.id, q.name) queue,
 		   json_agg(json_build_object(
 				'bucket', cc_get_lookup(t.bucket_id, b.name::text),
-				'skill', cc_get_lookup(cqs.skill_id, s.name),
+				'skill', cc_get_lookup(s.id, s.name),
 				'member_waiting', cqs.member_waiting
-		   ) order by t.bucket_id nulls last, cqs.skill_id nulls last ) as statistics
-	from (
-			 select at.team_id, x bucket_id
-			 from cc_agent_in_team at
-					  left join lateral unnest(at.bucket_ids) x on true
-			 where at.agent_id = :AgentId
-	
-			 union all
-	
-			 select at.team_id, x bucket_id
-			 from cc_agent_in_team at
-					  left join lateral unnest(at.bucket_ids) x on true
-					  inner join cc_skill_in_agent csia on at.skill_id = csia.skill_id
-			 where csia.agent_id = :AgentId
-			   and csia.capacity between at.min_capacity and at.max_capacity
-	) t
-		 inner join cc_queue q on q.team_id = t.team_id
-		 inner join cc_queue_statistics cqs on
-			(cqs.queue_id, coalesce(cqs.bucket_id, 0::bigint)) = (q.id, coalesce(t.bucket_id::bigint, 0::bigint))
-		 left join cc_bucket b on b.id = t.bucket_id
-		 left join cc_skill s on s.id = cqs.skill_id
-	where q.enabled and q.domain_id = :DomainId
-	group by q.id`, map[string]interface{}{
+		   ) order by t.bucket_id nulls last, t.skill_id nulls last ) as statistics
+from (
+    select distinct t.queue_id, x::int8 bucket_id, t.skill_id
+    from (
+        select distinct qs.queue_id, qs.bucket_ids, qs.skill_id
+        from cc_skill_in_agent ask
+            inner join cc_queue_skill qs on qs.skill_id = ask.skill_id
+        where ask.agent_id = :AgentId
+            and ask.enabled
+            and qs.enabled
+            and ask.capacity between qs.min_capacity and qs.max_capacity
+    ) t
+     left join lateral unnest(t.bucket_ids) x on true
+) t
+ cross join cc_agent a
+ inner join cc_queue q on q.id = t.queue_id
+ left join cc_queue_statistics cqs on
+    (cqs.queue_id, coalesce(cqs.bucket_id, 0::bigint)) = (q.id, coalesce(t.bucket_id::bigint, 0::bigint))
+ left join cc_bucket b on b.id = t.bucket_id
+ left join cc_skill s on s.id = t.skill_id
+where a.id = :AgentId and a.domain_id = :DomainId and cqs.member_waiting > 0
+group by 1`, map[string]interface{}{
 		"AgentId":  agentId,
 		"DomainId": domainId,
 	})
