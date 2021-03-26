@@ -60,22 +60,38 @@ type SearchQueueReportGeneral struct {
 	Types    []int32
 }
 
+type QueueAgentAgg struct {
+	Online  uint32 `json:"online" db:"online"`
+	Pause   uint32 `json:"pause" db:"pause"`
+	Offline uint32 `json:"offline" db:"offline"`
+	Free    uint32 `json:"free" db:"free"`
+}
+
 type QueueReportGeneral struct {
-	Queue      Lookup  `json:"queue" db:"queue"`
-	Team       *Lookup `json:"team" db:"team"`
-	Online     int32   `json:"online" db:"online"`
-	Pause      int32   `json:"pause" db:"pause"`
-	Bridged    float32 `json:"bridged" db:"bridged"`
-	Waiting    int64   `json:"waiting" db:"waiting"`
-	Processed  int64   `json:"processed" db:"processed"`
-	Count      int64   `json:"count" db:"count"`
-	Abandoned  float32 `json:"abandoned" db:"abandoned"`
-	SumBillSec float32 `json:"sum_bill_sec" db:"sum_bill_sec"`
+	Queue       Lookup        `json:"queue" db:"queue"`
+	Team        *Lookup       `json:"team" db:"team"`
+	AgentStatus QueueAgentAgg `json:"agent_status" db:"agent_status"`
+
+	Missed    uint32 `json:"missed" db:"missed"`
+	Processed uint32 `json:"processed" db:"processed"`
+	Waiting   uint32 `json:"waiting" db:"waiting"`
+
+	Count       uint64 `json:"count" db:"count"`
+	Transferred uint32 `json:"transferred" db:"transferred"`
+	Abandoned   uint32 `json:"abandoned" db:"abandoned"`
+	Attempts    uint32 `json:"attempts" db:"attempts"`
+
+	SumTalkSec float32 `json:"sum_talk_sec" db:"sum_talk_sec"`
 	AvgWrapSec float32 `json:"avg_wrap_sec" db:"avg_wrap_sec"`
 	AvgAwtSec  float32 `json:"avg_awt_sec" db:"avg_awt_sec"`
-	MaxAwtSec  float32 `json:"max_awt_sec" db:"max_awt_sec"`
 	AvgAsaSec  float32 `json:"avg_asa_sec" db:"avg_asa_sec"`
 	AvgAhtSec  float32 `json:"avg_aht_sec" db:"avg_aht_sec"`
+}
+
+type QueueReportGeneralAgg struct {
+	Next  bool                  `json:"next"`
+	Items []*QueueReportGeneral `json:"items" db:"items"`
+	Aggs  QueueAgentAgg         `json:"aggs"`
 }
 
 type QueuePatch struct {

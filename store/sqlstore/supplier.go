@@ -363,6 +363,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
 		*[]model.AgentChannel,
+		*[]*model.QueueReportGeneral,
+		*model.QueueAgentAgg,
 		*model.AgentChannel,
 		*[]*model.CalendarExceptDate:
 		binder := func(holder, target interface{}) error {

@@ -311,9 +311,9 @@ func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
 }
 
 // FIXME RBAC
-func (s SqlQueueStore) QueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, *model.AppError) {
-	var report []*model.QueueReportGeneral
-	_, err := s.GetReplica().Select(&report, `
+func (s SqlQueueStore) QueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError) {
+	var report *model.QueueReportGeneralAgg
+	err := s.GetReplica().SelectOne(&report, `
 with queues  as  (
     select *
     from cc_queue q
@@ -328,7 +328,7 @@ with queues  as  (
 						select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
 					)
 					or a.team_id in (
-						select te.id from cc_team te 
+						select te.id from cc_team te
 						where te.admin_id = (select a2.id from cc_agent a2 where a2.user_id = :SupervisorId)
 					)
 				)
@@ -336,62 +336,85 @@ with queues  as  (
 				and qs.enabled
 				and csia.capacity between qs.min_capacity and qs.max_capacity
 		)
-        and ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
-        and ( :Types::int[] isnull or q.type = any(:Types) )
-        and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
-        and (:Q::varchar isnull or (q.name ilike :Q::varchar ) )
 ),
      queue_ag as (
-        select
-               q.id,
-               count(distinct a.id) filter ( where status = 'online' ) online,
-               count(distinct a.id) filter ( where status = 'pause' ) pause
+        select distinct
+               q.id queue_id,
+               array_agg(distinct a.id) filter ( where status = 'online' ) agent_on_ids,
+               array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
+               array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
+               array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free
         from queues q
             inner join cc_agent a on a.team_id = q.team_id
+            inner join cc_agent_channel ac on ac.agent_id = a.id
             inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
         where q.team_id = a.team_id and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
-        group by 1
-     )
-select cc_get_lookup(q.id, q.name) queue,
-       cc_get_lookup(ct.id, ct.name) team,
-       coalesce(queue_ag.online, 0) online,
-       coalesce(queue_ag.pause, 0) pause,
-       coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
-           else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
-       (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
-       coalesce(ag.count, 0) count,
-       coalesce(ag.bridged, 0) bridged,
-       coalesce(ag.abandoned, 0) abandoned,
-       coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
-       coalesce(ag.avg_wrap_sec, 0) avg_wrap_sec,
-       coalesce(ag.avg_awt_sec, 0) avg_awt_sec,
-       coalesce(ag.max_awt_sec, 0) max_awt_sec,
-       coalesce(ag.avg_asa_sec, 0) avg_asa_sec,
-       coalesce(ag.avg_aht_sec, 0) avg_aht_sec
-from queues q
-    left join queue_ag on queue_ag.id = q.id
-    left join cc_team ct on q.team_id = ct.id
-    left join lateral (
-        select
-               t.queue_id,
-               count(*) as count,
-               count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
-               count(*) filter ( where t.bridged_at isnull  ) * 100.0 / count(*) as abandoned,
-               extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
-               extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
-               extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
-               extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) max_awt_sec,
-               extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )) avg_asa_sec,
-               extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
-        from cc_member_attempt_history t
-        where t.domain_id = :DomainId and t.joined_at between :From::timestamptz and :To::timestamptz
-            and t.queue_id = q.id
-        group by 1
-) ag on true
-order by q.priority desc
-limit :Limit
-offset :Offset
+        group by rollup (q.id)
+     ),
+items as materialized (
+    select cc_get_lookup(q.id, q.name) queue,
+           cc_get_lookup(ct.id, ct.name) team,
+           jsonb_build_object('agent_status',
+               jsonb_build_object('online', coalesce(array_length(queue_ag.agent_on_ids, 1), 0),
+                                  'pause', coalesce(array_length(queue_ag.agent_p_ids, 1), 0),
+                                  'offline', coalesce(array_length(queue_ag.agent_off_ids, 1), 0),
+                                  'free', coalesce(array_length(queue_ag.free, 1), 0)
+               )
+           ) agent_status,
+
+           999 missed,
+           (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
+           coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
+               else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
+           coalesce(ag.count, 0) count,
+           999 transferred,
+		   999 attempts,	
+           coalesce(ag.bridged, 0) bridged,
+           coalesce(ag.abandoned, 0) abandoned,
+
+           coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
+           coalesce(ag.avg_wrap_sec, 0) avg_wrap_sec,
+           coalesce(ag.avg_awt_sec, 0) avg_awt_sec,
+           coalesce(ag.max_awt_sec, 0) max_awt_sec,
+           coalesce(ag.avg_asa_sec, 0) avg_asa_sec,
+           coalesce(ag.avg_aht_sec, 0) avg_aht_sec
+    from queues q
+        left join queue_ag on queue_ag.queue_id = q.id
+        left join cc_team ct on q.team_id = ct.id
+        left join lateral (
+            select
+                   t.queue_id,
+                   count(*) as count,
+                   count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
+                   count(*) filter ( where t.bridged_at isnull  ) * 100.0 / count(*) as abandoned,
+                   extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
+                   extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
+                   extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
+                   extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) max_awt_sec,
+                   extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )) avg_asa_sec,
+                   extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
+            from cc_member_attempt_history t
+            where t.domain_id = :DomainId and t.joined_at between :From::timestamptz and :To::timestamptz
+                and t.queue_id = q.id
+            group by 1
+    ) ag on true
+    where ( :QueueIds::int[] isnull or q.id = any(:QueueIds) )
+        and ( :Types::int[] isnull or q.type = any(:Types) )
+        and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
+        and (:Q::varchar isnull or (q.name ilike :Q::varchar ) )
+    order by q.priority desc
+    limit :Limit
+    offset :Offset
+)
+select
+    (select jsonb_agg(items) from items) as items,
+    (select jsonb_build_object(
+            'online', coalesce(array_length(agent_on_ids, 1), 0),
+            'pause', coalesce(array_length(agent_p_ids, 1), 0),
+            'offline', coalesce(array_length(agent_off_ids, 1), 0),
+            'free', coalesce(array_length(free, 1), 0)
+                            ) from queue_ag where queue_ag.queue_id isnull ) aggs
 `, map[string]interface{}{
 		"DomainId":     domainId,
 		"SupervisorId": supervisorUserId,

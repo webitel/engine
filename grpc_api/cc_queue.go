@@ -347,6 +347,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 		return nil, model.NewAppError("GRPC.SearchQueueReportGeneral", "grpc.queue.report.general", nil, "filter joined_at is required", http.StatusBadRequest)
 	}
 
+	var report *model.QueueReportGeneralAgg
 	var list []*model.QueueReportGeneral
 	var endList bool
 	req := &model.SearchQueueReportGeneral{
@@ -367,38 +368,49 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 		Types:    in.GetType(),
 	}
 
-	list, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.UserId, req)
+	report, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.UserId, req)
 	if err != nil {
 		return nil, err
 	}
 
 	items := make([]*engine.QueueReportGeneral, 0, len(list))
-	for _, v := range list {
+	for _, v := range report.Items {
 		items = append(items, toEngineQueueReportGeneral(v))
 	}
 	return &engine.ListReportGeneral{
 		Next:  !endList,
 		Items: items,
+		Aggs: &engine.QueueReportGeneralAgentStatus{
+			Online:  report.Aggs.Online,
+			Pause:   report.Aggs.Pause,
+			Offline: report.Aggs.Offline,
+			Free:    report.Aggs.Free,
+		},
 	}, nil
 }
 
 func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {
 	return &engine.QueueReportGeneral{
-		Queue:      GetProtoLookup(&src.Queue),
-		Team:       GetProtoLookup(src.Team),
-		Online:     src.Online,
-		Pause:      src.Pause,
-		Bridged:    src.Bridged,
-		Waiting:    src.Waiting,
-		Processed:  src.Processed,
-		Count:      src.Count,
-		Abandoned:  src.Abandoned,
-		SumBillSec: src.SumBillSec,
-		AvgWrapSec: src.AvgWrapSec,
-		AvgAwtSec:  src.AvgAwtSec,
-		MaxAwtSec:  src.MaxAwtSec,
-		AvgAsaSec:  src.AvgAsaSec,
-		AvgAhtSec:  src.AvgAhtSec,
+		Queue: GetProtoLookup(&src.Queue),
+		AgentStatus: &engine.QueueReportGeneralAgentStatus{
+			Online:  src.AgentStatus.Online,
+			Pause:   src.AgentStatus.Pause,
+			Offline: src.AgentStatus.Offline,
+			Free:    src.AgentStatus.Free,
+		},
+		Team:        GetProtoLookup(src.Team),
+		Missed:      src.Missed,
+		Processed:   src.Processed,
+		Waiting:     src.Waiting,
+		Count:       src.Count,
+		Transferred: src.Transferred,
+		Abandoned:   src.Abandoned,
+		Attempts:    src.Attempts,
+		SumTalkSec:  src.SumTalkSec,
+		AvgWrapSec:  src.AvgWrapSec,
+		AvgAwtSec:   src.AvgAwtSec,
+		AvgAsaSec:   src.AvgAsaSec,
+		AvgAhtSec:   src.AvgAhtSec,
 	}
 }
 

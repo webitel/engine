@@ -210,7 +210,7 @@ type QueueStore interface {
 	Update(queue *model.Queue) (*model.Queue, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
 
-	QueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) ([]*model.QueueReportGeneral, *model.AppError)
+	QueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError)
 }
 
 type QueueResourceStore interface {
