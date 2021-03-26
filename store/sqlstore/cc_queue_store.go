@@ -371,7 +371,7 @@ items as materialized (
            999 transferred,
 		   999 attempts,	
            coalesce(ag.bridged, 0) bridged,
-           coalesce(ag.abandoned, 0) abandoned,
+           coalesce(ag.abandoned::int, 0) abandoned,
 
            coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
            coalesce(ag.avg_wrap_sec, 0) avg_wrap_sec,
