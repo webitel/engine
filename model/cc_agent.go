@@ -170,6 +170,9 @@ type AgentSession struct {
 	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
 	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
 	OnDemand         bool           `json:"on_demand" db:"on_demand"`
+	Team             *Lookup        `json:"team" db:"team"`
+	IsSupervisor     bool           `json:"is_supervisor" db:"is_supervisor"`
+	IsAdmin          bool           `json:"is_admin" db:"is_admin"`
 	Channels         []AgentChannel `json:"channels" db:"channels"`
 }
 

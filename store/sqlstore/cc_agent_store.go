@@ -565,8 +565,12 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        (extract(EPOCH from last_state_change) * 1000)::int8 last_status_change,
        (extract(EPOCH from now() - last_state_change) )::int8 status_duration,
        ch.x as channels,
-       a.on_demand
+       a.on_demand,
+       cc_get_lookup(t.id, t.name) team,
+       a.supervisor is_supervisor,
+       exists(select 1 from cc_agent ad where ad.supervisor_id = a.id and ad.domain_id = a.domain_id) is_admin
 from cc_agent a
+	 left join cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT json_build_array(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
                                            'no_answer', c.no_answers,
                                            'wrap_time_ids', (select array_agg(att.id)
