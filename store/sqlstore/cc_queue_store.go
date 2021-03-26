@@ -355,13 +355,11 @@ with queues  as  (
 items as materialized (
     select cc_get_lookup(q.id, q.name) queue,
            cc_get_lookup(ct.id, ct.name) team,
-           jsonb_build_object('agent_status',
-               jsonb_build_object('online', coalesce(array_length(queue_ag.agent_on_ids, 1), 0),
+           jsonb_build_object('online', coalesce(array_length(queue_ag.agent_on_ids, 1), 0),
                                   'pause', coalesce(array_length(queue_ag.agent_p_ids, 1), 0),
                                   'offline', coalesce(array_length(queue_ag.agent_off_ids, 1), 0),
                                   'free', coalesce(array_length(queue_ag.free, 1), 0)
-               )
-           ) agent_status,
+               ) agent_status,
 
            999 missed,
            (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
@@ -369,7 +367,7 @@ items as materialized (
                else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
            coalesce(ag.count, 0) count,
            999 transferred,
-		   999 attempts,	
+		   999 attempts,
            coalesce(ag.bridged, 0) bridged,
            coalesce(ag.abandoned::int, 0) abandoned,
 

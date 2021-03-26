@@ -68,9 +68,9 @@ type QueueAgentAgg struct {
 }
 
 type QueueReportGeneral struct {
-	Queue       Lookup        `json:"queue" db:"queue"`
-	Team        *Lookup       `json:"team" db:"team"`
-	AgentStatus QueueAgentAgg `json:"agent_status" db:"agent_status"`
+	Queue       Lookup         `json:"queue" db:"queue"`
+	Team        *Lookup        `json:"team" db:"team"`
+	AgentStatus *QueueAgentAgg `json:"agent_status" db:"agent_status"`
 
 	Missed    uint32 `json:"missed" db:"missed"`
 	Processed uint32 `json:"processed" db:"processed"`
