@@ -318,23 +318,23 @@ with queues  as  (
     select *
     from cc_queue q
     where q.enabled is true and q.domain_id = :DomainId
-		and q.id in (
-			select distinct qs.queue_id
-			from cc_agent a
-				inner join cc_skill_in_agent csia on a.id = csia.agent_id
-				inner join cc_queue_skill qs on qs.skill_id = csia.skill_id
-			where ((a.user_id = :SupervisorId and a.supervisor)
-					or a.supervisor_id = (
-						select a2.id from cc_agent a2 where a2.user_id = :SupervisorId
-					)
-					or a.team_id in (
-						select te.id from cc_team te
-						where te.admin_id = (select a2.id from cc_agent a2 where a2.user_id = :SupervisorId)
-					)
-				)
-				and csia.enabled
-				and qs.enabled
-				and csia.capacity between qs.min_capacity and qs.max_capacity
+		and q.team_id in (
+			select t.team_id
+			from cc_agent ac
+				left join lateral (
+					select distinct a.team_id
+					from cc_agent a
+					where a.supervisor_id = ac.id and a.team_id notnull
+			
+					union distinct
+					select ac.team_id
+			
+					union distinct
+					select t.id
+					from cc_team t
+					where t.domain_id = ac.domain_id and t.admin_id = ac.id
+				) t on true
+			where ac.user_id = :SupervisorId
 		)
 ),
      queue_ag as (
