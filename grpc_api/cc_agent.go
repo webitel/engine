@@ -477,6 +477,20 @@ func (api *agent) AgentStateHistory(ctx context.Context, in *engine.AgentStateHi
 	}, nil
 }
 
+func (api *agent) AgentSetState(ctx context.Context, in *engine.AgentSetStateRequest) (*engine.AgentSetStateResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = api.ctrl.WaitingAgent(session, 0, int64(in.AgentId), "")
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.AgentSetStateResponse{}, nil
+}
+
 //FIXME RBAC
 func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.SearchAgentStateHistoryRequest) (*engine.ListAgentStateHistory, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
