@@ -24,6 +24,7 @@ type Member struct {
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Reserved       bool                  `json:"reserved" db:"reserved"`
 	Agent          *Lookup               `json:"agent" db:"agent"`
+	Skill          *Lookup               `json:"skill" db:"skill"`
 }
 
 type MemberPatch struct {
@@ -37,6 +38,7 @@ type MemberPatch struct {
 	Communications []MemberCommunication `json:"communications" db:"communications"`
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Agent          *Lookup               `json:"agent" db:"agent"`
+	Skill          *Lookup               `json:"skill" db:"skill"`
 }
 
 func (m *Member) Patch(p *MemberPatch) {
@@ -82,6 +84,15 @@ func (m *Member) Patch(p *MemberPatch) {
 			m.Agent = nil
 		} else {
 			m.Agent = p.Agent
+		}
+	}
+
+	if p.Skill != nil {
+		//todo
+		if p.Skill.Id == 0 {
+			m.Skill = nil
+		} else {
+			m.Skill = p.Skill
 		}
 	}
 }

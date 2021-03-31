@@ -55,6 +55,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 
 		Bucket: GetLookup(in.Bucket),
 		Agent:  GetLookup(in.Agent),
+		Skill:  GetLookup(in.Skill),
 	}
 
 	if err = member.IsValid(); err != nil {
@@ -107,6 +108,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			ExpireAt:       model.Int64ToTime(v.GetExpireAt()),
 			Bucket:         GetLookup(v.GetBucket()),
 			Agent:          GetLookup(v.Agent),
+			Skill:          GetLookup(v.Skill),
 		}
 
 		if err = member.IsValid(); err != nil {
@@ -238,6 +240,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		ExpireAt:       model.Int64ToTime(in.ExpireAt),
 		Bucket:         GetLookup(in.Bucket),
 		Agent:          GetLookup(in.Agent),
+		Skill:          GetLookup(in.Skill),
 	}
 
 	if in.StopCause != "" {
@@ -309,6 +312,15 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 				}
 			} else {
 				patch.Agent = GetLookup(in.Agent)
+			}
+		case "skill.id":
+			//todo
+			if in.Skill != nil && in.Skill.Id == 0 {
+				patch.Skill = &model.Lookup{
+					Id: 0,
+				}
+			} else {
+				patch.Skill = GetLookup(in.Skill)
 			}
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
@@ -671,6 +683,7 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		MinOfferingAt:  model.TimeToInt64(src.MinOfferingAt),
 		Reserved:       src.Reserved,
 		Agent:          GetProtoLookup(src.Agent),
+		Skill:          GetProtoLookup(src.Skill),
 	}
 
 	if src.Bucket != nil {

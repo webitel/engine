@@ -55,6 +55,7 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	oldMember.MinOfferingAt = member.MinOfferingAt
 	oldMember.StopCause = member.StopCause
 	oldMember.Agent = member.Agent
+	oldMember.Skill = member.Skill
 
 	oldMember, err = app.Store.Member().Update(domainId, oldMember)
 	if err != nil {
