@@ -325,10 +325,10 @@ with queues  as  (
 					select distinct a.team_id
 					from cc_agent a
 					where a.supervisor_id = ac.id and a.team_id notnull
-			
+
 					union distinct
 					select ac.team_id
-			
+
 					union distinct
 					select t.id
 					from cc_team t
@@ -343,7 +343,8 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'online' ) agent_on_ids,
                array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
-               array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free
+               array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free,
+               array_agg(distinct a.id) total
         from queues q
             inner join cc_agent a on a.team_id = q.team_id
             inner join cc_agent_channel ac on ac.agent_id = a.id
@@ -358,7 +359,8 @@ items as materialized (
            jsonb_build_object('online', coalesce(array_length(queue_ag.agent_on_ids, 1), 0),
                                   'pause', coalesce(array_length(queue_ag.agent_p_ids, 1), 0),
                                   'offline', coalesce(array_length(queue_ag.agent_off_ids, 1), 0),
-                                  'free', coalesce(array_length(queue_ag.free, 1), 0)
+                                  'free', coalesce(array_length(queue_ag.free, 1), 0),
+                                  'total', coalesce(array_length(queue_ag.total, 1), 0)
                ) agent_status,
 
            999 missed,
@@ -411,7 +413,8 @@ select
             'online', coalesce(array_length(agent_on_ids, 1), 0),
             'pause', coalesce(array_length(agent_p_ids, 1), 0),
             'offline', coalesce(array_length(agent_off_ids, 1), 0),
-            'free', coalesce(array_length(free, 1), 0)
+            'free', coalesce(array_length(free, 1), 0),
+            'total', coalesce(array_length(total, 1), 0)
                             ) from queue_ag where queue_ag.queue_id isnull ) aggs
 `, map[string]interface{}{
 		"DomainId":     domainId,
