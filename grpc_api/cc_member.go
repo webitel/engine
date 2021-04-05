@@ -299,7 +299,14 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
 		case "bucket.id":
-			patch.Bucket = GetLookup(in.Bucket)
+			//todo
+			if in.Bucket != nil && in.Bucket.Id == 0 {
+				patch.Bucket = &model.Lookup{
+					Id: 0,
+				}
+			} else {
+				patch.Bucket = GetLookup(in.Bucket)
+			}
 		case "communications":
 			patch.Communications = toModelMemberCommunications(in.GetCommunications())
 		case "stop_cause":
