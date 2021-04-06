@@ -20,7 +20,7 @@ func (api *pauseCause) CreateAgentPauseCause(ctx context.Context, in *engine.Cre
 		return nil, err
 	}
 
-	cause := &model.AgentPauseCause{
+	cause := &model.PauseCause{
 		Name:            in.Name,
 		Description:     in.Description,
 		LimitMin:        in.LimitMin,
@@ -43,9 +43,9 @@ func (api *pauseCause) SearchAgentPauseCause(ctx context.Context, in *engine.Sea
 		return nil, err
 	}
 
-	var list []*model.AgentPauseCause
+	var list []*model.PauseCause
 	var endList bool
-	req := &model.SearchAgentPauseCause{
+	req := &model.SearchPauseCause{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
@@ -77,7 +77,7 @@ func (api *pauseCause) ReadAgentPauseCause(ctx context.Context, in *engine.ReadA
 	if err != nil {
 		return nil, err
 	}
-	var cause *model.AgentPauseCause
+	var cause *model.PauseCause
 	cause, err = api.ctrl.GetPauseCause(session, in.Id)
 
 	if err != nil {
@@ -93,8 +93,8 @@ func (api *pauseCause) PatchAgentPauseCause(ctx context.Context, in *engine.Patc
 		return nil, err
 	}
 
-	var cause *model.AgentPauseCause
-	patch := &model.AgentPauseCausePatch{}
+	var cause *model.PauseCause
+	patch := &model.PauseCausePatch{}
 
 	//TODO
 	for _, v := range in.Fields {
@@ -128,7 +128,7 @@ func (api *pauseCause) UpdateAgentPauseCause(ctx context.Context, in *engine.Upd
 		return nil, err
 	}
 
-	cause := &model.AgentPauseCause{
+	cause := &model.PauseCause{
 		AclRecord: model.AclRecord{
 			Id: int(in.Id),
 		},
@@ -155,7 +155,7 @@ func (api *pauseCause) DeleteAgentPauseCause(ctx context.Context, in *engine.Del
 		return nil, err
 	}
 
-	var cause *model.AgentPauseCause
+	var cause *model.PauseCause
 	cause, err = api.ctrl.DeletePauseCause(session, in.Id)
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ func (api *pauseCause) DeleteAgentPauseCause(ctx context.Context, in *engine.Del
 	return toEnginePauseCause(cause), nil
 }
 
-func toEnginePauseCause(src *model.AgentPauseCause) *engine.AgentPauseCause {
+func toEnginePauseCause(src *model.PauseCause) *engine.AgentPauseCause {
 	return &engine.AgentPauseCause{
 		Id:              uint32(src.Id),
 		CreatedAt:       model.TimeToInt64(src.CreatedAt),

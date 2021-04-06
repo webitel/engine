@@ -662,6 +662,39 @@ offset :Offset`, map[string]interface{}{
 	return stats, nil
 }
 
+func (s SqlAgentStore) PauseCause(domainId int64, fromUserId, toAgentId int64) ([]*model.AgentPauseCause, *model.AppError) {
+	var res []*model.AgentPauseCause
+	_, err := s.GetReplica().Select(&res, `select c.id,
+       c.name,
+       limit_min,
+       (extract(epoch from
+           case when a.status = 'pause' and a.status_payload = tp.cause then
+           now() - a.last_state_change + coalesce(tp.duration, interval '0')
+           else coalesce(tp.duration, interval '0') end) / 60)::int8 duration_min
+from cc_pause_cause c
+         cross join cc_agent a
+         cross join cc_agent fa
+         left join cc_team ft on ft.id = fa.team_id
+         left join cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
+where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
+    and fa.user_id = :FromUserId
+    and (case when fa.supervisor and a.supervisor_id = fa.id then c.allow_supervisor else false end
+         or (fa.id = a.id and c.allow_agent)
+         or (fa.team_id = a.team_id and ft.admin_id = fa.id and c.allow_admin)
+        )
+order by c.name;`, map[string]interface{}{
+		"DomainId":   domainId,
+		"FromUserId": fromUserId,
+		"ToAgentId":  toAgentId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.AgentPauseCause", "store.sql_agent.list_pause_causes.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 // FIXME add RBAC & sort, columns
 func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics

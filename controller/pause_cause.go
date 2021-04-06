@@ -5,7 +5,7 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) SearchPauseCause(session *auth_manager.Session, search *model.SearchAgentPauseCause) ([]*model.AgentPauseCause, bool, *model.AppError) {
+func (c *Controller) SearchPauseCause(session *auth_manager.Session, search *model.SearchPauseCause) ([]*model.PauseCause, bool, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -14,7 +14,7 @@ func (c *Controller) SearchPauseCause(session *auth_manager.Session, search *mod
 	return c.app.GetPauseCausePage(session.Domain(search.DomainId), search)
 }
 
-func (c *Controller) CreatePauseCause(session *auth_manager.Session, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) CreatePauseCause(session *auth_manager.Session, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -32,7 +32,7 @@ func (c *Controller) CreatePauseCause(session *auth_manager.Session, cause *mode
 	return c.app.CreatePauseCause(session.Domain(0), cause)
 }
 
-func (c *Controller) GetPauseCause(session *auth_manager.Session, id uint32) (*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) GetPauseCause(session *auth_manager.Session, id uint32) (*model.PauseCause, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -41,7 +41,7 @@ func (c *Controller) GetPauseCause(session *auth_manager.Session, id uint32) (*m
 	return c.app.GetPauseCause(session.Domain(0), id)
 }
 
-func (c *Controller) UpdatePauseCause(session *auth_manager.Session, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) UpdatePauseCause(session *auth_manager.Session, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -61,7 +61,7 @@ func (c *Controller) UpdatePauseCause(session *auth_manager.Session, cause *mode
 	return c.app.UpdatePauseCause(session.DomainId, cause)
 }
 
-func (c *Controller) PatchPauseCause(session *auth_manager.Session, id uint32, patch *model.AgentPauseCausePatch) (*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) PatchPauseCause(session *auth_manager.Session, id uint32, patch *model.PauseCausePatch) (*model.PauseCause, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -77,7 +77,7 @@ func (c *Controller) PatchPauseCause(session *auth_manager.Session, id uint32, p
 	return c.app.PatchPauseCause(session.DomainId, id, patch)
 }
 
-func (c *Controller) DeletePauseCause(session *auth_manager.Session, id uint32) (*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) DeletePauseCause(session *auth_manager.Session, id uint32) (*model.PauseCause, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanDelete() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)

@@ -92,6 +92,13 @@ type SearchAgentStatusStatistic struct {
 	HasCall     bool
 }
 
+type AgentPauseCause struct {
+	Id          uint32 `json:"id" db:"id"`
+	Name        string `json:"name" db:"name"`
+	LimitMin    uint32 `json:"limit_min" db:"limit_min"`
+	DurationMin uint32 `json:"duration_min" db:"duration_min"`
+}
+
 func (a *Agent) Patch(patch *AgentPatch) {
 	a.UpdatedBy = patch.UpdatedBy
 	a.UpdatedAt = patch.UpdatedAt

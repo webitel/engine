@@ -16,7 +16,7 @@ func NewSqlPauseCauseStore(sqlStore SqlStore) store.PauseCauseStore {
 	return us
 }
 
-func (s SqlPauseCauseStore) Create(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) Create(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	err := s.GetMaster().SelectOne(&cause, `with s as (
     insert into cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
                                       name, limit_min, allow_supervisor, allow_agent, allow_admin, description)
@@ -59,8 +59,8 @@ from s
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchAgentPauseCause) ([]*model.AgentPauseCause, *model.AppError) {
-	var causes []*model.AgentPauseCause
+func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, *model.AppError) {
+	var causes []*model.PauseCause
 
 	f := map[string]interface{}{
 		"DomainId": domainId,
@@ -74,7 +74,7 @@ func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchAgent
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
 			`,
-		model.AgentPauseCause{}, f)
+		model.PauseCause{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlPauseCauseStore.GetAllPage", "store.sql_pause_cause.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
 	}
@@ -82,8 +82,8 @@ func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchAgent
 	return causes, nil
 }
 
-func (s SqlPauseCauseStore) Get(domainId int64, id uint32) (*model.AgentPauseCause, *model.AppError) {
-	var cause *model.AgentPauseCause
+func (s SqlPauseCauseStore) Get(domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
+	var cause *model.PauseCause
 	err := s.GetReplica().SelectOne(&cause, `select id, 
        created_at,
        created_by,
@@ -108,7 +108,7 @@ where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) Update(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) Update(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	err := s.GetMaster().SelectOne(&cause, `with s as (
     update cc_pause_cause
         set updated_at = :UpdatedAt,

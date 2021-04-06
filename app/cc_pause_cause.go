@@ -2,7 +2,7 @@ package app
 
 import "github.com/webitel/engine/model"
 
-func (a *App) GetPauseCausePage(domainId int64, search *model.SearchAgentPauseCause) ([]*model.AgentPauseCause, bool, *model.AppError) {
+func (a *App) GetPauseCausePage(domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, bool, *model.AppError) {
 	list, err := a.Store.PauseCause().GetAllPage(domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -11,15 +11,15 @@ func (a *App) GetPauseCausePage(domainId int64, search *model.SearchAgentPauseCa
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) CreatePauseCause(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
+func (a *App) CreatePauseCause(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	return a.Store.PauseCause().Create(domainId, cause)
 }
 
-func (a *App) GetPauseCause(domainId int64, id uint32) (*model.AgentPauseCause, *model.AppError) {
+func (a *App) GetPauseCause(domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
 	return a.Store.PauseCause().Get(domainId, id)
 }
 
-func (a *App) UpdatePauseCause(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError) {
+func (a *App) UpdatePauseCause(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	oldCause, err := a.GetPauseCause(domainId, uint32(cause.Id))
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (a *App) UpdatePauseCause(domainId int64, cause *model.AgentPauseCause) (*m
 	return oldCause, nil
 }
 
-func (a *App) PatchPauseCause(domainId int64, id uint32, patch *model.AgentPauseCausePatch) (*model.AgentPauseCause, *model.AppError) {
+func (a *App) PatchPauseCause(domainId int64, id uint32, patch *model.PauseCausePatch) (*model.PauseCause, *model.AppError) {
 	oldCause, err := a.GetPauseCause(domainId, id)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (a *App) PatchPauseCause(domainId int64, id uint32, patch *model.AgentPause
 	return oldCause, nil
 }
 
-func (a *App) RemovePauseCause(domainId int64, id uint32) (*model.AgentPauseCause, *model.AppError) {
+func (a *App) RemovePauseCause(domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
 	cause, err := a.GetPauseCause(domainId, id)
 
 	if err != nil {

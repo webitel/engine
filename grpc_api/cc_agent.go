@@ -723,6 +723,33 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 	}, nil
 }
 
+func (api *agent) SearchPauseCauseForAgent(ctx context.Context, in *engine.SearchPauseCauseForAgentRequest) (*engine.ForAgentPauseCauseList, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.AgentPauseCause
+	list, err = api.ctrl.GetAgentPauseCause(session, in.AgentId)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.ForAgentPauseCause, 0, len(list))
+	for _, v := range list {
+		items = append(items, &engine.ForAgentPauseCause{
+			Id:          v.Id,
+			Name:        v.Name,
+			LimitMin:    v.LimitMin,
+			DurationMin: v.DurationMin,
+		})
+	}
+
+	return &engine.ForAgentPauseCauseList{
+		Items: items,
+	}, nil
+}
+
 func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCallStatistics {
 	return &engine.AgentCallStatistics{
 		Name:       src.Name,

@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type AgentPauseCause struct {
+type PauseCause struct {
 	AclRecord
 	Name            string `json:"name" db:"name"`
 	Description     string `json:"description" db:"description"`
@@ -12,13 +12,13 @@ type AgentPauseCause struct {
 	AllowAgent      bool   `json:"allow_agent" db:"allow_agent"`
 }
 
-type SearchAgentPauseCause struct {
+type SearchPauseCause struct {
 	ListRequest
 	Ids  []uint32
 	Name *string
 }
 
-type AgentPauseCausePatch struct {
+type PauseCausePatch struct {
 	UpdatedAt       *time.Time `json:"updated_at"`
 	UpdatedBy       Lookup     `json:"updated_by"`
 	Name            *string    `json:"name"`
@@ -29,23 +29,23 @@ type AgentPauseCausePatch struct {
 	AllowAdmin      *bool      `json:"allow_admin"`
 }
 
-func (p AgentPauseCause) AllowFields() []string {
+func (p PauseCause) AllowFields() []string {
 	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
 }
 
-func (AgentPauseCause) DefaultOrder() string {
+func (PauseCause) DefaultOrder() string {
 	return "-name"
 }
 
-func (AgentPauseCause) DefaultFields() []string {
+func (PauseCause) DefaultFields() []string {
 	return []string{"id", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
 }
 
-func (AgentPauseCause) EntityName() string {
+func (PauseCause) EntityName() string {
 	return "cc_pause_cause_list"
 }
 
-func (p *AgentPauseCause) Patch(patch *AgentPauseCausePatch) {
+func (p *PauseCause) Patch(patch *PauseCausePatch) {
 	p.UpdatedAt = patch.UpdatedAt
 	p.UpdatedBy = patch.UpdatedBy
 
@@ -75,6 +75,6 @@ func (p *AgentPauseCause) Patch(patch *AgentPauseCausePatch) {
 }
 
 // Todo
-func (r *AgentPauseCause) IsValid() *AppError {
+func (r *PauseCause) IsValid() *AppError {
 	return nil
 }

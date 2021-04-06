@@ -116,6 +116,8 @@ type AgentStore interface {
 
 	GetSession(domainId, userId int64) (*model.AgentSession, *model.AppError)
 
+	PauseCause(domainId int64, fromUserId, toAgentId int64) ([]*model.AgentPauseCause, *model.AppError)
+
 	/* stats */
 	CallStatistics(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError)
 
@@ -326,10 +328,10 @@ type RegionStore interface {
 }
 
 type PauseCauseStore interface {
-	Create(domainId int64, cause *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError)
-	GetAllPage(domainId int64, search *model.SearchAgentPauseCause) ([]*model.AgentPauseCause, *model.AppError)
-	Get(domainId int64, id uint32) (*model.AgentPauseCause, *model.AppError)
-	Update(domainId int64, region *model.AgentPauseCause) (*model.AgentPauseCause, *model.AppError)
+	Create(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, *model.AppError)
+	Get(domainId int64, id uint32) (*model.PauseCause, *model.AppError)
+	Update(domainId int64, region *model.PauseCause) (*model.PauseCause, *model.AppError)
 	Delete(domainId int64, id uint32) *model.AppError
 }
 
