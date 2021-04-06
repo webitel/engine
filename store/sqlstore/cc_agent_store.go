@@ -678,7 +678,7 @@ from cc_pause_cause c
          left join cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
 where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
     and fa.user_id = :FromUserId
-    and (case when fa.supervisor and a.supervisor_id = fa.id then c.allow_supervisor else false end
+    and (case when fa.supervisor or a.supervisor_id = fa.id then c.allow_supervisor else false end
          or (fa.id = a.id and c.allow_agent)
          or (fa.team_id = a.team_id and ft.admin_id = fa.id and c.allow_admin)
         )
