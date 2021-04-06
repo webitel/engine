@@ -79,17 +79,27 @@ type AgentStatusStatistics struct {
 	Missed         int32      `json:"missed" db:"missed"`
 	MaxBridgedAt   *time.Time `json:"max_bridged_at" db:"max_bridged_at"`
 	MaxOfferingAt  *time.Time `json:"max_offering_at" db:"max_offering_at"`
+
+	Transferred uint32    `json:"transferred" db:"transferred"`
+	Skills      []*Lookup `json:"skills" db:"skills"`
+	Supervisor  *Lookup   `json:"supervisor" db:"supervisor"`
+	Auditor     *Lookup   `json:"auditor" db:"auditor"`
 }
 
 type SearchAgentStatusStatistic struct {
 	ListRequest
-	Time        FilterBetween
-	Utilization *FilterBetween
-	AgentIds    []int64
-	Status      []string
-	TeamIds     []int32
-	QueueIds    []int32
-	HasCall     bool
+	Time          FilterBetween
+	Utilization   *FilterBetween
+	AgentIds      []int64
+	Status        []string
+	TeamIds       []int32
+	QueueIds      []int32
+	SkillIds      []uint32
+	RegionIds     []uint32
+	SupervisorIds []uint32
+	AuditorIds    []int64
+
+	HasCall bool
 }
 
 type AgentPauseCause struct {

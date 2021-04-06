@@ -699,50 +699,64 @@ order by c.name;`, map[string]interface{}{
 func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at, extension, queues, active_call_id
+       max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor
 from (
-         select a.id                                                 agent_id,
+         select a.id                                                                          agent_id,
                 a.domain_id,
-                coalesce(u.name, u.username)                      as name,
-                coalesce(u.extension, '')                         as extension,
+                coalesce(u.name, u.username)                      as                          name,
+                coalesce(u.extension, '')                         as                          extension,
                 a.status,
-                extract(epoch from x.t)::int                         status_duration,
-                cc_get_lookup(u.id, coalesce(u.name, u.username)) as user,
+                extract(epoch from x.t)::int                                                  status_duration,
+                cc_get_lookup(u.id, coalesce(u.name, u.username)) as                          user,
 
-                cc_get_lookup(team.id, team.name)                    team,
-                q.queues                                             queues,
+                cc_get_lookup(team.id, team.name)                                             team,
+                q.queues                                                                      queues,
 
-                onl_all::int                          online,
+                onl_all::int                                                                  online,
                 extract(epoch from coalesce(
                         case
                             when a.status = 'offline' then (x.t + coalesce(stat.offline, interval '0'))
                             else stat.offline end,
-                        interval '0'))::int                          offline,
+                        interval '0'))::int                                                   offline,
                 extract(epoch from coalesce(
                         case
                             when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0'))
                             else stat.pause end,
-                        interval '0'))::int                          pause,
+                        interval '0'))::int                                                   pause,
 
                 case when onl_all > 0 then (coalesce(work_dur, 0) / onl_all) * 100 else 0 end utilization,
-                coalesce(extract(epoch from call_time)::int8, 0)     call_time,
-                coalesce(handles, 0)                                 handles,
-                coalesce(missed, 0)                                  missed,
+                coalesce(extract(epoch from call_time)::int8, 0)                              call_time,
+                coalesce(handles, 0)                                                          handles,
+                coalesce(missed, 0)                                                           missed,
+                999::int                                                                      transferred,
                 max_bridged_at,
                 max_offering_at,
-                active_call.id                                    as active_call_id,
+                active_call.id                                    as                          active_call_id,
+                q.skills,
+                q.skill_ids,
+                super."user"                                                                  supervisor,
+                cc_get_lookup(r.id, r.name)                                                   region,
+                cc_get_lookup(aud.id, coalesce(aud.name, aud.username))                       auditor,
                 queue_ids,
                 a.team_id,
-                a.supervisor_id
+                a.auditor_id,
+                a.supervisor_id,
+                a.region_id
          from cc_agent a
                   inner join directory.wbt_user u on u.id = a.user_id
                   left join cc_team team on team.id = a.team_id
+                  left join flow.region r on r.id = a.region_id
+                  left join cc_agent_with_user super on super.id = a.supervisor_id
+                  left join directory.wbt_user aud on aud.id = a.auditor_id
                   left join lateral (
-             select array_agg(distinct q.id)                        queue_ids,
-                    jsonb_agg(distinct cc_get_lookup(q.id, q.name)) queues
+             select array_agg(distinct q.id)                          queue_ids,
+                    array_agg(distinct sia.skill_id)                  skill_ids,
+                    jsonb_agg(distinct cc_get_lookup(cs.id, cs.name)) skills,
+                    jsonb_agg(distinct cc_get_lookup(q.id, q.name))   queues
              from cc_skill_in_agent sia
                       inner join cc_queue q on sia.agent_id = a.id and sia.enabled
                       inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+                      inner join cc_skill cs on sia.skill_id = cs.id
              where q.domain_id = a.domain_id
                and q.enabled
                and q.team_id = a.team_id
@@ -755,7 +769,7 @@ from (
                     case when l.state = 'offline' then l.delta + ares.offline else ares.offline end offline,
                     case when l.state = 'pause' then l.delta + ares.pause else ares.pause end       pause,
                     extract(epoch from (ares.offering + ares.bridged + ares.wrap_time)) as          work_dur,
-                    ares.bridged                                                      as            call_time,
+                    ares.bridged                                                        as          call_time,
                     ares.cnt                                                                        handles,
                     ares.missed,
                     ares.max_bridged_at,
@@ -802,11 +816,11 @@ from (
                                                       (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
                                                      then (:To::timestamptz) - (:From::timestamptz)
                                                  else now() - a.last_state_change end t) x on true
-            left join lateral extract(epoch from coalesce(
-                        case
-                            when a.status = 'online' then (x.t + coalesce(stat.online, interval '0'))
-                            else stat.online end,
-                        interval '0')) onl_all on true
+                  left join lateral extract(epoch from coalesce(
+                 case
+                     when a.status = 'online' then (x.t + coalesce(stat.online, interval '0'))
+                     else stat.online end,
+                 interval '0')) onl_all on true
          where (a.user_id = :SupervisorId and a.supervisor)
             or a.supervisor_id = (
              select a2.id
@@ -825,7 +839,10 @@ and (:Q::varchar isnull or t.name ilike :Q::varchar)
 and (:Status::varchar[] isnull or (t.status = any(:Status)))
 and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
 and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
+and (:SkillIds::int[] isnull  or (t.skill_ids notnull and t.skill_ids::int[] && :SkillIds::int[]))
 and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds::int[])))
+and (:RegionIds::int[] isnull  or (t.region_id notnull and t.region_id = any(:RegionIds::int[])))
+and (:AuditorIds::int[] isnull  or (t.auditor_id notnull and t.auditor_id = any(:AuditorIds::int[])))
 and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
 order by case t.status
     when 'break_out' then 0
@@ -847,6 +864,9 @@ offset :Offset`, map[string]interface{}{
 		"Status":       pq.Array(search.Status),
 		"QueueIds":     pq.Array(search.QueueIds),
 		"TeamIds":      pq.Array(search.TeamIds),
+		"SkillIds":     pq.Array(search.SkillIds),
+		"RegionIds":    pq.Array(search.RegionIds),
+		"AuditorIds":   pq.Array(search.AuditorIds),
 		"HasCall":      search.HasCall,
 	})
 

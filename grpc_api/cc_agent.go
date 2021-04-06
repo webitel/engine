@@ -684,21 +684,27 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 	var endList bool
 	req := &model.SearchAgentStatusStatistic{
 		ListRequest: model.ListRequest{
-			DomainId: session.Domain(in.DomainId),
+			DomainId: session.Domain(0),
 			Q:        in.GetQ(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 			Sort:     in.Sort,
+			Fields:   in.Fields,
 		},
 		Time: model.FilterBetween{
 			From: in.GetTime().GetFrom(),
 			To:   in.GetTime().GetTo(),
 		},
-		AgentIds: in.AgentId,
-		Status:   in.Status,
-		QueueIds: in.QueueId,
-		TeamIds:  in.TeamId,
-		HasCall:  in.HasCall,
+		Utilization:   nil,
+		AgentIds:      in.AgentId,
+		Status:        in.Status,
+		TeamIds:       in.TeamId,
+		QueueIds:      in.QueueId,
+		SkillIds:      in.SkillId,
+		RegionIds:     in.RegionId,
+		SupervisorIds: in.SupervisorId,
+		AuditorIds:    in.AuditorId,
+		HasCall:       in.HasCall,
 	}
 
 	if in.Utilization != nil {
@@ -708,7 +714,7 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 		}
 	}
 
-	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(in.DomainId), session.UserId, req)
+	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(0), session.UserId, req)
 	if err != nil {
 		return nil, err
 	}
@@ -786,6 +792,10 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		Missed:         src.Missed,
 		MaxBridgedAt:   model.TimeToInt64(src.MaxBridgedAt),
 		MaxOfferingAt:  model.TimeToInt64(src.MaxOfferingAt),
+		Transferred:    src.Transferred,
+		Skills:         GetProtoLookups(src.Skills),
+		Supervisor:     GetProtoLookup(src.Supervisor),
+		Auditor:        GetProtoLookup(src.Auditor),
 	}
 
 	if src.ActiveCallId != nil {
