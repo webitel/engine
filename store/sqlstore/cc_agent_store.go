@@ -827,6 +827,11 @@ and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between
 and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
 and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds::int[])))
 and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
+order by case t.status
+    when 'break_out' then 0
+    when 'pause' then 1
+    when 'online' then 2
+    else 3 end, t.name
 limit :Limit
 offset :Offset`, map[string]interface{}{
 		"DomainId":     domainId,
