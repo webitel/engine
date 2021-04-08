@@ -23,9 +23,10 @@ type DomainQueue struct {
 	queue  amqp.Queue
 	events chan *model.WebSocketEvent
 
-	callEvents      chan *model.CallEvent
-	userStateEvents chan *model.UserState
-	chatEvents      chan *model.ChatEvent
+	callEvents        chan *model.CallEvent
+	userStateEvents   chan *model.UserState
+	chatEvents        chan *model.ChatEvent
+	notificationEvent chan *model.Notification
 
 	bindChan chan *model.BindQueueEvent
 
@@ -54,10 +55,11 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		name:   fmt.Sprintf("domain.%v", id),
 		events: make(chan *model.WebSocketEvent),
 
-		callEvents:       make(chan *model.CallEvent),
-		userStateEvents:  make(chan *model.UserState),
-		chatEvents:       make(chan *model.ChatEvent),
-		fnGetAllBindings: bindings,
+		callEvents:        make(chan *model.CallEvent),
+		userStateEvents:   make(chan *model.UserState),
+		chatEvents:        make(chan *model.ChatEvent),
+		notificationEvent: make(chan *model.Notification),
+		fnGetAllBindings:  bindings,
 
 		bindChan: make(chan *model.BindQueueEvent, 100), //TODO
 
@@ -196,11 +198,47 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 	case model.ChatExchange:
 		dq.readChatEvent(m.Body, m.RoutingKey)
 
+	case model.AppExchange:
+		dq.readAppMessage(m.Body, m.RoutingKey)
+
 	case model.MQ_USER_STATUS_EXCHANGE:
 		dq.readUserStateMessage(m.Body, m.RoutingKey)
 
 	default:
 		wlog.Error(fmt.Sprintf("DomainQueue [%d] not implement parser from exchange %s", dq.Id(), m.Exchange))
+	}
+}
+
+func parseNotification(data []byte) (*model.Notification, error) {
+	var n model.Notification
+	err := json.Unmarshal(data, &n)
+	if err != nil {
+		return nil, err
+	}
+
+	return &n, nil
+}
+
+func (dq *DomainQueue) readAppMessage(data []byte, rk string) {
+	route := strings.Split(rk, ".")
+	if len(route) < 1 {
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] read app message, error: bad routing key %s", dq.id, rk))
+	}
+
+	switch route[0] {
+	case "notification":
+		e, err := parseNotification(data)
+		if err != nil {
+			wlog.Warn(err.Error())
+			wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event notification, skip %s", dq.Id(), string(data)))
+			return
+		}
+
+		wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive notification event %v rk=%s", dq.Id(), e.Id, rk))
+		dq.notificationEvent <- e
+
+	default:
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] read app message, error: no handler %s", dq.id, rk))
 	}
 }
 
@@ -350,6 +388,11 @@ func (dq *DomainQueue) connect() error {
 		return err
 	}
 
+	err = dq.channel.QueueBind(dq.queue.Name, fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
+	if err != nil {
+		return err
+	}
+
 	dq.delivery, err = dq.channel.Consume(
 		dq.queue.Name,
 		model.NewId(),
@@ -437,6 +480,10 @@ func (dq *DomainQueue) ChatEvents() <-chan *model.ChatEvent {
 
 func (dq *DomainQueue) UserStateEvents() <-chan *model.UserState {
 	return dq.userStateEvents
+}
+
+func (dq *DomainQueue) NotificationEvents() <-chan *model.Notification {
+	return dq.notificationEvent
 }
 
 func (dq *DomainQueue) Stop() {

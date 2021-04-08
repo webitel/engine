@@ -383,7 +383,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}
 
 	var id string
-	id, err = api.ctrl.CreateCall(session, req, nil)
+	id, err = api.ctrl.CreateCall(session, req, in.GetParams().GetVariables())
 	if err != nil {
 		return nil, err
 	}

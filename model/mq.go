@@ -1,7 +1,7 @@
 package model
 
 const (
-	MQ_APP_EXCHANGE    = "engine"
+	AppExchange        = "engine"
 	CallExchange       = "call"
 	CallCenterExchange = "callcenter"
 	ChatExchange       = "chat"

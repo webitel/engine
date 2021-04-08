@@ -7,6 +7,8 @@ import (
 )
 
 const (
+	WebsocketNotificationEvent = "notification"
+
 	WEBSOCKET_EVENT_HELLO = "hello"
 
 	WEBSOCKET_EVENT_RESPONSE   = "response"

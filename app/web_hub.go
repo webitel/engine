@@ -186,6 +186,25 @@ func (wh *Hub) start() {
 					}
 				}
 			}
+
+		case ev := <-wh.domainQueue.NotificationEvents():
+			msg := model.NewWebSocketNotificationEvent(ev)
+			msg.PrecomputeJSON()
+
+			if ev.CreatedBy != nil {
+				candidates := connections.ForUser(*ev.CreatedBy)
+				for _, webCon := range candidates {
+					if webCon.ShouldSendEvent(msg) {
+						select {
+						case webCon.Send <- msg:
+						default:
+							wlog.Error(fmt.Sprintf("webhub.notification: cannot send, closing websocket for userId=%v", webCon.UserId))
+							close(webCon.Send)
+							connections.Remove(webCon)
+						}
+					}
+				}
+			}
 		}
 	}
 }

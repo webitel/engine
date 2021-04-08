@@ -58,6 +58,7 @@ type SqlSupplierOldStores struct {
 	chat                    store.ChatStore
 	region                  store.RegionStore
 	pauseCause              store.PauseCauseStore
+	notification            store.NotificationStore
 }
 
 type SqlSupplier struct {
@@ -109,6 +110,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.emailProfile = NewSqlEmailProfileStore(supplier)
 	supplier.oldStores.region = NewSqlRegionStore(supplier)
 	supplier.oldStores.pauseCause = NewSqlPauseCauseStore(supplier)
+	supplier.oldStores.notification = NewSqlNotificationStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -325,6 +327,10 @@ func (ss *SqlSupplier) PauseCause() store.PauseCauseStore {
 	return ss.oldStores.pauseCause
 }
 
+func (ss *SqlSupplier) Notification() store.NotificationStore {
+	return ss.oldStores.notification
+}
+
 type typeConverter struct{}
 
 func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
@@ -484,11 +490,4 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	}
 
 	return gorp.CustomScanner{}, false
-}
-
-func GetOrderType(desc bool) string {
-	if desc {
-		return "DESC"
-	}
-	return "ASC"
 }

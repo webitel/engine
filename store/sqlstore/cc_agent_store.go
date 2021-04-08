@@ -662,13 +662,13 @@ offset :Offset`, map[string]interface{}{
 	return stats, nil
 }
 
-func (s SqlAgentStore) PauseCause(domainId int64, fromUserId, toAgentId int64) ([]*model.AgentPauseCause, *model.AppError) {
+func (s SqlAgentStore) PauseCause(domainId int64, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
 	var res []*model.AgentPauseCause
 	_, err := s.GetReplica().Select(&res, `select c.id,
        c.name,
        limit_min,
        (extract(epoch from
-           case when a.status = 'pause' and a.status_payload = tp.cause then
+           case when a.status = 'pause' and a.status_payload = c.name then
            now() - a.last_state_change + coalesce(tp.duration, interval '0')
            else coalesce(tp.duration, interval '0') end) / 60)::int8 duration_min
 from cc_pause_cause c
@@ -678,14 +678,16 @@ from cc_pause_cause c
          left join cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
 where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
     and fa.user_id = :FromUserId
-    and (case when fa.supervisor or a.supervisor_id = fa.id then c.allow_supervisor else false end
+    and (not :AllowChange::bool   
+		 or case when fa.supervisor or a.supervisor_id = fa.id then c.allow_supervisor else false end
          or (fa.id = a.id and c.allow_agent)
          or (fa.team_id = a.team_id and ft.admin_id = fa.id and c.allow_admin)
         )
 order by c.name;`, map[string]interface{}{
-		"DomainId":   domainId,
-		"FromUserId": fromUserId,
-		"ToAgentId":  toAgentId,
+		"DomainId":    domainId,
+		"FromUserId":  fromUserId,
+		"ToAgentId":   toAgentId,
+		"AllowChange": allowChange,
 	})
 
 	if err != nil {
@@ -696,10 +698,11 @@ order by c.name;`, map[string]interface{}{
 }
 
 // FIXME add RBAC & sort, columns
+// allow_change
 func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor
+       max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor, pause_cause, chat_count
 from (
          select a.id                                                                          agent_id,
                 a.domain_id,
@@ -707,6 +710,7 @@ from (
                 coalesce(u.extension, '')                         as                          extension,
                 a.status,
                 extract(epoch from x.t)::int                                                  status_duration,
+			    coalesce(a.status_payload, '')												  pause_cause,  	
                 cc_get_lookup(u.id, coalesce(u.name, u.username)) as                          user,
 
                 cc_get_lookup(team.id, team.name)                                             team,
@@ -727,6 +731,7 @@ from (
                 case when onl_all > 0 then (coalesce(work_dur, 0) / onl_all) * 100 else 0 end utilization,
                 coalesce(extract(epoch from call_time)::int8, 0)                              call_time,
                 coalesce(handles, 0)                                                          handles,
+                coalesce(stat.chat_count, 0)                                                          chat_count,
                 coalesce(missed, 0)                                                           missed,
                 999::int                                                                      transferred,
                 max_bridged_at,
@@ -771,6 +776,7 @@ from (
                     extract(epoch from (ares.offering + ares.bridged + ares.wrap_time)) as          work_dur,
                     ares.bridged                                                        as          call_time,
                     ares.cnt                                                                        handles,
+				    ares.chat_count,
                     ares.missed,
                     ares.max_bridged_at,
                     ares.max_offering_at
@@ -783,6 +789,7 @@ from (
                              coalesce(sum(duration) filter ( where ah.state = 'offering' ), interval '0')  offering,
                              coalesce(sum(duration) filter ( where ah.state = 'wrap_time' ), interval '0') wrap_time,
                              coalesce(count(*) filter (where ah.state = 'bridged' ), 0)                    cnt,
+                             coalesce(count(*) filter (where ah.state = 'chat' ), 0)                    chat_count,
                              coalesce(count(*) filter (where ah.state = 'missed' ), 0)                     missed,
                              max(ah.joined_at) filter ( where ah.state = 'bridged' )                       max_bridged_at,
                              max(ah.joined_at) filter ( where ah.state = 'offering' )                      max_offering_at,

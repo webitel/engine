@@ -143,7 +143,7 @@ func (c *Controller) CloseAgentTask(session *auth_manager.Session, appId string,
 	return c.app.CloseTask(appId, session.DomainId, attemptId)
 }
 
-func (c *Controller) GetAgentPauseCause(session *auth_manager.Session, toAgentId int64) ([]*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) GetAgentPauseCause(session *auth_manager.Session, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -154,5 +154,5 @@ func (c *Controller) GetAgentPauseCause(session *auth_manager.Session, toAgentId
 	}
 	// todo RBAC ?
 
-	return c.app.GetAgentPauseCause(session.Domain(0), session.UserId, toAgentId)
+	return c.app.GetAgentPauseCause(session.Domain(0), session.UserId, toAgentId, allowChange)
 }

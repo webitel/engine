@@ -140,3 +140,7 @@ func (s *LayeredStore) Region() RegionStore {
 func (s *LayeredStore) PauseCause() PauseCauseStore {
 	return s.DatabaseLayer.PauseCause()
 }
+
+func (s *LayeredStore) Notification() NotificationStore {
+	return s.DatabaseLayer.Notification()
+}

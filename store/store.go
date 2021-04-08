@@ -56,6 +56,7 @@ type Store interface {
 	Region() RegionStore
 
 	PauseCause() PauseCauseStore
+	Notification() NotificationStore
 }
 
 // todo deprecated
@@ -116,7 +117,7 @@ type AgentStore interface {
 
 	GetSession(domainId, userId int64) (*model.AgentSession, *model.AppError)
 
-	PauseCause(domainId int64, fromUserId, toAgentId int64) ([]*model.AgentPauseCause, *model.AppError)
+	PauseCause(domainId int64, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError)
 
 	/* stats */
 	CallStatistics(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError)
@@ -336,4 +337,7 @@ type PauseCauseStore interface {
 }
 
 type NotificationStore interface {
+	Create(notification *model.Notification) (*model.Notification, *model.AppError)
+	Close(id, userId int64) (*model.Notification, *model.AppError)
+	Accept(id, userId int64) (*model.Notification, *model.AppError)
 }

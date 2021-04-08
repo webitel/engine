@@ -223,6 +223,6 @@ func (a *App) CloseTask(appId string, domainId int64, attemptId int64) *model.Ap
 	return nil
 }
 
-func (a *App) GetAgentPauseCause(domainId, fromUserId, toAgentId int64) ([]*model.AgentPauseCause, *model.AppError) {
-	return a.Store.Agent().PauseCause(domainId, fromUserId, toAgentId)
+func (a *App) GetAgentPauseCause(domainId, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
+	return a.Store.Agent().PauseCause(domainId, fromUserId, toAgentId, allowChange)
 }

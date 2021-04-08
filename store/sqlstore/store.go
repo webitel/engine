@@ -46,4 +46,5 @@ type SqlStore interface {
 
 	Region() store.RegionStore
 	PauseCause() store.PauseCauseStore
+	Notification() store.NotificationStore
 }

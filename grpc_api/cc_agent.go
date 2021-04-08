@@ -736,7 +736,7 @@ func (api *agent) SearchPauseCauseForAgent(ctx context.Context, in *engine.Searc
 	}
 
 	var list []*model.AgentPauseCause
-	list, err = api.ctrl.GetAgentPauseCause(session, in.AgentId)
+	list, err = api.ctrl.GetAgentPauseCause(session, in.AgentId, in.AllowChange)
 	if err != nil {
 		return nil, err
 	}
@@ -796,6 +796,8 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		Skills:         GetProtoLookups(src.Skills),
 		Supervisor:     GetProtoLookup(src.Supervisor),
 		Auditor:        GetProtoLookup(src.Auditor),
+		PauseCause:     src.PauseCause,
+		ChatCount:      src.ChatCount,
 	}
 
 	if src.ActiveCallId != nil {

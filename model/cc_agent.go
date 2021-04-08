@@ -84,6 +84,8 @@ type AgentStatusStatistics struct {
 	Skills      []*Lookup `json:"skills" db:"skills"`
 	Supervisor  *Lookup   `json:"supervisor" db:"supervisor"`
 	Auditor     *Lookup   `json:"auditor" db:"auditor"`
+	PauseCause  string    `json:"pause_cause" db:"pause_cause"`
+	ChatCount   int32     `json:"chat_count" db:"chat_count"`
 }
 
 type SearchAgentStatusStatistic struct {

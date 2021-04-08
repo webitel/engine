@@ -130,8 +130,19 @@ func (a *AMQP) initConnection() {
 	}
 }
 
+func (a *AMQP) SendNotification(domainId int64, event *model.Notification) *model.AppError {
+	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("notification.%d", domainId), false, false, amqp.Publishing{
+		ContentType: "text/json",
+		Body:        []byte(event.ToJson()),
+	})
+	if err != nil {
+		return model.NewAppError("AMQP.SendNotification", "amqp.notification.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
-	err := a.channel.Publish(model.MQ_APP_EXCHANGE, fmt.Sprintf("event.open_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
+	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("event.open_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
 		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
@@ -160,7 +171,7 @@ func (a *AMQP) SendStickingCall(e *model.CallServiceHangup) *model.AppError {
 }
 
 func (a *AMQP) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
-	err := a.channel.Publish(model.MQ_APP_EXCHANGE, fmt.Sprintf("event.close_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
+	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("event.close_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
 		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
@@ -171,7 +182,7 @@ func (a *AMQP) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsoc
 }
 
 func (a *AMQP) createAppExchange() *model.AppError {
-	if err := a.channel.ExchangeDeclare(model.MQ_APP_EXCHANGE, "topic", true, false, false, true, nil); err != nil {
+	if err := a.channel.ExchangeDeclare(model.AppExchange, "topic", true, false, false, true, nil); err != nil {
 		return model.NewAppError("AMQP", "amqp.declare.exchange.app_err", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return nil
