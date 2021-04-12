@@ -866,7 +866,7 @@ offset :Offset`, map[string]interface{}{
 		"From":         model.GetBetweenFromTime(&search.Time),
 		"To":           model.GetBetweenToTime(&search.Time),
 		"UFrom":        model.GetBetweenFrom(search.Utilization),
-		"UTo":          model.GetBetweenFrom(search.Utilization),
+		"UTo":          model.GetBetweenTo(search.Utilization),
 		"AgentIds":     pq.Array(search.AgentIds),
 		"Status":       pq.Array(search.Status),
 		"QueueIds":     pq.Array(search.QueueIds),
