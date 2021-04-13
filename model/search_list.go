@@ -46,7 +46,7 @@ func GetBetweenToTime(src *FilterBetween) *time.Time {
 }
 
 func GetBetweenFrom(src *FilterBetween) *int64 {
-	if src != nil {
+	if src != nil && src.From > 0 {
 		return &src.From
 	}
 
@@ -54,7 +54,7 @@ func GetBetweenFrom(src *FilterBetween) *int64 {
 }
 
 func GetBetweenTo(src *FilterBetween) *int64 {
-	if src != nil {
+	if src != nil && src.To > 0 {
 		return &src.To
 	}
 

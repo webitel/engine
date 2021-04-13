@@ -56,6 +56,10 @@ func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 		nextDistributeAt = model.NewInt64(int64(tmp))
 	}
 
+	if tmp, ok := req.Data["nextDistributeAt"].(float64); nextDistributeAt != nil && ok {
+		nextDistributeAt = model.NewInt64(int64(tmp))
+	}
+
 	if tmp, ok := req.Data["expire"].(float64); ok {
 		expire = model.NewInt64(int64(tmp))
 	}

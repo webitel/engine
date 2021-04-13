@@ -106,7 +106,7 @@ type SearchRoutingOutboundCall struct {
 }
 
 func (RoutingOutboundCall) DefaultOrder() string {
-	return "-position"
+	return "+position"
 }
 
 func (a RoutingOutboundCall) AllowFields() []string {
