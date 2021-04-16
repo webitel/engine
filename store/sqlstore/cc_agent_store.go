@@ -579,7 +579,7 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        a.on_demand,
        cc_get_lookup(t.id, t.name) team,
        a.supervisor is_supervisor,
-       exists(select 1 from cc_agent ad where ad.supervisor_id = a.id and ad.domain_id = a.domain_id) is_admin
+       exists(select 1 from cc_team tm where tm.domain_id = a.domain_id and tm.admin_id = a.id) is_admin
 from cc_agent a
 	 left join cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT json_build_array(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
