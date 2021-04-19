@@ -226,3 +226,7 @@ func (a *App) CloseTask(appId string, domainId int64, attemptId int64) *model.Ap
 func (a *App) GetAgentPauseCause(domainId, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
 	return a.Store.Agent().PauseCause(domainId, fromUserId, toAgentId, allowChange)
 }
+
+func (a *App) SupervisorAgentItem(domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
+	return a.Store.Agent().SupervisorAgentItem(domainId, agentId, t)
+}

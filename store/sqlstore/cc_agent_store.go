@@ -883,3 +883,60 @@ offset :Offset`, map[string]interface{}{
 
 	return list, nil
 }
+
+func (s SqlAgentStore) SupervisorAgentItem(domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
+	var item *model.SupervisorAgentItem
+
+	err := s.GetReplica().SelectOne(&item, `select a.id agent_id,
+       coalesce(cawu.name, cawu.username) as name,
+       cc_get_lookup(cawu.id, coalesce(cawu.name, cawu.username)) as user,
+       cawu.extension,
+       a.status,
+       extract(epoch from x.t)::int status_duration,
+
+       cc_get_lookup(t.id, t.name) team,
+       sup."user" supervisor,
+       cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+       cc_get_lookup(r.id, r.name) region,
+       a.progressive_count,
+       a.chat_count,
+
+       (coalesce(extract(epoch from stat.online), 0) + case when a.status = 'online' then  extract(epoch from x.t) else 0 end)::int8 online,
+       (coalesce(extract(epoch from stat.offline), 0) + case when a.status = 'offline' then  extract(epoch from x.t) else 0 end)::int8 offline,
+       (coalesce(extract(epoch from stat.pause), 0) + case when a.status = 'pause' then  extract(epoch from x.t) else 0 end)::int8 pause,
+       coalesce(a.status_payload, '') pause_cause
+from cc_agent a
+  left join cc_team t on t.id = a.team_id
+  left join cc_agent_with_user sup on sup.id = a.supervisor_id
+  left join directory.wbt_user aud on aud.id = a.auditor_id
+  left join flow.region r on r.id = a.region_id
+  left join lateral (
+     select
+        ah.agent_id,
+        coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0')    online,
+        coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval '0')   offline,
+        coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval '0')     pause
+     from cc_agent_state_history ah
+     where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
+        and ah.agent_id = a.id
+     group by 1
+  ) stat on true
+  inner join lateral (select case
+                             when stat isnull or
+                                  (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
+                                 then (:To::timestamptz) - (:From::timestamptz)
+                             else now() - a.last_state_change end t) x on true
+    left join directory.wbt_user cawu on a.user_id = cawu.id
+where a.id = :AgentId and a.domain_id = :DomainId`, map[string]interface{}{
+		"DomainId": domainId,
+		"AgentId":  agentId,
+		"From":     model.GetBetweenFromTime(t),
+		"To":       model.GetBetweenToTime(t),
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.SupervisorAgentItem", "store.sql_agent.get_status_stats_item.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return item, nil
+}

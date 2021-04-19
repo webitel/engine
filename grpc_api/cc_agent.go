@@ -756,6 +756,46 @@ func (api *agent) SearchPauseCauseForAgent(ctx context.Context, in *engine.Searc
 	}, nil
 }
 
+func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine.SearchAgentStatusStatisticItemRequest) (*engine.AgentStatusStatisticItem, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if in.GetTime() == nil {
+		return nil, model.NewAppError("GRPC.SearchAgentStatusStatisticItem", "grpc.agent.report.call", nil, "filter time is required", http.StatusBadRequest)
+	}
+	var item *model.SupervisorAgentItem
+
+	item, err = api.ctrl.GetSupervisorAgentItem(session, in.AgentId, &model.FilterBetween{
+		From: in.GetTime().GetFrom(),
+		To:   in.GetTime().GetTo(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.AgentStatusStatisticItem{
+		AgentId:          item.AgentId,
+		Name:             item.Name,
+		Status:           item.Status,
+		StatusDuration:   item.StatusDuration,
+		User:             GetProtoLookup(&item.User),
+		Extension:        item.Extension,
+		Team:             GetProtoLookup(item.Team),
+		Supervisor:       GetProtoLookup(item.Supervisor),
+		Auditor:          GetProtoLookup(item.Auditor),
+		Region:           GetProtoLookup(item.Region),
+		ProgressiveCount: item.ProgressiveCount,
+		ChatCount:        item.ChatCount,
+		PauseCause:       item.PauseCause,
+		Online:           item.Online,
+		Offline:          item.Offline,
+		Pause:            item.Pause,
+	}, nil
+}
+
 func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCallStatistics {
 	return &engine.AgentCallStatistics{
 		Name:       src.Name,

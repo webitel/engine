@@ -156,3 +156,17 @@ func (c *Controller) GetAgentPauseCause(session *auth_manager.Session, toAgentId
 
 	return c.app.GetAgentPauseCause(session.Domain(0), session.UserId, toAgentId, allowChange)
 }
+
+func (c *Controller) GetSupervisorAgentItem(session *auth_manager.Session, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	// todo RBAC ?
+
+	return c.app.SupervisorAgentItem(session.DomainId, agentId, t)
+}

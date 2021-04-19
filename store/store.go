@@ -132,6 +132,7 @@ type AgentStore interface {
 	LookupNotExistsUsersByGroups(domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, *model.AppError)
 
 	StatusStatistic(domainId int64, supervisorId int64, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError)
+	SupervisorAgentItem(domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError)
 }
 
 type AgentSkillStore interface {

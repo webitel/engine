@@ -88,6 +88,28 @@ type AgentStatusStatistics struct {
 	ChatCount   int32     `json:"chat_count" db:"chat_count"`
 }
 
+type SupervisorAgentItem struct {
+	AgentId        int32  `json:"agent_id" db:"agent_id"`
+	Name           string `json:"name" db:"name"`
+	Status         string `json:"status" db:"status"`
+	StatusDuration int64  `json:"status_duration" db:"status_duration"`
+	User           Lookup `json:"user" json:"user"`
+	Extension      string `json:"extension" db:"extension"`
+
+	Team             *Lookup `json:"team" db:"team"`
+	Supervisor       *Lookup `json:"supervisor" dlb:"supervisor"`
+	Auditor          *Lookup `json:"auditor" db:"auditor"`
+	Region           *Lookup `json:"region" db:"region"`
+	ProgressiveCount uint32  `json:"progressive_count" db:"progressive_count"`
+	ChatCount        uint32  `json:"chat_count" db:"chat_count"`
+
+	PauseCause string `json:"pause_cause" db:"pause_cause"`
+
+	Online  int64 `json:"online" db:"online"`
+	Offline int64 `json:"offline" db:"offline"`
+	Pause   int64 `json:"pause" db:"pause"`
+}
+
 type SearchAgentStatusStatistic struct {
 	ListRequest
 	Time          FilterBetween
