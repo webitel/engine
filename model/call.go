@@ -172,6 +172,7 @@ type Call struct {
 	QueueDurationSec *int       `json:"queue_duration_sec" db:"queue_duration_sec"`
 	ReportingSec     *int       `json:"reporting_sec" db:"reporting_sec"`
 	Display          *string    `json:"display" db:"display"`
+	Supervisor       *Lookup    `json:"supervisor" db:"supervisor"`
 
 	Task *CCTask `json:"task"`
 }
@@ -226,7 +227,7 @@ func (c Call) DefaultFields() []string {
 	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display",
+		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display", "supervisor",
 	}
 }
 
@@ -344,21 +345,22 @@ func (c *HistoryCall) GetResult() string {
 
 type SearchCall struct {
 	ListRequest
-	CreatedAt  *FilterBetween
-	Duration   *FilterBetween
-	AnsweredAt *FilterBetween
-	Number     *string
-	ParentId   *string
-	Direction  []string
-	Missed     *bool
-	SkipParent bool
-	HasFile    bool
-	UserIds    []int64
-	QueueIds   []int64
-	TeamIds    []int64
-	AgentIds   []int64
-	MemberIds  []int64
-	GatewayIds []int64
+	CreatedAt     *FilterBetween
+	Duration      *FilterBetween
+	AnsweredAt    *FilterBetween
+	Number        *string
+	ParentId      *string
+	Direction     []string
+	Missed        *bool
+	SkipParent    bool
+	HasFile       bool
+	UserIds       []int64
+	QueueIds      []int64
+	TeamIds       []int64
+	AgentIds      []int64
+	MemberIds     []int64
+	GatewayIds    []int64
+	SupervisorIds []int64
 }
 
 type SearchHistoryCall struct {

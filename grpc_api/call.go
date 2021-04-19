@@ -281,14 +281,15 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
 		},
-		Direction:  in.Direction,
-		SkipParent: in.GetSkipParent(),
-		UserIds:    in.GetUserId(),
-		QueueIds:   in.GetQueueId(),
-		TeamIds:    in.GetTeamId(),
-		AgentIds:   in.GetAgentId(),
-		MemberIds:  in.GetMemberId(),
-		GatewayIds: in.GetGatewayId(),
+		Direction:     in.Direction,
+		SkipParent:    in.GetSkipParent(),
+		UserIds:       in.GetUserId(),
+		QueueIds:      in.GetQueueId(),
+		TeamIds:       in.GetTeamId(),
+		AgentIds:      in.GetAgentId(),
+		MemberIds:     in.GetMemberId(),
+		GatewayIds:    in.GetGatewayId(),
+		SupervisorIds: in.GetSupervisorId(),
 	}
 
 	if in.GetDuration() != nil {
@@ -570,6 +571,7 @@ func toEngineCall(src *model.Call) *engine.ActiveCall {
 		QueueDurationSec: defaultInt(src.QueueDurationSec),
 		ReportingSec:     defaultInt(src.ReportingSec),
 		Display:          defaultString(src.Display),
+		Supervisor:       GetProtoLookup(src.Supervisor),
 	}
 
 	if src.ParentId != nil {

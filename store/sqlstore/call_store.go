@@ -22,27 +22,28 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	var out []*model.Call
 
 	f := map[string]interface{}{
-		"Domain":       domainId,
-		"Limit":        search.GetLimit(),
-		"Offset":       search.GetOffset(),
-		"From":         model.GetBetweenFromTime(search.CreatedAt),
-		"To":           model.GetBetweenToTime(search.CreatedAt),
-		"Q":            search.GetQ(),
-		"UserIds":      pq.Array(search.UserIds),
-		"QueueIds":     pq.Array(search.QueueIds),
-		"TeamIds":      pq.Array(search.TeamIds),
-		"AgentIds":     pq.Array(search.AgentIds),
-		"MemberIds":    pq.Array(search.MemberIds),
-		"GatewayIds":   pq.Array(search.GatewayIds),
-		"SkipParent":   search.SkipParent,
-		"ParentId":     search.ParentId,
-		"Number":       search.Number,
-		"Direction":    pq.Array(search.Direction),
-		"Missed":       search.Missed,
-		"AnsweredFrom": model.GetBetweenFromTime(search.AnsweredAt),
-		"AnsweredTo":   model.GetBetweenToTime(search.AnsweredAt),
-		"DurationFrom": model.GetBetweenFrom(search.Duration),
-		"DurationTo":   model.GetBetweenTo(search.Duration),
+		"Domain":        domainId,
+		"Limit":         search.GetLimit(),
+		"Offset":        search.GetOffset(),
+		"From":          model.GetBetweenFromTime(search.CreatedAt),
+		"To":            model.GetBetweenToTime(search.CreatedAt),
+		"Q":             search.GetQ(),
+		"UserIds":       pq.Array(search.UserIds),
+		"QueueIds":      pq.Array(search.QueueIds),
+		"TeamIds":       pq.Array(search.TeamIds),
+		"AgentIds":      pq.Array(search.AgentIds),
+		"MemberIds":     pq.Array(search.MemberIds),
+		"GatewayIds":    pq.Array(search.GatewayIds),
+		"SkipParent":    search.SkipParent,
+		"ParentId":      search.ParentId,
+		"Number":        search.Number,
+		"Direction":     pq.Array(search.Direction),
+		"Missed":        search.Missed,
+		"AnsweredFrom":  model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":    model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom":  model.GetBetweenFrom(search.Duration),
+		"DurationTo":    model.GetBetweenTo(search.Duration),
+		"SupervisorIds": pq.Array(search.SupervisorIds),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -51,6 +52,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
+	and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds) )
 	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
