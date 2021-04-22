@@ -215,6 +215,9 @@ type AgentSession struct {
 	IsSupervisor     bool           `json:"is_supervisor" db:"is_supervisor"`
 	IsAdmin          bool           `json:"is_admin" db:"is_admin"`
 	Channels         []AgentChannel `json:"channels" db:"channels"`
+
+	Supervisor *Lookup `json:"supervisor" db:"supervisor"`
+	Auditor    *Lookup `json:"auditor" db:"auditor"`
 }
 
 func (a AgentSession) ToMap() map[string]interface{} {
