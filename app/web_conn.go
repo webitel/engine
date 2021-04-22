@@ -45,6 +45,7 @@ type WebConn struct {
 	endWritePump       chan struct{}
 	pumpFinished       chan struct{}
 	listenEvents       map[string]*model.BindQueueEvent
+	mx                 sync.RWMutex
 
 	//Sip *SipProxy
 }
@@ -267,11 +268,17 @@ func (webCon *WebConn) IsAuthenticated() bool {
 }
 
 func (webCon *WebConn) SetListenEvent(name string, value *model.BindQueueEvent) {
+	webCon.mx.Lock()
+	defer webCon.mx.Unlock()
+
 	webCon.listenEvents[name] = value
 }
 
 func (webCon *WebConn) GetListenEvent(name string) (*model.BindQueueEvent, bool) {
+	webCon.mx.RLock()
 	v, ok := webCon.listenEvents[name]
+	webCon.mx.RUnlock()
+
 	return v, ok
 }
 
@@ -280,7 +287,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		return false
 	}
 
-	if _, ok := webCon.listenEvents[msg.EventType()]; !ok {
+	if _, ok := webCon.GetListenEvent(msg.EventType()); !ok {
 		return true
 	}
 
@@ -294,6 +301,9 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 }
 
 func (webCon *WebConn) GetAllBindings() []*model.BindQueueEvent {
+	webCon.mx.RLock()
+	defer webCon.mx.RUnlock()
+
 	arr := make([]*model.BindQueueEvent, 0, len(webCon.listenEvents))
 	for _, v := range webCon.listenEvents {
 		arr = append(arr, v)
