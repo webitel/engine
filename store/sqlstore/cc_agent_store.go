@@ -737,7 +737,7 @@ from (
                 coalesce(handles, 0)                                                          handles,
                 coalesce(stat.chat_count, 0)                                                          chat_count,
                 coalesce(missed, 0)                                                           missed,
-                999::int                                                                      transferred,
+                0::int                                                                      transferred,
                 max_bridged_at,
                 max_offering_at,
                 active_call.id                                    as                          active_call_id,
