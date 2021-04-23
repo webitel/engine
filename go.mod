@@ -24,7 +24,7 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/webitel/call_center v0.0.0-20210318111701-be2abd51b9e4
 	github.com/webitel/protos/cc v0.0.0-20210318110202-d914a54df431 // indirect
-	github.com/webitel/protos/engine v0.0.0-20210419094238-06f6bc9d4664
+	github.com/webitel/protos/engine v0.0.0-20210423145519-43a73fd9fd35
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/atomic v1.7.0
 	go.uber.org/multierr v1.6.0 // indirect

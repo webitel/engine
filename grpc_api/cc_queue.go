@@ -413,6 +413,8 @@ func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueRepo
 		AvgAwtSec:   src.AvgAwtSec,
 		AvgAsaSec:   src.AvgAsaSec,
 		AvgAhtSec:   src.AvgAhtSec,
+		Answered:    src.Answered,
+		SumBillSec:  src.SumTalkSec,
 	}
 }
 

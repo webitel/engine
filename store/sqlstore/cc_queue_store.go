@@ -363,14 +363,15 @@ items as materialized (
                                   'total', coalesce(array_length(queue_ag.total, 1), 0)
                ) agent_status,
 
-           999 missed,
+           coalesce(ag.abandoned::int, 0) missed,
            (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
            coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
                else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
            coalesce(ag.count, 0) count,
-           999 transferred,
-		   999 attempts,
+           0 transferred,
+		   0 attempts,
            coalesce(ag.bridged, 0) bridged,
+           coalesce(ag.bridged, 0) answered,
            coalesce(ag.abandoned::int, 0) abandoned,
 
            coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
