@@ -81,9 +81,9 @@ type QueueReportGeneral struct {
 	Transferred uint32  `json:"transferred" db:"transferred"`
 	Abandoned   uint32  `json:"abandoned" db:"abandoned"`
 	Attempts    uint32  `json:"attempts" db:"attempts"`
-	Answered    float32 `json:"answered" db:"answered"`
+	Bridged     float32 `json:"bridged" db:"bridged"`
 
-	SumTalkSec float32 `json:"sum_bill_sec" db:"sum_bill_sec"`
+	SumBillSec float32 `json:"sum_bill_sec" db:"sum_bill_sec"`
 	AvgWrapSec float32 `json:"avg_wrap_sec" db:"avg_wrap_sec"`
 	AvgAwtSec  float32 `json:"avg_awt_sec" db:"avg_awt_sec"`
 	AvgAsaSec  float32 `json:"avg_asa_sec" db:"avg_asa_sec"`

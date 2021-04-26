@@ -371,7 +371,6 @@ items as materialized (
            0 transferred,
 		   0 attempts,
            coalesce(ag.bridged, 0) bridged,
-           coalesce(ag.bridged, 0) answered,
            coalesce(ag.abandoned::int, 0) abandoned,
 
            coalesce(ag.sum_bill_sec, 0) sum_bill_sec,

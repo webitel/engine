@@ -408,13 +408,12 @@ func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueRepo
 		Transferred: src.Transferred,
 		Abandoned:   src.Abandoned,
 		Attempts:    src.Attempts,
-		SumTalkSec:  src.SumTalkSec,
+		SumBillSec:  src.SumBillSec,
 		AvgWrapSec:  src.AvgWrapSec,
 		AvgAwtSec:   src.AvgAwtSec,
 		AvgAsaSec:   src.AvgAsaSec,
 		AvgAhtSec:   src.AvgAhtSec,
-		Answered:    src.Answered,
-		SumBillSec:  src.SumTalkSec,
+		Bridged:     src.Bridged,
 	}
 }
 
