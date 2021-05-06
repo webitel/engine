@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"net/http"
 	"time"
 )
 
@@ -314,5 +315,9 @@ func (m *Member) GetAgentId() *int {
 
 func (m *Member) IsValid() *AppError {
 	//FIXME
+
+	if len(m.Communications) > 20 {
+		return NewAppError("Member.IsValid", "model.member.is_valid.communications.app_error", nil, "name="+m.Name, http.StatusBadRequest)
+	}
 	return nil
 }
