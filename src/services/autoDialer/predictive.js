@@ -25,7 +25,8 @@ module.exports = class Predictive extends Dialer {
                 member.endCause = END_CAUSE.MEMBER_EXPIRED;
                 member.end(END_CAUSE.MEMBER_EXPIRED);
             } else {
-                this.dialMember(member)
+                // this.dialMember(member)
+                this.callWithLimiter(this.dialMember, member)
             }
 
             engine();

@@ -27,6 +27,8 @@ const DIALER_STATES = require('./const').DIALER_STATES,
     REG_ORIGINATE = /originate_timeout=(\d+),?/
 ;
 
+const { pRateLimit } = require('p-ratelimit');
+
 module.exports = class Dialer extends EventEmitter2 {
 
     constructor (type, config, calendarConfig, dialerManager) {
@@ -72,6 +74,7 @@ module.exports = class Dialer extends EventEmitter2 {
         this._domain = config.domain;
         this.state = DIALER_STATES.Idle;
         this.cause = DIALER_CAUSE.Init;
+        this.limiter = null;
 
         const onChangeCalendar = (currentTime = {}) => {
             if (!currentTime.currentTimeOfDay)
@@ -353,7 +356,8 @@ module.exports = class Dialer extends EventEmitter2 {
             this.retriesByNumber = false,
             this.oneDayTask = false,
             this._predictStartBridgedCount = 10,
-            this._predictStartCallCount = 200
+            this._predictStartCallCount = 200,
+            this._cps = 2
         ] = [
             parameters.limit,
             parameters.maxTryCount,
@@ -377,10 +381,20 @@ module.exports = class Dialer extends EventEmitter2 {
             parameters.oneDayTask,
             parameters.predictStartBridgedCount,
             parameters.predictStartCallCount,
+            parameters.cps
         ];
 
         if (!isFinite(this._maxLocateAgentSec) || this._maxLocateAgentSec > 300 || this._maxLocateAgentSec < 1) {
             this._maxLocateAgentSec = 10
+        }
+
+        if (isFinite(this._cps) && this._cps > 0) {
+            this.limiter = pRateLimit({
+                interval: 1000,
+                rate: this._cps
+            })
+        } else {
+            this.limiter = null
         }
 
         if (this._amd.enabled) {
@@ -468,6 +482,16 @@ module.exports = class Dialer extends EventEmitter2 {
             };
         } else {
             this.descriptionMapping = null;
+        }
+    }
+
+    callWithLimiter(fn, ...args) {
+        if (this.limiter) {
+            this.limiter(async ()=> {
+                fn.call(this, ...args)
+            })
+        } else {
+            fn.call(this, ...args)
         }
     }
 

@@ -109,7 +109,7 @@ module.exports = class Member extends EventEmitter2 {
         this._waitingForResultStatus = dialer._waitingForResultStatus;
 
         this.endCause = null;
-        //this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
+        // this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
         this.log(`create probe ${this.currentProbe} - max ${dialer._maxTryCount}`);
         this.setCurrentAttempt(this.currentProbe);

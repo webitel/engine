@@ -44,7 +44,8 @@ module.exports = class VoiceBroadcast extends Dialer {
                 member.end(END_CAUSE.MEMBER_EXPIRED)
             } else {
                 if (member._currentNumber) {
-                    this.dialMember(member)
+                    this.callWithLimiter(this.dialMember, member)
+                    // this.dialMember(member)
                 } else {
                     member.end();
                 }
