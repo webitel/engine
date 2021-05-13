@@ -310,27 +310,44 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	return member, nil
 }
 
-// FIXME no error if restrict reference
 func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_member c where c.id=:Id and c.queue_id = :QueueId and not exists(select 1 from cc_member_attempt a where a.member_id = c.id)`,
-		map[string]interface{}{"Id": id, "QueueId": queueId}); err != nil {
+	var cnt int64
+	res, err := s.GetMaster().Exec(`delete
+from cc_member c
+where c.id = :Id
+  and c.queue_id = :QueueId
+  and not exists(select 1 from cc_member_attempt a where a.member_id = c.id and a.state != 'leaving' for update)`,
+		map[string]interface{}{"Id": id, "QueueId": queueId})
+
+	if err != nil {
 		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
+
+	cnt, err = res.RowsAffected()
+	if err != nil {
+		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	if cnt == 0 {
+		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
+			fmt.Sprintf("Id=%v, not found", id), http.StatusNotFound)
+	}
+
 	return nil
 }
 
 func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64, buckets []int64, cause []string) ([]*model.Member, *model.AppError) {
 	var res []*model.Member
 
-	//FIXME exists
 	_, err := s.GetMaster().Select(&res, `with m as (
     delete from cc_member m
     where m.queue_id = :QueueId
 		and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
 		and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
 		and (:Cause::varchar[] isnull or m.stop_cause = any(:Cause::varchar[]))
-		and not exists(select 1 from cc_member_attempt a where a.member_id = m.id)
+		and not exists(select 1 from cc_member_attempt a where a.member_id = m.id and a.state != 'leaving' for update)
     returning *
 )
 select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, cc_get_lookup(ct.id, ct.name) as "timezone",
