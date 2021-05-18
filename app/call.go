@@ -54,7 +54,7 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		invite.AddVariable(model.CALL_VARIABLE_USE_SCREEN, "true")
 	}
 
-	if req.Params.AutoAnswer {
+	if req.Params.AutoAnswer || true {
 		invite.AddVariable(model.CALL_VARIABLE_SIP_AUTO_ANSWER, "true")
 		//FIXME
 		invite.AddVariable("wbt_auto_answer", "true")
