@@ -131,7 +131,7 @@ type AttemptHistory struct {
 	ReportingAt  *time.Time        `json:"reporting_at" db:"reporting_at"`
 	LeavingAt    *time.Time        `json:"leaving_at" db:"leaving_at"`
 	Channel      string            `json:"channel" db:"channel"`
-	Queue        Lookup            `json:"queue" db:"queue"`
+	Queue        *Lookup           `json:"queue" db:"queue"`
 	Member       *Lookup           `json:"member" db:"member"`
 	MemberCallId *string           `json:"member_call_id" db:"member_call_id"`
 	Variables    map[string]string `json:"variables" db:"variables"`
@@ -194,7 +194,7 @@ type Attempt struct {
 	Timeout         int64             `json:"timeout" db:"timeout"`
 	LeavingAt       int64             `json:"leaving_at" db:"leaving_at"`
 	Channel         string            `json:"channel" db:"channel"`
-	Queue           Lookup            `json:"queue" db:"queue"`
+	Queue           *Lookup           `json:"queue" db:"queue"`
 	Member          *Lookup           `json:"member" db:"member"`
 	MemberCallId    *string           `json:"member_call_id" db:"member_call_id"`
 	Variables       map[string]string `json:"variables" db:"variables"`
