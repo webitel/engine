@@ -331,7 +331,6 @@ func (api *queue) DeleteQueue(ctx context.Context, in *engine.DeleteQueueRequest
 	return transformQueue(queue), nil
 }
 
-// FIXME RBAC
 func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.SearchQueueReportGeneralRequest) (*engine.ListReportGeneral, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -368,7 +367,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 		Types:    in.GetType(),
 	}
 
-	report, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.UserId, req)
+	report, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
 	if err != nil {
 		return nil, err
 	}

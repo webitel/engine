@@ -664,7 +664,6 @@ func (api *agent) SearchAgentCallStatistics(ctx context.Context, in *engine.Sear
 	}, nil
 }
 
-// FIXME RBAC
 func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.SearchAgentStatusStatisticRequest) (*engine.ListAgentStatsStatistic, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -714,7 +713,7 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 		}
 	}
 
-	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(0), session.UserId, req)
+	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(0), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
 	if err != nil {
 		return nil, err
 	}

@@ -310,33 +310,22 @@ func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-// FIXME RBAC
-func (s SqlQueueStore) QueueReportGeneral(domainId, supervisorUserId int64, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError) {
+func (s SqlQueueStore) QueueReportGeneral(domainId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError) {
 	var report *model.QueueReportGeneralAgg
 	err := s.GetReplica().SelectOne(&report, `
 with queues  as  (
     select *
     from cc_queue q
     where q.enabled is true and q.domain_id = :DomainId
-		and q.team_id in (
-			select t.team_id
-			from cc_agent ac
-				left join lateral (
-					select distinct a.team_id
-					from cc_agent a
-					where a.supervisor_id = ac.id and a.team_id notnull
-
-					union distinct
-					select ac.team_id
-
-					union distinct
-					select t.id
-					from cc_team t
-					where t.domain_id = ac.domain_id and t.admin_id = ac.id
-				) t on true
-			where ac.user_id = :SupervisorId
+		and q.id in (
+		  select distinct a.object::int4
+		  from cc_queue_acl a
+		  where a.dc = :DomainId
+			and a.subject = any (:Groups::int[])
+			and a.access & :Access = :Access
+			and a.object > 0
 		)
-),
+ ),
      queue_ag as (
         select distinct
                q.id queue_id,
@@ -417,16 +406,17 @@ select
             'total', coalesce(array_length(total, 1), 0)
                             ) from queue_ag where queue_ag.queue_id isnull ) aggs
 `, map[string]interface{}{
-		"DomainId":     domainId,
-		"SupervisorId": supervisorUserId,
-		"From":         model.GetBetweenFromTime(&search.JoinedAt),
-		"To":           model.GetBetweenToTime(&search.JoinedAt),
-		"Q":            search.GetQ(),
-		"QueueIds":     pq.Array(search.QueueIds),
-		"TeamIds":      pq.Array(search.TeamIds),
-		"Types":        pq.Array(search.Types),
-		"Limit":        search.GetLimit(),
-		"Offset":       search.GetOffset(),
+		"DomainId": domainId,
+		"Groups":   pq.Array(groups),
+		"Access":   access.Value(),
+		"From":     model.GetBetweenFromTime(&search.JoinedAt),
+		"To":       model.GetBetweenToTime(&search.JoinedAt),
+		"Q":        search.GetQ(),
+		"QueueIds": pq.Array(search.QueueIds),
+		"TeamIds":  pq.Array(search.TeamIds),
+		"Types":    pq.Array(search.Types),
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
 	})
 
 	if err != nil {
