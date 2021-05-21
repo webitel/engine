@@ -766,6 +766,20 @@ func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallba
 	}, nil
 }
 
+func (api *member) AttemptsRenewalResult(ctx context.Context, in *engine.AttemptRenewalResultRequest) (*engine.AttemptRenewalResultResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = api.ctrl.RenewalAttempt(session, in.AttemptId, in.Renewal)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.AttemptRenewalResultResponse{}, nil
+}
+
 func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.MemberCommunication {
 	res := make([]*engine.MemberCommunication, 0, len(src))
 
