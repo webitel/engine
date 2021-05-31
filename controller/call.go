@@ -30,7 +30,7 @@ func (c *Controller) SearchCall(session *auth_manager.Session, search *model.Sea
 	}
 
 	if permission.Rbac {
-		c.app.GetActiveCallPageByGroups(session.DomainId, session.RoleIds, search)
+		return c.app.GetActiveCallPageByGroups(session.DomainId, session.RoleIds, search)
 	}
 
 	return c.app.GetActiveCallPage(session.DomainId, search)
