@@ -94,7 +94,7 @@ func (dq *DomainQueue) BindUsersStatus(id string, userId int64) *model.BindQueue
 	b := &model.BindQueueEvent{
 		UserId:   userId,
 		Id:       id,
-		Routing:  fmt.Sprintf(model.MQ_USER_STATUS_TEMPLATE_ROUTING_KEY, dq.Id()),
+		Routing:  fmt.Sprintf(model.MQ_USER_STATUS_TEMPLATE_ROUTING_KEY, dq.Id(), userId),
 		Exchange: model.MQ_USER_STATUS_EXCHANGE,
 	}
 

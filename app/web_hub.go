@@ -173,17 +173,15 @@ func (wh *Hub) start() {
 			msg := model.NewWebSocketUserStateEvent(ev)
 
 			msg.PrecomputeJSON()
-			candidates := connections.All()
-			for webCon := range candidates {
-				//FIXME permission call events
-				if webCon.ShouldSendEvent(msg) {
-					select {
-					case webCon.Send <- msg:
-					default:
-						wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
-						close(webCon.Send)
-						connections.Remove(webCon)
-					}
+			candidates := connections.ForUser(msg.UserId)
+
+			for _, webCon := range candidates {
+				select {
+				case webCon.Send <- msg:
+				default:
+					wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+					close(webCon.Send)
+					connections.Remove(webCon)
 				}
 			}
 

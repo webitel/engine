@@ -9,7 +9,7 @@ const (
 	MQ_USER_STATUS_EXCHANGE = "webitel"
 
 	CallRoutingTemplate                 = "events.*.*.%d.%d"
-	MQ_USER_STATUS_TEMPLATE_ROUTING_KEY = "presence.user.%d.*"
+	MQ_USER_STATUS_TEMPLATE_ROUTING_KEY = "presence.user.%d.%d"
 
 	MQ_TOPIC = "topic"
 )
