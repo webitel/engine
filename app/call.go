@@ -249,6 +249,15 @@ func (app *App) GetActiveCallPage(domainId int64, search *model.SearchCall) ([]*
 	return list, search.EndOfList(), nil
 }
 
+func (app *App) GetActiveCallPageByGroups(domainId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
+	list, err := app.Store.Call().GetActiveByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
 func (app *App) GetUserActiveCalls(domainId, userId int64) ([]*model.Call, *model.AppError) {
 	return app.Store.Call().GetUserActiveCall(domainId, userId)
 }

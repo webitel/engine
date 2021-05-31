@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
@@ -67,6 +68,80 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 		model.Call{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlCallStore.GetActive", "store.sql_call.get_active.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return out, nil
+}
+
+func (s SqlCallStore) GetActiveByGroups(domainId int64, groups []int, search *model.SearchCall) ([]*model.Call, *model.AppError) {
+	var out []*model.Call
+
+	f := map[string]interface{}{
+		"Domain":        domainId,
+		"Limit":         search.GetLimit(),
+		"Offset":        search.GetOffset(),
+		"From":          model.GetBetweenFromTime(search.CreatedAt),
+		"To":            model.GetBetweenToTime(search.CreatedAt),
+		"Q":             search.GetQ(),
+		"UserIds":       pq.Array(search.UserIds),
+		"QueueIds":      pq.Array(search.QueueIds),
+		"TeamIds":       pq.Array(search.TeamIds),
+		"AgentIds":      pq.Array(search.AgentIds),
+		"MemberIds":     pq.Array(search.MemberIds),
+		"GatewayIds":    pq.Array(search.GatewayIds),
+		"SkipParent":    search.SkipParent,
+		"ParentId":      search.ParentId,
+		"Number":        search.Number,
+		"Direction":     pq.Array(search.Direction),
+		"Missed":        search.Missed,
+		"AnsweredFrom":  model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":    model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom":  model.GetBetweenFrom(search.Duration),
+		"DurationTo":    model.GetBetweenTo(search.Duration),
+		"SupervisorIds": pq.Array(search.SupervisorIds),
+		"Groups":        pq.Array(groups),
+		"Access":        auth_manager.PERMISSION_ACCESS_READ.Value(),
+	}
+
+	err := s.ListQuery(&out, search.ListRequest,
+		`domain_id = :Domain and direction notnull
+	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
+	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
+	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
+	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
+	and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds) )
+	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
+	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
+	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
+	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
+	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
+	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
+	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
+	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
+	and (:Direction::varchar[] isnull or direction = any(:Direction) )
+	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and exists(
+		select acl.*
+		from (
+			select a.*
+			  from directory.wbt_default_acl a
+			  join directory.wbt_class c on c.dc = t.domain_id and c.name = 'calls' and a.object = c.id
+			 where (a.grantor = t.user_id or a.grantor = t.grantee_id)
+				or exists(select r.role_id
+						   from directory.wbt_auth_member r
+						  where (r.member_id = t.user_id or r.member_id = t.grantee_id)
+							and r.role_id = a.grantor
+				   )
+			union all
+			values(t.domain_id, 0, t.user_id, t.user_id, 255)
+		) acl
+		where acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access
+	)
+`,
+		model.Call{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.GetActiveByGroups", "store.sql_call.get_active.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return out, nil

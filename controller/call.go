@@ -29,6 +29,10 @@ func (c *Controller) SearchCall(session *auth_manager.Session, search *model.Sea
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
+	if permission.Rbac {
+		c.app.GetActiveCallPageByGroups(session.DomainId, session.RoleIds, search)
+	}
+
 	return c.app.GetActiveCallPage(session.DomainId, search)
 }
 
