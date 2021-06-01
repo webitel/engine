@@ -381,6 +381,10 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 		if in.From.Id != 0 {
 			req.From.UserId = model.NewInt64(in.From.Id)
 		}
+
+		if in.From.Extension != "" {
+			req.From.Extension = model.NewString(in.From.Extension)
+		}
 	}
 
 	var id string

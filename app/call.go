@@ -28,8 +28,8 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		return "", model.NewAppError("CreateOutboundCall", "app.call.create.not_found", nil, "", http.StatusNotFound)
 	}
 
-	if req.From.UserId != nil {
-		if from, err = app.GetUserCallInfo(*req.From.UserId, domainId); err != nil {
+	if req.From != nil && (req.From.UserId != nil || req.From.Extension != nil) {
+		if from, err = app.GetCallInfoEndpoint(domainId, req.From); err != nil {
 			return "", err
 		}
 	} else {

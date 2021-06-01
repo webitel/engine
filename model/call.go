@@ -49,6 +49,7 @@ type Endpoint struct {
 type EndpointRequest struct {
 	AppId       *string
 	UserId      *int64
+	Extension   *string
 	SchemaId    *int
 	Destination *string
 }

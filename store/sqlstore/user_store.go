@@ -55,6 +55,27 @@ where u.id = :UserId
 	return info, nil
 }
 
+func (s SqlUserStore) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest) (*model.UserCallInfo, *model.AppError) {
+	var info *model.UserCallInfo
+	err := s.GetReplica().SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name, 
+u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{}'::jsonb) as variables
+from directory.wbt_user u
+    inner join directory.wbt_domain d on d.dc = u.dc
+where case when :UserId::int8 notnull then u.id = :UserId else u.extension = :Extension::varchar end
+  and u.dc = :DomainId
+limit 1`, map[string]interface{}{
+		"UserId":    e.UserId,
+		"Extension": e.Extension,
+		"DomainId":  domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetCallInfoEndpoint", "store.sql_user.get_call_info.app_error", nil,
+			fmt.Sprintf("UserId=%v, Extension=%v %s", e.UserId, e.Extension, err.Error()), extractCodeFromErr(err))
+	}
+	return info, nil
+}
+
 func (s SqlUserStore) DefaultWebRTCDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError) {
 	var deviceConfig *model.UserDeviceConfig
 

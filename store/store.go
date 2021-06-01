@@ -67,6 +67,7 @@ type ChatStore interface {
 type UserStore interface {
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 	GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError)
+	GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest) (*model.UserCallInfo, *model.AppError)
 	DefaultWebRTCDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError)
 	DefaultSipDeviceConfig(userId, domainId int64) (*model.UserSipDeviceConfig, *model.AppError)
 }

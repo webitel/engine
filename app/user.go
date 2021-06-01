@@ -13,6 +13,10 @@ func (app *App) GetUserCallInfo(userId, domainId int64) (*model.UserCallInfo, *m
 	return app.Store.User().GetCallInfo(userId, domainId)
 }
 
+func (app *App) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest) (*model.UserCallInfo, *model.AppError) {
+	return app.Store.User().GetCallInfoEndpoint(domainId, e)
+}
+
 func (app *App) GetUserDefaultWebRTCDeviceConfig(userId, domainId int64) (map[string]interface{}, *model.AppError) {
 	conf, err := app.Store.User().DefaultWebRTCDeviceConfig(userId, domainId)
 	if err != nil {
