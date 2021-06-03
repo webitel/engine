@@ -357,7 +357,7 @@ items as materialized (
            coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
                else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
            coalesce(ag.count, 0) count,
-           0 transferred,
+           coalesce(ag.transferred, 0) transferred,
 		   0 attempts,
            coalesce(ag.bridged, 0) bridged,
            coalesce(ag.abandoned::int, 0) abandoned,
@@ -377,6 +377,7 @@ items as materialized (
                    count(*) as count,
                    count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
                    count(*) filter ( where t.bridged_at isnull  ) * 100.0 / count(*) as abandoned,
+                   count(*) filter ( where t.result = 'transfer' )  as transferred,
                    extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
                    extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
                    extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
