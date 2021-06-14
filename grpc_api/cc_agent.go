@@ -837,6 +837,7 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		Auditor:        GetProtoLookup(src.Auditor),
 		PauseCause:     src.PauseCause,
 		ChatCount:      src.ChatCount,
+		Occupancy:      src.Occupancy,
 	}
 
 	if src.ActiveCallId != nil {

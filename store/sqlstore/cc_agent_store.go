@@ -706,7 +706,8 @@ order by c.name;`, map[string]interface{}{
 func (s SqlAgentStore) StatusStatistic(domainId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor, pause_cause, chat_count
+       max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor, pause_cause, chat_count, 
+	   coalesce(occupancy, 0) as occupancy
 from (
          select a.id                                                                          agent_id,
                 a.domain_id,
@@ -714,7 +715,7 @@ from (
                 coalesce(u.extension, '')                         as                          extension,
                 a.status,
                 extract(epoch from x.t)::int                                                  status_duration,
-			    coalesce(a.status_payload, '')												  pause_cause,  	
+			    coalesce(a.status_payload, '')												  pause_cause,
                 cc_get_lookup(u.id, coalesce(u.name, u.username)) as                          user,
 
                 cc_get_lookup(team.id, team.name)                                             team,
@@ -732,7 +733,9 @@ from (
                             else stat.pause end,
                         interval '0'))::int                                                   pause,
 
-                case when onl_all > 0 then (coalesce(work_dur, 0) / onl_all) * 100 else 0 end utilization,
+                case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end utilization,
+                case when onl_all > 0 then (coalesce(work_dur, 0) / (onl_all + pause_all)) else 0 end occupancy,
+
                 coalesce(extract(epoch from call_time)::int8, 0)                              call_time,
                 coalesce(handles, 0)                                                          handles,
                 coalesce(stat.chat_count, 0)                                                          chat_count,
@@ -832,6 +835,11 @@ from (
                      when a.status = 'online' then (x.t + coalesce(stat.online, interval '0'))
                      else stat.online end,
                  interval '0')) onl_all on true
+                left join lateral extract(epoch from coalesce(
+                 case
+                     when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0'))
+                     else stat.pause end,
+                 interval '0')) pause_all on true
 			 where a.domain_id = :DomainId and
 				   a.id in (
 					  select a.object::int

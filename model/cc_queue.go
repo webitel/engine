@@ -88,6 +88,8 @@ type QueueReportGeneral struct {
 	AvgAwtSec  float32 `json:"avg_awt_sec" db:"avg_awt_sec"`
 	AvgAsaSec  float32 `json:"avg_asa_sec" db:"avg_asa_sec"`
 	AvgAhtSec  float32 `json:"avg_aht_sec" db:"avg_aht_sec"`
+	Sl20       float32 `json:"sl20" db:"sl20"`
+	Sl30       float32 `json:"sl30" db:"sl30"`
 }
 
 type QueueReportGeneralAgg struct {

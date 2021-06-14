@@ -86,6 +86,8 @@ type AgentStatusStatistics struct {
 	Auditor     *Lookup   `json:"auditor" db:"auditor"`
 	PauseCause  string    `json:"pause_cause" db:"pause_cause"`
 	ChatCount   int32     `json:"chat_count" db:"chat_count"`
+
+	Occupancy float32 `json:"occupancy" db:"occupancy"`
 }
 
 type SupervisorAgentItem struct {

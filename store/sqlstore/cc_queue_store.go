@@ -363,6 +363,8 @@ items as materialized (
            coalesce(ag.abandoned::int, 0) abandoned,
 
            coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
+           coalesce(ag.sl20, 0) sl20,
+           coalesce(ag.sl30, 0) sl30,
            coalesce(ag.avg_wrap_sec, 0) avg_wrap_sec,
            coalesce(ag.avg_awt_sec, 0) avg_awt_sec,
            coalesce(ag.max_awt_sec, 0) max_awt_sec,
@@ -378,6 +380,12 @@ items as materialized (
                    count(*) filter ( where t.bridged_at notnull ) * 100.0 / count(*) as bridged,
                    count(*) filter ( where t.bridged_at isnull  ) * 100.0 / count(*) as abandoned,
                    count(*) filter ( where t.result = 'transfer' )  as transferred,
+				   case when count(*)::decimal > 0 then
+			       	(count(*) filter ( where t.bridged_at - t.joined_at < interval '20 sec')::decimal * 100) / count(*)::decimal  
+				   else 0::decimal end as sl20,
+				   case when count(*)::decimal > 0 then
+			       	(count(*) filter ( where t.bridged_at - t.joined_at < interval '30 sec')::decimal * 100) / count(*)::decimal
+				   else 0::decimal end as sl30,
                    extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
                    extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
                    extract(EPOCH from avg(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) avg_awt_sec,
