@@ -303,6 +303,7 @@ type ListStore interface {
 
 type CallStore interface {
 	GetHistory(domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError)
+	GetHistoryByGroups(domainId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError)
 	Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError)
 	GetActive(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError)
 	GetActiveByGroups(domainId int64, groups []int, search *model.SearchCall) ([]*model.Call, *model.AppError)

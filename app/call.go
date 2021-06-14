@@ -275,6 +275,15 @@ func (app *App) GetHistoryCallPage(domainId int64, search *model.SearchHistoryCa
 	return list, search.EndOfList(), nil
 }
 
+func (app *App) GetHistoryCallPageByGroups(domainId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+	list, err := app.Store.Call().GetHistoryByGroups(domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
 func (app *App) GetAggregateHistoryCallPage(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
 	return app.Store.Call().Aggregate(domainId, aggs)
 }

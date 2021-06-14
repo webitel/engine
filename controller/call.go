@@ -51,6 +51,10 @@ func (c *Controller) SearchHistoryCall(session *auth_manager.Session, search *mo
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
+	if permission.Rbac {
+		return c.app.GetHistoryCallPageByGroups(session.DomainId, session.RoleIds, search)
+	}
+
 	return c.app.GetHistoryCallPage(session.Domain(search.DomainId), search)
 }
 
