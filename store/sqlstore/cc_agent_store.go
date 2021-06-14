@@ -551,8 +551,8 @@ where u.dc = :DomainId
 	  from directory.wbt_auth_acl acl
 	  where acl.dc = u.dc and acl.object = u.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
   ) 
-  and   ( (:Q::varchar isnull or (u.name ilike :Q::varchar ) ))
-order by u.id
+  and   ( (:Q::varchar isnull or (coalesce( (u.name)::varchar, u.username) ilike :Q::varchar ) ))
+order by coalesce( (u.name)::varchar, u.username) 
 limit :Limit
 offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
