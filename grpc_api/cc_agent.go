@@ -797,18 +797,20 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 
 func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCallStatistics {
 	return &engine.AgentCallStatistics{
-		Name:       src.Name,
-		Count:      src.Count,
-		Abandoned:  src.Abandoned,
-		Handles:    src.Handles,
-		SumTalkSec: src.SumTalkSec,
-		AvgTalkSec: src.AvgTalkSec,
-		MinTalkSec: src.MinTalkSec,
-		MaxTalkSec: src.MaxTalkSec,
-		SumHoldSec: src.SumHoldSec,
-		AvgHoldSec: src.AvgHoldSec,
-		MinHoldSec: src.MinHoldSec,
-		MaxHoldSec: src.MaxHoldSec,
+		Name:        src.Name,
+		Count:       src.Count,
+		Abandoned:   src.Abandoned,
+		Handles:     src.Handles,
+		SumTalkSec:  src.SumTalkSec,
+		AvgTalkSec:  src.AvgTalkSec,
+		MinTalkSec:  src.MinTalkSec,
+		MaxTalkSec:  src.MaxTalkSec,
+		SumHoldSec:  src.SumHoldSec,
+		AvgHoldSec:  src.AvgHoldSec,
+		MinHoldSec:  src.MinHoldSec,
+		MaxHoldSec:  src.MaxHoldSec,
+		Utilization: src.Utilization,
+		Occupancy:   src.Occupancy,
 	}
 }
 

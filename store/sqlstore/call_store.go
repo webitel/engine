@@ -158,7 +158,7 @@ func (s SqlCallStore) GetUserActiveCall(domainId, userId int64) ([]*model.Call, 
 		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display"
 from cc_call_active_list c
     left join lateral (
-    select a.id as attempt_id, a.channel, a.queue_id, a.member_id, a.member_call_id as member_channel_id,
+    select a.id as attempt_id, a.channel, a.queue_id, q.name as queue_name, a.member_id, a.member_call_id as member_channel_id,
            a.agent_call_id as agent_channel_id, a.destination as communication,
            a.state,
            q.processing as reporting

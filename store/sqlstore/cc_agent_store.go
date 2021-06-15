@@ -624,7 +624,9 @@ from (
         coalesce(res.sum_hold_sec, 0) as sum_hold_sec,
         coalesce(res.avg_hold_sec, 0) as avg_hold_sec,
         coalesce(res.min_hold_sec, 0) as min_hold_sec,
-        coalesce(res.max_hold_sec, 0) as max_hold_sec
+        coalesce(res.max_hold_sec, 0) as max_hold_sec,
+        case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end utilization,
+        case when onl_all > 0 then (coalesce(work_dur, 0) / (onl_all + pause_all)) else 0 end occupancy
     from (
          select c.agent_id,
                count(*) as count,
@@ -647,6 +649,63 @@ from (
     ) res
         inner join cc_agent a on a.id = res.agent_id
         inner join directory.wbt_user u on u.id = a.user_id
+        left join lateral (
+             select ares.agent_id,
+                    case when l.state = 'online' then l.delta + ares.online else ares.online end    online,
+                    case when l.state = 'offline' then l.delta + ares.offline else ares.offline end offline,
+                    case when l.state = 'pause' then l.delta + ares.pause else ares.pause end       pause,
+                    extract(epoch from (ares.offering + ares.bridged + ares.wrap_time)) as          work_dur,
+                    ares.bridged                                                        as          call_time,
+                    ares.cnt                                                                        handles,
+				    ares.chat_count,
+                    ares.missed,
+                    ares.max_bridged_at,
+                    ares.max_offering_at
+             from (
+                      select ah.agent_id,
+                             coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0')    online,
+                             coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval '0')   offline,
+                             coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval '0')     pause,
+                             coalesce(sum(duration) filter ( where ah.state = 'bridged' ), interval '0')   bridged,
+                             coalesce(sum(duration) filter ( where ah.state = 'offering' ), interval '0')  offering,
+                             coalesce(sum(duration) filter ( where ah.state = 'wrap_time' ), interval '0') wrap_time,
+                             coalesce(count(*) filter (where ah.state = 'bridged' ), 0)                    cnt,
+                             coalesce(count(*) filter (where ah.state = 'chat' ), 0)                    chat_count,
+                             coalesce(count(*) filter (where ah.state = 'missed' ), 0)                     missed,
+                             max(ah.joined_at) filter ( where ah.state = 'bridged' )                       max_bridged_at,
+                             max(ah.joined_at) filter ( where ah.state = 'offering' )                      max_offering_at,
+                             min(ah.joined_at)
+                      from cc_agent_state_history ah
+                      where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
+                        and ah.agent_id = a.id
+                      group by 1
+                  ) ares
+                      left join lateral (
+                 select h2.state,
+                        ares.min - (:From::timestamptz) delta
+                 from cc_agent_state_history h2
+                 where h2.joined_at < ares.min
+                   and h2.agent_id = ares.agent_id
+                   and h2.state in ('online', 'offline', 'pause')
+                 order by h2.joined_at desc
+                 limit 1
+                 ) l on true
+         ) stat on stat.agent_id = a.id
+        left join lateral (select case
+                                         when stat isnull or
+                                              (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
+                                             then (:To::timestamptz) - (:From::timestamptz)
+                                         else now() - a.last_state_change end t) x on true
+        left join lateral extract(epoch from coalesce(
+         case
+             when a.status = 'online' then (x.t + coalesce(stat.online, interval '0'))
+             else stat.online end,
+         interval '0')) onl_all on true
+        left join lateral extract(epoch from coalesce(
+         case
+             when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0'))
+             else stat.pause end,
+         interval '0')) pause_all on true
     where a.domain_id = :DomainId
 ) agg
 limit :Limit
