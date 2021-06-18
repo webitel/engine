@@ -11,7 +11,7 @@ func (c *Controller) GetAgentSession(session *auth_manager.Session, domainId, us
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		//FIXME agentID!
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), userId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -29,7 +29,7 @@ func (c *Controller) LoginAgent(session *auth_manager.Session, domainId, agentId
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return err
 		} else if !perm {
@@ -46,7 +46,7 @@ func (c *Controller) LogoutAgent(session *auth_manager.Session, domainId, agentI
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return err
 		} else if !perm {
@@ -63,7 +63,7 @@ func (c *Controller) PauseAgent(session *auth_manager.Session, domainId, agentId
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return err
 		} else if !perm {
@@ -80,7 +80,7 @@ func (c *Controller) WaitingAgent(session *auth_manager.Session, domainId, agent
 		return 0, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return 0, err
 		} else if !perm {
@@ -97,7 +97,7 @@ func (c *Controller) ActiveAgentTasks(session *auth_manager.Session, domainId, a
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
@@ -114,7 +114,7 @@ func (c *Controller) GetAgentInQueueStatistics(session *auth_manager.Session, do
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.AgentCheckAccess(session.Domain(domainId), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {

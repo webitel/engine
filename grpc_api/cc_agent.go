@@ -111,7 +111,7 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		req.NotSupervisor = &in.NotSupervisor
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		list, endList, err = api.app.GetAgentsPageByGroups(session.Domain(0), session.GetAclRoles(), req)
 	} else {
 		list, endList, err = api.app.GetAgentsPage(session.Domain(0), req)
@@ -145,7 +145,7 @@ func (api *agent) ReadAgent(ctx context.Context, in *engine.ReadAgentRequest) (*
 
 	var agent *model.Agent
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
 		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -178,7 +178,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
 		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
@@ -235,7 +235,7 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
 		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
@@ -309,7 +309,7 @@ func (api *agent) DeleteAgent(ctx context.Context, in *engine.DeleteAgentRequest
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
 		var perm bool
 		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
@@ -339,7 +339,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 			return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 
-		if permission.Rbac {
+		if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 			var perm bool
 			if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 				return nil, err
@@ -379,7 +379,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
 		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -436,7 +436,7 @@ func (api *agent) AgentStateHistory(ctx context.Context, in *engine.AgentStateHi
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
 		if perm, err = api.app.AgentCheckAccess(session.Domain(in.GetDomainId()), in.GetAgentId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
@@ -564,7 +564,7 @@ func (api *agent) SearchLookupUsersAgentNotExists(ctx context.Context, in *engin
 
 	items := make([]*engine.AgentUser, 0, len(list))
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		list, endList, err = api.app.AgentsLookupNotExistsUsersByGroups(session.Domain(in.GetDomainId()), session.GetAclRoles(), req)
 	} else {
 		list, endList, err = api.app.AgentsLookupNotExistsUsers(session.Domain(in.GetDomainId()), req)

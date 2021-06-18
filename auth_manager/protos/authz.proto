@@ -4,19 +4,11 @@ package api;
 
 import "oid.proto";
 import "customers.proto";
-import "google/api/annotations.proto";
+import "permission.proto";
 
 service Auth {
     // The UserInfo Endpoint is an OAuth 2.0 Protected Resource that returns Claims about the authenticated End-User.
-    rpc UserInfo(UserinfoRequest) returns (Userinfo) {
-        // The UserInfo Endpoint MUST support the use of the HTTP GET and HTTP POST methods defined in RFC 2616 [RFC2616].
-        option (google.api.http) = {
-            post: "/userinfo"
-            additional_bindings {
-                get: "/userinfo"
-            }
-        };
-    }
+    rpc UserInfo(UserinfoRequest) returns (Userinfo) {}
 }
 
 message UserinfoRequest {
@@ -41,17 +33,18 @@ message Objclass {
 
 // https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
 message Userinfo {
-
     int64  dc = 2; // current domain component id
     string domain = 3 [json_name="realm"]; // session domain.name
     int64  user_id = 4 [json_name="sub"]; // current user.id
-    string username = 5 [json_name="nickname"]; // session end-user login
-    string extension = 6 [json_name="phone_number"];
+    string name = 5 [json_name="name"]; // current user.id
+    string username = 6 [json_name="nickname"]; // session end-user login
     string preferred_username = 7 [json_name="preferred_username"];
+    string extension = 8 [json_name="phone_number"];
 
     repeated Objclass scope = 10; // map[class]dac
     repeated ObjectId roles = 11;  // map[role]oid
-    repeated LicenseUser license = 12;
+    repeated LicenseUser license = 12; // map[key]details
+    repeated Permission permissions = 13; //
 
     int64 updated_at = 20; // user last updated
     int64 expires_at = 21 [json_name="exp"]; // unix

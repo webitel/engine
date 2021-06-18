@@ -2,17 +2,16 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 )
 
 type skill struct {
-	app *app.App
+	*API
 }
 
-func NewSkillApi(app *app.App) *skill {
-	return &skill{app: app}
+func NewSkillApi(api *API) *skill {
+	return &skill{api}
 }
 
 func (api *skill) CreateSkill(ctx context.Context, in *engine.CreateSkillRequest) (*engine.Skill, error) {
@@ -27,12 +26,7 @@ func (api *skill) CreateSkill(ctx context.Context, in *engine.CreateSkillRequest
 		Description: in.Description,
 	}
 
-	err = skill.IsValid()
-	if err != nil {
-		return nil, err
-	}
-
-	skill, err = api.app.CreateSkill(skill)
+	skill, err = api.ctrl.CreateSkill(session, skill)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +53,7 @@ func (api *skill) SearchSkill(ctx context.Context, in *engine.SearchSkillRequest
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetSkillsPage(session.Domain(0), req)
+	list, endList, err = api.ctrl.SearchSkill(session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +75,7 @@ func (api *skill) ReadSkill(ctx context.Context, in *engine.ReadSkillRequest) (*
 		return nil, err
 	}
 
-	skill, err = api.app.GetSkill(in.Id, session.Domain(in.GetDomainId()))
+	skill, err = api.ctrl.ReadSkill(session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +91,7 @@ func (api *skill) UpdateSkill(ctx context.Context, in *engine.UpdateSkillRequest
 
 	var skill *model.Skill
 
-	skill, err = api.app.UpdateSkill(&model.Skill{
+	skill, err = api.ctrl.UpdateSkill(session, &model.Skill{
 		Id:          in.Id,
 		Name:        in.Name,
 		DomainId:    session.Domain(in.GetDomainId()),
@@ -118,7 +112,7 @@ func (api *skill) DeleteSkill(ctx context.Context, in *engine.DeleteSkillRequest
 	}
 
 	var skill *model.Skill
-	skill, err = api.app.RemoveSkill(session.Domain(in.DomainId), in.Id)
+	skill, err = api.ctrl.DeleteSkill(session, in.Id)
 	if err != nil {
 		return nil, err
 	}

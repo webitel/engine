@@ -44,7 +44,7 @@ func Init(a *app.App, server *grpc.Server) {
 		ctrl: controller.NewController(a),
 	}
 	api.calendar = NewCalendarApi(api)
-	api.skill = NewSkillApi(a)
+	api.skill = NewSkillApi(api)
 	api.agentTeam = NewAgentTeamApi(a)
 	api.agent = NewAgentApi(api)
 	api.agentSkill = NewAgentSkillApi(a)
@@ -58,7 +58,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.routingSchema = NewRoutingSchemaApi(a)
 	api.routingOutboundCall = NewRoutingOutboundCallApi(api)
 	api.routingVariable = NewRoutingVariableApi(a)
-	api.communicationType = NewCommunicationTypeApi(a)
+	api.communicationType = NewCommunicationTypeApi(api)
 	api.bucket = NewBucketApi(a)
 	api.queueBucket = NewQueueBucketApi(a)
 	api.list = NewListApi(a)

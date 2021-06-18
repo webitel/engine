@@ -29,7 +29,7 @@ func (c *Controller) SearchCall(session *auth_manager.Session, search *model.Sea
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		return c.app.GetActiveCallPageByGroups(session.DomainId, session.RoleIds, search)
 	}
 
@@ -51,7 +51,7 @@ func (c *Controller) SearchHistoryCall(session *auth_manager.Session, search *mo
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		return c.app.GetHistoryCallPageByGroups(session.DomainId, session.RoleIds, search)
 	}
 

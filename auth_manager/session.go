@@ -12,8 +12,23 @@ type Session struct {
 	UserId     int64  `json:"user_id"`
 	RoleIds    []int  `json:"role_ids"`
 
-	Token  string              `json:"token"`
-	Scopes []SessionPermission `json:"scopes"`
+	Token            string              `json:"token"`
+	Scopes           []SessionPermission `json:"scopes"`
+	adminPermissions []PermissionAccess  `json:"admin_permissions"`
+}
+
+func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool {
+	if !perm.rbac {
+		return false
+	}
+
+	for _, v := range self.adminPermissions {
+		if v == acc {
+			return false
+		}
+	}
+
+	return perm.rbac
 }
 
 func (self *Session) GetAclRoles() []int {
@@ -38,7 +53,7 @@ func NotAllowPermission(name string) SessionPermission {
 		Id:     0,
 		Name:   name,
 		Obac:   true,
-		Rbac:   true,
+		rbac:   true,
 		Access: 0,
 	}
 }

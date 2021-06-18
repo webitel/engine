@@ -77,6 +77,23 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		Scopes:     transformScopes(resp.Scope),
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
 	}
+
+	if len(resp.Permissions) > 0 {
+		session.adminPermissions = make([]PermissionAccess, len(resp.Permissions), len(resp.Permissions))
+		for _, v := range resp.Permissions {
+			switch v.Id {
+			case "add":
+				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_CREATE)
+			case "read":
+				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_READ)
+			case "write":
+				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_UPDATE)
+			case "delete":
+				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_DELETE)
+			}
+		}
+	}
+
 	return session, nil
 }
 
@@ -110,7 +127,7 @@ func transformScopes(src []*api.Objclass) []SessionPermission {
 			Name: v.Class,
 			//Abac:   v.Abac,
 			Obac:   v.Obac,
-			Rbac:   v.Rbac,
+			rbac:   v.Rbac,
 			Access: uint32(access),
 		})
 	}

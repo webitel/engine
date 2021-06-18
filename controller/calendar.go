@@ -29,7 +29,7 @@ func (c *Controller) UpdateCalendar(session *auth_manager.Session, calendar *mod
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		if perm, err := c.app.CalendarCheckAccess(session.Domain(calendar.DomainId), calendar.Id, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
@@ -52,7 +52,7 @@ func (c *Controller) SearchCalendar(session *auth_manager.Session, search *model
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		return c.app.GetCalendarPageByGroups(session.Domain(search.DomainId), session.GetAclRoles(), search)
 	} else {
 		return c.app.GetCalendarsPage(session.Domain(search.DomainId), search)
@@ -65,7 +65,7 @@ func (c *Controller) GetCalendar(session *auth_manager.Session, domainId, id int
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		if perm, err := c.app.CalendarCheckAccess(session.Domain(domainId), id, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
@@ -82,7 +82,7 @@ func (c *Controller) DeleteCalendar(session *auth_manager.Session, domainId, id 
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	if permission.Rbac {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
 		if perm, err := c.app.CalendarCheckAccess(session.Domain(domainId), id, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {

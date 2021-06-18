@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package api;
+
+message Permission {
+    string id = 1;    // [required] e.g.: 'read', 'playback_record_file', ...
+    string name = 2;  // [optional] e.g.: 'Select Any'
+    string usage = 3; // [optional] e.g.: 'Grants permission to select any objects'
+}

@@ -2,17 +2,18 @@ package grpc_api
 
 import (
 	"context"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 )
 
 type communicationType struct {
-	app *app.App
+	*API
 }
 
-func NewCommunicationTypeApi(app *app.App) *communicationType {
-	return &communicationType{app: app}
+//aaaa
+
+func NewCommunicationTypeApi(api *API) *communicationType {
+	return &communicationType{api}
 }
 
 func (api *communicationType) CreateCommunicationType(ctx context.Context, in *engine.CommunicationTypeRequest) (*engine.CommunicationType, error) {
@@ -29,12 +30,7 @@ func (api *communicationType) CreateCommunicationType(ctx context.Context, in *e
 		Description: in.Description,
 	}
 
-	err = cType.IsValid()
-	if err != nil {
-		return nil, err
-	}
-
-	cType, err = api.app.CreateCommunicationType(cType)
+	cType, err = api.ctrl.CreateCommunicationType(session, cType)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +57,7 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetCommunicationTypePage(session.Domain(0), req)
+	list, endList, err = api.ctrl.GetCommunicationTypePage(session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +79,7 @@ func (api *communicationType) ReadCommunicationType(ctx context.Context, in *eng
 		return nil, err
 	}
 
-	cType, err = api.app.GetCommunicationType(in.Id, session.Domain(in.GetDomainId()))
+	cType, err = api.ctrl.ReadCommunicationType(session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -97,16 +93,16 @@ func (api *communicationType) UpdateCommunicationType(ctx context.Context, in *e
 		return nil, err
 	}
 
-	var cType *model.CommunicationType
-
-	cType, err = api.app.UpdateCommunicationType(&model.CommunicationType{
+	cType := &model.CommunicationType{
 		Id:          in.GetId(),
 		DomainId:    session.Domain(in.GetDomainId()),
 		Name:        in.GetName(),
 		Code:        in.GetCode(),
 		Type:        in.GetType(),
 		Description: in.GetDescription(),
-	})
+	}
+
+	cType, err = api.ctrl.UpdateCommunicationType(session, cType)
 
 	if err != nil {
 		return nil, err
@@ -122,7 +118,7 @@ func (api *communicationType) DeleteCommunicationType(ctx context.Context, in *e
 	}
 
 	var cType *model.CommunicationType
-	cType, err = api.app.RemoveCommunicationType(session.Domain(in.DomainId), in.Id)
+	cType, err = api.ctrl.RemoveCommunicationType(session, in.Id)
 	if err != nil {
 		return nil, err
 	}
