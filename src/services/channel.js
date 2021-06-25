@@ -130,6 +130,13 @@ var Service = {
     },
 
     transfer: function (caller, option, cb) {
+        if (typeof option.comment === 'string') {
+            const comm = option.comment.replace(/\'|\r|\n|\t|\\/g, ``);
+            Service.bgApi(
+                `uuid_setvar ${option['channel-uuid']} wbt_transfer_comment ${comm}`,
+                ()=>{}
+            );
+        }
         Service.bgApi(
             'uuid_transfer ' + option['channel-uuid'] + ' ' + option['destination'],
             cb

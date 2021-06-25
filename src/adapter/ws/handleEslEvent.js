@@ -66,6 +66,10 @@ function handleEslEvent(application) {
                             jsonRequest["variable_dlr_session_id"] = jsonEvent["variable_dlr_session_id"]
                         }
 
+                        if (jsonEvent.hasOwnProperty('variable_wbt_transfer_comment')) {
+                            jsonRequest['transfer_comment'] = jsonEvent['variable_wbt_transfer_comment'];
+                        }
+
                         if (jsonEvent.hasOwnProperty('variable_webitel_data'))
                             jsonRequest.variable_webitel_data = "'" + jsonEvent['variable_webitel_data'] + "'"; //TODO
 
