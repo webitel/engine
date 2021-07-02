@@ -52,10 +52,10 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		GreetingMedia:    GetLookup(in.GreetingMedia),
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
-		Supervisor:       GetLookup(in.Supervisor),
+		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
-		Auditor:          GetLookup(in.Auditor),
+		Auditor:          GetLookups(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
 	}
 
@@ -206,10 +206,10 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		GreetingMedia:    GetLookup(in.GreetingMedia),
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
-		Supervisor:       GetLookup(in.Supervisor),
+		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
-		Auditor:          GetLookup(in.Auditor),
+		Auditor:          GetLookups(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
 	})
 
@@ -268,10 +268,8 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			}
 		case "chat_count":
 			patch.ChatCount = &in.ChatCount
-		case "supervisor.id", "supervisor":
-			patch.Supervisor = &model.Lookup{
-				Id: int(in.GetSupervisor().GetId()),
-			}
+		case "supervisor":
+			patch.Supervisor = GetLookups(in.Supervisor)
 		case "team.id", "team":
 			patch.Team = &model.Lookup{
 				Id: int(in.GetTeam().GetId()),
@@ -280,10 +278,8 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			patch.Region = &model.Lookup{
 				Id: int(in.GetRegion().GetId()),
 			}
-		case "auditor.id", "auditor":
-			patch.Auditor = &model.Lookup{
-				Id: int(in.GetAuditor().GetId()),
-			}
+		case "auditor":
+			patch.Auditor = GetLookups(in.Auditor)
 		case "is_supervisor":
 			patch.IsSupervisor = &in.IsSupervisor
 		}
@@ -783,8 +779,8 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		User:             GetProtoLookup(&item.User),
 		Extension:        item.Extension,
 		Team:             GetProtoLookup(item.Team),
-		Supervisor:       GetProtoLookup(item.Supervisor),
-		Auditor:          GetProtoLookup(item.Auditor),
+		Supervisor:       GetProtoLookups(item.Supervisor),
+		Auditor:          GetProtoLookups(item.Auditor),
 		Region:           GetProtoLookup(item.Region),
 		ProgressiveCount: item.ProgressiveCount,
 		ChatCount:        item.ChatCount,
@@ -835,8 +831,8 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		MaxOfferingAt:  model.TimeToInt64(src.MaxOfferingAt),
 		Transferred:    src.Transferred,
 		Skills:         GetProtoLookups(src.Skills),
-		Supervisor:     GetProtoLookup(src.Supervisor),
-		Auditor:        GetProtoLookup(src.Auditor),
+		Supervisor:     GetProtoLookups(src.Supervisor),
+		Auditor:        GetProtoLookups(src.Auditor),
 		PauseCause:     src.PauseCause,
 		ChatCount:      src.ChatCount,
 		Occupancy:      src.Occupancy,
@@ -865,10 +861,10 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		GreetingMedia:    GetProtoLookup(src.GreetingMedia),
 		AllowChannels:    src.AllowChannels,
 		ChatCount:        src.ChatCount,
-		Supervisor:       GetProtoLookup(src.Supervisor),
+		Supervisor:       GetProtoLookups(src.Supervisor),
 		Team:             GetProtoLookup(src.Team),
 		Region:           GetProtoLookup(src.Region),
-		Auditor:          GetProtoLookup(src.Auditor),
+		Auditor:          GetProtoLookups(src.Auditor),
 		IsSupervisor:     src.IsSupervisor,
 		Skills:           GetProtoLookups(src.Skills),
 	}

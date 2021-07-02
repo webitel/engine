@@ -37,10 +37,10 @@ type Agent struct {
 	GreetingMedia    *Lookup      `json:"greeting_media" db:"greeting_media"`
 	AllowChannels    StringArray  `json:"allow_channels" db:"allow_channels"`
 	ChatCount        uint32       `json:"chat_count" db:"chat_count"`
-	Supervisor       *Lookup      `json:"supervisor" db:"supervisor"`
+	Supervisor       []*Lookup    `json:"supervisor" db:"supervisor"`
 	Team             *Lookup      `json:"team" db:"team"`
 	Region           *Lookup      `json:"region" db:"region"`
-	Auditor          *Lookup      `json:"auditor" db:"auditor"`
+	Auditor          []*Lookup    `json:"auditor" db:"auditor"`
 	IsSupervisor     bool         `json:"is_supervisor" db:"is_supervisor"`
 	Skills           []*Lookup    `json:"skills" db:"skills"`
 }
@@ -53,10 +53,10 @@ type AgentPatch struct {
 	ProgressiveCount *int
 	GreetingMedia    *Lookup
 	ChatCount        *uint32
-	Supervisor       *Lookup
+	Supervisor       []*Lookup
 	Team             *Lookup
 	Region           *Lookup
-	Auditor          *Lookup
+	Auditor          []*Lookup
 	IsSupervisor     *bool
 }
 
@@ -82,8 +82,8 @@ type AgentStatusStatistics struct {
 
 	Transferred uint32    `json:"transferred" db:"transferred"`
 	Skills      []*Lookup `json:"skills" db:"skills"`
-	Supervisor  *Lookup   `json:"supervisor" db:"supervisor"`
-	Auditor     *Lookup   `json:"auditor" db:"auditor"`
+	Supervisor  []*Lookup `json:"supervisor" db:"supervisor"`
+	Auditor     []*Lookup `json:"auditor" db:"auditor"`
 	PauseCause  string    `json:"pause_cause" db:"pause_cause"`
 	ChatCount   int32     `json:"chat_count" db:"chat_count"`
 
@@ -98,12 +98,12 @@ type SupervisorAgentItem struct {
 	User           Lookup `json:"user" json:"user"`
 	Extension      string `json:"extension" db:"extension"`
 
-	Team             *Lookup `json:"team" db:"team"`
-	Supervisor       *Lookup `json:"supervisor" dlb:"supervisor"`
-	Auditor          *Lookup `json:"auditor" db:"auditor"`
-	Region           *Lookup `json:"region" db:"region"`
-	ProgressiveCount uint32  `json:"progressive_count" db:"progressive_count"`
-	ChatCount        uint32  `json:"chat_count" db:"chat_count"`
+	Team             *Lookup   `json:"team" db:"team"`
+	Supervisor       []*Lookup `json:"supervisor" dlb:"supervisor"`
+	Auditor          []*Lookup `json:"auditor" db:"auditor"`
+	Region           *Lookup   `json:"region" db:"region"`
+	ProgressiveCount uint32    `json:"progressive_count" db:"progressive_count"`
+	ChatCount        uint32    `json:"chat_count" db:"chat_count"`
 
 	PauseCause string `json:"pause_cause" db:"pause_cause"`
 
@@ -218,8 +218,8 @@ type AgentSession struct {
 	IsAdmin          bool           `json:"is_admin" db:"is_admin"`
 	Channels         []AgentChannel `json:"channels" db:"channels"`
 
-	Supervisor *Lookup `json:"supervisor" db:"supervisor"`
-	Auditor    *Lookup `json:"auditor" db:"auditor"`
+	Supervisor []*Lookup `json:"supervisor" db:"supervisor"`
+	Auditor    []*Lookup `json:"auditor" db:"auditor"`
 }
 
 func (a AgentSession) ToMap() map[string]interface{} {

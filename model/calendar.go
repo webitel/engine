@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"unicode/utf8"
 )
 
 // Description of the CalendarAcceptOfDay
@@ -95,7 +96,7 @@ func (c *Calendar) ExceptsToJson() *string {
 }
 
 func (c *Calendar) IsValid() *AppError {
-	if len(c.Name) <= 3 {
+	if utf8.RuneCountInString(c.Name) <= 3 {
 		return NewAppError("Calendar.IsValid", "model.calendar.is_valid.name.app_error", nil, "name="+c.Name, http.StatusBadRequest)
 	}
 

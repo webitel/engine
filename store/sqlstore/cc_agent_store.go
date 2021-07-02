@@ -44,9 +44,9 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
 	var out *model.Agent
 	if err := s.GetMaster().SelectOne(&out, `with a as (
 			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
-				allow_channels, chat_count, supervisor_id, team_id, region_id, supervisor, auditor_id)
+				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
-					:AllowChannels, :ChatCount, :SupervisorId, :TeamId, :RegionId, :Supervisor, :AuditorId)
+					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds)
 			returning *
 		)
 	SELECT a.domain_id,
@@ -63,16 +63,18 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
        call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 	   a.allow_channels,
        a.chat_count,
-       sup.user as supervisor,
-       cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+       (SELECT jsonb_agg(sag."user") AS jsonb_agg
+        FROM call_center.cc_agent_with_user sag
+        WHERE sag.id = any(a.supervisor_ids)) as supervisor,
+       (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+        FROM directory.wbt_user aud
+WHERE aud.id = any(a.auditor_ids)) as auditor,
 	   cc_get_lookup(t.id, t.name) as team,
 	   cc_get_lookup(r.id, r.name) as region,
        a.supervisor as is_supervisor
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
          LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
-         left join cc_agent_with_user sup on sup.id = a.supervisor_id
-         left join directory.wbt_user aud on aud.id = a.auditor_id
          left join cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id
          LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
@@ -92,10 +94,10 @@ FROM a
 			"GreetingMedia":    agent.GreetingMediaId(),
 			"AllowChannels":    pq.Array(agent.AllowChannels),
 			"ChatCount":        agent.ChatCount,
-			"SupervisorId":     agent.Supervisor.GetSafeId(),
+			"SupervisorIds":    pq.Array(agent.Supervisor),
 			"TeamId":           agent.Team.GetSafeId(),
 			"RegionId":         agent.Region.GetSafeId(),
-			"AuditorId":        agent.Auditor.GetSafeId(),
+			"AuditorIds":       pq.Array(agent.Auditor),
 			"Supervisor":       agent.IsSupervisor,
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
@@ -128,9 +130,9 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_id = any(:TeamIds))
 				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
-				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
+				and (:SupervisorIds::int[] isnull or supervisor_ids && :SupervisorIds)
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
-				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+				and (:AuditorIds::int8[] isnull or auditor_ids && :AuditorIds)
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
 					from cc_queue q
@@ -176,9 +178,9 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_id = any(:TeamIds))
 				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
-				and (:SupervisorIds::int[] isnull or supervisor_id = any(:SupervisorIds))
+				and (:SupervisorIds::int[] isnull or supervisor_ids && :SupervisorIds)
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
-				and (:AuditorIds::int[] isnull or auditor_id = any(:AuditorIds))
+				and (:AuditorIds::int8[] isnull or auditor_ids && :AuditorIds)
 			    and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:QueueIds::int[] isnull or id in (
@@ -253,16 +255,18 @@ func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppEr
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
-			   sup.user as supervisor,
-			   cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
+				FROM call_center.cc_agent_with_user sag
+				WHERE sag.id = any(a.supervisor_ids)) as supervisor,
+			   (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+				FROM directory.wbt_user aud
+				WHERE aud.id = any(a.auditor_ids)) as auditor,
 			   cc_get_lookup(t.id, t.name) as team,
 			   cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
-				 left join cc_agent_with_user sup on sup.id = a.supervisor_id
-				 left join directory.wbt_user aud on aud.id = a.auditor_id
 				 left join cc_team t on t.id = a.team_id
 				 left join flow.region r on r.id = a.region_id
 				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
@@ -295,11 +299,11 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 			    greeting_media_id = :GreetingMediaId,
 				allow_channels = :AllowChannels,
 				chat_count = :ChatCount,
-				supervisor_id = :SupervisorId,
+				supervisor_ids = :SupervisorIds,
 				team_id = :TeamId,
 				region_id = :RegionId,
 				supervisor = :Supervisor,
-				auditor_id = :AuditorId
+				auditor_ids = :AuditorIds
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
@@ -317,16 +321,18 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
-			   sup.user as supervisor,
-			   cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
+				FROM call_center.cc_agent_with_user sag
+				WHERE sag.id = any(a.supervisor_ids)) as supervisor,
+			   (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+				FROM directory.wbt_user aud
+				WHERE aud.id = any(a.auditor_ids)) as auditor,
 			   cc_get_lookup(t.id, t.name) as team,
 			   cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor
 		FROM  a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
-				 left join cc_agent_with_user sup on sup.id = a.supervisor_id
-				 left join directory.wbt_user aud on aud.id = a.auditor_id
 				 left join cc_team t on t.id = a.team_id
 				 left join flow.region r on r.id = a.region_id
 				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
@@ -344,10 +350,10 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 		"GreetingMediaId":  agent.GreetingMediaId(),
 		"AllowChannels":    pq.Array(agent.AllowChannels),
 		"ChatCount":        agent.ChatCount,
-		"SupervisorId":     agent.Supervisor.GetSafeId(),
+		"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
 		"TeamId":           agent.Team.GetSafeId(),
 		"RegionId":         agent.Region.GetSafeId(),
-		"AuditorId":        agent.Auditor.GetSafeId(),
+		"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 		"Supervisor":       agent.IsSupervisor,
 	})
 	if err != nil {
@@ -580,12 +586,14 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        cc_get_lookup(t.id, t.name) team,
        a.supervisor is_supervisor,
        exists(select 1 from cc_team tm where tm.domain_id = a.domain_id and tm.admin_id = a.id) is_admin,
-       sup."user" supervisor,
-       cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) auditor
+       (SELECT jsonb_agg(sag."user") AS jsonb_agg
+        FROM call_center.cc_agent_with_user sag
+        WHERE sag.id = any(a.supervisor_ids)) supervisor,
+       (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+        FROM directory.wbt_user aud
+        WHERE aud.id = any(a.auditor_ids)) auditor
 from cc_agent a
 	 left join cc_team t on t.id = a.team_id
-     left join cc_agent_with_user sup on sup.id = a.supervisor_id
-     left join directory.wbt_user aud on aud.id = a.auditor_id
      LEFT JOIN LATERAL ( SELECT json_build_array(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
                                            'no_answer', c.no_answers,
                                            'wrap_time_ids', (select array_agg(att.id)
@@ -742,7 +750,7 @@ from cc_pause_cause c
 where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
     and fa.user_id = :FromUserId
     and (not :AllowChange::bool   
-		 or case when fa.supervisor or a.supervisor_id = fa.id then c.allow_supervisor else false end
+		 or case when fa.supervisor or fa.id = any(a.supervisor_ids) then c.allow_supervisor else false end
          or (fa.id = a.id and c.allow_agent)
          or (fa.team_id = a.team_id and ft.admin_id = fa.id and c.allow_admin)
         )
@@ -805,20 +813,22 @@ from (
                 active_call.id                                    as                          active_call_id,
                 q.skills,
                 q.skill_ids,
-                super."user"                                                                  supervisor,
+                (SELECT jsonb_agg(sag."user") AS jsonb_agg
+				FROM call_center.cc_agent_with_user sag
+				WHERE sag.id = any(a.supervisor_ids))                                         supervisor,
                 cc_get_lookup(r.id, r.name)                                                   region,
-                cc_get_lookup(aud.id, coalesce(aud.name, aud.username))                       auditor,
+                (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+				FROM directory.wbt_user aud
+				WHERE aud.id = any(a.auditor_ids))                       auditor,
                 queue_ids,
                 a.team_id,
-                a.auditor_id,
-                a.supervisor_id,
+                a.auditor_ids,
+                a.supervisor_ids,
                 a.region_id
          from cc_agent a
                   inner join directory.wbt_user u on u.id = a.user_id
                   left join cc_team team on team.id = a.team_id
                   left join flow.region r on r.id = a.region_id
-                  left join cc_agent_with_user super on super.id = a.supervisor_id
-                  left join directory.wbt_user aud on aud.id = a.auditor_id
                   left join lateral (
              select array_agg(distinct q.id)                          queue_ids,
                     array_agg(distinct sia.skill_id)                  skill_ids,
@@ -918,7 +928,7 @@ and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && 
 and (:SkillIds::int[] isnull  or (t.skill_ids notnull and t.skill_ids::int[] && :SkillIds::int[]))
 and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds::int[])))
 and (:RegionIds::int[] isnull  or (t.region_id notnull and t.region_id = any(:RegionIds::int[])))
-and (:AuditorIds::int[] isnull  or (t.auditor_id notnull and t.auditor_id = any(:AuditorIds::int[])))
+and (:AuditorIds::int[] isnull  or (t.auditor_ids notnull and t.auditor_ids && :AuditorIds::int8[]))
 and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
 order by case t.status
     when 'break_out' then 0
@@ -965,8 +975,12 @@ func (s SqlAgentStore) SupervisorAgentItem(domainId int64, agentId int64, t *mod
        extract(epoch from x.t)::int status_duration,
 
        cc_get_lookup(t.id, t.name) team,
-       sup."user" supervisor,
-       cc_get_lookup(aud.id, coalesce(aud.name, aud.username)) as auditor,
+       (SELECT jsonb_agg(sag."user") AS jsonb_agg
+        FROM call_center.cc_agent_with_user sag
+        WHERE sag.id = any(a.supervisor_ids)) supervisor,
+       (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+        FROM directory.wbt_user aud
+        WHERE aud.id = any(a.auditor_ids)) as auditor,
        cc_get_lookup(r.id, r.name) region,
        a.progressive_count,
        a.chat_count,
@@ -977,8 +991,6 @@ func (s SqlAgentStore) SupervisorAgentItem(domainId int64, agentId int64, t *mod
        coalesce(a.status_payload, '') pause_cause
 from cc_agent a
   left join cc_team t on t.id = a.team_id
-  left join cc_agent_with_user sup on sup.id = a.supervisor_id
-  left join directory.wbt_user aud on aud.id = a.auditor_id
   left join flow.region r on r.id = a.region_id
   left join lateral (
      select

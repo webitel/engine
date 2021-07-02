@@ -44,6 +44,19 @@ func (l *Lookup) GetSafeId() *int {
 	return &l.Id
 }
 
+func LookupIds(l []*Lookup) []int {
+	if l == nil {
+		return nil
+	}
+
+	var res = make([]int, 0, len(l))
+	for _, v := range l {
+		res = append(res, v.Id)
+	}
+
+	return res
+}
+
 func (s StringMap) ToJson() string {
 	if s == nil {
 		return "{}"
