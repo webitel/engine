@@ -254,7 +254,7 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 
 	for _, v := range in.Fields {
 		switch v {
-		case "user.id":
+		case "user.id", "user":
 			patch.User = &model.Lookup{
 				Id: int(in.GetUser().GetId()),
 			}
@@ -262,25 +262,25 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			patch.Description = model.NewString(in.Description)
 		case "progressive_count":
 			patch.ProgressiveCount = model.NewInt(int(in.ProgressiveCount))
-		case "greeting_media.id":
+		case "greeting_media.id", "greeting_media":
 			patch.GreetingMedia = &model.Lookup{
 				Id: int(in.GetGreetingMedia().GetId()),
 			}
 		case "chat_count":
 			patch.ChatCount = &in.ChatCount
-		case "supervisor.id":
+		case "supervisor.id", "supervisor":
 			patch.Supervisor = &model.Lookup{
 				Id: int(in.GetSupervisor().GetId()),
 			}
-		case "team.id":
+		case "team.id", "team":
 			patch.Team = &model.Lookup{
 				Id: int(in.GetTeam().GetId()),
 			}
-		case "region.id":
+		case "region.id", "region":
 			patch.Region = &model.Lookup{
 				Id: int(in.GetRegion().GetId()),
 			}
-		case "auditor.id":
+		case "auditor.id", "auditor":
 			patch.Auditor = &model.Lookup{
 				Id: int(in.GetAuditor().GetId()),
 			}
