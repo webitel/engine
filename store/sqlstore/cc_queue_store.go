@@ -381,10 +381,10 @@ items as materialized (
                    count(*) filter ( where t.bridged_at isnull  ) * 100.0 / count(*) as abandoned,
                    count(*) filter ( where t.result = 'transfer' )  as transferred,
 				   case when count(*)::decimal > 0 then
-			       	(count(*) filter ( where t.bridged_at - t.joined_at < interval '20 sec')::decimal * 100) / count(*)::decimal  
+			       	(((count(*) filter ( where t.bridged_at - t.joined_at < interval '20 sec')::decimal) / count(*)::decimal) * 100)
 				   else 0::decimal end as sl20,
 				   case when count(*)::decimal > 0 then
-			       	(count(*) filter ( where t.bridged_at - t.joined_at < interval '30 sec')::decimal * 100) / count(*)::decimal
+			       	(((count(*) filter ( where t.bridged_at - t.joined_at < interval '30 sec')::decimal) / count(*)::decimal) * 100)
 				   else 0::decimal end as sl30,
                    extract(EPOCH from sum(t.leaving_at - t.bridged_at) filter ( where t.bridged_at notnull )) sum_bill_sec,
                    extract(EPOCH from avg(t.reporting_at - t.leaving_at) filter ( where t.reporting_at notnull )) avg_wrap_sec,
