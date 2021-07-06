@@ -335,11 +335,11 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free,
                array_agg(distinct a.id) total
         from queues q
-            inner join cc_agent a on a.team_id = q.team_id
+            inner join cc_agent a on a.domain_id = q.domain_id
             inner join cc_agent_channel ac on ac.agent_id = a.id
             inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
-        where q.team_id = a.team_id and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
+        where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
         group by rollup (q.id)
      ),
 items as materialized (

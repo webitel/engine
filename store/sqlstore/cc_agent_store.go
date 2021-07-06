@@ -136,10 +136,12 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
 					from cc_queue q
-						inner join cc_agent a on a.team_id = q.team_id
+						inner join cc_agent a on a.domain_id = q.domain_id
 						inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
 						inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
-					where q.id = any(:QueueIds) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
+					where q.id = any(:QueueIds)
+						and (q.team_id isnull or a.team_id = q.team_id)
+						and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
 				))
 				and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
@@ -186,10 +188,12 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
 					from cc_queue q
-						inner join cc_agent a on a.team_id = q.team_id
+						inner join cc_agent a on a.domain_id = q.domain_id
 						inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
 						inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
-					where q.id = any(:QueueIds) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
+					where q.id = any(:QueueIds)
+						and (q.team_id isnull or a.team_id = q.team_id)
+						and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
 				))
 				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
@@ -840,7 +844,7 @@ from (
                       inner join cc_skill cs on sia.skill_id = cs.id
              where q.domain_id = a.domain_id
                and q.enabled
-               and q.team_id = a.team_id
+               and (q.team_id isnull or a.team_id = q.team_id)
                and qs.skill_id = sia.skill_id
                and sia.capacity between qs.min_capacity and qs.max_capacity
              ) q on true
