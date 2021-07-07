@@ -33,6 +33,15 @@ function add(pool) {
             )
         },
 
+        setReadyNow: (agentId, cb) => {
+            pool.query(`update agents
+                set ready_time = extract(epoch from NOW() at time zone 'utc')::int8 + 2
+                where name = $1`,
+                [agentId],
+                cb
+            )
+        },
+
         resetAgentStats: (dialerId, cb) => {
             pool.query(
                 `DELETE FROM agent_in_dialer WHERE dialer_id = $1`,

@@ -107,6 +107,11 @@ module.exports = class Member extends EventEmitter2 {
         };
 
         this._waitingForResultStatus = dialer._waitingForResultStatus;
+        this._processingSeconds = null;
+
+        if (this._waitingForResultStatus) {
+            this._processingSeconds = dialer._wrapUpTime
+        }
 
         this.endCause = null;
         // this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
