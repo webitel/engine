@@ -575,7 +575,7 @@ func toEngineCall(src *model.Call) *engine.ActiveCall {
 		QueueDurationSec: defaultInt(src.QueueDurationSec),
 		ReportingSec:     defaultInt(src.ReportingSec),
 		Display:          defaultString(src.Display),
-		Supervisor:       GetProtoLookup(src.Supervisor),
+		Supervisor:       GetProtoLookups(src.Supervisor),
 	}
 
 	if src.ParentId != nil {

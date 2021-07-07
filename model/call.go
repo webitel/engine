@@ -173,7 +173,7 @@ type Call struct {
 	QueueDurationSec *int       `json:"queue_duration_sec" db:"queue_duration_sec"`
 	ReportingSec     *int       `json:"reporting_sec" db:"reporting_sec"`
 	Display          *string    `json:"display" db:"display"`
-	Supervisor       *Lookup    `json:"supervisor" db:"supervisor"`
+	Supervisor       []*Lookup  `json:"supervisor" db:"supervisor"`
 
 	Task *CCTask `json:"task"`
 }
