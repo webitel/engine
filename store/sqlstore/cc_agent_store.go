@@ -930,7 +930,7 @@ where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
 and (:Q::varchar isnull or t.name ilike :Q::varchar)
 and (:Status::varchar[] isnull or (t.status = any(:Status)))
-and ( (:UFrom::numeric isnull or :UTo::numeric isnull) or (t.utilization between :UFrom and :UTo) )
+and ( (:UFrom::numeric isnull or t.utilization >= :UFrom::numeric) and (:UTo::numeric isnull or t.utilization <= :UTo::numeric) )
 and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
 and (:SkillIds::int[] isnull  or (t.skill_ids notnull and t.skill_ids::int[] && :SkillIds::int[]))
 and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds::int[])))
