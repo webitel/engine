@@ -280,6 +280,7 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 			Q:        in.GetQ(),
 			Page:     int(in.GetPage()),
 			PerPage:  int(in.GetSize()),
+			Sort:     in.GetSort(),
 		},
 		Direction:     in.Direction,
 		SkipParent:    in.GetSkipParent(),
