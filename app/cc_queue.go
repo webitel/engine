@@ -107,8 +107,8 @@ func (a *App) RemoveQueue(domainId, id int64) (*model.Queue, *model.AppError) {
 	return queue, nil
 }
 
-func (a *App) GetQueueReportGeneral(domainId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, bool, *model.AppError) {
-	list, err := a.Store.Queue().QueueReportGeneral(domainId, groups, access, search)
+func (a *App) GetQueueReportGeneral(domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, bool, *model.AppError) {
+	list, err := a.Store.Queue().QueueReportGeneral(domainId, supervisorId, groups, access, search)
 	if err != nil {
 		return nil, false, err
 	}

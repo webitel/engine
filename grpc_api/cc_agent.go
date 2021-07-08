@@ -709,7 +709,7 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 		}
 	}
 
-	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(0), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
+	list, endList, err = api.app.GetAgentStatusStatistic(session.Domain(0), session.UserId, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
 	if err != nil {
 		return nil, err
 	}

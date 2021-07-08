@@ -774,7 +774,7 @@ order by c.name;`, map[string]interface{}{
 
 // FIXME sort, columns
 // allow_change
-func (s SqlAgentStore) StatusStatistic(domainId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
+func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
        max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor, pause_cause, chat_count, 
@@ -913,15 +913,18 @@ from (
                      when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0'))
                      else stat.pause end,
                  interval '0')) pause_all on true
-			 where a.domain_id = :DomainId and
-				   a.id in (
-					  select a.object::int
-					  from cc_agent_acl a
-					  where a.dc = :DomainId
-						and a.object > 0
-						and a.subject = any (:Groups::int[])
-						and a.access & :Access = :Access
-			 )
+			 	where a.domain_id = :DomainId and
+				   ((a.user_id = :SupervisorId and a.supervisor)
+						or a.supervisor_ids = any(
+						 select array_agg(a2.id)
+						 from cc_agent a2
+						 where a2.user_id = :SupervisorId
+					 )
+						or a.team_id in (
+						 select te.id
+						 from cc_team te
+						 where te.admin_id = (select a2.id from cc_agent a2 where a2.user_id = :SupervisorId)
+					 ))
      ) t
 where t.domain_id = :DomainId
  and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
@@ -941,9 +944,10 @@ order by case t.status
     else 3 end, t.name
 limit :Limit
 offset :Offset`, map[string]interface{}{
-		"DomainId":   domainId,
-		"Groups":     pq.Array(groups),
-		"Access":     access.Value(),
+		"DomainId":     domainId,
+		"SupervisorId": supervisorUserId,
+		//"Groups":     pq.Array(groups),
+		//"Access":     access.Value(),
 		"Q":          search.GetQ(),
 		"Limit":      search.GetLimit(),
 		"Offset":     search.GetOffset(),

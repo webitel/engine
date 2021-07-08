@@ -367,7 +367,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 		Types:    in.GetType(),
 	}
 
-	report, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
+	report, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.UserId, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
 	if err != nil {
 		return nil, err
 	}

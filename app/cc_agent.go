@@ -197,8 +197,8 @@ func (a *App) GetAgentReportCall(domainId int64, search *model.SearchAgentCallSt
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentStatusStatistic(domainId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, *model.AppError) {
-	list, err := a.Store.Agent().StatusStatistic(domainId, groups, access, search)
+func (a *App) GetAgentStatusStatistic(domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, *model.AppError) {
+	list, err := a.Store.Agent().StatusStatistic(domainId, supervisorUserId, groups, access, search)
 	if err != nil {
 		return nil, false, err
 	}
