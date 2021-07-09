@@ -515,7 +515,8 @@ module.exports = class Predictive extends Dialer {
                     call: true,
                     bridged: true,
                     callTimeSec: +e.getHeader('variable_billsec') || 0,
-                    wrapTime: member._processingSeconds > 0 ? member._processingSeconds : this.getAgentParam('wrap_up_time', agent),
+                    wrapTime: this.getAgentParam('wrap_up_time', agent),
+                    processing: member._processingSeconds > 0 && member.waitAgentCallback ? member._processingSeconds : null,
                     lastStatus: `end -> ${member._id}`,
                     process: null
                 }, (e) => {

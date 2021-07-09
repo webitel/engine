@@ -113,6 +113,8 @@ module.exports = class Member extends EventEmitter2 {
             this._processingSeconds = dialer._wrapUpTime
         }
 
+        this.waitAgentCallback = false;
+
         this.endCause = null;
         // this.bigData = new Array(1e5).join('XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n');
 
@@ -466,6 +468,7 @@ module.exports = class Member extends EventEmitter2 {
 
         if (this._waitingForResultStatus && endCause !== END_CAUSE.MEMBER_EXPIRED && this.bridgedCall === true) {
             this.nextTime = Date.now() + (this.nextTrySec * 1000);
+            this.waitAgentCallback = true;
             this.log(`Check callback`);
             this.emit('end', this);
             return;

@@ -848,16 +848,13 @@ let Service = {
                         if (e)
                             return cb(e);
 
-                        const {agentId} = (memberDb._log || [])[0];
-                        if (agentId) {
-                            application.PG.getQuery('agents').setReadyNow(agentId, e => {
-                                if (e) {
-                                    log.error(`set ready agent ${agentId} error: ${e.message}`);
-                                } else {
-                                    log.trace(`set ready agent ${agentId} success`);
-                                }
-                            })
-                        }
+                        application.PG.getQuery('agents').setReadyNow(options.dialer, options.member, e => {
+                            if (e) {
+                                log.error(`set ready agent error: ${e.message}`);
+                            } else {
+                                log.trace(`set ready agent success`);
+                            }
+                        })
 
                         if ($push) {
                             dbDialer._updateMember({_id: memberDb._id}, {$push}, {}, cb);

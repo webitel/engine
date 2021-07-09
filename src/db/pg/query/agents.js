@@ -33,11 +33,15 @@ function add(pool) {
             )
         },
 
-        setReadyNow: (agentId, cb) => {
+        setReadyNow: (dialerId, memberId, cb) => {
             pool.query(`update agents
-                set ready_time = extract(epoch from NOW() at time zone 'utc')::int8 + 2
-                where name = $1`,
-                [agentId],
+                set ready_time = extract(epoch from NOW() at time zone 'utc')::int8 + 2,
+                    sent_processing = 1
+                where name = (select agent_name
+                from agent_in_dialer
+                where dialer_id = $1 and last_status ilike '%' || $2
+                limit 1)`,
+                [dialerId, memberId],
                 cb
             )
         },
@@ -167,7 +171,11 @@ function add(pool) {
             }
 
             if (params.wrapTime > 0) {
-                fieldsAgent.push(`ready_time = ${Math.round(Date.now() / 1000) + params.wrapTime}`)
+                if (params.processing > 0) {
+                    fieldsAgent.push(`ready_time = case when sent_processing = 1 then ${Math.round(Date.now() / 1000) + params.wrapTime} else ${Math.round(Date.now() / 1000) + params.processing} end`)
+                } else {
+                    fieldsAgent.push(`ready_time = ${Math.round(Date.now() / 1000) + params.wrapTime}`)
+                }
             }
 
             if (params.bridged && agent.no_answer_count > 0) {
@@ -284,7 +292,8 @@ function add(pool) {
                      FOR UPDATE OF a SKIP LOCKED
                 )
                 UPDATE agents a
-                SET    state = 'Reserved'
+                SET    state = 'Reserved',
+                       sent_processing = 0
                 FROM   cte
                 WHERE  a.name = cte.name AND NOT EXISTS (
                     SELECT 1 FROM agents WHERE name = cte.name AND state = 'Reserved'                

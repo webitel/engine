@@ -450,6 +450,7 @@ create table IF NOT EXISTS agents
 ALTER TABLE agents ADD COLUMN IF NOT EXISTS last_set_stats timestamp default now();
 ALTER TABLE agents ADD COLUMN IF NOT EXISTS logged_in integer default 0;
 ALTER TABLE agents ADD COLUMN IF NOT EXISTS logged_out integer default 0;
+ALTER TABLE agents ADD COLUMN IF NOT EXISTS sent_processing integer default 0;
 
 create unique index IF NOT EXISTS agents_name_uindex
 	on agents (name)
