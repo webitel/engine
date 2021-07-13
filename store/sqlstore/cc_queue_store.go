@@ -317,27 +317,34 @@ with queues  as  (
     select *
     from cc_queue q
     where q.id in (
-			select distinct q.id
-			from cc_agent ac
-				left join lateral (
-					select distinct a.team_id, a.id
-					from cc_agent a
-					where a.supervisor_ids && array[ac.id] and a.team_id notnull
+		select distinct q.id
+		from cc_agent ac
+			left join lateral (
+				select distinct a.team_id, a.id
+				from cc_agent a
+				where a.supervisor_ids && array[ac.id] and a.team_id notnull
 		
-					union distinct
-					select ac.team_id, ac.id
+				union distinct
+				select ac.team_id, ac.id
 		
-					union distinct
-					select t.id, null
-					from cc_team t
-					where t.domain_id = ac.domain_id and t.admin_id = ac.id
-				) t on true
-				inner join cc_skill_in_agent sa on sa.agent_id = ac.id and sa.enabled
-				inner join cc_queue_skill sq on sq.skill_id = sa.skill_id and sq.enabled
-					and sa.capacity between sq.min_capacity and sq.max_capacity
-				inner join cc_queue q on q.domain_id = ac.domain_id and
-					 (q.team_id isnull or q.team_id = t.team_id) and (q.id = sq.queue_id  )
-			where q.enabled is true and q.domain_id = :DomainId and ac.user_id = :SupervisorId and q.id notnull
+				union distinct
+				select t.id, null
+				from cc_team t
+				where t.domain_id = ac.domain_id and t.admin_id = ac.id
+			) t on true
+			inner join cc_skill_in_agent sa on sa.agent_id = ac.id and sa.enabled
+			inner join cc_queue_skill sq on sq.skill_id = sa.skill_id and sq.enabled
+				and sa.capacity between sq.min_capacity and sq.max_capacity
+			inner join cc_queue q on q.domain_id = ac.domain_id and
+				 (q.team_id isnull or q.team_id = t.team_id) and (q.id = sq.queue_id  )
+		where q.enabled is true and q.domain_id = :DomainId and ac.user_id = :SupervisorId and q.id notnull and q.type != 2
+		union all
+		select q.id
+		from cc_queue q
+		where q.enabled
+		  and q.domain_id = :DomainId
+		  and q.type = 2
+		  and q.grantee_id = any (:Groups::int[])
 		)
  ),
      queue_ag as (
@@ -431,7 +438,7 @@ select
 `, map[string]interface{}{
 		"DomainId":     domainId,
 		"SupervisorId": supervisorId,
-		//"Groups":   pq.Array(groups),
+		"Groups":       pq.Array(groups),
 		//"Access":   access.Value(),
 		"From":     model.GetBetweenFromTime(&search.JoinedAt),
 		"To":       model.GetBetweenToTime(&search.JoinedAt),
