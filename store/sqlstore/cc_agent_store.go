@@ -978,7 +978,7 @@ func (s SqlAgentStore) SupervisorAgentItem(domainId int64, agentId int64, t *mod
 	err := s.GetReplica().SelectOne(&item, `select a.id agent_id,
        coalesce(cawu.name, cawu.username) as name,
        cc_get_lookup(cawu.id, coalesce(cawu.name, cawu.username)) as user,
-       cawu.extension,
+       coalesce(cawu.extension, '') as extension,
        a.status,
        extract(epoch from x.t)::int status_duration,
 
