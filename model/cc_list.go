@@ -54,7 +54,7 @@ func (a ListCommunication) AllowFields() []string {
 }
 
 func (a ListCommunication) DefaultFields() []string {
-	return []string{"id", "number"}
+	return []string{"id", "number", "description"}
 }
 
 func (a ListCommunication) EntityName() string {
