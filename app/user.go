@@ -17,28 +17,36 @@ func (app *App) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest) (*
 	return app.Store.User().GetCallInfoEndpoint(domainId, e)
 }
 
-func (app *App) GetUserDefaultWebRTCDeviceConfig(userId, domainId int64) (map[string]interface{}, *model.AppError) {
+func (app *App) GetUserDefaultWebRTCDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError) {
 	conf, err := app.Store.User().DefaultWebRTCDeviceConfig(userId, domainId)
 	if err != nil {
 		return nil, err
 	}
 	conf.Server = app.CallManager().SipWsAddress()
-	return conf.ToMap(), nil
+	return conf, nil
 }
 
-func (app *App) GetUserDefaultSipCDeviceConfig(userId, domainId int64) (map[string]interface{}, *model.AppError) {
+func (app *App) GetUserDefaultSipCDeviceConfig(userId, domainId int64) (*model.UserSipDeviceConfig, *model.AppError) {
 	conf, err := app.Store.User().DefaultSipDeviceConfig(userId, domainId)
 	if err != nil {
 		return nil, err
 	}
 	conf.Proxy = app.CallManager().SipRouteUri()
-	return conf.ToMap(), nil
+	return conf, nil
 }
 
 func (app *App) GetUserDefaultDeviceConfig(userId, domainId int64, typeName string) (map[string]interface{}, *model.AppError) {
 	if typeName == model.DeviceTypeSip {
-		return app.GetUserDefaultSipCDeviceConfig(userId, domainId)
+		if res, err := app.GetUserDefaultSipCDeviceConfig(userId, domainId); err != nil {
+			return nil, err
+		} else {
+			return res.ToMap(), nil
+		}
 	} else {
-		return app.GetUserDefaultWebRTCDeviceConfig(userId, domainId)
+		if res, err := app.GetUserDefaultWebRTCDeviceConfig(userId, domainId); err != nil {
+			return nil, err
+		} else {
+			return res.ToMap(), nil
+		}
 	}
 }

@@ -36,6 +36,7 @@ type API struct {
 	emailProfile *emailProfile
 	region       *region
 	pauseCause   *pauseCause
+	userHelper   *userHelper
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -69,6 +70,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.emailProfile = NewEmailProfileApi(api)
 	api.region = NewRegionApi(api)
 	api.pauseCause = NewPauseCause(api)
+	api.userHelper = NewUserHelperApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -96,4 +98,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterEmailProfileServiceServer(server, api.emailProfile)
 	engine.RegisterRegionServiceServer(server, api.region)
 	engine.RegisterAgentPauseCauseServiceServer(server, api.pauseCause)
+	engine.RegisterUserHelperServiceServer(server, api.userHelper)
 }
