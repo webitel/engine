@@ -22,34 +22,36 @@ func (s SqlOutboundResourceStore) Create(resource *model.OutboundCallResource) (
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().SelectOne(&out, `with s as (
     insert into cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
-                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id)
+                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description)
 values (:Limit, :Enabled, :UpdatedAt, :Rps, :DomainId, :Reserve , :Variables, :Number,
-        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId)
+        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description)
 	returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
       s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
-       s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(gw.id, gw.name) as gateway
+      s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
+	  cc_get_lookup(gw.id, gw.name) as gateway, s.description
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by
 	left join directory.sip_gateway gw on gw.id = s.gateway_id`,
 		map[string]interface{}{
-			"Limit":      resource.Limit,
-			"Enabled":    resource.Enabled,
-			"UpdatedAt":  resource.UpdatedAt,
-			"Rps":        resource.RPS,
-			"DomainId":   resource.DomainId,
-			"Reserve":    resource.Reserve,
-			"Variables":  resource.Variables.ToJson(),
-			"Number":     resource.Number,
-			"MaxSErrors": resource.MaxSuccessivelyErrors,
-			"Name":       resource.Name,
-			"ErrorIds":   pq.Array(resource.ErrorIds),
-			"CreatedAt":  resource.CreatedAt,
-			"CreatedBy":  resource.CreatedBy.Id,
-			"UpdatedBy":  resource.UpdatedBy.Id,
-			"GatewayId":  resource.GetGatewayId(),
+			"Limit":       resource.Limit,
+			"Enabled":     resource.Enabled,
+			"UpdatedAt":   resource.UpdatedAt,
+			"Rps":         resource.RPS,
+			"DomainId":    resource.DomainId,
+			"Reserve":     resource.Reserve,
+			"Variables":   resource.Variables.ToJson(),
+			"Number":      resource.Number,
+			"MaxSErrors":  resource.MaxSuccessivelyErrors,
+			"Name":        resource.Name,
+			"ErrorIds":    pq.Array(resource.ErrorIds),
+			"CreatedAt":   resource.CreatedAt,
+			"CreatedBy":   resource.CreatedBy.Id,
+			"UpdatedBy":   resource.UpdatedBy.Id,
+			"GatewayId":   resource.GetGatewayId(),
+			"Description": resource.Description,
 		}); nil != err {
 		return nil, model.NewAppError("SqlOutboundResourceStore.Save", "store.sql_out_resource.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", resource.Name, err.Error()), extractCodeFromErr(err))
@@ -88,7 +90,7 @@ func (s SqlOutboundResourceStore) GetAllPage(domainId int64, search *model.Searc
 	err := s.ListQuery(&resources, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:Q::varchar isnull or (name ilike :Q::varchar))`,
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
 		model.OutboundCallResource{}, f)
 
 	if err != nil {
@@ -116,7 +118,7 @@ func (s SqlOutboundResourceStore) GetAllPageByGroups(domainId int64, groups []in
 				  from cc_outbound_resource_acl a
 				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:Q::varchar isnull or (name ilike :Q::varchar ))`,
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
 		model.OutboundCallResource{}, f)
 
 	if err != nil {
@@ -133,7 +135,7 @@ func (s SqlOutboundResourceStore) Get(domainId int64, id int64) (*model.Outbound
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
 				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
 				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-				  cc_get_lookup(gw.id, gw.name) as gateway
+				  cc_get_lookup(gw.id, gw.name) as gateway, s.description
 			from cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
@@ -163,32 +165,34 @@ with s as (
             max_successively_errors = :MaxSErrors,
             name = :Name,
             error_ids = :ErrorIds,
-			gateway_id = :GatewayId
+			gateway_id = :GatewayId,
+			description = :Description
         where id = :Id and domain_id = :DomainId
         returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
       s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
        s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-		cc_get_lookup(gw.id, gw.name) as gateway
+		cc_get_lookup(gw.id, gw.name) as gateway, s.description
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by
 	left join directory.sip_gateway gw on gw.id = s.gateway_id`, map[string]interface{}{
-		"Limit":      resource.Limit,
-		"Enabled":    resource.Enabled,
-		"UpdatedAt":  resource.UpdatedAt,
-		"UpdatedBy":  resource.UpdatedBy.Id,
-		"Rps":        resource.RPS,
-		"Reserve":    resource.Reserve,
-		"Variables":  resource.Variables.ToJson(),
-		"Number":     resource.Number,
-		"MaxSErrors": resource.MaxSuccessivelyErrors,
-		"Name":       resource.Name,
-		"ErrorIds":   pq.Array(resource.ErrorIds),
-		"Id":         resource.Id,
-		"DomainId":   resource.DomainId,
-		"GatewayId":  resource.GetGatewayId(),
+		"Limit":       resource.Limit,
+		"Enabled":     resource.Enabled,
+		"UpdatedAt":   resource.UpdatedAt,
+		"UpdatedBy":   resource.UpdatedBy.Id,
+		"Rps":         resource.RPS,
+		"Reserve":     resource.Reserve,
+		"Variables":   resource.Variables.ToJson(),
+		"Number":      resource.Number,
+		"MaxSErrors":  resource.MaxSuccessivelyErrors,
+		"Name":        resource.Name,
+		"ErrorIds":    pq.Array(resource.ErrorIds),
+		"Id":          resource.Id,
+		"DomainId":    resource.DomainId,
+		"GatewayId":   resource.GetGatewayId(),
+		"Description": resource.Description,
 	})
 
 	if err != nil {

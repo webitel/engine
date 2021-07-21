@@ -15,6 +15,7 @@ type OutboundCallResource struct {
 	SuccessivelyErrors    int         `json:"successively_errors" db:"successively_errors"`
 	LastErrorAt           int64       `json:"last_error_at" db:"last_error_at"`
 	Gateway               *Lookup     `json:"gateway" db:"gateway"`
+	Description           *string     `json:"description" db:"description"`
 }
 
 type SearchOutboundCallResource struct {
@@ -29,11 +30,11 @@ func (OutboundCallResource) DefaultOrder() string {
 func (a OutboundCallResource) AllowFields() []string {
 	return []string{"id", "name", "gateway", "enabled", "reserve", "limit",
 		"domain_id", "rps", "variables", "number", "max_successively_errors", "error_ids", "last_error_id", "successively_errors", "last_error_at",
-		"created_at", "created_by", "updated_at", "updated_by"}
+		"created_at", "created_by", "updated_at", "updated_by", "description"}
 }
 
 func (a OutboundCallResource) DefaultFields() []string {
-	return []string{"id", "name", "gateway", "enabled", "reserve", "limit"}
+	return []string{"id", "name", "gateway", "enabled", "reserve", "limit", "description"}
 }
 
 func (a OutboundCallResource) EntityName() string {
@@ -76,6 +77,7 @@ type OutboundCallResourcePath struct {
 	Name                  *string      `json:"name" db:"name"`
 	ErrorIds              *StringArray `json:"error_ids" db:"error_ids"`
 	Gateway               *Lookup      `json:"gateway" db:"gateway"`
+	Description           *string      `json:"description" db:"description"`
 }
 
 func (r *OutboundCallResource) GetGatewayId() *int {
@@ -115,6 +117,10 @@ func (r *OutboundCallResource) Path(p *OutboundCallResourcePath) {
 
 	if p.Gateway != nil {
 		r.Gateway = p.Gateway
+	}
+
+	if p.Description != nil {
+		r.Description = p.Description
 	}
 }
 

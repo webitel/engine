@@ -73,6 +73,7 @@ func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*mod
 	oldResource.Name = resource.Name
 	oldResource.ErrorIds = resource.ErrorIds
 	oldResource.Gateway = resource.Gateway
+	oldResource.Description = resource.Description
 
 	oldResource, err = a.Store.OutboundResource().Update(oldResource)
 	if err != nil {

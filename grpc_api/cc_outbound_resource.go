@@ -29,7 +29,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 
 	resource := &model.OutboundCallResource{
 		DomainRecord: model.DomainRecord{
-			DomainId:  session.Domain(in.GetDomainId()),
+			DomainId:  session.Domain(0),
 			CreatedAt: model.GetMillis(),
 			CreatedBy: model.Lookup{
 				Id: int(session.UserId),
@@ -48,6 +48,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		MaxSuccessivelyErrors: int(in.MaxSuccessivelyErrors),
 		Name:                  in.Name,
 		ErrorIds:              in.ErrorIds,
+		Description:           GetStringPointer(in.Description),
 	}
 
 	if in.Gateway != nil {
@@ -160,7 +161,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(0), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -170,7 +171,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 	resource := &model.OutboundCallResource{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
-			DomainId:  session.Domain(in.GetDomainId()),
+			DomainId:  session.Domain(0),
 			UpdatedAt: model.GetMillis(),
 			UpdatedBy: model.Lookup{
 				Id: int(session.UserId),
@@ -185,6 +186,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		MaxSuccessivelyErrors: int(in.MaxSuccessivelyErrors),
 		Name:                  in.Name,
 		ErrorIds:              in.ErrorIds,
+		Description:           GetStringPointer(in.Description),
 	}
 
 	if in.Gateway != nil {
@@ -219,7 +221,7 @@ func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engi
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceCheckAccess(session.Domain(0), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -244,10 +246,12 @@ func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engi
 			patch.Reserve = model.NewBool(in.Reserve)
 		case "name":
 			patch.Name = model.NewString(in.Name)
+		case "description":
+			patch.Description = model.NewString(in.Description)
 		}
 	}
 
-	resource, err = api.app.PatchOutboundResource(session.Domain(in.GetDomainId()), in.GetId(), patch)
+	resource, err = api.app.PatchOutboundResource(session.Domain(0), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -520,6 +524,10 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 			Id:   int64(src.Gateway.Id),
 			Name: src.Gateway.Name,
 		}
+	}
+
+	if src.Description != nil {
+		res.Description = *src.Description
 	}
 
 	return res
