@@ -64,6 +64,10 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		invite.AddVariable("absolute_codec_string", "opus,pcmu,pcma")
 	}
 
+	if req.Params.Display != "" {
+		invite.AddVariable("sip_h_X-Webitel-Display", req.Params.Display)
+	}
+
 	id, err = callCli.MakeOutboundCall(invite)
 	if err != nil {
 		return "", err

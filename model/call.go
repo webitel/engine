@@ -120,6 +120,7 @@ type CallParameters struct {
 
 	Record     bool
 	AutoAnswer bool
+	Display    string
 	Variables  map[string]string
 }
 

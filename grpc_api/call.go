@@ -358,6 +358,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 			Record:     in.GetParams().GetRecord(),
 			Variables:  in.GetParams().GetVariables(),
 			AutoAnswer: in.GetParams().GetAutoAnswer(),
+			Display:    in.GetParams().GetDisplay(),
 		},
 	}
 
