@@ -60,6 +60,10 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		invite.AddVariable("wbt_auto_answer", "true")
 	}
 
+	if req.Params.DisableStun {
+		invite.AddVariable("wbt_disable_stun", "true")
+	}
+
 	if !(req.Params.Video || req.Params.Screen) {
 		invite.AddVariable("absolute_codec_string", "opus,pcmu,pcma")
 	}

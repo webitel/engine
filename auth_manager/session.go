@@ -14,7 +14,7 @@ type Session struct {
 
 	Token            string              `json:"token"`
 	Scopes           []SessionPermission `json:"scopes"`
-	adminPermissions []PermissionAccess  `json:"admin_permissions"`
+	adminPermissions []PermissionAccess
 }
 
 func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool {
