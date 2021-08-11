@@ -782,54 +782,76 @@ order by c.name;`, map[string]interface{}{
 // allow_change
 func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
 	var list []*model.AgentStatusStatistics
-	_, err := s.GetReplica().Select(&list, `select     agent_id, name, status, status_duration, "user", team, online, offline, pause, utilization, call_time, handles, missed,
-       max_bridged_at, max_offering_at, extension, queues, active_call_id, transferred, skills, supervisor, auditor, pause_cause, chat_count, 
-	   coalesce(occupancy, 0) as occupancy
+	_, err := s.GetReplica().Select(&list, `select agent_id,
+       name,
+       status,
+       status_duration,
+       "user",
+       team,
+       online,
+       offline,
+       pause,
+       utilization,
+       call_time,
+       handles,
+       missed,
+       max_bridged_at,
+       max_offering_at,
+       extension,
+       queues,
+       active_call_id,
+       transferred,
+       skills,
+       supervisor,
+       auditor,
+       pause_cause,
+       chat_count,
+       coalesce(occupancy, 0) as occupancy
 from (
-         select a.id                                                                          agent_id,
+         select a.id                                                                                  agent_id,
                 a.domain_id,
-                coalesce(u.name, u.username)                      as                          name,
-                coalesce(u.extension, '')                         as                          extension,
+                coalesce(u.name, u.username)                      as                                  name,
+                coalesce(u.extension, '')                         as                                  extension,
                 a.status,
-                extract(epoch from x.t)::int                                                  status_duration,
-			    coalesce(a.status_payload, '')												  pause_cause,
-                cc_get_lookup(u.id, coalesce(u.name, u.username)) as                          user,
+                extract(epoch from x.t)::int                                                          status_duration,
+                coalesce(a.status_payload, '')                                                        pause_cause,
+                cc_get_lookup(u.id, coalesce(u.name, u.username)) as                                  user,
 
-                cc_get_lookup(team.id, team.name)                                             team,
-                q.queues                                                                      queues,
+                cc_get_lookup(team.id, team.name)                                                     team,
+                q.queues                                                                              queues,
 
-                onl_all::int                                                                  online,
+                onl_all::int                                                                          online,
                 extract(epoch from coalesce(
                         case
                             when a.status = 'offline' then (x.t + coalesce(stat.offline, interval '0'))
                             else stat.offline end,
-                        interval '0'))::int                                                   offline,
+                        interval '0'))::int                                                           offline,
                 extract(epoch from coalesce(
                         case
                             when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0'))
                             else stat.pause end,
-                        interval '0'))::int                                                   pause,
+                        interval '0'))::int                                                           pause,
 
-                case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end utilization,
+                case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end         utilization,
                 case when onl_all > 0 then (coalesce(work_dur, 0) / (onl_all + pause_all)) else 0 end occupancy,
 
-                coalesce(extract(epoch from call_time)::int8, 0)                              call_time,
-                coalesce(handles, 0)                                                          handles,
+                coalesce(extract(epoch from call_time)::int8, 0)                                      call_time,
+                coalesce(handles, 0)                                                                  handles,
                 coalesce(stat.chat_count, 0)                                                          chat_count,
-                coalesce(missed, 0)                                                           missed,
-                0::int                                                                      transferred,
+                coalesce(missed, 0)                                                                   missed,
+                0::int                                                                                transferred,
                 max_bridged_at,
                 max_offering_at,
-                active_call.id                                    as                          active_call_id,
+                active_call.id                                    as                                  active_call_id,
                 q.skills,
                 q.skill_ids,
                 (SELECT jsonb_agg(sag."user") AS jsonb_agg
-				FROM call_center.cc_agent_with_user sag
-				WHERE sag.id = any(a.supervisor_ids))                                         supervisor,
-                cc_get_lookup(r.id, r.name)                                                   region,
+                 FROM call_center.cc_agent_with_user sag
+                 WHERE sag.id = any (a.supervisor_ids))                                               supervisor,
+                cc_get_lookup(r.id, r.name)                                                           region,
                 (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
-				FROM directory.wbt_user aud
-				WHERE aud.id = any(a.auditor_ids))                       auditor,
+                 FROM directory.wbt_user aud
+                 WHERE aud.id = any (a.auditor_ids))                                                  auditor,
                 queue_ids,
                 a.team_id,
                 a.auditor_ids,
@@ -862,7 +884,7 @@ from (
                     extract(epoch from (ares.offering + ares.bridged + ares.wrap_time)) as          work_dur,
                     ares.bridged                                                        as          call_time,
                     ares.cnt                                                                        handles,
-				    ares.chat_count,
+                    ares.chat_count,
                     ares.missed,
                     ares.max_bridged_at,
                     ares.max_offering_at
@@ -875,7 +897,7 @@ from (
                              coalesce(sum(duration) filter ( where ah.state = 'offering' ), interval '0')  offering,
                              coalesce(sum(duration) filter ( where ah.state = 'wrap_time' ), interval '0') wrap_time,
                              coalesce(count(*) filter (where ah.state = 'bridged' ), 0)                    cnt,
-                             coalesce(count(*) filter (where ah.state = 'chat' ), 0)                    chat_count,
+                             coalesce(count(*) filter (where ah.state = 'chat' ), 0)                       chat_count,
                              coalesce(count(*) filter (where ah.state = 'missed' ), 0)                     missed,
                              max(ah.joined_at) filter ( where ah.state = 'bridged' )                       max_bridged_at,
                              max(ah.joined_at) filter ( where ah.state = 'offering' )                      max_offering_at,
@@ -914,44 +936,58 @@ from (
                      when a.status = 'online' then (x.t + coalesce(stat.online, interval '0'))
                      else stat.online end,
                  interval '0')) onl_all on true
-                left join lateral extract(epoch from coalesce(
+                  left join lateral extract(epoch from coalesce(
                  case
                      when a.status = 'pause' then (x.t + coalesce(stat.pause, interval '0'))
                      else stat.pause end,
                  interval '0')) pause_all on true
-			 	where a.domain_id = :DomainId and
-				   ((a.user_id = :SupervisorId and a.supervisor)
-						or a.supervisor_ids = any(
-						 select array_agg(a2.id)
-						 from cc_agent a2
-						 where a2.user_id = :SupervisorId
-					 )
-						or a.team_id in (
-						 select te.id
-						 from cc_team te
-						 where te.admin_id = (select a2.id from cc_agent a2 where a2.user_id = :SupervisorId)
-					 ))
+         where a.domain_id = :DomainId
+           and a.id in (
+                with x as (
+                    select a.user_id, a.id agent_id, a.supervisor, a.domain_id
+                    from directory.wbt_user u
+                             inner join cc_agent a on a.user_id = u.id
+                    where u.id = :UserSupervisorId
+                      and u.dc = :DomainId
+                )
+                select distinct a.id
+                from x
+                         left join lateral (
+                    select a.id, a.auditor_ids && array [x.user_id] aud
+                    from cc_agent a
+                    where a.domain_id = x.domain_id
+                      and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
+                           a.auditor_ids && array [x.user_id])
+                    union
+                    distinct
+                    select a.id, a.auditor_ids && array [x.user_id] aud
+                    from cc_team t
+                             inner join cc_agent a on a.team_id = t.id
+                    where t.admin_id = x.agent_id
+                      and x.domain_id = t.domain_id
+                ) a on true
+           )
      ) t
 where t.domain_id = :DomainId
- and (:AgentIds::int[] isnull or t.agent_id = any(:AgentIds))
-and (:Q::varchar isnull or t.name ilike :Q::varchar)
-and (:Status::varchar[] isnull or (t.status = any(:Status)))
-and ( (:UFrom::numeric isnull or t.utilization >= :UFrom::numeric) and (:UTo::numeric isnull or t.utilization <= :UTo::numeric) )
-and (:QueueIds::int[] isnull  or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
-and (:SkillIds::int[] isnull  or (t.skill_ids notnull and t.skill_ids::int[] && :SkillIds::int[]))
-and (:TeamIds::int[] isnull  or (t.team_id notnull and t.team_id = any(:TeamIds::int[])))
-and (:RegionIds::int[] isnull  or (t.region_id notnull and t.region_id = any(:RegionIds::int[])))
-and (:AuditorIds::int[] isnull  or (t.auditor_ids notnull and t.auditor_ids && :AuditorIds::int8[]))
-and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull ))
+  and (:AgentIds::int[] isnull or t.agent_id = any (:AgentIds))
+  and (:Q::varchar isnull or t.name ilike :Q::varchar)
+  and (:Status::varchar[] isnull or (t.status = any (:Status)))
+  and ((:UFrom::numeric isnull or t.utilization >= :UFrom::numeric) and
+       (:UTo::numeric isnull or t.utilization <= :UTo::numeric))
+  and (:QueueIds::int[] isnull or (t.queue_ids notnull and t.queue_ids::int[] && :QueueIds::int[]))
+  and (:SkillIds::int[] isnull or (t.skill_ids notnull and t.skill_ids::int[] && :SkillIds::int[]))
+  and (:TeamIds::int[] isnull or (t.team_id notnull and t.team_id = any (:TeamIds::int[])))
+  and (:RegionIds::int[] isnull or (t.region_id notnull and t.region_id = any (:RegionIds::int[])))
+  and (:AuditorIds::int[] isnull or (t.auditor_ids notnull and t.auditor_ids && :AuditorIds::int8[]))
+  and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull))
 order by case t.status
-    when 'break_out' then 0
-    when 'pause' then 1
-    when 'online' then 2
-    else 3 end, t.name
-limit :Limit
-offset :Offset`, map[string]interface{}{
-		"DomainId":     domainId,
-		"SupervisorId": supervisorUserId,
+             when 'break_out' then 0
+             when 'pause' then 1
+             when 'online' then 2
+             else 3 end, t.name
+limit :Limit offset :Offset`, map[string]interface{}{
+		"DomainId":         domainId,
+		"UserSupervisorId": supervisorUserId,
 		//"Groups":     pq.Array(groups),
 		//"Access":     access.Value(),
 		"Q":          search.GetQ(),

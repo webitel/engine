@@ -316,36 +316,36 @@ func (s SqlQueueStore) QueueReportGeneral(domainId int64, supervisorId int64, gr
 with queues  as  (
     select *
     from cc_queue q
-    where q.id in (
-		select distinct q.id
-		from cc_agent ac
-			left join lateral (
-				select distinct a.team_id, a.id
-				from cc_agent a
-				where a.supervisor_ids && array[ac.id] and a.team_id notnull
-		
-				union distinct
-				select ac.team_id, ac.id
-		
-				union distinct
-				select t.id, null
-				from cc_team t
-				where t.domain_id = ac.domain_id and t.admin_id = ac.id
-			) t on true
-			inner join cc_skill_in_agent sa on sa.agent_id = ac.id and sa.enabled
-			inner join cc_queue_skill sq on sq.skill_id = sa.skill_id and sq.enabled
-				and sa.capacity between sq.min_capacity and sq.max_capacity
-			inner join cc_queue q on q.domain_id = ac.domain_id and
-				 (q.team_id isnull or q.team_id = t.team_id) and (q.id = sq.queue_id  )
-		where q.enabled is true and q.domain_id = :DomainId and ac.user_id = :SupervisorId and q.id notnull and q.type != 2
-		union all
-		select q.id
-		from cc_queue q
-		where q.enabled
-		  and q.domain_id = :DomainId
-		  and q.type = 2
-		  and q.grantee_id = any (:Groups::int[])
-		)
+    where  q.id in (
+        with x as (
+            select a.user_id, a.id agent_id, a.supervisor, a.domain_id
+            from directory.wbt_user u
+                     inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
+            where u.id = :UserSupervisorId
+              and u.dc = :DomainId
+        )
+        select distinct qs.queue_id
+        from x
+                 left join lateral (
+            select a.id, a.auditor_ids && array [x.user_id] aud
+            from cc_agent a
+            where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
+            union
+            distinct
+            select a.id, a.auditor_ids && array [x.user_id] aud
+            from cc_team t
+                     inner join cc_agent a on a.team_id = t.id
+            where t.admin_id = x.agent_id
+            ) a on true
+                 inner join cc_skill_in_agent sa on sa.agent_id = a.id
+                 inner join cc_queue_skill qs
+                            on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
+        union
+        select q.id
+        from cc_queue q
+        where q.domain_id = :DomainId
+          and q.grantee_id = any (:Groups) and q.enabled
+    ) and q.enabled
  ),
      queue_ag as (
         select distinct
@@ -436,9 +436,9 @@ select
             'total', coalesce(array_length(total, 1), 0)
                             ) from queue_ag where queue_ag.queue_id isnull ) aggs
 `, map[string]interface{}{
-		"DomainId":     domainId,
-		"SupervisorId": supervisorId,
-		"Groups":       pq.Array(groups),
+		"DomainId":         domainId,
+		"UserSupervisorId": supervisorId,
+		"Groups":           pq.Array(groups),
 		//"Access":   access.Value(),
 		"From":     model.GetBetweenFromTime(&search.JoinedAt),
 		"To":       model.GetBetweenToTime(&search.JoinedAt),
