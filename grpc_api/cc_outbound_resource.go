@@ -49,6 +49,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		Name:                  in.Name,
 		ErrorIds:              in.ErrorIds,
 		Description:           GetStringPointer(in.Description),
+		Patterns:              in.Patterns,
 	}
 
 	if in.Gateway != nil {
@@ -187,6 +188,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		Name:                  in.Name,
 		ErrorIds:              in.ErrorIds,
 		Description:           GetStringPointer(in.Description),
+		Patterns:              in.Patterns,
 	}
 
 	if in.Gateway != nil {
@@ -517,6 +519,7 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		LastErrorId:           src.LastError(),
 		SuccessivelyErrors:    int32(src.SuccessivelyErrors),
 		LastErrorAt:           src.LastErrorAt,
+		Patterns:              src.Patterns,
 	}
 
 	if src.Gateway != nil {

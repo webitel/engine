@@ -16,6 +16,7 @@ type OutboundCallResource struct {
 	LastErrorAt           int64       `json:"last_error_at" db:"last_error_at"`
 	Gateway               *Lookup     `json:"gateway" db:"gateway"`
 	Description           *string     `json:"description" db:"description"`
+	Patterns              StringArray `json:"patterns" db:"patterns"`
 }
 
 type SearchOutboundCallResource struct {
@@ -30,7 +31,7 @@ func (OutboundCallResource) DefaultOrder() string {
 func (a OutboundCallResource) AllowFields() []string {
 	return []string{"id", "name", "gateway", "enabled", "reserve", "limit",
 		"domain_id", "rps", "variables", "number", "max_successively_errors", "error_ids", "last_error_id", "successively_errors", "last_error_at",
-		"created_at", "created_by", "updated_at", "updated_by", "description"}
+		"created_at", "created_by", "updated_at", "updated_by", "description", "patterns"}
 }
 
 func (a OutboundCallResource) DefaultFields() []string {

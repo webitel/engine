@@ -16,7 +16,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
 	github.com/webitel/call_center v0.0.0-20210618110130-c0518e1305f8
-	github.com/webitel/protos/engine v0.0.0-20210729105222-17a7e8ee5c03
+	github.com/webitel/protos/engine v0.0.0-20210811103449-008e5ab6a254
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/atomic v1.7.0
 	go.uber.org/ratelimit v0.2.0
