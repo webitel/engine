@@ -531,14 +531,18 @@ func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.S
     where m.domain_id = :Domain and cq2.type = 0 and cq2.enabled and (:Q::varchar isnull or m.name ilike :Q)
         and not exists (select 1 from cc_member_attempt a where a.member_id = m.id)
         and m.stop_at isnull
-        and a.team_id = cq2.team_id
+        and (cq2.team_id isnull or a.team_id = cq2.team_id)
+		and m.agent_id isnull
+		and m.skill_id isnull
+		and (m.expire_at isnull or m.expire_at > now())
+		and m.ready_at < now()
         and m.queue_id in (
             select distinct cqs.queue_id
             from cc_skill_in_agent sa
                 inner join cc_queue_skill cqs on cqs.skill_id = sa.skill_id and sa.capacity between cqs.min_capacity and cqs.max_capacity
             where  sa.enabled and cqs.enabled and sa.agent_id = :AgentId
         )
-    order by cq2.priority desc , m.priority desc, m.created_at
+    order by cq2.priority desc , m.priority desc, m.ready_at, m.created_at
     limit :Limit
     offset :Offset
 )
