@@ -49,7 +49,8 @@ func (q Queue) EntityName() string {
 
 type SearchQueue struct {
 	ListRequest
-	Ids []string
+	Ids   []string
+	Types []uint32
 }
 
 type SearchQueueReportGeneral struct {

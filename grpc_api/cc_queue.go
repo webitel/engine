@@ -101,7 +101,8 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
-		Ids: in.Id,
+		Ids:   in.Id,
+		Types: in.Type,
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {

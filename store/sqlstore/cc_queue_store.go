@@ -124,10 +124,14 @@ func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
+		"Types":    pq.Array(search.Types),
 	}
 
 	err := s.ListQuery(&queues, search.ListRequest,
-		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) )  and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
+		`domain_id = :DomainId 
+			and ( (:Ids::int[] isnull or id = any(:Ids) )  
+			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
+			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
