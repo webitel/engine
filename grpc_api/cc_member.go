@@ -815,7 +815,7 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 	for _, v := range src {
 		res = append(res, model.MemberCommunication{
 			Priority:    int(v.GetPriority()),
-			Destination: v.GetDestination(),
+			Destination: strings.Trim(v.GetDestination(), " "),
 			Description: v.GetDescription(),
 			Type: model.Lookup{
 				Id: int(v.GetType().GetId()),
