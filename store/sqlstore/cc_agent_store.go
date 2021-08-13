@@ -97,7 +97,7 @@ FROM a
 			"SupervisorIds":    pq.Array(agent.Supervisor),
 			"TeamId":           agent.Team.GetSafeId(),
 			"RegionId":         agent.Region.GetSafeId(),
-			"AuditorIds":       pq.Array(agent.Auditor),
+			"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 			"Supervisor":       agent.IsSupervisor,
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
@@ -595,7 +595,7 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        a.on_demand,
        cc_get_lookup(t.id, t.name) team,
        a.supervisor is_supervisor,
-       exists(select 1 from cc_team tm where tm.domain_id = a.domain_id and tm.admin_id = a.id) is_admin,
+       exists(select 1 from cc_team tm where tm.domain_id = a.domain_id and tm.admin_ids && array[a.id]) is_admin,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
         WHERE sag.id = any(a.supervisor_ids)) supervisor,
@@ -762,7 +762,7 @@ where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_i
     and (not :AllowChange::bool   
 		 or case when fa.supervisor or fa.id = any(a.supervisor_ids) then c.allow_supervisor else false end
          or (fa.id = a.id and c.allow_agent)
-         or (fa.team_id = a.team_id and ft.admin_id = fa.id and c.allow_admin)
+         or (fa.team_id = a.team_id and ft.admin_ids && array[fa.id] and c.allow_admin)
         )
 order by c.name;`, map[string]interface{}{
 		"DomainId":    domainId,
@@ -963,7 +963,7 @@ from (
                     select a.id, a.auditor_ids && array [x.user_id] aud
                     from cc_team t
                              inner join cc_agent a on a.team_id = t.id
-                    where t.admin_id = x.agent_id
+                    where t.admin_ids && array[x.agent_id]
                       and x.domain_id = t.domain_id
                 ) a on true
            )

@@ -23,9 +23,9 @@ func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *mod
 	if err := s.GetMaster().SelectOne(&out, `with t as (
     insert into cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
                      no_answer_delay_time, call_timeout, updated_at, created_at, created_by, updated_by,
-                     admin_id)
+                     admin_ids)
     values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
-                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminId)
+                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminIds)
     returning *
 )
 select t.id,
@@ -37,10 +37,11 @@ select t.id,
        t.no_answer_delay_time,
        t.call_timeout,
        t.updated_at,
-       adm.user as admin,
+       (SELECT jsonb_agg(adm."user") AS jsonb_agg
+        FROM cc_agent_with_user adm
+		WHERE adm.id = any(t.admin_ids) as admin,
        t.domain_id
-from t
-    left join cc_agent_with_user adm on adm.id = t.admin_id`,
+from t`,
 		map[string]interface{}{
 			"DomainId":          team.DomainId,
 			"Name":              team.Name,
@@ -54,7 +55,7 @@ from t
 			"CreatedBy":         team.CreatedBy.Id,
 			"UpdatedAt":         team.UpdatedAt,
 			"UpdatedBy":         team.UpdatedBy.Id,
-			"AdminId":           team.Admin.GetSafeId(),
+			"AdminIds":          model.LookupIds(team.Admin),
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
@@ -96,7 +97,7 @@ func (s SqlAgentTeamStore) GetAllPage(domainId int64, search *model.SearchAgentT
 
 	err := s.ListQuery(&teams, search.ListRequest,
 		`domain_id = :DomainId and ( (:Ids::int[] isnull or id = any(:Ids) ) 
-			and (:AdminIds::int[] isnull or admin_id = any(:AdminIds) )
+			and (:AdminIds::int[] isnull or admin_ids && :AdminIds )
 			and (:Strategy::varchar[] isnull or strategy = any(:Strategy) )
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
@@ -126,7 +127,7 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, sear
 				  from cc_team_acl a
 				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 			  ) and ( (:Ids::int[] isnull or id = any(:Ids) ) 
-			and (:AdminIds::int[] isnull or admin_id = any(:AdminIds) )
+			and (:AdminIds::int[] isnull or admin_ids && :AdminIds )
 			and (:Strategy::varchar[] isnull or strategy = any(:Strategy) )
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
@@ -148,9 +149,10 @@ func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *mod
        t.no_answer_delay_time,
        t.call_timeout,
        t.updated_at,
-       adm.user as admin
+       (SELECT jsonb_agg(adm."user") AS jsonb_agg
+        FROM cc_agent_with_user adm
+		WHERE adm.id = any(t.admin_ids) as admin
 from cc_team t
-    left join cc_agent_with_user adm on adm.id = t.admin_id
 where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -174,7 +176,7 @@ func (s SqlAgentTeamStore) Update(domainId int64, team *model.AgentTeam) (*model
         call_timeout = :CallTimeout,
         updated_at = :UpdatedAt,
         updated_by = :UpdatedBy,
-        admin_id = :AdminId
+        admin_ids = :AdminIds
     where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -187,10 +189,11 @@ select t.id,
        t.no_answer_delay_time,
        t.call_timeout,
        t.updated_at,
-       adm.user as admin,
+       (SELECT jsonb_agg(adm."user") AS jsonb_agg
+        FROM cc_agent_with_user adm
+		WHERE adm.id = any(t.admin_ids) as admin,
        t.domain_id
-from t
-    left join cc_agent_with_user adm on adm.id = t.admin_id`, map[string]interface{}{
+from t`, map[string]interface{}{
 		"Id":                team.Id,
 		"DomainId":          domainId,
 		"Name":              team.Name,
@@ -202,7 +205,7 @@ from t
 		"CallTimeout":       team.CallTimeout,
 		"UpdatedAt":         team.UpdatedAt,
 		"UpdatedBy":         team.UpdatedBy.Id,
-		"AdminId":           team.Admin.GetSafeId(),
+		"AdminIds":          pq.Array(team.Admin),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.Update", "store.sql_agent_team.update.app_error", nil,

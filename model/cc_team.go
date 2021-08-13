@@ -10,7 +10,7 @@ type AgentTeam struct {
 	NoAnswerDelayTime int16  `json:"no_answer_delay_time" db:"no_answer_delay_time"`
 	CallTimeout       int16  `json:"call_timeout" db:"call_timeout"`
 
-	Admin *Lookup `json:"admin" db:"admin"`
+	Admin []*Lookup `json:"admin" db:"admin"`
 }
 
 func (team AgentTeam) DefaultOrder() string {

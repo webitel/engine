@@ -339,7 +339,7 @@ with queues  as  (
             select a.id, a.auditor_ids && array [x.user_id] aud
             from cc_team t
                      inner join cc_agent a on a.team_id = t.id
-            where t.admin_id = x.agent_id
+            where t.admin_ids && array[x.agent_id]
             ) a on true
                  inner join cc_skill_in_agent sa on sa.agent_id = a.id
                  inner join cc_queue_skill qs
