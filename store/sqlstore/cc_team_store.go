@@ -55,7 +55,7 @@ from t`,
 			"CreatedBy":         team.CreatedBy.Id,
 			"UpdatedAt":         team.UpdatedAt,
 			"UpdatedBy":         team.UpdatedBy.Id,
-			"AdminIds":          model.LookupIds(team.Admin),
+			"AdminIds":          pq.Array(model.LookupIds(team.Admin)),
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
@@ -205,7 +205,7 @@ from t`, map[string]interface{}{
 		"CallTimeout":       team.CallTimeout,
 		"UpdatedAt":         team.UpdatedAt,
 		"UpdatedBy":         team.UpdatedBy.Id,
-		"AdminIds":          pq.Array(team.Admin),
+		"AdminIds":          pq.Array(model.LookupIds(team.Admin)),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlAgentTeamStore.Update", "store.sql_agent_team.update.app_error", nil,
