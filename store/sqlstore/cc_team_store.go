@@ -39,7 +39,7 @@ select t.id,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM cc_agent_with_user adm
-		WHERE adm.id = any(t.admin_ids) as admin,
+		WHERE adm.id = any(t.admin_ids)) as admin,
        t.domain_id
 from t`,
 		map[string]interface{}{
@@ -151,7 +151,7 @@ func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *mod
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM cc_agent_with_user adm
-		WHERE adm.id = any(t.admin_ids) as admin
+		WHERE adm.id = any(t.admin_ids)) as admin
 from cc_team t
 where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
 		"Id":       id,
@@ -191,7 +191,7 @@ select t.id,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM cc_agent_with_user adm
-		WHERE adm.id = any(t.admin_ids) as admin,
+		WHERE adm.id = any(t.admin_ids)) as admin,
        t.domain_id
 from t`, map[string]interface{}{
 		"Id":                team.Id,
