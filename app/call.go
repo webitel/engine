@@ -261,8 +261,8 @@ func (app *App) GetActiveCallPage(domainId int64, search *model.SearchCall) ([]*
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetActiveCallPageByGroups(domainId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
-	list, err := app.Store.Call().GetActiveByGroups(domainId, groups, search)
+func (app *App) GetActiveCallPageByGroups(domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
+	list, err := app.Store.Call().GetActiveByGroups(domainId, userSupervisorId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -283,8 +283,8 @@ func (app *App) GetHistoryCallPage(domainId int64, search *model.SearchHistoryCa
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetHistoryCallPageByGroups(domainId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
-	list, err := app.Store.Call().GetHistoryByGroups(domainId, groups, search)
+func (app *App) GetHistoryCallPageByGroups(domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+	list, err := app.Store.Call().GetHistoryByGroups(domainId, userSupervisorId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}

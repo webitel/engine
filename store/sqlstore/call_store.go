@@ -73,34 +73,35 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	return out, nil
 }
 
-func (s SqlCallStore) GetActiveByGroups(domainId int64, groups []int, search *model.SearchCall) ([]*model.Call, *model.AppError) {
+func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, *model.AppError) {
 	var out []*model.Call
 
 	f := map[string]interface{}{
-		"Domain":        domainId,
-		"Limit":         search.GetLimit(),
-		"Offset":        search.GetOffset(),
-		"From":          model.GetBetweenFromTime(search.CreatedAt),
-		"To":            model.GetBetweenToTime(search.CreatedAt),
-		"Q":             search.GetQ(),
-		"UserIds":       pq.Array(search.UserIds),
-		"QueueIds":      pq.Array(search.QueueIds),
-		"TeamIds":       pq.Array(search.TeamIds),
-		"AgentIds":      pq.Array(search.AgentIds),
-		"MemberIds":     pq.Array(search.MemberIds),
-		"GatewayIds":    pq.Array(search.GatewayIds),
-		"SkipParent":    search.SkipParent,
-		"ParentId":      search.ParentId,
-		"Number":        search.Number,
-		"Direction":     pq.Array(search.Direction),
-		"Missed":        search.Missed,
-		"AnsweredFrom":  model.GetBetweenFromTime(search.AnsweredAt),
-		"AnsweredTo":    model.GetBetweenToTime(search.AnsweredAt),
-		"DurationFrom":  model.GetBetweenFrom(search.Duration),
-		"DurationTo":    model.GetBetweenTo(search.Duration),
-		"SupervisorIds": pq.Array(search.SupervisorIds),
-		"Groups":        pq.Array(groups),
-		"Access":        auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"Domain":           domainId,
+		"Limit":            search.GetLimit(),
+		"Offset":           search.GetOffset(),
+		"From":             model.GetBetweenFromTime(search.CreatedAt),
+		"To":               model.GetBetweenToTime(search.CreatedAt),
+		"Q":                search.GetQ(),
+		"UserIds":          pq.Array(search.UserIds),
+		"QueueIds":         pq.Array(search.QueueIds),
+		"TeamIds":          pq.Array(search.TeamIds),
+		"AgentIds":         pq.Array(search.AgentIds),
+		"MemberIds":        pq.Array(search.MemberIds),
+		"GatewayIds":       pq.Array(search.GatewayIds),
+		"SkipParent":       search.SkipParent,
+		"ParentId":         search.ParentId,
+		"Number":           search.Number,
+		"Direction":        pq.Array(search.Direction),
+		"Missed":           search.Missed,
+		"AnsweredFrom":     model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":       model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom":     model.GetBetweenFrom(search.Duration),
+		"DurationTo":       model.GetBetweenTo(search.Duration),
+		"SupervisorIds":    pq.Array(search.SupervisorIds),
+		"Groups":           pq.Array(groups),
+		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"UserSupervisorId": userSupervisorId,
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -121,7 +122,68 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, groups []int, search *mo
 	and ( (:DurationFrom::int8 isnull or :DurationTo::int8 isnull) or duration between :DurationFrom and :DurationTo )
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
-	and exists(
+	and (
+        (t.user_id isnull or t.user_id in (
+            with x as (
+                select a.user_id, a.id agent_id, a.supervisor, a.domain_id
+                from directory.wbt_user u
+                         inner join cc_agent a on a.user_id = u.id
+                where u.id = :UserSupervisorId
+                  and u.dc = :DomainId
+            )
+            select distinct a.user_id
+            from x
+                     left join lateral (
+                select a.user_id, a.auditor_ids && array [x.user_id] aud
+                from cc_agent a
+                where a.domain_id = x.domain_id
+                  and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
+                       a.auditor_ids && array [x.user_id])
+
+                union
+                distinct
+
+                select a.user_id, a.auditor_ids && array [x.user_id] aud
+                from cc_team t
+                         inner join cc_agent a on a.team_id = t.id
+                where t.admin_ids && array [x.agent_id]
+                  and x.domain_id = t.domain_id
+                ) a on true
+        ))
+        or (t.queue_id isnull or t.queue_id in (
+        with x as (
+            select a.user_id, a.id agent_id, a.supervisor, a.domain_id
+            from directory.wbt_user u
+                     inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
+            where u.id = :UserSupervisorId
+              and u.dc = :DomainId
+        )
+        select distinct qs.queue_id
+        from x
+                 left join lateral (
+            select a.id, a.auditor_ids && array [x.user_id] aud
+            from cc_agent a
+            where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
+            union
+            distinct
+            select a.id, a.auditor_ids && array [x.user_id] aud
+            from cc_team t
+                     inner join cc_agent a on a.team_id = t.id
+            where t.admin_ids && array [x.agent_id]
+            ) a on true
+                 inner join cc_skill_in_agent sa on sa.agent_id = a.id
+                 inner join cc_queue_skill qs
+                            on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
+        where sa.enabled
+          and qs.enabled
+        union
+        select q.id
+        from cc_queue q
+        where q.domain_id = :DomainId
+          and q.grantee_id = any (:Groups)
+          and q.enabled
+    ))
+      or exists(
 		select acl.*
 		from (
 			select a.*
@@ -138,6 +200,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, groups []int, search *mo
 		) acl
 		where acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access
 	)
+    );
 `,
 		model.Call{}, f)
 	if err != nil {
@@ -298,42 +361,43 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	return out, nil
 }
 
-func (s SqlCallStore) GetHistoryByGroups(domainId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError) {
+func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError) {
 	var out []*model.HistoryCall
 
 	f := map[string]interface{}{
-		"Domain":          domainId,
-		"Limit":           search.GetLimit(),
-		"Offset":          search.GetOffset(),
-		"From":            model.GetBetweenFromTime(search.CreatedAt),
-		"To":              model.GetBetweenToTime(search.CreatedAt),
-		"Q":               search.GetRegExpQ(),
-		"UserIds":         pq.Array(search.UserIds),
-		"QueueIds":        pq.Array(search.QueueIds),
-		"TeamIds":         pq.Array(search.TeamIds),
-		"AgentIds":        pq.Array(search.AgentIds),
-		"MemberIds":       pq.Array(search.MemberIds),
-		"GatewayIds":      pq.Array(search.GatewayIds),
-		"SkipParent":      search.SkipParent,
-		"ParentId":        search.ParentId,
-		"Number":          search.Number,
-		"CauseArr":        pq.Array(search.CauseArr),
-		"HasFile":         search.HasFile,
-		"Direction":       search.Direction,
-		"Missed":          search.Missed,
-		"AnsweredFrom":    model.GetBetweenFromTime(search.AnsweredAt),
-		"AnsweredTo":      model.GetBetweenToTime(search.AnsweredAt),
-		"DurationFrom":    model.GetBetweenFrom(search.Duration),
-		"DurationTo":      model.GetBetweenTo(search.Duration),
-		"StoredAtFrom":    model.GetBetweenFromTime(search.StoredAt),
-		"StoredAtTo":      model.GetBetweenToTime(search.StoredAt),
-		"Ids":             pq.Array(search.Ids),
-		"TransferFromIds": pq.Array(search.TransferFromIds),
-		"TransferToIds":   pq.Array(search.TransferToIds),
-		"DependencyIds":   pq.Array(search.DependencyIds),
-		"Tags":            pq.Array(search.Tags),
-		"Groups":          pq.Array(groups),
-		"Access":          auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"Domain":           domainId,
+		"Limit":            search.GetLimit(),
+		"Offset":           search.GetOffset(),
+		"From":             model.GetBetweenFromTime(search.CreatedAt),
+		"To":               model.GetBetweenToTime(search.CreatedAt),
+		"Q":                search.GetRegExpQ(),
+		"UserIds":          pq.Array(search.UserIds),
+		"QueueIds":         pq.Array(search.QueueIds),
+		"TeamIds":          pq.Array(search.TeamIds),
+		"AgentIds":         pq.Array(search.AgentIds),
+		"MemberIds":        pq.Array(search.MemberIds),
+		"GatewayIds":       pq.Array(search.GatewayIds),
+		"SkipParent":       search.SkipParent,
+		"ParentId":         search.ParentId,
+		"Number":           search.Number,
+		"CauseArr":         pq.Array(search.CauseArr),
+		"HasFile":          search.HasFile,
+		"Direction":        search.Direction,
+		"Missed":           search.Missed,
+		"AnsweredFrom":     model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":       model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom":     model.GetBetweenFrom(search.Duration),
+		"DurationTo":       model.GetBetweenTo(search.Duration),
+		"StoredAtFrom":     model.GetBetweenFromTime(search.StoredAt),
+		"StoredAtTo":       model.GetBetweenToTime(search.StoredAt),
+		"Ids":              pq.Array(search.Ids),
+		"TransferFromIds":  pq.Array(search.TransferFromIds),
+		"TransferToIds":    pq.Array(search.TransferToIds),
+		"DependencyIds":    pq.Array(search.DependencyIds),
+		"Tags":             pq.Array(search.Tags),
+		"Groups":           pq.Array(groups),
+		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"UserSupervisorId": userSupervisorId,
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -374,7 +438,68 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, groups []int, search *m
 		from a
 		where not a.id = any(:DependencyIds)
 	))
-	and exists(
+	and (
+        (t.user_id isnull or t.user_id in (
+            with x as (
+                select a.user_id, a.id agent_id, a.supervisor, a.domain_id
+                from directory.wbt_user u
+                         inner join cc_agent a on a.user_id = u.id
+                where u.id = :UserSupervisorId
+                  and u.dc = :DomainId
+            )
+            select distinct a.user_id
+            from x
+                     left join lateral (
+                select a.user_id, a.auditor_ids && array [x.user_id] aud
+                from cc_agent a
+                where a.domain_id = x.domain_id
+                  and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
+                       a.auditor_ids && array [x.user_id])
+
+                union
+                distinct
+
+                select a.user_id, a.auditor_ids && array [x.user_id] aud
+                from cc_team t
+                         inner join cc_agent a on a.team_id = t.id
+                where t.admin_ids && array [x.agent_id]
+                  and x.domain_id = t.domain_id
+                ) a on true
+        ))
+        or (t.queue_id isnull or t.queue_id in (
+        with x as (
+            select a.user_id, a.id agent_id, a.supervisor, a.domain_id
+            from directory.wbt_user u
+                     inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
+            where u.id = :UserSupervisorId
+              and u.dc = :DomainId
+        )
+        select distinct qs.queue_id
+        from x
+                 left join lateral (
+            select a.id, a.auditor_ids && array [x.user_id] aud
+            from cc_agent a
+            where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
+            union
+            distinct
+            select a.id, a.auditor_ids && array [x.user_id] aud
+            from cc_team t
+                     inner join cc_agent a on a.team_id = t.id
+            where t.admin_ids && array [x.agent_id]
+            ) a on true
+                 inner join cc_skill_in_agent sa on sa.agent_id = a.id
+                 inner join cc_queue_skill qs
+                            on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
+        where sa.enabled
+          and qs.enabled
+        union
+        select q.id
+        from cc_queue q
+        where q.domain_id = :DomainId
+          and q.grantee_id = any (:Groups)
+          and q.enabled
+    ))
+      or exists(
 		select acl.*
 		from (
 			select a.*
@@ -391,6 +516,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, groups []int, search *m
 		) acl
 		where acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access
 	)
+    );
 `,
 		model.HistoryCall{}, f)
 	if err != nil {

@@ -30,7 +30,7 @@ func (c *Controller) SearchCall(session *auth_manager.Session, search *model.Sea
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		return c.app.GetActiveCallPageByGroups(session.DomainId, session.RoleIds, search)
+		return c.app.GetActiveCallPageByGroups(session.DomainId, session.UserId, session.RoleIds, search)
 	}
 
 	return c.app.GetActiveCallPage(session.DomainId, search)
@@ -52,7 +52,7 @@ func (c *Controller) SearchHistoryCall(session *auth_manager.Session, search *mo
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		return c.app.GetHistoryCallPageByGroups(session.DomainId, session.RoleIds, search)
+		return c.app.GetHistoryCallPageByGroups(session.DomainId, session.UserId, session.RoleIds, search)
 	}
 
 	return c.app.GetHistoryCallPage(session.Domain(search.DomainId), search)

@@ -344,6 +344,7 @@ with queues  as  (
                  inner join cc_skill_in_agent sa on sa.agent_id = a.id
                  inner join cc_queue_skill qs
                             on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
+			 where sa.enabled and qs.enabled
         union
         select q.id
         from cc_queue q
