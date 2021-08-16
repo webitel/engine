@@ -535,7 +535,7 @@ func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.S
 		and m.agent_id isnull
 		and m.skill_id isnull
 		and (m.expire_at isnull or m.expire_at > now())
-		and m.ready_at < now()
+		and (m.ready_at isnull or m.ready_at < now())
         and m.queue_id in (
             select distinct cqs.queue_id
             from cc_skill_in_agent sa
