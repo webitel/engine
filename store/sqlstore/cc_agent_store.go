@@ -123,6 +123,8 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 		"QueueIds":      pq.Array(search.QueueIds),
 		"IsSupervisor":  search.IsSupervisor,
 		"NotSupervisor": search.NotSupervisor,
+		"Extensions":    pq.Array(search.Extensions),
+		"UserIds":       pq.Array(search.UserIds),
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
@@ -132,6 +134,8 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
 				and (:SupervisorIds::int[] isnull or supervisor_ids && :SupervisorIds)
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
+				and (:Extensions::varchar[] isnull or extension = any(:Extensions))
+				and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 				and (:AuditorIds::int8[] isnull or auditor_ids && :AuditorIds)
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
@@ -173,6 +177,8 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 		"QueueIds":      pq.Array(search.QueueIds),
 		"IsSupervisor":  search.IsSupervisor,
 		"NotSupervisor": search.NotSupervisor,
+		"Extensions":    pq.Array(search.Extensions),
+		"UserIds":       pq.Array(search.UserIds),
 	}
 
 	err := s.ListQuery(&agents, search.ListRequest,
@@ -182,6 +188,8 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
 				and (:SupervisorIds::int[] isnull or supervisor_ids && :SupervisorIds)
 				and (:RegionIds::int[] isnull or region_id = any(:RegionIds))
+				and (:Extensions::varchar[] isnull or extension = any(:Extensions))
+				and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 				and (:AuditorIds::int8[] isnull or auditor_ids && :AuditorIds)
 			    and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)

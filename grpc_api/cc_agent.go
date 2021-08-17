@@ -101,6 +101,8 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		AuditorIds:    in.GetAuditorId(),
 		SkillIds:      in.GetSkillId(),
 		QueueIds:      in.GetQueueId(),
+		Extensions:    in.GetExtension(),
+		UserIds:       in.GetUserId(),
 	}
 
 	if in.IsSupervisor {
@@ -877,6 +879,10 @@ func transformAgent(src *model.Agent) *engine.Agent {
 
 	if src.Channel.Timeout != nil {
 		agent.Channel.Timeout = *src.Channel.Timeout
+	}
+
+	if src.Extension != nil {
+		agent.Extension = *src.Extension
 	}
 
 	return agent

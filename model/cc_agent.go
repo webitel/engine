@@ -43,6 +43,7 @@ type Agent struct {
 	Auditor          []*Lookup    `json:"auditor" db:"auditor"`
 	IsSupervisor     bool         `json:"is_supervisor" db:"is_supervisor"`
 	Skills           []*Lookup    `json:"skills" db:"skills"`
+	Extension        *string      `json:"extension" db:"extension"`
 }
 
 type AgentPatch struct {
@@ -186,12 +187,14 @@ func (a Agent) DefaultOrder() string {
 
 func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region", "auditor", "is_supervisor", "skills"}
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
+		"auditor", "is_supervisor", "skills", "extension"}
 }
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region", "auditor", "is_supervisor"}
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
+		"auditor", "is_supervisor", "extension"}
 }
 
 func (a Agent) EntityName() string {
@@ -241,6 +244,8 @@ type SearchAgent struct {
 	QueueIds      []uint32
 	IsSupervisor  *bool
 	NotSupervisor *bool `json:"not_supervisor"`
+	Extensions    []string
+	UserIds       []int64
 }
 
 type AgentUser struct {
