@@ -99,8 +99,8 @@ func (app *App) RemoveMember(domainId, queueId, id int64) (*model.Member, *model
 	return member, nil
 }
 
-func (app *App) RemoveMultiMembers(domainId, queueId int64, ids []int64, buckets []int64, cause []string) ([]*model.Member, *model.AppError) {
-	return app.Store.Member().MultiDelete(queueId, ids, buckets, cause)
+func (app *App) RemoveMultiMembers(domainId, queueId int64, ids []int64, buckets []int64, cause []string, agentIds []int32) ([]*model.Member, *model.AppError) {
+	return app.Store.Member().MultiDelete(queueId, ids, buckets, cause, agentIds)
 }
 
 func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *model.AppError) {

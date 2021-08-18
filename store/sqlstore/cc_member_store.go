@@ -338,7 +338,7 @@ where c.id = :Id
 	return nil
 }
 
-func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64, buckets []int64, cause []string) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64, buckets []int64, cause []string, agentIds []int32) ([]*model.Member, *model.AppError) {
 	var res []*model.Member
 
 	_, err := s.GetMaster().Select(&res, `with m as (
@@ -346,6 +346,7 @@ func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64, buckets []int64,
     where m.queue_id = :QueueId
 		and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
 		and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
+		and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
 		and (:Cause::varchar[] isnull or m.stop_cause = any(:Cause::varchar[]))
 		and not exists(select 1 from cc_member_attempt a where a.member_id = m.id and a.state != 'leaving' for update)
     returning *
@@ -358,10 +359,11 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 			left join cc_bucket qb on m.bucket_id = qb.id
 			left join cc_skill cs on m.skill_id = cs.id
 			left join cc_agent_list agn on m.agent_id = agn.id`, map[string]interface{}{
-		"Ids":     pq.Array(ids),
-		"Buckets": pq.Array(buckets),
-		"Cause":   pq.Array(cause),
-		"QueueId": queueId,
+		"Ids":      pq.Array(ids),
+		"Buckets":  pq.Array(buckets),
+		"Cause":    pq.Array(cause),
+		"AgentIds": pq.Array(agentIds),
+		"QueueId":  queueId,
 	})
 
 	if err != nil {
