@@ -94,7 +94,7 @@ FROM a
 			"GreetingMedia":    agent.GreetingMediaId(),
 			"AllowChannels":    pq.Array(agent.AllowChannels),
 			"ChatCount":        agent.ChatCount,
-			"SupervisorIds":    pq.Array(agent.Supervisor),
+			"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
 			"TeamId":           agent.Team.GetSafeId(),
 			"RegionId":         agent.Region.GetSafeId(),
 			"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
