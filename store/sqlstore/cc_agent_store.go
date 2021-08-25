@@ -964,7 +964,7 @@ from (
                     select a.id, a.auditor_ids && array [x.user_id] aud
                     from cc_agent a
                     where a.domain_id = x.domain_id
-                      and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
+                      and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id]) or
                            a.auditor_ids && array [x.user_id])
                     union
                     distinct

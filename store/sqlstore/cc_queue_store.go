@@ -333,7 +333,7 @@ with queues  as  (
                  left join lateral (
             select a.id, a.auditor_ids && array [x.user_id] aud
             from cc_agent a
-            where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
+            where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id]))
             union
             distinct
             select a.id, a.auditor_ids && array [x.user_id] aud
