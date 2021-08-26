@@ -123,7 +123,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
 	and (
-        (t.user_id isnull or t.user_id in (
+        (t.user_id in (
             with x as (
                 select a.user_id, a.id agent_id, a.supervisor, a.domain_id
                 from directory.wbt_user u
@@ -150,7 +150,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
                   and x.domain_id = t.domain_id
                 ) a on true
         ))
-        or (t.queue_id isnull or t.queue_id in (
+        or (t.queue_id in (
         with x as (
             select a.user_id, a.id agent_id, a.supervisor, a.domain_id
             from directory.wbt_user u
@@ -439,7 +439,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		where not a.id = any(:DependencyIds)
 	))
 	and (
-        (t.user_id isnull or t.user_id in (
+        (t.user_id in (
             with x as (
                 select a.user_id, a.id agent_id, a.supervisor, a.domain_id
                 from directory.wbt_user u
@@ -466,7 +466,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
                   and x.domain_id = t.domain_id
                 ) a on true
         ))
-        or (t.queue_id isnull or t.queue_id in (
+        or (t.queue_id in (
         with x as (
             select a.user_id, a.id agent_id, a.supervisor, a.domain_id
             from directory.wbt_user u
