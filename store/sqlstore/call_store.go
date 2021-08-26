@@ -129,7 +129,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
                 from directory.wbt_user u
                          inner join cc_agent a on a.user_id = u.id
                 where u.id = :UserSupervisorId
-                  and u.dc = :DomainId
+                  and u.dc = :Domain
             )
             select distinct a.user_id
             from x
@@ -156,7 +156,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
             from directory.wbt_user u
                      inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
             where u.id = :UserSupervisorId
-              and u.dc = :DomainId
+              and u.dc = :Domain
         )
         select distinct qs.queue_id
         from x
@@ -179,7 +179,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
         union
         select q.id
         from cc_queue q
-        where q.domain_id = :DomainId
+        where q.domain_id = :Domain
           and q.grantee_id = any (:Groups)
           and q.enabled
     ))
@@ -200,7 +200,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 		) acl
 		where acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access
 	)
-    );
+    )
 `,
 		model.Call{}, f)
 	if err != nil {
@@ -445,7 +445,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
                 from directory.wbt_user u
                          inner join cc_agent a on a.user_id = u.id
                 where u.id = :UserSupervisorId
-                  and u.dc = :DomainId
+                  and u.dc = :Domain
             )
             select distinct a.user_id
             from x
@@ -472,7 +472,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
             from directory.wbt_user u
                      inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
             where u.id = :UserSupervisorId
-              and u.dc = :DomainId
+              and u.dc = :Domain
         )
         select distinct qs.queue_id
         from x
@@ -495,7 +495,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
         union
         select q.id
         from cc_queue q
-        where q.domain_id = :DomainId
+        where q.domain_id = :Domain
           and q.grantee_id = any (:Groups)
           and q.enabled
     ))
@@ -516,7 +516,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		) acl
 		where acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access
 	)
-    );
+    )
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
