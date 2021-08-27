@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type OutboundCallResource struct {
 	DomainRecord
 	Limit                 int         `json:"limit" db:"limit"`
@@ -13,7 +15,7 @@ type OutboundCallResource struct {
 	ErrorIds              StringArray `json:"error_ids" db:"error_ids"`
 	LastErrorId           *string     `json:"last_error_id" db:"last_error_id"`
 	SuccessivelyErrors    int         `json:"successively_errors" db:"successively_errors"`
-	LastErrorAt           int64       `json:"last_error_at" db:"last_error_at"`
+	LastErrorAt           *time.Time  `json:"last_error_at" db:"last_error_at"`
 	Gateway               *Lookup     `json:"gateway" db:"gateway"`
 	Description           *string     `json:"description" db:"description"`
 	Patterns              StringArray `json:"patterns" db:"patterns"`

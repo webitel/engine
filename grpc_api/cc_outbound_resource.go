@@ -518,7 +518,7 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		ErrorIds:              src.ErrorIds,
 		LastErrorId:           src.LastError(),
 		SuccessivelyErrors:    int32(src.SuccessivelyErrors),
-		LastErrorAt:           src.LastErrorAt,
+		LastErrorAt:           model.TimeToInt64(src.LastErrorAt),
 		Patterns:              src.Patterns,
 	}
 
