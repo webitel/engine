@@ -26,7 +26,7 @@ func (s SqlOutboundResourceInGroupStore) Create(domainId int64, res *model.Outbo
     returning *
 )
 select s.id, s.group_id, cc_get_lookup(cor.id, cor.name) as resource,
-	cc_get_lookup(res.id::bigint, res.name) AS reserved_resource,
+	cc_get_lookup(res.id::bigint, res.name) AS reserve_resource,
 	s.priority
 from s
     inner join cc_outbound_resource cor on s.resource_id = cor.id
