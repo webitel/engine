@@ -136,6 +136,13 @@ type CallInstance struct {
 	Timestamp int64   `json:"timestamp" db:"timestamp"`
 }
 
+//
+type CallHold struct {
+	Start  int64   `json:"start"`
+	Finish int64   `json:"finish"`
+	Sec    float64 `json:"sec"`
+}
+
 type Call struct {
 	Id          string            `json:"id" db:"id"`
 	AppId       string            `json:"app_id" db:"app_id"`
@@ -177,7 +184,8 @@ type Call struct {
 	Display          *string    `json:"display" db:"display"`
 	Supervisor       []*Lookup  `json:"supervisor" db:"supervisor"`
 
-	Task *CCTask `json:"task"`
+	Task *CCTask     `json:"task"`
+	Hold []*CallHold `json:"hold" db:"hold"`
 }
 
 type CCTask struct {
@@ -311,6 +319,8 @@ type HistoryCall struct {
 	TransferTo       *string     `json:"transfer_to" db:"transfer_to"`
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
 	AgentDescription *string     `json:"agent_description" db:"agent_description"`
+
+	Hold []*CallHold `json:"hold" db:"hold"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -322,7 +332,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description",
+		"agent_description", "hold",
 	}
 }
 

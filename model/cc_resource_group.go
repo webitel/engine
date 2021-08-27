@@ -49,9 +49,11 @@ func (g *OutboundResourceGroup) IsValid() *AppError {
 }
 
 type OutboundResourceInGroup struct {
-	Id       int64  `json:"id" db:"id"`
-	GroupId  int64  `json:"group_id" db:"group_id"`
-	Resource Lookup `json:"resource" db:"resource"`
+	Id              int64   `json:"id" db:"id"`
+	GroupId         int64   `json:"group_id" db:"group_id"`
+	Resource        Lookup  `json:"resource" db:"resource"`
+	ReserveResource *Lookup `json:"reserve_resource" db:"reserve_resource"`
+	Priority        uint32  `json:"priority" db:"priority"`
 }
 
 type SearchOutboundResourceInGroup struct {
@@ -64,11 +66,11 @@ func (OutboundResourceInGroup) DefaultOrder() string {
 }
 
 func (a OutboundResourceInGroup) AllowFields() []string {
-	return []string{"id", "resource", "group_id", "resource_id", "resource_name", "domain_id"}
+	return []string{"id", "resource", "group_id", "resource_id", "resource_name", "reserve_resource", "priority"}
 }
 
 func (a OutboundResourceInGroup) DefaultFields() []string {
-	return []string{"id", "resource"}
+	return []string{"id", "resource", "reserve_resource", "priority"}
 }
 
 func (a OutboundResourceInGroup) EntityName() string {

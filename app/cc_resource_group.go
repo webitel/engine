@@ -71,12 +71,8 @@ func (a *App) RemoveOutboundResourceGroup(domainId, id int64) (*model.OutboundRe
 	return group, nil
 }
 
-func (a *App) CreateOutboundResourceInGroup(domainId, resourceId, groupId int64) (*model.OutboundResourceInGroup, *model.AppError) {
-	return a.Store.OutboundResourceInGroup().Create(domainId, resourceId, groupId)
-}
-
-func (a *App) CreateOutboundResourceInGroupPage(domainId, resourceId, groupId int64) (*model.OutboundResourceInGroup, *model.AppError) {
-	return a.Store.OutboundResourceInGroup().Create(domainId, resourceId, groupId)
+func (a *App) CreateOutboundResourceInGroup(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+	return a.Store.OutboundResourceInGroup().Create(domainId, res)
 }
 
 func (a *App) GetOutboundResourceInGroupPage(domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, bool, *model.AppError) {
@@ -98,6 +94,8 @@ func (a *App) UpdateOutboundResourceInGroup(domainId int64, res *model.OutboundR
 		return nil, err
 	}
 	oldRes.Resource = res.Resource
+	oldRes.Priority = res.Priority
+	oldRes.ReserveResource = res.ReserveResource
 
 	oldRes, err = a.Store.OutboundResourceInGroup().Update(domainId, oldRes)
 	if err != nil {

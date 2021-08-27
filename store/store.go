@@ -173,7 +173,7 @@ type OutboundResourceGroupStore interface {
 }
 
 type OutboundResourceInGroupStore interface {
-	Create(domainId, resourceId, groupId int64) (*model.OutboundResourceInGroup, *model.AppError)
+	Create(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError)
 	GetAllPage(domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, *model.AppError)
 	Get(domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError)
 	Update(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError)

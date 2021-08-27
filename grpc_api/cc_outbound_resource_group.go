@@ -239,15 +239,20 @@ func (api *outboundResourceGroup) CreateOutboundResourceInGroup(ctx context.Cont
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(0), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
-	var res *model.OutboundResourceInGroup
-	res, err = api.app.CreateOutboundResourceInGroup(session.Domain(in.GetDomainId()), in.GetResource().GetId(), in.GetGroupId())
+	res := &model.OutboundResourceInGroup{
+		GroupId:         in.GroupId,
+		Resource:        *GetLookup(in.Resource),
+		ReserveResource: GetLookup(in.ReserveResource),
+		Priority:        in.Priority,
+	}
+	res, err = api.app.CreateOutboundResourceInGroup(session.Domain(0), res)
 	if err != nil {
 		return nil, err
 	}
@@ -350,7 +355,7 @@ func (api *outboundResourceGroup) UpdateOutboundResourceInGroup(ctx context.Cont
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(0), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -358,12 +363,14 @@ func (api *outboundResourceGroup) UpdateOutboundResourceInGroup(ctx context.Cont
 	}
 
 	var res *model.OutboundResourceInGroup
-	res, err = api.app.UpdateOutboundResourceInGroup(session.Domain(in.GetDomainId()), &model.OutboundResourceInGroup{
+	res, err = api.app.UpdateOutboundResourceInGroup(session.Domain(0), &model.OutboundResourceInGroup{
 		Id:      in.GetId(),
-		GroupId: in.GetGroupId(),
+		GroupId: in.GroupId,
 		Resource: model.Lookup{
 			Id: int(in.GetResource().GetId()),
 		},
+		ReserveResource: GetLookup(in.ReserveResource),
+		Priority:        in.Priority,
 	})
 
 	if err != nil {
@@ -434,12 +441,11 @@ func toEngineOutboundResourceGroup(src *model.OutboundResourceGroup) *engine.Out
 
 func toEngineOutboundResourceInGroup(src *model.OutboundResourceInGroup) *engine.OutboundResourceInGroup {
 	return &engine.OutboundResourceInGroup{
-		Id:      src.Id,
-		GroupId: src.GroupId,
-		Resource: &engine.Lookup{
-			Id:   int64(src.Resource.Id),
-			Name: src.Resource.Name,
-		},
+		Id:              src.Id,
+		GroupId:         src.GroupId,
+		Resource:        GetProtoLookup(&src.Resource),
+		ReserveResource: GetProtoLookup(src.ReserveResource),
+		Priority:        src.Priority,
 	}
 }
 
