@@ -19,6 +19,7 @@ type OutboundCallResource struct {
 	Gateway               *Lookup     `json:"gateway" db:"gateway"`
 	Description           *string     `json:"description" db:"description"`
 	Patterns              StringArray `json:"patterns" db:"patterns"`
+	FailureDialDelay      uint32      `json:"failure_dial_delay" db:"failure_dial_delay"`
 }
 
 type SearchOutboundCallResource struct {
@@ -33,7 +34,7 @@ func (OutboundCallResource) DefaultOrder() string {
 func (a OutboundCallResource) AllowFields() []string {
 	return []string{"id", "name", "gateway", "enabled", "reserve", "limit",
 		"domain_id", "rps", "variables", "number", "max_successively_errors", "error_ids", "last_error_id", "successively_errors", "last_error_at",
-		"created_at", "created_by", "updated_at", "updated_by", "description", "patterns"}
+		"created_at", "created_by", "updated_at", "updated_by", "description", "patterns", "failure_dial_delay"}
 }
 
 func (a OutboundCallResource) DefaultFields() []string {
@@ -81,6 +82,7 @@ type OutboundCallResourcePath struct {
 	ErrorIds              *StringArray `json:"error_ids" db:"error_ids"`
 	Gateway               *Lookup      `json:"gateway" db:"gateway"`
 	Description           *string      `json:"description" db:"description"`
+	FailureDialDelay      *uint32      `json:"failure_dial_delay" db:"failure_dial_delay"`
 }
 
 func (r *OutboundCallResource) GetGatewayId() *int {
@@ -124,6 +126,10 @@ func (r *OutboundCallResource) Path(p *OutboundCallResourcePath) {
 
 	if p.Description != nil {
 		r.Description = p.Description
+	}
+
+	if p.FailureDialDelay != nil {
+		r.FailureDialDelay = *p.FailureDialDelay
 	}
 }
 

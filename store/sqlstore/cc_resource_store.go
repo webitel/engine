@@ -22,37 +22,38 @@ func (s SqlOutboundResourceStore) Create(resource *model.OutboundCallResource) (
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().SelectOne(&out, `with s as (
     insert into cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
-                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description, patterns)
+                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description, patterns, failure_dial_delay)
 values (:Limit, :Enabled, :UpdatedAt, :Rps, :DomainId, :Reserve , :Variables, :Number,
-        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description, :Patterns)
+        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description, :Patterns, :FailureDialDelay)
 	returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
       s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
       s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-	  cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns
+	  cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by
 	left join directory.sip_gateway gw on gw.id = s.gateway_id`,
 		map[string]interface{}{
-			"Limit":       resource.Limit,
-			"Enabled":     resource.Enabled,
-			"UpdatedAt":   resource.UpdatedAt,
-			"Rps":         resource.RPS,
-			"DomainId":    resource.DomainId,
-			"Reserve":     resource.Reserve,
-			"Variables":   resource.Variables.ToJson(),
-			"Number":      resource.Number,
-			"MaxSErrors":  resource.MaxSuccessivelyErrors,
-			"Name":        resource.Name,
-			"ErrorIds":    pq.Array(resource.ErrorIds),
-			"CreatedAt":   resource.CreatedAt,
-			"CreatedBy":   resource.CreatedBy.Id,
-			"UpdatedBy":   resource.UpdatedBy.Id,
-			"GatewayId":   resource.GetGatewayId(),
-			"Description": resource.Description,
-			"Patterns":    pq.Array(resource.Patterns),
+			"Limit":            resource.Limit,
+			"Enabled":          resource.Enabled,
+			"UpdatedAt":        resource.UpdatedAt,
+			"Rps":              resource.RPS,
+			"DomainId":         resource.DomainId,
+			"Reserve":          resource.Reserve,
+			"Variables":        resource.Variables.ToJson(),
+			"Number":           resource.Number,
+			"MaxSErrors":       resource.MaxSuccessivelyErrors,
+			"Name":             resource.Name,
+			"ErrorIds":         pq.Array(resource.ErrorIds),
+			"CreatedAt":        resource.CreatedAt,
+			"CreatedBy":        resource.CreatedBy.Id,
+			"UpdatedBy":        resource.UpdatedBy.Id,
+			"GatewayId":        resource.GetGatewayId(),
+			"Description":      resource.Description,
+			"Patterns":         pq.Array(resource.Patterns),
+			"FailureDialDelay": resource.FailureDialDelay,
 		}); nil != err {
 		return nil, model.NewAppError("SqlOutboundResourceStore.Save", "store.sql_out_resource.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", resource.Name, err.Error()), extractCodeFromErr(err))
@@ -136,7 +137,7 @@ func (s SqlOutboundResourceStore) Get(domainId int64, id int64) (*model.Outbound
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
 				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
 				   s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-				  cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns
+				  cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay
 			from cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
@@ -168,34 +169,36 @@ with s as (
             error_ids = :ErrorIds,
 			gateway_id = :GatewayId,
 			description = :Description,
-			patterns = :Patterns
+			patterns = :Patterns,
+			failure_dial_delay = :FailureDialDelay
         where id = :Id and domain_id = :DomainId
         returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
       s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
        s.last_error_at, s.created_at, cc_get_lookup(c.id, c.name) as created_by, cc_get_lookup(u.id, u.name) as updated_by,
-		cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns
+		cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by
 	left join directory.sip_gateway gw on gw.id = s.gateway_id`, map[string]interface{}{
-		"Limit":       resource.Limit,
-		"Enabled":     resource.Enabled,
-		"UpdatedAt":   resource.UpdatedAt,
-		"UpdatedBy":   resource.UpdatedBy.Id,
-		"Rps":         resource.RPS,
-		"Reserve":     resource.Reserve,
-		"Variables":   resource.Variables.ToJson(),
-		"Number":      resource.Number,
-		"MaxSErrors":  resource.MaxSuccessivelyErrors,
-		"Name":        resource.Name,
-		"ErrorIds":    pq.Array(resource.ErrorIds),
-		"Id":          resource.Id,
-		"DomainId":    resource.DomainId,
-		"GatewayId":   resource.GetGatewayId(),
-		"Description": resource.Description,
-		"Patterns":    pq.Array(resource.Patterns),
+		"Limit":            resource.Limit,
+		"Enabled":          resource.Enabled,
+		"UpdatedAt":        resource.UpdatedAt,
+		"UpdatedBy":        resource.UpdatedBy.Id,
+		"Rps":              resource.RPS,
+		"Reserve":          resource.Reserve,
+		"Variables":        resource.Variables.ToJson(),
+		"Number":           resource.Number,
+		"MaxSErrors":       resource.MaxSuccessivelyErrors,
+		"Name":             resource.Name,
+		"ErrorIds":         pq.Array(resource.ErrorIds),
+		"Id":               resource.Id,
+		"DomainId":         resource.DomainId,
+		"GatewayId":        resource.GetGatewayId(),
+		"Description":      resource.Description,
+		"Patterns":         pq.Array(resource.Patterns),
+		"FailureDialDelay": resource.FailureDialDelay,
 	})
 
 	if err != nil {

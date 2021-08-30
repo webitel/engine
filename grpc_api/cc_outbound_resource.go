@@ -50,6 +50,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		ErrorIds:              in.ErrorIds,
 		Description:           GetStringPointer(in.Description),
 		Patterns:              in.Patterns,
+		FailureDialDelay:      in.FailureDialDelay,
 	}
 
 	if in.Gateway != nil {
@@ -189,6 +190,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		ErrorIds:              in.ErrorIds,
 		Description:           GetStringPointer(in.Description),
 		Patterns:              in.Patterns,
+		FailureDialDelay:      in.FailureDialDelay,
 	}
 
 	if in.Gateway != nil {
@@ -250,6 +252,8 @@ func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engi
 			patch.Name = model.NewString(in.Name)
 		case "description":
 			patch.Description = model.NewString(in.Description)
+		case "failure_dial_delay":
+			patch.FailureDialDelay = &in.FailureDialDelay
 		}
 	}
 
@@ -520,6 +524,7 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		SuccessivelyErrors:    int32(src.SuccessivelyErrors),
 		LastErrorAt:           model.TimeToInt64(src.LastErrorAt),
 		Patterns:              src.Patterns,
+		FailureDialDelay:      src.FailureDialDelay,
 	}
 
 	if src.Gateway != nil {
