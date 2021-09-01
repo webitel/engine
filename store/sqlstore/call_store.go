@@ -314,11 +314,13 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"TransferToIds":   pq.Array(search.TransferToIds),
 		"DependencyIds":   pq.Array(search.DependencyIds),
 		"Tags":            pq.Array(search.Tags),
+		"Variables":       search.Variables.ToSafeJson(),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
 		`domain_id = :Domain 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
+	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
@@ -401,11 +403,13 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"Groups":           pq.Array(groups),
 		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"UserSupervisorId": userSupervisorId,
+		"Variables":        search.Variables.ToSafeJson(),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
 		`domain_id = :Domain 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
+	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))

@@ -23,8 +23,8 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at is required", http.StatusBadRequest)
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetQ() == "" {
+		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at or q is required", http.StatusBadRequest)
 	}
 
 	var list []*model.HistoryCall
@@ -52,6 +52,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		DependencyIds:   in.GetDependencyId(),
 		Tags:            in.GetTags(),
 		CauseArr:        in.GetCause(),
+		Variables:       in.GetVariables(),
 	}
 
 	if in.GetDuration() != nil {

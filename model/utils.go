@@ -66,6 +66,18 @@ func (s StringMap) ToJson() string {
 	return string(data)
 }
 
+func (s StringMap) ToSafeJson() *string {
+	var res *string
+	if s == nil {
+		return res
+	}
+
+	data, _ := json.Marshal(s)
+	res = new(string)
+	*res = string(data)
+	return res
+}
+
 func (sa StringArray) Equals(input StringArray) bool {
 
 	if len(sa) != len(input) {

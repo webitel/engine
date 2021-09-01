@@ -402,6 +402,7 @@ type SearchHistoryCall struct {
 	TransferToIds   []string
 	DependencyIds   []string
 	Tags            []string
+	Variables       StringMap
 }
 
 type CallEventInfo struct {
