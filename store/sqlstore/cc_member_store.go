@@ -338,13 +338,15 @@ where c.id = :Id
 	return nil
 }
 
-func (s SqlMemberStore) MultiDelete(queueId int64, ids []int64, buckets []int64, cause []string, agentIds []int32) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) MultiDelete(del *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
 	var res []*model.Member
 
 	_, err := s.GetMaster().Select(&res, `with m as (
     delete from cc_member m
     where m.queue_id = :QueueId
 		and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
+		and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])
+		and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 		and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
 		and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
 		and (:Cause::varchar[] isnull or m.stop_cause = any(:Cause::varchar[]))
@@ -359,16 +361,18 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 			left join cc_bucket qb on m.bucket_id = qb.id
 			left join cc_skill cs on m.skill_id = cs.id
 			left join cc_agent_list agn on m.agent_id = agn.id`, map[string]interface{}{
-		"Ids":      pq.Array(ids),
-		"Buckets":  pq.Array(buckets),
-		"Cause":    pq.Array(cause),
-		"AgentIds": pq.Array(agentIds),
-		"QueueId":  queueId,
+		"Ids":       pq.Array(del.Ids),
+		"Buckets":   pq.Array(del.Buckets),
+		"Cause":     pq.Array(del.Causes),
+		"AgentIds":  pq.Array(del.AgentIds),
+		"Numbers":   pq.Array(del.Numbers),
+		"Variables": del.Variables.ToSafeJson(),
+		"QueueId":   del.QueueId,
 	})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.MultiDelete", "store.sql_member.multi_delete.app_error", nil,
-			fmt.Sprintf("Ids=%v, %s", ids, err.Error()), extractCodeFromErr(err))
+			fmt.Sprintf("Ids=%v, %s", del.Ids, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil

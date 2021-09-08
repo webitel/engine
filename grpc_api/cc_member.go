@@ -404,7 +404,17 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 
 	var list []*model.Member
 
-	list, err = api.app.RemoveMultiMembers(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetIds(), in.GetBucketId(), in.GetStopCause(), in.GetAgentId())
+	del := &model.MultiDeleteMembers{
+		QueueId:   in.QueueId,
+		Ids:       in.GetIds(),
+		Buckets:   in.GetBucketId(),
+		Causes:    in.GetStopCause(),
+		AgentIds:  in.GetAgentId(),
+		Numbers:   in.GetNumbers(),
+		Variables: in.GetVariables(),
+	}
+
+	list, err = api.app.RemoveMultiMembers(session.Domain(0), del)
 
 	if err != nil {
 		return nil, err
