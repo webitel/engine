@@ -19,15 +19,15 @@ func NewSqlEmailProfileStore(sqlStore SqlStore) store.EmailProfileStore {
 func (s SqlEmailProfileStore) Create(p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().SelectOne(&profile, `with t as (
-    insert into cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, host, mailbox, imap_port, smtp_port,
+    insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, host, mailbox, imap_port, smtp_port,
                               login, password, created_at, created_by, updated_by)
 values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :Host, :Mailbox, :Imap, :Smtp, :Login, :Pass,
         now(), :CreatedBy, :UpdatedBy)
 	returning *
 )
-select t.id, t.domain_id, cc_view_timestamp(t.created_at) created_at, cc_get_lookup(t.created_by, cc.name) created_by,
-       cc_view_timestamp(t.updated_at) updated_at, cc_get_lookup(t.updated_by, cu.name) updated_by,
-       t.name, t.host, t.login, t.mailbox, t.smtp_port, t.imap_port, cc_get_lookup(t.flow_id, s.name) as schema,
+select t.id, t.domain_id, call_center.cc_view_timestamp(t.created_at) created_at, call_center.cc_get_lookup(t.created_by, cc.name) created_by,
+       call_center.cc_view_timestamp(t.updated_at) updated_at, call_center.cc_get_lookup(t.updated_by, cu.name) updated_by,
+       t.name, t.host, t.login, t.mailbox, t.smtp_port, t.imap_port, call_center.cc_get_lookup(t.flow_id, s.name) as schema,
        t.description, t.enabled
 from t
     left join directory.wbt_user cc on cc.id = t.created_by
@@ -77,7 +77,7 @@ func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, 
 	var profile *model.EmailProfile
 	err := s.GetReplica().SelectOne(&profile, `
 	select *
-	from cc_email_profile_list
+	from call_center.cc_email_profile_list
 	where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -94,7 +94,7 @@ func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, 
 func (s SqlEmailProfileStore) Update(p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().SelectOne(&profile, `with t as (
-    update cc_email_profile
+    update call_center.cc_email_profile
         set name = :Name,
 			description= :Description,
 			flow_id = :FlowId,
@@ -111,17 +111,17 @@ func (s SqlEmailProfileStore) Update(p *model.EmailProfile) (*model.EmailProfile
 )
 select t.id,
        t.domain_id,
-       cc_view_timestamp(t.created_at)      created_at,
-       cc_get_lookup(t.created_by, cc.name) created_by,
-       cc_view_timestamp(t.updated_at)      updated_at,
-       cc_get_lookup(t.updated_by, cu.name) updated_by,
+       call_center.cc_view_timestamp(t.created_at)      created_at,
+       call_center.cc_get_lookup(t.created_by, cc.name) created_by,
+       call_center.cc_view_timestamp(t.updated_at)      updated_at,
+       call_center.cc_get_lookup(t.updated_by, cu.name) updated_by,
        t.name,
        t.host,
        t.login,
        t.mailbox,
        t.smtp_port,
        t.imap_port,
-       cc_get_lookup(t.flow_id, s.name) as  schema,
+       call_center.cc_get_lookup(t.flow_id, s.name) as  schema,
        t.description,
        t.enabled
 from t
@@ -150,7 +150,7 @@ from t
 }
 
 func (s SqlEmailProfileStore) Delete(domainId int64, id int) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlEmailProfileStore.Delete", "store.sql_email_profile.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

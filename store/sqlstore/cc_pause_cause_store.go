@@ -18,7 +18,7 @@ func NewSqlPauseCauseStore(sqlStore SqlStore) store.PauseCauseStore {
 
 func (s SqlPauseCauseStore) Create(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	err := s.GetMaster().SelectOne(&cause, `with s as (
-    insert into cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
+    insert into call_center.cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
                                       name, limit_min, allow_supervisor, allow_agent, allow_admin, description)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
             :Name, :LimitMin, :AllowSupervisor, :AllowAgent, :AllowAdmin, :Description)
@@ -26,9 +26,9 @@ func (s SqlPauseCauseStore) Create(domainId int64, cause *model.PauseCause) (*mo
 )
 select s.id,
        s.created_at,
-       cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by,
+       call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by,
        s.updated_at,
-       cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by,
+       call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by,
        s.name,
        s.description,
        s.limit_min,
@@ -95,7 +95,7 @@ func (s SqlPauseCauseStore) Get(domainId int64, id uint32) (*model.PauseCause, *
        allow_supervisor,
 	   allow_admin,
        limit_min
-from cc_pause_cause_list
+from call_center.cc_pause_cause_list
 where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
@@ -110,7 +110,7 @@ where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 
 func (s SqlPauseCauseStore) Update(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
 	err := s.GetMaster().SelectOne(&cause, `with s as (
-    update cc_pause_cause
+    update call_center.cc_pause_cause
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
             name = :Name,
@@ -124,9 +124,9 @@ func (s SqlPauseCauseStore) Update(domainId int64, cause *model.PauseCause) (*mo
 )
 select s.id,
        s.created_at,
-       cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by,
+       call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by,
        s.updated_at,
-       cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by,
+       call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by,
        s.name,
        s.description,
        s.limit_min,
@@ -156,7 +156,7 @@ from s
 }
 
 func (s SqlPauseCauseStore) Delete(domainId int64, id uint32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_pause_cause c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_pause_cause c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlPauseCauseStore.Delete", "store.sql_pause_cause.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

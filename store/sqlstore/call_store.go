@@ -129,7 +129,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
             with x as (
                 select a.user_id, a.id agent_id, a.supervisor, a.domain_id
                 from directory.wbt_user u
-                         inner join cc_agent a on a.user_id = u.id
+                         inner join call_center.cc_agent a on a.user_id = u.id
                 where u.id = :UserSupervisorId
                   and u.dc = :Domain
             )
@@ -137,7 +137,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
             from x
                      left join lateral (
                 select a.user_id, a.auditor_ids && array [x.user_id] aud
-                from cc_agent a
+                from call_center.cc_agent a
                 where a.domain_id = x.domain_id
                   and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
                        a.auditor_ids && array [x.user_id])
@@ -146,8 +146,8 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
                 distinct
 
                 select a.user_id, a.auditor_ids && array [x.user_id] aud
-                from cc_team t
-                         inner join cc_agent a on a.team_id = t.id
+                from call_center.cc_team t
+                         inner join call_center.cc_agent a on a.team_id = t.id
                 where t.admin_ids && array [x.agent_id]
                   and x.domain_id = t.domain_id
                 ) a on true
@@ -156,7 +156,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
         with x as (
             select a.user_id, a.id agent_id, a.supervisor, a.domain_id
             from directory.wbt_user u
-                     inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
+                     inner join call_center.cc_agent a on a.user_id = u.id and a.domain_id = u.dc
             where u.id = :UserSupervisorId
               and u.dc = :Domain
         )
@@ -164,23 +164,23 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
         from x
                  left join lateral (
             select a.id, a.auditor_ids && array [x.user_id] aud
-            from cc_agent a
+            from call_center.cc_agent a
             where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
             union
             distinct
             select a.id, a.auditor_ids && array [x.user_id] aud
-            from cc_team t
-                     inner join cc_agent a on a.team_id = t.id
+            from call_center.cc_team t
+                     inner join call_center.cc_agent a on a.team_id = t.id
             where t.admin_ids && array [x.agent_id]
             ) a on true
-                 inner join cc_skill_in_agent sa on sa.agent_id = a.id
-                 inner join cc_queue_skill qs
+                 inner join call_center.cc_skill_in_agent sa on sa.agent_id = a.id
+                 inner join call_center.cc_queue_skill qs
                             on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
         where sa.enabled
           and qs.enabled
         union
         select q.id
-        from cc_queue q
+        from call_center.cc_queue q
         where q.domain_id = :Domain
           and q.grantee_id = any (:Groups)
           and q.enabled
@@ -221,14 +221,14 @@ func (s SqlCallStore) GetUserActiveCall(domainId, userId int64) ([]*model.Call, 
 		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display"
-from cc_call_active_list c
+from call_center.cc_call_active_list c
     left join lateral (
     select a.id as attempt_id, a.channel, a.queue_id, q.name as queue_name, a.member_id, a.member_call_id as member_channel_id,
            a.agent_call_id as agent_channel_id, a.destination as communication,
            a.state,
            q.processing as reporting
-    from cc_member_attempt a
-        inner join cc_queue q on q.id = a.queue_id
+    from call_center.cc_member_attempt a
+        inner join call_center.cc_queue q on q.id = a.queue_id
     where a.id = c.attempt_id and a.agent_call_id = c.id
 ) at on true
 where c.user_id = :UserId and c.domain_id = :DomainId
@@ -252,7 +252,7 @@ select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.par
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
    (extract(epoch from now() -  c.created_at))::int8 duration	
-from cc_calls c
+from call_center.cc_calls c
 where c.domain_id = :Domain and c.id = :Id`, map[string]interface{}{
 		"Domain": domainId,
 		"Id":     id,
@@ -268,7 +268,7 @@ where c.domain_id = :Domain and c.id = :Id`, map[string]interface{}{
 func (s SqlCallStore) GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError) {
 	var inst *model.CallInstance
 	err := s.GetMaster().SelectOne(&inst, `select c.id, c.app_id, c.state
-from cc_calls c
+from call_center.cc_calls c
 where c.id = :Id and c.domain_id = :Domain`, map[string]interface{}{
 		"Id":     id,
 		"Domain": domainId,
@@ -346,11 +346,11 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:DependencyIds::varchar[] isnull or id in (
 		with recursive a as (
 			select t.id
-			from cc_calls_history t
+			from call_center.cc_calls_history t
 			where id = any(:DependencyIds)
 			union all
 			select t.id
-			from cc_calls_history t, a
+			from call_center.cc_calls_history t, a
 			where t.parent_id = a.id or t.transfer_from = a.id
 		)
 		select id
@@ -435,11 +435,11 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:DependencyIds::varchar[] isnull or id in (
 		with recursive a as (
 			select t.id
-			from cc_calls_history t
+			from call_center.cc_calls_history t
 			where id = any(:DependencyIds)
 			union all
 			select t.id
-			from cc_calls_history t, a
+			from call_center.cc_calls_history t, a
 			where t.parent_id = a.id or t.transfer_from = a.id
 		)
 		select id
@@ -451,7 +451,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
             with x as (
                 select a.user_id, a.id agent_id, a.supervisor, a.domain_id
                 from directory.wbt_user u
-                         inner join cc_agent a on a.user_id = u.id
+                         inner join call_center.cc_agent a on a.user_id = u.id
                 where u.id = :UserSupervisorId
                   and u.dc = :Domain
             )
@@ -459,7 +459,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
             from x
                      left join lateral (
                 select a.user_id, a.auditor_ids && array [x.user_id] aud
-                from cc_agent a
+                from call_center.cc_agent a
                 where a.domain_id = x.domain_id
                   and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
                        a.auditor_ids && array [x.user_id])
@@ -468,8 +468,8 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
                 distinct
 
                 select a.user_id, a.auditor_ids && array [x.user_id] aud
-                from cc_team t
-                         inner join cc_agent a on a.team_id = t.id
+                from call_center.cc_team t
+                         inner join call_center.cc_agent a on a.team_id = t.id
                 where t.admin_ids && array [x.agent_id]
                   and x.domain_id = t.domain_id
                 ) a on true
@@ -478,7 +478,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
         with x as (
             select a.user_id, a.id agent_id, a.supervisor, a.domain_id
             from directory.wbt_user u
-                     inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
+                     inner join call_center.cc_agent a on a.user_id = u.id and a.domain_id = u.dc
             where u.id = :UserSupervisorId
               and u.dc = :Domain
         )
@@ -486,23 +486,23 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
         from x
                  left join lateral (
             select a.id, a.auditor_ids && array [x.user_id] aud
-            from cc_agent a
+            from call_center.cc_agent a
             where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
             union
             distinct
             select a.id, a.auditor_ids && array [x.user_id] aud
-            from cc_team t
-                     inner join cc_agent a on a.team_id = t.id
+            from call_center.cc_team t
+                     inner join call_center.cc_agent a on a.team_id = t.id
             where t.admin_ids && array [x.agent_id]
             ) a on true
-                 inner join cc_skill_in_agent sa on sa.agent_id = a.id
-                 inner join cc_queue_skill qs
+                 inner join call_center.cc_skill_in_agent sa on sa.agent_id = a.id
+                 inner join call_center.cc_queue_skill qs
                             on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
         where sa.enabled
           and qs.enabled
         union
         select q.id
-        from cc_queue q
+        from call_center.cc_queue q
         where q.domain_id = :Domain
           and q.grantee_id = any (:Groups)
           and q.enabled
@@ -751,13 +751,13 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		   h.queue_id,
 		   q.name as queue,
 		   h.tags	
-	from cc_calls_history h
-		left join cc_agent ca on h.agent_id = ca.id
+	from call_center.cc_calls_history h
+		left join call_center.cc_agent ca on h.agent_id = ca.id
 		left join directory.wbt_user ua on ua.id = ca.user_id
 		left join directory.wbt_user u on u.id = h.user_id
 		left join directory.sip_gateway g on g.id = h.gateway_id
-		left join cc_queue q on q.id = h.queue_id
-		left join cc_team t on t.id = h.team_id
+		left join call_center.cc_queue q on q.id = h.queue_id
+		left join call_center.cc_team t on t.id = h.team_id
 	where h.domain_id = :Domain 
 		and (:Q::text isnull or h.destination ~ :Q  or  h.from_number ~ :Q or  h.to_number ~ :Q or h.id = :Q)
 		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or h.created_at between :From and :To )
@@ -782,11 +782,11 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and (:DependencyIds::varchar[] isnull or h.id in (
 			with recursive a as (
 				select t.id
-				from cc_calls_history t
+				from call_center.cc_calls_history t
 				where t.id = any(:DependencyIds)
 				union all
 				select t.id
-				from cc_calls_history t, a
+				from call_center.cc_calls_history t, a
 				where t.parent_id = a.id or t.transfer_from = a.id
 			)
 			select a.id
@@ -853,8 +853,8 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 func (s SqlCallStore) BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError) {
 	var res *model.BridgeCall
 	err := s.GetMaster().SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
-from cc_calls c,
-     cc_calls c2
+from call_center.cc_calls c,
+     call_center.cc_calls c2
 where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"FromId":   fromId,
@@ -872,7 +872,7 @@ func (s SqlCallStore) LastFile(domainId int64, id string) (int64, *model.AppErro
 from storage.files f
 where f.domain_id = :DomainId and f.uuid = (
     select coalesce(c.parent_id, c.id)
-    from cc_calls_history c
+    from call_center.cc_calls_history c
     where c.id = :Id and c.domain_id = :DomainId
     limit 1
 )`, map[string]interface{}{
@@ -906,17 +906,17 @@ func (s SqlCallStore) SetEmptySeverCall(domainId int64, id string) (*model.CallS
 	err := s.GetMaster().SelectOne(&e, `with c as (
     select
         c.id,
-       cc_view_timestamp(now())::text as "timestamp",
+       call_center.cc_view_timestamp(now())::text as "timestamp",
        c.domain_id::text,
        c.user_id::text,
        c.app_id,
        coalesce(cma.node_id, '') as cc_app_id
-    from  cc_calls c
-        left join cc_member_attempt cma on c.attempt_id = cma.id
+    from  call_center.cc_calls c
+        left join call_center.cc_member_attempt cma on c.attempt_id = cma.id
     where c.id = :Id and c.domain_id = :DomainId and c.hangup_at isnull
     and c.timestamp < now() - interval '15 sec' and c.hangup_by isnull
 )
-update cc_calls c1
+update call_center.cc_calls c1
 set hangup_by = 'service'
 from c
 where c.id = c1.id

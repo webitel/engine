@@ -20,13 +20,13 @@ func (s SqlQueueHookStore) Create(domainId int64, queueId uint32, in *model.Queu
 	var qh *model.QueueHook
 
 	err := s.GetMaster().SelectOne(&qh, `with qe as (
-    insert into cc_queue_events (schema_id, event, queue_id, enabled, updated_by, updated_at)
+    insert into call_center.cc_queue_events (schema_id, event, queue_id, enabled, updated_by, updated_at)
     select :SchemaId, :Event, :QueueId, :Enabled, :UpdatedBy, :UpdatedAt
-    where exists (select 1 from cc_queue q where q.domain_id = :DomainId and q.id = :QueueId)
+    where exists (select 1 from call_center.cc_queue q where q.domain_id = :DomainId and q.id = :QueueId)
     returning *
 )
 select qe.id,
-       cc_get_lookup(qe.schema_id, s.name) "schema",
+       call_center.cc_get_lookup(qe.schema_id, s.name) "schema",
        qe.event,
        qe.enabled
 from qe
@@ -56,10 +56,10 @@ func (s SqlQueueHookStore) Get(domainId int64, queueId, id uint32) (*model.Queue
     schema,
     event,
     enabled
-from cc_queue_events_list qe
+from call_center.cc_queue_events_list qe
 where qe.queue_id = :QueueId
      and qe.id = :Id
-     and exists (select 1 from cc_queue q where q.id = qe.queue_id and q.domain_id = :DomainId)`, map[string]interface{}{
+     and exists (select 1 from call_center.cc_queue q where q.id = qe.queue_id and q.domain_id = :DomainId)`, map[string]interface{}{
 		"QueueId":  queueId,
 		"Id":       id,
 		"DomainId": domainId,
@@ -87,7 +87,7 @@ func (s SqlQueueHookStore) GetAllPage(domainId int64, queueId uint32, search *mo
 
 	err := s.ListQuery(&list, search.ListRequest,
 		` queue_id = :QueueId::int
-                and exists (select 1 from cc_queue q where q.id = queue_id and q.domain_id = :DomainId)
+                and exists (select 1 from call_center.cc_queue q where q.id = queue_id and q.domain_id = :DomainId)
 				and (:Q::text isnull or ( "event" ilike :Q::varchar ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
 				and (:SchemaIds::int4[] isnull or schema_id = any(:SchemaIds))
@@ -104,7 +104,7 @@ func (s SqlQueueHookStore) GetAllPage(domainId int64, queueId uint32, search *mo
 func (s SqlQueueHookStore) Update(domainId int64, queueId uint32, qh *model.QueueHook) (*model.QueueHook, *model.AppError) {
 
 	err := s.GetMaster().SelectOne(&qh, `with qe as (
-    update cc_queue_events
+    update call_center.cc_queue_events
     set schema_id = :SchemaId,
         event = :Event,
         enabled = :Enabled,
@@ -112,11 +112,11 @@ func (s SqlQueueHookStore) Update(domainId int64, queueId uint32, qh *model.Queu
         updated_at = :UpdatedAt
     where id = :Id
 		and queue_id = :QueueId
-        and exists(select 1 from cc_queue q where q.id = queue_id and q.domain_id = :DomainId)
+        and exists(select 1 from call_center.cc_queue q where q.id = queue_id and q.domain_id = :DomainId)
     returning *
 )
 select qe.id,
-       cc_get_lookup(qe.schema_id, s.name) "schema",
+       call_center.cc_get_lookup(qe.schema_id, s.name) "schema",
        qe.event,
        qe.enabled
 from qe
@@ -139,8 +139,8 @@ from qe
 }
 
 func (s SqlQueueHookStore) Delete(domainId int64, queueId, id uint32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_queue_events qe where qe.id=:Id and qe.queue_id = :QueueId 
-			and exists(select 1 from cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue_events qe where qe.id=:Id and qe.queue_id = :QueueId 
+			and exists(select 1 from call_center.cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "QueueId": queueId}); err != nil {
 		return model.NewAppError("SqlQueueHookStore.Delete", "store.sql_queue_hook.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

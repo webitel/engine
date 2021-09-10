@@ -20,15 +20,15 @@ func (s SqlQueueSkillStore) Create(domainId int64, in *model.QueueSkill) (*model
 	var qs *model.QueueSkill
 
 	err := s.GetMaster().SelectOne(&qs, `with s as (
-    insert into cc_queue_skill (queue_id, skill_id, bucket_ids, lvl, min_capacity, max_capacity, enabled)
+    insert into call_center.cc_queue_skill (queue_id, skill_id, bucket_ids, lvl, min_capacity, max_capacity, enabled)
     select :QueueId, :SkillId, :BucketIds, :Lvl, :MinCapacity, :MaxCapacity, :Enabled
-    where exists(select 1 from cc_queue q where q.domain_id = :DomainId)
+    where exists(select 1 from call_center.cc_queue q where q.domain_id = :DomainId)
     returning *
 )
 select s.id,
-       cc_get_lookup(cs.id, cs.name) skill,
-       (select jsonb_agg(cc_get_lookup(b.id, b.name::varchar))
-        from cc_bucket b
+       call_center.cc_get_lookup(cs.id, cs.name) skill,
+       (select jsonb_agg(call_center.cc_get_lookup(b.id, b.name::varchar))
+        from call_center.cc_bucket b
         where b.id = any (s.bucket_ids)
        )                             buckets,
        s.lvl,
@@ -36,7 +36,7 @@ select s.id,
        s.max_capacity,
        s.enabled
 from s
-         inner join cc_skill cs on s.skill_id = cs.id`, map[string]interface{}{
+         inner join call_center.cc_skill cs on s.skill_id = cs.id`, map[string]interface{}{
 		"DomainId":    domainId,
 		"QueueId":     in.QueueId,
 		"SkillId":     in.Skill.Id,
@@ -59,7 +59,7 @@ func (s SqlQueueSkillStore) Get(domainId int64, queueId, id uint32) (*model.Queu
 	var qs *model.QueueSkill
 
 	err := s.GetReplica().SelectOne(&qs, `select "id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "enabled"
-		from cc_queue_skill_list
+		from call_center.cc_queue_skill_list
 		where id = :Id and queue_id = :QueueId and domain_id = :DomainId
 	`, map[string]interface{}{
 		"Id":       id,
@@ -113,20 +113,20 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 func (s SqlQueueSkillStore) Update(domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
 	var qs *model.QueueSkill
 	err := s.GetMaster().SelectOne(&qs, `with s as (
-    update cc_queue_skill s
+    update call_center.cc_queue_skill s
     set skill_id = :SkillId,
         bucket_ids = :BucketIds,
         lvl = :Lvl,
         min_capacity = :MinCapacity,
         max_capacity = :MaxCapacity,
         enabled = :Enabled
-    where s.id = :Id and exists(select 1 from cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)
+    where s.id = :Id and exists(select 1 from call_center.cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)
     returning *
 )
 select s.id,
-       cc_get_lookup(cs.id, cs.name) skill,
-       (select jsonb_agg(cc_get_lookup(b.id, b.name::varchar))
-        from cc_bucket b
+       call_center.cc_get_lookup(cs.id, cs.name) skill,
+       (select jsonb_agg(call_center.cc_get_lookup(b.id, b.name::varchar))
+        from call_center.cc_bucket b
         where b.id = any (s.bucket_ids)
        )                             buckets,
        s.lvl,
@@ -134,7 +134,7 @@ select s.id,
        s.max_capacity,
        s.enabled
 from s
-         inner join cc_skill cs on s.skill_id = cs.id`, map[string]interface{}{
+         inner join call_center.cc_skill cs on s.skill_id = cs.id`, map[string]interface{}{
 		"Id":          skill.Id,
 		"DomainId":    domainId,
 		"SkillId":     skill.Skill.Id,
@@ -153,8 +153,8 @@ from s
 }
 
 func (s SqlQueueSkillStore) Delete(domainId int64, queueId, id uint32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_queue_skill s
-where s.id = :Id and s.queue_id = :QueueId and exists(select 1 from cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue_skill s
+where s.id = :Id and s.queue_id = :QueueId and exists(select 1 from call_center.cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)`,
 		map[string]interface{}{
 			"Id":       id,
 			"DomainId": domainId,

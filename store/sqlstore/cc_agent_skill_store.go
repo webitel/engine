@@ -20,15 +20,15 @@ func NewSqlAgentSkillStore(sqlStore SqlStore) store.AgentSkillStore {
 func (s SqlAgentSkillStore) Create(in *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
 	var out *model.AgentSkill
 	if err := s.GetMaster().SelectOne(&out, `with tmp as (
-    insert into cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled)
+    insert into call_center.cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled)
     values (:SkillId, :AgentId, :Capacity, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Enabled)
     returning *
 )
-select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
 from tmp
-    inner join cc_skill s on s.id = tmp.skill_id
-    inner join cc_agent a on a.id = tmp.agent_id
+    inner join call_center.cc_skill s on s.id = tmp.skill_id
+    inner join call_center.cc_agent a on a.id = tmp.agent_id
     inner join directory.wbt_user wu on a.user_id = wu.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by`,
@@ -77,11 +77,11 @@ func (s SqlAgentSkillStore) GetById(domainId, agentId, id int64) (*model.AgentSk
 	var agentSkill *model.AgentSkill
 
 	if err := s.GetReplica().SelectOne(&agentSkill,
-		`select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
-from cc_skill_in_agent tmp
-    inner join cc_skill s on s.id = tmp.skill_id
-    inner join cc_agent a on a.id = tmp.agent_id
+		`select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+from call_center.cc_skill_in_agent tmp
+    inner join call_center.cc_skill s on s.id = tmp.skill_id
+    inner join call_center.cc_agent a on a.id = tmp.agent_id
     inner join directory.wbt_user wu on a.user_id = wu.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
@@ -96,7 +96,7 @@ where tmp.id = :Id and tmp.agent_id = :AgentId and a.domain_id = :DomainId
 func (s SqlAgentSkillStore) Update(agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
 	var out *model.AgentSkill
 	err := s.GetMaster().SelectOne(&out, `with tmp as (
-    update cc_skill_in_agent s
+    update call_center.cc_skill_in_agent s
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
             skill_id = :SkillId,
@@ -105,11 +105,11 @@ func (s SqlAgentSkillStore) Update(agentSkill *model.AgentSkill) (*model.AgentSk
     where s.id = :Id and s.agent_id = :AgentId
     returning *
 )
-select tmp.id, cc_get_lookup(s.id, s.name) as skill, cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
 from tmp
-    inner join cc_skill s on s.id = tmp.skill_id
-    inner join cc_agent a on a.id = tmp.agent_id
+    inner join call_center.cc_skill s on s.id = tmp.skill_id
+    inner join call_center.cc_agent a on a.id = tmp.agent_id
     inner join directory.wbt_user wu on a.user_id = wu.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
@@ -129,7 +129,7 @@ from tmp
 }
 
 func (s SqlAgentSkillStore) Delete(agentId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_skill_in_agent a
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_skill_in_agent a
 where a.id = :Id and a.agent_id = :AgentId`,
 		map[string]interface{}{"Id": id, "AgentId": agentId}); err != nil {
 		return model.NewAppError("SqlAgentSkillStore.Delete", "store.sql_skill_in_agent.delete.app_error", nil,
@@ -145,9 +145,9 @@ func (s SqlAgentSkillStore) LookupNotExistsAgent(domainId, agentId int64, search
 		`select c.id,
        c.name,
        c.description
-from cc_skill c
+from call_center.cc_skill c
 where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar ) )) 
-	and not exists(select 1 from cc_skill_in_agent sa where sa.agent_id = :AgentId and sa.skill_id = c.id)
+	and not exists(select 1 from call_center.cc_skill_in_agent sa where sa.agent_id = :AgentId and sa.skill_id = c.id)
 order by id
 limit :Limit
 offset :Offset`, map[string]interface{}{

@@ -19,13 +19,13 @@ func NewSqlQueueResourceStore(sqlStore SqlStore) store.QueueResourceStore {
 func (s SqlQueueResourceStore) Create(queueResource *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError) {
 	var out *model.QueueResourceGroup
 	if err := s.GetMaster().SelectOne(&out, `with q as (
-		insert into cc_queue_resource (queue_id, resource_group_id)
+		insert into call_center.cc_queue_resource (queue_id, resource_group_id)
 		values (:QueueId, :ResourceGroupId)
 		returning *
 	)
-select q.id, q.queue_id, cc_get_lookup(g.id, g.name::text) as resource_group
+select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group
 from q
-    inner join cc_outbound_resource_group g on q.resource_group_id = g.id`,
+    inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id`,
 		map[string]interface{}{
 			"QueueId":         queueResource.QueueId,
 			"ResourceGroupId": queueResource.ResourceGroup.Id,
@@ -39,9 +39,9 @@ from q
 
 func (s SqlQueueResourceStore) Get(domainId, queueId, id int64) (*model.QueueResourceGroup, *model.AppError) {
 	var out *model.QueueResourceGroup
-	if err := s.GetReplica().SelectOne(&out, `select q.id, q.queue_id, cc_get_lookup(g.id, g.name::text) as resource_group
-		from cc_queue_resource q
-			inner join cc_outbound_resource_group g on q.resource_group_id = g.id
+	if err := s.GetReplica().SelectOne(&out, `select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group
+		from call_center.cc_queue_resource q
+			inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id
 		where q.id = :Id and q.queue_id = :QueueId and g.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -81,15 +81,15 @@ func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, search *model
 
 func (s SqlQueueResourceStore) Update(domainId int64, queueResourceGroup *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError) {
 	err := s.GetMaster().SelectOne(&queueResourceGroup, `with q as (
-    update cc_queue_resource q
+    update call_center.cc_queue_resource q
         set resource_group_id = :ResourceGroupId
-        from cc_queue qq
+        from call_center.cc_queue qq
         where q.id = :Id and q.queue_id = :QueueId and qq.id = q.queue_id and qq.domain_id = :DomainId
         returning q.*
 )
-select q.id, q.queue_id, cc_get_lookup(g.id, g.name::text) as resource_group
+select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group
 from  q
-         inner join cc_outbound_resource_group g on q.resource_group_id = g.id`, map[string]interface{}{
+         inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id`, map[string]interface{}{
 		"ResourceGroupId": queueResourceGroup.ResourceGroup.Id,
 		"Id":              queueResourceGroup.Id,
 		"QueueId":         queueResourceGroup.QueueId,
@@ -103,7 +103,7 @@ from  q
 }
 
 func (s SqlQueueResourceStore) Delete(queueId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_queue_resource c where c.id=:Id and c.queue_id = :QueueId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue_resource c where c.id=:Id and c.queue_id = :QueueId`,
 		map[string]interface{}{"Id": id, "QueueId": queueId}); err != nil {
 		return model.NewAppError("SqlQueueResourceStore.Delete", "store.sql_queue_resource.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

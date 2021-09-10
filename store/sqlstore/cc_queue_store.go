@@ -23,7 +23,7 @@ func (s SqlQueueStore) CheckAccess(domainId, id int64, groups []int, access auth
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from cc_queue_acl a
+          from call_center.cc_queue_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -40,7 +40,7 @@ func (s SqlQueueStore) CheckAccess(domainId, id int64, groups []int, access auth
 func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError) {
 	var out *model.Queue
 	if err := s.GetMaster().SelectOne(&out, `with q as (
-    insert into cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
+    insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
                       created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
 					  processing, processing_sec, processing_renewal_sec)
@@ -60,16 +60,16 @@ select q.id,
        q.domain_id,
        q.type,
        q.created_at,
-       cc_get_lookup(uc.id, uc.name)         as created_by,
-       cc_get_lookup(u.id, u.name)           as updated_by,
-       cc_get_lookup(c.id, c.name)           as calendar,
-       cc_get_lookup(cl.id, cl.name)         as dnc_list,
-       cc_get_lookup(ct.id, ct.name)         as team,
+       call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
+       call_center.cc_get_lookup(u.id, u.name)           as updated_by,
+       call_center.cc_get_lookup(c.id, c.name)           as calendar,
+       call_center.cc_get_lookup(cl.id, cl.name)         as dnc_list,
+       call_center.cc_get_lookup(ct.id, ct.name)         as team,
        q.description,
-       cc_get_lookup(s.id, s.name)           as schema,
+       call_center.cc_get_lookup(s.id, s.name)           as schema,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
-       cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
+       call_center.cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
 	   q.sticky_agent,
 	   q.processing,
 	   q.processing_sec,
@@ -78,11 +78,11 @@ from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
-         left join cc_list cl on q.dnc_list_id = cl.id
+         left join call_center.cc_list cl on q.dnc_list_id = cl.id
          left join flow.acr_routing_scheme s on q.schema_id = s.id
          LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
-         left join cc_team ct on q.team_id = ct.id
+         left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`,
 		map[string]interface{}{
 			"Strategy":             queue.Strategy,
@@ -154,7 +154,7 @@ func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	err := s.ListQuery(&queues, search.ListRequest,
 		`domain_id = :DomainId and  (
 					exists(select 1
-					  from cc_queue_acl acl
+					  from call_center.cc_queue_acl acl
 					  where acl.dc = t.domain_id and acl.object = t.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
 		  	) and ( (:Ids::int[] isnull or id = any(:Ids) )  and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
@@ -179,29 +179,29 @@ select q.id,
        q.domain_id,
        q.type,
        q.created_at,
-       cc_get_lookup(uc.id, uc.name)         as created_by,
-       cc_get_lookup(u.id, u.name)           as updated_by,
-       cc_get_lookup(c.id, c.name)           as calendar,
-       cc_get_lookup(cl.id, cl.name)         as dnc_list,
-       cc_get_lookup(ct.id, ct.name)         as team,
+       call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
+       call_center.cc_get_lookup(u.id, u.name)           as updated_by,
+       call_center.cc_get_lookup(c.id, c.name)           as calendar,
+       call_center.cc_get_lookup(cl.id, cl.name)         as dnc_list,
+       call_center.cc_get_lookup(ct.id, ct.name)         as team,
        q.description,
-       cc_get_lookup(s.id, s.name)           as schema,
+       call_center.cc_get_lookup(s.id, s.name)           as schema,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
-       cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
+       call_center.cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
 	   q.sticky_agent,
 	   q.processing,
 	   q.processing_sec,
        q.processing_renewal_sec
-from cc_queue q
+from call_center.cc_queue q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
-         left join cc_list cl on q.dnc_list_id = cl.id
+         left join call_center.cc_list cl on q.dnc_list_id = cl.id
          left join flow.acr_routing_scheme s on q.schema_id = s.id
          LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
-         left join cc_team ct on q.team_id = ct.id
+         left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id
 where q.domain_id = :DomainId and q.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
@@ -214,7 +214,7 @@ where q.domain_id = :DomainId and q.id = :Id
 
 func (s SqlQueueStore) Update(queue *model.Queue) (*model.Queue, *model.AppError) {
 	err := s.GetMaster().SelectOne(&queue, `with q as (
-    update cc_queue q
+    update call_center.cc_queue q
 set updated_at = :UpdatedAt,
     updated_by = :UpdatedBy,
     strategy = :Strategy,
@@ -250,16 +250,16 @@ select q.id,
        q.domain_id,
        q.type,
        q.created_at,
-       cc_get_lookup(uc.id, uc.name)         as created_by,
-       cc_get_lookup(u.id, u.name)           as updated_by,
-       cc_get_lookup(c.id, c.name)           as calendar,
-       cc_get_lookup(cl.id, cl.name)         as dnc_list,
-       cc_get_lookup(ct.id, ct.name)         as team,
+       call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
+       call_center.cc_get_lookup(u.id, u.name)           as updated_by,
+       call_center.cc_get_lookup(c.id, c.name)           as calendar,
+       call_center.cc_get_lookup(cl.id, cl.name)         as dnc_list,
+       call_center.cc_get_lookup(ct.id, ct.name)         as team,
        q.description,
-       cc_get_lookup(s.id, s.name)           as schema,
+       call_center.cc_get_lookup(s.id, s.name)           as schema,
        call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
        call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
-       cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
+       call_center.cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
 	   q.sticky_agent,
 	   q.processing,
 	   q.processing_sec,
@@ -268,11 +268,11 @@ from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
-         left join cc_list cl on q.dnc_list_id = cl.id
+         left join call_center.cc_list cl on q.dnc_list_id = cl.id
          left join flow.acr_routing_scheme s on q.schema_id = s.id
          LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
-         left join cc_team ct on q.team_id = ct.id
+         left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
 		"UpdatedAt":            queue.UpdatedAt,
 		"UpdatedBy":            queue.UpdatedBy.Id,
@@ -306,7 +306,7 @@ from q
 }
 
 func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_queue c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlQueueStore.Delete", "store.sql_queue.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -319,12 +319,12 @@ func (s SqlQueueStore) QueueReportGeneral(domainId int64, supervisorId int64, gr
 	err := s.GetReplica().SelectOne(&report, `
 with queues  as  (
     select *
-    from cc_queue q
+    from call_center.cc_queue q
     where  q.id in (
         with x as (
             select a.user_id, a.id agent_id, a.supervisor, a.domain_id
             from directory.wbt_user u
-                     inner join cc_agent a on a.user_id = u.id and a.domain_id = u.dc
+                     inner join call_center.cc_agent a on a.user_id = u.id and a.domain_id = u.dc
             where u.id = :UserSupervisorId
               and u.dc = :DomainId
         )
@@ -332,22 +332,22 @@ with queues  as  (
         from x
                  left join lateral (
             select a.id, a.auditor_ids && array [x.user_id] aud
-            from cc_agent a
+            from call_center.cc_agent a
             where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id]))
             union
             distinct
             select a.id, a.auditor_ids && array [x.user_id] aud
-            from cc_team t
-                     inner join cc_agent a on a.team_id = t.id
+            from call_center.cc_team t
+                     inner join call_center.cc_agent a on a.team_id = t.id
             where t.admin_ids && array[x.agent_id]
             ) a on true
-                 inner join cc_skill_in_agent sa on sa.agent_id = a.id
-                 inner join cc_queue_skill qs
+                 inner join call_center.cc_skill_in_agent sa on sa.agent_id = a.id
+                 inner join call_center.cc_queue_skill qs
                             on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
 			 where sa.enabled and qs.enabled
         union
         select q.id
-        from cc_queue q
+        from call_center.cc_queue q
         where q.domain_id = :DomainId
           and q.grantee_id = any (:Groups) and q.enabled
     ) and q.enabled
@@ -361,16 +361,16 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free,
                array_agg(distinct a.id) total
         from queues q
-            inner join cc_agent a on a.domain_id = q.domain_id
-            inner join cc_agent_channel ac on ac.agent_id = a.id
-            inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
-            inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+            inner join call_center.cc_agent a on a.domain_id = q.domain_id
+            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id
+            inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+            inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
         where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
         group by rollup (q.id)
      ),
 items as materialized (
-    select cc_get_lookup(q.id, q.name) queue,
-           cc_get_lookup(ct.id, ct.name) team,
+    select call_center.cc_get_lookup(q.id, q.name) queue,
+           call_center.cc_get_lookup(ct.id, ct.name) team,
            jsonb_build_object('online', coalesce(array_length(queue_ag.agent_on_ids, 1), 0),
                                   'pause', coalesce(array_length(queue_ag.agent_p_ids, 1), 0),
                                   'offline', coalesce(array_length(queue_ag.agent_off_ids, 1), 0),
@@ -379,9 +379,9 @@ items as materialized (
                ) agent_status,
 
            coalesce(ag.abandoned::int, 0) missed,
-           (select count(*) from cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
-           coalesce(case when q.type = 1 then (select count(*) from cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
-               else (select sum(s.member_waiting) from cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
+           (select count(*) from call_center.cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
+           coalesce(case when q.type = 1 then (select count(*) from call_center.cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
+               else (select sum(s.member_waiting) from call_center.cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
            coalesce(ag.count, 0) count,
            coalesce(ag.transferred, 0) transferred,
 		   0 attempts,
@@ -398,7 +398,7 @@ items as materialized (
            coalesce(ag.avg_aht_sec, 0) avg_aht_sec
     from queues q
         left join queue_ag on queue_ag.queue_id = q.id
-        left join cc_team ct on q.team_id = ct.id
+        left join call_center.cc_team ct on q.team_id = ct.id
         left join lateral (
             select
                    t.queue_id,
@@ -418,7 +418,7 @@ items as materialized (
                    extract(epoch from max(t.bridged_at - t.offering_at) filter ( where t.bridged_at notnull )) max_awt_sec,
                    extract(epoch from avg(t.bridged_at - t.joined_at) filter ( where t.bridged_at notnull )) avg_asa_sec,
                    extract(epoch from avg( GREATEST(t.leaving_at, t.reporting_at) - t.bridged_at ) filter ( where t.bridged_at notnull )) avg_aht_sec
-            from cc_member_attempt_history t
+            from call_center.cc_member_attempt_history t
             where t.domain_id = :DomainId and t.joined_at between :From::timestamptz and :To::timestamptz
                 and t.queue_id = q.id
             group by 1

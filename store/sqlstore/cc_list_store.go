@@ -21,7 +21,7 @@ func NewSqlListStore(sqlStore SqlStore) store.ListStore {
 func (s SqlListStore) Create(list *model.List) (*model.List, *model.AppError) {
 	var out *model.List
 	if err := s.GetMaster().SelectOne(&out, `with i as (
-    insert into cc_list (name, description, domain_id, created_at, created_by, updated_at, updated_by)
+    insert into call_center.cc_list (name, description, domain_id, created_at, created_by, updated_at, updated_by)
     values (:Name, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
     returning *
 )
@@ -31,9 +31,9 @@ select
        i.description,
        i.domain_id,
        i.created_at,
-       cc_get_lookup(uc.id, uc.name) as created_by,
+       call_center.cc_get_lookup(uc.id, uc.name) as created_by,
        i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by
+       call_center.cc_get_lookup(u.id, u.name) as updated_by
 
 from i
     left join directory.wbt_user uc on uc.id = i.created_by
@@ -59,7 +59,7 @@ func (s SqlListStore) CheckAccess(domainId, id int64, groups []int, access auth_
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from cc_list_acl a
+          from call_center.cc_list_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -111,7 +111,7 @@ func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *m
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
 			    and exists(select 1
-				  from cc_list_acl a
+				  from call_center.cc_list_acl a
  				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access
 				)`,
 		model.List{}, f)
@@ -132,14 +132,14 @@ func (s SqlListStore) Get(domainId int64, id int64) (*model.List, *model.AppErro
 			   i.description,
 			   i.domain_id,
 			   i.created_at,
-			   cc_get_lookup(uc.id, uc.name) as created_by,
+			   call_center.cc_get_lookup(uc.id, uc.name) as created_by,
 			   i.updated_at,
-			   cc_get_lookup(u.id, u.name) as updated_by,
+			   call_center.cc_get_lookup(u.id, u.name) as updated_by,
 			   coalesce(cls.count, 0) count
-		from cc_list i
+		from call_center.cc_list i
 			left join directory.wbt_user uc on uc.id = i.created_by
 			left join directory.wbt_user u on u.id = i.updated_by
-			left join cc_list_statistics cls on i.id = cls.list_id
+			left join call_center.cc_list_statistics cls on i.id = cls.list_id
 		where i.domain_id = :DomainId and i.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlListStore.Get", "store.sql_list.get.app_error", nil,
@@ -151,7 +151,7 @@ func (s SqlListStore) Get(domainId int64, id int64) (*model.List, *model.AppErro
 
 func (s SqlListStore) Update(list *model.List) (*model.List, *model.AppError) {
 	err := s.GetMaster().SelectOne(&list, `with i as (
-    update cc_list
+    update call_center.cc_list
         set name = :Name,
             description = :Description,
             updated_at = :UpdatedAt,
@@ -165,14 +165,14 @@ select
        i.description,
        i.domain_id,
        i.created_at,
-       cc_get_lookup(uc.id, uc.name) as created_by,
+       call_center.cc_get_lookup(uc.id, uc.name) as created_by,
        i.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by,
+       call_center.cc_get_lookup(u.id, u.name) as updated_by,
        coalesce(cls.count, 0) count
 from i
     left join directory.wbt_user uc on uc.id = i.created_by
     left join directory.wbt_user u on u.id = i.updated_by
-    left join cc_list_statistics cls on i.id = cls.list_id`, map[string]interface{}{
+    left join call_center.cc_list_statistics cls on i.id = cls.list_id`, map[string]interface{}{
 		"Name":        list.Name,
 		"Description": list.Description,
 		"UpdatedAt":   list.UpdatedAt,
@@ -188,7 +188,7 @@ from i
 }
 
 func (s SqlListStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_list c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_list c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlListStore.Delete", "store.sql_list.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -199,7 +199,7 @@ func (s SqlListStore) Delete(domainId, id int64) *model.AppError {
 //Communications
 func (s SqlListStore) CreateCommunication(comm *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
 	var out *model.ListCommunication
-	if err := s.GetMaster().SelectOne(&out, `insert into cc_list_communications (list_id, number, description)
+	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description)
 values (:ListId, :Number, :Description)
 returning *`,
 		map[string]interface{}{
@@ -242,8 +242,8 @@ func (s SqlListStore) GetCommunication(domainId, listId int64, id int64) (*model
 	var communication *model.ListCommunication
 	if err := s.GetReplica().SelectOne(&communication, `
 			select i.id, i.number, i.description, i.list_id
-from cc_list_communications i
-where i.id = :Id and i.list_id = :ListId  and exists(select 1 from cc_list l where l.id = i.list_id and l.domain_id = :DomainId)	
+from call_center.cc_list_communications i
+where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)	
 		`, map[string]interface{}{"ListId": listId, "Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlListStore.Get", "store.sql_list.get_communication.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -253,10 +253,10 @@ where i.id = :Id and i.list_id = :ListId  and exists(select 1 from cc_list l whe
 }
 
 func (s SqlListStore) UpdateCommunication(domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
-	err := s.GetMaster().SelectOne(&communication, `update cc_list_communications i
+	err := s.GetMaster().SelectOne(&communication, `update call_center.cc_list_communications i
 set number = :Number,
     description = :Description
-where list_id = :ListId and id = :Id and exists(select 1 from cc_list l where l.id = i.list_id and l.domain_id = :DomainId)
+where list_id = :ListId and id = :Id and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)
 returning *`, map[string]interface{}{
 		"Number":      communication.Number,
 		"Description": communication.Description,
@@ -272,8 +272,8 @@ returning *`, map[string]interface{}{
 }
 
 func (s SqlListStore) DeleteCommunication(domainId, listId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_list_communications i where i.id=:Id and i.list_id = :ListId
-    and exists(select 1 from cc_list l where l.id = i.list_id and l.domain_id = :DomainId)`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_list_communications i where i.id=:Id and i.list_id = :ListId
+    and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "ListId": listId}); err != nil {
 		return model.NewAppError("SqlListStore.Delete", "store.sql_list.delete_communication.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

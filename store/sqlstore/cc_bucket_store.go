@@ -20,7 +20,7 @@ func NewSqlBucketStore(sqlStore SqlStore) store.BucketStore {
 
 func (s SqlBucketStore) Create(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
 	var out *model.Bucket
-	if err := s.GetMaster().SelectOne(&out, `insert into cc_bucket (name, domain_id, description, created_at, created_by, updated_at, updated_by)
+	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_bucket (name, domain_id, description, created_at, created_by, updated_at, updated_by)
 		values (:Name, :DomainId, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
 		returning id, name, description, domain_id`,
 		map[string]interface{}{
@@ -44,7 +44,7 @@ func (s SqlBucketStore) CheckAccess(domainId, id int64, groups []int, access aut
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from cc_bucket_acl a
+          from call_center.cc_bucket_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -83,7 +83,7 @@ func (s SqlBucketStore) GetAllPage(domainId int64, search *model.SearchBucket) (
 func (s SqlBucketStore) Get(domainId int64, id int64) (*model.Bucket, *model.AppError) {
 	var bucket *model.Bucket
 	if err := s.GetReplica().SelectOne(&bucket, `select id, name, description, domain_id
-		from cc_bucket b
+		from call_center.cc_bucket b
 		where b.id = :Id and b.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlBucketStore.Get", "store.sql_bucket.get.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -93,7 +93,7 @@ func (s SqlBucketStore) Get(domainId int64, id int64) (*model.Bucket, *model.App
 }
 
 func (s SqlBucketStore) Update(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
-	err := s.GetMaster().SelectOne(&bucket, `update cc_bucket
+	err := s.GetMaster().SelectOne(&bucket, `update call_center.cc_bucket
 	set name = :Name,
     description = :Description,
 	updated_at = :UpdatedAt,
@@ -114,7 +114,7 @@ func (s SqlBucketStore) Update(bucket *model.Bucket) (*model.Bucket, *model.AppE
 }
 
 func (s SqlBucketStore) Delete(domainId int64, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_bucket c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_bucket c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlBucketStore.Delete", "store.sql_bucket.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

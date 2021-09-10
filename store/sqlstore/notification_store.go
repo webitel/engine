@@ -17,9 +17,9 @@ func NewSqlNotificationStore(sqlStore SqlStore) store.NotificationStore {
 }
 
 func (s SqlNotificationStore) Create(notification *model.Notification) (*model.Notification, *model.AppError) {
-	err := s.GetMaster().SelectOne(&notification, `insert into cc_notification (domain_id, action, created_by, timeout, for_users, description)
+	err := s.GetMaster().SelectOne(&notification, `insert into call_center.cc_notification (domain_id, action, created_by, timeout, for_users, description)
     values (:DomainId, :Action, :CreatedBy, :Timeout, :ForUsers, :Description)
-    returning id, domain_id, action, cc_view_timestamp(created_at) as created_at, created_by, timeout, for_users, description`, map[string]interface{}{
+    returning id, domain_id, action, call_center.cc_view_timestamp(created_at) as created_at, created_by, timeout, for_users, description`, map[string]interface{}{
 		"DomainId":    notification.DomainId,
 		"Timeout":     nil,
 		"Action":      notification.Action,

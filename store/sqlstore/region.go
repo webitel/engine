@@ -23,7 +23,7 @@ func (s SqlRegionStore) Create(domainId int64, region *model.Region) (*model.Reg
     values (:DomainId, :Name, :Description, :TimezoneId)
     returning *
 )
-select r.id, r.name, r.description, cc_get_lookup(t.id, t.name) timezone
+select r.id, r.name, r.description, call_center.cc_get_lookup(t.id, t.name) timezone
 from  r
     left join flow.calendar_timezones t on t.id = r.timezone_id`, map[string]interface{}{
 		"DomainId":    domainId,
@@ -70,7 +70,7 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 
 func (s SqlRegionStore) Get(domainId int64, id uint32) (*model.Region, *model.AppError) {
 	var region *model.Region
-	err := s.GetReplica().SelectOne(&region, `select r.id, r.name, r.description, cc_get_lookup(t.id, t.name) timezone
+	err := s.GetReplica().SelectOne(&region, `select r.id, r.name, r.description, call_center.cc_get_lookup(t.id, t.name) timezone
 from flow.region r
           left join flow.calendar_timezones t on t.id = r.timezone_id
 where r.domain_id = :DomainId and r.id = :Id`, map[string]interface{}{
@@ -94,7 +94,7 @@ func (s SqlRegionStore) Update(domainId int64, region *model.Region) (*model.Reg
     where domain_id = :DomainId and id = :Id
     returning *
 )
-select r.id, r.name, r.description, cc_get_lookup(t.id, t.name) timezone
+select r.id, r.name, r.description, call_center.cc_get_lookup(t.id, t.name) timezone
 from r
          left join flow.calendar_timezones t on t.id = r.timezone_id`, map[string]interface{}{
 		"DomainId":    domainId,

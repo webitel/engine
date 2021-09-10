@@ -20,7 +20,7 @@ func NewSqlSkillStore(sqlStore SqlStore) store.SkillStore {
 
 func (s SqlSkillStore) Create(skill *model.Skill) (*model.Skill, *model.AppError) {
 	var out *model.Skill
-	if err := s.GetMaster().SelectOne(&out, `insert into cc_skill (name, domain_id, description)
+	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_skill (name, domain_id, description)
 		values (:Name, :DomainId, :Description)
 		returning *`,
 		map[string]interface{}{"Name": skill.Name, "DomainId": skill.DomainId, "Description": skill.Description}); nil != err {
@@ -34,7 +34,7 @@ func (s SqlSkillStore) Create(skill *model.Skill) (*model.Skill, *model.AppError
 func (s SqlSkillStore) Get(domainId int64, id int64) (*model.Skill, *model.AppError) {
 	var skill *model.Skill
 	if err := s.GetReplica().SelectOne(&skill, `select *
-		from cc_skill s
+		from call_center.cc_skill s
 		where s.id = :Id and s.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlSkillStore.Get", "store.sql_skill.get.app_error", nil,
@@ -71,7 +71,7 @@ func (s SqlSkillStore) GetAllPage(domainId int64, search *model.SearchSkill) ([]
 }
 
 func (s SqlSkillStore) Delete(domainId int64, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_skill c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_skill c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlSkillStore.Delete", "store.sql_skill.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -80,7 +80,7 @@ func (s SqlSkillStore) Delete(domainId int64, id int64) *model.AppError {
 }
 
 func (s SqlSkillStore) Update(skill *model.Skill) (*model.Skill, *model.AppError) {
-	err := s.GetMaster().SelectOne(&skill, `update cc_skill
+	err := s.GetMaster().SelectOne(&skill, `update call_center.cc_skill
 	set name = :Name,
     description = :Description
 		where id = :Id and domain_id = :DomainId returning *`, map[string]interface{}{

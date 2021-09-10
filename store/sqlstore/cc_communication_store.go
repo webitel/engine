@@ -19,7 +19,7 @@ func NewSqlCommunicationTypeStore(sqlStore SqlStore) store.CommunicationTypeStor
 
 func (s SqlCommunicationTypeStore) Create(comm *model.CommunicationType) (*model.CommunicationType, *model.AppError) {
 	var out *model.CommunicationType
-	if err := s.GetMaster().SelectOne(&out, `insert into cc_communication (name, code, type, domain_id, description)
+	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_communication (name, code, type, domain_id, description)
 		values (:Name, :Code, :Type, :DomainId, :Description)
 		returning *`,
 		map[string]interface{}{
@@ -61,7 +61,7 @@ func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, search *model.Sear
 func (s SqlCommunicationTypeStore) Get(domainId int64, id int64) (*model.CommunicationType, *model.AppError) {
 	var out *model.CommunicationType
 	if err := s.GetReplica().SelectOne(&out, `select *
-		from cc_communication s
+		from call_center.cc_communication s
 		where s.id = :Id and s.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlCommunicationTypeStore.Get", "store.sql_communication_type.get.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -71,7 +71,7 @@ func (s SqlCommunicationTypeStore) Get(domainId int64, id int64) (*model.Communi
 }
 
 func (s SqlCommunicationTypeStore) Update(cType *model.CommunicationType) (*model.CommunicationType, *model.AppError) {
-	err := s.GetMaster().SelectOne(&cType, `update cc_communication
+	err := s.GetMaster().SelectOne(&cType, `update call_center.cc_communication
 set name = :Name,
     description = :Description,
     type = :Type,
@@ -93,7 +93,7 @@ returning *`, map[string]interface{}{
 }
 
 func (s SqlCommunicationTypeStore) Delete(domainId int64, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_communication c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_communication c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlCommunicationTypeStore.Delete", "store.sql_communication_type.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

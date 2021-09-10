@@ -20,16 +20,16 @@ func NewSqlOutboundResourceInGroupStore(sqlStore SqlStore) store.OutboundResourc
 func (s SqlOutboundResourceInGroupStore) Create(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
 	var out *model.OutboundResourceInGroup
 	if err := s.GetMaster().SelectOne(&out, `with s as (
-    insert into cc_outbound_resource_in_group (resource_id, group_id, reserve_resource_id, priority)
+    insert into call_center.cc_outbound_resource_in_group (resource_id, group_id, reserve_resource_id, priority)
     select :ResourceId, :GroupId, :ReserveResourceId, :Priority
-    where exists(select 1 from cc_outbound_resource_group where domain_id = :DomainId)
+    where exists(select 1 from call_center.cc_outbound_resource_group where domain_id = :DomainId)
     returning *
 )
-select s.id, s.group_id, cc_get_lookup(cor.id, cor.name) as resource,
-	cc_get_lookup(res.id::bigint, res.name) AS reserve_resource,
+select s.id, s.group_id, call_center.cc_get_lookup(cor.id, cor.name) as resource,
+	call_center.cc_get_lookup(res.id::bigint, res.name) AS reserve_resource,
 	s.priority
 from s
-    inner join cc_outbound_resource cor on s.resource_id = cor.id
+    inner join call_center.cc_outbound_resource cor on s.resource_id = cor.id
 	left join call_center.cc_outbound_resource res on res.id = s.reserve_resource_id`,
 		map[string]interface{}{
 			"DomainId":          domainId,
@@ -74,7 +74,7 @@ func (s SqlOutboundResourceInGroupStore) Get(domainId, groupId, id int64) (*mode
 	var res *model.OutboundResourceInGroup
 	if err := s.GetReplica().SelectOne(&res, `
 			select s.id, s.group_id, resource, reserve_resource, priority
-			from cc_outbound_resource_in_group_view s
+			from call_center.cc_outbound_resource_in_group_view s
 			where s.group_id = :GroupId and s.domain_id = :DomainId	and s.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId, "GroupId": groupId}); err != nil {
 		return nil, model.NewAppError("SqlOutboundResourceInGroupStore.Get", "store.sql_out_resource_in_group.get.app_error", nil,
@@ -87,11 +87,11 @@ func (s SqlOutboundResourceInGroupStore) Get(domainId, groupId, id int64) (*mode
 func (s SqlOutboundResourceInGroupStore) Update(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
 
 	err := s.GetMaster().SelectOne(&res, `with s as (
-    update cc_outbound_resource_in_group 
+    update call_center.cc_outbound_resource_in_group 
         set resource_id  = :ResourceId,
 			reserve_resource_id = :ReserveResourceId,
 			priority = :Priority
-    where id = :Id and group_id = :GroupId and exists(select 1 from cc_outbound_resource_group where domain_id = :DomainId)
+    where id = :Id and group_id = :GroupId and exists(select 1 from call_center.cc_outbound_resource_group where domain_id = :DomainId)
     returning *
 )
 SELECT s.id,
@@ -120,8 +120,8 @@ FROM s
 }
 
 func (s SqlOutboundResourceInGroupStore) Delete(domainId, groupId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_outbound_resource_in_group c 
-			where id = :Id and group_id = :GroupId and exists(select 1 from cc_outbound_resource_group where domain_id = :DomainId)`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_outbound_resource_in_group c 
+			where id = :Id and group_id = :GroupId and exists(select 1 from call_center.cc_outbound_resource_group where domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "GroupId": groupId}); err != nil {
 		return model.NewAppError("SqlOutboundResourceGroupStore.Delete", "store.sql_out_resource_group.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

@@ -57,8 +57,8 @@ func GetOrderBy(t, s string) string {
 			field = s
 		}
 
-		return fmt.Sprintf(`order by case when cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s,
-         case when not cc_is_lookup(%s, %s) then %s end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field),
+		return fmt.Sprintf(`order by case when call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s,
+         case when not call_center.cc_is_lookup(%s, %s) then %s end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field),
 			sort, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort)
 
 	}
@@ -96,8 +96,9 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 	return query
 }
 
+// fixme schema
 func (s *SqlSupplier) ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	q := Build(&req, "", where, e, params)
+	q := Build(&req, "call_center", where, e, params)
 	_, err := s.GetReplica().Select(out, q, params)
 	if err != nil {
 		return err

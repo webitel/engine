@@ -24,9 +24,9 @@ select
     ch.invite_id,
     ch.id channel_id,
     c.title,
-    cc_view_timestamp(c.created_at) created_at,
-    cc_view_timestamp(c.updated_at) updated_at,
-    cc_view_timestamp(ch.joined_at) joined_at,
+    call_center.cc_view_timestamp(c.created_at) created_at,
+    call_center.cc_view_timestamp(c.updated_at) updated_at,
+    call_center.cc_view_timestamp(ch.joined_at) joined_at,
     m.messages,
     mem.members,
     coalesce(ch.props, '{}')::jsonb as variables
@@ -51,8 +51,8 @@ from (
     left join lateral (
         select json_agg(t) messages
         from (
-            select m.id, cc_view_timestamp(m.created_at) created_at,
-                   cc_view_timestamp(m.updated_at) updated_at, m.text as text, (case when m.file_id isnull then null else
+            select m.id, call_center.cc_view_timestamp(m.created_at) created_at,
+                   call_center.cc_view_timestamp(m.updated_at) updated_at, m.text as text, (case when m.file_id isnull then null else
     json_build_object('id',m.file_id,'size',m.file_size,'mime',m.file_type,'name',m.file_name)
 end) as "file", m.type, m.channel_id
             from chat.message m

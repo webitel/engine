@@ -19,13 +19,13 @@ func NewSqlBucketInQueueStore(sqlStore SqlStore) store.BucketInQueueStore {
 func (s SqlBucketInQueueStore) Create(queueBucket *model.QueueBucket) (*model.QueueBucket, *model.AppError) {
 	var out *model.QueueBucket
 	if err := s.GetMaster().SelectOne(&out, `with q as (
-		insert into cc_bucket_in_queue (queue_id, ratio, bucket_id)
+		insert into call_center.cc_bucket_in_queue (queue_id, ratio, bucket_id)
 		values (:QueueId, :Ratio, :BucketId)
 		returning *
 	)
-	select q.id, q.ratio, cc_get_lookup(cb.id, cb.name::text) as bucket
+	select q.id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket
 	from q
-		inner join cc_bucket cb on q.bucket_id = cb.id`,
+		inner join call_center.cc_bucket cb on q.bucket_id = cb.id`,
 		map[string]interface{}{
 			"QueueId":  queueBucket.QueueId,
 			"Ratio":    queueBucket.Ratio,
@@ -40,9 +40,9 @@ func (s SqlBucketInQueueStore) Create(queueBucket *model.QueueBucket) (*model.Qu
 
 func (s SqlBucketInQueueStore) Get(domainId, queueId, id int64) (*model.QueueBucket, *model.AppError) {
 	var queueBucket *model.QueueBucket
-	if err := s.GetReplica().SelectOne(&queueBucket, `select q.id, q.queue_id, q.ratio, cc_get_lookup(cb.id, cb.name::text) as bucket
-		from cc_bucket_in_queue q
-			inner join cc_bucket cb on q.bucket_id = cb.id
+	if err := s.GetReplica().SelectOne(&queueBucket, `select q.id, q.queue_id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket
+		from call_center.cc_bucket_in_queue q
+			inner join call_center.cc_bucket cb on q.bucket_id = cb.id
 		where q.id = :Id and q.queue_id = :QueueId and cb.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -82,16 +82,16 @@ func (s SqlBucketInQueueStore) GetAllPage(domainId, queueId int64, search *model
 
 func (s SqlBucketInQueueStore) Update(domainId int64, queueBucket *model.QueueBucket) (*model.QueueBucket, *model.AppError) {
 	err := s.GetMaster().SelectOne(&queueBucket, `with q as (
-		update cc_bucket_in_queue bq
+		update call_center.cc_bucket_in_queue bq
 			set ratio = :Ratio,
 				bucket_id = :BucketId
-		from cc_queue cq
+		from call_center.cc_queue cq
 		where bq.id = :Id and cq.id = :QueueId and cq.domain_id = :DomainId
 		returning bq.*
 	)
-	select q.id, q.ratio, cc_get_lookup(cb.id, cb.name::text) as bucket
+	select q.id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket
 	from q
-		inner join cc_bucket cb on q.bucket_id = cb.id`, map[string]interface{}{
+		inner join call_center.cc_bucket cb on q.bucket_id = cb.id`, map[string]interface{}{
 		"Ratio":    queueBucket.Ratio,
 		"BucketId": queueBucket.Bucket.Id,
 		"Id":       queueBucket.Id,
@@ -106,7 +106,7 @@ func (s SqlBucketInQueueStore) Update(domainId int64, queueBucket *model.QueueBu
 }
 
 func (s SqlBucketInQueueStore) Delete(queueId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_bucket_in_queue c where c.id=:Id and c.queue_id = :QueueId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_bucket_in_queue c where c.id=:Id and c.queue_id = :QueueId`,
 		map[string]interface{}{"Id": id, "QueueId": queueId}); err != nil {
 		return model.NewAppError("SqlBucketInQueueStore.Delete", "store.sql_queue_bucket.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

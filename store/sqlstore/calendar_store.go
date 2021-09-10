@@ -36,13 +36,13 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 			c.end_at, 
 			c.description, 
 			c.domain_id, 
-			cc_get_lookup(ct.id, ct.name) as timezone,
+			call_center.cc_get_lookup(ct.id, ct.name) as timezone,
 		    c.created_at,
-		    cc_get_lookup(uc.id, uc.name) as created_by,
+		    call_center.cc_get_lookup(uc.id, uc.name) as created_by,
 		    c.updated_at,
-		    cc_get_lookup(u.id, u.name) as updated_by,
+		    call_center.cc_get_lookup(u.id, u.name) as updated_by,
 		    flow.calendar_accepts_to_jsonb(c.accepts)::jsonb as accepts,
-		    cc_arr_type_to_jsonb(c.excepts)::jsonb as excepts
+		    call_center.cc_arr_type_to_jsonb(c.excepts)::jsonb as excepts
 		from c
 		  inner join flow.calendar_timezones ct on ct.id = c.timezone_id
 	      left join directory.wbt_user uc on uc.id = c.created_by
@@ -147,13 +147,13 @@ func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model
 			   c.end_at,
 			   c.description,
 			   c.domain_id,
-			   cc_get_lookup(ct.id, ct.name) as timezone,
+			   call_center.cc_get_lookup(ct.id, ct.name) as timezone,
 			   c.created_at,
-			   cc_get_lookup(uc.id, uc.name) as created_by,
+			   call_center.cc_get_lookup(uc.id, uc.name) as created_by,
 			   c.updated_at,
-			   cc_get_lookup(u.id, u.name) as updated_by,
+			   call_center.cc_get_lookup(u.id, u.name) as updated_by,
 			   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
-			   cc_arr_type_to_jsonb(c.excepts) as excepts
+			   call_center.cc_arr_type_to_jsonb(c.excepts) as excepts
 		from flow.calendar c
 			   left join flow.calendar_timezones ct on c.timezone_id = ct.id
 			   left join directory.wbt_user uc on uc.id = c.created_by
@@ -193,13 +193,13 @@ select c.id,
        c.end_at,
        c.description,
        c.domain_id,
-       cc_get_lookup(ct.id, ct.name) as timezone,
+       call_center.cc_get_lookup(ct.id, ct.name) as timezone,
        c.created_at,
-       cc_get_lookup(uc.id, uc.name) as created_by,
+       call_center.cc_get_lookup(uc.id, uc.name) as created_by,
        c.updated_at,
-       cc_get_lookup(u.id, u.name) as updated_by,
+       call_center.cc_get_lookup(u.id, u.name) as updated_by,
 	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
-	   cc_arr_type_to_jsonb(c.excepts) as excepts
+	   call_center.cc_arr_type_to_jsonb(c.excepts) as excepts
 from c
        left join flow.calendar_timezones ct on c.timezone_id = ct.id
        left join directory.wbt_user uc on uc.id = c.created_by

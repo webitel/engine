@@ -22,7 +22,7 @@ func (s SqlOutboundResourceGroupStore) CheckAccess(domainId, id int64, groups []
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from cc_outbound_resource_group_acl a
+          from call_center.cc_outbound_resource_group_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -39,15 +39,15 @@ func (s SqlOutboundResourceGroupStore) CheckAccess(domainId, id int64, groups []
 func (s SqlOutboundResourceGroupStore) Create(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError) {
 	var out *model.OutboundResourceGroup
 	if err := s.GetMaster().SelectOne(&out, `with s as (
-    insert into cc_outbound_resource_group (domain_id, name, strategy, description, communication_id, created_at,
+    insert into call_center.cc_outbound_resource_group (domain_id, name, strategy, description, communication_id, created_at,
                                         created_by, updated_at, updated_by, time)
 values (:DomainId, :Name, :Strategy, :Description, :CommunicationId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Time)
 returning  *
 )
-select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-       s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
+select s.id, s.domain_id, s.name, s.strategy, s.description,  call_center.cc_get_lookup(comm.id, comm.name) as communication,
+       s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.time
 from s
-    inner join cc_communication comm on comm.id = s.communication_id
+    inner join call_center.cc_communication comm on comm.id = s.communication_id
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by`,
 		map[string]interface{}{
@@ -106,7 +106,7 @@ func (s SqlOutboundResourceGroupStore) GetAllPageByGroups(domainId int64, groups
 	err := s.ListQuery(&res, search.ListRequest,
 		`domain_id = :DomainId
 				and exists(select 1
-					  from cc_outbound_resource_group_acl a
+					  from call_center.cc_outbound_resource_group_acl a
 					  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
@@ -123,10 +123,10 @@ func (s SqlOutboundResourceGroupStore) GetAllPageByGroups(domainId int64, groups
 func (s SqlOutboundResourceGroupStore) Get(domainId int64, id int64) (*model.OutboundResourceGroup, *model.AppError) {
 	var group *model.OutboundResourceGroup
 	if err := s.GetReplica().SelectOne(&group, `
-			select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-				   s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
-			from cc_outbound_resource_group s
-				inner join cc_communication comm on comm.id = s.communication_id
+			select s.id, s.domain_id, s.name, s.strategy, s.description,  call_center.cc_get_lookup(comm.id, comm.name) as communication,
+				   s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.time
+			from call_center.cc_outbound_resource_group s
+				inner join call_center.cc_communication comm on comm.id = s.communication_id
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
 		where s.domain_id = :DomainId and s.id = :Id	
@@ -141,7 +141,7 @@ func (s SqlOutboundResourceGroupStore) Get(domainId int64, id int64) (*model.Out
 func (s SqlOutboundResourceGroupStore) Update(group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError) {
 
 	err := s.GetMaster().SelectOne(&group, `with s as (
-    update cc_outbound_resource_group
+    update call_center.cc_outbound_resource_group
     set name = :Name,
         strategy = :Strategy,
         description = :Description,
@@ -152,10 +152,10 @@ func (s SqlOutboundResourceGroupStore) Update(group *model.OutboundResourceGroup
     where id = :Id and domain_id = :DomainId
 	returning *
 )
-select s.id, s.domain_id, s.name, s.strategy, s.description,  cc_get_lookup(comm.id, comm.name) as communication,
-       s.created_at, cc_get_lookup(c.id, c.name) as created_by, s.updated_at, cc_get_lookup(u.id, u.name) as updated_by, s.time
+select s.id, s.domain_id, s.name, s.strategy, s.description,  call_center.cc_get_lookup(comm.id, comm.name) as communication,
+       s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.time
 from s
-    inner join cc_communication comm on comm.id = s.communication_id
+    inner join call_center.cc_communication comm on comm.id = s.communication_id
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by`, map[string]interface{}{
 		"Name":            group.Name,
@@ -178,7 +178,7 @@ from s
 }
 
 func (s SqlOutboundResourceGroupStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_outbound_resource_group c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_outbound_resource_group c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlOutboundResourceGroupStore.Delete", "store.sql_out_resource_group.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

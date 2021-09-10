@@ -26,8 +26,8 @@ func (s SqlRoutingOutboundCallStore) Create(routing *model.RoutingOutboundCall) 
 	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Disabled)
 	returning *
 )
-select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id,c.name) as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as schema,
+select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id,c.name) as created_by,
+       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, call_center.cc_get_lookup(arst.id, arst.name) as schema,
 	   tmp.pattern, disabled
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
@@ -94,8 +94,8 @@ func (s SqlRoutingOutboundCallStore) Get(domainId, id int64) (*model.RoutingOutb
 	var routing *model.RoutingOutboundCall
 
 	if err := s.GetReplica().SelectOne(&routing,
-		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, cc_get_lookup(arst.id, arst.name) as schema, 
+		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
+       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, call_center.cc_get_lookup(arst.id, arst.name) as schema, 
 		tmp.pattern, disabled
 from flow.acr_routing_outbound_call tmp
     left join directory.wbt_user c on c.id = tmp.created_by
@@ -126,8 +126,8 @@ func (s SqlRoutingOutboundCallStore) Update(routing *model.RoutingOutboundCall) 
     where r.id = :Id and r.domain_id = :Domain
     returning *
 )
-select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, cc_get_lookup(c.id, c.name) as created_by,
-       tmp.created_at,  cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, cc_get_lookup(arst.id, arst.name) as schema, 
+select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
+       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, call_center.cc_get_lookup(arst.id, arst.name) as schema, 
 		tmp.pattern, disabled
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by

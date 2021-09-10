@@ -21,7 +21,7 @@ func NewSqlAgentTeamStore(sqlStore SqlStore) store.AgentTeamStore {
 func (s SqlAgentTeamStore) Create(team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
 	var out *model.AgentTeam
 	if err := s.GetMaster().SelectOne(&out, `with t as (
-    insert into cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
+    insert into call_center.cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
                      no_answer_delay_time, call_timeout, updated_at, created_at, created_by, updated_by,
                      admin_ids)
     values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
@@ -38,7 +38,7 @@ select t.id,
        t.call_timeout,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
-        FROM cc_agent_with_user adm
+        FROM call_center.cc_agent_with_user adm
 		WHERE adm.id = any(t.admin_ids)) as admin,
        t.domain_id
 from t`,
@@ -68,7 +68,7 @@ func (s SqlAgentTeamStore) CheckAccess(domainId, id int64, groups []int, access 
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from cc_team_acl a
+          from call_center.cc_team_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -124,7 +124,7 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(domainId int64, groups []int, sear
 	err := s.ListQuery(&teams, search.ListRequest,
 		`domain_id = :DomainId and (
 				exists(select 1
-				  from cc_team_acl a
+				  from call_center.cc_team_acl a
 				  where a.dc = t.domain_id and a.object = t.id and a.subject = any(:Groups::int[]) and a.access&:Access = :Access)
 			  ) and ( (:Ids::int[] isnull or id = any(:Ids) ) 
 			and (:AdminIds::int[] isnull or admin_ids && :AdminIds )
@@ -150,9 +150,9 @@ func (s SqlAgentTeamStore) Get(domainId int64, id int64) (*model.AgentTeam, *mod
        t.call_timeout,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
-        FROM cc_agent_with_user adm
+        FROM call_center.cc_agent_with_user adm
 		WHERE adm.id = any(t.admin_ids)) as admin
-from cc_team t
+from call_center.cc_team t
 where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -166,7 +166,7 @@ where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
 
 func (s SqlAgentTeamStore) Update(domainId int64, team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
 	err := s.GetMaster().SelectOne(&team, `with t as (
-    update cc_team
+    update call_center.cc_team
     set name = :Name,
         description = :Description,
         strategy = :Strategy,
@@ -190,7 +190,7 @@ select t.id,
        t.call_timeout,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
-        FROM cc_agent_with_user adm
+        FROM call_center.cc_agent_with_user adm
 		WHERE adm.id = any(t.admin_ids)) as admin,
        t.domain_id
 from t`, map[string]interface{}{
@@ -215,7 +215,7 @@ from t`, map[string]interface{}{
 }
 
 func (s SqlAgentTeamStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_team c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_team c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlAgentTeamStore.Delete", "store.sql_agent_team.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

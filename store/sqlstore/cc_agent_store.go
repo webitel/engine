@@ -25,7 +25,7 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 	res, err := s.GetReplica().SelectNullInt(`select 1
 		where exists(
           select 1
-          from cc_agent_acl a
+          from call_center.cc_agent_acl a
           where a.dc = :DomainId
             and a.object = :Id
             and a.subject = any (:Groups::int[])
@@ -43,7 +43,7 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent
 	if err := s.GetMaster().SelectOne(&out, `with a as (
-			insert into cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
+			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
 				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
 					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds)
@@ -66,16 +66,16 @@ func (s SqlAgentStore) Create(agent *model.Agent) (*model.Agent, *model.AppError
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
         WHERE sag.id = any(a.supervisor_ids)) as supervisor,
-       (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+       (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
         FROM directory.wbt_user aud
 WHERE aud.id = any(a.auditor_ids)) as auditor,
-	   cc_get_lookup(t.id, t.name) as team,
-	   cc_get_lookup(r.id, r.name) as region,
+	   call_center.cc_get_lookup(t.id, t.name) as team,
+	   call_center.cc_get_lookup(r.id, r.name) as region,
        a.supervisor as is_supervisor
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
          LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
-         left join cc_team t on t.id = a.team_id
+         left join call_center.cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id
          LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
                                                       'joined_at',
@@ -139,17 +139,17 @@ func (s SqlAgentStore) GetAllPage(domainId int64, search *model.SearchAgent) ([]
 				and (:AuditorIds::int8[] isnull or auditor_ids && :AuditorIds)
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
-					from cc_queue q
-						inner join cc_agent a on a.domain_id = q.domain_id
-						inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
-						inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+					from call_center.cc_queue q
+						inner join call_center.cc_agent a on a.domain_id = q.domain_id
+						inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+						inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
 					where q.id = any(:QueueIds)
 						and (q.team_id isnull or a.team_id = q.team_id)
 						and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
 				))
 				and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
-				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
+				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
 		model.Agent{}, f)
 	if err != nil {
@@ -195,20 +195,21 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:QueueIds::int[] isnull or id in (
 					select distinct a.id
-					from cc_queue q
-						inner join cc_agent a on a.domain_id = q.domain_id
-						inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
-						inner join cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+					from call_center.cc_queue q
+						inner join call_center.cc_agent a on a.domain_id = q.domain_id
+						inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+						inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
 					where q.id = any(:QueueIds)
 						and (q.team_id isnull or a.team_id = q.team_id)
 						and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
 				))
-				and (:SkillIds::int[] isnull or exists(select 1 from cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
+				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
 				and (
 					exists(select 1
-					  from cc_agent_acl
-					  where cc_agent_acl.dc = t.domain_id and cc_agent_acl.object = t.id and cc_agent_acl.subject = any(:Groups::int[]) and cc_agent_acl.access&:Access = :Access)
+					  from call_center.cc_agent_acl
+					  where call_center.cc_agent_acl.dc = t.domain_id and call_center.cc_agent_acl.object = t.id 
+						and call_center.cc_agent_acl.subject = any(:Groups::int[]) and call_center.cc_agent_acl.access&:Access = :Access)
 		  		)`,
 		model.Agent{}, f)
 	if err != nil {
@@ -231,12 +232,12 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *m
        cq.processing as has_reporting,
        a.state,
        a.agent_id,
-       cc_view_timestamp(a.bridged_at) as bridged_at,
-	   cc_view_timestamp(a.leaving_at) as leaving_at,
+       call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
+	   call_center.cc_view_timestamp(a.leaving_at) as leaving_at,
        extract(epoch from now() - a.last_state_change )::int as duration
-from cc_member_attempt a
-    inner join cc_agent a2 on a2.id = a.agent_id
-    inner join cc_queue cq on a.queue_id = cq.id
+from call_center.cc_member_attempt a
+    inner join call_center.cc_agent a2 on a2.id = a.agent_id
+    inner join call_center.cc_queue cq on a.queue_id = cq.id
 where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leaving'`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,
@@ -270,16 +271,16 @@ func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppEr
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
 				WHERE sag.id = any(a.supervisor_ids)) as supervisor,
-			   (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+			   (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
 				FROM directory.wbt_user aud
 				WHERE aud.id = any(a.auditor_ids)) as auditor,
-			   cc_get_lookup(t.id, t.name) as team,
-			   cc_get_lookup(r.id, r.name) as region,
+			   call_center.cc_get_lookup(t.id, t.name) as team,
+			   call_center.cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
-				 left join cc_team t on t.id = a.team_id
+				 left join call_center.cc_team t on t.id = a.team_id
 				 left join flow.region r on r.id = a.region_id
 				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
 															  'joined_at',
@@ -302,7 +303,7 @@ func (s SqlAgentStore) Get(domainId int64, id int64) (*model.Agent, *model.AppEr
 
 func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError) {
 	err := s.GetMaster().SelectOne(&agent, `with a as (
-			update cc_agent
+			update call_center.cc_agent
 			set user_id = :UserId,
 				description = :Description,
 				updated_at = :UpdatedAt,
@@ -336,16 +337,16 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
 				WHERE sag.id = any(a.supervisor_ids)) as supervisor,
-			   (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+			   (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
 				FROM directory.wbt_user aud
 				WHERE aud.id = any(a.auditor_ids)) as auditor,
-			   cc_get_lookup(t.id, t.name) as team,
-			   cc_get_lookup(r.id, r.name) as region,
+			   call_center.cc_get_lookup(t.id, t.name) as team,
+			   call_center.cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor
 		FROM  a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
-				 left join cc_team t on t.id = a.team_id
+				 left join call_center.cc_team t on t.id = a.team_id
 				 left join flow.region r on r.id = a.region_id
 				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
 															  'joined_at',
@@ -384,7 +385,7 @@ func (s SqlAgentStore) Update(agent *model.Agent) (*model.Agent, *model.AppError
 }
 
 func (s SqlAgentStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from cc_agent c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().Exec(`delete from call_center.cc_agent c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlAgentStore.Delete", "store.sql_agent.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -393,7 +394,7 @@ func (s SqlAgentStore) Delete(domainId, id int64) *model.AppError {
 }
 
 func (s SqlAgentStore) SetStatus(domainId, agentId int64, status string, payload interface{}) (bool, *model.AppError) {
-	if r, err := s.GetMaster().Exec(`update cc_agent
+	if r, err := s.GetMaster().Exec(`update call_center.cc_agent
 			set status = :Status
   			,status_payload = :Payload
 			where id = :AgentId and domain_id = :DomainId and (status <> :Status or status_payload <> :Payload)`, map[string]interface{}{"AgentId": agentId, "Status": status, "Payload": payload, "DomainId": domainId}); err != nil {
@@ -435,10 +436,10 @@ func (s SqlAgentStore) InQueue(domainId, id int64, search *model.SearchAgentInQu
 func (s SqlAgentStore) QueueStatistic(domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
 	var stats []*model.AgentInQueueStatistic
 	_, err := s.GetReplica().Select(&stats, `select
-    cc_get_lookup(q.id, q.name) queue,
+    call_center.cc_get_lookup(q.id, q.name) queue,
     json_agg(json_build_object(
-        'bucket', cc_get_lookup(m.bucket_id, b.name::text),
-        'skill', cc_get_lookup(s.id, s.name),
+        'bucket', call_center.cc_get_lookup(m.bucket_id, b.name::text),
+        'skill', call_center.cc_get_lookup(s.id, s.name),
         'member_waiting', m.cnt
    ) order by m.bucket_id nulls last, m.skill_id nulls last ) as statistics
 from (
@@ -463,7 +464,7 @@ from (
         select m.bucket_id,
                m.skill_id,
                count(*) cnt
-        from cc_member m
+        from call_center.cc_member m
         where m.stop_at isnull
             and m.queue_id = x.queue_id
             and (m.ready_at isnull or m.ready_at < now())
@@ -473,9 +474,9 @@ from (
             and(m.agent_id isnull or m.agent_id = x.agent_id)
         group by 1,2
     ) m on true
-    left join cc_bucket b on b.id = m.bucket_id
-    left join cc_skill s on s.id = m.skill_id
-    inner join cc_queue q on q.id = x.queue_id
+    left join call_center.cc_bucket b on b.id = m.bucket_id
+    left join call_center.cc_skill s on s.id = m.skill_id
+    inner join call_center.cc_queue q on q.id = x.queue_id
 where q.domain_id = :DomainId
 group by q.id`, map[string]interface{}{
 		"AgentId":  agentId,
@@ -500,8 +501,8 @@ func (s SqlAgentStore) HistoryState(domainId int64, search *model.SearchAgentSta
 	}
 
 	_, err := s.GetReplica().Select(&res, `with ags as (
- select distinct a.id, cc_get_lookup(a.id, coalesce(u.name, u.username)) agent
- from cc_agent a
+ select distinct a.id, call_center.cc_get_lookup(a.id, coalesce(u.name, u.username)) agent
+ from call_center.cc_agent a
     inner join directory.wbt_user u on u.id = a.user_id
  where a.domain_id = :DomainId
 
@@ -514,7 +515,7 @@ select
     extract(epoch  from duration)::int8 duration,
     h.state,
     h.payload
-from cc_agent_state_history h
+from call_center.cc_agent_state_history h
     inner join ags on ags.id = h.agent_id
 where (:From::timestamp isnull or h.joined_at between :From and :To) 
   and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds))
@@ -546,7 +547,7 @@ func (s SqlAgentStore) LookupNotExistsUsers(domainId int64, search *model.Search
 		`select u.id, coalesce( (u.name)::varchar, u.username) as name
 from directory.wbt_user u
 where u.dc = :DomainId
-  and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
+  and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
   and   ( (:Q::varchar isnull or (coalesce( (u.name)::varchar, u.username) ilike :Q::varchar ) ))
 order by coalesce( (u.name)::varchar, u.username) 
 limit :Limit
@@ -569,7 +570,7 @@ func (s SqlAgentStore) LookupNotExistsUsersByGroups(domainId int64, groups []int
 		`select u.id, coalesce( (u.name)::varchar, u.username) as name
 from directory.wbt_user u
 where u.dc = :DomainId
-  and not exists(select 1 from cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
+  and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
   and (
 	exists(select 1
 	  from directory.wbt_auth_acl acl
@@ -601,25 +602,25 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
        (extract(EPOCH from now() - last_state_change) )::int8 status_duration,
        ch.x as channels,
        a.on_demand,
-       cc_get_lookup(t.id, t.name) team,
+       call_center.cc_get_lookup(t.id, t.name) team,
        a.supervisor is_supervisor,
-       exists(select 1 from cc_team tm where tm.domain_id = a.domain_id and tm.admin_ids && array[a.id]) is_admin,
+       exists(select 1 from call_center.cc_team tm where tm.domain_id = a.domain_id and tm.admin_ids && array[a.id]) is_admin,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
         WHERE sag.id = any(a.supervisor_ids)) supervisor,
-       (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+       (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) auditor
-from cc_agent a
-	 left join cc_team t on t.id = a.team_id
+from call_center.cc_agent a
+	 left join call_center.cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT json_build_array(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
                                            'no_answer', c.no_answers,
                                            'wrap_time_ids', (select array_agg(att.id)
-                                                from cc_member_attempt att
+                                                from call_center.cc_member_attempt att
                                                 where agent_id = a.id
                                                 and att.state = 'wrap_time' and att.channel = c.channel),
-                                           'joined_at', cc_view_timestamp(c.joined_at),
-                                            'timeout', cc_view_timestamp(c.timeout))) AS x
+                                           'joined_at', call_center.cc_view_timestamp(c.joined_at),
+                                            'timeout', call_center.cc_view_timestamp(c.timeout))) AS x
                      FROM call_center.cc_agent_channel c
                      WHERE c.agent_id = a.id) ch ON true
 where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
@@ -666,14 +667,14 @@ from (
                avg(c.hold_sec) avg_hold_sec,
                min(c.hold_sec) min_hold_sec,
                max(c.hold_sec) max_hold_sec
-        from cc_calls_history c
-            inner join cc_member_attempt_history cma on c.attempt_id = cma.id
+        from call_center.cc_calls_history c
+            inner join call_center.cc_member_attempt_history cma on c.attempt_id = cma.id
         where created_at between :From and :To
             and c.domain_id = :DomainId and c.agent_id notnull
 			and (:AgentIds::int[] isnull or c.agent_id = any(:AgentIds) )
         group by c.agent_id
     ) res
-        inner join cc_agent a on a.id = res.agent_id
+        inner join call_center.cc_agent a on a.id = res.agent_id
         inner join directory.wbt_user u on u.id = a.user_id
         left join lateral (
              select ares.agent_id,
@@ -701,7 +702,7 @@ from (
                              max(ah.joined_at) filter ( where ah.state = 'bridged' )                       max_bridged_at,
                              max(ah.joined_at) filter ( where ah.state = 'offering' )                      max_offering_at,
                              min(ah.joined_at)
-                      from cc_agent_state_history ah
+                      from call_center.cc_agent_state_history ah
                       where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
                         and ah.agent_id = a.id
                       group by 1
@@ -709,7 +710,7 @@ from (
                       left join lateral (
                  select h2.state,
                         ares.min - (:From::timestamptz) delta
-                 from cc_agent_state_history h2
+                 from call_center.cc_agent_state_history h2
                  where h2.joined_at < ares.min
                    and h2.agent_id = ares.agent_id
                    and h2.state in ('online', 'offline', 'pause')
@@ -760,11 +761,11 @@ func (s SqlAgentStore) PauseCause(domainId int64, fromUserId, toAgentId int64, a
            case when a.status = 'pause' and a.status_payload = c.name then
            now() - a.last_state_change + coalesce(tp.duration, interval '0')
            else coalesce(tp.duration, interval '0') end) / 60)::int8 duration_min
-from cc_pause_cause c
-         cross join cc_agent a
-         cross join cc_agent fa
-         left join cc_team ft on ft.id = fa.team_id
-         left join cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
+from call_center.cc_pause_cause c
+         cross join call_center.cc_agent a
+         cross join call_center.cc_agent fa
+         left join call_center.cc_team ft on ft.id = fa.team_id
+         left join call_center.cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
 where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
     and fa.user_id = :FromUserId
     and (not :AllowChange::bool   
@@ -823,9 +824,9 @@ from (
                 a.status,
                 extract(epoch from x.t)::int                                                          status_duration,
                 coalesce(a.status_payload, '')                                                        pause_cause,
-                cc_get_lookup(u.id, coalesce(u.name, u.username)) as                                  user,
+                call_center.cc_get_lookup(u.id, coalesce(u.name, u.username)) as                                  user,
 
-                cc_get_lookup(team.id, team.name)                                                     team,
+                call_center.cc_get_lookup(team.id, team.name)                                                     team,
                 q.queues                                                                              queues,
 
                 onl_all::int                                                                          online,
@@ -856,8 +857,8 @@ from (
                 (SELECT jsonb_agg(sag."user") AS jsonb_agg
                  FROM call_center.cc_agent_with_user sag
                  WHERE sag.id = any (a.supervisor_ids))                                               supervisor,
-                cc_get_lookup(r.id, r.name)                                                           region,
-                (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+                call_center.cc_get_lookup(r.id, r.name)                                                           region,
+                (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
                  FROM directory.wbt_user aud
                  WHERE aud.id = any (a.auditor_ids))                                                  auditor,
                 queue_ids,
@@ -865,19 +866,19 @@ from (
                 a.auditor_ids,
                 a.supervisor_ids,
                 a.region_id
-         from cc_agent a
+         from call_center.cc_agent a
                   inner join directory.wbt_user u on u.id = a.user_id
-                  left join cc_team team on team.id = a.team_id
+                  left join call_center.cc_team team on team.id = a.team_id
                   left join flow.region r on r.id = a.region_id
                   left join lateral (
              select array_agg(distinct q.id)                          queue_ids,
                     array_agg(distinct sia.skill_id)                  skill_ids,
-                    jsonb_agg(distinct cc_get_lookup(cs.id, cs.name)) skills,
-                    jsonb_agg(distinct cc_get_lookup(q.id, q.name))   queues
-             from cc_skill_in_agent sia
-                      inner join cc_queue q on sia.agent_id = a.id and sia.enabled
-                      inner join cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
-                      inner join cc_skill cs on sia.skill_id = cs.id
+                    jsonb_agg(distinct call_center.cc_get_lookup(cs.id, cs.name)) skills,
+                    jsonb_agg(distinct call_center.cc_get_lookup(q.id, q.name))   queues
+             from call_center.cc_skill_in_agent sia
+                      inner join call_center.cc_queue q on sia.agent_id = a.id and sia.enabled
+                      inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
+                      inner join call_center.cc_skill cs on sia.skill_id = cs.id
              where q.domain_id = a.domain_id
                and q.enabled
                and (q.team_id isnull or a.team_id = q.team_id)
@@ -910,7 +911,7 @@ from (
                              max(ah.joined_at) filter ( where ah.state = 'bridged' )                       max_bridged_at,
                              max(ah.joined_at) filter ( where ah.state = 'offering' )                      max_offering_at,
                              min(ah.joined_at)
-                      from cc_agent_state_history ah
+                      from call_center.cc_agent_state_history ah
                       where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
                         and ah.agent_id = a.id
                       group by 1
@@ -918,7 +919,7 @@ from (
                       left join lateral (
                  select h2.state,
                         ares.min - (:From::timestamptz) delta
-                 from cc_agent_state_history h2
+                 from call_center.cc_agent_state_history h2
                  where h2.joined_at < ares.min
                    and h2.agent_id = ares.agent_id
                    and h2.state in ('online', 'offline', 'pause')
@@ -928,7 +929,7 @@ from (
              ) stat on stat.agent_id = a.id
                   left join lateral (
              select c.id
-             from cc_calls c
+             from call_center.cc_calls c
              where c.agent_id = a.id
                and c.hangup_at isnull
                and c.direction notnull
@@ -954,7 +955,7 @@ from (
                 with x as (
                     select a.user_id, a.id agent_id, a.supervisor, a.domain_id
                     from directory.wbt_user u
-                             inner join cc_agent a on a.user_id = u.id
+                             inner join call_center.cc_agent a on a.user_id = u.id
                     where u.id = :UserSupervisorId
                       and u.dc = :DomainId
                 )
@@ -962,15 +963,15 @@ from (
                 from x
                          left join lateral (
                     select a.id, a.auditor_ids && array [x.user_id] aud
-                    from cc_agent a
+                    from call_center.cc_agent a
                     where a.domain_id = x.domain_id
                       and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id]) or
                            a.auditor_ids && array [x.user_id])
                     union
                     distinct
                     select a.id, a.auditor_ids && array [x.user_id] aud
-                    from cc_team t
-                             inner join cc_agent a on a.team_id = t.id
+                    from call_center.cc_team t
+                             inner join call_center.cc_agent a on a.team_id = t.id
                     where t.admin_ids && array[x.agent_id]
                       and x.domain_id = t.domain_id
                 ) a on true
@@ -1027,19 +1028,19 @@ func (s SqlAgentStore) SupervisorAgentItem(domainId int64, agentId int64, t *mod
 
 	err := s.GetReplica().SelectOne(&item, `select a.id agent_id,
        coalesce(cawu.name, cawu.username) as name,
-       cc_get_lookup(cawu.id, coalesce(cawu.name, cawu.username)) as user,
+       call_center.cc_get_lookup(cawu.id, coalesce(cawu.name, cawu.username)) as user,
        coalesce(cawu.extension, '') as extension,
        a.status,
        extract(epoch from x.t)::int status_duration,
 
-       cc_get_lookup(t.id, t.name) team,
+       call_center.cc_get_lookup(t.id, t.name) team,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
         WHERE sag.id = any(a.supervisor_ids)) supervisor,
-       (SELECT jsonb_agg(cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
+       (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) as auditor,
-       cc_get_lookup(r.id, r.name) region,
+       call_center.cc_get_lookup(r.id, r.name) region,
        a.progressive_count,
        a.chat_count,
 
@@ -1047,8 +1048,8 @@ func (s SqlAgentStore) SupervisorAgentItem(domainId int64, agentId int64, t *mod
        (coalesce(extract(epoch from stat.offline), 0) + case when a.status = 'offline' then  extract(epoch from x.t) else 0 end)::int8 offline,
        (coalesce(extract(epoch from stat.pause), 0) + case when a.status = 'pause' then  extract(epoch from x.t) else 0 end)::int8 pause,
        coalesce(a.status_payload, '') pause_cause
-from cc_agent a
-  left join cc_team t on t.id = a.team_id
+from call_center.cc_agent a
+  left join call_center.cc_team t on t.id = a.team_id
   left join flow.region r on r.id = a.region_id
   left join lateral (
      select
@@ -1056,7 +1057,7 @@ from cc_agent a
         coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0')    online,
         coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval '0')   offline,
         coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval '0')     pause
-     from cc_agent_state_history ah
+     from call_center.cc_agent_state_history ah
      where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
         and ah.agent_id = a.id
      group by 1
