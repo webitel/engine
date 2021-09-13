@@ -1,9 +1,12 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/cc"
+	"github.com/webitel/wlog"
 	"net/http"
 )
 
@@ -70,6 +73,21 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 
 	if req.Params.Display != "" {
 		invite.AddVariable("sip_h_X-Webitel-Display", req.Params.Display)
+	}
+
+	if req.Params.CancelDistribute {
+		var stat *model.DistributeAgentInfo
+		if stat, err = app.Store.Agent().DistributeInfoByUserId(domainId, from.Id); err != nil {
+			wlog.Error(err.Error())
+		} else if stat.Busy {
+			return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.agent", nil, "Agent in call", http.StatusBadRequest)
+		} else if stat.Distribute {
+			if _, err := app.cc.Member().CancelAgentDistribute(context.Background(), &cc.CancelAgentDistributeRequest{
+				AgentId: stat.AgentId,
+			}); err != nil {
+				wlog.Error(err.Error())
+			}
+		}
 	}
 
 	id, err = callCli.MakeOutboundCall(invite)

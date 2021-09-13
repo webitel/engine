@@ -134,6 +134,7 @@ type AgentStore interface {
 
 	StatusStatistic(domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError)
 	SupervisorAgentItem(domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError)
+	DistributeInfoByUserId(domainId, userId int64) (*model.DistributeAgentInfo, *model.AppError)
 }
 
 type AgentSkillStore interface {

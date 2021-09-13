@@ -1081,3 +1081,23 @@ where a.id = :AgentId and a.domain_id = :DomainId`, map[string]interface{}{
 
 	return item, nil
 }
+
+func (s SqlAgentStore) DistributeInfoByUserId(domainId, userId int64) (*model.DistributeAgentInfo, *model.AppError) {
+	var res *model.DistributeAgentInfo
+	err := s.GetMaster().SelectOne(&res, `select a.id as agent_id,
+   exists(select 1 from call_center.cc_member_attempt att
+    where att.agent_id = a.id and att.agent_call_id isnull ) distribute,
+   c.state = any(array ['offering', 'bridged']) busy
+from call_center.cc_agent a
+    inner join call_center.cc_agent_channel c on c.agent_id = a.id
+where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
+		"UserId":   userId,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.DistributeInfoByUserId", "store.sql_agent.get_dis_stats_item.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}

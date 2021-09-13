@@ -352,15 +352,16 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	var req = &model.OutboundCallRequest{
 		Destination: in.GetDestination(),
 		Params: model.CallParameters{
-			Timeout:     int(in.GetParams().GetTimeout()),
-			Audio:       in.GetParams().GetAudio(),
-			Video:       in.GetParams().GetVideo(),
-			Screen:      in.GetParams().GetScreen(),
-			Record:      in.GetParams().GetRecord(),
-			Variables:   in.GetParams().GetVariables(),
-			AutoAnswer:  in.GetParams().GetAutoAnswer(),
-			Display:     in.GetParams().GetDisplay(),
-			DisableStun: in.GetParams().GetDisableStun(),
+			Timeout:          int(in.GetParams().GetTimeout()),
+			Audio:            in.GetParams().GetAudio(),
+			Video:            in.GetParams().GetVideo(),
+			Screen:           in.GetParams().GetScreen(),
+			Record:           in.GetParams().GetRecord(),
+			Variables:        in.GetParams().GetVariables(),
+			AutoAnswer:       in.GetParams().GetAutoAnswer(),
+			Display:          in.GetParams().GetDisplay(),
+			DisableStun:      in.GetParams().GetDisableStun(),
+			CancelDistribute: in.GetParams().GetCancelDistribute(),
 		},
 	}
 

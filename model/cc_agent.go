@@ -136,6 +136,12 @@ type AgentPauseCause struct {
 	DurationMin uint32 `json:"duration_min" db:"duration_min"`
 }
 
+type DistributeAgentInfo struct {
+	AgentId    int32 `json:"agent_id" db:"agent_id"`
+	Distribute bool  `json:"distribute" db:"distribute"`
+	Busy       bool  `json:"busy" db:"busy"`
+}
+
 func (a *Agent) Patch(patch *AgentPatch) {
 	a.UpdatedBy = patch.UpdatedBy
 	a.UpdatedAt = patch.UpdatedAt
