@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	appId                 = flag.String("id", "1", "Service id")
 	translationsDirectory = flag.String("translations_directory", "i18n", "Translations directory")
 	consulHost            = flag.String("consul", "172.0.0.1:8500", "Host to consul")
 	websocketHost         = flag.String("websocket", ":80", "WebSocket server address")
@@ -30,7 +31,7 @@ func loadConfig() (*model.Config, error) {
 		Dev:                   *dev == 1,
 		Cloudflare:            *cloudflare == 1,
 		TranslationsDirectory: *translationsDirectory,
-		NodeName:              fmt.Sprintf("engine-%s", model.NewId()),
+		NodeName:              fmt.Sprintf("engine-%s", *appId),
 		DiscoverySettings: model.DiscoverySettings{
 			Url: *consulHost,
 		},
