@@ -64,12 +64,12 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	_, err = tx.Exec("CREATE temp table call_center.cc_member_tmp ON COMMIT DROP as table call_center.cc_member with no data")
+	_, err = tx.Exec("CREATE temp table cc_member_tmp ON COMMIT DROP as table call_center.cc_member with no data")
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	stmp, err = tx.Prepare(pq.CopyIn("call_center.cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
+	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
 		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id"))
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -93,7 +93,7 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 		_, err = tx.Select(&result, `with i as (
 			insert into call_center.cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, domain_id, agent_id, skill_id)
 			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, :DomainId, agent_id, skill_id
-			from call_center.cc_member_tmp
+			from cc_member_tmp
 			returning id
 		)
 		select id from i`, map[string]interface{}{
