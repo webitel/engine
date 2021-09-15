@@ -51,6 +51,10 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		Description:           GetStringPointer(in.Description),
 		Patterns:              in.Patterns,
 		FailureDialDelay:      in.FailureDialDelay,
+		Parameters: model.OutboundResourceParameters{
+			CidType:          in.GetParameters().GetCidType(),
+			IgnoreEarlyMedia: in.GetParameters().GetIgnoreEarlyMedial(),
+		},
 	}
 
 	if in.Gateway != nil {
@@ -191,6 +195,10 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		Description:           GetStringPointer(in.Description),
 		Patterns:              in.Patterns,
 		FailureDialDelay:      in.FailureDialDelay,
+		Parameters: model.OutboundResourceParameters{
+			CidType:          in.GetParameters().GetCidType(),
+			IgnoreEarlyMedia: in.GetParameters().GetIgnoreEarlyMedial(),
+		},
 	}
 
 	if in.Gateway != nil {
@@ -525,6 +533,10 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		LastErrorAt:           model.TimeToInt64(src.LastErrorAt),
 		Patterns:              src.Patterns,
 		FailureDialDelay:      src.FailureDialDelay,
+		Parameters: &engine.OutboundResourceParameters{
+			CidType:           src.Parameters.CidType,
+			IgnoreEarlyMedial: src.Parameters.IgnoreEarlyMedia,
+		},
 	}
 
 	if src.Gateway != nil {

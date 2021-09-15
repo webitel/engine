@@ -1,30 +1,44 @@
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
+
+type OutboundResourceParameters struct {
+	CidType          string `json:"cid_type"`
+	IgnoreEarlyMedia string `json:"ignore_early_media"`
+}
 
 type OutboundCallResource struct {
 	DomainRecord
-	Limit                 int         `json:"limit" db:"limit"`
-	Enabled               bool        `json:"enabled" db:"enabled"`
-	RPS                   int         `json:"rps" db:"rps"`
-	Reserve               bool        `json:"reserve" db:"reserve"`
-	Variables             StringMap   `json:"variables" db:"variables"`
-	Number                string      `json:"number" db:"number"`
-	MaxSuccessivelyErrors int         `json:"max_successively_errors" db:"max_successively_errors"`
-	Name                  string      `json:"name" db:"name"`
-	ErrorIds              StringArray `json:"error_ids" db:"error_ids"`
-	LastErrorId           *string     `json:"last_error_id" db:"last_error_id"`
-	SuccessivelyErrors    int         `json:"successively_errors" db:"successively_errors"`
-	LastErrorAt           *time.Time  `json:"last_error_at" db:"last_error_at"`
-	Gateway               *Lookup     `json:"gateway" db:"gateway"`
-	Description           *string     `json:"description" db:"description"`
-	Patterns              StringArray `json:"patterns" db:"patterns"`
-	FailureDialDelay      uint32      `json:"failure_dial_delay" db:"failure_dial_delay"`
+	Limit                 int                        `json:"limit" db:"limit"`
+	Enabled               bool                       `json:"enabled" db:"enabled"`
+	RPS                   int                        `json:"rps" db:"rps"`
+	Reserve               bool                       `json:"reserve" db:"reserve"`
+	Variables             StringMap                  `json:"variables" db:"variables"`
+	Number                string                     `json:"number" db:"number"`
+	MaxSuccessivelyErrors int                        `json:"max_successively_errors" db:"max_successively_errors"`
+	Name                  string                     `json:"name" db:"name"`
+	ErrorIds              StringArray                `json:"error_ids" db:"error_ids"`
+	LastErrorId           *string                    `json:"last_error_id" db:"last_error_id"`
+	SuccessivelyErrors    int                        `json:"successively_errors" db:"successively_errors"`
+	LastErrorAt           *time.Time                 `json:"last_error_at" db:"last_error_at"`
+	Gateway               *Lookup                    `json:"gateway" db:"gateway"`
+	Description           *string                    `json:"description" db:"description"`
+	Patterns              StringArray                `json:"patterns" db:"patterns"`
+	FailureDialDelay      uint32                     `json:"failure_dial_delay" db:"failure_dial_delay"`
+	Parameters            OutboundResourceParameters `json:"parameters" db:"parameters"`
 }
 
 type SearchOutboundCallResource struct {
 	ListRequest
 	Ids []uint32
+}
+
+func (params OutboundResourceParameters) ToJson() string {
+	data, _ := json.Marshal(params)
+	return string(data)
 }
 
 func (OutboundCallResource) DefaultOrder() string {

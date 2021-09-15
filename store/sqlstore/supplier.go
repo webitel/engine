@@ -358,6 +358,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		**model.CCTask,
 		*model.Endpoint,
 		**model.Endpoint,
+		*model.OutboundResourceParameters,
 		*[]model.Lookup,
 		*[]model.AggregateData,
 		*[]*model.Lookup,

@@ -76,6 +76,7 @@ func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*mod
 	oldResource.Description = resource.Description
 	oldResource.Patterns = resource.Patterns
 	oldResource.FailureDialDelay = resource.FailureDialDelay
+	oldResource.Parameters = resource.Parameters
 
 	oldResource, err = a.Store.OutboundResource().Update(oldResource)
 	if err != nil {
