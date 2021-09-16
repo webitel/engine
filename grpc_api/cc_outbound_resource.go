@@ -53,7 +53,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		FailureDialDelay:      in.FailureDialDelay,
 		Parameters: model.OutboundResourceParameters{
 			CidType:          in.GetParameters().GetCidType(),
-			IgnoreEarlyMedia: in.GetParameters().GetIgnoreEarlyMedial(),
+			IgnoreEarlyMedia: in.GetParameters().GetIgnoreEarlyMedia(),
 		},
 	}
 
@@ -197,7 +197,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		FailureDialDelay:      in.FailureDialDelay,
 		Parameters: model.OutboundResourceParameters{
 			CidType:          in.GetParameters().GetCidType(),
-			IgnoreEarlyMedia: in.GetParameters().GetIgnoreEarlyMedial(),
+			IgnoreEarlyMedia: in.GetParameters().GetIgnoreEarlyMedia(),
 		},
 	}
 
@@ -534,8 +534,8 @@ func transformOutboundResource(src *model.OutboundCallResource) *engine.Outbound
 		Patterns:              src.Patterns,
 		FailureDialDelay:      src.FailureDialDelay,
 		Parameters: &engine.OutboundResourceParameters{
-			CidType:           src.Parameters.CidType,
-			IgnoreEarlyMedial: src.Parameters.IgnoreEarlyMedia,
+			CidType:          src.Parameters.CidType,
+			IgnoreEarlyMedia: src.Parameters.IgnoreEarlyMedia,
 		},
 	}
 
