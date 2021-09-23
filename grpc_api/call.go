@@ -702,13 +702,18 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 }
 
 // todo, change proto response
-func prettyVariables(src map[string]interface{}) map[string]string {
-	if len(src) > 0 {
+func prettyVariables(src *model.Variables) map[string]string {
+	if src == nil {
+		return nil
+	}
+	if len(*src) > 0 {
 		res := make(map[string]string)
-		for k, v := range src {
+		for k, v := range *src {
 			switch r := v.(type) {
 			case string:
 				res[k] = r
+			//case []interface{}: // TODO
+
 			case []string:
 				res[k] = strings.Join(r, ", ")
 			default:

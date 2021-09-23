@@ -271,19 +271,21 @@ func Int64ToTime(i int64) *time.Time {
 	return &t
 }
 
+type Variables map[string]interface{}
+
 type HistoryCall struct {
-	Id          string                 `json:"id" db:"id"`
-	AppId       string                 `json:"app_id" db:"app_id"`
-	Type        string                 `json:"type" db:"type"`
-	ParentId    *string                `json:"parent_id" db:"parent_id"`
-	User        *Lookup                `json:"user" db:"user"`
-	Extension   *string                `json:"extension" db:"extension"`
-	Gateway     *Lookup                `json:"gateway" db:"gateway"`
-	Direction   string                 `json:"direction" db:"direction"`
-	Destination string                 `json:"destination" db:"destination"`
-	From        *Endpoint              `json:"from" db:"from"`
-	To          *Endpoint              `json:"to" db:"to"`
-	Variables   map[string]interface{} `json:"variables" db:"variables"`
+	Id          string     `json:"id" db:"id"`
+	AppId       string     `json:"app_id" db:"app_id"`
+	Type        string     `json:"type" db:"type"`
+	ParentId    *string    `json:"parent_id" db:"parent_id"`
+	User        *Lookup    `json:"user" db:"user"`
+	Extension   *string    `json:"extension" db:"extension"`
+	Gateway     *Lookup    `json:"gateway" db:"gateway"`
+	Direction   string     `json:"direction" db:"direction"`
+	Destination string     `json:"destination" db:"destination"`
+	From        *Endpoint  `json:"from" db:"from"`
+	To          *Endpoint  `json:"to" db:"to"`
+	Variables   *Variables `json:"variables" db:"variables"`
 
 	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
 	AnsweredAt *time.Time `json:"answered_at" db:"answered_at"`
