@@ -16,6 +16,7 @@ var (
 	grpcServerPort        = flag.Int("grpc_port", 0, "GRPC port")
 	grpcServerAddr        = flag.String("grpc_addr", "", "GRPC host")
 	openSipAddr           = flag.String("open_sip_addr", "opensips", "OpenSip address")
+	sipPublicProxyAddr    = flag.String("sip_proxy_addr", "", "Public sip proxy address")
 	wsSipAddr             = flag.String("ws_sip_addr", "", "Sip websocket address")
 	dev                   = flag.Int("dev", 0, "enable dev mode")
 	cloudflare            = flag.Int("cloudflare", 0, "use cloudflare")
@@ -44,8 +45,9 @@ func loadConfig() (*model.Config, error) {
 			Network: "tcp",
 		},
 		SipSettings: model.SipSettings{
-			ServerAddr: *wsSipAddr,
-			Proxy:      *openSipAddr,
+			ServerAddr:  *wsSipAddr,
+			Proxy:       *openSipAddr,
+			PublicProxy: *sipPublicProxyAddr,
 		},
 		SqlSettings: model.SqlSettings{
 			DriverName:                  model.NewString("postgres"),

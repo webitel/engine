@@ -29,8 +29,9 @@ func (s *LocalizationSettings) SetDefaults() {
 }
 
 type SipSettings struct {
-	ServerAddr string
-	Proxy      string
+	ServerAddr  string
+	PublicProxy string
+	Proxy       string
 }
 
 type Config struct {

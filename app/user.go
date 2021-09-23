@@ -31,7 +31,12 @@ func (app *App) GetUserDefaultSipCDeviceConfig(userId, domainId int64) (*model.U
 	if err != nil {
 		return nil, err
 	}
-	conf.Proxy = app.CallManager().SipRouteUri()
+
+	if app.config.SipSettings.PublicProxy != "" {
+		conf.Proxy = app.config.SipSettings.PublicProxy
+	} else {
+		conf.Proxy = app.CallManager().SipRouteUri()
+	}
 	return conf, nil
 }
 
