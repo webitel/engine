@@ -149,7 +149,6 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
 				"hangup_after_bridge":                 "true",
 				"wbt_auto_answer":                     "true",
-				"absolute_codec_string":               "opus,pcmu,pcma",
 				"wbt_parent_id":                       call.Id,
 
 				"wbt_destination": call.Destination,
