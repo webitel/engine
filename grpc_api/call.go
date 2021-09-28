@@ -712,8 +712,12 @@ func prettyVariables(src *model.Variables) map[string]string {
 			switch r := v.(type) {
 			case string:
 				res[k] = r
-			//case []interface{}: // TODO
-
+			case []interface{}:
+				t := make([]string, 0, len(r))
+				for _, l := range r {
+					t = append(t, fmt.Sprintf("%v", l))
+				}
+				res[k] = strings.Join(t, ", ")
 			case []string:
 				res[k] = strings.Join(r, ", ")
 			default:
