@@ -597,7 +597,7 @@ func (s SqlAgentStore) GetSession(domainId, userId int64) (*model.AgentSession, 
 	var agent *model.AgentSession
 	err := s.GetMaster().SelectOne(&agent, `select a.id as agent_id,
        a.status,
-       a.status_payload,
+       coalesce(a.status_payload, '') status_payload,
        (extract(EPOCH from last_state_change) * 1000)::int8 last_status_change,
        (extract(EPOCH from now() - last_state_change) )::int8 status_duration,
        ch.x as channels,
