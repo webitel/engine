@@ -35,7 +35,7 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 	scheme := &model.RoutingSchema{
 		DomainRecord: model.DomainRecord{
 			Id:        0,
-			DomainId:  session.Domain(in.GetDomainId()),
+			DomainId:  session.Domain(0),
 			CreatedAt: model.GetMillis(),
 			CreatedBy: model.Lookup{
 				Id: int(session.UserId),
@@ -46,11 +46,12 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 			},
 		},
 		Name:        in.Name,
-		Type:        int8(in.Type),
+		Type:        in.Type,
 		Debug:       in.Debug,
 		Schema:      MarshalJsonpb(in.Schema),
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
+		Editor:      in.Editor,
 	}
 
 	if err = scheme.IsValid(); err != nil {
@@ -141,18 +142,19 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 	scheme := &model.RoutingSchema{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
-			DomainId:  session.Domain(in.GetDomainId()),
+			DomainId:  session.Domain(0),
 			UpdatedAt: model.GetMillis(),
 			UpdatedBy: model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
 		Name:        in.Name,
-		Type:        int8(in.Type),
+		Type:        in.Type,
 		Debug:       in.Debug,
 		Schema:      MarshalJsonpb(in.Schema),
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
+		Editor:      in.Editor,
 	}
 
 	if err = scheme.IsValid(); err != nil {
@@ -192,11 +194,13 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 		case "name":
 			patch.Name = model.NewString(in.Name)
 		case "type":
-			patch.Type = model.NewInt8(int8(in.Type))
+			patch.Type = &in.Type
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		case "debug":
 			patch.Debug = model.NewBool(in.Debug)
+		case "editor":
+			patch.Editor = model.NewBool(in.Editor)
 		default:
 			if patch.Schema == nil && strings.HasPrefix(v, "schema") {
 				patch.Schema = MarshalJsonpb(in.Schema)
@@ -206,7 +210,7 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 		}
 	}
 	patch.UpdatedById = int(session.UserId)
-	scheme, err = api.app.PatchRoutingSchema(session.Domain(in.GetDomainId()), in.GetId(), patch)
+	scheme, err = api.app.PatchRoutingSchema(session.Domain(0), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -238,7 +242,6 @@ func (api *routingSchema) DeleteRoutingSchema(ctx context.Context, in *engine.De
 func transformRoutingSchema(src *model.RoutingSchema) *engine.RoutingSchema {
 	return &engine.RoutingSchema{
 		Id:        src.Id,
-		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
 		CreatedBy: &engine.Lookup{
 			Id:   int64(src.CreatedBy.Id),
@@ -251,8 +254,9 @@ func transformRoutingSchema(src *model.RoutingSchema) *engine.RoutingSchema {
 		},
 		Description: src.Description,
 		Name:        src.Name,
-		Type:        int32(src.Type),
+		Type:        src.Type,
 		Debug:       src.Debug,
+		Editor:      src.Editor,
 		Schema:      UnmarshalJsonpb(src.Schema),
 		Payload:     UnmarshalJsonpb(src.Payload),
 	}

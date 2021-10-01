@@ -3,11 +3,12 @@ package model
 type RoutingSchema struct {
 	DomainRecord
 	Name        string `json:"name" db:"name"`
-	Type        int8   `json:"type" db:"type"`
+	Type        string `json:"type" db:"type"`
 	Schema      []byte `json:"schema" db:"schema"`
 	Payload     []byte `json:"payload" db:"payload"`
 	Description string `json:"description" db:"description"`
 	Debug       bool   `json:"debug" db:"debug"`
+	Editor      bool   `json:"editor" db:"editor"`
 }
 
 type SearchRoutingSchema struct {
@@ -22,7 +23,7 @@ func (RoutingSchema) DefaultOrder() string {
 
 func (a RoutingSchema) AllowFields() []string {
 	return []string{"id", "domain_id", "name", "created_at", "created_by", "updated_at", "updated_by",
-		"debug", "schema", "payload"}
+		"debug", "schema", "payload", "editor", "type"}
 }
 
 func (a RoutingSchema) DefaultFields() []string {
@@ -36,11 +37,12 @@ func (a RoutingSchema) EntityName() string {
 type RoutingSchemaPath struct {
 	UpdatedById int
 	Name        *string `json:"name" db:"name"`
-	Type        *int8   `json:"type" db:"type"`
+	Type        *string `json:"type" db:"type"`
 	Schema      []byte  `json:"schema" db:"scheme"`
 	Payload     []byte  `json:"payload" db:"payload"`
 	Description *string `json:"description" db:"description"`
 	Debug       *bool   `json:"debug" db:"debug"`
+	Editor      *bool   `json:"editor" db:"editor"`
 }
 
 func (s *RoutingSchema) IsValid() *AppError {
@@ -71,6 +73,10 @@ func (s *RoutingSchema) Patch(in *RoutingSchemaPath) {
 
 	if in.Debug != nil {
 		s.Debug = *in.Debug
+	}
+
+	if in.Editor != nil {
+		s.Editor = *in.Editor
 	}
 }
 

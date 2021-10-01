@@ -20,12 +20,12 @@ func NewSqlRoutingSchemaStore(sqlStore SqlStore) store.RoutingSchemaStore {
 func (s SqlRoutingSchemaStore) Create(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
 	var out *model.RoutingSchema
 	if err := s.GetMaster().SelectOne(&out, `with s as (
-    insert into flow.acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug)
-    values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug)
+    insert into flow.acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug, editor)
+    values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug, :Editor)
     returning *
 )
 select s.id, s.domain_id, s.name, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
-    s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, debug
+    s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, debug, s.type
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by`,
@@ -40,6 +40,7 @@ from s
 			"UpdatedAt": scheme.UpdatedAt,
 			"UpdatedBy": scheme.UpdatedBy.Id,
 			"Debug":     scheme.Debug,
+			"Editor":    scheme.Editor,
 		}); err != nil {
 		return nil, model.NewAppError("SqlRoutingSchemaStore.Save", "store.sql_routing_schema.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", scheme.Name, err.Error()), http.StatusInternalServerError)
@@ -77,7 +78,7 @@ func (s SqlRoutingSchemaStore) Get(domainId int64, id int64) (*model.RoutingSche
 	var rScheme *model.RoutingSchema
 	if err := s.GetReplica().SelectOne(&rScheme, `
 			select s.id, s.domain_id, s.name, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
-		s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, debug
+		s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, debug, editor, s.type
 	from flow.acr_routing_scheme s
 		left join directory.wbt_user c on c.id = s.created_by
 		left join directory.wbt_user u on u.id = s.updated_by
@@ -101,7 +102,8 @@ func (s SqlRoutingSchemaStore) Update(scheme *model.RoutingSchema) (*model.Routi
         updated_at = :UpdatedAt,
         updated_by = :UpdatedBy,
 		description = :Description,
-		debug = :Debug
+		debug = :Debug,
+		editor = :Editor
     where s.id = :Id and s.domain_id = :Domain
     returning *
 )
@@ -120,6 +122,7 @@ from s
 		"Domain":      scheme.DomainId,
 		"Description": scheme.Description,
 		"Debug":       scheme.Debug,
+		"Editor":      scheme.Editor,
 	})
 	if err != nil {
 		code := http.StatusInternalServerError
