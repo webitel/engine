@@ -57,12 +57,16 @@ func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, search *model.SearchRo
 		"Q":        search.GetQ(),
 		"Ids":      pq.Array(search.Ids),
 		"Name":     search.Name,
+		"Types":    pq.Array(search.Type),
+		"Editor":   search.Editor,
 	}
 
 	err := s.ListQueryFromSchema(&schemes, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::text isnull or ( name ilike :Q::varchar  ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
+				and (:Types::varchar[] isnull or "type" = any(:Types::varchar[]))
+				and (not :Editor::bool is true or editor = true)
 				and (:Name::text isnull or name = :Name)
 			`,
 		model.RoutingSchema{}, f)

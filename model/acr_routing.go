@@ -13,8 +13,10 @@ type RoutingSchema struct {
 
 type SearchRoutingSchema struct {
 	ListRequest
-	Ids  []uint32
-	Name *string
+	Ids    []uint32
+	Name   *string
+	Editor bool
+	Type   []string
 }
 
 func (RoutingSchema) DefaultOrder() string {

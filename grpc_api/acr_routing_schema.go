@@ -86,8 +86,10 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
-		Ids:  in.Id,
-		Name: GetStringPointer(in.Name),
+		Ids:    in.Id,
+		Name:   GetStringPointer(in.Name),
+		Editor: in.Editor,
+		Type:   in.Type,
 	}
 
 	list, endList, err = api.app.GetRoutingSchemaPage(session.Domain(0), req)
