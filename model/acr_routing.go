@@ -27,7 +27,7 @@ func (a RoutingSchema) AllowFields() []string {
 }
 
 func (a RoutingSchema) DefaultFields() []string {
-	return []string{"id", "name"}
+	return []string{"id", "name", "editor", "type"}
 }
 
 func (a RoutingSchema) EntityName() string {
