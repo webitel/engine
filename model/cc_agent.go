@@ -345,14 +345,15 @@ type CallCenterEvent struct {
 }
 
 type AgentInQueue struct {
-	Queue          Lookup `json:"queue" db:"queue"`
-	Priority       int    `json:"priority" db:"priority"`
-	Type           int    `json:"type" db:"type"`
-	Strategy       string `json:"strategy" db:"strategy"`
-	Enabled        bool   `json:"enabled" db:"enabled"`
-	CountMembers   int    `json:"count_members" db:"count_members"`
-	WaitingMembers int    `json:"waiting_members" db:"waiting_members"`
-	ActiveMembers  int    `json:"active_members" db:"active_members"`
+	Queue          Lookup        `json:"queue" db:"queue"`
+	Priority       int           `json:"priority" db:"priority"`
+	Type           int           `json:"type" db:"type"`
+	Strategy       string        `json:"strategy" db:"strategy"`
+	Enabled        bool          `json:"enabled" db:"enabled"`
+	CountMembers   int           `json:"count_members" db:"count_members"`
+	WaitingMembers int           `json:"waiting_members" db:"waiting_members"`
+	ActiveMembers  int           `json:"active_members" db:"active_members"`
+	Agents         QueueAgentAgg `json:"agents" db:"agents"`
 }
 
 func (AgentInQueue) DefaultOrder() string {
@@ -361,11 +362,11 @@ func (AgentInQueue) DefaultOrder() string {
 
 func (a AgentInQueue) AllowFields() []string {
 	return []string{"queue", "type", "strategy", "count_members", "waiting_members", "active_members",
-		"priority", "enabled", "queue_id", "queue_name", "domain_id", "agent_id"}
+		"priority", "enabled", "queue_id", "queue_name", "domain_id", "agent_id", "agents"}
 }
 
 func (a AgentInQueue) DefaultFields() []string {
-	return []string{"queue", "type", "strategy", "count_members", "waiting_members", "active_members"}
+	return []string{"queue", "type", "strategy", "count_members", "waiting_members", "active_members", "agents"}
 }
 
 func (a AgentInQueue) EntityName() string {
