@@ -23,7 +23,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetQ() == "" {
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetQ() == "" && in.GetDependencyId() == nil {
 		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at or q is required", http.StatusBadRequest)
 	}
 

@@ -321,7 +321,8 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		`domain_id = :Domain 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
-	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
+	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
+	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds) or user_ids::int[] && :UserIds::int[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
@@ -343,19 +344,19 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
-	and (:DependencyIds::varchar[] isnull or id in (
-		with recursive a as (
-			select t.id
-			from call_center.cc_calls_history t
-			where id = any(:DependencyIds)
-			union all
-			select t.id
-			from call_center.cc_calls_history t, a
-			where t.parent_id = a.id or t.transfer_from = a.id
-		)
-		select id
-		from a
-		where not a.id = any(:DependencyIds)
+	and (:DependencyIds::varchar[] isnull or id = any (
+			array(with recursive a as (
+                select t.id
+                from call_center.cc_calls_history t
+                where id = any(:DependencyIds::varchar[])
+                union all
+                select t.id
+                from call_center.cc_calls_history t, a
+                where t.parent_id = a.id or t.transfer_from = a.id
+            )
+            select id ids
+            from a
+            where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
 `,
 		model.HistoryCall{}, f)
@@ -410,7 +411,8 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		`domain_id = :Domain 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
-	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
+	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
+	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
@@ -432,19 +434,19 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
-	and (:DependencyIds::varchar[] isnull or id in (
-		with recursive a as (
-			select t.id
-			from call_center.cc_calls_history t
-			where id = any(:DependencyIds)
-			union all
-			select t.id
-			from call_center.cc_calls_history t, a
-			where t.parent_id = a.id or t.transfer_from = a.id
-		)
-		select id
-		from a
-		where not a.id = any(:DependencyIds)
+	and (:DependencyIds::varchar[] isnull or id = any (
+			array(with recursive a as (
+                select t.id
+                from call_center.cc_calls_history t
+                where id = any(:DependencyIds::varchar[])
+                union all
+                select t.id
+                from call_center.cc_calls_history t, a
+                where t.parent_id = a.id or t.transfer_from = a.id
+            )
+            select id ids
+            from a
+            where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
 	and (
         (t.user_id in (
