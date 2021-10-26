@@ -141,7 +141,7 @@ type CallInstance struct {
 type CallHold struct {
 	Start  int64   `json:"start"`
 	Finish int64   `json:"finish"`
-	Sec    float64 `json:"sec"`
+	Sec    float32 `json:"sec"`
 }
 
 type Call struct {
@@ -252,6 +252,8 @@ type CallFile struct {
 	Name     string `json:"name"`
 	Size     int64  `json:"size"`
 	MimeType string `json:"mime_type"`
+	StartAt  int64  `json:"start_at"`
+	StopAt   int64  `json:"stop_at"`
 }
 
 func TimeToInt64(t *time.Time) int64 {

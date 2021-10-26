@@ -23,7 +23,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetQ() == "" && in.GetDependencyId() == nil {
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetQ() == "" && in.GetDependencyId() == nil && in.GetId() == nil {
 		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at or q is required", http.StatusBadRequest)
 	}
 
@@ -651,6 +651,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Tags:             src.Tags, // TODO
 		Display:          defaultString(src.Display),
 		HasChildren:      src.HasChildren,
+		Hold:             toCallHold(src.Hold),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -743,6 +744,25 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 			Name:     v.Name,
 			Size:     v.Size,
 			MimeType: v.MimeType,
+			StartAt:  v.StartAt,
+			StopAt:   v.StopAt,
+		})
+	}
+
+	return res
+}
+
+func toCallHold(src []*model.CallHold) []*engine.CallHold {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.CallHold, 0, len(src))
+	for _, v := range src {
+		res = append(res, &engine.CallHold{
+			Start: v.Start,
+			Stop:  v.Finish,
+			Sec:   v.Sec,
 		})
 	}
 
