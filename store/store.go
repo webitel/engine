@@ -315,6 +315,11 @@ type CallStore interface {
 	LastFile(domainId int64, id string) (int64, *model.AppError)
 	GetUserActiveCall(domainId, userId int64) ([]*model.Call, *model.AppError)
 	SetEmptySeverCall(domainId int64, id string) (*model.CallServiceHangup, *model.AppError)
+
+	CreateAnnotation(annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError)
+	GetAnnotation(id int64) (*model.CallAnnotation, *model.AppError)
+	UpdateAnnotation(domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError)
+	DeleteAnnotation(id int64) *model.AppError
 }
 
 type EmailProfileStore interface {

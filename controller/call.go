@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"time"
 )
 
 func (c *Controller) CreateCall(session *auth_manager.Session, req *model.OutboundCallRequest, variables map[string]string) (string, *model.AppError) {
@@ -127,4 +128,53 @@ func (c *Controller) EavesdropCall(session *auth_manager.Session, domainId int64
 	}
 
 	return c.app.EavesdropCall(session.Domain(domainId), session.UserId, req, variables)
+}
+
+func (c *Controller) CreateCallAnnotation(session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	annotation.CreatedBy = model.Lookup{
+		Id: int(session.UserId),
+	}
+	annotation.UpdatedBy = model.Lookup{
+		Id: int(session.UserId),
+	}
+	annotation.CreatedAt = time.Now()
+	annotation.UpdatedAt = annotation.CreatedAt
+
+	if err := annotation.IsValid(); err != nil {
+		return nil, err
+	}
+
+	return c.app.CreateCallAnnotation(session.DomainId, annotation)
+}
+
+func (c *Controller) UpdateCallAnnotation(session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	annotation.UpdatedBy = model.Lookup{
+		Id: int(session.UserId),
+	}
+	annotation.UpdatedAt = time.Now()
+
+	if err := annotation.IsValid(); err != nil {
+		return nil, err
+	}
+
+	return c.app.UpdateCallAnnotation(session.DomainId, annotation)
+}
+
+func (c *Controller) DeleteCallAnnotation(session *auth_manager.Session, id int64, callId string) (*model.CallAnnotation, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.DeleteCallAnnotation(session.DomainId, id, callId)
 }

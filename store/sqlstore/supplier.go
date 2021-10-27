@@ -364,6 +364,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*[]*model.Lookup,
 		*[]*model.AgentInQueueStats,
 		*[]*model.CallFile,
+		*[]*model.CallAnnotation,
 		*[]*model.CallHold,
 		*[]*model.ChatMember,
 		*[]*model.ChatMessage,

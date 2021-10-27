@@ -536,6 +536,128 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	return out, nil
 }
 
+func (s SqlCallStore) CreateAnnotation(annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	err := s.GetMaster().SelectOne(&annotation, `
+		with a as (
+			insert into call_center.cc_calls_annotation (call_id, created_by, created_at, note, start_sec, end_sec, updated_by, updated_at)
+			values (:CallId, :CreatedBy, :CreatedAt, :Note, :StartSec, :EndSec, :UpdatedBy, :UpdatedAt)
+			returning *
+		)
+		select
+			a.id,
+			a.call_id,
+			a.created_at,
+			call_center.cc_get_lookup(cc.id, coalesce(cc.name, cc.username)) created_by,
+			a.updated_at,
+			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
+			a.note,
+			a.start_sec,
+			a.end_sec
+		from a
+			left join directory.wbt_user cc on cc.id = a.created_by
+			left join directory.wbt_user uc on uc.id = a.updated_by;
+`, map[string]interface{}{
+		"CallId":    annotation.CallId,
+		"CreatedBy": annotation.CreatedBy.Id,
+		"CreatedAt": annotation.CreatedAt,
+		"Note":      annotation.Note,
+		"StartSec":  annotation.StartSec,
+		"EndSec":    annotation.EndSec,
+		"UpdatedBy": annotation.UpdatedBy.Id,
+		"UpdatedAt": annotation.UpdatedAt,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.CreateAnnotation", "store.sql_call.annotation.create.app_error",
+			nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return annotation, nil
+}
+
+func (s SqlCallStore) GetAnnotation(id int64) (*model.CallAnnotation, *model.AppError) {
+	var annotation *model.CallAnnotation
+	err := s.GetReplica().SelectOne(&annotation, `
+select
+    a.id,
+    a.call_id,
+    a.created_at,
+    call_center.cc_get_lookup(cc.id, coalesce(cc.name, cc.username)) created_by,
+    a.updated_at,
+    call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
+    a.note,
+    a.start_sec,
+    a.end_sec
+from call_center.cc_calls_annotation a
+    left join directory.wbt_user cc on cc.id = a.created_by
+    left join directory.wbt_user uc on uc.id = a.updated_by
+where a.id = :Id`, map[string]interface{}{
+		"Id": id,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.GetAnnotation", "store.sql_call.annotation.get.app_error",
+			nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return annotation, nil
+}
+
+func (s SqlCallStore) UpdateAnnotation(domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	err := s.GetMaster().SelectOne(&annotation, `
+		with a as (
+			update call_center.cc_calls_annotation
+				set updated_at = :UpdatedAt,
+					updated_by = :UpdatedBy,
+					note = :Note,
+					start_sec = :StartSec,
+					end_sec = :EndSec
+			where id = :Id
+			returning *
+		)
+		select
+			a.id,
+			a.call_id,
+			a.created_at,
+			call_center.cc_get_lookup(cc.id, coalesce(cc.name, cc.username)) created_by,
+			a.updated_at,
+			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
+			a.note,
+			a.start_sec,
+			a.end_sec
+		from a
+			left join directory.wbt_user cc on cc.id = a.created_by
+			left join directory.wbt_user uc on uc.id = a.updated_by
+`, map[string]interface{}{
+		"Id":        annotation.Id,
+		"UpdatedAt": annotation.UpdatedAt,
+		"UpdatedBy": annotation.UpdatedBy.Id,
+		"Note":      annotation.Note,
+		"StartSec":  annotation.StartSec,
+		"EndSec":    annotation.EndSec,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.UpdateAnnotation", "store.sql_call.annotation.update.app_error",
+			nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return annotation, nil
+}
+
+func (s SqlCallStore) DeleteAnnotation(id int64) *model.AppError {
+	_, err := s.GetMaster().Exec(`delete from call_center.cc_calls_annotation where id = :Id`, map[string]interface{}{
+		"Id": id,
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlCallStore.DeleteAnnotation", "store.sql_call.annotation.delete.app_error",
+			nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
+}
+
 func AggregateField(group *model.AggregateGroup) string {
 	if group.Interval != "" {
 		return fmt.Sprintf("to_timestamp(extract(epoch from (date_trunc('seconds', (%s - timestamptz 'epoch') / EXTRACT(EPOCH FROM INTERVAL %s)) * EXTRACT(EPOCH FROM INTERVAL %s) + timestamptz 'epoch')))",

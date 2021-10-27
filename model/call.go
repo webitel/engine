@@ -200,6 +200,18 @@ type CCTask struct {
 	Destination  *MemberCommunication `json:"destination"`
 }
 
+type CallAnnotation struct {
+	Id        int64     `json:"id" db:"id"`
+	CallId    string    `json:"call_id,omitempty" db:"call_id"`
+	CreatedBy Lookup    `json:"created_by" db:"created_by"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
+	UpdatedBy Lookup    `json:"updated_by" db:"updated_by"`
+	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
+	Note      string    `json:"note" db:"note"`
+	StartSec  int32     `json:"start_sec" db:"start_sec"`
+	EndSec    int32     `json:"end_sec" db:"end_sec"`
+}
+
 func (c *Call) MarshalJSON() ([]byte, error) {
 	type Alias Call
 	return json.Marshal(&struct {
@@ -245,6 +257,11 @@ func (c Call) DefaultFields() []string {
 
 func (c Call) EntityName() string {
 	return "cc_call_active_list"
+}
+
+//todo
+func (a *CallAnnotation) IsValid() *AppError {
+	return nil
 }
 
 type CallFile struct {
@@ -325,7 +342,8 @@ type HistoryCall struct {
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
 	AgentDescription *string     `json:"agent_description" db:"agent_description"`
 
-	Hold []*CallHold `json:"hold" db:"hold"`
+	Hold        []*CallHold       `json:"hold" db:"hold"`
+	Annotations []*CallAnnotation `json:"annotations" db:"annotations"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -337,7 +355,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold",
+		"agent_description", "hold", "annotations",
 	}
 }
 

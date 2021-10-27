@@ -428,6 +428,64 @@ func (app *App) GetLastCallFile(domainId int64, callId string) (int64, *model.Ap
 	return app.Store.Call().LastFile(domainId, callId)
 }
 
+func (app *App) CreateCallAnnotation(domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	_, err := app.Store.Call().GetHistory(domainId, &model.SearchHistoryCall{
+		Ids: []string{annotation.CallId},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return app.Store.Call().CreateAnnotation(annotation)
+}
+
+func (app *App) UpdateCallAnnotation(domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	_, err := app.Store.Call().GetHistory(domainId, &model.SearchHistoryCall{
+		Ids: []string{annotation.CallId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var oldAnnotation *model.CallAnnotation
+	oldAnnotation, err = app.Store.Call().GetAnnotation(annotation.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldAnnotation.UpdatedAt = annotation.UpdatedAt
+	oldAnnotation.UpdatedBy = annotation.UpdatedBy
+	oldAnnotation.Note = annotation.Note
+	oldAnnotation.StartSec = annotation.StartSec
+	oldAnnotation.EndSec = annotation.EndSec
+
+	if err = oldAnnotation.IsValid(); err != nil {
+		return nil, err
+	}
+
+	return app.Store.Call().UpdateAnnotation(domainId, oldAnnotation)
+}
+
+func (app *App) DeleteCallAnnotation(domainId, id int64, callId string) (*model.CallAnnotation, *model.AppError) {
+	_, err := app.Store.Call().GetHistory(domainId, &model.SearchHistoryCall{
+		Ids: []string{callId},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var annotation *model.CallAnnotation
+	annotation, err = app.Store.Call().GetAnnotation(id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = app.Store.Call().DeleteAnnotation(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return annotation, nil
+}
+
 /*
 
 func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, *model.AppError) {

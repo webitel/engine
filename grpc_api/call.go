@@ -548,6 +548,64 @@ func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequ
 	return &engine.CreateCallResponse{}, nil
 }
 
+func (api *call) CreateCallAnnotation(ctx context.Context, in *engine.CreateCallAnnotationRequest) (*engine.CallAnnotation, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	annotation := &model.CallAnnotation{
+		CallId:   in.GetCallId(),
+		Note:     in.GetNote(),
+		StartSec: in.GetStartSec(),
+		EndSec:   in.GetEndSec(),
+	}
+
+	annotation, err = api.ctrl.CreateCallAnnotation(session, annotation)
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineAnnotation(annotation), nil
+}
+
+func (api *call) UpdateCallAnnotation(ctx context.Context, in *engine.UpdateCallAnnotationRequest) (*engine.CallAnnotation, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	annotation := &model.CallAnnotation{
+		Id:       in.GetId(),
+		CallId:   in.GetCallId(),
+		Note:     in.GetNote(),
+		StartSec: in.GetStartSec(),
+		EndSec:   in.GetEndSec(),
+	}
+
+	annotation, err = api.ctrl.UpdateCallAnnotation(session, annotation)
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineAnnotation(annotation), nil
+}
+
+func (api *call) DeleteCallAnnotation(ctx context.Context, in *engine.DeleteCallAnnotationRequest) (*engine.CallAnnotation, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var annotation *model.CallAnnotation
+	annotation, err = api.ctrl.DeleteCallAnnotation(session, in.GetId(), in.GetCallId())
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineAnnotation(annotation), nil
+}
+
 func toEngineCall(src *model.Call) *engine.ActiveCall {
 	item := &engine.ActiveCall{
 		Id:               src.Id,
@@ -612,6 +670,20 @@ func toEngineCall(src *model.Call) *engine.ActiveCall {
 	return item
 }
 
+func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
+	return &engine.CallAnnotation{
+		Id:        src.Id,
+		CallId:    src.CallId,
+		CreatedBy: GetProtoLookup(&src.CreatedBy),
+		CreatedAt: model.TimeToInt64(&src.CreatedAt),
+		UpdatedBy: GetProtoLookup(&src.UpdatedBy),
+		UpdatedAt: model.TimeToInt64(&src.UpdatedAt),
+		Note:      src.Note,
+		StartSec:  src.StartSec,
+		EndSec:    src.EndSec,
+	}
+}
+
 func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
@@ -636,6 +708,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		BillSec:          int32(src.BillSec),
 		SipCode:          defaultInt(src.SipCode),
 		Files:            toCallFile(src.Files),
+		Annotations:      toCallAnnotation(src.Annotations),
 		Queue:            GetProtoLookup(src.Queue),
 		Member:           GetProtoLookup(src.Member),
 		Team:             GetProtoLookup(src.Team),
@@ -746,6 +819,29 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 			MimeType: v.MimeType,
 			StartAt:  v.StartAt,
 			StopAt:   v.StopAt,
+		})
+	}
+
+	return res
+}
+
+func toCallAnnotation(src []*model.CallAnnotation) []*engine.CallAnnotation {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.CallAnnotation, 0, len(src))
+	for _, v := range src {
+		res = append(res, &engine.CallAnnotation{
+			Id:        v.Id,
+			CallId:    v.CallId,
+			CreatedBy: GetProtoLookup(&v.CreatedBy),
+			CreatedAt: model.TimeToInt64(&v.CreatedAt),
+			UpdatedBy: GetProtoLookup(&v.UpdatedBy),
+			UpdatedAt: model.TimeToInt64(&v.UpdatedAt),
+			Note:      v.Note,
+			StartSec:  v.StartSec,
+			EndSec:    v.EndSec,
 		})
 	}
 
