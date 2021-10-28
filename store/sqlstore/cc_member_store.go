@@ -271,7 +271,7 @@ func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Mem
 			agent_id = :AgentId,
 			skill_id = :SkillId,
 			stop_at = case when :StopCause::varchar notnull then now() else stop_at end
-    where m1.id = :Id and m1.queue_id = :QueueId and not exists(select 1 from call_center.cc_member_attempt am where am.member_id = m1.id for update)
+    where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )
 select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
@@ -310,6 +310,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	return member, nil
 }
 
+//TODO add force
 func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
 	var cnt int64
 	res, err := s.GetMaster().Exec(`delete
