@@ -292,6 +292,7 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 		MemberIds:     in.GetMemberId(),
 		GatewayIds:    in.GetGatewayId(),
 		SupervisorIds: in.GetSupervisorId(),
+		State:         in.GetState(),
 	}
 
 	if in.GetDuration() != nil {

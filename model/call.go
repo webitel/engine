@@ -342,8 +342,10 @@ type HistoryCall struct {
 	HasChildren      bool        `json:"exists_parent" db:"has_children"`
 	AgentDescription *string     `json:"agent_description" db:"agent_description"`
 
-	Hold        []*CallHold       `json:"hold" db:"hold"`
-	Annotations []*CallAnnotation `json:"annotations" db:"annotations"`
+	Hold           []*CallHold       `json:"hold" db:"hold"`
+	Annotations    []*CallAnnotation `json:"annotations" db:"annotations"`
+	AmdResult      *string           `json:"amd_result"`
+	AmdDurationSec uint32            `json:"amd_duration"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -355,7 +357,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold", "annotations",
+		"agent_description", "hold", "annotations", "amd_result", "amd_duration",
 	}
 }
 
@@ -397,6 +399,7 @@ type SearchCall struct {
 	MemberIds     []int64
 	GatewayIds    []int64
 	SupervisorIds []int64
+	State         []string
 }
 
 type SearchHistoryCall struct {

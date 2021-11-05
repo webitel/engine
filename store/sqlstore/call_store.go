@@ -45,6 +45,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 		"DurationFrom":  model.GetBetweenFrom(search.Duration),
 		"DurationTo":    model.GetBetweenTo(search.Duration),
 		"SupervisorIds": pq.Array(search.SupervisorIds),
+		"State":         pq.Array(search.State),
 	}
 
 	err := s.ListQuery(&out, search.ListRequest,
@@ -65,7 +66,9 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
-	and (:Missed::bool isnull or (:Missed and answered_at isnull))`,
+	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and (:State::varchar[] isnull or state = any(:State) )
+`,
 		model.Call{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlCallStore.GetActive", "store.sql_call.get_active.app_error", nil, err.Error(), http.StatusInternalServerError)
