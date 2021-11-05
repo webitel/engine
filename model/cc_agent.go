@@ -252,6 +252,7 @@ type SearchAgent struct {
 	NotSupervisor *bool `json:"not_supervisor"`
 	Extensions    []string
 	UserIds       []int64
+	NotTeamIds    []uint32
 }
 
 type AgentUser struct {
