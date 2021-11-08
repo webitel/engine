@@ -273,6 +273,10 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			patch.ChatCount = &in.ChatCount
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
+			if patch.Supervisor == nil {
+				patch.Supervisor = make([]*model.Lookup, 0, 0)
+			}
+
 		case "team.id", "team":
 			patch.Team = &model.Lookup{
 				Id: int(in.GetTeam().GetId()),
