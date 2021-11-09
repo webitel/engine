@@ -726,6 +726,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Display:          defaultString(src.Display),
 		HasChildren:      src.HasChildren,
 		Hold:             toCallHold(src.Hold),
+		AmdResult:        defaultString(src.AmdResult),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId

@@ -344,8 +344,8 @@ type HistoryCall struct {
 
 	Hold           []*CallHold       `json:"hold" db:"hold"`
 	Annotations    []*CallAnnotation `json:"annotations" db:"annotations"`
-	AmdResult      *string           `json:"amd_result"`
-	AmdDurationSec uint32            `json:"amd_duration"`
+	AmdResult      *string           `json:"amd_result" db:"amd_result"`
+	AmdDurationSec uint32            `json:"amd_duration" db:"amd_duration"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -365,7 +365,7 @@ func (c HistoryCall) DefaultFields() []string {
 	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "agent_description",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "agent_description", "amd_result",
 	}
 }
 
