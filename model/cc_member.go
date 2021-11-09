@@ -156,6 +156,7 @@ type AttemptHistory struct {
 	Destination MemberCommunication `json:"destination" db:"destination"`
 	Active      bool                `json:"active" db:"active"` // FIXME delete me
 	Result      string              `json:"result" db:"result"`
+	AmdResult   *string             `json:"amd_result" db:"amd_result"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -186,6 +187,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"reporting_at",
 		"leaving_at",
 		"result",
+		"amd_result",
 	}
 }
 

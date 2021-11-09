@@ -902,6 +902,7 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 		Display:      src.Display,
 		Destination:  toEngineDestination(src.Destination),
 		Result:       src.Result,
+		AmdResult:    defaultString(src.AmdResult),
 	}
 
 	if src.MemberCallId != nil {
