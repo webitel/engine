@@ -425,6 +425,7 @@ func (s SqlAgentStore) InQueue(domainId, id int64, search *model.SearchAgentInQu
 
 	err := s.ListQuery(&res, search.ListRequest,
 		`domain_id = :DomainId
+				and enabled
 				and agent_id = :AgentId
 				and (:Q::varchar isnull or (queue_name ilike :Q::varchar ))`,
 		model.AgentInQueue{}, f)
