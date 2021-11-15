@@ -521,7 +521,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 			 where (a.grantor = t.user_id or a.grantor = t.grantee_id)
 				or exists(select r.role_id
 						   from directory.wbt_auth_member r
-						  where (r.member_id = t.user_id or r.member_id = t.grantee_id)
+						  where (r.member_id = any(t.user_ids) or r.member_id = t.grantee_id)
 							and r.role_id = a.grantor
 				   )
 			union all
