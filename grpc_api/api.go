@@ -66,7 +66,7 @@ func Init(a *app.App, server *grpc.Server) {
 
 	api.member = NewMemberApi(api)
 
-	api.call = NewCallApi(api)
+	api.call = NewCallApi(api, a.Config().MinimumNumberMaskLen)
 	api.emailProfile = NewEmailProfileApi(api)
 	api.region = NewRegionApi(api)
 	api.pauseCause = NewPauseCause(api)

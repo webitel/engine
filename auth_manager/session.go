@@ -15,6 +15,7 @@ type Session struct {
 	Token            string              `json:"token"`
 	Scopes           []SessionPermission `json:"scopes"`
 	adminPermissions []PermissionAccess
+	actions          []string
 }
 
 func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool {
@@ -92,6 +93,16 @@ func (self *Session) IsValid() error {
 	}
 
 	return nil
+}
+
+func (self *Session) HasAction(name string) bool {
+	for _, v := range self.actions {
+		if v == name {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (am *authManager) GetSession(token string) (*Session, error) {

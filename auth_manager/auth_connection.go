@@ -76,6 +76,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		Token:      token,
 		Scopes:     transformScopes(resp.Scope),
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
+		actions:    make([]string, 0, 1),
 	}
 
 	if len(resp.Permissions) > 0 {
@@ -90,6 +91,10 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_UPDATE)
 			case "delete":
 				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_DELETE)
+			case "view_cdr_phone_numbers":
+				session.actions = append(session.actions, PERMISSION_VIEW_NUMBERS)
+			case "playback_record_file":
+				session.actions = append(session.actions, PERMISSION_RECORD_FILE)
 			}
 		}
 	}

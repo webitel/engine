@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"fmt"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 	"net/http"
@@ -11,10 +12,14 @@ import (
 
 type call struct {
 	*API
+	minimumNumberMaskLen int
 }
 
-func NewCallApi(app *API) *call {
-	return &call{app}
+func NewCallApi(api *API, minimumNumberMaskLen int) *call {
+	return &call{
+		API:                  api,
+		minimumNumberMaskLen: minimumNumberMaskLen,
+	}
 }
 
 func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
@@ -105,7 +110,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 
 	items := make([]*engine.HistoryCall, 0, len(list))
 	for _, v := range list {
-		items = append(items, toEngineHistoryCall(v))
+		items = append(items, toEngineHistoryCall(v, api.minimumNumberMaskLen, !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS)))
 	}
 
 	return &engine.ListHistoryCall{
@@ -685,7 +690,7 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	}
 }
 
-func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
+func toEngineHistoryCall(src *model.HistoryCall, minHideString int, accessString bool) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
 		AppId:            src.AppId,
@@ -694,7 +699,7 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 		Extension:        "",
 		Gateway:          GetProtoLookup(src.Gateway),
 		Direction:        src.Direction,
-		Destination:      src.Destination,
+		Destination:      setAccessString(src.Destination, minHideString, accessString),
 		Variables:        prettyVariables(src.Variables),
 		CreatedAt:        model.TimeToInt64(&src.CreatedAt),
 		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
@@ -747,18 +752,18 @@ func toEngineHistoryCall(src *model.HistoryCall) *engine.HistoryCall {
 	if src.From != nil {
 		item.From = &engine.Endpoint{
 			Type:   src.From.Type,
-			Number: src.From.Number,
+			Number: setAccessString(src.From.Number, minHideString, accessString),
 			Id:     src.From.Id,
-			Name:   src.From.Name,
+			Name:   setAccessString(src.From.Name, minHideString, accessString),
 		}
 	}
 
 	if src.To != nil {
 		item.To = &engine.Endpoint{
 			Type:   src.To.Type,
-			Number: src.To.Number,
+			Number: setAccessString(src.To.Number, minHideString, accessString),
 			Id:     src.To.Id,
-			Name:   src.To.Name,
+			Name:   setAccessString(src.To.Name, minHideString, accessString),
 		}
 	}
 
@@ -889,4 +894,30 @@ func defaultString(s *string) string {
 	}
 
 	return ""
+}
+
+func setAccessString(str string, min int, h bool) string {
+	if !h {
+		return str
+	}
+
+	return hideString(str, min)
+}
+
+func hideString(str string, minimumNumberMaskLen int) string {
+	l := len(str)
+	if l > minimumNumberMaskLen && l > 5 {
+		return str[:2] + string(makeX(l-4)) + str[l-2:l]
+	}
+
+	return str
+}
+
+func makeX(cnt int) []rune {
+	r := make([]rune, cnt, cnt)
+	for i := 0; i < cnt; i++ {
+		r[i] = 'X'
+	}
+
+	return r
 }

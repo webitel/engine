@@ -18,6 +18,11 @@ const (
 	PERMISSION_ACCESS_DELETE
 )
 
+const (
+	PERMISSION_VIEW_NUMBERS = "view_cdr_phone_numbers"
+	PERMISSION_RECORD_FILE  = "playback_record_file"
+)
+
 func (p PermissionAccess) Value() uint32 {
 	return [...]uint32{8, 4, 2, 1}[p]
 }

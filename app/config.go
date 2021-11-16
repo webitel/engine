@@ -20,6 +20,7 @@ var (
 	wsSipAddr             = flag.String("ws_sip_addr", "", "Sip websocket address")
 	dev                   = flag.Int("dev", 0, "enable dev mode")
 	cloudflare            = flag.Int("cloudflare", 0, "use cloudflare")
+	minMaskLen            = flag.Int("min_mask_number_len", 0, "Minimum mask length number")
 )
 
 func (app *App) Config() *model.Config {
@@ -33,6 +34,7 @@ func loadConfig() (*model.Config, error) {
 		Cloudflare:            *cloudflare == 1,
 		TranslationsDirectory: *translationsDirectory,
 		NodeName:              fmt.Sprintf("engine-%s", *appId),
+		MinimumNumberMaskLen:  *minMaskLen,
 		DiscoverySettings: model.DiscoverySettings{
 			Url: *consulHost,
 		},
