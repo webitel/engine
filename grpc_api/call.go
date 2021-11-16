@@ -906,7 +906,7 @@ func setAccessString(str string, min int, h bool) string {
 
 func hideString(str string, minimumNumberMaskLen int) string {
 	l := len(str)
-	if l > minimumNumberMaskLen && l > 5 {
+	if l > minimumNumberMaskLen && l > 5 && minimumNumberMaskLen >= 5 {
 		return str[:2] + string(makeX(l-4)) + str[l-2:l]
 	}
 
