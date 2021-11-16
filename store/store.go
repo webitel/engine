@@ -260,6 +260,7 @@ type MemberStore interface {
 	Update(domainId int64, member *model.Member) (*model.Member, *model.AppError)
 	Delete(queueId, id int64) *model.AppError
 	MultiDelete(del *model.MultiDeleteMembers) ([]*model.Member, *model.AppError)
+	ResetMembers(domainId int64, req *model.ResetMembers) (int64, *model.AppError)
 
 	// Move to new store
 	AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) //FIXME

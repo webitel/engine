@@ -379,6 +379,42 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	return res, nil
 }
 
+func (s SqlMemberStore) ResetMembers(domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
+	cnt, err := s.GetMaster().SelectInt(`with upd as (
+    update call_center.cc_member m
+    set stop_cause = null,
+        stop_at = null,
+        attempts = 0
+    where m.domain_id = :DomainId
+        and m.queue_id = :QueueId
+        and (stop_at notnull and not stop_cause in ('success', 'cancel', 'terminate') )
+        and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
+        and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])
+        and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
+        and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
+        and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
+returning m.id
+)
+select count(*) cnt
+from upd`, map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(req.Ids),
+		"Buckets":  pq.Array(req.Buckets),
+		//"Cause":     pq.Array(req.Causes),
+		"AgentIds":  pq.Array(req.AgentIds),
+		"Numbers":   pq.Array(req.Numbers),
+		"Variables": req.Variables.ToSafeJson(),
+		"QueueId":   req.QueueId,
+	})
+
+	if err != nil {
+		return 0, model.NewAppError("SqlMemberStore.ResetMembers", "store.sql_member.reset.app_error", nil,
+			fmt.Sprintf("QueueId=%v, %s", req.QueueId, err.Error()), extractCodeFromErr(err))
+	}
+
+	return cnt, nil
+}
+
 func (s SqlMemberStore) AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
 	var attempts []*model.MemberAttempt
 	//FIXME

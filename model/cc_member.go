@@ -52,6 +52,16 @@ type MultiDeleteMembers struct {
 	Variables StringMap `json:"variables" db:"variables"`
 }
 
+type ResetMembers struct {
+	QueueId   int64     `json:"queue_id" db:"queue_id"`
+	Ids       []int64   `json:"ids" db:"ids"`
+	Buckets   []int64   `json:"buckets" db:"buckets"`
+	Causes    []string  `json:"causes" db:"causes"`
+	AgentIds  []int32   `json:"agent_ids" db:"agent_ids"`
+	Numbers   []string  `json:"numbers" db:"numbers"`
+	Variables StringMap `json:"variables" db:"variables"`
+}
+
 func (m *Member) Patch(p *MemberPatch) {
 	if p.Priority != nil {
 		m.Priority = *p.Priority

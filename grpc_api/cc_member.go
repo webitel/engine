@@ -430,6 +430,49 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 	}, nil
 }
 
+func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequest) (*engine.ResetMembersResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+	var cnt int64
+	cnt, err = api.app.ResetMembers(session.Domain(0), &model.ResetMembers{
+		QueueId:   in.GetQueueId(),
+		Ids:       in.GetIds(),
+		Buckets:   in.GetBucketId(),
+		Causes:    in.GetStopCause(),
+		AgentIds:  in.GetAgentId(),
+		Numbers:   in.GetNumbers(),
+		Variables: in.GetVariables(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ResetMembersResponse{
+		Count: cnt,
+	}, nil
+}
+
 func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMemberAttemptsRequest) (*engine.ListMemberAttempt, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

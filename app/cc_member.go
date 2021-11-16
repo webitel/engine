@@ -103,6 +103,10 @@ func (app *App) RemoveMultiMembers(domainId int64, del *model.MultiDeleteMembers
 	return app.Store.Member().MultiDelete(del)
 }
 
+func (app *App) ResetMembers(domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
+	return app.Store.Member().ResetMembers(domainId, req)
+}
+
 func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
 	return app.Store.Member().AttemptsList(memberId)
 }
