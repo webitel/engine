@@ -13,12 +13,16 @@ import (
 type call struct {
 	*API
 	minimumNumberMaskLen int
+	prefixNumberMaskLen  int
+	suffixNumberMaskLen  int
 }
 
-func NewCallApi(api *API, minimumNumberMaskLen int) *call {
+func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *call {
 	return &call{
 		API:                  api,
 		minimumNumberMaskLen: minimumNumberMaskLen,
+		prefixNumberMaskLen:  prefixNumberMaskLen,
+		suffixNumberMaskLen:  suffixNumberMaskLen,
 	}
 }
 
@@ -109,8 +113,18 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	}
 
 	items := make([]*engine.HistoryCall, 0, len(list))
+
+	//todo
+	accessString := !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS) &&
+		!((len(in.UserId) == 1 && in.UserId[0] == session.UserId) && in.Missed && (len(in.Cause) == 2 && in.Cause[0] == "NO_ANSWER" && in.Cause[1] == "ORIGINATOR_CANCEL"))
 	for _, v := range list {
-		items = append(items, toEngineHistoryCall(v, api.minimumNumberMaskLen, !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS)))
+		items = append(items, toEngineHistoryCall(
+			v,
+			api.minimumNumberMaskLen,
+			api.prefixNumberMaskLen,
+			api.suffixNumberMaskLen,
+			accessString,
+		))
 	}
 
 	return &engine.ListHistoryCall{
@@ -690,7 +704,7 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	}
 }
 
-func toEngineHistoryCall(src *model.HistoryCall, minHideString int, accessString bool) *engine.HistoryCall {
+func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, accessString bool) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
 		AppId:            src.AppId,
@@ -699,7 +713,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString int, accessString
 		Extension:        "",
 		Gateway:          GetProtoLookup(src.Gateway),
 		Direction:        src.Direction,
-		Destination:      setAccessString(src.Destination, minHideString, accessString),
+		Destination:      setAccessString(src.Destination, minHideString, pref, suff, accessString),
 		Variables:        prettyVariables(src.Variables),
 		CreatedAt:        model.TimeToInt64(&src.CreatedAt),
 		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
@@ -752,18 +766,18 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString int, accessString
 	if src.From != nil {
 		item.From = &engine.Endpoint{
 			Type:   src.From.Type,
-			Number: setAccessString(src.From.Number, minHideString, accessString),
+			Number: setAccessString(src.From.Number, minHideString, pref, suff, accessString),
 			Id:     src.From.Id,
-			Name:   setAccessString(src.From.Name, minHideString, accessString),
+			Name:   src.From.Name,
 		}
 	}
 
 	if src.To != nil {
 		item.To = &engine.Endpoint{
 			Type:   src.To.Type,
-			Number: setAccessString(src.To.Number, minHideString, accessString),
+			Number: setAccessString(src.To.Number, minHideString, pref, suff, accessString),
 			Id:     src.To.Id,
-			Name:   setAccessString(src.To.Name, minHideString, accessString),
+			Name:   src.To.Name,
 		}
 	}
 
@@ -896,28 +910,10 @@ func defaultString(s *string) string {
 	return ""
 }
 
-func setAccessString(str string, min int, h bool) string {
+func setAccessString(str string, min, p, s int, h bool) string {
 	if !h {
 		return str
 	}
 
-	return hideString(str, min)
-}
-
-func hideString(str string, minimumNumberMaskLen int) string {
-	l := len(str)
-	if l > minimumNumberMaskLen && l > 5 && minimumNumberMaskLen >= 5 {
-		return str[:2] + string(makeX(l-4)) + str[l-2:l]
-	}
-
-	return str
-}
-
-func makeX(cnt int) []rune {
-	r := make([]rune, cnt, cnt)
-	for i := 0; i < cnt; i++ {
-		r[i] = 'X'
-	}
-
-	return r
+	return model.HideString(str, min, p, s)
 }

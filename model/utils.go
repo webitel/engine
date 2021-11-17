@@ -455,3 +455,23 @@ func InterfaceToMapString(val interface{}) map[string]interface{} {
 
 	return res
 }
+
+func HideString(str string, minimumNumberMaskLen, pref, suff int) string {
+	l := len(str)
+	h := pref + suff
+
+	if l > minimumNumberMaskLen && l > (h+1) && minimumNumberMaskLen >= (h+1) {
+		return str[:pref] + string(makeX(l-h)) + str[l-suff:l]
+	}
+
+	return str
+}
+
+func makeX(cnt int) []rune {
+	r := make([]rune, cnt, cnt)
+	for i := 0; i < cnt; i++ {
+		r[i] = '*'
+	}
+
+	return r
+}

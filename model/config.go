@@ -47,6 +47,8 @@ type Config struct {
 	SipSettings           SipSettings          `json:"sip_settings"`
 	Cloudflare            bool                 `json:"cloudflare"`
 	MinimumNumberMaskLen  int                  `json:"minimum_number_mask_len"`
+	PrefixNumberMaskLen   int                  `json:"prefix_number_mask_len"`
+	SuffixNumberMaskLen   int                  `json:"suffix_number_mask_len"`
 }
 
 type DiscoverySettings struct {

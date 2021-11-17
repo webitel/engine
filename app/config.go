@@ -21,6 +21,8 @@ var (
 	dev                   = flag.Int("dev", 0, "enable dev mode")
 	cloudflare            = flag.Int("cloudflare", 0, "use cloudflare")
 	minMaskLen            = flag.Int("min_mask_number_len", 0, "Minimum mask length number")
+	prefCntMaskLen        = flag.Int("prefix_number_mask_len", 5, "Prefix mask length number")
+	suffCntMaskLen        = flag.Int("suffix_number_mask_len", 3, "Suffix mask length number")
 )
 
 func (app *App) Config() *model.Config {
@@ -35,6 +37,8 @@ func loadConfig() (*model.Config, error) {
 		TranslationsDirectory: *translationsDirectory,
 		NodeName:              fmt.Sprintf("engine-%s", *appId),
 		MinimumNumberMaskLen:  *minMaskLen,
+		PrefixNumberMaskLen:   *prefCntMaskLen,
+		SuffixNumberMaskLen:   *suffCntMaskLen,
 		DiscoverySettings: model.DiscoverySettings{
 			Url: *consulHost,
 		},
