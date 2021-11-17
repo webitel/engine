@@ -782,7 +782,8 @@ func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRe
 		expire = &in.ExpireAt
 	}
 
-	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables, in.Display, in.AgentId)
+	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
+		in.Display, in.AgentId, in.ExcludeCurrentCommunication)
 	if err != nil {
 		return nil, err
 	}
@@ -809,7 +810,8 @@ func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallba
 		expire = &in.ExpireAt
 	}
 
-	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables, in.Display, in.AgentId)
+	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
+		in.Display, in.AgentId, in.ExcludeCurrentCommunication)
 	if err != nil {
 		return nil, err
 	}

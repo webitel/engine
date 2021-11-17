@@ -32,13 +32,13 @@ func (c *Controller) ListOfflineQueueForAgent(session *auth_manager.Session, sea
 }
 
 func (c *Controller) ReportingAttempt(session *auth_manager.Session, attemptId int64, status, description string, nextOffering *int64,
-	expireAt *int64, vars map[string]string, stickyDisplay bool, agentId int32) *model.AppError {
+	expireAt *int64, vars map[string]string, stickyDisplay bool, agentId int32, exclDes bool) *model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.ReportingAttempt(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay, agentId)
+	return c.app.ReportingAttempt(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay, agentId, exclDes)
 }
 
 func (c *Controller) RenewalAttempt(session *auth_manager.Session, attemptId int64, renewal uint32) *model.AppError {

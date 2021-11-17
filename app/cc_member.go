@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/cc"
 	"net/http"
 )
 
@@ -148,9 +149,30 @@ func (app *App) ListOfflineQueueForAgent(domainId int64, search *model.SearchOff
 }
 
 func (app *App) ReportingAttempt(attemptId int64, status, description string, nextOffering *int64, expireAt *int64, vars map[string]string,
-	stickyDisplay bool, agentId int32) *model.AppError {
+	stickyDisplay bool, agentId int32, excludeDes bool) *model.AppError {
 
-	err := app.cc.Member().AttemptResult(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay, agentId)
+	res := &cc.AttemptResultRequest{
+		AttemptId:                   attemptId,
+		Status:                      status,
+		NextDistributeAt:            0,
+		ExpireAt:                    0,
+		Variables:                   vars,
+		Display:                     stickyDisplay,
+		Description:                 description,
+		TransferQueueId:             0,
+		AgentId:                     agentId,
+		ExcludeCurrentCommunication: excludeDes,
+	}
+
+	if expireAt != nil {
+		res.ExpireAt = *expireAt
+	}
+
+	if nextOffering != nil {
+		res.NextDistributeAt = *nextOffering
+	}
+
+	err := app.cc.Member().AttemptResult(res)
 
 	if err != nil {
 		return model.NewAppError("ReportingAttempt", "app.cc_member.reporting.app_err", nil, err.Error(), http.StatusBadRequest)

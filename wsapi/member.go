@@ -40,6 +40,7 @@ func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	var nextDistributeAt *int64
 	var expire *int64
 	var status string
+	var exclDes bool
 
 	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
@@ -64,9 +65,11 @@ func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 		expire = model.NewInt64(int64(tmp))
 	}
 
+	exclDes, _ = req.Data["exclude_current_communication"].(bool)
+
 	agentId, _ = req.Data["agent_id"].(float64)
 
-	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire, nil, display, int32(agentId))
+	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire, nil, display, int32(agentId), exclDes)
 	if err != nil {
 		return nil, err
 	}

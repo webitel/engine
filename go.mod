@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/go-gorp/gorp v2.2.0+incompatible
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/mux v1.7.4
 	github.com/gorilla/websocket v1.4.2
@@ -15,9 +15,9 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
-	github.com/webitel/call_center v0.0.0-20210913111658-0522580e1923
-	github.com/webitel/protos/cc v0.0.0-20211117124717-e0f9f427111d
-	github.com/webitel/protos/engine v0.0.0-20211117124717-e0f9f427111d
+	github.com/webitel/call_center v0.0.0-20211117132545-7f886867486f
+	github.com/webitel/protos/cc v0.0.0-20211117131751-fa8a2f7ae02d
+	github.com/webitel/protos/engine v0.0.0-20211117131751-fa8a2f7ae02d
 	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
 	go.uber.org/atomic v1.7.0
 	go.uber.org/ratelimit v0.2.0
