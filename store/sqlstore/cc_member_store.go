@@ -384,8 +384,7 @@ func (s SqlMemberStore) ResetMembers(domainId int64, req *model.ResetMembers) (i
     update call_center.cc_member m
     set stop_cause = null,
         stop_at = null,
-        attempts = 0,
-		communications = call_center.cc_update_array_elements(communications, '{stop_at}', 0::text::jsonb)
+        attempts = 0
     where m.domain_id = :DomainId
         and m.queue_id = :QueueId
         and (stop_at notnull and not stop_cause in ('success', 'cancel', 'terminate', 'no_communications') )
