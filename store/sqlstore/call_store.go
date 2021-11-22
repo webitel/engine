@@ -320,14 +320,14 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Variables":       search.Variables.ToSafeJson(),
 	}
 
-	err := s.ListQuery(&out, search.ListRequest,
-		`domain_id = :Domain 
+	err := s.ListQueryTimeout(&out, search.ListRequest,
+		`domain_id = :Domain::int8 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
-	and (:UserIds::int8[] isnull or (user_id = any(:UserIds) or user_ids::int[] && :UserIds::int[]))
+	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
@@ -410,14 +410,14 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"Variables":        search.Variables.ToSafeJson(),
 	}
 
-	err := s.ListQuery(&out, search.ListRequest,
-		`domain_id = :Domain 
+	err := s.ListQueryTimeout(&out, search.ListRequest,
+		`domain_id = :Domain::int8 
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
-	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
+	and (:UserIds::int8[] isnull or user_id = any(:UserIds::int8[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))

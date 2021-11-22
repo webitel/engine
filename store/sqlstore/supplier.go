@@ -133,6 +133,10 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 	return s.next
 }
 
+func (s *SqlSupplier) QueryTimeout() int {
+	return *s.settings.QueryTimeout
+}
+
 func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 	all := make([]*gorp.DbMap, len(ss.replicas)+1)
 	copy(all, ss.replicas)

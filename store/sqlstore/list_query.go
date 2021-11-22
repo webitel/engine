@@ -1,10 +1,12 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"strings"
+	"time"
 )
 
 type Filter map[string][]interface{}
@@ -100,6 +102,17 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 func (s *SqlSupplier) ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
 	q := Build(&req, "call_center", where, e, params)
 	_, err := s.GetReplica().Select(out, q, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SqlSupplier) ListQueryTimeout(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
+	ctx, _ := context.WithTimeout(context.Background(), (time.Second * time.Duration(s.QueryTimeout())))
+	q := Build(&req, "call_center", where, e, params)
+	_, err := s.GetReplica().WithContext(ctx).Select(out, q, params)
 	if err != nil {
 		return err
 	}

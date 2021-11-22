@@ -23,6 +23,7 @@ var (
 	minMaskLen            = flag.Int("min_mask_number_len", 0, "Minimum mask length number")
 	prefCntMaskLen        = flag.Int("prefix_number_mask_len", 5, "Prefix mask length number")
 	suffCntMaskLen        = flag.Int("suffix_number_mask_len", 3, "Suffix mask length number")
+	sqlQueryTimeout       = flag.Int("sql_query_timeout", 10, "Sql query timeout sec")
 )
 
 func (app *App) Config() *model.Config {
@@ -61,6 +62,7 @@ func loadConfig() (*model.Config, error) {
 			MaxIdleConns:                model.NewInt(5),
 			MaxOpenConns:                model.NewInt(5),
 			ConnMaxLifetimeMilliseconds: model.NewInt(300000),
+			QueryTimeout:                sqlQueryTimeout,
 			Trace:                       false,
 		},
 		MessageQueueSettings: model.MessageQueueSettings{
