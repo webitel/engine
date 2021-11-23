@@ -24,6 +24,7 @@ var (
 	prefCntMaskLen        = flag.Int("prefix_number_mask_len", 5, "Prefix mask length number")
 	suffCntMaskLen        = flag.Int("suffix_number_mask_len", 3, "Suffix mask length number")
 	sqlQueryTimeout       = flag.Int("sql_query_timeout", 10, "Sql query timeout sec")
+	pingClientInterval    = flag.Int("ping_client_interval", 0, "Interval websocket ping")
 )
 
 func (app *App) Config() *model.Config {
@@ -35,6 +36,7 @@ func loadConfig() (*model.Config, error) {
 	config := &model.Config{
 		Dev:                   *dev == 1,
 		Cloudflare:            *cloudflare == 1,
+		PingClientInterval:    *pingClientInterval,
 		TranslationsDirectory: *translationsDirectory,
 		NodeName:              fmt.Sprintf("engine-%s", *appId),
 		MinimumNumberMaskLen:  *minMaskLen,

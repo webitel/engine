@@ -10,6 +10,7 @@ func (api *API) InitUser() {
 	api.Router.Handle("user_default_device", api.ApiWebSocketHandler(api.userDefaultDeviceConfig))
 
 	api.Router.Handle("subscribe_users_status", api.ApiWebSocketHandler(api.subscribeUsersStatus))
+	api.Router.Handle("ping", api.ApiWebSocketHandler(api.ping))
 }
 
 func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -38,4 +39,10 @@ func (api *API) subscribeUsersStatus(conn *app.WebConn, req *model.WebSocketRequ
 	}
 
 	return nil, h.SubscribeSessionUsersStatus(conn)
+}
+
+func (api *API) ping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	data := map[string]interface{}{}
+	data["pong"] = 1
+	return data, nil
 }
