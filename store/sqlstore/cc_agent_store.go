@@ -465,6 +465,19 @@ from (
     ) x
     group by 1, 2
 ) x
+    inner join call_center.cc_queue q on q.id = x.queue_id
+    left join (
+       SELECT c.id, array_agg(DISTINCT o1.id)::integer[] l
+       FROM flow.calendar c
+              LEFT JOIN flow.calendar_timezones tz ON tz.id = c.timezone_id
+              JOIN LATERAL unnest(c.accepts) a(disabled, day, start_time_of_day, end_time_of_day) ON true
+              JOIN flow.calendar_timezone_offsets o1
+                   ON (a.day + 1) = date_part('isodow'::text, timezone(o1.names[1], now()))::integer AND
+                      (to_char(timezone(o1.names[1], now()), 'SSSS'::text)::integer / 60) >= a.start_time_of_day AND
+                      (to_char(timezone(o1.names[1], now()), 'SSSS'::text)::integer / 60) <= a.end_time_of_day
+        WHERE NOT a.disabled IS TRUE
+        group by 1
+    ) y on y.id = q.calendar_id
     inner join lateral (
         select m.bucket_id,
                m.skill_id,
@@ -477,11 +490,11 @@ from (
             and (m.bucket_id isnull or m.bucket_id = any(x.buckets))
             and (m.skill_id isnull or  m.skill_id = any(x.skills))
             and(m.agent_id isnull or m.agent_id = x.agent_id)
+            and m.sys_offset_id = any(y.l)
         group by 1,2
     ) m on true
     left join call_center.cc_bucket b on b.id = m.bucket_id
     left join call_center.cc_skill s on s.id = m.skill_id
-    inner join call_center.cc_queue q on q.id = x.queue_id
 where q.domain_id = :DomainId
 group by q.id`, map[string]interface{}{
 		"AgentId":  agentId,
