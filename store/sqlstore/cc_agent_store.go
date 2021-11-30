@@ -671,7 +671,7 @@ from (
         coalesce(res.min_hold_sec, 0) as min_hold_sec,
         coalesce(res.max_hold_sec, 0) as max_hold_sec,
         case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end utilization,
-        case when onl_all > 0 then (coalesce(work_dur, 0) / (onl_all + pause_all)) else 0 end occupancy
+        case when onl_all > 0 then ((coalesce(work_dur, 0) / (onl_all + pause_all))) * 100 else 0 end occupancy
     from (
          select c.agent_id,
                count(*) as count,
@@ -860,7 +860,7 @@ from (
                         interval '0'))::int                                                           pause,
 
                 case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end         utilization,
-                case when onl_all > 0 then (coalesce(work_dur, 0) / (onl_all + pause_all)) else 0 end occupancy,
+                case when onl_all > 0 then ((coalesce(work_dur, 0) / (onl_all + pause_all))) * 100 else 0 end occupancy,
 
                 coalesce(extract(epoch from call_time)::int8, 0)                                      call_time,
                 coalesce(handles, 0)                                                                  handles,
