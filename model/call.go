@@ -408,7 +408,7 @@ type SearchHistoryCall struct {
 	Duration        *FilterBetween
 	AnsweredAt      *FilterBetween
 	StoredAt        *FilterBetween
-	Number          *string
+	Number          string
 	ParentId        *string
 	Cause           *string
 	CauseArr        []string // fixme

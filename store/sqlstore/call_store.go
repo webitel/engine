@@ -292,7 +292,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Offset":          search.GetOffset(),
 		"From":            model.GetBetweenFromTime(search.CreatedAt),
 		"To":              model.GetBetweenToTime(search.CreatedAt),
-		"Q":               search.GetRegExpQ(),
+		"Q":               search.GetQ(),
 		"UserIds":         pq.Array(search.UserIds),
 		"QueueIds":        pq.Array(search.QueueIds),
 		"TeamIds":         pq.Array(search.TeamIds),
@@ -301,7 +301,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"GatewayIds":      pq.Array(search.GatewayIds),
 		"SkipParent":      search.SkipParent,
 		"ParentId":        search.ParentId,
-		"Number":          search.Number,
+		"Number":          model.GetRegExpQ(search.Number),
 		"CauseArr":        pq.Array(search.CauseArr),
 		"HasFile":         search.HasFile,
 		"Direction":       search.Direction,
@@ -322,7 +322,8 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
 		`domain_id = :Domain::int8 
-	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
+	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id = :Q::text)
+	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
@@ -336,7 +337,6 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:AgentIds::int[] isnull or (agent_id = any(:AgentIds) or agent_ids && :AgentIds::int[]) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
-	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
 	and (:HasFile::bool is not true or files notnull )
@@ -379,7 +379,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"Offset":           search.GetOffset(),
 		"From":             model.GetBetweenFromTime(search.CreatedAt),
 		"To":               model.GetBetweenToTime(search.CreatedAt),
-		"Q":                search.GetRegExpQ(),
+		"Q":                search.GetQ(),
 		"UserIds":          pq.Array(search.UserIds),
 		"QueueIds":         pq.Array(search.QueueIds),
 		"TeamIds":          pq.Array(search.TeamIds),
@@ -388,7 +388,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"GatewayIds":       pq.Array(search.GatewayIds),
 		"SkipParent":       search.SkipParent,
 		"ParentId":         search.ParentId,
-		"Number":           search.Number,
+		"Number":           model.GetRegExpQ(search.Number),
 		"CauseArr":         pq.Array(search.CauseArr),
 		"HasFile":          search.HasFile,
 		"Direction":        search.Direction,
@@ -412,7 +412,8 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
 		`domain_id = :Domain::int8 
-	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q or id = :Q)
+	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id = :Q::text)
+	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
@@ -426,7 +427,6 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
-	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
 	and (:HasFile::bool is not true or files notnull )

@@ -97,11 +97,15 @@ func (l *ListRequest) GetQ() *string {
 }
 
 func (l *ListRequest) GetRegExpQ() *string {
-	if l.Q != "" {
-		if l.Q[0] == '+' {
-			l.Q = "\\" + l.Q
+	return GetRegExpQ(l.Q)
+}
+
+func GetRegExpQ(q string) *string {
+	if q != "" {
+		if q[0] == '+' {
+			q = "\\" + q
 		}
-		return NewString(strings.Replace(l.Q, "*", "%", -1))
+		return NewString(strings.Replace(q, "*", "%", -1))
 	}
 
 	return nil

@@ -32,7 +32,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetQ() == "" && in.GetDependencyId() == nil && in.GetId() == nil {
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetNumber() == "" && in.GetQ() == "" && in.GetDependencyId() == nil && in.GetId() == nil {
 		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at or q is required", http.StatusBadRequest)
 	}
 
@@ -62,6 +62,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		Tags:            in.GetTags(),
 		CauseArr:        in.GetCause(),
 		Variables:       in.GetVariables(),
+		Number:          in.GetNumber(),
 	}
 
 	if in.GetDuration() != nil {
@@ -98,10 +99,6 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 
 	if in.GetParentId() != "" {
 		req.ParentId = &in.ParentId
-	}
-
-	if in.GetNumber() != "" {
-		req.Number = model.NewString(in.Number)
 	}
 
 	if in.GetMissed() {
@@ -168,6 +165,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			Directions:      in.GetDirection(),
 			CauseArr:        in.GetCause(),
 			Tags:            in.GetTags(),
+			Number:          in.GetNumber(),
 		},
 	}
 
@@ -201,10 +199,6 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 
 	if in.GetParentId() != "" {
 		req.ParentId = &in.ParentId
-	}
-
-	if in.GetNumber() != "" {
-		req.Number = model.NewString(in.Number)
 	}
 
 	if in.GetMissed() {
