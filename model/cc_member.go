@@ -309,6 +309,7 @@ type MemberCommunication struct {
 	State          int     `json:"state"`
 	Description    string  `json:"description"`
 	LastActivityAt int64   `json:"last_activity_at"`
+	StopAt         *int64  `json:"stop_at,omitempty"`
 	Attempts       int     `json:"attempts"`
 	LastCause      string  `json:"last_cause"`
 	Resource       *Lookup `json:"resource"`
