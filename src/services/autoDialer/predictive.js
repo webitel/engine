@@ -138,8 +138,8 @@ module.exports = class Predictive extends Dialer {
                         this._stats.predictAdjust = Math.round( (Math.pow(2,silentCalls) / Math.pow(0.05,silentCalls)) * 35) ;
                         // Math.round( ((silentCalls - this._targetPredictiveSilentCalls) * 2 ) / 0.05 );
 
-                        if (this._stats.predictAdjust > 1000) {
-                            this._stats.predictAdjust = 1000;
+                        if (this._stats.predictAdjust > 1500) {
+                            this._stats.predictAdjust = 1500;
                         } else if (this._stats.predictAdjust < 0) {
                             this._stats.predictAdjust = 0
                         }
