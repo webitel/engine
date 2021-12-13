@@ -846,7 +846,7 @@ func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.Mem
 }
 
 func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunication {
-	return &engine.MemberCommunication{
+	c := &engine.MemberCommunication{
 		Id:             v.Id,
 		Priority:       int32(v.Priority),
 		Destination:    v.Destination,
@@ -862,13 +862,17 @@ func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunicatio
 		Resource: GetProtoLookup(v.Resource),
 		Display:  v.Display,
 	}
+	if v.StopAt != nil {
+		c.StopAt = *v.StopAt
+	}
+	return c
 }
 
 func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest) []model.MemberCommunication {
 	res := make([]model.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
-		res = append(res, model.MemberCommunication{
+		c := model.MemberCommunication{
 			Priority:    int(v.GetPriority()),
 			Destination: strings.Trim(v.GetDestination(), " "),
 			Description: v.GetDescription(),
@@ -877,7 +881,11 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 			},
 			Resource: GetLookup(v.Resource),
 			Display:  v.Display,
-		})
+		}
+		if v.GetStopAt() != 0 {
+			c.StopAt = model.NewInt64(v.GetStopAt())
+		}
+		res = append(res, c)
 	}
 
 	return res
