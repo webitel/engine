@@ -429,6 +429,7 @@ type SearchHistoryCall struct {
 	DependencyIds   []string
 	Tags            []string
 	Variables       StringMap
+	AmdResult       []string
 }
 
 type CallEventInfo struct {

@@ -63,6 +63,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		CauseArr:        in.GetCause(),
 		Variables:       in.GetVariables(),
 		Number:          in.GetNumber(),
+		AmdResult:       in.GetAmdResult(),
 	}
 
 	if in.GetDuration() != nil {
