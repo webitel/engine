@@ -33,7 +33,7 @@ func (api *queueBucket) CreateQueueBucket(ctx context.Context, in *engine.Create
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -45,7 +45,9 @@ func (api *queueBucket) CreateQueueBucket(ctx context.Context, in *engine.Create
 		Bucket: model.Lookup{
 			Id: int(in.GetBucket().GetId()),
 		},
-		Ratio: int(in.GetRatio()),
+		Ratio:    int(in.GetRatio()),
+		Priority: int(in.GetPriority()),
+		Disabled: in.Disabled,
 	}
 
 	if err = queueBucket.IsValid(); err != nil {
@@ -73,7 +75,7 @@ func (api *queueBucket) ReadQueueBucket(ctx context.Context, in *engine.ReadQueu
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -81,7 +83,7 @@ func (api *queueBucket) ReadQueueBucket(ctx context.Context, in *engine.ReadQueu
 	}
 
 	var out *model.QueueBucket
-	out, err = api.app.GetQueueBucket(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	out, err = api.app.GetQueueBucket(session.Domain(0), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +162,7 @@ func (api *queueBucket) UpdateQueueBucket(ctx context.Context, in *engine.Update
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -173,14 +175,66 @@ func (api *queueBucket) UpdateQueueBucket(ctx context.Context, in *engine.Update
 		Bucket: model.Lookup{
 			Id: int(in.GetBucket().GetId()),
 		},
-		Ratio: int(in.GetRatio()),
+		Ratio:    int(in.GetRatio()),
+		Priority: int(in.GetPriority()),
+		Disabled: in.Disabled,
 	}
 
 	if err = qb.IsValid(); err != nil {
 		return nil, err
 	}
 
-	qb, err = api.app.UpdateQueueBucket(session.Domain(in.GetDomainId()), qb)
+	qb, err = api.app.UpdateQueueBucket(session.Domain(0), qb)
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineQueueBucket(qb), nil
+}
+
+func (api *queueBucket) PatchQueueBucket(ctx context.Context, in *engine.PatchQueueBucketRequest) (*engine.QueueBucket, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var qb *model.QueueBucket
+	patch := &model.QueueBucketPatch{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "bucket.id":
+			patch.Bucket = GetLookup(in.Bucket)
+		case "ratio":
+			patch.Ratio = model.NewInt(int(in.GetRatio()))
+		case "priority":
+			patch.Priority = model.NewInt(int(in.GetPriority()))
+		case "disabled":
+			patch.Disabled = &in.Disabled
+		}
+	}
+
+	qb, err = api.app.PatchQueueBucket(session.Domain(0), in.GetQueueId(), in.GetId(), patch)
+
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +259,7 @@ func (api *queueBucket) DeleteQueueBucket(ctx context.Context, in *engine.Delete
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -213,7 +267,7 @@ func (api *queueBucket) DeleteQueueBucket(ctx context.Context, in *engine.Delete
 	}
 
 	var qb *model.QueueBucket
-	qb, err = api.app.RemoveQueueBucket(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	qb, err = api.app.RemoveQueueBucket(session.Domain(0), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -228,5 +282,7 @@ func toEngineQueueBucket(src *model.QueueBucket) *engine.QueueBucket {
 			Id:   int64(src.Bucket.Id),
 			Name: src.Bucket.Name,
 		},
+		Disabled: src.Disabled,
+		Priority: int32(src.Priority),
 	}
 }

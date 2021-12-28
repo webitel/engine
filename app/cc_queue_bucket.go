@@ -27,8 +27,30 @@ func (app *App) UpdateQueueBucket(domainId int64, qb *model.QueueBucket) (*model
 
 	oldQb.Ratio = qb.Ratio
 	oldQb.Bucket = qb.Bucket
+	oldQb.Priority = qb.Priority
+	oldQb.Disabled = qb.Disabled
 
 	oldQb, err = app.Store.BucketInQueue().Update(domainId, oldQb)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldQb, nil
+}
+
+func (a *App) PatchQueueBucket(domainId, queueId, id int64, patch *model.QueueBucketPatch) (*model.QueueBucket, *model.AppError) {
+	oldQb, err := a.GetQueueBucket(domainId, queueId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldQb.Patch(patch)
+
+	if err = oldQb.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldQb, err = a.Store.BucketInQueue().Update(domainId, oldQb)
 	if err != nil {
 		return nil, err
 	}

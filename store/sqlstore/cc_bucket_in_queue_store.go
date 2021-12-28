@@ -19,17 +19,19 @@ func NewSqlBucketInQueueStore(sqlStore SqlStore) store.BucketInQueueStore {
 func (s SqlBucketInQueueStore) Create(queueBucket *model.QueueBucket) (*model.QueueBucket, *model.AppError) {
 	var out *model.QueueBucket
 	if err := s.GetMaster().SelectOne(&out, `with q as (
-		insert into call_center.cc_bucket_in_queue (queue_id, ratio, bucket_id)
-		values (:QueueId, :Ratio, :BucketId)
+		insert into call_center.cc_bucket_in_queue (queue_id, ratio, bucket_id, priority, disabled)
+		values (:QueueId, :Ratio, :BucketId, :Priority, :Disabled)
 		returning *
 	)
-	select q.id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket
+	select q.id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket, q.priority, q.disabled
 	from q
 		inner join call_center.cc_bucket cb on q.bucket_id = cb.id`,
 		map[string]interface{}{
 			"QueueId":  queueBucket.QueueId,
 			"Ratio":    queueBucket.Ratio,
 			"BucketId": queueBucket.Bucket.Id,
+			"Priority": queueBucket.Priority,
+			"Disabled": queueBucket.Disabled,
 		}); nil != err {
 		return nil, model.NewAppError("SqlBucketInQueueStore.Save", "store.sql_queue_bucket.save.app_error", nil,
 			fmt.Sprintf("queue_id=%v bucket_id=%v, %v", queueBucket.QueueId, queueBucket.Bucket.Id, err.Error()), extractCodeFromErr(err))
@@ -40,7 +42,8 @@ func (s SqlBucketInQueueStore) Create(queueBucket *model.QueueBucket) (*model.Qu
 
 func (s SqlBucketInQueueStore) Get(domainId, queueId, id int64) (*model.QueueBucket, *model.AppError) {
 	var queueBucket *model.QueueBucket
-	if err := s.GetReplica().SelectOne(&queueBucket, `select q.id, q.queue_id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket
+	if err := s.GetReplica().SelectOne(&queueBucket, `select q.id, 
+			q.queue_id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket, q.priority, q.disabled
 		from call_center.cc_bucket_in_queue q
 			inner join call_center.cc_bucket cb on q.bucket_id = cb.id
 		where q.id = :Id and q.queue_id = :QueueId and cb.domain_id = :DomainId`, map[string]interface{}{
@@ -84,12 +87,14 @@ func (s SqlBucketInQueueStore) Update(domainId int64, queueBucket *model.QueueBu
 	err := s.GetMaster().SelectOne(&queueBucket, `with q as (
 		update call_center.cc_bucket_in_queue bq
 			set ratio = :Ratio,
-				bucket_id = :BucketId
+				bucket_id = :BucketId,
+				priority = :Priority,
+				disabled = :Disabled
 		from call_center.cc_queue cq
 		where bq.id = :Id and cq.id = :QueueId and cq.domain_id = :DomainId
 		returning bq.*
 	)
-	select q.id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket
+	select q.id, q.ratio, call_center.cc_get_lookup(cb.id, cb.name::text) as bucket, q.priority, q.disabled
 	from q
 		inner join call_center.cc_bucket cb on q.bucket_id = cb.id`, map[string]interface{}{
 		"Ratio":    queueBucket.Ratio,
@@ -97,6 +102,8 @@ func (s SqlBucketInQueueStore) Update(domainId int64, queueBucket *model.QueueBu
 		"Id":       queueBucket.Id,
 		"QueueId":  queueBucket.QueueId,
 		"DomainId": domainId,
+		"Priority": queueBucket.Priority,
+		"Disabled": queueBucket.Disabled,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlBucketInQueueStore.Update", "store.sql_queue_bucket.update.app_error", nil,
