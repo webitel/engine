@@ -969,6 +969,7 @@ from (
                      else stat.pause end,
                  interval '0')) pause_all on true
          where a.domain_id = :DomainId
+		   and (:SupervisorIds::int4[] isnull or a.supervisor_ids && :SupervisorIds )	
            and a.id in (
                 with x as (
                     select a.user_id, a.id agent_id, a.supervisor, a.domain_id
@@ -1017,21 +1018,22 @@ limit :Limit offset :Offset`, map[string]interface{}{
 		"UserSupervisorId": supervisorUserId,
 		//"Groups":     pq.Array(groups),
 		//"Access":     access.Value(),
-		"Q":          search.GetQ(),
-		"Limit":      search.GetLimit(),
-		"Offset":     search.GetOffset(),
-		"From":       model.GetBetweenFromTime(&search.Time),
-		"To":         model.GetBetweenToTime(&search.Time),
-		"UFrom":      model.GetBetweenFrom(search.Utilization),
-		"UTo":        model.GetBetweenTo(search.Utilization),
-		"AgentIds":   pq.Array(search.AgentIds),
-		"Status":     pq.Array(search.Status),
-		"QueueIds":   pq.Array(search.QueueIds),
-		"TeamIds":    pq.Array(search.TeamIds),
-		"SkillIds":   pq.Array(search.SkillIds),
-		"RegionIds":  pq.Array(search.RegionIds),
-		"AuditorIds": pq.Array(search.AuditorIds),
-		"HasCall":    search.HasCall,
+		"Q":             search.GetQ(),
+		"Limit":         search.GetLimit(),
+		"Offset":        search.GetOffset(),
+		"From":          model.GetBetweenFromTime(&search.Time),
+		"To":            model.GetBetweenToTime(&search.Time),
+		"UFrom":         model.GetBetweenFrom(search.Utilization),
+		"UTo":           model.GetBetweenTo(search.Utilization),
+		"AgentIds":      pq.Array(search.AgentIds),
+		"Status":        pq.Array(search.Status),
+		"QueueIds":      pq.Array(search.QueueIds),
+		"TeamIds":       pq.Array(search.TeamIds),
+		"SkillIds":      pq.Array(search.SkillIds),
+		"RegionIds":     pq.Array(search.RegionIds),
+		"AuditorIds":    pq.Array(search.AuditorIds),
+		"SupervisorIds": pq.Array(search.SupervisorIds),
+		"HasCall":       search.HasCall,
 	})
 
 	if err != nil {
