@@ -130,14 +130,7 @@ func (api *queueBucket) SearchQueueBucket(ctx context.Context, in *engine.Search
 
 	items := make([]*engine.QueueBucket, 0, len(list))
 	for _, v := range list {
-		items = append(items, &engine.QueueBucket{
-			Id:    v.Id,
-			Ratio: int32(v.Ratio),
-			Bucket: &engine.Lookup{
-				Id:   int64(v.Bucket.Id),
-				Name: v.Bucket.Name,
-			},
-		})
+		items = append(items, toEngineQueueBucket(v))
 	}
 	return &engine.ListQueueBucket{
 		Next:  !endList,
