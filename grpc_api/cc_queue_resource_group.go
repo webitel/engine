@@ -219,5 +219,6 @@ func toEngineQueueResourceGroup(src *model.QueueResourceGroup) *engine.QueueReso
 			Id:   int64(src.ResourceGroup.Id),
 			Name: src.ResourceGroup.Name,
 		},
+		Communication: GetProtoLookup(src.Communication),
 	}
 }

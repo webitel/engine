@@ -23,9 +23,12 @@ func (s SqlQueueResourceStore) Create(queueResource *model.QueueResourceGroup) (
 		values (:QueueId, :ResourceGroupId)
 		returning *
 	)
-select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group
+select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group,
+	call_center.cc_get_lookup(c.id, c.name::text::character varying) AS communication
 from q
-    inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id`,
+    inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id
+    left join call_center.cc_communication c on c.id = g.communication_id
+`,
 		map[string]interface{}{
 			"QueueId":         queueResource.QueueId,
 			"ResourceGroupId": queueResource.ResourceGroup.Id,
@@ -39,9 +42,11 @@ from q
 
 func (s SqlQueueResourceStore) Get(domainId, queueId, id int64) (*model.QueueResourceGroup, *model.AppError) {
 	var out *model.QueueResourceGroup
-	if err := s.GetReplica().SelectOne(&out, `select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group
+	if err := s.GetReplica().SelectOne(&out, `select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group,
+			call_center.cc_get_lookup(c.id, c.name::text::character varying) AS communication
 		from call_center.cc_queue_resource q
 			inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id
+			left join call_center.cc_communication c on c.id = g.communication_id
 		where q.id = :Id and q.queue_id = :QueueId and g.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -87,9 +92,12 @@ func (s SqlQueueResourceStore) Update(domainId int64, queueResourceGroup *model.
         where q.id = :Id and q.queue_id = :QueueId and qq.id = q.queue_id and qq.domain_id = :DomainId
         returning q.*
 )
-select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group
+select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group,
+	call_center.cc_get_lookup(c.id, c.name::text::character varying) AS communication
 from  q
-         inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id`, map[string]interface{}{
+         inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id
+		 left join call_center.cc_communication c on c.id = g.communication_id
+`, map[string]interface{}{
 		"ResourceGroupId": queueResourceGroup.ResourceGroup.Id,
 		"Id":              queueResourceGroup.Id,
 		"QueueId":         queueResourceGroup.QueueId,

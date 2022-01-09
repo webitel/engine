@@ -1,9 +1,10 @@
 package model
 
 type QueueResourceGroup struct {
-	Id            int64  `json:"id" db:"id"`
-	QueueId       int64  `json:"queue_id" db:"queue_id"`
-	ResourceGroup Lookup `json:"resource_group" db:"resource_group"`
+	Id            int64   `json:"id" db:"id"`
+	QueueId       int64   `json:"queue_id" db:"queue_id"`
+	ResourceGroup Lookup  `json:"resource_group" db:"resource_group"`
+	Communication *Lookup `json:"communication" db:"communication"`
 }
 
 type SearchQueueResourceGroup struct {
@@ -16,11 +17,11 @@ func (QueueResourceGroup) DefaultOrder() string {
 }
 
 func (a QueueResourceGroup) AllowFields() []string {
-	return []string{"id", "resource_group", "queue_id", "resource_group_name", "domain_id"}
+	return []string{"id", "resource_group", "queue_id", "resource_group_name", "communication", "domain_id"}
 }
 
 func (a QueueResourceGroup) DefaultFields() []string {
-	return []string{"id", "resource_group"}
+	return []string{"id", "resource_group", "communication"}
 }
 
 func (a QueueResourceGroup) EntityName() string {
