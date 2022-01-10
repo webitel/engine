@@ -954,7 +954,7 @@ from (
              limit 1
              ) active_call on true
                   inner join lateral (select case
-                                                 when stat isnull or
+                                                 when (stat isnull and a.last_state_change < :From::timestamptz) or
                                                       (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
                                                      then (:To::timestamptz) - (:From::timestamptz)
                                                  else now() - a.last_state_change end t) x on true
@@ -1083,7 +1083,7 @@ from call_center.cc_agent a
      group by 1
   ) stat on true
   inner join lateral (select case
-                             when stat isnull or
+                             when (stat isnull and a.last_state_change < :From::timestamptz) or
                                   (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
                                  then (:To::timestamptz) - (:From::timestamptz)
                              else now() - a.last_state_change end t) x on true
