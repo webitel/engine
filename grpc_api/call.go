@@ -788,6 +788,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		item.AgentDescription = *src.AgentDescription
 	}
 
+	if src.HangupDisposition != nil {
+		item.HangupDisposition = *src.HangupDisposition
+	}
+
 	return item
 }
 
