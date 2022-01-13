@@ -57,13 +57,23 @@ where u.id = :UserId
 
 func (s SqlUserStore) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest) (*model.UserCallInfo, *model.AppError) {
 	var info *model.UserCallInfo
-	err := s.GetReplica().SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name, 
-u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{}'::jsonb) as variables
+	err := s.GetReplica().SelectOne(&info, `select u.id,
+       coalesce((u.name)::varchar, u.username)                                    as name,
+       u.extension,
+       u.extension                                                                   endpoint,
+       d.name                                                                     as domain_name,
+       coalesce(u.profile, '{}'::jsonb)                                           as variables,
+       exists(select 1
+              from call_center.cc_member_attempt aa
+                       inner join call_center.cc_agent a on a.id = aa.agent_id
+              where a.user_id = u.id::int8
+                and aa.leaving_at isnull
+                and aa.state in ('waiting_agent', 'idle', 'offering') for update) as is_busy
 from directory.wbt_user u
-    inner join directory.wbt_domain d on d.dc = u.dc
+         inner join directory.wbt_domain d on d.dc = u.dc
 where case when :UserId::int8 notnull then u.id = :UserId else u.extension = :Extension::varchar end
   and u.dc = :DomainId
-limit 1`, map[string]interface{}{
+limit 1;`, map[string]interface{}{
 		"UserId":    e.UserId,
 		"Extension": e.Extension,
 		"DomainId":  domainId,

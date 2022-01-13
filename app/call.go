@@ -39,6 +39,10 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.from", nil, "", http.StatusBadRequest)
 	}
 
+	if from.IsBusy {
+		return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.busy", nil, "", http.StatusBadRequest)
+	}
+
 	invite := inviteFromUser(domainId, req, from)
 	for k, v := range req.Params.Variables {
 		invite.AddUserVariable(k, v)

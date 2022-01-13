@@ -21,6 +21,7 @@ type UserCallInfo struct {
 	Extension  string            `json:"tel_number" db:"extension"`
 	Endpoint   string            `json:"endpoint" db:"endpoint"`
 	Variables  map[string]string `json:"variables" db:"variables"`
+	IsBusy     bool              `json:"is_busy" db:"is_busy"`
 }
 
 func (u *UserCallInfo) GetCallEndpoints() []string {
