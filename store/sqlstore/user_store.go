@@ -68,6 +68,7 @@ func (s SqlUserStore) GetCallInfoEndpoint(domainId int64, e *model.EndpointReque
                        inner join call_center.cc_agent a on a.id = aa.agent_id
               where a.user_id = u.id::int8
                 and aa.leaving_at isnull
+				and now() - aa.last_state_change < interval '2m'
                 and aa.state in ('waiting_agent', 'idle', 'offering') for update) as is_busy
 from directory.wbt_user u
          inner join directory.wbt_domain d on d.dc = u.dc
