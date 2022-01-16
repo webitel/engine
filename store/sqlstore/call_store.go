@@ -890,7 +890,8 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		left join call_center.cc_queue q on q.id = h.queue_id
 		left join call_center.cc_team t on t.id = h.team_id
 	where h.domain_id = :Domain 
-		and (:Q::text isnull or h.destination ~ :Q  or  h.from_number ~ :Q or  h.to_number ~ :Q or h.id = :Q)
+		and (:Q::text isnull or h.destination ilike :Q::text  or  h.from_number ilike :Q::text or  h.to_number ilike :Q::text or h.id = :Q::text)
+		and (:Number::text isnull or h.from_number ~ :Number::text or h.to_number ~ :Number::text or h.destination ~ :Number::text)
 		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or h.created_at between :From and :To )
 		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or h.stored_at between :StoredAtFrom and :StoredAtTo )
 		and (:UserIds::int8[] isnull or h.user_id = any(:UserIds))
@@ -902,7 +903,6 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds) )
 		and (:MemberIds::int8[] isnull or h.member_id = any(:MemberIds) )
 		and (:GatewayIds::int8[] isnull or h.gateway_id = any(:GatewayIds) )
-		and (:Number::varchar isnull or h.from_number ilike :Number::varchar or h.to_number ilike :Number::varchar or h.destination ilike :Number::varchar)
 		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or h.parent_id isnull)
 		and (:ParentId::varchar isnull or h.parent_id = :ParentId )
 		and (:CauseArr::varchar[] isnull or h.cause = any(:CauseArr) )
@@ -937,7 +937,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"Offset":          aggs.GetOffset(),
 		"From":            model.GetBetweenFromTime(aggs.CreatedAt),
 		"To":              model.GetBetweenToTime(aggs.CreatedAt),
-		"Q":               aggs.GetRegExpQ(),
+		"Q":               aggs.GetQ(),
 		"UserIds":         pq.Array(aggs.UserIds),
 		"QueueIds":        pq.Array(aggs.QueueIds),
 		"TeamIds":         pq.Array(aggs.TeamIds),
@@ -946,7 +946,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"GatewayIds":      pq.Array(aggs.GatewayIds),
 		"SkipParent":      aggs.SkipParent,
 		"ParentId":        aggs.ParentId,
-		"Number":          aggs.Number,
+		"Number":          model.GetRegExpQ(aggs.Number),
 		"CauseArr":        pq.Array(aggs.CauseArr),
 		"Directions":      pq.Array(aggs.Directions),
 		"Missed":          aggs.Missed,
