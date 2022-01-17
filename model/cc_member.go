@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -317,6 +318,10 @@ type MemberCommunication struct {
 }
 
 func (m *Member) ToJsonCommunications() string {
+	// TODO: fix in lib
+	sort.Slice(m.Communications[:], func(i, j int) bool {
+		return m.Communications[i].Priority > m.Communications[j].Priority
+	})
 	data, _ := json.Marshal(m.Communications)
 	return string(data)
 }
