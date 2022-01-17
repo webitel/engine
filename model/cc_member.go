@@ -347,5 +347,12 @@ func (m *Member) IsValid() *AppError {
 	if len(m.Communications) > 20 {
 		return NewAppError("Member.IsValid", "model.member.is_valid.communications.app_error", nil, "name="+m.Name, http.StatusBadRequest)
 	}
+
+	for _, v := range m.Communications {
+		if v.Type.Id < 1 {
+			return NewAppError("Member.IsValid", "model.member.is_valid.communications.type.app_error", nil, "name="+m.Name, http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
