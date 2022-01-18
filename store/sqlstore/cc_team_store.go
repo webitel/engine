@@ -52,9 +52,9 @@ from t`,
 			"NoAnswerDelayTime": team.NoAnswerDelayTime,
 			"CallTimeout":       team.CallTimeout,
 			"CreatedAt":         team.CreatedAt,
-			"CreatedBy":         team.CreatedBy.Id,
+			"CreatedBy":         team.CreatedBy.GetSafeId(),
 			"UpdatedAt":         team.UpdatedAt,
-			"UpdatedBy":         team.UpdatedBy.Id,
+			"UpdatedBy":         team.UpdatedBy.GetSafeId(),
 			"AdminIds":          pq.Array(model.LookupIds(team.Admin)),
 		}); nil != err {
 		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
@@ -204,7 +204,7 @@ from t`, map[string]interface{}{
 		"NoAnswerDelayTime": team.NoAnswerDelayTime,
 		"CallTimeout":       team.CallTimeout,
 		"UpdatedAt":         team.UpdatedAt,
-		"UpdatedBy":         team.UpdatedBy.Id,
+		"UpdatedBy":         team.UpdatedBy.GetSafeId(),
 		"AdminIds":          pq.Array(model.LookupIds(team.Admin)),
 	})
 	if err != nil {

@@ -136,10 +136,10 @@ func (c *Controller) CreateCallAnnotation(session *auth_manager.Session, annotat
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	annotation.CreatedBy = model.Lookup{
+	annotation.CreatedBy = &model.Lookup{
 		Id: int(session.UserId),
 	}
-	annotation.UpdatedBy = model.Lookup{
+	annotation.UpdatedBy = &model.Lookup{
 		Id: int(session.UserId),
 	}
 	annotation.CreatedAt = time.Now()
@@ -158,7 +158,7 @@ func (c *Controller) UpdateCallAnnotation(session *auth_manager.Session, annotat
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	annotation.UpdatedBy = model.Lookup{
+	annotation.UpdatedBy = &model.Lookup{
 		Id: int(session.UserId),
 	}
 	annotation.UpdatedAt = time.Now()

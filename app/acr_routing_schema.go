@@ -33,7 +33,7 @@ func (a *App) UpdateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSc
 	oldScheme.Schema = scheme.Schema
 
 	oldScheme.UpdatedAt = scheme.UpdatedAt
-	oldScheme.UpdatedBy = model.Lookup{
+	oldScheme.UpdatedBy = &model.Lookup{
 		Id: scheme.UpdatedBy.Id,
 	}
 

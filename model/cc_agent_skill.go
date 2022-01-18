@@ -43,7 +43,7 @@ func (a AgentSkill) EntityName() string {
 }
 
 func (as *AgentSkill) Patch(patch *AgentSkillPatch) {
-	as.UpdatedBy = patch.UpdatedBy
+	as.UpdatedBy = &patch.UpdatedBy
 	as.UpdatedAt = patch.UpdatedAt
 
 	if patch.Agent != nil {

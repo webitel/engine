@@ -25,11 +25,11 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -118,7 +118,7 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -211,15 +211,15 @@ func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.Routin
 		Id:        src.Id,
 		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
+		//CreatedBy: &engine.Lookup{
+		//	Id:   int64(src.CreatedBy.Id),
+		//	Name: src.CreatedBy.Name,
+		//},
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		//UpdatedBy: &engine.Lookup{
+		//	Id:   int64(src.UpdatedBy.Id),
+		//	Name: src.UpdatedBy.Name,
+		//},
 		Description: src.Description,
 		Name:        src.Name,
 		Pattern:     src.Pattern,

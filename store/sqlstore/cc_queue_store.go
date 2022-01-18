@@ -98,8 +98,8 @@ from q
 			"Type":                 queue.Type,
 			"TeamId":               queue.TeamId(),
 			"CreatedAt":            queue.CreatedAt,
-			"CreatedBy":            queue.CreatedBy.Id,
-			"UpdatedBy":            queue.UpdatedBy.Id,
+			"CreatedBy":            queue.CreatedBy.GetSafeId(),
+			"UpdatedBy":            queue.UpdatedBy.GetSafeId(),
 			"Description":          queue.Description,
 			"SchemaId":             queue.SchemaId(),
 			"DoSchemaId":           queue.DoSchemaId(),
@@ -275,7 +275,7 @@ from q
          left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
 		"UpdatedAt":            queue.UpdatedAt,
-		"UpdatedBy":            queue.UpdatedBy.Id,
+		"UpdatedBy":            queue.UpdatedBy.GetSafeId(),
 		"Strategy":             queue.Strategy,
 		"Enabled":              queue.Enabled,
 		"Payload":              queue.Payload,

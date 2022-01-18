@@ -1,0 +1,76 @@
+syntax="proto3";
+
+package api;
+
+import "google/protobuf/struct.proto";
+
+// LDAP repository
+service LDAP {
+
+    // LDAPSearch performs LDAP Search operation ...
+    rpc LDAPSearch(LDAPSearchRequest) returns (LDAPSearchResponse) {}
+
+}
+
+// https://datatracker.ietf.org/doc/html/rfc4511#section-4.1.11
+message LDAPControl {
+    string controlType  = 1; // LDAPOID,
+    bool   criticality  = 2; // BOOLEAN DEFAULT FALSE,
+    string controlValue = 3; // OCTET STRING OPTIONAL
+}
+
+// https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1
+message LDAPSearchRequest {
+    // ----- connection -----
+    // Optional. ID of the preconfigured LDAP catalog
+    int64 catalog_id = 1;
+    // Optional. URL to establish connection to LDAP catalog
+    string url = 5; // URL e.g.: [(ldap|ldapi|ldaps)://]host[:port]
+    // // TLS configuration options
+    // message TLSConfig {
+    //     // TODO: (!)
+    //     bytes cert = 1; // PEM: base64
+    //     bytes key = 2; // PEM: base64
+    //     bytes ca = 3; // PEM: base64
+    // }
+    // TLSConfig tls = 6;
+    // ----- BIND: Authorization -----
+    string bind = 7; // authorization method e.g.: SIMPLE, SAML, NTLM, etc.
+    string username = 8; // bind_dn
+    string password = 9; // password
+    // ----- SearchRequest -----
+    // baseObject [D]istinguished[N]ame
+    string baseObject = 10;
+    // baseObject              (0),
+    // singleLevel             (1),
+    // wholeSubtree            (2)
+    int32 scope = 11;
+    // neverDerefAliases       (0),
+    // derefInSearching        (1),
+    // derefFindingBaseObj     (2),
+    // derefAlways             (3)
+    int32 derefAliases = 12;
+    int64 sizeLimit = 13; // INTEGER (0 ..  maxInt),
+    int64 timeLimit = 14; // INTEGER (0 ..  maxInt),
+    bool typesOnly = 15; // BOOLEAN,
+    string filter = 16; // Filter,
+    repeated string attributes = 17; // AttributeSelection
+    // ----- LDAPMessage -----
+    // Controls NOT implemented yet !
+    repeated LDAPControl controls = 18;
+}
+
+
+// https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.2
+message LDAPSearchResponse {
+    // ----- SearchResult (Entry|Reference) -----
+    // repeated LDAPSearchEntry entries = 1;
+    repeated google.protobuf.Struct entries = 1;
+    // ----- LDAPResult -----
+    int32 resultCode = 2;
+    string matchedDN = 3; // LDAPDN,
+    string diagnosticMessage = 4; // LDAPString,
+    repeated string referral = 5; // [3] Referral OPTIONAL
+    // ----- LDAPMessage -----
+    repeated LDAPControl controls = 6;
+}

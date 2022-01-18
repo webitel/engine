@@ -46,7 +46,7 @@ func (app *App) PatchQueueHook(domainId int64, queueId, id uint32, patch *model.
 	}
 
 	oldHook.Patch(patch)
-	oldHook.UpdatedBy = patch.UpdatedBy
+	oldHook.UpdatedBy = &patch.UpdatedBy
 	oldHook.UpdatedAt = patch.UpdatedAt
 
 	if err = oldHook.IsValid(); err != nil {

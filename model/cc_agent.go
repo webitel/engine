@@ -143,7 +143,7 @@ type DistributeAgentInfo struct {
 }
 
 func (a *Agent) Patch(patch *AgentPatch) {
-	a.UpdatedBy = patch.UpdatedBy
+	a.UpdatedBy = &patch.UpdatedBy
 	a.UpdatedAt = patch.UpdatedAt
 
 	if patch.User != nil {

@@ -41,8 +41,8 @@ from s
 		"DomainId":        domainId,
 		"CreatedAt":       cause.CreatedAt,
 		"UpdatedAt":       cause.UpdatedAt,
-		"CreatedBy":       cause.CreatedBy.Id,
-		"UpdatedBy":       cause.UpdatedBy.Id,
+		"CreatedBy":       cause.CreatedBy.GetSafeId(),
+		"UpdatedBy":       cause.UpdatedBy.GetSafeId(),
 		"Name":            cause.Name,
 		"LimitMin":        cause.LimitMin,
 		"AllowSupervisor": cause.AllowSupervisor,
@@ -145,7 +145,7 @@ from s
 		"AllowAgent":      cause.AllowAgent,
 		"AllowAdmin":      cause.AllowAdmin,
 		"UpdatedAt":       cause.UpdatedAt,
-		"UpdatedBy":       cause.UpdatedBy.Id,
+		"UpdatedBy":       cause.UpdatedBy.GetSafeId(),
 	})
 
 	if err != nil {

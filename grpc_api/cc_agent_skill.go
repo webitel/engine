@@ -40,11 +40,11 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -179,11 +179,11 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -335,9 +335,9 @@ func (api *agentSkill) SearchLookupAgentNotExistsSkill(ctx context.Context, in *
 func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
 	return &engine.AgentSkill{
 		CreatedAt: src.CreatedAt,
-		CreatedBy: GetProtoLookup(&src.CreatedBy),
+		CreatedBy: GetProtoLookup(src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: GetProtoLookup(&src.UpdatedBy),
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
 		Id:        src.Id,
 		Agent:     GetProtoLookup(src.Agent),
 		Skill:     GetProtoLookup(src.Skill),

@@ -28,9 +28,9 @@ func (s SqlBucketStore) Create(bucket *model.Bucket) (*model.Bucket, *model.AppE
 			"DomainId":    bucket.DomainId,
 			"Description": bucket.Description,
 			"CreatedAt":   bucket.CreatedAt,
-			"CreatedBy":   bucket.CreatedBy.Id,
+			"CreatedBy":   bucket.CreatedBy.GetSafeId(),
 			"UpdatedAt":   bucket.UpdatedAt,
-			"UpdatedBy":   bucket.UpdatedBy.Id,
+			"UpdatedBy":   bucket.UpdatedBy.GetSafeId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlBucketStore.Save", "store.sql_bucket.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", bucket.Name, err.Error()), extractCodeFromErr(err))
@@ -104,7 +104,7 @@ func (s SqlBucketStore) Update(bucket *model.Bucket) (*model.Bucket, *model.AppE
 		"Description": bucket.Description,
 		"DomainId":    bucket.DomainId,
 		"UpdatedAt":   bucket.UpdatedAt,
-		"UpdatedBy":   bucket.UpdatedBy.Id,
+		"UpdatedBy":   bucket.UpdatedBy.GetSafeId(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlBucketStore.Update", "store.sql_bucket.update.app_error", nil,

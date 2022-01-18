@@ -106,7 +106,7 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 		DomainRecord: model.DomainRecord{
 			Id:       in.Id,
 			DomainId: in.GetDomainId(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},

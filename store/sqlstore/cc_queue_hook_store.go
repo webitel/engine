@@ -36,7 +36,7 @@ from qe
 		"Event":     in.Event,
 		"QueueId":   queueId,
 		"Enabled":   in.Enabled,
-		"UpdatedBy": in.UpdatedBy.Id,
+		"UpdatedBy": in.UpdatedBy.GetSafeId(),
 		"UpdatedAt": in.UpdatedAt,
 	})
 
@@ -125,7 +125,7 @@ from qe
 		"SchemaId":  qh.Schema.Id,
 		"Event":     qh.Event,
 		"Enabled":   qh.Enabled,
-		"UpdatedBy": qh.UpdatedBy.Id,
+		"UpdatedBy": qh.UpdatedBy.GetSafeId(),
 		"UpdatedAt": qh.UpdatedAt,
 		"QueueId":   queueId,
 		"DomainId":  domainId,

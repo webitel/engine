@@ -37,9 +37,9 @@ from tmp
 			"AgentId":   in.Agent.Id,
 			"Capacity":  in.Capacity,
 			"CreatedAt": in.CreatedAt,
-			"CreatedBy": in.CreatedBy.Id,
+			"CreatedBy": in.CreatedBy.GetSafeId(),
 			"UpdatedAt": in.UpdatedAt,
-			"UpdatedBy": in.UpdatedBy.Id,
+			"UpdatedBy": in.UpdatedBy.GetSafeId(),
 			"Enabled":   in.Enabled,
 		}); err != nil {
 		return nil, model.NewAppError("SqlAgentSkillStore.Create", "store.sql_skill_in_agent.create.app_error", nil,
@@ -114,7 +114,7 @@ from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
 		"UpdatedAt": agentSkill.UpdatedAt,
-		"UpdatedBy": agentSkill.UpdatedBy.Id,
+		"UpdatedBy": agentSkill.UpdatedBy.GetSafeId(),
 		"SkillId":   agentSkill.Skill.Id,
 		"Capacity":  agentSkill.Capacity,
 		"Id":        agentSkill.Id,

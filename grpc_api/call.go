@@ -689,9 +689,9 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	return &engine.CallAnnotation{
 		Id:        src.Id,
 		CallId:    src.CallId,
-		CreatedBy: GetProtoLookup(&src.CreatedBy),
+		CreatedBy: GetProtoLookup(src.CreatedBy),
 		CreatedAt: model.TimeToInt64(&src.CreatedAt),
-		UpdatedBy: GetProtoLookup(&src.UpdatedBy),
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
 		UpdatedAt: model.TimeToInt64(&src.UpdatedAt),
 		Note:      src.Note,
 		StartSec:  src.StartSec,
@@ -855,9 +855,9 @@ func toCallAnnotation(src []*model.CallAnnotation) []*engine.CallAnnotation {
 		res = append(res, &engine.CallAnnotation{
 			Id:        v.Id,
 			CallId:    v.CallId,
-			CreatedBy: GetProtoLookup(&v.CreatedBy),
+			CreatedBy: GetProtoLookup(v.CreatedBy),
 			CreatedAt: model.TimeToInt64(&v.CreatedAt),
-			UpdatedBy: GetProtoLookup(&v.UpdatedBy),
+			UpdatedBy: GetProtoLookup(v.UpdatedBy),
 			UpdatedAt: model.TimeToInt64(&v.UpdatedAt),
 			Note:      v.Note,
 			StartSec:  v.StartSec,

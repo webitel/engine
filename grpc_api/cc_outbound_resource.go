@@ -31,11 +31,11 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(0),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -179,7 +179,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 			Id:        in.Id,
 			DomainId:  session.Domain(0),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},

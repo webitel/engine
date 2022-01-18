@@ -43,9 +43,9 @@ from i
 			"Description": list.Description,
 			"DomainId":    list.DomainId,
 			"CreatedAt":   list.CreatedAt,
-			"CreatedBy":   list.CreatedBy.Id,
+			"CreatedBy":   list.CreatedBy.GetSafeId(),
 			"UpdatedAt":   list.UpdatedAt,
-			"UpdatedBy":   list.UpdatedBy.Id,
+			"UpdatedBy":   list.UpdatedBy.GetSafeId(),
 		}); err != nil {
 		return nil, model.NewAppError("SqlListStore.Save", "store.sql_list.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", list.Name, err.Error()), http.StatusInternalServerError)
@@ -176,7 +176,7 @@ from i
 		"Name":        list.Name,
 		"Description": list.Description,
 		"UpdatedAt":   list.UpdatedAt,
-		"UpdatedBy":   list.UpdatedBy.Id,
+		"UpdatedBy":   list.UpdatedBy.GetSafeId(),
 		"Id":          list.Id,
 		"DomainId":    list.DomainId,
 	})
