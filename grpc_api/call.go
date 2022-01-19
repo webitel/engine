@@ -377,6 +377,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 			Display:          in.GetParams().GetDisplay(),
 			DisableStun:      in.GetParams().GetDisableStun(),
 			CancelDistribute: in.GetParams().GetCancelDistribute(),
+			IsOnline:         in.GetParams().GetIsOnline(),
 		},
 	}
 

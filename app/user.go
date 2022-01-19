@@ -13,8 +13,8 @@ func (app *App) GetUserCallInfo(userId, domainId int64) (*model.UserCallInfo, *m
 	return app.Store.User().GetCallInfo(userId, domainId)
 }
 
-func (app *App) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest) (*model.UserCallInfo, *model.AppError) {
-	return app.Store.User().GetCallInfoEndpoint(domainId, e)
+func (app *App) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest, isOnline bool) (*model.UserCallInfo, *model.AppError) {
+	return app.Store.User().GetCallInfoEndpoint(domainId, e, isOnline)
 }
 
 func (app *App) GetUserDefaultWebRTCDeviceConfig(userId, domainId int64) (*model.UserDeviceConfig, *model.AppError) {
