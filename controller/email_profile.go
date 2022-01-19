@@ -11,8 +11,10 @@ func (c *Controller) CreateEmailProfile(session *auth_manager.Session, profile *
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
-	profile.CreatedBy.Id = int(session.UserId)
-	profile.UpdatedBy.Id = profile.CreatedBy.Id
+	profile.CreatedBy = &model.Lookup{
+		Id: int(session.UserId),
+	}
+	profile.UpdatedBy = profile.CreatedBy
 	profile.DomainId = session.Domain(profile.DomainId)
 
 	if err := profile.IsValid(); err != nil {

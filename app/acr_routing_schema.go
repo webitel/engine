@@ -33,9 +33,7 @@ func (a *App) UpdateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSc
 	oldScheme.Schema = scheme.Schema
 
 	oldScheme.UpdatedAt = scheme.UpdatedAt
-	oldScheme.UpdatedBy = &model.Lookup{
-		Id: scheme.UpdatedBy.Id,
-	}
+	oldScheme.UpdatedBy = scheme.UpdatedBy
 
 	oldScheme, err = a.Store.RoutingSchema().Update(oldScheme)
 	if err != nil {
@@ -68,7 +66,9 @@ func (a *App) PatchRoutingSchema(domainId, id int64, patch *model.RoutingSchemaP
 	old.Patch(patch)
 
 	old.UpdatedAt = model.GetMillis()
-	old.UpdatedBy.Id = patch.UpdatedById
+	old.UpdatedBy = &model.Lookup{
+		Id: patch.UpdatedById,
+	}
 
 	if err = old.IsValid(); err != nil {
 		return nil, err

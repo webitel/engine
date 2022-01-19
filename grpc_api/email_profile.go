@@ -149,18 +149,12 @@ func (api *emailProfile) DeleteEmailProfile(ctx context.Context, in *engine.Dele
 
 func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 	return &engine.EmailProfile{
-		Id:        src.Id,
-		DomainId:  src.DomainId,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
-		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		Id:          src.Id,
+		DomainId:    src.DomainId,
+		CreatedAt:   src.CreatedAt,
+		CreatedBy:   GetProtoLookup(src.CreatedBy),
+		UpdatedAt:   src.UpdatedAt,
+		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
 		Name:        src.Name,
 		Description: src.Description,
 		Schema:      GetProtoLookup(&src.Schema),

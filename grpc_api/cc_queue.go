@@ -424,18 +424,12 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Id:        src.Id,
 		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
+		CreatedBy: GetProtoLookup(src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
-		Strategy: src.Strategy,
-		Enabled:  src.Enabled,
-		Payload:  UnmarshalJsonpb(src.Payload),
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
+		Strategy:  src.Strategy,
+		Enabled:   src.Enabled,
+		Payload:   UnmarshalJsonpb(src.Payload),
 		Calendar: &engine.Lookup{
 			Id:   int64(src.Calendar.Id),
 			Name: src.Calendar.Name,

@@ -39,7 +39,7 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	oldCalendar.StartAt = calendar.StartAt
 	oldCalendar.EndAt = calendar.EndAt
 	oldCalendar.UpdatedAt = calendar.UpdatedAt
-	oldCalendar.UpdatedBy.Id = calendar.UpdatedBy.Id
+	oldCalendar.UpdatedBy = calendar.UpdatedBy
 	oldCalendar.Accepts = calendar.Accepts
 	oldCalendar.Excepts = calendar.Excepts
 

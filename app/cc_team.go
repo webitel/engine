@@ -51,7 +51,7 @@ func (a *App) UpdateAgentTeam(domainId int64, team *model.AgentTeam) (*model.Age
 	oldTeam.Admin = team.Admin
 
 	oldTeam.UpdatedAt = team.UpdatedAt
-	oldTeam.UpdatedBy.Id = team.UpdatedBy.Id
+	oldTeam.UpdatedBy = team.UpdatedBy
 
 	oldTeam, err = a.Store.AgentTeam().Update(domainId, oldTeam)
 	if err != nil {

@@ -507,18 +507,12 @@ func toEngineResourceDisplay(src *model.ResourceDisplay) *engine.ResourceDisplay
 
 func transformOutboundResource(src *model.OutboundCallResource) *engine.OutboundResource {
 	res := &engine.OutboundResource{
-		Id:        src.Id,
-		DomainId:  src.DomainId,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
-		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		Id:                    src.Id,
+		DomainId:              src.DomainId,
+		CreatedAt:             src.CreatedAt,
+		CreatedBy:             GetProtoLookup(src.CreatedBy),
+		UpdatedAt:             src.UpdatedAt,
+		UpdatedBy:             GetProtoLookup(src.UpdatedBy),
 		Limit:                 int32(src.Limit),
 		Enabled:               src.Enabled,
 		Rps:                   int32(src.RPS),

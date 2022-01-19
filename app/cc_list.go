@@ -44,7 +44,7 @@ func (a *App) UpdateList(list *model.List) (*model.List, *model.AppError) {
 	oldList.Description = list.Description
 	oldList.Name = list.Name
 	oldList.UpdatedAt = list.UpdatedAt
-	oldList.UpdatedBy.Id = list.UpdatedBy.Id
+	oldList.UpdatedBy = list.UpdatedBy
 
 	oldList, err = a.Store.List().Update(oldList)
 	if err != nil {

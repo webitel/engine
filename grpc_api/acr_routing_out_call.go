@@ -208,18 +208,12 @@ func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, i
 
 func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.RoutingOutboundCall {
 	dst := &engine.RoutingOutboundCall{
-		Id:        src.Id,
-		DomainId:  src.DomainId,
-		CreatedAt: src.CreatedAt,
-		//CreatedBy: &engine.Lookup{
-		//	Id:   int64(src.CreatedBy.Id),
-		//	Name: src.CreatedBy.Name,
-		//},
-		UpdatedAt: src.UpdatedAt,
-		//UpdatedBy: &engine.Lookup{
-		//	Id:   int64(src.UpdatedBy.Id),
-		//	Name: src.UpdatedBy.Name,
-		//},
+		Id:          src.Id,
+		DomainId:    src.DomainId,
+		CreatedAt:   src.CreatedAt,
+		CreatedBy:   GetProtoLookup(src.CreatedBy),
+		UpdatedAt:   src.UpdatedAt,
+		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
 		Description: src.Description,
 		Name:        src.Name,
 		Pattern:     src.Pattern,

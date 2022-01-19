@@ -68,8 +68,11 @@ func (a *App) PatchRoutingOutboundCall(domainId, id int64, patch *model.RoutingO
 	}
 	old.Patch(patch)
 
+	old.UpdatedBy = &model.Lookup{
+		Id: patch.UpdatedById,
+	}
+
 	old.UpdatedAt = model.GetMillis()
-	old.UpdatedBy.Id = patch.UpdatedById
 
 	if err = old.IsValid(); err != nil {
 		return nil, err

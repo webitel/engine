@@ -43,7 +43,9 @@ func (c *Controller) CreateQueueHook(session *auth_manager.Session, queueId uint
 			return nil, c.app.MakeResourcePermissionError(session, int64(queueId), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
-	hook.CreatedBy.Id = int(session.UserId)
+	hook.CreatedBy = &model.Lookup{
+		Id: int(session.UserId),
+	}
 	hook.UpdatedBy = hook.CreatedBy
 
 	hook.CreatedAt = *model.GetTime()
@@ -95,7 +97,9 @@ func (c *Controller) UpdateQueueHook(session *auth_manager.Session, queueId uint
 		}
 	}
 
-	hook.UpdatedBy.Id = int(session.UserId)
+	hook.UpdatedBy = &model.Lookup{
+		Id: int(session.UserId),
+	}
 	hook.UpdatedAt = *model.GetTime()
 
 	if err := hook.IsValid(); err != nil {

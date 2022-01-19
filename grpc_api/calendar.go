@@ -220,18 +220,12 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 		Id:        src.Id,
 		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
-		//CreatedBy: &engine.Lookup{
-		//	Id:   int64(src.CreatedBy.Id),
-		//	Name: src.CreatedBy.Name,
-		//},
+		CreatedBy: GetProtoLookup(src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
-		//UpdatedBy: &engine.Lookup{
-		//	Id:   int64(src.UpdatedBy.Id),
-		//	Name: src.UpdatedBy.Name,
-		//},
-		Name:    src.Name,
-		StartAt: 0,
-		EndAt:   0,
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
+		Name:      src.Name,
+		StartAt:   0,
+		EndAt:     0,
 		Timezone: &engine.Lookup{
 			Id:   int64(src.Timezone.Id),
 			Name: src.Timezone.Name,
