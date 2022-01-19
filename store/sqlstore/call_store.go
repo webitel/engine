@@ -565,12 +565,12 @@ func (s SqlCallStore) CreateAnnotation(annotation *model.CallAnnotation) (*model
 			left join directory.wbt_user uc on uc.id = a.updated_by;
 `, map[string]interface{}{
 		"CallId":    annotation.CallId,
-		"CreatedBy": annotation.CreatedBy.Id,
+		"CreatedBy": annotation.CreatedBy.GetSafeId(),
 		"CreatedAt": annotation.CreatedAt,
 		"Note":      annotation.Note,
 		"StartSec":  annotation.StartSec,
 		"EndSec":    annotation.EndSec,
-		"UpdatedBy": annotation.UpdatedBy.Id,
+		"UpdatedBy": annotation.UpdatedBy.GetSafeId(),
 		"UpdatedAt": annotation.UpdatedAt,
 	})
 
@@ -638,7 +638,7 @@ func (s SqlCallStore) UpdateAnnotation(domainId int64, annotation *model.CallAnn
 `, map[string]interface{}{
 		"Id":        annotation.Id,
 		"UpdatedAt": annotation.UpdatedAt,
-		"UpdatedBy": annotation.UpdatedBy.Id,
+		"UpdatedBy": annotation.UpdatedBy.GetSafeId(),
 		"Note":      annotation.Note,
 		"StartSec":  annotation.StartSec,
 		"EndSec":    annotation.EndSec,

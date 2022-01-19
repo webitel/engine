@@ -44,8 +44,8 @@ from t
 		"Smtp":        p.SmtpPort,
 		"Login":       p.Login,
 		"Pass":        p.Password,
-		"CreatedBy":   p.CreatedBy.Id,
-		"UpdatedBy":   p.UpdatedBy.Id,
+		"CreatedBy":   p.CreatedBy.GetSafeId(),
+		"UpdatedBy":   p.UpdatedBy.GetSafeId(),
 	})
 
 	if err != nil {
@@ -137,7 +137,7 @@ from t
 		"Mailbox":     p.Mailbox,
 		"Smtp":        p.SmtpPort,
 		"Imap":        p.ImapPort,
-		"UpdatedBy":   p.UpdatedBy.Id,
+		"UpdatedBy":   p.UpdatedBy.GetSafeId(),
 		"Id":          p.Id,
 	})
 

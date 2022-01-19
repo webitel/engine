@@ -34,11 +34,11 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 			Id:        0,
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -267,7 +267,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -424,18 +424,12 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Id:        src.Id,
 		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
+		CreatedBy: GetProtoLookup(src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
-		Strategy: src.Strategy,
-		Enabled:  src.Enabled,
-		Payload:  UnmarshalJsonpb(src.Payload),
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
+		Strategy:  src.Strategy,
+		Enabled:   src.Enabled,
+		Payload:   UnmarshalJsonpb(src.Payload),
 		Calendar: &engine.Lookup{
 			Id:   int64(src.Calendar.Id),
 			Name: src.Calendar.Name,

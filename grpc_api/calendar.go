@@ -25,11 +25,11 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 			Id:        0,
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -135,7 +135,7 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -220,18 +220,12 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 		Id:        src.Id,
 		DomainId:  src.DomainId,
 		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
+		CreatedBy: GetProtoLookup(src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
-		Name:    src.Name,
-		StartAt: 0,
-		EndAt:   0,
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
+		Name:      src.Name,
+		StartAt:   0,
+		EndAt:     0,
 		Timezone: &engine.Lookup{
 			Id:   int64(src.Timezone.Id),
 			Name: src.Timezone.Name,

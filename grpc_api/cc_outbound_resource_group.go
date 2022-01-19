@@ -31,11 +31,11 @@ func (api *outboundResourceGroup) CreateOutboundResourceGroup(ctx context.Contex
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -173,7 +173,7 @@ func (api *outboundResourceGroup) UpdateOutboundResourceGroup(ctx context.Contex
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -416,18 +416,12 @@ func (api *outboundResourceGroup) DeleteOutboundResourceInGroup(ctx context.Cont
 
 func toEngineOutboundResourceGroup(src *model.OutboundResourceGroup) *engine.OutboundResourceGroup {
 	return &engine.OutboundResourceGroup{
-		Id:        src.Id,
-		DomainId:  src.DomainId,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
-		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		Id:          src.Id,
+		DomainId:    src.DomainId,
+		CreatedAt:   src.CreatedAt,
+		CreatedBy:   GetProtoLookup(src.CreatedBy),
+		UpdatedAt:   src.UpdatedAt,
+		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
 		Name:        src.Name,
 		Strategy:    src.Strategy,
 		Description: src.Description,

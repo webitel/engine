@@ -62,7 +62,7 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	}
 
 	oldQueue.UpdatedAt = queue.UpdatedAt
-	oldQueue.UpdatedBy.Id = queue.UpdatedBy.Id
+	oldQueue.UpdatedBy = queue.UpdatedBy
 	oldQueue.Strategy = queue.Strategy
 	oldQueue.Enabled = queue.Enabled
 	oldQueue.Payload = queue.Payload

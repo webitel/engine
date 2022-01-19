@@ -47,7 +47,7 @@ func (PauseCause) EntityName() string {
 
 func (p *PauseCause) Patch(patch *PauseCausePatch) {
 	p.UpdatedAt = patch.UpdatedAt
-	p.UpdatedBy = patch.UpdatedBy
+	p.UpdatedBy = &patch.UpdatedBy
 
 	if patch.Name != nil {
 		p.Name = *patch.Name

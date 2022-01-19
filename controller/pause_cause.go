@@ -23,7 +23,9 @@ func (c *Controller) CreatePauseCause(session *auth_manager.Session, cause *mode
 	if err := cause.IsValid(); err != nil {
 		return nil, err
 	}
-	cause.CreatedBy.Id = int(session.UserId)
+	cause.CreatedBy = &model.Lookup{
+		Id: int(session.UserId),
+	}
 	cause.UpdatedBy = cause.CreatedBy
 
 	cause.CreatedAt = model.GetTime()
@@ -55,7 +57,9 @@ func (c *Controller) UpdatePauseCause(session *auth_manager.Session, cause *mode
 		return nil, err
 	}
 
-	cause.UpdatedBy.Id = int(session.UserId)
+	cause.UpdatedBy = &model.Lookup{
+		Id: int(session.UserId),
+	}
 	cause.UpdatedAt = model.GetTime()
 
 	return c.app.UpdatePauseCause(session.DomainId, cause)
@@ -71,7 +75,9 @@ func (c *Controller) PatchPauseCause(session *auth_manager.Session, id uint32, p
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	patch.UpdatedBy.Id = int(session.UserId)
+	patch.UpdatedBy = model.Lookup{
+		Id: int(session.UserId),
+	}
 	patch.UpdatedAt = model.GetTime()
 
 	return c.app.PatchPauseCause(session.DomainId, id, patch)

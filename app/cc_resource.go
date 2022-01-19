@@ -64,7 +64,7 @@ func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*mod
 	oldResource.Limit = resource.Limit
 	oldResource.Enabled = resource.Enabled
 	oldResource.UpdatedAt = resource.UpdatedAt
-	oldResource.UpdatedBy.Id = resource.UpdatedBy.Id
+	oldResource.UpdatedBy = resource.UpdatedBy
 	oldResource.RPS = resource.RPS
 	oldResource.Reserve = resource.Reserve
 	oldResource.Variables = resource.Variables

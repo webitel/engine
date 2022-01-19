@@ -31,11 +31,11 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(0),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -179,7 +179,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 			Id:        in.Id,
 			DomainId:  session.Domain(0),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -507,18 +507,12 @@ func toEngineResourceDisplay(src *model.ResourceDisplay) *engine.ResourceDisplay
 
 func transformOutboundResource(src *model.OutboundCallResource) *engine.OutboundResource {
 	res := &engine.OutboundResource{
-		Id:        src.Id,
-		DomainId:  src.DomainId,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
-		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		Id:                    src.Id,
+		DomainId:              src.DomainId,
+		CreatedAt:             src.CreatedAt,
+		CreatedBy:             GetProtoLookup(src.CreatedBy),
+		UpdatedAt:             src.UpdatedAt,
+		UpdatedBy:             GetProtoLookup(src.UpdatedBy),
 		Limit:                 int32(src.Limit),
 		Enabled:               src.Enabled,
 		Rps:                   int32(src.RPS),

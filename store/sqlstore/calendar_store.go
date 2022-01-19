@@ -55,9 +55,9 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 			"Description": calendar.Description,
 			"TimezoneId":  calendar.Timezone.Id,
 			"CreatedAt":   calendar.CreatedAt,
-			"CreatedBy":   calendar.CreatedBy.Id,
+			"CreatedBy":   calendar.CreatedBy.GetSafeId(),
 			"UpdatedAt":   calendar.UpdatedAt,
-			"UpdatedBy":   calendar.UpdatedBy.Id,
+			"UpdatedBy":   calendar.UpdatedBy.GetSafeId(),
 			"Accepts":     calendar.AcceptsToJson(),
 			"Excepts":     calendar.ExceptsToJson(),
 		}); err != nil {
@@ -212,7 +212,7 @@ from c
 		"Id":          calendar.Id,
 		"DomainId":    calendar.DomainId,
 		"UpdatedAt":   calendar.UpdatedAt,
-		"UpdatedBy":   calendar.UpdatedBy.Id,
+		"UpdatedBy":   calendar.UpdatedBy.GetSafeId(),
 		"Accepts":     calendar.AcceptsToJson(),
 		"Excepts":     calendar.ExceptsToJson(),
 	})

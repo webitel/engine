@@ -32,11 +32,11 @@ func (api *list) CreateList(ctx context.Context, in *engine.CreateListRequest) (
 			Id:        0,
 			DomainId:  session.Domain(in.GetDomainId()),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -158,7 +158,7 @@ func (api *list) UpdateList(ctx context.Context, in *engine.UpdateListRequest) (
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -404,18 +404,12 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 
 func toEngineList(src *model.List) *engine.List {
 	item := &engine.List{
-		Id:        src.Id,
-		DomainId:  src.DomainId,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
-		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		Id:          src.Id,
+		DomainId:    src.DomainId,
+		CreatedAt:   src.CreatedAt,
+		CreatedBy:   GetProtoLookup(src.CreatedBy),
+		UpdatedAt:   src.UpdatedAt,
+		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
 		Name:        src.Name,
 		Description: src.Description,
 		Count:       src.Count,

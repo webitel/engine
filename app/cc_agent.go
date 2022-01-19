@@ -61,7 +61,7 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 	oldAgent.User.Id = agent.User.Id
 
 	oldAgent.UpdatedAt = agent.UpdatedAt
-	oldAgent.UpdatedBy.Id = agent.UpdatedBy.Id
+	oldAgent.UpdatedBy = agent.UpdatedBy
 
 	oldAgent.AllowChannels = agent.AllowChannels
 	oldAgent.ChatCount = agent.ChatCount

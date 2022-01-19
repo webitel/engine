@@ -29,7 +29,7 @@ func (app *App) UpdateAgentsSkill(agentSkill *model.AgentSkill) (*model.AgentSki
 	oldAgentSkill.Skill.Id = agentSkill.Skill.Id
 	oldAgentSkill.Enabled = agentSkill.Enabled
 
-	oldAgentSkill.UpdatedBy.Id = agentSkill.UpdatedBy.Id
+	oldAgentSkill.UpdatedBy = agentSkill.UpdatedBy
 	oldAgentSkill.UpdatedAt = model.GetMillis()
 
 	oldAgentSkill, err = app.Store.AgentSkill().Update(oldAgentSkill)

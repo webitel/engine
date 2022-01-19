@@ -168,9 +168,9 @@ func toEnginePauseCause(src *model.PauseCause) *engine.AgentPauseCause {
 	return &engine.AgentPauseCause{
 		Id:              uint32(src.Id),
 		CreatedAt:       model.TimeToInt64(src.CreatedAt),
-		CreatedBy:       GetProtoLookup(&src.CreatedBy),
+		CreatedBy:       GetProtoLookup(src.CreatedBy),
 		UpdatedAt:       model.TimeToInt64(src.UpdatedAt),
-		UpdatedBy:       GetProtoLookup(&src.UpdatedBy),
+		UpdatedBy:       GetProtoLookup(src.UpdatedBy),
 		Name:            src.Name,
 		LimitMin:        src.LimitMin,
 		AllowSupervisor: src.AllowSupervisor,

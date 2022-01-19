@@ -27,7 +27,7 @@ func (a *App) UpdateEmailProfile(p *model.EmailProfile) (*model.EmailProfile, *m
 		return nil, err
 	}
 
-	oldProfile.UpdatedBy.Id = p.UpdatedBy.Id
+	oldProfile.UpdatedBy = p.UpdatedBy
 	oldProfile.Name = p.Name
 	oldProfile.Description = p.Description
 	oldProfile.Host = p.Host

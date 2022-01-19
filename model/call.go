@@ -203,9 +203,9 @@ type CCTask struct {
 type CallAnnotation struct {
 	Id        int64     `json:"id" db:"id"`
 	CallId    string    `json:"call_id,omitempty" db:"call_id"`
-	CreatedBy Lookup    `json:"created_by" db:"created_by"`
+	CreatedBy *Lookup   `json:"created_by" db:"created_by"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
-	UpdatedBy Lookup    `json:"updated_by" db:"updated_by"`
+	UpdatedBy *Lookup   `json:"updated_by" db:"updated_by"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	Note      string    `json:"note" db:"note"`
 	StartSec  int32     `json:"start_sec" db:"start_sec"`

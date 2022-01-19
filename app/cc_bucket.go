@@ -37,7 +37,7 @@ func (app *App) UpdateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppErr
 	oldBucket.Description = bucket.Description
 
 	oldBucket.UpdatedAt = bucket.UpdatedAt
-	oldBucket.UpdatedBy.Id = bucket.UpdatedBy.Id
+	oldBucket.UpdatedBy = bucket.UpdatedBy
 
 	_, err = app.Store.Bucket().Update(oldBucket)
 	if err != nil {

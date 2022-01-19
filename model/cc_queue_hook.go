@@ -7,8 +7,8 @@ type QueueHook struct {
 	Schema    Lookup    `json:"schema" db:"schema"`
 	Event     string    `json:"event" db:"event"`
 	Enabled   bool      `json:"enabled" db:"enabled"`
-	UpdatedBy Lookup    `json:"updated_by" db:"updated_by"`
-	CreatedBy Lookup    `json:"created_by" db:"created_by"`
+	UpdatedBy *Lookup   `json:"updated_by" db:"updated_by"`
+	CreatedBy *Lookup   `json:"created_by" db:"created_by"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }

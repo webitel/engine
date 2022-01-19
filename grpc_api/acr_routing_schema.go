@@ -37,11 +37,11 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 			Id:        0,
 			DomainId:  session.Domain(0),
 			CreatedAt: model.GetMillis(),
-			CreatedBy: model.Lookup{
+			CreatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -146,7 +146,7 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 			Id:        in.Id,
 			DomainId:  session.Domain(0),
 			UpdatedAt: model.GetMillis(),
-			UpdatedBy: model.Lookup{
+			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
 		},
@@ -243,17 +243,11 @@ func (api *routingSchema) DeleteRoutingSchema(ctx context.Context, in *engine.De
 
 func transformRoutingSchema(src *model.RoutingSchema) *engine.RoutingSchema {
 	return &engine.RoutingSchema{
-		Id:        src.Id,
-		CreatedAt: src.CreatedAt,
-		CreatedBy: &engine.Lookup{
-			Id:   int64(src.CreatedBy.Id),
-			Name: src.CreatedBy.Name,
-		},
-		UpdatedAt: src.UpdatedAt,
-		UpdatedBy: &engine.Lookup{
-			Id:   int64(src.UpdatedBy.Id),
-			Name: src.UpdatedBy.Name,
-		},
+		Id:          src.Id,
+		CreatedAt:   src.CreatedAt,
+		CreatedBy:   GetProtoLookup(src.CreatedBy),
+		UpdatedAt:   src.UpdatedAt,
+		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
 		Description: src.Description,
 		Name:        src.Name,
 		Type:        src.Type,
