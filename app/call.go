@@ -32,7 +32,7 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 	}
 
 	if req.From != nil && (req.From.UserId != nil || req.From.Extension != nil) {
-		if from, err = app.GetCallInfoEndpoint(domainId, req.From); err != nil {
+		if from, err = app.GetCallInfoEndpoint(domainId, req.From, req.Params.IsOnline); err != nil {
 			return "", err
 		}
 	} else {

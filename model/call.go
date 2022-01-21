@@ -124,6 +124,7 @@ type CallParameters struct {
 	Variables        map[string]string
 	DisableStun      bool
 	CancelDistribute bool
+	IsOnline         bool
 }
 
 func (r *OutboundCallRequest) IsValid() *AppError {
