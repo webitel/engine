@@ -40,9 +40,12 @@ type Conversation struct {
 	CreatedAt int64          `json:"created_at" db:"created_at"`
 	UpdatedAt int64          `json:"updated_at" db:"updated_at"`
 	JoinedAt  *int64         `json:"joined_at" db:"joined_at"`
+	ClosedAt  *int64         `json:"closed_at" db:"closed_at"`
 	Variables StringMap      `json:"variables"`
 	Members   []*ChatMember  `json:"members" db:"members"`
 	Messages  []*ChatMessage `json:"messages" db:"messages"`
+	LeavingAt *int64         `json:"leaving_at" db:"leaving_at"`
+	Task      *CCTask        `json:"task"`
 }
 
 func NewWebSocketChatEvent(event *ChatEvent) *WebSocketEvent {

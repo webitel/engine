@@ -191,14 +191,17 @@ type Call struct {
 }
 
 type CCTask struct {
-	Reporting    bool                 `json:"reporting"`
-	AttemptId    int64                `json:"attempt_id"`
-	Channel      string               `json:"channel"`
-	QueueId      int                  `json:"queue_id"`
-	MemberId     int64                `json:"member_id"`
-	MemberCallId *string              `json:"member_call_id"`
-	AgentCallId  *string              `json:"agent_call_id"`
-	Destination  *MemberCommunication `json:"destination"`
+	HasReporting         bool                 `json:"has_reporting"`
+	AttemptId            int64                `json:"attempt_id"`
+	Channel              string               `json:"channel"`
+	QueueId              *int                 `json:"queue_id"`
+	QueueName            *string              `json:"queue_name"`
+	MemberId             int64                `json:"member_id"`
+	MemberCallId         *string              `json:"member_channel_id"`
+	AgentCallId          *string              `json:"agent_channel_id"`
+	Destination          *MemberCommunication `json:"communication"`
+	ProcessingSec        *int                 `json:"processing_sec"`
+	ProcessingRenewalSec *int                 `json:"processing_renewal_sec"`
 }
 
 type CallAnnotation struct {

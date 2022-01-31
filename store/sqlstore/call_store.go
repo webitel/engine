@@ -68,6 +68,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
 	and (:State::varchar[] isnull or state = any(:State) )
+	and parent_id isnull
 `,
 		model.Call{}, f)
 	if err != nil {
@@ -127,6 +128,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and parent_id isnull
 	and (
         (t.user_id in (
             with x as (
@@ -218,24 +220,60 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 // fixme
 func (s SqlCallStore) GetUserActiveCall(domainId, userId int64) ([]*model.Call, *model.AppError) {
 	var res []*model.Call
-	_, err := s.GetMaster().Select(&res, `select
-       row_to_json(at) task,
-       "id", "app_id", c."state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
-		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
-		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display"
-from call_center.cc_call_active_list c
-    left join lateral (
-    select a.id as attempt_id, a.channel, a.queue_id, q.name as queue_name, a.member_id, a.member_call_id as member_channel_id,
-           a.agent_call_id as agent_channel_id, a.destination as communication,
+	_, err := s.GetMaster().Select(&res, `select row_to_json(at) task,
+       c."id",
+       c."app_id",
+       c."state",
+       c."timestamp",
+       c."parent_id",
+       c."direction",
+       c."destination",
+       json_build_object('type', COALESCE(c.from_type, ''::character varying), 'number',
+                         COALESCE(c.from_number, ''::character varying), 'id',
+                         COALESCE(c.from_id, ''::character varying), 'name',
+                         COALESCE(c.from_name, ''::character varying))                        AS "from",
+       CASE
+           WHEN c.to_number::text <> ''::text THEN json_build_object('type', COALESCE(c.to_type, ''::character varying),
+                                                                     'number',
+                                                                     COALESCE(c.to_number, ''::character varying), 'id',
+                                                                     COALESCE(c.to_id, ''::character varying), 'name',
+                                                                     COALESCE(c.to_name, ''::character varying))
+           ELSE NULL::json
+           END                                                                                AS "to",
+       CASE
+           WHEN c.payload IS NULL THEN '{}'::jsonb
+           ELSE c.payload
+           END                                                                                AS variables,
+       c."created_at",
+       c."answered_at",
+       c."bridged_at",
+       c."hangup_at",
+       c."hold_sec",
+       call_center.cc_get_lookup(cq.id::bigint, cq.name)                                      AS queue,
+		at.leaving_at
+from call_center.cc_calls c
+         left join call_center.cc_queue cq on c.queue_id = cq.id
+         left join lateral (
+    select a.id             as attempt_id,
+           a.channel,
+           a.queue_id,
+           cq.name           as queue_name,
+           a.member_id,
+           a.member_call_id as member_channel_id,
+           a.agent_call_id as agent_channel_id,
+           a.destination,
            a.state,
-           q.processing as reporting
+		   a.leaving_at,	
+           cq.processing     as has_reporting,
+		   cq.processing_sec,
+		   cq.processing_renewal_sec
     from call_center.cc_member_attempt a
-        inner join call_center.cc_queue q on q.id = a.queue_id
-    where a.id = c.attempt_id and a.agent_call_id = c.id
-) at on true
-where c.user_id = :UserId and c.domain_id = :DomainId
-    and ((at.state != 'leaving') or c.hangup_at isnull )`, map[string]interface{}{
+    where a.id = c.attempt_id
+      and a.agent_call_id = c.id
+    ) at on true
+where c.user_id = :UserId
+  and c.domain_id = :DomainId
+  and ((at.state != 'leaving') or c.hangup_at isnull);`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})

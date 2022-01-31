@@ -27,24 +27,31 @@ select
     call_center.cc_view_timestamp(c.created_at) created_at,
     call_center.cc_view_timestamp(c.updated_at) updated_at,
     call_center.cc_view_timestamp(ch.joined_at) joined_at,
+    call_center.cc_view_timestamp(ch.closed_at) closed_at,
     m.messages,
     mem.members,
-    coalesce(ch.props, '{}')::jsonb as variables
+    coalesce(ch.props, '{}')::jsonb as variables,
+    row_to_json(at) task,
+	 (extract(EPOCH from at.leaving_at) * 1000)::int8 as leaving_at
 from (
-     select 1 pri, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props
+     select 1 pri, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props, null::timestamptz as closed_at 
      from chat.invite inv
      where inv.user_id = :UserId::int8 and inv.closed_at isnull
         and inv.domain_id = :DomainId::int8
      union
 
-     select 2, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props
+     select 2, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props, ch.closed_at
      from (
-        select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props
-        from chat.channel ch
-        where ch.user_id = :UserId::int8 and ch.closed_at isnull
-            and ch.domain_id = :DomainId::int8
-        order by ch.created_at desc, ch.updated_at desc
-        limit 40
+		select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props, ch.closed_at
+		from chat.channel ch
+		where ch.user_id = :UserId::int8
+		  and (ch.closed_at isnull or exists(select 1
+											 from call_center.cc_member_attempt mat
+												 inner join call_center.cc_agent a on a.id = mat.agent_id
+											 where a.user_id = :UserId::int8 and mat.agent_call_id = ch.conversation_id and mat.state != 'leaving'))
+		  and ch.domain_id = :DomainId::int8
+		order by ch.created_at desc, ch.updated_at desc
+		limit 40
      ) ch
 ) ch
     inner join chat.conversation c on c.id = ch.conversation_id
@@ -75,6 +82,24 @@ end) as "file", m.type, m.channel_id
             limit 10
         ) t
     ) mem on true
+    left join lateral (
+            select a.id             as attempt_id,
+           a.channel,
+           a.queue_id,
+           q.name           as queue_name,
+           a.member_id,
+           a.member_call_id as member_channel_id,
+           a.agent_call_id as agent_channel_id,
+           a.destination,
+           a.state,
+		   a.leaving_at,	
+           q.processing     as has_reporting,
+		   q.processing_sec,
+		   q.processing_renewal_sec
+    from call_center.cc_member_attempt a
+            inner join call_center.cc_queue q on q.id = a.queue_id
+        where  a.agent_call_id = c.id
+    ) at on true
 order by ch.pri, ch.updated_at desc`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
