@@ -837,7 +837,7 @@ func (s SqlAgentStore) StatusStatistic(domainId int64, supervisorUserId int64, g
 from (
          select a.id                                                                                  agent_id,
                 a.domain_id,
-                coalesce(u.name, u.username)                      as                                  name,
+                coalesce(u.name, u.username)::varchar COLLATE "default"                      as                                  name,
                 coalesce(u.extension, '')                         as                                  extension,
                 a.status,
                 extract(epoch from x.t)::int                                                          status_duration,
