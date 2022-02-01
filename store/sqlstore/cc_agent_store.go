@@ -562,12 +562,12 @@ func (s SqlAgentStore) LookupNotExistsUsers(domainId int64, search *model.Search
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().Select(&users,
-		`select u.id, COALESCE(u.name::character varying::name, u.username COLLATE "default")::character varying as name
+		`select u.id, COALESCE(u.name::text, u.username) COLLATE "default" as name
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
-  and   ( (:Q::varchar isnull or (coalesce( (u.name)::varchar, u.username) ilike :Q::varchar ) ))
-order by coalesce( (u.name)::varchar, u.username) 
+  and   ( (:Q::varchar isnull or (COALESCE(u.name::text, u.username) COLLATE "default" ilike :Q::varchar ) ))
+order by COALESCE(u.name::text, u.username) COLLATE "default"
 limit :Limit
 offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
@@ -585,7 +585,7 @@ func (s SqlAgentStore) LookupNotExistsUsersByGroups(domainId int64, groups []int
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().Select(&users,
-		`select u.id, COALESCE(u.name::character varying::name, u.username COLLATE "default")::character varying as name
+		`select u.id, COALESCE(u.name::text, u.username) COLLATE "default" as name
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
@@ -594,8 +594,8 @@ where u.dc = :DomainId
 	  from directory.wbt_auth_acl acl
 	  where acl.dc = u.dc and acl.object = u.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
   ) 
-  and   ( (:Q::varchar isnull or (coalesce( (u.name)::varchar, u.username) ilike :Q::varchar ) ))
-order by coalesce( (u.name)::varchar, u.username) 
+  and   ( (:Q::varchar isnull or (COALESCE(u.name::text, u.username) COLLATE "default" ilike :Q::varchar ) ))
+order by COALESCE(u.name::text, u.username) COLLATE "default"
 limit :Limit
 offset :Offset`, map[string]interface{}{
 			"DomainId": domainId,
