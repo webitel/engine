@@ -562,7 +562,7 @@ func (s SqlAgentStore) LookupNotExistsUsers(domainId int64, search *model.Search
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().Select(&users,
-		`select u.id, coalesce( (u.name)::varchar, u.username) as name
+		`select u.id, COALESCE(u.name::character varying::name, u.username COLLATE "default")::character varying as name
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
@@ -585,7 +585,7 @@ func (s SqlAgentStore) LookupNotExistsUsersByGroups(domainId int64, groups []int
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().Select(&users,
-		`select u.id, coalesce( (u.name)::varchar, u.username) as name
+		`select u.id, COALESCE(u.name::character varying::name, u.username COLLATE "default")::character varying as name
 from directory.wbt_user u
 where u.dc = :DomainId
   and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
