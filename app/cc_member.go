@@ -7,6 +7,13 @@ import (
 )
 
 func (app *App) CreateMember(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+	q, err := app.GetQueueById(domainId, member.QueueId)
+	if err != nil {
+		return nil, err
+	}
+	if q.Type == 1 || q.Type == 6 {
+		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.queue", nil, "Mismatch queue type", http.StatusBadRequest)
+	}
 	return app.Store.Member().Create(domainId, member)
 }
 
@@ -20,9 +27,12 @@ func (a *App) SearchMembers(domainId int64, search *model.SearchMemberRequest) (
 }
 
 func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError) {
-	_, err := app.GetQueueById(domainId, queueId)
+	q, err := app.GetQueueById(domainId, queueId)
 	if err != nil {
 		return nil, err
+	}
+	if q.Type == 1 || q.Type == 6 {
+		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.queue", nil, "Mismatch queue type", http.StatusBadRequest)
 	}
 	return app.Store.Member().BulkCreate(domainId, queueId, members)
 }
