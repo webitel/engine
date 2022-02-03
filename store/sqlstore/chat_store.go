@@ -48,7 +48,7 @@ from (
 		  and (ch.closed_at isnull or exists(select 1
 											 from call_center.cc_member_attempt mat
 												 inner join call_center.cc_agent a on a.id = mat.agent_id
-											 where a.user_id = :UserId::int8 and mat.agent_call_id = ch.conversation_id and mat.state != 'leaving'))
+											 where a.user_id = :UserId::int8 and mat.agent_call_id = ch.id and mat.state != 'leaving'))
 		  and ch.domain_id = :DomainId::int8
 		order by ch.created_at desc, ch.updated_at desc
 		limit 40
@@ -98,7 +98,7 @@ end) as "file", m.type, m.channel_id
 		   q.processing_renewal_sec
     from call_center.cc_member_attempt a
             inner join call_center.cc_queue q on q.id = a.queue_id
-        where  a.agent_call_id = c.id
+        where a.agent_call_id = ch.id
     ) at on true
 order by ch.pri, ch.updated_at desc`, map[string]interface{}{
 		"UserId":   userId,
