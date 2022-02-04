@@ -144,3 +144,7 @@ func (s *LayeredStore) PauseCause() PauseCauseStore {
 func (s *LayeredStore) Notification() NotificationStore {
 	return s.DatabaseLayer.Notification()
 }
+
+func (s *LayeredStore) ChatPlan() ChatPlanStore {
+	return s.DatabaseLayer.ChatPlan()
+}

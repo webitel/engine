@@ -37,6 +37,8 @@ type API struct {
 	region       *region
 	pauseCause   *pauseCause
 	userHelper   *userHelper
+
+	chatPlan *chatPlanApi
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -71,6 +73,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.region = NewRegionApi(api)
 	api.pauseCause = NewPauseCause(api)
 	api.userHelper = NewUserHelperApi(api)
+	api.chatPlan = NewChatPlan(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -99,4 +102,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterRegionServiceServer(server, api.region)
 	engine.RegisterAgentPauseCauseServiceServer(server, api.pauseCause)
 	engine.RegisterUserHelperServiceServer(server, api.userHelper)
+	engine.RegisterRoutingChatPlanServiceServer(server, api.chatPlan)
 }

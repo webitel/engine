@@ -57,6 +57,8 @@ type Store interface {
 
 	PauseCause() PauseCauseStore
 	Notification() NotificationStore
+
+	ChatPlan() ChatPlanStore
 }
 
 // todo deprecated
@@ -351,4 +353,12 @@ type NotificationStore interface {
 	Create(notification *model.Notification) (*model.Notification, *model.AppError)
 	Close(id, userId int64) (*model.Notification, *model.AppError)
 	Accept(id, userId int64) (*model.Notification, *model.AppError)
+}
+
+type ChatPlanStore interface {
+	Create(domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchChatPlan) ([]*model.ChatPlan, *model.AppError)
+	Get(domainId int64, id int32) (*model.ChatPlan, *model.AppError)
+	Update(domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError)
+	Delete(domainId int64, id int32) *model.AppError
 }

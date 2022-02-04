@@ -56,6 +56,7 @@ type SqlSupplierOldStores struct {
 	call                    store.CallStore
 	emailProfile            store.EmailProfileStore
 	chat                    store.ChatStore
+	chatPlan                store.ChatPlanStore
 	region                  store.RegionStore
 	pauseCause              store.PauseCauseStore
 	notification            store.NotificationStore
@@ -114,6 +115,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
+	supplier.oldStores.chatPlan = NewSqlChatPlanStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -321,6 +323,10 @@ func (ss *SqlSupplier) EmailProfile() store.EmailProfileStore {
 
 func (ss *SqlSupplier) Chat() store.ChatStore {
 	return ss.oldStores.chat
+}
+
+func (ss *SqlSupplier) ChatPlan() store.ChatPlanStore {
+	return ss.oldStores.chatPlan
 }
 
 func (ss *SqlSupplier) Region() store.RegionStore {

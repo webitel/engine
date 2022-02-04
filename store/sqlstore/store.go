@@ -44,6 +44,7 @@ type SqlStore interface {
 	Call() store.CallStore
 	EmailProfile() store.EmailProfileStore
 	Chat() store.ChatStore
+	ChatPlan() store.ChatPlanStore
 
 	Region() store.RegionStore
 	PauseCause() store.PauseCauseStore
