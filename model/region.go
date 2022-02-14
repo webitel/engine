@@ -1,7 +1,7 @@
 package model
 
 type Region struct {
-	Id          uint32  `json:"id" db:"id"`
+	Id          int64   `json:"id" db:"id"`
 	Name        string  `json:"name" db:"name"`
 	Description *string `json:"description" db:"description"`
 	Timezone    Lookup  `json:"timezone" db:"timezone"`
@@ -9,7 +9,7 @@ type Region struct {
 
 type SearchRegion struct {
 	ListRequest
-	Ids         []uint32
+	Ids         []int64
 	TimezoneIds []uint32
 	Name        *string
 	Description *string

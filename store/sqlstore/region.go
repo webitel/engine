@@ -68,7 +68,7 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 	return region, nil
 }
 
-func (s SqlRegionStore) Get(domainId int64, id uint32) (*model.Region, *model.AppError) {
+func (s SqlRegionStore) Get(domainId int64, id int64) (*model.Region, *model.AppError) {
 	var region *model.Region
 	err := s.GetReplica().SelectOne(&region, `select r.id, r.name, r.description, call_center.cc_get_lookup(t.id, t.name) timezone
 from flow.region r
@@ -112,7 +112,7 @@ from r
 
 }
 
-func (s SqlRegionStore) Delete(domainId int64, id uint32) *model.AppError {
+func (s SqlRegionStore) Delete(domainId int64, id int64) *model.AppError {
 	if _, err := s.GetMaster().Exec(`delete from flow.region c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRegionStore.Delete", "store.sql_region.delete.app_error", nil,

@@ -27,7 +27,7 @@ func (c *Controller) CreateRegion(session *auth_manager.Session, region *model.R
 	return c.app.CreateRegion(session.Domain(0), region)
 }
 
-func (c *Controller) GetRegion(session *auth_manager.Session, id uint32) (*model.Region, *model.AppError) {
+func (c *Controller) GetRegion(session *auth_manager.Session, id int64) (*model.Region, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -53,7 +53,7 @@ func (c *Controller) UpdateRegion(session *auth_manager.Session, region *model.R
 	return c.app.UpdateRegion(session.DomainId, region)
 }
 
-func (c *Controller) PatchRegion(session *auth_manager.Session, id uint32, patch *model.RegionPatch) (*model.Region, *model.AppError) {
+func (c *Controller) PatchRegion(session *auth_manager.Session, id int64, patch *model.RegionPatch) (*model.Region, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -66,7 +66,7 @@ func (c *Controller) PatchRegion(session *auth_manager.Session, id uint32, patch
 	return c.app.PatchRegion(session.DomainId, id, patch)
 }
 
-func (c *Controller) DeleteRegion(session *auth_manager.Session, id uint32) (*model.Region, *model.AppError) {
+func (c *Controller) DeleteRegion(session *auth_manager.Session, id int64) (*model.Region, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanDelete() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)

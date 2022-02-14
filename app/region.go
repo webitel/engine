@@ -17,7 +17,7 @@ func (a *App) CreateRegion(domainId int64, region *model.Region) (*model.Region,
 	return a.Store.Region().Create(domainId, region)
 }
 
-func (a *App) GetRegion(domainId int64, id uint32) (*model.Region, *model.AppError) {
+func (a *App) GetRegion(domainId int64, id int64) (*model.Region, *model.AppError) {
 	return a.Store.Region().Get(domainId, id)
 }
 
@@ -39,7 +39,7 @@ func (a *App) UpdateRegion(domainId int64, region *model.Region) (*model.Region,
 	return oldRegion, nil
 }
 
-func (a *App) PatchRegion(domainId int64, id uint32, patch *model.RegionPatch) (*model.Region, *model.AppError) {
+func (a *App) PatchRegion(domainId int64, id int64, patch *model.RegionPatch) (*model.Region, *model.AppError) {
 	oldRegion, err := a.GetRegion(domainId, id)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (a *App) PatchRegion(domainId int64, id uint32, patch *model.RegionPatch) (
 	return oldRegion, nil
 }
 
-func (a *App) RemoveRegion(domainId int64, id uint32) (*model.Region, *model.AppError) {
+func (a *App) RemoveRegion(domainId int64, id int64) (*model.Region, *model.AppError) {
 	region, err := a.Store.Region().Get(domainId, id)
 
 	if err != nil {

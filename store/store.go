@@ -336,9 +336,9 @@ type EmailProfileStore interface {
 type RegionStore interface {
 	Create(domainId int64, region *model.Region) (*model.Region, *model.AppError)
 	GetAllPage(domainId int64, search *model.SearchRegion) ([]*model.Region, *model.AppError)
-	Get(domainId int64, id uint32) (*model.Region, *model.AppError)
+	Get(domainId int64, id int64) (*model.Region, *model.AppError)
 	Update(domainId int64, region *model.Region) (*model.Region, *model.AppError)
-	Delete(domainId int64, id uint32) *model.AppError
+	Delete(domainId int64, id int64) *model.AppError
 }
 
 type PauseCauseStore interface {
