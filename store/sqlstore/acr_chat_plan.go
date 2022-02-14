@@ -138,3 +138,21 @@ func (s SqlChatPlanStore) Delete(domainId int64, id int32) *model.AppError {
 	}
 	return nil
 }
+
+func (s SqlChatPlanStore) GetSchemaId(domainId int64, id int32) (int, *model.AppError) {
+	schemaId, err := s.GetReplica().SelectInt(`select p.schema_id
+from flow.acr_chat_plan p
+where p.domain_id = :DomainId
+    and p.enabled
+    and p.id = :Id`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+	})
+
+	if err != nil {
+		return 0, model.NewAppError("SqlChatPlanStore.GetSchemaId", "store.sql_chat_plan.get.schema_id.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return int(schemaId), nil
+}

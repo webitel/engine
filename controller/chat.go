@@ -54,3 +54,8 @@ func (c *Controller) ListActiveChat(session *auth_manager.Session, page, size in
 	// FIXME PERMISSION
 	return c.app.ListActiveChat(session.Token, session.DomainId, session.UserId, page, size)
 }
+
+func (c *Controller) BlindTransferChat(session *auth_manager.Session, conversationId, channelId string, planId int32, vars map[string]string) *model.AppError {
+	// FIXME PERMISSION
+	return c.app.BlindTransferChat(session.DomainId, conversationId, channelId, planId, vars)
+}

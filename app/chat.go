@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/model"
 	"net/http"
 )
@@ -134,4 +135,23 @@ func (a *App) UpdateChannelChat(authUserId int64, channelId string, readUntil in
 
 func (a *App) ListActiveChat(token string, domainId, userId int64, page, size int) ([]*model.Conversation, *model.AppError) {
 	return a.Store.Chat().OpenedConversations(domainId, userId)
+}
+
+func (a *App) BlindTransferChat(domainId int64, conversationId, channelId string, planId int32, vars map[string]string) *model.AppError {
+	schemaId, err := a.Store.ChatPlan().GetSchemaId(domainId, planId)
+	if err != nil {
+		return err
+	}
+
+	chat, errChat := a.chatManager.Client()
+	if errChat != nil {
+		return model.NewAppError("BlindTransferChat", "chat.transfer.client_err", nil, errChat.Error(), http.StatusInternalServerError)
+	}
+
+	errChat = chat.BlindTransfer(context.Background(), conversationId, channelId, int64(schemaId), vars)
+	if errChat != nil {
+		return model.NewAppError("BlindTransferChat", "chat.transfer.api_err", nil, errChat.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }

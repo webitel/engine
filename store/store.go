@@ -361,4 +361,5 @@ type ChatPlanStore interface {
 	Get(domainId int64, id int32) (*model.ChatPlan, *model.AppError)
 	Update(domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError)
 	Delete(domainId int64, id int32) *model.AppError
+	GetSchemaId(domainId int64, id int32) (int, *model.AppError)
 }

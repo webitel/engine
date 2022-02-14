@@ -8,6 +8,7 @@ import (
 	"github.com/webitel/wlog"
 	"google.golang.org/grpc/metadata"
 	"strconv"
+	"time"
 )
 
 func (cc *chatConnection) Decline(authUserId int64, inviteId string) error {
@@ -107,6 +108,7 @@ func (cc *chatConnection) AddToChat(authUserId, userId int64, channelId, convers
 		InviterChannelId: channelId,
 		AuthUserId:       authUserId,
 		Title:            title,
+		DomainId:         1, // todo add
 	})
 	return err
 }
@@ -126,7 +128,7 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 		return err
 	}
 
-	_, err = cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
+	c, err := cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
 		User: &client.User{
 			UserId:     userId,
 			Type:       "webitel",
@@ -135,7 +137,19 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 		},
 		ConversationId:   res.ConversationId,
 		InviterChannelId: res.ChannelId,
+		TimeoutSec:       30,
+		DomainId:         domainId,
 		AuthUserId:       authUserId,
+		Title:            "test",
+	})
+
+	if err != nil {
+		return err
+	}
+	time.Sleep(time.Second)
+	_, err = cc.api.JoinConversation(context.Background(), &client.JoinConversationRequest{
+		InviteId:   c.InviteId,
+		AuthUserId: authUserId,
 	})
 
 	return err
@@ -188,4 +202,15 @@ func (cc *chatConnection) InviteToConversation(ctx context.Context, domainId, us
 	}
 
 	return res.InviteId, nil
+}
+
+func (cc *chatConnection) BlindTransfer(ctx context.Context, conversationId, channelId string, schemaId int64, vars map[string]string) error {
+	_, err := cc.api.BlindTransfer(ctx, &client.ChatTransferRequest{
+		ConversationId: conversationId,
+		ChannelId:      channelId,
+		SchemaId:       schemaId,
+		Variables:      vars,
+	})
+
+	return err
 }
