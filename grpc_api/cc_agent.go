@@ -821,6 +821,8 @@ func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCa
 		MaxHoldSec:  src.MaxHoldSec,
 		Utilization: src.Utilization,
 		Occupancy:   src.Occupancy,
+		ChatAccepts: src.ChatAccepts,
+		ChatAht:     src.ChatAHT,
 	}
 }
 

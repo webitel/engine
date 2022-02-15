@@ -277,6 +277,8 @@ type AgentCallStatistics struct {
 	MaxHoldSec  float32 `json:"max_hold_sec" db:"max_hold_sec"`
 	Utilization float32 `json:"utilization" db:"utilization"`
 	Occupancy   float32 `json:"occupancy" db:"occupancy"`
+	ChatAccepts int32   `json:"chat_accepts" db:"chat_accepts"`
+	ChatAHT     int32   `json:"chat_aht" db:"chat_aht"`
 }
 
 type SearchAgentCallStatistics struct {
@@ -291,12 +293,12 @@ func (c AgentCallStatistics) DefaultOrder() string {
 
 func (c AgentCallStatistics) AllowFields() []string {
 	return []string{"name", "count", "abandoned", "handles", "sum_talk_sec", "avg_talk_sec", "min_talk_sec", "max_talk_sec",
-		"sum_hold_sec", "avg_hold_sec", "min_hold_sec", "max_hold_sec", "utilization", "occupancy",
+		"sum_hold_sec", "avg_hold_sec", "min_hold_sec", "max_hold_sec", "utilization", "occupancy", "chat_accepts", "chat_aht",
 	}
 }
 
 func (c AgentCallStatistics) DefaultFields() []string {
-	return []string{"name", "count", "abandoned", "handles", "sum_talk_sec", "sum_hold_sec", "utilization", "occupancy"}
+	return []string{"name", "count", "abandoned", "handles", "sum_talk_sec", "sum_hold_sec", "utilization", "occupancy", "chat_accepts", "chat_aht"}
 }
 
 func (c AgentCallStatistics) EntityName() string {

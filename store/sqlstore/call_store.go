@@ -68,7 +68,6 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
 	and (:State::varchar[] isnull or state = any(:State) )
-	and parent_id isnull
 `,
 		model.Call{}, f)
 	if err != nil {
@@ -128,7 +127,6 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar[] isnull or direction = any(:Direction) )
 	and (:Missed::bool isnull or (:Missed and answered_at isnull))
-	and parent_id isnull
 	and (
         (t.user_id in (
             with x as (

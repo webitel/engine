@@ -671,26 +671,30 @@ from (
         coalesce(res.min_hold_sec, 0) as min_hold_sec,
         coalesce(res.max_hold_sec, 0) as max_hold_sec,
         case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end utilization,
-        case when onl_all > 0 then ((coalesce(work_dur, 0) / (onl_all + pause_all))) * 100 else 0 end occupancy
+        case when onl_all > 0 then ((coalesce(work_dur, 0) / (onl_all + pause_all))) * 100 else 0 end occupancy,
+		coalesce(res.chat_count, 0) as chat_accepts,
+		coalesce(res.chat_aht, 0) as chat_aht
     from (
-         select c.agent_id,
-               count(*) as count,
-               count(*) filter ( where c.answered_at isnull and c.cause in ('NO_ANSWER', 'ORIGINATOR_CANCEL') ) as abandoned, -- todo is missing
-               count(*) filter ( where c.answered_at notnull ) as handles,
-               extract(epoch from sum(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as sum_talk_sec,
-               extract(epoch from avg(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as avg_talk_sec,
-               extract(epoch from min(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as min_talk_sec,
-               extract(epoch from max(c.hangup_at - c.bridged_at) filter ( where c.bridged_at notnull )) as max_talk_sec,
-               sum(c.hold_sec) sum_hold_sec,
-               avg(c.hold_sec) avg_hold_sec,
-               min(c.hold_sec) min_hold_sec,
-               max(c.hold_sec) max_hold_sec
-        from call_center.cc_calls_history c
-            inner join call_center.cc_member_attempt_history cma on c.attempt_id = cma.id
-        where created_at between :From and :To
-            and c.domain_id = :DomainId and c.agent_id notnull
-			and (:AgentIds::int[] isnull or c.agent_id = any(:AgentIds) )
-        group by c.agent_id
+         select cma.agent_id,
+			   count(*) filter ( where cma.channel = 'chat' ) as chat_count,
+			   (avg(extract(epoch from coalesce(cma.reporting_at, cma.leaving_at) - cma.bridged_at)) filter ( where cma.channel = 'chat' and cma.bridged_at notnull ))::int4 as chat_aht,
+			   count(*) filter ( where cma.channel = 'call' ) as count,
+			   count(*) filter ( where cma.channel = 'call' and c.answered_at isnull and c.cause in ('NO_ANSWER', 'ORIGINATOR_CANCEL') ) as abandoned, -- todo is missing
+			   count(*) filter ( where cma.channel = 'call' and  c.answered_at notnull ) as handles,
+			   extract(epoch from sum(c.hangup_at - c.bridged_at) filter ( where cma.channel = 'call' and c.bridged_at notnull )) as sum_talk_sec,
+			   extract(epoch from avg(c.hangup_at - c.bridged_at) filter ( where cma.channel = 'call' and c.bridged_at notnull )) as avg_talk_sec,
+			   extract(epoch from min(c.hangup_at - c.bridged_at) filter ( where cma.channel = 'call' and c.bridged_at notnull )) as min_talk_sec,
+			   extract(epoch from max(c.hangup_at - c.bridged_at) filter ( where cma.channel = 'call' and c.bridged_at notnull )) as max_talk_sec,
+			   sum(c.hold_sec) sum_hold_sec,
+			   avg(c.hold_sec) avg_hold_sec,
+			   min(c.hold_sec) min_hold_sec,
+			   max(c.hold_sec) max_hold_sec
+		from call_center.cc_member_attempt_history cma
+			   left join call_center.cc_calls_history c on c.id = cma.agent_call_id and cma.channel = 'call'
+		where (cma.joined_at between :From::timestamptz and :To::timestamptz)
+			and cma.domain_id = :DomainId::int8
+			and (:AgentIds::int[] isnull or cma.agent_id = any(:AgentIds) )
+        group by cma.agent_id
     ) res
         inner join call_center.cc_agent a on a.id = res.agent_id
         inner join directory.wbt_user u on u.id = a.user_id
