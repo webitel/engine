@@ -358,6 +358,23 @@ func (app *App) HangupCall(domainId int64, req *model.HangupCall) *model.AppErro
 	return err
 }
 
+func (app *App) ConfirmPushCall(domainId int64, callId string) *model.AppError {
+	var cli call_manager.CallClient
+	var err *model.AppError
+
+	cli, err = app.getCallCli(domainId, callId, nil)
+	if err != nil {
+		return err
+	}
+
+	err = cli.ConfirmPushCall(callId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (app *App) HoldCall(domainId int64, req *model.UserCallRequest) *model.AppError {
 	var cli call_manager.CallClient
 	var err *model.AppError

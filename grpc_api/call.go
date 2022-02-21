@@ -622,6 +622,20 @@ func (api *call) DeleteCallAnnotation(ctx context.Context, in *engine.DeleteCall
 	return toEngineAnnotation(annotation), nil
 }
 
+func (api *call) ConfirmPush(ctx context.Context, in *engine.ConfirmPushRequest) (*engine.ConfirmPushResponse, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = api.ctrl.ConfirmPushCall(session, in.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ConfirmPushResponse{}, nil
+}
+
 func toEngineCall(src *model.Call) *engine.ActiveCall {
 	item := &engine.ActiveCall{
 		Id:               src.Id,

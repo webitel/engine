@@ -178,3 +178,12 @@ func (c *Controller) DeleteCallAnnotation(session *auth_manager.Session, id int6
 
 	return c.app.DeleteCallAnnotation(session.DomainId, id, callId)
 }
+
+func (c *Controller) ConfirmPushCall(session *auth_manager.Session, callId string) *model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.ConfirmPushCall(session.DomainId, callId)
+}

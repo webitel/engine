@@ -209,6 +209,29 @@ func (c *CallConnection) HangupCall(id, cause string) *model.AppError {
 	return nil
 }
 
+func (c *CallConnection) ConfirmPushCall(id string) *model.AppError {
+	res, err := c.api.ConfirmPush(context.Background(), &fs.ConfirmPushRequest{
+		Id: id,
+	})
+
+	if err != nil {
+		return model.NewAppError("ConfirmPushCall", "external.push_call.app_error", nil, err.Error(),
+			http.StatusInternalServerError)
+	}
+
+	if res.Error != nil {
+		//todo
+		if res.Error.Message == "No such channel!" {
+
+			return NotFoundCall
+		}
+
+		return model.NewAppError("ConfirmPushCall", "external.push_call.app_error", nil, res.Error.String(),
+			http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (c *CallConnection) SetCallVariables(id string, variables map[string]string) *model.AppError {
 
 	res, err := c.api.SetVariables(context.Background(), &fs.SetVariablesRequest{

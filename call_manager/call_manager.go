@@ -53,6 +53,7 @@ type CallClient interface {
 	DTMF(id string, ch rune) *model.AppError
 	Mute(id string, val bool) *model.AppError
 	BlindTransfer(id, destination string) *model.AppError
+	ConfirmPushCall(id string) *model.AppError
 
 	Close() error
 }
