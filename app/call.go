@@ -362,7 +362,8 @@ func (app *App) ConfirmPushCall(domainId int64, callId string) *model.AppError {
 	var cli call_manager.CallClient
 	var err *model.AppError
 
-	cli, err = app.getCallCli(domainId, callId, nil)
+	//todo get from store
+	cli, err = app.CallManager().CallClient() //app.getCallCli(domainId, callId, nil)
 	if err != nil {
 		return err
 	}
