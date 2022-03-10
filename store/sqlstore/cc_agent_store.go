@@ -676,7 +676,7 @@ from (
 		coalesce(res.chat_aht, 0) as chat_aht
     from (
          select cma.agent_id,
-			   count(*) filter ( where cma.channel = 'chat' ) as chat_count,
+			   count(*) filter ( where cma.channel = 'chat' and cma.bridged_at notnull) as chat_count,
 			   (avg(extract(epoch from coalesce(cma.reporting_at, cma.leaving_at) - cma.bridged_at)) filter ( where cma.channel = 'chat' and cma.bridged_at notnull ))::int4 as chat_aht,
 			   count(*) filter ( where cma.channel = 'call' ) as count,
 			   count(*) filter ( where cma.channel = 'call' and c.answered_at isnull and c.cause in ('NO_ANSWER', 'ORIGINATOR_CANCEL') ) as abandoned, -- todo is missing
