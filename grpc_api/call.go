@@ -697,6 +697,10 @@ func toEngineCall(src *model.Call) *engine.ActiveCall {
 		item.Extension = *src.Extension
 	}
 
+	if src.BlindTransfer != nil {
+		item.BlindTransfer = *src.BlindTransfer
+	}
+
 	return item
 }
 
@@ -805,6 +809,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 
 	if src.HangupDisposition != nil {
 		item.HangupDisposition = *src.HangupDisposition
+	}
+
+	if src.BlindTransfer != nil {
+		item.BlindTransfer = *src.BlindTransfer
 	}
 
 	return item

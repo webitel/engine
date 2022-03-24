@@ -186,8 +186,9 @@ type Call struct {
 	Display          *string    `json:"display" db:"display"`
 	Supervisor       []*Lookup  `json:"supervisor" db:"supervisor"`
 
-	Task *CCTask     `json:"task"`
-	Hold []*CallHold `json:"hold" db:"hold"`
+	Task          *CCTask     `json:"task"`
+	Hold          []*CallHold `json:"hold" db:"hold"`
+	BlindTransfer *string     `json:"blind_transfer" db:"blind_transfer"`
 }
 
 type CCTask struct {
@@ -255,7 +256,7 @@ func (c Call) DefaultFields() []string {
 	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display", "supervisor",
+		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display", "supervisor", "blind_transfer",
 	}
 }
 
@@ -351,6 +352,7 @@ type HistoryCall struct {
 	AmdResult         *string           `json:"amd_result" db:"amd_result"`
 	AmdDurationSec    uint32            `json:"amd_duration" db:"amd_duration"`
 	HangupDisposition *string           `json:"hangup_disposition" db:"hangup_disposition"`
+	BlindTransfer     *string           `json:"blind_transfer" db:"blind_transfer"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -362,7 +364,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition",
+		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer",
 	}
 }
 

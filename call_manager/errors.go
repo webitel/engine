@@ -6,6 +6,6 @@ import (
 )
 
 var (
-	NotFoundCall = model.NewAppError("Call", "call.hangup.not_found", nil, "call not found",
+	NotFoundCall = model.NewAppError("Call", "call.not_found", nil, "call not found",
 		http.StatusNotFound)
 )
