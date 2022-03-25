@@ -155,3 +155,17 @@ func (a *App) BlindTransferChat(domainId int64, conversationId, channelId string
 
 	return nil
 }
+
+func (a *App) BlindTransferChatToUser(domainId int64, conversationId, channelId string, userId int64, vars map[string]string) *model.AppError {
+	chat, errChat := a.chatManager.Client()
+	if errChat != nil {
+		return model.NewAppError("BlindTransferChatToUser", "chat.transfer.client_err", nil, errChat.Error(), http.StatusInternalServerError)
+	}
+
+	errChat = chat.BlindTransferToUser(context.Background(), conversationId, channelId, userId, vars)
+	if errChat != nil {
+		return model.NewAppError("BlindTransferChatToUser", "chat.transfer.api_err", nil, errChat.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}

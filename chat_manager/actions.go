@@ -214,3 +214,15 @@ func (cc *chatConnection) BlindTransfer(ctx context.Context, conversationId, cha
 
 	return err
 }
+
+//TODO check domainId
+func (cc *chatConnection) BlindTransferToUser(ctx context.Context, conversationId, channelId string, userId int64, vars map[string]string) error {
+	_, err := cc.api.BlindTransfer(ctx, &client.ChatTransferRequest{
+		ConversationId: conversationId,
+		ChannelId:      channelId,
+		Variables:      vars,
+		UserId:         userId,
+	})
+
+	return err
+}

@@ -18,6 +18,7 @@ func (api *API) InitChat() {
 	api.Router.Handle("update_channel_chat", api.ApiWebSocketHandler(api.updateChannelChat))
 	api.Router.Handle("list_active_chat", api.ApiWebSocketHandler(api.listActiveChat))
 	api.Router.Handle("blind_transfer_chat", api.ApiWebSocketHandler(api.blindTransfer))
+	api.Router.Handle("transfer_user_chat", api.ApiWebSocketHandler(api.blindTransferToUser))
 }
 
 func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -270,6 +271,24 @@ func (api *API) blindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (m
 	}
 
 	return nil, api.ctrl.BlindTransferChat(conn.GetSession(), conversationId, channelId, int32(planId), nil)
+}
+
+func (api *API) blindTransferToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var conversationId, channelId string
+	var userId float64
+
+	conversationId, _ = req.Data["conversation_id"].(string)
+	if conversationId == "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, "conversation_id")
+	}
+	channelId, _ = req.Data["channel_id"].(string)
+
+	userId, _ = req.Data["user_id"].(float64)
+	if userId == 0 {
+		return nil, NewInvalidWebSocketParamError(req.Action, "user_id")
+	}
+
+	return nil, api.ctrl.BlindTransferChatToUser(conn.GetSession(), conversationId, channelId, int64(userId), nil)
 }
 
 func listChatResponse(list []*model.Conversation) map[string]interface{} {

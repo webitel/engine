@@ -59,3 +59,9 @@ func (c *Controller) BlindTransferChat(session *auth_manager.Session, conversati
 	// FIXME PERMISSION
 	return c.app.BlindTransferChat(session.DomainId, conversationId, channelId, planId, vars)
 }
+
+//todo check userId in domain
+func (c *Controller) BlindTransferChatToUser(session *auth_manager.Session, conversationId, channelId string, userId int64, vars map[string]string) *model.AppError {
+	// FIXME PERMISSION
+	return c.app.BlindTransferChatToUser(session.DomainId, conversationId, channelId, userId, vars)
+}
