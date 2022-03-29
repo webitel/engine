@@ -49,7 +49,7 @@ func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Mem
 			"SkillId":        member.Skill.GetSafeId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", member.Name, err.Error()), http.StatusInternalServerError)
+			fmt.Sprintf("name=%v, %v", member.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
