@@ -457,7 +457,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
-	and (:UserIds::int8[] isnull or user_id = any(:UserIds::int8[]))
+	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[] or user_ids::int[] && :UserIds::int[] )))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
