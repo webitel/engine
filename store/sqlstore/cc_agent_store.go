@@ -238,7 +238,8 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *m
        a.agent_id,
        call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
 	   call_center.cc_view_timestamp(a.leaving_at) as leaving_at,
-       extract(epoch from now() - a.last_state_change )::int as duration
+       extract(epoch from now() - a.last_state_change )::int as duration,
+       call_center.cc_view_timestamp(a.timeout) as timeout_at
 from call_center.cc_member_attempt a
     inner join call_center.cc_agent a2 on a2.id = a.agent_id
     inner join call_center.cc_queue cq on a.queue_id = cq.id

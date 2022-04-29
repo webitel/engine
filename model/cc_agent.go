@@ -401,6 +401,7 @@ type AgentTask struct {
 	State           string              `json:"state" db:"state"`
 	BridgedAt       *int64              `json:"bridged_at" db:"bridged_at"`
 	LeavingAt       *int64              `json:"leaving_at" db:"leaving_at"`
+	TimeoutAt       *int64              `json:"timeout_at" db:"timeout_at"`
 	Duration        int                 `json:"duration" db:"duration"`
 }
 
