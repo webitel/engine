@@ -201,6 +201,7 @@ type CCTask struct {
 	MemberCallId         *string              `json:"member_channel_id"`
 	AgentCallId          *string              `json:"agent_channel_id"`
 	Destination          *MemberCommunication `json:"communication"`
+	ProcessingTimeoutAt  *int64               `json:"processing_timeout_at"`
 	ProcessingSec        *int                 `json:"processing_sec"`
 	ProcessingRenewalSec *int                 `json:"processing_renewal_sec"`
 }

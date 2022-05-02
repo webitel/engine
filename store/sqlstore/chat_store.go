@@ -95,7 +95,8 @@ end) as "file", m.type, m.channel_id
 		   a.leaving_at,	
            q.processing     as has_reporting,
 		   q.processing_sec,
-		   q.processing_renewal_sec
+		   q.processing_renewal_sec,
+		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at
     from call_center.cc_member_attempt a
             inner join call_center.cc_queue q on q.id = a.queue_id
         where a.agent_call_id = ch.id

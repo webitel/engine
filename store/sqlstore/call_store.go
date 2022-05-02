@@ -264,7 +264,8 @@ from call_center.cc_calls c
 		   a.leaving_at,	
            cq.processing     as has_reporting,
 		   cq.processing_sec,
-		   cq.processing_renewal_sec
+		   cq.processing_renewal_sec,
+		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at	
     from call_center.cc_member_attempt a
     where a.id = c.attempt_id
       and a.agent_call_id = c.id
