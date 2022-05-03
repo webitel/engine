@@ -47,7 +47,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	}
 
 	if data, err = wh.handlerFunc(conn, r); err != nil {
-		wlog.Error(fmt.Sprintf("%v %v seq=%vq [details: %v]", "websocket", r.Action, r.Seq, err.DetailedError))
+		wlog.Error(fmt.Sprintf("%v %v seq=%vq [details: %v]", "websocket", r.Action, r.Seq, err.Error()))
 		//err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 

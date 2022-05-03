@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/cc"
 	"net/http"
@@ -195,6 +196,23 @@ func (app *App) RenewalAttempt(domainId, attemptId int64, renewal uint32) *model
 	err := app.cc.Member().RenewalResult(domainId, attemptId, renewal)
 	if err != nil {
 		return model.NewAppError("RenewalAttempt", "app.cc_member.renewal_attempt.app_err", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func (app *App) ProcessingActionForm(domainId, attemptId int64, appId string, formId string, action string, fields map[string]string) *model.AppError {
+	_, err := app.cc.Member().ProcessingActionForm(context.Background(), &cc.ProcessingFormActionRequest{
+		DomainId:  domainId,
+		AttemptId: attemptId,
+		AppId:     appId,
+		FormId:    formId,
+		Action:    action,
+		Fields:    fields,
+	})
+
+	if err != nil {
+		return model.NewAppError("ProcessingActionForm", "app.cc_member.form_action.app_err", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return nil

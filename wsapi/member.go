@@ -12,6 +12,7 @@ func (api *API) InitMember() {
 	api.Router.Handle("cc_fetch_offline_members", api.ApiWebSocketHandler(api.offlineMembers))
 	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
 	api.Router.Handle("cc_renewal", api.ApiWebSocketHandler(api.renewalAttempt))
+	api.Router.Handle("cc_form_action", api.ApiWebSocketHandler(api.processingActionFormAttempt))
 }
 
 func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -27,6 +28,31 @@ func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (
 	}
 
 	if err := api.ctrl.RenewalAttempt(conn.GetSession(), int64(attemptId), uint32(renewal)); err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	return res, nil
+}
+
+func (api *API) processingActionFormAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var attemptId float64
+	var ok bool
+	var appId, formId, action string
+	var fields map[string]interface{}
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	if appId, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
+	}
+	action, _ = req.Data["action"].(string)
+	fields, _ = req.Data["fields"].(map[string]interface{})
+
+	if err := api.ctrl.ProcessingActionFormAttempt(conn.GetSession(), int64(attemptId), appId,
+		formId, action, model.MapInterfaceToString(fields)); err != nil {
 		return nil, err
 	}
 

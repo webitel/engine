@@ -49,3 +49,12 @@ func (c *Controller) RenewalAttempt(session *auth_manager.Session, attemptId int
 
 	return c.app.RenewalAttempt(session.DomainId, attemptId, renewal)
 }
+
+func (c *Controller) ProcessingActionFormAttempt(session *auth_manager.Session, attemptId int64, appId string, formId string, action string, fields map[string]string) *model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.ProcessingActionForm(session.DomainId, attemptId, appId, formId, action, fields)
+}

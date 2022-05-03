@@ -85,3 +85,16 @@ func UnionStringMaps(src ...map[string]string) map[string]string {
 	}
 	return res
 }
+
+func MapInterfaceToString(src map[string]interface{}) map[string]string {
+	if src == nil {
+		return nil
+	}
+
+	res := make(map[string]string)
+	for k, v := range src {
+		res[k] = fmt.Sprintf("%v", v)
+	}
+
+	return res
+}
