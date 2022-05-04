@@ -1,12 +1,12 @@
 module github.com/webitel/engine
 
-go 1.15
+go 1.14
 
 require (
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/handlers v1.5.1
-	github.com/gorilla/mux v1.7.4
+	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/consul/api v1.12.0
 	github.com/jmoiron/sqlx v1.3.4
@@ -25,8 +25,4 @@ require (
 	google.golang.org/grpc v1.46.0
 )
 
-require (
-	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/poy/onpar v1.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-)
+replace google.golang.org/grpc => google.golang.org/grpc v1.27.0
