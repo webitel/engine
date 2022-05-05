@@ -26,6 +26,7 @@ type Queue struct {
 	Processing           bool      `json:"processing" db:"processing"`
 	ProcessingSec        uint32    `json:"processing_sec" db:"processing_sec"`
 	ProcessingRenewalSec uint32    `json:"processing_renewal_sec" db:"processing_renewal_sec"`
+	FormSchema           *Lookup   `json:"form_schema" db:"form_schema"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -40,7 +41,7 @@ func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
 		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
-		"processing", "processing_sec", "processing_renewal_sec"}
+		"processing", "processing_sec", "processing_renewal_sec", "form_schema"}
 }
 
 func (q Queue) EntityName() string {
@@ -118,6 +119,7 @@ type QueuePatch struct {
 	Processing           *bool     `json:"processing" db:"processing"`
 	ProcessingSec        *uint32   `json:"processing_sec" db:"processing_sec"`
 	ProcessingRenewalSec *uint32   `json:"processing_renewal_sec" db:"processing_renewal_sec"`
+	FormSchema           *Lookup   `json:"form_schema" db:"form_schema"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {
@@ -191,6 +193,10 @@ func (q *Queue) Patch(p *QueuePatch) {
 
 	if p.ProcessingRenewalSec != nil {
 		q.ProcessingRenewalSec = *p.ProcessingRenewalSec
+	}
+
+	if p.FormSchema != nil {
+		q.FormSchema = p.FormSchema
 	}
 }
 

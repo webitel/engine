@@ -43,10 +43,10 @@ func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError
     insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
                       created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
-					  processing, processing_sec, processing_renewal_sec)
+					  processing, processing_sec, processing_renewal_sec, form_schema_id)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
         :Variables, :DomainId, :DncListId, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
-		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec)
+		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec, :FormSchemaId)
     returning *
 )
 select q.id,
@@ -73,7 +73,8 @@ select q.id,
 	   q.sticky_agent,
 	   q.processing,
 	   q.processing_sec,
-	   q.processing_renewal_sec
+	   q.processing_renewal_sec,
+	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema
 from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -82,6 +83,7 @@ from q
          left join flow.acr_routing_scheme s on q.schema_id = s.id
          LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
+		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
          left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`,
 		map[string]interface{}{
@@ -109,6 +111,7 @@ from q
 			"Processing":           queue.Processing,
 			"ProcessingSec":        queue.ProcessingSec,
 			"ProcessingRenewalSec": queue.ProcessingRenewalSec,
+			"FormSchemaId":         queue.FormSchema.GetSafeId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
@@ -192,7 +195,8 @@ select q.id,
 	   q.sticky_agent,
 	   q.processing,
 	   q.processing_sec,
-       q.processing_renewal_sec
+	   q.processing_renewal_sec,
+	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema
 from call_center.cc_queue q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -201,9 +205,9 @@ from call_center.cc_queue q
          left join flow.acr_routing_scheme s on q.schema_id = s.id
          LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
+		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
          left join call_center.cc_team ct on q.team_id = ct.id
-         left join storage.media_files mf on mf.id = q.ringtone_id
-where q.domain_id = :DomainId and q.id = :Id 	
+         left join storage.media_files mf on mf.id = q.ringtone_id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Get", "store.sql_queue.get.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -235,7 +239,8 @@ set updated_at = :UpdatedAt,
 	sticky_agent = :StickyAgent,
 	processing = :Processing,
 	processing_sec = :ProcessingSec,
-    processing_renewal_sec = :ProcessingRenewalSec
+    processing_renewal_sec = :ProcessingRenewalSec,
+	form_schema_id = :FormSchemaId
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
@@ -263,8 +268,9 @@ select q.id,
 	   q.sticky_agent,
 	   q.processing,
 	   q.processing_sec,
-       q.processing_renewal_sec
-from q
+	   q.processing_renewal_sec,
+	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema
+from  q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
@@ -272,6 +278,7 @@ from q
          left join flow.acr_routing_scheme s on q.schema_id = s.id
          LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
          LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
+		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
          left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
 		"UpdatedAt":            queue.UpdatedAt,
@@ -297,6 +304,7 @@ from q
 		"Processing":           queue.Processing,
 		"ProcessingSec":        queue.ProcessingSec,
 		"ProcessingRenewalSec": queue.ProcessingRenewalSec,
+		"FormSchemaId":         queue.FormSchema.GetSafeId(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,

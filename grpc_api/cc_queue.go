@@ -66,6 +66,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		Processing:           in.Processing,
 		ProcessingSec:        in.ProcessingSec,
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
+		FormSchema:           GetLookup(in.GetFormSchema()),
 	}
 
 	if err = queue.IsValid(); err != nil {
@@ -208,6 +209,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.DoSchema = GetLookup(in.DoSchema)
 		case "after_schema.id":
 			patch.AfterSchema = GetLookup(in.AfterSchema)
+		case "form_schema.id":
+			patch.FormSchema = GetLookup(in.FormSchema)
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		case "sticky_agent":
@@ -289,6 +292,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		Ringtone:             GetLookup(in.Ringtone),
 		DoSchema:             GetLookup(in.DoSchema),
 		AfterSchema:          GetLookup(in.AfterSchema),
+		FormSchema:           GetLookup(in.GetFormSchema()),
 		Description:          in.Description,
 		StickyAgent:          in.StickyAgent,
 		Processing:           in.Processing,
@@ -446,6 +450,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Ringtone:             GetProtoLookup(src.Ringtone),
 		DoSchema:             GetProtoLookup(src.DoSchema),
 		AfterSchema:          GetProtoLookup(src.AfterSchema),
+		FormSchema:           GetProtoLookup(src.FormSchema),
 		Description:          src.Description,
 		Count:                int32(src.Count),
 		Waiting:              int32(src.Waiting),
