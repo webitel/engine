@@ -208,6 +208,7 @@ from call_center.cc_queue q
 		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
          left join call_center.cc_team ct on q.team_id = ct.id
          left join storage.media_files mf on mf.id = q.ringtone_id 	
+where q.domain_id = :DomainId and q.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Get", "store.sql_queue.get.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
