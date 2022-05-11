@@ -204,6 +204,7 @@ type CCTask struct {
 	ProcessingTimeoutAt  *int64               `json:"processing_timeout_at"`
 	ProcessingSec        *int                 `json:"processing_sec"`
 	ProcessingRenewalSec *int                 `json:"processing_renewal_sec"`
+	Form                 interface{}          `json:"form"`
 }
 
 type CallAnnotation struct {
