@@ -254,6 +254,7 @@ from call_center.cc_calls c
          left join lateral (
     select a.id             as attempt_id,
            a.channel,
+		   a.node_id as app_id,
            a.queue_id,
            cq.name           as queue_name,
            a.member_id,

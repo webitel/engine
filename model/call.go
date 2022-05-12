@@ -192,6 +192,7 @@ type Call struct {
 }
 
 type CCTask struct {
+	AppId                string               `json:"app_id"`
 	HasReporting         bool                 `json:"has_reporting"`
 	AttemptId            int64                `json:"attempt_id"`
 	Channel              string               `json:"channel"`

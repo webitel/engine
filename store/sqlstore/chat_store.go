@@ -85,6 +85,7 @@ end) as "file", m.type, m.channel_id
     left join lateral (
             select a.id             as attempt_id,
            a.channel,
+		   a.node_id as app_id,
            a.queue_id,
            q.name           as queue_name,
            a.member_id,
