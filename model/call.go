@@ -206,6 +206,7 @@ type CCTask struct {
 	ProcessingSec        *int                 `json:"processing_sec"`
 	ProcessingRenewalSec *int                 `json:"processing_renewal_sec"`
 	Form                 interface{}          `json:"form"`
+	HasForm              bool                 `json:"has_form,omitempty"`
 }
 
 type CallAnnotation struct {
