@@ -95,6 +95,7 @@ end) as "file", m.type, m.channel_id
            a.state,
 		   a.leaving_at,	
            q.processing     as has_reporting,
+	       q.processing and q.form_schema_id notnull as has_form,
 		   q.processing_sec,
 		   q.processing_renewal_sec,
 		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at,

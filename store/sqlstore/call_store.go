@@ -264,6 +264,7 @@ from call_center.cc_calls c
            a.state,
 		   a.leaving_at,	
            cq.processing     as has_reporting,
+		   cq.processing and cq.form_schema_id notnull as has_form,	
 		   cq.processing_sec,
 		   cq.processing_renewal_sec,
 		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at,
