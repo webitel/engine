@@ -9,6 +9,7 @@ type AgentTeam struct {
 	WrapUpTime        int16  `json:"wrap_up_time" db:"wrap_up_time"`
 	NoAnswerDelayTime int16  `json:"no_answer_delay_time" db:"no_answer_delay_time"`
 	CallTimeout       int16  `json:"call_timeout" db:"call_timeout"`
+	InviteChatTimeout int16  `json:"invite_chat_timeout" db:"invite_chat_timeout"`
 
 	Admin []*Lookup `json:"admin" db:"admin"`
 }
@@ -23,7 +24,7 @@ func (team AgentTeam) AllowFields() []string {
 
 func (team AgentTeam) DefaultFields() []string {
 	return []string{"id", "name", "description", "strategy", "max_no_answer", "wrap_up_time",
-		"no_answer_delay_time", "call_timeout", "updated_at", "admin"}
+		"no_answer_delay_time", "call_timeout", "updated_at", "admin", "invite_chat_timeout"}
 }
 
 func (team AgentTeam) EntityName() string {

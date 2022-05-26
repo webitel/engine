@@ -31,13 +31,13 @@ func (c *Controller) CreateQueueSkill(session *auth_manager.Session, qs *model.Q
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanDelete() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = c.app.QueueCheckAccess(session.Domain(0), int64(qs.QueueId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_CREATE); err != nil {
+		if perm, err = c.app.QueueCheckAccess(session.Domain(0), int64(qs.QueueId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, c.app.MakeResourcePermissionError(session, int64(qs.QueueId), permission, auth_manager.PERMISSION_ACCESS_CREATE)

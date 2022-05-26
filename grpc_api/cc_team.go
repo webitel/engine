@@ -47,6 +47,7 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 		NoAnswerDelayTime: int16(in.NoAnswerDelayTime),
 		CallTimeout:       int16(in.CallTimeout),
 		Admin:             GetLookups(in.Admin),
+		InviteChatTimeout: int16(in.InviteChatTimeout),
 	}
 
 	err = team.IsValid()
@@ -183,6 +184,7 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		NoAnswerDelayTime: int16(in.NoAnswerDelayTime),
 		CallTimeout:       int16(in.CallTimeout),
 		Admin:             GetLookups(in.Admin),
+		InviteChatTimeout: int16(in.InviteChatTimeout),
 	})
 
 	if err != nil {
@@ -233,5 +235,6 @@ func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {
 		NoAnswerDelayTime: int32(src.NoAnswerDelayTime),
 		CallTimeout:       int32(src.CallTimeout),
 		Admin:             GetProtoLookups(src.Admin),
+		InviteChatTimeout: int32(src.InviteChatTimeout),
 	}
 }
