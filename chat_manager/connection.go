@@ -33,6 +33,7 @@ type Chat interface {
 	InviteToConversation(ctx context.Context, domainId, userId int64, conversationId, inviterId, invUserId, title string, timeout int, vars map[string]string) (string, error)
 	BlindTransfer(ctx context.Context, conversationId, channelId string, schemaId int64, vars map[string]string) error
 	BlindTransferToUser(ctx context.Context, conversationId, channelId string, userId int64, vars map[string]string) error
+	SetVariables(channelId string, vars map[string]string) error
 }
 
 type chatConnection struct {

@@ -42,6 +42,14 @@ func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId stri
 
 	return err
 }
+func (cc *chatConnection) SetVariables(channelId string, vars map[string]string) error {
+	_, err := cc.api.SetVariables(context.Background(), &client.SetVariablesRequest{
+		ChannelId: channelId,
+		Variables: vars,
+	})
+
+	return err
+}
 
 func (cc *chatConnection) CloseConversation(authUserId int64, channelId, conversationId, cause string) error {
 	_, err := cc.api.CloseConversation(context.Background(), &client.CloseConversationRequest{
