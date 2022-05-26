@@ -5,7 +5,7 @@ type Queue struct {
 	Strategy             string    `json:"strategy" db:"strategy"`
 	Enabled              bool      `json:"enabled" db:"enabled"`
 	Payload              []byte    `json:"payload" db:"payload"`
-	Calendar             Lookup    `json:"calendar" db:"calendar"`
+	Calendar             *Lookup   `json:"calendar" db:"calendar"`
 	Priority             int       `json:"priority" db:"priority"`
 	Name                 string    `json:"name" db:"name"`
 	Variables            StringMap `json:"variables" db:"variables"`
@@ -136,7 +136,7 @@ func (q *Queue) Patch(p *QueuePatch) {
 	}
 
 	if p.Calendar != nil {
-		q.Calendar = *p.Calendar
+		q.Calendar = p.Calendar
 	}
 
 	if p.Priority != nil {
