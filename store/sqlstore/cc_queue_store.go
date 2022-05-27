@@ -74,7 +74,9 @@ select q.id,
 	   q.processing,
 	   q.processing_sec,
 	   q.processing_renewal_sec,
-	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema
+	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
+       jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
+                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing
 from q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -196,7 +198,9 @@ select q.id,
 	   q.processing,
 	   q.processing_sec,
 	   q.processing_renewal_sec,
-	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema
+	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
+       jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
+                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing
 from call_center.cc_queue q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
@@ -270,7 +274,9 @@ select q.id,
 	   q.processing,
 	   q.processing_sec,
 	   q.processing_renewal_sec,
-	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema
+	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
+       jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
+                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing
 from  q
          inner join flow.calendar c on q.calendar_id = c.id
          left join directory.wbt_user uc on uc.id = q.created_by
