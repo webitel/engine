@@ -27,6 +27,15 @@ type Queue struct {
 	ProcessingSec        uint32    `json:"processing_sec" db:"processing_sec"`
 	ProcessingRenewalSec uint32    `json:"processing_renewal_sec" db:"processing_renewal_sec"`
 	FormSchema           *Lookup   `json:"form_schema" db:"form_schema"`
+
+	TaskProcessing *QueueTaskProcessing `json:"task_processing" db:"task_processing"`
+}
+
+type QueueTaskProcessing struct {
+	Enabled    bool    `json:"enabled"`
+	Sec        uint32  `json:"sec"`
+	RenewalSec uint32  `json:"renewal_sec"`
+	FormSchema *Lookup `json:"form_schema"`
 }
 
 func (q Queue) AllowFields() []string {
@@ -41,7 +50,7 @@ func (q Queue) DefaultFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
 		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
-		"processing", "processing_sec", "processing_renewal_sec", "form_schema"}
+		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing"}
 }
 
 func (q Queue) EntityName() string {

@@ -369,6 +369,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.Endpoint,
 		**model.Endpoint,
 		*model.OutboundResourceParameters,
+		**model.QueueTaskProcessing,
 		*[]model.Lookup,
 		*[]model.AggregateData,
 		*[]*model.Lookup,
@@ -387,6 +388,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.AgentChannel,
 		**model.Variables,
 		**map[string]interface{},
+		*[]*model.HistoryFileJob,
 		*[]*model.CalendarExceptDate:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)

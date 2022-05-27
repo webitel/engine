@@ -273,13 +273,19 @@ func (a *CallAnnotation) IsValid() *AppError {
 	return nil
 }
 
+type CallFileTranscriptLookup struct {
+	Id     int64  `json:"id"`
+	Locale string `json:"locale"`
+}
+
 type CallFile struct {
-	Id       int64  `json:"id"`
-	Name     string `json:"name"`
-	Size     int64  `json:"size"`
-	MimeType string `json:"mime_type"`
-	StartAt  int64  `json:"start_at"`
-	StopAt   int64  `json:"stop_at"`
+	Id          int64                       `json:"id"`
+	Name        string                      `json:"name"`
+	Size        int64                       `json:"size"`
+	MimeType    string                      `json:"mime_type"`
+	StartAt     int64                       `json:"start_at"`
+	StopAt      int64                       `json:"stop_at"`
+	Transcripts []*CallFileTranscriptLookup `json:"transcripts"`
 }
 
 func TimeToInt64(t *time.Time) int64 {
@@ -300,6 +306,13 @@ func Int64ToTime(i int64) *time.Time {
 }
 
 type Variables map[string]interface{}
+
+type HistoryFileJob struct {
+	Id        int64  `json:"id"`
+	FileId    int64  `json:"file_id"`
+	CreatedAt int64  `json:"created_at"`
+	Action    string `json:"action"`
+}
 
 type HistoryCall struct {
 	Id          string     `json:"id" db:"id"`
@@ -357,6 +370,8 @@ type HistoryCall struct {
 	AmdDurationSec    uint32            `json:"amd_duration" db:"amd_duration"`
 	HangupDisposition *string           `json:"hangup_disposition" db:"hangup_disposition"`
 	BlindTransfer     *string           `json:"blind_transfer" db:"blind_transfer"`
+
+	FilesJob []*HistoryFileJob `json:"files_job" db:"files_job"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -368,7 +383,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer",
+		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 	}
 }
 

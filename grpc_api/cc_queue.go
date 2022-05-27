@@ -66,6 +66,13 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		FormSchema:           GetLookup(in.GetFormSchema()),
 	}
 
+	if in.TaskProcessing != nil {
+		queue.Processing = in.TaskProcessing.Enabled
+		queue.ProcessingSec = in.TaskProcessing.Sec
+		queue.ProcessingRenewalSec = in.TaskProcessing.RenewalSec
+		queue.FormSchema = GetLookup(in.TaskProcessing.GetFormSchema())
+	}
+
 	if err = queue.IsValid(); err != nil {
 		return nil, err
 	}
@@ -214,8 +221,14 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.StickyAgent = model.NewBool(in.StickyAgent)
 		case "processing":
 			patch.Processing = &in.Processing
+		case "task_processing.enabled":
+			patch.Processing = &in.GetTaskProcessing().Enabled
 		case "processing_sec":
 			patch.ProcessingSec = &in.ProcessingSec
+		case "task_processing.sec":
+			patch.ProcessingSec = &in.GetTaskProcessing().Sec
+		case "task_processing.renewal_sec":
+			patch.ProcessingRenewalSec = &in.GetTaskProcessing().RenewalSec
 		case "processing_renewal_sec":
 			patch.ProcessingRenewalSec = &in.ProcessingRenewalSec
 		default:
@@ -262,7 +275,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 
 	var queue *model.Queue
 
-	queue, err = api.app.UpdateQueue(&model.Queue{
+	r := &model.Queue{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -293,7 +306,16 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		Processing:           in.Processing,
 		ProcessingSec:        in.ProcessingSec,
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
-	})
+	}
+
+	if in.TaskProcessing != nil {
+		r.Processing = in.TaskProcessing.Enabled
+		r.ProcessingSec = in.TaskProcessing.Sec
+		r.ProcessingRenewalSec = in.TaskProcessing.RenewalSec
+		r.FormSchema = GetLookup(in.TaskProcessing.GetFormSchema())
+	}
+
+	queue, err = api.app.UpdateQueue(r)
 
 	if err != nil {
 		return nil, err
@@ -419,7 +441,7 @@ func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueRepo
 }
 
 func transformQueue(src *model.Queue) *engine.Queue {
-	return &engine.Queue{
+	q := &engine.Queue{
 		Id:                   src.Id,
 		DomainId:             src.DomainId,
 		CreatedAt:            src.CreatedAt,
@@ -452,4 +474,15 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		ProcessingSec:        src.ProcessingSec,
 		ProcessingRenewalSec: src.ProcessingRenewalSec,
 	}
+
+	if src.TaskProcessing != nil {
+		q.TaskProcessing = &engine.TaskProcessing{
+			Enabled:    src.TaskProcessing.Enabled,
+			FormSchema: GetProtoLookup(src.TaskProcessing.FormSchema),
+			Sec:        src.TaskProcessing.Sec,
+			RenewalSec: src.TaskProcessing.RenewalSec,
+		}
+	}
+
+	return q
 }

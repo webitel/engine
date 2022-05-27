@@ -760,6 +760,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		HasChildren:      src.HasChildren,
 		Hold:             toCallHold(src.Hold),
 		AmdResult:        defaultString(src.AmdResult),
+		FilesJob:         toCallFilesJob(src.FilesJob),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -848,6 +849,41 @@ func prettyVariables(src *model.Variables) map[string]string {
 	return nil
 }
 
+func toCallFileTranscriptLookups(src []*model.CallFileTranscriptLookup) []*engine.CallFile_TranscriptLookup {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.CallFile_TranscriptLookup, 0, len(src))
+
+	for _, v := range src {
+		res = append(res, &engine.CallFile_TranscriptLookup{
+			Id:     v.Id,
+			Locale: v.Locale,
+		})
+	}
+
+	return res
+}
+
+func toCallFilesJob(src []*model.HistoryFileJob) []*engine.HistoryFileJob {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.HistoryFileJob, 0, len(src))
+	for _, v := range src {
+		res = append(res, &engine.HistoryFileJob{
+			Id:        v.Id,
+			FileId:    v.FileId,
+			CreatedAt: v.CreatedAt,
+			Action:    v.Action,
+		})
+	}
+
+	return res
+}
+
 func toCallFile(src []*model.CallFile) []*engine.CallFile {
 	if src == nil {
 		return nil
@@ -856,12 +892,13 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 	res := make([]*engine.CallFile, 0, len(src))
 	for _, v := range src {
 		res = append(res, &engine.CallFile{
-			Id:       v.Id,
-			Name:     v.Name,
-			Size:     v.Size,
-			MimeType: v.MimeType,
-			StartAt:  v.StartAt,
-			StopAt:   v.StopAt,
+			Id:          v.Id,
+			Name:        v.Name,
+			Size:        v.Size,
+			MimeType:    v.MimeType,
+			StartAt:     v.StartAt,
+			StopAt:      v.StopAt,
+			Transcripts: toCallFileTranscriptLookups(v.Transcripts),
 		})
 	}
 
