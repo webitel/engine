@@ -674,6 +674,30 @@ func (api *agent) SearchAgentCallStatistics(ctx context.Context, in *engine.Sear
 	}, nil
 }
 
+func (api *agent) AgentTodayStatistics(ctx context.Context, in *engine.AgentTodayStatisticsRequest) (*engine.AgentTodayStatisticsResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var stat *model.AgentStatistics
+	stat, err = api.ctrl.GetAgentTodayStatistics(session, in.AgentId)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.AgentTodayStatisticsResponse{
+		Utilization:   stat.Utilization,
+		Occupancy:     stat.Occupancy,
+		CallAbandoned: stat.CallAbandoned,
+		CallHandled:   stat.CallHandled,
+		AvgTalkSec:    stat.AvgTalkSec,
+		AvgHoldSec:    stat.AvgHoldSec,
+		ChatAccepts:   stat.ChatAccepts,
+		ChatAht:       stat.ChatAht,
+	}, nil
+}
+
 func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.SearchAgentStatusStatisticRequest) (*engine.ListAgentStatsStatistic, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

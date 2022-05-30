@@ -124,6 +124,7 @@ type AgentStore interface {
 
 	/* stats */
 	CallStatistics(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError)
+	TodayStatistics(domainId, agentId int64) (*model.AgentStatistics, *model.AppError)
 
 	/* view */
 	InQueue(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError)

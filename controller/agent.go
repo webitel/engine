@@ -170,3 +170,20 @@ func (c *Controller) GetSupervisorAgentItem(session *auth_manager.Session, agent
 
 	return c.app.SupervisorAgentItem(session.DomainId, agentId, t)
 }
+
+func (c *Controller) GetAgentTodayStatistics(session *auth_manager.Session, agentId int64) (*model.AgentStatistics, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		if perm, err := c.app.AgentCheckAccess(session.Domain(0), agentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, c.app.MakeResourcePermissionError(session, agentId, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.GetAgentTodayStatistics(session.Domain(0), agentId)
+}
