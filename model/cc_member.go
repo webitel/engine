@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -124,10 +125,16 @@ type MemberView struct {
 
 type SearchMemberRequest struct {
 	ListRequest
-	Id          *int64
-	QueueId     *int64
+	Ids         []int64
+	QueueIds    []int32
+	BucketIds   []int32
 	Destination *string
-	BucketId    *int32
+	CreatedAt   *FilterBetween
+	OfferingAt  *FilterBetween
+	StopCauses  []string
+	Priority    []int32
+	Name        *string
+	Attempts    []int32
 }
 
 type OfflineMember struct {
@@ -355,4 +362,41 @@ func (m *Member) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (Member) DefaultOrder() string {
+	return "-id"
+}
+
+func (m Member) AllowFields() []string {
+	return m.DefaultFields()
+}
+
+func (Member) DefaultFields() []string {
+	return []string{
+		"id", "communications", "queue", "priority", "expire_at", "created_at", "variables", "name",
+		"timezone", "bucket", "ready_at", "stop_cause", "stop_at", "last_hangup_at", "attempts", "agent", "skill", "reserved",
+	}
+}
+
+func (c Member) EntityName() string {
+	return "cc_member"
+}
+
+func MemberDeprecatedFields(f []string) []string {
+	if f == nil {
+		return nil
+	}
+
+	res := make([]string, 0, len(f))
+	for _, v := range f {
+		res = append(res, MemberDeprecatedField(v))
+	}
+	return res
+}
+
+func MemberDeprecatedField(s string) string {
+	s = strings.Replace(s, "min_offering_at", "ready_at", -1)
+	s = strings.Replace(s, "last_activity_at", "last_hangup_at", -1)
+	return s
 }

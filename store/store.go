@@ -257,7 +257,6 @@ type CommunicationTypeStore interface {
 type MemberStore interface {
 	Create(domainId int64, member *model.Member) (*model.Member, *model.AppError)
 	BulkCreate(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError)
-	GetAllPage(domainId, queueId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError)
 	SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError)
 	Get(domainId, queueId, id int64) (*model.Member, *model.AppError)
 	Update(domainId int64, member *model.Member) (*model.Member, *model.AppError)

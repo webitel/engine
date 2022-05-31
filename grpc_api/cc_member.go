@@ -170,10 +170,10 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), int64(in.GetQueueId()), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
+			return nil, api.app.MakeResourcePermissionError(session, int64(in.GetQueueId()), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
@@ -181,13 +181,42 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 	var endList bool
 	req := &model.SearchMemberRequest{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.GetFields(),
+			Sort:    in.GetSort(),
 		},
+		Ids:        in.GetId(),
+		QueueIds:   []int32{in.GetQueueId()},
+		BucketIds:  in.GetBucketId(),
+		StopCauses: in.GetStopCause(),
+		Priority:   in.GetPriority(),
+		Attempts:   in.GetAttempts(),
 	}
 
-	if list, endList, err = api.app.GetMemberPage(session.Domain(in.GetDomainId()), in.GetQueueId(), req); err != nil {
+	if in.Destination != "" {
+		req.Destination = &in.Destination
+	}
+
+	if in.Name != "" {
+		req.Name = &in.Name
+	}
+
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+	if in.GetOfferingAt() != nil {
+		req.OfferingAt = &model.FilterBetween{
+			From: in.GetOfferingAt().GetFrom(),
+			To:   in.GetOfferingAt().GetTo(),
+		}
+	}
+
+	if list, endList, err = api.app.SearchMembers(session.Domain(0), req); err != nil {
 		return nil, err
 	}
 
@@ -638,29 +667,42 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 	var endList bool
 	req := &model.SearchMemberRequest{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.GetFields(),
+			Sort:    in.GetSort(),
 		},
+		Ids:        in.GetId(),
+		QueueIds:   in.GetQueueId(),
+		BucketIds:  in.GetBucketId(),
+		StopCauses: in.GetStopCause(),
+		Priority:   in.GetPriority(),
+		Attempts:   in.GetAttempts(),
 	}
 
-	if in.GetId() != 0 {
-		req.Id = &in.Id
-	}
-
-	if in.GetQueueId() != 0 {
-		req.QueueId = &in.QueueId
-	}
-
-	if in.GetDestination() != "" {
+	if in.Destination != "" {
 		req.Destination = &in.Destination
 	}
 
-	if in.GetBucketId() != 0 {
-		req.BucketId = &in.BucketId
+	if in.Name != "" {
+		req.Name = &in.Name
 	}
 
-	if list, endList, err = api.app.SearchMembers(session.Domain(in.GetDomainId()), req); err != nil {
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+	if in.GetOfferingAt() != nil {
+		req.OfferingAt = &model.FilterBetween{
+			From: in.GetOfferingAt().GetFrom(),
+			To:   in.GetOfferingAt().GetTo(),
+		}
+	}
+
+	if list, endList, err = api.app.SearchMembers(session.Domain(0), req); err != nil {
 		return nil, err
 	}
 

@@ -1129,7 +1129,17 @@ where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
 
 func (s SqlAgentStore) TodayStatistics(domainId, agentId int64) (*model.AgentStatistics, *model.AppError) {
 	var stat *model.AgentStatistics
-	err := s.GetReplica().SelectOne(&stat, `select s.utilization, s.occupancy, s.call_abandoned, s.call_handled, s.avg_talk_sec, s.avg_hold_sec, s.chat_accepts, s.chat_aht
+	err := s.GetReplica().SelectOne(&stat, `select
+	s.utilization, 
+	s.occupancy, 
+	s.call_abandoned, 
+	s.call_handled, 
+	s.call_missed, 
+	s.call_inbound, 
+	s.avg_talk_sec, 
+	s.avg_hold_sec, 
+	s.chat_accepts, 
+	s.chat_aht
 from call_center.cc_agent_today_stats s
 where s.domain_id = :DomainId and s.agent_id = :Id`, map[string]interface{}{
 		"DomainId": domainId,

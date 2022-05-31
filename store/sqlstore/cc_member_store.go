@@ -8,6 +8,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"net/http"
+	"strings"
 )
 
 type SqlMemberStore struct {
@@ -116,117 +117,109 @@ _error:
 	return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
 }
 
+// todo fix deprecated fields
+
 func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
 	var members []*model.Member
 
-	if _, err := s.GetReplica().Select(&members,
-		`with comm as (
-    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
-    from call_center.cc_communication c
-    where c.domain_id = :Domain
-)
-,resources as (
-    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
-    from call_center.cc_outbound_resource r
-    where r.domain_id = :Domain
-)
-, result as (
-    select m.id
-    from call_center.cc_member m
-    where m.domain_id = :Domain and ( (:QueueId::int8 isnull or m.queue_id = :QueueId) and (:Id::int8 isnull or m.id = :Id)  
-		and (:Destination::varchar isnull or m.communications @> ('[{"destination": '|| quote_ident(:Destination) || '}]')::jsonb))
-    limit :Limit
-    offset :Offset
-)
-select m.id, call_center.cc_member_destination_views_to_json(array(select (xid::int2, x ->> 'destination',
-								resources.j,
-                                comm.j,
-                                (x -> 'priority')::int ,
-                                (x -> 'state')::int  ,
-                                x -> 'description'  ,
-                                (x -> 'last_activity_at')::int8,
-                                (x -> 'attempts')::int,
-                                x ->> 'last_cause',
-                                x ->> 'display'    )::call_center.cc_member_destination_view
-                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
-                            left join comm on comm.id = (x -> 'type' -> 'id')::int
-                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
-       call_center.cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, call_center.cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
-       call_center.cc_get_lookup(m.bucket_id, cb.name::varchar) bucket, m.ready_at, m.stop_cause, m.stop_at, m.last_hangup_at, m.attempts,
-	   call_center.cc_get_lookup(agn.id, agn.name::varchar) agent,
-	   call_center.cc_get_lookup(cs.id, cs.name::varchar) skill,
-		exists (select 1 from call_center.cc_member_attempt a where a.member_id = m.id) as reserved
-from call_center.cc_member m
-    inner join result on m.id = result.id
-    inner join call_center.cc_queue cq on m.queue_id = cq.id
-    left join flow.calendar_timezones ct on ct.id = m.timezone_id
-    left join call_center.cc_agent_list agn on m.agent_id = agn.id
-    left join call_center.cc_bucket cb on m.bucket_id = cb.id
-	left join call_center.cc_skill cs on m.skill_id = cs.id`, map[string]interface{}{
-			"Id":          search.Id,
-			"QueueId":     search.QueueId,
-			"Destination": search.Destination,
-			"Domain":      domainId,
-			"Limit":       search.GetLimit(),
-			"Offset":      search.GetOffset(),
-		}); err != nil {
-		return nil, model.NewAppError("SqlMemberStore.GetAllPage", "store.sql_member.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return members, nil
+	order := GetOrderBy("cc_member", model.MemberDeprecatedField(search.Sort))
+	if order == "" {
+		order = "order by id desc"
 	}
-}
 
-func (s SqlMemberStore) GetAllPage(domainId, queueId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
-	var members []*model.Member
+	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
 
 	if _, err := s.GetReplica().Select(&members,
-		`with comm as (
-    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
-    from call_center.cc_communication c
-    where c.domain_id = :Domain
-)
-,resources as (
-    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
-    from call_center.cc_outbound_resource r
-    where r.domain_id = :Domain
-)
-, result as (
-    select m.id
-    from call_center.cc_member m
-    where m.domain_id = :Domain and m.queue_id = :QueueId and (:Q::varchar isnull or m.name ilike :Q)
-    limit :Limit
-    offset :Offset
-)
-select m.id, call_center.cc_member_destination_views_to_json(array(select (xid::int2, x ->> 'destination',
-								resources.j,
-                                comm.j,
-                                (x -> 'priority')::int ,
-                                (x -> 'state')::int  ,
-                                x -> 'description'  ,
-                                (x -> 'last_activity_at')::int8,
-                                (x -> 'attempts')::int,
-                                x ->> 'last_cause',
-                                x ->> 'display'    )::call_center.cc_member_destination_view
-                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
-                            left join comm on comm.id = (x -> 'type' -> 'id')::int
-                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
-       call_center.cc_get_lookup(cq.id, cq.name::varchar) queue, m.priority, m.expire_at, m.created_at, m.variables, m.name, call_center.cc_get_lookup(m.timezone_id::bigint, ct.name::varchar) "timezone",
-       call_center.cc_get_lookup(m.bucket_id, cb.name::varchar) bucket, m.ready_at, m.stop_cause, m.stop_at, m.last_hangup_at, m.attempts,
-	   call_center.cc_get_lookup(agn.id, agn.name::varchar) agent,
-	   call_center.cc_get_lookup(cs.id, cs.name::varchar) skill,
-	   exists (select 1 from call_center.cc_member_attempt a where a.member_id = m.id) as reserved
-from call_center.cc_member m
-    inner join result on m.id = result.id
-    inner join call_center.cc_queue cq on m.queue_id = cq.id
-    left join flow.calendar_timezones ct on ct.id = m.timezone_id
-    left join call_center.cc_bucket cb on m.bucket_id = cb.id
-	left join call_center.cc_skill cs on m.skill_id = cs.id
-    left join call_center.cc_agent_list agn on m.agent_id = agn.id`, map[string]interface{}{
-			"QueueId": queueId,
-			"Domain":  domainId,
-			"Q":       search.GetQ(),
-			"Limit":   search.GetLimit(),
-			"Offset":  search.GetOffset(),
+		`with comm as (select c.id, json_build_object('id', c.id, 'name', c.name)::jsonb j
+              from call_center.cc_communication c
+              where c.domain_id = :Domain)
+   , resources as (select r.id, json_build_object('id', r.id, 'name', r.name)::jsonb j
+                   from call_center.cc_outbound_resource r
+                   where r.domain_id = :Domain)
+   , result as (select m.id
+                from call_center.cc_member m
+                where m.domain_id = :Domain
+                  and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
+                  and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
+                  and (:BucketIds::int4[] isnull or m.bucket_id = any (:BucketIds::int4[]))
+                  and (:Destination::varchar isnull or
+                       m.search_destinations && array [:Destination::varchar]::varchar[])
+
+                  and (:CreatedFrom::timestamptz isnull or m.created_at >= :CreatedFrom::timestamptz)
+                  and (:CreatedTo::timestamptz isnull or created_at <= :CreatedTo::timestamptz)
+
+                  and (:OfferingFrom::timestamptz isnull or m.ready_at >= :OfferingFrom::timestamptz)
+                  and (:OfferingTo::timestamptz isnull or m.ready_at <= :OfferingTo::timestamptz)
+
+                  and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
+                  and (:Priority::int4[] isnull or m.priority = any (:Priority::int4[]))
+                  and (:Attempts::int4[] isnull or m.attempts = any (:Attempts::int4[]))
+                  and (:Name::varchar isnull or m.name ilike :Name::varchar)
+                  and (:Q::varchar isnull or
+                       (m.name ilike :Name::varchar or m.search_destinations && array [:Q::varchar]::varchar[]))
+				`+order+`
+                limit :Limit offset :Offset)
+	, list as (
+		select m.id,
+			   call_center.cc_member_destination_views_to_json(array(select (xid::int2, x ->> 'destination',
+																			 resources.j,
+																			 comm.j,
+																			 (x -> 'priority')::int,
+																			 (x -> 'state')::int,
+																			 x -> 'description',
+																			 (x -> 'last_activity_at')::int8,
+																			 (x -> 'attempts')::int,
+																			 x ->> 'last_cause',
+																			 x ->>
+																			 'display')::call_center.cc_member_destination_view
+																	 from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
+																			  left join comm on comm.id = (x -> 'type' -> 'id')::int
+																			  left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
+			   call_center.cc_get_lookup(cq.id, cq.name::varchar)                                                                                    queue,
+			   m.priority,
+			   m.expire_at,
+			   m.created_at,
+			   m.variables,
+			   m.name,
+			   call_center.cc_get_lookup(m.timezone_id::bigint,
+										 ct.name::varchar)                                                                                           "timezone",
+			   call_center.cc_get_lookup(m.bucket_id, cb.name::varchar)                                                                              bucket,
+			   m.ready_at as ready_at,
+			   m.stop_cause,
+			   m.stop_at,
+			   m.last_hangup_at as last_hangup_at,
+			   m.attempts,
+			   call_center.cc_get_lookup(agn.id, agn.name::varchar)                                                                                  agent,
+			   call_center.cc_get_lookup(cs.id, cs.name::varchar)                                                                                    skill,
+			   exists(select 1 from call_center.cc_member_attempt a where a.member_id = m.id) as                                                     reserved
+		from call_center.cc_member m
+				 inner join result on m.id = result.id
+				 inner join call_center.cc_queue cq on m.queue_id = cq.id
+				 left join flow.calendar_timezones ct on ct.id = m.timezone_id
+				 left join call_center.cc_agent_list agn on m.agent_id = agn.id
+				 left join call_center.cc_bucket cb on m.bucket_id = cb.id
+				 left join call_center.cc_skill cs on m.skill_id = cs.id
+	)
+	select `+strings.Join(fields, " ,")+` from list`, map[string]interface{}{
+			"Domain": domainId,
+			"Limit":  search.GetLimit(),
+			"Offset": search.GetOffset(),
+			"Q":      search.GetQ(),
+
+			"Ids":         pq.Array(search.Ids),
+			"QueueIds":    pq.Array(search.QueueIds),
+			"BucketIds":   pq.Array(search.BucketIds),
+			"Destination": search.Destination,
+
+			"CreatedFrom":  model.GetBetweenFromTime(search.CreatedAt),
+			"CreatedTo":    model.GetBetweenToTime(search.CreatedAt),
+			"OfferingFrom": model.GetBetweenFromTime(search.OfferingAt),
+			"OfferingTo":   model.GetBetweenToTime(search.OfferingAt),
+
+			"StopCauses": pq.Array(search.StopCauses),
+			"Priority":   pq.Array(search.Priority),
+			"Attempts":   pq.Array(search.Attempts),
+			"Name":       search.Name,
 		}); err != nil {
 		return nil, model.NewAppError("SqlMemberStore.GetAllPage", "store.sql_member.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {

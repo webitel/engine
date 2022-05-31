@@ -38,15 +38,6 @@ func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Membe
 	return app.Store.Member().BulkCreate(domainId, queueId, members)
 }
 
-func (app *App) GetMemberPage(domainId, queueId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, *model.AppError) {
-	list, err := app.Store.Member().GetAllPage(domainId, queueId, search)
-	if err != nil {
-		return nil, false, err
-	}
-	search.RemoveLastElemIfNeed(&list)
-	return list, search.EndOfList(), nil
-}
-
 func (app *App) GetMember(domainId, queueId, id int64) (*model.Member, *model.AppError) {
 	return app.Store.Member().Get(domainId, queueId, id)
 }

@@ -691,6 +691,8 @@ func (api *agent) AgentTodayStatistics(ctx context.Context, in *engine.AgentToda
 		Occupancy:     stat.Occupancy,
 		CallAbandoned: stat.CallAbandoned,
 		CallHandled:   stat.CallHandled,
+		CallMissed:    stat.CallMissed,
+		CallInbound:   stat.CallInbound,
 		AvgTalkSec:    stat.AvgTalkSec,
 		AvgHoldSec:    stat.AvgHoldSec,
 		ChatAccepts:   stat.ChatAccepts,
