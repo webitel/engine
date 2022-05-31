@@ -191,8 +191,6 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 		QueueIds:   []int32{in.GetQueueId()},
 		BucketIds:  in.GetBucketId(),
 		StopCauses: in.GetStopCause(),
-		Priority:   in.GetPriority(),
-		Attempts:   in.GetAttempts(),
 	}
 
 	if in.Destination != "" {
@@ -201,6 +199,20 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 
 	if in.Name != "" {
 		req.Name = &in.Name
+	}
+
+	if in.GetPriority() != nil {
+		req.Priority = &model.FilterBetween{
+			From: in.GetPriority().GetFrom(),
+			To:   in.GetPriority().GetTo(),
+		}
+	}
+
+	if in.GetAttempts() != nil {
+		req.Attempts = &model.FilterBetween{
+			From: in.GetAttempts().GetFrom(),
+			To:   in.GetAttempts().GetTo(),
+		}
 	}
 
 	if in.GetCreatedAt() != nil {
@@ -677,8 +689,6 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 		QueueIds:   in.GetQueueId(),
 		BucketIds:  in.GetBucketId(),
 		StopCauses: in.GetStopCause(),
-		Priority:   in.GetPriority(),
-		Attempts:   in.GetAttempts(),
 	}
 
 	if in.Destination != "" {
@@ -687,6 +697,20 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 
 	if in.Name != "" {
 		req.Name = &in.Name
+	}
+
+	if in.GetPriority() != nil {
+		req.Priority = &model.FilterBetween{
+			From: in.GetPriority().GetFrom(),
+			To:   in.GetPriority().GetTo(),
+		}
+	}
+
+	if in.GetAttempts() != nil {
+		req.Attempts = &model.FilterBetween{
+			From: in.GetAttempts().GetFrom(),
+			To:   in.GetAttempts().GetTo(),
+		}
 	}
 
 	if in.GetCreatedAt() != nil {

@@ -151,9 +151,12 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
                   and (:OfferingFrom::timestamptz isnull or m.ready_at >= :OfferingFrom::timestamptz)
                   and (:OfferingTo::timestamptz isnull or m.ready_at <= :OfferingTo::timestamptz)
 
+                  and (:PriorityFrom::int isnull or m.priority >= :PriorityFrom::int)
+                  and (:PriorityTo::int isnull or m.priority <= :PriorityTo::int)
+                  and (:AttemptsFrom::int isnull or m.attempts >= :AttemptsFrom::int)
+                  and (:AttemptsTo::int isnull or m.attempts <= :AttemptsTo::int)
+
                   and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
-                  and (:Priority::int4[] isnull or m.priority = any (:Priority::int4[]))
-                  and (:Attempts::int4[] isnull or m.attempts = any (:Attempts::int4[]))
                   and (:Name::varchar isnull or m.name ilike :Name::varchar)
                   and (:Q::varchar isnull or
                        (m.name ilike :Name::varchar or m.search_destinations && array [:Q::varchar]::varchar[]))
@@ -216,9 +219,12 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
 			"OfferingFrom": model.GetBetweenFromTime(search.OfferingAt),
 			"OfferingTo":   model.GetBetweenToTime(search.OfferingAt),
 
+			"PriorityFrom": model.GetBetweenFrom(search.Priority),
+			"PriorityTo":   model.GetBetweenTo(search.Priority),
+			"AttemptsFrom": model.GetBetweenFrom(search.Attempts),
+			"AttemptsTo":   model.GetBetweenTo(search.Attempts),
+
 			"StopCauses": pq.Array(search.StopCauses),
-			"Priority":   pq.Array(search.Priority),
-			"Attempts":   pq.Array(search.Attempts),
 			"Name":       search.Name,
 		}); err != nil {
 		return nil, model.NewAppError("SqlMemberStore.GetAllPage", "store.sql_member.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)

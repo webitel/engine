@@ -132,9 +132,9 @@ type SearchMemberRequest struct {
 	CreatedAt   *FilterBetween
 	OfferingAt  *FilterBetween
 	StopCauses  []string
-	Priority    []int32
+	Priority    *FilterBetween
 	Name        *string
-	Attempts    []int32
+	Attempts    *FilterBetween
 }
 
 type OfflineMember struct {
