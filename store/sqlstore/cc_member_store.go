@@ -338,18 +338,36 @@ where c.id = :Id
 	return nil
 }
 
-func (s SqlMemberStore) MultiDelete(del *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) MultiDelete(search *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
 	var res []*model.Member
 
 	_, err := s.GetMaster().Select(&res, `with m as (
     delete from call_center.cc_member m
-    where m.queue_id = :QueueId
-		and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
-		and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])
+    where (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
+		  and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
+		  and (:BucketIds::int4[] isnull or m.bucket_id = any (:BucketIds::int4[]))
+		  and (:Destination::varchar isnull or
+			   m.search_destinations && array [:Destination::varchar]::varchar[])
+
+		  and (:CreatedFrom::timestamptz isnull or m.created_at >= :CreatedFrom::timestamptz)
+		  and (:CreatedTo::timestamptz isnull or created_at <= :CreatedTo::timestamptz)
+
+		  and (:OfferingFrom::timestamptz isnull or m.ready_at >= :OfferingFrom::timestamptz)
+		  and (:OfferingTo::timestamptz isnull or m.ready_at <= :OfferingTo::timestamptz)
+
+		  and (:PriorityFrom::int isnull or m.priority >= :PriorityFrom::int)
+		  and (:PriorityTo::int isnull or m.priority <= :PriorityTo::int)
+		  and (:AttemptsFrom::int isnull or m.attempts >= :AttemptsFrom::int)
+		  and (:AttemptsTo::int isnull or m.attempts <= :AttemptsTo::int)
+
+		  and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
+		  and (:Name::varchar isnull or m.name ilike :Name::varchar)
+		  and (:Q::varchar isnull or
+			   (m.name ilike :Name::varchar or m.search_destinations && array [:Q::varchar]::varchar[]))
+
+		and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])		
 		and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
-		and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
 		and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
-		and (:Cause::varchar[] isnull or m.stop_cause = any(:Cause::varchar[]))
 		and not exists(select 1 from call_center.cc_member_attempt a where a.member_id = m.id and a.state != 'leaving' for update)
     returning *
 )
@@ -361,18 +379,33 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 			left join call_center.cc_bucket qb on m.bucket_id = qb.id
 			left join call_center.cc_skill cs on m.skill_id = cs.id
 			left join call_center.cc_agent_list agn on m.agent_id = agn.id`, map[string]interface{}{
-		"Ids":       pq.Array(del.Ids),
-		"Buckets":   pq.Array(del.Buckets),
-		"Cause":     pq.Array(del.Causes),
-		"AgentIds":  pq.Array(del.AgentIds),
-		"Numbers":   pq.Array(del.Numbers),
-		"Variables": del.Variables.ToSafeJson(),
-		"QueueId":   del.QueueId,
+		"Q":           search.GetQ(),
+		"QueueIds":    pq.Array(search.QueueIds),
+		"Ids":         pq.Array(search.Ids),
+		"BucketIds":   pq.Array(search.BucketIds),
+		"Destination": search.Destination,
+
+		"CreatedFrom":  model.GetBetweenFromTime(search.CreatedAt),
+		"CreatedTo":    model.GetBetweenToTime(search.CreatedAt),
+		"OfferingFrom": model.GetBetweenFromTime(search.OfferingAt),
+		"OfferingTo":   model.GetBetweenToTime(search.OfferingAt),
+
+		"PriorityFrom": model.GetBetweenFrom(search.Priority),
+		"PriorityTo":   model.GetBetweenTo(search.Priority),
+		"AttemptsFrom": model.GetBetweenFrom(search.Attempts),
+		"AttemptsTo":   model.GetBetweenTo(search.Attempts),
+
+		"StopCauses": pq.Array(search.StopCauses),
+		"Name":       search.Name,
+
+		"AgentIds":  pq.Array(search.AgentIds),
+		"Numbers":   pq.Array(search.Numbers),
+		"Variables": search.Variables.ToSafeJson(),
 	})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.MultiDelete", "store.sql_member.multi_delete.app_error", nil,
-			fmt.Sprintf("Ids=%v, %s", del.Ids, err.Error()), extractCodeFromErr(err))
+			fmt.Sprintf("Ids=%v, %s", search.Ids, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil

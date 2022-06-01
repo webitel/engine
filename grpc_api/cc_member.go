@@ -436,7 +436,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -445,17 +445,63 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 
 	var list []*model.Member
 
-	del := &model.MultiDeleteMembers{
-		QueueId:   in.QueueId,
-		Ids:       in.GetIds(),
-		Buckets:   in.GetBucketId(),
-		Causes:    in.GetStopCause(),
+	req := &model.MultiDeleteMembers{
+		QueueId: in.QueueId,
+		SearchMemberRequest: model.SearchMemberRequest{
+			ListRequest: model.ListRequest{
+				Q: in.GetQ(),
+			},
+			Ids:        in.GetId(),
+			QueueIds:   []int32{int32(in.GetQueueId())},
+			BucketIds:  in.GetBucketId(),
+			StopCauses: in.GetStopCause(),
+		},
 		AgentIds:  in.GetAgentId(),
 		Numbers:   in.GetNumbers(),
 		Variables: in.GetVariables(),
 	}
 
-	list, err = api.app.RemoveMultiMembers(session.Domain(0), del)
+	//todo deprecated
+	if in.GetIds() != nil {
+		req.Ids = in.GetIds()
+	}
+
+	if in.Destination != "" {
+		req.Destination = &in.Destination
+	}
+
+	if in.Name != "" {
+		req.Name = &in.Name
+	}
+
+	if in.GetPriority() != nil {
+		req.Priority = &model.FilterBetween{
+			From: in.GetPriority().GetFrom(),
+			To:   in.GetPriority().GetTo(),
+		}
+	}
+
+	if in.GetAttempts() != nil {
+		req.Attempts = &model.FilterBetween{
+			From: in.GetAttempts().GetFrom(),
+			To:   in.GetAttempts().GetTo(),
+		}
+	}
+
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+	if in.GetOfferingAt() != nil {
+		req.OfferingAt = &model.FilterBetween{
+			From: in.GetOfferingAt().GetFrom(),
+			To:   in.GetOfferingAt().GetTo(),
+		}
+	}
+
+	list, err = api.app.RemoveMultiMembers(session.Domain(0), req)
 
 	if err != nil {
 		return nil, err
