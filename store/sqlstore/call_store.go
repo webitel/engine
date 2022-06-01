@@ -387,7 +387,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and (:Missed::bool isnull or (:Missed and bridged_at isnull))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:DependencyIds::varchar[] isnull or id = any (
 			array(with recursive a as (
@@ -479,7 +479,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and answered_at isnull))
+	and (:Missed::bool isnull or (:Missed and bridged_at isnull))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:DependencyIds::varchar[] isnull or id = any (
 			array(with recursive a as (
