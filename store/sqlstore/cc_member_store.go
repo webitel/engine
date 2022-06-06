@@ -159,7 +159,7 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
                   and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
                   and (:Name::varchar isnull or m.name ilike :Name::varchar)
                   and (:Q::varchar isnull or
-                       (m.name ~~ :Q::varchar or m.search_destinations && array [:Q::varchar]::varchar[]))
+                       (m.name ~~ :Q::varchar or m.search_destinations && array [rtrim(:Q::varchar, '%')]::varchar[]))
 				`+order+`
                 limit :Limit offset :Offset)
 	, list as (
