@@ -363,7 +363,7 @@ func (s SqlMemberStore) MultiDelete(search *model.MultiDeleteMembers) ([]*model.
 		  and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
 		  and (:Name::varchar isnull or m.name ilike :Name::varchar)
 		  and (:Q::varchar isnull or
-			   (m.name ilike :Name::varchar or m.search_destinations && array [:Q::varchar]::varchar[]))
+			   (m.name ~~ :Q::varchar or m.search_destinations && array [rtrim(:Q::varchar, '%')]::varchar[]))
 
 		and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])		
 		and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
