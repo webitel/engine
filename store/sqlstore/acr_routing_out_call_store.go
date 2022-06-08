@@ -139,7 +139,7 @@ from tmp
 			"Name":        routing.Name,
 			"Description": routing.Description,
 			"UpdatedAt":   routing.UpdatedAt,
-			"UpdatedBy":   routing.UpdatedBy.Id,
+			"UpdatedBy":   routing.UpdatedBy.GetSafeId(),
 			"SchemeId":    routing.Schema.Id,
 			"Pattern":     routing.Pattern,
 			"Disabled":    routing.Disabled,
