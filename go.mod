@@ -15,10 +15,10 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
-	github.com/webitel/call_center v0.0.0-20220608095157-aa72f21a4da4
+	github.com/webitel/call_center v0.0.0-20220608101547-cdbb9736c3e2
 	github.com/webitel/protos/cc v0.0.0-20220606114117-702ad5d192a0
 	github.com/webitel/protos/engine v0.0.0-20220606114117-702ad5d192a0
-	github.com/webitel/wlog v0.0.0-20190823170623-8cc283b29e3e
+	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.9.0
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/net v0.0.0-20220607020251-c690dde0001d
