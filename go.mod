@@ -15,7 +15,7 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
-	github.com/webitel/call_center v0.0.0-20220608150100-dfb342f41449
+	github.com/webitel/call_center v0.0.0-20220609133847-b10cc3eede4c
 	github.com/webitel/protos/cc v0.0.0-20220606114117-702ad5d192a0
 	github.com/webitel/protos/engine v0.0.0-20220606114117-702ad5d192a0
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
