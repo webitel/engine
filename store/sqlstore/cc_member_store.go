@@ -156,6 +156,8 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
                   and (:AttemptsFrom::int isnull or m.attempts >= :AttemptsFrom::int)
                   and (:AttemptsTo::int isnull or m.attempts <= :AttemptsTo::int)
 
+				  and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
+
                   and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
                   and (:Name::varchar isnull or m.name ilike :Name::varchar)
                   and (:Q::varchar isnull or
@@ -212,6 +214,7 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
 			"Ids":         pq.Array(search.Ids),
 			"QueueIds":    pq.Array(search.QueueIds),
 			"BucketIds":   pq.Array(search.BucketIds),
+			"AgentIds":    pq.Array(search.AgentIds),
 			"Destination": search.Destination,
 
 			"CreatedFrom":  model.GetBetweenFromTime(search.CreatedAt),

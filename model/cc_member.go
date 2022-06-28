@@ -50,7 +50,6 @@ type MultiDeleteMembers struct {
 
 	//Buckets   []int64   `json:"buckets" db:"buckets"` // deprecated
 	//Causes    []string  `json:"causes" db:"causes"`   // deprecated
-	AgentIds  []int32   `json:"agent_ids" db:"agent_ids"`
 	Numbers   []string  `json:"numbers" db:"numbers"`
 	Variables StringMap `json:"variables" db:"variables"`
 }
@@ -136,6 +135,7 @@ type SearchMemberRequest struct {
 	Priority    *FilterBetween
 	Name        *string
 	Attempts    *FilterBetween
+	AgentIds    []int32
 }
 
 type OfflineMember struct {

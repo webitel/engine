@@ -41,7 +41,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		}
 	}
 
-	member := &model.Member{
+	m := &model.Member{
 		QueueId:   in.GetQueueId(),
 		Priority:  int(in.GetPriority()),
 		Name:      in.GetName(),
@@ -58,15 +58,15 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		Skill:  GetLookup(in.Skill),
 	}
 
-	if err = member.IsValid(); err != nil {
+	if err = m.IsValid(); err != nil {
 		return nil, err
 	}
 
-	if member, err = api.app.CreateMember(session.DomainId, member); err != nil {
+	if m, err = api.app.CreateMember(session.DomainId, m); err != nil {
 		return nil, err
 	}
 
-	return toEngineMember(member), nil
+	return toEngineMember(m), nil
 }
 
 func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMemberBulkRequest) (*engine.MemberBulkResponse, error) {
@@ -95,7 +95,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 
 	members := make([]*model.Member, 0, len(in.Items))
 	for _, v := range in.Items {
-		member := &model.Member{
+		m := &model.Member{
 			QueueId:   in.GetQueueId(),
 			Priority:  int(v.GetPriority()),
 			Name:      v.GetName(),
@@ -111,11 +111,11 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			Skill:          GetLookup(v.Skill),
 		}
 
-		if err = member.IsValid(); err != nil {
+		if err = m.IsValid(); err != nil {
 			return nil, err
 		}
 
-		members = append(members, member)
+		members = append(members, m)
 	}
 	var inserted []int64
 
@@ -191,6 +191,7 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 		QueueIds:   []int32{in.GetQueueId()},
 		BucketIds:  in.GetBucketId(),
 		StopCauses: in.GetStopCause(),
+		AgentIds:   in.GetAgentId(),
 	}
 
 	if in.Destination != "" {
@@ -267,7 +268,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		}
 	}
 
-	member := &model.Member{
+	m := &model.Member{
 		Id:        in.GetId(),
 		QueueId:   in.GetQueueId(),
 		Priority:  int(in.GetPriority()),
@@ -285,17 +286,17 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 	}
 
 	if in.StopCause != "" {
-		member.StopCause = &in.StopCause
+		m.StopCause = &in.StopCause
 	}
 
-	if err = member.IsValid(); err != nil {
+	if err = m.IsValid(); err != nil {
 		return nil, err
 	}
 
-	if member, err = api.app.UpdateMember(session.Domain(in.GetDomainId()), member); err != nil {
+	if m, err = api.app.UpdateMember(session.Domain(in.GetDomainId()), m); err != nil {
 		return nil, err
 	} else {
-		return toEngineMember(member), nil
+		return toEngineMember(m), nil
 	}
 }
 
@@ -323,7 +324,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		}
 	}
 
-	var member *model.Member
+	var m *model.Member
 	patch := &model.MemberPatch{}
 
 	//TODO FIXME
@@ -377,13 +378,13 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		}
 	}
 
-	member, err = api.app.PatchMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
+	m, err = api.app.PatchMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return toEngineMember(member), nil
+	return toEngineMember(m), nil
 
 }
 
@@ -411,12 +412,12 @@ func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequ
 		}
 	}
 
-	var member *model.Member
-	member, err = api.app.RemoveMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	var m *model.Member
+	m, err = api.app.RemoveMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
-	return toEngineMember(member), nil
+	return toEngineMember(m), nil
 }
 
 func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRequest) (*engine.ListMember, error) {
@@ -455,8 +456,8 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 			QueueIds:   []int32{int32(in.GetQueueId())},
 			BucketIds:  in.GetBucketId(),
 			StopCauses: in.GetStopCause(),
+			AgentIds:   in.GetAgentId(),
 		},
-		AgentIds:  in.GetAgentId(),
 		Numbers:   in.GetNumbers(),
 		Variables: in.GetVariables(),
 	}
@@ -735,6 +736,7 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 		QueueIds:   in.GetQueueId(),
 		BucketIds:  in.GetBucketId(),
 		StopCauses: in.GetStopCause(),
+		AgentIds:   in.GetAgentId(),
 	}
 
 	if in.Destination != "" {
