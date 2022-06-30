@@ -223,26 +223,33 @@ func (s SqlAgentStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	return agents, nil
 }
 
-func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.AgentTask, *model.AppError) {
-	var res []*model.AgentTask
+func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.CCTask, *model.AppError) {
+	var res []*model.CCTask
 	_, err := s.GetReplica().Select(&res, `select a.id as attempt_id,
-       a.node_id as app_id,
-       a.channel,
-       a.queue_id,
-       a.member_id,
-       a.member_call_id as member_channel_id,
-       a.agent_call_id as agent_channel_id,
-       destination as communication,
-       cq.processing as has_reporting,
-       a.state,
-       a.agent_id,
-       call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
-	   call_center.cc_view_timestamp(a.leaving_at) as leaving_at,
-       extract(epoch from now() - a.last_state_change )::int as duration,
-       call_center.cc_view_timestamp(a.timeout) as timeout_at
-from call_center.cc_member_attempt a
-    inner join call_center.cc_agent a2 on a2.id = a.agent_id
-    inner join call_center.cc_queue cq on a.queue_id = cq.id
+           a.channel,
+		   a.node_id as app_id,
+           a.queue_id,
+           q.name           as queue_name,
+           a.member_id,
+           a.member_call_id as member_channel_id,
+           a.agent_call_id as agent_channel_id,
+           a.destination,
+           a.state,
+		   a.leaving_at,
+           q.processing     as has_reporting,
+		   q.processing and q.form_schema_id notnull as has_form,
+		   q.processing_sec,
+		   q.processing_renewal_sec,
+		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at,
+		   a.form_view as form,
+		   m.variables,
+	       m.name as member_name,
+		   call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
+           a.agent_id
+    from call_center.cc_member_attempt a
+        inner join call_center.cc_agent a2 on a2.id = a.agent_id
+        left join call_center.cc_queue q on a.queue_id = q.id
+		left join call_center.cc_member m on a.member_id = m.id
 where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leaving'`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,

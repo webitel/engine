@@ -23,7 +23,7 @@ func (a *App) GetAgentsPage(domainId int64, search *model.SearchAgent) ([]*model
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentActiveTasks(domainId, agentId int64) ([]*model.AgentTask, *model.AppError) {
+func (a *App) GetAgentActiveTasks(domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
 	return a.Store.Agent().GetActiveTask(domainId, agentId)
 }
 
