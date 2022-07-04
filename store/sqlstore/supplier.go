@@ -365,6 +365,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
 	case *[]model.MemberCommunication,
 		*model.MemberCommunication,
+		**model.MemberCommunication,
 		**model.CCTask,
 		*model.Endpoint,
 		**model.Endpoint,

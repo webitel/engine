@@ -192,21 +192,27 @@ type Call struct {
 }
 
 type CCTask struct {
-	AppId                string               `json:"app_id"`
-	HasReporting         bool                 `json:"has_reporting"`
-	AttemptId            int64                `json:"attempt_id"`
-	Channel              string               `json:"channel"`
-	QueueId              *int                 `json:"queue_id"`
-	QueueName            *string              `json:"queue_name"`
-	MemberId             int64                `json:"member_id"`
-	MemberCallId         *string              `json:"member_channel_id"`
-	AgentCallId          *string              `json:"agent_channel_id"`
-	Destination          *MemberCommunication `json:"communication"`
-	ProcessingTimeoutAt  *int64               `json:"processing_timeout_at"`
-	ProcessingSec        *int                 `json:"processing_sec"`
-	ProcessingRenewalSec *int                 `json:"processing_renewal_sec"`
-	Form                 interface{}          `json:"form"`
-	HasForm              bool                 `json:"has_form,omitempty"`
+	AppId                string               `json:"app_id" db:"app_id"`
+	HasReporting         bool                 `json:"has_reporting" db:"has_reporting"`
+	AttemptId            int64                `json:"attempt_id" db:"attempt_id"`
+	Channel              string               `json:"channel" db:"channel"`
+	QueueId              *int                 `json:"queue_id" db:"queue_id"`
+	QueueName            *string              `json:"queue_name" db:"queue_name"`
+	MemberId             int64                `json:"member_id" db:"member_id"`
+	MemberName           *string              `json:"member_name,omitempty" db:"member_name"`
+	MemberCallId         *string              `json:"member_channel_id" db:"member_channel_id"`
+	AgentCallId          *string              `json:"agent_channel_id" db:"agent_channel_id"`
+	Destination          *MemberCommunication `json:"communication" db:"destination"`
+	LeavingAt            *int64               `json:"leaving_at" db:"leaving_at"`
+	ProcessingTimeoutAt  *int64               `json:"processing_timeout_at" db:"processing_timeout_at"`
+	ProcessingSec        *int                 `json:"processing_sec" db:"processing_sec"`
+	ProcessingRenewalSec *int                 `json:"processing_renewal_sec" db:"processing_renewal_sec"`
+	Form                 json.RawMessage      `json:"form" db:"form"`
+	HasForm              bool                 `json:"has_form,omitempty" db:"has_form,omitempty"`
+	State                *string              `json:"state,omitempty" db:"state"`
+	Variables            *Variables           `json:"variables,omitempty" db:"variables"`
+	BridgedAt            *int64               `json:"bridged_at,omitempty" db:"bridged_at"`
+	AgentId              *int                 `json:"agent_id,omitempty" db:"agent_id"`
 }
 
 type CallAnnotation struct {

@@ -91,7 +91,7 @@ func (c *Controller) WaitingAgent(session *auth_manager.Session, domainId, agent
 	return c.app.WaitingAgentChannel(session.Domain(domainId), agentId, channel)
 }
 
-func (c *Controller) ActiveAgentTasks(session *auth_manager.Session, domainId, agentId int64) ([]*model.AgentTask, *model.AppError) {
+func (c *Controller) ActiveAgentTasks(session *auth_manager.Session, domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
