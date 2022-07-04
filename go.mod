@@ -15,13 +15,13 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
-	github.com/webitel/call_center v0.0.0-20220609133847-b10cc3eede4c
-	github.com/webitel/protos/cc v0.0.0-20220628085918-0a360cd37f90
-	github.com/webitel/protos/engine v0.0.0-20220628085918-0a360cd37f90
+	github.com/webitel/call_center v0.0.0-20220629121349-3bc94fd9fd1b
+	github.com/webitel/protos/cc v0.0.0-20220704142716-54aa0f8ca52e
+	github.com/webitel/protos/engine v0.0.0-20220704142716-54aa0f8ca52e
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.9.0
 	go.uber.org/ratelimit v0.2.0
-	golang.org/x/net v0.0.0-20220624214902-1bab6f366d9e
+	golang.org/x/net v0.0.0-20220630215102-69896b714898
 	google.golang.org/grpc v1.47.0
 )
 
@@ -49,9 +49,9 @@ require (
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.21.0 // indirect
-	golang.org/x/sys v0.0.0-20220627191245-f75cf1eec38b // indirect
+	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220627200112-0a929928cb33 // indirect
+	google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
