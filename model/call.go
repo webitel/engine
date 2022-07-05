@@ -207,7 +207,7 @@ type CCTask struct {
 	ProcessingTimeoutAt  *int64               `json:"processing_timeout_at" db:"processing_timeout_at"`
 	ProcessingSec        *int                 `json:"processing_sec" db:"processing_sec"`
 	ProcessingRenewalSec *int                 `json:"processing_renewal_sec" db:"processing_renewal_sec"`
-	Form                 json.RawMessage      `json:"form" db:"form"`
+	Form                 *json.RawMessage     `json:"form" db:"form"`
 	HasForm              bool                 `json:"has_form,omitempty" db:"has_form,omitempty"`
 	State                *string              `json:"state,omitempty" db:"state"`
 	Variables            *Variables           `json:"variables,omitempty" db:"variables"`
