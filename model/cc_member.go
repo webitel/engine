@@ -284,15 +284,18 @@ type MemberAttempt struct {
 
 type SearchAttempts struct {
 	ListRequest
-	JoinedAt  FilterBetween `json:"joined_at" db:"joined_at"`
-	Ids       []int64       `json:"ids" db:"ids"`
-	MemberIds []int64       `json:"member_ids" db:"member_ids"`
+	JoinedAt  *FilterBetween `json:"joined_at" db:"joined_at"`
+	Ids       []int64        `json:"ids" db:"ids"`
+	MemberIds []int64        `json:"member_ids" db:"member_ids"`
 	//ResourceId  *int32        `json:"resource_id" db:"resource_id" `
 	QueueIds  []int64 `json:"queue_ids" db:"queue_ids"`
 	BucketIds []int64 `json:"bucket_ids" db:"bucket_ids"`
 	//Destination *string       `json:"destination" db:"destination"`
-	AgentIds []int64 `json:"agent_ids" db:"agent_ids"`
-	Result   *string `json:"result" db:"result"`
+	AgentIds   []int64        `json:"agent_ids" db:"agent_ids"`
+	Result     []string       `json:"result" db:"result"`
+	LeavingAt  *FilterBetween `json:"leaving_at" db:"leaving_at"`
+	OfferingAt *FilterBetween `json:"offering_at" db:"offering_at"`
+	Duration   *FilterBetween `json:"duration" db:"duration"`
 }
 
 type SearchOfflineQueueMembers struct {

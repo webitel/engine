@@ -522,17 +522,24 @@ func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.Sear
 	var att []*model.AttemptHistory
 
 	f := map[string]interface{}{
-		"Domain":    domainId,
-		"Limit":     search.GetLimit(),
-		"Offset":    search.GetOffset(),
-		"From":      model.GetBetweenFromTime(&search.JoinedAt),
-		"To":        model.GetBetweenToTime(&search.JoinedAt),
-		"Ids":       pq.Array(search.Ids),
-		"QueueIds":  pq.Array(search.QueueIds),
-		"BucketIds": pq.Array(search.BucketIds),
-		"MemberIds": pq.Array(search.MemberIds),
-		"AgentIds":  pq.Array(search.AgentIds),
-		"Result":    search.Result,
+		"Domain":       domainId,
+		"Q":            search.GetQ(),
+		"Limit":        search.GetLimit(),
+		"Offset":       search.GetOffset(),
+		"From":         model.GetBetweenFromTime(search.JoinedAt),
+		"To":           model.GetBetweenToTime(search.JoinedAt),
+		"Ids":          pq.Array(search.Ids),
+		"QueueIds":     pq.Array(search.QueueIds),
+		"BucketIds":    pq.Array(search.BucketIds),
+		"MemberIds":    pq.Array(search.MemberIds),
+		"AgentIds":     pq.Array(search.AgentIds),
+		"Result":       pq.Array(search.Result),
+		"OfferingFrom": model.GetBetweenFromTime(search.OfferingAt),
+		"OfferingTo":   model.GetBetweenToTime(search.OfferingAt),
+		"LeavingFrom":  model.GetBetweenFromTime(search.LeavingAt),
+		"LeavingTo":    model.GetBetweenToTime(search.LeavingAt),
+		"DurationFrom": model.GetBetweenFrom(search.Duration),
+		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
 	err := s.ListQuery(&att, search.ListRequest,
@@ -543,7 +550,22 @@ func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.Sear
 	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
-	and (:Result::varchar isnull or result = :Result )`,
+	
+	and ( :OfferingFrom::timestamptz isnull or offering_at >= :OfferingFrom::timestamptz )
+	and ( :OfferingTo::timestamptz isnull or offering_at <= :OfferingTo::timestamptz )
+ 
+	and ( :LeavingFrom::timestamptz isnull or leaving_at >= :LeavingFrom::timestamptz )
+	and ( :LeavingTo::timestamptz isnull or leaving_at <= :LeavingTo::timestamptz )
+ 
+	and ( :LeavingFrom::timestamptz isnull or leaving_at >= :LeavingFrom::timestamptz )
+	and ( :LeavingTo::timestamptz isnull or leaving_at <= :LeavingTo::timestamptz )
+ 
+	and ( :DurationFrom::int8 isnull or extract(epoch from coalesce(reporting_at, leaving_at) - joined_at)::int8 >= :DurationFrom::int8 )
+	and ( :DurationTo::int8 isnull or extract(epoch from coalesce(reporting_at, leaving_at) - joined_at)::int8 <= :DurationTo::int8 )
+
+	and (:Result::varchar[] isnull or result = any(:Result) )
+	and (:Q::varchar isnull or ( destination->>'destination' ilike :Q or destination->>'display' ilike :Q))
+`,
 		model.AttemptHistory{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.SearchAttemptsHistory", "store.sql_member.attempts_history.app_error", nil,
@@ -557,28 +579,51 @@ func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttem
 	var att []*model.Attempt
 
 	f := map[string]interface{}{
-		"Domain":    domainId,
-		"Limit":     search.GetLimit(),
-		"Offset":    search.GetOffset(),
-		"From":      search.JoinedAt.From,
-		"To":        search.JoinedAt.To,
-		"Ids":       pq.Array(search.Ids),
-		"QueueIds":  pq.Array(search.QueueIds),
-		"BucketIds": pq.Array(search.BucketIds),
-		"MemberIds": pq.Array(search.MemberIds),
-		"AgentIds":  pq.Array(search.AgentIds),
-		"Result":    search.Result,
+		"Domain":       domainId,
+		"Q":            search.GetQ(),
+		"Limit":        search.GetLimit(),
+		"Offset":       search.GetOffset(),
+		"From":         model.GetBetweenFromTime(search.JoinedAt),
+		"To":           model.GetBetweenToTime(search.JoinedAt),
+		"Ids":          pq.Array(search.Ids),
+		"QueueIds":     pq.Array(search.QueueIds),
+		"BucketIds":    pq.Array(search.BucketIds),
+		"MemberIds":    pq.Array(search.MemberIds),
+		"AgentIds":     pq.Array(search.AgentIds),
+		"Result":       pq.Array(search.Result),
+		"OfferingFrom": model.GetBetweenFrom(search.OfferingAt),
+		"OfferingTo":   model.GetBetweenTo(search.OfferingAt),
+		"LeavingFrom":  model.GetBetweenFrom(search.LeavingAt),
+		"LeavingTo":    model.GetBetweenTo(search.LeavingAt),
+		"DurationFrom": model.GetBetweenFrom(search.Duration),
+		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
 	err := s.ListQuery(&att, search.ListRequest,
 		`domain_id = :Domain
-	and joined_at_timestamp between to_timestamp( (:From::int8 / 1000)::int8 ) and to_timestamp( (:To::int8 / 1000)::int8 )
+	and ( :From::timestamptz isnull or joined_at_timestamp >= :From::timestamptz )
+	and ( :To::timestamptz isnull or joined_at_timestamp <= :To::timestamptz )
+
 	and (:Ids::int8[] isnull or id = any(:Ids))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
-	and (:Result::varchar isnull or result = :Result )`,
+ 
+	and ( :OfferingFrom::int8 isnull or offering_at >= :OfferingFrom::int8 )
+	and ( :OfferingTo::int8 isnull or offering_at <= :OfferingTo::int8 )
+ 
+	and ( :LeavingFrom::int8 isnull or leaving_at >= :LeavingFrom::int8 )
+	and ( :LeavingTo::int8 isnull or leaving_at <= :LeavingTo::int8 )
+ 
+	and ( :LeavingFrom::int8 isnull or leaving_at >= :LeavingFrom::int8 )
+	and ( :LeavingTo::int8 isnull or leaving_at <= :LeavingTo::int8 )
+ 
+	and ( :DurationFrom::int8 isnull or (extract(epoch from now()) - (joined_at/1000))::int8 >= :DurationFrom::int8 )
+	and ( :DurationTo::int8 isnull or (extract(epoch from now()) - (joined_at/1000))::int8 <= :DurationTo::int8 )
+
+	and (:Result::varchar[] isnull or result = any(:Result) )
+	and (:Q::varchar isnull or ( destination->>'destination' ilike :Q or destination->>'display' ilike :Q))`,
 		model.Attempt{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.SearchAttempts", "store.sql_member.attempts.app_error", nil,

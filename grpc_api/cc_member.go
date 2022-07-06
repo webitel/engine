@@ -609,36 +609,53 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 
 	//FIXME check queue PERMISSION
 
-	if in.GetJoinedAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchAttempts", "grpc.member.search_attempt", nil, "filter joined_at is required", http.StatusBadRequest)
-	}
-
 	var list []*model.Attempt
 	var endList bool
 	req := &model.SearchAttempts{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Fields:   in.GetFields(),
-			Sort:     in.GetSort(),
-		},
-		JoinedAt: model.FilterBetween{
-			From: in.GetJoinedAt().GetFrom(),
-			To:   in.GetJoinedAt().GetTo(),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.GetFields(),
+			Sort:    in.GetSort(),
 		},
 		Ids:       in.GetId(),
 		MemberIds: in.GetMemberId(),
 		QueueIds:  in.GetQueueId(),
 		BucketIds: in.GetBucketId(),
 		AgentIds:  in.GetAgentId(),
+		Result:    in.GetResult(),
 	}
 
-	if in.GetResult() != "" {
-		req.Result = &in.Result
+	if in.JoinedAt != nil {
+		req.JoinedAt = &model.FilterBetween{
+			From: in.GetJoinedAt().GetFrom(),
+			To:   in.GetJoinedAt().GetTo(),
+		}
 	}
 
-	if list, endList, err = api.app.SearchAttempts(session.Domain(in.GetDomainId()), req); err != nil {
+	if in.LeavingAt != nil {
+		req.LeavingAt = &model.FilterBetween{
+			From: in.GetLeavingAt().GetFrom(),
+			To:   in.GetLeavingAt().GetTo(),
+		}
+	}
+
+	if in.OfferingAt != nil {
+		req.OfferingAt = &model.FilterBetween{
+			From: in.GetOfferingAt().GetFrom(),
+			To:   in.GetOfferingAt().GetTo(),
+		}
+	}
+
+	if in.Duration != nil {
+		req.Duration = &model.FilterBetween{
+			From: in.GetDuration().GetFrom(),
+			To:   in.GetDuration().GetTo(),
+		}
+	}
+
+	if list, endList, err = api.app.SearchAttempts(session.Domain(0), req); err != nil {
 		return nil, err
 	}
 
@@ -674,28 +691,49 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 	var endList bool
 	req := &model.SearchAttempts{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Fields:   in.GetFields(),
-			Sort:     in.GetSort(),
-		},
-		JoinedAt: model.FilterBetween{
-			From: in.GetJoinedAt().GetFrom(),
-			To:   in.GetJoinedAt().GetTo(),
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.GetFields(),
+			Sort:    in.GetSort(),
 		},
 		Ids:       in.GetId(),
 		MemberIds: in.GetMemberId(),
 		QueueIds:  in.GetQueueId(),
 		BucketIds: in.GetBucketId(),
 		AgentIds:  in.GetAgentId(),
+		Result:    in.GetResult(),
 	}
 
-	if in.GetResult() != "" {
-		req.Result = &in.Result
+	if in.JoinedAt != nil {
+		req.JoinedAt = &model.FilterBetween{
+			From: in.GetJoinedAt().GetFrom(),
+			To:   in.GetJoinedAt().GetTo(),
+		}
 	}
 
-	if list, endList, err = api.app.SearchAttemptsHistory(session.Domain(in.GetDomainId()), req); err != nil {
+	if in.LeavingAt != nil {
+		req.LeavingAt = &model.FilterBetween{
+			From: in.GetLeavingAt().GetFrom(),
+			To:   in.GetLeavingAt().GetTo(),
+		}
+	}
+
+	if in.OfferingAt != nil {
+		req.OfferingAt = &model.FilterBetween{
+			From: in.GetOfferingAt().GetFrom(),
+			To:   in.GetOfferingAt().GetTo(),
+		}
+	}
+
+	if in.Duration != nil {
+		req.Duration = &model.FilterBetween{
+			From: in.GetDuration().GetFrom(),
+			To:   in.GetDuration().GetTo(),
+		}
+	}
+
+	if list, endList, err = api.app.SearchAttemptsHistory(session.Domain(0), req); err != nil {
 		return nil, err
 	}
 
