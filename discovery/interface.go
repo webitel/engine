@@ -2,6 +2,8 @@ package discovery
 
 import "time"
 
+type ListConnections []*ServiceConnection
+
 func NewServiceDiscovery(id, addr string, check CheckFunction) (ServiceDiscovery, error) {
 	return NewConsul(id, addr, check)
 }
@@ -23,5 +25,13 @@ type ClusterData struct {
 type ServiceDiscovery interface {
 	RegisterService(name string, pubHost string, pubPort int, ttl, criticalTtl time.Duration) error
 	Shutdown()
-	GetByName(serviceName string) ([]*ServiceConnection, error)
+	GetByName(serviceName string) (ListConnections, error)
+}
+
+func (l ListConnections) Ids() []string {
+	res := make([]string, 0, len(l))
+	for _, v := range l {
+		res = append(res, v.Id)
+	}
+	return res
 }

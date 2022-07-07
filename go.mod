@@ -21,7 +21,7 @@ require (
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.9.0
 	go.uber.org/ratelimit v0.2.0
-	golang.org/x/net v0.0.0-20220630215102-69896b714898
+	golang.org/x/net v0.0.0-20220706163947-c90051bbdb60
 	google.golang.org/grpc v1.47.0
 )
 
@@ -51,7 +51,7 @@ require (
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/sys v0.0.0-20220704084225-05e143d24a9e // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220630174209-ad1d48641aa7 // indirect
+	google.golang.org/genproto v0.0.0-20220706185917-7780775163c4 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

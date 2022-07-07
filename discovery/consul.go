@@ -43,7 +43,7 @@ func NewConsul(id, addr string, check CheckFunction) (*consul, error) {
 	return c, nil
 }
 
-func (c *consul) GetByName(serviceName string) ([]*ServiceConnection, error) {
+func (c *consul) GetByName(serviceName string) (ListConnections, error) {
 	list, err := c.agent.ServicesWithFilter(fmt.Sprintf("Service == %s", serviceName))
 	if err != nil {
 		return nil, err

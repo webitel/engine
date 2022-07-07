@@ -119,5 +119,5 @@ func (am *authManager) wakeUp() {
 			am.registerConnection(v)
 		}
 	}
-	am.poolConnections.RecheckConnections()
+	am.poolConnections.RecheckConnections(list.Ids())
 }

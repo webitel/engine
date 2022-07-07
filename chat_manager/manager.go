@@ -108,7 +108,7 @@ func (cm *chatManager) wakeUp() {
 			cm.registerConnection(v)
 		}
 	}
-	cm.poolConnections.RecheckConnections()
+	cm.poolConnections.RecheckConnections(list.Ids())
 }
 
 func (cm *chatManager) Client() (Chat, error) {

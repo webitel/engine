@@ -38,7 +38,7 @@ type Pool interface {
 	Get(strategy Strategy) (Connection, error)
 	All() []Connection
 	CloseAllConnections()
-	RecheckConnections()
+	RecheckConnections(list []string)
 }
 
 func NewPoolConnections() Pool {
@@ -141,10 +141,20 @@ func (c *connectionsPool) All() []Connection {
 	return c.connections
 }
 
-func (c *connectionsPool) RecheckConnections() {
+func (c *connectionsPool) RecheckConnections(list []string) {
 	for _, conn := range c.connections {
-		if conn != nil && !conn.Ready() {
+		if conn != nil && (!conn.Ready() || !exists(list, conn.Name())) {
 			c.Remove(conn.Name())
 		}
 	}
+}
+
+func exists(list []string, key string) bool {
+	for _, v := range list {
+		if v == key {
+			return true
+		}
+	}
+
+	return false
 }

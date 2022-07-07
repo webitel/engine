@@ -176,7 +176,7 @@ func (c *callManager) wakeUp() {
 			c.registerConnection(v)
 		}
 	}
-	c.poolConnections.RecheckConnections()
+	c.poolConnections.RecheckConnections(list.Ids())
 }
 
 func (c *callManager) registerConnection(v *discovery.ServiceConnection) {
