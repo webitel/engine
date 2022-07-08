@@ -15,7 +15,7 @@ const (
 	PERMISSION_SCOPE_FLOW         = "flow"
 	PERMISSION_SCOPE_DICTIONARIES = "dictionaries"
 
-	PERMISSION_SCOPE_EMAIL_PROFILE = "email_profiles"
+	PERMISSION_SCOPE_EMAIL_PROFILE = "email_profile"
 
 	PERMISSION_SCOPE_USERS = "users"
 )
