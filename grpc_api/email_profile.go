@@ -21,9 +21,6 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 	}
 
 	req := &model.EmailProfile{
-		DomainRecord: model.DomainRecord{
-			DomainId: in.GetDomainId(),
-		},
 		Name:        in.GetName(),
 		Description: in.GetDescription(),
 		Schema: model.Lookup{
@@ -56,12 +53,11 @@ func (api *emailProfile) SearchEmailProfile(ctx context.Context, in *engine.Sear
 	var endList bool
 	req := &model.SearchEmailProfile{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Sort:     in.Sort,
-			Fields:   in.Fields,
-			Q:        in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Sort:    in.Sort,
+			Fields:  in.Fields,
+			Q:       in.GetQ(),
 		},
 	}
 
@@ -88,7 +84,51 @@ func (api *emailProfile) ReadEmailProfile(ctx context.Context, in *engine.ReadEm
 	}
 
 	var profile *model.EmailProfile
-	profile, err = api.ctrl.GetEmailProfile(session, in.GetDomainId(), int(in.GetId()))
+	profile, err = api.ctrl.GetEmailProfile(session, int(in.GetId()))
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineEmailProfile(profile), nil
+}
+
+func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.PatchEmailProfileRequest) (*engine.EmailProfile, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var profile *model.EmailProfile
+	patch := &model.EmailProfilePatch{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "name":
+			patch.Name = &in.Name
+		case "description":
+			patch.Description = &in.Description
+		case "schema.id":
+			patch.Schema = GetLookup(in.Schema)
+		case "enabled":
+			patch.Enabled = &in.Enabled
+		case "host":
+			patch.Host = &in.Host
+		case "login":
+			patch.Login = &in.Login
+		case "password":
+			patch.Password = &in.Password
+		case "mailbox":
+			patch.Mailbox = &in.Mailbox
+		case "smtp_port":
+			patch.SmtpPort = model.NewInt(int(in.SmtpPort))
+		case "imap_port":
+			patch.ImapPort = model.NewInt(int(in.ImapPort))
+		}
+	}
+
+	profile, err = api.ctrl.PatchEmailProfile(session, int(in.GetId()), patch)
+
 	if err != nil {
 		return nil, err
 	}
@@ -104,8 +144,7 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 
 	profile := &model.EmailProfile{
 		DomainRecord: model.DomainRecord{
-			Id:       in.Id,
-			DomainId: in.GetDomainId(),
+			Id: in.Id,
 			UpdatedBy: &model.Lookup{
 				Id: int(session.UserId),
 			},
@@ -139,7 +178,7 @@ func (api *emailProfile) DeleteEmailProfile(ctx context.Context, in *engine.Dele
 	}
 
 	var profile *model.EmailProfile
-	profile, err = api.ctrl.RemoveEmailProfile(session, in.GetDomainId(), int(in.GetId()))
+	profile, err = api.ctrl.RemoveEmailProfile(session, int(in.GetId()))
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +189,6 @@ func (api *emailProfile) DeleteEmailProfile(ctx context.Context, in *engine.Dele
 func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 	return &engine.EmailProfile{
 		Id:          src.Id,
-		DomainId:    src.DomainId,
 		CreatedAt:   src.CreatedAt,
 		CreatedBy:   GetProtoLookup(src.CreatedBy),
 		UpdatedAt:   src.UpdatedAt,

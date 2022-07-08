@@ -15,7 +15,7 @@ func (c *Controller) CreateEmailProfile(session *auth_manager.Session, profile *
 		Id: int(session.UserId),
 	}
 	profile.UpdatedBy = profile.CreatedBy
-	profile.DomainId = session.Domain(profile.DomainId)
+	profile.DomainId = session.Domain(0)
 
 	if err := profile.IsValid(); err != nil {
 		return nil, err
@@ -35,13 +35,13 @@ func (c *Controller) SearchEmailProfile(session *auth_manager.Session, search *m
 	return c.app.GetEmailProfilesPage(session.Domain(search.DomainId), search)
 }
 
-func (c *Controller) GetEmailProfile(session *auth_manager.Session, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+func (c *Controller) GetEmailProfile(session *auth_manager.Session, id int) (*model.EmailProfile, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_EMAIL_PROFILE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetEmailProfile(session.Domain(domainId), id)
+	return c.app.GetEmailProfile(session.Domain(0), id)
 }
 
 func (c *Controller) UpdateEmailProfile(session *auth_manager.Session, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
@@ -54,7 +54,7 @@ func (c *Controller) UpdateEmailProfile(session *auth_manager.Session, profile *
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	profile.DomainId = session.Domain(profile.DomainId)
+	profile.DomainId = session.Domain(0)
 
 	if err := profile.IsValid(); err != nil {
 		return nil, err
@@ -63,7 +63,23 @@ func (c *Controller) UpdateEmailProfile(session *auth_manager.Session, profile *
 	return c.app.UpdateEmailProfile(profile)
 }
 
-func (c *Controller) RemoveEmailProfile(session *auth_manager.Session, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+func (c *Controller) PatchEmailProfile(session *auth_manager.Session, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_EMAIL_PROFILE)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	patch.UpdatedBy.Id = int(session.UserId)
+	patch.UpdatedAt = model.GetMillis()
+
+	return c.app.PatchEmailProfile(session.Domain(0), id, patch)
+}
+
+func (c *Controller) RemoveEmailProfile(session *auth_manager.Session, id int) (*model.EmailProfile, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_EMAIL_PROFILE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -73,5 +89,5 @@ func (c *Controller) RemoveEmailProfile(session *auth_manager.Session, domainId 
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	return c.app.RemoveEmailProfile(session.Domain(domainId), id)
+	return c.app.RemoveEmailProfile(session.Domain(0), id)
 }

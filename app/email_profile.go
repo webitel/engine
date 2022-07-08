@@ -47,6 +47,26 @@ func (a *App) UpdateEmailProfile(p *model.EmailProfile) (*model.EmailProfile, *m
 	return oldProfile, nil
 }
 
+func (a *App) PatchEmailProfile(domainId int64, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, *model.AppError) {
+	oldProfile, err := a.GetEmailProfile(domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldProfile.Patch(patch)
+
+	if err = oldProfile.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldProfile, err = a.Store.EmailProfile().Update(oldProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldProfile, nil
+}
+
 func (app *App) RemoveEmailProfile(domainId int64, id int) (*model.EmailProfile, *model.AppError) {
 	profile, err := app.Store.EmailProfile().Get(domainId, id)
 
