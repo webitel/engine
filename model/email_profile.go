@@ -10,7 +10,7 @@ type EmailProfile struct {
 	Enabled     bool   `json:"enabled" db:"enabled"`
 	Host        string `json:"host" db:"host"`
 	Login       string `json:"login" db:"login"`
-	Password    string `json:"password" db:"-"`
+	Password    string `json:"password" db:"password"`
 	Mailbox     string `json:"mailbox" db:"mailbox"`
 	SmtpPort    int    `json:"smtp_port" db:"smtp_port"`
 	ImapPort    int    `json:"imap_port" db:"imap_port"`

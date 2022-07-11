@@ -202,5 +202,6 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		Mailbox:     src.Mailbox,
 		SmtpPort:    int32(src.SmtpPort),
 		ImapPort:    int32(src.ImapPort),
+		Password:    src.Password,
 	}
 }
