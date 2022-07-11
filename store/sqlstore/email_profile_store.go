@@ -105,6 +105,7 @@ func (s SqlEmailProfileStore) Update(p *model.EmailProfile) (*model.EmailProfile
             mailbox = :Mailbox,
             smtp_port = :Smtp,
             imap_port = :Imap,
+		    enabled = :Enabled,
             updated_by = :UpdatedBy,
             updated_at = now()
         where id = :Id
@@ -141,6 +142,7 @@ from t
 		"Imap":        p.ImapPort,
 		"UpdatedBy":   p.UpdatedBy.GetSafeId(),
 		"Id":          p.Id,
+		"Enabled":     p.Enabled,
 	})
 
 	if err != nil {
