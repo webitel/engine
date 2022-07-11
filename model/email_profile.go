@@ -74,7 +74,7 @@ func (p EmailProfile) DefaultOrder() string {
 
 func (p EmailProfile) AllowFields() []string {
 	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "name", "enabled", "schema", "host",
-		"mailbox", "description", "login", "smtp_port", "imap_port"}
+		"mailbox", "description", "login", "smtp_port", "imap_port", "password"}
 }
 
 func (p EmailProfile) DefaultFields() []string {

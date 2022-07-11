@@ -28,7 +28,8 @@ values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :Host, :Mailbo
 select t.id, t.domain_id, call_center.cc_view_timestamp(t.created_at) created_at, call_center.cc_get_lookup(t.created_by, cc.name) created_by,
        call_center.cc_view_timestamp(t.updated_at) updated_at, call_center.cc_get_lookup(t.updated_by, cu.name) updated_by,
        t.name, t.host, t.login, t.mailbox, t.smtp_port, t.imap_port, call_center.cc_get_lookup(t.flow_id, s.name) as schema,
-       t.description, t.enabled
+       t.description, t.enabled,
+	   t.password
 from t
     left join directory.wbt_user cc on cc.id = t.created_by
     left join directory.wbt_user cu on cu.id = t.updated_by
@@ -123,7 +124,8 @@ select t.id,
        t.imap_port,
        call_center.cc_get_lookup(t.flow_id, s.name) as  schema,
        t.description,
-       t.enabled
+       t.enabled,
+	   t.password
 from t
          left join directory.wbt_user cc on cc.id = t.created_by
          left join directory.wbt_user cu on cu.id = t.updated_by
