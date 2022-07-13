@@ -359,6 +359,8 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Tags":            pq.Array(search.Tags),
 		"AmdResult":       pq.Array(search.AmdResult),
 		"Variables":       search.Variables.ToSafeJson(),
+		"HasTranscript":   search.HasTranscript,
+		"Fts":             search.Fts,
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -381,7 +383,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
-	and (:HasFile::bool is not true or files notnull )
+	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -389,6 +391,13 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
+    and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
+        case :HasTranscript::bool when false
+         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id )
+         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+        end
+
+    ))
 	and (:DependencyIds::varchar[] isnull or id = any (
 			array(with recursive a as (
                 select t.id
@@ -451,6 +460,8 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"UserSupervisorId": userSupervisorId,
 		"Variables":        search.Variables.ToSafeJson(),
+		"HasTranscript":    search.HasTranscript,
+		"Fts":              search.Fts,
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -473,7 +484,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::varchar isnull or parent_id = :ParentId )
-	and (:HasFile::bool is not true or files notnull )
+	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -481,6 +492,13 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
+    and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
+        case :HasTranscript::bool when false
+         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id )
+         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+        end
+
+    ))
 	and (:DependencyIds::varchar[] isnull or id = any (
 			array(with recursive a as (
                 select t.id

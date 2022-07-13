@@ -448,7 +448,6 @@ type SearchHistoryCall struct {
 	Directions      []string //fixme
 	Missed          *bool
 	SkipParent      bool
-	HasFile         bool
 	UserIds         []int64
 	QueueIds        []int64
 	TeamIds         []int64
@@ -462,6 +461,9 @@ type SearchHistoryCall struct {
 	Tags            []string
 	Variables       StringMap
 	AmdResult       []string
+	HasFile         *bool
+	HasTranscript   *bool
+	Fts             *string
 }
 
 type CallEventInfo struct {

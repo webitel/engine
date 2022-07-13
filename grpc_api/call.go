@@ -48,7 +48,6 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			Fields:   in.Fields,
 		},
 		SkipParent:      in.GetSkipParent(),
-		HasFile:         in.GetHasFile(),
 		UserIds:         in.GetUserId(),
 		QueueIds:        in.GetQueueId(),
 		TeamIds:         in.GetTeamId(),
@@ -64,6 +63,8 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		Variables:       in.GetVariables(),
 		Number:          in.GetNumber(),
 		AmdResult:       in.GetAmdResult(),
+		HasFile:         GetBool(in.GetHasFile()),
+		HasTranscript:   GetBool(in.GetHasTranscript()),
 	}
 
 	if in.GetDuration() != nil {
@@ -152,7 +153,6 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 				Q:        in.GetQ(),
 			},
 			SkipParent:      in.GetSkipParent(),
-			HasFile:         in.GetHasFile(),
 			UserIds:         in.GetUserId(),
 			QueueIds:        in.GetQueueId(),
 			TeamIds:         in.GetTeamId(),
@@ -163,10 +163,13 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			TransferFromIds: in.GetTransferFrom(),
 			TransferToIds:   in.GetTransferTo(),
 			DependencyIds:   in.GetDependencyId(),
-			Directions:      in.GetDirection(),
-			CauseArr:        in.GetCause(),
 			Tags:            in.GetTags(),
+			CauseArr:        in.GetCause(),
+			Variables:       in.GetVariables(),
 			Number:          in.GetNumber(),
+			AmdResult:       in.GetAmdResult(),
+			HasFile:         GetBool(in.GetHasFile()),
+			HasTranscript:   GetBool(in.GetHasTranscript()),
 		},
 	}
 
@@ -196,6 +199,10 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			From: in.GetStoredAt().GetFrom(),
 			To:   in.GetStoredAt().GetTo(),
 		}
+	}
+
+	if in.GetDirection() != "" {
+		req.Direction = &in.Direction
 	}
 
 	if in.GetParentId() != "" {
@@ -877,7 +884,7 @@ func toCallFilesJob(src []*model.HistoryFileJob) []*engine.HistoryFileJob {
 			Id:        v.Id,
 			FileId:    v.FileId,
 			CreatedAt: v.CreatedAt,
-			Action:    v.Action,
+			//Action:    v.Action, // TODO
 		})
 	}
 
