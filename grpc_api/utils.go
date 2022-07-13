@@ -134,8 +134,8 @@ func GetStringPointer(src string) *string {
 }
 
 func GetBool(in engine.BoolFilter) *bool {
-	if in != engine.BoolFilter_Undefined {
-		return model.NewBool(in == engine.BoolFilter_True)
+	if in != engine.BoolFilter_undefined {
+		return model.NewBool(in == engine.BoolFilter_true)
 	}
 	return nil
 }
