@@ -282,16 +282,16 @@ func (a *CallAnnotation) IsValid() *AppError {
 type CallFileTranscriptLookup struct {
 	Id     int64  `json:"id"`
 	Locale string `json:"locale"`
+	FileId int64  `json:"file_id"`
 }
 
 type CallFile struct {
-	Id          int64                       `json:"id"`
-	Name        string                      `json:"name"`
-	Size        int64                       `json:"size"`
-	MimeType    string                      `json:"mime_type"`
-	StartAt     int64                       `json:"start_at"`
-	StopAt      int64                       `json:"stop_at"`
-	Transcripts []*CallFileTranscriptLookup `json:"transcripts"`
+	Id       int64  `json:"id"`
+	Name     string `json:"name"`
+	Size     int64  `json:"size"`
+	MimeType string `json:"mime_type"`
+	StartAt  int64  `json:"start_at"`
+	StopAt   int64  `json:"stop_at"`
 }
 
 func TimeToInt64(t *time.Time) int64 {
@@ -347,8 +347,9 @@ type HistoryCall struct {
 	WaitSec  int `json:"wait_sec" db:"wait_sec"`
 	BillSec  int `json:"bill_sec" db:"bill_sec"`
 
-	SipCode *int        `json:"sip_code" db:"sip_code"`
-	Files   []*CallFile `json:"files" db:"files"`
+	SipCode     *int                        `json:"sip_code" db:"sip_code"`
+	Files       []*CallFile                 `json:"files" db:"files"`
+	Transcripts []*CallFileTranscriptLookup `json:"transcripts" db:"transcripts"`
 
 	Queue  *Lookup `json:"queue" db:"queue"`
 	Member *Lookup `json:"member" db:"member"`
@@ -389,7 +390,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
+		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job", "transcripts",
 	}
 }
 

@@ -107,6 +107,10 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.Missed = model.NewBool(true)
 	}
 
+	if in.Fts != "" {
+		req.Fts = &in.Fts
+	}
+
 	if list, endList, err = api.ctrl.SearchHistoryCall(session, req); err != nil {
 		return nil, err
 	}
@@ -211,6 +215,10 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 
 	if in.GetMissed() {
 		req.Missed = model.NewBool(true)
+	}
+
+	if in.Fts != "" {
+		req.Fts = &in.Fts
 	}
 
 	for _, v := range in.Aggs {
@@ -768,6 +776,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Hold:             toCallHold(src.Hold),
 		AmdResult:        defaultString(src.AmdResult),
 		FilesJob:         toCallFilesJob(src.FilesJob),
+		Transcripts:      toCallFileTranscriptLookups(src.Transcripts),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -856,17 +865,18 @@ func prettyVariables(src *model.Variables) map[string]string {
 	return nil
 }
 
-func toCallFileTranscriptLookups(src []*model.CallFileTranscriptLookup) []*engine.CallFile_TranscriptLookup {
+func toCallFileTranscriptLookups(src []*model.CallFileTranscriptLookup) []*engine.TranscriptLookup {
 	if src == nil {
 		return nil
 	}
 
-	res := make([]*engine.CallFile_TranscriptLookup, 0, len(src))
+	res := make([]*engine.TranscriptLookup, 0, len(src))
 
 	for _, v := range src {
-		res = append(res, &engine.CallFile_TranscriptLookup{
+		res = append(res, &engine.TranscriptLookup{
 			Id:     v.Id,
 			Locale: v.Locale,
+			FileId: v.FileId,
 		})
 	}
 
@@ -899,13 +909,12 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 	res := make([]*engine.CallFile, 0, len(src))
 	for _, v := range src {
 		res = append(res, &engine.CallFile{
-			Id:          v.Id,
-			Name:        v.Name,
-			Size:        v.Size,
-			MimeType:    v.MimeType,
-			StartAt:     v.StartAt,
-			StopAt:      v.StopAt,
-			Transcripts: toCallFileTranscriptLookups(v.Transcripts),
+			Id:       v.Id,
+			Name:     v.Name,
+			Size:     v.Size,
+			MimeType: v.MimeType,
+			StartAt:  v.StartAt,
+			StopAt:   v.StopAt,
 		})
 	}
 
