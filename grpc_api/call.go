@@ -894,7 +894,8 @@ func toCallFilesJob(src []*model.HistoryFileJob) []*engine.HistoryFileJob {
 			Id:        v.Id,
 			FileId:    v.FileId,
 			CreatedAt: v.CreatedAt,
-			//Action:    v.Action, // TODO
+			Action:    engine.HistoryFileJob_STT, // TODO
+			State:     engine.HistoryFileJob_active,
 		})
 	}
 
