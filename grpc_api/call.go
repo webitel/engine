@@ -890,13 +890,17 @@ func toCallFilesJob(src []*model.HistoryFileJob) []*engine.HistoryFileJob {
 
 	res := make([]*engine.HistoryFileJob, 0, len(src))
 	for _, v := range src {
-		res = append(res, &engine.HistoryFileJob{
+		r := &engine.HistoryFileJob{
 			Id:        v.Id,
 			FileId:    v.FileId,
 			CreatedAt: v.CreatedAt,
 			Action:    toFileJobAction(v.Action),
 			State:     (engine.HistoryFileJob_HistoryFileJobState)(v.State),
-		})
+		}
+		if v.Error != nil {
+			r.ErrorDetail = *v.Error
+		}
+		res = append(res, r)
 	}
 
 	return res
