@@ -894,12 +894,23 @@ func toCallFilesJob(src []*model.HistoryFileJob) []*engine.HistoryFileJob {
 			Id:        v.Id,
 			FileId:    v.FileId,
 			CreatedAt: v.CreatedAt,
-			Action:    engine.HistoryFileJob_STT, // TODO
-			State:     engine.HistoryFileJob_active,
+			Action:    toFileJobAction(v.Action),
+			State:     (engine.HistoryFileJob_HistoryFileJobState)(v.State),
 		})
 	}
 
 	return res
+}
+
+func toFileJobAction(n string) engine.HistoryFileJob_HistoryFileJobAction {
+	switch n {
+	case "STT":
+		return engine.HistoryFileJob_STT
+	case "remove":
+		return engine.HistoryFileJob_delete
+	default:
+		return engine.HistoryFileJob_undefined
+	}
 }
 
 func toCallFile(src []*model.CallFile) []*engine.CallFile {

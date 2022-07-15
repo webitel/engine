@@ -314,10 +314,12 @@ func Int64ToTime(i int64) *time.Time {
 type Variables map[string]interface{}
 
 type HistoryFileJob struct {
-	Id        int64  `json:"id"`
-	FileId    int64  `json:"file_id"`
-	CreatedAt int64  `json:"created_at"`
-	Action    string `json:"action"`
+	Id        int64   `json:"id"`
+	FileId    int64   `json:"file_id"`
+	CreatedAt int64   `json:"created_at"`
+	Action    string  `json:"action"`
+	State     int32   `json:"state"`
+	Error     *string `json:"error"`
 }
 
 type HistoryCall struct {
