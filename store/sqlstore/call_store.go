@@ -968,6 +968,15 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and (:Directions::varchar[] isnull or h.direction = any(:Directions) )
 		and (:Missed::bool isnull or (:Missed and h.answered_at isnull))
 		and (:Tags::varchar[] isnull or (h.tags && :Tags))
+		and (:AmdResult::varchar[] isnull or h.amd_result = any(:AmdResult))
+		and (:HasFile::bool isnull or (case :HasFile::bool when true then exists(select 1 from storage.files ft where ft.uuid = h.id ) else not exists(select 1 from storage.files ft where ft.uuid = h.id ) end))
+		and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
+				case :HasTranscript::bool when false
+				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id )
+				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+				end
+		
+			))
 		and (:DependencyIds::varchar[] isnull or h.id in (
 			with recursive a as (
 				select t.id
@@ -1019,6 +1028,11 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"TransferToIds":   pq.Array(aggs.TransferToIds),
 		"DependencyIds":   pq.Array(aggs.DependencyIds),
 		"Tags":            pq.Array(aggs.Tags),
+
+		"AmdResult":     pq.Array(aggs.AmdResult),
+		"HasFile":       aggs.HasFile,
+		"HasTranscript": aggs.HasTranscript,
+		"Fts":           aggs.Fts,
 	}
 
 	for i, v := range aggs.Aggs {
