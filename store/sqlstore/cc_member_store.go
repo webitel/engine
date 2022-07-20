@@ -70,8 +70,10 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	importId := model.NewId()
+
 	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
-		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id"))
+		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id", "import_id"))
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -80,7 +82,7 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	result := make([]int64, 0, len(members))
 	for k, v := range members {
 		_, err = stmp.Exec(k, queueId, v.Priority, v.ExpireAt, v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(),
-			v.Bucket.GetSafeId(), v.MinOfferingAt, v.Agent.GetSafeId(), v.Skill.GetSafeId())
+			v.Bucket.GetSafeId(), v.MinOfferingAt, v.Agent.GetSafeId(), v.Skill.GetSafeId(), importId)
 		if err != nil {
 			goto _error
 		}
@@ -92,8 +94,8 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	} else {
 
 		_, err = tx.Select(&result, `with i as (
-			insert into call_center.cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, domain_id, agent_id, skill_id)
-			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, :DomainId, agent_id, skill_id
+			insert into call_center.cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, domain_id, agent_id, skill_id, import_id)
+			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, :DomainId, agent_id, skill_id, import_id
 			from cc_member_tmp
 			returning id
 		)
