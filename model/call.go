@@ -381,6 +381,7 @@ type HistoryCall struct {
 	BlindTransfer     *string           `json:"blind_transfer" db:"blind_transfer"`
 
 	FilesJob []*HistoryFileJob `json:"files_job" db:"files_job"`
+	TalkSec  int32             `json:"talk_sec" db:"talk_sec"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -392,7 +393,7 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job", "transcripts",
+		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job", "transcripts", "talk_sec",
 	}
 }
 
@@ -439,34 +440,35 @@ type SearchCall struct {
 
 type SearchHistoryCall struct {
 	ListRequest
-	CreatedAt       *FilterBetween
-	Duration        *FilterBetween
-	AnsweredAt      *FilterBetween
-	StoredAt        *FilterBetween
-	Number          string
-	ParentId        *string
-	Cause           *string
-	CauseArr        []string // fixme
-	Direction       *string
-	Directions      []string //fixme
-	Missed          *bool
-	SkipParent      bool
-	UserIds         []int64
-	QueueIds        []int64
-	TeamIds         []int64
-	AgentIds        []int64
-	MemberIds       []int64
-	GatewayIds      []int64
-	Ids             []string
-	TransferFromIds []string
-	TransferToIds   []string
-	DependencyIds   []string
-	Tags            []string
-	Variables       StringMap
-	AmdResult       []string
-	HasFile         *bool
-	HasTranscript   *bool
-	Fts             *string
+	CreatedAt        *FilterBetween
+	Duration         *FilterBetween
+	AnsweredAt       *FilterBetween
+	StoredAt         *FilterBetween
+	Number           string
+	ParentId         *string
+	Cause            *string
+	CauseArr         []string // fixme
+	Direction        *string
+	Directions       []string //fixme
+	Missed           *bool
+	SkipParent       bool
+	UserIds          []int64
+	QueueIds         []int64
+	TeamIds          []int64
+	AgentIds         []int64
+	MemberIds        []int64
+	GatewayIds       []int64
+	Ids              []string
+	TransferFromIds  []string
+	TransferToIds    []string
+	DependencyIds    []string
+	Tags             []string
+	Variables        StringMap
+	AmdResult        []string
+	HasFile          *bool
+	HasTranscript    *bool
+	Fts              *string
+	AgentDescription string
 }
 
 type CallEventInfo struct {

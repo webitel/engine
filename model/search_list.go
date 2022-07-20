@@ -89,8 +89,13 @@ func (l *ListRequest) EndOfList() bool {
 }
 
 func (l *ListRequest) GetQ() *string {
-	if l.Q != "" {
-		return NewString(strings.Replace(l.Q, "*", "%", -1))
+
+	return ReplaceWebSearch(l.Q)
+}
+
+func ReplaceWebSearch(s string) *string {
+	if s != "" {
+		return NewString(strings.Replace(s, "*", "%", -1))
 	}
 
 	return nil

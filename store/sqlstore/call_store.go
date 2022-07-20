@@ -327,40 +327,41 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	var out []*model.HistoryCall
 
 	f := map[string]interface{}{
-		"Domain":          domainId,
-		"Limit":           search.GetLimit(),
-		"Offset":          search.GetOffset(),
-		"From":            model.GetBetweenFromTime(search.CreatedAt),
-		"To":              model.GetBetweenToTime(search.CreatedAt),
-		"Q":               search.GetQ(),
-		"UserIds":         pq.Array(search.UserIds),
-		"QueueIds":        pq.Array(search.QueueIds),
-		"TeamIds":         pq.Array(search.TeamIds),
-		"AgentIds":        pq.Array(search.AgentIds),
-		"MemberIds":       pq.Array(search.MemberIds),
-		"GatewayIds":      pq.Array(search.GatewayIds),
-		"SkipParent":      search.SkipParent,
-		"ParentId":        search.ParentId,
-		"Number":          model.GetRegExpQ(search.Number),
-		"CauseArr":        pq.Array(search.CauseArr),
-		"HasFile":         search.HasFile,
-		"Direction":       search.Direction,
-		"Missed":          search.Missed,
-		"AnsweredFrom":    model.GetBetweenFromTime(search.AnsweredAt),
-		"AnsweredTo":      model.GetBetweenToTime(search.AnsweredAt),
-		"DurationFrom":    model.GetBetweenFrom(search.Duration),
-		"DurationTo":      model.GetBetweenTo(search.Duration),
-		"StoredAtFrom":    model.GetBetweenFromTime(search.StoredAt),
-		"StoredAtTo":      model.GetBetweenToTime(search.StoredAt),
-		"Ids":             pq.Array(search.Ids),
-		"TransferFromIds": pq.Array(search.TransferFromIds),
-		"TransferToIds":   pq.Array(search.TransferToIds),
-		"DependencyIds":   pq.Array(search.DependencyIds),
-		"Tags":            pq.Array(search.Tags),
-		"AmdResult":       pq.Array(search.AmdResult),
-		"Variables":       search.Variables.ToSafeJson(),
-		"HasTranscript":   search.HasTranscript,
-		"Fts":             search.Fts,
+		"Domain":           domainId,
+		"Limit":            search.GetLimit(),
+		"Offset":           search.GetOffset(),
+		"From":             model.GetBetweenFromTime(search.CreatedAt),
+		"To":               model.GetBetweenToTime(search.CreatedAt),
+		"Q":                search.GetQ(),
+		"UserIds":          pq.Array(search.UserIds),
+		"QueueIds":         pq.Array(search.QueueIds),
+		"TeamIds":          pq.Array(search.TeamIds),
+		"AgentIds":         pq.Array(search.AgentIds),
+		"MemberIds":        pq.Array(search.MemberIds),
+		"GatewayIds":       pq.Array(search.GatewayIds),
+		"SkipParent":       search.SkipParent,
+		"ParentId":         search.ParentId,
+		"Number":           model.GetRegExpQ(search.Number),
+		"CauseArr":         pq.Array(search.CauseArr),
+		"HasFile":          search.HasFile,
+		"Direction":        search.Direction,
+		"Missed":           search.Missed,
+		"AnsweredFrom":     model.GetBetweenFromTime(search.AnsweredAt),
+		"AnsweredTo":       model.GetBetweenToTime(search.AnsweredAt),
+		"DurationFrom":     model.GetBetweenFrom(search.Duration),
+		"DurationTo":       model.GetBetweenTo(search.Duration),
+		"StoredAtFrom":     model.GetBetweenFromTime(search.StoredAt),
+		"StoredAtTo":       model.GetBetweenToTime(search.StoredAt),
+		"Ids":              pq.Array(search.Ids),
+		"TransferFromIds":  pq.Array(search.TransferFromIds),
+		"TransferToIds":    pq.Array(search.TransferToIds),
+		"DependencyIds":    pq.Array(search.DependencyIds),
+		"Tags":             pq.Array(search.Tags),
+		"AmdResult":        pq.Array(search.AmdResult),
+		"Variables":        search.Variables.ToSafeJson(),
+		"HasTranscript":    search.HasTranscript,
+		"Fts":              search.Fts,
+		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -391,6 +392,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
+	and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
     and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
         case :HasTranscript::bool when false
          then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id )
@@ -462,6 +464,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"Variables":        search.Variables.ToSafeJson(),
 		"HasTranscript":    search.HasTranscript,
 		"Fts":              search.Fts,
+		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -492,6 +495,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
+	and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
     and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
         case :HasTranscript::bool when false
          then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id )
@@ -968,6 +972,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and (:Directions::varchar[] isnull or h.direction = any(:Directions) )
 		and (:Missed::bool isnull or (:Missed and h.answered_at isnull))
 		and (:Tags::varchar[] isnull or (h.tags && :Tags))
+		and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
 		and (:AmdResult::varchar[] isnull or h.amd_result = any(:AmdResult))
 		and (:HasFile::bool isnull or (case :HasFile::bool when true then exists(select 1 from storage.files ft where ft.uuid = h.id ) else not exists(select 1 from storage.files ft where ft.uuid = h.id ) end))
 		and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
@@ -1029,10 +1034,11 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"DependencyIds":   pq.Array(aggs.DependencyIds),
 		"Tags":            pq.Array(aggs.Tags),
 
-		"AmdResult":     pq.Array(aggs.AmdResult),
-		"HasFile":       aggs.HasFile,
-		"HasTranscript": aggs.HasTranscript,
-		"Fts":           aggs.Fts,
+		"AmdResult":        pq.Array(aggs.AmdResult),
+		"HasFile":          aggs.HasFile,
+		"HasTranscript":    aggs.HasTranscript,
+		"Fts":              aggs.Fts,
+		"AgentDescription": model.ReplaceWebSearch(aggs.AgentDescription),
 	}
 
 	for i, v := range aggs.Aggs {
