@@ -27,7 +27,7 @@ func (a *App) SearchMembers(domainId int64, search *model.SearchMemberRequest) (
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError) {
+func (app *App) BulkCreateMember(domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
 	q, err := app.GetQueueById(domainId, queueId)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func (app *App) BulkCreateMember(domainId, queueId int64, members []*model.Membe
 	if q.Type == 1 || q.Type == 6 {
 		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.queue", nil, "Mismatch queue type", http.StatusBadRequest)
 	}
-	return app.Store.Member().BulkCreate(domainId, queueId, members)
+	return app.Store.Member().BulkCreate(domainId, queueId, fileName, members)
 }
 
 func (app *App) GetMember(domainId, queueId, id int64) (*model.Member, *model.AppError) {

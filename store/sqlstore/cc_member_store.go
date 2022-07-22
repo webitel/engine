@@ -56,7 +56,7 @@ func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Mem
 	}
 }
 
-func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Member) ([]int64, *model.AppError) {
+func (s SqlMemberStore) BulkCreate(domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
@@ -69,8 +69,9 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	importId := model.NewId()
+	if fileName == "" {
+		fileName = model.NewId()
+	}
 
 	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
 		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id", "import_id"))
@@ -82,7 +83,7 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, members []*model.Mem
 	result := make([]int64, 0, len(members))
 	for k, v := range members {
 		_, err = stmp.Exec(k, queueId, v.Priority, v.ExpireAt, v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(),
-			v.Bucket.GetSafeId(), v.MinOfferingAt, v.Agent.GetSafeId(), v.Skill.GetSafeId(), importId)
+			v.Bucket.GetSafeId(), v.MinOfferingAt, v.Agent.GetSafeId(), v.Skill.GetSafeId(), fileName)
 		if err != nil {
 			goto _error
 		}

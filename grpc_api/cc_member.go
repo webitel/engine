@@ -86,7 +86,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -119,7 +119,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 	}
 	var inserted []int64
 
-	inserted, err = api.app.BulkCreateMember(session.Domain(in.GetDomainId()), in.GetQueueId(), members)
+	inserted, err = api.app.BulkCreateMember(session.Domain(0), in.GetQueueId(), in.GetFileName(), members)
 	if err != nil {
 		return nil, err
 	}
