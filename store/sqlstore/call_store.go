@@ -970,6 +970,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		and (:CauseArr::varchar[] isnull or h.cause = any(:CauseArr) )
 		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or h.answered_at between :AnsweredFrom and :AnsweredTo )
 		and (:Directions::varchar[] isnull or h.direction = any(:Directions) )
+		and (:Direction::varchar isnull or h.direction = :Direction )
 		and (:Missed::bool isnull or (:Missed and h.answered_at isnull))
 		and (:Tags::varchar[] isnull or (h.tags && :Tags))
 		and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
@@ -1021,6 +1022,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 		"Number":          model.GetRegExpQ(aggs.Number),
 		"CauseArr":        pq.Array(aggs.CauseArr),
 		"Directions":      pq.Array(aggs.Directions),
+		"Direction":       aggs.Direction,
 		"Missed":          aggs.Missed,
 		"AnsweredFrom":    model.GetBetweenFromTime(aggs.AnsweredAt),
 		"AnsweredTo":      model.GetBetweenToTime(aggs.AnsweredAt),
