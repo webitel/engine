@@ -235,7 +235,7 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.CCTask, *mode
            a.agent_call_id as agent_channel_id,
            a.destination,
            a.state,
-		   a.leaving_at,
+		   call_center.cc_view_timestamp(a.leaving_at) as leaving_at,
            q.processing     as has_reporting,
 		   q.processing and q.form_schema_id notnull as has_form,
 		   q.processing_sec,
