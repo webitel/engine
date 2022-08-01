@@ -198,7 +198,7 @@ type CCTask struct {
 	Channel              string               `json:"channel" db:"channel"`
 	QueueId              *int                 `json:"queue_id" db:"queue_id"`
 	QueueName            *string              `json:"queue_name" db:"queue_name"`
-	MemberId             int64                `json:"member_id" db:"member_id"`
+	MemberId             *int64               `json:"member_id" db:"member_id"`
 	MemberName           *string              `json:"member_name,omitempty" db:"member_name"`
 	MemberCallId         *string              `json:"member_channel_id" db:"member_channel_id"`
 	AgentCallId          *string              `json:"agent_channel_id" db:"agent_channel_id"`
