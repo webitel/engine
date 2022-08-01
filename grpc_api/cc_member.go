@@ -542,7 +542,7 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 		}
 	}
 	var cnt int64
-	cnt, err = api.app.ResetMembers(session.Domain(0), &model.ResetMembers{
+	search := &model.ResetMembers{
 		QueueId:   in.GetQueueId(),
 		Ids:       in.GetIds(),
 		Buckets:   in.GetBucketId(),
@@ -550,7 +550,13 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 		AgentIds:  in.GetAgentId(),
 		Numbers:   in.GetNumbers(),
 		Variables: in.GetVariables(),
-	})
+	}
+
+	if len(search.Ids) == 0 {
+		search.Ids = in.GetId()
+	}
+
+	cnt, err = api.app.ResetMembers(session.Domain(0), search)
 
 	if err != nil {
 		return nil, err
