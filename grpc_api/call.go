@@ -880,6 +880,7 @@ func toCallFileTranscriptLookups(src []*model.CallFileTranscriptLookup) []*engin
 			Id:     v.Id,
 			Locale: v.Locale,
 			FileId: v.FileId,
+			File:   GetProtoLookup(v.File),
 		})
 	}
 

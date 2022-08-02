@@ -280,9 +280,10 @@ func (a *CallAnnotation) IsValid() *AppError {
 }
 
 type CallFileTranscriptLookup struct {
-	Id     int64  `json:"id"`
-	Locale string `json:"locale"`
-	FileId int64  `json:"file_id"`
+	Id     int64   `json:"id"`
+	Locale string  `json:"locale"`
+	FileId int64   `json:"file_id"`
+	File   *Lookup `json:"file"`
 }
 
 type CallFile struct {
