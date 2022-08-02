@@ -2,14 +2,17 @@ package auth_manager
 
 import (
 	"context"
+	"strings"
+
 	"google.golang.org/grpc/metadata"
+
+	"time"
 
 	"github.com/webitel/engine/auth_manager/api"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/status"
-	"time"
 )
 
 type AuthClient interface {
@@ -67,6 +70,12 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		return nil, ErrStatusUnauthenticated
 	}
 
+	scope := transformScopes(resp)
+	if len(scope) == 0 {
+		// NO ANY Objclass access granted !
+		return nil, ErrStatusForbidden
+	}
+
 	session := &Session{
 		Id:         token,
 		UserId:     resp.UserId,
@@ -74,7 +83,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		DomainName: resp.Domain,
 		Expire:     resp.ExpiresAt,
 		Token:      token,
-		Scopes:     transformScopes(resp.Scope),
+		Scopes:     scope,                                   // transformScopes(resp.Scope),
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
 		actions:    make([]string, 0, 1),
 	}
@@ -122,10 +131,81 @@ func (ac *authConnection) Close() error {
 	return nil
 }
 
-func transformScopes(src []*api.Objclass) []SessionPermission {
-	dst := make([]SessionPermission, 0, len(src))
-	var access int
-	for _, v := range src {
+func transformScopes(src *api.Userinfo) []SessionPermission {
+
+	var (
+		now   = time.Now().UnixMilli()
+		scope = make([]string, 0, len(src.GetScope()))
+		// canonical name transformations
+		objClass = func(name string) string {
+			name = strings.TrimSpace(name)
+			name = strings.ToLower(name)
+			return name
+		}
+		// indicates whether such `name` exists in scope
+		hasScope = func(name string) bool {
+			if len(scope) == 0 {
+				return false // nothing(!)
+			}
+			name = objClass(name) // CaseIgnoreMatch(!)
+			if len(name) == 0 {
+				return true // len(scope) != 0
+			}
+			e, n := 0, len(scope)
+			for ; e < n && scope[e] != name; e++ {
+				// break; match found !
+			}
+			return e < n
+		}
+		// add unique `setof` to the scope
+		addScope = func(setof []string) {
+			var name string
+			for _, class := range setof {
+				name = objClass(class) // CaseIgnoreMatch(!)
+				if len(name) == 0 {
+					continue
+				}
+				if !hasScope(name) {
+					scope = append(scope, name)
+				}
+			}
+		}
+	)
+	// gather active only products scopes
+	for _, prod := range src.License {
+		if len(prod.Scope) == 0 {
+			continue // forceless
+		}
+		if 0 < prod.ExpiresAt && prod.ExpiresAt <= now {
+			// Expired ! Grant READONLY access
+		} else if 0 < prod.IssuedAt && now < prod.IssuedAt {
+			// Inactive ! No access grant yet !
+		} else {
+			// Active ! +OK
+			addScope(prod.Scope)
+		}
+	}
+
+	if len(scope) == 0 {
+		return nil // NO ANY Objclass Access granted !
+	}
+
+	var (
+		access int
+		v      *api.Objclass
+		dst    = make([]SessionPermission, 0, len(scope))
+		n, e   = len(src.Scope), 0
+	)
+	// extract activated scope only !
+	for _, name := range scope {
+		for e = 0; e < n && !strings.EqualFold(src.Scope[e].Class, name); e++ {
+			// Lookup for caseIgnoreMatch(!)
+		}
+		if e == n {
+			panic("unreachable code")
+			continue // NOT FOUND ?!
+		}
+		v = src.Scope[e]
 		access, _ = parseAccess(v.Access) //
 		dst = append(dst, SessionPermission{
 			Id:   int(v.Id),

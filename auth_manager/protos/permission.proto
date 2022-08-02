@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package api;
+option go_package = "webitel.go/api;api";
 
 message Permission {
     string id = 1;    // [required] e.g.: 'read', 'playback_record_file', ...

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package api;
+option go_package = "webitel.go/api;api";
 
 import "oid.proto";
 
@@ -35,6 +36,7 @@ message LicenseUser {
     ObjectId user = 3; // grant to::user
     int64 issued_at = 4; // not before
     int64 expires_at = 5; // not after
+    repeated string scope = 6; // setof objclass
 }
 
 // message LicenseId {
