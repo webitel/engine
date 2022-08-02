@@ -11,10 +11,11 @@ import (
 
 type member struct {
 	*API
+	engine.UnsafeMemberServiceServer
 }
 
 func NewMemberApi(api *API) *member {
-	return &member{api}
+	return &member{API: api}
 }
 
 func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequest) (*engine.MemberInQueue, error) {

@@ -10,6 +10,7 @@ import (
 
 type queueBucket struct {
 	app *app.App
+	engine.UnsafeQueueBucketServiceServer
 }
 
 func NewQueueBucketApi(app *app.App) *queueBucket {

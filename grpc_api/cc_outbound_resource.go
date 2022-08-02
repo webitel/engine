@@ -10,6 +10,7 @@ import (
 
 type outboundResource struct {
 	app *app.App
+	engine.UnsafeOutboundResourceServiceServer
 }
 
 func NewOutboundResourceApi(app *app.App) *outboundResource {

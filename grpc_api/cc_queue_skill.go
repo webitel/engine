@@ -8,10 +8,11 @@ import (
 
 type queueSkill struct {
 	*API
+	engine.UnsafeQueueSkillServiceServer
 }
 
 func NewQueueSkill(api *API) *queueSkill {
-	return &queueSkill{api}
+	return &queueSkill{API: api}
 }
 
 func (api *queueSkill) CreateQueueSkill(ctx context.Context, in *engine.CreateQueueSkillRequest) (*engine.QueueSkill, error) {

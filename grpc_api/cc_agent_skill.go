@@ -10,6 +10,7 @@ import (
 
 type agentSkill struct {
 	app *app.App
+	engine.UnsafeAgentSkillServiceServer
 }
 
 func NewAgentSkillApi(app *app.App) *agentSkill {

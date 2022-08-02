@@ -8,10 +8,11 @@ import (
 
 type userHelper struct {
 	*API
+	engine.UnsafeUserHelperServiceServer
 }
 
 func NewUserHelperApi(api *API) *userHelper {
-	return &userHelper{api}
+	return &userHelper{API: api}
 }
 
 func (api *userHelper) DefaultDeviceConfig(ctx context.Context, in *engine.DefaultDeviceConfigRequest) (*engine.DefaultDeviceConfigResponse, error) {

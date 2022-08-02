@@ -8,12 +8,13 @@ import (
 
 type communicationType struct {
 	*API
+	engine.UnsafeCommunicationTypeServiceServer
 }
 
 //aaaa
 
 func NewCommunicationTypeApi(api *API) *communicationType {
-	return &communicationType{api}
+	return &communicationType{API: api}
 }
 
 func (api *communicationType) CreateCommunicationType(ctx context.Context, in *engine.CommunicationTypeRequest) (*engine.CommunicationType, error) {

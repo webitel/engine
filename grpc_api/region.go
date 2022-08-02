@@ -8,10 +8,11 @@ import (
 
 type region struct {
 	*API
+	engine.UnsafeRegionServiceServer
 }
 
 func NewRegionApi(api *API) *region {
-	return &region{api}
+	return &region{API: api}
 }
 
 func (api *region) CreateRegion(ctx context.Context, in *engine.CreateRegionRequest) (*engine.Region, error) {

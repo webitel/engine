@@ -8,10 +8,11 @@ import (
 
 type pauseCause struct {
 	*API
+	engine.UnsafeAgentPauseCauseServiceServer
 }
 
 func NewPauseCause(api *API) *pauseCause {
-	return &pauseCause{api}
+	return &pauseCause{API: api}
 }
 
 func (api *pauseCause) CreateAgentPauseCause(ctx context.Context, in *engine.CreateAgentPauseCauseRequest) (*engine.AgentPauseCause, error) {

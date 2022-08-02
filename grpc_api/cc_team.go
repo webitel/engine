@@ -10,6 +10,7 @@ import (
 
 type agentTeam struct {
 	app *app.App
+	engine.UnsafeAgentTeamServiceServer
 }
 
 func NewAgentTeamApi(app *app.App) *agentTeam {

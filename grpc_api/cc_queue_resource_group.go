@@ -10,6 +10,7 @@ import (
 
 type queueResource struct {
 	app *app.App
+	engine.UnsafeQueueResourcesServiceServer
 }
 
 func NewQueueResourceApi(app *app.App) *queueResource {

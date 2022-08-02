@@ -11,6 +11,7 @@ import (
 
 type routingSchema struct {
 	app *app.App
+	engine.UnsafeRoutingSchemaServiceServer
 }
 
 func NewRoutingSchemaApi(app *app.App) *routingSchema {

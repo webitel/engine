@@ -10,6 +10,7 @@ import (
 
 type outboundResourceGroup struct {
 	app *app.App
+	engine.UnsafeOutboundResourceGroupServiceServer
 }
 
 func NewOutboundResourceGroupApi(app *app.App) *outboundResourceGroup {

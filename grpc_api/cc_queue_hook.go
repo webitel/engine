@@ -8,10 +8,11 @@ import (
 
 type queueHook struct {
 	*API
+	engine.UnsafeQueueHookServiceServer
 }
 
 func NewQueueHookApi(api *API) *queueHook {
-	return &queueHook{api}
+	return &queueHook{API: api}
 }
 
 func (api *queueHook) CreateQueueHook(ctx context.Context, in *engine.CreateQueueHookRequest) (*engine.QueueHook, error) {

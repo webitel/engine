@@ -10,6 +10,7 @@ import (
 
 type routingVariable struct {
 	app *app.App
+	engine.UnsafeRoutingVariableServiceServer
 }
 
 func NewRoutingVariableApi(app *app.App) *routingVariable {

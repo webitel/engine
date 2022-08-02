@@ -8,10 +8,11 @@ import (
 
 type calendar struct {
 	*API
+	engine.UnsafeCalendarServiceServer
 }
 
-func NewCalendarApi(app *API) *calendar {
-	return &calendar{app}
+func NewCalendarApi(api *API) *calendar {
+	return &calendar{API: api}
 }
 
 func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalendarRequest) (*engine.Calendar, error) {

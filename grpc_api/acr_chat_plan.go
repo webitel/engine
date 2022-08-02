@@ -8,10 +8,11 @@ import (
 
 type chatPlanApi struct {
 	*API
+	engine.UnsafeRoutingChatPlanServiceServer
 }
 
 func NewChatPlan(api *API) *chatPlanApi {
-	return &chatPlanApi{api}
+	return &chatPlanApi{API: api}
 }
 
 func (api *chatPlanApi) CreateChatPlan(ctx context.Context, in *engine.CreateChatPlanRequest) (*engine.ChatPlan, error) {

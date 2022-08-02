@@ -9,10 +9,13 @@ import (
 
 type routingOutboundCall struct {
 	*API
+	engine.UnsafeRoutingOutboundCallServiceServer
 }
 
 func NewRoutingOutboundCallApi(api *API) *routingOutboundCall {
-	return &routingOutboundCall{api}
+	return &routingOutboundCall{
+		API: api,
+	}
 }
 
 func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, in *engine.CreateRoutingOutboundCallRequest) (*engine.RoutingOutboundCall, error) {

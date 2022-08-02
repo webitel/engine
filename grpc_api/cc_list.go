@@ -10,6 +10,7 @@ import (
 
 type list struct {
 	app *app.App
+	engine.UnsafeListServiceServer
 }
 
 func NewListApi(app *app.App) *list {

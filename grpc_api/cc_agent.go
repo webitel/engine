@@ -11,10 +11,11 @@ import (
 
 type agent struct {
 	*API
+	engine.UnsafeAgentServiceServer
 }
 
 func NewAgentApi(api *API) *agent {
-	return &agent{api}
+	return &agent{API: api}
 }
 
 func (api *agent) SearchAgentInTeam(context.Context, *engine.SearchAgentInTeamRequest) (*engine.ListAgentInTeam, error) {

@@ -15,6 +15,7 @@ type call struct {
 	minimumNumberMaskLen int
 	prefixNumberMaskLen  int
 	suffixNumberMaskLen  int
+	engine.UnsafeCallServiceServer
 }
 
 func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *call {

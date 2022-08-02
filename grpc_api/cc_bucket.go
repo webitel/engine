@@ -10,10 +10,11 @@ import (
 
 type bucket struct {
 	app *app.App
+	engine.UnsafeBucketServiceServer
 }
 
-func NewBucketApi(app *app.App) *bucket {
-	return &bucket{app}
+func NewBucketApi(a *app.App) *bucket {
+	return &bucket{app: a}
 }
 
 func (api *bucket) CreateBucket(ctx context.Context, in *engine.CreateBucketRequest) (*engine.Bucket, error) {

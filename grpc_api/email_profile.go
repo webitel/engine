@@ -8,10 +8,11 @@ import (
 
 type emailProfile struct {
 	*API
+	engine.UnsafeEmailProfileServiceServer
 }
 
-func NewEmailProfileApi(app *API) *emailProfile {
-	return &emailProfile{app}
+func NewEmailProfileApi(api *API) *emailProfile {
+	return &emailProfile{API: api}
 }
 
 func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.CreateEmailProfileRequest) (*engine.EmailProfile, error) {

@@ -12,6 +12,7 @@ import (
 
 type queue struct {
 	app *app.App
+	engine.UnsafeQueueServiceServer
 }
 
 func NewQueueApi(app *app.App) *queue {

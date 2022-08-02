@@ -8,10 +8,11 @@ import (
 
 type skill struct {
 	*API
+	engine.UnsafeSkillServiceServer
 }
 
 func NewSkillApi(api *API) *skill {
-	return &skill{api}
+	return &skill{API: api}
 }
 
 func (api *skill) CreateSkill(ctx context.Context, in *engine.CreateSkillRequest) (*engine.Skill, error) {
