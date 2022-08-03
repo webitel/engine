@@ -19,7 +19,7 @@ type Chat interface {
 	Ready() bool
 
 	Join(authUserId int64, inviteId string) (string, error)
-	Decline(authUserId int64, inviteId string) error
+	Decline(authUserId int64, inviteId string, cause string) error
 	Leave(authUserId int64, channelId, conversationId string) error
 	CloseConversation(authUserId int64, channelId, conversationId, cause string) error
 

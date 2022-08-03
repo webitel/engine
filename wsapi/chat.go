@@ -43,6 +43,7 @@ func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest
 
 func (api *API) declineChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var inviteId string
+	var cause string
 	var ok bool
 
 	inviteId, ok = req.Data["invite_id"].(string)
@@ -51,7 +52,9 @@ func (api *API) declineChat(conn *app.WebConn, req *model.WebSocketRequest) (map
 		return nil, NewInvalidWebSocketParamError(req.Action, "invite_id")
 	}
 
-	err := api.ctrl.DeclineChat(conn.GetSession(), inviteId)
+	cause, _ = req.Data["cause"].(string)
+
+	err := api.ctrl.DeclineChat(conn.GetSession(), inviteId, cause)
 	return nil, err
 }
 

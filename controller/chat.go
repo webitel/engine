@@ -5,9 +5,9 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) DeclineChat(session *auth_manager.Session, inviteId string) *model.AppError {
+func (c *Controller) DeclineChat(session *auth_manager.Session, inviteId string, cause string) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.DeclineChat(session.UserId, inviteId)
+	return c.app.DeclineChat(session.UserId, inviteId, cause)
 }
 
 func (c *Controller) JoinChat(session *auth_manager.Session, inviteId string) (string, *model.AppError) {

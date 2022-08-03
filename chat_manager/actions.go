@@ -11,10 +11,11 @@ import (
 	"time"
 )
 
-func (cc *chatConnection) Decline(authUserId int64, inviteId string) error {
+func (cc *chatConnection) Decline(authUserId int64, inviteId string, cause string) error {
 	_, err := cc.api.DeclineInvitation(context.Background(), &client.DeclineInvitationRequest{
 		InviteId:   inviteId,
 		AuthUserId: authUserId,
+		Cause:      cause,
 	})
 
 	return err
@@ -38,6 +39,7 @@ func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId stri
 		ChannelId:      channelId,
 		ConversationId: conversationId,
 		AuthUserId:     authUserId,
+		Cause:          "",
 	})
 
 	return err

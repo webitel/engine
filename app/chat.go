@@ -6,13 +6,13 @@ import (
 	"net/http"
 )
 
-func (a *App) DeclineChat(authUserId int64, inviteId string) *model.AppError {
+func (a *App) DeclineChat(authUserId int64, inviteId string, cause string) *model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewAppError("DeclineChat", "chat.decline.client_err", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	err = chat.Decline(authUserId, inviteId)
+	err = chat.Decline(authUserId, inviteId, cause)
 	if err != nil {
 		return model.NewAppError("DeclineChat", "chat.decline.app_err", nil, err.Error(), http.StatusInternalServerError)
 	}
