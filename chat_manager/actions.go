@@ -2,6 +2,7 @@ package chat_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/webitel/engine/model"
 	client "github.com/webitel/protos/engine/chat"
@@ -44,6 +45,7 @@ func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId stri
 
 	return err
 }
+
 func (cc *chatConnection) SetVariables(channelId string, vars map[string]string) error {
 	_, err := cc.api.SetVariables(context.Background(), &client.SetVariablesRequest{
 		ChannelId: channelId,
@@ -235,4 +237,22 @@ func (cc *chatConnection) BlindTransferToUser(ctx context.Context, conversationI
 	})
 
 	return err
+}
+
+func (cc *chatConnection) BroadcastMessage(ctx context.Context, message *client.Message, profileId int64, peer []string) error {
+	res, err := cc.mess.BroadcastMessage(ctx, &client.BroadcastMessageRequest{
+		Message: message,
+		From:    profileId,
+		Peer:    peer,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if len(res.Failure) > 0 {
+		return errors.New(res.Failure[0].String())
+	}
+
+	return nil
 }
