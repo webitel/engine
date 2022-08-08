@@ -10,8 +10,8 @@ func (a *App) AgentCheckAccess(domainId, id int64, groups []int, access auth_man
 	return a.Store.Agent().CheckAccess(domainId, id, groups, access)
 }
 
-func (app *App) CreateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
-	return app.Store.Agent().Create(agent)
+func (a *App) CreateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
+	return a.Store.Agent().Create(agent)
 }
 
 func (a *App) GetAgentsPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {

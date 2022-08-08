@@ -2,14 +2,15 @@ package app
 
 import (
 	"fmt"
+	"sync"
+	"sync/atomic"
+	"time"
+
 	"github.com/gorilla/websocket"
 	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	wlog "github.com/webitel/wlog"
-	"sync"
-	"sync/atomic"
-	"time"
 )
 
 const (
@@ -253,6 +254,14 @@ func (webCon *WebConn) IsAuthenticated() bool {
 		}
 
 		session, err := webCon.App.GetSession(webCon.GetSessionToken())
+		if err == nil && !session.HasLicense() {
+			// err = auth_manager.ErrValidScope
+			err = model.NewAppError(
+				"WebConn.IsAuthenticated",
+				"app.session.is_valid.scope.app_error",
+				nil, "token scope is forceless", 412, // http.StatusPreconditionFailed,
+			)
+		}
 		if err != nil {
 			wlog.Error(fmt.Sprintf("invalid session err=%v", err.Error()))
 			webCon.SetSessionToken("")

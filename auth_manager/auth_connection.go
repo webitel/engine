@@ -70,12 +70,6 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		return nil, ErrStatusUnauthenticated
 	}
 
-	scope := transformScopes(resp)
-	if len(scope) == 0 {
-		// NO ANY Objclass access granted !
-		return nil, ErrStatusForbidden
-	}
-
 	session := &Session{
 		Id:         token,
 		UserId:     resp.UserId,
@@ -83,8 +77,9 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		DomainName: resp.Domain,
 		Expire:     resp.ExpiresAt,
 		Token:      token,
-		Scopes:     scope,                                   // transformScopes(resp.Scope),
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
+		Scopes:     transformScopes(resp.Scope),
+		active:     licenseActiveScope(resp),
 		actions:    make([]string, 0, 1),
 	}
 
@@ -131,8 +126,32 @@ func (ac *authConnection) Close() error {
 	return nil
 }
 
-func transformScopes(src *api.Userinfo) []SessionPermission {
+// returns the provided original scope
+// from all license products assigned to user
+//
+// NOTE: include <readonly> access
+//       { obac:true, access:"r" }
+//
+func transformScopes(src []*api.Objclass) []SessionPermission {
+	dst := make([]SessionPermission, 0, len(src))
+	var access int
+	for _, v := range src {
+		access, _ = parseAccess(v.Access) //
+		dst = append(dst, SessionPermission{
+			Id:   int(v.Id),
+			Name: v.Class,
+			//Abac:   v.Abac,
+			Obac:   v.Obac,
+			rbac:   v.Rbac,
+			Access: uint32(access),
+		})
+	}
+	return dst
+}
 
+// returns the scope from all license products
+// active now within their validity boundaries
+func licenseActiveScope(src *api.Userinfo) []string {
 	var (
 		now   = time.Now().UnixMilli()
 		scope = make([]string, 0, len(src.GetScope()))
@@ -145,9 +164,9 @@ func transformScopes(src *api.Userinfo) []SessionPermission {
 		// indicates whether such `name` exists in scope
 		hasScope = func(name string) bool {
 			if len(scope) == 0 {
-				return false // nothing(!)
+				return name == ""
 			}
-			name = objClass(name) // CaseIgnoreMatch(!)
+			// name = objClass(name) // CaseIgnoreMatch(!)
 			if len(name) == 0 {
 				return true // len(scope) != 0
 			}
@@ -187,36 +206,28 @@ func transformScopes(src *api.Userinfo) []SessionPermission {
 	}
 
 	if len(scope) == 0 {
-		return nil // NO ANY Objclass Access granted !
+		// ALL License Product(s) are inactive !
+		return nil
 	}
 
 	var (
-		access int
-		v      *api.Objclass
-		dst    = make([]SessionPermission, 0, len(scope))
-		n, e   = len(src.Scope), 0
+		objclass        string
+		e, n            = 0, len(src.Scope)
+		caseIgnoreMatch = strings.EqualFold
 	)
-	// extract activated scope only !
-	for _, name := range scope {
-		for e = 0; e < n && !strings.EqualFold(src.Scope[e].Class, name); e++ {
-			// Lookup for caseIgnoreMatch(!)
+	for i := 0; i < len(scope); i++ {
+		objclass = scope[i]
+		for e = 0; e < n && !caseIgnoreMatch(src.Scope[e].Class, objclass); e++ {
+			// Lookup for caseIgnoreMatch(!) with userinfo.Scope OBAC grants
 		}
 		if e == n {
-			panic("unreachable code")
-			continue // NOT FOUND ?!
+			// NOT FOUND ?! OBAC Policy: Access Denied ?!
+			scope = append(scope[0:i], scope[i+1:]...)
+			i--
+			continue
 		}
-		v = src.Scope[e]
-		access, _ = parseAccess(v.Access) //
-		dst = append(dst, SessionPermission{
-			Id:   int(v.Id),
-			Name: v.Class,
-			//Abac:   v.Abac,
-			Obac:   v.Obac,
-			rbac:   v.Rbac,
-			Access: uint32(access),
-		})
 	}
-	return dst
+	return scope
 }
 
 func transformRoles(userId int64, src []*api.ObjectId) []int {

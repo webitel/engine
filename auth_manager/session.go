@@ -14,6 +14,7 @@ type Session struct {
 
 	Token            string              `json:"token"`
 	Scopes           []SessionPermission `json:"scopes"`
+	active           []string            `json:"-"`
 	adminPermissions []PermissionAccess
 	actions          []string
 }
@@ -37,7 +38,7 @@ func (self *Session) GetAclRoles() []int {
 }
 
 func (self *Session) HasLicense() bool {
-	return true
+	return len(self.active) != 0
 }
 
 func (self *Session) GetPermission(name string) SessionPermission {
