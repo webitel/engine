@@ -78,7 +78,7 @@ end) as "file", m.type, m.channel_id
                    ch2.name
             from chat.channel ch2
             where ch2.conversation_id = c.id
-              and not ch2.id = ch.id
+              and (not ch2.id = ch.id or ch.id isnull )
             limit 10
         ) t
     ) mem on true
