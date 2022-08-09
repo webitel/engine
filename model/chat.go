@@ -26,10 +26,11 @@ type ChatMessage struct {
 }
 
 type ChatMember struct {
-	Id     string `json:"id"`
-	UserId int64  `json:"user_id"`
-	Type   string `json:"type"`
-	Name   string `json:"name"`
+	Id         string  `json:"id"`
+	UserId     int64   `json:"user_id"`
+	Type       string  `json:"type"`
+	Name       string  `json:"name"`
+	ExternalId *string `json:"external_id,omitempty"`
 }
 
 type Conversation struct {

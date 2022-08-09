@@ -75,7 +75,8 @@ end) as "file", m.type, m.channel_id
                    ch2.id,
                    ch2.type,
                    ch2.user_id,
-                   ch2.name
+                   ch2.name,
+                   ch2.props->>'user' as external_id	
             from chat.channel ch2
             where ch2.conversation_id = c.id
               and (not ch2.id = ch.id or ch.id isnull )
