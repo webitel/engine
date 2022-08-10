@@ -141,7 +141,7 @@ func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (
 	var agentId float64
 	var domainId float64
 	var page float64
-	var perPage float64
+	var size float64
 	var q string
 	var ok bool
 
@@ -154,14 +154,14 @@ func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (
 	}
 
 	page, _ = req.Data["page"].(float64)
-	perPage, _ = req.Data["per_page"].(float64)
+	size, _ = req.Data["size"].(float64)
 	q, _ = req.Data["q"].(string)
 
 	list, end, err := api.ctrl.ListOfflineQueueForAgent(conn.GetSession(), &model.SearchOfflineQueueMembers{
 		ListRequest: model.ListRequest{
 			Q:        q,
 			Page:     int(page),
-			PerPage:  int(perPage),
+			PerPage:  int(size),
 			DomainId: int64(domainId),
 		},
 		AgentId: int(agentId),

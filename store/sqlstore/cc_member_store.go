@@ -650,27 +650,8 @@ func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.S
     where r.domain_id = :Domain
 )
 , result as (
-	select m.id
-    from call_center.cc_member m
-        inner join call_center.cc_queue cq2 on m.queue_id = cq2.id
-        inner join call_center.cc_agent a on a.id = :AgentId
-    where m.domain_id = :Domain and cq2.type = 0 and cq2.enabled and (:Q::varchar isnull or m.name ilike :Q)
-        and not exists (select 1 from call_center.cc_member_attempt a where a.member_id = m.id)
-        and m.stop_at isnull
-        and (cq2.team_id isnull or a.team_id = cq2.team_id)
-		and m.agent_id isnull
-		and m.skill_id isnull
-		and (m.expire_at isnull or m.expire_at > now())
-		and (m.ready_at isnull or m.ready_at < now())
-        and m.queue_id in (
-            select distinct cqs.queue_id
-            from call_center.cc_skill_in_agent sa
-                inner join call_center.cc_queue_skill cqs on cqs.skill_id = sa.skill_id and sa.capacity between cqs.min_capacity and cqs.max_capacity
-            where  sa.enabled and cqs.enabled and sa.agent_id = :AgentId
-        )
-    order by cq2.priority desc , m.priority desc, m.ready_at, m.created_at
-    limit :Limit
-    offset :Offset
+	select x as id
+	from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :Limit::int) x
 )
 select m.id, call_center.cc_member_destination_views_to_json(array(select ( xid::int2, x ->> 'destination',
 								resources.j,
@@ -692,8 +673,6 @@ from call_center.cc_member m
     inner join call_center.cc_queue cq on m.queue_id = cq.id`, map[string]interface{}{
 		"Domain":  domainId,
 		"Limit":   search.GetLimit(),
-		"Offset":  search.GetOffset(),
-		"Q":       search.GetQ(),
 		"AgentId": search.AgentId,
 	})
 
