@@ -10,6 +10,7 @@ import (
 type ObjectCache interface {
 	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
 	AddWithDefaultExpires(key, value interface{})
+	Add(key, value interface{})
 	Purge()
 	Get(key interface{}) (value interface{}, ok bool)
 	Remove(key interface{})
