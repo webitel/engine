@@ -362,6 +362,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"HasTranscript":    search.HasTranscript,
 		"Fts":              search.Fts,
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
+		"OwnerIds":         pq.Array(search.OwnerIds),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -373,6 +374,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
+	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
@@ -465,6 +467,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"HasTranscript":    search.HasTranscript,
 		"Fts":              search.Fts,
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
+		"OwnerIds":         pq.Array(search.OwnerIds),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -476,6 +479,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
+	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))

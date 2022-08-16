@@ -67,6 +67,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		HasFile:          GetBool(in.GetHasFile()),
 		HasTranscript:    GetBool(in.GetHasTranscript()),
 		AgentDescription: in.GetAgentDescription(),
+		OwnerIds:         in.GetOwnerId(),
 	}
 
 	if in.GetDuration() != nil {

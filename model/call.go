@@ -470,6 +470,7 @@ type SearchHistoryCall struct {
 	HasTranscript    *bool
 	Fts              *string
 	AgentDescription string
+	OwnerIds         []int64
 }
 
 type CallEventInfo struct {
