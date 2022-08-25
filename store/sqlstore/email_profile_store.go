@@ -20,9 +20,9 @@ func (s SqlEmailProfileStore) Create(p *model.EmailProfile) (*model.EmailProfile
 	var profile *model.EmailProfile
 	err := s.GetMaster().SelectOne(&profile, `with t as (
     insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, host, mailbox, imap_port, smtp_port,
-                              login, password, created_at, created_by, updated_by)
+                              login, password, created_at, created_by, updated_by, last_activity_at)
 values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :Host, :Mailbox, :Imap, :Smtp, :Login, :Pass,
-        now(), :CreatedBy, :UpdatedBy)
+        now(), :CreatedBy, :UpdatedBy, now())
 	returning *
 )
 select t.id, t.domain_id, call_center.cc_view_timestamp(t.created_at) created_at, call_center.cc_get_lookup(t.created_by, cc.name) created_by,
