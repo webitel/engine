@@ -20,6 +20,25 @@ func NewSqlAgentStore(sqlStore SqlStore) store.AgentStore {
 	return us
 }
 
+func (s SqlAgentStore) HasAgentCC(domainId int64, userId int64) (*model.AgentCC, *model.AppError) {
+	var res *model.AgentCC
+	err := s.GetReplica().SelectOne(&res, `select length(u.extension) > 0 as has_extension,
+       a.id notnull as has_agent
+from directory.wbt_user u
+    left join call_center.cc_agent a on u.id = a.user_id
+where u.id = :UserId and u.dc = :DomainId`, map[string]interface{}{
+		"UserId":   userId,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.HasAgentCC", "store.sql_agent.has_agent.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", userId, err.Error()), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 
 	res, err := s.GetReplica().SelectNullInt(`select 1
@@ -36,7 +55,7 @@ func (s SqlAgentStore) CheckAccess(domainId, id int64, groups []int, access auth
 		return false, nil
 	}
 
-	return (res.Valid && res.Int64 == 1), nil
+	return res.Valid && res.Int64 == 1, nil
 }
 
 // FIXME

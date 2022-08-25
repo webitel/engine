@@ -231,6 +231,22 @@ type AgentSession struct {
 	Auditor    []*Lookup `json:"auditor" db:"auditor"`
 }
 
+type AgentCC struct {
+	HasAgent     bool `json:"has_agent" db:"has_agent"`
+	HasExtension bool `json:"has_extension" db:"has_extension"`
+}
+
+func (a *AgentCC) Valid() *AppError {
+	if !a.HasAgent {
+		return NewAppError("User", "User.valid.agent_id", nil, "", http.StatusNotFound)
+	}
+	if !a.HasExtension {
+		return NewAppError("User", "User.valid.extension", nil, "", http.StatusNotFound)
+	}
+
+	return nil
+}
+
 func (a AgentSession) ToMap() map[string]interface{} {
 	out := make(map[string]interface{})
 	data, _ := json.Marshal(a)

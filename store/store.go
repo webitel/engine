@@ -107,6 +107,7 @@ type AgentTeamStore interface {
 }
 
 type AgentStore interface {
+	HasAgentCC(domainId int64, userId int64) (*model.AgentCC, *model.AppError)
 	CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
 
 	Create(agent *model.Agent) (*model.Agent, *model.AppError)

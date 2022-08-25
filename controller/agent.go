@@ -6,6 +6,12 @@ import (
 )
 
 func (c *Controller) GetAgentSession(session *auth_manager.Session, domainId, userId int64) (*model.AgentSession, *model.AppError) {
+
+	err := c.app.HasAgentCC(session.Domain(domainId), userId)
+	if err != nil {
+		return nil, err
+	}
+
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

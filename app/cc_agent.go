@@ -152,6 +152,15 @@ func (a *App) GetAgentSession(domainId, id int64) (*model.AgentSession, *model.A
 	return a.Store.Agent().GetSession(domainId, id)
 }
 
+func (a *App) HasAgentCC(domainId int64, userId int64) *model.AppError {
+	v, err := a.Store.Agent().HasAgentCC(domainId, userId)
+	if err != nil {
+		return err
+	}
+
+	return v.Valid()
+}
+
 func (a *App) LoginAgent(domainId, agentId int64, onDemand bool) *model.AppError {
 	err := a.cc.Agent().Online(domainId, agentId, onDemand)
 	if err != nil {
