@@ -191,6 +191,8 @@ type RoutingSchemaStore interface {
 	Get(domainId int64, id int64) (*model.RoutingSchema, *model.AppError)
 	Update(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError)
 	Delete(domainId, id int64) *model.AppError
+
+	ListTags(domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, *model.AppError)
 }
 
 type RoutingOutboundCallStore interface {

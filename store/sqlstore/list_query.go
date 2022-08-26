@@ -46,18 +46,7 @@ func QuoteLiteral(name string) string {
 
 func GetOrderBy(t, s string) string {
 	if s != "" {
-		sort := ""
-		field := ""
-
-		if s[0] == '+' || s[0] == 32 {
-			sort = "asc"
-			field = s[1:]
-		} else if s[0] == '-' {
-			sort = "desc"
-			field = s[1:]
-		} else {
-			field = s
-		}
+		sort, field := orderBy(s)
 
 		return fmt.Sprintf(`order by case when call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s,
          case when not call_center.cc_is_lookup(%s, %s) then %s end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field),
@@ -66,6 +55,20 @@ func GetOrderBy(t, s string) string {
 	}
 
 	return "" //TODO
+}
+
+func orderBy(s string) (sort string, field string) {
+	if s[0] == '+' || s[0] == 32 {
+		sort = "asc"
+		field = s[1:]
+	} else if s[0] == '-' {
+		sort = "desc"
+		field = s[1:]
+	} else {
+		field = s
+	}
+
+	return
 }
 
 //TODO filter

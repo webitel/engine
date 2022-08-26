@@ -2,13 +2,14 @@ package model
 
 type RoutingSchema struct {
 	DomainRecord
-	Name        string `json:"name" db:"name"`
-	Type        string `json:"type" db:"type"`
-	Schema      []byte `json:"schema" db:"schema"`
-	Payload     []byte `json:"payload" db:"payload"`
-	Description string `json:"description" db:"description"`
-	Debug       bool   `json:"debug" db:"debug"`
-	Editor      bool   `json:"editor" db:"editor"`
+	Name        string      `json:"name" db:"name"`
+	Type        string      `json:"type" db:"type"`
+	Schema      []byte      `json:"schema" db:"schema"`
+	Payload     []byte      `json:"payload" db:"payload"`
+	Description string      `json:"description" db:"description"`
+	Debug       bool        `json:"debug" db:"debug"`
+	Editor      bool        `json:"editor" db:"editor"`
+	Tags        StringArray `json:"tags" db:"tags"`
 }
 
 type SearchRoutingSchema struct {
@@ -17,6 +18,17 @@ type SearchRoutingSchema struct {
 	Name   *string
 	Editor bool
 	Type   []string
+	Tags   StringArray
+}
+
+type RoutingSchemaTag struct {
+	Name  string `json:"name" db:"name"`
+	Count uint32 `json:"count" db:"count"`
+}
+
+type SearchRoutingSchemaTag struct {
+	ListRequest
+	Type []string
 }
 
 func (RoutingSchema) DefaultOrder() string {
@@ -25,11 +37,11 @@ func (RoutingSchema) DefaultOrder() string {
 
 func (a RoutingSchema) AllowFields() []string {
 	return []string{"id", "domain_id", "name", "created_at", "created_by", "updated_at", "updated_by",
-		"debug", "schema", "payload", "editor", "type"}
+		"debug", "schema", "payload", "editor", "type", "tags"}
 }
 
 func (a RoutingSchema) DefaultFields() []string {
-	return []string{"id", "name", "editor", "type"}
+	return []string{"id", "name", "editor", "type", "tags"}
 }
 
 func (a RoutingSchema) EntityName() string {
@@ -38,13 +50,14 @@ func (a RoutingSchema) EntityName() string {
 
 type RoutingSchemaPath struct {
 	UpdatedById int
-	Name        *string `json:"name" db:"name"`
-	Type        *string `json:"type" db:"type"`
-	Schema      []byte  `json:"schema" db:"scheme"`
-	Payload     []byte  `json:"payload" db:"payload"`
-	Description *string `json:"description" db:"description"`
-	Debug       *bool   `json:"debug" db:"debug"`
-	Editor      *bool   `json:"editor" db:"editor"`
+	Name        *string  `json:"name" db:"name"`
+	Type        *string  `json:"type" db:"type"`
+	Schema      []byte   `json:"schema" db:"scheme"`
+	Payload     []byte   `json:"payload" db:"payload"`
+	Description *string  `json:"description" db:"description"`
+	Debug       *bool    `json:"debug" db:"debug"`
+	Editor      *bool    `json:"editor" db:"editor"`
+	Tags        []string `json:"tags" db:"tags"`
 }
 
 func (s *RoutingSchema) IsValid() *AppError {
@@ -79,6 +92,10 @@ func (s *RoutingSchema) Patch(in *RoutingSchemaPath) {
 
 	if in.Editor != nil {
 		s.Editor = *in.Editor
+	}
+
+	if in.Tags != nil {
+		s.Tags = in.Tags
 	}
 }
 

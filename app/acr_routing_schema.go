@@ -31,6 +31,7 @@ func (a *App) UpdateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSc
 	oldScheme.Description = scheme.Description
 	oldScheme.Payload = scheme.Payload
 	oldScheme.Schema = scheme.Schema
+	oldScheme.Tags = scheme.Tags
 
 	oldScheme.UpdatedAt = scheme.UpdatedAt
 	oldScheme.UpdatedBy = scheme.UpdatedBy
@@ -80,4 +81,13 @@ func (a *App) PatchRoutingSchema(domainId, id int64, patch *model.RoutingSchemaP
 	}
 
 	return old, nil
+}
+
+func (a *App) GetRoutingSchemaTagsPage(domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, *model.AppError) {
+	list, err := a.Store.RoutingSchema().ListTags(domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
 }
