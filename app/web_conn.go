@@ -254,7 +254,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 		}
 
 		session, err := webCon.App.GetSession(webCon.GetSessionToken())
-		if err == nil && !session.HasLicense() {
+		if err == nil && session.CountLicenses() == 0 {
 			// err = auth_manager.ErrValidScope
 			err = model.NewAppError(
 				"WebConn.IsAuthenticated",

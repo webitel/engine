@@ -26,6 +26,11 @@ const (
 	AUTH_CONNECTION_TIMEOUT = 2 * time.Second
 )
 
+const (
+	LicenseCallManager = "CALL_MANAGER"
+	LicenseCallCenter  = "CALL_CENTER"
+)
+
 type authConnection struct {
 	name   string
 	host   string
@@ -79,9 +84,10 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		Token:      token,
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
 		Scopes:     transformScopes(resp.Scope),
-		active:     licenseActiveScope(resp),
 		actions:    make([]string, 0, 1),
 	}
+
+	session.validLicense, session.active = licenseActiveScope(resp)
 
 	if len(resp.Permissions) > 0 {
 		session.adminPermissions = make([]PermissionAccess, len(resp.Permissions), len(resp.Permissions))
@@ -151,10 +157,12 @@ func transformScopes(src []*api.Objclass) []SessionPermission {
 
 // returns the scope from all license products
 // active now within their validity boundaries
-func licenseActiveScope(src *api.Userinfo) []string {
+func licenseActiveScope(src *api.Userinfo) ([]string, []string) {
 	var (
-		now   = time.Now().UnixMilli()
-		scope = make([]string, 0, len(src.GetScope()))
+		l           = len(src.License)
+		validLicene = make([]string, 0, l)
+		now         = time.Now().UnixMilli()
+		scope       = make([]string, 0, len(src.GetScope()))
 		// canonical name transformations
 		objClass = func(name string) string {
 			name = strings.TrimSpace(name)
@@ -202,12 +210,13 @@ func licenseActiveScope(src *api.Userinfo) []string {
 		} else {
 			// Active ! +OK
 			addScope(prod.Scope)
+			validLicene = append(validLicene, prod.Prod)
 		}
 	}
 
 	if len(scope) == 0 {
 		// ALL License Product(s) are inactive !
-		return nil
+		return nil, nil
 	}
 
 	var (
@@ -227,7 +236,7 @@ func licenseActiveScope(src *api.Userinfo) []string {
 			continue
 		}
 	}
-	return scope
+	return validLicene, scope
 }
 
 func transformRoles(userId int64, src []*api.ObjectId) []int {

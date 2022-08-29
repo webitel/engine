@@ -17,6 +17,7 @@ type Session struct {
 	active           []string            `json:"-"`
 	adminPermissions []PermissionAccess
 	actions          []string
+	validLicense     []string
 }
 
 func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool {
@@ -37,8 +38,22 @@ func (self *Session) GetAclRoles() []int {
 	return self.RoleIds
 }
 
-func (self *Session) HasLicense() bool {
-	return len(self.active) != 0
+func (self *Session) HasLicense(name string) bool {
+	for _, v := range self.validLicense {
+		if v == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (self *Session) HasCallCenterLicense() bool {
+	return self.HasLicense(LicenseCallCenter)
+}
+
+func (self *Session) CountLicenses() int {
+	return len(self.active)
 }
 
 func (self *Session) GetPermission(name string) SessionPermission {

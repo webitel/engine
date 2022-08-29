@@ -13,6 +13,11 @@ func (c *Controller) GetAgentSession(session *auth_manager.Session, domainId, us
 	}
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+
+	if !session.HasCallCenterLicense() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
