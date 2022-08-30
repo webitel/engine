@@ -13,6 +13,8 @@ type SqlStore interface {
 	GetAllConns() []*gorp.DbMap
 
 	ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
+	One(out interface{}, where string, e Entity, params map[string]interface{}) error
+
 	ListQueryTimeout(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
 	// todo
 	ListQueryFromSchema(out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
@@ -49,4 +51,5 @@ type SqlStore interface {
 	Region() store.RegionStore
 	PauseCause() store.PauseCauseStore
 	Notification() store.NotificationStore
+	Trigger() store.TriggerStore
 }

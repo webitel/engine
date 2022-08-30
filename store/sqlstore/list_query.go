@@ -111,6 +111,27 @@ func (s *SqlSupplier) ListQuery(out interface{}, req model.ListRequest, where st
 
 	return nil
 }
+func (s *SqlSupplier) One(out interface{}, where string, e Entity, params map[string]interface{}) error {
+	fields := make([]string, 0, len(e.AllowFields()))
+
+	for _, v := range e.AllowFields() {
+		fields = append(fields, pq.QuoteIdentifier(v))
+	}
+
+	t := pq.QuoteIdentifier(e.EntityName())
+
+	query := fmt.Sprintf(`select %s 
+	from %s as t
+	where %s
+	limit 1`, strings.Join(fields, ", "), t, where)
+
+	err := s.GetReplica().SelectOne(out, query, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func (s *SqlSupplier) ListQueryTimeout(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
 	ctx, _ := context.WithTimeout(context.Background(), (time.Second * time.Duration(s.QueryTimeout())))

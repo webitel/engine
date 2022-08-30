@@ -59,6 +59,7 @@ type Store interface {
 	Notification() NotificationStore
 
 	ChatPlan() ChatPlanStore
+	Trigger() TriggerStore
 }
 
 // todo deprecated
@@ -365,4 +366,14 @@ type ChatPlanStore interface {
 	Update(domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError)
 	Delete(domainId int64, id int32) *model.AppError
 	GetSchemaId(domainId int64, id int32) (int, *model.AppError)
+}
+
+type TriggerStore interface {
+	CheckAccess(domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
+	Create(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError)
+	GetAllPage(domainId int64, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError)
+	GetAllPageByGroup(domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError)
+	Get(domainId int64, id int32) (*model.Trigger, *model.AppError)
+	Update(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError)
+	Delete(domainId int64, id int32) *model.AppError
 }

@@ -148,3 +148,7 @@ func (s *LayeredStore) Notification() NotificationStore {
 func (s *LayeredStore) ChatPlan() ChatPlanStore {
 	return s.DatabaseLayer.ChatPlan()
 }
+
+func (s *LayeredStore) Trigger() TriggerStore {
+	return s.DatabaseLayer.Trigger()
+}

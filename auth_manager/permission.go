@@ -31,7 +31,7 @@ func (p PermissionAccess) Name() string {
 	return [...]string{"create", "read", "update", "delete"}[p]
 }
 
-func (s *Session) Domain(def int64) int64 {
+func (s *Session) Domain(_ int64) int64 {
 	return s.DomainId
 }
 
