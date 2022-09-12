@@ -376,4 +376,7 @@ type TriggerStore interface {
 	Get(domainId int64, id int32) (*model.Trigger, *model.AppError)
 	Update(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError)
 	Delete(domainId int64, id int32) *model.AppError
+
+	CreateJob(domainId int64, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError)
+	GetAllJobs(triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, *model.AppError)
 }

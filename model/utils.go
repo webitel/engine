@@ -78,6 +78,18 @@ func (s StringMap) ToSafeJson() *string {
 	return res
 }
 
+func (s StringInterface) ToSafeJson() *string {
+	var res *string
+	if s == nil {
+		return res
+	}
+
+	data, _ := json.Marshal(s)
+	res = new(string)
+	*res = string(data)
+	return res
+}
+
 func (sa StringArray) Equals(input StringArray) bool {
 
 	if len(sa) != len(input) {
@@ -107,7 +119,6 @@ type AppError struct {
 	RequestId     string `json:"request_id,omitempty"` // The RequestId that's also set in the header
 	StatusCode    int    `json:"code,omitempty"`       // The http status code
 	Where         string `json:"-"`                    // The function where it happened in the form of Struct.Func
-	IsOAuth       bool   `json:"is_oauth,omitempty"`   // Whether the error is OAuth specific
 	params        map[string]interface{}
 }
 
@@ -141,6 +152,14 @@ func (er *AppError) ToJson() string {
 	return string(b)
 }
 
+func (er *AppError) String() string {
+	if er.Id == er.Message && er.DetailedError != "" {
+		return er.DetailedError
+	}
+
+	return er.Message
+}
+
 // AppErrorFromJson will decode the input and return an AppError
 func AppErrorFromJson(data io.Reader) *AppError {
 	str := ""
@@ -169,7 +188,6 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	ap.Where = where
 	ap.DetailedError = details
 	ap.StatusCode = status
-	ap.IsOAuth = false
 	ap.Translate(translateFunc)
 	return ap
 }

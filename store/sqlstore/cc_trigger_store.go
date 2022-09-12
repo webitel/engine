@@ -216,3 +216,64 @@ func (s SqlTriggerStore) Delete(domainId int64, id int32) *model.AppError {
 	}
 	return nil
 }
+
+func (s SqlTriggerStore) CreateJob(domainId int64, triggerId int32, _ map[string]string) (*model.TriggerJob, *model.AppError) {
+	var job *model.TriggerJob
+	err := s.GetMaster().SelectOne(&job, `with j as (
+    insert into call_center.cc_trigger_job (trigger_id, state, created_at, parameters, domain_id)
+        select t.id,
+               0,
+               now(),
+               jsonb_build_object('variables', t.variables,
+                                  'schema_id', t.schema_id,
+                                  'timeout', t.timeout_sec
+                   ) as params,
+               t.domain_id
+        from call_center.cc_trigger t
+        where t.id = :TriggerId
+          and t.domain_id = :DomainId
+        returning call_center.cc_trigger_job.*)
+select
+    j.id,
+    call_center.cc_get_lookup(t.id, t.name) as trigger,
+    j.state,
+    j.created_at,
+    j.started_at,
+    j.stopped_at,
+    j.parameters,
+    j.error,
+    j.result
+from j
+    left join call_center.cc_trigger t on t.id = j.trigger_id`, map[string]interface{}{
+		"TriggerId": triggerId,
+		"DomainId":  domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlTriggerStore.CreateJob", "store.sql_trigger.job_create.app_error", nil,
+			fmt.Sprintf("TriggerId=%v, %s", triggerId, err.Error()), extractCodeFromErr(err))
+	}
+
+	return job, nil
+}
+
+func (s SqlTriggerStore) GetAllJobs(triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, *model.AppError) {
+	var jobs []*model.TriggerJob
+
+	f := map[string]interface{}{
+		"TriggerId": triggerId,
+		"From":      model.GetBetweenFromTime(search.CreatedAt),
+		"To":        model.GetBetweenToTime(search.CreatedAt),
+	}
+
+	err := s.ListQuery(&jobs, search.ListRequest,
+		`trigger_id = :TriggerId
+				and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
+				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )`,
+		model.TriggerJob{}, f)
+	if err != nil {
+		return nil, model.NewAppError("SqlTriggerStore.GetAllPage", "store.sql_trigger.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return jobs, nil
+}

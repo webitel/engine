@@ -94,3 +94,24 @@ func (a *App) RemoveTrigger(domainId int64, id int32) (*model.Trigger, *model.Ap
 
 	return trigger, nil
 }
+
+func (a *App) GetTriggerJobList(domainId int64, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, *model.AppError) {
+	var list []*model.TriggerJob
+	_, err := a.Store.Trigger().Get(domainId, triggerId)
+
+	list, err = a.Store.Trigger().GetAllJobs(triggerId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (a *App) CreateTriggerJob(domainId int64, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError) {
+	_, err := a.Store.Trigger().Get(domainId, triggerId)
+	if err != nil {
+		return nil, err
+	}
+
+	return a.Store.Trigger().CreateJob(domainId, triggerId, vars)
+}

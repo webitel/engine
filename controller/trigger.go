@@ -133,3 +133,41 @@ func (c *Controller) RemoveTrigger(session *auth_manager.Session, id int32) (*mo
 
 	return c.app.RemoveTrigger(session.Domain(0), id)
 }
+
+func (c *Controller) GetTriggerJobList(session *auth_manager.Session, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, *model.AppError) {
+	var err *model.AppError
+	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
+	if !permission.CanRead() {
+		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		var perm bool
+		if perm, err = c.app.TriggerCheckAccess(session.Domain(0), triggerId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, false, err
+		} else if !perm {
+			return nil, false, c.app.MakeResourcePermissionError(session, int64(triggerId), permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.GetTriggerJobList(session.Domain(0), triggerId, search)
+}
+
+func (c *Controller) CreateTriggerJob(session *auth_manager.Session, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError) {
+	var err *model.AppError
+	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		var perm bool
+		if perm, err = c.app.TriggerCheckAccess(session.Domain(0), triggerId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, c.app.MakeResourcePermissionError(session, int64(triggerId), permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.CreateTriggerJob(session.Domain(0), triggerId, vars)
+}

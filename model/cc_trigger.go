@@ -25,9 +25,26 @@ type Trigger struct {
 	UpdatedBy *Lookup    `json:"updated_by" db:"updated_by"`
 }
 
+type TriggerJob struct {
+	Id         int64      `json:"id" db:"id"`
+	Trigger    Lookup     `json:"trigger" db:"trigger"`
+	State      int        `json:"state" db:"state"`
+	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
+	StartedAt  *time.Time `json:"started_at" db:"started_at"`
+	StoppedAt  *time.Time `json:"stopped_at" db:"stopped_at"`
+	Parameters []byte     `json:"parameters" db:"parameters"`
+	Error      *string    `json:"error" db:"error"`
+	Result     []byte     `json:"result" db:"result"`
+}
+
 type SearchTrigger struct {
 	ListRequest
 	Ids []int32
+}
+
+type SearchTriggerJob struct {
+	ListRequest
+	CreatedAt *FilterBetween
 }
 
 func (t Trigger) DefaultOrder() string {
@@ -95,4 +112,20 @@ func (t *Trigger) Patch(p *TriggerPatch) {
 	if p.Timeout != nil {
 		t.Timeout = *p.Timeout
 	}
+}
+
+func (t TriggerJob) DefaultOrder() string {
+	return "started_at"
+}
+
+func (t TriggerJob) AllowFields() []string {
+	return t.DefaultFields()
+}
+
+func (t TriggerJob) DefaultFields() []string {
+	return []string{"id", "trigger", "state", "created_at", "started_at", "stopped_at", "parameters", "error", "result"}
+}
+
+func (t TriggerJob) EntityName() string {
+	return "cc_trigger_job_list"
 }

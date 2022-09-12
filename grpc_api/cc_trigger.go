@@ -63,6 +63,10 @@ func (api *trigger) SearchTrigger(ctx context.Context, in *engine.SearchTriggerR
 
 	list, endList, err = api.ctrl.SearchTrigger(session, req)
 
+	if err != nil {
+		return nil, err
+	}
+
 	items := make([]*engine.Trigger, 0, len(list))
 	for _, v := range list {
 		items = append(items, toEngineTrigger(v))
@@ -170,6 +174,62 @@ func (api *trigger) DeleteTrigger(ctx context.Context, in *engine.DeleteTriggerR
 	return toEngineTrigger(tr), nil
 }
 
+func (api *trigger) CreateTriggerJob(ctx context.Context, in *engine.CreateTriggerJobRequest) (*engine.TriggerJob, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var job *model.TriggerJob
+	job, err = api.ctrl.CreateTriggerJob(session, in.GetTriggerId(), in.GetVariables())
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineTriggerJob(job), nil
+}
+
+func (api *trigger) SearchTriggerJob(ctx context.Context, in *engine.SearchTriggerJobRequest) (*engine.ListTriggerJob, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.TriggerJob
+	var endList bool
+	req := &model.SearchTriggerJob{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
+		},
+	}
+
+	if in.GetCreatedAt() != nil {
+		req.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+
+	list, endList, err = api.ctrl.GetTriggerJobList(session, in.TriggerId, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.TriggerJob, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineTriggerJob(v))
+	}
+	return &engine.ListTriggerJob{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
 func toEngineTrigger(src *model.Trigger) *engine.Trigger {
 
 	return &engine.Trigger{
@@ -184,4 +244,29 @@ func toEngineTrigger(src *model.Trigger) *engine.Trigger {
 		Timezone:    GetProtoLookup(src.Timezone),
 		Timeout:     src.Timeout,
 	}
+}
+
+func toEngineTriggerJob(src *model.TriggerJob) *engine.TriggerJob {
+	j := &engine.TriggerJob{
+		Id:        src.Id,
+		Trigger:   GetProtoLookup(&src.Trigger),
+		State:     engine.TriggerJobState(src.State),
+		CreatedAt: model.TimeToInt64(&src.CreatedAt),
+		StartedAt: model.TimeToInt64(src.StartedAt),
+		StoppedAt: model.TimeToInt64(src.StoppedAt),
+	}
+
+	if src.Error != nil {
+		j.Error = *src.Error
+	}
+
+	if src.Result != nil {
+		j.Result = UnmarshalJsonpb(src.Result)
+	}
+
+	if src.Parameters != nil {
+		j.Parameters = UnmarshalJsonpb(src.Parameters)
+	}
+
+	return j
 }
