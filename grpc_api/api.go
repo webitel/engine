@@ -59,7 +59,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.queueSkill = NewQueueSkill(api)
 	api.queueHook = NewQueueHookApi(api)
 
-	api.routingSchema = NewRoutingSchemaApi(a)
+	api.routingSchema = NewRoutingSchemaApi(api)
 	api.routingOutboundCall = NewRoutingOutboundCallApi(api)
 	api.routingVariable = NewRoutingVariableApi(a)
 	api.communicationType = NewCommunicationTypeApi(api)

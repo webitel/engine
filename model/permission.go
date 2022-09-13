@@ -12,7 +12,7 @@ const (
 	PERMISSION_SCOPE_ACR_ROUTING                = "acr_routing"   //rename
 	PERMISSION_SCOPE_ACR_CHAT_PLAN              = "acr_chat_plan" //"acr_chat_plan"
 
-	PERMISSION_SCOPE_FLOW         = "flow"
+	PERMISSION_SCOPE_SCHEMA       = "schema"
 	PERMISSION_SCOPE_DICTIONARIES = "dictionaries"
 
 	PERMISSION_SCOPE_EMAIL_PROFILE = "email_profile"
