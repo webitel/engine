@@ -53,7 +53,7 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
 		Editor:      in.Editor,
-		Tags:        in.GetTags(),
+		Tags:        tagsToStrings(in.GetTags()),
 	}
 
 	if err = scheme.IsValid(); err != nil {
@@ -92,7 +92,7 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 		Name:   GetStringPointer(in.Name),
 		Editor: in.Editor,
 		Type:   transformTypes(in.GetType()),
-		Tags:   in.GetTags(),
+		Tags:   tagsToStrings(in.GetTags()),
 	}
 
 	list, endList, err = api.app.GetRoutingSchemaPage(session.Domain(0), req)
@@ -160,7 +160,7 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
 		Editor:      in.Editor,
-		Tags:        in.GetTags(),
+		Tags:        tagsToStrings(in.GetTags()),
 	}
 
 	if err = scheme.IsValid(); err != nil {
@@ -204,7 +204,7 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 		case "description":
 			patch.Description = &in.Description
 		case "tags":
-			patch.Tags = in.Tags
+			patch.Tags = tagsToStrings(in.Tags)
 			if patch.Tags == nil {
 				patch.Tags = make([]string, 0, 0)
 			}
@@ -294,7 +294,7 @@ func (api *routingSchema) SearchRoutingSchemaTags(ctx context.Context, in *engin
 }
 
 func transformRoutingSchema(src *model.RoutingSchema) *engine.RoutingSchema {
-	return &engine.RoutingSchema{
+	s := &engine.RoutingSchema{
 		Id:          src.Id,
 		CreatedAt:   src.CreatedAt,
 		CreatedBy:   GetProtoLookup(src.CreatedBy),
@@ -307,8 +307,18 @@ func transformRoutingSchema(src *model.RoutingSchema) *engine.RoutingSchema {
 		Editor:      src.Editor,
 		Schema:      UnmarshalJsonpb(src.Schema),
 		Payload:     UnmarshalJsonpb(src.Payload),
-		Tags:        src.Tags,
 	}
+
+	if src.Tags != nil {
+		s.Tags = make([]*engine.SchemaTag, 0, len(src.Tags))
+		for _, v := range src.Tags {
+			s.Tags = append(s.Tags, &engine.SchemaTag{
+				Name: v,
+			})
+		}
+	}
+
+	return s
 }
 
 func transformTypeToEngine(name string) engine.RoutingSchemaType {
@@ -328,6 +338,21 @@ func transformTypes(tps []engine.RoutingSchemaType) []string {
 	res := make([]string, 0, l)
 	for _, v := range tps {
 		res = append(res, v.String())
+	}
+
+	return res
+}
+
+func tagsToStrings(tags []*engine.SchemaTag) []string {
+	l := len(tags)
+	if l == 0 {
+		return nil
+	}
+
+	res := make([]string, l, l)
+
+	for _, v := range tags {
+		res = append(res, v.Name)
 	}
 
 	return res
