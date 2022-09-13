@@ -61,7 +61,7 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 		Name:   GetStringPointer(in.Name),
 		Editor: in.Editor,
 		Type:   transformTypes(in.GetType()),
-		Tags:   tagsToStrings(in.GetTags()),
+		Tags:   in.GetTags(),
 	}
 
 	list, endList, err = api.ctrl.SearchSchema(session, req)
