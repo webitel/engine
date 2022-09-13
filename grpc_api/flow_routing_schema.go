@@ -277,7 +277,7 @@ func tagsToStrings(tags []*engine.SchemaTag) []string {
 		return nil
 	}
 
-	res := make([]string, l, l)
+	res := make([]string, 0, l)
 
 	for _, v := range tags {
 		res = append(res, v.Name)
