@@ -22,8 +22,8 @@ type SearchRoutingSchema struct {
 }
 
 type RoutingSchemaTag struct {
-	Name  string `json:"name" db:"name"`
-	Count uint32 `json:"count" db:"count"`
+	Name string `json:"name" db:"name"`
+	//Count uint32 `json:"count" db:"count"`
 }
 
 type SearchRoutingSchemaTag struct {

@@ -176,14 +176,12 @@ func (s SqlRoutingSchemaStore) ListTags(domainId int64, search *model.SearchRout
 	sort := fmt.Sprintf("order by %s %s", QuoteIdentifier(f), st)
 
 	q := `with tags as (
-    select tag as name,
-       count(*) count
+    select distinct tag as name
     from flow.acr_routing_scheme s,
          unnest(s.tags) tag
     where s.domain_id = :DomainId
         and (:Q::varchar isnull or tag ilike :Q::varchar)
         and (:Type::varchar[] isnull or s.type = any(:Type::varchar[]))
-    group by 1
 )
 select *
 from tags

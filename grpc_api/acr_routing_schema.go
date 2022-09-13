@@ -283,8 +283,8 @@ func (api *routingSchema) SearchRoutingSchemaTags(ctx context.Context, in *engin
 	items := make([]*engine.RoutingSchemaTag, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.RoutingSchemaTag{
-			Name:  v.Name,
-			Count: v.Count,
+			Name: v.Name,
+			//Count: v.Count,
 		})
 	}
 	return &engine.ListRoutingSchemaTags{
