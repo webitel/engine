@@ -250,7 +250,7 @@ func (s SqlAgentStore) GetActiveTask(domainId, id int64) ([]*model.CCTask, *mode
         inner join call_center.cc_agent a2 on a2.id = a.agent_id
         left join call_center.cc_queue q on a.queue_id = q.id
 		left join call_center.cc_member m on a.member_id = m.id
-where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leaving'`, map[string]interface{}{
+where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leaving' and a.node_id notnull`, map[string]interface{}{
 		"AgentId":  id,
 		"DomainId": domainId,
 	})
