@@ -201,7 +201,7 @@ func (s SqlListStore) CreateCommunication(comm *model.ListCommunication) (*model
 	var out *model.ListCommunication
 	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description)
 values (:ListId, :Number, :Description)
-returning *`,
+returning id, list_id, number, description, expire_at`,
 		map[string]interface{}{
 			"ListId":      comm.ListId,
 			"Number":      comm.Number,
@@ -218,17 +218,22 @@ func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *mo
 	var communication []*model.ListCommunication
 
 	f := map[string]interface{}{
-		"DomainId": domainId,
-		"ListId":   listId,
-		"Ids":      pq.Array(search.Ids),
-		"Q":        search.GetQ(),
+		"DomainId":   domainId,
+		"ListId":     listId,
+		"Ids":        pq.Array(search.Ids),
+		"Q":          search.GetQ(),
+		"ExpireFrom": model.GetBetweenFromTime(search.ExpireAt),
+		"ExpireTo":   model.GetBetweenToTime(search.ExpireAt),
 	}
 
 	err := s.ListQuery(&communication, search.ListRequest,
 		`domain_id = :DomainId
 				and list_id = :ListId
 				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:Q::varchar isnull or (number ilike :Q::varchar ))`,
+				and (:Q::varchar isnull or (number ilike :Q::varchar ))
+				and ( :ExpireFrom::timestamptz isnull or expire_at >= :ExpireFrom::timestamptz )
+				and ( :ExpireTo::timestamptz isnull or expire_at <= :ExpireTo::timestamptz )
+			`,
 		model.ListCommunication{}, f)
 
 	if err != nil {
@@ -241,7 +246,7 @@ func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *mo
 func (s SqlListStore) GetCommunication(domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError) {
 	var communication *model.ListCommunication
 	if err := s.GetReplica().SelectOne(&communication, `
-			select i.id, i.number, i.description, i.list_id
+			select i.id, i.number, i.description, i.list_id, i.expire_at
 from call_center.cc_list_communications i
 where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)	
 		`, map[string]interface{}{"ListId": listId, "Id": id, "DomainId": domainId}); err != nil {
@@ -255,7 +260,8 @@ where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.c
 func (s SqlListStore) UpdateCommunication(domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
 	err := s.GetMaster().SelectOne(&communication, `update call_center.cc_list_communications i
 set number = :Number,
-    description = :Description
+    description = :Description,
+	expire_at = :ExpireAt
 where list_id = :ListId and id = :Id and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)
 returning *`, map[string]interface{}{
 		"Number":      communication.Number,
@@ -263,6 +269,7 @@ returning *`, map[string]interface{}{
 		"ListId":      communication.ListId,
 		"Id":          communication.Id,
 		"DomainId":    domainId,
+		"ExpireAt":    communication.ExpireAt,
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlListStore.UpdateCommunication", "store.sql_list.update_communication.app_error", nil,

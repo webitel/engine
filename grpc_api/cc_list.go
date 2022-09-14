@@ -220,7 +220,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(0), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -231,6 +231,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		ListId:      in.GetListId(),
 		Number:      in.GetNumber(),
 		Description: in.GetDescription(),
+		ExpireAt:    model.Int64ToTime(in.ExpireAt),
 	}
 
 	if err = communication.IsValid(); err != nil {
@@ -277,6 +278,13 @@ func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchL
 			Sort:    in.Sort,
 		},
 		Ids: in.Id,
+	}
+
+	if in.GetExpireAt() != nil {
+		req.ExpireAt = &model.FilterBetween{
+			From: in.GetExpireAt().GetFrom(),
+			To:   in.GetExpireAt().GetTo(),
+		}
 	}
 
 	communication, endList, err = api.app.GetListCommunicationPage(session.Domain(0), in.GetListId(), req)
@@ -342,7 +350,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.ListCheckAccess(session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.ListCheckAccess(session.Domain(0), in.GetListId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -354,13 +362,14 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 		ListId:      in.GetListId(),
 		Number:      in.GetNumber(),
 		Description: in.GetDescription(),
+		ExpireAt:    model.Int64ToTime(in.GetExpireAt()),
 	}
 
 	if err = communication.IsValid(); err != nil {
 		return nil, err
 	}
 
-	communication, err = api.app.UpdateListCommunication(session.Domain(in.GetDomainId()), communication)
+	communication, err = api.app.UpdateListCommunication(session.Domain(0), communication)
 
 	if err != nil {
 		return nil, err
@@ -425,6 +434,7 @@ func toEngineListCommunication(src *model.ListCommunication) *engine.ListCommuni
 		ListId:      src.ListId,
 		Number:      src.Number,
 		Description: src.Description,
+		ExpireAt:    model.TimeToInt64(src.ExpireAt),
 	}
 
 	return item

@@ -93,6 +93,7 @@ func (a *App) UpdateListCommunication(domainId int64, communication *model.ListC
 
 	oldComm.Description = communication.Description
 	oldComm.Number = communication.Number
+	oldComm.ExpireAt = communication.ExpireAt
 
 	oldComm, err = a.Store.List().UpdateCommunication(domainId, oldComm)
 	if err != nil {
