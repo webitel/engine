@@ -222,6 +222,13 @@ func (webCon *WebConn) SendHello() {
 	webCon.Send <- msg
 }
 
+func (webCon *WebConn) SendError(err *model.AppError) {
+	msg := model.NewWebSocketEvent(model.WebsocketError)
+	msg.Add("sock_id", webCon.id)
+	msg.Add("error", err)
+	webCon.Send <- msg
+}
+
 func (c *WebConn) GetSessionExpiresAt() int64 {
 	return atomic.LoadInt64(&c.sessionExpiresAt)
 }
@@ -255,18 +262,14 @@ func (webCon *WebConn) IsAuthenticated() bool {
 
 		session, err := webCon.App.GetSession(webCon.GetSessionToken())
 		if err == nil && session.CountLicenses() == 0 {
-			// err = auth_manager.ErrValidScope
-			err = model.NewAppError(
-				"WebConn.IsAuthenticated",
-				"app.session.is_valid.scope.app_error",
-				nil, "token scope is forceless", 412, // http.StatusPreconditionFailed,
-			)
+			err = model.SocketPermissionError
 		}
 		if err != nil {
 			wlog.Error(fmt.Sprintf("invalid session err=%v", err.Error()))
 			webCon.SetSessionToken("")
 			webCon.SetSession(nil)
 			webCon.SetSessionExpiresAt(0)
+			webCon.SendError(err)
 			return false
 		}
 

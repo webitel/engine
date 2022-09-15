@@ -7,6 +7,14 @@ const (
 	PING_TIMEOUT_BUFFER_SECONDS = 5
 )
 
+var (
+	SocketPermissionError = NewAppError(
+		"Permissions",
+		"api.context.permissions.app_error",
+		nil, "token scope is forceless", 412, // http.StatusPreconditionFailed,
+	)
+)
+
 // event.open_socket.DOMAIN.USER
 // event.close_socket.DOMAIN.USER
 // text/json
