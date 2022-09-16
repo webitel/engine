@@ -48,6 +48,11 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
+		if session.CountLicenses() == 0 {
+			ReturnWebSocketError(conn, r, model.SocketPermissionError)
+			return
+		}
+
 		conn.SetSession(session)
 		conn.SetSessionToken(session.Token)
 		conn.UserId = session.UserId
