@@ -21,7 +21,7 @@ func (s SqlRoutingSchemaStore) Create(scheme *model.RoutingSchema) (*model.Routi
 	var out *model.RoutingSchema
 	if err := s.GetMaster().SelectOne(&out, `with s as (
     insert into flow.acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug, editor, tags)
-    values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug, :Editor, :Tags)
+    values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug, :Editor, call_center.cc_array_merge(:Tags, '{}'))
     returning *
 )
 select s.id, s.domain_id, s.name, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
@@ -121,7 +121,7 @@ func (s SqlRoutingSchemaStore) Update(scheme *model.RoutingSchema) (*model.Routi
 		description = :Description,
 		debug = :Debug,
 		editor = :Editor,
-		tags = :Tags
+		tags = call_center.cc_array_merge(:Tags, '{}'),
     where s.id = :Id and s.domain_id = :Domain
     returning *
 )
