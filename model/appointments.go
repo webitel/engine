@@ -32,7 +32,7 @@ type AppointmentDate struct {
 
 type AppointmentTime struct {
 	Time     string `json:"time"`
-	Reserved int    `json:"reserved"`
+	Reserved bool   `json:"reserved"`
 }
 
 type Appointment struct {
@@ -45,7 +45,6 @@ type Appointment struct {
 	Name         string    `json:"name" db:"name"`
 	Destination  string    `json:"destination" db:"destination"`
 	Variables    StringMap `json:"variables" db:"variables"`
-	StopCause    *string   `json:"stop_cause" db:"stop_cause"`
 	Computed     []byte    `json:"-" db:"-"`
 }
 
@@ -82,7 +81,7 @@ func (w *AppointmentWidget) ValidAppointment(a *Appointment) bool {
 		if v.Date == a.ScheduleDate {
 			for _, t := range v.Times {
 				if t.Time == a.ScheduleTime {
-					return t.Reserved > -1
+					return t.Reserved
 				}
 			}
 			break

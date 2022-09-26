@@ -760,8 +760,8 @@ func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, 
         d.*,
         res.*,
         xx,
-        case when xx < now() or coalesce(res.cnt, 0) >= d.available_agents then -1
-            else coalesce(res.cnt, 0) end as reserved
+        case when xx < now() or coalesce(res.cnt, 0) >= d.available_agents then false
+            else true end as reserved
     from d
         left join generate_series(d.ss, d.se, d.duration) xx on true
         left join res on res.d = xx
@@ -770,7 +770,7 @@ func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, 
 , ranges AS (
     select
         to_char(list.x::date,'YYYY-MM-DD')::text as date,
-        jsonb_agg(jsonb_build_object('time', list.xx::time, 'reserved', list.reserved) order by list.x, list.xx) as times
+        jsonb_agg(jsonb_build_object('time', to_char(list.xx::time, 'HH24:MI'), 'reserved', list.reserved) order by list.x, list.xx) as times
     from list
     group by 1
 )
@@ -802,16 +802,15 @@ func (s SqlMemberStore) GetAppointment(memberId int64) (*model.Appointment, *mod
 	err := s.GetReplica().SelectOne(&res, `select
     m.id,
     coalesce(m.ready_at, m.created_at)::date::text as schedule_date,
-    DATE_TRUNC('second', coalesce(m.ready_at, m.created_at))::time::text as schedule_time,
+    to_char(coalesce(m.ready_at, m.created_at), 'HH24:MI') as schedule_time,
     m.name,
     m.communications[0]->>'destination' as destination,
     m.variables,
-	m.stop_cause,
     coalesce(m.import_id, '') as import_id,
 	tz.sys_name as timezone
 from call_center.cc_member m
 	left join flow.calendar_timezones tz on tz.id = m.timezone_id
-where m.id = :Id`, map[string]interface{}{
+where m.id = :Id and m.stop_at isnull and m.stop_cause isnull`, map[string]interface{}{
 		"Id": memberId,
 	})
 

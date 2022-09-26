@@ -57,14 +57,26 @@ func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if cookie != nil && cookie.Value != "" {
 		if appointment, c.Err = c.App.GetAppointment(cookie.Value); c.Err != nil {
+			if c.Err.StatusCode == http.StatusNotFound {
+				cookie = &http.Cookie{
+					Name:    appointmentsCookie,
+					Value:   "",
+					Path:    "/",
+					Domain:  "",
+					Expires: time.Unix(0, 0),
+					MaxAge:  0,
+				}
+				http.SetCookie(w, cookie)
+				c.Err = nil
+			} else {
+				return
+			}
+
+		} else {
+			w.Write(appointment.Computed)
 			return
 		}
-
-		w.Write(appointment.Computed)
-		return
 	}
-
-	// TODO check allow origin
 
 	w.Write(widget.ComputedList)
 
@@ -170,9 +182,7 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var appointment *model.Appointment
-
-	if appointment, c.Err = c.App.CancelAppointment(widget, cookie.Value); c.Err != nil {
+	if _, c.Err = c.App.CancelAppointment(widget, cookie.Value); c.Err != nil {
 		return
 	}
 
@@ -185,7 +195,7 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		MaxAge:  0,
 	}
 	http.SetCookie(w, cookie)
-	w.Write(appointment.Computed)
+	w.Write(widget.ComputedList)
 }
 
 func getIdFromRequest(r *http.Request) int {
