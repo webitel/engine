@@ -683,3 +683,206 @@ from call_center.cc_member m
 
 	return att, nil
 }
+
+func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, *model.AppError) {
+	var widget *model.AppointmentWidget
+	err := s.GetReplica().SelectOne(&widget, `with profile as (
+    select (b.metadata['appointment']['queue']->>'id')::int as queue_id,
+       (b.metadata['appointment']['communication_type']->>'id')::int as communication_type,
+       (b.metadata['appointment']->>'duration')::interval as duration,
+       (b.metadata['appointment']->>'days')::int as days,
+       (b.metadata['appointment']->>'available_agents')::int as available_agents,
+       string_to_array((b.metadata->>'allow_origin'), ',') as allow_origins,
+       q.calendar_id,
+	   b.id,
+	   b.dc as domain_id,
+	   c.timezone_id,
+	   tz.sys_name as timezone
+    from chat.bot b
+        inner join call_center.cc_queue q on q.id = (b.metadata['appointment']['queue']->>'id')::int
+		inner join flow.calendar c on c.id = q.calendar_id
+		inner join flow.calendar_timezones tz on tz.id = c.timezone_id
+    where b.id = :Id
+    limit 1
+), d as materialized (
+    select  q.queue_id,
+            q.duration,
+            q.available_agents,
+            x,
+           (extract(isodow from x::timestamp)  ) - 1 as day,
+           dy.*
+    from profile  q ,
+        flow.calendar_day_range(q.calendar_id, least(q.days, 7)) x
+        left join lateral (
+            select t.*, tz.sys_name, c.excepts
+            from flow.calendar c
+                inner join flow.calendar_timezones tz on tz.id = c.timezone_id
+                inner join lateral unnest(c.accepts::flow.calendar_accept_time[]) t on true
+            where c.id = q.calendar_id
+                and not t.disabled
+            order by 1 asc
+    ) y on y.day = (extract(isodow from x)  ) - 1
+    left join lateral (
+        select (x + (y.start_time_of_day || 'm')::interval)::timestamp as ss,
+            case when date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) < (x + (y.end_time_of_day || 'm')::interval)::timestamp
+                then date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) + q.duration
+                else date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) end as se
+    ) dy on true
+)
+, min_max as materialized (
+    select
+        queue_id,
+        x,
+        duration,
+        min(ss)  min_ss,
+        max(se)  max_se
+    from d
+    group by 1, 2, 3
+)
+,res as materialized (
+    select
+    mem.*
+    from min_max
+        left join lateral (
+            select
+                date_bin(min_max.duration, coalesce(ready_at, created_at), coalesce(ready_at, created_at)::date)::timestamp d,
+                count(*) cnt
+            from call_center.cc_member m
+            where m.stop_at isnull
+                and m.queue_id = min_max.queue_id
+                and coalesce(ready_at, created_at) between min_max.min_ss and min_max.max_se
+            group by 1
+        ) mem on true
+    where mem notnull
+)
+, list as (
+    select
+        d.*,
+        res.*,
+        xx,
+        case when xx < now() or coalesce(res.cnt, 0) >= d.available_agents then -1
+            else coalesce(res.cnt, 0) end as reserved
+    from d
+        left join generate_series(d.ss, d.se, d.duration) xx on true
+        left join res on res.d = xx
+    limit 10080
+)
+, ranges AS (
+    select
+        to_char(list.x::date,'YYYY-MM-DD')::text as date,
+        jsonb_agg(jsonb_build_object('time', list.xx::time, 'reserved', list.reserved) order by list.x, list.xx) as times
+    from list
+    group by 1
+)
+select
+    row_to_json(p) as profile,
+    jsonb_agg(row_to_json(r)) as list
+from profile p
+    left join lateral (
+        select *
+        from ranges
+    ) r on true
+group by p`, map[string]interface{}{
+		"Id": id,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.GetAppointmentWidget", "store.sql_member.appointment.widget.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	widget.InitOrigin()
+
+	return widget, nil
+}
+
+func (s SqlMemberStore) GetAppointment(memberId int64) (*model.Appointment, *model.AppError) {
+	var res *model.Appointment
+
+	err := s.GetReplica().SelectOne(&res, `select
+    m.id,
+    coalesce(m.ready_at, m.created_at)::date::text as schedule_date,
+    DATE_TRUNC('second', coalesce(m.ready_at, m.created_at))::time::text as schedule_time,
+    m.name,
+    m.communications[0]->>'destination' as destination,
+    m.variables,
+	m.stop_cause,
+    coalesce(m.import_id, '') as import_id,
+	tz.sys_name as timezone
+from call_center.cc_member m
+	left join flow.calendar_timezones tz on tz.id = m.timezone_id
+where m.id = :Id`, map[string]interface{}{
+		"Id": memberId,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.GetAppointment", "store.sql_member.appointment.get.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
+func (s SqlMemberStore) CreateAppointment(profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, *model.AppError) {
+	err := s.GetMaster().SelectOne(&app, `
+insert into call_center.cc_member (queue_id, communications, timezone_id, domain_id, variables, ready_at, expire_at, name, import_id)
+select :QueueId,
+       jsonb_build_array(
+           jsonb_build_object('destination', :Destination::varchar, 'type', jsonb_build_object('id', :TypeId::int))
+       ),
+       :TimezoneId,
+       :DomainId,
+	   :Vars,	
+       (:Date || ' ' || :Time)::timestamp at time zone :TzName,
+       ((:Date || ' ' || :Time)::timestamp at time zone :TzName)::date + interval '1d' - interval '1s',
+	   :Name,
+	   :Ip	
+where not exists(select 1 from call_center.cc_member m
+          where m.queue_id = :QueueId
+            and search_destinations && array[:Destination::varchar]
+            and m.stop_at isnull and 1=2
+    )
+returning call_center.cc_member.id,
+    coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at)::date::text as schedule_date,
+    DATE_TRUNC('second', coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at))::time::text as schedule_time,
+    call_center.cc_member.name,
+    call_center.cc_member.communications[0]->>'destination' as destination,
+	coalesce(call_center.cc_member.import_id, '') as import_id,
+    call_center.cc_member.variables`, map[string]interface{}{
+		"Destination": app.Destination,
+		"TypeId":      profile.CommunicationTypeId,
+		"TimezoneId":  profile.TimezoneId,
+		"DomainId":    profile.DomainId,
+		"Vars":        app.Variables.ToSafeJson(),
+		"Date":        app.ScheduleDate,
+		"Time":        app.ScheduleTime,
+		"Name":        app.Name,
+		"QueueId":     profile.QueueId,
+		"Ip":          app.Ip,
+		"TzName":      profile.Timezone,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlMemberStore.CreateAppointment", "store.sql_member.appointment.create.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	return app, nil
+}
+
+func (s SqlMemberStore) CancelAppointment(memberId int64, reason string) *model.AppError {
+	_, err := s.GetMaster().Exec(`update call_center.cc_member 
+set stop_at = now(),
+    stop_cause = :Reason
+where id = :Id`, map[string]interface{}{
+		"Id":     memberId,
+		"Reason": reason,
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlMemberStore.CancelAppointment", "store.sql_member.appointment.cancel.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
+}

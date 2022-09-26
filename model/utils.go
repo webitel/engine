@@ -66,7 +66,7 @@ func (s StringMap) ToJson() string {
 	return string(data)
 }
 
-func (s StringMap) ToSafeJson() *string {
+func (s *StringMap) ToSafeJson() *string {
 	var res *string
 	if s == nil {
 		return res

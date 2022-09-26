@@ -27,6 +27,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.UserAgent = r.UserAgent()
 	c.T, _ = localization.GetTranslationsAndLocale(w, r)
 	c.AcceptLanguage = r.Header.Get("Accept-Language")
+	c.IpAddress = ReadUserIP(r)
+	c.Log = h.App.Log
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
 	w.Header().Set("Content-Type", "application/json")
@@ -55,4 +57,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(c.Err.StatusCode)
 		w.Write([]byte(c.Err.ToJson()))
 	}
+}
+
+func ReadUserIP(r *http.Request) string {
+	IPAddress := r.Header.Get("X-Real-Ip")
+	if IPAddress == "" {
+		IPAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if IPAddress == "" {
+		IPAddress = r.RemoteAddr
+	}
+	return IPAddress
 }
