@@ -687,11 +687,12 @@ from call_center.cc_member m
 func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, *model.AppError) {
 	var widget *model.AppointmentWidget
 	err := s.GetReplica().SelectOne(&widget, `with profile as (
-    select (b.metadata['appointment']['queue']->>'id')::int as queue_id,
-       (b.metadata['appointment']['communication_type']->>'id')::int as communication_type,
-       (b.metadata['appointment']->>'duration')::interval as duration,
-       (b.metadata['appointment']->>'days')::int as days,
-       (b.metadata['appointment']->>'available_agents')::int as available_agents,
+    select 
+	   (config['queue']->>'id')::int as queue_id,
+       (config['communication_type']->>'id')::int as communication_type,
+       (config->>'duration')::interval as duration,
+       (config->>'days')::int as days,
+       (config->>'available_agents')::int as available_agents,
        string_to_array((b.metadata->>'allow_origin'), ',') as allow_origins,
        q.calendar_id,
 	   b.id,
@@ -699,7 +700,8 @@ func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, 
 	   c.timezone_id,
 	   tz.sys_name as timezone
     from chat.bot b
-        inner join call_center.cc_queue q on q.id = (b.metadata['appointment']['queue']->>'id')::int
+		inner join lateral (select (b.metadata->>'appointment')::jsonb as config) as cfx on true
+        inner join call_center.cc_queue q on q.id = (config['queue']->>'id')::int
 		inner join flow.calendar c on c.id = q.calendar_id
 		inner join flow.calendar_timezones tz on tz.id = c.timezone_id
     where b.id = :Id
