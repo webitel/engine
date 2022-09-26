@@ -845,7 +845,7 @@ where not exists(select 1 from call_center.cc_member m
     )
 returning call_center.cc_member.id,
     coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at)::date::text as schedule_date,
-    DATE_TRUNC('second', coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at))::time::text as schedule_time,
+	to_char(coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at), 'HH24:MI') as schedule_time,
     call_center.cc_member.name,
     call_center.cc_member.communications[0]->>'destination' as destination,
 	coalesce(call_center.cc_member.import_id, '') as import_id,
