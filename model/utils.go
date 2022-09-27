@@ -68,7 +68,7 @@ func (s StringMap) ToJson() string {
 
 func (s *StringMap) ToSafeJson() *string {
 	var res *string
-	if s == nil {
+	if s == nil || len(*s) == 0 {
 		return res
 	}
 
