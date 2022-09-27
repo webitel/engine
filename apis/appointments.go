@@ -6,7 +6,6 @@ import (
 	"github.com/webitel/engine/model"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -40,13 +39,10 @@ func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var appointment *model.Appointment
 
-	widgetId := getIdFromRequest(r)
-	if widgetId == 0 {
-		// TODO error
-	}
+	widgetUri := getIdFromRequest(r)
 
 	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(widgetId); c.Err != nil {
+	if widget, c.Err = c.App.AppointmentWidget(widgetUri); c.Err != nil {
 		return
 	}
 
@@ -106,13 +102,10 @@ func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	widgetId := getIdFromRequest(r)
-	if widgetId == 0 {
-		// TODO error
-	}
+	widgetUri := getIdFromRequest(r)
 
 	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(widgetId); c.Err != nil {
+	if widget, c.Err = c.App.AppointmentWidget(widgetUri); c.Err != nil {
 		return
 	}
 
@@ -167,13 +160,10 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	widgetId := getIdFromRequest(r)
-	if widgetId == 0 {
-		// TODO error
-	}
+	widgetUri := getIdFromRequest(r)
 
 	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(widgetId); c.Err != nil {
+	if widget, c.Err = c.App.AppointmentWidget(widgetUri); c.Err != nil {
 		return
 	}
 
@@ -198,9 +188,7 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(widget.ComputedList)
 }
 
-func getIdFromRequest(r *http.Request) int {
+func getIdFromRequest(r *http.Request) string {
 	props := mux.Vars(r)
-	id := props["id"]
-	widgetId, _ := strconv.Atoi(id)
-	return widgetId
+	return "/" + props["id"]
 }

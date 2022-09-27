@@ -72,18 +72,18 @@ func (app *App) GetAppointment(key string) (*model.Appointment, *model.AppError)
 	return res.(*model.Appointment), nil
 }
 
-func (app *App) AppointmentWidget(widgetId int) (*model.AppointmentWidget, *model.AppError) {
-	if a, ok := cacheAppointmentDate.Get(widgetId); ok {
+func (app *App) AppointmentWidget(widgetUri string) (*model.AppointmentWidget, *model.AppError) {
+	if a, ok := cacheAppointmentDate.Get(widgetUri); ok {
 		return a.(*model.AppointmentWidget), nil
 	}
 
-	return app.appointmentWidget(widgetId)
+	return app.appointmentWidget(widgetUri)
 }
 
-func (app *App) appointmentWidget(widgetId int) (*model.AppointmentWidget, *model.AppError) {
+func (app *App) appointmentWidget(widgetUri string) (*model.AppointmentWidget, *model.AppError) {
 
-	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("list-%d", widgetId), func() (interface{}, error) {
-		a, err := app.Store.Member().GetAppointmentWidget(widgetId)
+	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("list-%s", widgetUri), func() (interface{}, error) {
+		a, err := app.Store.Member().GetAppointmentWidget(widgetUri)
 		if err != nil {
 			return nil, err
 		}
@@ -106,7 +106,7 @@ func (app *App) appointmentWidget(widgetId int) (*model.AppointmentWidget, *mode
 	}
 
 	if !shared {
-		cacheAppointmentDate.AddWithDefaultExpires(widgetId, res)
+		cacheAppointmentDate.AddWithDefaultExpires(widgetUri, res)
 	}
 
 	return res.(*model.AppointmentWidget), nil
@@ -137,7 +137,7 @@ func (app *App) CreateAppointment(widget *model.AppointmentWidget, appointment *
 	}).ToJSON()
 
 	// reset list ?
-	app.appointmentWidget(widget.Profile.Id)
+	app.appointmentWidget(widget.Profile.Uri)
 
 	return appointment, nil
 }
@@ -153,7 +153,7 @@ func (app *App) CancelAppointment(widget *model.AppointmentWidget, key string) (
 	}
 
 	// reset list ?
-	app.appointmentWidget(widget.Profile.Id)
+	app.appointmentWidget(widget.Profile.Uri)
 
 	return appointment, nil
 }

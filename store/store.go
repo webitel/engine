@@ -275,7 +275,7 @@ type MemberStore interface {
 	ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError)
 
 	// Appointments
-	GetAppointmentWidget(id int) (*model.AppointmentWidget, *model.AppError)
+	GetAppointmentWidget(uri string) (*model.AppointmentWidget, *model.AppError)
 	GetAppointment(memberId int64) (*model.Appointment, *model.AppError)
 	CreateAppointment(profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, *model.AppError)
 	CancelAppointment(memberId int64, reason string) *model.AppError

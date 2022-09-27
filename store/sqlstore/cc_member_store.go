@@ -684,7 +684,7 @@ from call_center.cc_member m
 	return att, nil
 }
 
-func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, *model.AppError) {
+func (s SqlMemberStore) GetAppointmentWidget(uri string) (*model.AppointmentWidget, *model.AppError) {
 	var widget *model.AppointmentWidget
 	err := s.GetReplica().SelectOne(&widget, `with profile as (
     select 
@@ -696,6 +696,7 @@ func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, 
        string_to_array((b.metadata->>'allow_origin'), ',') as allow_origins,
        q.calendar_id,
 	   b.id,
+       b.uri,
 	   b.dc as domain_id,
 	   c.timezone_id,
 	   tz.sys_name as timezone
@@ -704,7 +705,7 @@ func (s SqlMemberStore) GetAppointmentWidget(id int) (*model.AppointmentWidget, 
         inner join call_center.cc_queue q on q.id = (config['queue']->>'id')::int
 		inner join flow.calendar c on c.id = q.calendar_id
 		inner join flow.calendar_timezones tz on tz.id = c.timezone_id
-    where b.id = :Id
+    where b.uri = :Uri
     limit 1
 ), d as materialized (
     select  q.queue_id,
@@ -785,7 +786,7 @@ from profile p
         from ranges
     ) r on true
 group by p`, map[string]interface{}{
-		"Id": id,
+		"Uri": uri,
 	})
 
 	if err != nil {

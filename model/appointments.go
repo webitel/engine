@@ -13,6 +13,7 @@ type AppointmentWidget struct {
 }
 
 type AppointmentProfile struct {
+	Uri                 string   `json:"uri"`
 	Id                  int      `json:"id" db:"id"`
 	DomainId            int64    `json:"domain_id" db:"domain_id"`
 	QueueId             int      `json:"queue_id" db:"queue_id"`
