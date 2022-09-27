@@ -15,8 +15,8 @@ func (api *API) InitWebSocket() {
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	upgrader := websocket.Upgrader{
-		ReadBufferSize:  model.SOCKET_MAX_MESSAGE_SIZE_KB,
-		WriteBufferSize: model.SOCKET_MAX_MESSAGE_SIZE_KB,
+		ReadBufferSize:  model.SocketBufferSize,
+		WriteBufferSize: model.SocketBufferSize,
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},

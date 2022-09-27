@@ -109,7 +109,7 @@ func (c *WebConn) readPump() {
 		c.WebSocket.Close()
 	}()
 
-	c.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
+	c.WebSocket.SetReadLimit(int64(c.App.MaxSocketInboundMsgSize()))
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		return c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))

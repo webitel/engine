@@ -298,7 +298,11 @@ func (dq *DomainQueue) readAgentStatusEvent(data []byte, rk string) {
 		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse event, skip %s", dq.Id(), string(data)))
 		return
 	} else {
-		wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive cc event %v <%v> rk=%s", dq.Id(), e.Event, string(data), rk))
+		if len(data) < 400 {
+			wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive cc event %v <%v> rk=%s", dq.Id(), e.Event, string(data), rk))
+		} else {
+			wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive cc event %v <%v> rk=%s", dq.Id(), e.Event, "big data", rk))
+		}
 		dq.events <- ev
 	}
 }

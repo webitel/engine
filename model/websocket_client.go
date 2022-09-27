@@ -3,8 +3,7 @@ package model
 import "encoding/json"
 
 const (
-	SOCKET_MAX_MESSAGE_SIZE_KB  = 8 * 1024 // 8KB
-	PING_TIMEOUT_BUFFER_SECONDS = 5
+	SocketBufferSize = 8 * 1024 // 8KB
 )
 
 var (

@@ -7,32 +7,43 @@ import (
 )
 
 var (
-	appId                 = flag.String("id", "1", "Service id")
-	translationsDirectory = flag.String("translations_directory", "i18n", "Translations directory")
-	consulHost            = flag.String("consul", "172.0.0.1:8500", "Host to consul")
-	websocketHost         = flag.String("websocket", ":80", "WebSocket server address")
-	dataSource            = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10&search_path=call_center", "Data source")
-	amqpSource            = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
-	grpcServerPort        = flag.Int("grpc_port", 0, "GRPC port")
-	grpcServerAddr        = flag.String("grpc_addr", "", "GRPC host")
-	openSipAddr           = flag.String("open_sip_addr", "opensips", "OpenSip address")
-	sipPublicProxyAddr    = flag.String("sip_proxy_addr", "", "Public sip proxy address")
-	wsSipAddr             = flag.String("ws_sip_addr", "", "Sip websocket address")
-	dev                   = flag.Int("dev", 0, "enable dev mode")
-	cloudflare            = flag.Int("cloudflare", 0, "use cloudflare")
-	minMaskLen            = flag.Int("min_mask_number_len", 0, "Minimum mask length number")
-	prefCntMaskLen        = flag.Int("prefix_number_mask_len", 5, "Prefix mask length number")
-	suffCntMaskLen        = flag.Int("suffix_number_mask_len", 3, "Suffix mask length number")
-	sqlQueryTimeout       = flag.Int("sql_query_timeout", 10, "Sql query timeout sec")
-	pingClientInterval    = flag.Int("ping_client_interval", 0, "Interval websocket ping")
+	appId                   = flag.String("id", "1", "Service id")
+	translationsDirectory   = flag.String("translations_directory", "i18n", "Translations directory")
+	consulHost              = flag.String("consul", "172.0.0.1:8500", "Host to consul")
+	websocketHost           = flag.String("websocket", ":80", "WebSocket server address")
+	dataSource              = flag.String("data_source", "postgres://opensips:webitel@postgres:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10&search_path=call_center", "Data source")
+	amqpSource              = flag.String("amqp", "amqp://webitel:webitel@rabbit:5672?heartbeat=10", "AMQP connection")
+	grpcServerPort          = flag.Int("grpc_port", 0, "GRPC port")
+	grpcServerAddr          = flag.String("grpc_addr", "", "GRPC host")
+	openSipAddr             = flag.String("open_sip_addr", "opensips", "OpenSip address")
+	sipPublicProxyAddr      = flag.String("sip_proxy_addr", "", "Public sip proxy address")
+	wsSipAddr               = flag.String("ws_sip_addr", "", "Sip websocket address")
+	dev                     = flag.Int("dev", 0, "enable dev mode")
+	cloudflare              = flag.Int("cloudflare", 0, "use cloudflare")
+	minMaskLen              = flag.Int("min_mask_number_len", 0, "Minimum mask length number")
+	prefCntMaskLen          = flag.Int("prefix_number_mask_len", 5, "Prefix mask length number")
+	suffCntMaskLen          = flag.Int("suffix_number_mask_len", 3, "Suffix mask length number")
+	sqlQueryTimeout         = flag.Int("sql_query_timeout", 10, "Sql query timeout sec")
+	pingClientInterval      = flag.Int("ping_client_interval", 0, "Interval websocket ping")
+	socketMaxInboundMsgSize = flag.String("socket_max_in_msg_size", "256KB", "Maximum inbound size websocket message message")
 )
 
 func (app *App) Config() *model.Config {
 	return app.config
 }
 
+func (app *App) MaxSocketInboundMsgSize() int {
+	return app.config.WebSocketSettings.MaxInboundMessageSize
+}
+
 func loadConfig() (*model.Config, error) {
 	flag.Parse()
+
+	wsMsgInSize, err := model.FromHumanSize(*socketMaxInboundMsgSize)
+	if err != nil {
+		return nil, err
+	}
+
 	config := &model.Config{
 		Dev:                   *dev == 1,
 		Cloudflare:            *cloudflare == 1,
@@ -46,7 +57,8 @@ func loadConfig() (*model.Config, error) {
 			Url: *consulHost,
 		},
 		WebSocketSettings: model.WebSocketSettings{
-			Address: *websocketHost,
+			Address:               *websocketHost,
+			MaxInboundMessageSize: int(wsMsgInSize),
 		},
 		ServerSettings: model.ServerSettings{
 			Address: *grpcServerAddr,

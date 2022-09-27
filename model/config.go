@@ -67,7 +67,8 @@ type ServerSettings struct {
 }
 
 type WebSocketSettings struct {
-	Address string `json:"address"`
+	Address               string `json:"address"`
+	MaxInboundMessageSize int    `json:"max_inbound_message_size"`
 }
 
 type SqlSettings struct {
