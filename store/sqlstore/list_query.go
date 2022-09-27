@@ -121,7 +121,7 @@ func (s *SqlSupplier) One(out interface{}, where string, e Entity, params map[st
 	t := pq.QuoteIdentifier(e.EntityName())
 
 	query := fmt.Sprintf(`select %s 
-	from %s as t
+	from call_center.%s as t
 	where %s
 	limit 1`, strings.Join(fields, ", "), t, where)
 
