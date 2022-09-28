@@ -4,32 +4,39 @@ package model
 
 type EmailProfile struct {
 	DomainRecord
-	Name        string `json:"name" db:"name"`
-	Description string `json:"description" db:"description"`
-	Schema      Lookup `json:"schema" db:"schema"`
-	Enabled     bool   `json:"enabled" db:"enabled"`
-	Host        string `json:"host" db:"host"`
-	Login       string `json:"login" db:"login"`
-	Password    string `json:"password" db:"password"`
-	Mailbox     string `json:"mailbox" db:"mailbox"`
-	SmtpPort    int    `json:"smtp_port" db:"smtp_port"`
-	ImapPort    int    `json:"imap_port" db:"imap_port"`
+	Name          string  `json:"name" db:"name"`
+	Description   string  `json:"description" db:"description"`
+	Schema        Lookup  `json:"schema" db:"schema"`
+	Enabled       bool    `json:"enabled" db:"enabled"`
+	Login         string  `json:"login" db:"login"`
+	Password      string  `json:"password" db:"password"`
+	Mailbox       string  `json:"mailbox" db:"mailbox"`
+	SmtpHost      string  `json:"smtp_host" db:"smtp_host"`
+	SmtpPort      int     `json:"smtp_port" db:"smtp_port"`
+	ImapHost      string  `json:"imap_host" db:"imap_host"`
+	ImapPort      int     `json:"imap_port" db:"imap_port"`
+	FetchInterval int32   `json:"fetch_interval" db:"fetch_interval"`
+	FetchError    *string `json:"fetch_error" db:"fetch_error"`
+	State         string  `json:"state" db:"state"`
+	ActivityAt    int64   `json:"activity_at" db:"activity_at"`
 }
 
 type EmailProfilePatch struct {
 	UpdatedBy Lookup
 	UpdatedAt int64
 
-	Name        *string `json:"name" db:"name"`
-	Description *string `json:"description" db:"description"`
-	Schema      *Lookup `json:"schema" db:"schema"`
-	Enabled     *bool   `json:"enabled" db:"enabled"`
-	Host        *string `json:"host" db:"host"`
-	Login       *string `json:"login" db:"login"`
-	Password    *string `json:"password" db:"-"`
-	Mailbox     *string `json:"mailbox" db:"mailbox"`
-	SmtpPort    *int    `json:"smtp_port" db:"smtp_port"`
-	ImapPort    *int    `json:"imap_port" db:"imap_port"`
+	Name          *string `json:"name" db:"name"`
+	Description   *string `json:"description" db:"description"`
+	Schema        *Lookup `json:"schema" db:"schema"`
+	Enabled       *bool   `json:"enabled" db:"enabled"`
+	Login         *string `json:"login" db:"login"`
+	Password      *string `json:"password" db:"-"`
+	Mailbox       *string `json:"mailbox" db:"mailbox"`
+	SmtpHost      *string `json:"smtp_host" db:"smtp_host"`
+	SmtpPort      *int    `json:"smtp_port" db:"smtp_port"`
+	ImapHost      *string `json:"imap_host" db:"imap_host"`
+	ImapPort      *int    `json:"imap_port" db:"imap_port"`
+	FetchInterval *int32  `json:"fetch_interval" db:"fetch_interval"`
 }
 
 func (p *EmailProfile) Patch(patch *EmailProfilePatch) {
@@ -48,8 +55,11 @@ func (p *EmailProfile) Patch(patch *EmailProfilePatch) {
 	if patch.Enabled != nil {
 		p.Enabled = *patch.Enabled
 	}
-	if patch.Host != nil {
-		p.Host = *patch.Host
+	if patch.SmtpHost != nil {
+		p.SmtpHost = *patch.SmtpHost
+	}
+	if patch.ImapHost != nil {
+		p.ImapHost = *patch.ImapHost
 	}
 	if patch.Login != nil {
 		p.Login = *patch.Login
@@ -66,6 +76,10 @@ func (p *EmailProfile) Patch(patch *EmailProfilePatch) {
 	if patch.ImapPort != nil {
 		p.ImapPort = *patch.ImapPort
 	}
+
+	if patch.FetchInterval != nil {
+		p.FetchInterval = *patch.FetchInterval
+	}
 }
 
 func (p EmailProfile) DefaultOrder() string {
@@ -73,12 +87,14 @@ func (p EmailProfile) DefaultOrder() string {
 }
 
 func (p EmailProfile) AllowFields() []string {
-	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "name", "enabled", "schema", "host",
-		"mailbox", "description", "login", "smtp_port", "imap_port", "password"}
+	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "name", "enabled", "schema", "smtp_host",
+		"mailbox", "description", "login", "smtp_port", "imap_port", "password", "imap_host", "fetch_interval", "fetch_error",
+		"state", "activity_at"}
 }
 
 func (p EmailProfile) DefaultFields() []string {
-	return []string{"id", "name", "enabled", "schema", "host", "mailbox"}
+	return p.AllowFields()
+	//return []string{"id", "name", "enabled", "schema", "mailbox", "state", "fetch_error"}
 }
 
 func (p EmailProfile) EntityName() string {

@@ -27,13 +27,15 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 		Schema: model.Lookup{
 			Id: int(in.GetSchema().GetId()),
 		},
-		Enabled:  in.GetEnabled(),
-		Host:     in.GetHost(),
-		Login:    in.GetLogin(),
-		Password: in.GetPassword(),
-		Mailbox:  in.GetMailbox(),
-		SmtpPort: int(in.GetSmtpPort()),
-		ImapPort: int(in.GetImapPort()),
+		Enabled:       in.GetEnabled(),
+		Login:         in.GetLogin(),
+		Password:      in.GetPassword(),
+		Mailbox:       in.GetMailbox(),
+		SmtpHost:      in.GetSmtpHost(),
+		SmtpPort:      int(in.GetSmtpPort()),
+		ImapHost:      in.GetImapHost(),
+		ImapPort:      int(in.GetImapPort()),
+		FetchInterval: in.GetFetchInterval(),
 	}
 	var profile *model.EmailProfile
 	profile, err = api.ctrl.CreateEmailProfile(session, req)
@@ -93,6 +95,12 @@ func (api *emailProfile) ReadEmailProfile(ctx context.Context, in *engine.ReadEm
 	return toEngineEmailProfile(profile), nil
 }
 
+func (api *emailProfile) TestEmailProfile(ctx context.Context, in *engine.TestEmailProfileRequest) (*engine.TestEmailProfileResponse, error) {
+	return &engine.TestEmailProfileResponse{
+		Error: "TODO",
+	}, nil
+}
+
 func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.PatchEmailProfileRequest) (*engine.EmailProfile, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -113,8 +121,12 @@ func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.Patch
 			patch.Schema = GetLookup(in.Schema)
 		case "enabled":
 			patch.Enabled = &in.Enabled
-		case "host":
-			patch.Host = &in.Host
+		case "imap_host":
+			patch.ImapHost = &in.ImapHost
+		case "smtp_host":
+			patch.SmtpHost = &in.SmtpHost
+		case "fetch_interval":
+			patch.FetchInterval = &in.FetchInterval
 		case "login":
 			patch.Login = &in.Login
 		case "password":
@@ -155,13 +167,15 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 		Schema: model.Lookup{
 			Id: int(in.GetSchema().GetId()),
 		},
-		Enabled:  in.GetEnabled(),
-		Host:     in.GetHost(),
-		Login:    in.GetLogin(),
-		Password: in.GetPassword(),
-		Mailbox:  in.GetMailbox(),
-		SmtpPort: int(in.GetSmtpPort()),
-		ImapPort: int(in.GetImapPort()),
+		Enabled:       in.GetEnabled(),
+		Login:         in.GetLogin(),
+		Password:      in.GetPassword(),
+		Mailbox:       in.GetMailbox(),
+		SmtpHost:      in.GetSmtpHost(),
+		SmtpPort:      int(in.GetSmtpPort()),
+		ImapHost:      in.GetImapHost(),
+		ImapPort:      int(in.GetImapPort()),
+		FetchInterval: in.GetFetchInterval(),
 	}
 
 	profile, err = api.ctrl.UpdateEmailProfile(session, profile)
@@ -188,21 +202,31 @@ func (api *emailProfile) DeleteEmailProfile(ctx context.Context, in *engine.Dele
 }
 
 func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
-	return &engine.EmailProfile{
-		Id:          src.Id,
-		CreatedAt:   src.CreatedAt,
-		CreatedBy:   GetProtoLookup(src.CreatedBy),
-		UpdatedAt:   src.UpdatedAt,
-		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
-		Name:        src.Name,
-		Description: src.Description,
-		Schema:      GetProtoLookup(&src.Schema),
-		Enabled:     src.Enabled,
-		Host:        src.Host,
-		Login:       src.Login,
-		Mailbox:     src.Mailbox,
-		SmtpPort:    int32(src.SmtpPort),
-		ImapPort:    int32(src.ImapPort),
-		Password:    src.Password,
+	profile := &engine.EmailProfile{
+		Id:            src.Id,
+		CreatedAt:     src.CreatedAt,
+		CreatedBy:     GetProtoLookup(src.CreatedBy),
+		UpdatedAt:     src.UpdatedAt,
+		UpdatedBy:     GetProtoLookup(src.UpdatedBy),
+		Name:          src.Name,
+		Description:   src.Description,
+		Schema:        GetProtoLookup(&src.Schema),
+		Enabled:       src.Enabled,
+		ImapHost:      src.ImapHost,
+		Login:         src.Login,
+		Mailbox:       src.Mailbox,
+		SmtpPort:      int32(src.SmtpPort),
+		ImapPort:      int32(src.ImapPort),
+		Password:      src.Password,
+		SmtpHost:      src.SmtpHost,
+		FetchInterval: src.FetchInterval,
+		State:         src.State,
+		ActivityAt:    src.ActivityAt,
 	}
+
+	if src.FetchError != nil {
+		profile.FetchError = *src.FetchError
+	}
+
+	return profile
 }

@@ -336,10 +336,10 @@ type CallStore interface {
 }
 
 type EmailProfileStore interface {
-	Create(p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
+	Create(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
 	GetAllPage(domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, *model.AppError)
 	Get(domainId int64, id int) (*model.EmailProfile, *model.AppError)
-	Update(p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
+	Update(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
 	Delete(domainId int64, id int) *model.AppError
 }
 

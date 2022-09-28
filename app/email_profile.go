@@ -4,8 +4,8 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) CreateEmailProfile(profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
-	return app.Store.EmailProfile().Create(profile)
+func (app *App) CreateEmailProfile(domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+	return app.Store.EmailProfile().Create(domainId, profile)
 }
 
 func (a *App) GetEmailProfilesPage(domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, bool, *model.AppError) {
@@ -21,8 +21,8 @@ func (a *App) GetEmailProfile(domainId int64, id int) (*model.EmailProfile, *mod
 	return a.Store.EmailProfile().Get(domainId, id)
 }
 
-func (a *App) UpdateEmailProfile(p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
-	oldProfile, err := a.GetEmailProfile(p.DomainId, int(p.Id)) //TODO
+func (a *App) UpdateEmailProfile(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+	oldProfile, err := a.GetEmailProfile(domainId, int(p.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +30,7 @@ func (a *App) UpdateEmailProfile(p *model.EmailProfile) (*model.EmailProfile, *m
 	oldProfile.UpdatedBy = p.UpdatedBy
 	oldProfile.Name = p.Name
 	oldProfile.Description = p.Description
-	oldProfile.Host = p.Host
+	oldProfile.ImapHost = p.ImapHost
 	oldProfile.Login = p.Login
 	oldProfile.Password = p.Password
 	oldProfile.Mailbox = p.Mailbox
@@ -38,8 +38,10 @@ func (a *App) UpdateEmailProfile(p *model.EmailProfile) (*model.EmailProfile, *m
 	oldProfile.Enabled = p.Enabled
 	oldProfile.ImapPort = p.ImapPort
 	oldProfile.SmtpPort = p.SmtpPort
+	oldProfile.SmtpHost = p.SmtpHost
+	oldProfile.FetchInterval = p.FetchInterval
 
-	oldProfile, err = a.Store.EmailProfile().Update(oldProfile)
+	oldProfile, err = a.Store.EmailProfile().Update(domainId, oldProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +61,7 @@ func (a *App) PatchEmailProfile(domainId int64, id int, patch *model.EmailProfil
 		return nil, err
 	}
 
-	oldProfile, err = a.Store.EmailProfile().Update(oldProfile)
+	oldProfile, err = a.Store.EmailProfile().Update(domainId, oldProfile)
 	if err != nil {
 		return nil, err
 	}

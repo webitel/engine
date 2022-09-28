@@ -21,7 +21,7 @@ func (c *Controller) CreateEmailProfile(session *auth_manager.Session, profile *
 		return nil, err
 	}
 
-	return c.app.CreateEmailProfile(profile)
+	return c.app.CreateEmailProfile(session.Domain(0), profile)
 }
 
 func (c *Controller) SearchEmailProfile(session *auth_manager.Session, search *model.SearchEmailProfile) ([]*model.EmailProfile, bool, *model.AppError) {
@@ -60,7 +60,7 @@ func (c *Controller) UpdateEmailProfile(session *auth_manager.Session, profile *
 		return nil, err
 	}
 
-	return c.app.UpdateEmailProfile(profile)
+	return c.app.UpdateEmailProfile(session.Domain(0), profile)
 }
 
 func (c *Controller) PatchEmailProfile(session *auth_manager.Session, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, *model.AppError) {

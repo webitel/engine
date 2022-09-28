@@ -16,37 +16,55 @@ func NewSqlEmailProfileStore(sqlStore SqlStore) store.EmailProfileStore {
 	return us
 }
 
-func (s SqlEmailProfileStore) Create(p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Create(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().SelectOne(&profile, `with t as (
-    insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, host, mailbox, imap_port, smtp_port,
-                              login, password, created_at, created_by, updated_by, last_activity_at)
-values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :Host, :Mailbox, :Imap, :Smtp, :Login, :Pass,
-        now(), :CreatedBy, :UpdatedBy, now())
+    insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, imap_host, mailbox, imap_port, smtp_port,
+                              login, password, created_at, created_by, updated_by, last_activity_at, smtp_host, fetch_interval)
+values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :ImapHost, :Mailbox, :Imap, :Smtp, :Login, :Pass,
+        now(), :CreatedBy, :UpdatedBy, now(), :SmtpHost, :FetchInterval)
 	returning *
 )
-select t.id, t.domain_id, call_center.cc_view_timestamp(t.created_at) created_at, call_center.cc_get_lookup(t.created_by, cc.name) created_by,
-       call_center.cc_view_timestamp(t.updated_at) updated_at, call_center.cc_get_lookup(t.updated_by, cu.name) updated_by,
-       t.name, t.host, t.login, t.mailbox, t.smtp_port, t.imap_port, call_center.cc_get_lookup(t.flow_id, s.name) as schema,
-       t.description, t.enabled,
-	   t.password
-from t
-    left join directory.wbt_user cc on cc.id = t.created_by
-    left join directory.wbt_user cu on cu.id = t.updated_by
-    left join flow.acr_routing_scheme s on s.id = t.flow_id`, map[string]interface{}{
-		"DomainId":    p.DomainId,
-		"Name":        p.Name,
-		"Description": p.Description,
-		"Enabled":     p.Enabled,
-		"FlowId":      p.Schema.Id,
-		"Host":        p.Host,
-		"Mailbox":     p.Mailbox,
-		"Imap":        p.ImapPort,
-		"Smtp":        p.SmtpPort,
-		"Login":       p.Login,
-		"Pass":        p.Password,
-		"CreatedBy":   p.CreatedBy.GetSafeId(),
-		"UpdatedBy":   p.UpdatedBy.GetSafeId(),
+SELECT t.id,
+       t.domain_id,
+       call_center.cc_view_timestamp(t.created_at)                         AS created_at,
+       call_center.cc_get_lookup(t.created_by, cc.name::character varying) AS created_by,
+       call_center.cc_view_timestamp(t.updated_at)                         AS updated_at,
+       call_center.cc_get_lookup(t.updated_by, cu.name::character varying) AS updated_by,
+       call_center.cc_view_timestamp(t.last_activity_at)                         AS activity_at,
+       t.name,
+       t.imap_host,
+       t.smtp_host,
+       t.login,
+       t.mailbox,
+       t.smtp_port,
+       t.imap_port,
+       t.fetch_err as fetch_error,
+       t.fetch_interval,
+       t.state,
+       call_center.cc_get_lookup(t.flow_id::bigint, s.name)                AS schema,
+       t.description,
+       t.enabled,
+       t.password
+FROM t
+         LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
+         LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
+         LEFT JOIN flow.acr_routing_scheme s ON s.id = t.flow_id`, map[string]interface{}{
+		"DomainId":      domainId,
+		"Name":          p.Name,
+		"Description":   p.Description,
+		"Enabled":       p.Enabled,
+		"FlowId":        p.Schema.Id,
+		"ImapHost":      p.ImapHost,
+		"SmtpHost":      p.SmtpHost,
+		"FetchInterval": p.FetchInterval,
+		"Mailbox":       p.Mailbox,
+		"Imap":          p.ImapPort,
+		"Smtp":          p.SmtpPort,
+		"Login":         p.Login,
+		"Pass":          p.Password,
+		"CreatedBy":     p.CreatedBy.GetSafeId(),
+		"UpdatedBy":     p.UpdatedBy.GetSafeId(),
 	})
 
 	if err != nil {
@@ -77,9 +95,32 @@ func (s SqlEmailProfileStore) GetAllPage(domainId int64, search *model.SearchEma
 func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetReplica().SelectOne(&profile, `
-	select *
-	from call_center.cc_email_profile_list
-	where id = :Id and domain_id = :DomainId`, map[string]interface{}{
+	SELECT t.id,
+		   t.domain_id,
+		   call_center.cc_view_timestamp(t.created_at)                         AS created_at,
+		   call_center.cc_get_lookup(t.created_by, cc.name::character varying) AS created_by,
+		   call_center.cc_view_timestamp(t.updated_at)                         AS updated_at,
+		   call_center.cc_get_lookup(t.updated_by, cu.name::character varying) AS updated_by,
+		   call_center.cc_view_timestamp(t.last_activity_at)                         AS activity_at,
+		   t.name,
+		   t.imap_host,
+		   t.smtp_host,
+		   t.login,
+		   t.mailbox,
+		   t.smtp_port,
+		   t.imap_port,
+		   t.fetch_err as fetch_error,
+		   t.fetch_interval,
+		   t.state,
+		   call_center.cc_get_lookup(t.flow_id::bigint, s.name)                AS schema,
+		   t.description,
+		   t.enabled,
+		   t.password
+	FROM call_center.cc_email_profile t
+			 LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
+			 LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
+			 LEFT JOIN flow.acr_routing_scheme s ON s.id = t.flow_id
+	where t.id = :Id and t.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
 	})
@@ -92,14 +133,14 @@ func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, 
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) Update(p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Update(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().SelectOne(&profile, `with t as (
     update call_center.cc_email_profile
         set name = :Name,
 			description= :Description,
 			flow_id = :FlowId,
-            host = :Host,
+            imap_host = :ImapHost,
             login = :Login,
             password = :Pass,
             mailbox = :Mailbox,
@@ -107,42 +148,52 @@ func (s SqlEmailProfileStore) Update(p *model.EmailProfile) (*model.EmailProfile
             imap_port = :Imap,
 		    enabled = :Enabled,
             updated_by = :UpdatedBy,
-            updated_at = now()
-        where id = :Id
+            updated_at = now(),
+			smtp_host = :SmtpHost,
+			fetch_interval = :FetchInterval
+        where id = :Id and domain_id = :DomainId
         returning *
 )
-select t.id,
+SELECT t.id,
        t.domain_id,
-       call_center.cc_view_timestamp(t.created_at)      created_at,
-       call_center.cc_get_lookup(t.created_by, cc.name) created_by,
-       call_center.cc_view_timestamp(t.updated_at)      updated_at,
-       call_center.cc_get_lookup(t.updated_by, cu.name) updated_by,
+       call_center.cc_view_timestamp(t.created_at)                         AS created_at,
+       call_center.cc_get_lookup(t.created_by, cc.name::character varying) AS created_by,
+       call_center.cc_view_timestamp(t.updated_at)                         AS updated_at,
+       call_center.cc_get_lookup(t.updated_by, cu.name::character varying) AS updated_by,
+       call_center.cc_view_timestamp(t.last_activity_at)                         AS activity_at,
        t.name,
-       t.host,
+       t.imap_host,
+       t.smtp_host,
        t.login,
        t.mailbox,
        t.smtp_port,
        t.imap_port,
-       call_center.cc_get_lookup(t.flow_id, s.name) as  schema,
+       t.fetch_err as fetch_error,
+       t.fetch_interval,
+       t.state,
+       call_center.cc_get_lookup(t.flow_id::bigint, s.name)                AS schema,
        t.description,
        t.enabled,
-	   t.password
-from t
-         left join directory.wbt_user cc on cc.id = t.created_by
-         left join directory.wbt_user cu on cu.id = t.updated_by
-         left join flow.acr_routing_scheme s on s.id = t.flow_id`, map[string]interface{}{
-		"Name":        p.Name,
-		"Description": p.Description,
-		"FlowId":      p.Schema.Id,
-		"Host":        p.Host,
-		"Login":       p.Login,
-		"Pass":        p.Password,
-		"Mailbox":     p.Mailbox,
-		"Smtp":        p.SmtpPort,
-		"Imap":        p.ImapPort,
-		"UpdatedBy":   p.UpdatedBy.GetSafeId(),
-		"Id":          p.Id,
-		"Enabled":     p.Enabled,
+       t.password
+FROM t
+         LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
+         LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
+         LEFT JOIN flow.acr_routing_scheme s ON s.id = t.flow_id`, map[string]interface{}{
+		"DomainId":      domainId,
+		"Name":          p.Name,
+		"Description":   p.Description,
+		"FlowId":        p.Schema.Id,
+		"ImapHost":      p.ImapHost,
+		"Login":         p.Login,
+		"Pass":          p.Password,
+		"Mailbox":       p.Mailbox,
+		"Smtp":          p.SmtpPort,
+		"Imap":          p.ImapPort,
+		"UpdatedBy":     p.UpdatedBy.GetSafeId(),
+		"Id":            p.Id,
+		"Enabled":       p.Enabled,
+		"SmtpHost":      p.SmtpHost,
+		"FetchInterval": p.FetchInterval,
 	})
 
 	if err != nil {
