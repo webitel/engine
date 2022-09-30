@@ -39,7 +39,7 @@ func (s SqlUserStore) CheckAccess(domainId, id int64, groups []int, access auth_
 func (s SqlUserStore) GetCallInfo(userId, domainId int64) (*model.UserCallInfo, *model.AppError) {
 	var info *model.UserCallInfo
 	err := s.GetReplica().SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name, 
-u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{}'::jsonb) as variables
+u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{}'::jsonb) as variables, false as has_push
 from directory.wbt_user u
     inner join directory.wbt_domain d on d.dc = u.dc
 where u.id = :UserId
@@ -58,26 +58,42 @@ where u.id = :UserId
 func (s SqlUserStore) GetCallInfoEndpoint(domainId int64, e *model.EndpointRequest, isOnline bool) (*model.UserCallInfo, *model.AppError) {
 	var info *model.UserCallInfo
 	err := s.GetReplica().SelectOne(&info, `select u.id,
-       coalesce((u.name)::varchar, u.username)                                    as name,
+       coalesce((u.name)::varchar, u.username)                              as name,
        u.extension,
-       u.extension                                                                   endpoint,
-       d.name                                                                     as domain_name,
-       coalesce(u.profile, '{}'::jsonb)                                           as variables,
+       u.extension                                                             endpoint,
+       d.name                                                               as domain_name,
+       coalesce(u.profile, '{}'::jsonb) || coalesce(push.config, '{}'::jsonb) as variables,
        exists(select 1
               from call_center.cc_agent a
                        left join call_center.cc_member_attempt aa on a.id = aa.agent_id
               where a.user_id = u.id::int8
                 and (
-                    (:IsOnline::bool is true and a.status != 'online')
-                    or
-                    (aa.leaving_at isnull
-                        and now() - aa.last_state_change < interval '2m'
-                        and aa.state in ('waiting_agent', 'idle', 'offering')
-                    )
+                      (:IsOnline::bool is true and a.status != 'online')
+                      or
+                      (aa.leaving_at isnull
+                          and now() - aa.last_state_change < interval '2m'
+                          and aa.state in ('waiting_agent', 'idle', 'offering')
+                          )
                   )
-              ) as is_busy
+           )                                                                as is_busy,
+		  push.config notnull as has_push
 from directory.wbt_user u
          inner join directory.wbt_domain d on d.dc = u.dc
+         left join lateral ( select jsonb_object(array_agg(key), array_agg(val)) as push
+			from (SELECT case
+							 when s.props ->> 'pn-type'::text = 'fcm' then 'wbt_push_fcm'
+							 else 'wbt_push_apn' end                                            as key,
+						 array_to_string(array_agg(DISTINCT s.props ->> 'pn-rpid'::text), '::') as val
+				  FROM directory.wbt_session s
+				  WHERE s.user_id IS NOT NULL
+					AND s.access notnull
+					AND NULLIF(s.props ->> 'pn-rpid'::text, ''::text) IS NOT NULL
+					AND s.user_id = 10
+					and s.props ->> 'pn-type'::text in ('fcm', 'apns')
+					AND now() at time zone 'UTC' < s.expires
+				  group by s.props ->> 'pn-type'::text = 'fcm') t
+			where key notnull
+			  and val notnull) push(config) ON true
 where case when :UserId::int8 notnull then u.id = :UserId else u.extension = :Extension::varchar end
   and u.dc = :DomainId
 limit 1`, map[string]interface{}{

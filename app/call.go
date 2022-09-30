@@ -67,6 +67,10 @@ func (app *App) CreateOutboundCall(domainId int64, req *model.OutboundCallReques
 		invite.AddVariable("wbt_auto_answer", "true")
 	}
 
+	if from.HasPush {
+		invite.AddVariable("execute_on_originate", "wbt_send_hook")
+	}
+
 	if req.Params.DisableStun {
 		invite.AddVariable("wbt_disable_stun", "true")
 	}
