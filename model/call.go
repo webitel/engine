@@ -118,13 +118,13 @@ type CallParameters struct {
 	Video   bool
 	Screen  bool
 
-	Record           bool
-	AutoAnswer       bool
-	Display          string
-	Variables        map[string]string
-	DisableStun      bool
-	CancelDistribute bool
-	IsOnline         bool
+	Record            bool
+	DisableAutoAnswer bool
+	Display           string
+	Variables         map[string]string
+	DisableStun       bool
+	CancelDistribute  bool
+	IsOnline          bool
 }
 
 func (r *OutboundCallRequest) IsValid() *AppError {
