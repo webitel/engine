@@ -8,18 +8,17 @@ type Notification struct {
 	Id        int64  `json:"id" db:"id"`
 	DomainId  int64  `json:"-" db:"domain_id"`
 	Action    string `json:"action" db:"action"`
-	Timeout   *int64 `json:"timeout" db:"timeout"`
+	Timeout   *int64 `json:"timeout,omitempty" db:"timeout"`
 	CreatedAt int64  `json:"created_at" db:"created_at"`
-	CreatedBy *int64 `json:"created_by" db:"created_by"`
+	CreatedBy *int64 `json:"created_by,omitempty" db:"created_by"`
 
-	AcceptedAt *int64 `json:"accepted_at" db:"accepted_at"`
-	AcceptedBy *int64 `json:"accepted_by" db:"accepted_by"`
+	AcceptedAt *int64 `json:"accepted_at,omitempty" db:"accepted_at"`
+	AcceptedBy *int64 `json:"accepted_by,omitempty" db:"accepted_by"`
 
-	ClosedAt *int64 `json:"closed_at" db:"closed_at"`
-
-	ForUsers Int64Array `json:"for_users" db:"for_users"`
-
-	Description string `json:"description" db:"description"`
+	ClosedAt    *int64      `json:"closed_at,omitempty" db:"closed_at"`
+	ForUsers    Int64Array  `json:"for_users" db:"for_users"`
+	Description string      `json:"description,omitempty" db:"description"`
+	Body        interface{} `json:"body,omitempty" db:"-"`
 }
 
 func (n *Notification) ToJson() string {
