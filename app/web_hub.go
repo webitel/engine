@@ -189,7 +189,7 @@ func (wh *Hub) start() {
 			msg := model.NewWebSocketNotificationEvent(ev)
 			msg.PrecomputeJSON()
 
-			if ev.ForUsers != nil {
+			if len(ev.ForUsers) != 0 {
 				for _, u := range ev.ForUsers {
 					candidates := connections.ForUser(u)
 					for _, webCon := range candidates {
