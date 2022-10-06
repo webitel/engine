@@ -689,10 +689,10 @@ func (s SqlMemberStore) GetAppointmentWidget(uri string) (*model.AppointmentWidg
 	err := s.GetReplica().SelectOne(&widget, `with profile as (
     select 
 	   (config['queue']->>'id')::int as queue_id,
-       (config['communication_type']->>'id')::int as communication_type,
+       (config['communicationType']->>'id')::int as communication_type,
        (config->>'duration')::interval as duration,
        (config->>'days')::int as days,
-       (config->>'available_agents')::int as available_agents,
+       (config->>'availableAgents')::int as available_agents,
        string_to_array((b.metadata->>'allow_origin'), ',') as allow_origins,
        q.calendar_id,
 	   b.id,
