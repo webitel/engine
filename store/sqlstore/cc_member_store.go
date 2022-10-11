@@ -763,8 +763,8 @@ func (s SqlMemberStore) GetAppointmentWidget(uri string) (*model.AppointmentWidg
         d.*,
         res.*,
         xx,
-        case when xx < now() or coalesce(res.cnt, 0) >= d.available_agents then false
-            else true end as reserved
+        case when xx < now() or coalesce(res.cnt, 0) >= d.available_agents then true
+            else false end as reserved
     from d
         left join generate_series(d.ss, d.se, d.duration) xx on true
         left join res on res.d = xx

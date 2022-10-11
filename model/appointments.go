@@ -82,7 +82,7 @@ func (w *AppointmentWidget) ValidAppointment(a *Appointment) bool {
 		if v.Date == a.ScheduleDate {
 			for _, t := range v.Times {
 				if t.Time == a.ScheduleTime {
-					return t.Reserved
+					return !t.Reserved
 				}
 			}
 			break
