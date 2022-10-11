@@ -55,12 +55,15 @@ func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		if appointment, c.Err = c.App.GetAppointment(cookie.Value); c.Err != nil {
 			if c.Err.StatusCode == http.StatusNotFound {
 				cookie = &http.Cookie{
-					Name:    appointmentsCookie,
-					Value:   "",
-					Path:    "/",
-					Domain:  "",
-					Expires: time.Unix(0, 0),
-					MaxAge:  0,
+					Name:     appointmentsCookie,
+					Value:    "",
+					Path:     "/",
+					Domain:   "",
+					Expires:  time.Unix(0, 0),
+					MaxAge:   0,
+					HttpOnly: true,
+					Secure:   true,
+					SameSite: http.SameSiteNoneMode,
 				}
 				http.SetCookie(w, cookie)
 				c.Err = nil
@@ -133,12 +136,15 @@ func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	expires, _ := time.Parse("2006-01-02T15:04:05", fmt.Sprintf("%sT23:59:59", appointment.ScheduleDate))
 
 	cookie = &http.Cookie{
-		Name:    appointmentsCookie,
-		Value:   appointment.Key,
-		Path:    "/",
-		Domain:  "",
-		Expires: expires,
-		MaxAge:  0, // TODO CONFIG
+		Name:     appointmentsCookie,
+		Value:    appointment.Key,
+		Path:     "/",
+		Domain:   "",
+		Expires:  expires,
+		MaxAge:   0, // TODO CONFIG
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, cookie)
 	w.Write(appointment.Computed)
@@ -150,13 +156,13 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cookie, err = r.Cookie(appointmentsCookie)
 	if err != nil && err != http.ErrNoCookie {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	// TODO
 	if cookie == nil {
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -177,12 +183,15 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie = &http.Cookie{
-		Name:    appointmentsCookie,
-		Value:   "",
-		Path:    "/",
-		Domain:  "",
-		Expires: time.Unix(0, 0),
-		MaxAge:  0,
+		Name:     appointmentsCookie,
+		Value:    "",
+		Path:     "/",
+		Domain:   "",
+		Expires:  time.Unix(0, 0),
+		MaxAge:   0,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, cookie)
 	w.Write(widget.ComputedList)

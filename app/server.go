@@ -48,8 +48,9 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set(
 			"Access-Control-Allow-Headers",
-			r.Header.Get("Access-Control-Request-Headers"))
+			strings.Join([]string{r.Header.Get("Access-Control-Request-Headers"), "Access-Control-Allow-Credentials"}, ","))
 	}
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
 	if r.Method == "OPTIONS" {
 		return
