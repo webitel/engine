@@ -104,6 +104,7 @@ type BridgeCall struct {
 
 type EavesdropCall struct {
 	UserCallRequest
+	From *EndpointRequest
 	//Group       string //TODO https://freeswitch.org/confluence/display/FREESWITCH/mod_dptools%3A+eavesdrop
 	Dtmf        bool
 	ALeg        bool
@@ -138,7 +139,6 @@ type CallInstance struct {
 	Timestamp int64   `json:"timestamp" db:"timestamp"`
 }
 
-//
 type CallHold struct {
 	Start  int64   `json:"start"`
 	Finish int64   `json:"finish"`
@@ -274,7 +274,7 @@ func (c Call) EntityName() string {
 	return "cc_call_active_list"
 }
 
-//todo
+// todo
 func (a *CallAnnotation) IsValid() *AppError {
 	return nil
 }
@@ -383,6 +383,7 @@ type HistoryCall struct {
 
 	FilesJob []*HistoryFileJob `json:"files_job" db:"files_job"`
 	TalkSec  int32             `json:"talk_sec" db:"talk_sec"`
+	Grantee  *Lookup           `json:"grantee" db:"grantee"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -394,7 +395,8 @@ func (c HistoryCall) AllowFields() []string {
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
-		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job", "transcripts", "talk_sec",
+		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
+		"transcripts", "talk_sec", "grantee",
 	}
 }
 
@@ -471,6 +473,7 @@ type SearchHistoryCall struct {
 	Fts              *string
 	AgentDescription string
 	OwnerIds         []int64
+	GranteeIds       []int64
 }
 
 type CallEventInfo struct {

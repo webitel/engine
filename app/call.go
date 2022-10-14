@@ -114,10 +114,22 @@ func (app *App) GetCall(domainId int64, callId string) (*model.Call, *model.AppE
 func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
 	var call *model.Call
 	var cli call_manager.CallClient
+	var err *model.AppError
+	var usr *model.UserCallInfo
 
-	usr, err := app.GetUserCallInfo(userId, domainId)
-	if err != nil {
-		return "", err
+	if req.From != nil && (req.From.UserId != nil || req.From.Extension != nil) {
+		if usr, err = app.GetCallInfoEndpoint(domainId, req.From, false); err != nil {
+			return "", err
+		}
+	} else {
+		usr, err = app.GetUserCallInfo(userId, domainId)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if usr == nil {
+
 	}
 
 	call, err = app.GetCall(domainId, req.Id)

@@ -1,6 +1,6 @@
 module github.com/webitel/engine
 
-go 1.18
+go 1.19
 
 require (
 	github.com/go-gorp/gorp v2.2.0+incompatible
@@ -16,8 +16,8 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.0.0
 	github.com/webitel/call_center v0.0.0-20221005091028-77b8c0d2fe01
-	github.com/webitel/protos/cc v0.0.0-20221005083301-6afcfe9297d5
-	github.com/webitel/protos/engine v0.0.0-20221005083301-6afcfe9297d5
+	github.com/webitel/protos/cc v0.0.0-20221014110533-de77441a3723
+	github.com/webitel/protos/engine v0.0.0-20221014110533-de77441a3723
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.10.0
 	go.uber.org/ratelimit v0.2.0

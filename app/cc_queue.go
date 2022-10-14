@@ -85,6 +85,7 @@ func (a *App) UpdateQueue(queue *model.Queue) (*model.Queue, *model.AppError) {
 	oldQueue.ProcessingSec = queue.ProcessingSec
 	oldQueue.ProcessingRenewalSec = queue.ProcessingRenewalSec
 	oldQueue.FormSchema = queue.FormSchema
+	oldQueue.Grantee = queue.Grantee
 
 	oldQueue, err = a.Store.Queue().Update(oldQueue)
 	if err != nil {

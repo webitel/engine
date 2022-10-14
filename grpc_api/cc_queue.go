@@ -65,6 +65,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		ProcessingSec:        in.ProcessingSec,
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
 		FormSchema:           GetLookup(in.GetFormSchema()),
+		Grantee:              GetLookup(in.GetGrantee()),
 	}
 
 	if in.TaskProcessing != nil {
@@ -232,6 +233,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.ProcessingRenewalSec = &in.GetTaskProcessing().RenewalSec
 		case "processing_renewal_sec":
 			patch.ProcessingRenewalSec = &in.ProcessingRenewalSec
+		case "grantee.id":
+			patch.Grantee = GetLookup(in.Grantee)
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables
@@ -307,6 +310,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		Processing:           in.Processing,
 		ProcessingSec:        in.ProcessingSec,
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
+		Grantee:              GetLookup(in.GetGrantee()),
 	}
 
 	if in.TaskProcessing != nil {
@@ -474,6 +478,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		Processing:           src.Processing,
 		ProcessingSec:        src.ProcessingSec,
 		ProcessingRenewalSec: src.ProcessingRenewalSec,
+		Grantee:              GetProtoLookup(src.Grantee),
 	}
 
 	if src.TaskProcessing != nil {

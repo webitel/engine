@@ -68,6 +68,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		HasTranscript:    GetBool(in.GetHasTranscript()),
 		AgentDescription: in.GetAgentDescription(),
 		OwnerIds:         in.GetOwnerId(),
+		GranteeIds:       in.GetGranteeId(),
 	}
 
 	if in.GetDuration() != nil {
@@ -276,7 +277,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 	}, nil
 }
 
-//TODO delete me
+// TODO delete me
 func getInterval(in string) string {
 	if in == "auto" {
 		return "1 hour"
@@ -576,7 +577,19 @@ func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequ
 		req.AppId = model.NewString(in.GetAppId())
 	}
 
-	_, err = api.ctrl.EavesdropCall(session, session.Domain(in.DomainId), &req, nil)
+	if in.From != nil {
+		req.From = &model.EndpointRequest{}
+
+		if in.From.Id != 0 {
+			req.From.UserId = model.NewInt64(in.From.Id)
+		}
+
+		if in.From.Extension != "" {
+			req.From.Extension = model.NewString(in.From.Extension)
+		}
+	}
+
+	_, err = api.ctrl.EavesdropCall(session, session.Domain(0), &req, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -782,6 +795,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		FilesJob:         toCallFilesJob(src.FilesJob),
 		Transcripts:      toCallFileTranscriptLookups(src.Transcripts),
 		TalkSec:          src.TalkSec,
+		Grantee:          GetProtoLookup(src.Grantee),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId

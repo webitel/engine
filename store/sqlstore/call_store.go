@@ -363,6 +363,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"Fts":              search.Fts,
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 		"OwnerIds":         pq.Array(search.OwnerIds),
+		"GranteeIds":       pq.Array(search.GranteeIds),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -375,6 +376,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
+	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
@@ -468,6 +470,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"Fts":              search.Fts,
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 		"OwnerIds":         pq.Array(search.OwnerIds),
+		"GranteeIds":       pq.Array(search.GranteeIds),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -480,6 +483,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
+	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
 	and (:Ids::varchar[] isnull or id = any(:Ids))
 	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
@@ -744,7 +748,7 @@ func AggregateField(group *model.AggregateGroup) string {
 	return QuoteIdentifier(group.Id)
 }
 
-//TODO
+// TODO
 func GroupData(groups []model.AggregateGroup) string {
 	if len(groups) < 1 {
 		return ""

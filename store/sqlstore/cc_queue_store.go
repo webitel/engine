@@ -43,10 +43,10 @@ func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError
     insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
                       created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
-					  processing, processing_sec, processing_renewal_sec, form_schema_id)
+					  processing, processing_sec, processing_renewal_sec, form_schema_id, grantee_id)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
         :Variables, :DomainId, :DncListId, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
-		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec, :FormSchemaId)
+		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec, :FormSchemaId, :GranteeId)
     returning *
 )
 select q.id,
@@ -76,9 +76,11 @@ select q.id,
 	   q.processing_renewal_sec,
 	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
        jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
-                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing
+                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
+	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee
 from q
-         inner join flow.calendar c on q.calendar_id = c.id
+         left join flow.calendar c on q.calendar_id = c.id
+		 left join directory.wbt_auth au on au.id = q.grantee_id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
          left join call_center.cc_list cl on q.dnc_list_id = cl.id
@@ -114,6 +116,7 @@ from q
 			"ProcessingSec":        queue.ProcessingSec,
 			"ProcessingRenewalSec": queue.ProcessingRenewalSec,
 			"FormSchemaId":         queue.FormSchema.GetSafeId(),
+			"GranteeId":            queue.Grantee.GetSafeId(),
 		}); nil != err {
 		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
 			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
@@ -200,9 +203,11 @@ select q.id,
 	   q.processing_renewal_sec,
 	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
        jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
-                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing
+                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
+	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee
 from call_center.cc_queue q
-         inner join flow.calendar c on q.calendar_id = c.id
+         left join flow.calendar c on q.calendar_id = c.id
+	     left join directory.wbt_auth au on au.id = q.grantee_id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
          left join call_center.cc_list cl on q.dnc_list_id = cl.id
@@ -245,7 +250,8 @@ set updated_at = :UpdatedAt,
 	processing = :Processing,
 	processing_sec = :ProcessingSec,
     processing_renewal_sec = :ProcessingRenewalSec,
-	form_schema_id = :FormSchemaId
+	form_schema_id = :FormSchemaId,
+	grantee_id = :GranteeId
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
@@ -276,9 +282,11 @@ select q.id,
 	   q.processing_renewal_sec,
 	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
        jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
-                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing
+                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
+	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee
 from  q
-         inner join flow.calendar c on q.calendar_id = c.id
+         left join flow.calendar c on q.calendar_id = c.id
+		 left join directory.wbt_auth au on au.id = q.grantee_id
          left join directory.wbt_user uc on uc.id = q.created_by
          left join directory.wbt_user u on u.id = q.updated_by
          left join call_center.cc_list cl on q.dnc_list_id = cl.id
@@ -312,6 +320,7 @@ from  q
 		"ProcessingSec":        queue.ProcessingSec,
 		"ProcessingRenewalSec": queue.ProcessingRenewalSec,
 		"FormSchemaId":         queue.FormSchema.GetSafeId(),
+		"GranteeId":            queue.Grantee.GetSafeId(),
 	})
 	if err != nil {
 		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,
