@@ -131,6 +131,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			api.prefixNumberMaskLen,
 			api.suffixNumberMaskLen,
 			accessString,
+			session.HasAction(auth_manager.PERMISSION_RECORD_FILE),
 		))
 	}
 
@@ -750,7 +751,7 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	}
 }
 
-func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, accessString bool) *engine.HistoryCall {
+func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, accessString bool, accessFile bool) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
 		AppId:            src.AppId,
@@ -773,7 +774,6 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		WaitSec:          int32(src.WaitSec),
 		BillSec:          int32(src.BillSec),
 		SipCode:          defaultInt(src.SipCode),
-		Files:            toCallFile(src.Files),
 		Annotations:      toCallAnnotation(src.Annotations),
 		Queue:            GetProtoLookup(src.Queue),
 		Member:           GetProtoLookup(src.Member),
@@ -792,7 +792,6 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		HasChildren:      src.HasChildren,
 		Hold:             toCallHold(src.Hold),
 		AmdResult:        defaultString(src.AmdResult),
-		FilesJob:         toCallFilesJob(src.FilesJob),
 		Transcripts:      toCallFileTranscriptLookups(src.Transcripts),
 		TalkSec:          src.TalkSec,
 		Grantee:          GetProtoLookup(src.Grantee),
@@ -849,6 +848,11 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 
 	if src.BlindTransfer != nil {
 		item.BlindTransfer = *src.BlindTransfer
+	}
+
+	if accessFile {
+		item.Files = toCallFile(src.Files)
+		item.FilesJob = toCallFilesJob(src.FilesJob)
 	}
 
 	return item
