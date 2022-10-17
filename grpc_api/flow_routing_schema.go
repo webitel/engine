@@ -230,11 +230,14 @@ func transformRoutingSchema(src *model.RoutingSchema) *engine.RoutingSchema {
 		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
 		Description: src.Description,
 		Name:        src.Name,
-		Type:        transformTypeToEngine(src.Type),
 		Debug:       src.Debug,
 		Editor:      src.Editor,
 		Schema:      UnmarshalJsonpb(src.Schema),
 		Payload:     UnmarshalJsonpb(src.Payload),
+	}
+
+	if src.Type != "" {
+		s.Type = transformTypeToEngine(src.Type)
 	}
 
 	if src.Tags != nil {
