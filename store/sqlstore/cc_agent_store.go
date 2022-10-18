@@ -22,7 +22,7 @@ func NewSqlAgentStore(sqlStore SqlStore) store.AgentStore {
 
 func (s SqlAgentStore) HasAgentCC(domainId int64, userId int64) (*model.AgentCC, *model.AppError) {
 	var res *model.AgentCC
-	err := s.GetReplica().SelectOne(&res, `select length(u.extension) > 0 as has_extension,
+	err := s.GetReplica().SelectOne(&res, `select length(coalesce(u.extension, '')) > 0 as has_extension,
        a.id notnull as has_agent
 from directory.wbt_user u
     left join call_center.cc_agent a on u.id = a.user_id
