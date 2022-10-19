@@ -241,7 +241,7 @@ func (a *AgentCC) Valid() *AppError {
 		return NewAppError("User", "User.valid.agent_id", nil, "", http.StatusNotFound)
 	}
 	if !a.HasExtension {
-		return NewAppError("User", "User.valid.extension", nil, "", http.StatusNotFound)
+		//return NewAppError("User", "User.valid.extension", nil, "", http.StatusNotFound)
 	}
 
 	return nil
