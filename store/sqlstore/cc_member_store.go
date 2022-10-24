@@ -315,7 +315,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	return member, nil
 }
 
-//TODO add force
+// TODO add force
 func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
 	var cnt int64
 	res, err := s.GetMaster().Exec(`delete
@@ -705,7 +705,7 @@ func (s SqlMemberStore) GetAppointmentWidget(uri string) (*model.AppointmentWidg
         inner join call_center.cc_queue q on q.id = (config['queue']->>'id')::int
 		inner join flow.calendar c on c.id = q.calendar_id
 		inner join flow.calendar_timezones tz on tz.id = c.timezone_id
-    where b.uri = :Uri
+    where b.uri = :Uri and b.enabled
     limit 1
 ), d as materialized (
     select  q.queue_id,
@@ -728,8 +728,8 @@ func (s SqlMemberStore) GetAppointmentWidget(uri string) (*model.AppointmentWidg
     left join lateral (
         select (x + (y.start_time_of_day || 'm')::interval)::timestamp as ss,
             case when date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) < (x + (y.end_time_of_day || 'm')::interval)::timestamp
-                then date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) + q.duration
-                else date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) end as se
+                then date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) - q.duration
+                else date_bin(q.duration, (x + (y.end_time_of_day || 'm')::interval)::timestamp, x::timestamp) - q.duration end as se
     ) dy on true
 )
 , min_max as materialized (
