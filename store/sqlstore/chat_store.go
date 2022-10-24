@@ -32,7 +32,7 @@ select
     mem.members,
     coalesce(ch.props, '{}')::jsonb as variables,
     row_to_json(at) task,
-	 (extract(EPOCH from at.leaving_at) * 1000)::int8 as leaving_at
+	at.leaving_at as leaving_at
 from (
      select 1 pri, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props, null::timestamptz as closed_at 
      from chat.invite inv
@@ -94,7 +94,7 @@ end) as "file", m.type, m.channel_id
            a.agent_call_id as agent_channel_id,
            a.destination,
            a.state,
-		   a.leaving_at,	
+		   call_center.cc_view_timestamp(a.leaving_at) as leaving_at,	
            q.processing     as has_reporting,
 	       q.processing and q.form_schema_id notnull as has_form,
 		   q.processing_sec,
