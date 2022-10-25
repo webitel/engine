@@ -20,6 +20,8 @@ import (
 
 var (
 	HEADER_TOKEN = strings.ToLower(model.HEADER_TOKEN)
+
+	RequestContextName = "grpc_ctx"
 )
 
 type GrpcServer struct {
@@ -41,11 +43,21 @@ func unaryInterceptor(ctx context.Context,
 	info *grpc.UnaryServerInfo,
 	handler grpc.UnaryHandler) (interface{}, error) {
 	start := time.Now()
+	var reqCtx context.Context
+	var ip string
 
-	h, err := handler(ctx, req)
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		reqCtx = context.WithValue(ctx, RequestContextName, md)
+		ip = getClientIp(md)
+	} else {
+		ip = "<not found>"
+		reqCtx = context.WithValue(ctx, RequestContextName, nil)
+	}
+
+	h, err := handler(reqCtx, req)
 
 	if err != nil {
-		wlog.Error(fmt.Sprintf("method %s duration %s, error: %v", info.FullMethod, time.Since(start), err.Error()))
+		wlog.Error(fmt.Sprintf("[%s] method %s duration %s, error: %v", ip, info.FullMethod, time.Since(start), err.Error()))
 
 		switch err.(type) {
 		case *model.AppError:
@@ -55,7 +67,7 @@ func unaryInterceptor(ctx context.Context,
 			return h, err
 		}
 	} else {
-		wlog.Debug(fmt.Sprintf("method %s duration %s", info.FullMethod, time.Since(start)))
+		wlog.Debug(fmt.Sprintf("[%s] method %s duration %s", ip, info.FullMethod, time.Since(start)))
 	}
 
 	return h, err
@@ -112,8 +124,18 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, *mo
 	var session *auth_manager.Session
 	var err *model.AppError
 	var token []string
+	var info metadata.MD
+	var ok bool
 
-	if info, ok := metadata.FromIncomingContext(ctx); !ok {
+	v := ctx.Value(RequestContextName)
+	info, ok = v.(metadata.MD)
+
+	// todo
+	if !ok {
+		info, ok = metadata.FromIncomingContext(ctx)
+	}
+
+	if !ok {
 		return nil, model.NewAppError("GetSessionFromCtx", "app.grpc.get_context", nil, "Not found", http.StatusInternalServerError)
 	} else {
 		token = info.Get(HEADER_TOKEN)
@@ -133,4 +155,13 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, *mo
 	}
 
 	return session, nil
+}
+
+func getClientIp(info metadata.MD) string {
+	ip := strings.Join(info.Get("x-real-ip"), ",")
+	if ip == "" {
+		ip = strings.Join(info.Get("x-forwarded-for"), ",")
+	}
+
+	return ip
 }
