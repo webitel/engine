@@ -19,7 +19,8 @@ type Handler struct {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	wlog.Debug(fmt.Sprintf("%v - %v %s", r.Method, r.URL.Path, r.RemoteAddr))
+	ip := ReadUserIP(r)
+	wlog.Debug(fmt.Sprintf("%v - %v %s", r.Method, r.URL.Path, ip))
 
 	c := &Context{}
 	c.App = h.App
@@ -27,7 +28,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.UserAgent = r.UserAgent()
 	c.T, _ = localization.GetTranslationsAndLocale(w, r)
 	c.AcceptLanguage = r.Header.Get("Accept-Language")
-	c.IpAddress = ReadUserIP(r)
+	c.IpAddress = ip
 	c.Log = h.App.Log
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
