@@ -248,7 +248,7 @@ func (s SqlCallStore) GetUserActiveCall(domainId, userId int64) ([]*model.Call, 
        c."hangup_at",
        c."hold_sec",
        call_center.cc_get_lookup(cq.id::bigint, cq.name)                                      AS queue,
-		at.leaving_at
+	   to_timestamp(at.leaving_at::double precision/1000) as leaving_at --todo
 from call_center.cc_calls c
          left join call_center.cc_queue cq on c.queue_id = cq.id
          left join lateral (
@@ -262,9 +262,9 @@ from call_center.cc_calls c
            a.agent_call_id as agent_channel_id,
            a.destination,
            a.state,
-		   call_center.cc_view_timestamp(a.leaving_at) as leaving_at,	
+		   call_center.cc_view_timestamp(a.leaving_at) leaving_at,
            cq.processing     as has_reporting,
-		   cq.processing and cq.form_schema_id notnull as has_form,	
+		   cq.processing and cq.form_schema_id notnull as has_form,
 		   cq.processing_sec,
 		   cq.processing_renewal_sec,
 		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at,
