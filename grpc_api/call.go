@@ -669,6 +669,20 @@ func (api *call) ConfirmPush(ctx context.Context, in *engine.ConfirmPushRequest)
 	return &engine.ConfirmPushResponse{}, nil
 }
 
+func (api *call) SetVariablesCall(ctx context.Context, in *engine.SetVariablesCallRequest) (*engine.SetVariablesCallResponse, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = api.ctrl.SetCallVariables(session, in.Id, in.Variables)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.SetVariablesCallResponse{}, nil
+}
+
 func toEngineCall(src *model.Call) *engine.ActiveCall {
 	item := &engine.ActiveCall{
 		Id:               src.Id,

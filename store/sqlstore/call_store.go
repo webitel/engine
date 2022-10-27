@@ -613,6 +613,40 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	return out, nil
 }
 
+func (s SqlCallStore) SetVariables(domainId int64, id string, vars model.StringMap) (*model.CallDomain, *model.AppError) {
+	var res *model.CallDomain
+	err := s.GetMaster().SelectOne(&res, `with a as (
+    update call_center.cc_calls c
+        set payload = coalesce(payload, '{}') || :Vars
+    where c.id = :Id and c.domain_id = :DomainId
+    returning c.id, c.app_id
+), h as (
+    update call_center.cc_calls_history c
+        set payload = coalesce(payload, '{}') || :Vars
+    where c.id = :Id and c.domain_id = :DomainId
+    returning c.id
+)
+select *
+from (
+    select id, app_id
+    from a
+    union all
+    select id,  null
+    from h
+ ) as t
+limit 1`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+		"Vars":     vars.ToJson(),
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.SetVariables", "store.sql_call.set_vars.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 func (s SqlCallStore) CreateAnnotation(annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
 	err := s.GetMaster().SelectOne(&annotation, `
 		with a as (

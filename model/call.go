@@ -132,11 +132,15 @@ func (r *OutboundCallRequest) IsValid() *AppError {
 	return nil
 }
 
+type CallDomain struct {
+	Id    string  `json:"id" db:"id"`
+	AppId *string `json:"app_id" db:"app_id"`
+}
+
 type CallInstance struct {
-	Id        string  `json:"id" db:"id"`
-	AppId     *string `json:"app_id" db:"app_id"`
-	State     string  `json:"state" db:"state"`
-	Timestamp int64   `json:"timestamp" db:"timestamp"`
+	CallDomain
+	State     string `json:"state" db:"state"`
+	Timestamp int64  `json:"timestamp" db:"timestamp"`
 }
 
 type CallHold struct {
@@ -568,4 +572,13 @@ func NewWebSocketCallEvent(call *CallEvent) *WebSocketEvent {
 	e.Add("call", call)
 
 	return e
+}
+
+func (v *Variables) ToJson() []byte {
+	if v == nil {
+		return nil
+	}
+
+	data, _ := json.Marshal(v)
+	return data
 }

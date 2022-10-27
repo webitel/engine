@@ -462,6 +462,23 @@ func (app *App) BridgeCall(domainId int64, fromId, toId string) *model.AppError 
 	return err
 }
 
+func (app *App) SetCallVariables(domainId int64, id string, vars map[string]string) *model.AppError {
+	domain, err := app.Store.Call().SetVariables(domainId, id, vars)
+	if err != nil {
+		return err
+	}
+	if domain.AppId != nil {
+		//var cli call_manager.CallClient
+		//cli, err = app.getCallCli(domainId, id, domain.AppId)
+		//if err != nil {
+		//	return err
+		//}
+		//err = cli.SetCallVariables(id, vars)
+	}
+
+	return err
+}
+
 func (app *App) GetLastCallFile(domainId int64, callId string) (int64, *model.AppError) {
 	return app.Store.Call().LastFile(domainId, callId)
 }

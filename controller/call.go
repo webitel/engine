@@ -181,9 +181,18 @@ func (c *Controller) DeleteCallAnnotation(session *auth_manager.Session, id int6
 
 func (c *Controller) ConfirmPushCall(session *auth_manager.Session, callId string) *model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
-	if !permission.CanRead() {
+	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	return c.app.ConfirmPushCall(session.DomainId, callId)
+}
+
+func (c *Controller) SetCallVariables(session *auth_manager.Session, callId string, vars map[string]string) *model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.SetCallVariables(session.Domain(0), callId, vars)
 }
