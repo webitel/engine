@@ -23,7 +23,7 @@ type webSocketHandler struct {
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
-	wlog.Debug(fmt.Sprintf("websocket[%s/%s]: %s", conn.WebSocket.RemoteAddr().String(), conn.Id(), r.Action))
+	wlog.Debug(fmt.Sprintf("[%s] websock (%s) method %s", conn.Ip(), conn.Id(), r.Action))
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {

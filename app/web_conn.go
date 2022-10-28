@@ -47,11 +47,12 @@ type WebConn struct {
 	pumpFinished       chan struct{}
 	listenEvents       map[string]*model.BindQueueEvent
 	mx                 sync.RWMutex
+	ip                 string
 
 	//Sip *SipProxy
 }
 
-func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18n.TranslateFunc, locale string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18n.TranslateFunc, locale string, ip string) *WebConn {
 	wc := &WebConn{
 		id:                 model.NewId(),
 		App:                a,
@@ -64,6 +65,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		listenEvents:       make(map[string]*model.BindQueueEvent),
+		ip:                 ip,
 	}
 
 	//wc.Sip = NewSipProxy(wc)
@@ -77,6 +79,10 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 
 func (wc *WebConn) Id() string {
 	return wc.id
+}
+
+func (wc *WebConn) Ip() string {
+	return wc.ip
 }
 
 func (wc *WebConn) Close() {
