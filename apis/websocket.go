@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/web"
 	"github.com/webitel/wlog"
 	"net/http"
 )
@@ -36,6 +37,6 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.Count.Add(1)
 	wlog.Info(fmt.Sprintf("count socket %d", c.App.Count.Load()))
 
-	wc := c.App.NewWebConn(ws, c.Session, c.T, "")
+	wc := c.App.NewWebConn(ws, c.Session, c.T, "", web.ReadUserIP(r))
 	wc.Pump()
 }
