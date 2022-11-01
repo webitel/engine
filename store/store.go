@@ -65,6 +65,7 @@ type Store interface {
 // todo deprecated
 type ChatStore interface {
 	OpenedConversations(domainId, userId int64) ([]*model.Conversation, *model.AppError)
+	ValidDomain(domainId int64, profileId int64) *model.AppError
 }
 
 type UserStore interface {

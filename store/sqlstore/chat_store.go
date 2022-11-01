@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
+	"net/http"
 )
 
 type SqlChatStore struct {
@@ -116,4 +117,25 @@ order by ch.pri, ch.updated_at desc`, map[string]interface{}{
 	}
 
 	return res, nil
+}
+
+func (s SqlChatStore) ValidDomain(domainId int64, profileId int64) *model.AppError {
+	res, err := s.GetReplica().SelectInt(`select 1
+from chat.bot p
+where p.dc = :DomainId and p.id = :Id`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       profileId,
+	})
+
+	if err != nil {
+		return model.NewAppError("ChatStore.ValidDomain", "store.sql_chat.valid_domain.app_error", nil,
+			fmt.Sprintf("domainId=%v, %v", domainId, err.Error()), extractCodeFromErr(err))
+	}
+
+	if res != 1 {
+		return model.NewAppError("ChatStore.ValidDomain", "store.sql_chat.valid_domain.not_found", nil,
+			fmt.Sprintf("domainId=%v", domainId), http.StatusNotFound)
+	}
+
+	return nil
 }

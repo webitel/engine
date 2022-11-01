@@ -19,4 +19,6 @@ const (
 
 	PERMISSION_SCOPE_USERS   = "users"
 	PERMISSION_SCOPE_TRIGGER = "cc_list" //"trigger" //TODO
+
+	PermissionChat = "chats"
 )

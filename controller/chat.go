@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
@@ -60,8 +61,17 @@ func (c *Controller) BlindTransferChat(session *auth_manager.Session, conversati
 	return c.app.BlindTransferChat(session.DomainId, conversationId, channelId, planId, vars)
 }
 
-//todo check userId in domain
+// todo check userId in domain
 func (c *Controller) BlindTransferChatToUser(session *auth_manager.Session, conversationId, channelId string, userId int64, vars map[string]string) *model.AppError {
 	// FIXME PERMISSION
 	return c.app.BlindTransferChatToUser(session.DomainId, conversationId, channelId, userId, vars)
+}
+
+func (c *Controller) BroadcastChatBot(session *auth_manager.Session, profileId int64, peer []string, text string) *model.AppError {
+	permission := session.GetPermission(model.PermissionChat)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.BroadcastChatBot(context.TODO(), session.Domain(0), profileId, peer, text)
 }

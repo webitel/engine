@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"github.com/webitel/engine/model"
+	client "github.com/webitel/protos/engine/chat"
 	"net/http"
 )
 
@@ -165,6 +166,31 @@ func (a *App) BlindTransferChatToUser(domainId int64, conversationId, channelId 
 	errChat = chat.BlindTransferToUser(context.Background(), conversationId, channelId, userId, vars)
 	if errChat != nil {
 		return model.NewAppError("BlindTransferChatToUser", "chat.transfer.api_err", nil, errChat.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId int64, peer []string, text string) *model.AppError {
+
+	appErr := a.Store.Chat().ValidDomain(domainId, profileId)
+	if appErr != nil {
+		return appErr
+	}
+
+	cli, err := a.chatManager.Client()
+	if err != nil {
+		return model.NewAppError("BroadcastChatBot", "chat.broadcast.cli_err", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	msg := &client.Message{
+		Type: "text", //TODO
+		Text: text,
+	}
+
+	err = cli.BroadcastMessage(ctx, msg, profileId, peer)
+	if err != nil {
+		return model.NewAppError("BroadcastChatBot", "chat.broadcast.api_err", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

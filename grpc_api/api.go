@@ -38,8 +38,9 @@ type API struct {
 	pauseCause   *pauseCause
 	userHelper   *userHelper
 
-	chatPlan *chatPlanApi
-	trigger  *trigger
+	chatPlan   *chatPlanApi
+	trigger    *trigger
+	chatHelper *chatHelper
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -76,6 +77,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.userHelper = NewUserHelperApi(api)
 	api.chatPlan = NewChatPlan(api)
 	api.trigger = NewTriggerApi(api)
+	api.chatHelper = NewChatHelperApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -106,4 +108,6 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterUserHelperServiceServer(server, api.userHelper)
 	engine.RegisterRoutingChatPlanServiceServer(server, api.chatPlan)
 	engine.RegisterTriggerServiceServer(server, api.trigger)
+
+	engine.RegisterChatHelperServiceServer(server, api.chatHelper)
 }
