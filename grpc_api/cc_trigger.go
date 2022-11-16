@@ -221,6 +221,21 @@ func (api *trigger) SearchTriggerJob(ctx context.Context, in *engine.SearchTrigg
 		}
 	}
 
+	if in.GetState() != nil {
+		state := in.GetState()
+		req.State = make([]int, len(state), len(state))
+		for _, v := range state {
+			req.State = append(req.State, int(v))
+		}
+	}
+
+	if in.GetDuration() != nil {
+		req.Duration = &model.FilterBetween{
+			From: in.GetDuration().GetFrom(),
+			To:   in.GetDuration().GetTo(),
+		}
+	}
+
 	list, endList, err = api.ctrl.GetTriggerJobList(session, in.TriggerId, req)
 
 	if err != nil {

@@ -261,11 +261,14 @@ func (s SqlTriggerStore) GetAllJobs(triggerId int32, search *model.SearchTrigger
 	var jobs []*model.TriggerJob
 
 	f := map[string]interface{}{
-		"TriggerId":   triggerId,
-		"From":        model.GetBetweenFromTime(search.CreatedAt),
-		"To":          model.GetBetweenToTime(search.CreatedAt),
-		"StartedFrom": model.GetBetweenFromTime(search.StartedAt),
-		"StartedTo":   model.GetBetweenToTime(search.StartedAt),
+		"TriggerId":    triggerId,
+		"From":         model.GetBetweenFromTime(search.CreatedAt),
+		"To":           model.GetBetweenToTime(search.CreatedAt),
+		"StartedFrom":  model.GetBetweenFromTime(search.StartedAt),
+		"StartedTo":    model.GetBetweenToTime(search.StartedAt),
+		"State":        pq.Array(search.State),
+		"DurationFrom": model.GetBetweenFrom(search.Duration),
+		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
 	err := s.ListQuery(&jobs, search.ListRequest,
@@ -274,6 +277,10 @@ func (s SqlTriggerStore) GetAllJobs(triggerId int32, search *model.SearchTrigger
 				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 				and ( :StartedFrom::timestamptz isnull or started_at >= :StartedFrom::timestamptz )
 				and ( :StartedTo::timestamptz isnull or started_at <= :StartedTo::timestamptz )
+				and ( :State::int[] isnull or state = any(:State::int[]) )
+
+				and ( :DurationFrom::int8 isnull or extract(epoch from coalesce(stopped_at, started_at, now()) - created_at)::int8 >= :DurationFrom::int8 )
+				and ( :DurationTo::int8 isnull or extract(epoch from coalesce(stopped_at, started_at, now()) - created_at)::int8 <= :DurationTo::int8 )
 			`,
 		model.TriggerJob{}, f)
 	if err != nil {

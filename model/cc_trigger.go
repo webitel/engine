@@ -46,6 +46,8 @@ type SearchTriggerJob struct {
 	ListRequest
 	CreatedAt *FilterBetween
 	StartedAt *FilterBetween
+	State     []int
+	Duration  *FilterBetween
 }
 
 func (t Trigger) DefaultOrder() string {
