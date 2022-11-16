@@ -261,15 +261,20 @@ func (s SqlTriggerStore) GetAllJobs(triggerId int32, search *model.SearchTrigger
 	var jobs []*model.TriggerJob
 
 	f := map[string]interface{}{
-		"TriggerId": triggerId,
-		"From":      model.GetBetweenFromTime(search.CreatedAt),
-		"To":        model.GetBetweenToTime(search.CreatedAt),
+		"TriggerId":   triggerId,
+		"From":        model.GetBetweenFromTime(search.CreatedAt),
+		"To":          model.GetBetweenToTime(search.CreatedAt),
+		"StartedFrom": model.GetBetweenFromTime(search.StartedAt),
+		"StartedTo":   model.GetBetweenToTime(search.StartedAt),
 	}
 
 	err := s.ListQuery(&jobs, search.ListRequest,
 		`trigger_id = :TriggerId
 				and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
-				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )`,
+				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
+				and ( :StartedFrom::timestamptz isnull or started_at >= :StartedFrom::timestamptz )
+				and ( :StartedTo::timestamptz isnull or started_at <= :StartedTo::timestamptz )
+			`,
 		model.TriggerJob{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlTriggerStore.GetAllPage", "store.sql_trigger.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))

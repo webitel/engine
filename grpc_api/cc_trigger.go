@@ -214,6 +214,13 @@ func (api *trigger) SearchTriggerJob(ctx context.Context, in *engine.SearchTrigg
 		}
 	}
 
+	if in.GetStartedAt() != nil {
+		req.StartedAt = &model.FilterBetween{
+			From: in.GetStartedAt().GetFrom(),
+			To:   in.GetStartedAt().GetTo(),
+		}
+	}
+
 	list, endList, err = api.ctrl.GetTriggerJobList(session, in.TriggerId, req)
 
 	if err != nil {

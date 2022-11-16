@@ -32,6 +32,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
 		conn.Send <- errResp
+		conn.Close()
 		return
 	}
 	r.Session = *session
