@@ -532,84 +532,12 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
             where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
 	and (
-        (t.user_id in (
-            with x as (
-                select a.user_id, a.id agent_id, a.supervisor, a.domain_id
-                from directory.wbt_user u
-                         inner join call_center.cc_agent a on a.user_id = u.id
-                where u.id = :UserSupervisorId
-                  and u.dc = :Domain
-            )
-            select distinct a.user_id
-            from x
-                     left join lateral (
-                select a.user_id, a.auditor_ids && array [x.user_id] aud
-                from call_center.cc_agent a
-                where a.domain_id = x.domain_id
-                  and (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor) or
-                       a.auditor_ids && array [x.user_id])
-
-                union
-                distinct
-
-                select a.user_id, a.auditor_ids && array [x.user_id] aud
-                from call_center.cc_team t
-                         inner join call_center.cc_agent a on a.team_id = t.id
-                where t.admin_ids && array [x.agent_id]
-                  and x.domain_id = t.domain_id
-                ) a on true
-        ))
-        or (t.queue_id in (
-        with x as (
-            select a.user_id, a.id agent_id, a.supervisor, a.domain_id
-            from directory.wbt_user u
-                     inner join call_center.cc_agent a on a.user_id = u.id and a.domain_id = u.dc
-            where u.id = :UserSupervisorId
-              and u.dc = :Domain
-        )
-        select distinct qs.queue_id
-        from x
-                 left join lateral (
-            select a.id, a.auditor_ids && array [x.user_id] aud
-            from call_center.cc_agent a
-            where (a.user_id = x.user_id or (a.supervisor_ids && array [x.agent_id] and a.supervisor))
-            union
-            distinct
-            select a.id, a.auditor_ids && array [x.user_id] aud
-            from call_center.cc_team t
-                     inner join call_center.cc_agent a on a.team_id = t.id
-            where t.admin_ids && array [x.agent_id]
-            ) a on true
-                 inner join call_center.cc_skill_in_agent sa on sa.agent_id = a.id
-                 inner join call_center.cc_queue_skill qs
-                            on qs.skill_id = sa.skill_id and sa.capacity between qs.min_capacity and qs.max_capacity
-        where sa.enabled
-          and qs.enabled
-        union
-        select q.id
-        from call_center.cc_queue q
-        where q.domain_id = :Domain
-          and q.grantee_id = any (:Groups)
-          and q.enabled
-    ))
-      or exists(
-		select acl.*
-		from (
-			select a.*
-			  from directory.wbt_default_acl a
-			  join directory.wbt_class c on c.dc = t.domain_id and c.name = 'calls' and a.object = c.id
-			 where (a.grantor = t.user_id or a.grantor = t.grantee_id)
-				or exists(select r.role_id
-						   from directory.wbt_auth_member r
-						  where (r.member_id = any(t.user_ids) or r.member_id = t.grantee_id)
-							and r.role_id = a.grantor
-				   )
-			union all
-			values(t.domain_id, 0, t.user_id, t.user_id, 255)
-		) acl
-		where acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access
+		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
+			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
+			or (t.user_ids notnull and t.user_ids::int[] && call_center.cc_calls_rbac_users_from_group(:Domain::int8, :Access::int2, :Groups::int[]))
+			or (t.grantee_id = any(:Groups::int[]))
+		)
 	)
-    )
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
