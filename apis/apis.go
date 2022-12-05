@@ -6,7 +6,8 @@ import (
 )
 
 type Routes struct {
-	Root *mux.Router // ''
+	Root     *mux.Router // ''
+	Endpoint *mux.Router // '/endpoint'
 }
 
 type API struct {
@@ -21,9 +22,11 @@ func Init(a *app.App, root *mux.Router) *API {
 	}
 
 	api.Routes.Root = root
+	api.Routes.Endpoint = api.Routes.Root.PathPrefix("/endpoint").Subrouter()
 
 	api.InitWebSocket()
 	api.InitAppointments()
+	api.InitOAuth()
 
 	return api
 }

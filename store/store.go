@@ -343,6 +343,8 @@ type EmailProfileStore interface {
 	Get(domainId int64, id int) (*model.EmailProfile, *model.AppError)
 	Update(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError)
 	Delete(domainId int64, id int) *model.AppError
+
+	SetupOAuth2(id int, params *model.MailProfileParams) *model.AppError
 }
 
 type RegionStore interface {

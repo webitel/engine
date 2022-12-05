@@ -212,3 +212,19 @@ func (s SqlEmailProfileStore) Delete(domainId int64, id int) *model.AppError {
 	}
 	return nil
 }
+
+func (s SqlEmailProfileStore) SetupOAuth2(id int, params *model.MailProfileParams) *model.AppError {
+	_, err := s.GetMaster().Exec(`update call_center.cc_email_profile
+set params = :Params
+where id = :Id;`, map[string]interface{}{
+		"Id":     id,
+		"Params": params.Json(),
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlEmailProfileStore.SetupOAuth2", "store.sql_email_profile.oauth.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return nil
+}

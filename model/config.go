@@ -1,6 +1,9 @@
 package model
 
-import "net/http"
+import (
+	"golang.org/x/oauth2"
+	"net/http"
+)
 
 const (
 	DEFAULT_LOCALE = "en"
@@ -50,6 +53,7 @@ type Config struct {
 	MinimumNumberMaskLen  int                  `json:"minimum_number_mask_len"`
 	PrefixNumberMaskLen   int                  `json:"prefix_number_mask_len"`
 	SuffixNumberMaskLen   int                  `json:"suffix_number_mask_len"`
+	EmailOAuth            map[string]oauth2.Config
 }
 
 type DiscoverySettings struct {

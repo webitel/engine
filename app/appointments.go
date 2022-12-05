@@ -35,7 +35,7 @@ func (app *App) GetAppointment(key string) (*model.Appointment, *model.AppError)
 		return a.(*model.Appointment), nil
 	}
 
-	memberId, appErr := decryptMemberId(key)
+	memberId, appErr := DecryptId(key)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -123,7 +123,7 @@ func (app *App) CreateAppointment(widget *model.AppointmentWidget, appointment *
 		return nil, err
 	}
 
-	appointment.Key, err = encrypt(cipherKey, []byte(fmt.Sprintf("%v", appointment.Id)))
+	appointment.Key, err = EncryptId(appointment.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (app *App) CancelAppointment(widget *model.AppointmentWidget, key string) (
 	return appointment, nil
 }
 
-func decryptMemberId(key string) (int64, *model.AppError) {
+func DecryptId(key string) (int64, *model.AppError) {
 	val, appErr := decrypt(cipherKey, key)
 	if appErr != nil {
 		return 0, appErr
@@ -170,6 +170,10 @@ func decryptMemberId(key string) (int64, *model.AppError) {
 	}
 
 	return int64(id), nil
+}
+
+func EncryptId(id int64) (string, *model.AppError) {
+	return encrypt(cipherKey, []byte(fmt.Sprintf("%v", id)))
 }
 
 func encrypt(key []byte, plainText []byte) (string, *model.AppError) {

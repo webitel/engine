@@ -1,24 +1,39 @@
 package model
 
+import (
+	"encoding/json"
+	"golang.org/x/oauth2"
+)
+
 //TODO hide password
+
+const (
+	MailGoogle    = "google"
+	MailMicrosoft = "microsoft"
+)
+
+type MailProfileParams struct {
+	OAuth2 *oauth2.Token `json:"oauth2"`
+}
 
 type EmailProfile struct {
 	DomainRecord
-	Name          string  `json:"name" db:"name"`
-	Description   string  `json:"description" db:"description"`
-	Schema        Lookup  `json:"schema" db:"schema"`
-	Enabled       bool    `json:"enabled" db:"enabled"`
-	Login         string  `json:"login" db:"login"`
-	Password      string  `json:"password" db:"password"`
-	Mailbox       string  `json:"mailbox" db:"mailbox"`
-	SmtpHost      string  `json:"smtp_host" db:"smtp_host"`
-	SmtpPort      int     `json:"smtp_port" db:"smtp_port"`
-	ImapHost      string  `json:"imap_host" db:"imap_host"`
-	ImapPort      int     `json:"imap_port" db:"imap_port"`
-	FetchInterval int32   `json:"fetch_interval" db:"fetch_interval"`
-	FetchError    *string `json:"fetch_error" db:"fetch_error"`
-	State         string  `json:"state" db:"state"`
-	ActivityAt    int64   `json:"activity_at" db:"activity_at"`
+	Name          string             `json:"name" db:"name"`
+	Description   string             `json:"description" db:"description"`
+	Schema        Lookup             `json:"schema" db:"schema"`
+	Enabled       bool               `json:"enabled" db:"enabled"`
+	Login         string             `json:"login" db:"login"`
+	Password      string             `json:"password" db:"password"`
+	Mailbox       string             `json:"mailbox" db:"mailbox"`
+	SmtpHost      string             `json:"smtp_host" db:"smtp_host"`
+	SmtpPort      int                `json:"smtp_port" db:"smtp_port"`
+	ImapHost      string             `json:"imap_host" db:"imap_host"`
+	ImapPort      int                `json:"imap_port" db:"imap_port"`
+	FetchInterval int32              `json:"fetch_interval" db:"fetch_interval"`
+	FetchError    *string            `json:"fetch_error" db:"fetch_error"`
+	State         string             `json:"state" db:"state"`
+	ActivityAt    int64              `json:"activity_at" db:"activity_at"`
+	Params        *MailProfileParams `json:"params" db:"params"`
 }
 
 type EmailProfilePatch struct {
@@ -107,4 +122,13 @@ func (p *EmailProfile) IsValid() *AppError {
 
 type SearchEmailProfile struct {
 	ListRequest
+}
+
+func (p *MailProfileParams) Json() []byte {
+	if p == nil {
+		return nil
+	}
+
+	data, _ := json.Marshal(p)
+	return data
 }

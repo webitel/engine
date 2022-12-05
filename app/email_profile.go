@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/webitel/engine/model"
+	"golang.org/x/oauth2"
 )
 
 func (app *App) CreateEmailProfile(domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
@@ -81,4 +82,10 @@ func (app *App) RemoveEmailProfile(domainId int64, id int) (*model.EmailProfile,
 		return nil, err
 	}
 	return profile, nil
+}
+
+func (app *App) EmailLoginOAuth(id int, token *oauth2.Token) *model.AppError {
+	return app.Store.EmailProfile().SetupOAuth2(id, &model.MailProfileParams{
+		OAuth2: token,
+	})
 }

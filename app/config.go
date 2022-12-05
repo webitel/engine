@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/webitel/engine/model"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 var (
@@ -82,6 +84,24 @@ func loadConfig() (*model.Config, error) {
 		MessageQueueSettings: model.MessageQueueSettings{
 			Url: *amqpSource,
 		},
+		EmailOAuth: make(map[string]oauth2.Config),
 	}
+
+	config.EmailOAuth[model.MailGoogle] = oauth2.Config{
+		RedirectURL:  "https://dev.webitel.com/endpoint/oauth2/google/callback",
+		ClientID:     "1003527838078-eq1o4od8bvrvquk6a5m8gfkauhria0dj.apps.googleusercontent.com",
+		ClientSecret: "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",
+		Scopes:       []string{"https://mail.google.com/"},
+		Endpoint:     google.Endpoint,
+	}
+
+	//config.EmailOAuth[model.MailGoogle] = oauth2.Config{
+	//	RedirectURL:  "http://dev.webitel.com/endpoint/oauth2/google/callback",
+	//	ClientID:     "1003527838078-68qhem81etudj2qol550ruc6qlul5ut3.apps.googleusercontent.com",
+	//	ClientSecret: "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",
+	//	Scopes:       []string{"https://mail.google.com/"},
+	//	Endpoint:     google.Endpoint,
+	//}
+
 	return config, nil
 }

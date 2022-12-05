@@ -399,7 +399,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*[]*model.CallFileTranscriptLookup,
 		*[]*model.CalendarExceptDate,
 		*model.AppointmentProfile,
-		*[]model.AppointmentDate:
+		*[]model.AppointmentDate,
+		*model.MailProfileParams:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)
 			if !ok {
