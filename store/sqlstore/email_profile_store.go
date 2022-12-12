@@ -20,9 +20,9 @@ func (s SqlEmailProfileStore) Create(domainId int64, p *model.EmailProfile) (*mo
 	var profile *model.EmailProfile
 	err := s.GetMaster().SelectOne(&profile, `with t as (
     insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, imap_host, mailbox, imap_port, smtp_port,
-                              login, password, created_at, created_by, updated_by, last_activity_at, smtp_host, fetch_interval)
+                              login, password, created_at, created_by, updated_by, last_activity_at, smtp_host, fetch_interval, auth_type, "listen")
 values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :ImapHost, :Mailbox, :Imap, :Smtp, :Login, :Pass,
-        now(), :CreatedBy, :UpdatedBy, now(), :SmtpHost, :FetchInterval)
+        now(), :CreatedBy, :UpdatedBy, now(), :SmtpHost, :FetchInterval, :AuthType, :Listen)
 	returning *
 )
 SELECT t.id,
@@ -45,7 +45,9 @@ SELECT t.id,
        call_center.cc_get_lookup(t.flow_id::bigint, s.name)                AS schema,
        t.description,
        t.enabled,
-       t.password
+       t.password,
+	   t.auth_type,
+	   t.listen
 FROM t
          LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
          LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
@@ -65,6 +67,8 @@ FROM t
 		"Pass":          p.Password,
 		"CreatedBy":     p.CreatedBy.GetSafeId(),
 		"UpdatedBy":     p.UpdatedBy.GetSafeId(),
+		"AuthType":      p.AuthType,
+		"Listen":        p.Listen,
 	})
 
 	if err != nil {
@@ -115,7 +119,9 @@ func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, 
 		   call_center.cc_get_lookup(t.flow_id::bigint, s.name)                AS schema,
 		   t.description,
 		   t.enabled,
-		   t.password
+		   t.password,
+           t.auth_type,
+		   t.listen	
 	FROM call_center.cc_email_profile t
 			 LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
 			 LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
@@ -150,7 +156,9 @@ func (s SqlEmailProfileStore) Update(domainId int64, p *model.EmailProfile) (*mo
             updated_by = :UpdatedBy,
             updated_at = now(),
 			smtp_host = :SmtpHost,
-			fetch_interval = :FetchInterval
+			fetch_interval = :FetchInterval,
+            auth_type = :AuthType,
+			"listen" = :Listen
         where id = :Id and domain_id = :DomainId
         returning *
 )
@@ -174,7 +182,9 @@ SELECT t.id,
        call_center.cc_get_lookup(t.flow_id::bigint, s.name)                AS schema,
        t.description,
        t.enabled,
-       t.password
+       t.password,
+       t.auth_type,
+	   t.listen
 FROM t
          LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
          LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
@@ -194,6 +204,8 @@ FROM t
 		"Enabled":       p.Enabled,
 		"SmtpHost":      p.SmtpHost,
 		"FetchInterval": p.FetchInterval,
+		"AuthType":      p.AuthType,
+		"Listen":        p.Listen,
 	})
 
 	if err != nil {

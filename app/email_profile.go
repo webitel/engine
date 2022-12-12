@@ -3,6 +3,8 @@ package app
 import (
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
+	"net/http"
+	"strings"
 )
 
 func (app *App) CreateEmailProfile(domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
@@ -70,6 +72,49 @@ func (a *App) PatchEmailProfile(domainId int64, id int, patch *model.EmailProfil
 	return oldProfile, nil
 }
 
+func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.EmailProfileLogin, *model.AppError) {
+
+	var oauthConf oauth2.Config
+	var ok bool
+
+	if strings.Index(profile.ImapHost, model.MailGmail+".com") > -1 {
+		oauthConf, ok = a.MailOauthConfig(model.MailGmail)
+	}
+
+	if !ok {
+		return nil, model.NewAppError("Email", "app.email.profile.login.not_found_oauth", nil,
+			"Not found server oauth config to "+profile.ImapHost, http.StatusForbidden)
+	}
+
+	oauthState, err := EncryptId(int64(profile.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.EmailProfileLogin{
+		AuthType:    profile.AuthType,
+		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("approval_prompt", "force")),
+		Cookie: map[string]string{
+			"oauthstate": oauthState,
+		},
+	}, nil
+}
+
+func (a *App) LoginEmailProfile(domainId int64, id int) (*model.EmailProfileLogin, *model.AppError) {
+	profile, err := a.GetEmailProfile(domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	switch profile.AuthType {
+	case model.EmailAuthTypeOAuth2:
+		return a.loginEmailProfileOAuth2(profile)
+	}
+
+	return nil, model.NewAppError("Email", "app.email.profile.login.not_found_auth_type", nil,
+		"Not found auth type to "+profile.ImapHost, http.StatusForbidden)
+}
+
 func (app *App) RemoveEmailProfile(domainId int64, id int) (*model.EmailProfile, *model.AppError) {
 	profile, err := app.Store.EmailProfile().Get(domainId, id)
 
@@ -88,4 +133,13 @@ func (app *App) EmailLoginOAuth(id int, token *oauth2.Token) *model.AppError {
 	return app.Store.EmailProfile().SetupOAuth2(id, &model.MailProfileParams{
 		OAuth2: token,
 	})
+}
+
+func (app *App) MailOauthConfig(name string) (oauth2.Config, bool) {
+	if app.config.EmailOAuth == nil {
+		return oauth2.Config{}, false
+	}
+
+	p, ok := app.config.EmailOAuth[name]
+	return p, ok
 }

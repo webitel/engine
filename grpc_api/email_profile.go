@@ -101,6 +101,25 @@ func (api *emailProfile) TestEmailProfile(ctx context.Context, in *engine.TestEm
 	}, nil
 }
 
+func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.LoginEmailProfileRequest) (*engine.LoginEmailProfileResponse, error) {
+	var login *model.EmailProfileLogin
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	login, err = api.ctrl.LoginEmailProfile(session, int(in.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.LoginEmailProfileResponse{
+		AuthType:    login.AuthType,
+		RedirectUrl: login.RedirectUrl,
+		Cookie:      login.Cookie,
+	}, nil
+}
+
 func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.PatchEmailProfileRequest) (*engine.EmailProfile, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

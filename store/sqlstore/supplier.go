@@ -64,12 +64,12 @@ type SqlSupplierOldStores struct {
 }
 
 type SqlSupplier struct {
-	rrCounter      int64
-	srCounter      int64
-	next           store.LayeredStoreSupplier
-	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
+	rrCounter int64
+	srCounter int64
+	next      store.LayeredStoreSupplier
+	master    *gorp.DbMap
+	replicas  []*gorp.DbMap
+	//searchReplicas []*gorp.DbMap
 	oldStores      SqlSupplierOldStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
@@ -203,13 +203,6 @@ func (s *SqlSupplier) initConnection() {
 		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
 		for i, replica := range s.settings.DataSourceReplicas {
 			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
-		}
-	}
-
-	if len(s.settings.DataSourceSearchReplicas) > 0 {
-		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
-		for i, replica := range s.settings.DataSourceSearchReplicas {
-			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
 		}
 	}
 }

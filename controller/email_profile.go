@@ -91,3 +91,16 @@ func (c *Controller) RemoveEmailProfile(session *auth_manager.Session, id int) (
 
 	return c.app.RemoveEmailProfile(session.Domain(0), id)
 }
+
+func (c *Controller) LoginEmailProfile(session *auth_manager.Session, id int) (*model.EmailProfileLogin, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_EMAIL_PROFILE)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.LoginEmailProfile(session.Domain(0), id)
+}

@@ -8,8 +8,13 @@ import (
 //TODO hide password
 
 const (
-	MailGoogle    = "google"
+	MailGmail     = "gmail"
 	MailMicrosoft = "microsoft"
+)
+
+const (
+	EmailAuthTypeOAuth2 = "oauth2"
+	EmailAuthTypePlain  = "plain"
 )
 
 type MailProfileParams struct {
@@ -34,6 +39,14 @@ type EmailProfile struct {
 	State         string             `json:"state" db:"state"`
 	ActivityAt    int64              `json:"activity_at" db:"activity_at"`
 	Params        *MailProfileParams `json:"params" db:"params"`
+	AuthType      string             `json:"auth_type" db:"auth_type"`
+	Listen        bool               `json:"listen" db:"listen"`
+}
+
+type EmailProfileLogin struct {
+	AuthType    string `json:"auth_type" db:"auth_type"`
+	RedirectUrl string `json:"redirect_url" db:"redirect_url"`
+	Cookie      map[string]string
 }
 
 type EmailProfilePatch struct {
@@ -52,6 +65,7 @@ type EmailProfilePatch struct {
 	ImapHost      *string `json:"imap_host" db:"imap_host"`
 	ImapPort      *int    `json:"imap_port" db:"imap_port"`
 	FetchInterval *int32  `json:"fetch_interval" db:"fetch_interval"`
+	Listen        *bool   `json:"listen" db:"listen"`
 }
 
 func (p *EmailProfile) Patch(patch *EmailProfilePatch) {
@@ -95,6 +109,10 @@ func (p *EmailProfile) Patch(patch *EmailProfilePatch) {
 	if patch.FetchInterval != nil {
 		p.FetchInterval = *patch.FetchInterval
 	}
+
+	if patch.Listen != nil {
+		p.Listen = *patch.Listen
+	}
 }
 
 func (p EmailProfile) DefaultOrder() string {
@@ -104,12 +122,11 @@ func (p EmailProfile) DefaultOrder() string {
 func (p EmailProfile) AllowFields() []string {
 	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "name", "enabled", "schema", "smtp_host",
 		"mailbox", "description", "login", "smtp_port", "imap_port", "password", "imap_host", "fetch_interval", "fetch_error",
-		"state", "activity_at"}
+		"state", "activity_at", "listen"}
 }
 
 func (p EmailProfile) DefaultFields() []string {
-	return p.AllowFields()
-	//return []string{"id", "name", "enabled", "schema", "mailbox", "state", "fetch_error"}
+	return []string{"id", "name", "enabled", "schema", "mailbox", "state", "fetch_error", "listen"}
 }
 
 func (p EmailProfile) EntityName() string {
