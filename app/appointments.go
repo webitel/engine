@@ -1,17 +1,11 @@
 package app
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
-	"io"
 	"net/http"
-	"strconv"
 )
 
 const (
@@ -22,7 +16,6 @@ var (
 	cacheAppointments       utils.ObjectCache
 	cacheAppointmentDate    utils.ObjectCache
 	appointmentGroupRequest singleflight.Group
-	cipherKey               = []byte("asuperstrong32bitpasswordgohere!") // config
 )
 
 func init() {
@@ -35,7 +28,7 @@ func (app *App) GetAppointment(key string) (*model.Appointment, *model.AppError)
 		return a.(*model.Appointment), nil
 	}
 
-	memberId, appErr := DecryptId(key)
+	memberId, appErr := app.DecryptId(key)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -123,7 +116,7 @@ func (app *App) CreateAppointment(widget *model.AppointmentWidget, appointment *
 		return nil, err
 	}
 
-	appointment.Key, err = EncryptId(appointment.Id)
+	appointment.Key, err = app.EncryptId(appointment.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -156,81 +149,4 @@ func (app *App) CancelAppointment(widget *model.AppointmentWidget, key string) (
 	app.appointmentWidget(widget.Profile.Uri)
 
 	return appointment, nil
-}
-
-func DecryptId(key string) (int64, *model.AppError) {
-	val, appErr := decrypt(cipherKey, key)
-	if appErr != nil {
-		return 0, appErr
-	}
-
-	id, err := strconv.Atoi(val)
-	if err != nil {
-		return 0, model.NewAppError("App", "app.appointment.decrypt_member", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	return int64(id), nil
-}
-
-func EncryptId(id int64) (string, *model.AppError) {
-	return encrypt(cipherKey, []byte(fmt.Sprintf("%v", id)))
-}
-
-func encrypt(key []byte, plainText []byte) (string, *model.AppError) {
-	//Create a new AES cipher using the key
-	block, err := aes.NewCipher(key)
-
-	//IF NewCipher failed, exit:
-	if err != nil {
-		return "", model.NewAppError("App", "app.appointment.encrypt", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	//Make the cipher text a byte array of size BlockSize + the length of the message
-	cipherText := make([]byte, aes.BlockSize+len(plainText))
-
-	//iv is the ciphertext up to the blocksize (16)
-	iv := cipherText[:aes.BlockSize]
-	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
-		return "", model.NewAppError("App", "app.appointment.encrypt", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	//Encrypt the data:
-	stream := cipher.NewCFBEncrypter(block, iv)
-	stream.XORKeyStream(cipherText[aes.BlockSize:], plainText)
-
-	//Return string encoded in base64
-	return base64.RawStdEncoding.EncodeToString(cipherText), nil
-}
-
-func decrypt(key []byte, secure string) (string, *model.AppError) {
-	//Remove base64 encoding:
-	cipherText, err := base64.RawStdEncoding.DecodeString(secure)
-
-	//IF DecodeString failed, exit:
-	if err != nil {
-		return "", model.NewAppError("App", "app.appointment.decrypt", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	//Create a new AES cipher with the key and encrypted message
-	var block cipher.Block
-	block, err = aes.NewCipher(key)
-
-	//IF NewCipher failed, exit:
-	if err != nil {
-		return "", model.NewAppError("App", "app.appointment.decrypt", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	//IF the length of the cipherText is less than 16 Bytes:
-	if len(cipherText) < aes.BlockSize {
-		return "", model.NewAppError("App", "app.appointment.decrypt", nil, "Ciphertext block size is too short!", http.StatusBadRequest)
-	}
-
-	iv := cipherText[:aes.BlockSize]
-	cipherText = cipherText[aes.BlockSize:]
-
-	//Decrypt the message
-	stream := cipher.NewCFBDecrypter(block, iv)
-	stream.XORKeyStream(cipherText, cipherText)
-
-	return string(cipherText), nil
 }

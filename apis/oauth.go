@@ -2,7 +2,6 @@ package apis
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -28,7 +27,7 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 	//	return
 	//}
 
-	id, err := app.DecryptId(r.FormValue("state"))
+	id, err := c.App.DecryptId(r.FormValue("state"))
 	if err != nil {
 		c.Err = err
 		return

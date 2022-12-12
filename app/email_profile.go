@@ -86,7 +86,7 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 			"Not found server oauth config to "+profile.ImapHost, http.StatusForbidden)
 	}
 
-	oauthState, err := EncryptId(int64(profile.Id))
+	oauthState, err := a.EncryptId(int64(profile.Id))
 	if err != nil {
 		return nil, err
 	}

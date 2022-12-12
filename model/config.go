@@ -26,6 +26,7 @@ type SipSettings struct {
 
 type Config struct {
 	ConfigFile            *string                  `json:"-" flag:"config_file||JSON file configuration"`
+	PresignedCert         string                   `json:"presigned_cert" flag:"presigned_cert|/opt/storage/key.pem|Location to pre signed certificate"`
 	TranslationsDirectory string                   `json:"translations_directory" flag:"translations_directory|i18n|Translations directory"`
 	NodeName              string                   `flag:"id|1|Service id" json:"id"`
 	DiscoverySettings     DiscoverySettings        `json:"discovery_settings"`

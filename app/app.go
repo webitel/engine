@@ -32,6 +32,7 @@ type App struct {
 	callManager    call_manager.CallManager
 	chatManager    chat_manager.ChatManager
 	cc             client.CCManager
+	cipherKey      []byte
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -69,6 +70,10 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
+
+	if err := app.setupCipherKey(); err != nil {
+		return nil, err
+	}
 
 	if err := localization.InitTranslations(model.LocalizationSettings{
 		DefaultClientLocale: model.NewString(model.DEFAULT_LOCALE),
