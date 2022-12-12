@@ -1,6 +1,7 @@
 package app
 
 import (
+	"crypto/cipher"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
@@ -32,7 +33,7 @@ type App struct {
 	callManager    call_manager.CallManager
 	chatManager    chat_manager.ChatManager
 	cc             client.CCManager
-	cipherKey      []byte
+	cipherBlock    cipher.Block
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -71,7 +72,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
-	if err := app.setupCipherKey(); err != nil {
+	if err := app.setupCipher(); err != nil {
 		return nil, err
 	}
 
