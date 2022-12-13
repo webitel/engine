@@ -18,8 +18,8 @@ func (app *App) CreateMember(domainId int64, member *model.Member) (*model.Membe
 	return app.Store.Member().Create(domainId, member)
 }
 
-func (a *App) SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, *model.AppError) {
-	list, err := a.Store.Member().SearchMembers(domainId, search)
+func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, *model.AppError) {
+	list, err := a.Store.Member().SearchMembers(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
