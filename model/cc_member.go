@@ -136,6 +136,7 @@ type SearchMemberRequest struct {
 	Name        *string
 	Attempts    *FilterBetween
 	AgentIds    []int32
+	QueueId     *int32
 }
 
 type OfflineMember struct {

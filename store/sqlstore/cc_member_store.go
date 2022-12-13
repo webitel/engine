@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/go-gorp/gorp"
@@ -122,17 +123,17 @@ _error:
 
 // todo fix deprecated fields
 
-func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
 	var members []*model.Member
 
 	order := GetOrderBy("cc_member", model.MemberDeprecatedField(search.Sort))
 	if order == "" {
-		order = "order by id desc"
+		order = "order by created_at desc"
 	}
 
 	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
 
-	if _, err := s.GetReplica().Select(&members,
+	if _, err := s.GetReplica().WithContext(ctx).Select(&members,
 		`with comm as (select c.id, json_build_object('id', c.id, 'name', c.name)::jsonb j
               from call_center.cc_communication c
               where c.domain_id = :Domain)
@@ -144,6 +145,7 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
                 where m.domain_id = :Domain
                   and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
                   and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
+				  and (:QueueId::int4 isnull or m.queue_id  = :QueueId::int4)
                   and (:BucketIds::int4[] isnull or m.bucket_id = any (:BucketIds::int4[]))
                   and (:Destination::varchar isnull or
                        m.search_destinations && array [:Destination::varchar]::varchar[])
@@ -219,6 +221,7 @@ func (s SqlMemberStore) SearchMembers(domainId int64, search *model.SearchMember
 			"BucketIds":   pq.Array(search.BucketIds),
 			"AgentIds":    pq.Array(search.AgentIds),
 			"Destination": search.Destination,
+			"QueueId":     search.QueueId,
 
 			"CreatedFrom":  model.GetBetweenFromTime(search.CreatedAt),
 			"CreatedTo":    model.GetBetweenToTime(search.CreatedAt),

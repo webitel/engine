@@ -189,7 +189,7 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 			Sort:    in.GetSort(),
 		},
 		Ids:        in.GetId(),
-		QueueIds:   []int32{in.GetQueueId()},
+		QueueId:    &in.QueueId,
 		BucketIds:  in.GetBucketId(),
 		StopCauses: in.GetStopCause(),
 		AgentIds:   in.GetAgentId(),
@@ -230,7 +230,7 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 		}
 	}
 
-	if list, endList, err = api.app.SearchMembers(session.Domain(0), req); err != nil {
+	if list, endList, err = api.app.SearchMembers(ctx, session.Domain(0), req); err != nil {
 		return nil, err
 	}
 
@@ -819,7 +819,7 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 		}
 	}
 
-	if list, endList, err = api.app.SearchMembers(session.Domain(0), req); err != nil {
+	if list, endList, err = api.app.SearchMembers(ctx, session.Domain(0), req); err != nil {
 		return nil, err
 	}
 
