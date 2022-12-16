@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 type AppointmentWidget struct {
@@ -10,6 +11,7 @@ type AppointmentWidget struct {
 	List           []AppointmentDate  `json:"list" db:"list"`
 	ComputedList   []byte
 	allowedOrigins []originPattern
+	Loc            *time.Location
 }
 
 type AppointmentProfile struct {
@@ -37,7 +39,8 @@ type AppointmentTime struct {
 }
 
 type Appointment struct {
-	Key          string    `json:"-" db:"-"`
+	Key          string    `json:"key,omitempty" db:"-"`
+	ExpireKey    int64     `json:"expire_key,omitempty" db:"-"`
 	Id           int64     `json:"-" db:"id"`
 	Ip           string    `json:"-" db:"import_id"`
 	Timezone     string    `json:"-" db:"timezone"`

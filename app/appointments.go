@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
 	"net/http"
+	"time"
 )
 
 const (
@@ -80,6 +81,7 @@ func (app *App) appointmentWidget(widgetUri string) (*model.AppointmentWidget, *
 		if err != nil {
 			return nil, err
 		}
+		a.Loc, _ = time.LoadLocation(a.Profile.Timezone)
 		a.ComputedList = (&model.AppointmentResponse{
 			Timezone: a.Profile.Timezone,
 			Type:     "list",
@@ -122,6 +124,13 @@ func (app *App) CreateAppointment(widget *model.AppointmentWidget, appointment *
 	}
 
 	appointment.Timezone = widget.Profile.Timezone
+
+	expires, _ := time.Parse("2006-01-02T15:04:05", fmt.Sprintf("%sT23:59:59", appointment.ScheduleDate))
+	if widget.Loc != nil {
+		expires.In(widget.Loc)
+	}
+	appointment.ExpireKey = expires.UnixMilli()
+
 	appointment.Computed = (&model.AppointmentResponse{
 		Timezone:    widget.Profile.Timezone,
 		Type:        "appointment",
