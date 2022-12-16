@@ -709,8 +709,8 @@ func (s SqlMemberStore) GetAppointment(memberId int64) (*model.Appointment, *mod
 
 	err := s.GetReplica().SelectOne(&res, `select
     m.id,
-    coalesce(m.ready_at, m.created_at)::date::text as schedule_date,
-    to_char(coalesce(m.ready_at, m.created_at), 'HH24:MI') as schedule_time,
+    coalesce(m.ready_at at time zone tz.sys_name, m.created_at at time zone tz.sys_name)::date::text as schedule_date,
+    to_char(coalesce(m.ready_at at time zone tz.sys_name, m.created_at at time zone tz.sys_name), 'HH24:MI') as schedule_time,
     m.name,
     m.communications[0]->>'destination' as destination,
     m.variables,
@@ -750,8 +750,8 @@ where not exists(select 1 from call_center.cc_member m
             and m.stop_at isnull and 1=2
     )
 returning call_center.cc_member.id,
-    coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at)::date::text as schedule_date,
-	to_char(coalesce(call_center.cc_member.ready_at, call_center.cc_member.created_at), 'HH24:MI') as schedule_time,
+    coalesce(call_center.cc_member.ready_at at time zone :TzName, call_center.cc_member.created_at at time zone :TzName)::date::text as schedule_date,
+	to_char(coalesce(call_center.cc_member.ready_at at time zone :TzName, call_center.cc_member.created_at), 'HH24:MI') as schedule_time,
     call_center.cc_member.name,
     call_center.cc_member.communications[0]->>'destination' as destination,
 	coalesce(call_center.cc_member.import_id, '') as import_id,
