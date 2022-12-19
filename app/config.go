@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/BoRuDar/configuration/v4"
 	"github.com/webitel/engine/model"
 	"io"
@@ -18,9 +17,6 @@ func (app *App) MaxSocketInboundMsgSize() int {
 }
 
 func loadConfig() (*model.Config, error) {
-
-	fmt.Println(os.Args)
-
 	var config model.Config
 	configurator := configuration.New(
 		&config,
