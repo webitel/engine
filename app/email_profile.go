@@ -79,6 +79,8 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 
 	if strings.Index(profile.ImapHost, model.MailGmail+".com") > -1 {
 		oauthConf, ok = a.MailOauthConfig(model.MailGmail)
+	} else if strings.Index(profile.ImapHost, model.MailOutlook) == 0 {
+		oauthConf, ok = a.MailOauthConfig(model.MailOutlook)
 	}
 
 	if !ok {

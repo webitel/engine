@@ -33,7 +33,11 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, _ := e.Exchange(oauth2.NoContext, r.FormValue("code"))
+	token, err2 := e.Exchange(oauth2.NoContext, r.FormValue("code"))
+	if err2 != nil {
+		c.Err = model.NewAppError("API", "api.oauth2.callback.bad_request", nil, err2.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if c.Err = c.App.EmailLoginOAuth(int(id), token); c.Err != nil {
 		return

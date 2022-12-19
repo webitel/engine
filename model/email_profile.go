@@ -5,11 +5,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-//TODO hide password
-
 const (
-	MailGmail     = "gmail"
-	MailMicrosoft = "microsoft"
+	MailGmail   = "gmail"
+	MailOutlook = "outlook"
 )
 
 const (
