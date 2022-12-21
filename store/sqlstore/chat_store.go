@@ -60,8 +60,8 @@ from (
         select json_agg(t) messages
         from (
             select m.id, call_center.cc_view_timestamp(m.created_at) created_at,
-                   call_center.cc_view_timestamp(m.updated_at) updated_at, m.text as text, (case when m.file_id isnull then null else
-    json_build_object('id',m.file_id,'size',m.file_size,'mime',m.file_type,'name',m.file_name)
+       			call_center.cc_view_timestamp(m.updated_at) updated_at, m.text as text, (case when (m.file_id isnull and nullif(m.file_url,'') isnull) then null else
+				json_build_object('id',m.file_id,'size',m.file_size,'mime',m.file_type,'name',m.file_name, 'url', m.file_url)
 end) as "file", m.type, m.channel_id
             from chat.message m
             where m.conversation_id = ch.conversation_id
