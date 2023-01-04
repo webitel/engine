@@ -148,6 +148,8 @@ func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.Patch
 			patch.FetchInterval = &in.FetchInterval
 		case "login":
 			patch.Login = &in.Login
+		case "listen":
+			patch.Listen = &in.Listen
 		case "password":
 			patch.Password = &in.Password
 		case "mailbox":
@@ -241,6 +243,8 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		FetchInterval: src.FetchInterval,
 		State:         src.State,
 		ActivityAt:    src.ActivityAt,
+		AuthType:      src.AuthType,
+		Listen:        src.Listen,
 	}
 
 	if src.FetchError != nil {
