@@ -385,9 +385,11 @@ type HistoryCall struct {
 	HangupDisposition *string           `json:"hangup_disposition" db:"hangup_disposition"`
 	BlindTransfer     *string           `json:"blind_transfer" db:"blind_transfer"`
 
-	FilesJob []*HistoryFileJob `json:"files_job" db:"files_job"`
-	TalkSec  int32             `json:"talk_sec" db:"talk_sec"`
-	Grantee  *Lookup           `json:"grantee" db:"grantee"`
+	FilesJob    []*HistoryFileJob `json:"files_job" db:"files_job"`
+	TalkSec     int32             `json:"talk_sec" db:"talk_sec"`
+	Grantee     *Lookup           `json:"grantee" db:"grantee"`
+	AmdAiResult *string           `json:"amd_ai_result" db:"amd_ai_result"`
+	AmdAiLogs   StringArray       `json:"amd_ai_logs" db:"amd_ai_logs"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -400,7 +402,7 @@ func (c HistoryCall) AllowFields() []string {
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
-		"transcripts", "talk_sec", "grantee",
+		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result",
 	}
 }
 
@@ -478,6 +480,7 @@ type SearchHistoryCall struct {
 	AgentDescription string
 	OwnerIds         []int64
 	GranteeIds       []int64
+	AmdAiResult      []string
 }
 
 type CallEventInfo struct {

@@ -69,6 +69,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		AgentDescription: in.GetAgentDescription(),
 		OwnerIds:         in.GetOwnerId(),
 		GranteeIds:       in.GetGranteeId(),
+		AmdAiResult:      in.GetAmdAiResult(),
 	}
 
 	if in.GetDuration() != nil {
@@ -809,6 +810,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Transcripts:      toCallFileTranscriptLookups(src.Transcripts),
 		TalkSec:          src.TalkSec,
 		Grantee:          GetProtoLookup(src.Grantee),
+		AmdAiLogs:        src.AmdAiLogs,
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -862,6 +864,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 
 	if src.BlindTransfer != nil {
 		item.BlindTransfer = *src.BlindTransfer
+	}
+
+	if src.AmdAiResult != nil {
+		item.AmdAiResult = *src.AmdAiResult
 	}
 
 	if accessFile {
