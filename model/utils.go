@@ -19,13 +19,6 @@ import (
 	"github.com/pborman/uuid"
 )
 
-const (
-	LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
-	UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS           = "0123456789"
-	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-)
-
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
@@ -78,13 +71,25 @@ func (s *StringMap) ToSafeJson() *string {
 	return res
 }
 
+func (s StringInterface) ToSafeBytes() []byte {
+	if s == nil {
+		return nil
+	}
+
+	data, _ := json.Marshal(s)
+	return data
+}
+
 func (s StringInterface) ToSafeJson() *string {
 	var res *string
 	if s == nil {
 		return res
 	}
 
-	data, _ := json.Marshal(s)
+	data := s.ToSafeBytes()
+	if data == nil {
+		return res
+	}
 	res = new(string)
 	*res = string(data)
 	return res

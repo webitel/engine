@@ -393,6 +393,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*[]*model.CalendarExceptDate,
 		*model.AppointmentProfile,
 		*[]model.AppointmentDate,
+		*model.StringInterface,
 		*model.MailProfileParams:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)
@@ -471,16 +472,16 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 			}
 		}
 		return gorp.CustomScanner{Holder: &[]byte{}, Target: target, Binder: binder}, true
-	case *model.StringInterface:
-		binder := func(holder, target interface{}) error {
-			s, ok := holder.(*string)
-			if !ok {
-				return errors.New(localization.T("store.sql.convert_string_interface"))
-			}
-			b := []byte(*s)
-			return json.Unmarshal(b, target)
-		}
-		return gorp.CustomScanner{Holder: model.StringInterface{}, Target: target, Binder: binder}, true
+	//case *model.StringInterface:
+	//	binder := func(holder, target interface{}) error {
+	//		s, ok := holder.(*string)
+	//		if !ok {
+	//			return errors.New(localization.T("store.sql.convert_string_interface"))
+	//		}
+	//		b := []byte(*s)
+	//		return json.Unmarshal(b, target)
+	//	}
+	//	return gorp.CustomScanner{Holder: model.StringInterface{}, Target: target, Binder: binder}, true
 	case *map[string]interface{}:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)

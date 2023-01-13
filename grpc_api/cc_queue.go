@@ -45,7 +45,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		},
 		Strategy:             in.Strategy,
 		Enabled:              in.Enabled,
-		Payload:              MarshalJsonpb(in.Payload),
+		Payload:              MarshalJsonpbToMap(in.Payload),
 		Calendar:             GetLookup(in.GetCalendar()),
 		Priority:             int(in.Priority),
 		Name:                 in.Name,
@@ -239,7 +239,7 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables
 			} else if patch.Payload == nil && strings.HasPrefix(v, "payload.") {
-				patch.Payload = MarshalJsonpb(in.Payload)
+				patch.Payload = MarshalJsonpbToMap(in.Payload)
 			}
 		}
 	}
@@ -290,7 +290,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		},
 		Strategy:             in.Strategy,
 		Enabled:              in.Enabled,
-		Payload:              MarshalJsonpb(in.Payload),
+		Payload:              MarshalJsonpbToMap(in.Payload),
 		Calendar:             GetLookup(in.Calendar),
 		Priority:             int(in.Priority),
 		Name:                 in.Name,
@@ -455,7 +455,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		UpdatedBy:            GetProtoLookup(src.UpdatedBy),
 		Strategy:             src.Strategy,
 		Enabled:              src.Enabled,
-		Payload:              UnmarshalJsonpb(src.Payload),
+		Payload:              UnmarshalJsonpb(src.Payload.ToSafeBytes()),
 		Calendar:             GetProtoLookup(src.Calendar),
 		Priority:             int32(src.Priority),
 		Name:                 src.Name,

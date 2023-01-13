@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 
@@ -69,6 +70,20 @@ func MarshalJsonpb(pb *structpb.Value) []byte {
 		return nil
 	}
 	return buf.Bytes()
+}
+
+func MarshalJsonpbToMap(pb *structpb.Value) model.StringInterface {
+	var buf bytes.Buffer
+	err := jsonpbCodec.Marshal(&buf, pb)
+	if err != nil {
+		return nil
+	}
+
+	res := make(model.StringInterface)
+
+	json.Unmarshal(buf.Bytes(), &res)
+
+	return res
 }
 
 func GetLookup(src *engine.Lookup) *model.Lookup {

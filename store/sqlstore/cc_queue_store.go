@@ -93,7 +93,7 @@ from q
 		map[string]interface{}{
 			"Strategy":             queue.Strategy,
 			"Enabled":              queue.Enabled,
-			"Payload":              queue.Payload,
+			"Payload":              queue.Payload.ToSafeBytes(),
 			"CalendarId":           queue.Calendar.GetSafeId(),
 			"Priority":             queue.Priority,
 			"UpdatedAt":            queue.UpdatedAt,
@@ -300,7 +300,7 @@ from  q
 		"UpdatedBy":            queue.UpdatedBy.GetSafeId(),
 		"Strategy":             queue.Strategy,
 		"Enabled":              queue.Enabled,
-		"Payload":              queue.Payload,
+		"Payload":              queue.Payload.ToSafeBytes(),
 		"CalendarId":           queue.Calendar.GetSafeId(),
 		"Priority":             queue.Priority,
 		"Name":                 queue.Name,
