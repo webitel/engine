@@ -3,8 +3,8 @@ package call_manager
 import (
 	"context"
 	"fmt"
-	"github.com/webitel/engine/call_manager/fs"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/protos/fs"
 	"go.uber.org/ratelimit"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -322,8 +322,8 @@ func (c *CallConnection) BlindTransfer(id, destination string) *model.AppError {
 	return nil
 }
 
-//uuid_audio 8e345bfc-47b9-46c1-bdf0-3b874a8539c8 start read mute -1
-//add eavesdrop mute other channel write
+// uuid_audio 8e345bfc-47b9-46c1-bdf0-3b874a8539c8 start read mute -1
+// add eavesdrop mute other channel write
 func (c *CallConnection) Mute(id string, val bool) *model.AppError {
 	var mute = 0
 	if val {

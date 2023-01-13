@@ -364,6 +364,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 		"OwnerIds":         pq.Array(search.OwnerIds),
 		"GranteeIds":       pq.Array(search.GranteeIds),
+		"AmdAiResult":      pq.Array(search.AmdAiResult),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -396,6 +397,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
+	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(:AmdAiResult))
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id and ca.note ilike :AgentDescription::varchar))
@@ -474,6 +476,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 		"OwnerIds":         pq.Array(search.OwnerIds),
 		"GranteeIds":       pq.Array(search.GranteeIds),
+		"AmdAiResult":      pq.Array(search.AmdAiResult),
 	}
 
 	err := s.ListQueryTimeout(&out, search.ListRequest,
@@ -506,6 +509,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:Direction::varchar isnull or direction = :Direction )
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
+	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(:AmdAiResult))
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id and ca.note ilike :AgentDescription::varchar))
