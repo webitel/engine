@@ -489,7 +489,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
 	and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
-	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
+	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
