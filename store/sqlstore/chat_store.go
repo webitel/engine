@@ -33,8 +33,7 @@ select
     mem.members,
     coalesce(ch.props, '{}')::jsonb as variables,
     row_to_json(at) task,
-	at.leaving_at as leaving_at,
-	ch.*
+	at.leaving_at as leaving_at
 from (
      select 1 pri, inv.created_at, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props, null::timestamptz as closed_at
      from chat.invite inv
