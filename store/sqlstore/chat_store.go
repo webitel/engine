@@ -25,7 +25,7 @@ select
     ch.invite_id,
     ch.id channel_id,
     c.title,
-    call_center.cc_view_timestamp(c.created_at) created_at,
+    call_center.cc_view_timestamp(ch.created_at, c.created_at) created_at,
     call_center.cc_view_timestamp(c.updated_at) updated_at,
     call_center.cc_view_timestamp(ch.joined_at) joined_at,
     call_center.cc_view_timestamp(ch.closed_at) closed_at,
@@ -33,15 +33,16 @@ select
     mem.members,
     coalesce(ch.props, '{}')::jsonb as variables,
     row_to_json(at) task,
-	at.leaving_at as leaving_at
+	at.leaving_at as leaving_at,
+	ch.*
 from (
-     select 1 pri, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props, null::timestamptz as closed_at 
+     select 1 pri, inv.created_at, null::varchar id, inv.id invite_id, null::timestamptz joined_at, inv.conversation_id, inv.user_id, inv.created_at updated_at, inv.props, null::timestamptz as closed_at
      from chat.invite inv
      where inv.user_id = :UserId::int8 and inv.closed_at isnull
         and inv.domain_id = :DomainId::int8
      union
 
-     select 2, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props, ch.closed_at
+     select 2, ch.created_at, ch.id, null::text invite_id, ch.created_at as joined_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props, ch.closed_at
      from (
 		select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props, ch.closed_at
 		from chat.channel ch
