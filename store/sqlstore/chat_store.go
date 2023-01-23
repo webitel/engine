@@ -25,7 +25,7 @@ select
     ch.invite_id,
     ch.id channel_id,
     c.title,
-    call_center.cc_view_timestamp(ch.created_at, c.created_at) created_at,
+    call_center.cc_view_timestamp(coalesce(ch.created_at, c.created_at)) created_at,
     call_center.cc_view_timestamp(c.updated_at) updated_at,
     call_center.cc_view_timestamp(ch.joined_at) joined_at,
     call_center.cc_view_timestamp(ch.closed_at) closed_at,
