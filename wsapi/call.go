@@ -119,6 +119,9 @@ func (api *API) callEavesdropState(conn *app.WebConn, req *model.WebSocketReques
 	if reqEa.Id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
+	if reqEa.State, ok = req.Data["state"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "state")
+	}
 
 	err := api.ctrl.EavesdropStateCall(conn.GetSession(), req.Session.DomainId, reqEa)
 	if err != nil {
