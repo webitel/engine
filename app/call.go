@@ -234,9 +234,10 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
-	invite.AddUserVariable("eavesdrop_name", client.Name)
-	invite.AddUserVariable("eavesdrop_number", client.Number)
-	invite.AddUserVariable("eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
+	invite.AddUserVariable("wbt_eavesdrop_type", "hide")
+	invite.AddUserVariable("wbt_eavesdrop_name", client.Name)
+	invite.AddUserVariable("wbt_eavesdrop_number", client.Number)
+	invite.AddUserVariable("wbt_eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
 
 	var id string
 	id, err = cli.MakeOutboundCall(invite)
@@ -273,19 +274,19 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 				//"wbt_to_name": toEndpoint.Name,
 				//"wbt_to_type": toEndpoint.Type,
 
-				"effective_caller_id_number": usr.Extension,
-				"effective_caller_id_name":   usr.Name,
-				"effective_callee_id_name":   req.Destination,
-				"effective_callee_id_number": req.Destination,
+				//"effective_caller_id_number": usr.Extension,
+				//"effective_caller_id_name":   usr.Name,
+				//"effective_callee_id_name":   req.Destination,
+				//"effective_callee_id_number": req.Destination,
 
-				"origination_caller_id_name":   req.Destination,
-				"origination_caller_id_number": req.Destination,
-				"origination_callee_id_name":   usr.Name,
-				"origination_callee_id_number": usr.Extension,
+				//"origination_caller_id_name":   req.Destination,
+				//"origination_caller_id_number": req.Destination,
+				//"origination_callee_id_name":   usr.Name,
+				//"origination_callee_id_number": usr.Extension,
 			},
 		),
-		CallerName:   usr.Name,
-		CallerNumber: usr.Extension,
+		//CallerName:   usr.Name,
+		//CallerNumber: usr.Extension,
 	}
 }
 
