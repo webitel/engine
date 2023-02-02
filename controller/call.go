@@ -121,6 +121,7 @@ func (c *Controller) BlindTransferCall(session *auth_manager.Session, domainId i
 
 	return c.app.BlindTransferCall(session.Domain(domainId), req)
 }
+
 func (c *Controller) EavesdropCall(session *auth_manager.Session, domainId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
@@ -128,6 +129,15 @@ func (c *Controller) EavesdropCall(session *auth_manager.Session, domainId int64
 	}
 
 	return c.app.EavesdropCall(session.Domain(domainId), session.UserId, req, variables)
+}
+
+func (c *Controller) EavesdropStateCall(session *auth_manager.Session, domainId int64, req *model.EavesdropCall) *model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.EavesdropCallState(session.Domain(domainId), session.UserId, req)
 }
 
 func (c *Controller) CreateCallAnnotation(session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {

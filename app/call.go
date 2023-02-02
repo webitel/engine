@@ -204,6 +204,15 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		},
 	}
 
+	/*
+	    {
+	     "id": "85b9366a-4c2f-45b0-bcea-06a38fe4be37",
+	     "control": true,
+	     "listenA": true,
+	     "listenB": true
+	   }
+	*/
+
 	if req.Dtmf {
 		invite.AddVariable("eavesdrop_enable_dtmf", "true")
 	} else {
@@ -246,6 +255,20 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 	}
 
 	return id, nil
+}
+
+func (app *App) EavesdropCallState(domainId, userId int64, req *model.EavesdropCall) *model.AppError {
+	cli, err := app.getCallCli(domainId, req.Id, nil)
+	if err != nil {
+		return err
+	}
+
+	err = cli.SetEavesdropState(req.Id, req.State)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.UserCallInfo) *model.CallRequest {

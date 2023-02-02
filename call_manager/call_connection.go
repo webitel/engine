@@ -309,6 +309,19 @@ func (c *CallConnection) DTMF(id string, ch rune) *model.AppError {
 	return nil
 }
 
+func (c *CallConnection) SetEavesdropState(id string, state string) *model.AppError {
+	_, err := c.api.SetEavesdropState(context.Background(), &fs.SetEavesdropStateRequest{
+		Id:    id,
+		State: state,
+	})
+
+	if err != nil {
+		return model.NewAppError("SetEavesdropState", "external.eavesdrop.app_error", nil, err.Error(),
+			http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (c *CallConnection) BlindTransfer(id, destination string) *model.AppError {
 	_, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
 		Command: "uuid_transfer",

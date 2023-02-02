@@ -14,6 +14,7 @@ func (api *API) InitCall() {
 
 	api.Router.Handle("call_invite", api.ApiAsyncWebSocketHandler(api.callInvite))
 	api.Router.Handle("call_eavesdrop", api.ApiAsyncWebSocketHandler(api.callEavesdrop))
+	api.Router.Handle("call_eavesdrop_state", api.ApiAsyncWebSocketHandler(api.callEavesdropState))
 	api.Router.Handle("call_user", api.ApiAsyncWebSocketHandler(api.callToUser))
 	api.Router.Handle("call_hangup", api.ApiWebSocketHandler(api.callHangup))
 	api.Router.Handle("call_hold", api.ApiWebSocketHandler(api.callHold))
@@ -96,6 +97,8 @@ func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (m
 	reqEa.WhisperALeg, _ = req.Data["whisperA"].(bool)
 	reqEa.WhisperBLeg, _ = req.Data["whisperB"].(bool)
 
+	reqEa.State, _ = req.Data["state"].(string)
+
 	vars := make(map[string]string)
 	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
 
@@ -106,6 +109,23 @@ func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (m
 	res := make(map[string]interface{})
 	res["id"] = callId
 
+	return res, nil
+}
+
+func (api *API) callEavesdropState(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+	var ok bool
+	reqEa := &model.EavesdropCall{}
+
+	if reqEa.Id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	err := api.ctrl.EavesdropStateCall(conn.GetSession(), req.Session.DomainId, reqEa)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
 	return res, nil
 }
 

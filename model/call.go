@@ -106,6 +106,7 @@ type EavesdropCall struct {
 	UserCallRequest
 	From *EndpointRequest
 	//Group       string //TODO https://freeswitch.org/confluence/display/FREESWITCH/mod_dptools%3A+eavesdrop
+	State       string //todo
 	Dtmf        bool
 	ALeg        bool
 	BLeg        bool
