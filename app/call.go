@@ -234,10 +234,10 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
-	invite.AddUserVariable("wbt_eavesdrop_type", "hide")
-	invite.AddUserVariable("wbt_eavesdrop_name", client.Name)
-	invite.AddUserVariable("wbt_eavesdrop_number", client.Number)
-	invite.AddUserVariable("wbt_eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
+	invite.AddVariable("wbt_eavesdrop_type", "hide")
+	invite.AddVariable("wbt_eavesdrop_name", client.Name)
+	invite.AddVariable("wbt_eavesdrop_number", client.Number)
+	invite.AddVariable("wbt_eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
 
 	var id string
 	id, err = cli.MakeOutboundCall(invite)
