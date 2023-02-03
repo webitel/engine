@@ -102,6 +102,12 @@ type BridgeCall struct {
 	AppId  string `json:"app_id" db:"app_id"`
 }
 
+const (
+	EavesdropStateConference = "conference"
+	EavesdropStateMuted      = "muted"
+	EavesdropStatePrompt     = "prompt"
+)
+
 type EavesdropCall struct {
 	UserCallRequest
 	From *EndpointRequest
@@ -128,6 +134,17 @@ type CallParameters struct {
 	DisableStun       bool
 	CancelDistribute  bool
 	IsOnline          bool
+}
+
+// todo
+func (e *EavesdropCall) StateName() string {
+	if e.WhisperALeg && e.WhisperBLeg {
+		return EavesdropStateConference
+	} else if !e.WhisperALeg && !e.WhisperBLeg {
+		return EavesdropStateMuted
+	} else {
+		return EavesdropStatePrompt
+	}
 }
 
 func (r *OutboundCallRequest) IsValid() *AppError {
