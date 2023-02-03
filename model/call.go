@@ -112,6 +112,7 @@ type EavesdropCall struct {
 	BLeg        bool
 	WhisperALeg bool
 	WhisperBLeg bool
+	Notify      bool
 }
 
 type CallParameters struct {

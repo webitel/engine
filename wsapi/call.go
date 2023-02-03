@@ -97,6 +97,8 @@ func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (m
 	reqEa.WhisperALeg, _ = req.Data["whisperA"].(bool)
 	reqEa.WhisperBLeg, _ = req.Data["whisperB"].(bool)
 
+	reqEa.Notify, _ = req.Data["notify"].(bool)
+
 	reqEa.State, _ = req.Data["state"].(string)
 
 	vars := make(map[string]string)

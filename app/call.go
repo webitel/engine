@@ -243,7 +243,12 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
-	invite.AddVariable("wbt_eavesdrop_type", "hide")
+	if req.Notify {
+		invite.AddVariable("wbt_eavesdrop_type", "notify")
+	} else {
+		invite.AddVariable("wbt_eavesdrop_type", "hide")
+	}
+
 	invite.AddVariable("wbt_eavesdrop_name", client.Name)
 	invite.AddVariable("wbt_eavesdrop_number", client.Number)
 	invite.AddVariable("wbt_eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
