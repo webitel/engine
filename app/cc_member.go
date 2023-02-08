@@ -35,6 +35,11 @@ func (app *App) BulkCreateMember(domainId, queueId int64, fileName string, membe
 	if q.Type == 1 || q.Type == 6 {
 		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.queue", nil, "Mismatch queue type", http.StatusBadRequest)
 	}
+
+	if len(fileName) > 120 {
+		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.file_name", nil, "The filename can not be more than 120 symbols", http.StatusBadRequest)
+	}
+
 	return app.Store.Member().BulkCreate(domainId, queueId, fileName, members)
 }
 
