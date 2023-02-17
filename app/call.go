@@ -112,10 +112,10 @@ func (app *App) GetCall(domainId int64, callId string) (*model.Call, *model.AppE
 }
 
 func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
-	var call *model.Call
 	var cli call_manager.CallClient
 	var err *model.AppError
 	var usr *model.UserCallInfo
+	var info *model.EavesdropInfo
 
 	if req.From != nil && (req.From.UserId != nil || req.From.Extension != nil) {
 		if usr, err = app.GetCallInfoEndpoint(domainId, req.From, false); err != nil {
@@ -129,36 +129,22 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 	}
 
 	if usr == nil {
-
+		return "", model.NewAppError("App.EavesdropCall", "app.call.eavesdrop.valid.user", nil, "No user", http.StatusBadRequest)
 	}
 
-	call, err = app.GetCall(domainId, req.Id)
+	info, err = app.Store.Call().GetEavesdropInfo(domainId, req.Id)
 	if err != nil {
 		return "", err
 	}
 
-	cli, err = app.getCallCli(domainId, req.Id, req.AppId)
+	cli, err = app.getCallCli(domainId, info.AgentCallId, &info.AppId)
 	if err != nil {
 		return "", err
-	}
-
-	var agent, client model.Endpoint
-
-	if call.Direction == model.CALL_DIRECTION_INBOUND {
-		client = *call.From
-		if call.To != nil {
-			agent = *call.To
-		}
-	} else {
-		agent = *call.From
-		if call.To != nil {
-			client = *call.To
-		}
 	}
 
 	invite := &model.CallRequest{
 		Endpoints:   usr.GetCallEndpoints(),
-		Destination: call.Destination,
+		Destination: info.Agent.Number,
 		Variables: model.UnionStringMaps(
 			usr.GetVariables(),
 			variables,
@@ -169,37 +155,37 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
 				"hangup_after_bridge":                 "true",
 				"wbt_auto_answer":                     "true",
-				"wbt_parent_id":                       call.Id,
+				"wbt_parent_id":                       info.ParentCallId,
 
-				"wbt_destination": call.Destination,
+				"wbt_destination": info.Agent.Number,
 				"wbt_from_id":     fmt.Sprintf("%v", usr.Id),
 				"wbt_from_number": usr.Endpoint,
 				"wbt_from_name":   usr.Name,
 				"wbt_from_type":   model.EndpointTypeUser,
 
-				"wbt_to_id":     fmt.Sprintf("%v", agent.Id),
-				"wbt_to_name":   agent.Name,
-				"wbt_to_number": agent.Number,
-				"wbt_to_type":   agent.Type,
+				"wbt_to_id":     fmt.Sprintf("%v", info.Agent.Id),
+				"wbt_to_name":   info.Agent.Name,
+				"wbt_to_number": info.Agent.Number,
+				"wbt_to_type":   info.Agent.Type,
 
 				"effective_caller_id_number": usr.Extension,
 				"effective_caller_id_name":   usr.Name,
 
-				"effective_callee_id_name":   agent.Name,
-				"effective_callee_id_number": agent.Number,
+				"effective_callee_id_name":   info.Agent.Name,
+				"effective_callee_id_number": info.Agent.Number,
 
-				"origination_caller_id_name":   agent.Name,
-				"origination_caller_id_number": agent.Number,
+				"origination_caller_id_name":   info.Agent.Name,
+				"origination_caller_id_number": info.Agent.Number,
 				"origination_callee_id_name":   usr.Name,
 				"origination_callee_id_number": usr.Extension,
 			},
 		),
-		CallerName:   agent.Name,
-		CallerNumber: agent.Number,
+		CallerName:   info.Agent.Name,
+		CallerNumber: info.Agent.Number,
 		Applications: []*model.CallRequestApplication{
 			{
 				AppName: "eavesdrop",
-				Args:    call.Id,
+				Args:    info.AgentCallId,
 			},
 		},
 	}
@@ -243,16 +229,17 @@ func (app *App) EavesdropCall(domainId, userId int64, req *model.EavesdropCall, 
 		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
-	if req.Notify {
-		invite.AddVariable("wbt_eavesdrop_type", "notify")
-	} else {
-		invite.AddVariable("wbt_eavesdrop_type", "hide")
-	}
+	//if req.Notify {
+	invite.AddVariable("wbt_eavesdrop_type", "notify")
+	//} else {
+	//	invite.AddVariable("wbt_eavesdrop_type", "hide")
+	//}
 
+	invite.AddVariable("wbt_eavesdrop_agent_id", info.AgentCallId)
 	invite.AddVariable("wbt_eavesdrop_state", req.StateName()) // todo remove WhisperALeg && WhisperBLeg
-	invite.AddVariable("wbt_eavesdrop_name", client.Name)
-	invite.AddVariable("wbt_eavesdrop_number", client.Number)
-	invite.AddVariable("wbt_eavesdrop_duration", fmt.Sprintf("%d", call.Duration))
+	invite.AddVariable("wbt_eavesdrop_name", info.Client.Name)
+	invite.AddVariable("wbt_eavesdrop_number", info.Client.Number)
+	invite.AddVariable("wbt_eavesdrop_duration", fmt.Sprintf("%d", info.Duration))
 
 	var id string
 	id, err = cli.MakeOutboundCall(invite)

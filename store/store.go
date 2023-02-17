@@ -336,6 +336,7 @@ type CallStore interface {
 	GetAnnotation(id int64) (*model.CallAnnotation, *model.AppError)
 	UpdateAnnotation(domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError)
 	DeleteAnnotation(id int64) *model.AppError
+	GetEavesdropInfo(domainId int64, id string) (*model.EavesdropInfo, *model.AppError)
 }
 
 type EmailProfileStore interface {

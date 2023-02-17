@@ -121,6 +121,15 @@ type EavesdropCall struct {
 	Notify      bool
 }
 
+type EavesdropInfo struct {
+	AgentCallId  string    `json:"agent_call_id" db:"agent_call_id"`
+	ParentCallId string    `json:"parent_id" db:"parent_id"`
+	AppId        string    `json:"app_id" db:"app_id"`
+	Agent        *Endpoint `json:"agent" db:"agent"`
+	Client       *Endpoint `json:"client" db:"client"`
+	Duration     int       `json:"duration" db:"duration"`
+}
+
 type CallParameters struct {
 	Timeout int
 	Audio   bool
