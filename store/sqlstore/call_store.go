@@ -1137,7 +1137,7 @@ from call_center.cc_calls c
     left join lateral (select not(c.bridged_id notnull and c.user_id isnull) v) owner_agent on true
     left join lateral (select json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) f) as f on true
     left join lateral (select json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) t) as t on true
-where c.domain_id = :DomainId and c.id = :Id and c.state in ('bridge', 'eavesdrop')`, map[string]interface{}{
+where c.domain_id = :DomainId and c.id = :Id and c.state in ('active', 'bridge', 'eavesdrop')`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
 	})
