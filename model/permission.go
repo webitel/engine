@@ -18,7 +18,7 @@ const (
 	PERMISSION_SCOPE_EMAIL_PROFILE = "email_profile"
 
 	PERMISSION_SCOPE_USERS   = "users"
-	PERMISSION_SCOPE_TRIGGER = "cc_list" //"trigger" //TODO
+	PERMISSION_SCOPE_TRIGGER = "trigger"
 
 	PermissionChat = "chats"
 )
