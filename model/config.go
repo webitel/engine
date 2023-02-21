@@ -25,24 +25,25 @@ type SipSettings struct {
 }
 
 type Config struct {
-	ConfigFile            *string                  `json:"-" flag:"config_file||JSON file configuration"`
-	PresignedCert         string                   `json:"presigned_cert" flag:"presigned_cert|/opt/storage/key.pem|Location to pre signed certificate"`
-	TranslationsDirectory string                   `json:"translations_directory" flag:"translations_directory|i18n|Translations directory"`
-	NodeName              string                   `flag:"id|1|Service id" json:"id"`
-	DiscoverySettings     DiscoverySettings        `json:"discovery_settings"`
-	LocalizationSettings  LocalizationSettings     `json:"localization_settings"`
-	MessageQueueSettings  MessageQueueSettings     `json:"message_queue_settings"`
-	SqlSettings           SqlSettings              `json:"sql_settings"`
-	ServerSettings        ServerSettings           `json:"server_settings"`
-	WebSocketSettings     WebSocketSettings        `json:"web_socket_settings"`
-	Dev                   bool                     `json:"dev" flag:"dev|false|Dev mode"`
-	SipSettings           SipSettings              `json:"sip_settings"`
-	Cloudflare            bool                     `json:"cloudflare" flag:"cloudflare|0|Use cloudflare"`
-	PingClientInterval    int                      `json:"ping_client_interval" flag:"ping_client_interval|0|Interval websocket ping"`
-	MinimumNumberMaskLen  int                      `json:"minimum_number_mask_len" flag:"min_mask_number_len|0|Minimum mask length number"`
-	PrefixNumberMaskLen   int                      `json:"prefix_number_mask_len" flag:"prefix_number_mask_len|5|Prefix mask length number"`
-	SuffixNumberMaskLen   int                      `json:"suffix_number_mask_len" flag:"suffix_number_mask_len|5|Suffix mask length number"`
-	EmailOAuth            map[string]oauth2.Config `json:"email_oauth2,omitempty"`
+	ConfigFile              *string                  `json:"-" flag:"config_file||JSON file configuration"`
+	PresignedCert           string                   `json:"presigned_cert" flag:"presigned_cert|/opt/storage/key.pem|Location to pre signed certificate"`
+	TranslationsDirectory   string                   `json:"translations_directory" flag:"translations_directory|i18n|Translations directory"`
+	NodeName                string                   `flag:"id|1|Service id" json:"id"`
+	DiscoverySettings       DiscoverySettings        `json:"discovery_settings"`
+	LocalizationSettings    LocalizationSettings     `json:"localization_settings"`
+	MessageQueueSettings    MessageQueueSettings     `json:"message_queue_settings"`
+	SqlSettings             SqlSettings              `json:"sql_settings"`
+	ServerSettings          ServerSettings           `json:"server_settings"`
+	WebSocketSettings       WebSocketSettings        `json:"web_socket_settings"`
+	Dev                     bool                     `json:"dev" flag:"dev|false|Dev mode"`
+	SipSettings             SipSettings              `json:"sip_settings"`
+	Cloudflare              bool                     `json:"cloudflare" flag:"cloudflare|0|Use cloudflare"`
+	PingClientInterval      int                      `json:"ping_client_interval" flag:"ping_client_interval|0|Interval websocket ping"`
+	MinimumNumberMaskLen    int                      `json:"minimum_number_mask_len" flag:"min_mask_number_len|0|Minimum mask length number"`
+	PrefixNumberMaskLen     int                      `json:"prefix_number_mask_len" flag:"prefix_number_mask_len|5|Prefix mask length number"`
+	SuffixNumberMaskLen     int                      `json:"suffix_number_mask_len" flag:"suffix_number_mask_len|5|Suffix mask length number"`
+	EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
+	MaxMemberCommunications int                      `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications"`
 }
 
 type DiscoverySettings struct {

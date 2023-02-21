@@ -73,6 +73,10 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	return oldMember, nil
 }
 
+func (app *App) MaxMemberCommunications() int {
+	return app.config.MaxMemberCommunications
+}
+
 func (app *App) PatchMember(domainId, queueId, id int64, patch *model.MemberPatch) (*model.Member, *model.AppError) {
 	oldMember, err := app.GetMember(domainId, queueId, id)
 	if err != nil {
@@ -81,7 +85,7 @@ func (app *App) PatchMember(domainId, queueId, id int64, patch *model.MemberPatc
 
 	oldMember.Patch(patch)
 
-	if err = oldMember.IsValid(); err != nil {
+	if err = oldMember.IsValid(app.MaxMemberCommunications()); err != nil {
 		return nil, err
 	}
 

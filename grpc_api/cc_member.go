@@ -59,7 +59,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		Skill:  GetLookup(in.Skill),
 	}
 
-	if err = m.IsValid(); err != nil {
+	if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +112,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			Skill:          GetLookup(v.Skill),
 		}
 
-		if err = m.IsValid(); err != nil {
+		if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
 			return nil, err
 		}
 
@@ -290,7 +290,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		m.StopCause = &in.StopCause
 	}
 
-	if err = m.IsValid(); err != nil {
+	if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
 		return nil, err
 	}
 

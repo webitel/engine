@@ -353,10 +353,10 @@ func (m *Member) GetAgentId() *int {
 	return nil
 }
 
-func (m *Member) IsValid() *AppError {
+func (m *Member) IsValid(maxCommunication int) *AppError {
 	//FIXME
 
-	if len(m.Communications) > 20 {
+	if len(m.Communications) > maxCommunication {
 		return NewAppError("Member.IsValid", "model.member.is_valid.communications.app_error", nil, "name="+m.Name, http.StatusBadRequest)
 	}
 
