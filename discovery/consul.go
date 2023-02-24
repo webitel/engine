@@ -1,9 +1,11 @@
 package discovery
 
 import (
+	"errors"
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/webitel/wlog"
+	"net/http"
 	"time"
 )
 
@@ -16,6 +18,8 @@ type consul struct {
 	check           CheckFunction
 	checkId         string
 	registerService bool
+	ttl             time.Duration
+	as              *api.AgentServiceRegistration
 }
 
 type CheckFunction func() (bool, error)
@@ -62,14 +66,14 @@ func (c *consul) GetByName(serviceName string) (ListConnections, error) {
 	return result, nil
 }
 
+// RegisterService TODO
 func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, criticalTtl time.Duration) error {
 	if !c.registerService {
 		return nil
 	}
 
-	var err error
-
-	as := &api.AgentServiceRegistration{
+	c.ttl = ttl
+	c.as = &api.AgentServiceRegistration{
 		Name:    name,
 		ID:      c.id,
 		Tags:    []string{c.id},
@@ -77,10 +81,15 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 		Port:    pubPort,
 		Check: &api.AgentServiceCheck{
 			DeregisterCriticalServiceAfter: criticalTtl.String(),
-			TTL:                            ttl.String(),
+			TTL:                            c.ttl.String(),
 		},
 	}
 
+	return c.register(c.as)
+}
+
+func (c *consul) register(as *api.AgentServiceRegistration) error {
+	var err error
 	if err = c.agent.ServiceRegister(as); err != nil {
 		return err
 	}
@@ -98,42 +107,56 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 	}
 
 	if serviceCheck == nil {
-		return err
+		return errors.New("serviceCheck is null")
 	}
 	c.checkId = serviceCheck.CheckID
-	c.update()
+	c.update(as)
 
 	wlog.Info(fmt.Sprintf("started consul service id: %s", c.id))
 
-	go c.updateTTL(ttl / 2)
+	go c.updateTTL(c.ttl/2, as)
 
 	return nil
 }
 
-func (c *consul) update() {
+func (c *consul) update(as *api.AgentServiceRegistration) {
 	ok, err := c.check()
 	if !ok {
 		if agentErr := c.agent.FailTTL(c.checkId, err.Error()); agentErr != nil {
-			wlog.Error(agentErr.Error())
+			c.handlePassTTLError(agentErr, as)
 		}
 	} else {
-		//FIXME register new instance...
 		if agentErr := c.agent.PassTTL(c.checkId, "ready..."); agentErr != nil {
-			wlog.Error(agentErr.Error())
+			c.handlePassTTLError(agentErr, as)
 		}
 	}
 }
 
-func (c *consul) updateTTL(ttl time.Duration) {
+func (c *consul) handlePassTTLError(err error, as *api.AgentServiceRegistration) {
+	switch wrapErr := err.(type) {
+	case api.StatusError:
+		if wrapErr.Code == http.StatusInternalServerError {
+			// reconnect ?
+			wlog.Info(fmt.Sprintf("reconnect consul service id: %s", c.id))
+			if e := c.register(as); e != nil {
+				wlog.Error(fmt.Sprintf("reconnect consul service %s error: %s", c.id, e.Error()))
+			}
+		}
+	default:
+		wlog.Error(err.Error())
+	}
+}
+
+func (c *consul) updateTTL(ttl time.Duration, as *api.AgentServiceRegistration) {
 	defer wlog.Info("stopped consul checker")
 
-	ticker := time.NewTicker(ttl / 2)
+	ticker := time.NewTicker(1 * time.Minute)
 	for {
 		select {
 		case <-c.stop:
 			return
 		case <-ticker.C:
-			c.update()
+			c.update(as)
 		}
 	}
 }
