@@ -150,7 +150,7 @@ func (c *consul) handlePassTTLError(err error, as *api.AgentServiceRegistration)
 func (c *consul) updateTTL(ttl time.Duration, as *api.AgentServiceRegistration) {
 	defer wlog.Info("stopped consul checker")
 
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(ttl / 2)
 	for {
 		select {
 		case <-c.stop:
