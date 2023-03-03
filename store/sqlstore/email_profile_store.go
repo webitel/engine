@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -16,9 +17,9 @@ func NewSqlEmailProfileStore(sqlStore SqlStore) store.EmailProfileStore {
 	return us
 }
 
-func (s SqlEmailProfileStore) Create(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Create(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
-	err := s.GetMaster().SelectOne(&profile, `with t as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&profile, `with t as (
     insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, imap_host, mailbox, imap_port, smtp_port,
                               login, password, created_at, created_by, updated_by, last_activity_at, smtp_host, fetch_interval, auth_type, "listen")
 values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :ImapHost, :Mailbox, :Imap, :Smtp, :Login, :Pass,
@@ -78,7 +79,7 @@ FROM t
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) GetAllPage(domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, *model.AppError) {
 	var profiles []*model.EmailProfile
 
 	f := map[string]interface{}{
@@ -86,7 +87,7 @@ func (s SqlEmailProfileStore) GetAllPage(domainId int64, search *model.SearchEma
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&profiles, search.ListRequest,
+	err := s.ListQuery(ctx, &profiles, search.ListRequest,
 		`domain_id = :DomainId and (  (:Q::varchar isnull or (description ilike :Q::varchar or name ilike :Q::varchar ) ))`,
 		model.EmailProfile{}, f)
 	if err != nil {
@@ -96,9 +97,9 @@ func (s SqlEmailProfileStore) GetAllPage(domainId int64, search *model.SearchEma
 	return profiles, nil
 }
 
-func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
-	err := s.GetReplica().SelectOne(&profile, `
+	err := s.GetReplica().WithContext(ctx).SelectOne(&profile, `
 	SELECT t.id,
 		   t.domain_id,
 		   call_center.cc_view_timestamp(t.created_at)                         AS created_at,
@@ -139,9 +140,9 @@ func (s SqlEmailProfileStore) Get(domainId int64, id int) (*model.EmailProfile, 
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) Update(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Update(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	var profile *model.EmailProfile
-	err := s.GetMaster().SelectOne(&profile, `with t as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&profile, `with t as (
     update call_center.cc_email_profile
         set name = :Name,
 			description= :Description,
@@ -216,8 +217,8 @@ FROM t
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) Delete(domainId int64, id int) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlEmailProfileStore.Delete", "store.sql_email_profile.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -225,8 +226,8 @@ func (s SqlEmailProfileStore) Delete(domainId int64, id int) *model.AppError {
 	return nil
 }
 
-func (s SqlEmailProfileStore) SetupOAuth2(id int, params *model.MailProfileParams) *model.AppError {
-	_, err := s.GetMaster().Exec(`update call_center.cc_email_profile
+func (s SqlEmailProfileStore) SetupOAuth2(ctx context.Context, id int, params *model.MailProfileParams) *model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_email_profile
 set params = :Params
 where id = :Id;`, map[string]interface{}{
 		"Id":     id,

@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,9 +17,9 @@ func NewSqlQueueResourceStore(sqlStore SqlStore) store.QueueResourceStore {
 	return us
 }
 
-func (s SqlQueueResourceStore) Create(queueResource *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError) {
+func (s SqlQueueResourceStore) Create(ctx context.Context, queueResource *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError) {
 	var out *model.QueueResourceGroup
-	if err := s.GetMaster().SelectOne(&out, `with q as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with q as (
 		insert into call_center.cc_queue_resource (queue_id, resource_group_id)
 		values (:QueueId, :ResourceGroupId)
 		returning *
@@ -40,9 +41,9 @@ from q
 	}
 }
 
-func (s SqlQueueResourceStore) Get(domainId, queueId, id int64) (*model.QueueResourceGroup, *model.AppError) {
+func (s SqlQueueResourceStore) Get(ctx context.Context, domainId, queueId, id int64) (*model.QueueResourceGroup, *model.AppError) {
 	var out *model.QueueResourceGroup
-	if err := s.GetReplica().SelectOne(&out, `select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group,
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&out, `select q.id, q.queue_id, call_center.cc_get_lookup(g.id, g.name::text) as resource_group,
 			call_center.cc_get_lookup(c.id, c.name::text::character varying) AS communication
 		from call_center.cc_queue_resource q
 			inner join call_center.cc_outbound_resource_group g on q.resource_group_id = g.id
@@ -59,7 +60,7 @@ func (s SqlQueueResourceStore) Get(domainId, queueId, id int64) (*model.QueueRes
 	}
 }
 
-func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, search *model.SearchQueueResourceGroup) ([]*model.QueueResourceGroup, *model.AppError) {
+func (s SqlQueueResourceStore) GetAllPage(ctx context.Context, domainId, queueId int64, search *model.SearchQueueResourceGroup) ([]*model.QueueResourceGroup, *model.AppError) {
 	var out []*model.QueueResourceGroup
 
 	f := map[string]interface{}{
@@ -69,7 +70,7 @@ func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, search *model
 		"Ids":      pq.Array(search.Ids),
 	}
 
-	err := s.ListQuery(&out, search.ListRequest,
+	err := s.ListQuery(ctx, &out, search.ListRequest,
 		`domain_id = :DomainId
 				and queue_id = :QueueId
 				and (:Ids::int[] isnull or id = any(:Ids))
@@ -84,8 +85,8 @@ func (s SqlQueueResourceStore) GetAllPage(domainId, queueId int64, search *model
 	}
 }
 
-func (s SqlQueueResourceStore) Update(domainId int64, queueResourceGroup *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError) {
-	err := s.GetMaster().SelectOne(&queueResourceGroup, `with q as (
+func (s SqlQueueResourceStore) Update(ctx context.Context, domainId int64, queueResourceGroup *model.QueueResourceGroup) (*model.QueueResourceGroup, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&queueResourceGroup, `with q as (
     update call_center.cc_queue_resource q
         set resource_group_id = :ResourceGroupId
         from call_center.cc_queue qq
@@ -110,8 +111,8 @@ from  q
 	return queueResourceGroup, nil
 }
 
-func (s SqlQueueResourceStore) Delete(queueId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue_resource c where c.id=:Id and c.queue_id = :QueueId`,
+func (s SqlQueueResourceStore) Delete(ctx context.Context, queueId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue_resource c where c.id=:Id and c.queue_id = :QueueId`,
 		map[string]interface{}{"Id": id, "QueueId": queueId}); err != nil {
 		return model.NewAppError("SqlQueueResourceStore.Delete", "store.sql_queue_resource.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

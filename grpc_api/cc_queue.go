@@ -79,7 +79,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		return nil, err
 	}
 
-	queue, err = api.app.CreateQueue(queue)
+	queue, err = api.app.CreateQueue(ctx, queue)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +113,9 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		list, endList, err = api.app.GetQueuePageByGroups(session.Domain(0), session.GetAclRoles(), req)
+		list, endList, err = api.app.GetQueuePageByGroups(ctx, session.Domain(0), session.GetAclRoles(), req)
 	} else {
-		list, endList, err = api.app.GetQueuePage(session.Domain(0), req)
+		list, endList, err = api.app.GetQueuePage(ctx, session.Domain(0), req)
 	}
 
 	if err != nil {
@@ -147,14 +147,15 @@ func (api *queue) ReadQueue(ctx context.Context, in *engine.ReadQueueRequest) (*
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
-	queue, err = api.app.GetQueueById(session.Domain(in.DomainId), in.Id)
+	queue, err = api.app.GetQueueById(ctx, session.Domain(in.DomainId), in.Id)
 
 	if err != nil {
 		return nil, err
@@ -180,7 +181,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -244,7 +246,7 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 		}
 	}
 
-	queue, err = api.app.PatchQueue(session.Domain(in.GetDomainId()), in.GetId(), patch)
+	queue, err = api.app.PatchQueue(ctx, session.Domain(in.GetDomainId()), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -270,7 +272,8 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -320,7 +323,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		r.FormSchema = GetLookup(in.TaskProcessing.GetFormSchema())
 	}
 
-	queue, err = api.app.UpdateQueue(r)
+	queue, err = api.app.UpdateQueue(ctx, r)
 
 	if err != nil {
 		return nil, err
@@ -342,7 +345,8 @@ func (api *queue) DeleteQueue(ctx context.Context, in *engine.DeleteQueueRequest
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -350,7 +354,7 @@ func (api *queue) DeleteQueue(ctx context.Context, in *engine.DeleteQueueRequest
 	}
 
 	var queue *model.Queue
-	queue, err = api.app.RemoveQueue(session.Domain(in.DomainId), in.Id)
+	queue, err = api.app.RemoveQueue(ctx, session.Domain(in.DomainId), in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +398,8 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 		Types:    in.GetType(),
 	}
 
-	report, endList, err = api.app.GetQueueReportGeneral(session.Domain(in.DomainId), session.UserId, session.RoleIds, auth_manager.PERMISSION_ACCESS_READ, req)
+	report, endList, err = api.app.GetQueueReportGeneral(ctx, session.Domain(in.DomainId), session.UserId, session.RoleIds,
+		auth_manager.PERMISSION_ACCESS_READ, req)
 	if err != nil {
 		return nil, err
 	}

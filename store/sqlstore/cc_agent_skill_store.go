@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -17,9 +18,9 @@ func NewSqlAgentSkillStore(sqlStore SqlStore) store.AgentSkillStore {
 	return us
 }
 
-func (s SqlAgentSkillStore) Create(in *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) Create(ctx context.Context, in *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
 	var out *model.AgentSkill
-	if err := s.GetMaster().SelectOne(&out, `with tmp as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     insert into call_center.cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled)
     values (:SkillId, :AgentId, :Capacity, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Enabled)
     returning *
@@ -49,7 +50,7 @@ from tmp
 	}
 }
 
-func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
 	var agentSkill []*model.AgentSkill
 
 	f := map[string]interface{}{
@@ -59,7 +60,7 @@ func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, search *model.Se
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&agentSkill, search.ListRequest,
+	err := s.ListQuery(ctx, &agentSkill, search.ListRequest,
 		`domain_id = :DomainId
 				and agent_id = :AgentId
 				and (:Ids::int[] isnull or id = any(:Ids))
@@ -73,10 +74,10 @@ func (s SqlAgentSkillStore) GetAllPage(domainId, agentId int64, search *model.Se
 	}
 }
 
-func (s SqlAgentSkillStore) GetById(domainId, agentId, id int64) (*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) GetById(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, *model.AppError) {
 	var agentSkill *model.AgentSkill
 
-	if err := s.GetReplica().SelectOne(&agentSkill,
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&agentSkill,
 		`select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
 	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
 from call_center.cc_skill_in_agent tmp
@@ -93,9 +94,9 @@ where tmp.id = :Id and tmp.agent_id = :AgentId and a.domain_id = :DomainId
 	}
 }
 
-func (s SqlAgentSkillStore) Update(agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) Update(ctx context.Context, agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
 	var out *model.AgentSkill
-	err := s.GetMaster().SelectOne(&out, `with tmp as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     update call_center.cc_skill_in_agent s
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
@@ -128,8 +129,8 @@ from tmp
 	return out, nil
 }
 
-func (s SqlAgentSkillStore) Delete(agentId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_skill_in_agent a
+func (s SqlAgentSkillStore) Delete(ctx context.Context, agentId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_skill_in_agent a
 where a.id = :Id and a.agent_id = :AgentId`,
 		map[string]interface{}{"Id": id, "AgentId": agentId}); err != nil {
 		return model.NewAppError("SqlAgentSkillStore.Delete", "store.sql_skill_in_agent.delete.app_error", nil,
@@ -138,10 +139,10 @@ where a.id = :Id and a.agent_id = :AgentId`,
 	return nil
 }
 
-func (s SqlAgentSkillStore) LookupNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, *model.AppError) {
+func (s SqlAgentSkillStore) LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, *model.AppError) {
 	var skills []*model.Skill
 
-	if _, err := s.GetReplica().Select(&skills,
+	if _, err := s.GetReplica().WithContext(ctx).Select(&skills,
 		`select c.id,
        c.name,
        c.description

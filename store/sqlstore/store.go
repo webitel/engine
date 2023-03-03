@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"github.com/go-gorp/gorp"
 	_ "github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -12,12 +13,12 @@ type SqlStore interface {
 	GetReplica() *gorp.DbMap
 	GetAllConns() []*gorp.DbMap
 
-	ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
-	One(out interface{}, where string, e Entity, params map[string]interface{}) error
+	ListQuery(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
+	One(ctx context.Context, out interface{}, where string, e Entity, params map[string]interface{}) error
 
-	ListQueryTimeout(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
+	ListQueryTimeout(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
 	// todo
-	ListQueryFromSchema(out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
+	ListQueryFromSchema(ctx context.Context, out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
 
 	User() store.UserStore
 	Calendar() store.CalendarStore

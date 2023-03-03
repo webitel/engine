@@ -35,7 +35,8 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -63,7 +64,7 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		return nil, err
 	}
 
-	if m, err = api.app.CreateMember(session.DomainId, m); err != nil {
+	if m, err = api.app.CreateMember(ctx, session.DomainId, m); err != nil {
 		return nil, err
 	}
 
@@ -87,7 +88,8 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -120,7 +122,7 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 	}
 	var inserted []int64
 
-	inserted, err = api.app.BulkCreateMember(session.Domain(0), in.GetQueueId(), in.GetFileName(), members)
+	inserted, err = api.app.BulkCreateMember(ctx, session.Domain(0), in.GetQueueId(), in.GetFileName(), members)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +145,8 @@ func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest)
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -151,7 +154,7 @@ func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest)
 	}
 
 	var out *model.Member
-	out, err = api.app.GetMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	out, err = api.app.GetMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +174,8 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), int64(in.GetQueueId()), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), int64(in.GetQueueId()), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, int64(in.GetQueueId()), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -262,7 +266,8 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -294,7 +299,7 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 		return nil, err
 	}
 
-	if m, err = api.app.UpdateMember(session.Domain(in.GetDomainId()), m); err != nil {
+	if m, err = api.app.UpdateMember(ctx, session.Domain(in.GetDomainId()), m); err != nil {
 		return nil, err
 	} else {
 		return toEngineMember(m), nil
@@ -318,7 +323,8 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -379,7 +385,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		}
 	}
 
-	m, err = api.app.PatchMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
+	m, err = api.app.PatchMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -406,7 +412,8 @@ func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequ
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -414,7 +421,7 @@ func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequ
 	}
 
 	var m *model.Member
-	m, err = api.app.RemoveMember(session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	m, err = api.app.RemoveMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +445,8 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -503,7 +511,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 		}
 	}
 
-	list, err = api.app.RemoveMultiMembers(session.Domain(0), req)
+	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req)
 
 	if err != nil {
 		return nil, err
@@ -536,7 +544,8 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -557,7 +566,7 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 		search.Ids = in.GetId()
 	}
 
-	cnt, err = api.app.ResetMembers(session.Domain(0), search)
+	cnt, err = api.app.ResetMembers(ctx, session.Domain(0), search)
 
 	if err != nil {
 		return nil, err
@@ -581,7 +590,8 @@ func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMe
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -589,7 +599,7 @@ func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMe
 	}
 
 	var list []*model.MemberAttempt
-	if list, err = api.app.GetMemberAttempts(in.GetMemberId()); err != nil {
+	if list, err = api.app.GetMemberAttempts(ctx, in.GetMemberId()); err != nil {
 		return nil, err
 	}
 
@@ -662,7 +672,7 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 		}
 	}
 
-	if list, endList, err = api.app.SearchAttempts(session.Domain(0), req); err != nil {
+	if list, endList, err = api.app.SearchAttempts(ctx, session.Domain(0), req); err != nil {
 		return nil, err
 	}
 
@@ -740,7 +750,7 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 		}
 	}
 
-	if list, endList, err = api.app.SearchAttemptsHistory(session.Domain(0), req); err != nil {
+	if list, endList, err = api.app.SearchAttemptsHistory(ctx, session.Domain(0), req); err != nil {
 		return nil, err
 	}
 

@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -17,9 +18,9 @@ func NewSqlRoutingSchemaStore(sqlStore SqlStore) store.RoutingSchemaStore {
 	return us
 }
 
-func (s SqlRoutingSchemaStore) Create(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) Create(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
 	var out *model.RoutingSchema
-	if err := s.GetMaster().SelectOne(&out, `with s as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into flow.acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug, editor, tags)
     values (:DomainId, :Name, :Scheme, :Payload, :Type, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Debug, :Editor, call_center.cc_array_merge(:Tags::varchar[], '{}'))
     returning *
@@ -50,7 +51,7 @@ from s
 	}
 }
 
-func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, *model.AppError) {
 	var schemes []*model.RoutingSchema
 
 	f := map[string]interface{}{
@@ -63,7 +64,7 @@ func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, search *model.SearchRo
 		"Tags":     pq.Array(search.Tags),
 	}
 
-	err := s.ListQueryFromSchema(&schemes, "flow", search.ListRequest,
+	err := s.ListQueryFromSchema(ctx, &schemes, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::text isnull or ( name ilike :Q::varchar  ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -81,9 +82,9 @@ func (s SqlRoutingSchemaStore) GetAllPage(domainId int64, search *model.SearchRo
 	}
 }
 
-func (s SqlRoutingSchemaStore) Get(domainId int64, id int64) (*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) Get(ctx context.Context, domainId int64, id int64) (*model.RoutingSchema, *model.AppError) {
 	var rScheme *model.RoutingSchema
-	if err := s.GetReplica().SelectOne(&rScheme, `select s.id,
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&rScheme, `select s.id,
        s.domain_id,
        s.name,
        s.created_at,
@@ -109,8 +110,8 @@ order by s.id`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != 
 	}
 }
 
-func (s SqlRoutingSchemaStore) Update(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
-	err := s.GetMaster().SelectOne(&scheme, `with s as (
+func (s SqlRoutingSchemaStore) Update(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&scheme, `with s as (
     update flow.acr_routing_scheme s
     set name = :Name,
         scheme = :Scheme,
@@ -157,8 +158,8 @@ from s
 	return scheme, nil
 }
 
-func (s SqlRoutingSchemaStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from flow.acr_routing_scheme c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlRoutingSchemaStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_routing_scheme c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRoutingSchemaStore.Delete", "store.sql_routing_schema.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -167,7 +168,7 @@ func (s SqlRoutingSchemaStore) Delete(domainId, id int64) *model.AppError {
 }
 
 // todo
-func (s SqlRoutingSchemaStore) ListTags(domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, *model.AppError) {
+func (s SqlRoutingSchemaStore) ListTags(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, *model.AppError) {
 	var res []*model.RoutingSchemaTag
 	if search.Sort == "" {
 		search.Sort = "name"
@@ -189,7 +190,7 @@ from tags
 limit :Limit
 offset :Offset`
 
-	_, err := s.GetReplica().Select(&res, fmt.Sprintf(q, sort), map[string]interface{}{
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]interface{}{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 		"Limit":    search.GetLimit(),

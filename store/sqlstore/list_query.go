@@ -71,7 +71,7 @@ func orderBy(s string) (sort string, field string) {
 	return
 }
 
-//TODO filter
+// TODO filter
 func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]interface{}) string {
 	s := GetFields(req.Fields, e)
 	sort := ""
@@ -102,16 +102,16 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 }
 
 // fixme schema
-func (s *SqlSupplier) ListQuery(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
+func (s *SqlSupplier) ListQuery(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
 	q := Build(&req, "call_center", where, e, params)
-	_, err := s.GetReplica().Select(out, q, params)
+	_, err := s.GetReplica().WithContext(ctx).Select(out, q, params)
 	if err != nil {
 		return err
 	}
 
 	return nil
 }
-func (s *SqlSupplier) One(out interface{}, where string, e Entity, params map[string]interface{}) error {
+func (s *SqlSupplier) One(ctx context.Context, out interface{}, where string, e Entity, params map[string]interface{}) error {
 	fields := make([]string, 0, len(e.AllowFields()))
 
 	for _, v := range e.AllowFields() {
@@ -125,7 +125,7 @@ func (s *SqlSupplier) One(out interface{}, where string, e Entity, params map[st
 	where %s
 	limit 1`, strings.Join(fields, ", "), t, where)
 
-	err := s.GetReplica().SelectOne(out, query, params)
+	err := s.GetReplica().WithContext(ctx).SelectOne(out, query, params)
 	if err != nil {
 		return err
 	}
@@ -133,10 +133,10 @@ func (s *SqlSupplier) One(out interface{}, where string, e Entity, params map[st
 	return nil
 }
 
-func (s *SqlSupplier) ListQueryTimeout(out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	ctx, _ := context.WithTimeout(context.Background(), (time.Second * time.Duration(s.QueryTimeout())))
+func (s *SqlSupplier) ListQueryTimeout(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
+	ctxTimeout, _ := context.WithTimeout(ctx, (time.Second * time.Duration(s.QueryTimeout())))
 	q := Build(&req, "call_center", where, e, params)
-	_, err := s.GetReplica().WithContext(ctx).Select(out, q, params)
+	_, err := s.GetReplica().WithContext(ctxTimeout).Select(out, q, params)
 	if err != nil {
 		return err
 	}
@@ -144,10 +144,10 @@ func (s *SqlSupplier) ListQueryTimeout(out interface{}, req model.ListRequest, w
 	return nil
 }
 
-//todo
-func (s *SqlSupplier) ListQueryFromSchema(out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
+// todo
+func (s *SqlSupplier) ListQueryFromSchema(ctx context.Context, out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
 	q := Build(&req, schema, where, e, params)
-	_, err := s.GetReplica().Select(out, q, params)
+	_, err := s.GetReplica().WithContext(ctx).Select(out, q, params)
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,7 @@ func (api *queueSkill) CreateQueueSkill(ctx context.Context, in *engine.CreateQu
 		qs.Skill.Id = int(in.Skill.Id)
 	}
 
-	qs, err = api.ctrl.CreateQueueSkill(session, qs)
+	qs, err = api.ctrl.CreateQueueSkill(ctx, session, qs)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (api *queueSkill) SearchQueueSkill(ctx context.Context, in *engine.SearchQu
 		req.Enabled = &in.Enabled
 	}
 
-	list, endList, err = api.ctrl.SearchQueueSkill(session, req)
+	list, endList, err = api.ctrl.SearchQueueSkill(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (api *queueSkill) ReadQueueSkill(ctx context.Context, in *engine.ReadQueueS
 		return nil, err
 	}
 	var qs *model.QueueSkill
-	qs, err = api.ctrl.GetQueueSkill(session, in.QueueId, in.Id)
+	qs, err = api.ctrl.GetQueueSkill(ctx, session, in.QueueId, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func (api *queueSkill) UpdateQueueSkill(ctx context.Context, in *engine.UpdateQu
 		qs.Skill.Id = int(in.Skill.Id)
 	}
 
-	qs, err = api.ctrl.UpdateQueueSkill(session, qs)
+	qs, err = api.ctrl.UpdateQueueSkill(ctx, session, qs)
 
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ func (api *queueSkill) PatchQueueSkill(ctx context.Context, in *engine.PatchQueu
 		}
 	}
 
-	if qs, err = api.ctrl.PatchQueueSkill(session, in.QueueId, in.Id, patch); err != nil {
+	if qs, err = api.ctrl.PatchQueueSkill(ctx, session, in.QueueId, in.Id, patch); err != nil {
 		return nil, err
 	}
 
@@ -173,7 +173,7 @@ func (api *queueSkill) DeleteQueueSkill(ctx context.Context, in *engine.DeleteQu
 	}
 
 	var qs *model.QueueSkill
-	qs, err = api.ctrl.DeleteQueueSkill(session, in.QueueId, in.Id)
+	qs, err = api.ctrl.DeleteQueueSkill(ctx, session, in.QueueId, in.Id)
 	if err != nil {
 		return nil, err
 	}

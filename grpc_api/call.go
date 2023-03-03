@@ -116,7 +116,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.Fts = &in.Fts
 	}
 
-	if list, endList, err = api.ctrl.SearchHistoryCall(session, req); err != nil {
+	if list, endList, err = api.ctrl.SearchHistoryCall(ctx, session, req); err != nil {
 		return nil, err
 	}
 
@@ -259,7 +259,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 		req.Aggs = append(req.Aggs, a)
 	}
 
-	list, err := api.ctrl.AggregateHistoryCall(session, req)
+	list, err := api.ctrl.AggregateHistoryCall(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +294,7 @@ func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*eng
 		return nil, err
 	}
 	var call *model.Call
-	call, err = api.ctrl.GetCall(session, in.DomainId, in.Id)
+	call, err = api.ctrl.GetCall(ctx, session, in.DomainId, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -364,7 +364,7 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 		req.Missed = model.NewBool(true)
 	}
 
-	list, endList, err = api.ctrl.SearchCall(session, req)
+	list, endList, err = api.ctrl.SearchCall(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -431,7 +431,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}
 
 	var id string
-	id, err = api.ctrl.CreateCall(session, req, in.GetParams().GetVariables())
+	id, err = api.ctrl.CreateCall(ctx, session, req, in.GetParams().GetVariables())
 	if err != nil {
 		return nil, err
 	}
@@ -459,7 +459,7 @@ func (api *call) HangupCall(ctx context.Context, in *engine.HangupCallRequest) (
 		req.Cause = model.NewString(in.GetCause())
 	}
 
-	err = api.ctrl.HangupCall(session, session.Domain(in.DomainId), &req)
+	err = api.ctrl.HangupCall(ctx, session, session.Domain(in.DomainId), &req)
 	if err != nil {
 		return nil, err
 	}
@@ -479,7 +479,7 @@ func (api *call) HoldCall(ctx context.Context, in *engine.UserCallRequest) (*eng
 		req.AppId = model.NewString(in.GetAppId())
 	}
 
-	err = api.ctrl.HoldCall(session, session.Domain(in.DomainId), &req)
+	err = api.ctrl.HoldCall(ctx, session, session.Domain(in.DomainId), &req)
 	if err != nil {
 		return nil, err
 	}
@@ -501,7 +501,7 @@ func (api *call) UnHoldCall(ctx context.Context, in *engine.UserCallRequest) (*e
 		req.AppId = model.NewString(in.GetAppId())
 	}
 
-	err = api.ctrl.UnHoldCall(session, session.Domain(in.DomainId), &req)
+	err = api.ctrl.UnHoldCall(ctx, session, session.Domain(in.DomainId), &req)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +529,7 @@ func (api *call) DtmfCall(ctx context.Context, in *engine.DtmfCallRequest) (*eng
 		req.Digit = rune(in.Digit[0])
 	}
 
-	err = api.ctrl.DtmfCall(session, session.Domain(in.DomainId), &req)
+	err = api.ctrl.DtmfCall(ctx, session, session.Domain(in.DomainId), &req)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +552,7 @@ func (api *call) BlindTransferCall(ctx context.Context, in *engine.BlindTransfer
 		req.AppId = model.NewString(in.GetAppId())
 	}
 
-	err = api.ctrl.BlindTransferCall(session, session.Domain(in.DomainId), &req)
+	err = api.ctrl.BlindTransferCall(ctx, session, session.Domain(in.DomainId), &req)
 	if err != nil {
 		return nil, err
 	}
@@ -591,7 +591,7 @@ func (api *call) EavesdropCall(ctx context.Context, in *engine.EavesdropCallRequ
 		}
 	}
 
-	_, err = api.ctrl.EavesdropCall(session, session.Domain(0), &req, nil)
+	_, err = api.ctrl.EavesdropCall(ctx, session, session.Domain(0), &req, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -611,7 +611,7 @@ func (api *call) CreateCallAnnotation(ctx context.Context, in *engine.CreateCall
 		EndSec:   in.GetEndSec(),
 	}
 
-	annotation, err = api.ctrl.CreateCallAnnotation(session, annotation)
+	annotation, err = api.ctrl.CreateCallAnnotation(ctx, session, annotation)
 	if err != nil {
 		return nil, err
 	}
@@ -633,7 +633,7 @@ func (api *call) UpdateCallAnnotation(ctx context.Context, in *engine.UpdateCall
 		EndSec:   in.GetEndSec(),
 	}
 
-	annotation, err = api.ctrl.UpdateCallAnnotation(session, annotation)
+	annotation, err = api.ctrl.UpdateCallAnnotation(ctx, session, annotation)
 	if err != nil {
 		return nil, err
 	}
@@ -648,7 +648,7 @@ func (api *call) DeleteCallAnnotation(ctx context.Context, in *engine.DeleteCall
 	}
 
 	var annotation *model.CallAnnotation
-	annotation, err = api.ctrl.DeleteCallAnnotation(session, in.GetId(), in.GetCallId())
+	annotation, err = api.ctrl.DeleteCallAnnotation(ctx, session, in.GetId(), in.GetCallId())
 	if err != nil {
 		return nil, err
 	}
@@ -676,7 +676,7 @@ func (api *call) SetVariablesCall(ctx context.Context, in *engine.SetVariablesCa
 		return nil, err
 	}
 
-	err = api.ctrl.SetCallVariables(session, in.Id, in.Variables)
+	err = api.ctrl.SetCallVariables(ctx, session, in.Id, in.Variables)
 	if err != nil {
 		return nil, err
 	}

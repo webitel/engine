@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -45,7 +46,7 @@ func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) 
 		domainId = conn.DomainId
 	}
 
-	sess, err := api.ctrl.GetAgentSession(conn.GetSession(), domainId, userId)
+	sess, err := api.ctrl.GetAgentSession(context.Background(), conn.GetSession(), domainId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +69,7 @@ func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 	}
 
 	onDemand, _ = req.Data["on_demand"].(bool)
-	err := api.ctrl.LoginAgent(conn.GetSession(), int64(domainId), int64(agentId), onDemand)
+	err := api.ctrl.LoginAgent(context.Background(), conn.GetSession(), int64(domainId), int64(agentId), onDemand)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 		domainId = float64(conn.DomainId)
 	}
 
-	err := api.ctrl.LogoutAgent(conn.GetSession(), int64(domainId), int64(agentId))
+	err := api.ctrl.LogoutAgent(context.Background(), conn.GetSession(), int64(domainId), int64(agentId))
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +118,7 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	payload, _ = req.Data["payload"].(string)
 	timeout, _ = req.Data["timeout"].(float64)
 
-	err := api.ctrl.PauseAgent(conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
+	err := api.ctrl.PauseAgent(context.Background(), conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +145,7 @@ func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 		domainId = float64(conn.DomainId)
 	}
 
-	timestamp, err := api.ctrl.WaitingAgent(conn.GetSession(), int64(domainId), int64(agentId), channel)
+	timestamp, err := api.ctrl.WaitingAgent(context.Background(), conn.GetSession(), int64(domainId), int64(agentId), channel)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +167,7 @@ func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		domainId = float64(conn.DomainId)
 	}
 
-	list, err := api.ctrl.ActiveAgentTasks(conn.GetSession(), int64(domainId), int64(agentId))
+	list, err := api.ctrl.ActiveAgentTasks(context.Background(), conn.GetSession(), int64(domainId), int64(agentId))
 	if err != nil {
 		return nil, err
 	}

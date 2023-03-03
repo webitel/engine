@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -19,7 +20,7 @@ func NewSqlCallStore(sqlStore SqlStore) store.CallStore {
 	return us
 }
 
-func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError) {
+func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, *model.AppError) {
 	var out []*model.Call
 
 	f := map[string]interface{}{
@@ -48,7 +49,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 		"State":         pq.Array(search.State),
 	}
 
-	err := s.ListQuery(&out, search.ListRequest,
+	err := s.ListQuery(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
@@ -77,7 +78,7 @@ func (s SqlCallStore) GetActive(domainId int64, search *model.SearchCall) ([]*mo
 	return out, nil
 }
 
-func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, *model.AppError) {
+func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, *model.AppError) {
 	var out []*model.Call
 
 	f := map[string]interface{}{
@@ -108,7 +109,7 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 		"UserSupervisorId": userSupervisorId,
 	}
 
-	err := s.ListQuery(&out, search.ListRequest,
+	err := s.ListQuery(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
@@ -216,9 +217,9 @@ func (s SqlCallStore) GetActiveByGroups(domainId int64, userSupervisorId int64, 
 }
 
 // fixme
-func (s SqlCallStore) GetUserActiveCall(domainId, userId int64) ([]*model.Call, *model.AppError) {
+func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId int64) ([]*model.Call, *model.AppError) {
 	var res []*model.Call
-	_, err := s.GetMaster().Select(&res, `select row_to_json(at) task,
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select row_to_json(at) task,
        c."id",
        c."app_id",
        c."state",
@@ -287,10 +288,10 @@ where c.user_id = :UserId
 	return res, nil
 }
 
-func (s SqlCallStore) Get(domainId int64, id string) (*model.Call, *model.AppError) {
+func (s SqlCallStore) Get(ctx context.Context, domainId int64, id string) (*model.Call, *model.AppError) {
 	var out *model.Call
 
-	err := s.GetMaster().SelectOne(&out, `
+	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `
 select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.parent_id, c.created_at,
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
@@ -308,9 +309,9 @@ where c.domain_id = :Domain and c.id = :Id`, map[string]interface{}{
 	return out, nil
 }
 
-func (s SqlCallStore) GetInstance(domainId int64, id string) (*model.CallInstance, *model.AppError) {
+func (s SqlCallStore) GetInstance(ctx context.Context, domainId int64, id string) (*model.CallInstance, *model.AppError) {
 	var inst *model.CallInstance
-	err := s.GetMaster().SelectOne(&inst, `select c.id, c.app_id, c.state
+	err := s.GetMaster().WithContext(ctx).SelectOne(&inst, `select c.id, c.app_id, c.state
 from call_center.cc_calls c
 where c.id = :Id and c.domain_id = :Domain`, map[string]interface{}{
 		"Id":     id,
@@ -323,7 +324,7 @@ where c.id = :Id and c.domain_id = :Domain`, map[string]interface{}{
 	return inst, nil
 }
 
-func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError) {
+func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError) {
 	var out []*model.HistoryCall
 
 	f := map[string]interface{}{
@@ -367,7 +368,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 		"AmdAiResult":      pq.Array(search.AmdAiResult),
 	}
 
-	err := s.ListQueryTimeout(&out, search.ListRequest,
+	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
 		`domain_id = :Domain::int8 
 	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id = :Q::text)
 	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
@@ -432,7 +433,7 @@ func (s SqlCallStore) GetHistory(domainId int64, search *model.SearchHistoryCall
 	return out, nil
 }
 
-func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError) {
+func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, *model.AppError) {
 	var out []*model.HistoryCall
 
 	f := map[string]interface{}{
@@ -479,7 +480,7 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 		"AmdAiResult":      pq.Array(search.AmdAiResult),
 	}
 
-	err := s.ListQueryTimeout(&out, search.ListRequest,
+	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
 		`domain_id = :Domain::int8 
 	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id = :Q::text)
 	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
@@ -551,9 +552,9 @@ func (s SqlCallStore) GetHistoryByGroups(domainId int64, userSupervisorId int64,
 	return out, nil
 }
 
-func (s SqlCallStore) SetVariables(domainId int64, id string, vars model.StringMap) (*model.CallDomain, *model.AppError) {
+func (s SqlCallStore) SetVariables(ctx context.Context, domainId int64, id string, vars model.StringMap) (*model.CallDomain, *model.AppError) {
 	var res *model.CallDomain
-	err := s.GetMaster().SelectOne(&res, `with a as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `with a as (
     update call_center.cc_calls c
         set payload = coalesce(payload, '{}') || :Vars
     where c.id = :Id and c.domain_id = :DomainId
@@ -585,8 +586,8 @@ limit 1`, map[string]interface{}{
 	return res, nil
 }
 
-func (s SqlCallStore) CreateAnnotation(annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
-	err := s.GetMaster().SelectOne(&annotation, `
+func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&annotation, `
 		with a as (
 			insert into call_center.cc_calls_annotation (call_id, created_by, created_at, note, start_sec, end_sec, updated_by, updated_at)
 			values (:CallId, :CreatedBy, :CreatedAt, :Note, :StartSec, :EndSec, :UpdatedBy, :UpdatedAt)
@@ -624,9 +625,9 @@ func (s SqlCallStore) CreateAnnotation(annotation *model.CallAnnotation) (*model
 	return annotation, nil
 }
 
-func (s SqlCallStore) GetAnnotation(id int64) (*model.CallAnnotation, *model.AppError) {
+func (s SqlCallStore) GetAnnotation(ctx context.Context, id int64) (*model.CallAnnotation, *model.AppError) {
 	var annotation *model.CallAnnotation
-	err := s.GetReplica().SelectOne(&annotation, `
+	err := s.GetReplica().WithContext(ctx).SelectOne(&annotation, `
 select
     a.id,
     a.call_id,
@@ -652,8 +653,8 @@ where a.id = :Id`, map[string]interface{}{
 	return annotation, nil
 }
 
-func (s SqlCallStore) UpdateAnnotation(domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
-	err := s.GetMaster().SelectOne(&annotation, `
+func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&annotation, `
 		with a as (
 			update call_center.cc_calls_annotation
 				set updated_at = :UpdatedAt,
@@ -694,8 +695,8 @@ func (s SqlCallStore) UpdateAnnotation(domainId int64, annotation *model.CallAnn
 	return annotation, nil
 }
 
-func (s SqlCallStore) DeleteAnnotation(id int64) *model.AppError {
-	_, err := s.GetMaster().Exec(`delete from call_center.cc_calls_annotation where id = :Id`, map[string]interface{}{
+func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id int64) *model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_calls_annotation where id = :Id`, map[string]interface{}{
 		"Id": id,
 	})
 
@@ -892,7 +893,7 @@ func GetOrderArrayBy(s []string) string {
 	return "order by " + strings.Join(order, ",")
 }
 
-func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
+func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
 
 	/*
 		todo materialized ??
@@ -1032,7 +1033,7 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 
 	var res []*model.AggregateResult
 
-	_, err := s.GetReplica().Select(&res, sql, f)
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, sql, f)
 	if err != nil {
 		return nil,
 			model.NewAppError("SqlCallStore.Aggregate", "store.sql_call.aggregate.app_error", nil, err.Error(), extractCodeFromErr(err))
@@ -1041,9 +1042,9 @@ func (s SqlCallStore) Aggregate(domainId int64, aggs *model.CallAggregate) ([]*m
 	return res, nil
 }
 
-func (s SqlCallStore) BridgeInfo(domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError) {
+func (s SqlCallStore) BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, *model.AppError) {
 	var res *model.BridgeCall
-	err := s.GetMaster().SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
 from call_center.cc_calls c,
      call_center.cc_calls c2
 where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
@@ -1058,8 +1059,8 @@ where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain
 	}
 }
 
-func (s SqlCallStore) LastFile(domainId int64, id string) (int64, *model.AppError) {
-	fileId, err := s.GetReplica().SelectInt(`select f.id
+func (s SqlCallStore) LastFile(ctx context.Context, domainId int64, id string) (int64, *model.AppError) {
+	fileId, err := s.GetReplica().WithContext(ctx).SelectInt(`select f.id
 from storage.files f
 where f.domain_id = :DomainId and f.uuid = (
     select coalesce(c.parent_id, c.id)
@@ -1078,8 +1079,8 @@ where f.domain_id = :DomainId and f.uuid = (
 	return fileId, nil
 }
 
-func (s SqlCallStore) BridgedId(id string) (string, *model.AppError) {
-	res, err := s.GetReplica().SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
+func (s SqlCallStore) BridgedId(ctx context.Context, id string) (string, *model.AppError) {
+	res, err := s.GetReplica().WithContext(ctx).SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
 from call_center.cc_calls c
 where id = :Id`, map[string]string{
 		"Id": id,
@@ -1092,9 +1093,9 @@ where id = :Id`, map[string]string{
 	}
 }
 
-func (s SqlCallStore) SetEmptySeverCall(domainId int64, id string) (*model.CallServiceHangup, *model.AppError) {
+func (s SqlCallStore) SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, *model.AppError) {
 	var e *model.CallServiceHangup
-	err := s.GetMaster().SelectOne(&e, `with c as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&e, `with c as (
     select
         c.id,
        call_center.cc_view_timestamp(now())::text as "timestamp",
@@ -1123,10 +1124,10 @@ returning c.*;`, map[string]interface{}{
 	}
 }
 
-func (s SqlCallStore) GetEavesdropInfo(domainId int64, id string) (*model.EavesdropInfo, *model.AppError) {
+func (s SqlCallStore) GetEavesdropInfo(ctx context.Context, domainId int64, id string) (*model.EavesdropInfo, *model.AppError) {
 	var res *model.EavesdropInfo
 
-	err := s.GetMaster().SelectOne(&res, `select
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select
     case when owner_agent.v then c.id else c.bridged_id end agent_call_id,
     c.id as parent_id,
     c.app_id,

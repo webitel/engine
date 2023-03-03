@@ -1,13 +1,16 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"context"
+	"github.com/webitel/engine/model"
+)
 
-func (a *App) CreateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
-	return a.Store.RoutingSchema().Create(scheme)
+func (a *App) CreateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+	return a.Store.RoutingSchema().Create(ctx, scheme)
 }
 
-func (a *App) GetRoutingSchemaPage(domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, *model.AppError) {
-	list, err := a.Store.RoutingSchema().GetAllPage(domainId, search)
+func (a *App) GetRoutingSchemaPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, *model.AppError) {
+	list, err := a.Store.RoutingSchema().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -15,12 +18,12 @@ func (a *App) GetRoutingSchemaPage(domainId int64, search *model.SearchRoutingSc
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetRoutingSchemaById(domainId, id int64) (*model.RoutingSchema, *model.AppError) {
-	return app.Store.RoutingSchema().Get(domainId, id)
+func (app *App) GetRoutingSchemaById(ctx context.Context, domainId, id int64) (*model.RoutingSchema, *model.AppError) {
+	return app.Store.RoutingSchema().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
-	oldScheme, err := a.GetRoutingSchemaById(scheme.DomainId, scheme.Id)
+func (a *App) UpdateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+	oldScheme, err := a.GetRoutingSchemaById(ctx, scheme.DomainId, scheme.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +39,7 @@ func (a *App) UpdateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSc
 	oldScheme.UpdatedAt = scheme.UpdatedAt
 	oldScheme.UpdatedBy = scheme.UpdatedBy
 
-	oldScheme, err = a.Store.RoutingSchema().Update(oldScheme)
+	oldScheme, err = a.Store.RoutingSchema().Update(ctx, oldScheme)
 	if err != nil {
 		return nil, err
 	}
@@ -44,22 +47,22 @@ func (a *App) UpdateRoutingSchema(scheme *model.RoutingSchema) (*model.RoutingSc
 	return oldScheme, nil
 }
 
-func (a *App) RemoveRoutingSchema(domainId, id int64) (*model.RoutingSchema, *model.AppError) {
-	scheme, err := a.Store.RoutingSchema().Get(domainId, id)
+func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*model.RoutingSchema, *model.AppError) {
+	scheme, err := a.Store.RoutingSchema().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.RoutingSchema().Delete(domainId, id)
+	err = a.Store.RoutingSchema().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 	return scheme, nil
 }
 
-func (a *App) PatchRoutingSchema(domainId, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, *model.AppError) {
-	old, err := a.GetRoutingSchemaById(domainId, id)
+func (a *App) PatchRoutingSchema(ctx context.Context, domainId, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, *model.AppError) {
+	old, err := a.GetRoutingSchemaById(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +78,7 @@ func (a *App) PatchRoutingSchema(domainId, id int64, patch *model.RoutingSchemaP
 		return nil, err
 	}
 
-	old, err = a.Store.RoutingSchema().Update(old)
+	old, err = a.Store.RoutingSchema().Update(ctx, old)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +86,8 @@ func (a *App) PatchRoutingSchema(domainId, id int64, patch *model.RoutingSchemaP
 	return old, nil
 }
 
-func (a *App) GetRoutingSchemaTagsPage(domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, *model.AppError) {
-	list, err := a.Store.RoutingSchema().ListTags(domainId, search)
+func (a *App) GetRoutingSchemaTagsPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, *model.AppError) {
+	list, err := a.Store.RoutingSchema().ListTags(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}

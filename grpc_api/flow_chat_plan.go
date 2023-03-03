@@ -30,7 +30,7 @@ func (api *chatPlanApi) CreateChatPlan(ctx context.Context, in *engine.CreateCha
 		Description: in.Description,
 	}
 
-	plan, err = api.ctrl.CreateChatPlan(session, plan)
+	plan, err = api.ctrl.CreateChatPlan(ctx, session, plan)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (api *chatPlanApi) SearchChatPlan(ctx context.Context, in *engine.SearchCha
 		req.Enabled = &in.Enabled
 	}
 
-	list, endList, err = api.ctrl.SearchChatPlan(session, req)
+	list, endList, err = api.ctrl.SearchChatPlan(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (api *chatPlanApi) ReadChatPlan(ctx context.Context, in *engine.ReadChatPla
 		return nil, err
 	}
 	var plan *model.ChatPlan
-	plan, err = api.ctrl.GetChatPlan(session, in.Id)
+	plan, err = api.ctrl.GetChatPlan(ctx, session, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (api *chatPlanApi) UpdateChatPlan(ctx context.Context, in *engine.UpdateCha
 		Description: in.GetDescription(),
 	}
 
-	plan, err = api.ctrl.UpdateChatPlan(session, plan)
+	plan, err = api.ctrl.UpdateChatPlan(ctx, session, plan)
 
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func (api *chatPlanApi) PatchChatPlan(ctx context.Context, in *engine.PatchChatP
 		}
 	}
 
-	if plan, err = api.ctrl.PatchChatPlan(session, in.Id, patch); err != nil {
+	if plan, err = api.ctrl.PatchChatPlan(ctx, session, in.Id, patch); err != nil {
 		return nil, err
 	}
 
@@ -158,7 +158,7 @@ func (api *chatPlanApi) DeleteChatPlan(ctx context.Context, in *engine.DeleteCha
 	}
 
 	var plan *model.ChatPlan
-	plan, err = api.ctrl.DeleteChatPlan(session, in.Id)
+	plan, err = api.ctrl.DeleteChatPlan(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}

@@ -1,20 +1,21 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) TriggerCheckAccess(domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
-	return a.Store.Trigger().CheckAccess(domainId, id, groups, access)
+func (a *App) TriggerCheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.Trigger().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) CreateTrigger(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
-	return a.Store.Trigger().Create(domainId, trigger)
+func (a *App) CreateTrigger(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
+	return a.Store.Trigger().Create(ctx, domainId, trigger)
 }
 
-func (a *App) GetTriggerList(domainId int64, search *model.SearchTrigger) ([]*model.Trigger, bool, *model.AppError) {
-	list, err := a.Store.Trigger().GetAllPage(domainId, search)
+func (a *App) GetTriggerList(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, bool, *model.AppError) {
+	list, err := a.Store.Trigger().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -22,8 +23,8 @@ func (a *App) GetTriggerList(domainId int64, search *model.SearchTrigger) ([]*mo
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetTriggerListByGroups(domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, bool, *model.AppError) {
-	list, err := a.Store.Trigger().GetAllPageByGroup(domainId, groups, search)
+func (a *App) GetTriggerListByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, bool, *model.AppError) {
+	list, err := a.Store.Trigger().GetAllPageByGroup(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -31,12 +32,12 @@ func (a *App) GetTriggerListByGroups(domainId int64, groups []int, search *model
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetTrigger(domainId int64, id int32) (*model.Trigger, *model.AppError) {
-	return a.Store.Trigger().Get(domainId, id)
+func (a *App) GetTrigger(ctx context.Context, domainId int64, id int32) (*model.Trigger, *model.AppError) {
+	return a.Store.Trigger().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateTrigger(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
-	oldTrigger, err := a.GetTrigger(domainId, trigger.Id)
+func (a *App) UpdateTrigger(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
+	oldTrigger, err := a.GetTrigger(ctx, domainId, trigger.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +53,7 @@ func (a *App) UpdateTrigger(domainId int64, trigger *model.Trigger) (*model.Trig
 	oldTrigger.Timezone = trigger.Timezone
 	oldTrigger.Timeout = trigger.Timeout
 
-	oldTrigger, err = a.Store.Trigger().Update(domainId, oldTrigger)
+	oldTrigger, err = a.Store.Trigger().Update(ctx, domainId, oldTrigger)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +61,8 @@ func (a *App) UpdateTrigger(domainId int64, trigger *model.Trigger) (*model.Trig
 	return oldTrigger, nil
 }
 
-func (a *App) PatchTrigger(domainId int64, id int32, patch *model.TriggerPatch) (*model.Trigger, *model.AppError) {
-	oldTrigger, err := a.GetTrigger(domainId, id)
+func (a *App) PatchTrigger(ctx context.Context, domainId int64, id int32, patch *model.TriggerPatch) (*model.Trigger, *model.AppError) {
+	oldTrigger, err := a.GetTrigger(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +73,7 @@ func (a *App) PatchTrigger(domainId int64, id int32, patch *model.TriggerPatch) 
 		return nil, err
 	}
 
-	oldTrigger, err = a.Store.Trigger().Update(domainId, oldTrigger)
+	oldTrigger, err = a.Store.Trigger().Update(ctx, domainId, oldTrigger)
 	if err != nil {
 		return nil, err
 	}
@@ -80,14 +81,14 @@ func (a *App) PatchTrigger(domainId int64, id int32, patch *model.TriggerPatch) 
 	return oldTrigger, nil
 }
 
-func (a *App) RemoveTrigger(domainId int64, id int32) (*model.Trigger, *model.AppError) {
-	trigger, err := a.Store.Trigger().Get(domainId, id)
+func (a *App) RemoveTrigger(ctx context.Context, domainId int64, id int32) (*model.Trigger, *model.AppError) {
+	trigger, err := a.Store.Trigger().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.Trigger().Delete(domainId, id)
+	err = a.Store.Trigger().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +96,11 @@ func (a *App) RemoveTrigger(domainId int64, id int32) (*model.Trigger, *model.Ap
 	return trigger, nil
 }
 
-func (a *App) GetTriggerJobList(domainId int64, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, *model.AppError) {
+func (a *App) GetTriggerJobList(ctx context.Context, domainId int64, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, *model.AppError) {
 	var list []*model.TriggerJob
-	_, err := a.Store.Trigger().Get(domainId, triggerId)
+	_, err := a.Store.Trigger().Get(ctx, domainId, triggerId)
 
-	list, err = a.Store.Trigger().GetAllJobs(triggerId, search)
+	list, err = a.Store.Trigger().GetAllJobs(ctx, triggerId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -107,11 +108,11 @@ func (a *App) GetTriggerJobList(domainId int64, triggerId int32, search *model.S
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) CreateTriggerJob(domainId int64, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError) {
-	_, err := a.Store.Trigger().Get(domainId, triggerId)
+func (a *App) CreateTriggerJob(ctx context.Context, domainId int64, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError) {
+	_, err := a.Store.Trigger().Get(ctx, domainId, triggerId)
 	if err != nil {
 		return nil, err
 	}
 
-	return a.Store.Trigger().CreateJob(domainId, triggerId, vars)
+	return a.Store.Trigger().CreateJob(ctx, domainId, triggerId, vars)
 }

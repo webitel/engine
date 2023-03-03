@@ -33,9 +33,10 @@ func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appointment *model.Appointment
 
 	widgetUri := getIdFromRequest(r)
+	ctx := r.Context()
 
 	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(widgetUri); c.Err != nil {
+	if widget, c.Err = c.App.AppointmentWidget(ctx, widgetUri); c.Err != nil {
 		return
 	}
 
@@ -45,7 +46,7 @@ func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if key != "" {
-		if appointment, c.Err = c.App.GetAppointment(key); c.Err != nil {
+		if appointment, c.Err = c.App.GetAppointment(ctx, key); c.Err != nil {
 			if c.Err.StatusCode == http.StatusNotFound {
 				c.Err = nil
 			} else {
@@ -85,7 +86,7 @@ func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	widgetUri := getIdFromRequest(r)
 
 	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(widgetUri); c.Err != nil {
+	if widget, c.Err = c.App.AppointmentWidget(r.Context(), widgetUri); c.Err != nil {
 		return
 	}
 
@@ -105,7 +106,7 @@ func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		appointment.Variables["user_agent"] = ua
 	}
 	appointment.Variables["origin"] = r.Header.Get("Origin")
-	appointment, c.Err = c.App.CreateAppointment(widget, appointment)
+	appointment, c.Err = c.App.CreateAppointment(r.Context(), widget, appointment)
 	if c.Err != nil {
 		return
 	}
@@ -124,7 +125,7 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	widgetUri := getIdFromRequest(r)
 
 	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(widgetUri); c.Err != nil {
+	if widget, c.Err = c.App.AppointmentWidget(r.Context(), widgetUri); c.Err != nil {
 		return
 	}
 
@@ -133,7 +134,7 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, c.Err = c.App.CancelAppointment(widget, key); c.Err != nil {
+	if _, c.Err = c.App.CancelAppointment(r.Context(), widget, key); c.Err != nil {
 		return
 	}
 	w.Write(widget.ComputedList)

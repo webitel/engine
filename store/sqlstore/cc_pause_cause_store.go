@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,8 +17,8 @@ func NewSqlPauseCauseStore(sqlStore SqlStore) store.PauseCauseStore {
 	return us
 }
 
-func (s SqlPauseCauseStore) Create(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
-	err := s.GetMaster().SelectOne(&cause, `with s as (
+func (s SqlPauseCauseStore) Create(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
     insert into call_center.cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
                                       name, limit_min, allow_supervisor, allow_agent, allow_admin, description)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
@@ -59,7 +60,7 @@ from s
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, *model.AppError) {
 	var causes []*model.PauseCause
 
 	f := map[string]interface{}{
@@ -69,7 +70,7 @@ func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchPause
 		"Name":     search.Name,
 	}
 
-	err := s.ListQuery(&causes, search.ListRequest,
+	err := s.ListQuery(ctx, &causes, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -82,9 +83,9 @@ func (s SqlPauseCauseStore) GetAllPage(domainId int64, search *model.SearchPause
 	return causes, nil
 }
 
-func (s SqlPauseCauseStore) Get(domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) Get(ctx context.Context, domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
 	var cause *model.PauseCause
-	err := s.GetReplica().SelectOne(&cause, `select id, 
+	err := s.GetReplica().WithContext(ctx).SelectOne(&cause, `select id, 
        created_at,
        created_by,
        updated_at,
@@ -108,8 +109,8 @@ where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) Update(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
-	err := s.GetMaster().SelectOne(&cause, `with s as (
+func (s SqlPauseCauseStore) Update(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
     update call_center.cc_pause_cause
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
@@ -155,8 +156,8 @@ from s
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) Delete(domainId int64, id uint32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_pause_cause c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlPauseCauseStore) Delete(ctx context.Context, domainId int64, id uint32) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_pause_cause c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlPauseCauseStore.Delete", "store.sql_pause_cause.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

@@ -1,18 +1,19 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
 	"net/http"
 	"strings"
 )
 
-func (app *App) CreateEmailProfile(domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
-	return app.Store.EmailProfile().Create(domainId, profile)
+func (app *App) CreateEmailProfile(ctx context.Context, domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+	return app.Store.EmailProfile().Create(ctx, domainId, profile)
 }
 
-func (a *App) GetEmailProfilesPage(domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, bool, *model.AppError) {
-	list, err := a.Store.EmailProfile().GetAllPage(domainId, search)
+func (a *App) GetEmailProfilesPage(ctx context.Context, domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, bool, *model.AppError) {
+	list, err := a.Store.EmailProfile().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -20,12 +21,12 @@ func (a *App) GetEmailProfilesPage(domainId int64, search *model.SearchEmailProf
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetEmailProfile(domainId int64, id int) (*model.EmailProfile, *model.AppError) {
-	return a.Store.EmailProfile().Get(domainId, id)
+func (a *App) GetEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+	return a.Store.EmailProfile().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateEmailProfile(domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
-	oldProfile, err := a.GetEmailProfile(domainId, int(p.Id))
+func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+	oldProfile, err := a.GetEmailProfile(ctx, domainId, int(p.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (a *App) UpdateEmailProfile(domainId int64, p *model.EmailProfile) (*model.
 	oldProfile.SmtpHost = p.SmtpHost
 	oldProfile.FetchInterval = p.FetchInterval
 
-	oldProfile, err = a.Store.EmailProfile().Update(domainId, oldProfile)
+	oldProfile, err = a.Store.EmailProfile().Update(ctx, domainId, oldProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -52,8 +53,8 @@ func (a *App) UpdateEmailProfile(domainId int64, p *model.EmailProfile) (*model.
 	return oldProfile, nil
 }
 
-func (a *App) PatchEmailProfile(domainId int64, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, *model.AppError) {
-	oldProfile, err := a.GetEmailProfile(domainId, id)
+func (a *App) PatchEmailProfile(ctx context.Context, domainId int64, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, *model.AppError) {
+	oldProfile, err := a.GetEmailProfile(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (a *App) PatchEmailProfile(domainId int64, id int, patch *model.EmailProfil
 		return nil, err
 	}
 
-	oldProfile, err = a.Store.EmailProfile().Update(domainId, oldProfile)
+	oldProfile, err = a.Store.EmailProfile().Update(ctx, domainId, oldProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +103,8 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 	}, nil
 }
 
-func (a *App) LoginEmailProfile(domainId int64, id int) (*model.EmailProfileLogin, *model.AppError) {
-	profile, err := a.GetEmailProfile(domainId, id)
+func (a *App) LoginEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfileLogin, *model.AppError) {
+	profile, err := a.GetEmailProfile(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -117,22 +118,22 @@ func (a *App) LoginEmailProfile(domainId int64, id int) (*model.EmailProfileLogi
 		"Not found auth type to "+profile.ImapHost, http.StatusForbidden)
 }
 
-func (app *App) RemoveEmailProfile(domainId int64, id int) (*model.EmailProfile, *model.AppError) {
-	profile, err := app.Store.EmailProfile().Get(domainId, id)
+func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+	profile, err := app.Store.EmailProfile().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = app.Store.EmailProfile().Delete(domainId, id)
+	err = app.Store.EmailProfile().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 	return profile, nil
 }
 
-func (app *App) EmailLoginOAuth(id int, token *oauth2.Token) *model.AppError {
-	return app.Store.EmailProfile().SetupOAuth2(id, &model.MailProfileParams{
+func (app *App) EmailLoginOAuth(ctx context.Context, id int, token *oauth2.Token) *model.AppError {
+	return app.Store.EmailProfile().SetupOAuth2(ctx, id, &model.MailProfileParams{
 		OAuth2: token,
 	})
 }

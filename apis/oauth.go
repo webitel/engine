@@ -39,7 +39,7 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.Err = c.App.EmailLoginOAuth(int(id), token); c.Err != nil {
+	if c.Err = c.App.EmailLoginOAuth(r.Context(), int(id), token); c.Err != nil {
 		return
 	}
 

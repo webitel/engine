@@ -1,12 +1,13 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) GetCalendarsPage(domainId int64, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
-	list, err := a.Store.Calendar().GetAllPage(domainId, search)
+func (a *App) GetCalendarsPage(ctx context.Context, domainId int64, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
+	list, err := a.Store.Calendar().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -14,8 +15,8 @@ func (a *App) GetCalendarsPage(domainId int64, search *model.SearchCalendar) ([]
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetCalendarPageByGroups(domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
-	list, err := a.Store.Calendar().GetAllPageByGroups(domainId, groups, search)
+func (a *App) GetCalendarPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
+	list, err := a.Store.Calendar().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -23,12 +24,12 @@ func (a *App) GetCalendarPageByGroups(domainId int64, groups []int, search *mode
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) CreateCalendar(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
-	return a.Store.Calendar().Create(calendar)
+func (a *App) CreateCalendar(ctx context.Context, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+	return a.Store.Calendar().Create(ctx, calendar)
 }
 
-func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
-	oldCalendar, err := a.GetCalendarById(calendar.DomainId, calendar.Id)
+func (a *App) UpdateCalendar(ctx context.Context, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+	oldCalendar, err := a.GetCalendarById(ctx, calendar.DomainId, calendar.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +44,7 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	oldCalendar.Accepts = calendar.Accepts
 	oldCalendar.Excepts = calendar.Excepts
 
-	oldCalendar, err = a.Store.Calendar().Update(oldCalendar)
+	oldCalendar, err = a.Store.Calendar().Update(ctx, oldCalendar)
 	if err != nil {
 		return nil, err
 	}
@@ -51,30 +52,30 @@ func (a *App) UpdateCalendar(calendar *model.Calendar) (*model.Calendar, *model.
 	return oldCalendar, nil
 }
 
-func (a *App) CalendarCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
-	return a.Store.Calendar().CheckAccess(domainId, id, groups, access)
+func (a *App) CalendarCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.Calendar().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) GetCalendarById(domainId, id int64) (*model.Calendar, *model.AppError) {
-	return a.Store.Calendar().Get(domainId, id)
+func (a *App) GetCalendarById(ctx context.Context, domainId, id int64) (*model.Calendar, *model.AppError) {
+	return a.Store.Calendar().Get(ctx, domainId, id)
 }
 
-func (a *App) RemoveCalendar(domainId, id int64) (*model.Calendar, *model.AppError) {
-	calendar, err := a.Store.Calendar().Get(domainId, id)
+func (a *App) RemoveCalendar(ctx context.Context, domainId, id int64) (*model.Calendar, *model.AppError) {
+	calendar, err := a.Store.Calendar().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.Calendar().Delete(domainId, id)
+	err = a.Store.Calendar().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 	return calendar, nil
 }
 
-func (a *App) GetCalendarTimezoneAllPage(search *model.SearchTimezone) ([]*model.Timezone, bool, *model.AppError) {
-	list, err := a.Store.Calendar().GetTimezoneAllPage(search)
+func (a *App) GetCalendarTimezoneAllPage(ctx context.Context, search *model.SearchTimezone) ([]*model.Timezone, bool, *model.AppError) {
+	list, err := a.Store.Calendar().GetTimezoneAllPage(ctx, search)
 	if err != nil {
 		return nil, false, err
 	}

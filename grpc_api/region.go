@@ -29,7 +29,7 @@ func (api *region) CreateRegion(ctx context.Context, in *engine.CreateRegionRequ
 		Description: &in.Description,
 	}
 
-	region, err = api.ctrl.CreateRegion(session, region)
+	region, err = api.ctrl.CreateRegion(ctx, session, region)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (api *region) SearchRegion(ctx context.Context, in *engine.SearchRegionRequ
 		req.Description = &in.Description
 	}
 
-	list, endList, err = api.ctrl.SearchRegion(session, req)
+	list, endList, err = api.ctrl.SearchRegion(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (api *region) ReadRegion(ctx context.Context, in *engine.ReadRegionRequest)
 		return nil, err
 	}
 	var region *model.Region
-	region, err = api.ctrl.GetRegion(session, in.Id)
+	region, err = api.ctrl.GetRegion(ctx, session, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (api *region) PatchRegion(ctx context.Context, in *engine.PatchRegionReques
 		}
 	}
 
-	if region, err = api.ctrl.PatchRegion(session, in.Id, patch); err != nil {
+	if region, err = api.ctrl.PatchRegion(ctx, session, in.Id, patch); err != nil {
 		return nil, err
 	}
 
@@ -140,7 +140,7 @@ func (api *region) UpdateRegion(ctx context.Context, in *engine.UpdateRegionRequ
 		region.Timezone.Id = int(in.Timezone.Id)
 	}
 
-	region, err = api.ctrl.UpdateRegion(session, region)
+	region, err = api.ctrl.UpdateRegion(ctx, session, region)
 
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (api *region) DeleteRegion(ctx context.Context, in *engine.DeleteRegionRequ
 	}
 
 	var region *model.Region
-	region, err = api.ctrl.DeleteRegion(session, in.Id)
+	region, err = api.ctrl.DeleteRegion(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}

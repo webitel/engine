@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -18,9 +19,9 @@ func NewSqlQueueStore(sqlStore SqlStore) store.QueueStore {
 	return us
 }
 
-func (s SqlQueueStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 
-	res, err := s.GetReplica().SelectNullInt(`select 1
+	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
           from call_center.cc_queue_acl a
@@ -37,9 +38,9 @@ func (s SqlQueueStore) CheckAccess(domainId, id int64, groups []int, access auth
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlQueueStore) Create(queue *model.Queue) (*model.Queue, *model.AppError) {
+func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Queue, *model.AppError) {
 	var out *model.Queue
-	if err := s.GetMaster().SelectOne(&out, `with q as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with q as (
     insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
                       created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
@@ -125,7 +126,7 @@ from q
 	}
 }
 
-func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
+func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
 	var queues []*model.Queue
 
 	f := map[string]interface{}{
@@ -135,7 +136,7 @@ func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]
 		"Types":    pq.Array(search.Types),
 	}
 
-	err := s.ListQuery(&queues, search.ListRequest,
+	err := s.ListQuery(ctx, &queues, search.ListRequest,
 		`domain_id = :DomainId 
 			and ( (:Ids::int[] isnull or id = any(:Ids) )  
 			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
@@ -148,7 +149,7 @@ func (s SqlQueueStore) GetAllPage(domainId int64, search *model.SearchQueue) ([]
 	return queues, nil
 }
 
-func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
+func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
 	var queues []*model.Queue
 
 	f := map[string]interface{}{
@@ -159,7 +160,7 @@ func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&queues, search.ListRequest,
+	err := s.ListQuery(ctx, &queues, search.ListRequest,
 		`domain_id = :DomainId and  (
 					exists(select 1
 					  from call_center.cc_queue_acl acl
@@ -173,9 +174,9 @@ func (s SqlQueueStore) GetAllPageByGroups(domainId int64, groups []int, search *
 	return queues, nil
 }
 
-func (s SqlQueueStore) Get(domainId int64, id int64) (*model.Queue, *model.AppError) {
+func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*model.Queue, *model.AppError) {
 	var queue *model.Queue
-	if err := s.GetReplica().SelectOne(&queue, `
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&queue, `
 select q.id,
        q.strategy,
        q.enabled,
@@ -226,8 +227,8 @@ where q.domain_id = :DomainId and q.id = :Id
 	}
 }
 
-func (s SqlQueueStore) Update(queue *model.Queue) (*model.Queue, *model.AppError) {
-	err := s.GetMaster().SelectOne(&queue, `with q as (
+func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Queue, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&queue, `with q as (
     update call_center.cc_queue q
 set updated_at = :UpdatedAt,
     updated_by = :UpdatedBy,
@@ -329,8 +330,8 @@ from  q
 	return queue, nil
 }
 
-func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlQueueStore.Delete", "store.sql_queue.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -338,9 +339,9 @@ func (s SqlQueueStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-func (s SqlQueueStore) QueueReportGeneral(domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError) {
+func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError) {
 	var report *model.QueueReportGeneralAgg
-	err := s.GetReplica().SelectOne(&report, `
+	err := s.GetReplica().WithContext(ctx).SelectOne(&report, `
 with queues  as  (
     select *
     from call_center.cc_queue q

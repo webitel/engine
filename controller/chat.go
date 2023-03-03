@@ -51,14 +51,14 @@ func (c *Controller) UpdateChannelChat(session *auth_manager.Session, channelId 
 	return c.app.UpdateChannelChat(session.UserId, channelId, readUntil)
 }
 
-func (c *Controller) ListActiveChat(session *auth_manager.Session, page, size int) ([]*model.Conversation, *model.AppError) {
+func (c *Controller) ListActiveChat(ctx context.Context, session *auth_manager.Session, page, size int) ([]*model.Conversation, *model.AppError) {
 	// FIXME PERMISSION
-	return c.app.ListActiveChat(session.Token, session.DomainId, session.UserId, page, size)
+	return c.app.ListActiveChat(ctx, session.Token, session.DomainId, session.UserId, page, size)
 }
 
-func (c *Controller) BlindTransferChat(session *auth_manager.Session, conversationId, channelId string, planId int32, vars map[string]string) *model.AppError {
+func (c *Controller) BlindTransferChat(ctx context.Context, session *auth_manager.Session, conversationId, channelId string, planId int32, vars map[string]string) *model.AppError {
 	// FIXME PERMISSION
-	return c.app.BlindTransferChat(session.DomainId, conversationId, channelId, planId, vars)
+	return c.app.BlindTransferChat(ctx, session.DomainId, conversationId, channelId, planId, vars)
 }
 
 // todo check userId in domain

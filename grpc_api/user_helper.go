@@ -23,7 +23,7 @@ func (api *userHelper) DefaultDeviceConfig(ctx context.Context, in *engine.Defau
 
 	switch in.Type {
 	case model.DeviceTypeSip:
-		if res, err := api.app.GetUserDefaultSipCDeviceConfig(session.UserId, session.DomainId); err != nil {
+		if res, err := api.app.GetUserDefaultSipCDeviceConfig(ctx, session.UserId, session.DomainId); err != nil {
 			return nil, err
 		} else {
 			return &engine.DefaultDeviceConfigResponse{
@@ -40,7 +40,7 @@ func (api *userHelper) DefaultDeviceConfig(ctx context.Context, in *engine.Defau
 		}
 
 	case model.DeviceTypeWebRTC:
-		if res, err := api.app.GetUserDefaultWebRTCDeviceConfig(session.UserId, session.DomainId); err != nil {
+		if res, err := api.app.GetUserDefaultWebRTCDeviceConfig(ctx, session.UserId, session.DomainId); err != nil {
 			return nil, err
 		} else {
 			return &engine.DefaultDeviceConfigResponse{

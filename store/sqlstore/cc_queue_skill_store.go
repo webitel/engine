@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,10 +17,10 @@ func NewSqlQueueSkillStore(sqlStore SqlStore) store.QueueSkillStore {
 	return us
 }
 
-func (s SqlQueueSkillStore) Create(domainId int64, in *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) Create(ctx context.Context, domainId int64, in *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
 	var qs *model.QueueSkill
 
-	err := s.GetMaster().SelectOne(&qs, `with s as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&qs, `with s as (
     insert into call_center.cc_queue_skill (queue_id, skill_id, bucket_ids, lvl, min_capacity, max_capacity, enabled)
     select :QueueId, :SkillId, :BucketIds, :Lvl, :MinCapacity, :MaxCapacity, :Enabled
     where exists(select 1 from call_center.cc_queue q where q.domain_id = :DomainId)
@@ -55,10 +56,10 @@ from s
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) Get(domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) Get(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError) {
 	var qs *model.QueueSkill
 
-	err := s.GetReplica().SelectOne(&qs, `select "id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "enabled"
+	err := s.GetReplica().WithContext(ctx).SelectOne(&qs, `select "id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "enabled"
 		from call_center.cc_queue_skill_list
 		where id = :Id and queue_id = :QueueId and domain_id = :DomainId
 	`, map[string]interface{}{
@@ -75,7 +76,7 @@ func (s SqlQueueSkillStore) Get(domainId int64, queueId, id uint32) (*model.Queu
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, *model.AppError) {
 	var qs []*model.QueueSkill
 
 	f := map[string]interface{}{
@@ -91,7 +92,7 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 		"Enabled":     search.Enabled,
 	}
 
-	err := s.ListQuery(&qs, search.ListRequest,
+	err := s.ListQuery(ctx, &qs, search.ListRequest,
 		`queue_id = :QueueId and domain_id = :DomainId
 				and (:Ids::int4[] isnull or id = any(:Ids))
 				and (:Q::text isnull or skill->>'name' ilike :Q::text)
@@ -110,9 +111,9 @@ func (s SqlQueueSkillStore) GetAllPage(domainId int64, search *model.SearchQueue
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) Update(domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) Update(ctx context.Context, domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
 	var qs *model.QueueSkill
-	err := s.GetMaster().SelectOne(&qs, `with s as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&qs, `with s as (
     update call_center.cc_queue_skill s
     set skill_id = :SkillId,
         bucket_ids = :BucketIds,
@@ -152,8 +153,8 @@ from s
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) Delete(domainId int64, queueId, id uint32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue_skill s
+func (s SqlQueueSkillStore) Delete(ctx context.Context, domainId int64, queueId, id uint32) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue_skill s
 where s.id = :Id and s.queue_id = :QueueId and exists(select 1 from call_center.cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)`,
 		map[string]interface{}{
 			"Id":       id,

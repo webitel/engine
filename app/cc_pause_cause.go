@@ -1,9 +1,12 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"context"
+	"github.com/webitel/engine/model"
+)
 
-func (a *App) GetPauseCausePage(domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, bool, *model.AppError) {
-	list, err := a.Store.PauseCause().GetAllPage(domainId, search)
+func (a *App) GetPauseCausePage(ctx context.Context, domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, bool, *model.AppError) {
+	list, err := a.Store.PauseCause().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -11,16 +14,16 @@ func (a *App) GetPauseCausePage(domainId int64, search *model.SearchPauseCause) 
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) CreatePauseCause(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
-	return a.Store.PauseCause().Create(domainId, cause)
+func (a *App) CreatePauseCause(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
+	return a.Store.PauseCause().Create(ctx, domainId, cause)
 }
 
-func (a *App) GetPauseCause(domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
-	return a.Store.PauseCause().Get(domainId, id)
+func (a *App) GetPauseCause(ctx context.Context, domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
+	return a.Store.PauseCause().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdatePauseCause(domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
-	oldCause, err := a.GetPauseCause(domainId, uint32(cause.Id))
+func (a *App) UpdatePauseCause(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
+	oldCause, err := a.GetPauseCause(ctx, domainId, uint32(cause.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +38,7 @@ func (a *App) UpdatePauseCause(domainId int64, cause *model.PauseCause) (*model.
 	oldCause.AllowAdmin = cause.AllowAdmin
 	oldCause.LimitMin = cause.LimitMin
 
-	oldCause, err = a.Store.PauseCause().Update(domainId, oldCause)
+	oldCause, err = a.Store.PauseCause().Update(ctx, domainId, oldCause)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +46,8 @@ func (a *App) UpdatePauseCause(domainId int64, cause *model.PauseCause) (*model.
 	return oldCause, nil
 }
 
-func (a *App) PatchPauseCause(domainId int64, id uint32, patch *model.PauseCausePatch) (*model.PauseCause, *model.AppError) {
-	oldCause, err := a.GetPauseCause(domainId, id)
+func (a *App) PatchPauseCause(ctx context.Context, domainId int64, id uint32, patch *model.PauseCausePatch) (*model.PauseCause, *model.AppError) {
+	oldCause, err := a.GetPauseCause(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +58,7 @@ func (a *App) PatchPauseCause(domainId int64, id uint32, patch *model.PauseCause
 		return nil, err
 	}
 
-	oldCause, err = a.Store.PauseCause().Update(domainId, oldCause)
+	oldCause, err = a.Store.PauseCause().Update(ctx, domainId, oldCause)
 	if err != nil {
 		return nil, err
 	}
@@ -63,14 +66,14 @@ func (a *App) PatchPauseCause(domainId int64, id uint32, patch *model.PauseCause
 	return oldCause, nil
 }
 
-func (a *App) RemovePauseCause(domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
-	cause, err := a.GetPauseCause(domainId, id)
+func (a *App) RemovePauseCause(ctx context.Context, domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
+	cause, err := a.GetPauseCause(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.PauseCause().Delete(domainId, id)
+	err = a.Store.PauseCause().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}

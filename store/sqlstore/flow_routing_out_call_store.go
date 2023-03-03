@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
@@ -18,9 +19,9 @@ func NewSqlRoutingOutboundCallStore(sqlStore SqlStore) store.RoutingOutboundCall
 	return us
 }
 
-func (s SqlRoutingOutboundCallStore) Create(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) Create(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
 	var out *model.RoutingOutboundCall
-	err := s.GetMaster().SelectOne(&out, `with tmp as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     insert into flow.acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
                                       scheme_id, pattern, disabled)
 	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Disabled)
@@ -60,7 +61,7 @@ from tmp
 	return out, nil
 }
 
-func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, *model.AppError) {
 	var routing []*model.RoutingOutboundCall
 
 	f := map[string]interface{}{
@@ -73,7 +74,7 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, search *model.Se
 		"Pattern":     search.Pattern,
 	}
 
-	err := s.ListQueryFromSchema(&routing, "flow", search.ListRequest,
+	err := s.ListQueryFromSchema(ctx, &routing, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -90,10 +91,10 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(domainId int64, search *model.Se
 	}
 }
 
-func (s SqlRoutingOutboundCallStore) Get(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) Get(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
 	var routing *model.RoutingOutboundCall
 
-	if err := s.GetReplica().SelectOne(&routing,
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
        tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, call_center.cc_get_lookup(arst.id, arst.name) as schema, 
 		tmp.pattern, disabled
@@ -112,9 +113,9 @@ where tmp.id = :Id and tmp.domain_id = :DomainId`, map[string]interface{}{"Domai
 	}
 }
 
-func (s SqlRoutingOutboundCallStore) Update(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) Update(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
 	var out *model.RoutingOutboundCall
-	err := s.GetMaster().SelectOne(&out, `with tmp as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     update flow.acr_routing_outbound_call r
     set name = :Name,
         description = :Description,
@@ -159,8 +160,8 @@ from tmp
 	return out, nil
 }
 
-func (s SqlRoutingOutboundCallStore) ChangePosition(domainId, fromId, toId int64) *model.AppError {
-	i, err := s.GetMaster().SelectInt(`with t as (
+func (s SqlRoutingOutboundCallStore) ChangePosition(ctx context.Context, domainId, fromId, toId int64) *model.AppError {
+	i, err := s.GetMaster().WithContext(ctx).SelectInt(`with t as (
 		select f.id,
            case when f.pos > lead(f.pos) over () then lead(f.pos) over () else lag(f.pos) over (order by f.pos desc) end as new_pos,
            count(*) over () cnt
@@ -195,8 +196,8 @@ func (s SqlRoutingOutboundCallStore) ChangePosition(domainId, fromId, toId int64
 	return nil
 }
 
-func (s SqlRoutingOutboundCallStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from flow.acr_routing_outbound_call c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlRoutingOutboundCallStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_routing_outbound_call c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRoutingOutboundCallStore.Delete", "store.sql_routing_out_call.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)

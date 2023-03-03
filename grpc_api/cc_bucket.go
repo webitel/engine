@@ -48,7 +48,7 @@ func (api *bucket) CreateBucket(ctx context.Context, in *engine.CreateBucketRequ
 		return nil, err
 	}
 
-	if bucket, err = api.app.CreateBucket(bucket); err != nil {
+	if bucket, err = api.app.CreateBucket(ctx, bucket); err != nil {
 		return nil, err
 	} else {
 		return toEngineBucket(bucket), nil
@@ -79,7 +79,7 @@ func (api *bucket) SearchBucket(ctx context.Context, in *engine.SearchBucketRequ
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetBucketsPage(session.Domain(0), req)
+	list, endList, err = api.app.GetBucketsPage(ctx, session.Domain(0), req)
 
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (api *bucket) ReadBucket(ctx context.Context, in *engine.ReadBucketRequest)
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	bucket, err = api.app.GetBucket(in.Id, session.Domain(in.GetDomainId()))
+	bucket, err = api.app.GetBucket(ctx, in.Id, session.Domain(in.GetDomainId()))
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ func (api *bucket) UpdateBucket(ctx context.Context, in *engine.UpdateBucketRequ
 
 	var bucket *model.Bucket
 
-	bucket, err = api.app.UpdateBucket(&model.Bucket{
+	bucket, err = api.app.UpdateBucket(ctx, &model.Bucket{
 		Name:        in.Name,
 		Description: in.Description,
 		DomainRecord: model.DomainRecord{
@@ -164,7 +164,7 @@ func (api *bucket) DeleteBucket(ctx context.Context, in *engine.DeleteBucketRequ
 	}
 
 	var bucket *model.Bucket
-	bucket, err = api.app.RemoveBucket(session.Domain(in.DomainId), in.Id)
+	bucket, err = api.app.RemoveBucket(ctx, session.Domain(in.DomainId), in.Id)
 	if err != nil {
 		return nil, err
 	}

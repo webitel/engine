@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
@@ -37,7 +38,7 @@ func (api *API) test(conn *app.WebConn, req *model.WebSocketRequest) (map[string
 }
 
 func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
-	calls, err := api.ctrl.UserActiveCall(conn.GetSession())
+	calls, err := api.ctrl.UserActiveCall(context.Background(), conn.GetSession())
 
 	if err != nil {
 		return nil, err
@@ -104,7 +105,7 @@ func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (m
 	vars := make(map[string]string)
 	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
 
-	callId, err := api.ctrl.EavesdropCall(conn.GetSession(), req.Session.DomainId, reqEa, vars)
+	callId, err := api.ctrl.EavesdropCall(context.Background(), conn.GetSession(), req.Session.DomainId, reqEa, vars)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +126,7 @@ func (api *API) callEavesdropState(conn *app.WebConn, req *model.WebSocketReques
 		return nil, NewInvalidWebSocketParamError(req.Action, "state")
 	}
 
-	err := api.ctrl.EavesdropStateCall(conn.GetSession(), req.Session.DomainId, reqEa)
+	err := api.ctrl.EavesdropStateCall(context.Background(), conn.GetSession(), req.Session.DomainId, reqEa)
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +161,7 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		cr.Cause = &cause
 	}
 
-	err := api.App.HangupCall(conn.GetSession().DomainId, &cr)
+	err := api.App.HangupCall(context.Background(), conn.GetSession().DomainId, &cr)
 
 	return nil, err
 }
@@ -176,7 +177,7 @@ func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	err := api.ctrl.BlindTransferCall(conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
+	err := api.ctrl.BlindTransferCall(context.Background(), conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
 		UserCallRequest: model.UserCallRequest{
 			Id: id,
 		},
@@ -296,7 +297,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	vars := make(map[string]string)
 	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
 
-	if id, err := api.ctrl.CreateCall(conn.GetSession(), callReq, vars); err != nil {
+	if id, err := api.ctrl.CreateCall(context.Background(), conn.GetSession(), callReq, vars); err != nil {
 		return nil, err
 	} else {
 		data := make(map[string]interface{})
@@ -319,12 +320,12 @@ func (api *API) callToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	callId = model.NewUuid()
 	callToId = model.NewUuid()
 
-	info, err := api.App.GetUserCallInfo(conn.UserId, conn.DomainId)
+	info, err := api.App.GetUserCallInfo(context.Background(), conn.UserId, conn.DomainId)
 	if err != nil {
 		return nil, err
 	}
 
-	infoTo, err := api.App.GetUserCallInfo(int64(toUserId), conn.DomainId)
+	infoTo, err := api.App.GetUserCallInfo(context.Background(), int64(toUserId), conn.DomainId)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +442,7 @@ func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		return nil, NewInvalidWebSocketParamError(req.Action, "to_id")
 	}
 	res := make(map[string]interface{})
-	err := api.App.BridgeCall(conn.DomainId, fromId, toId)
+	err := api.App.BridgeCall(context.Background(), conn.DomainId, fromId, toId)
 	//FIXME set result
 	return res, err
 }
@@ -454,7 +455,7 @@ func (api *API) callRecording(conn *app.WebConn, req *model.WebSocketRequest) (m
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
 
-	fileId, err := api.App.GetLastCallFile(conn.DomainId, id)
+	fileId, err := api.App.GetLastCallFile(context.Background(), conn.DomainId, id)
 	if err != nil {
 		return nil, err
 	}

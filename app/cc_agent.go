@@ -1,21 +1,22 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"net/http"
 )
 
-func (a *App) AgentCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
-	return a.Store.Agent().CheckAccess(domainId, id, groups, access)
+func (a *App) AgentCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.Agent().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) CreateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
-	return a.Store.Agent().Create(agent)
+func (a *App) CreateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
+	return a.Store.Agent().Create(ctx, agent)
 }
 
-func (a *App) GetAgentsPage(domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
-	list, err := a.Store.Agent().GetAllPage(domainId, search)
+func (a *App) GetAgentsPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
+	list, err := a.Store.Agent().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -23,12 +24,12 @@ func (a *App) GetAgentsPage(domainId int64, search *model.SearchAgent) ([]*model
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentActiveTasks(domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
-	return a.Store.Agent().GetActiveTask(domainId, agentId)
+func (a *App) GetAgentActiveTasks(ctx context.Context, domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
+	return a.Store.Agent().GetActiveTask(ctx, domainId, agentId)
 }
 
-func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
-	list, err := a.Store.Agent().GetAllPageByGroups(domainId, groups, search)
+func (a *App) GetAgentsPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
+	list, err := a.Store.Agent().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -36,8 +37,8 @@ func (a *App) GetAgentsPageByGroups(domainId int64, groups []int, search *model.
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentStateHistoryPage(domainId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
-	list, err := a.Store.Agent().HistoryState(domainId, search)
+func (a *App) GetAgentStateHistoryPage(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
+	list, err := a.Store.Agent().HistoryState(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -45,12 +46,12 @@ func (a *App) GetAgentStateHistoryPage(domainId int64, search *model.SearchAgent
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentById(domainId, id int64) (*model.Agent, *model.AppError) {
-	return a.Store.Agent().Get(domainId, id)
+func (a *App) GetAgentById(ctx context.Context, domainId, id int64) (*model.Agent, *model.AppError) {
+	return a.Store.Agent().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
-	oldAgent, err := a.GetAgentById(agent.DomainId, agent.Id)
+func (a *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
+	oldAgent, err := a.GetAgentById(ctx, agent.DomainId, agent.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 		return nil, err
 	}
 
-	oldAgent, err = a.Store.Agent().Update(oldAgent)
+	oldAgent, err = a.Store.Agent().Update(ctx, oldAgent)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +84,8 @@ func (a *App) UpdateAgent(agent *model.Agent) (*model.Agent, *model.AppError) {
 	return oldAgent, nil
 }
 
-func (a *App) PatchAgent(domainId, id int64, patch *model.AgentPatch) (*model.Agent, *model.AppError) {
-	oldAgent, err := a.GetAgentById(domainId, id)
+func (a *App) PatchAgent(ctx context.Context, domainId, id int64, patch *model.AgentPatch) (*model.Agent, *model.AppError) {
+	oldAgent, err := a.GetAgentById(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +96,7 @@ func (a *App) PatchAgent(domainId, id int64, patch *model.AgentPatch) (*model.Ag
 		return nil, err
 	}
 
-	oldAgent, err = a.Store.Agent().Update(oldAgent)
+	oldAgent, err = a.Store.Agent().Update(ctx, oldAgent)
 	if err != nil {
 		return nil, err
 	}
@@ -103,22 +104,22 @@ func (a *App) PatchAgent(domainId, id int64, patch *model.AgentPatch) (*model.Ag
 	return oldAgent, nil
 }
 
-func (a *App) RemoveAgent(domainId, id int64) (*model.Agent, *model.AppError) {
-	agent, err := a.GetAgentById(domainId, id)
+func (a *App) RemoveAgent(ctx context.Context, domainId, id int64) (*model.Agent, *model.AppError) {
+	agent, err := a.GetAgentById(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.Agent().Delete(domainId, id)
+	err = a.Store.Agent().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 	return agent, nil
 }
 
-func (a *App) GetAgentInQueuePage(domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, bool, *model.AppError) {
-	list, err := a.Store.Agent().InQueue(domainId, id, search)
+func (a *App) GetAgentInQueuePage(ctx context.Context, domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, bool, *model.AppError) {
+	list, err := a.Store.Agent().InQueue(ctx, domainId, id, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -126,12 +127,12 @@ func (a *App) GetAgentInQueuePage(domainId, id int64, search *model.SearchAgentI
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentInQueueStatistics(domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
-	return a.Store.Agent().QueueStatistic(domainId, agentId)
+func (a *App) GetAgentInQueueStatistics(ctx context.Context, domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
+	return a.Store.Agent().QueueStatistic(ctx, domainId, agentId)
 }
 
-func (a *App) AgentsLookupNotExistsUsers(domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
-	list, err := a.Store.Agent().LookupNotExistsUsers(domainId, search)
+func (a *App) AgentsLookupNotExistsUsers(ctx context.Context, domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
+	list, err := a.Store.Agent().LookupNotExistsUsers(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -139,8 +140,8 @@ func (a *App) AgentsLookupNotExistsUsers(domainId int64, search *model.SearchAge
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) AgentsLookupNotExistsUsersByGroups(domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
-	list, err := a.Store.Agent().LookupNotExistsUsersByGroups(domainId, groups, search)
+func (a *App) AgentsLookupNotExistsUsersByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, bool, *model.AppError) {
+	list, err := a.Store.Agent().LookupNotExistsUsersByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -148,12 +149,12 @@ func (a *App) AgentsLookupNotExistsUsersByGroups(domainId int64, groups []int, s
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentSession(domainId, id int64) (*model.AgentSession, *model.AppError) {
-	return a.Store.Agent().GetSession(domainId, id)
+func (a *App) GetAgentSession(ctx context.Context, domainId, id int64) (*model.AgentSession, *model.AppError) {
+	return a.Store.Agent().GetSession(ctx, domainId, id)
 }
 
-func (a *App) HasAgentCC(domainId int64, userId int64) *model.AppError {
-	v, err := a.Store.Agent().HasAgentCC(domainId, userId)
+func (a *App) HasAgentCC(ctx context.Context, domainId int64, userId int64) *model.AppError {
+	v, err := a.Store.Agent().HasAgentCC(ctx, domainId, userId)
 	if err != nil {
 		return err
 	}
@@ -197,8 +198,8 @@ func (a *App) PauseAgent(domainId, agentId int64, payload string, timeout int) *
 	return nil
 }
 
-func (a *App) GetAgentReportCall(domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, bool, *model.AppError) {
-	list, err := a.Store.Agent().CallStatistics(domainId, search)
+func (a *App) GetAgentReportCall(ctx context.Context, domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, bool, *model.AppError) {
+	list, err := a.Store.Agent().CallStatistics(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -206,12 +207,12 @@ func (a *App) GetAgentReportCall(domainId int64, search *model.SearchAgentCallSt
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentTodayStatistics(domainId, agentId int64) (*model.AgentStatistics, *model.AppError) {
-	return a.Store.Agent().TodayStatistics(domainId, agentId)
+func (a *App) GetAgentTodayStatistics(ctx context.Context, domainId, agentId int64) (*model.AgentStatistics, *model.AppError) {
+	return a.Store.Agent().TodayStatistics(ctx, domainId, agentId)
 }
 
-func (a *App) GetAgentStatusStatistic(domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, *model.AppError) {
-	list, err := a.Store.Agent().StatusStatistic(domainId, supervisorUserId, groups, access, search)
+func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, *model.AppError) {
+	list, err := a.Store.Agent().StatusStatistic(ctx, domainId, supervisorUserId, groups, access, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -236,10 +237,10 @@ func (a *App) CloseTask(appId string, domainId int64, attemptId int64) *model.Ap
 	return nil
 }
 
-func (a *App) GetAgentPauseCause(domainId, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
-	return a.Store.Agent().PauseCause(domainId, fromUserId, toAgentId, allowChange)
+func (a *App) GetAgentPauseCause(ctx context.Context, domainId, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
+	return a.Store.Agent().PauseCause(ctx, domainId, fromUserId, toAgentId, allowChange)
 }
 
-func (a *App) SupervisorAgentItem(domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
-	return a.Store.Agent().SupervisorAgentItem(domainId, agentId, t)
+func (a *App) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
+	return a.Store.Agent().SupervisorAgentItem(ctx, domainId, agentId, t)
 }

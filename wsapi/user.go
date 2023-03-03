@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -25,7 +26,7 @@ func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[
 
 func (api *API) userDefaultDeviceConfig(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	typeName, _ := req.Data["name"].(string)
-	config, err := api.App.GetUserDefaultDeviceConfig(conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
+	config, err := api.App.GetUserDefaultDeviceConfig(context.TODO(), conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
 	if err != nil {
 		return nil, err
 	}

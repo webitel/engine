@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -17,9 +18,9 @@ func NewSqlChatStore(sqlStore SqlStore) store.ChatStore {
 }
 
 // todo deprecated
-func (s SqlChatStore) OpenedConversations(domainId, userId int64) ([]*model.Conversation, *model.AppError) {
+func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId int64) ([]*model.Conversation, *model.AppError) {
 	var res []*model.Conversation
-	_, err := s.GetMaster().Select(&res, `
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `
 select
     c.id,
     ch.invite_id,
@@ -119,8 +120,8 @@ order by ch.pri, ch.updated_at desc`, map[string]interface{}{
 	return res, nil
 }
 
-func (s SqlChatStore) ValidDomain(domainId int64, profileId int64) *model.AppError {
-	res, err := s.GetReplica().SelectInt(`select 1
+func (s SqlChatStore) ValidDomain(ctx context.Context, domainId int64, profileId int64) *model.AppError {
+	res, err := s.GetReplica().WithContext(ctx).SelectInt(`select 1
 from chat.bot p
 where p.dc = :DomainId and p.id = :Id`, map[string]interface{}{
 		"DomainId": domainId,

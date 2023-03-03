@@ -33,7 +33,7 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 		Tags:        tagsToStrings(in.GetTags()),
 	}
 
-	if scheme, err = api.ctrl.CreateRoutingSchema(session, scheme); err != nil {
+	if scheme, err = api.ctrl.CreateRoutingSchema(ctx, session, scheme); err != nil {
 		return nil, err
 	} else {
 		return transformRoutingSchema(scheme), nil
@@ -64,7 +64,7 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 		Tags:   in.GetTags(),
 	}
 
-	list, endList, err = api.ctrl.SearchSchema(session, req)
+	list, endList, err = api.ctrl.SearchSchema(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (api *routingSchema) ReadRoutingSchema(ctx context.Context, in *engine.Read
 		return nil, err
 	}
 
-	scheme, err := api.ctrl.GetSchema(session, in.Id)
+	scheme, err := api.ctrl.GetSchema(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 		Tags:        tagsToStrings(in.GetTags()),
 	}
 
-	scheme, err = api.ctrl.UpdateSchema(session, scheme)
+	scheme, err = api.ctrl.UpdateSchema(ctx, session, scheme)
 
 	if err != nil {
 		return nil, err
@@ -158,7 +158,7 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 		}
 	}
 
-	scheme, err = api.ctrl.PatchSchema(session, in.GetId(), patch)
+	scheme, err = api.ctrl.PatchSchema(ctx, session, in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (api *routingSchema) DeleteRoutingSchema(ctx context.Context, in *engine.De
 	}
 
 	var scheme *model.RoutingSchema
-	scheme, err = api.ctrl.DeleteSchema(session, in.Id)
+	scheme, err = api.ctrl.DeleteSchema(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (api *routingSchema) SearchRoutingSchemaTags(ctx context.Context, in *engin
 		Type: transformTypes(in.GetType()),
 	}
 
-	list, endList, err = api.ctrl.SearchSchemaTags(session, req)
+	list, endList, err = api.ctrl.SearchSchemaTags(ctx, session, req)
 
 	if err != nil {
 		return nil, err

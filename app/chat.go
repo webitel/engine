@@ -134,12 +134,12 @@ func (a *App) UpdateChannelChat(authUserId int64, channelId string, readUntil in
 	return nil
 }
 
-func (a *App) ListActiveChat(token string, domainId, userId int64, page, size int) ([]*model.Conversation, *model.AppError) {
-	return a.Store.Chat().OpenedConversations(domainId, userId)
+func (a *App) ListActiveChat(ctx context.Context, token string, domainId, userId int64, page, size int) ([]*model.Conversation, *model.AppError) {
+	return a.Store.Chat().OpenedConversations(ctx, domainId, userId)
 }
 
-func (a *App) BlindTransferChat(domainId int64, conversationId, channelId string, planId int32, vars map[string]string) *model.AppError {
-	schemaId, err := a.Store.ChatPlan().GetSchemaId(domainId, planId)
+func (a *App) BlindTransferChat(ctx context.Context, domainId int64, conversationId, channelId string, planId int32, vars map[string]string) *model.AppError {
+	schemaId, err := a.Store.ChatPlan().GetSchemaId(ctx, domainId, planId)
 	if err != nil {
 		return err
 	}
@@ -173,7 +173,7 @@ func (a *App) BlindTransferChatToUser(domainId int64, conversationId, channelId 
 
 func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId int64, peer []string, text string) *model.AppError {
 
-	appErr := a.Store.Chat().ValidDomain(domainId, profileId)
+	appErr := a.Store.Chat().ValidDomain(ctx, domainId, profileId)
 	if appErr != nil {
 		return appErr
 	}

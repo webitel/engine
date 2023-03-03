@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,8 +17,8 @@ func NewSqlChatPlanStore(sqlStore SqlStore) store.ChatPlanStore {
 	return us
 }
 
-func (s SqlChatPlanStore) Create(domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError) {
-	err := s.GetMaster().SelectOne(&plan, `with c as (
+func (s SqlChatPlanStore) Create(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&plan, `with c as (
     insert into flow.acr_chat_plan (domain_id, enabled, name, schema_id, description)
     values (:DomainId::int8, :Enabled::bool, :Name::varchar, :SchemaId::int4, :Description::text)
     returning *
@@ -45,7 +46,7 @@ from c
 	return plan, nil
 }
 
-func (s SqlChatPlanStore) GetAllPage(domainId int64, search *model.SearchChatPlan) ([]*model.ChatPlan, *model.AppError) {
+func (s SqlChatPlanStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchChatPlan) ([]*model.ChatPlan, *model.AppError) {
 	var plans []*model.ChatPlan
 
 	f := map[string]interface{}{
@@ -56,7 +57,7 @@ func (s SqlChatPlanStore) GetAllPage(domainId int64, search *model.SearchChatPla
 		"Enabled":  search.Enabled,
 	}
 
-	err := s.ListQueryFromSchema(&plans, "flow", search.ListRequest,
+	err := s.ListQueryFromSchema(ctx, &plans, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -71,10 +72,10 @@ func (s SqlChatPlanStore) GetAllPage(domainId int64, search *model.SearchChatPla
 	}
 }
 
-func (s SqlChatPlanStore) Get(domainId int64, id int32) (*model.ChatPlan, *model.AppError) {
+func (s SqlChatPlanStore) Get(ctx context.Context, domainId int64, id int32) (*model.ChatPlan, *model.AppError) {
 	var plan *model.ChatPlan
 
-	err := s.GetMaster().SelectOne(&plan, `
+	err := s.GetMaster().WithContext(ctx).SelectOne(&plan, `
 select c.id,
     c.enabled,
     c.name,
@@ -96,8 +97,8 @@ where c.id = :Id and c.domain_id = :DomainId`, map[string]interface{}{
 	return plan, nil
 }
 
-func (s SqlChatPlanStore) Update(domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError) {
-	err := s.GetMaster().SelectOne(&plan, `with c as (
+func (s SqlChatPlanStore) Update(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&plan, `with c as (
     update flow.acr_chat_plan
         set name = :Name,
             enabled = :Enabled,
@@ -130,8 +131,8 @@ from c
 	return plan, nil
 }
 
-func (s SqlChatPlanStore) Delete(domainId int64, id int32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from flow.acr_chat_plan c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlChatPlanStore) Delete(ctx context.Context, domainId int64, id int32) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_chat_plan c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlChatPlanStore.Delete", "store.sql_chat_plan.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -139,8 +140,8 @@ func (s SqlChatPlanStore) Delete(domainId int64, id int32) *model.AppError {
 	return nil
 }
 
-func (s SqlChatPlanStore) GetSchemaId(domainId int64, id int32) (int, *model.AppError) {
-	schemaId, err := s.GetReplica().SelectInt(`select p.schema_id
+func (s SqlChatPlanStore) GetSchemaId(ctx context.Context, domainId int64, id int32) (int, *model.AppError) {
+	schemaId, err := s.GetReplica().WithContext(ctx).SelectInt(`select p.schema_id
 from flow.acr_chat_plan p
 where p.domain_id = :DomainId
     and p.enabled

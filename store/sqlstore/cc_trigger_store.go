@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -17,9 +18,9 @@ func NewSqlTriggerStore(sqlStore SqlStore) store.TriggerStore {
 	return us
 }
 
-func (s SqlTriggerStore) CheckAccess(domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlTriggerStore) CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 
-	res, err := s.GetReplica().SelectNullInt(`select 1
+	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
           from call_center.cc_trigger_acl a
@@ -36,8 +37,8 @@ func (s SqlTriggerStore) CheckAccess(domainId int64, id int32, groups []int, acc
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlTriggerStore) Create(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
-	if err := s.GetMaster().SelectOne(&trigger, `with t as (
+func (s SqlTriggerStore) Create(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&trigger, `with t as (
     insert into call_center.cc_trigger (domain_id, name, enabled, type, schema_id, variables, description, expression,
                                     timezone_id, created_by, updated_by, created_at, updated_at, timeout_sec)
     values (:DomainId, :Name, :Enabled, :Type, :SchemaId, :Variables, :Description, :Expression,
@@ -87,7 +88,7 @@ from t
 	}
 }
 
-func (s SqlTriggerStore) GetAllPage(domainId int64, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError) {
 	var triggers []*model.Trigger
 
 	f := map[string]interface{}{
@@ -96,7 +97,7 @@ func (s SqlTriggerStore) GetAllPage(domainId int64, search *model.SearchTrigger)
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&triggers, search.ListRequest,
+	err := s.ListQuery(ctx, &triggers, search.ListRequest,
 		`domain_id = :DomainId 
 			and ( (:Ids::int[] isnull or id = any(:Ids) )
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
@@ -108,7 +109,7 @@ func (s SqlTriggerStore) GetAllPage(domainId int64, search *model.SearchTrigger)
 	return triggers, nil
 }
 
-func (s SqlTriggerStore) GetAllPageByGroup(domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError) {
 	var triggers []*model.Trigger
 
 	f := map[string]interface{}{
@@ -119,7 +120,7 @@ func (s SqlTriggerStore) GetAllPageByGroup(domainId int64, groups []int, search 
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 	}
 
-	err := s.ListQuery(&triggers, search.ListRequest,
+	err := s.ListQuery(ctx, &triggers, search.ListRequest,
 		`domain_id = :DomainId 
 			and ( (:Ids::int[] isnull or id = any(:Ids) )
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))
@@ -137,14 +138,14 @@ func (s SqlTriggerStore) GetAllPageByGroup(domainId int64, groups []int, search 
 	return triggers, nil
 }
 
-func (s SqlTriggerStore) Get(domainId int64, id int32) (*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) Get(ctx context.Context, domainId int64, id int32) (*model.Trigger, *model.AppError) {
 	var trigger *model.Trigger
 	f := map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
 	}
 
-	err := s.One(&trigger,
+	err := s.One(ctx, &trigger,
 		`domain_id = :DomainId and id = :Id`,
 		model.Trigger{}, f)
 	if err != nil {
@@ -154,8 +155,8 @@ func (s SqlTriggerStore) Get(domainId int64, id int32) (*model.Trigger, *model.A
 	return trigger, nil
 }
 
-func (s SqlTriggerStore) Update(domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
-	err := s.GetMaster().SelectOne(&trigger, `with t as (
+func (s SqlTriggerStore) Update(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&trigger, `with t as (
     update call_center.cc_trigger
         set name = :Name,
             enabled = :Enabled,
@@ -208,8 +209,8 @@ from t
 	return trigger, nil
 }
 
-func (s SqlTriggerStore) Delete(domainId int64, id int32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_trigger c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlTriggerStore) Delete(ctx context.Context, domainId int64, id int32) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_trigger c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlTriggerStore.Delete", "store.sql_trigger.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
@@ -217,9 +218,9 @@ func (s SqlTriggerStore) Delete(domainId int64, id int32) *model.AppError {
 	return nil
 }
 
-func (s SqlTriggerStore) CreateJob(domainId int64, triggerId int32, _ map[string]string) (*model.TriggerJob, *model.AppError) {
+func (s SqlTriggerStore) CreateJob(ctx context.Context, domainId int64, triggerId int32, _ map[string]string) (*model.TriggerJob, *model.AppError) {
 	var job *model.TriggerJob
-	err := s.GetMaster().SelectOne(&job, `with j as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&job, `with j as (
     insert into call_center.cc_trigger_job (trigger_id, state, created_at, parameters, domain_id)
         select t.id,
                0,
@@ -257,7 +258,7 @@ from j
 	return job, nil
 }
 
-func (s SqlTriggerStore) GetAllJobs(triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, *model.AppError) {
+func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, *model.AppError) {
 	var jobs []*model.TriggerJob
 
 	f := map[string]interface{}{
@@ -271,7 +272,7 @@ func (s SqlTriggerStore) GetAllJobs(triggerId int32, search *model.SearchTrigger
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
-	err := s.ListQuery(&jobs, search.ListRequest,
+	err := s.ListQuery(ctx, &jobs, search.ListRequest,
 		`trigger_id = :TriggerId
 				and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )

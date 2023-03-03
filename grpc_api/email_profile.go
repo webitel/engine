@@ -38,7 +38,7 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 		FetchInterval: in.GetFetchInterval(),
 	}
 	var profile *model.EmailProfile
-	profile, err = api.ctrl.CreateEmailProfile(session, req)
+	profile, err = api.ctrl.CreateEmailProfile(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (api *emailProfile) SearchEmailProfile(ctx context.Context, in *engine.Sear
 		},
 	}
 
-	list, endList, err = api.ctrl.SearchEmailProfile(session, req)
+	list, endList, err = api.ctrl.SearchEmailProfile(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,7 @@ func (api *emailProfile) ReadEmailProfile(ctx context.Context, in *engine.ReadEm
 	}
 
 	var profile *model.EmailProfile
-	profile, err = api.ctrl.GetEmailProfile(session, int(in.GetId()))
+	profile, err = api.ctrl.GetEmailProfile(ctx, session, int(in.GetId()))
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.Login
 		return nil, err
 	}
 
-	login, err = api.ctrl.LoginEmailProfile(session, int(in.Id))
+	login, err = api.ctrl.LoginEmailProfile(ctx, session, int(in.Id))
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.Patch
 		}
 	}
 
-	profile, err = api.ctrl.PatchEmailProfile(session, int(in.GetId()), patch)
+	profile, err = api.ctrl.PatchEmailProfile(ctx, session, int(in.GetId()), patch)
 
 	if err != nil {
 		return nil, err
@@ -199,7 +199,7 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 		FetchInterval: in.GetFetchInterval(),
 	}
 
-	profile, err = api.ctrl.UpdateEmailProfile(session, profile)
+	profile, err = api.ctrl.UpdateEmailProfile(ctx, session, profile)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (api *emailProfile) DeleteEmailProfile(ctx context.Context, in *engine.Dele
 	}
 
 	var profile *model.EmailProfile
-	profile, err = api.ctrl.RemoveEmailProfile(session, int(in.GetId()))
+	profile, err = api.ctrl.RemoveEmailProfile(ctx, session, int(in.GetId()))
 	if err != nil {
 		return nil, err
 	}

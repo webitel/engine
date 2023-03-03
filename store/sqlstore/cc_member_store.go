@@ -21,9 +21,9 @@ func NewSqlMemberStore(sqlStore SqlStore) store.MemberStore {
 	return us
 }
 
-func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+func (s SqlMemberStore) Create(ctx context.Context, domainId int64, member *model.Member) (*model.Member, *model.AppError) {
 	var out *model.Member
-	if err := s.GetMaster().SelectOne(&out, `with m as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with m as (
 			insert into call_center.cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, domain_id, agent_id, skill_id)
 			values (:QueueId, :Priority, :ExpireAt, :Variables, :Name, :TimezoneId, :Communications, :BucketId, :MinOfferingAt, :DomainId, :AgentId, :SkillId)
 			returning *
@@ -57,7 +57,7 @@ func (s SqlMemberStore) Create(domainId int64, member *model.Member) (*model.Mem
 	}
 }
 
-func (s SqlMemberStore) BulkCreate(domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
+func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
@@ -66,7 +66,7 @@ func (s SqlMemberStore) BulkCreate(domainId, queueId int64, fileName string, mem
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	_, err = tx.Exec("CREATE temp table cc_member_tmp ON COMMIT DROP as table call_center.cc_member with no data")
+	_, err = tx.WithContext(ctx).Exec("CREATE temp table cc_member_tmp ON COMMIT DROP as table call_center.cc_member with no data")
 	if err != nil {
 		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -244,9 +244,9 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 	}
 }
 
-func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.AppError) {
+func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, *model.AppError) {
 	var member *model.Member
-	if err := s.GetReplica().SelectOne(&member, `select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&member, `select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
 			   call_center.cc_member_communications(m.communications) as communications,  call_center.cc_get_lookup(qb.id, qb.name::text) as bucket, ready_at,
                call_center.cc_get_lookup(cs.id, cs.name::text) as skill, call_center.cc_get_lookup(agn.id, agn.name::varchar) agent
 		from call_center.cc_member m
@@ -266,8 +266,8 @@ func (s SqlMemberStore) Get(domainId, queueId, id int64) (*model.Member, *model.
 	}
 }
 
-func (s SqlMemberStore) Update(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
-	err := s.GetMaster().SelectOne(&member, `with m as (
+func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&member, `with m as (
     update call_center.cc_member m1
         set priority = :Priority,
             expire_at = :ExpireAt,
@@ -321,9 +321,9 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 }
 
 // TODO add force
-func (s SqlMemberStore) Delete(queueId, id int64) *model.AppError {
+func (s SqlMemberStore) Delete(ctx context.Context, queueId, id int64) *model.AppError {
 	var cnt int64
-	res, err := s.GetMaster().Exec(`delete
+	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
 from call_center.cc_member c
 where c.id = :Id
   and c.queue_id = :QueueId
@@ -349,10 +349,10 @@ where c.id = :Id
 	return nil
 }
 
-func (s SqlMemberStore) MultiDelete(search *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) MultiDelete(ctx context.Context, search *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
 	var res []*model.Member
 
-	_, err := s.GetMaster().Select(&res, `with m as (
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `with m as (
     delete from call_center.cc_member m
     where (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
 		  and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
@@ -422,8 +422,8 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	return res, nil
 }
 
-func (s SqlMemberStore) ResetMembers(domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
-	cnt, err := s.GetMaster().SelectInt(`with upd as (
+func (s SqlMemberStore) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
+	cnt, err := s.GetMaster().WithContext(ctx).SelectInt(`with upd as (
     update call_center.cc_member m
     set stop_cause = null,
         stop_at = null,
@@ -458,10 +458,10 @@ from upd`, map[string]interface{}{
 	return cnt, nil
 }
 
-func (s SqlMemberStore) AttemptsList(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
+func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, *model.AppError) {
 	var attempts []*model.MemberAttempt
 	//FIXME
-	if _, err := s.GetReplica().Select(&attempts, `with active as (
+	if _, err := s.GetReplica().WithContext(ctx).Select(&attempts, `with active as (
     select a.id,
            --a.member_id,
            (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
@@ -526,7 +526,7 @@ from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
 	return attempts, nil
 }
 
-func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, *model.AppError) {
+func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, *model.AppError) {
 	var att []*model.AttemptHistory
 
 	f := map[string]interface{}{
@@ -550,7 +550,7 @@ func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.Sear
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
-	err := s.ListQuery(&att, search.ListRequest,
+	err := s.ListQuery(ctx, &att, search.ListRequest,
 		`domain_id = :Domain
 	and joined_at between :From::timestamptz and :To::timestamptz
 	and (:Ids::int8[] isnull or id = any(:Ids))
@@ -583,7 +583,7 @@ func (s SqlMemberStore) SearchAttemptsHistory(domainId int64, search *model.Sear
 	return att, nil
 }
 
-func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError) {
+func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError) {
 	var att []*model.Attempt
 
 	f := map[string]interface{}{
@@ -607,7 +607,7 @@ func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttem
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
-	err := s.ListQuery(&att, search.ListRequest,
+	err := s.ListQuery(ctx, &att, search.ListRequest,
 		`domain_id = :Domain
 	and ( :From::timestamptz isnull or joined_at_timestamp >= :From::timestamptz )
 	and ( :To::timestamptz isnull or joined_at_timestamp <= :To::timestamptz )
@@ -641,9 +641,9 @@ func (s SqlMemberStore) SearchAttempts(domainId int64, search *model.SearchAttem
 	return att, nil
 }
 
-func (s SqlMemberStore) ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError) {
+func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError) {
 	var att []*model.OfflineMember
-	_, err := s.GetReplica().Select(&att, `with comm as (
+	_, err := s.GetReplica().WithContext(ctx).Select(&att, `with comm as (
     select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
     from call_center.cc_communication c
     where c.domain_id = :Domain
@@ -689,9 +689,9 @@ from call_center.cc_member m
 	return att, nil
 }
 
-func (s SqlMemberStore) GetAppointmentWidget(uri string) (*model.AppointmentWidget, *model.AppError) {
+func (s SqlMemberStore) GetAppointmentWidget(ctx context.Context, uri string) (*model.AppointmentWidget, *model.AppError) {
 	var widget *model.AppointmentWidget
-	err := s.GetReplica().SelectOne(&widget, `select profile, list
+	err := s.GetReplica().WithContext(ctx).SelectOne(&widget, `select profile, list
 from call_center.appointment_widget(:Uri::varchar)`, map[string]interface{}{
 		"Uri": uri,
 	})
@@ -706,10 +706,10 @@ from call_center.appointment_widget(:Uri::varchar)`, map[string]interface{}{
 	return widget, nil
 }
 
-func (s SqlMemberStore) GetAppointment(memberId int64) (*model.Appointment, *model.AppError) {
+func (s SqlMemberStore) GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, *model.AppError) {
 	var res *model.Appointment
 
-	err := s.GetReplica().SelectOne(&res, `select
+	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select
     m.id,
     coalesce(m.ready_at at time zone tz.sys_name, m.created_at at time zone tz.sys_name)::date::text as schedule_date,
     to_char(coalesce(m.ready_at at time zone tz.sys_name, m.created_at at time zone tz.sys_name), 'HH24:MI') as schedule_time,
@@ -732,8 +732,8 @@ where m.id = :Id and m.stop_at isnull and m.stop_cause isnull`, map[string]inter
 	return res, nil
 }
 
-func (s SqlMemberStore) CreateAppointment(profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, *model.AppError) {
-	err := s.GetMaster().SelectOne(&app, `
+func (s SqlMemberStore) CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&app, `
 insert into call_center.cc_member (queue_id, communications, timezone_id, domain_id, variables, ready_at, expire_at, name, import_id)
 select :QueueId,
        jsonb_build_array(
@@ -779,8 +779,8 @@ returning call_center.cc_member.id,
 	return app, nil
 }
 
-func (s SqlMemberStore) CancelAppointment(memberId int64, reason string) *model.AppError {
-	_, err := s.GetMaster().Exec(`update call_center.cc_member 
+func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberId int64, reason string) *model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member 
 set stop_at = now(),
     stop_cause = :Reason
 where id = :Id`, map[string]interface{}{

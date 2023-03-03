@@ -7,15 +7,15 @@ import (
 	"net/http"
 )
 
-func (app *App) CreateMember(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
-	q, err := app.GetQueueById(domainId, member.QueueId)
+func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+	q, err := app.GetQueueById(ctx, domainId, member.QueueId)
 	if err != nil {
 		return nil, err
 	}
 	if q.Type == 1 || q.Type == 6 {
 		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.queue", nil, "Mismatch queue type", http.StatusBadRequest)
 	}
-	return app.Store.Member().Create(domainId, member)
+	return app.Store.Member().Create(ctx, domainId, member)
 }
 
 func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, *model.AppError) {
@@ -27,8 +27,8 @@ func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.S
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) BulkCreateMember(domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
-	q, err := app.GetQueueById(domainId, queueId)
+func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
+	q, err := app.GetQueueById(ctx, domainId, queueId)
 	if err != nil {
 		return nil, err
 	}
@@ -40,15 +40,15 @@ func (app *App) BulkCreateMember(domainId, queueId int64, fileName string, membe
 		return nil, model.NewAppError("BulkCreateMember", "app.member.valid.file_name", nil, "The filename can not be more than 120 symbols", http.StatusBadRequest)
 	}
 
-	return app.Store.Member().BulkCreate(domainId, queueId, fileName, members)
+	return app.Store.Member().BulkCreate(ctx, domainId, queueId, fileName, members)
 }
 
-func (app *App) GetMember(domainId, queueId, id int64) (*model.Member, *model.AppError) {
-	return app.Store.Member().Get(domainId, queueId, id)
+func (app *App) GetMember(ctx context.Context, domainId, queueId, id int64) (*model.Member, *model.AppError) {
+	return app.Store.Member().Get(ctx, domainId, queueId, id)
 }
 
-func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Member, *model.AppError) {
-	oldMember, err := app.GetMember(domainId, member.QueueId, member.Id)
+func (app *App) UpdateMember(ctx context.Context, domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+	oldMember, err := app.GetMember(ctx, domainId, member.QueueId, member.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (app *App) UpdateMember(domainId int64, member *model.Member) (*model.Membe
 	oldMember.Agent = member.Agent
 	oldMember.Skill = member.Skill
 
-	oldMember, err = app.Store.Member().Update(domainId, oldMember)
+	oldMember, err = app.Store.Member().Update(ctx, domainId, oldMember)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,8 @@ func (app *App) MaxMemberCommunications() int {
 	return app.config.MaxMemberCommunications
 }
 
-func (app *App) PatchMember(domainId, queueId, id int64, patch *model.MemberPatch) (*model.Member, *model.AppError) {
-	oldMember, err := app.GetMember(domainId, queueId, id)
+func (app *App) PatchMember(ctx context.Context, domainId, queueId, id int64, patch *model.MemberPatch) (*model.Member, *model.AppError) {
+	oldMember, err := app.GetMember(ctx, domainId, queueId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (app *App) PatchMember(domainId, queueId, id int64, patch *model.MemberPatc
 		return nil, err
 	}
 
-	oldMember, err = app.Store.Member().Update(domainId, oldMember)
+	oldMember, err = app.Store.Member().Update(ctx, domainId, oldMember)
 	if err != nil {
 		return nil, err
 	}
@@ -97,34 +97,34 @@ func (app *App) PatchMember(domainId, queueId, id int64, patch *model.MemberPatc
 	return oldMember, nil
 }
 
-func (app *App) RemoveMember(domainId, queueId, id int64) (*model.Member, *model.AppError) {
-	member, err := app.GetMember(domainId, queueId, id)
+func (app *App) RemoveMember(ctx context.Context, domainId, queueId, id int64) (*model.Member, *model.AppError) {
+	member, err := app.GetMember(ctx, domainId, queueId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = app.Store.Member().Delete(queueId, id)
+	err = app.Store.Member().Delete(ctx, queueId, id)
 	if err != nil {
 		return nil, err
 	}
 	return member, nil
 }
 
-func (app *App) RemoveMultiMembers(domainId int64, del *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
-	return app.Store.Member().MultiDelete(del)
+func (app *App) RemoveMultiMembers(ctx context.Context, domainId int64, del *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
+	return app.Store.Member().MultiDelete(ctx, del)
 }
 
-func (app *App) ResetMembers(domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
-	return app.Store.Member().ResetMembers(domainId, req)
+func (app *App) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
+	return app.Store.Member().ResetMembers(ctx, domainId, req)
 }
 
-func (app *App) GetMemberAttempts(memberId int64) ([]*model.MemberAttempt, *model.AppError) {
-	return app.Store.Member().AttemptsList(memberId)
+func (app *App) GetMemberAttempts(ctx context.Context, memberId int64) ([]*model.MemberAttempt, *model.AppError) {
+	return app.Store.Member().AttemptsList(ctx, memberId)
 }
 
-func (app *App) SearchAttemptsHistory(domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, bool, *model.AppError) {
-	list, err := app.Store.Member().SearchAttemptsHistory(domainId, search)
+func (app *App) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, bool, *model.AppError) {
+	list, err := app.Store.Member().SearchAttemptsHistory(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -132,8 +132,8 @@ func (app *App) SearchAttemptsHistory(domainId int64, search *model.SearchAttemp
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) SearchAttempts(domainId int64, search *model.SearchAttempts) ([]*model.Attempt, bool, *model.AppError) {
-	list, err := app.Store.Member().SearchAttempts(domainId, search)
+func (app *App) SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, bool, *model.AppError) {
+	list, err := app.Store.Member().SearchAttempts(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -150,8 +150,8 @@ func (app *App) DirectAgentToMember(domainId, memberId int64, communicationId in
 	return attemptId, nil
 }
 
-func (app *App) ListOfflineQueueForAgent(domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, bool, *model.AppError) {
-	list, err := app.Store.Member().ListOfflineQueueForAgent(domainId, search)
+func (app *App) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, bool, *model.AppError) {
+	list, err := app.Store.Member().ListOfflineQueueForAgent(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}

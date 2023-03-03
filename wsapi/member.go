@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -127,7 +128,8 @@ func (api *API) memberDirect(conn *app.WebConn, req *model.WebSocketRequest) (ma
 		return nil, NewInvalidWebSocketParamError(req.Action, "communication_id")
 	}
 
-	attemptId, err := api.ctrl.DirectAgentToMember(conn.GetSession(), int64(domainId), int64(memberId), int(communicationId), int64(agentId))
+	attemptId, err := api.ctrl.DirectAgentToMember(context.Background(), conn.GetSession(), int64(domainId),
+		int64(memberId), int(communicationId), int64(agentId))
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +159,7 @@ func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (
 	size, _ = req.Data["size"].(float64)
 	q, _ = req.Data["q"].(string)
 
-	list, end, err := api.ctrl.ListOfflineQueueForAgent(conn.GetSession(), &model.SearchOfflineQueueMembers{
+	list, end, err := api.ctrl.ListOfflineQueueForAgent(context.Background(), conn.GetSession(), &model.SearchOfflineQueueMembers{
 		ListRequest: model.ListRequest{
 			Q:        q,
 			Page:     int(page),
@@ -199,7 +201,7 @@ func (api *API) getMember(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.App.QueueCheckAccess(session.Domain(0), int64(queueId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.App.QueueCheckAccess(context.Background(), session.Domain(0), int64(queueId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.App.MakeResourcePermissionError(session, int64(queueId), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -207,7 +209,7 @@ func (api *API) getMember(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	}
 
 	var out *model.Member
-	out, err = api.App.GetMember(session.Domain(0), int64(queueId), int64(memberId))
+	out, err = api.App.GetMember(context.Background(), session.Domain(0), int64(queueId), int64(memberId))
 
 	return model.InterfaceToMapString(out), nil
 }

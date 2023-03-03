@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
@@ -24,7 +25,7 @@ func init() {
 	cacheAppointmentDate = utils.NewLruWithParams(sizeCacheAppointments, "List appointment date", 60, "")
 }
 
-func (app *App) GetAppointment(key string) (*model.Appointment, *model.AppError) {
+func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointment, *model.AppError) {
 	if a, ok := cacheAppointments.Get(key); ok {
 		return a.(*model.Appointment), nil
 	}
@@ -35,7 +36,7 @@ func (app *App) GetAppointment(key string) (*model.Appointment, *model.AppError)
 	}
 
 	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("member-%d", memberId), func() (interface{}, error) {
-		a, err := app.Store.Member().GetAppointment(memberId)
+		a, err := app.Store.Member().GetAppointment(ctx, memberId)
 		if err != nil {
 			return nil, err
 		}
@@ -66,18 +67,18 @@ func (app *App) GetAppointment(key string) (*model.Appointment, *model.AppError)
 	return res.(*model.Appointment), nil
 }
 
-func (app *App) AppointmentWidget(widgetUri string) (*model.AppointmentWidget, *model.AppError) {
+func (app *App) AppointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, *model.AppError) {
 	if a, ok := cacheAppointmentDate.Get(widgetUri); ok {
 		return a.(*model.AppointmentWidget), nil
 	}
 
-	return app.appointmentWidget(widgetUri)
+	return app.appointmentWidget(ctx, widgetUri)
 }
 
-func (app *App) appointmentWidget(widgetUri string) (*model.AppointmentWidget, *model.AppError) {
+func (app *App) appointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, *model.AppError) {
 
 	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("list-%s", widgetUri), func() (interface{}, error) {
-		a, err := app.Store.Member().GetAppointmentWidget(widgetUri)
+		a, err := app.Store.Member().GetAppointmentWidget(ctx, widgetUri)
 		if err != nil {
 			return nil, err
 		}
@@ -107,13 +108,13 @@ func (app *App) appointmentWidget(widgetUri string) (*model.AppointmentWidget, *
 	return res.(*model.AppointmentWidget), nil
 }
 
-func (app *App) CreateAppointment(widget *model.AppointmentWidget, appointment *model.Appointment) (*model.Appointment, *model.AppError) {
+func (app *App) CreateAppointment(ctx context.Context, widget *model.AppointmentWidget, appointment *model.Appointment) (*model.Appointment, *model.AppError) {
 	var err *model.AppError
 	if !widget.ValidAppointment(appointment) {
 		return nil, model.NewAppError("CreateAppointment", "appointment.valid.date", nil, "No slot", http.StatusBadRequest)
 	}
 
-	appointment, err = app.Store.Member().CreateAppointment(&widget.Profile, appointment)
+	appointment, err = app.Store.Member().CreateAppointment(ctx, &widget.Profile, appointment)
 	if err != nil {
 		return nil, err
 	}
@@ -139,23 +140,23 @@ func (app *App) CreateAppointment(widget *model.AppointmentWidget, appointment *
 	}).ToJSON()
 
 	// reset list ?
-	app.appointmentWidget(widget.Profile.Uri)
+	app.appointmentWidget(ctx, widget.Profile.Uri)
 
 	return appointment, nil
 }
 
-func (app *App) CancelAppointment(widget *model.AppointmentWidget, key string) (*model.Appointment, *model.AppError) {
-	appointment, err := app.GetAppointment(key)
+func (app *App) CancelAppointment(ctx context.Context, widget *model.AppointmentWidget, key string) (*model.Appointment, *model.AppError) {
+	appointment, err := app.GetAppointment(ctx, key)
 	if err != nil {
 		return nil, err
 	}
 
-	if err = app.Store.Member().CancelAppointment(appointment.Id, "cancel"); err != nil {
+	if err = app.Store.Member().CancelAppointment(ctx, appointment.Id, "cancel"); err != nil {
 		return nil, err
 	}
 
 	// reset list ?
-	app.appointmentWidget(widget.Profile.Uri)
+	app.appointmentWidget(ctx, widget.Profile.Uri)
 
 	return appointment, nil
 }

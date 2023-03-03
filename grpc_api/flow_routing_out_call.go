@@ -45,7 +45,7 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 		Disabled: in.Disabled,
 	}
 
-	if routing, err = api.ctrl.CreateRoutingOutboundCall(session, routing); err != nil {
+	if routing, err = api.ctrl.CreateRoutingOutboundCall(ctx, session, routing); err != nil {
 		return nil, err
 	} else {
 		return transformRoutingOutboundCall(routing), nil
@@ -75,7 +75,7 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 		Description: GetStringPointer(in.Description),
 	}
 
-	list, isEndList, err = api.ctrl.SearchRoutingOutboundCall(session, req)
+	list, isEndList, err = api.ctrl.SearchRoutingOutboundCall(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (api *routingOutboundCall) ReadRoutingOutboundCall(ctx context.Context, in 
 	}
 
 	var routing *model.RoutingOutboundCall
-	routing, err = api.ctrl.GetRoutingOutboundCall(session, in.DomainId, in.Id)
+	routing, err = api.ctrl.GetRoutingOutboundCall(ctx, session, in.DomainId, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 		Disabled: in.Disabled,
 	}
 
-	routing, err = api.ctrl.UpdateRoutingOutboundCall(session, routing)
+	routing, err = api.ctrl.UpdateRoutingOutboundCall(ctx, session, routing)
 
 	if err != nil {
 		return nil, err
@@ -168,7 +168,7 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 		}
 	}
 
-	routing, err = api.ctrl.PatchRoutingOutboundCall(session, in.GetDomainId(), in.GetId(), patch)
+	routing, err = api.ctrl.PatchRoutingOutboundCall(ctx, session, in.GetDomainId(), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ func (api *routingOutboundCall) MovePositionRoutingOutboundCall(ctx context.Cont
 		return nil, err
 	}
 
-	err = api.ctrl.ChangePositionOutboundCall(session, in.GetDomainId(), in.GetFromId(), in.GetToId())
+	err = api.ctrl.ChangePositionOutboundCall(ctx, session, in.GetDomainId(), in.GetFromId(), in.GetToId())
 
 	if err != nil {
 		return nil, err
@@ -201,7 +201,7 @@ func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, i
 	}
 
 	var routing *model.RoutingOutboundCall
-	routing, err = api.ctrl.DeleteRoutingOutboundCall(session, in.DomainId, in.Id)
+	routing, err = api.ctrl.DeleteRoutingOutboundCall(ctx, session, in.DomainId, in.Id)
 	if err != nil {
 		return nil, err
 	}

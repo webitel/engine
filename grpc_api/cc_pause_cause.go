@@ -30,7 +30,7 @@ func (api *pauseCause) CreateAgentPauseCause(ctx context.Context, in *engine.Cre
 		AllowAgent:      in.AllowAgent,
 	}
 
-	cause, err = api.ctrl.CreatePauseCause(session, cause)
+	cause, err = api.ctrl.CreatePauseCause(ctx, session, cause)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (api *pauseCause) SearchAgentPauseCause(ctx context.Context, in *engine.Sea
 		Ids: in.GetId(),
 	}
 
-	list, endList, err = api.ctrl.SearchPauseCause(session, req)
+	list, endList, err = api.ctrl.SearchPauseCause(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -79,7 +79,7 @@ func (api *pauseCause) ReadAgentPauseCause(ctx context.Context, in *engine.ReadA
 		return nil, err
 	}
 	var cause *model.PauseCause
-	cause, err = api.ctrl.GetPauseCause(session, in.Id)
+	cause, err = api.ctrl.GetPauseCause(ctx, session, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (api *pauseCause) PatchAgentPauseCause(ctx context.Context, in *engine.Patc
 		}
 	}
 
-	if cause, err = api.ctrl.PatchPauseCause(session, in.Id, patch); err != nil {
+	if cause, err = api.ctrl.PatchPauseCause(ctx, session, in.Id, patch); err != nil {
 		return nil, err
 	}
 
@@ -141,7 +141,7 @@ func (api *pauseCause) UpdateAgentPauseCause(ctx context.Context, in *engine.Upd
 		AllowAdmin:      in.AllowAdmin,
 	}
 
-	cause, err = api.ctrl.UpdatePauseCause(session, cause)
+	cause, err = api.ctrl.UpdatePauseCause(ctx, session, cause)
 
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func (api *pauseCause) DeleteAgentPauseCause(ctx context.Context, in *engine.Del
 	}
 
 	var cause *model.PauseCause
-	cause, err = api.ctrl.DeletePauseCause(session, in.Id)
+	cause, err = api.ctrl.DeletePauseCause(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}

@@ -27,7 +27,7 @@ func (api *skill) CreateSkill(ctx context.Context, in *engine.CreateSkillRequest
 		Description: in.Description,
 	}
 
-	skill, err = api.ctrl.CreateSkill(session, skill)
+	skill, err = api.ctrl.CreateSkill(ctx, session, skill)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (api *skill) SearchSkill(ctx context.Context, in *engine.SearchSkillRequest
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.ctrl.SearchSkill(session, req)
+	list, endList, err = api.ctrl.SearchSkill(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (api *skill) ReadSkill(ctx context.Context, in *engine.ReadSkillRequest) (*
 		return nil, err
 	}
 
-	skill, err = api.ctrl.ReadSkill(session, in.Id)
+	skill, err = api.ctrl.ReadSkill(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (api *skill) UpdateSkill(ctx context.Context, in *engine.UpdateSkillRequest
 
 	var skill *model.Skill
 
-	skill, err = api.ctrl.UpdateSkill(session, &model.Skill{
+	skill, err = api.ctrl.UpdateSkill(ctx, session, &model.Skill{
 		Id:          in.Id,
 		Name:        in.Name,
 		DomainId:    session.Domain(in.GetDomainId()),
@@ -113,7 +113,7 @@ func (api *skill) DeleteSkill(ctx context.Context, in *engine.DeleteSkillRequest
 	}
 
 	var skill *model.Skill
-	skill, err = api.ctrl.DeleteSkill(session, in.Id)
+	skill, err = api.ctrl.DeleteSkill(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}

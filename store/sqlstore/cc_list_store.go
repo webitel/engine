@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -18,9 +19,9 @@ func NewSqlListStore(sqlStore SqlStore) store.ListStore {
 	return us
 }
 
-func (s SqlListStore) Create(list *model.List) (*model.List, *model.AppError) {
+func (s SqlListStore) Create(ctx context.Context, list *model.List) (*model.List, *model.AppError) {
 	var out *model.List
-	if err := s.GetMaster().SelectOne(&out, `with i as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with i as (
     insert into call_center.cc_list (name, description, domain_id, created_at, created_by, updated_at, updated_by)
     values (:Name, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
     returning *
@@ -54,9 +55,9 @@ from i
 	}
 }
 
-func (s SqlListStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlListStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 
-	res, err := s.GetReplica().SelectNullInt(`select 1
+	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
           from call_center.cc_list_acl a
@@ -73,7 +74,7 @@ func (s SqlListStore) CheckAccess(domainId, id int64, groups []int, access auth_
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlListStore) GetAllPage(domainId int64, search *model.SearchList) ([]*model.List, *model.AppError) {
+func (s SqlListStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchList) ([]*model.List, *model.AppError) {
 	var list []*model.List
 
 	f := map[string]interface{}{
@@ -82,7 +83,7 @@ func (s SqlListStore) GetAllPage(domainId int64, search *model.SearchList) ([]*m
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&list, search.ListRequest,
+	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
@@ -95,7 +96,7 @@ func (s SqlListStore) GetAllPage(domainId int64, search *model.SearchList) ([]*m
 	}
 }
 
-func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchList) ([]*model.List, *model.AppError) {
+func (s SqlListStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchList) ([]*model.List, *model.AppError) {
 	var list []*model.List
 
 	f := map[string]interface{}{
@@ -106,7 +107,7 @@ func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *m
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 	}
 
-	err := s.ListQuery(&list, search.ListRequest,
+	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
@@ -123,9 +124,9 @@ func (s SqlListStore) GetAllPageByGroups(domainId int64, groups []int, search *m
 	}
 }
 
-func (s SqlListStore) Get(domainId int64, id int64) (*model.List, *model.AppError) {
+func (s SqlListStore) Get(ctx context.Context, domainId int64, id int64) (*model.List, *model.AppError) {
 	var list *model.List
-	if err := s.GetReplica().SelectOne(&list, `
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&list, `
 			select
 			   i.id,
 			   i.name,
@@ -149,8 +150,8 @@ func (s SqlListStore) Get(domainId int64, id int64) (*model.List, *model.AppErro
 	}
 }
 
-func (s SqlListStore) Update(list *model.List) (*model.List, *model.AppError) {
-	err := s.GetMaster().SelectOne(&list, `with i as (
+func (s SqlListStore) Update(ctx context.Context, list *model.List) (*model.List, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&list, `with i as (
     update call_center.cc_list
         set name = :Name,
             description = :Description,
@@ -187,8 +188,8 @@ from i
 	return list, nil
 }
 
-func (s SqlListStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_list c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlListStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_list c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlListStore.Delete", "store.sql_list.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -196,10 +197,10 @@ func (s SqlListStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-//Communications
-func (s SqlListStore) CreateCommunication(comm *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
+// Communications
+func (s SqlListStore) CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
 	var out *model.ListCommunication
-	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description)
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description)
 values (:ListId, :Number, :Description)
 returning id, list_id, number, description, expire_at`,
 		map[string]interface{}{
@@ -214,7 +215,7 @@ returning id, list_id, number, description, expire_at`,
 	}
 }
 
-func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, *model.AppError) {
 	var communication []*model.ListCommunication
 
 	f := map[string]interface{}{
@@ -226,7 +227,7 @@ func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *mo
 		"ExpireTo":   model.GetBetweenToTime(search.ExpireAt),
 	}
 
-	err := s.ListQuery(&communication, search.ListRequest,
+	err := s.ListQuery(ctx, &communication, search.ListRequest,
 		`domain_id = :DomainId
 				and list_id = :ListId
 				and (:Ids::int[] isnull or id = any(:Ids))
@@ -243,9 +244,9 @@ func (s SqlListStore) GetAllPageCommunication(domainId, listId int64, search *mo
 	}
 }
 
-func (s SqlListStore) GetCommunication(domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) GetCommunication(ctx context.Context, domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError) {
 	var communication *model.ListCommunication
-	if err := s.GetReplica().SelectOne(&communication, `
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&communication, `
 			select i.id, i.number, i.description, i.list_id, i.expire_at
 from call_center.cc_list_communications i
 where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)	
@@ -257,8 +258,8 @@ where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.c
 	}
 }
 
-func (s SqlListStore) UpdateCommunication(domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
-	err := s.GetMaster().SelectOne(&communication, `update call_center.cc_list_communications i
+func (s SqlListStore) UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&communication, `update call_center.cc_list_communications i
 set number = :Number,
     description = :Description,
 	expire_at = :ExpireAt
@@ -278,8 +279,8 @@ returning *`, map[string]interface{}{
 	return communication, nil
 }
 
-func (s SqlListStore) DeleteCommunication(domainId, listId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_list_communications i where i.id=:Id and i.list_id = :ListId
+func (s SqlListStore) DeleteCommunication(ctx context.Context, domainId, listId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_list_communications i where i.id=:Id and i.list_id = :ListId
     and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "ListId": listId}); err != nil {
 		return model.NewAppError("SqlListStore.Delete", "store.sql_list.delete_communication.app_error", nil,

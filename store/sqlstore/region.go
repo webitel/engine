@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,9 +17,9 @@ func NewSqlRegionStore(sqlStore SqlStore) store.RegionStore {
 	return us
 }
 
-func (s SqlRegionStore) Create(domainId int64, region *model.Region) (*model.Region, *model.AppError) {
+func (s SqlRegionStore) Create(ctx context.Context, domainId int64, region *model.Region) (*model.Region, *model.AppError) {
 	var r *model.Region
-	err := s.GetMaster().SelectOne(&r, `with r as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&r, `with r as (
     insert into flow.region (domain_id, name, description, timezone_id)
     values (:DomainId, :Name, :Description, :TimezoneId)
     returning *
@@ -40,7 +41,7 @@ from  r
 	return r, nil
 }
 
-func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) ([]*model.Region, *model.AppError) {
+func (s SqlRegionStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRegion) ([]*model.Region, *model.AppError) {
 	var region []*model.Region
 
 	f := map[string]interface{}{
@@ -52,7 +53,7 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 		"TimezoneIds": pq.Array(search.TimezoneIds),
 	}
 
-	err := s.ListQueryFromSchema(&region, "flow", search.ListRequest,
+	err := s.ListQueryFromSchema(ctx, &region, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -68,9 +69,9 @@ func (s SqlRegionStore) GetAllPage(domainId int64, search *model.SearchRegion) (
 	return region, nil
 }
 
-func (s SqlRegionStore) Get(domainId int64, id int64) (*model.Region, *model.AppError) {
+func (s SqlRegionStore) Get(ctx context.Context, domainId int64, id int64) (*model.Region, *model.AppError) {
 	var region *model.Region
-	err := s.GetReplica().SelectOne(&region, `select r.id, r.name, r.description, call_center.cc_get_lookup(t.id, t.name) timezone
+	err := s.GetReplica().WithContext(ctx).SelectOne(&region, `select r.id, r.name, r.description, call_center.cc_get_lookup(t.id, t.name) timezone
 from flow.region r
           left join flow.calendar_timezones t on t.id = r.timezone_id
 where r.domain_id = :DomainId and r.id = :Id`, map[string]interface{}{
@@ -85,8 +86,8 @@ where r.domain_id = :DomainId and r.id = :Id`, map[string]interface{}{
 	return region, nil
 }
 
-func (s SqlRegionStore) Update(domainId int64, region *model.Region) (*model.Region, *model.AppError) {
-	err := s.GetMaster().SelectOne(&region, `with r as (
+func (s SqlRegionStore) Update(ctx context.Context, domainId int64, region *model.Region) (*model.Region, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&region, `with r as (
     update flow.region
         set name = :Name,
             description = :Description,
@@ -112,8 +113,8 @@ from r
 
 }
 
-func (s SqlRegionStore) Delete(domainId int64, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from flow.region c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlRegionStore) Delete(ctx context.Context, domainId int64, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.region c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlRegionStore.Delete", "store.sql_region.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))

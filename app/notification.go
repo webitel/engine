@@ -1,10 +1,11 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) SendNotification(domainId int64, fromUserId *int64, toUsers []int64, action, description string) *model.AppError {
+func (app *App) SendNotification(ctx context.Context, domainId int64, fromUserId *int64, toUsers []int64, action, description string) *model.AppError {
 	var err *model.AppError
 	n := &model.Notification{
 		DomainId:    domainId,
@@ -14,7 +15,7 @@ func (app *App) SendNotification(domainId int64, fromUserId *int64, toUsers []in
 		Description: description,
 	}
 
-	n, err = app.Store.Notification().Create(n)
+	n, err = app.Store.Notification().Create(ctx, n)
 
 	if err != nil {
 		return err

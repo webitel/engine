@@ -66,7 +66,7 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 		calendar.EndAt = model.NewInt64(in.EndAt)
 	}
 
-	calendar, err = api.ctrl.CreateCalendar(session, calendar)
+	calendar, err = api.ctrl.CreateCalendar(ctx, session, calendar)
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func (api *calendar) SearchCalendar(ctx context.Context, in *engine.SearchCalend
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.ctrl.SearchCalendar(session, req)
+	list, endList, err = api.ctrl.SearchCalendar(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -116,7 +116,7 @@ func (api *calendar) ReadCalendar(ctx context.Context, in *engine.ReadCalendarRe
 		return nil, err
 	}
 	var calendar *model.Calendar
-	calendar, err = api.ctrl.GetCalendar(session, in.DomainId, in.Id)
+	calendar, err = api.ctrl.GetCalendar(ctx, session, in.DomainId, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 		})
 	}
 
-	calendar, err = api.ctrl.UpdateCalendar(session, calendar)
+	calendar, err = api.ctrl.UpdateCalendar(ctx, session, calendar)
 
 	if err != nil {
 		return nil, err
@@ -183,7 +183,7 @@ func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalend
 	}
 
 	var calendar *model.Calendar
-	calendar, err = api.ctrl.DeleteCalendar(session, in.DomainId, in.Id)
+	calendar, err = api.ctrl.DeleteCalendar(ctx, session, in.DomainId, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimez
 			PerPage: int(in.GetSize()),
 		},
 	}
-	list, endList, err := api.app.GetCalendarTimezoneAllPage(req)
+	list, endList, err := api.app.GetCalendarTimezoneAllPage(ctx, req)
 	if err != nil {
 		return nil, err
 	}

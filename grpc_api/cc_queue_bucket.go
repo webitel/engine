@@ -34,7 +34,8 @@ func (api *queueBucket) CreateQueueBucket(ctx context.Context, in *engine.Create
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -55,7 +56,7 @@ func (api *queueBucket) CreateQueueBucket(ctx context.Context, in *engine.Create
 		return nil, err
 	}
 
-	queueBucket, err = api.app.CreateQueueBucket(queueBucket)
+	queueBucket, err = api.app.CreateQueueBucket(ctx, queueBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,8 @@ func (api *queueBucket) ReadQueueBucket(ctx context.Context, in *engine.ReadQueu
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -84,7 +86,7 @@ func (api *queueBucket) ReadQueueBucket(ctx context.Context, in *engine.ReadQueu
 	}
 
 	var out *model.QueueBucket
-	out, err = api.app.GetQueueBucket(session.Domain(0), in.GetQueueId(), in.GetId())
+	out, err = api.app.GetQueueBucket(ctx, session.Domain(0), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +106,8 @@ func (api *queueBucket) SearchQueueBucket(ctx context.Context, in *engine.Search
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -124,7 +127,7 @@ func (api *queueBucket) SearchQueueBucket(ctx context.Context, in *engine.Search
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetQueueBucketPage(session.Domain(0), in.GetQueueId(), req)
+	list, endList, err = api.app.GetQueueBucketPage(ctx, session.Domain(0), in.GetQueueId(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +159,8 @@ func (api *queueBucket) UpdateQueueBucket(ctx context.Context, in *engine.Update
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -178,7 +182,7 @@ func (api *queueBucket) UpdateQueueBucket(ctx context.Context, in *engine.Update
 		return nil, err
 	}
 
-	qb, err = api.app.UpdateQueueBucket(session.Domain(0), qb)
+	qb, err = api.app.UpdateQueueBucket(ctx, session.Domain(0), qb)
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +207,8 @@ func (api *queueBucket) PatchQueueBucket(ctx context.Context, in *engine.PatchQu
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -227,7 +232,7 @@ func (api *queueBucket) PatchQueueBucket(ctx context.Context, in *engine.PatchQu
 		}
 	}
 
-	qb, err = api.app.PatchQueueBucket(session.Domain(0), in.GetQueueId(), in.GetId(), patch)
+	qb, err = api.app.PatchQueueBucket(ctx, session.Domain(0), in.GetQueueId(), in.GetId(), patch)
 
 	if err != nil {
 		return nil, err
@@ -253,7 +258,8 @@ func (api *queueBucket) DeleteQueueBucket(ctx context.Context, in *engine.Delete
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.QueueCheckAccess(session.Domain(0), in.GetQueueId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -261,7 +267,7 @@ func (api *queueBucket) DeleteQueueBucket(ctx context.Context, in *engine.Delete
 	}
 
 	var qb *model.QueueBucket
-	qb, err = api.app.RemoveQueueBucket(session.Domain(0), in.GetQueueId(), in.GetId())
+	qb, err = api.app.RemoveQueueBucket(ctx, session.Domain(0), in.GetQueueId(), in.GetId())
 	if err != nil {
 		return nil, err
 	}

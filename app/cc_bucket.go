@@ -1,24 +1,25 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) CreateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
-	return app.Store.Bucket().Create(bucket)
+func (app *App) CreateBucket(ctx context.Context, bucket *model.Bucket) (*model.Bucket, *model.AppError) {
+	return app.Store.Bucket().Create(ctx, bucket)
 }
 
-func (a *App) BucketCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
-	return a.Store.Bucket().CheckAccess(domainId, id, groups, access)
+func (a *App) BucketCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.Bucket().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (app *App) GetBucket(id, domainId int64) (*model.Bucket, *model.AppError) {
-	return app.Store.Bucket().Get(domainId, id)
+func (app *App) GetBucket(ctx context.Context, id, domainId int64) (*model.Bucket, *model.AppError) {
+	return app.Store.Bucket().Get(ctx, domainId, id)
 }
 
-func (app *App) GetBucketsPage(domainId int64, search *model.SearchBucket) ([]*model.Bucket, bool, *model.AppError) {
-	list, err := app.Store.Bucket().GetAllPage(domainId, search)
+func (app *App) GetBucketsPage(ctx context.Context, domainId int64, search *model.SearchBucket) ([]*model.Bucket, bool, *model.AppError) {
+	list, err := app.Store.Bucket().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -26,8 +27,8 @@ func (app *App) GetBucketsPage(domainId int64, search *model.SearchBucket) ([]*m
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) UpdateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppError) {
-	oldBucket, err := app.GetBucket(bucket.Id, bucket.DomainId)
+func (app *App) UpdateBucket(ctx context.Context, bucket *model.Bucket) (*model.Bucket, *model.AppError) {
+	oldBucket, err := app.GetBucket(ctx, bucket.Id, bucket.DomainId)
 
 	if err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func (app *App) UpdateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppErr
 	oldBucket.UpdatedAt = bucket.UpdatedAt
 	oldBucket.UpdatedBy = bucket.UpdatedBy
 
-	_, err = app.Store.Bucket().Update(oldBucket)
+	_, err = app.Store.Bucket().Update(ctx, oldBucket)
 	if err != nil {
 		return nil, err
 	}
@@ -47,14 +48,14 @@ func (app *App) UpdateBucket(bucket *model.Bucket) (*model.Bucket, *model.AppErr
 	return oldBucket, nil
 }
 
-func (app *App) RemoveBucket(domainId, id int64) (*model.Bucket, *model.AppError) {
-	bucket, err := app.GetBucket(id, domainId)
+func (app *App) RemoveBucket(ctx context.Context, domainId, id int64) (*model.Bucket, *model.AppError) {
+	bucket, err := app.GetBucket(ctx, id, domainId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = app.Store.Bucket().Delete(domainId, id)
+	err = app.Store.Bucket().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}

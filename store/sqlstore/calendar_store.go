@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
@@ -22,9 +23,9 @@ func NewSqlCalendarStore(sqlStore SqlStore) store.CalendarStore {
 func (s *SqlCalendarStore) CreateTableIfNotExists() {
 }
 
-func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
 	var out *model.Calendar
-	if err := s.GetMaster().SelectOne(&out, `with c as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with c as (
 		  insert into flow.calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by, accepts, excepts)
 		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, flow.calendar_json_to_accepts(:Accepts::jsonb), flow.calendar_json_to_excepts(:Excepts::jsonb))
 		  returning *
@@ -68,7 +69,7 @@ func (s SqlCalendarStore) Create(calendar *model.Calendar) (*model.Calendar, *mo
 	}
 }
 
-func (s SqlCalendarStore) GetAllPage(domainId int64, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
 	var calendars []*model.Calendar
 
 	f := map[string]interface{}{
@@ -77,7 +78,7 @@ func (s SqlCalendarStore) GetAllPage(domainId int64, search *model.SearchCalenda
 		"Ids":      pq.Array(search.Ids),
 	}
 
-	err := s.ListQueryFromSchema(&calendars, "flow", search.ListRequest,
+	err := s.ListQueryFromSchema(ctx, &calendars, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::text isnull or ( name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -91,9 +92,9 @@ func (s SqlCalendarStore) GetAllPage(domainId int64, search *model.SearchCalenda
 	}
 }
 
-func (s SqlCalendarStore) CheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlCalendarStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 
-	res, err := s.GetReplica().SelectNullInt(`select 1
+	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
           from flow.calendar_acl a
@@ -110,7 +111,7 @@ func (s SqlCalendarStore) CheckAccess(domainId, id int64, groups []int, access a
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
 	var calendars []*model.Calendar
 
 	f := map[string]interface{}{
@@ -121,7 +122,7 @@ func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, searc
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 	}
 
-	err := s.ListQueryFromSchema(&calendars, "flow", search.ListRequest,
+	err := s.ListQueryFromSchema(ctx, &calendars, "flow", search.ListRequest,
 		`domain_id = :DomainId
 				and exists(select 1
 				  from flow.calendar_acl a
@@ -138,9 +139,9 @@ func (s SqlCalendarStore) GetAllPageByGroups(domainId int64, groups []int, searc
 	}
 }
 
-func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) Get(ctx context.Context, domainId int64, id int64) (*model.Calendar, *model.AppError) {
 	var calendar *model.Calendar
-	if err := s.GetReplica().SelectOne(&calendar, `
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&calendar, `
 			select c.id,
 			   c.name,
 			   c.start_at,
@@ -172,8 +173,8 @@ func (s SqlCalendarStore) Get(domainId int64, id int64) (*model.Calendar, *model
 	}
 }
 
-func (s SqlCalendarStore) Update(calendar *model.Calendar) (*model.Calendar, *model.AppError) {
-	err := s.GetMaster().SelectOne(&calendar, `with c as (
+func (s SqlCalendarStore) Update(ctx context.Context, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&calendar, `with c as (
     update flow.calendar
 	set name = :Name,
     timezone_id = :TimezoneId,
@@ -223,8 +224,8 @@ from c
 	return calendar, nil
 }
 
-func (s SqlCalendarStore) Delete(domainId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from flow.calendar c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlCalendarStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.calendar c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlCalendarStore.Delete", "store.sql_calendar.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
@@ -232,10 +233,10 @@ func (s SqlCalendarStore) Delete(domainId, id int64) *model.AppError {
 	return nil
 }
 
-func (s SqlCalendarStore) GetTimezoneAllPage(search *model.SearchTimezone) ([]*model.Timezone, *model.AppError) {
+func (s SqlCalendarStore) GetTimezoneAllPage(ctx context.Context, search *model.SearchTimezone) ([]*model.Timezone, *model.AppError) {
 	var timezones []*model.Timezone
 
-	if _, err := s.GetReplica().Select(&timezones, `select id, name, utc_offset::text as "offset" 
+	if _, err := s.GetReplica().WithContext(ctx).Select(&timezones, `select id, name, utc_offset::text as "offset" 
 		from flow.calendar_timezones  t
 		where  (:Q::varchar isnull or t.name ilike :Q::varchar)
 		order by name limit :Limit offset :Offset`, map[string]interface{}{

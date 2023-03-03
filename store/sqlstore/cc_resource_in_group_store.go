@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -17,9 +18,9 @@ func NewSqlOutboundResourceInGroupStore(sqlStore SqlStore) store.OutboundResourc
 	return us
 }
 
-func (s SqlOutboundResourceInGroupStore) Create(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) Create(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
 	var out *model.OutboundResourceInGroup
-	if err := s.GetMaster().SelectOne(&out, `with s as (
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into call_center.cc_outbound_resource_in_group (resource_id, group_id, reserve_resource_id, priority)
     select :ResourceId, :GroupId, :ReserveResourceId, :Priority
     where exists(select 1 from call_center.cc_outbound_resource_group where domain_id = :DomainId)
@@ -45,7 +46,7 @@ from s
 	}
 }
 
-func (s SqlOutboundResourceInGroupStore) GetAllPage(domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) GetAllPage(ctx context.Context, domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, *model.AppError) {
 	var groups []*model.OutboundResourceInGroup
 
 	f := map[string]interface{}{
@@ -55,7 +56,7 @@ func (s SqlOutboundResourceInGroupStore) GetAllPage(domainId, groupId int64, sea
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&groups, search.ListRequest,
+	err := s.ListQuery(ctx, &groups, search.ListRequest,
 		`domain_id = :DomainId
 				and group_id = :GroupId
 				and (:Ids::int[] isnull or id = any(:Ids))
@@ -70,9 +71,9 @@ func (s SqlOutboundResourceInGroupStore) GetAllPage(domainId, groupId int64, sea
 	}
 }
 
-func (s SqlOutboundResourceInGroupStore) Get(domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) Get(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError) {
 	var res *model.OutboundResourceInGroup
-	if err := s.GetReplica().SelectOne(&res, `
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&res, `
 			select s.id, s.group_id, resource, reserve_resource, priority
 			from call_center.cc_outbound_resource_in_group_view s
 			where s.group_id = :GroupId and s.domain_id = :DomainId	and s.id = :Id
@@ -84,9 +85,9 @@ func (s SqlOutboundResourceInGroupStore) Get(domainId, groupId, id int64) (*mode
 	}
 }
 
-func (s SqlOutboundResourceInGroupStore) Update(domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) Update(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
 
-	err := s.GetMaster().SelectOne(&res, `with s as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `with s as (
     update call_center.cc_outbound_resource_in_group 
         set resource_id  = :ResourceId,
 			reserve_resource_id = :ReserveResourceId,
@@ -119,8 +120,8 @@ FROM s
 	return res, nil
 }
 
-func (s SqlOutboundResourceInGroupStore) Delete(domainId, groupId, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_outbound_resource_in_group c 
+func (s SqlOutboundResourceInGroupStore) Delete(ctx context.Context, domainId, groupId, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_outbound_resource_in_group c 
 			where id = :Id and group_id = :GroupId and exists(select 1 from call_center.cc_outbound_resource_group where domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "GroupId": groupId}); err != nil {
 		return model.NewAppError("SqlOutboundResourceGroupStore.Delete", "store.sql_out_resource_group.delete.app_error", nil,

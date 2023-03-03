@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) CreateRoutingOutboundCall(session *auth_manager.Session, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (c *Controller) CreateRoutingOutboundCall(ctx context.Context, session *auth_manager.Session, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -17,28 +18,28 @@ func (c *Controller) CreateRoutingOutboundCall(session *auth_manager.Session, ro
 
 	routing.DomainId = session.Domain(routing.DomainId)
 
-	return c.app.CreateRoutingOutboundCall(routing)
+	return c.app.CreateRoutingOutboundCall(ctx, routing)
 }
 
-func (c *Controller) SearchRoutingOutboundCall(session *auth_manager.Session, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, *model.AppError) {
+func (c *Controller) SearchRoutingOutboundCall(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetRoutingOutboundCallPage(session.Domain(search.DomainId), search)
+	return c.app.GetRoutingOutboundCallPage(ctx, session.Domain(search.DomainId), search)
 }
 
-func (c *Controller) GetRoutingOutboundCall(session *auth_manager.Session, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+func (c *Controller) GetRoutingOutboundCall(ctx context.Context, session *auth_manager.Session, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetRoutingOutboundCallById(session.Domain(domainId), id)
+	return c.app.GetRoutingOutboundCallById(ctx, session.Domain(domainId), id)
 }
 
-func (c *Controller) UpdateRoutingOutboundCall(session *auth_manager.Session, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (c *Controller) UpdateRoutingOutboundCall(ctx context.Context, session *auth_manager.Session, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -52,10 +53,10 @@ func (c *Controller) UpdateRoutingOutboundCall(session *auth_manager.Session, ro
 	}
 
 	routing.DomainId = session.Domain(routing.DomainId)
-	return c.app.UpdateRoutingOutboundCall(routing)
+	return c.app.UpdateRoutingOutboundCall(ctx, routing)
 }
 
-func (c *Controller) PatchRoutingOutboundCall(session *auth_manager.Session, domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, *model.AppError) {
+func (c *Controller) PatchRoutingOutboundCall(ctx context.Context, session *auth_manager.Session, domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -67,10 +68,10 @@ func (c *Controller) PatchRoutingOutboundCall(session *auth_manager.Session, dom
 
 	patch.UpdatedById = int(session.UserId)
 
-	return c.app.PatchRoutingOutboundCall(session.Domain(domainId), id, patch)
+	return c.app.PatchRoutingOutboundCall(ctx, session.Domain(domainId), id, patch)
 }
 
-func (c *Controller) ChangePositionOutboundCall(session *auth_manager.Session, domainId, fromId, toId int64) *model.AppError {
+func (c *Controller) ChangePositionOutboundCall(ctx context.Context, session *auth_manager.Session, domainId, fromId, toId int64) *model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -80,14 +81,14 @@ func (c *Controller) ChangePositionOutboundCall(session *auth_manager.Session, d
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	return c.app.ChangePositionOutboundCall(session.Domain(domainId), fromId, toId)
+	return c.app.ChangePositionOutboundCall(ctx, session.Domain(domainId), fromId, toId)
 }
 
-func (c *Controller) DeleteRoutingOutboundCall(session *auth_manager.Session, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+func (c *Controller) DeleteRoutingOutboundCall(ctx context.Context, session *auth_manager.Session, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_ACR_ROUTING)
 	if !permission.CanDelete() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	return c.app.RemoveRoutingOutboundCall(session.Domain(domainId), id)
+	return c.app.RemoveRoutingOutboundCall(ctx, session.Domain(domainId), id)
 }

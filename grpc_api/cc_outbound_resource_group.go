@@ -53,7 +53,7 @@ func (api *outboundResourceGroup) CreateOutboundResourceGroup(ctx context.Contex
 		return nil, err
 	}
 
-	if group, err = api.app.CreateOutboundResourceGroup(group); err != nil {
+	if group, err = api.app.CreateOutboundResourceGroup(ctx, group); err != nil {
 		return nil, err
 	} else {
 		return toEngineOutboundResourceGroup(group), nil
@@ -85,9 +85,9 @@ func (api *outboundResourceGroup) SearchOutboundResourceGroup(ctx context.Contex
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		list, endList, err = api.app.GetOutboundResourceGroupPageByGroups(session.Domain(0), session.GetAclRoles(), req)
+		list, endList, err = api.app.GetOutboundResourceGroupPageByGroups(ctx, session.Domain(0), session.GetAclRoles(), req)
 	} else {
-		list, endList, err = api.app.GetOutboundResourceGroupPage(session.Domain(0), req)
+		list, endList, err = api.app.GetOutboundResourceGroupPage(ctx, session.Domain(0), req)
 	}
 
 	if err != nil {
@@ -128,14 +128,15 @@ func (api *outboundResourceGroup) ReadOutboundResourceGroup(ctx context.Context,
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
-	group, err = api.app.GetOutboundResourceGroup(session.Domain(in.DomainId), in.Id)
+	group, err = api.app.GetOutboundResourceGroup(ctx, session.Domain(in.DomainId), in.Id)
 
 	if err != nil {
 		return nil, err
@@ -161,7 +162,8 @@ func (api *outboundResourceGroup) UpdateOutboundResourceGroup(ctx context.Contex
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -169,7 +171,7 @@ func (api *outboundResourceGroup) UpdateOutboundResourceGroup(ctx context.Contex
 	}
 	var group *model.OutboundResourceGroup
 
-	group, err = api.app.UpdateOutboundResourceGroup(&model.OutboundResourceGroup{
+	group, err = api.app.UpdateOutboundResourceGroup(ctx, &model.OutboundResourceGroup{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -207,7 +209,8 @@ func (api *outboundResourceGroup) DeleteOutboundResourceGroup(ctx context.Contex
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -215,7 +218,7 @@ func (api *outboundResourceGroup) DeleteOutboundResourceGroup(ctx context.Contex
 	}
 
 	var group *model.OutboundResourceGroup
-	group, err = api.app.RemoveOutboundResourceGroup(session.Domain(in.DomainId), in.Id)
+	group, err = api.app.RemoveOutboundResourceGroup(ctx, session.Domain(in.DomainId), in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +243,8 @@ func (api *outboundResourceGroup) CreateOutboundResourceInGroup(ctx context.Cont
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(0), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(0), in.GetGroupId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -253,7 +257,7 @@ func (api *outboundResourceGroup) CreateOutboundResourceInGroup(ctx context.Cont
 		ReserveResource: GetLookup(in.ReserveResource),
 		Priority:        in.Priority,
 	}
-	res, err = api.app.CreateOutboundResourceInGroup(session.Domain(0), res)
+	res, err = api.app.CreateOutboundResourceInGroup(ctx, session.Domain(0), res)
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +278,8 @@ func (api *outboundResourceGroup) SearchOutboundResourceInGroup(ctx context.Cont
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(0), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(0), in.GetGroupId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -293,7 +298,7 @@ func (api *outboundResourceGroup) SearchOutboundResourceInGroup(ctx context.Cont
 		},
 		Ids: in.Id,
 	}
-	list, endList, err = api.app.GetOutboundResourceInGroupPage(session.Domain(0), in.GetGroupId(), req)
+	list, endList, err = api.app.GetOutboundResourceInGroupPage(ctx, session.Domain(0), in.GetGroupId(), req)
 
 	if err != nil {
 		return nil, err
@@ -322,7 +327,8 @@ func (api *outboundResourceGroup) ReadOutboundResourceInGroup(ctx context.Contex
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetGroupId(),
+			session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -330,7 +336,7 @@ func (api *outboundResourceGroup) ReadOutboundResourceInGroup(ctx context.Contex
 	}
 
 	var res *model.OutboundResourceInGroup
-	res, err = api.app.GetOutboundResourceInGroup(session.Domain(in.DomainId), in.GetGroupId(), in.Id)
+	res, err = api.app.GetOutboundResourceInGroup(ctx, session.Domain(in.DomainId), in.GetGroupId(), in.Id)
 
 	if err != nil {
 		return nil, err
@@ -356,7 +362,8 @@ func (api *outboundResourceGroup) UpdateOutboundResourceInGroup(ctx context.Cont
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(0), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(0), in.GetGroupId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -364,7 +371,7 @@ func (api *outboundResourceGroup) UpdateOutboundResourceInGroup(ctx context.Cont
 	}
 
 	var res *model.OutboundResourceInGroup
-	res, err = api.app.UpdateOutboundResourceInGroup(session.Domain(0), &model.OutboundResourceInGroup{
+	res, err = api.app.UpdateOutboundResourceInGroup(ctx, session.Domain(0), &model.OutboundResourceInGroup{
 		Id:      in.GetId(),
 		GroupId: in.GroupId,
 		Resource: model.Lookup{
@@ -398,7 +405,8 @@ func (api *outboundResourceGroup) DeleteOutboundResourceInGroup(ctx context.Cont
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = api.app.OutboundResourceGroupCheckAccess(session.Domain(in.GetDomainId()), in.GetGroupId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = api.app.OutboundResourceGroupCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetGroupId(),
+			session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetGroupId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -406,7 +414,7 @@ func (api *outboundResourceGroup) DeleteOutboundResourceInGroup(ctx context.Cont
 	}
 
 	var res *model.OutboundResourceInGroup
-	res, err = api.app.RemoveOutboundResourceInGroup(session.Domain(in.GetDomainId()), in.GetGroupId(), in.GetId())
+	res, err = api.app.RemoveOutboundResourceInGroup(ctx, session.Domain(in.GetDomainId()), in.GetGroupId(), in.GetId())
 
 	if err != nil {
 		return nil, err

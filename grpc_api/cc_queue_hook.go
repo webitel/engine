@@ -29,7 +29,7 @@ func (api *queueHook) CreateQueueHook(ctx context.Context, in *engine.CreateQueu
 		Enabled: in.Enabled,
 	}
 
-	hook, err = api.ctrl.CreateQueueHook(session, in.QueueId, hook)
+	hook, err = api.ctrl.CreateQueueHook(ctx, session, in.QueueId, hook)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (api *queueHook) SearchQueueHook(ctx context.Context, in *engine.SearchQueu
 		Events:    in.Event,
 	}
 
-	list, endList, err = api.ctrl.SearchQueueHook(session, in.QueueId, req)
+	list, endList, err = api.ctrl.SearchQueueHook(ctx, session, in.QueueId, req)
 
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func (api *queueHook) ReadQueueHook(ctx context.Context, in *engine.ReadQueueHoo
 		return nil, err
 	}
 	var hook *model.QueueHook
-	hook, err = api.ctrl.GetQueueHook(session, in.QueueId, in.Id)
+	hook, err = api.ctrl.GetQueueHook(ctx, session, in.QueueId, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (api *queueHook) PatchQueueHook(ctx context.Context, in *engine.PatchQueueH
 		}
 	}
 
-	if hook, err = api.ctrl.PatchQueueHook(session, in.QueueId, in.Id, patch); err != nil {
+	if hook, err = api.ctrl.PatchQueueHook(ctx, session, in.QueueId, in.Id, patch); err != nil {
 		return nil, err
 	}
 
@@ -134,7 +134,7 @@ func (api *queueHook) UpdateQueueHook(ctx context.Context, in *engine.UpdateQueu
 		Enabled: in.Enabled,
 	}
 
-	hook, err = api.ctrl.UpdateQueueHook(session, in.QueueId, hook)
+	hook, err = api.ctrl.UpdateQueueHook(ctx, session, in.QueueId, hook)
 
 	if err != nil {
 		return nil, err
@@ -150,7 +150,7 @@ func (api *queueHook) DeleteQueueHook(ctx context.Context, in *engine.DeleteQueu
 	}
 
 	var hook *model.QueueHook
-	hook, err = api.ctrl.DeleteQueueHook(session, in.QueueId, in.Id)
+	hook, err = api.ctrl.DeleteQueueHook(ctx, session, in.QueueId, in.Id)
 	if err != nil {
 		return nil, err
 	}

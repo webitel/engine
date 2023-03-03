@@ -1,24 +1,25 @@
 package app
 
 import (
+	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) CreateOutboundResource(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
-	return a.Store.OutboundResource().Create(resource)
+func (a *App) CreateOutboundResource(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
+	return a.Store.OutboundResource().Create(ctx, resource)
 }
 
-func (a *App) OutboundResourceCheckAccess(domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
-	return a.Store.OutboundResource().CheckAccess(domainId, id, groups, access)
+func (a *App) OutboundResourceCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+	return a.Store.OutboundResource().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (app *App) GetOutboundResource(domainId, id int64) (*model.OutboundCallResource, *model.AppError) {
-	return app.Store.OutboundResource().Get(domainId, id)
+func (app *App) GetOutboundResource(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, *model.AppError) {
+	return app.Store.OutboundResource().Get(ctx, domainId, id)
 }
 
-func (a *App) GetOutboundResourcePage(domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
-	list, err := a.Store.OutboundResource().GetAllPage(domainId, search)
+func (a *App) GetOutboundResourcePage(ctx context.Context, domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
+	list, err := a.Store.OutboundResource().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -26,8 +27,8 @@ func (a *App) GetOutboundResourcePage(domainId int64, search *model.SearchOutbou
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetOutboundResourcePageByGroups(domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
-	list, err := a.Store.OutboundResource().GetAllPageByGroups(domainId, groups, search)
+func (a *App) GetOutboundResourcePageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
+	list, err := a.Store.OutboundResource().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -35,8 +36,8 @@ func (a *App) GetOutboundResourcePageByGroups(domainId int64, groups []int, sear
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) PatchOutboundResource(domainId, id int64, patch *model.OutboundCallResourcePath) (*model.OutboundCallResource, *model.AppError) {
-	oldResource, err := a.GetOutboundResource(domainId, id)
+func (a *App) PatchOutboundResource(ctx context.Context, domainId, id int64, patch *model.OutboundCallResourcePath) (*model.OutboundCallResource, *model.AppError) {
+	oldResource, err := a.GetOutboundResource(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (a *App) PatchOutboundResource(domainId, id int64, patch *model.OutboundCal
 		return nil, err
 	}
 
-	oldResource, err = a.Store.OutboundResource().Update(oldResource)
+	oldResource, err = a.Store.OutboundResource().Update(ctx, oldResource)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +56,8 @@ func (a *App) PatchOutboundResource(domainId, id int64, patch *model.OutboundCal
 	return oldResource, nil
 }
 
-func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
-	oldResource, err := a.GetOutboundResource(resource.DomainId, resource.Id)
+func (a *App) UpdateOutboundResource(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
+	oldResource, err := a.GetOutboundResource(ctx, resource.DomainId, resource.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*mod
 	oldResource.FailureDialDelay = resource.FailureDialDelay
 	oldResource.Parameters = resource.Parameters
 
-	oldResource, err = a.Store.OutboundResource().Update(oldResource)
+	oldResource, err = a.Store.OutboundResource().Update(ctx, oldResource)
 	if err != nil {
 		return nil, err
 	}
@@ -86,26 +87,26 @@ func (a *App) UpdateOutboundResource(resource *model.OutboundCallResource) (*mod
 	return oldResource, nil
 }
 
-func (a *App) RemoveOutboundResource(domainId, id int64) (*model.OutboundCallResource, *model.AppError) {
-	resource, err := a.Store.OutboundResource().Get(domainId, id)
+func (a *App) RemoveOutboundResource(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, *model.AppError) {
+	resource, err := a.Store.OutboundResource().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.OutboundResource().Delete(domainId, id)
+	err = a.Store.OutboundResource().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 	return resource, nil
 }
 
-func (a *App) CreateOutboundResourceDisplay(display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
-	return a.Store.OutboundResource().SaveDisplay(display)
+func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+	return a.Store.OutboundResource().SaveDisplay(ctx, display)
 }
 
-func (a *App) GetOutboundResourceDisplayPage(domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, *model.AppError) {
-	list, err := a.Store.OutboundResource().GetDisplayAllPage(domainId, resourceId, search)
+func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, *model.AppError) {
+	list, err := a.Store.OutboundResource().GetDisplayAllPage(ctx, domainId, resourceId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -113,19 +114,19 @@ func (a *App) GetOutboundResourceDisplayPage(domainId, resourceId int64, search 
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetOutboundResourceDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
-	return a.Store.OutboundResource().GetDisplay(domainId, resourceId, id)
+func (a *App) GetOutboundResourceDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+	return a.Store.OutboundResource().GetDisplay(ctx, domainId, resourceId, id)
 }
 
-func (a *App) UpdateOutboundResourceDisplay(domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
-	oldDisplay, err := a.GetOutboundResourceDisplay(domainId, display.ResourceId, display.Id)
+func (a *App) UpdateOutboundResourceDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+	oldDisplay, err := a.GetOutboundResourceDisplay(ctx, domainId, display.ResourceId, display.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	oldDisplay.Display = display.Display
 
-	oldDisplay, err = a.Store.OutboundResource().UpdateDisplay(domainId, oldDisplay)
+	oldDisplay, err = a.Store.OutboundResource().UpdateDisplay(ctx, domainId, oldDisplay)
 	if err != nil {
 		return nil, err
 	}
@@ -133,14 +134,14 @@ func (a *App) UpdateOutboundResourceDisplay(domainId int64, display *model.Resou
 	return oldDisplay, nil
 }
 
-func (a *App) RemoveOutboundResourceDisplay(domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
-	display, err := a.Store.OutboundResource().GetDisplay(domainId, resourceId, id)
+func (a *App) RemoveOutboundResourceDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+	display, err := a.Store.OutboundResource().GetDisplay(ctx, domainId, resourceId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.OutboundResource().DeleteDisplay(domainId, resourceId, id)
+	err = a.Store.OutboundResource().DeleteDisplay(ctx, domainId, resourceId, id)
 	if err != nil {
 		return nil, err
 	}

@@ -1,13 +1,16 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"context"
+	"github.com/webitel/engine/model"
+)
 
-func (app *App) CreateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
-	return app.Store.RoutingOutboundCall().Create(routing)
+func (app *App) CreateRoutingOutboundCall(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+	return app.Store.RoutingOutboundCall().Create(ctx, routing)
 }
 
-func (app *App) GetRoutingOutboundCallPage(domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, *model.AppError) {
-	list, err := app.Store.RoutingOutboundCall().GetAllPage(domainId, search)
+func (app *App) GetRoutingOutboundCallPage(ctx context.Context, domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, *model.AppError) {
+	list, err := app.Store.RoutingOutboundCall().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -15,12 +18,12 @@ func (app *App) GetRoutingOutboundCallPage(domainId int64, search *model.SearchR
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetRoutingOutboundCallById(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
-	return app.Store.RoutingOutboundCall().Get(domainId, id)
+func (app *App) GetRoutingOutboundCallById(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+	return app.Store.RoutingOutboundCall().Get(ctx, domainId, id)
 }
 
-func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
-	oldRouting, err := app.GetRoutingOutboundCallById(routing.DomainId, routing.Id)
+func (app *App) UpdateRoutingOutboundCall(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+	oldRouting, err := app.GetRoutingOutboundCallById(ctx, routing.DomainId, routing.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +38,7 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 		oldRouting.Schema.Id = routing.Schema.Id
 	}
 
-	oldRouting, err = app.Store.RoutingOutboundCall().Update(oldRouting)
+	oldRouting, err = app.Store.RoutingOutboundCall().Update(ctx, oldRouting)
 	if err != nil {
 		return nil, err
 	}
@@ -43,26 +46,26 @@ func (app *App) UpdateRoutingOutboundCall(routing *model.RoutingOutboundCall) (*
 	return oldRouting, nil
 }
 
-func (app *App) ChangePositionOutboundCall(domainId, fromId, toId int64) *model.AppError {
-	return app.Store.RoutingOutboundCall().ChangePosition(domainId, fromId, toId)
+func (app *App) ChangePositionOutboundCall(ctx context.Context, domainId, fromId, toId int64) *model.AppError {
+	return app.Store.RoutingOutboundCall().ChangePosition(ctx, domainId, fromId, toId)
 }
 
-func (a *App) RemoveRoutingOutboundCall(domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
-	routing, err := a.Store.RoutingOutboundCall().Get(domainId, id)
+func (a *App) RemoveRoutingOutboundCall(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+	routing, err := a.Store.RoutingOutboundCall().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.RoutingOutboundCall().Delete(domainId, id)
+	err = a.Store.RoutingOutboundCall().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 	return routing, nil
 }
 
-func (a *App) PatchRoutingOutboundCall(domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, *model.AppError) {
-	old, err := a.GetRoutingOutboundCallById(domainId, id)
+func (a *App) PatchRoutingOutboundCall(ctx context.Context, domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, *model.AppError) {
+	old, err := a.GetRoutingOutboundCallById(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +81,7 @@ func (a *App) PatchRoutingOutboundCall(domainId, id int64, patch *model.RoutingO
 		return nil, err
 	}
 
-	old, err = a.Store.RoutingOutboundCall().Update(old)
+	old, err = a.Store.RoutingOutboundCall().Update(ctx, old)
 	if err != nil {
 		return nil, err
 	}

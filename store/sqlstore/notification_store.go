@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,8 +17,8 @@ func NewSqlNotificationStore(sqlStore SqlStore) store.NotificationStore {
 	return us
 }
 
-func (s SqlNotificationStore) Create(notification *model.Notification) (*model.Notification, *model.AppError) {
-	err := s.GetMaster().SelectOne(&notification, `insert into call_center.cc_notification (domain_id, action, created_by, timeout, for_users, description)
+func (s SqlNotificationStore) Create(ctx context.Context, notification *model.Notification) (*model.Notification, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&notification, `insert into call_center.cc_notification (domain_id, action, created_by, timeout, for_users, description)
     values (:DomainId, :Action, :CreatedBy, :Timeout, :ForUsers, :Description)
     returning id, domain_id, action, call_center.cc_view_timestamp(created_at) as created_at, created_by, timeout, for_users, description`, map[string]interface{}{
 		"DomainId":    notification.DomainId,
@@ -36,10 +37,10 @@ func (s SqlNotificationStore) Create(notification *model.Notification) (*model.N
 	return notification, nil
 }
 
-func (s SqlNotificationStore) Close(id, userId int64) (*model.Notification, *model.AppError) {
+func (s SqlNotificationStore) Close(ctx context.Context, id, userId int64) (*model.Notification, *model.AppError) {
 	panic("implement me")
 }
 
-func (s SqlNotificationStore) Accept(id, userId int64) (*model.Notification, *model.AppError) {
+func (s SqlNotificationStore) Accept(ctx context.Context, id, userId int64) (*model.Notification, *model.AppError) {
 	panic("implement me")
 }

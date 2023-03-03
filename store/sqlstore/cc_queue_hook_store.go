@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -16,10 +17,10 @@ func NewSqlQueueHookStore(sqlStore SqlStore) store.QueueHookStore {
 	return us
 }
 
-func (s SqlQueueHookStore) Create(domainId int64, queueId uint32, in *model.QueueHook) (*model.QueueHook, *model.AppError) {
+func (s SqlQueueHookStore) Create(ctx context.Context, domainId int64, queueId uint32, in *model.QueueHook) (*model.QueueHook, *model.AppError) {
 	var qh *model.QueueHook
 
-	err := s.GetMaster().SelectOne(&qh, `with qe as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&qh, `with qe as (
     insert into call_center.cc_queue_events (schema_id, event, queue_id, enabled, updated_by, updated_at)
     select :SchemaId, :Event, :QueueId, :Enabled, :UpdatedBy, :UpdatedAt
     where exists (select 1 from call_center.cc_queue q where q.domain_id = :DomainId and q.id = :QueueId)
@@ -48,10 +49,10 @@ from qe
 	return qh, nil
 }
 
-func (s SqlQueueHookStore) Get(domainId int64, queueId, id uint32) (*model.QueueHook, *model.AppError) {
+func (s SqlQueueHookStore) Get(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueHook, *model.AppError) {
 	var qh *model.QueueHook
 
-	err := s.GetReplica().SelectOne(&qh, `select
+	err := s.GetReplica().WithContext(ctx).SelectOne(&qh, `select
     id,
     schema,
     event,
@@ -73,7 +74,7 @@ where qe.queue_id = :QueueId
 	return qh, nil
 }
 
-func (s SqlQueueHookStore) GetAllPage(domainId int64, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, *model.AppError) {
+func (s SqlQueueHookStore) GetAllPage(ctx context.Context, domainId int64, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, *model.AppError) {
 	var list []*model.QueueHook
 
 	f := map[string]interface{}{
@@ -85,7 +86,7 @@ func (s SqlQueueHookStore) GetAllPage(domainId int64, queueId uint32, search *mo
 		"Events":    pq.Array(search.Events),
 	}
 
-	err := s.ListQuery(&list, search.ListRequest,
+	err := s.ListQuery(ctx, &list, search.ListRequest,
 		` queue_id = :QueueId::int
                 and exists (select 1 from call_center.cc_queue q where q.id = queue_id and q.domain_id = :DomainId)
 				and (:Q::text isnull or ( "event" ilike :Q::varchar ))
@@ -101,9 +102,9 @@ func (s SqlQueueHookStore) GetAllPage(domainId int64, queueId uint32, search *mo
 	return list, nil
 }
 
-func (s SqlQueueHookStore) Update(domainId int64, queueId uint32, qh *model.QueueHook) (*model.QueueHook, *model.AppError) {
+func (s SqlQueueHookStore) Update(ctx context.Context, domainId int64, queueId uint32, qh *model.QueueHook) (*model.QueueHook, *model.AppError) {
 
-	err := s.GetMaster().SelectOne(&qh, `with qe as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&qh, `with qe as (
     update call_center.cc_queue_events
     set schema_id = :SchemaId,
         event = :Event,
@@ -138,8 +139,8 @@ from qe
 	return qh, nil
 }
 
-func (s SqlQueueHookStore) Delete(domainId int64, queueId, id uint32) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_queue_events qe where qe.id=:Id and qe.queue_id = :QueueId 
+func (s SqlQueueHookStore) Delete(ctx context.Context, domainId int64, queueId, id uint32) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue_events qe where qe.id=:Id and qe.queue_id = :QueueId 
 			and exists(select 1 from call_center.cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "QueueId": queueId}); err != nil {
 		return model.NewAppError("SqlQueueHookStore.Delete", "store.sql_queue_hook.delete.app_error", nil,

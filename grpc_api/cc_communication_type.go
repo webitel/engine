@@ -31,7 +31,7 @@ func (api *communicationType) CreateCommunicationType(ctx context.Context, in *e
 		Description: in.Description,
 	}
 
-	cType, err = api.ctrl.CreateCommunicationType(session, cType)
+	cType, err = api.ctrl.CreateCommunicationType(ctx, session, cType)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.ctrl.GetCommunicationTypePage(session, req)
+	list, endList, err = api.ctrl.GetCommunicationTypePage(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (api *communicationType) ReadCommunicationType(ctx context.Context, in *eng
 		return nil, err
 	}
 
-	cType, err = api.ctrl.ReadCommunicationType(session, in.Id)
+	cType, err = api.ctrl.ReadCommunicationType(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (api *communicationType) UpdateCommunicationType(ctx context.Context, in *e
 		Description: in.GetDescription(),
 	}
 
-	cType, err = api.ctrl.UpdateCommunicationType(session, cType)
+	cType, err = api.ctrl.UpdateCommunicationType(ctx, session, cType)
 
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func (api *communicationType) DeleteCommunicationType(ctx context.Context, in *e
 	}
 
 	var cType *model.CommunicationType
-	cType, err = api.ctrl.RemoveCommunicationType(session, in.Id)
+	cType, err = api.ctrl.RemoveCommunicationType(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}

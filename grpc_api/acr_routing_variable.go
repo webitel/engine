@@ -42,7 +42,7 @@ func (api *routingVariable) CreateRoutingVariable(ctx context.Context, in *engin
 		return nil, err
 	}
 
-	if variable, err = api.app.CreateRoutingVariable(variable); err != nil {
+	if variable, err = api.app.CreateRoutingVariable(ctx, variable); err != nil {
 		return nil, err
 	}
 	return transformRoutingVariable(variable), nil
@@ -60,7 +60,7 @@ func (api *routingVariable) SearchRoutingVariable(ctx context.Context, in *engin
 	}
 	var list []*model.RoutingVariable
 
-	list, err = api.app.GetRoutingVariablesPage(session.Domain(in.DomainId), int(in.Page), int(in.Size))
+	list, err = api.app.GetRoutingVariablesPage(ctx, session.Domain(in.DomainId), int(in.Page), int(in.Size))
 
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (api *routingVariable) ReadRoutingVariable(ctx context.Context, in *engine.
 	}
 
 	var variable *model.RoutingVariable
-	variable, err = api.app.GetRoutingVariableById(session.Domain(in.DomainId), in.Id)
+	variable, err = api.app.GetRoutingVariableById(ctx, session.Domain(in.DomainId), in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (api *routingVariable) UpdateRoutingVariable(ctx context.Context, in *engin
 
 	var variable *model.RoutingVariable
 
-	variable, err = api.app.UpdateRoutingVariable(&model.RoutingVariable{
+	variable, err = api.app.UpdateRoutingVariable(ctx, &model.RoutingVariable{
 		Id:       in.Id,
 		DomainId: session.Domain(in.DomainId),
 		Key:      in.Key,
@@ -137,7 +137,7 @@ func (api *routingVariable) DeleteRoutingVariable(ctx context.Context, in *engin
 	}
 
 	var variable *model.RoutingVariable
-	variable, err = api.app.RemoveRoutingVariable(session.Domain(in.DomainId), in.Id)
+	variable, err = api.app.RemoveRoutingVariable(ctx, session.Domain(in.DomainId), in.Id)
 	if err != nil {
 		return nil, err
 	}

@@ -34,7 +34,7 @@ func (api *trigger) CreateTrigger(ctx context.Context, in *engine.CreateTriggerR
 		Timeout:     in.Timeout,
 	}
 	var tr *model.Trigger
-	tr, err = api.ctrl.CreateTrigger(session, req)
+	tr, err = api.ctrl.CreateTrigger(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (api *trigger) SearchTrigger(ctx context.Context, in *engine.SearchTriggerR
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.ctrl.SearchTrigger(session, req)
+	list, endList, err = api.ctrl.SearchTrigger(ctx, session, req)
 
 	if err != nil {
 		return nil, err
@@ -84,7 +84,7 @@ func (api *trigger) ReadTrigger(ctx context.Context, in *engine.ReadTriggerReque
 	}
 	var tr *model.Trigger
 
-	tr, err = api.ctrl.ReadTrigger(session, in.Id)
+	tr, err = api.ctrl.ReadTrigger(ctx, session, in.Id)
 
 	if err != nil {
 		return nil, err
@@ -112,7 +112,7 @@ func (api *trigger) UpdateTrigger(ctx context.Context, in *engine.UpdateTriggerR
 		Timeout:     in.Timeout,
 	}
 	var tr *model.Trigger
-	tr, err = api.ctrl.UpdateTrigger(session, req)
+	tr, err = api.ctrl.UpdateTrigger(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (api *trigger) PatchTrigger(ctx context.Context, in *engine.PatchTriggerReq
 		}
 	}
 
-	tr, err = api.ctrl.PatchTrigger(session, in.Id, patch)
+	tr, err = api.ctrl.PatchTrigger(ctx, session, in.Id, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (api *trigger) DeleteTrigger(ctx context.Context, in *engine.DeleteTriggerR
 	}
 
 	var tr *model.Trigger
-	tr, err = api.ctrl.RemoveTrigger(session, in.Id)
+	tr, err = api.ctrl.RemoveTrigger(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +181,7 @@ func (api *trigger) CreateTriggerJob(ctx context.Context, in *engine.CreateTrigg
 	}
 
 	var job *model.TriggerJob
-	job, err = api.ctrl.CreateTriggerJob(session, in.GetTriggerId(), in.GetVariables())
+	job, err = api.ctrl.CreateTriggerJob(ctx, session, in.GetTriggerId(), in.GetVariables())
 	if err != nil {
 		return nil, err
 	}
@@ -236,7 +236,7 @@ func (api *trigger) SearchTriggerJob(ctx context.Context, in *engine.SearchTrigg
 		}
 	}
 
-	list, endList, err = api.ctrl.GetTriggerJobList(session, in.TriggerId, req)
+	list, endList, err = api.ctrl.GetTriggerJobList(ctx, session, in.TriggerId, req)
 
 	if err != nil {
 		return nil, err

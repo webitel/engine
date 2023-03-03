@@ -1,21 +1,24 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"context"
+	"github.com/webitel/engine/model"
+)
 
-func (a *App) CreateRoutingVariable(variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError) {
-	return a.Store.RoutingVariable().Create(variable)
+func (a *App) CreateRoutingVariable(ctx context.Context, variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError) {
+	return a.Store.RoutingVariable().Create(ctx, variable)
 }
 
-func (a *App) GetRoutingVariablesPage(domainId int64, page, perPage int) ([]*model.RoutingVariable, *model.AppError) {
-	return a.Store.RoutingVariable().GetAllPage(domainId, page*perPage, perPage)
+func (a *App) GetRoutingVariablesPage(ctx context.Context, domainId int64, page, perPage int) ([]*model.RoutingVariable, *model.AppError) {
+	return a.Store.RoutingVariable().GetAllPage(ctx, domainId, page*perPage, perPage)
 }
 
-func (app *App) GetRoutingVariableById(domainId, id int64) (*model.RoutingVariable, *model.AppError) {
-	return app.Store.RoutingVariable().Get(domainId, id)
+func (app *App) GetRoutingVariableById(ctx context.Context, domainId, id int64) (*model.RoutingVariable, *model.AppError) {
+	return app.Store.RoutingVariable().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateRoutingVariable(variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError) {
-	oldVar, err := a.GetRoutingVariableById(variable.DomainId, variable.Id)
+func (a *App) UpdateRoutingVariable(ctx context.Context, variable *model.RoutingVariable) (*model.RoutingVariable, *model.AppError) {
+	oldVar, err := a.GetRoutingVariableById(ctx, variable.DomainId, variable.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +26,7 @@ func (a *App) UpdateRoutingVariable(variable *model.RoutingVariable) (*model.Rou
 	oldVar.Key = variable.Key
 	oldVar.Value = variable.Value
 
-	oldVar, err = a.Store.RoutingVariable().Update(oldVar)
+	oldVar, err = a.Store.RoutingVariable().Update(ctx, oldVar)
 	if err != nil {
 		return nil, err
 	}
@@ -31,14 +34,14 @@ func (a *App) UpdateRoutingVariable(variable *model.RoutingVariable) (*model.Rou
 	return oldVar, nil
 }
 
-func (a *App) RemoveRoutingVariable(domainId, id int64) (*model.RoutingVariable, *model.AppError) {
-	variable, err := a.Store.RoutingVariable().Get(domainId, id)
+func (a *App) RemoveRoutingVariable(ctx context.Context, domainId, id int64) (*model.RoutingVariable, *model.AppError) {
+	variable, err := a.Store.RoutingVariable().Get(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.RoutingVariable().Delete(domainId, id)
+	err = a.Store.RoutingVariable().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}

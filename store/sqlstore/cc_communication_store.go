@@ -1,6 +1,7 @@
 package sqlstore
 
 import (
+	"context"
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -17,9 +18,9 @@ func NewSqlCommunicationTypeStore(sqlStore SqlStore) store.CommunicationTypeStor
 	return us
 }
 
-func (s SqlCommunicationTypeStore) Create(comm *model.CommunicationType) (*model.CommunicationType, *model.AppError) {
+func (s SqlCommunicationTypeStore) Create(ctx context.Context, comm *model.CommunicationType) (*model.CommunicationType, *model.AppError) {
 	var out *model.CommunicationType
-	if err := s.GetMaster().SelectOne(&out, `insert into call_center.cc_communication (name, code, type, domain_id, description)
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_communication (name, code, type, domain_id, description)
 		values (:Name, :Code, :Type, :DomainId, :Description)
 		returning *`,
 		map[string]interface{}{
@@ -36,7 +37,7 @@ func (s SqlCommunicationTypeStore) Create(comm *model.CommunicationType) (*model
 	}
 }
 
-func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, *model.AppError) {
+func (s SqlCommunicationTypeStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, *model.AppError) {
 	var communications []*model.CommunicationType
 
 	f := map[string]interface{}{
@@ -45,7 +46,7 @@ func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, search *model.Sear
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(&communications, search.ListRequest,
+	err := s.ListQuery(ctx, &communications, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
@@ -58,9 +59,9 @@ func (s SqlCommunicationTypeStore) GetAllPage(domainId int64, search *model.Sear
 	}
 }
 
-func (s SqlCommunicationTypeStore) Get(domainId int64, id int64) (*model.CommunicationType, *model.AppError) {
+func (s SqlCommunicationTypeStore) Get(ctx context.Context, domainId int64, id int64) (*model.CommunicationType, *model.AppError) {
 	var out *model.CommunicationType
-	if err := s.GetReplica().SelectOne(&out, `select *
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&out, `select *
 		from call_center.cc_communication s
 		where s.id = :Id and s.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewAppError("SqlCommunicationTypeStore.Get", "store.sql_communication_type.get.app_error", nil,
@@ -70,8 +71,8 @@ func (s SqlCommunicationTypeStore) Get(domainId int64, id int64) (*model.Communi
 	}
 }
 
-func (s SqlCommunicationTypeStore) Update(cType *model.CommunicationType) (*model.CommunicationType, *model.AppError) {
-	err := s.GetMaster().SelectOne(&cType, `update call_center.cc_communication
+func (s SqlCommunicationTypeStore) Update(ctx context.Context, cType *model.CommunicationType) (*model.CommunicationType, *model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&cType, `update call_center.cc_communication
 set name = :Name,
     description = :Description,
     type = :Type,
@@ -92,8 +93,8 @@ returning *`, map[string]interface{}{
 	return cType, nil
 }
 
-func (s SqlCommunicationTypeStore) Delete(domainId int64, id int64) *model.AppError {
-	if _, err := s.GetMaster().Exec(`delete from call_center.cc_communication c where c.id=:Id and c.domain_id = :DomainId`,
+func (s SqlCommunicationTypeStore) Delete(ctx context.Context, domainId int64, id int64) *model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_communication c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewAppError("SqlCommunicationTypeStore.Delete", "store.sql_communication_type.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
