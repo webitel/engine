@@ -146,12 +146,15 @@ type AgentStore interface {
 
 type AgentSkillStore interface {
 	Create(ctx context.Context, agent *model.AgentSkill) (*model.AgentSkill, *model.AppError)
+	BulkCreate(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, *model.AppError)
 	GetById(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, *model.AppError)
 	Update(ctx context.Context, agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError)
-	GetAllPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError)
-	Delete(ctx context.Context, agentId, id int64) *model.AppError
+	UpdateMany(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError)
+	GetAllPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, *model.AppError)
+	DeleteById(ctx context.Context, agentId, id int64) *model.AppError
+	Delete(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError)
 
-	LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, *model.AppError)
+	LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, *model.AppError)
 }
 
 type OutboundResourceStore interface {

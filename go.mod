@@ -18,7 +18,7 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/webitel/call_center v0.0.0-20230224152932-cd78f1e3bf8a
 	github.com/webitel/protos/cc v0.0.0-20230202145403-c92fa287810a
-	github.com/webitel/protos/engine v0.0.0-20230202145403-c92fa287810a
+	github.com/webitel/protos/engine v0.0.0-20230307144535-0c7aa7488a2c
 	github.com/webitel/protos/fs v0.0.0-20230202145403-c92fa287810a
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.10.0
@@ -31,7 +31,6 @@ require (
 )
 
 require (
-	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/fatih/color v1.14.1 // indirect

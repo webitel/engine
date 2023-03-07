@@ -9,7 +9,11 @@ func (app *App) CreateAgentSkill(ctx context.Context, as *model.AgentSkill) (*mo
 	return app.Store.AgentSkill().Create(ctx, as)
 }
 
-func (app *App) GetAgentsSkillPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, bool, *model.AppError) {
+func (app *App) CreateAgentSkills(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, *model.AppError) {
+	return app.Store.AgentSkill().BulkCreate(ctx, domainId, agentId, skills)
+}
+
+func (app *App) GetAgentsSkillPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, *model.AppError) {
 	list, err := app.Store.AgentSkill().GetAllPage(ctx, domainId, agentId, search)
 	if err != nil {
 		return nil, false, err
@@ -43,6 +47,10 @@ func (app *App) UpdateAgentsSkill(ctx context.Context, agentSkill *model.AgentSk
 	return oldAgentSkill, nil
 }
 
+func (app *App) UpdateAgentsSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
+	return app.Store.AgentSkill().UpdateMany(ctx, domainId, agentId, search, path)
+}
+
 func (a *App) PatchAgentSkill(ctx context.Context, domainId int64, agentId, id int64, patch *model.AgentSkillPatch) (*model.AgentSkill, *model.AppError) {
 	oldAs, err := a.GetAgentsSkillById(ctx, domainId, agentId, id)
 	if err != nil {
@@ -70,14 +78,22 @@ func (a *App) RemoveAgentSkill(ctx context.Context, domainId, agentId, id int64)
 		return nil, err
 	}
 
-	err = a.Store.AgentSkill().Delete(ctx, agentId, id)
+	err = a.Store.AgentSkill().DeleteById(ctx, agentId, id)
 	if err != nil {
 		return nil, err
 	}
 	return agentSkill, nil
 }
 
-func (app *App) LookupSkillIfNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, bool, *model.AppError) {
+func (a *App) RemoveAgentSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
+	res, err := a.Store.AgentSkill().Delete(ctx, domainId, agentId, search)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (app *App) LookupSkillIfNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, bool, *model.AppError) {
 	list, err := app.Store.AgentSkill().LookupNotExistsAgent(ctx, domainId, agentId, search)
 	if err != nil {
 		return nil, false, err
