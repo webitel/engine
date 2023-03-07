@@ -146,12 +146,15 @@ type AgentStore interface {
 
 type AgentSkillStore interface {
 	Create(agent *model.AgentSkill) (*model.AgentSkill, *model.AppError)
+	BulkCreate(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, *model.AppError)
 	GetById(domainId, agentId, id int64) (*model.AgentSkill, *model.AppError)
 	Update(agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError)
-	GetAllPage(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError)
+	UpdateMany(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError)
+	GetAllPage(domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, *model.AppError)
 	Delete(agentId, id int64) *model.AppError
+	DeleteMany(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError)
 
-	LookupNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, *model.AppError)
+	LookupNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, *model.AppError)
 }
 
 type OutboundResourceStore interface {

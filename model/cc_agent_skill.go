@@ -20,8 +20,13 @@ type AgentSkillPatch struct {
 }
 
 type SearchAgentSkill struct {
+	Ids      []uint32
+	SkillIds []uint32
+}
+
+type SearchAgentSkillList struct {
 	ListRequest
-	Ids []uint32
+	SearchAgentSkill
 }
 
 func (AgentSkill) DefaultOrder() string {

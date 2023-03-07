@@ -1,12 +1,19 @@
 package app
 
-import "github.com/webitel/engine/model"
+import (
+	"context"
+	"github.com/webitel/engine/model"
+)
 
 func (app *App) CreateAgentSkill(as *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
 	return app.Store.AgentSkill().Create(as)
 }
 
-func (app *App) GetAgentsSkillPage(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.AgentSkill, bool, *model.AppError) {
+func (app *App) CreateAgentSkills(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, *model.AppError) {
+	return app.Store.AgentSkill().BulkCreate(ctx, domainId, agentId, skills)
+}
+
+func (app *App) GetAgentsSkillPage(domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, *model.AppError) {
 	list, err := app.Store.AgentSkill().GetAllPage(domainId, agentId, search)
 	if err != nil {
 		return nil, false, err
@@ -38,6 +45,10 @@ func (app *App) UpdateAgentsSkill(agentSkill *model.AgentSkill) (*model.AgentSki
 	}
 
 	return oldAgentSkill, nil
+}
+
+func (app *App) UpdateAgentsSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
+	return app.Store.AgentSkill().UpdateMany(ctx, domainId, agentId, search, path)
 }
 
 func (a *App) PatchAgentSkill(domainId int64, agentId, id int64, patch *model.AgentSkillPatch) (*model.AgentSkill, *model.AppError) {
@@ -74,7 +85,15 @@ func (a *App) RemoveAgentSkill(domainId, agentId, id int64) (*model.AgentSkill, 
 	return agentSkill, nil
 }
 
-func (app *App) LookupSkillIfNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkill) ([]*model.Skill, bool, *model.AppError) {
+func (a *App) RemoveAgentSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
+	res, err := a.Store.AgentSkill().DeleteMany(ctx, domainId, agentId, search)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (app *App) LookupSkillIfNotExistsAgent(domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, bool, *model.AppError) {
 	list, err := app.Store.AgentSkill().LookupNotExistsAgent(domainId, agentId, search)
 	if err != nil {
 		return nil, false, err

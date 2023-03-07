@@ -72,6 +72,68 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 	return transformAgentSkill(agentSkill), nil
 }
 
+func (api *agentSkill) CreateAgentSkills(ctx context.Context, in *engine.CreateAgentSkillsRequest) (*engine.CreateAgentSkillsResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetAgentId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	items := make([]*model.AgentSkill, 0, len(in.Items))
+
+	for _, v := range in.Items {
+		i := &model.AgentSkill{
+			DomainRecord: model.DomainRecord{
+				DomainId:  session.Domain(0),
+				CreatedAt: model.GetMillis(),
+				CreatedBy: &model.Lookup{
+					Id: int(session.UserId),
+				},
+				UpdatedAt: model.GetMillis(),
+				UpdatedBy: &model.Lookup{
+					Id: int(session.UserId),
+				},
+			},
+			Agent: &model.Lookup{
+				Id: int(in.GetAgentId()),
+			},
+			Skill: &model.Lookup{
+				Id: int(v.GetSkill().GetId()),
+			},
+			Capacity: int(v.Capacity),
+			Enabled:  v.Enabled,
+		}
+
+		if err = i.IsValid(); err != nil {
+			return nil, err
+		}
+
+		items = append(items, i)
+	}
+
+	res := &engine.CreateAgentSkillsResponse{}
+	res.Ids, err = api.app.CreateAgentSkills(ctx, session.Domain(0), in.AgentId, items)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAgentSkillRequest) (*engine.ListAgentSkill, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -94,7 +156,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 
 	var list []*model.AgentSkill
 	var endList bool
-	req := &model.SearchAgentSkill{
+	req := &model.SearchAgentSkillList{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
@@ -254,6 +316,69 @@ func (api *agentSkill) PatchAgentSkill(ctx context.Context, in *engine.PatchAgen
 	return transformAgentSkill(agentSkill), nil
 }
 
+func (api *agentSkill) PatchAgentSkills(ctx context.Context, in *engine.PatchAgentSkillsRequest) (*engine.ListAgentSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetAgentId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	patch := model.AgentSkillPatch{
+		UpdatedAt: model.GetMillis(),
+		UpdatedBy: model.Lookup{
+			Id: int(session.UserId),
+		},
+	}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "capacity":
+			patch.Capacity = model.NewInt(int(in.Capacity))
+		case "enabled":
+			patch.Enabled = &in.Enabled
+		}
+	}
+
+	var list []*model.AgentSkill
+	list, err = api.app.UpdateAgentsSkills(ctx, session.Domain(0), in.AgentId, model.SearchAgentSkill{
+		Ids:      in.Id,
+		SkillIds: in.SkillId,
+	}, patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentSkillItem, 0, len(list))
+	for _, v := range list {
+		items = append(items, &engine.AgentSkillItem{
+			Id:       v.Id,
+			Skill:    GetProtoLookup(v.Skill),
+			Capacity: int32(v.Capacity),
+			Enabled:  v.Enabled,
+		})
+	}
+
+	return &engine.ListAgentSkill{
+		Items: items,
+	}, nil
+}
+
 func (api *agentSkill) DeleteAgentSkill(ctx context.Context, in *engine.DeleteAgentSkillRequest) (*engine.AgentSkill, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -284,6 +409,53 @@ func (api *agentSkill) DeleteAgentSkill(ctx context.Context, in *engine.DeleteAg
 	return transformAgentSkill(agentSkill), nil
 }
 
+func (api *agentSkill) DeleteAgentSkills(ctx context.Context, in *engine.DeleteAgentSkillsRequest) (*engine.ListAgentSkill, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.AgentCheckAccess(session.Domain(0), in.GetAgentId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetAgentId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var list []*model.AgentSkill
+	list, err = api.app.RemoveAgentSkills(ctx, session.Domain(0), in.AgentId, model.SearchAgentSkill{
+		Ids:      in.Id,
+		SkillIds: in.SkillId,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.AgentSkillItem, 0, len(list))
+	for _, v := range list {
+		items = append(items, &engine.AgentSkillItem{
+			Id:       v.Id,
+			Skill:    GetProtoLookup(v.Skill),
+			Capacity: int32(v.Capacity),
+			Enabled:  v.Enabled,
+		})
+	}
+
+	return &engine.ListAgentSkill{
+		Items: items,
+	}, nil
+
+}
+
 func (api *agentSkill) SearchLookupAgentNotExistsSkill(ctx context.Context, in *engine.SearchLookupAgentNotExistsSkillRequest) (*engine.ListSkill, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -306,7 +478,7 @@ func (api *agentSkill) SearchLookupAgentNotExistsSkill(ctx context.Context, in *
 
 	var list []*model.Skill
 	var endList bool
-	req := &model.SearchAgentSkill{
+	req := &model.SearchAgentSkillList{
 		ListRequest: model.ListRequest{
 			//DomainId: in.GetDomainId(),
 			Q:       in.GetQ(),
