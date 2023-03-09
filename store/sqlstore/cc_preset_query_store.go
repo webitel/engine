@@ -33,7 +33,7 @@ from p`, map[string]interface{}{
 		"Name":        preset.Name,
 		"CreatedAt":   preset.CreatedAt,
 		"UpdatedAt":   preset.UpdatedAt,
-		"Preset":      preset.Preset,
+		"Preset":      preset.Preset.ToSafeBytes(),
 		"Description": preset.Description,
 		"Section":     preset.Section,
 	})
@@ -113,7 +113,7 @@ from p`, map[string]interface{}{
 		"Name":        preset.Name,
 		"CreatedAt":   preset.CreatedAt,
 		"UpdatedAt":   preset.UpdatedAt,
-		"Preset":      preset.Preset,
+		"Preset":      preset.Preset.ToSafeBytes(),
 		"Description": preset.Description,
 		"Section":     preset.Section,
 	})

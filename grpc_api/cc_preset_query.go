@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
+	"strings"
 )
 
 type presetQuery struct {
@@ -122,8 +123,10 @@ func (api *presetQuery) PatchPresetQuery(ctx context.Context, in *engine.PatchPr
 			patch.Name = &in.Name
 		case "description":
 			patch.Description = &in.Description
-		case "preset":
-			patch.Preset = MarshalJsonpbToMap(in.Preset)
+		default:
+			if strings.HasPrefix(v, "preset.") {
+				patch.Preset = MarshalJsonpbToMap(in.Preset)
+			}
 		}
 	}
 
