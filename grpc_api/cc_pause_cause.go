@@ -130,9 +130,8 @@ func (api *pauseCause) UpdateAgentPauseCause(ctx context.Context, in *engine.Upd
 	}
 
 	cause := &model.PauseCause{
-		AclRecord: model.AclRecord{
-			Id: int(in.Id),
-		},
+		AclRecord:       model.AclRecord{},
+		Id:              int(in.Id),
 		Name:            in.Name,
 		Description:     in.Description,
 		LimitMin:        in.LimitMin,

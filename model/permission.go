@@ -20,5 +20,6 @@ const (
 	PERMISSION_SCOPE_USERS   = "users"
 	PERMISSION_SCOPE_TRIGGER = "trigger"
 
-	PermissionChat = "chats"
+	PermissionChat      = "chats"
+	PermissionAuditFrom = "chats" // "cc_form"
 )

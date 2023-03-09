@@ -61,6 +61,8 @@ type Store interface {
 
 	ChatPlan() ChatPlanStore
 	Trigger() TriggerStore
+
+	AuditForm() AuditFormStore
 }
 
 // todo deprecated
@@ -394,4 +396,14 @@ type TriggerStore interface {
 
 	CreateJob(ctx context.Context, domainId int64, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError)
 	GetAllJobs(ctx context.Context, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, *model.AppError)
+}
+
+type AuditFormStore interface {
+	CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError)
+	Create(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, *model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditForm) ([]*model.AuditForm, *model.AppError)
+	GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchAuditForm) ([]*model.AuditForm, *model.AppError)
+	Get(ctx context.Context, domainId int64, id int32) (*model.AuditForm, *model.AppError)
+	Update(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, *model.AppError)
+	Delete(ctx context.Context, domainId int64, id int32) *model.AppError
 }

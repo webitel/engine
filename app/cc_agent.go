@@ -7,16 +7,16 @@ import (
 	"net/http"
 )
 
-func (a *App) AgentCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
-	return a.Store.Agent().CheckAccess(ctx, domainId, id, groups, access)
+func (app *App) AgentCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+	return app.Store.Agent().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) CreateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
-	return a.Store.Agent().Create(ctx, agent)
+func (app *App) CreateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
+	return app.Store.Agent().Create(ctx, agent)
 }
 
-func (a *App) GetAgentsPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
-	list, err := a.Store.Agent().GetAllPage(ctx, domainId, search)
+func (app *App) GetAgentsPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
+	list, err := app.Store.Agent().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -24,12 +24,12 @@ func (a *App) GetAgentsPage(ctx context.Context, domainId int64, search *model.S
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentActiveTasks(ctx context.Context, domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
-	return a.Store.Agent().GetActiveTask(ctx, domainId, agentId)
+func (app *App) GetAgentActiveTasks(ctx context.Context, domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
+	return app.Store.Agent().GetActiveTask(ctx, domainId, agentId)
 }
 
-func (a *App) GetAgentsPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
-	list, err := a.Store.Agent().GetAllPageByGroups(ctx, domainId, groups, search)
+func (app *App) GetAgentsPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, bool, *model.AppError) {
+	list, err := app.Store.Agent().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -37,8 +37,8 @@ func (a *App) GetAgentsPageByGroups(ctx context.Context, domainId int64, groups 
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentStateHistoryPage(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
-	list, err := a.Store.Agent().HistoryState(ctx, domainId, search)
+func (app *App) GetAgentStateHistoryPage(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, bool, *model.AppError) {
+	list, err := app.Store.Agent().HistoryState(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -46,12 +46,12 @@ func (a *App) GetAgentStateHistoryPage(ctx context.Context, domainId int64, sear
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetAgentById(ctx context.Context, domainId, id int64) (*model.Agent, *model.AppError) {
-	return a.Store.Agent().Get(ctx, domainId, id)
+func (app *App) GetAgentById(ctx context.Context, domainId, id int64) (*model.Agent, *model.AppError) {
+	return app.Store.Agent().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
-	oldAgent, err := a.GetAgentById(ctx, agent.DomainId, agent.Id)
+func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
+	oldAgent, err := app.GetAgentById(ctx, agent.DomainId, agent.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (a *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Agent
 		return nil, err
 	}
 
-	oldAgent, err = a.Store.Agent().Update(ctx, oldAgent)
+	oldAgent, err = app.Store.Agent().Update(ctx, oldAgent)
 	if err != nil {
 		return nil, err
 	}

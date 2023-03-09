@@ -4,6 +4,7 @@ import "time"
 
 type PauseCause struct {
 	AclRecord
+	Id              int    `json:"id" db:"id"`
 	Name            string `json:"name" db:"name"`
 	Description     string `json:"description" db:"description"`
 	LimitMin        uint32 `json:"limit_min" db:"limit_min"`

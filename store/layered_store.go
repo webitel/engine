@@ -152,3 +152,7 @@ func (s *LayeredStore) ChatPlan() ChatPlanStore {
 func (s *LayeredStore) Trigger() TriggerStore {
 	return s.DatabaseLayer.Trigger()
 }
+
+func (s *LayeredStore) AuditForm() AuditFormStore {
+	return s.DatabaseLayer.AuditForm()
+}

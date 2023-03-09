@@ -197,6 +197,10 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	return ap
 }
 
+func NewInternalError(where string, id string, text string) *AppError {
+	return NewAppError(where, id, nil, text, http.StatusInternalServerError)
+}
+
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
 
 // NewId is a globally unique identifier.  It is a [A-Z0-9] string 26

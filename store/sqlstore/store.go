@@ -53,4 +53,5 @@ type SqlStore interface {
 	PauseCause() store.PauseCauseStore
 	Notification() store.NotificationStore
 	Trigger() store.TriggerStore
+	AuditForm() store.AuditFormStore
 }

@@ -61,6 +61,7 @@ type SqlSupplierOldStores struct {
 	pauseCause              store.PauseCauseStore
 	notification            store.NotificationStore
 	trigger                 store.TriggerStore
+	auditForm               store.AuditFormStore
 }
 
 type SqlSupplier struct {
@@ -114,6 +115,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.pauseCause = NewSqlPauseCauseStore(supplier)
 	supplier.oldStores.notification = NewSqlNotificationStore(supplier)
 	supplier.oldStores.trigger = NewSqlTriggerStore(supplier)
+	supplier.oldStores.auditForm = NewSqlAuditFormStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -338,6 +340,10 @@ func (ss *SqlSupplier) Notification() store.NotificationStore {
 
 func (ss *SqlSupplier) Trigger() store.TriggerStore {
 	return ss.oldStores.trigger
+}
+
+func (ss *SqlSupplier) AuditForm() store.AuditFormStore {
+	return ss.oldStores.auditForm
 }
 
 type typeConverter struct{}

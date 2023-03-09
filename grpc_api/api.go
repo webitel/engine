@@ -41,6 +41,7 @@ type API struct {
 	chatPlan   *chatPlanApi
 	trigger    *trigger
 	chatHelper *chatHelper
+	auditForm  *auditForm
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -78,6 +79,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.chatPlan = NewChatPlan(api)
 	api.trigger = NewTriggerApi(api)
 	api.chatHelper = NewChatHelperApi(api)
+	api.auditForm = NewAuditFormApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -110,4 +112,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterTriggerServiceServer(server, api.trigger)
 
 	engine.RegisterChatHelperServiceServer(server, api.chatHelper)
+	engine.RegisterAuditFormServiceServer(server, api.auditForm)
 }
