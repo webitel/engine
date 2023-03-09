@@ -62,6 +62,7 @@ type SqlSupplierOldStores struct {
 	notification            store.NotificationStore
 	trigger                 store.TriggerStore
 	auditForm               store.AuditFormStore
+	presetQuery             store.PresetQueryStore
 }
 
 type SqlSupplier struct {
@@ -116,6 +117,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.notification = NewSqlNotificationStore(supplier)
 	supplier.oldStores.trigger = NewSqlTriggerStore(supplier)
 	supplier.oldStores.auditForm = NewSqlAuditFormStore(supplier)
+	supplier.oldStores.presetQuery = NewSqlPresetQueryStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -344,6 +346,10 @@ func (ss *SqlSupplier) Trigger() store.TriggerStore {
 
 func (ss *SqlSupplier) AuditForm() store.AuditFormStore {
 	return ss.oldStores.auditForm
+}
+
+func (ss *SqlSupplier) PresetQuery() store.PresetQueryStore {
+	return ss.oldStores.presetQuery
 }
 
 type typeConverter struct{}

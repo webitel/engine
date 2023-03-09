@@ -63,6 +63,7 @@ type Store interface {
 	Trigger() TriggerStore
 
 	AuditForm() AuditFormStore
+	PresetQuery() PresetQueryStore
 }
 
 // todo deprecated
@@ -406,4 +407,12 @@ type AuditFormStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.AuditForm, *model.AppError)
 	Update(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, *model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) *model.AppError
+}
+
+type PresetQueryStore interface {
+	Create(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, *model.AppError)
+	GetAllPage(ctx context.Context, domainId, userId int64, search *model.SearchPresetQuery) ([]*model.PresetQuery, *model.AppError)
+	Get(ctx context.Context, domainId, userId int64, id int32) (*model.PresetQuery, *model.AppError)
+	Update(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, *model.AppError)
+	Delete(ctx context.Context, domainId, userId int64, id int32) *model.AppError
 }

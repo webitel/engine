@@ -156,3 +156,7 @@ func (s *LayeredStore) Trigger() TriggerStore {
 func (s *LayeredStore) AuditForm() AuditFormStore {
 	return s.DatabaseLayer.AuditForm()
 }
+
+func (s *LayeredStore) PresetQuery() PresetQueryStore {
+	return s.DatabaseLayer.PresetQuery()
+}

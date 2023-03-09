@@ -38,10 +38,11 @@ type API struct {
 	pauseCause   *pauseCause
 	userHelper   *userHelper
 
-	chatPlan   *chatPlanApi
-	trigger    *trigger
-	chatHelper *chatHelper
-	auditForm  *auditForm
+	chatPlan    *chatPlanApi
+	trigger     *trigger
+	chatHelper  *chatHelper
+	auditForm   *auditForm
+	presetQuery *presetQuery
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -80,6 +81,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.trigger = NewTriggerApi(api)
 	api.chatHelper = NewChatHelperApi(api)
 	api.auditForm = NewAuditFormApi(api)
+	api.presetQuery = NewPresetQueryApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -113,4 +115,5 @@ func Init(a *app.App, server *grpc.Server) {
 
 	engine.RegisterChatHelperServiceServer(server, api.chatHelper)
 	engine.RegisterAuditFormServiceServer(server, api.auditForm)
+	engine.RegisterPresetQueryServiceServer(server, api.presetQuery)
 }

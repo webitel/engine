@@ -54,4 +54,5 @@ type SqlStore interface {
 	Notification() store.NotificationStore
 	Trigger() store.TriggerStore
 	AuditForm() store.AuditFormStore
+	PresetQuery() store.PresetQueryStore
 }
