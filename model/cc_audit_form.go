@@ -2,8 +2,6 @@ package model
 
 import "time"
 
-type Questions string
-
 type AuditForm struct {
 	Id int32 `json:"id" db:"id"`
 	AclRecord
@@ -17,11 +15,11 @@ type AuditForm struct {
 type AuditFormPatch struct {
 	UpdatedAt   time.Time
 	UpdatedBy   Lookup
-	Name        *string    `json:"name" db:"name"`
-	Description *string    `json:"description" db:"description"`
-	Enabled     *bool      `json:"enabled" db:"enabled"`
-	Questions   *Questions `json:"questions" db:"questions"`
-	Teams       []*Lookup  `json:"teams" db:"teams"`
+	Name        *string   `json:"name" db:"name"`
+	Description *string   `json:"description" db:"description"`
+	Enabled     *bool     `json:"enabled" db:"enabled"`
+	Questions   Questions `json:"questions" db:"questions"`
+	Teams       []*Lookup `json:"teams" db:"teams"`
 }
 
 type SearchAuditForm struct {
@@ -46,7 +44,7 @@ func (q *AuditForm) Patch(p *AuditFormPatch) {
 	}
 
 	if p.Questions != nil {
-		q.Questions = *p.Questions
+		q.Questions = p.Questions
 	}
 
 	if p.Teams != nil {

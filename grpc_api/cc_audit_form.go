@@ -23,7 +23,7 @@ func (api *auditForm) CreateAuditForm(ctx context.Context, in *engine.CreateAudi
 		Name:        in.GetName(),
 		Description: in.GetDescription(),
 		Enabled:     in.GetEnabled(),
-		Questions:   "{}", //todo
+		Questions:   toAuditQuestions(in.Questions),
 		Teams:       GetLookups(in.GetTeams()),
 	}
 
@@ -97,7 +97,7 @@ func (api *auditForm) UpdateAuditForm(ctx context.Context, in *engine.UpdateAudi
 		Name:        in.Name,
 		Description: in.Description,
 		Enabled:     in.Enabled,
-		Questions:   "{}",
+		Questions:   toAuditQuestions(in.Questions),
 		Teams:       GetLookups(in.GetTeams()),
 	}
 
@@ -130,8 +130,8 @@ func (api *auditForm) PatchAuditForm(ctx context.Context, in *engine.PatchAuditF
 			patch.Enabled = &in.Enabled
 		case "teams":
 			patch.Teams = GetLookups(in.Teams)
-			//case "questions":
-			//	patch.Questions = &in.Questions
+		case "questions":
+			patch.Questions = toAuditQuestions(in.Questions)
 		}
 	}
 
@@ -178,7 +178,78 @@ func transformAuditFrom(src *model.AuditForm) *engine.AuditForm {
 		Name:        src.Name,
 		Description: src.Description,
 		Enabled:     src.Enabled,
-		//Questions:   "",
-		Teams: GetProtoLookups(src.Teams),
+		Questions:   transformAuditQuestions(src.Questions),
+		Teams:       GetProtoLookups(src.Teams),
 	}
+}
+
+func toAuditQuestions(src []*engine.Questions) model.Questions {
+	q := make(model.Questions, 0, len(src))
+	for _, v := range src {
+		switch i := v.To.(type) {
+		case *engine.Questions_Options:
+			ops := make([]model.QuestionOption, 0, len(i.Options.Options))
+			for _, o := range i.Options.Options {
+				ops = append(ops, model.QuestionOption{
+					Name:  o.GetName(),
+					Score: o.GetScore(),
+				})
+			}
+			q = append(q, model.Question{
+				Type:     model.QuestionTypeOptions,
+				Required: i.Options.GetRequired(),
+				Question: i.Options.GetQuestion(),
+				Options:  ops,
+			})
+
+		case *engine.Questions_Score:
+			q = append(q, model.Question{
+				Type:     model.QuestionTypeScore,
+				Required: i.Score.GetRequired(),
+				Question: i.Score.GetQuestion(),
+				Min:      i.Score.GetMin(),
+				Max:      i.Score.GetMax(),
+			})
+		}
+	}
+
+	return q
+}
+
+func transformAuditQuestions(src model.Questions) []*engine.Questions {
+	q := make([]*engine.Questions, 0, len(src))
+	for _, v := range src {
+		switch v.Type {
+		case model.QuestionTypeOptions:
+			ops := make([]*engine.QuestionOptions_Option, 0, len(v.Options))
+			for _, j := range v.Options {
+				ops = append(ops, &engine.QuestionOptions_Option{
+					Name:  j.Name,
+					Score: j.Score,
+				})
+			}
+			q = append(q, &engine.Questions{
+				To: &engine.Questions_Options{
+					Options: &engine.QuestionOptions{
+						Required: v.Required,
+						Question: v.Question,
+						Options:  ops,
+					},
+				},
+			})
+		case model.QuestionTypeScore:
+			q = append(q, &engine.Questions{
+				To: &engine.Questions_Score{
+					Score: &engine.QuestionScore{
+						Required: v.Required,
+						Question: v.Question,
+						Min:      v.Min,
+						Max:      v.Max,
+					},
+				},
+			})
+		}
+	}
+
+	return q
 }

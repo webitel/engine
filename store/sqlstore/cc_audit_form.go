@@ -62,7 +62,7 @@ FROM ins i
 		"CreatedAt":   form.CreatedAt,
 		"UpdatedBy":   form.UpdatedBy.GetSafeId(),
 		"UpdatedAt":   form.UpdatedAt,
-		"Questions":   form.Questions,
+		"Questions":   form.Questions.ToJson(),
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
 
@@ -190,7 +190,7 @@ FROM ins i
 		"Enabled":     form.Enabled,
 		"UpdatedBy":   form.UpdatedBy.GetSafeId(),
 		"UpdatedAt":   form.UpdatedAt,
-		"Questions":   form.Questions,
+		"Questions":   form.Questions.ToJson(),
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
 
