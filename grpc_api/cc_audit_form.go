@@ -187,9 +187,9 @@ func toAuditQuestions(src []*engine.Questions) model.Questions {
 	q := make(model.Questions, 0, len(src))
 	for _, v := range src {
 		switch i := v.To.(type) {
-		case *engine.Questions_Options:
-			ops := make([]model.QuestionOption, 0, len(i.Options.Options))
-			for _, o := range i.Options.Options {
+		case *engine.Questions_Option:
+			ops := make([]model.QuestionOption, 0, len(i.Option.Options))
+			for _, o := range i.Option.Options {
 				ops = append(ops, model.QuestionOption{
 					Name:  o.GetName(),
 					Score: o.GetScore(),
@@ -197,8 +197,8 @@ func toAuditQuestions(src []*engine.Questions) model.Questions {
 			}
 			q = append(q, model.Question{
 				Type:     model.QuestionTypeOptions,
-				Required: i.Options.GetRequired(),
-				Question: i.Options.GetQuestion(),
+				Required: i.Option.GetRequired(),
+				Question: i.Option.GetQuestion(),
 				Options:  ops,
 			})
 
@@ -229,8 +229,8 @@ func transformAuditQuestions(src model.Questions) []*engine.Questions {
 				})
 			}
 			q = append(q, &engine.Questions{
-				To: &engine.Questions_Options{
-					Options: &engine.QuestionOptions{
+				To: &engine.Questions_Option{
+					Option: &engine.QuestionOptions{
 						Required: v.Required,
 						Question: v.Question,
 						Options:  ops,
