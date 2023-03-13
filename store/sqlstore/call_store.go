@@ -1149,3 +1149,22 @@ where c.domain_id = :DomainId and c.id = :Id and c.state in ('active', 'bridge',
 
 	return res, nil
 }
+
+func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (*int64, *model.AppError) {
+	r, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select coalesce(c.user_id, p.user_id) as rate_user
+from call_center.cc_calls_history c
+    left join call_center.cc_calls_history p on p.id = c.bridged_id
+where c.id = :Id`, map[string]interface{}{
+		"Id": id,
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlCallStore.GetEavesdropInfo", "store.sql_call.get.eavesdrop_info.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	if !r.Valid {
+		return nil, nil
+	}
+
+	return &r.Int64, nil
+}

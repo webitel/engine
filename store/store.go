@@ -63,6 +63,7 @@ type Store interface {
 	Trigger() TriggerStore
 
 	AuditForm() AuditFormStore
+	AuditRate() AuditRateStore
 	PresetQuery() PresetQueryStore
 }
 
@@ -343,6 +344,8 @@ type CallStore interface {
 	UpdateAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError)
 	DeleteAnnotation(ctx context.Context, id int64) *model.AppError
 	GetEavesdropInfo(ctx context.Context, domainId int64, id string) (*model.EavesdropInfo, *model.AppError)
+
+	GetOwnerUserCall(ctx context.Context, id string) (*int64, *model.AppError)
 }
 
 type EmailProfileStore interface {
@@ -407,6 +410,14 @@ type AuditFormStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.AuditForm, *model.AppError)
 	Update(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, *model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) *model.AppError
+	SetEditable(ctx context.Context, id int32, editable bool) *model.AppError
+}
+
+type AuditRateStore interface {
+	Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, *model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditRate) ([]*model.AuditRate, *model.AppError)
+	Get(ctx context.Context, domainId int64, id int64) (*model.AuditRate, *model.AppError)
+	FormId(ctx context.Context, domainId, id int64) (int32, *model.AppError)
 }
 
 type PresetQueryStore interface {

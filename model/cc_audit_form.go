@@ -10,6 +10,8 @@ type AuditForm struct {
 	Enabled     bool      `json:"enabled" db:"enabled"`
 	Questions   Questions `json:"questions" db:"questions"`
 	Teams       []*Lookup `json:"teams" db:"teams"`
+	Archive     bool      `json:"archive"`
+	Editable    bool      `json:"editable"`
 }
 
 type AuditFormPatch struct {
@@ -20,11 +22,16 @@ type AuditFormPatch struct {
 	Enabled     *bool     `json:"enabled" db:"enabled"`
 	Questions   Questions `json:"questions" db:"questions"`
 	Teams       []*Lookup `json:"teams" db:"teams"`
+	Archive     *bool     `json:"archive"`
 }
 
 type SearchAuditForm struct {
 	ListRequest
-	Ids []int32
+	Ids      []int32
+	TeamIds  []int32 `json:"team_ids" db:"team_ids"`
+	Archive  *bool   `json:"archive"`
+	Editable *bool   `json:"editable"`
+	Enabled  *bool   `json:"enabled"`
 }
 
 func (q *AuditForm) Patch(p *AuditFormPatch) {
@@ -50,18 +57,23 @@ func (q *AuditForm) Patch(p *AuditFormPatch) {
 	if p.Teams != nil {
 		q.Teams = p.Teams
 	}
+
+	if p.Archive != nil {
+		q.Archive = *p.Archive
+	}
 }
+
 func (AuditForm) DefaultOrder() string {
 	return "name"
 }
 
 func (AuditForm) AllowFields() []string {
 	return []string{"id", "name", "description", "domain_id", "created_at", "created_by", "updated_at", "updated_by",
-		"enabled", "questions", "teams"}
+		"enabled", "questions", "teams", "archive", "editable"}
 }
 
 func (AuditForm) DefaultFields() []string {
-	return []string{"id", "name", "description", "teams"}
+	return []string{"id", "name", "description", "teams", "archive", "editable"}
 }
 
 func (AuditForm) EntityName() string {

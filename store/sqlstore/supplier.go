@@ -62,6 +62,7 @@ type SqlSupplierOldStores struct {
 	notification            store.NotificationStore
 	trigger                 store.TriggerStore
 	auditForm               store.AuditFormStore
+	auditRate               store.AuditRateStore
 	presetQuery             store.PresetQueryStore
 }
 
@@ -117,6 +118,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.notification = NewSqlNotificationStore(supplier)
 	supplier.oldStores.trigger = NewSqlTriggerStore(supplier)
 	supplier.oldStores.auditForm = NewSqlAuditFormStore(supplier)
+	supplier.oldStores.auditRate = NewSqlAuditRateStore(supplier)
 	supplier.oldStores.presetQuery = NewSqlPresetQueryStore(supplier)
 
 	// todo deprecated
@@ -348,6 +350,10 @@ func (ss *SqlSupplier) AuditForm() store.AuditFormStore {
 	return ss.oldStores.auditForm
 }
 
+func (ss *SqlSupplier) AuditRate() store.AuditRateStore {
+	return ss.oldStores.auditRate
+}
+
 func (ss *SqlSupplier) PresetQuery() store.PresetQueryStore {
 	return ss.oldStores.presetQuery
 }
@@ -408,6 +414,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.StringInterface,
 		*model.EavesdropInfo,
 		*model.Questions,
+		*model.QuestionAnswers,
 		*model.MailProfileParams:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)

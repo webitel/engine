@@ -50,7 +50,9 @@ SELECT i.id,
               (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id,
                                                    aud.name::character varying)) AS jsonb_agg
         FROM call_center.cc_team aud
-        WHERE aud.id = ANY (i.team_ids))                                                                   AS teams
+        WHERE aud.id = ANY (i.team_ids))                                                                   AS teams,
+       i.editable,
+       i.archive
 FROM ins i
          LEFT JOIN directory.wbt_user uc ON uc.id = i.created_by
          LEFT JOIN directory.wbt_user u ON u.id = i.updated_by`, map[string]interface{}{
@@ -80,11 +82,21 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
+		"TeamIds":  pq.Array(search.TeamIds),
+		"Archive":  search.Archive,
+		"Editable": search.Editable,
+		"Enabled":  search.Enabled,
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
-				and (:Ids::int[] isnull or id = any(:Ids))`,
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))
+				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:TeamIds::int[] isnull or team_ids && :TeamIds)
+				and (:Archive::bool isnull or archive = :Archive)
+			    and (:Editable::bool isnull or editable = :Editable)
+			    and (:Enabled::bool isnull or enabled = :Enabled)
+`,
 		model.AuditForm{}, f)
 	if err != nil {
 		return nil, model.NewAppError("SqlAuditFormStore.GetAllPage", "store.sql_audit_form.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
@@ -102,11 +114,17 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
+		"TeamIds":  search.TeamIds,
+		"Archive":  search.Archive,
+		"Editable": search.Editable,
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:TeamIds::int[] isnull or team_ids = any(:TeamIds))
+				and (:Archive::bool isnull or archive = :Archive)
+			    and (:Editable::bool isnull or editable = :Editable)
 				and (
 					exists(select 1
 					  from call_center.cc_audit_form_acl
@@ -136,7 +154,9 @@ func (s SqlAuditFormStore) Get(ctx context.Context, domainId int64, id int32) (*
               (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id,
                                                    aud.name::character varying)) AS jsonb_agg
         FROM call_center.cc_team aud
-        WHERE aud.id = ANY (i.team_ids))                                                                   AS teams
+        WHERE aud.id = ANY (i.team_ids))                                                                   AS teams,
+       i.editable,
+       i.archive
 FROM call_center.cc_audit_form i
          LEFT JOIN directory.wbt_user uc ON uc.id = i.created_by
          LEFT JOIN directory.wbt_user u ON u.id = i.updated_by
@@ -162,6 +182,7 @@ func (s SqlAuditFormStore) Update(ctx context.Context, domainId int64, form *mod
 			description = :Description,
 			enabled = :Enabled,
 			questions = :Questions,
+			archive = :Archive,
 			team_ids = :TeamIds::int[]
 		where domain_id = :DomainId and id = :Id
 		returning *
@@ -179,7 +200,9 @@ SELECT i.id,
               (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id,
                                                    aud.name::character varying)) AS jsonb_agg
         FROM call_center.cc_team aud
-        WHERE aud.id = ANY (i.team_ids))                                                                   AS teams
+        WHERE aud.id = ANY (i.team_ids))                                                                   AS teams,
+       i.editable,
+       i.archive
 FROM ins i
          LEFT JOIN directory.wbt_user uc ON uc.id = i.created_by
          LEFT JOIN directory.wbt_user u ON u.id = i.updated_by`, map[string]interface{}{
@@ -191,6 +214,7 @@ FROM ins i
 		"UpdatedBy":   form.UpdatedBy.GetSafeId(),
 		"UpdatedAt":   form.UpdatedAt,
 		"Questions":   form.Questions.ToJson(),
+		"Archive":     form.Archive,
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
 
@@ -207,6 +231,21 @@ func (s SqlAuditFormStore) Delete(ctx context.Context, domainId int64, id int32)
 		return model.NewAppError("SqlAuditFormStore.Delete", "store.sql_audit_form.delete.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
+	return nil
+}
+
+func (s SqlAuditFormStore) SetEditable(ctx context.Context, id int32, editable bool) *model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_audit_form
+set editable = :Editable 
+where id = :Id`, map[string]interface{}{
+		"Editable": editable,
+		"Id":       id,
+	})
+	if err != nil {
+		return model.NewAppError("SqlAuditFormStore.SetEditable", "store.sql_audit_form.set_editable.app_error", nil,
+			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
 	return nil
 }
 

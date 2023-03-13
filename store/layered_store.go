@@ -157,6 +157,10 @@ func (s *LayeredStore) AuditForm() AuditFormStore {
 	return s.DatabaseLayer.AuditForm()
 }
 
+func (s *LayeredStore) AuditRate() AuditRateStore {
+	return s.DatabaseLayer.AuditRate()
+}
+
 func (s *LayeredStore) PresetQuery() PresetQueryStore {
 	return s.DatabaseLayer.PresetQuery()
 }
