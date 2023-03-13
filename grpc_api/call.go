@@ -70,6 +70,8 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		OwnerIds:         in.GetOwnerId(),
 		GranteeIds:       in.GetGranteeId(),
 		AmdAiResult:      in.GetAmdAiResult(),
+		RatedByIds:       in.GetRatedBy(),
+		RatedUserIds:     in.GetRatedUser(),
 	}
 
 	if in.GetDuration() != nil {
@@ -114,6 +116,31 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 
 	if in.Fts != "" {
 		req.Fts = &in.Fts
+	}
+
+	if in.Talk != nil {
+		req.Talk = &model.FilterBetween{
+			From: in.GetTalk().GetFrom(),
+			To:   in.GetTalk().GetTo(),
+		}
+	}
+
+	if in.ScoreOptional != nil {
+		req.ScoreOptional = &model.FilterBetween{
+			From: in.GetScoreOptional().GetFrom(),
+			To:   in.GetScoreOptional().GetTo(),
+		}
+	}
+
+	if in.ScoreRequired != nil {
+		req.ScoreRequired = &model.FilterBetween{
+			From: in.GetScoreRequired().GetFrom(),
+			To:   in.GetScoreRequired().GetTo(),
+		}
+	}
+
+	if in.Rated {
+		req.Rated = &in.Rated
 	}
 
 	if list, endList, err = api.ctrl.SearchHistoryCall(ctx, session, req); err != nil {
@@ -811,6 +838,8 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		TalkSec:          src.TalkSec,
 		Grantee:          GetProtoLookup(src.Grantee),
 		AmdAiLogs:        src.AmdAiLogs,
+		RatedBy:          GetProtoLookup(src.RatedBy),
+		RatedUser:        GetProtoLookup(src.RatedUser),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -873,6 +902,16 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	if accessFile {
 		item.Files = toCallFile(src.Files)
 		item.FilesJob = toCallFilesJob(src.FilesJob)
+	}
+
+	if src.RateId != nil {
+		item.RateId = *src.RateId
+	}
+	if src.ScoreOptional != nil {
+		item.ScoreOptional = *src.ScoreOptional
+	}
+	if src.ScoreRequired != nil {
+		item.ScoreRequired = *src.ScoreRequired
 	}
 
 	return item

@@ -312,72 +312,60 @@ func transformAuditRate(src *model.AuditRate) *engine.AuditRate {
 	}
 }
 
-func toAuditQuestions(src []*engine.Questions) model.Questions {
+func toAuditQuestions(src []*engine.Question) model.Questions {
 	q := make(model.Questions, 0, len(src))
 	for _, v := range src {
-		switch i := v.To.(type) {
-		case *engine.Questions_Option:
-			ops := make([]model.QuestionOption, 0, len(i.Option.Options))
-			for _, o := range i.Option.Options {
-				ops = append(ops, model.QuestionOption{
+		item := model.Question{
+			Required: v.Required,
+			Question: v.Question,
+		}
+
+		switch v.Type {
+		case engine.AuditQuestionType_question_score:
+			item.Type = model.QuestionTypeScore
+			item.Max = v.Max
+			item.Min = v.Min
+		case engine.AuditQuestionType_question_option:
+			item.Options = make([]model.QuestionOption, 0, len(v.Options))
+			for _, o := range v.Options {
+				item.Options = append(item.Options, model.QuestionOption{
 					Name:  o.GetName(),
 					Score: o.GetScore(),
 				})
 			}
-			q = append(q, model.Question{
-				Type:     model.QuestionTypeOptions,
-				Required: i.Option.GetRequired(),
-				Question: i.Option.GetQuestion(),
-				Options:  ops,
-			})
 
-		case *engine.Questions_Score:
-			q = append(q, model.Question{
-				Type:     model.QuestionTypeScore,
-				Required: i.Score.GetRequired(),
-				Question: i.Score.GetQuestion(),
-				Min:      i.Score.GetMin(),
-				Max:      i.Score.GetMax(),
-			})
 		}
+
+		q = append(q, item)
 	}
 
 	return q
 }
 
-func transformAuditQuestions(src model.Questions) []*engine.Questions {
-	q := make([]*engine.Questions, 0, len(src))
+func transformAuditQuestions(src model.Questions) []*engine.Question {
+	q := make([]*engine.Question, 0, len(src))
 	for _, v := range src {
+		item := &engine.Question{
+			Required: v.Required,
+			Question: v.Question,
+		}
 		switch v.Type {
+		case model.QuestionTypeScore:
+			item.Type = engine.AuditQuestionType_question_score
+			item.Max = v.Max
+			item.Min = v.Min
 		case model.QuestionTypeOptions:
-			ops := make([]*engine.QuestionOptions_Option, 0, len(v.Options))
+			item.Options = make([]*engine.Question_Option, 0, len(v.Options))
 			for _, j := range v.Options {
-				ops = append(ops, &engine.QuestionOptions_Option{
+				item.Options = append(item.Options, &engine.Question_Option{
 					Name:  j.Name,
 					Score: j.Score,
 				})
 			}
-			q = append(q, &engine.Questions{
-				To: &engine.Questions_Option{
-					Option: &engine.QuestionOptions{
-						Required: v.Required,
-						Question: v.Question,
-						Options:  ops,
-					},
-				},
-			})
-		case model.QuestionTypeScore:
-			q = append(q, &engine.Questions{
-				To: &engine.Questions_Score{
-					Score: &engine.QuestionScore{
-						Required: v.Required,
-						Question: v.Question,
-						Min:      v.Min,
-						Max:      v.Max,
-					},
-				},
-			})
 		}
+
+		q = append(q, item)
+
 	}
 
 	return q

@@ -366,6 +366,17 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"OwnerIds":         pq.Array(search.OwnerIds),
 		"GranteeIds":       pq.Array(search.GranteeIds),
 		"AmdAiResult":      pq.Array(search.AmdAiResult),
+
+		"TalkFrom": model.GetBetweenFrom(search.Talk),
+		"TalkTo":   model.GetBetweenTo(search.Talk),
+
+		"RatedUserIds":      pq.Array(search.RatedUserIds),
+		"RatedByIds":        pq.Array(search.RatedByIds),
+		"ScoreOptionalFrom": model.GetBetweenFrom(search.ScoreOptional),
+		"ScoreOptionalTo":   model.GetBetweenTo(search.ScoreOptional),
+		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
+		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
+		"Rated":             search.Rated,
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -399,6 +410,8 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
+  	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
+	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id and ca.note ilike :AgentDescription::varchar))
@@ -424,6 +437,18 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
             from a
             where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
+	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
+				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or  exists(
+					select 1
+					from call_center.cc_audit_rate ar
+					where ar.call_id = t.id
+						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+						and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
+						and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
+						and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
+						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
+		) )
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
@@ -478,6 +503,17 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 		"OwnerIds":         pq.Array(search.OwnerIds),
 		"GranteeIds":       pq.Array(search.GranteeIds),
 		"AmdAiResult":      pq.Array(search.AmdAiResult),
+
+		"TalkFrom": model.GetBetweenFrom(search.Talk),
+		"TalkTo":   model.GetBetweenTo(search.Talk),
+
+		"RatedUserIds":      pq.Array(search.RatedUserIds),
+		"RatedByIds":        pq.Array(search.RatedByIds),
+		"ScoreOptionalFrom": model.GetBetweenFrom(search.ScoreOptional),
+		"ScoreOptionalTo":   model.GetBetweenTo(search.ScoreOptional),
+		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
+		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
+		"Rated":             search.Rated,
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -511,6 +547,8 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
+  	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
+	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id and ca.note ilike :AgentDescription::varchar))
@@ -536,6 +574,18 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
             from a
             where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
+	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
+				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or  exists(
+					select 1
+					from call_center.cc_audit_rate ar
+					where ar.call_id = t.id
+						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+						and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
+						and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
+						and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
+						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
+	) )
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
 			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))

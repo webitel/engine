@@ -418,6 +418,12 @@ type HistoryCall struct {
 	Grantee     *Lookup           `json:"grantee" db:"grantee"`
 	AmdAiResult *string           `json:"amd_ai_result" db:"amd_ai_result"`
 	AmdAiLogs   StringArray       `json:"amd_ai_logs" db:"amd_ai_logs"`
+
+	RateId        *int64   `json:"rate_id" db:"rate_id"`
+	RatedUser     *Lookup  `json:"rated_user" db:"rated_user"`
+	RatedBy       *Lookup  `json:"rated_by" db:"rated_by"`
+	ScoreOptional *float32 `json:"score_optional" db:"score_optional"`
+	ScoreRequired *float32 `json:"score_required" db:"score_required"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -430,7 +436,7 @@ func (c HistoryCall) AllowFields() []string {
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
-		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result",
+		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 	}
 }
 
@@ -438,7 +444,7 @@ func (c HistoryCall) DefaultFields() []string {
 	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "agent_description", "amd_result",
+		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "agent_description", "amd_result", "rate_id",
 	}
 }
 
@@ -509,6 +515,12 @@ type SearchHistoryCall struct {
 	OwnerIds         []int64
 	GranteeIds       []int64
 	AmdAiResult      []string
+	RatedUserIds     []int64
+	RatedByIds       []int64
+	ScoreOptional    *FilterBetween
+	ScoreRequired    *FilterBetween
+	Rated            *bool `json:"rated" db:"rated"`
+	Talk             *FilterBetween
 }
 
 type CallEventInfo struct {
