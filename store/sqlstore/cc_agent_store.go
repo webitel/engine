@@ -1099,10 +1099,14 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, 
        (coalesce(extract(epoch from stat.online), 0) + case when a.status = 'online' then  extract(epoch from x.t) else 0 end)::int8 online,
        (coalesce(extract(epoch from stat.offline), 0) + case when a.status = 'offline' then  extract(epoch from x.t) else 0 end)::int8 offline,
        (coalesce(extract(epoch from stat.pause), 0) + case when a.status = 'pause' then  extract(epoch from x.t) else 0 end)::int8 pause,
-       coalesce(a.status_payload, '') pause_cause
+       coalesce(a.status_payload, '') pause_cause,
+       coalesce(rate.score_optional, 0.0) as score_optional_avg,
+       coalesce(rate.score_required, 0.0) as score_required_avg,
+       coalesce(rate.count, 0) as score_count
 from call_center.cc_agent a
   left join call_center.cc_team t on t.id = a.team_id
   left join flow.region r on r.id = a.region_id
+  left join flow.calendar_timezones tz on tz.id = r.timezone_id
   left join lateral (
      select
         ah.agent_id,
@@ -1120,6 +1124,15 @@ from call_center.cc_agent a
                                  then (:To::timestamptz) - (:From::timestamptz)
                              else now() - a.last_state_change end t) x on true
     left join directory.wbt_user cawu on a.user_id = cawu.id
+    left join lateral (
+        select count(*) count,
+               avg(ar.score_required) as score_required,
+               avg(ar.score_optional) as score_optional
+        from call_center.cc_audit_rate ar
+        where ar.rated_user_id = a.user_id
+            and ar.created_at between (date_trunc('month', now() at time zone COALESCE(tz.sys_name, 'UTC'::text)) at time zone COALESCE(tz.sys_name, 'UTC'::text))
+                and ((date_trunc('month', now() at time zone COALESCE(tz.sys_name, 'UTC'::text))+'1month'::interval-'1day 1s'::interval) at time zone COALESCE(tz.sys_name, 'UTC'::text))
+    ) rate on true
 where a.id = :AgentId and a.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"AgentId":  agentId,

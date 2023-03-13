@@ -836,6 +836,9 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		Online:           item.Online,
 		Offline:          item.Offline,
 		Pause:            item.Pause,
+		ScoreRequiredAvg: item.ScoreRequiredAvg,
+		ScoreOptionalAvg: item.ScoreOptionalAvg,
+		ScoreCount:       item.ScoreCount,
 	}, nil
 }
 

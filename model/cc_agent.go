@@ -108,9 +108,12 @@ type SupervisorAgentItem struct {
 
 	PauseCause string `json:"pause_cause" db:"pause_cause"`
 
-	Online  int64 `json:"online" db:"online"`
-	Offline int64 `json:"offline" db:"offline"`
-	Pause   int64 `json:"pause" db:"pause"`
+	Online           int64   `json:"online" db:"online"`
+	Offline          int64   `json:"offline" db:"offline"`
+	Pause            int64   `json:"pause" db:"pause"`
+	ScoreRequiredAvg float32 `json:"score_required_avg" db:"score_required_avg"`
+	ScoreOptionalAvg float32 `json:"score_optional_avg" db:"score_optional_avg"`
+	ScoreCount       int64   `json:"score_count" db:"score_count"`
 }
 
 type SearchAgentStatusStatistic struct {
