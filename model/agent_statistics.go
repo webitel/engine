@@ -12,6 +12,11 @@ type AgentStatistics struct {
 	AvgTalkSec float32 `json:"avg_talk_sec" db:"avg_talk_sec"`
 	AvgHoldSec float32 `json:"avg_hold_sec" db:"avg_hold_sec"`
 
-	ChatAccepts int32   `json:"chat_accepts" db:"chat_accepts"`
-	ChatAht     float32 `json:"chat_aht" db:"chat_aht"`
+	ChatAccepts      int32   `json:"chat_accepts" db:"chat_accepts"`
+	ChatAht          float32 `json:"chat_aht" db:"chat_aht"`
+	ScoreRequiredAvg float32 `json:"score_required_avg" db:"score_required_avg"`
+	ScoreOptionalAvg float32 `json:"score_optional_avg" db:"score_optional_avg"`
+	ScoreRequiredSum float32 `json:"score_required_sum" db:"score_required_sum"`
+	ScoreOptionalSum float32 `json:"score_optional_sum" db:"score_optional_sum"`
+	ScoreCount       int64   `json:"score_count" db:"score_count"`
 }

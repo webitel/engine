@@ -695,16 +695,19 @@ func (api *agent) AgentTodayStatistics(ctx context.Context, in *engine.AgentToda
 	}
 
 	return &engine.AgentTodayStatisticsResponse{
-		Utilization:   stat.Utilization,
-		Occupancy:     stat.Occupancy,
-		CallAbandoned: stat.CallAbandoned,
-		CallHandled:   stat.CallHandled,
-		CallMissed:    stat.CallMissed,
-		CallInbound:   stat.CallInbound,
-		AvgTalkSec:    stat.AvgTalkSec,
-		AvgHoldSec:    stat.AvgHoldSec,
-		ChatAccepts:   stat.ChatAccepts,
-		ChatAht:       stat.ChatAht,
+		Utilization:      stat.Utilization,
+		Occupancy:        stat.Occupancy,
+		CallAbandoned:    stat.CallAbandoned,
+		CallHandled:      stat.CallHandled,
+		AvgTalkSec:       stat.AvgTalkSec,
+		AvgHoldSec:       stat.AvgHoldSec,
+		ChatAccepts:      stat.ChatAccepts,
+		ChatAht:          stat.ChatAht,
+		CallMissed:       stat.CallMissed,
+		CallInbound:      stat.CallInbound,
+		ScoreRequiredAvg: stat.ScoreRequiredAvg,
+		ScoreOptionalAvg: stat.ScoreOptionalAvg,
+		ScoreCount:       stat.ScoreCount,
 	}, nil
 }
 
