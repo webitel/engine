@@ -326,6 +326,7 @@ func toAuditQuestions(src []*engine.Question) model.Questions {
 			item.Max = v.Max
 			item.Min = v.Min
 		case engine.AuditQuestionType_question_option:
+			item.Type = model.QuestionTypeOptions
 			item.Options = make([]model.QuestionOption, 0, len(v.Options))
 			for _, o := range v.Options {
 				item.Options = append(item.Options, model.QuestionOption{
