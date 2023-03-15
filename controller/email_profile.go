@@ -22,6 +22,12 @@ func (c *Controller) CreateEmailProfile(ctx context.Context, session *auth_manag
 		return nil, err
 	}
 
+	if profile.Enabled {
+		if err := c.app.ConstraintEmailProfileLimit(ctx, session.Domain(0), session.Token); err != nil {
+			return nil, err
+		}
+	}
+
 	return c.app.CreateEmailProfile(ctx, session.Domain(0), profile)
 }
 
@@ -61,6 +67,12 @@ func (c *Controller) UpdateEmailProfile(ctx context.Context, session *auth_manag
 		return nil, err
 	}
 
+	if profile.Enabled {
+		if err := c.app.ConstraintEmailProfileLimit(ctx, session.Domain(0), session.Token); err != nil {
+			return nil, err
+		}
+	}
+
 	return c.app.UpdateEmailProfile(ctx, session.Domain(0), profile)
 }
 
@@ -76,6 +88,12 @@ func (c *Controller) PatchEmailProfile(ctx context.Context, session *auth_manage
 
 	patch.UpdatedBy.Id = int(session.UserId)
 	patch.UpdatedAt = model.GetMillis()
+
+	if patch.Enabled != nil && *patch.Enabled {
+		if err := c.app.ConstraintEmailProfileLimit(ctx, session.Domain(0), session.Token); err != nil {
+			return nil, err
+		}
+	}
 
 	return c.app.PatchEmailProfile(ctx, session.Domain(0), id, patch)
 }

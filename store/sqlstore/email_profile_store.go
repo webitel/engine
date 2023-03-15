@@ -241,3 +241,23 @@ where id = :Id;`, map[string]interface{}{
 
 	return nil
 }
+
+func (s SqlEmailProfileStore) CountEnabledByDomain(ctx context.Context, domainId int64) (int, *model.AppError) {
+	count, err := s.GetReplica().WithContext(ctx).SelectInt(`select count(*)
+from call_center.cc_email_profile p
+where p.domain_id in (select distinct d.dc
+    from directory.wbt_domain d
+    left join directory.wbt_domain d2 on d2.customer_id = d.customer_id
+    where d2.dc = :DomainId
+)
+and p.enabled`, map[string]interface{}{
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return 0, model.NewAppError("SqlEmailProfileStore.CountEnabledByDomain", "store.sql_email_profile.count_enabled.app_error", nil,
+			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
+	}
+
+	return int(count), nil
+}

@@ -2,11 +2,36 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
 	"net/http"
 	"strings"
 )
+
+func (app *App) CountActiveEmailProfile(ctx context.Context, domainId int64) (int, *model.AppError) {
+	return app.Store.EmailProfile().CountEnabledByDomain(ctx, domainId)
+}
+
+func (app *App) ConstraintEmailProfileLimit(ctx context.Context, domainId int64, token string) *model.AppError {
+	count, err := app.CountActiveEmailProfile(ctx, domainId)
+	if err != nil {
+		return err
+	}
+
+	limit, errLic := app.sessionManager.ProductLimit(ctx, token, auth_manager.LicenseEmail)
+	if errLic != nil {
+		return model.NewAppError("ConstraintEmailProfileLimit", "app.email.app_error", nil, errLic.Error(), http.StatusInternalServerError)
+	}
+
+	if (count + 1) > limit {
+		return model.NewAppError("ConstraintEmailProfileLimit", "app.email.valid.license", nil,
+			fmt.Sprintf("mail profile registration is limited; maximum number of active: %d", limit), http.StatusPreconditionFailed)
+	}
+
+	return nil
+}
 
 func (app *App) CreateEmailProfile(ctx context.Context, domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
 	return app.Store.EmailProfile().Create(ctx, domainId, profile)

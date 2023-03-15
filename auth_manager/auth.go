@@ -1,6 +1,7 @@
 package auth_manager
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/utils"
@@ -20,6 +21,7 @@ type AuthManager interface {
 	Start() error
 	Stop()
 	GetSession(token string) (*Session, error)
+	ProductLimit(ctx context.Context, token string, productName string) (int, error)
 }
 
 type authManager struct {

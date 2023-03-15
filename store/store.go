@@ -356,6 +356,7 @@ type EmailProfileStore interface {
 	Delete(ctx context.Context, domainId int64, id int) *model.AppError
 
 	SetupOAuth2(ctx context.Context, id int, params *model.MailProfileParams) *model.AppError
+	CountEnabledByDomain(ctx context.Context, domainId int64) (int, *model.AppError)
 }
 
 type RegionStore interface {

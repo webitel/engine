@@ -2,6 +2,7 @@ package auth_manager
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"google.golang.org/grpc/metadata"
@@ -20,6 +21,7 @@ type AuthClient interface {
 	Close() error
 	Ready() bool
 	GetSession(token string) (*Session, error)
+	ProductLimit(ctx context.Context, token string, productName string) (int, error)
 }
 
 const (
@@ -29,13 +31,15 @@ const (
 const (
 	LicenseCallManager = "CALL_MANAGER"
 	LicenseCallCenter  = "CALL_CENTER"
+	LicenseEmail       = "EMAIL"
 )
 
 type authConnection struct {
-	name   string
-	host   string
-	client *grpc.ClientConn
-	api    api.AuthClient
+	name        string
+	host        string
+	client      *grpc.ClientConn
+	api         api.AuthClient
+	customerApi api.CustomersClient
 }
 
 func NewAuthServiceConnection(name, url string) (AuthClient, error) {
@@ -52,8 +56,48 @@ func NewAuthServiceConnection(name, url string) (AuthClient, error) {
 	}
 
 	connection.api = api.NewAuthClient(connection.client)
+	connection.customerApi = api.NewCustomersClient(connection.client)
 
 	return connection, nil
+}
+
+func (ac *authConnection) ProductLimit(ctx context.Context, token string, productName string) (int, error) {
+	header := metadata.New(map[string]string{"x-webitel-access": token})
+	outCtx := metadata.NewOutgoingContext(ctx, header)
+	tenant, err := ac.customerApi.GetCustomer(outCtx, &api.GetCustomerRequest{})
+
+	if err != nil {
+		return 0, err
+	}
+
+	if tenant.Customer == nil {
+		return 0, errors.New("")
+	}
+
+	var limitMax int32
+
+	for _, grant := range tenant.Customer.GetLicense() {
+		if grant.Product != productName {
+			continue // Lookup productName only !
+		}
+		if errs := grant.GetStatus().GetErrors(); len(errs) != 0 {
+			// Also, ignore single 'product exhausted' (remain < 1) error
+			// as we do not consider product user assignments here ...
+			if !(len(errs) == 1 && errs[0] == "product exhausted") {
+				continue // Currently invalid
+			}
+		}
+		if limitMax < grant.Limit {
+			limitMax = grant.Limit
+		}
+	}
+
+	if limitMax == 0 {
+		// FIXME: No CHAT product(s) issued !
+		return 0, errors.New("")
+	}
+
+	return int(limitMax), nil
 }
 
 func (ac *authConnection) GetSession(token string) (*Session, error) {
@@ -136,8 +180,8 @@ func (ac *authConnection) Close() error {
 // from all license products assigned to user
 //
 // NOTE: include <readonly> access
-//       { obac:true, access:"r" }
 //
+//	{ obac:true, access:"r" }
 func transformScopes(src []*api.Objclass) []SessionPermission {
 	dst := make([]SessionPermission, 0, len(src))
 	var access int
