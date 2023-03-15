@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
 type AuditForm struct {
 	Id int32 `json:"id" db:"id"`
@@ -82,5 +85,30 @@ func (AuditForm) EntityName() string {
 
 func (af *AuditForm) IsValid() *AppError {
 	//FIXME
+
+	if len(af.Name) < 3 {
+		return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.name", nil, "", http.StatusBadRequest)
+	}
+
+	for _, v := range af.Questions {
+		switch v.Type {
+		case QuestionTypeScore:
+			if v.Max == 0 {
+				return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.question.max", nil, "", http.StatusBadRequest)
+			}
+
+			if v.Min > v.Max {
+				return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.question.min_max", nil, "", http.StatusBadRequest)
+			}
+
+		case QuestionTypeOptions:
+			if len(v.Options) == 0 {
+				return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.option.options", nil, "", http.StatusBadRequest)
+			}
+		default:
+			return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.question.type", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	return nil
 }
