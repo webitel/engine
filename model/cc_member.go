@@ -327,6 +327,7 @@ type MemberCommunication struct {
 	LastCause      string  `json:"last_cause"`
 	Resource       *Lookup `json:"resource"`
 	Display        string  `json:"display"`
+	Dtmf           *string `json:"dtmf"`
 }
 
 func (m *Member) ToJsonCommunications() string {

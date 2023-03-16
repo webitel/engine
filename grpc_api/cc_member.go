@@ -1034,6 +1034,9 @@ func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunicatio
 	if v.StopAt != nil {
 		c.StopAt = *v.StopAt
 	}
+	if v.Dtmf != nil {
+		c.Dtmf = *v.Dtmf
+	}
 	return c
 }
 
@@ -1051,6 +1054,11 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 			Resource: GetLookup(v.Resource),
 			Display:  v.Display,
 		}
+
+		if v.Dtmf != "" {
+			c.Dtmf = model.NewString(v.Dtmf)
+		}
+
 		if v.GetStopAt() != 0 {
 			c.StopAt = model.NewInt64(v.GetStopAt())
 		}
