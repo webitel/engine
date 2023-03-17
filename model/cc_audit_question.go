@@ -16,10 +16,10 @@ type Question struct {
 	Required bool         `json:"required"`
 	Question string       `json:"question"`
 	//options
-	Options []QuestionOption `json:"options"`
+	Options []QuestionOption `json:"options,omitempty"`
 	//score
-	Min int32 `json:"min"`
-	Max int32 `json:"max"`
+	Min int32 `json:"min,omitempty"`
+	Max int32 `json:"max,omitempty"`
 }
 
 type QuestionOption struct {
@@ -27,7 +27,7 @@ type QuestionOption struct {
 	Score int32  `json:"score"`
 }
 
-func (q Questions) Max(required bool) int {
+func (q Questions) SumMax(required bool) int {
 	i := 0
 	for _, v := range q {
 		if v.Required == required {
