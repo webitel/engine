@@ -175,7 +175,7 @@ func (app *App) RateAuditForm(ctx context.Context, domainId int64, userId int64,
 		return nil, err
 	}
 
-	if !form.Editable {
+	if form.Editable {
 		err = app.Store.AuditForm().SetEditable(ctx, form.Id, false)
 		if err != nil {
 			return nil, err
