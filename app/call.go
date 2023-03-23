@@ -290,19 +290,19 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 				//"wbt_to_name": toEndpoint.Name,
 				//"wbt_to_type": toEndpoint.Type,
 
-				//"effective_caller_id_number": usr.Extension,
-				//"effective_caller_id_name":   usr.Name,
-				//"effective_callee_id_name":   req.Destination,
-				//"effective_callee_id_number": req.Destination,
+				"effective_caller_id_number": usr.Extension,
+				"effective_caller_id_name":   usr.Name,
+				"effective_callee_id_name":   req.Destination,
+				"effective_callee_id_number": req.Destination,
 
-				//"origination_caller_id_name":   req.Destination,
-				//"origination_caller_id_number": req.Destination,
-				//"origination_callee_id_name":   usr.Name,
-				//"origination_callee_id_number": usr.Extension,
+				"origination_caller_id_name":   req.Destination,
+				"origination_caller_id_number": req.Destination,
+				"origination_callee_id_name":   usr.Name,
+				"origination_callee_id_number": usr.Extension,
 			},
 		),
-		//CallerName:   usr.Name,
-		//CallerNumber: usr.Extension,
+		CallerName:   usr.Name,
+		CallerNumber: usr.Extension,
 	}
 }
 
