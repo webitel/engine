@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/wlog"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -144,23 +145,30 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
 	/*
 		2020-03-24T01:11:42.129+0200    debug   app/web_hub.go:67       hub TODO stopped
 		panic: runtime error: invalid memory address or nil pointer dereference
+		todo mutex
 
 	*/
-	dq.channel.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
+	if dq.channel == nil {
+		return model.NewAppError("MQ", "mq.domain.unbind.channel.app_err", nil, "Not found channel", http.StatusInternalServerError)
+	}
+	err := dq.channel.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
 		"x-sock-id": bind.Id,
 	})
+	if err != nil {
+		return model.NewAppError("MQ", "mq.domain.unbind.channel.app_err", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s from %s", dq.Id(), bind.UserId, bind.Id, bind.Exchange))
-	//TODO check error
 	return nil
 }
 
 func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) *model.AppError {
-	var err error
+	var err *model.AppError
 	for _, v := range b {
 		err = dq.Unbind(v)
 
 		if err != nil {
-			//TODO
+			wlog.Error(err.Error())
 		}
 	}
 	return nil
@@ -335,7 +343,7 @@ func (dq *DomainQueue) readCallMessage(data []byte, rk string) {
 		return
 	}
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive call event %v:%v [%v] rk=%s", dq.Id(), e.AppId, e.Id, e.Event, rk))
+	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive call event %v:%v [%v] rk=%s %v", dq.Id(), e.AppId, e.Id, e.Event, rk, e.Body))
 	dq.callEvents <- e
 }
 
