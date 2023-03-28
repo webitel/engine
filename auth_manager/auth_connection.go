@@ -87,8 +87,8 @@ func (ac *authConnection) ProductLimit(ctx context.Context, token string, produc
 				continue // Currently invalid
 			}
 		}
-		if limitMax < grant.Limit {
-			limitMax = grant.Limit
+		if limitMax < grant.Remain {
+			limitMax = grant.Remain
 		}
 	}
 
