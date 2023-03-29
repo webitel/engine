@@ -72,6 +72,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		AmdAiResult:      in.GetAmdAiResult(),
 		RatedByIds:       in.GetRatedBy(),
 		RatedUserIds:     in.GetRatedUser(),
+		Rated:            GetBool(in.GetRated()),
 	}
 
 	if in.GetDuration() != nil {
@@ -137,10 +138,6 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			From: in.GetScoreRequired().GetFrom(),
 			To:   in.GetScoreRequired().GetTo(),
 		}
-	}
-
-	if in.Rated {
-		req.Rated = &in.Rated
 	}
 
 	if list, endList, err = api.ctrl.SearchHistoryCall(ctx, session, req); err != nil {

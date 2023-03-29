@@ -438,7 +438,12 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
             where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
-				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or  exists(
+				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
+			case when not :Rated::bool then not exists(
+					select 1
+					from call_center.cc_audit_rate ar
+					where ar.call_id = t.id) 
+ 				else exists(
 					select 1
 					from call_center.cc_audit_rate ar
 					where ar.call_id = t.id
@@ -448,7 +453,9 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 						and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
 						and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
 						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
-		) )
+				)
+			 end
+		)
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
@@ -575,7 +582,12 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
             where not a.id = any(:DependencyIds::varchar[]))::varchar[]
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
-				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or  exists(
+				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
+			case when not :Rated::bool then not exists(
+					select 1
+					from call_center.cc_audit_rate ar
+					where ar.call_id = t.id) 
+ 				else exists(
 					select 1
 					from call_center.cc_audit_rate ar
 					where ar.call_id = t.id
@@ -585,7 +597,9 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 						and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
 						and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
 						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
-	) )
+				)
+			 end
+	)
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
 			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
