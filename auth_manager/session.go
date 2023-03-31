@@ -1,11 +1,19 @@
 package auth_manager
 
 import (
+	"fmt"
+	"github.com/webitel/wlog"
+	"golang.org/x/sync/singleflight"
 	"time"
+)
+
+var (
+	sessionGroupRequest singleflight.Group
 )
 
 type Session struct {
 	Id         string `json:"id"`
+	Name       string `json:"name"`
 	DomainId   int64  `json:"domain_id"`
 	DomainName string `json:"domain_name"`
 	Expire     int64  `json:"expire"`
@@ -127,16 +135,25 @@ func (am *authManager) GetSession(token string) (*Session, error) {
 		return v.(*Session), nil
 	}
 
-	client, err := am.getAuthClient()
+	result, err, shared := sessionGroupRequest.Do(token, func() (interface{}, error) {
+		client, err := am.getAuthClient()
+		if err != nil {
+			return nil, err
+		}
+
+		return client.GetSession(token)
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	session, err := client.GetSession(token)
-	if err != nil {
-		return nil, err
+	session := result.(*Session)
+
+	if !shared {
+		am.session.AddWithDefaultExpires(token, session)
+		wlog.Debug(fmt.Sprintf("store token %s", session.Name))
 	}
-	am.session.AddWithDefaultExpires(token, session)
 
 	return session, nil
 }

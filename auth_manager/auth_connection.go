@@ -85,6 +85,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
 		Scopes:     transformScopes(resp.Scope),
 		actions:    make([]string, 0, 1),
+		Name:       resp.Name,
 	}
 
 	session.validLicense, session.active = licenseActiveScope(resp)
@@ -136,8 +137,8 @@ func (ac *authConnection) Close() error {
 // from all license products assigned to user
 //
 // NOTE: include <readonly> access
-//       { obac:true, access:"r" }
 //
+//	{ obac:true, access:"r" }
 func transformScopes(src []*api.Objclass) []SessionPermission {
 	dst := make([]SessionPermission, 0, len(src))
 	var access int
