@@ -123,7 +123,7 @@ func (self *Session) HasAction(name string) bool {
 
 func (am *authManager) GetSession(token string) (*Session, error) {
 
-	if v, ok := am.session.Get(token); ok && false {
+	if v, ok := am.session.Get(token); ok {
 		return v.(*Session), nil
 	}
 

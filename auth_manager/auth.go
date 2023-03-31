@@ -34,6 +34,10 @@ type authManager struct {
 }
 
 func NewAuthManager(cacheSize int, cacheTime int64, serviceDiscovery discovery.ServiceDiscovery) AuthManager {
+	if cacheTime < 1 {
+		// 0 disabled cache
+		cacheTime = 1
+	}
 	return &authManager{
 		stop:             make(chan struct{}),
 		stopped:          make(chan struct{}),

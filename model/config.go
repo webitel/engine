@@ -33,6 +33,7 @@ type Config struct {
 	LocalizationSettings    LocalizationSettings     `json:"localization_settings"`
 	MessageQueueSettings    MessageQueueSettings     `json:"message_queue_settings"`
 	SqlSettings             SqlSettings              `json:"sql_settings"`
+	AuthCacheExpire         int64                    `json:"auth_cache_expire" flag:"auth_cache_expire|30|Auth cache expire in seconds"`
 	ServerSettings          ServerSettings           `json:"server_settings"`
 	WebSocketSettings       WebSocketSettings        `json:"web_socket_settings"`
 	Dev                     bool                     `json:"dev" flag:"dev|false|Dev mode"`
