@@ -76,7 +76,7 @@ func (AuditForm) AllowFields() []string {
 }
 
 func (AuditForm) DefaultFields() []string {
-	return []string{"id", "name", "description", "teams", "archive", "editable", "enabled"}
+	return []string{"id", "name", "description", "teams", "archive", "editable", "enabled", "created_at", "created_by", "updated_at", "updated_by"}
 }
 
 func (AuditForm) EntityName() string {
