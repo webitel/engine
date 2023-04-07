@@ -86,6 +86,7 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 		"Archive":  search.Archive,
 		"Editable": search.Editable,
 		"Enabled":  search.Enabled,
+		"Question": model.ReplaceWebSearch(search.Question),
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
@@ -96,6 +97,7 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 				and (:Archive::bool isnull or archive = :Archive)
 			    and (:Editable::bool isnull or editable = :Editable)
 			    and (:Enabled::bool isnull or enabled = :Enabled)
+			    and (:Question::varchar isnull or (exists(select 1 from jsonb_array_elements(questions) q where q->>'question' ilike :Question::varchar)))
 `,
 		model.AuditForm{}, f)
 	if err != nil {
@@ -117,6 +119,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		"TeamIds":  search.TeamIds,
 		"Archive":  search.Archive,
 		"Editable": search.Editable,
+		"Question": model.ReplaceWebSearch(search.Question),
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
@@ -125,6 +128,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 				and (:TeamIds::int[] isnull or team_ids = any(:TeamIds))
 				and (:Archive::bool isnull or archive = :Archive)
 			    and (:Editable::bool isnull or editable = :Editable)
+				and (:Question::varchar isnull or (exists(select 1 from jsonb_array_elements(questions) q where q->>'question' ilike :Question::varchar)))
 				and (
 					exists(select 1
 					  from call_center.cc_audit_form_acl

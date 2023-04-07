@@ -18,7 +18,7 @@ require (
 	github.com/streadway/amqp v1.0.0
 	github.com/webitel/call_center v0.0.0-20230224152932-cd78f1e3bf8a
 	github.com/webitel/protos/cc v0.0.0-20230202145403-c92fa287810a
-	github.com/webitel/protos/engine v0.0.0-20230404103933-af5d530e10ff
+	github.com/webitel/protos/engine v0.0.0-20230407120523-120240d6b4a6
 	github.com/webitel/protos/fs v0.0.0-20230202145403-c92fa287810a
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.10.0

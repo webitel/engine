@@ -35,6 +35,7 @@ type SearchAuditForm struct {
 	Archive  *bool   `json:"archive"`
 	Editable *bool   `json:"editable"`
 	Enabled  *bool   `json:"enabled"`
+	Question string  `json:"question"`
 }
 
 func (q *AuditForm) Patch(p *AuditFormPatch) {

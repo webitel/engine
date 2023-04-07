@@ -51,8 +51,9 @@ func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAudi
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
-		Ids:     in.Id,
-		TeamIds: in.TeamId,
+		Ids:      in.Id,
+		TeamIds:  in.TeamId,
+		Question: in.Question,
 	}
 
 	if in.Enabled {
