@@ -293,6 +293,8 @@ func transformAuditFrom(src *model.AuditForm) *engine.AuditForm {
 		Enabled:     src.Enabled,
 		Questions:   transformAuditQuestions(src.Questions),
 		Teams:       GetProtoLookups(src.Teams),
+		Archive:     src.Archive,
+		Editable:    src.Editable,
 	}
 }
 
