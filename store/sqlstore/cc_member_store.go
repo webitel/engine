@@ -199,7 +199,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                                   m.stop_at,
                                   m.last_hangup_at                                                               as                                                     last_hangup_at,
                                   m.attempts,
-                                  call_center.cc_get_lookup(agn.id, coalesce(agn.username::varchar, agn.name::varchar)::varchar) agent,
+                                  call_center.cc_get_lookup(a.id, coalesce(agn.name::varchar, agn.username::varchar)::varchar) agent,
                                   call_center.cc_get_lookup(cs.id, cs.name::varchar)                                                                                    skill,
                                   exists(select 1 from call_center.cc_member_attempt a where a.member_id = m.id for update of a skip locked ) as                                                     reserved
                            from call_center.cc_member m
