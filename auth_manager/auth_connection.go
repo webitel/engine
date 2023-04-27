@@ -129,6 +129,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
 		Scopes:     transformScopes(resp.Scope),
 		actions:    make([]string, 0, 1),
+		Name:       resp.Name,
 	}
 
 	session.validLicense, session.active = licenseActiveScope(resp)
