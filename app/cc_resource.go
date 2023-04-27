@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
@@ -105,6 +106,10 @@ func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.
 	return a.Store.OutboundResource().SaveDisplay(ctx, display)
 }
 
+func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]int64, *model.AppError) {
+	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, displays)
+}
+
 func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, *model.AppError) {
 	list, err := a.Store.OutboundResource().GetDisplayAllPage(ctx, domainId, resourceId, search)
 	if err != nil {
@@ -146,4 +151,8 @@ func (a *App) RemoveOutboundResourceDisplay(ctx context.Context, domainId, resou
 		return nil, err
 	}
 	return display, nil
+}
+
+func (a *App) RemoveOutboundResourceDisplays(ctx context.Context, resourceId int64, ids []int64) *model.AppError {
+	return a.Store.OutboundResource().DeleteDisplays(ctx, resourceId, ids)
 }

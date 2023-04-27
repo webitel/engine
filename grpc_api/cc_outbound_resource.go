@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -351,6 +352,49 @@ func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, 
 	return toEngineResourceDisplay(display), nil
 }
 
+func (api *outboundResource) CreateOutboundResourceDisplayBulk(ctx context.Context, in *engine.CreateOutboundResourceDisplayBulkRequest) (*engine.ListResourceDisplay, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(ctx, session.DomainId, in.GetResourceId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var displays []*model.ResourceDisplay
+	for _, disp := range in.Items {
+		display := &model.ResourceDisplay{Display: disp.Display, ResourceId: in.ResourceId}
+		if err = display.IsValid(); err != nil {
+			return nil, err
+		}
+		displays = append(displays, display)
+	}
+
+	ids, err := api.app.CreateOutboundResourceDisplays(ctx, in.ResourceId, displays)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ListResourceDisplay{Id: ids}, nil
+}
+
 func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, in *engine.SearchOutboundResourceDisplayRequest) (*engine.ListOutboundResourceDisplay, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -506,6 +550,40 @@ func (api *outboundResource) DeleteOutboundResourceDisplay(ctx context.Context, 
 		return toEngineResourceDisplay(display), nil
 	}
 
+}
+
+func (api *outboundResource) DeleteOutboundResourceDisplays(ctx context.Context, in *engine.DeleteOutboundResourceDisplaysRequest) (*engine.EmptyResponse, error) {
+	empty := &engine.EmptyResponse{}
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, nil
+	}
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.OutboundResourceCheckAccess(ctx, session.DomainId, in.GetResourceId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	err = api.app.RemoveOutboundResourceDisplays(ctx, in.GetResourceId(), in.GetItems())
+
+	if err != nil {
+		return nil, err
+	} else {
+		return empty, nil
+	}
 }
 
 func toEngineResourceDisplay(src *model.ResourceDisplay) *engine.ResourceDisplay {

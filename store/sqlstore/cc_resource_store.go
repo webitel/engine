@@ -3,11 +3,12 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlOutboundResourceStore struct {
@@ -241,6 +242,29 @@ returning *`, map[string]interface{}{
 	return out, nil
 }
 
+func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]int64, *model.AppError) {
+	params := map[string]interface{}{
+		"ResourceId": resourceId,
+	}
+	var (
+		ids  []int64
+		name string
+	)
+	queryBase := "insert into call_center.cc_outbound_resource_display (resource_id, display) values"
+	for i, rd := range d {
+		name = fmt.Sprintf("Val%d", i)
+		queryBase += fmt.Sprintf(" (:ResourceId, :%s),", name)
+		params[name] = rd.Display
+	}
+	queryBase = queryBase[:len(queryBase)-1] + " returning id"
+	_, err := s.GetMaster().WithContext(ctx).Select(&ids, queryBase, params)
+	if err != nil {
+		return nil, model.NewAppError("SqlOutboundResourceStore.SaveDisplays", "store.sql_out_resource.save_displays.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+	return ids, nil
+}
+
 func (s SqlOutboundResourceStore) GetDisplayAllPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, *model.AppError) {
 	var list []*model.ResourceDisplay
 
@@ -309,5 +333,28 @@ func (s SqlOutboundResourceStore) DeleteDisplay(ctx context.Context, domainId, r
 		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplay", "store.sql_out_resource.delete_display.app_error", nil,
 			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
+	return nil
+}
+func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId int64, ids []int64) *model.AppError {
+	if resourceId == 0 {
+		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
+			"resource id empty", http.StatusBadRequest)
+	}
+	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
+	from call_center.cc_outbound_resource_display d
+	where resource_id = :ResourceId
+	  and (:Ids::int[] isnull or id = any (:Ids))`, map[string]any{
+		"ResourceId": resourceId,
+		"Ids":        pq.Array(ids),
+	})
+	if err != nil {
+		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
+			err.Error(), extractCodeFromErr(err))
+	}
+	if rows, err := res.RowsAffected(); err == nil && rows == 0 {
+		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
+			"no numbers with given filters found", http.StatusBadRequest)
+	}
+
 	return nil
 }
