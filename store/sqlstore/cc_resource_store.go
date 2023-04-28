@@ -342,13 +342,9 @@ func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId
 	}
 	params := map[string]any{
 		"ResourceId": resourceId,
+		"Ids":        pq.Array(ids),
 	}
-	queryBase := "delete from call_center.cc_outbound_resource_display d where resource_id = :ResourceId"
-
-	if len(ids) != 0 {
-		params["Ids"] = pq.Array(ids)
-		queryBase += " and id = any(:Ids)"
-	}
+	queryBase := "delete from call_center.cc_outbound_resource_display d where resource_id = :ResourceId and (:Ids::int[] isnull or id = any(:Ids))"
 	res, err := s.GetMaster().WithContext(ctx).Exec(queryBase, params)
 	if err != nil {
 		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
