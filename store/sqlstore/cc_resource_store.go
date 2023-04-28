@@ -346,7 +346,7 @@ func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId
 	queryBase := "delete from call_center.cc_outbound_resource_display d where resource_id = :ResourceId"
 	for i, v := range ids {
 		name := fmt.Sprintf("Val%d", i)
-		queryBase += fmt.Sprintf(" and :%s", name)
+		queryBase += fmt.Sprintf(" and id = :%s", name)
 		params[name] = v
 	}
 	res, err := s.GetMaster().WithContext(ctx).Exec(queryBase, params)
