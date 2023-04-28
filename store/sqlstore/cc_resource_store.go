@@ -340,12 +340,13 @@ func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId
 		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
 			"resource id empty", http.StatusBadRequest)
 	}
-	params := map[string]any{
+	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
+	from call_center.cc_outbound_resource_display d
+	where resource_id = :ResourceId
+	  and (:Ids::int[] isnull or id = any (:Ids))`, map[string]any{
 		"ResourceId": resourceId,
 		"Ids":        pq.Array(ids),
-	}
-	queryBase := "delete from call_center.cc_outbound_resource_display d where resource_id = :ResourceId and (:Ids::int[] isnull or id = any(:Ids))"
-	res, err := s.GetMaster().WithContext(ctx).Exec(queryBase, params)
+	})
 	if err != nil {
 		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
 			err.Error(), extractCodeFromErr(err))

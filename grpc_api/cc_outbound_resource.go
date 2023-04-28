@@ -7,7 +7,6 @@ import (
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type outboundResource struct {
@@ -553,20 +552,20 @@ func (api *outboundResource) DeleteOutboundResourceDisplay(ctx context.Context, 
 
 }
 
-func (api *outboundResource) DeleteOutboundResourceDisplays(ctx context.Context, in *engine.DeleteOutboundResourceDisplaysRequest) (*emptypb.Empty, error) {
-	empty := &emptypb.Empty{}
+func (api *outboundResource) DeleteOutboundResourceDisplays(ctx context.Context, in *engine.DeleteOutboundResourceDisplaysRequest) (*engine.EmptyResponse, error) {
+	empty := &engine.EmptyResponse{}
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
-		return empty, err
+		return nil, err
 	}
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
 	if !permission.CanRead() {
-		return empty, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if !permission.CanUpdate() {
-		return empty, nil
+		return nil, nil
 	}
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
@@ -581,7 +580,7 @@ func (api *outboundResource) DeleteOutboundResourceDisplays(ctx context.Context,
 	err = api.app.RemoveOutboundResourceDisplays(ctx, in.GetResourceId(), in.GetItems())
 
 	if err != nil {
-		return empty, err
+		return nil, err
 	} else {
 		return empty, nil
 	}
