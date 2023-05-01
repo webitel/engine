@@ -91,8 +91,7 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar 
-					or exists(select 1 from jsonb_array_elements(questions) q where q->>'question' ilike :Q::varchar)))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_ids && :TeamIds)
 				and (:Archive::bool isnull or archive = :Archive)
@@ -125,8 +124,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar 
-					or exists(select 1 from jsonb_array_elements(questions) q where q->>'question' ilike :Q::varchar)))
+				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_ids = any(:TeamIds))
 				and (:Archive::bool isnull or archive = :Archive)
