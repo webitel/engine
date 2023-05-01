@@ -177,6 +177,7 @@ type AttemptHistory struct {
 	Active      bool                `json:"active" db:"active"` // FIXME delete me
 	Result      string              `json:"result" db:"result"`
 	AmdResult   *string             `json:"amd_result" db:"amd_result"`
+	Attempts    *int32              `json:"attempts" db:"attempts"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -208,6 +209,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"leaving_at",
 		"result",
 		"amd_result",
+		"attempts",
 	}
 }
 
@@ -240,6 +242,7 @@ type Attempt struct {
 	Display     string              `json:"display" db:"display"`
 	Destination MemberCommunication `json:"destination" db:"destination"`
 	Result      *string             `json:"result" db:"result"`
+	Attempts    *int32              `json:"attempts" db:"attempts"`
 }
 
 func (c Attempt) DefaultOrder() string {
@@ -254,7 +257,7 @@ func (c Attempt) DefaultFields() []string {
 	return []string{
 		"id", "state", "last_state_change", "joined_at", "offering_at", "bridged_at", "reporting_at", "leaving_at",
 		"timeout", "channel", "queue", "member", "member_call_id", "variables", "agent", "agent_call_id", "position",
-		"resource", "bucket", "list", "display", "destination", "result",
+		"resource", "bucket", "list", "display", "destination", "result", "attempts",
 	}
 }
 
@@ -281,6 +284,7 @@ type MemberAttempt struct {
 	Logs        []byte            `json:"logs" db:"logs"`
 	Active      bool              `json:"active" db:"active"`
 	Variables   map[string]string `json:"variables" db:"variables"`
+	Attempts    *int32            `json:"attempts" db:"attempts"`
 }
 
 type SearchAttempts struct {

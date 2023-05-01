@@ -890,6 +890,10 @@ func toEngineMemberAttempt(src *model.MemberAttempt) *engine.MemberAttempt {
 		}
 	}
 
+	if src.Attempts != nil {
+		res.Attempts = *src.Attempts
+	}
+
 	return res
 }
 
@@ -1107,6 +1111,10 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 		item.Result = *src.Result
 	}
 
+	if src.Attempts != nil {
+		item.Attempts = *src.Attempts
+	}
+
 	return item
 }
 
@@ -1141,6 +1149,10 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 
 	if src.AgentCallId != nil {
 		item.AgentCallId = *src.AgentCallId
+	}
+
+	if src.Attempts != nil {
+		item.Attempts = *src.Attempts
 	}
 
 	return item
