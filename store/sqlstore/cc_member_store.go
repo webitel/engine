@@ -252,7 +252,8 @@ func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*
 		from call_center.cc_member m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join call_center.cc_bucket qb on m.bucket_id = qb.id
-			left join call_center.cc_agent_list agn on m.agent_id = agn.id
+			left join call_center.cc_agent a on m.agent_id = a.id
+			left join directory.wbt_user agn on agn.id = a.user_id
 		    left join call_center.cc_skill cs on m.skill_id = cs.id
 	where m.id = :Id and m.queue_id = :QueueId and exists(select 1 from call_center.cc_queue q where q.id = :QueueId and q.domain_id = :DomainId)`, map[string]interface{}{
 		"Id":       id,
@@ -291,7 +292,8 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join call_center.cc_bucket qb on m.bucket_id = qb.id
 			left join call_center.cc_skill cs on m.skill_id = cs.id
-			left join call_center.cc_agent_list agn on m.agent_id = agn.id`, map[string]interface{}{
+			left join call_center.cc_agent a on m.agent_id = a.id
+			left join directory.wbt_user agn on agn.id = a.user_id`, map[string]interface{}{
 		"Priority":       member.Priority,
 		"ExpireAt":       member.ExpireAt,
 		"Variables":      member.Variables.ToJson(),
