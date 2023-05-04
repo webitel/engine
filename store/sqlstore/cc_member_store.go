@@ -248,7 +248,7 @@ func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*
 	var member *model.Member
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&member, `select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
 			   call_center.cc_member_communications(m.communications) as communications,  call_center.cc_get_lookup(qb.id, qb.name::text) as bucket, ready_at,
-               call_center.cc_get_lookup(cs.id, cs.name::text) as skill, call_center.cc_get_lookup(agn.id, (coalesce(agn.name, agn.username))::varchar) agent
+               call_center.cc_get_lookup(cs.id, cs.name::text) as skill, call_center.cc_get_lookup(a.id, (coalesce(agn.name, agn.username))::varchar) agent
 		from call_center.cc_member m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join call_center.cc_bucket qb on m.bucket_id = qb.id
@@ -287,7 +287,7 @@ func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *mode
 )
 select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
 			   call_center.cc_member_communications(m.communications) as communications,  call_center.cc_get_lookup(qb.id, qb.name::text) as bucket, ready_at,
-               call_center.cc_get_lookup(cs.id, cs.name::text) as skill, call_center.cc_get_lookup(agn.id, (coalesce(agn.name, agn.username))::varchar) agent
+               call_center.cc_get_lookup(cs.id, cs.name::text) as skill, call_center.cc_get_lookup(a.id, (coalesce(agn.name, agn.username))::varchar) agent
 		from m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join call_center.cc_bucket qb on m.bucket_id = qb.id
