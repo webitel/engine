@@ -369,7 +369,7 @@ type HistoryCall struct {
 	To          *Endpoint  `json:"to" db:"to"`
 	Variables   *Variables `json:"variables" db:"variables"`
 
-	CreatedAt  time.Time  `json:"created_at" db:"created_at"`
+	CreatedAt  *time.Time `json:"created_at" db:"created_at"`
 	AnsweredAt *time.Time `json:"answered_at" db:"answered_at"`
 	BridgedAt  *time.Time `json:"bridged_at" db:"bridged_at"`
 	HangupAt   *time.Time `json:"hangup_at" db:"hangup_at"`
@@ -424,6 +424,8 @@ type HistoryCall struct {
 	RatedBy       *Lookup  `json:"rated_by" db:"rated_by"`
 	ScoreOptional *float32 `json:"score_optional" db:"score_optional"`
 	ScoreRequired *float32 `json:"score_required" db:"score_required"`
+
+	AttemptId *int64 `json:"attempt_id" db:"attempt_id"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
@@ -437,6 +439,7 @@ func (c HistoryCall) AllowFields() []string {
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
+		"attempt_id",
 	}
 }
 

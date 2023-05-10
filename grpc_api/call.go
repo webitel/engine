@@ -801,7 +801,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Direction:        src.Direction,
 		Destination:      setAccessString(src.Destination, minHideString, pref, suff, accessString),
 		Variables:        prettyVariables(src.Variables),
-		CreatedAt:        model.TimeToInt64(&src.CreatedAt),
+		CreatedAt:        model.TimeToInt64(src.CreatedAt),
 		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
 		BridgedAt:        model.TimeToInt64(src.BridgedAt),
 		HangupAt:         model.TimeToInt64(src.HangupAt),
@@ -909,6 +909,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	}
 	if src.ScoreRequired != nil {
 		item.ScoreRequired = *src.ScoreRequired
+	}
+
+	if src.AttemptId != nil {
+		item.AttemptId = *src.AttemptId
 	}
 
 	return item
