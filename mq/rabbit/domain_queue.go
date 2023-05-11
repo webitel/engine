@@ -195,7 +195,12 @@ func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) *model.AppError {
 }
 
 func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
-	err := dq.channel.QueueBind(
+	ch := dq.getChannel()
+	if ch == nil {
+		wlog.Error("not found active channel")
+	}
+
+	err := ch.QueueBind(
 		dq.queue.Name,
 		b.Routing,
 		b.Exchange,
@@ -392,6 +397,7 @@ func (dq *DomainQueue) readUserStateMessage(data []byte, rk string) {
 func (dq *DomainQueue) connect() error {
 	var err error
 	wlog.Debug(fmt.Sprintf("DomainQueue [%d] trying connect...", dq.Id()))
+	dq.setChannel(nil)
 
 	defer func() {
 		if err != nil {
@@ -470,7 +476,10 @@ func (dq *DomainQueue) rebindingUsers() {
 }
 
 func (dq *DomainQueue) removeQueue() {
-	dq.channel.QueueDelete(dq.queue.Name, false, false, true)
+	ch := dq.getChannel()
+	if ch != nil {
+		ch.QueueDelete(dq.queue.Name, false, false, true)
+	}
 }
 
 func (dq *DomainQueue) Listen() error {
