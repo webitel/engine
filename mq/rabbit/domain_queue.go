@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/wlog"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -38,6 +39,8 @@ type DomainQueue struct {
 
 	stop    chan struct{}
 	stopped chan struct{}
+
+	sync.RWMutex
 }
 
 func (dq *DomainQueue) Name() string {
@@ -69,6 +72,20 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		stopped:      make(chan struct{}),
 	}
 	return q
+}
+
+func (dq *DomainQueue) getChannel() *amqp.Channel {
+	dq.RLock()
+	ch := dq.channel
+	dq.RUnlock()
+
+	return ch
+}
+
+func (dq *DomainQueue) setChannel(ch *amqp.Channel) {
+	dq.Lock()
+	dq.channel = ch
+	dq.Unlock()
 }
 
 func (dq *DomainQueue) Start() {
@@ -146,11 +163,22 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
 		panic: runtime error: invalid memory address or nil pointer dereference
 
 	*/
-	dq.channel.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
+
+	ch := dq.getChannel()
+
+	if ch == nil {
+		return model.NewAppError("DomainQueue", "mq.unbind.valid.channel", nil, "Not found channel", http.StatusInternalServerError)
+	}
+
+	err := ch.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
 		"x-sock-id": bind.Id,
 	})
+
+	if err != nil {
+		return model.NewAppError("DomainQueue", "mq.unbind.queue.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
 	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s from %s", dq.Id(), bind.UserId, bind.Id, bind.Exchange))
-	//TODO check error
 	return nil
 }
 
@@ -372,14 +400,19 @@ func (dq *DomainQueue) connect() error {
 		}
 	}()
 
-	dq.channel, err = dq.client.NewChannel()
+	var ch *amqp.Channel
+
+	ch, err = dq.client.NewChannel()
 	if err != nil {
 		return err
 	}
-	dq.closeChannel = make(chan *amqp.Error, 1)
-	dq.channel.NotifyClose(dq.closeChannel)
 
-	dq.queue, err = dq.channel.QueueDeclare(
+	dq.setChannel(ch)
+
+	dq.closeChannel = make(chan *amqp.Error, 1)
+	ch.NotifyClose(dq.closeChannel)
+
+	dq.queue, err = ch.QueueDeclare(
 		fmt.Sprintf("engine.call.%s.%d", model.NewId()[0:10], dq.id),
 		false,
 		false,
@@ -392,12 +425,12 @@ func (dq *DomainQueue) connect() error {
 		return err
 	}
 
-	err = dq.channel.QueueBind(dq.queue.Name, fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
+	err = ch.QueueBind(dq.queue.Name, fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
 	if err != nil {
 		return err
 	}
 
-	dq.delivery, err = dq.channel.Consume(
+	dq.delivery, err = ch.Consume(
 		dq.queue.Name,
 		model.NewId(),
 		true,

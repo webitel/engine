@@ -1223,7 +1223,7 @@ where c.id = :Id`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlCallStore.GetEavesdropInfo", "store.sql_call.get.eavesdrop_info.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewAppError("SqlCallStore.GetOwnerUserCall", "store.sql_call.get.owner.app_error", nil, err.Error(), extractCodeFromErr(err))
 	}
 
 	if !r.Valid {
