@@ -85,10 +85,12 @@ func (AuditForm) EntityName() string {
 }
 
 func (af *AuditForm) IsValid() *AppError {
-	//FIXME
+	if len(af.Name) < 3 || len(af.Name) > 256 {
+		return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.name", nil, "Name should not be less than 3 characters or greater than 256 characters", http.StatusBadRequest)
+	}
 
-	if len(af.Name) < 3 {
-		return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.name", nil, "", http.StatusBadRequest)
+	if len(af.Description) > 516 {
+		return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.description", nil, "Value should not be greater than 516 characters", http.StatusBadRequest)
 	}
 
 	for _, v := range af.Questions {
