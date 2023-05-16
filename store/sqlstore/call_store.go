@@ -521,6 +521,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
 		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
 		"Rated":             search.Rated,
+		"ClassName":         model.PERMISSION_SCOPE_CALL,
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -602,8 +603,8 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	)
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
-			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
-			or (t.user_ids notnull and t.user_ids::int[] && call_center.cc_calls_rbac_users_from_group(:Domain::int8, :Access::int2, :Groups::int[]))
+			or t.queue_id = any (call_center.cc_calls_rbac_queues(:ClassName::varchar, :Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
+			or (t.user_ids notnull and t.user_ids::int[] && call_center.rbac_users_from_group(:Domain::int8, :Access::int2, :Groups::int[]))
 			or (t.grantee_id = any(:Groups::int[]))
 		)
 	)
