@@ -5,6 +5,7 @@ type Skill struct {
 	DomainId    int64  `json:"domain_id" db:"domain_id"`
 	Name        string `json:"name" db:"name"`
 	Description string `json:"description" db:"description"`
+	Agents      *int32 `json:"agents" db:"agents"`
 }
 
 type SearchSkill struct {
@@ -17,11 +18,11 @@ func (Skill) DefaultOrder() string {
 }
 
 func (a Skill) AllowFields() []string {
-	return []string{"id", "domain_id", "name", "description"}
+	return []string{"id", "domain_id", "name", "description", "agents"}
 }
 
 func (a Skill) DefaultFields() []string {
-	return []string{"id", "name", "description"}
+	return []string{"id", "name", "description", "agents"}
 }
 
 func (a Skill) EntityName() string {

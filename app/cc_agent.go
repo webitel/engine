@@ -10,6 +10,9 @@ import (
 func (app *App) AgentCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
 	return app.Store.Agent().CheckAccess(ctx, domainId, id, groups, access)
 }
+func (app *App) AccessAgentsIds(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, *model.AppError) {
+	return app.Store.Agent().AccessAgents(ctx, domainId, agentIds, groups, access)
+}
 
 func (app *App) CreateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
 	return app.Store.Agent().Create(ctx, agent)

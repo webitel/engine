@@ -113,6 +113,15 @@ func GetLookups(src []*engine.Lookup) []*model.Lookup {
 	return res
 }
 
+func LookupsIds(src []*engine.Lookup) []int64 {
+	ids := make([]int64, 0, len(src))
+	for _, v := range src {
+		ids = append(ids, v.Id)
+	}
+
+	return ids
+}
+
 func GetProtoLookups(src []*model.Lookup) []*engine.Lookup {
 	length := len(src)
 	if length == 0 {

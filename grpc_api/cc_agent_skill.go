@@ -56,8 +56,10 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 		Skill: &model.Lookup{
 			Id: int(in.GetSkill().GetId()),
 		},
-		Capacity: int(in.Capacity),
-		Enabled:  in.Enabled,
+		AgentSkillProps: model.AgentSkillProps{
+			Capacity: int(in.Capacity),
+			Enabled:  in.Enabled,
+		},
 	}
 
 	err = agentSkill.IsValid()
@@ -202,8 +204,10 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 		Skill: &model.Lookup{
 			Id: int(in.GetSkill().GetId()),
 		},
-		Capacity: int(in.Capacity),
-		Enabled:  in.Enabled,
+		AgentSkillProps: model.AgentSkillProps{
+			Capacity: int(in.Capacity),
+			Enabled:  in.Enabled,
+		},
 	})
 
 	if err != nil {
@@ -496,8 +500,10 @@ func (api *agentSkill) CreateAgentSkills(ctx context.Context, in *engine.CreateA
 			Skill: &model.Lookup{
 				Id: int(v.GetSkill().GetId()),
 			},
-			Capacity: int(v.Capacity),
-			Enabled:  v.Enabled,
+			AgentSkillProps: model.AgentSkillProps{
+				Capacity: int(v.Capacity),
+				Enabled:  v.Enabled,
+			},
 		}
 
 		if err = i.IsValid(); err != nil {

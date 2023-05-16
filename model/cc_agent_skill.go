@@ -3,10 +3,22 @@ package model
 type AgentSkill struct {
 	DomainRecord
 	//Id       int64  `json:"id" db:"id"`
-	Agent    *Lookup `json:"agent" json:"agent"`
-	Skill    *Lookup `json:"skill" db:"skill"`
-	Capacity int     `json:"capacity" db:"capacity"`
-	Enabled  bool    `json:"enabled" db:"enabled"`
+	Agent *Lookup `json:"agent" db:"agent"`
+	Skill *Lookup `json:"skill" db:"skill"`
+	Team  *Lookup `json:"team" db:"team"`
+	AgentSkillProps
+}
+
+type AgentSkillProps struct {
+	Capacity int  `json:"capacity" db:"capacity"`
+	Enabled  bool `json:"enabled" db:"enabled"`
+}
+
+type AgentsSkills struct {
+	DomainRecord
+	AgentIds []int64
+	SkillIds []int64
+	AgentSkillProps
 }
 
 type AgentSkillPatch struct {
@@ -20,8 +32,9 @@ type AgentSkillPatch struct {
 }
 
 type SearchAgentSkill struct {
-	Ids      []uint32
-	SkillIds []uint32
+	Ids      []int64
+	SkillIds []int64
+	AgentIds []int64
 }
 
 type SearchAgentSkillList struct {
@@ -36,7 +49,7 @@ func (AgentSkill) DefaultOrder() string {
 func (a AgentSkill) AllowFields() []string {
 	return []string{"id", "skill", "capacity", "enabled",
 		"created_at", "created_by", "updated_at", "updated_by",
-		"agent", "domain_id", "skill_id", "skill_name", "agent_id", "agent_name"}
+		"agent", "domain_id", "skill_id", "skill_name", "agent_id", "agent_name", "team"}
 }
 
 func (a AgentSkill) DefaultFields() []string {

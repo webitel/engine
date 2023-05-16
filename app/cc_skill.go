@@ -53,3 +53,13 @@ func (app *App) UpdateSkill(ctx context.Context, skill *model.Skill) (*model.Ski
 
 	return oldSkill, nil
 }
+
+func (app *App) SearchSkillAgent(ctx context.Context, domainId int64, skillId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, *model.AppError) {
+	search.SkillIds = []int64{skillId}
+	list, err := app.Store.AgentSkill().GetAllPage(ctx, domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}

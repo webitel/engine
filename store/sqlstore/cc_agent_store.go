@@ -59,6 +59,28 @@ func (s SqlAgentStore) CheckAccess(ctx context.Context, domainId, id int64, grou
 	return res.Valid && res.Int64 == 1, nil
 }
 
+func (s SqlAgentStore) AccessAgents(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, *model.AppError) {
+	var res []int64
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select distinct a.object::int agent_id
+          from call_center.cc_agent_acl a
+          where a.dc = :DomainId
+            and a.object = any(:Ids::int[])
+            and a.subject = any (:Groups::int[])
+            and a.access & :Access = :Access`, map[string]interface{}{
+		"DomainId": domainId,
+		"Ids":      pq.Array(agentIds),
+		"Groups":   pq.Array(groups),
+		"Access":   access.Value(),
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentStore.AccessAgents", "store.sql_agent.access.app_error", nil,
+			fmt.Sprintf("record=%v, %v", agentIds, err.Error()), http.StatusInternalServerError)
+	}
+
+	return res, nil
+}
+
 // FIXME
 func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
 	var out *model.Agent

@@ -14,7 +14,8 @@ func (app *App) CreateAgentSkills(ctx context.Context, domainId, agentId int64, 
 }
 
 func (app *App) GetAgentsSkillPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, *model.AppError) {
-	list, err := app.Store.AgentSkill().GetAllPage(ctx, domainId, agentId, search)
+	search.AgentIds = []int64{agentId}
+	list, err := app.Store.AgentSkill().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -48,7 +49,8 @@ func (app *App) UpdateAgentsSkill(ctx context.Context, agentSkill *model.AgentSk
 }
 
 func (app *App) UpdateAgentsSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
-	return app.Store.AgentSkill().UpdateMany(ctx, domainId, agentId, search, path)
+	search.AgentIds = []int64{agentId}
+	return app.Store.AgentSkill().UpdateMany(ctx, domainId, search, path)
 }
 
 func (a *App) PatchAgentSkill(ctx context.Context, domainId int64, agentId, id int64, patch *model.AgentSkillPatch) (*model.AgentSkill, *model.AppError) {
@@ -86,7 +88,8 @@ func (a *App) RemoveAgentSkill(ctx context.Context, domainId, agentId, id int64)
 }
 
 func (a *App) RemoveAgentSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
-	res, err := a.Store.AgentSkill().Delete(ctx, domainId, agentId, search)
+	search.AgentIds = []int64{agentId}
+	res, err := a.Store.AgentSkill().Delete(ctx, domainId, search)
 	if err != nil {
 		return nil, err
 	}
@@ -100,4 +103,28 @@ func (app *App) LookupSkillIfNotExistsAgent(ctx context.Context, domainId, agent
 	}
 	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
+}
+
+func (app *App) CreateAgentsSkills(ctx context.Context, domainId int64, items *model.AgentsSkills) ([]*model.AgentSkill, *model.AppError) {
+	return app.Store.AgentSkill().CreateMany(ctx, domainId, items)
+}
+
+func (app *App) GetAgentsSkillBySkill(ctx context.Context, domainId int64, skillId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, *model.AppError) {
+	search.SkillIds = []int64{skillId}
+	list, err := app.Store.AgentSkill().GetAllPage(ctx, domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (app *App) PatchAgentsSkill(ctx context.Context, domainId int64, skillId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
+	search.SkillIds = []int64{skillId}
+	return app.Store.AgentSkill().UpdateMany(ctx, domainId, search, path)
+}
+
+func (app *App) RemoveAgentsSkill(ctx context.Context, domainId int64, skillId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
+	search.SkillIds = []int64{skillId}
+	return app.Store.AgentSkill().Delete(ctx, domainId, search)
 }

@@ -115,12 +115,12 @@ _error:
 	return nil, model.NewAppError("SqlAgentSkillStore.Save", "store.sql_skill_in_agent.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
 }
 
-func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, *model.AppError) {
 	var agentSkill []*model.AgentSkill
 
 	f := map[string]interface{}{
 		"DomainId": domainId,
-		"AgentId":  agentId,
+		"AgentIds": pq.Array(search.AgentIds),
 		"Ids":      pq.Array(search.Ids),
 		"SkillIds": pq.Array(search.SkillIds),
 		"Q":        search.GetQ(),
@@ -128,7 +128,7 @@ func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId, agentId in
 
 	err := s.ListQuery(ctx, &agentSkill, search.ListRequest,
 		`domain_id = :DomainId
-				and agent_id = :AgentId
+				and (:AgentIds::int[] isnull or agent_id = any(:AgentIds))
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:SkillIds::int[] isnull or skill_id = any(:SkillIds))
 				and (:Q::varchar isnull or (skill_name ilike :Q::varchar ))`,
@@ -196,13 +196,14 @@ from tmp
 	return out, nil
 }
 
-func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
 	var res []*model.AgentSkill
 
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `with tmp as (
     update call_center.cc_skill_in_agent
         set capacity = coalesce(:Capacity, capacity),
             enabled = coalesce(:Enabled, enabled),
+			skill_id = coalesce(:SkillId, skill_id),
             updated_by = :UpdatedBy,
             updated_at = :UpdatedAt
     where id in (
@@ -210,7 +211,7 @@ func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId, agentId in
             from call_center.cc_skill_in_agent sa
                 inner join call_center.cc_skill s on s.id = sa.skill_id
             where s.domain_id = :DomainId
-                            and agent_id = :AgentId
+                            and (:AgentIds::int[] isnull or agent_id = any(:AgentIds))
                             and (:Ids::int[] isnull or sa.id = any(:Ids))
                             and (:SkillIds::int[] isnull or sa.skill_id = any(:SkillIds))
     )
@@ -225,13 +226,14 @@ from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
 		"DomainId":  domainId,
-		"AgentId":   agentId,
+		"AgentIds":  pq.Array(search.AgentIds),
 		"Ids":       pq.Array(search.Ids),
 		"SkillIds":  pq.Array(search.SkillIds),
 		"Capacity":  path.Capacity,
 		"Enabled":   path.Enabled,
 		"UpdatedBy": path.UpdatedBy.GetSafeId(),
 		"UpdatedAt": path.UpdatedAt,
+		"SkillId":   path.Skill.GetSafeId(),
 	})
 
 	if err != nil {
@@ -252,7 +254,7 @@ where a.id = :Id and a.agent_id = :AgentId`,
 	return nil
 }
 
-func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
 	var res []*model.AgentSkill
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `with tmp as (
     delete from call_center.cc_skill_in_agent
@@ -261,7 +263,7 @@ func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId, agentId int64,
             from call_center.cc_skill_in_agent sa
                 inner join call_center.cc_skill s on s.id = sa.skill_id
             where s.domain_id = :DomainId
-                            and agent_id = :AgentId
+                            and (:AgentIds::int[] isnull or sa.agent_id = any(:AgentIds))
                             and (:Ids::int[] isnull or sa.id = any(:Ids))
                             and (:SkillIds::int[] isnull or sa.skill_id = any(:SkillIds))
     )
@@ -276,7 +278,7 @@ from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
 		"DomainId": domainId,
-		"AgentId":  agentId,
+		"AgentIds": pq.Array(search.AgentIds),
 		"Ids":      pq.Array(search.Ids),
 		"SkillIds": pq.Array(search.SkillIds),
 	})
@@ -312,4 +314,50 @@ offset :Offset`, map[string]interface{}{
 	} else {
 		return skills, nil
 	}
+}
+
+func (s SqlAgentSkillStore) CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, *model.AppError) {
+	var items []*model.AgentSkill
+	_, err := s.GetMaster().WithContext(ctx).Select(&items, `with tmp as (
+    insert into call_center.cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at,
+                                               updated_by, enabled)
+        select s as skill_id,
+               a as agent_id,
+               :Capacity,
+               :CreatedAt,
+               :CreatedBy,
+               :UpdatedAt,
+               :UpdatedBy,
+               :Enabled
+        from unnest(:Agents::int[]) a,
+             unnest(:Skill::int[]) s
+        where exists(select 1 from call_center.cc_skill ss where ss.id = s and ss.domain_id = :DomainId)  
+            and exists(select 1 from call_center.cc_agent aa where aa.id = a and aa.domain_id = :DomainId)
+		returning *
+	)
+select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+from tmp
+    inner join call_center.cc_skill s on s.id = tmp.skill_id
+    inner join call_center.cc_agent a on a.id = tmp.agent_id
+    inner join directory.wbt_user wu on a.user_id = wu.id
+    left join directory.wbt_user c on c.id = tmp.created_by
+    left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
+		"DomainId":  domainId,
+		"Agents":    pq.Array(in.AgentIds),
+		"Skill":     pq.Array(in.SkillIds),
+		"Capacity":  in.Capacity,
+		"Enabled":   in.Enabled,
+		"CreatedAt": in.CreatedAt,
+		"CreatedBy": in.CreatedBy.GetSafeId(),
+		"UpdatedAt": in.UpdatedAt,
+		"UpdatedBy": in.UpdatedBy.GetSafeId(),
+	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlAgentSkillStore.CreateMany", "store.sql_skill_in_agent.create_many.app_error", nil,
+			fmt.Sprintf("AgentIds=%v, SkillIds=%v %s", in.AgentIds, in.SkillIds, err.Error()), extractCodeFromErr(err))
+	}
+
+	return items, nil
 }
