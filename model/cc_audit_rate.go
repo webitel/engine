@@ -92,7 +92,7 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) *AppError {
 			}
 
 			r.ScoreRequired += float32(a.Score)
-		} else if a != nil { // skip optional if empty
+		} else if a != nil && a.Score > 0 { // skip optional if empty
 
 			if !form.Questions[i].ValidAnswer(*a) {
 				return NewAppError("AuditRate", "audit.rate.valid.answer", nil,
