@@ -62,7 +62,7 @@ func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *mod
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
 	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
-	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and (:ParentId::uuid isnull or parent_id = :ParentId )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
@@ -122,7 +122,7 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId int64, use
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
 	and (:Number::varchar isnull or from_number ilike :Number::varchar or to_number ilike :Number::varchar or destination ilike :Number::varchar)
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
-	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and (:ParentId::uuid isnull or parent_id = :ParentId )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
@@ -272,7 +272,7 @@ from call_center.cc_calls c
 		   a.form_view as form
     from call_center.cc_member_attempt a
     where a.id = c.attempt_id
-      and a.agent_call_id = c.id
+      and a.agent_call_id = c.id::text
     ) at on true
 where c.user_id = :UserId
   and c.domain_id = :DomainId
@@ -297,7 +297,7 @@ select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.par
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
    (extract(epoch from now() -  c.created_at))::int8 duration	
 from call_center.cc_calls c
-where c.domain_id = :Domain and c.id = :Id`, map[string]interface{}{
+where c.domain_id = :Domain and c.id = :Id::uuid`, map[string]interface{}{
 		"Domain": domainId,
 		"Id":     id,
 	})
@@ -313,7 +313,7 @@ func (s SqlCallStore) GetInstance(ctx context.Context, domainId int64, id string
 	var inst *model.CallInstance
 	err := s.GetMaster().WithContext(ctx).SelectOne(&inst, `select c.id, c.app_id, c.state
 from call_center.cc_calls c
-where c.id = :Id and c.domain_id = :Domain`, map[string]interface{}{
+where c.id = :Id::uuid and c.domain_id = :Domain`, map[string]interface{}{
 		"Id":     id,
 		"Domain": domainId,
 	})
@@ -622,12 +622,12 @@ func (s SqlCallStore) SetVariables(ctx context.Context, domainId int64, id strin
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `with a as (
     update call_center.cc_calls c
         set payload = coalesce(payload, '{}') || :Vars
-    where c.id = :Id and c.domain_id = :DomainId
+    where c.id = :Id::uuid and c.domain_id = :DomainId
     returning c.id, c.app_id
 ), h as (
     update call_center.cc_calls_history c
         set payload = coalesce(payload, '{}') || :Vars
-    where c.id = :Id and c.domain_id = :DomainId
+    where c.id = :Id::uuid and c.domain_id = :DomainId
     returning c.id
 )
 select *
@@ -1003,16 +1003,16 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or h.created_at between :From and :To )
 		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or h.stored_at between :StoredAtFrom and :StoredAtTo )
 		and (:UserIds::int8[] isnull or h.user_id = any(:UserIds))
-		and (:Ids::varchar[] isnull or h.id = any(:Ids))
-		and (:TransferFromIds::varchar[] isnull or h.transfer_from = any(:TransferFromIds))
-		and (:TransferToIds::varchar[] isnull or h.transfer_to = any(:TransferToIds))
+		and (:Ids::uuid[] isnull or h.id = any(:Ids))
+		and (:TransferFromIds::uuid[] isnull or h.transfer_from = any(:TransferFromIds))
+		and (:TransferToIds::uuid[] isnull or h.transfer_to = any(:TransferToIds))
 		and (:QueueIds::int[] isnull or h.queue_id = any(:QueueIds) )
 		and (:TeamIds::int[] isnull or h.team_id = any(:TeamIds) )  
 		and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds) )
 		and (:MemberIds::int8[] isnull or h.member_id = any(:MemberIds) )
 		and (:GatewayIds::int8[] isnull or h.gateway_id = any(:GatewayIds) )
 		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or h.parent_id isnull)
-		and (:ParentId::varchar isnull or h.parent_id = :ParentId )
+		and (:ParentId::uuid isnull or h.parent_id = :ParentId )
 		and (:CauseArr::varchar[] isnull or h.cause = any(:CauseArr) )
 		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or h.answered_at between :AnsweredFrom and :AnsweredTo )
 		and (:Directions::varchar[] isnull or h.direction = any(:Directions) )
@@ -1021,19 +1021,19 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and (:Tags::varchar[] isnull or (h.tags && :Tags))
 		and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
 		and (:AmdResult::varchar[] isnull or h.amd_result = any(:AmdResult))
-		and (:HasFile::bool isnull or (case :HasFile::bool when true then exists(select 1 from storage.files ft where ft.uuid = h.id ) else not exists(select 1 from storage.files ft where ft.uuid = h.id ) end))
+		and (:HasFile::bool isnull or (case :HasFile::bool when true then exists(select 1 from storage.files ft where ft.uuid = h.id::text ) else not exists(select 1 from storage.files ft where ft.uuid = h.id::text ) end))
 		and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
 				case :HasTranscript::bool when false
-				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id )
-				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id::text )
+				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
 				end
 		
 			))
-		and (:DependencyIds::varchar[] isnull or h.id in (
+		and (:DependencyIds::uuid[] isnull or h.id in (
 			with recursive a as (
 				select t.id
 				from call_center.cc_calls_history t
-				where t.id = any(:DependencyIds)
+				where t.id = any(:DependencyIds::uuid[])
 				union all
 				select t.id
 				from call_center.cc_calls_history t, a
@@ -1041,7 +1041,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 			)
 			select a.id
 			from a
-			where not a.id = any(:DependencyIds)
+			where not a.id = any(:DependencyIds::uuid[])
 		))
 )
 `
@@ -1112,7 +1112,7 @@ func (s SqlCallStore) BridgeInfo(ctx context.Context, domainId int64, fromId, to
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
 from call_center.cc_calls c,
      call_center.cc_calls c2
-where c.id = :FromId and c2.id = :ToId and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
+where c.id = :FromId::uuid and c2.id = :ToId::uuid and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"FromId":   fromId,
 		"ToId":     toId,
@@ -1130,7 +1130,7 @@ from storage.files f
 where f.domain_id = :DomainId and f.uuid = (
     select coalesce(c.parent_id, c.id)
     from call_center.cc_calls_history c
-    where c.id = :Id and c.domain_id = :DomainId
+    where c.id = :Id::uuid and c.domain_id = :DomainId
     limit 1
 )`, map[string]interface{}{
 		"DomainId": domainId,
@@ -1147,7 +1147,7 @@ where f.domain_id = :DomainId and f.uuid = (
 func (s SqlCallStore) BridgedId(ctx context.Context, id string) (string, *model.AppError) {
 	res, err := s.GetReplica().WithContext(ctx).SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
 from call_center.cc_calls c
-where id = :Id`, map[string]string{
+where id = :Id::uuid`, map[string]string{
 		"Id": id,
 	})
 
@@ -1170,7 +1170,7 @@ func (s SqlCallStore) SetEmptySeverCall(ctx context.Context, domainId int64, id 
        coalesce(cma.node_id, '') as cc_app_id
     from  call_center.cc_calls c
         left join call_center.cc_member_attempt cma on c.attempt_id = cma.id
-    where c.id = :Id and c.domain_id = :DomainId and c.hangup_at isnull
+    where c.id = :Id::uuid and c.domain_id = :DomainId and c.hangup_at isnull
     and c.timestamp < now() - interval '15 sec' and c.hangup_by isnull
 )
 update call_center.cc_calls c1
@@ -1203,7 +1203,7 @@ from call_center.cc_calls c
     left join lateral (select not(c.bridged_id notnull and c.user_id isnull) v) owner_agent on true
     left join lateral (select json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) f) as f on true
     left join lateral (select json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) t) as t on true
-where c.domain_id = :DomainId and c.id = :Id and c.state in ('active', 'bridge', 'eavesdrop')`, map[string]interface{}{
+where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'bridge', 'eavesdrop')`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
 	})
@@ -1219,7 +1219,7 @@ func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (*int64, 
 	r, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select coalesce(c.user_id, p.user_id) as rate_user
 from call_center.cc_calls_history c
     left join call_center.cc_calls_history p on p.id = c.bridged_id
-where c.id = :Id`, map[string]interface{}{
+where c.id = :Id::uuid`, map[string]interface{}{
 		"Id": id,
 	})
 
