@@ -381,7 +381,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
 		`domain_id = :Domain::int8 
-	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id = :Q::text)
+	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
 	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
@@ -390,9 +390,9 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
 	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
-	and (:Ids::varchar[] isnull or id = any(:Ids))
-	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
-	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
+	and (:Ids::uuid[] isnull or id = any(:Ids))
+	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
+	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
 	and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
 	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
@@ -400,7 +400,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
-	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
 	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
@@ -414,39 +414,39 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
-         or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id and ca.note ilike :AgentDescription::varchar))
+         or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
     )
     and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
         case :HasTranscript::bool when false
-         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id )
-         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
+         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
         end
 
     ))
-	and (:DependencyIds::varchar[] isnull or id = any (
+	and (:DependencyIds::uuid[] isnull or id::uuid = any (
 			array(with recursive a as (
-                select t.id
-                from call_center.cc_calls_history t
-                where id = any(:DependencyIds::varchar[])
+                select d.id::uuid
+                from call_center.cc_calls_history d
+                where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
                 union all
-                select t.id
-                from call_center.cc_calls_history t, a
-                where t.parent_id = a.id or t.transfer_from = a.id
+                select d.id::uuid
+                from call_center.cc_calls_history d, a
+                where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
             )
-            select id ids
+            select id::uuid ids
             from a
-            where not a.id = any(:DependencyIds::varchar[]))::varchar[]
+            where not a.id = any(:DependencyIds::uuid[]))
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
 			case when not :Rated::bool then not exists(
 					select 1
 					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id) 
+					where ar.call_id = t.id::text) 
  				else exists(
 					select 1
 					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id
+					where ar.call_id = t.id::text
 						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
 						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
 						and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
@@ -526,7 +526,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
 		`domain_id = :Domain::int8 
-	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id = :Q::text)
+	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
 	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
@@ -535,9 +535,9 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
 	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
-	and (:Ids::varchar[] isnull or id = any(:Ids))
-	and (:TransferFromIds::varchar[] isnull or transfer_from = any(:TransferFromIds))
-	and (:TransferToIds::varchar[] isnull or transfer_to = any(:TransferToIds))
+	and (:Ids::uuid[] isnull or id = any(:Ids))
+	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
+	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
 	and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
 	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
@@ -545,7 +545,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
-	and (:ParentId::varchar isnull or parent_id = :ParentId )
+	and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
 	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
@@ -559,39 +559,39 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
-         or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id and ca.note ilike :AgentDescription::varchar))
+         or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
     )
     and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
         case :HasTranscript::bool when false
-         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id )
-         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
+         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
         end
 
     ))
-	and (:DependencyIds::varchar[] isnull or id = any (
+	and (:DependencyIds::uuid[] isnull or id::uuid = any (
 			array(with recursive a as (
-                select t.id
-                from call_center.cc_calls_history t
-                where id = any(:DependencyIds::varchar[])
+                select d.id::uuid
+                from call_center.cc_calls_history d
+                where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
                 union all
-                select t.id
-                from call_center.cc_calls_history t, a
-                where t.parent_id = a.id or t.transfer_from = a.id
+                select d.id::uuid
+                from call_center.cc_calls_history d, a
+                where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
             )
-            select id ids
+            select id::uuid ids
             from a
-            where not a.id = any(:DependencyIds::varchar[]))::varchar[]
+            where not a.id = any(:DependencyIds::uuid[]))
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
 			case when not :Rated::bool then not exists(
 					select 1
 					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id) 
+					where ar.call_id = t.id::text) 
  				else exists(
 					select 1
 					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id
+					where ar.call_id = t.id::text
 						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
 						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
 						and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
@@ -600,7 +600,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
 				)
 			 end
-	)
+		)
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
 			or t.queue_id = any (call_center.cc_calls_rbac_queues(:ClassName::varchar, :Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
