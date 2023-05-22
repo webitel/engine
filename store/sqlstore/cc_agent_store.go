@@ -740,7 +740,7 @@ from (
 			   min(c.hold_sec) min_hold_sec,
 			   max(c.hold_sec) max_hold_sec
 		from call_center.cc_member_attempt_history cma
-			   left join call_center.cc_calls_history c on c.id = cma.agent_call_id and cma.channel = 'call'
+			   left join call_center.cc_calls_history c on c.id = cma.agent_call_id::uuid and cma.channel = 'call'
 		where (cma.joined_at between :From::timestamptz and :To::timestamptz)
 			and cma.domain_id = :DomainId::int8
 			and (:AgentIds::int[] isnull or cma.agent_id = any(:AgentIds) )
