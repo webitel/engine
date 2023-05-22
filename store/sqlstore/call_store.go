@@ -998,7 +998,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		left join call_center.cc_queue q on q.id = h.queue_id
 		left join call_center.cc_team t on t.id = h.team_id
 	where h.domain_id = :Domain 
-		and (:Q::text isnull or h.destination ilike :Q::text  or  h.from_number ilike :Q::text or  h.to_number ilike :Q::text or h.id = :Q::text)
+		and (:Q::text isnull or h.destination ilike :Q::text  or  h.from_number ilike :Q::text or  h.to_number ilike :Q::text or h.id::text = :Q::text)
 		and (:Number::text isnull or h.from_number ~ :Number::text or h.to_number ~ :Number::text or h.destination ~ :Number::text)
 		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or h.created_at between :From and :To )
 		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or h.stored_at between :StoredAtFrom and :StoredAtTo )
