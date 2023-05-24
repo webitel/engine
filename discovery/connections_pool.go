@@ -138,7 +138,10 @@ func (c *connectionsPool) CloseAllConnections() {
 }
 
 func (c *connectionsPool) All() []Connection {
-	return c.connections
+	c.RLock()
+	cons := c.connections
+	c.RUnlock()
+	return cons
 }
 
 func (c *connectionsPool) RecheckConnections(list []string) {
