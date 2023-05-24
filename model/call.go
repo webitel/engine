@@ -426,7 +426,7 @@ type HistoryCall struct {
 	ScoreRequired *float32 `json:"score_required" db:"score_required"`
 
 	AttemptId       *int64 `json:"attempt_id" db:"attempt_id"`
-	AllowEvaluation *bool
+	AllowEvaluation *bool  `json:"allow_evaluation" db:"allow_evaluation"`
 }
 
 func (c HistoryCall) DefaultOrder() string {
