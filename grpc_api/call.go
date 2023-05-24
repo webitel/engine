@@ -837,6 +837,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		AmdAiLogs:        src.AmdAiLogs,
 		RatedBy:          GetProtoLookup(src.RatedBy),
 		RatedUser:        GetProtoLookup(src.RatedUser),
+		AllowEvaluation:  src.AllowEvaluation != nil && *src.AllowEvaluation,
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
