@@ -146,6 +146,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 
 	items := make([]*engine.HistoryCall, 0, len(list))
 
+	permissionRecord := session.GetPermission(model.PermissionRecordFile)
 	//todo
 	accessString := !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS) &&
 		!((len(in.UserId) == 1 && in.UserId[0] == session.UserId) && in.Missed && (len(in.Cause) == 2 && in.Cause[0] == "NO_ANSWER" && in.Cause[1] == "ORIGINATOR_CANCEL"))
@@ -156,7 +157,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 			api.prefixNumberMaskLen,
 			api.suffixNumberMaskLen,
 			accessString,
-			session.HasAction(auth_manager.PERMISSION_RECORD_FILE),
+			session.HasAction(auth_manager.PERMISSION_RECORD_FILE) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord),
 		))
 	}
 
