@@ -425,6 +425,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 			DisableStun:       in.GetParams().GetDisableStun(),
 			CancelDistribute:  in.GetParams().GetCancelDistribute(),
 			IsOnline:          in.GetParams().GetIsOnline(),
+			HideNumber:        in.GetParams().GetHideNumber(),
 		},
 	}
 

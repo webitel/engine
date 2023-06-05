@@ -98,6 +98,10 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 		}
 	}
 
+	if req.Params.HideNumber {
+		invite.AddVariable("wbt_hide_number", "true")
+	}
+
 	id, err = callCli.MakeOutboundCall(invite)
 	if err != nil {
 		return "", err

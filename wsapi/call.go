@@ -280,6 +280,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		callReq.Params.Record, _ = props["record"].(bool)
 		callReq.Params.DisableAutoAnswer, _ = props["disableAutoAnswer"].(bool)
 		callReq.Params.Display, _ = props["display"].(string)
+		callReq.Params.HideNumber, _ = props["hide_number"].(bool)
 
 		if variables, ok = props["variables"].(map[string]interface{}); ok {
 			callReq.Params.Variables = make(map[string]string)
