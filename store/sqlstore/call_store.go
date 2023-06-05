@@ -1128,7 +1128,7 @@ func (s SqlCallStore) LastFile(ctx context.Context, domainId int64, id string) (
 	fileId, err := s.GetReplica().WithContext(ctx).SelectInt(`select f.id
 from storage.files f
 where f.domain_id = :DomainId and f.uuid = (
-    select coalesce(c.parent_id, c.id)
+    select coalesce(c.parent_id, c.id)::text
     from call_center.cc_calls_history c
     where c.id = :Id::uuid and c.domain_id = :DomainId
     limit 1
