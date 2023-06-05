@@ -143,6 +143,7 @@ type CallParameters struct {
 	DisableStun       bool
 	CancelDistribute  bool
 	IsOnline          bool
+	HideNumber        bool
 }
 
 // todo
@@ -616,6 +617,28 @@ func (cr *CallRequest) AddVariable(name, value string) {
 
 func NewWebSocketCallEvent(call *CallEvent) *WebSocketEvent {
 	e := NewWebSocketEvent(WEBSOCKET_EVENT_CALL)
+
+	if call.Event == "ringing" || call.Event == "bridge" {
+		if call.Body.Has("hideNumber") && call.Body.StringValue("hideNumber") == "true" {
+
+			if call.Body.Has("destination") {
+				call.Body["destination"] = HideString(call.Body.StringValue("destination"), 5, 0, 2)
+			}
+
+			if call.Body.Has("to") {
+				call.Body["to"] = map[string]string{
+					"number": HideString(call.Body.StringValue("to", "number"), 5, 0, 2),
+				}
+			}
+
+			if call.Body.Has("from") {
+				call.Body["from"] = map[string]string{
+					"number": HideString(call.Body.StringValue("from", "number"), 5, 0, 2),
+				}
+			}
+		}
+	}
+
 	e.Add("call", call)
 
 	return e
@@ -628,4 +651,31 @@ func (v *Variables) ToJson() []byte {
 
 	data, _ := json.Marshal(v)
 	return data
+}
+func (m *CallPayload) Has(name string) bool {
+	_, ok := (*m)[name]
+	return ok
+}
+
+func (m *CallPayload) StringValue(s ...string) string {
+	var mm interface{} = m
+
+	for i := 0; i < len(s); i++ {
+		switch vv := mm.(type) {
+		case string:
+			return vv
+		case map[string]interface{}:
+			mm = vv[s[i]]
+		case *CallPayload:
+			mm = (*vv)[s[i]]
+		default:
+			break
+		}
+	}
+
+	if mm == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%v", mm)
 }
