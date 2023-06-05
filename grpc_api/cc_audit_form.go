@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 )
@@ -182,11 +183,11 @@ func (api *auditForm) CreateAuditFormRate(ctx context.Context, in *engine.Create
 
 	ans := make([]*model.QuestionAnswer, 0, len(in.Answers))
 	for _, v := range in.Answers {
-		if v == nil {
+		if v != nil && v.Score == nil {
 			ans = append(ans, nil)
 		} else {
 			ans = append(ans, &model.QuestionAnswer{
-				Score: v.GetScore(),
+				Score: v.GetScore().GetValue(),
 			})
 		}
 	}
@@ -383,7 +384,9 @@ func transformAuditAnswers(src model.QuestionAnswers) []*engine.QuestionAnswer {
 			q = append(q, nil)
 		} else {
 			q = append(q, &engine.QuestionAnswer{
-				Score: v.Score,
+				Score: &wrappers.Int32Value{
+					Value: v.Score,
+				},
 			})
 		}
 	}
