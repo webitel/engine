@@ -562,6 +562,32 @@ func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, ca
 	return annotation, nil
 }
 
+func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string, p *model.HistoryCallPatch) (*model.HistoryCall, *model.AppError) {
+	err := app.Store.Call().UpdateHistoryCall(ctx, domainId, id, p)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.HistoryCall
+	list, err = app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
+		Ids: []string{id},
+		ListRequest: model.ListRequest{
+			Page:    1,
+			PerPage: 1,
+		},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(list) == 0 {
+		return nil, model.NewAppError("UpdateHistoryCall", "app.call.update.not_found", nil, "Not found call", http.StatusNotFound)
+	}
+
+	return list[0], nil
+}
+
 /*
 
 func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, *model.AppError) {

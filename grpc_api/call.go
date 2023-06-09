@@ -304,6 +304,39 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 	}, nil
 }
 
+func (api *call) PatchHistoryCall(ctx context.Context, in *engine.PatchHistoryCallRequest) (*engine.HistoryCall, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var call *model.HistoryCall
+	req := &model.HistoryCallPatch{
+		Variables: &model.Variables{},
+	}
+
+	for k, v := range in.GetVariables() {
+		(*req.Variables)[k] = v
+	}
+
+	call, err = api.ctrl.UpdateCallHistory(ctx, session, in.Id, req)
+
+	if err != nil {
+		return nil, err
+	}
+	permissionRecord := session.GetPermission(model.PermissionRecordFile)
+	//todo
+	accessString := !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS)
+
+	return toEngineHistoryCall(
+		call,
+		api.minimumNumberMaskLen,
+		api.prefixNumberMaskLen,
+		api.suffixNumberMaskLen,
+		accessString,
+		session.HasAction(auth_manager.PERMISSION_RECORD_FILE) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord),
+	), nil
+}
+
 // TODO delete me
 func getInterval(in string) string {
 	if in == "auto" {
@@ -916,6 +949,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 
 	if src.AttemptId != nil {
 		item.AttemptId = *src.AttemptId
+	}
+
+	if src.FormFields != nil {
+		item.FormFields = UnmarshalJsonpb(src.FormFields.ToSafeBytes())
 	}
 
 	return item

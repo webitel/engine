@@ -352,6 +352,7 @@ type CallStore interface {
 	GetEavesdropInfo(ctx context.Context, domainId int64, id string) (*model.EavesdropInfo, *model.AppError)
 
 	GetOwnerUserCall(ctx context.Context, id string) (*int64, *model.AppError)
+	UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) *model.AppError
 }
 
 type EmailProfileStore interface {
