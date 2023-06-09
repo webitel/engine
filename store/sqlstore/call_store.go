@@ -1233,3 +1233,29 @@ where c.id = :Id::uuid`, map[string]interface{}{
 
 	return &r.Int64, nil
 }
+
+func (s SqlCallStore) UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) *model.AppError {
+	res, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history c
+set payload = coalesce(payload, '{}') || :Vars::jsonb
+where id = :Id::uuid and domain_id = :DomainId`, map[string]interface{}{
+		"Vars":     upd.Variables.ToJson(),
+		"Id":       id,
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return model.NewAppError("SqlCallStore.UpdateCall", "store.sql_call.update.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	var cnt int64
+	cnt, err = res.RowsAffected()
+	if err != nil {
+		return model.NewAppError("SqlCallStore.UpdateCall", "store.sql_call.update.app_error", nil, err.Error(), extractCodeFromErr(err))
+	}
+
+	if cnt != 1 {
+		return model.NewAppError("SqlCallStore.UpdateCall", "store.sql_call.update.not_found", nil, "Not found", http.StatusNotFound)
+	}
+
+	return nil
+}
