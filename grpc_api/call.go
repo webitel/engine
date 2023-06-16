@@ -27,7 +27,7 @@ func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumbe
 	}
 }
 
-func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
+func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -165,6 +165,14 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		Next:  !endList,
 		Items: items,
 	}, nil
+}
+
+func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
+	return api.searchHistoryCall(ctx, in)
+}
+
+func (api *call) SearchHistoryCallPast(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
+	return api.searchHistoryCall(ctx, in)
 }
 
 func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateHistoryCallRequest) (*engine.ListAggregate, error) {
