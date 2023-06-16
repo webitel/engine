@@ -133,7 +133,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 
 	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
 
-	query := `with result as materialized (select m.id
+	query := `with result as materialized (select m.id, row_number() over ( ` + order + ` ) rn
                 from call_center.cc_member m
                 where m.domain_id = :Domain::int8
                   and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
@@ -162,7 +162,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                        (m.name ~~ :Q::varchar or
                         m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]))
                 ` + order + `
-                limit :Limit offset :Offset for update of m skip locked)
+                limit :Limit offset :Offset )
    , comm as materialized(select c.id, json_build_object('id', c.id, 'name', c.name)::jsonb j
               from call_center.cc_communication c
               where c.domain_id = :Domain)
@@ -202,14 +202,15 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                                   call_center.cc_get_lookup(a.id, coalesce(agn.name::varchar, agn.username::varchar)::varchar) agent,
                                   call_center.cc_get_lookup(cs.id, cs.name::varchar)                                                                                    skill,
                                   exists(select 1 from call_center.cc_member_attempt a where a.member_id = m.id for update of a skip locked ) as                                                     reserved
-                           from call_center.cc_member m
+                           from result 
+									inner join call_center.cc_member m on result.id = m.id
                                     left join call_center.cc_queue cq on cq.id = m.queue_id
                                     left join flow.calendar_timezones ct on ct.id = m.timezone_id
                                     left join call_center.cc_agent a on m.agent_id = a.id
                                     left join directory.wbt_user agn on agn.id = a.user_id
                                     left join call_center.cc_bucket cb on m.bucket_id = cb.id
                                     left join call_center.cc_skill cs on m.skill_id = cs.id
-                           where m.id in (select r.id from result r))
+                           order by result.rn)
 	select ` + strings.Join(fields, " ,") + ` from list`
 
 	if _, err := s.GetReplica().WithContext(ctx).Select(&members, query, map[string]interface{}{

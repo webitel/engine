@@ -207,3 +207,13 @@ func (c *Controller) SetCallVariables(ctx context.Context, session *auth_manager
 
 	return c.app.SetCallVariables(ctx, session.Domain(0), callId, vars)
 }
+
+func (c *Controller) UpdateCallHistory(ctx context.Context, session *auth_manager.Session, id string, upd *model.HistoryCallPatch) (*model.HistoryCall, *model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	// TODO RBAC ?
+
+	return c.app.UpdateHistoryCall(ctx, session.Domain(0), id, upd)
+}

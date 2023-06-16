@@ -412,6 +412,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.AppointmentProfile,
 		*[]model.AppointmentDate,
 		*model.StringInterface,
+		**model.StringInterface,
 		*model.EavesdropInfo,
 		*model.Questions,
 		*model.QuestionAnswers,
