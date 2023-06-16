@@ -171,7 +171,7 @@ func (api *call) SearchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	return api.searchHistoryCall(ctx, in)
 }
 
-func (api *call) SearchHistoryCallPast(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
+func (api *call) SearchHistoryCallPost(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
 	return api.searchHistoryCall(ctx, in)
 }
 
