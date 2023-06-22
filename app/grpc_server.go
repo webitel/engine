@@ -24,6 +24,10 @@ var (
 	RequestContextName = "grpc_ctx"
 )
 
+const (
+	maxGrpcMessageSize = 1024 * 1024 * 16
+)
+
 type GrpcServer struct {
 	srv *grpc.Server
 	lis net.Listener
@@ -98,6 +102,8 @@ func NewGrpcServer(settings model.ServerSettings) *GrpcServer {
 		lis: lis,
 		srv: grpc.NewServer(
 			grpc.UnaryInterceptor(unaryInterceptor),
+			grpc.MaxRecvMsgSize(maxGrpcMessageSize),
+			grpc.MaxSendMsgSize(maxGrpcMessageSize),
 		),
 	}
 }
