@@ -330,7 +330,8 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 				WHERE aud.id = any(a.auditor_ids)) as auditor,
 			   call_center.cc_get_lookup(t.id, t.name) as team,
 			   call_center.cc_get_lookup(r.id, r.name) as region,
-			   a.supervisor as is_supervisor
+			   a.supervisor as is_supervisor,
+			   ct.extension	
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
