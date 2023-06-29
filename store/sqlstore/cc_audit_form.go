@@ -70,7 +70,7 @@ FROM ins i
 	})
 
 	if err != nil {
-		return nil, model.NewInternalError("store.sql_audit_form.save.app_error", err.Error())
+		return nil, model.NewCustomCodeError("store.sql_audit_form.save.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return form, nil

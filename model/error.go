@@ -37,10 +37,10 @@ type AppError interface {
 type ApplicationError struct {
 	Id            string `json:"id"`
 	Where         string `json:"where,omitempty"`
-	Message       string `json:"status"`               // Message to be display to the end user without debugging information
+	Status        string `json:"status"`               // Message to be display to the end user without debugging information
 	DetailedError string `json:"detail"`               // Internal error string to help the developer
 	RequestId     string `json:"request_id,omitempty"` // The RequestId that's also set in the header
-	Status        int    `json:"code,omitempty"`       // The http status code
+	StatusCode    int    `json:"code,omitempty"`       // The http status code
 	params        map[string]interface{}
 }
 
@@ -53,12 +53,13 @@ func (er *ApplicationError) GetTranslationParams() map[string]any {
 }
 
 func (er *ApplicationError) SetStatusCode(code int) AppError {
-	er.Status = code
+	er.StatusCode = code
+	er.Status = http.StatusText(er.StatusCode)
 	return er
 }
 
 func (er *ApplicationError) GetStatusCode() int {
-	return er.Status
+	return er.StatusCode
 }
 
 func (er *ApplicationError) Error() string {
@@ -66,7 +67,7 @@ func (er *ApplicationError) Error() string {
 	if er.Where != "" {
 		where = er.Where + ": "
 	}
-	return fmt.Sprintf("%s%s, %s", where, er.Message, er.DetailedError)
+	return fmt.Sprintf("%s%s, %s", where, er.Status, er.DetailedError)
 }
 func (er *ApplicationError) SetDetailedError(details string) {
 	er.DetailedError = details
@@ -78,14 +79,14 @@ func (er *ApplicationError) GetDetailedError() string {
 
 func (er *ApplicationError) Translate(T goi18n.TranslateFunc) {
 	if T == nil {
-		er.Message = er.Id
+		er.Status = er.Id
 		return
 	}
 
 	if er.params == nil {
-		er.Message = T(er.Id)
+		er.Status = T(er.Id)
 	} else {
-		er.Message = T(er.Id, er.params)
+		er.Status = T(er.Id, er.params)
 	}
 }
 
@@ -115,11 +116,11 @@ func (er *ApplicationError) ToJson() string {
 }
 
 func (er *ApplicationError) String() string {
-	if er.Id == er.Message && er.DetailedError != "" {
+	if er.Id == er.Status && er.DetailedError != "" {
 		return er.DetailedError
 	}
 
-	return er.Message
+	return er.Status
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
@@ -157,5 +158,5 @@ func NewCustomCodeError(id string, details string, code int) AppError {
 }
 
 func newAppError(id string, details string) AppError {
-	return &ApplicationError{Id: id, Message: id, DetailedError: details}
+	return &ApplicationError{Id: id, Status: id, DetailedError: details}
 }
