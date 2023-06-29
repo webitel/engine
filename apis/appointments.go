@@ -11,7 +11,7 @@ import (
 var (
 	appointmentHeader = "X-WBT-KEY"
 
-	errAllowOrigin = model.NewForbiddenError("api.valid.origin", "Not allow").SetAppearedIn("API")
+	errAllowOrigin = model.NewForbiddenError("api.valid.origin", "Not allow")
 )
 
 func (api *API) InitAppointments() {

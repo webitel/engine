@@ -18,9 +18,6 @@ type AppError interface {
 	// * SetTranslationParams represents the parameters that will be passed to the translation function
 	SetTranslationParams(map[string]any) AppError
 	GetTranslationParams() map[string]any
-	// * SetAppearedIn represents the optional parameter that can be used in the service
-	SetAppearedIn(where string) AppError
-	GetAppearedIn() string
 	// * SetStatusCode represents the status code of error
 	SetStatusCode(int) AppError
 	GetStatusCode() int
@@ -53,15 +50,6 @@ func (er *ApplicationError) SetTranslationParams(params map[string]any) AppError
 }
 func (er *ApplicationError) GetTranslationParams() map[string]any {
 	return er.params
-}
-
-func (er *ApplicationError) SetAppearedIn(where string) AppError {
-	er.Where = where
-	return er
-}
-
-func (er *ApplicationError) GetAppearedIn() string {
-	return er.Where
 }
 
 func (er *ApplicationError) SetStatusCode(code int) AppError {
