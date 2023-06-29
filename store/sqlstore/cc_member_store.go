@@ -282,7 +282,8 @@ func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *mode
 			stop_cause = :StopCause::varchar,
 			agent_id = :AgentId,
 			skill_id = :SkillId,
-			stop_at = case when :StopCause::varchar notnull then now() else stop_at end
+			stop_at = case when :StopCause::varchar notnull and stop_at isnull then now() when :StopCause::varchar isnull and stop_at notnull then null else stop_at end,
+			attempts = case when :StopCause::varchar isnull and stop_cause notnull then 0 else attempts end
     where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )

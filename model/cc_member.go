@@ -99,6 +99,9 @@ func (m *Member) Patch(p *MemberPatch) {
 
 	if p.StopCause != nil {
 		m.StopCause = p.StopCause
+		if *m.StopCause == "" {
+			m.ResetAttempts()
+		}
 	}
 
 	if p.Agent != nil {
@@ -117,6 +120,16 @@ func (m *Member) Patch(p *MemberPatch) {
 		} else {
 			m.Skill = p.Skill
 		}
+	}
+}
+
+func (m *Member) ResetAttempts() {
+	m.StopCause = nil
+	m.StopAt = nil
+	m.Attempts = 0
+	for i := 0; i < len(m.Communications); i++ {
+		m.Communications[i].StopAt = nil
+		m.Communications[i].Attempts = 0
 	}
 }
 
