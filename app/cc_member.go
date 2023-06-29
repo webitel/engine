@@ -61,6 +61,11 @@ func (app *App) UpdateMember(ctx context.Context, domainId int64, member *model.
 	oldMember.Communications = member.Communications
 	oldMember.Bucket = member.Bucket
 	oldMember.MinOfferingAt = member.MinOfferingAt
+
+	if oldMember.StopCause != nil && (member.StopCause == nil || *member.StopCause == "") {
+		oldMember.ResetAttempts()
+	}
+
 	oldMember.StopCause = member.StopCause
 	oldMember.Agent = member.Agent
 	oldMember.Skill = member.Skill
