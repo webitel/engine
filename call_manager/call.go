@@ -3,16 +3,16 @@ package call_manager
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
-	"net/http"
 )
 
 type Call interface {
 }
 
-func (cm *callManager) getClient(nodeId string) (CallClient, *model.AppError) {
+func (cm *callManager) getClient(nodeId string) (CallClient, model.AppError) {
 	var err error
 	var conn discovery.Connection
 	if nodeId != "" {
@@ -21,13 +21,13 @@ func (cm *callManager) getClient(nodeId string) (CallClient, *model.AppError) {
 		conn, err = cm.poolConnections.Get(discovery.StrategyRoundRobin)
 	}
 	if err != nil {
-		return nil, model.NewAppError("CallManager", "call_manager.get_cli.by_id.app_err", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("call_manager.get_cli.by_id.app_err", err.Error())
 	}
 	return conn.(CallClient), nil
 
 }
 
-func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, *model.AppError) {
+func (cm *callManager) MakeOutboundCall(req *model.CallRequest) (string, model.AppError) {
 	cli, err := cm.getClient("")
 	if err != nil {
 		return "", err
@@ -41,9 +41,9 @@ func DUMP(i interface{}) string {
 	return string(s)
 }
 
-func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) *model.AppError {
+func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) model.AppError {
 	var cli, cli2 CallClient
-	var err *model.AppError
+	var err model.AppError
 
 	cli, err = cm.getClient(legANode)
 	if err != nil {

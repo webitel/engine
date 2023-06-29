@@ -2,19 +2,20 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) CreateList(ctx context.Context, list *model.List) (*model.List, *model.AppError) {
+func (a *App) CreateList(ctx context.Context, list *model.List) (*model.List, model.AppError) {
 	return a.Store.List().Create(ctx, list)
 }
 
-func (a *App) ListCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (a *App) ListCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	return a.Store.List().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) GetListPage(ctx context.Context, domainId int64, search *model.SearchList) ([]*model.List, bool, *model.AppError) {
+func (a *App) GetListPage(ctx context.Context, domainId int64, search *model.SearchList) ([]*model.List, bool, model.AppError) {
 	list, err := a.Store.List().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -23,7 +24,7 @@ func (a *App) GetListPage(ctx context.Context, domainId int64, search *model.Sea
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetListPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchList) ([]*model.List, bool, *model.AppError) {
+func (a *App) GetListPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchList) ([]*model.List, bool, model.AppError) {
 	list, err := a.Store.List().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -32,11 +33,11 @@ func (a *App) GetListPageByGroups(ctx context.Context, domainId int64, groups []
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetListById(ctx context.Context, domainId, id int64) (*model.List, *model.AppError) {
+func (a *App) GetListById(ctx context.Context, domainId, id int64) (*model.List, model.AppError) {
 	return a.Store.List().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateList(ctx context.Context, list *model.List) (*model.List, *model.AppError) {
+func (a *App) UpdateList(ctx context.Context, list *model.List) (*model.List, model.AppError) {
 	oldList, err := a.GetListById(ctx, list.DomainId, list.Id)
 	if err != nil {
 		return nil, err
@@ -55,7 +56,7 @@ func (a *App) UpdateList(ctx context.Context, list *model.List) (*model.List, *m
 	return oldList, nil
 }
 
-func (a *App) RemoveList(ctx context.Context, domainId, id int64) (*model.List, *model.AppError) {
+func (a *App) RemoveList(ctx context.Context, domainId, id int64) (*model.List, model.AppError) {
 	list, err := a.Store.List().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -69,11 +70,11 @@ func (a *App) RemoveList(ctx context.Context, domainId, id int64) (*model.List, 
 	return list, nil
 }
 
-func (a *App) CreateListCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
+func (a *App) CreateListCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	return a.Store.List().CreateCommunication(ctx, comm)
 }
 
-func (a *App) GetListCommunicationPage(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, bool, *model.AppError) {
+func (a *App) GetListCommunicationPage(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, bool, model.AppError) {
 	list, err := a.Store.List().GetAllPageCommunication(ctx, domainId, listId, search)
 	if err != nil {
 		return nil, false, err
@@ -82,11 +83,11 @@ func (a *App) GetListCommunicationPage(ctx context.Context, domainId, listId int
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetListCommunicationById(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, *model.AppError) {
+func (a *App) GetListCommunicationById(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError) {
 	return a.Store.List().GetCommunication(ctx, domainId, listId, id)
 }
 
-func (a *App) UpdateListCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
+func (a *App) UpdateListCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	oldComm, err := a.GetListCommunicationById(ctx, domainId, communication.ListId, communication.Id)
 	if err != nil {
 		return nil, err
@@ -104,7 +105,7 @@ func (a *App) UpdateListCommunication(ctx context.Context, domainId int64, commu
 	return oldComm, nil
 }
 
-func (a *App) RemoveListCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, *model.AppError) {
+func (a *App) RemoveListCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError) {
 	communication, err := a.Store.List().GetCommunication(ctx, domainId, listId, id)
 
 	if err != nil {

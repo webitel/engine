@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -22,7 +23,7 @@ func (api *API) InitChat() {
 	api.Router.Handle("transfer_user_chat", api.ApiWebSocketHandler(api.blindTransferToUser))
 }
 
-func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	h, e := api.App.GetHubById(req.Session.Domain(0))
 	if e != nil {
 		return nil, e
@@ -42,7 +43,7 @@ func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest
 	return listChatResponse(list), nil
 }
 
-func (api *API) declineChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) declineChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var inviteId string
 	var cause string
 	var ok bool
@@ -59,7 +60,7 @@ func (api *API) declineChat(conn *app.WebConn, req *model.WebSocketRequest) (map
 	return nil, err
 }
 
-func (api *API) joinChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) joinChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var inviteId string
 	var ok bool
 
@@ -79,7 +80,7 @@ func (api *API) joinChat(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	return res, nil
 }
 
-func (api *API) closeChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) closeChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var channelId, conversationId, cause string
 	var ok bool
 
@@ -102,7 +103,7 @@ func (api *API) closeChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	return nil, err
 }
 
-func (api *API) leaveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) leaveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var channelId, conversationId string
 	var ok bool
 
@@ -120,7 +121,7 @@ func (api *API) leaveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	return nil, err
 }
 
-func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var channelId, conversationId, text string
 	var ok bool
 
@@ -143,7 +144,7 @@ func (api *API) sendTextChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return nil, err
 }
 
-func (api *API) sendFileChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) sendFileChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var channelId, conversationId, url, mimeType, name string
 	var id, size float64
 	var ok bool
@@ -185,7 +186,7 @@ func (api *API) sendFileChat(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return nil, err
 }
 
-func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var channelId, conversationId, title string
 	var userId float64
 	var ok bool
@@ -211,7 +212,7 @@ func (api *API) addToChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	return nil, err
 }
 
-func (api *API) startChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) startChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var userId float64
 	var ok bool
 
@@ -224,7 +225,7 @@ func (api *API) startChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	return nil, err
 }
 
-func (api *API) updateChannelChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) updateChannelChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var channelId string
 	var ok bool
 	var readUntil float64
@@ -240,7 +241,7 @@ func (api *API) updateChannelChat(conn *app.WebConn, req *model.WebSocketRequest
 	return nil, err
 }
 
-func (api *API) listActiveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) listActiveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var page, size float64
 	var ok bool
 
@@ -259,7 +260,7 @@ func (api *API) listActiveChat(conn *app.WebConn, req *model.WebSocketRequest) (
 	return listChatResponse(list), nil
 }
 
-func (api *API) blindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) blindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var conversationId, channelId string
 	var planId float64
 
@@ -277,7 +278,7 @@ func (api *API) blindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (m
 	return nil, api.ctrl.BlindTransferChat(context.TODO(), conn.GetSession(), conversationId, channelId, int32(planId), nil)
 }
 
-func (api *API) blindTransferToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) blindTransferToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var conversationId, channelId string
 	var userId float64
 

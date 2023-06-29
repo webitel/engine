@@ -67,7 +67,7 @@ func (t Trigger) EntityName() string {
 	return "cc_trigger_list"
 }
 
-func (t *Trigger) IsValid() *AppError {
+func (t *Trigger) IsValid() AppError {
 	if t.Type != TriggerTypeCron {
 		//error
 	}

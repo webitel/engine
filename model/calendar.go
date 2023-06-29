@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"unicode/utf8"
 )
 
@@ -72,12 +71,12 @@ type SearchTimezone struct {
 	ListRequest
 }
 
-func (a *CalendarAcceptOfDay) IsValid() *AppError {
+func (a *CalendarAcceptOfDay) IsValid() AppError {
 	//TODO FIXME
 	return nil
 }
 
-func (a *CalendarExceptDate) IsValid() *AppError {
+func (a *CalendarExceptDate) IsValid() AppError {
 	//TODO FIXME
 	return nil
 }
@@ -95,17 +94,17 @@ func (c *Calendar) ExceptsToJson() *string {
 	return NewString(string(b))
 }
 
-func (c *Calendar) IsValid() *AppError {
+func (c *Calendar) IsValid() AppError {
 	if utf8.RuneCountInString(c.Name) <= 3 {
-		return NewAppError("Calendar.IsValid", "model.calendar.is_valid.name.app_error", nil, "name="+c.Name, http.StatusBadRequest)
+		return NewBadRequestError("model.calendar.is_valid.name.app_error", "name="+c.Name)
 	}
 
 	if c.DomainId == 0 {
-		return NewAppError("Calendar.IsValid", "model.calendar.is_valid.domain_id.app_error", nil, "name="+c.Name, http.StatusBadRequest)
+		return NewBadRequestError("model.calendar.is_valid.domain_id.app_error", "name="+c.Name)
 	}
 
 	if len(c.Accepts) == 0 {
-		return NewAppError("Calendar.IsValid", "model.calendar.is_valid.accepts.app_error", nil, "name="+c.Name, http.StatusBadRequest)
+		return NewBadRequestError("model.calendar.is_valid.accepts.app_error", "name="+c.Name)
 	}
 
 	return nil

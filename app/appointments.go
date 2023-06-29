@@ -3,11 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
-	"net/http"
-	"time"
 )
 
 const (
@@ -25,7 +25,7 @@ func init() {
 	cacheAppointmentDate = utils.NewLruWithParams(sizeCacheAppointments, "List appointment date", 60, "")
 }
 
-func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointment, *model.AppError) {
+func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointment, model.AppError) {
 	if a, ok := cacheAppointments.Get(key); ok {
 		return a.(*model.Appointment), nil
 	}
@@ -53,10 +53,10 @@ func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointm
 
 	if err != nil {
 		switch err.(type) {
-		case *model.AppError:
-			return nil, err.(*model.AppError)
+		case model.AppError:
+			return nil, err.(model.AppError)
 		default:
-			return nil, model.NewAppError("App", "app.appointment.get", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewInternalError("app.appointment.get", err.Error())
 		}
 	}
 
@@ -67,7 +67,7 @@ func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointm
 	return res.(*model.Appointment), nil
 }
 
-func (app *App) AppointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, *model.AppError) {
+func (app *App) AppointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, model.AppError) {
 	if a, ok := cacheAppointmentDate.Get(widgetUri); ok {
 		return a.(*model.AppointmentWidget), nil
 	}
@@ -75,7 +75,7 @@ func (app *App) AppointmentWidget(ctx context.Context, widgetUri string) (*model
 	return app.appointmentWidget(ctx, widgetUri)
 }
 
-func (app *App) appointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, *model.AppError) {
+func (app *App) appointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, model.AppError) {
 
 	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("list-%s", widgetUri), func() (interface{}, error) {
 		a, err := app.Store.Member().GetAppointmentWidget(ctx, widgetUri)
@@ -94,10 +94,10 @@ func (app *App) appointmentWidget(ctx context.Context, widgetUri string) (*model
 
 	if err != nil {
 		switch err.(type) {
-		case *model.AppError:
-			return nil, err.(*model.AppError)
+		case model.AppError:
+			return nil, err.(model.AppError)
 		default:
-			return nil, model.NewAppError("App", "app.appointment.list", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewInternalError("app.appointment.list", err.Error())
 		}
 	}
 
@@ -108,10 +108,10 @@ func (app *App) appointmentWidget(ctx context.Context, widgetUri string) (*model
 	return res.(*model.AppointmentWidget), nil
 }
 
-func (app *App) CreateAppointment(ctx context.Context, widget *model.AppointmentWidget, appointment *model.Appointment) (*model.Appointment, *model.AppError) {
-	var err *model.AppError
+func (app *App) CreateAppointment(ctx context.Context, widget *model.AppointmentWidget, appointment *model.Appointment) (*model.Appointment, model.AppError) {
+	var err model.AppError
 	if !widget.ValidAppointment(appointment) {
-		return nil, model.NewAppError("CreateAppointment", "appointment.valid.date", nil, "No slot", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("appointment.valid.date", "No slot")
 	}
 
 	appointment, err = app.Store.Member().CreateAppointment(ctx, &widget.Profile, appointment)
@@ -145,7 +145,7 @@ func (app *App) CreateAppointment(ctx context.Context, widget *model.Appointment
 	return appointment, nil
 }
 
-func (app *App) CancelAppointment(ctx context.Context, widget *model.AppointmentWidget, key string) (*model.Appointment, *model.AppError) {
+func (app *App) CancelAppointment(ctx context.Context, widget *model.AppointmentWidget, key string) (*model.Appointment, model.AppError) {
 	appointment, err := app.GetAppointment(ctx, key)
 	if err != nil {
 		return nil, err

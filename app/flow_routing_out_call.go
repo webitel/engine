@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) CreateRoutingOutboundCall(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (app *App) CreateRoutingOutboundCall(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, model.AppError) {
 	return app.Store.RoutingOutboundCall().Create(ctx, routing)
 }
 
-func (app *App) GetRoutingOutboundCallPage(ctx context.Context, domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, *model.AppError) {
+func (app *App) GetRoutingOutboundCallPage(ctx context.Context, domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, bool, model.AppError) {
 	list, err := app.Store.RoutingOutboundCall().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -18,11 +19,11 @@ func (app *App) GetRoutingOutboundCallPage(ctx context.Context, domainId int64, 
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetRoutingOutboundCallById(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+func (app *App) GetRoutingOutboundCallById(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, model.AppError) {
 	return app.Store.RoutingOutboundCall().Get(ctx, domainId, id)
 }
 
-func (app *App) UpdateRoutingOutboundCall(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (app *App) UpdateRoutingOutboundCall(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, model.AppError) {
 	oldRouting, err := app.GetRoutingOutboundCallById(ctx, routing.DomainId, routing.Id)
 	if err != nil {
 		return nil, err
@@ -46,11 +47,11 @@ func (app *App) UpdateRoutingOutboundCall(ctx context.Context, routing *model.Ro
 	return oldRouting, nil
 }
 
-func (app *App) ChangePositionOutboundCall(ctx context.Context, domainId, fromId, toId int64) *model.AppError {
+func (app *App) ChangePositionOutboundCall(ctx context.Context, domainId, fromId, toId int64) model.AppError {
 	return app.Store.RoutingOutboundCall().ChangePosition(ctx, domainId, fromId, toId)
 }
 
-func (a *App) RemoveRoutingOutboundCall(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+func (a *App) RemoveRoutingOutboundCall(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, model.AppError) {
 	routing, err := a.Store.RoutingOutboundCall().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -64,7 +65,7 @@ func (a *App) RemoveRoutingOutboundCall(ctx context.Context, domainId, id int64)
 	return routing, nil
 }
 
-func (a *App) PatchRoutingOutboundCall(ctx context.Context, domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, *model.AppError) {
+func (a *App) PatchRoutingOutboundCall(ctx context.Context, domainId, id int64, patch *model.RoutingOutboundCallPatch) (*model.RoutingOutboundCall, model.AppError) {
 	old, err := a.GetRoutingOutboundCallById(ctx, domainId, id)
 	if err != nil {
 		return nil, err

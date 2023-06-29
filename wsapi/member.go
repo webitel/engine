@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -16,7 +17,7 @@ func (api *API) InitMember() {
 	api.Router.Handle("cc_form_action", api.ApiWebSocketHandler(api.processingActionFormAttempt))
 }
 
-func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var attemptId, renewal float64
 	var ok bool
 
@@ -36,7 +37,7 @@ func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (
 	return res, nil
 }
 
-func (api *API) processingActionFormAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) processingActionFormAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var attemptId float64
 	var ok bool
 	var appId, formId, action string
@@ -61,7 +62,7 @@ func (api *API) processingActionFormAttempt(conn *app.WebConn, req *model.WebSoc
 	return res, nil
 }
 
-func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var attemptId, agentId float64
 	var ok bool
 	var nextDistributeAt *int64
@@ -105,7 +106,7 @@ func (api *API) reporting(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 	return res, nil
 }
 
-func (api *API) memberDirect(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) memberDirect(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var memberId float64
@@ -139,7 +140,7 @@ func (api *API) memberDirect(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return res, nil
 }
 
-func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var page float64
@@ -179,11 +180,11 @@ func (api *API) offlineMembers(conn *app.WebConn, req *model.WebSocketRequest) (
 	return res, nil
 }
 
-func (api *API) getMember(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getMember(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var queueId float64
 	var memberId float64
 	var ok bool
-	var err *model.AppError
+	var err model.AppError
 	session := conn.GetSession()
 
 	if memberId, ok = req.Data["member_id"].(float64); !ok {

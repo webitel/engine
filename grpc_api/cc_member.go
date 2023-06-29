@@ -2,11 +2,11 @@ package grpc_api
 
 import (
 	"context"
+	"strings"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
-	"net/http"
-	"strings"
 )
 
 type member struct {
@@ -701,7 +701,7 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 	//FIXME check queue PERMISSION
 
 	if in.GetJoinedAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchAttempts", "grpc.member.search_attempt", nil, "filter joined_at is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.member.search_attempt", "filter joined_at is required")
 	}
 
 	var list []*model.AttemptHistory

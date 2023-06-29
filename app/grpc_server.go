@@ -3,6 +3,12 @@ package app
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
@@ -11,11 +17,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"net"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 var (
@@ -64,9 +65,9 @@ func unaryInterceptor(ctx context.Context,
 		wlog.Error(fmt.Sprintf("[%s] method %s duration %s, error: %v", ip, info.FullMethod, time.Since(start), err.Error()))
 
 		switch err.(type) {
-		case *model.AppError:
-			e := err.(*model.AppError)
-			return h, status.Error(httpCodeToGrpc(e.StatusCode), e.ToJson())
+		case model.AppError:
+			e := err.(model.AppError)
+			return h, status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
 		default:
 			return h, err
 		}
@@ -126,9 +127,9 @@ func (a *App) StartGrpcServer() error {
 	return nil
 }
 
-func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, *model.AppError) {
+func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, model.AppError) {
 	var session *auth_manager.Session
-	var err *model.AppError
+	var err model.AppError
 	var token []string
 	var info metadata.MD
 	var ok bool
@@ -142,13 +143,13 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, *mo
 	}
 
 	if !ok {
-		return nil, model.NewAppError("GetSessionFromCtx", "app.grpc.get_context", nil, "Not found", http.StatusInternalServerError)
+		return nil, model.NewInternalError("app.grpc.get_context", "Not found")
 	} else {
 		token = info.Get(HEADER_TOKEN)
 	}
 
 	if len(token) < 1 {
-		return nil, model.NewAppError("GetSessionFromCtx", "api.context.session_expired.app_error", nil, "token not found", http.StatusUnauthorized)
+		return nil, model.NewInternalError("api.context.session_expired.app_error", "token not found")
 	}
 
 	session, err = a.GetSession(token[0])
@@ -157,7 +158,7 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, *mo
 	}
 
 	if session.IsExpired() {
-		return nil, model.NewAppError("GetSessionFromCtx", "api.context.session_expired.app_error", nil, "token="+token[0], http.StatusUnauthorized)
+		return nil, model.NewInternalError("api.context.session_expired.app_error", "token="+token[0])
 	}
 
 	return session, nil

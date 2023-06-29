@@ -2,11 +2,12 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) CreateCalendar(ctx context.Context, session *auth_manager.Session, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+func (c *Controller) CreateCalendar(ctx context.Context, session *auth_manager.Session, calendar *model.Calendar) (*model.Calendar, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -20,7 +21,7 @@ func (c *Controller) CreateCalendar(ctx context.Context, session *auth_manager.S
 	return c.app.CreateCalendar(ctx, calendar)
 }
 
-func (c *Controller) UpdateCalendar(ctx context.Context, session *auth_manager.Session, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+func (c *Controller) UpdateCalendar(ctx context.Context, session *auth_manager.Session, calendar *model.Calendar) (*model.Calendar, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -47,7 +48,7 @@ func (c *Controller) UpdateCalendar(ctx context.Context, session *auth_manager.S
 	return c.app.UpdateCalendar(ctx, calendar)
 }
 
-func (c *Controller) SearchCalendar(ctx context.Context, session *auth_manager.Session, search *model.SearchCalendar) ([]*model.Calendar, bool, *model.AppError) {
+func (c *Controller) SearchCalendar(ctx context.Context, session *auth_manager.Session, search *model.SearchCalendar) ([]*model.Calendar, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -60,7 +61,7 @@ func (c *Controller) SearchCalendar(ctx context.Context, session *auth_manager.S
 	}
 }
 
-func (c *Controller) GetCalendar(ctx context.Context, session *auth_manager.Session, domainId, id int64) (*model.Calendar, *model.AppError) {
+func (c *Controller) GetCalendar(ctx context.Context, session *auth_manager.Session, domainId, id int64) (*model.Calendar, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -77,7 +78,7 @@ func (c *Controller) GetCalendar(ctx context.Context, session *auth_manager.Sess
 	return c.app.GetCalendarById(ctx, session.Domain(domainId), id)
 }
 
-func (c *Controller) DeleteCalendar(ctx context.Context, session *auth_manager.Session, domainId, id int64) (*model.Calendar, *model.AppError) {
+func (c *Controller) DeleteCalendar(ctx context.Context, session *auth_manager.Session, domainId, id int64) (*model.Calendar, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALENDAR)
 	if !permission.CanDelete() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)

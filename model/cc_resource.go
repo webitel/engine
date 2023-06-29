@@ -106,7 +106,7 @@ func (r *OutboundCallResource) GetGatewayId() *int {
 	return nil
 }
 
-func (d *ResourceDisplay) IsValid() *AppError {
+func (d *ResourceDisplay) IsValid() AppError {
 	//FIXME
 	return nil
 }
@@ -154,7 +154,7 @@ func (r *OutboundCallResource) LastError() string {
 	return *r.LastErrorId
 }
 
-func (r *OutboundCallResource) IsValid() *AppError {
+func (r *OutboundCallResource) IsValid() AppError {
 	//FIXME
 	return nil
 }

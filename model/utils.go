@@ -6,8 +6,6 @@ import (
 	"encoding/base32"
 	"encoding/json"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"net/mail"
 	"net/url"
 	"regexp"
@@ -15,7 +13,6 @@ import (
 	"time"
 	"unicode"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
 )
 
@@ -109,104 +106,6 @@ func (sa StringArray) Equals(input StringArray) bool {
 	}
 
 	return true
-}
-
-var translateFunc goi18n.TranslateFunc = nil
-
-func AppErrorInit(t goi18n.TranslateFunc) {
-	translateFunc = t
-}
-
-type AppError struct {
-	Id            string `json:"id"`
-	Message       string `json:"status"`               // Message to be display to the end user without debugging information
-	DetailedError string `json:"detail"`               // Internal error string to help the developer
-	RequestId     string `json:"request_id,omitempty"` // The RequestId that's also set in the header
-	StatusCode    int    `json:"code,omitempty"`       // The http status code
-	Where         string `json:"-"`                    // The function where it happened in the form of Struct.Func
-	params        map[string]interface{}
-}
-
-func (er *AppError) Error() string {
-	return er.Where + ": " + er.Message + ", " + er.DetailedError
-}
-
-func (er *AppError) Translate(T goi18n.TranslateFunc) {
-	if T == nil {
-		er.Message = er.Id
-		return
-	}
-
-	if er.params == nil {
-		er.Message = T(er.Id)
-	} else {
-		er.Message = T(er.Id, er.params)
-	}
-}
-
-func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
-	if er.params == nil {
-		return T(er.Id)
-	} else {
-		return T(er.Id, er.params)
-	}
-}
-
-func (er *AppError) ToJson() string {
-	b, _ := json.Marshal(er)
-	return string(b)
-}
-
-func (er *AppError) String() string {
-	if er.Id == er.Message && er.DetailedError != "" {
-		return er.DetailedError
-	}
-
-	return er.Message
-}
-
-// AppErrorFromJson will decode the input and return an AppError
-func AppErrorFromJson(data io.Reader) *AppError {
-	str := ""
-	bytes, rerr := ioutil.ReadAll(data)
-	if rerr != nil {
-		str = rerr.Error()
-	} else {
-		str = string(bytes)
-	}
-
-	decoder := json.NewDecoder(strings.NewReader(str))
-	var er AppError
-	err := decoder.Decode(&er)
-	if err == nil {
-		return &er
-	} else {
-		return NewAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
-	}
-}
-
-func NewAppError(where string, id string, params map[string]interface{}, details string, status int) *AppError {
-	ap := &AppError{}
-	ap.Id = id
-	ap.params = params
-	ap.Message = id
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = status
-	ap.Translate(translateFunc)
-	return ap
-}
-
-func NewInternalError(where string, id string, text string) *AppError {
-	return NewAppError(where, id, nil, text, http.StatusInternalServerError)
-}
-
-func NewNotFoundError(where string, id string, text string) *AppError {
-	return NewAppError(where, id, nil, text, http.StatusNotFound)
-}
-
-func NewBadRequestError(where string, id string, text string) *AppError {
-	return NewAppError(where, id, nil, text, http.StatusBadRequest)
 }
 
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")

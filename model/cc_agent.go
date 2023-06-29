@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 )
 
@@ -239,12 +238,12 @@ type AgentCC struct {
 	HasExtension bool `json:"has_extension" db:"has_extension"`
 }
 
-func (a *AgentCC) Valid() *AppError {
+func (a *AgentCC) Valid() AppError {
 	if !a.HasAgent {
-		return NewAppError("User", "User.valid.agent_id", nil, "", http.StatusNotFound)
+		return NewNotFoundError("User.valid.agent_id", "")
 	}
 	if !a.HasExtension {
-		//return NewAppError("User", "User.valid.extension", nil, "", http.StatusNotFound)
+		//return NewNotFoundError("User.valid.extension", "")
 	}
 
 	return nil
@@ -346,7 +345,7 @@ type SearchAgentState struct {
 	FromId   *int64
 }
 
-func (a *Agent) IsValid() *AppError {
+func (a *Agent) IsValid() AppError {
 	//todo fire error ?
 	if a.IsSupervisor && a.Supervisor != nil {
 		a.Supervisor = nil
@@ -424,15 +423,14 @@ type AgentTask struct {
 	Duration        int                 `json:"duration" db:"duration"`
 }
 
-func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, *AppError) {
+func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, AppError) {
 	var e *WebSocketEvent
 
 	switch ev.Event {
 	case WebsocketCCEventAgentStatus, WebsocketCCEventChannelStatus:
 		e = NewWebSocketEvent(ev.Event)
 	default:
-		return nil, NewAppError("Event", "event.cc.valid.event", nil,
-			fmt.Sprintf("unknown event \"%s\"", ev.Event), http.StatusInternalServerError)
+		return nil, NewInternalError("event.cc.valid.event", fmt.Sprintf("unknown event \"%s\"", ev.Event))
 	}
 	e.UserId = ev.UserId
 	e.SetData(ev.Body)

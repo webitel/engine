@@ -30,6 +30,6 @@ func (a CommunicationType) EntityName() string {
 	return "cc_communication_view"
 }
 
-func (s *CommunicationType) IsValid() *AppError {
+func (s *CommunicationType) IsValid() AppError {
 	return nil
 }

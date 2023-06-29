@@ -1,16 +1,17 @@
 package apis
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/webitel/engine/model"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/webitel/engine/model"
 )
 
 var (
 	appointmentHeader = "X-WBT-KEY"
 
-	errAllowOrigin = model.NewAppError("API", "api.valid.origin", nil, "Not allow", http.StatusForbidden)
+	errAllowOrigin = model.NewForbiddenError("api.valid.origin", "Not allow").SetAppearedIn("API")
 )
 
 func (api *API) InitAppointments() {
@@ -47,7 +48,7 @@ func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if key != "" {
 		if appointment, c.Err = c.App.GetAppointment(ctx, key); c.Err != nil {
-			if c.Err.StatusCode == http.StatusNotFound {
+			if c.Err.GetStatusCode() == http.StatusNotFound {
 				c.Err = nil
 			} else {
 				return

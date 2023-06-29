@@ -43,7 +43,7 @@ func OutboundResourceGroupTimesToJson(times []OutboundResourceGroupTime) string 
 	return string(data)
 }
 
-func (g *OutboundResourceGroup) IsValid() *AppError {
+func (g *OutboundResourceGroup) IsValid() AppError {
 	//FIXME
 	return nil
 }
@@ -77,7 +77,7 @@ func (a OutboundResourceInGroup) EntityName() string {
 	return "cc_outbound_resource_in_group_view"
 }
 
-func (r *OutboundResourceInGroup) IsValid() *AppError {
+func (r *OutboundResourceInGroup) IsValid() AppError {
 	///FIXME
 	return nil
 }

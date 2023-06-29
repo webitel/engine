@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -18,7 +19,7 @@ func NewSqlTriggerStore(sqlStore SqlStore) store.TriggerStore {
 	return us
 }
 
-func (s SqlTriggerStore) CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlTriggerStore) CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -37,7 +38,7 @@ func (s SqlTriggerStore) CheckAccess(ctx context.Context, domainId int64, id int
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlTriggerStore) Create(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) Create(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError) {
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&trigger, `with t as (
     insert into call_center.cc_trigger (domain_id, name, enabled, type, schema_id, variables, description, expression,
                                     timezone_id, created_by, updated_by, created_at, updated_at, timeout_sec)
@@ -81,14 +82,13 @@ from t
 			"UpdatedAt":   trigger.UpdatedAt,
 			"TimeoutSec":  trigger.Timeout,
 		}); nil != err {
-		return nil, model.NewAppError("SqlTriggerStore.Save", "store.sql_trigger.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", trigger.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.save.app_error", fmt.Sprintf("name=%v, %v", trigger.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return trigger, nil
 	}
 }
 
-func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, model.AppError) {
 	var triggers []*model.Trigger
 
 	f := map[string]interface{}{
@@ -103,13 +103,13 @@ func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search 
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Trigger{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlTriggerStore.GetAllPage", "store.sql_trigger.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return triggers, nil
 }
 
-func (s SqlTriggerStore) GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, model.AppError) {
 	var triggers []*model.Trigger
 
 	f := map[string]interface{}{
@@ -132,13 +132,13 @@ func (s SqlTriggerStore) GetAllPageByGroup(ctx context.Context, domainId int64, 
 `,
 		model.Trigger{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlTriggerStore.GetAllPage", "store.sql_trigger.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return triggers, nil
 }
 
-func (s SqlTriggerStore) Get(ctx context.Context, domainId int64, id int32) (*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) Get(ctx context.Context, domainId int64, id int32) (*model.Trigger, model.AppError) {
 	var trigger *model.Trigger
 	f := map[string]interface{}{
 		"DomainId": domainId,
@@ -149,13 +149,13 @@ func (s SqlTriggerStore) Get(ctx context.Context, domainId int64, id int32) (*mo
 		`domain_id = :DomainId and id = :Id`,
 		model.Trigger{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlTriggerStore.Get", "store.sql_trigger.get.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return trigger, nil
 }
 
-func (s SqlTriggerStore) Update(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
+func (s SqlTriggerStore) Update(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&trigger, `with t as (
     update call_center.cc_trigger
         set name = :Name,
@@ -203,22 +203,20 @@ from t
 		"Timeout":     trigger.Timeout,
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlTriggerStore.Update", "store.sql_trigger.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", trigger.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.update.app_error", fmt.Sprintf("Id=%v, %s", trigger.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return trigger, nil
 }
 
-func (s SqlTriggerStore) Delete(ctx context.Context, domainId int64, id int32) *model.AppError {
+func (s SqlTriggerStore) Delete(ctx context.Context, domainId int64, id int32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_trigger c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlTriggerStore.Delete", "store.sql_trigger.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_trigger.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
 
-func (s SqlTriggerStore) CreateJob(ctx context.Context, domainId int64, triggerId int32, _ map[string]string) (*model.TriggerJob, *model.AppError) {
+func (s SqlTriggerStore) CreateJob(ctx context.Context, domainId int64, triggerId int32, _ map[string]string) (*model.TriggerJob, model.AppError) {
 	var job *model.TriggerJob
 	err := s.GetMaster().WithContext(ctx).SelectOne(&job, `with j as (
     insert into call_center.cc_trigger_job (trigger_id, state, created_at, parameters, domain_id)
@@ -251,14 +249,13 @@ from j
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlTriggerStore.CreateJob", "store.sql_trigger.job_create.app_error", nil,
-			fmt.Sprintf("TriggerId=%v, %s", triggerId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.job_create.app_error", fmt.Sprintf("TriggerId=%v, %s", triggerId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return job, nil
 }
 
-func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, *model.AppError) {
+func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, model.AppError) {
 	var jobs []*model.TriggerJob
 
 	f := map[string]interface{}{
@@ -285,7 +282,7 @@ func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search
 			`,
 		model.TriggerJob{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlTriggerStore.GetAllPage", "store.sql_trigger.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_trigger.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return jobs, nil

@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlSkillStore struct {
@@ -19,37 +19,34 @@ func NewSqlSkillStore(sqlStore SqlStore) store.SkillStore {
 	return us
 }
 
-func (s SqlSkillStore) Create(ctx context.Context, skill *model.Skill) (*model.Skill, *model.AppError) {
+func (s SqlSkillStore) Create(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError) {
 	var out *model.Skill
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_skill (name, domain_id, description)
 		values (:Name, :DomainId, :Description)
 		returning *`,
 		map[string]interface{}{"Name": skill.Name, "DomainId": skill.DomainId, "Description": skill.Description}); nil != err {
-		return nil, model.NewAppError("SqlSkillStore.Save", "store.sql_skill.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", skill.Name, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill.save.app_error", fmt.Sprintf("name=%v, %v", skill.Name, err.Error()))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlSkillStore) Get(ctx context.Context, domainId int64, id int64) (*model.Skill, *model.AppError) {
+func (s SqlSkillStore) Get(ctx context.Context, domainId int64, id int64) (*model.Skill, model.AppError) {
 	var skill *model.Skill
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&skill, `select *
 		from call_center.cc_skill s
 		where s.id = :Id and s.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlSkillStore.Get", "store.sql_skill.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusNotFound)
+			return nil, model.NewNotFoundError("store.sql_skill.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		} else {
-			return nil, model.NewAppError("SqlCalendarStore.Get", "store.sql_skill.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+			return nil, model.NewInternalError("store.sql_skill.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		}
 	} else {
 		return skill, nil
 	}
 }
 
-func (s SqlSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, *model.AppError) {
+func (s SqlSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, model.AppError) {
 	var skills []*model.Skill
 
 	f := map[string]interface{}{
@@ -65,22 +62,21 @@ func (s SqlSkillStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		model.Skill{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlSkillStore.GetAllPage", "store.sql_skill.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill.get_all.app_error", err.Error())
 	} else {
 		return skills, nil
 	}
 }
 
-func (s SqlSkillStore) Delete(ctx context.Context, domainId int64, id int64) *model.AppError {
+func (s SqlSkillStore) Delete(ctx context.Context, domainId int64, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_skill c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlSkillStore.Delete", "store.sql_skill.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_skill.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
-func (s SqlSkillStore) Update(ctx context.Context, skill *model.Skill) (*model.Skill, *model.AppError) {
+func (s SqlSkillStore) Update(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&skill, `update call_center.cc_skill
 	set name = :Name,
     description = :Description
@@ -91,8 +87,7 @@ func (s SqlSkillStore) Update(ctx context.Context, skill *model.Skill) (*model.S
 		"DomainId":    skill.DomainId,
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlSkillStore.Update", "store.sql_skill.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", skill.Id, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill.update.app_error", fmt.Sprintf("Id=%v, %s", skill.Id, err.Error()))
 	}
 	return skill, nil
 }

@@ -223,7 +223,7 @@ func (q *Queue) Patch(p *QueuePatch) {
 	}
 }
 
-func (q *Queue) IsValid() *AppError {
+func (q *Queue) IsValid() AppError {
 	//FIXME
 	return nil
 }

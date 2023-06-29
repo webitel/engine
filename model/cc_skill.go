@@ -29,6 +29,6 @@ func (a Skill) EntityName() string {
 	return "cc_skill_view"
 }
 
-func (s *Skill) IsValid() *AppError {
+func (s *Skill) IsValid() AppError {
 	return nil
 }

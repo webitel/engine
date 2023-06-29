@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -17,7 +18,7 @@ func NewSqlChatPlanStore(sqlStore SqlStore) store.ChatPlanStore {
 	return us
 }
 
-func (s SqlChatPlanStore) Create(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError) {
+func (s SqlChatPlanStore) Create(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&plan, `with c as (
     insert into flow.acr_chat_plan (domain_id, enabled, name, schema_id, description)
     values (:DomainId::int8, :Enabled::bool, :Name::varchar, :SchemaId::int4, :Description::text)
@@ -39,14 +40,13 @@ from c
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChatPlanStore.Create", "store.sql_chat_plan.create.app_error", nil,
-			fmt.Sprintf("Name=%v, %s", plan.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_chat_plan.create.app_error", fmt.Sprintf("Name=%v, %s", plan.Name, err.Error()), extractCodeFromErr(err))
 	}
 
 	return plan, nil
 }
 
-func (s SqlChatPlanStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchChatPlan) ([]*model.ChatPlan, *model.AppError) {
+func (s SqlChatPlanStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchChatPlan) ([]*model.ChatPlan, model.AppError) {
 	var plans []*model.ChatPlan
 
 	f := map[string]interface{}{
@@ -66,13 +66,13 @@ func (s SqlChatPlanStore) GetAllPage(ctx context.Context, domainId int64, search
 			`,
 		model.ChatPlan{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlChatPlanStore.GetAllPage", "store.sql_chat_plan.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_chat_plan.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return plans, nil
 	}
 }
 
-func (s SqlChatPlanStore) Get(ctx context.Context, domainId int64, id int32) (*model.ChatPlan, *model.AppError) {
+func (s SqlChatPlanStore) Get(ctx context.Context, domainId int64, id int32) (*model.ChatPlan, model.AppError) {
 	var plan *model.ChatPlan
 
 	err := s.GetMaster().WithContext(ctx).SelectOne(&plan, `
@@ -90,14 +90,13 @@ where c.id = :Id and c.domain_id = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChatPlanStore.Get", "store.sql_chat_plan.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_chat_plan.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return plan, nil
 }
 
-func (s SqlChatPlanStore) Update(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, *model.AppError) {
+func (s SqlChatPlanStore) Update(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&plan, `with c as (
     update flow.acr_chat_plan
         set name = :Name,
@@ -124,23 +123,21 @@ from c
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlChatPlanStore.Update", "store.sql_chat_plan.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", plan.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_chat_plan.update.app_error", fmt.Sprintf("Id=%v, %s", plan.Id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return plan, nil
 }
 
-func (s SqlChatPlanStore) Delete(ctx context.Context, domainId int64, id int32) *model.AppError {
+func (s SqlChatPlanStore) Delete(ctx context.Context, domainId int64, id int32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_chat_plan c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlChatPlanStore.Delete", "store.sql_chat_plan.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_chat_plan.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
 
-func (s SqlChatPlanStore) GetSchemaId(ctx context.Context, domainId int64, id int32) (int, *model.AppError) {
+func (s SqlChatPlanStore) GetSchemaId(ctx context.Context, domainId int64, id int32) (int, model.AppError) {
 	schemaId, err := s.GetReplica().WithContext(ctx).SelectInt(`select p.schema_id
 from flow.acr_chat_plan p
 where p.domain_id = :DomainId
@@ -151,8 +148,7 @@ where p.domain_id = :DomainId
 	})
 
 	if err != nil {
-		return 0, model.NewAppError("SqlChatPlanStore.GetSchemaId", "store.sql_chat_plan.get.schema_id.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return 0, model.NewCustomCodeError("store.sql_chat_plan.get.schema_id.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return int(schemaId), nil

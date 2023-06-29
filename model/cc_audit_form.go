@@ -1,7 +1,6 @@
 package model
 
 import (
-	"net/http"
 	"time"
 )
 
@@ -84,32 +83,32 @@ func (AuditForm) EntityName() string {
 	return "cc_audit_form_view"
 }
 
-func (af *AuditForm) IsValid() *AppError {
+func (af *AuditForm) IsValid() AppError {
 	if len(af.Name) < 3 || len(af.Name) > 256 {
-		return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.name", nil, "Name should not be less than 3 characters or greater than 256 characters", http.StatusBadRequest)
+		return NewBadRequestError("app.audit_form.is_valid.name", "Name should not be less than 3 characters or greater than 256 characters")
 	}
 
 	if len(af.Description) > 516 {
-		return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.description", nil, "Value should not be greater than 516 characters", http.StatusBadRequest)
+		return NewBadRequestError("app.audit_form.is_valid.description", "Value should not be greater than 516 characters")
 	}
 
 	for _, v := range af.Questions {
 		switch v.Type {
 		case QuestionTypeScore:
 			if v.Max == 0 {
-				return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.question.max", nil, "", http.StatusBadRequest)
+				return NewBadRequestError("app.audit_form.is_valid.question.max", "")
 			}
 
 			if v.Min > v.Max {
-				return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.question.min_max", nil, "", http.StatusBadRequest)
+				return NewBadRequestError("app.audit_form.is_valid.question.min_max", "")
 			}
 
 		case QuestionTypeOptions:
 			if len(v.Options) == 0 {
-				return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.option.options", nil, "", http.StatusBadRequest)
+				return NewBadRequestError("app.audit_form.is_valid.option.options", "")
 			}
 		default:
-			return NewAppError("AuditForm.IsValid", "app.audit_form.is_valid.question.type", nil, "", http.StatusBadRequest)
+			return NewBadRequestError("app.audit_form.is_valid.question.type", "")
 		}
 	}
 

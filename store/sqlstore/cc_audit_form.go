@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -13,7 +14,7 @@ type SqlAuditFormStore struct {
 	SqlStore
 }
 
-func (s SqlAuditFormStore) CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlAuditFormStore) CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
@@ -31,7 +32,7 @@ func (s SqlAuditFormStore) CheckAccess(ctx context.Context, domainId int64, id i
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlAuditFormStore) Create(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, *model.AppError) {
+func (s SqlAuditFormStore) Create(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&form, `with ins as (
     insert into call_center.cc_audit_form (domain_id, name, description, enabled, created_by, created_at, updated_by, updated_at, questions, team_ids)
     values (:DomainId, :Name, :Description, :Enabled, :CreatedBy, :CreatedAt, :UpdatedBy,  :UpdatedAt, :Questions, :TeamIds::int[])
@@ -69,13 +70,13 @@ FROM ins i
 	})
 
 	if err != nil {
-		return nil, model.NewInternalError("SqlAuditFormStore", "store.sql_audit_form.save.app_error", err.Error())
+		return nil, model.NewInternalError("store.sql_audit_form.save.app_error", err.Error())
 	}
 
 	return form, nil
 }
 
-func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditForm) ([]*model.AuditForm, *model.AppError) {
+func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditForm) ([]*model.AuditForm, model.AppError) {
 	var list []*model.AuditForm
 
 	f := map[string]interface{}{
@@ -101,13 +102,13 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 `,
 		model.AuditForm{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAuditFormStore.GetAllPage", "store.sql_audit_form.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_audit_form.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return list, nil
 }
 
-func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchAuditForm) ([]*model.AuditForm, *model.AppError) {
+func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchAuditForm) ([]*model.AuditForm, model.AppError) {
 	var list []*model.AuditForm
 
 	f := map[string]interface{}{
@@ -138,13 +139,13 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		  		)`,
 		model.AuditForm{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAuditFormStore.GetAllPageByGroups", "store.sql_audit_form.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_audit_form.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return list, nil
 }
 
-func (s SqlAuditFormStore) Get(ctx context.Context, domainId int64, id int32) (*model.AuditForm, *model.AppError) {
+func (s SqlAuditFormStore) Get(ctx context.Context, domainId int64, id int32) (*model.AuditForm, model.AppError) {
 	var form *model.AuditForm
 	err := s.GetReplica().WithContext(ctx).SelectOne(&form, `SELECT i.id,
        i.name,
@@ -171,14 +172,13 @@ where i.domain_id = :DomainId and i.id = :Id`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAuditFormStore.Get", "store.sql_audit_form.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_audit_form.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return form, nil
 }
 
-func (s SqlAuditFormStore) Update(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, *model.AppError) {
+func (s SqlAuditFormStore) Update(ctx context.Context, domainId int64, form *model.AuditForm) (*model.AuditForm, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&form, `with ins as (
     update call_center.cc_audit_form
 		set updated_by = :UpdatedBy,
@@ -224,22 +224,21 @@ FROM ins i
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAuditFormStore", "store.sql_audit_form.update.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_audit_form.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return form, nil
 }
 
-func (s SqlAuditFormStore) Delete(ctx context.Context, domainId int64, id int32) *model.AppError {
+func (s SqlAuditFormStore) Delete(ctx context.Context, domainId int64, id int32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_audit_form c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlAuditFormStore.Delete", "store.sql_audit_form.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_audit_form.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
 
-func (s SqlAuditFormStore) SetEditable(ctx context.Context, id int32, editable bool) *model.AppError {
+func (s SqlAuditFormStore) SetEditable(ctx context.Context, id int32, editable bool) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_audit_form
 set editable = :Editable 
 where id = :Id`, map[string]interface{}{
@@ -247,8 +246,7 @@ where id = :Id`, map[string]interface{}{
 		"Id":       id,
 	})
 	if err != nil {
-		return model.NewAppError("SqlAuditFormStore.SetEditable", "store.sql_audit_form.set_editable.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_audit_form.set_editable.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return nil

@@ -2,12 +2,13 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) SearchQueueHook(ctx context.Context, session *auth_manager.Session, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, bool, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) SearchQueueHook(ctx context.Context, session *auth_manager.Session, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, bool, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -25,8 +26,8 @@ func (c *Controller) SearchQueueHook(ctx context.Context, session *auth_manager.
 	return c.app.SearchQueueHook(ctx, session.Domain(0), queueId, search)
 }
 
-func (c *Controller) CreateQueueHook(ctx context.Context, session *auth_manager.Session, queueId uint32, hook *model.QueueHook) (*model.QueueHook, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) CreateQueueHook(ctx context.Context, session *auth_manager.Session, queueId uint32, hook *model.QueueHook) (*model.QueueHook, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -59,8 +60,8 @@ func (c *Controller) CreateQueueHook(ctx context.Context, session *auth_manager.
 	return c.app.CreateQueueHook(ctx, session.Domain(0), queueId, hook)
 }
 
-func (c *Controller) GetQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueHook, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) GetQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueHook, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -78,8 +79,8 @@ func (c *Controller) GetQueueHook(ctx context.Context, session *auth_manager.Ses
 	return c.app.GetQueueHook(ctx, session.Domain(0), queueId, id)
 }
 
-func (c *Controller) UpdateQueueHook(ctx context.Context, session *auth_manager.Session, queueId uint32, hook *model.QueueHook) (*model.QueueHook, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) UpdateQueueHook(ctx context.Context, session *auth_manager.Session, queueId uint32, hook *model.QueueHook) (*model.QueueHook, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -110,8 +111,8 @@ func (c *Controller) UpdateQueueHook(ctx context.Context, session *auth_manager.
 	return c.app.UpdateQueueHook(ctx, session.DomainId, queueId, hook)
 }
 
-func (c *Controller) PatchQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32, patch *model.QueueHookPatch) (*model.QueueHook, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) PatchQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32, patch *model.QueueHookPatch) (*model.QueueHook, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -135,8 +136,8 @@ func (c *Controller) PatchQueueHook(ctx context.Context, session *auth_manager.S
 	return c.app.PatchQueueHook(ctx, session.DomainId, queueId, id, patch)
 }
 
-func (c *Controller) DeleteQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueHook, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) DeleteQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueHook, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

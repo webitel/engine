@@ -79,12 +79,12 @@ func (a Bucket) EntityName() string {
 	return "cc_bucket_view"
 }
 
-func (b *Bucket) IsValid() *AppError {
+func (b *Bucket) IsValid() AppError {
 	//FIXME
 	return nil
 }
 
-func (q *QueueBucket) IsValid() *AppError {
+func (q *QueueBucket) IsValid() AppError {
 	//FIXME
 	return nil
 }

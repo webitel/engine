@@ -38,6 +38,6 @@ type SearchAgentTeam struct {
 	AdminIds []uint32
 }
 
-func (team *AgentTeam) IsValid() *AppError {
+func (team *AgentTeam) IsValid() AppError {
 	return nil
 }

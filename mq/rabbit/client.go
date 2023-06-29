@@ -2,15 +2,15 @@ package rabbit
 
 import (
 	"fmt"
+	"os"
+	"sync"
+	"time"
+
 	"github.com/pkg/errors"
 	"github.com/streadway/amqp"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/wlog"
-	"net/http"
-	"os"
-	"sync"
-	"time"
 )
 
 const (
@@ -30,8 +30,8 @@ const (
 	callServiceHangupData = `{"hangup_by":"service","cause":"SYSTEM_SHUTDOWN","sip":501}`
 )
 
-var errMaxRegisterQueueSize = model.NewAppError("AMQP", "amqp.register_domain.max_queue_size", nil, "", 500)
-var errMaxUnRegisterQueueSize = model.NewAppError("AMQP", "amqp.un_register_domain.max_queue_size", nil, "", 500)
+var errMaxRegisterQueueSize = model.NewInternalError("amqp.register_domain.max_queue_size", "")
+var errMaxUnRegisterQueueSize = model.NewInternalError("amqp.un_register_domain.max_queue_size", "")
 
 type AMQP struct {
 	connection         *amqp.Connection
@@ -67,7 +67,7 @@ func NewRabbitMQ(nodeName string, settings *model.MessageQueueSettings) mq.Layer
 	return mq_
 }
 
-func (a *AMQP) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (mq.DomainQueue, *model.AppError) {
+func (a *AMQP) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (mq.DomainQueue, model.AppError) {
 	if len(a.registerDomainQueue) > MAX_QUEUE_REGISTER_SIZE {
 		return nil, errMaxRegisterQueueSize
 	}
@@ -130,29 +130,29 @@ func (a *AMQP) initConnection() {
 	}
 }
 
-func (a *AMQP) SendNotification(domainId int64, event *model.Notification) *model.AppError {
+func (a *AMQP) SendNotification(domainId int64, event *model.Notification) model.AppError {
 	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("notification.%d", domainId), false, false, amqp.Publishing{
 		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
 	if err != nil {
-		return model.NewAppError("AMQP.SendNotification", "amqp.notification.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("amqp.notification.publish.app_error", err.Error())
 	}
 	return nil
 }
 
-func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError {
 	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("event.open_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
 		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
 	if err != nil {
-		return model.NewAppError("AMQP.RegisterWebsocket", "amqp.register_socket.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("amqp.register_socket.publish.app_error", err.Error())
 	}
 	return nil
 }
 
-func (a *AMQP) SendStickingCall(e *model.CallServiceHangup) *model.AppError {
+func (a *AMQP) SendStickingCall(e *model.CallServiceHangup) model.AppError {
 	// fixme CC
 	e.Subclass = "Event-Subclass"
 	e.Event = "hangup"
@@ -164,26 +164,26 @@ func (a *AMQP) SendStickingCall(e *model.CallServiceHangup) *model.AppError {
 	})
 
 	if err != nil {
-		return model.NewAppError("AMQP.SendStickingCall", "amqp.publish.sticking_call.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("amqp.publish.sticking_call.app_error", err.Error())
 	}
 
 	return nil
 }
 
-func (a *AMQP) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+func (a *AMQP) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError {
 	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("event.close_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
 		ContentType: "text/json",
 		Body:        []byte(event.ToJson()),
 	})
 	if err != nil {
-		return model.NewAppError("AMQP.UnRegisterWebsocket", "amqp.unregister_socket.publish.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("amqp.unregister_socket.publish.app_error", err.Error())
 	}
 	return nil
 }
 
-func (a *AMQP) createAppExchange() *model.AppError {
+func (a *AMQP) createAppExchange() model.AppError {
 	if err := a.channel.ExchangeDeclare(model.AppExchange, "topic", true, false, false, true, nil); err != nil {
-		return model.NewAppError("AMQP", "amqp.declare.exchange.app_err", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("amqp.declare.exchange.app_err", err.Error())
 	}
 	return nil
 }
@@ -231,7 +231,7 @@ func (a *AMQP) Close() {
 	}
 }
 
-func (a *AMQP) SendJSON(key string, data []byte) *model.AppError {
+func (a *AMQP) SendJSON(key string, data []byte) model.AppError {
 
 	return nil
 }

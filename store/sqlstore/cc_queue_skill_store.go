@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -17,7 +18,7 @@ func NewSqlQueueSkillStore(sqlStore SqlStore) store.QueueSkillStore {
 	return us
 }
 
-func (s SqlQueueSkillStore) Create(ctx context.Context, domainId int64, in *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) Create(ctx context.Context, domainId int64, in *model.QueueSkill) (*model.QueueSkill, model.AppError) {
 	var qs *model.QueueSkill
 
 	err := s.GetMaster().WithContext(ctx).SelectOne(&qs, `with s as (
@@ -49,14 +50,13 @@ from s
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueSkillStore.Create", "store.sql_queue_skill.create.app_error", nil,
-			fmt.Sprintf("name=%v, %v", in.QueueId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue_skill.create.app_error", fmt.Sprintf("name=%v, %v", in.QueueId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) Get(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) Get(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, model.AppError) {
 	var qs *model.QueueSkill
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&qs, `select "id", "skill", "buckets", "lvl", "min_capacity", "max_capacity", "enabled"
@@ -69,14 +69,13 @@ func (s SqlQueueSkillStore) Get(ctx context.Context, domainId int64, queueId, id
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueSkillStore.Get", "store.sql_queue_skill.get.app_error", nil,
-			fmt.Sprintf("name=%v, %v", queueId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue_skill.get.app_error", fmt.Sprintf("name=%v, %v", queueId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, model.AppError) {
 	var qs []*model.QueueSkill
 
 	f := map[string]interface{}{
@@ -105,13 +104,13 @@ func (s SqlQueueSkillStore) GetAllPage(ctx context.Context, domainId int64, sear
 			`,
 		model.QueueSkill{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueSkillStore.GetAllPage", "store.sql_queue_skill.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue_skill.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) Update(ctx context.Context, domainId int64, skill *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
+func (s SqlQueueSkillStore) Update(ctx context.Context, domainId int64, skill *model.QueueSkill) (*model.QueueSkill, model.AppError) {
 	var qs *model.QueueSkill
 	err := s.GetMaster().WithContext(ctx).SelectOne(&qs, `with s as (
     update call_center.cc_queue_skill s
@@ -147,13 +146,13 @@ from s
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueSkillStore.Update", "store.sql_queue_skill.update.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue_skill.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return qs, nil
 }
 
-func (s SqlQueueSkillStore) Delete(ctx context.Context, domainId int64, queueId, id uint32) *model.AppError {
+func (s SqlQueueSkillStore) Delete(ctx context.Context, domainId int64, queueId, id uint32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue_skill s
 where s.id = :Id and s.queue_id = :QueueId and exists(select 1 from call_center.cc_queue q where q.id = s.queue_id and q.domain_id = :DomainId)`,
 		map[string]interface{}{
@@ -161,8 +160,7 @@ where s.id = :Id and s.queue_id = :QueueId and exists(select 1 from call_center.
 			"DomainId": domainId,
 			"QueueId":  queueId,
 		}); err != nil {
-		return model.NewAppError("SqlQueueSkillStore.Delete", "store.sql_queue_skill.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_queue_skill.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }

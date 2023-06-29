@@ -3,11 +3,11 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlListStore struct {
@@ -19,7 +19,7 @@ func NewSqlListStore(sqlStore SqlStore) store.ListStore {
 	return us
 }
 
-func (s SqlListStore) Create(ctx context.Context, list *model.List) (*model.List, *model.AppError) {
+func (s SqlListStore) Create(ctx context.Context, list *model.List) (*model.List, model.AppError) {
 	var out *model.List
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with i as (
     insert into call_center.cc_list (name, description, domain_id, created_at, created_by, updated_at, updated_by)
@@ -48,14 +48,13 @@ from i
 			"UpdatedAt":   list.UpdatedAt,
 			"UpdatedBy":   list.UpdatedBy.GetSafeId(),
 		}); err != nil {
-		return nil, model.NewAppError("SqlListStore.Save", "store.sql_list.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", list.Name, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_list.save.app_error", fmt.Sprintf("name=%v, %v", list.Name, err.Error()))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlListStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlListStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -74,7 +73,7 @@ func (s SqlListStore) CheckAccess(ctx context.Context, domainId, id int64, group
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlListStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchList) ([]*model.List, *model.AppError) {
+func (s SqlListStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchList) ([]*model.List, model.AppError) {
 	var list []*model.List
 
 	f := map[string]interface{}{
@@ -90,13 +89,13 @@ func (s SqlListStore) GetAllPage(ctx context.Context, domainId int64, search *mo
 		model.List{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlListStore.GetAllPage", "store.sql_list.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_list.get_all.app_error", err.Error())
 	} else {
 		return list, nil
 	}
 }
 
-func (s SqlListStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchList) ([]*model.List, *model.AppError) {
+func (s SqlListStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchList) ([]*model.List, model.AppError) {
 	var list []*model.List
 
 	f := map[string]interface{}{
@@ -118,13 +117,13 @@ func (s SqlListStore) GetAllPageByGroups(ctx context.Context, domainId int64, gr
 		model.List{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlListStore.GetAllPage", "store.sql_list.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_list.get_all.app_error", err.Error())
 	} else {
 		return list, nil
 	}
 }
 
-func (s SqlListStore) Get(ctx context.Context, domainId int64, id int64) (*model.List, *model.AppError) {
+func (s SqlListStore) Get(ctx context.Context, domainId int64, id int64) (*model.List, model.AppError) {
 	var list *model.List
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&list, `
 			select
@@ -143,14 +142,13 @@ func (s SqlListStore) Get(ctx context.Context, domainId int64, id int64) (*model
 			left join call_center.cc_list_statistics cls on i.id = cls.list_id
 		where i.domain_id = :DomainId and i.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewAppError("SqlListStore.Get", "store.sql_list.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_list.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return list, nil
 	}
 }
 
-func (s SqlListStore) Update(ctx context.Context, list *model.List) (*model.List, *model.AppError) {
+func (s SqlListStore) Update(ctx context.Context, list *model.List) (*model.List, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&list, `with i as (
     update call_center.cc_list
         set name = :Name,
@@ -182,23 +180,21 @@ from i
 		"DomainId":    list.DomainId,
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlListStore.Update", "store.sql_list.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", list.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_list.update.app_error", fmt.Sprintf("Id=%v, %s", list.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return list, nil
 }
 
-func (s SqlListStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlListStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_list c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlListStore.Delete", "store.sql_list.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_list.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
 // Communications
-func (s SqlListStore) CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	var out *model.ListCommunication
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description)
 values (:ListId, :Number, :Description)
@@ -208,14 +204,13 @@ returning id, list_id, number, description, expire_at`,
 			"Number":      comm.Number,
 			"Description": comm.Description,
 		}); err != nil {
-		return nil, model.NewAppError("SqlListStore.Save", "store.sql_list.save_communication.app_error", nil,
-			fmt.Sprintf("number=%v, %v", comm.Number, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_list.save_communication.app_error", fmt.Sprintf("number=%v, %v", comm.Number, err.Error()))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlListStore) GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError) {
 	var communication []*model.ListCommunication
 
 	f := map[string]interface{}{
@@ -238,27 +233,26 @@ func (s SqlListStore) GetAllPageCommunication(ctx context.Context, domainId, lis
 		model.ListCommunication{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlListStore.GetAllPageCommunication", "store.sql_list.get_all_communication.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_list.get_all_communication.app_error", err.Error())
 	} else {
 		return communication, nil
 	}
 }
 
-func (s SqlListStore) GetCommunication(ctx context.Context, domainId, listId int64, id int64) (*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) GetCommunication(ctx context.Context, domainId, listId int64, id int64) (*model.ListCommunication, model.AppError) {
 	var communication *model.ListCommunication
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&communication, `
 			select i.id, i.number, i.description, i.list_id, i.expire_at
 from call_center.cc_list_communications i
 where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)	
 		`, map[string]interface{}{"ListId": listId, "Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewAppError("SqlListStore.Get", "store.sql_list.get_communication.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_list.get_communication.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return communication, nil
 	}
 }
 
-func (s SqlListStore) UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, *model.AppError) {
+func (s SqlListStore) UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&communication, `update call_center.cc_list_communications i
 set number = :Number,
     description = :Description,
@@ -273,18 +267,16 @@ returning *`, map[string]interface{}{
 		"ExpireAt":    communication.ExpireAt,
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlListStore.UpdateCommunication", "store.sql_list.update_communication.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", communication.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_list.update_communication.app_error", fmt.Sprintf("Id=%v, %s", communication.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return communication, nil
 }
 
-func (s SqlListStore) DeleteCommunication(ctx context.Context, domainId, listId, id int64) *model.AppError {
+func (s SqlListStore) DeleteCommunication(ctx context.Context, domainId, listId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_list_communications i where i.id=:Id and i.list_id = :ListId
     and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "ListId": listId}); err != nil {
-		return model.NewAppError("SqlListStore.Delete", "store.sql_list.delete_communication.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_list.delete_communication.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }

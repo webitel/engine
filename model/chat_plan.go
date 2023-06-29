@@ -57,6 +57,6 @@ func (ChatPlan) EntityName() string {
 	return "acr_chat_plan_list"
 }
 
-func (c *ChatPlan) IsValid() *AppError {
+func (c *ChatPlan) IsValid() AppError {
 	return nil
 }

@@ -7,10 +7,9 @@ const (
 )
 
 var (
-	SocketPermissionError = NewAppError(
-		"Permissions",
+	SocketPermissionError = NewCustomCodeError(
 		"api.context.permissions.license",
-		nil, "token scope is forceless", 412, // http.StatusPreconditionFailed,
+		"token scope is forceless", 412, // http.StatusPreconditionFailed,
 	)
 )
 

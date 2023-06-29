@@ -3,9 +3,9 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlEmailProfileStore struct {
@@ -17,7 +17,7 @@ func NewSqlEmailProfileStore(sqlStore SqlStore) store.EmailProfileStore {
 	return us
 }
 
-func (s SqlEmailProfileStore) Create(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Create(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().WithContext(ctx).SelectOne(&profile, `with t as (
     insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, imap_host, mailbox, imap_port, smtp_port,
@@ -73,13 +73,13 @@ FROM t
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlEmailProfileStore.Create", "store.sql_email_profile.create.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_email_profile.create.app_error", err.Error())
 	}
 
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, model.AppError) {
 	var profiles []*model.EmailProfile
 
 	f := map[string]interface{}{
@@ -91,13 +91,13 @@ func (s SqlEmailProfileStore) GetAllPage(ctx context.Context, domainId int64, se
 		`domain_id = :DomainId and (  (:Q::varchar isnull or (description ilike :Q::varchar or name ilike :Q::varchar ) ))`,
 		model.EmailProfile{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlEmailProfileStore.GetAllPage", "store.sql_email_profile.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_email_profile.get_all.app_error", err.Error())
 	}
 
 	return profiles, nil
 }
 
-func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (*model.EmailProfile, model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetReplica().WithContext(ctx).SelectOne(&profile, `
 	SELECT t.id,
@@ -133,14 +133,13 @@ func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlEmailProfileStore.Get", "store.sql_email_profile.get.app_error", nil,
-			fmt.Sprintf("Id = %d, error: %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_email_profile.get.app_error", fmt.Sprintf("Id = %d, error: %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) Update(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (s SqlEmailProfileStore) Update(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().WithContext(ctx).SelectOne(&profile, `with t as (
     update call_center.cc_email_profile
@@ -210,23 +209,21 @@ FROM t
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlEmailProfileStore.Update", "store.sql_email_profile.update.app_error", nil, err.Error(),
-			extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_email_profile.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return profile, nil
 }
 
-func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int) *model.AppError {
+func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlEmailProfileStore.Delete", "store.sql_email_profile.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_email_profile.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
 
-func (s SqlEmailProfileStore) SetupOAuth2(ctx context.Context, id int, params *model.MailProfileParams) *model.AppError {
+func (s SqlEmailProfileStore) SetupOAuth2(ctx context.Context, id int, params *model.MailProfileParams) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_email_profile
 set params = :Params
 where id = :Id;`, map[string]interface{}{
@@ -235,14 +232,13 @@ where id = :Id;`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return model.NewAppError("SqlEmailProfileStore.SetupOAuth2", "store.sql_email_profile.oauth.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_email_profile.oauth.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return nil
 }
 
-func (s SqlEmailProfileStore) CountEnabledByDomain(ctx context.Context, domainId int64) (int, *model.AppError) {
+func (s SqlEmailProfileStore) CountEnabledByDomain(ctx context.Context, domainId int64) (int, model.AppError) {
 	count, err := s.GetReplica().WithContext(ctx).SelectInt(`select count(*)
 from call_center.cc_email_profile p
 where p.domain_id in (select distinct d.dc
@@ -255,8 +251,7 @@ and p.enabled`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return 0, model.NewAppError("SqlEmailProfileStore.CountEnabledByDomain", "store.sql_email_profile.count_enabled.app_error", nil,
-			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
+		return 0, model.NewCustomCodeError("store.sql_email_profile.count_enabled.app_error", fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return int(count), nil

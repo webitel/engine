@@ -3,15 +3,15 @@ package rabbit
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/streadway/amqp"
-	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/mq"
-	"github.com/webitel/wlog"
-	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/streadway/amqp"
+	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/mq"
+	"github.com/webitel/wlog"
 )
 
 type DomainQueue struct {
@@ -157,7 +157,7 @@ func (dq *DomainQueue) BindAgentChannelEvents(id string, userId int64, agentId i
 	return b2
 }
 
-func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
+func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) model.AppError {
 	/*
 		2020-03-24T01:11:42.129+0200    debug   app/web_hub.go:67       hub TODO stopped
 		panic: runtime error: invalid memory address or nil pointer dereference
@@ -167,7 +167,7 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
 	ch := dq.getChannel()
 
 	if ch == nil {
-		return model.NewAppError("DomainQueue", "mq.unbind.valid.channel", nil, "Not found channel", http.StatusInternalServerError)
+		return model.NewInternalError("mq.unbind.valid.channel", "Not found channel")
 	}
 
 	err := ch.QueueUnbind(dq.queue.Name, bind.Routing, bind.Exchange, amqp.Table{
@@ -175,14 +175,14 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) *model.AppError {
 	})
 
 	if err != nil {
-		return model.NewAppError("DomainQueue", "mq.unbind.queue.error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("mq.unbind.queue.error", err.Error())
 	}
 
 	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s from %s", dq.Id(), bind.UserId, bind.Id, bind.Exchange))
 	return nil
 }
 
-func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) *model.AppError {
+func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) model.AppError {
 	var err error
 	for _, v := range b {
 		err = dq.Unbind(v)

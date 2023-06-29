@@ -3,11 +3,11 @@ package grpc_api
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
-	"net/http"
-	"strings"
 )
 
 type call struct {
@@ -34,7 +34,7 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	}
 
 	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetNumber() == "" && in.GetQ() == "" && in.GetDependencyId() == nil && in.GetId() == nil {
-		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at or q is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.call.search_history", "filter created_at or stored_at or q is required")
 	}
 
 	var list []*model.HistoryCall
@@ -182,7 +182,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 	}
 
 	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchHistoryCall", "grpc.call.search_history", nil, "filter created_at or stored_at is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.call.search_history", "filter created_at or stored_at is required")
 	}
 
 	//var list []*model.HistoryCall

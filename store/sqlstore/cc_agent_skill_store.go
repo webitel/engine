@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlAgentSkillStore struct {
@@ -20,7 +20,7 @@ func NewSqlAgentSkillStore(sqlStore SqlStore) store.AgentSkillStore {
 	return us
 }
 
-func (s SqlAgentSkillStore) Create(ctx context.Context, in *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) Create(ctx context.Context, in *model.AgentSkill) (*model.AgentSkill, model.AppError) {
 	var out *model.AgentSkill
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     insert into call_center.cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled)
@@ -45,31 +45,30 @@ from tmp
 			"UpdatedBy": in.UpdatedBy.GetSafeId(),
 			"Enabled":   in.Enabled,
 		}); err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Create", "store.sql_skill_in_agent.create.app_error", nil,
-			fmt.Sprintf("AgentId=%v, SkillId=%v %s", in.Agent.Id, in.Skill.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.create.app_error", fmt.Sprintf("AgentId=%v, SkillId=%v %s", in.Agent.Id, in.Skill.Id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlAgentSkillStore) BulkCreate(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, *model.AppError) {
+func (s SqlAgentSkillStore) BulkCreate(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, model.AppError) {
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
 	tx, err = s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Save", "store.sql_skill_in_agent.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill_in_agent.bulk_save.app_error", err.Error())
 	}
 
 	_, err = tx.WithContext(ctx).Exec("CREATE temp table cc_skill_in_agent_tmp ON COMMIT DROP as table call_center.cc_skill_in_agent with no data")
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Save", "store.sql_skill_in_agent.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill_in_agent.bulk_save.app_error", err.Error())
 	}
 
 	stmp, err = tx.Prepare(pq.CopyIn("cc_skill_in_agent_tmp", "id", "skill_id", "agent_id", "capacity", "created_at", "created_by",
 		"updated_at", "updated_by", "enabled"))
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Save", "store.sql_skill_in_agent.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill_in_agent.bulk_save.app_error", err.Error())
 	}
 
 	defer stmp.Close()
@@ -105,17 +104,17 @@ func (s SqlAgentSkillStore) BulkCreate(ctx context.Context, domainId, agentId in
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Save", "store.sql_skill_in_agent.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return result, nil
 
 _error:
 	tx.Rollback()
-	return nil, model.NewAppError("SqlAgentSkillStore.Save", "store.sql_skill_in_agent.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
+	return nil, model.NewCustomCodeError("store.sql_skill_in_agent.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
-func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, model.AppError) {
 	var agentSkill []*model.AgentSkill
 
 	f := map[string]interface{}{
@@ -135,13 +134,13 @@ func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, sear
 		model.AgentSkill{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.GetAllPage", "store.sql_skill_in_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill_in_agent.get_all.app_error", err.Error())
 	} else {
 		return agentSkill, nil
 	}
 }
 
-func (s SqlAgentSkillStore) GetById(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) GetById(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, model.AppError) {
 	var agentSkill *model.AgentSkill
 
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&agentSkill,
@@ -155,13 +154,13 @@ from call_center.cc_skill_in_agent tmp
     left join directory.wbt_user u on u.id = tmp.updated_by
 where tmp.id = :Id and tmp.agent_id = :AgentId and a.domain_id = :DomainId
 `, map[string]interface{}{"DomainId": domainId, "Id": id, "AgentId": agentId}); err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.GetAllPage", "store.sql_skill_in_agent.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return agentSkill, nil
 	}
 }
 
-func (s SqlAgentSkillStore) Update(ctx context.Context, agentSkill *model.AgentSkill) (*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) Update(ctx context.Context, agentSkill *model.AgentSkill) (*model.AgentSkill, model.AppError) {
 	var out *model.AgentSkill
 	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     update call_center.cc_skill_in_agent s
@@ -190,13 +189,12 @@ from tmp
 		"Enabled":   agentSkill.Enabled,
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Update", "store.sql_skill_in_agent.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", agentSkill.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.update.app_error", fmt.Sprintf("Id=%v, %s", agentSkill.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return out, nil
 }
 
-func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, model.AppError) {
 	var res []*model.AgentSkill
 
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `with tmp as (
@@ -237,24 +235,22 @@ from tmp
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.UpdateMany", "store.sql_skill_in_agent.update_many.app_error", nil,
-			fmt.Sprintf("Query=%v, %s", search, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.update_many.app_error", fmt.Sprintf("Query=%v, %s", search, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentSkillStore) DeleteById(ctx context.Context, agentId, id int64) *model.AppError {
+func (s SqlAgentSkillStore) DeleteById(ctx context.Context, agentId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_skill_in_agent a
 where a.id = :Id and a.agent_id = :AgentId`,
 		map[string]interface{}{"Id": id, "AgentId": agentId}); err != nil {
-		return model.NewAppError("SqlAgentSkillStore.DeleteById", "store.sql_skill_in_agent.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_skill_in_agent.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
 
-func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, model.AppError) {
 	var res []*model.AgentSkill
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `with tmp as (
     delete from call_center.cc_skill_in_agent
@@ -284,14 +280,13 @@ from tmp
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.Delete", "store.sql_skill_in_agent.delete.app_error", nil,
-			fmt.Sprintf("Query=%v, %s", search, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.delete.app_error", fmt.Sprintf("Query=%v, %s", search, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentSkillStore) LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, *model.AppError) {
+func (s SqlAgentSkillStore) LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, model.AppError) {
 	var skills []*model.Skill
 
 	if _, err := s.GetReplica().WithContext(ctx).Select(&skills,
@@ -310,13 +305,13 @@ offset :Offset`, map[string]interface{}{
 			"AgentId":  agentId,
 			"Q":        search.GetQ(),
 		}); err != nil {
-		return nil, model.NewAppError("SqlSkillStore.LookupNotExistsAgent", "store.sql_skill_in_agent.lookup.skill.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_skill_in_agent.lookup.skill.app_error", err.Error())
 	} else {
 		return skills, nil
 	}
 }
 
-func (s SqlAgentSkillStore) CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, *model.AppError) {
+func (s SqlAgentSkillStore) CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, model.AppError) {
 	var items []*model.AgentSkill
 	_, err := s.GetMaster().WithContext(ctx).Select(&items, `with tmp as (
     insert into call_center.cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at,
@@ -355,8 +350,7 @@ from tmp
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentSkillStore.CreateMany", "store.sql_skill_in_agent.create_many.app_error", nil,
-			fmt.Sprintf("AgentIds=%v, SkillIds=%v %s", in.AgentIds, in.SkillIds, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.create_many.app_error", fmt.Sprintf("AgentIds=%v, SkillIds=%v %s", in.AgentIds, in.SkillIds, err.Error()), extractCodeFromErr(err))
 	}
 
 	return items, nil

@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlCalendarStore struct {
@@ -23,7 +23,7 @@ func NewSqlCalendarStore(sqlStore SqlStore) store.CalendarStore {
 func (s *SqlCalendarStore) CreateTableIfNotExists() {
 }
 
-func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) (*model.Calendar, model.AppError) {
 	var out *model.Calendar
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with c as (
 		  insert into flow.calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by, accepts, excepts)
@@ -62,14 +62,13 @@ func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) 
 			"Accepts":     calendar.AcceptsToJson(),
 			"Excepts":     calendar.ExceptsToJson(),
 		}); err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.Save", "store.sql_calendar.save.app_error", nil,
-			fmt.Sprintf("id=%v, %v", calendar.Id, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_calendar.save.app_error", fmt.Sprintf("id=%v, %v", calendar.Id, err.Error()))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlCalendarStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchCalendar) ([]*model.Calendar, model.AppError) {
 	var calendars []*model.Calendar
 
 	f := map[string]interface{}{
@@ -86,13 +85,13 @@ func (s SqlCalendarStore) GetAllPage(ctx context.Context, domainId int64, search
 		model.Calendar{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.GetAllPage", "store.sql_calendar.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_calendar.get_all.app_error", err.Error())
 	} else {
 		return calendars, nil
 	}
 }
 
-func (s SqlCalendarStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlCalendarStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -111,7 +110,7 @@ func (s SqlCalendarStore) CheckAccess(ctx context.Context, domainId, id int64, g
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlCalendarStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, model.AppError) {
 	var calendars []*model.Calendar
 
 	f := map[string]interface{}{
@@ -133,13 +132,13 @@ func (s SqlCalendarStore) GetAllPageByGroups(ctx context.Context, domainId int64
 		model.Calendar{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.GetAllPage", "store.sql_calendar.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_calendar.get_all.app_error", err.Error())
 	} else {
 		return calendars, nil
 	}
 }
 
-func (s SqlCalendarStore) Get(ctx context.Context, domainId int64, id int64) (*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) Get(ctx context.Context, domainId int64, id int64) (*model.Calendar, model.AppError) {
 	var calendar *model.Calendar
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&calendar, `
 			select c.id,
@@ -162,18 +161,16 @@ func (s SqlCalendarStore) Get(ctx context.Context, domainId int64, id int64) (*m
 		where c.domain_id = :DomainId and c.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlCalendarStore.Get", "store.sql_calendar.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusNotFound)
+			return nil, model.NewNotFoundError("store.sql_calendar.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		} else {
-			return nil, model.NewAppError("SqlCalendarStore.Get", "store.sql_calendar.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+			return nil, model.NewInternalError("store.sql_calendar.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		}
 	} else {
 		return calendar, nil
 	}
 }
 
-func (s SqlCalendarStore) Update(ctx context.Context, calendar *model.Calendar) (*model.Calendar, *model.AppError) {
+func (s SqlCalendarStore) Update(ctx context.Context, calendar *model.Calendar) (*model.Calendar, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&calendar, `with c as (
     update flow.calendar
 	set name = :Name,
@@ -218,22 +215,20 @@ from c
 		"Excepts":     calendar.ExceptsToJson(),
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.Update", "store.sql_calendar.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_calendar.update.app_error", fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return calendar, nil
 }
 
-func (s SqlCalendarStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlCalendarStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.calendar c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlCalendarStore.Delete", "store.sql_calendar.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_calendar.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
-func (s SqlCalendarStore) GetTimezoneAllPage(ctx context.Context, search *model.SearchTimezone) ([]*model.Timezone, *model.AppError) {
+func (s SqlCalendarStore) GetTimezoneAllPage(ctx context.Context, search *model.SearchTimezone) ([]*model.Timezone, model.AppError) {
 	var timezones []*model.Timezone
 
 	if _, err := s.GetReplica().WithContext(ctx).Select(&timezones, `select id, name, utc_offset::text as "offset" 
@@ -244,7 +239,7 @@ func (s SqlCalendarStore) GetTimezoneAllPage(ctx context.Context, search *model.
 		"Offset": search.GetOffset(),
 		"Q":      search.GetQ(),
 	}); err != nil {
-		return nil, model.NewAppError("SqlCalendarStore.GetTimezoneAllPage", "store.sql_calendar_timezone.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_calendar_timezone.get_all.app_error", err.Error())
 	} else {
 		return timezones, nil
 	}

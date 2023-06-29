@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) CreateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (a *App) CreateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
 	return a.Store.RoutingSchema().Create(ctx, scheme)
 }
 
-func (a *App) GetRoutingSchemaPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, *model.AppError) {
+func (a *App) GetRoutingSchemaPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, model.AppError) {
 	list, err := a.Store.RoutingSchema().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -18,11 +19,11 @@ func (a *App) GetRoutingSchemaPage(ctx context.Context, domainId int64, search *
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetRoutingSchemaById(ctx context.Context, domainId, id int64) (*model.RoutingSchema, *model.AppError) {
+func (app *App) GetRoutingSchemaById(ctx context.Context, domainId, id int64) (*model.RoutingSchema, model.AppError) {
 	return app.Store.RoutingSchema().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (a *App) UpdateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
 	oldScheme, err := a.GetRoutingSchemaById(ctx, scheme.DomainId, scheme.Id)
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func (a *App) UpdateRoutingSchema(ctx context.Context, scheme *model.RoutingSche
 	return oldScheme, nil
 }
 
-func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*model.RoutingSchema, *model.AppError) {
+func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*model.RoutingSchema, model.AppError) {
 	scheme, err := a.Store.RoutingSchema().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -61,7 +62,7 @@ func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*mod
 	return scheme, nil
 }
 
-func (a *App) PatchRoutingSchema(ctx context.Context, domainId, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, *model.AppError) {
+func (a *App) PatchRoutingSchema(ctx context.Context, domainId, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, model.AppError) {
 	old, err := a.GetRoutingSchemaById(ctx, domainId, id)
 	if err != nil {
 		return nil, err
@@ -86,7 +87,7 @@ func (a *App) PatchRoutingSchema(ctx context.Context, domainId, id int64, patch 
 	return old, nil
 }
 
-func (a *App) GetRoutingSchemaTagsPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, *model.AppError) {
+func (a *App) GetRoutingSchemaTagsPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, model.AppError) {
 	list, err := a.Store.RoutingSchema().ListTags(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err

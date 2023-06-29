@@ -2,11 +2,12 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_manager.Session, schema *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_manager.Session, schema *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -32,7 +33,7 @@ func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_mana
 	return c.app.CreateRoutingSchema(ctx, schema)
 }
 
-func (c *Controller) SearchSchema(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, *model.AppError) {
+func (c *Controller) SearchSchema(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -41,7 +42,7 @@ func (c *Controller) SearchSchema(ctx context.Context, session *auth_manager.Ses
 	return c.app.GetRoutingSchemaPage(ctx, session.Domain(search.DomainId), search)
 }
 
-func (c *Controller) GetSchema(ctx context.Context, session *auth_manager.Session, id int64) (*model.RoutingSchema, *model.AppError) {
+func (c *Controller) GetSchema(ctx context.Context, session *auth_manager.Session, id int64) (*model.RoutingSchema, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -50,7 +51,7 @@ func (c *Controller) GetSchema(ctx context.Context, session *auth_manager.Sessio
 	return c.app.GetRoutingSchemaById(ctx, session.Domain(0), id)
 }
 
-func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Session, schema *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Session, schema *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -73,7 +74,7 @@ func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Ses
 	return c.app.UpdateRoutingSchema(ctx, schema)
 }
 
-func (c *Controller) PatchSchema(ctx context.Context, session *auth_manager.Session, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, *model.AppError) {
+func (c *Controller) PatchSchema(ctx context.Context, session *auth_manager.Session, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -88,7 +89,7 @@ func (c *Controller) PatchSchema(ctx context.Context, session *auth_manager.Sess
 	return c.app.PatchRoutingSchema(ctx, session.DomainId, id, patch)
 }
 
-func (c *Controller) DeleteSchema(ctx context.Context, session *auth_manager.Session, id int64) (*model.RoutingSchema, *model.AppError) {
+func (c *Controller) DeleteSchema(ctx context.Context, session *auth_manager.Session, id int64) (*model.RoutingSchema, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanDelete() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -97,7 +98,7 @@ func (c *Controller) DeleteSchema(ctx context.Context, session *auth_manager.Ses
 	return c.app.RemoveRoutingSchema(ctx, session.Domain(0), id)
 }
 
-func (c *Controller) SearchSchemaTags(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, *model.AppError) {
+func (c *Controller) SearchSchemaTags(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

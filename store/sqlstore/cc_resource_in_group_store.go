@@ -3,10 +3,10 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlOutboundResourceInGroupStore struct {
@@ -18,7 +18,7 @@ func NewSqlOutboundResourceInGroupStore(sqlStore SqlStore) store.OutboundResourc
 	return us
 }
 
-func (s SqlOutboundResourceInGroupStore) Create(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) Create(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, model.AppError) {
 	var out *model.OutboundResourceInGroup
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into call_center.cc_outbound_resource_in_group (resource_id, group_id, reserve_resource_id, priority)
@@ -39,14 +39,13 @@ from s
 			"Priority":          res.Priority,
 			"GroupId":           res.GroupId,
 		}); nil != err {
-		return nil, model.NewAppError("SqlOutboundResourceInGroupStore.Save", "store.sql_out_resource_in_group.save.app_error", nil,
-			fmt.Sprintf("GroupId=%v, %v", res.GroupId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource_in_group.save.app_error", fmt.Sprintf("GroupId=%v, %v", res.GroupId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlOutboundResourceInGroupStore) GetAllPage(ctx context.Context, domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) GetAllPage(ctx context.Context, domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, model.AppError) {
 	var groups []*model.OutboundResourceInGroup
 
 	f := map[string]interface{}{
@@ -64,28 +63,26 @@ func (s SqlOutboundResourceInGroupStore) GetAllPage(ctx context.Context, domainI
 		model.OutboundResourceInGroup{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceInGroupStore.GetAllPage", "store.sql_out_resource_in_group.get_all.app_error", nil,
-			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource_in_group.get_all.app_error", fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return groups, nil
 	}
 }
 
-func (s SqlOutboundResourceInGroupStore) Get(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) Get(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, model.AppError) {
 	var res *model.OutboundResourceInGroup
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&res, `
 			select s.id, s.group_id, resource, reserve_resource, priority
 			from call_center.cc_outbound_resource_in_group_view s
 			where s.group_id = :GroupId and s.domain_id = :DomainId	and s.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId, "GroupId": groupId}); err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceInGroupStore.Get", "store.sql_out_resource_in_group.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource_in_group.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return res, nil
 	}
 }
 
-func (s SqlOutboundResourceInGroupStore) Update(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+func (s SqlOutboundResourceInGroupStore) Update(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, model.AppError) {
 
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `with s as (
     update call_center.cc_outbound_resource_in_group 
@@ -113,19 +110,17 @@ FROM s
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceInGroupStore.Update", "store.sql_out_resource_in_group.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", res.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource_in_group.update.app_error", fmt.Sprintf("Id=%v, %s", res.Id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlOutboundResourceInGroupStore) Delete(ctx context.Context, domainId, groupId, id int64) *model.AppError {
+func (s SqlOutboundResourceInGroupStore) Delete(ctx context.Context, domainId, groupId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_outbound_resource_in_group c 
 			where id = :Id and group_id = :GroupId and exists(select 1 from call_center.cc_outbound_resource_group where domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "GroupId": groupId}); err != nil {
-		return model.NewAppError("SqlOutboundResourceGroupStore.Delete", "store.sql_out_resource_group.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_out_resource_group.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }

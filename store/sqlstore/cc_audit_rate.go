@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"context"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -11,7 +12,7 @@ type SqlAuditRateStore struct {
 	SqlStore
 }
 
-func (s SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, *model.AppError) {
+func (s SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&rate, `with r as (
     insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional, comment, call_id, rated_user_id)
     values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional, :Comment, :CallId, :RatedUserId)
@@ -50,13 +51,13 @@ from  r
 	})
 
 	if err != nil {
-		return nil, model.NewInternalError("SqlAuditRateStore", "store.sql_audit_rate.save.app_error", err.Error())
+		return nil, model.NewInternalError("store.sql_audit_rate.save.app_error", err.Error())
 	}
 
 	return rate, nil
 }
 
-func (s SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditRate) ([]*model.AuditRate, *model.AppError) {
+func (s SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditRate) ([]*model.AuditRate, model.AppError) {
 	var list []*model.AuditRate
 
 	f := map[string]interface{}{
@@ -82,13 +83,13 @@ func (s SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, searc
 `,
 		model.AuditRate{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAuditRateStore.GetAllPage", "store.sql_audit_rate.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_audit_rate.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return list, nil
 }
 
-func (s SqlAuditRateStore) Get(ctx context.Context, domainId int64, id int64) (*model.AuditRate, *model.AppError) {
+func (s SqlAuditRateStore) Get(ctx context.Context, domainId int64, id int64) (*model.AuditRate, model.AppError) {
 	var rate *model.AuditRate
 	f := map[string]interface{}{
 		"DomainId": domainId,
@@ -99,13 +100,13 @@ func (s SqlAuditRateStore) Get(ctx context.Context, domainId int64, id int64) (*
 		`domain_id = :DomainId and id = :Id`,
 		model.AuditRate{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAuditRateStore.Get", "store.sql_audit_rate.get.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_audit_rate.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return rate, nil
 }
 
-func (s SqlAuditRateStore) FormId(ctx context.Context, domainId, id int64) (int32, *model.AppError) {
+func (s SqlAuditRateStore) FormId(ctx context.Context, domainId, id int64) (int32, model.AppError) {
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select r.form_id
 from call_center.cc_audit_rate r
 where r.id = :Id and r.domain_id = :DomainId`, map[string]interface{}{
@@ -114,7 +115,7 @@ where r.id = :Id and r.domain_id = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return 0, model.NewAppError("SqlAuditRateStore.FormId", "store.sql_audit_rate.get_form.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return 0, model.NewCustomCodeError("store.sql_audit_rate.get_form.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return int32(res.Int64), nil

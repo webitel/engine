@@ -3,9 +3,9 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlChatStore struct {
@@ -18,7 +18,7 @@ func NewSqlChatStore(sqlStore SqlStore) store.ChatStore {
 }
 
 // todo deprecated
-func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId int64) ([]*model.Conversation, *model.AppError) {
+func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId int64) ([]*model.Conversation, model.AppError) {
 	var res []*model.Conversation
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `
 select
@@ -113,14 +113,13 @@ order by ch.pri, ch.updated_at desc`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("ChatStore.OpenedConversations", "store.sql_chat.list_opened.app_error", nil,
-			fmt.Sprintf("userId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_chat.list_opened.app_error", fmt.Sprintf("userId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlChatStore) ValidDomain(ctx context.Context, domainId int64, profileId int64) *model.AppError {
+func (s SqlChatStore) ValidDomain(ctx context.Context, domainId int64, profileId int64) model.AppError {
 	res, err := s.GetReplica().WithContext(ctx).SelectInt(`select 1
 from chat.bot p
 where p.dc = :DomainId and p.id = :Id`, map[string]interface{}{
@@ -129,13 +128,11 @@ where p.dc = :DomainId and p.id = :Id`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return model.NewAppError("ChatStore.ValidDomain", "store.sql_chat.valid_domain.app_error", nil,
-			fmt.Sprintf("domainId=%v, %v", domainId, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_chat.valid_domain.app_error", fmt.Sprintf("domainId=%v, %v", domainId, err.Error()), extractCodeFromErr(err))
 	}
 
 	if res != 1 {
-		return model.NewAppError("ChatStore.ValidDomain", "store.sql_chat.valid_domain.not_found", nil,
-			fmt.Sprintf("domainId=%v", domainId), http.StatusNotFound)
+		return model.NewNotFoundError("store.sql_chat.valid_domain.not_found", fmt.Sprintf("domainId=%v", domainId))
 	}
 
 	return nil

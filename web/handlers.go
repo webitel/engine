@@ -2,11 +2,12 @@ package web
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
-	"net/http"
 )
 
 type Handler struct {
@@ -45,17 +46,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if c.Err != nil {
 		c.Err.Translate(c.T)
-		c.Err.RequestId = c.RequestId
+		c.Err.SetRequestId(c.RequestId)
 
-		if c.Err.Id == "api.context.session_expired.app_error" {
+		if c.Err.GetId() == "api.context.session_expired.app_error" {
 			c.LogInfo(c.Err)
 		} else {
 			c.LogError(c.Err)
 		}
 
-		c.Err.Where = r.URL.Path
-
-		w.WriteHeader(c.Err.StatusCode)
+		w.WriteHeader(c.Err.GetStatusCode())
 		w.Write([]byte(c.Err.ToJson()))
 	}
 }
