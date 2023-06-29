@@ -2,12 +2,13 @@ package app
 
 import (
 	"fmt"
-	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/mq"
-	"github.com/webitel/wlog"
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/mq"
+	"github.com/webitel/wlog"
 )
 
 const (
@@ -209,7 +210,7 @@ func (wh *Hub) start() {
 	}
 }
 
-func (wh *Hub) UnSubscribeCalls(conn *WebConn) *model.AppError {
+func (wh *Hub) UnSubscribeCalls(conn *WebConn) model.AppError {
 	if b, ok := conn.GetListenEvent("call"); ok {
 		wh.domainQueue.Unbind(b)
 	} else {
@@ -219,7 +220,7 @@ func (wh *Hub) UnSubscribeCalls(conn *WebConn) *model.AppError {
 	return nil
 }
 
-func (wh *Hub) SubscribeSessionCalls(conn *WebConn) *model.AppError {
+func (wh *Hub) SubscribeSessionCalls(conn *WebConn) model.AppError {
 
 	b := wh.domainQueue.BindUserCall(conn.Id(), conn.GetSession().UserId)
 	//TODO
@@ -228,7 +229,7 @@ func (wh *Hub) SubscribeSessionCalls(conn *WebConn) *model.AppError {
 	return nil
 }
 
-func (wh *Hub) SubscribeSessionChat(conn *WebConn) *model.AppError {
+func (wh *Hub) SubscribeSessionChat(conn *WebConn) model.AppError {
 
 	b := wh.domainQueue.BindUserChat(conn.Id(), conn.GetSession().UserId)
 	//TODO
@@ -237,7 +238,7 @@ func (wh *Hub) SubscribeSessionChat(conn *WebConn) *model.AppError {
 	return nil
 }
 
-func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) *model.AppError {
+func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) model.AppError {
 
 	b := wh.domainQueue.BindUsersStatus(conn.Id(), conn.GetSession().UserId)
 	//TODO
@@ -246,7 +247,7 @@ func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) *model.AppError {
 	return nil
 }
 
-func (wh *Hub) SubscribeSessionAgentStatus(conn *WebConn, agentId int) *model.AppError {
+func (wh *Hub) SubscribeSessionAgentStatus(conn *WebConn, agentId int) model.AppError {
 
 	b := wh.domainQueue.BindAgentStatusEvents(conn.Id(), conn.GetSession().UserId, agentId)
 	//TODO
@@ -259,7 +260,7 @@ func (wh *Hub) SubscribeSessionAgentStatus(conn *WebConn, agentId int) *model.Ap
 	return nil
 }
 
-func (a *App) GetHubById(id int64) (*Hub, *model.AppError) {
+func (a *App) GetHubById(id int64) (*Hub, model.AppError) {
 	if h, ok := a.Hubs.Get(id); ok {
 		return h, nil
 	} else {

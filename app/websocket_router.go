@@ -2,7 +2,6 @@ package app
 
 import (
 	"github.com/webitel/engine/model"
-	"net/http"
 )
 
 type webSocketHandler interface {
@@ -20,13 +19,13 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
 	if r.Action == "" {
-		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
+		err := model.NewBadRequestError("api.web_socket_router.no_action.app_error", "")
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
 	if r.Seq <= 0 {
-		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "", http.StatusBadRequest)
+		err := model.NewBadRequestError("api.web_socket_router.bad_seq.app_error", "")
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
@@ -67,14 +66,14 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if !conn.IsAuthenticated() {
-		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
+		err := model.NewInternalError("api.web_socket_router.not_authenticated.app_error", "")
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
 	handler, ok := wr.handlers[r.Action]
 	if !ok {
-		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "", http.StatusBadRequest)
+		err := model.NewBadRequestError("api.web_socket_router.bad_action.app_error", "")
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
@@ -82,7 +81,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	go handler.ServeWebSocket(conn, r)
 }
 
-func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err *model.AppError) {
+func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err model.AppError) {
 	errorResp := model.NewWebSocketError(r.Seq, err)
 	conn.Send <- errorResp
 }

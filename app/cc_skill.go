@@ -2,18 +2,19 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) CreateSkill(ctx context.Context, skill *model.Skill) (*model.Skill, *model.AppError) {
+func (app *App) CreateSkill(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError) {
 	return app.Store.Skill().Create(ctx, skill)
 }
 
-func (app *App) GetSkill(ctx context.Context, id, domainId int64) (*model.Skill, *model.AppError) {
+func (app *App) GetSkill(ctx context.Context, id, domainId int64) (*model.Skill, model.AppError) {
 	return app.Store.Skill().Get(ctx, domainId, id)
 }
 
-func (app *App) GetSkillsPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, bool, *model.AppError) {
+func (app *App) GetSkillsPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, bool, model.AppError) {
 	list, err := app.Store.Skill().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -22,7 +23,7 @@ func (app *App) GetSkillsPage(ctx context.Context, domainId int64, search *model
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) RemoveSkill(ctx context.Context, domainId, id int64) (*model.Skill, *model.AppError) {
+func (app *App) RemoveSkill(ctx context.Context, domainId, id int64) (*model.Skill, model.AppError) {
 	skill, err := app.Store.Skill().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -36,7 +37,7 @@ func (app *App) RemoveSkill(ctx context.Context, domainId, id int64) (*model.Ski
 	return skill, nil
 }
 
-func (app *App) UpdateSkill(ctx context.Context, skill *model.Skill) (*model.Skill, *model.AppError) {
+func (app *App) UpdateSkill(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError) {
 	oldSkill, err := app.Store.Skill().Get(ctx, skill.DomainId, skill.Id)
 
 	if err != nil {
@@ -54,7 +55,7 @@ func (app *App) UpdateSkill(ctx context.Context, skill *model.Skill) (*model.Ski
 	return oldSkill, nil
 }
 
-func (app *App) SearchSkillAgent(ctx context.Context, domainId int64, skillId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, *model.AppError) {
+func (app *App) SearchSkillAgent(ctx context.Context, domainId int64, skillId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, model.AppError) {
 	search.SkillIds = []int64{skillId}
 	list, err := app.Store.AgentSkill().GetAllPage(ctx, domainId, search)
 	if err != nil {

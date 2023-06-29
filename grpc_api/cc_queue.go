@@ -2,12 +2,12 @@ package grpc_api
 
 import (
 	"context"
+	"strings"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
-	"net/http"
-	"strings"
 )
 
 type queue struct {
@@ -374,7 +374,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 	}
 
 	if in.GetJoinedAt() == nil {
-		return nil, model.NewAppError("GRPC.SearchQueueReportGeneral", "grpc.queue.report.general", nil, "filter joined_at is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.queue.report.general", "filter joined_at is required")
 	}
 
 	var report *model.QueueReportGeneralAgg

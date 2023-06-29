@@ -109,7 +109,7 @@ func (self *Session) IsValid() error {
 	}
 
 	//if self.DomainId < 1 {
-	//	return model.NewAppError("Session.IsValid", "model.session.is_valid.domain_id.app_error", self.Trace(), "", http.StatusBadRequest)
+	//	return model.NewBadRequestError("model.session.is_valid.domain_id.app_error", "").SetTranslationParams(self.Trace())
 	//}
 
 	if len(self.RoleIds) < 1 {

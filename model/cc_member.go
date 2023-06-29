@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -326,7 +325,7 @@ type MembersAttempt struct {
 	MemberAttempt
 }
 
-func (a *MemberAttempt) IsValid() *AppError {
+func (a *MemberAttempt) IsValid() AppError {
 	//FIXME
 	return nil
 }
@@ -371,16 +370,16 @@ func (m *Member) GetAgentId() *int {
 	return nil
 }
 
-func (m *Member) IsValid(maxCommunication int) *AppError {
+func (m *Member) IsValid(maxCommunication int) AppError {
 	//FIXME
 
 	if len(m.Communications) > maxCommunication {
-		return NewAppError("Member.IsValid", "model.member.is_valid.communications.app_error", nil, "name="+m.Name, http.StatusBadRequest)
+		return NewBadRequestError("model.member.is_valid.communications.app_error", "name="+m.Name)
 	}
 
 	for _, v := range m.Communications {
 		if v.Type.Id < 1 {
-			return NewAppError("Member.IsValid", "model.member.is_valid.communications.type.app_error", nil, "name="+m.Name, http.StatusBadRequest)
+			return NewBadRequestError("model.member.is_valid.communications.type.app_error", "name="+m.Name)
 		}
 	}
 

@@ -3,11 +3,11 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlBucketStore struct {
@@ -19,7 +19,7 @@ func NewSqlBucketStore(sqlStore SqlStore) store.BucketStore {
 	return us
 }
 
-func (s SqlBucketStore) Create(ctx context.Context, bucket *model.Bucket) (*model.Bucket, *model.AppError) {
+func (s SqlBucketStore) Create(ctx context.Context, bucket *model.Bucket) (*model.Bucket, model.AppError) {
 	var out *model.Bucket
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_bucket (name, domain_id, description, created_at, created_by, updated_at, updated_by)
 		values (:Name, :DomainId, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy)
@@ -33,14 +33,13 @@ func (s SqlBucketStore) Create(ctx context.Context, bucket *model.Bucket) (*mode
 			"UpdatedAt":   bucket.UpdatedAt,
 			"UpdatedBy":   bucket.UpdatedBy.GetSafeId(),
 		}); nil != err {
-		return nil, model.NewAppError("SqlBucketStore.Save", "store.sql_bucket.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", bucket.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_bucket.save.app_error", fmt.Sprintf("name=%v, %v", bucket.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlBucketStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlBucketStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -59,7 +58,7 @@ func (s SqlBucketStore) CheckAccess(ctx context.Context, domainId, id int64, gro
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlBucketStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchBucket) ([]*model.Bucket, *model.AppError) {
+func (s SqlBucketStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchBucket) ([]*model.Bucket, model.AppError) {
 	var buckets []*model.Bucket
 
 	f := map[string]interface{}{
@@ -75,25 +74,24 @@ func (s SqlBucketStore) GetAllPage(ctx context.Context, domainId int64, search *
 		model.Bucket{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlBucketStore.GetAllPage", "store.sql_bucket.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_bucket.get_all.app_error", err.Error())
 	} else {
 		return buckets, nil
 	}
 }
 
-func (s SqlBucketStore) Get(ctx context.Context, domainId int64, id int64) (*model.Bucket, *model.AppError) {
+func (s SqlBucketStore) Get(ctx context.Context, domainId int64, id int64) (*model.Bucket, model.AppError) {
 	var bucket *model.Bucket
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&bucket, `select id, name, description, domain_id
 		from call_center.cc_bucket b
 		where b.id = :Id and b.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewAppError("SqlBucketStore.Get", "store.sql_bucket.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_bucket.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return bucket, nil
 	}
 }
 
-func (s SqlBucketStore) Update(ctx context.Context, bucket *model.Bucket) (*model.Bucket, *model.AppError) {
+func (s SqlBucketStore) Update(ctx context.Context, bucket *model.Bucket) (*model.Bucket, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&bucket, `update call_center.cc_bucket
 	set name = :Name,
     description = :Description,
@@ -108,17 +106,15 @@ func (s SqlBucketStore) Update(ctx context.Context, bucket *model.Bucket) (*mode
 		"UpdatedBy":   bucket.UpdatedBy.GetSafeId(),
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlBucketStore.Update", "store.sql_bucket.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", bucket.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_bucket.update.app_error", fmt.Sprintf("Id=%v, %s", bucket.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return bucket, nil
 }
 
-func (s SqlBucketStore) Delete(ctx context.Context, domainId int64, id int64) *model.AppError {
+func (s SqlBucketStore) Delete(ctx context.Context, domainId int64, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_bucket c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlBucketStore.Delete", "store.sql_bucket.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_bucket.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }

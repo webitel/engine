@@ -2,14 +2,15 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) CreateQueueHook(ctx context.Context, domainId int64, queueId uint32, hook *model.QueueHook) (*model.QueueHook, *model.AppError) {
+func (app *App) CreateQueueHook(ctx context.Context, domainId int64, queueId uint32, hook *model.QueueHook) (*model.QueueHook, model.AppError) {
 	return app.Store.QueueHook().Create(ctx, domainId, queueId, hook)
 }
 
-func (app *App) SearchQueueHook(ctx context.Context, domainId int64, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, bool, *model.AppError) {
+func (app *App) SearchQueueHook(ctx context.Context, domainId int64, queueId uint32, search *model.SearchQueueHook) ([]*model.QueueHook, bool, model.AppError) {
 	list, err := app.Store.QueueHook().GetAllPage(ctx, domainId, queueId, search)
 	if err != nil {
 		return nil, false, err
@@ -18,11 +19,11 @@ func (app *App) SearchQueueHook(ctx context.Context, domainId int64, queueId uin
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetQueueHook(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueHook, *model.AppError) {
+func (app *App) GetQueueHook(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueHook, model.AppError) {
 	return app.Store.QueueHook().Get(ctx, domainId, queueId, id)
 }
 
-func (app *App) UpdateQueueHook(ctx context.Context, domainId int64, queueId uint32, hook *model.QueueHook) (*model.QueueHook, *model.AppError) {
+func (app *App) UpdateQueueHook(ctx context.Context, domainId int64, queueId uint32, hook *model.QueueHook) (*model.QueueHook, model.AppError) {
 	oldHook, err := app.GetQueueHook(ctx, domainId, queueId, hook.Id)
 	if err != nil {
 		return nil, err
@@ -42,7 +43,7 @@ func (app *App) UpdateQueueHook(ctx context.Context, domainId int64, queueId uin
 	return oldHook, nil
 }
 
-func (app *App) PatchQueueHook(ctx context.Context, domainId int64, queueId, id uint32, patch *model.QueueHookPatch) (*model.QueueHook, *model.AppError) {
+func (app *App) PatchQueueHook(ctx context.Context, domainId int64, queueId, id uint32, patch *model.QueueHookPatch) (*model.QueueHook, model.AppError) {
 	oldHook, err := app.GetQueueHook(ctx, domainId, queueId, id)
 	if err != nil {
 		return nil, err
@@ -64,7 +65,7 @@ func (app *App) PatchQueueHook(ctx context.Context, domainId int64, queueId, id 
 	return oldHook, nil
 }
 
-func (app *App) RemoveQueueHook(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueHook, *model.AppError) {
+func (app *App) RemoveQueueHook(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueHook, model.AppError) {
 	qb, err := app.GetQueueHook(ctx, domainId, queueId, id)
 
 	if err != nil {

@@ -2,19 +2,20 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) OutboundResourceGroupCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (a *App) OutboundResourceGroupCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	return a.Store.OutboundResourceGroup().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) CreateOutboundResourceGroup(ctx context.Context, group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError) {
+func (a *App) CreateOutboundResourceGroup(ctx context.Context, group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, model.AppError) {
 	return a.Store.OutboundResourceGroup().Create(ctx, group)
 }
 
-func (a *App) GetOutboundResourceGroupPage(ctx context.Context, domainId int64, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, bool, *model.AppError) {
+func (a *App) GetOutboundResourceGroupPage(ctx context.Context, domainId int64, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, bool, model.AppError) {
 	list, err := a.Store.OutboundResourceGroup().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -23,7 +24,7 @@ func (a *App) GetOutboundResourceGroupPage(ctx context.Context, domainId int64, 
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetOutboundResourceGroupPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, bool, *model.AppError) {
+func (a *App) GetOutboundResourceGroupPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, bool, model.AppError) {
 	list, err := a.Store.OutboundResourceGroup().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -32,11 +33,11 @@ func (a *App) GetOutboundResourceGroupPageByGroups(ctx context.Context, domainId
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetOutboundResourceGroup(ctx context.Context, domainId, id int64) (*model.OutboundResourceGroup, *model.AppError) {
+func (app *App) GetOutboundResourceGroup(ctx context.Context, domainId, id int64) (*model.OutboundResourceGroup, model.AppError) {
 	return app.Store.OutboundResourceGroup().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateOutboundResourceGroup(ctx context.Context, group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, *model.AppError) {
+func (a *App) UpdateOutboundResourceGroup(ctx context.Context, group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, model.AppError) {
 	oldGroup, err := a.GetOutboundResourceGroup(ctx, group.DomainId, group.Id)
 	if err != nil {
 		return nil, err
@@ -58,7 +59,7 @@ func (a *App) UpdateOutboundResourceGroup(ctx context.Context, group *model.Outb
 	return oldGroup, nil
 }
 
-func (a *App) RemoveOutboundResourceGroup(ctx context.Context, domainId, id int64) (*model.OutboundResourceGroup, *model.AppError) {
+func (a *App) RemoveOutboundResourceGroup(ctx context.Context, domainId, id int64) (*model.OutboundResourceGroup, model.AppError) {
 	group, err := a.Store.OutboundResourceGroup().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -72,11 +73,11 @@ func (a *App) RemoveOutboundResourceGroup(ctx context.Context, domainId, id int6
 	return group, nil
 }
 
-func (a *App) CreateOutboundResourceInGroup(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+func (a *App) CreateOutboundResourceInGroup(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, model.AppError) {
 	return a.Store.OutboundResourceInGroup().Create(ctx, domainId, res)
 }
 
-func (a *App) GetOutboundResourceInGroupPage(ctx context.Context, domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, bool, *model.AppError) {
+func (a *App) GetOutboundResourceInGroupPage(ctx context.Context, domainId, groupId int64, search *model.SearchOutboundResourceInGroup) ([]*model.OutboundResourceInGroup, bool, model.AppError) {
 	list, err := a.Store.OutboundResourceInGroup().GetAllPage(ctx, domainId, groupId, search)
 	if err != nil {
 		return nil, false, err
@@ -85,11 +86,11 @@ func (a *App) GetOutboundResourceInGroupPage(ctx context.Context, domainId, grou
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetOutboundResourceInGroup(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError) {
+func (app *App) GetOutboundResourceInGroup(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, model.AppError) {
 	return app.Store.OutboundResourceInGroup().Get(ctx, domainId, groupId, id)
 }
 
-func (a *App) UpdateOutboundResourceInGroup(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, *model.AppError) {
+func (a *App) UpdateOutboundResourceInGroup(ctx context.Context, domainId int64, res *model.OutboundResourceInGroup) (*model.OutboundResourceInGroup, model.AppError) {
 	oldRes, err := a.GetOutboundResourceInGroup(ctx, domainId, res.GroupId, res.Id)
 	if err != nil {
 		return nil, err
@@ -106,7 +107,7 @@ func (a *App) UpdateOutboundResourceInGroup(ctx context.Context, domainId int64,
 	return oldRes, nil
 }
 
-func (a *App) RemoveOutboundResourceInGroup(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, *model.AppError) {
+func (a *App) RemoveOutboundResourceInGroup(ctx context.Context, domainId, groupId, id int64) (*model.OutboundResourceInGroup, model.AppError) {
 	res, err := a.Store.OutboundResourceInGroup().Get(ctx, domainId, groupId, id)
 
 	if err != nil {

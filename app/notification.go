@@ -2,11 +2,12 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) SendNotification(ctx context.Context, domainId int64, fromUserId *int64, toUsers []int64, action, description string) *model.AppError {
-	var err *model.AppError
+func (app *App) SendNotification(ctx context.Context, domainId int64, fromUserId *int64, toUsers []int64, action, description string) model.AppError {
+	var err model.AppError
 	n := &model.Notification{
 		DomainId:    domainId,
 		Action:      action,

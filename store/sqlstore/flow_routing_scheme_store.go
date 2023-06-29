@@ -3,10 +3,11 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlRoutingSchemaStore struct {
@@ -18,7 +19,7 @@ func NewSqlRoutingSchemaStore(sqlStore SqlStore) store.RoutingSchemaStore {
 	return us
 }
 
-func (s SqlRoutingSchemaStore) Create(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) Create(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
 	var out *model.RoutingSchema
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into flow.acr_routing_scheme (domain_id, name, scheme, payload, type, created_at, created_by, updated_at, updated_by, debug, editor, tags)
@@ -44,14 +45,13 @@ from s
 			"Editor":    scheme.Editor,
 			"Tags":      pq.Array(scheme.Tags),
 		}); err != nil {
-		return nil, model.NewAppError("SqlRoutingSchemaStore.Save", "store.sql_routing_schema.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", scheme.Name, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_routing_schema.save.app_error", fmt.Sprintf("name=%v, %v", scheme.Name, err.Error()))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, model.AppError) {
 	var schemes []*model.RoutingSchema
 
 	f := map[string]interface{}{
@@ -76,13 +76,13 @@ func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, s
 		model.RoutingSchema{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlRoutingSchemaStore.GetAllPage", "store.sql_routing_schema.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_routing_schema.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return schemes, nil
 	}
 }
 
-func (s SqlRoutingSchemaStore) Get(ctx context.Context, domainId int64, id int64) (*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) Get(ctx context.Context, domainId int64, id int64) (*model.RoutingSchema, model.AppError) {
 	var rScheme *model.RoutingSchema
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&rScheme, `select s.id,
        s.domain_id,
@@ -103,14 +103,13 @@ from flow.acr_routing_scheme s
 where s.id = :Id
   and s.domain_id = :DomainId
 order by s.id`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewAppError("SqlRoutingSchemaStore.Get", "store.sql_routing_schema.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_routing_schema.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return rScheme, nil
 	}
 }
 
-func (s SqlRoutingSchemaStore) Update(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, *model.AppError) {
+func (s SqlRoutingSchemaStore) Update(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&scheme, `with s as (
     update flow.acr_routing_scheme s
     set name = :Name,
@@ -152,23 +151,21 @@ from s
 				code = http.StatusBadRequest
 			}
 		}
-		return nil, model.NewAppError("SqlRoutingSchemaStore.Update", "store.sql_routing_schema.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", scheme.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_routing_schema.update.app_error", fmt.Sprintf("Id=%v, %s", scheme.Id, err.Error()), code)
 	}
 	return scheme, nil
 }
 
-func (s SqlRoutingSchemaStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlRoutingSchemaStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_routing_scheme c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlRoutingSchemaStore.Delete", "store.sql_routing_schema.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_routing_schema.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
 // todo
-func (s SqlRoutingSchemaStore) ListTags(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, *model.AppError) {
+func (s SqlRoutingSchemaStore) ListTags(ctx context.Context, domainId int64, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, model.AppError) {
 	var res []*model.RoutingSchemaTag
 	if search.Sort == "" {
 		search.Sort = "name"
@@ -199,8 +196,7 @@ offset :Offset`
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlRoutingSchemaStore.ListTags", "store.sql_routing_schema.tag_list.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_routing_schema.tag_list.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return res, nil

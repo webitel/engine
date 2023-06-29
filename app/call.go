@@ -3,16 +3,16 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/cc"
 	"github.com/webitel/wlog"
-	"net/http"
 )
 
-func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, *model.AppError) {
+func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, model.AppError) {
 	var callCli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 	var id string
 
 	var from *model.UserCallInfo
@@ -28,7 +28,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 	}
 
 	if callCli == nil {
-		return "", model.NewAppError("CreateOutboundCall", "app.call.create.not_found", nil, "", http.StatusNotFound)
+		return "", model.NewNotFoundError("app.call.create.not_found", "")
 	}
 
 	if req.From != nil && (req.From.UserId != nil || req.From.Extension != nil) {
@@ -36,11 +36,11 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 			return "", err
 		}
 	} else {
-		return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.from", nil, "", http.StatusBadRequest)
+		return "", model.NewBadRequestError("app.call.create.valid.from", "")
 	}
 
 	if from.IsBusy {
-		return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.busy", nil, "", http.StatusBadRequest)
+		return "", model.NewBadRequestError("app.call.create.valid.busy", "")
 	}
 
 	invite := inviteFromUser(domainId, req, from)
@@ -88,7 +88,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 		if stat, err = app.Store.Agent().DistributeInfoByUserId(ctx, domainId, from.Id); err != nil {
 			wlog.Error(err.Error())
 		} else if stat.Busy {
-			return "", model.NewAppError("CreateOutboundCall", "app.call.create.valid.agent", nil, "Agent in call", http.StatusBadRequest)
+			return "", model.NewBadRequestError("app.call.create.valid.agent", "Agent in call")
 		} else if stat.Distribute {
 			if _, err := app.cc.Member().CancelAgentDistribute(context.Background(), &cc.CancelAgentDistributeRequest{
 				AgentId: stat.AgentId,
@@ -111,13 +111,13 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 }
 
-func (app *App) GetCall(ctx context.Context, domainId int64, callId string) (*model.Call, *model.AppError) {
+func (app *App) GetCall(ctx context.Context, domainId int64, callId string) (*model.Call, model.AppError) {
 	return app.Store.Call().Get(ctx, domainId, callId)
 }
 
-func (app *App) EavesdropCall(ctx context.Context, domainId, userId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
+func (app *App) EavesdropCall(ctx context.Context, domainId, userId int64, req *model.EavesdropCall, variables map[string]string) (string, model.AppError) {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 	var usr *model.UserCallInfo
 	var info *model.EavesdropInfo
 
@@ -133,7 +133,7 @@ func (app *App) EavesdropCall(ctx context.Context, domainId, userId int64, req *
 	}
 
 	if usr == nil {
-		return "", model.NewAppError("App.EavesdropCall", "app.call.eavesdrop.valid.user", nil, "No user", http.StatusBadRequest)
+		return "", model.NewBadRequestError("app.call.eavesdrop.valid.user", "No user")
 	}
 
 	info, err = app.Store.Call().GetEavesdropInfo(ctx, domainId, req.Id)
@@ -254,7 +254,7 @@ func (app *App) EavesdropCall(ctx context.Context, domainId, userId int64, req *
 	return id, nil
 }
 
-func (app *App) EavesdropCallState(ctx context.Context, domainId, userId int64, req *model.EavesdropCall) *model.AppError {
+func (app *App) EavesdropCallState(ctx context.Context, domainId, userId int64, req *model.EavesdropCall) model.AppError {
 	cli, err := app.getCallCli(ctx, domainId, req.Id, nil)
 	if err != nil {
 		return err
@@ -310,7 +310,7 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 	}
 }
 
-func (app *App) GetActiveCallPage(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
+func (app *App) GetActiveCallPage(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, bool, model.AppError) {
 	list, err := app.Store.Call().GetActive(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -319,7 +319,7 @@ func (app *App) GetActiveCallPage(ctx context.Context, domainId int64, search *m
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetActiveCallPageByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
+func (app *App) GetActiveCallPageByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, model.AppError) {
 	list, err := app.Store.Call().GetActiveByGroups(ctx, domainId, userSupervisorId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -328,11 +328,11 @@ func (app *App) GetActiveCallPageByGroups(ctx context.Context, domainId int64, u
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetUserActiveCalls(ctx context.Context, domainId, userId int64) ([]*model.Call, *model.AppError) {
+func (app *App) GetUserActiveCalls(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError) {
 	return app.Store.Call().GetUserActiveCall(ctx, domainId, userId)
 }
 
-func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
 	list, err := app.Store.Call().GetHistory(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -341,7 +341,7 @@ func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, search *
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetHistoryCallPageByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+func (app *App) GetHistoryCallPageByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
 	list, err := app.Store.Call().GetHistoryByGroups(ctx, domainId, userSupervisorId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -350,11 +350,11 @@ func (app *App) GetHistoryCallPageByGroups(ctx context.Context, domainId int64, 
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetAggregateHistoryCallPage(ctx context.Context, domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
+func (app *App) GetAggregateHistoryCallPage(ctx context.Context, domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError) {
 	return app.Store.Call().Aggregate(ctx, domainId, aggs)
 }
 
-func (app *App) getCallCli(ctx context.Context, domainId int64, id string, appId *string) (cli call_manager.CallClient, err *model.AppError) {
+func (app *App) getCallCli(ctx context.Context, domainId int64, id string, appId *string) (cli call_manager.CallClient, err model.AppError) {
 
 	if appId != nil {
 		cli, err = app.CallManager().CallClientById(*appId)
@@ -369,9 +369,9 @@ func (app *App) getCallCli(ctx context.Context, domainId int64, id string, appId
 	return
 }
 
-func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.HangupCall) *model.AppError {
+func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.HangupCall) model.AppError {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 	var cause = ""
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
@@ -395,9 +395,9 @@ func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.Hangu
 	return err
 }
 
-func (app *App) ConfirmPushCall(domainId int64, callId string) *model.AppError {
+func (app *App) ConfirmPushCall(domainId int64, callId string) model.AppError {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 
 	//todo get from store
 	cli, err = app.CallManager().CallClient() //app.getCallCli(domainId, callId, nil)
@@ -413,9 +413,9 @@ func (app *App) ConfirmPushCall(domainId int64, callId string) *model.AppError {
 	return nil
 }
 
-func (app *App) HoldCall(ctx context.Context, domainId int64, req *model.UserCallRequest) *model.AppError {
+func (app *App) HoldCall(ctx context.Context, domainId int64, req *model.UserCallRequest) model.AppError {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
 	if err != nil {
@@ -425,9 +425,9 @@ func (app *App) HoldCall(ctx context.Context, domainId int64, req *model.UserCal
 	return cli.Hold(req.Id)
 }
 
-func (app *App) UnHoldCall(ctx context.Context, domainId int64, req *model.UserCallRequest) *model.AppError {
+func (app *App) UnHoldCall(ctx context.Context, domainId int64, req *model.UserCallRequest) model.AppError {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
 	if err != nil {
@@ -437,9 +437,9 @@ func (app *App) UnHoldCall(ctx context.Context, domainId int64, req *model.UserC
 	return cli.UnHold(req.Id)
 }
 
-func (app *App) DtmfCall(ctx context.Context, domainId int64, req *model.DtmfCall) *model.AppError {
+func (app *App) DtmfCall(ctx context.Context, domainId int64, req *model.DtmfCall) model.AppError {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
 	if err != nil {
@@ -449,9 +449,9 @@ func (app *App) DtmfCall(ctx context.Context, domainId int64, req *model.DtmfCal
 	return cli.DTMF(req.Id, req.Digit)
 }
 
-func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) *model.AppError {
+func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
 	var cli call_manager.CallClient
-	var err *model.AppError
+	var err model.AppError
 	var id string
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
@@ -467,7 +467,7 @@ func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *mode
 	return cli.BlindTransfer(id, req.Destination)
 }
 
-func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string) *model.AppError {
+func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string) model.AppError {
 	var cli call_manager.CallClient
 	info, err := app.Store.Call().BridgeInfo(ctx, domainId, fromId, toId)
 	if err != nil {
@@ -483,7 +483,7 @@ func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId str
 	return err
 }
 
-func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string, vars map[string]string) *model.AppError {
+func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string, vars map[string]string) model.AppError {
 	domain, err := app.Store.Call().SetVariables(ctx, domainId, id, vars)
 	if err != nil {
 		return err
@@ -500,11 +500,11 @@ func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string,
 	return err
 }
 
-func (app *App) GetLastCallFile(ctx context.Context, domainId int64, callId string) (int64, *model.AppError) {
+func (app *App) GetLastCallFile(ctx context.Context, domainId int64, callId string) (int64, model.AppError) {
 	return app.Store.Call().LastFile(ctx, domainId, callId)
 }
 
-func (app *App) CreateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+func (app *App) CreateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
 	_, err := app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
 		Ids: []string{annotation.CallId},
 	})
@@ -515,7 +515,7 @@ func (app *App) CreateCallAnnotation(ctx context.Context, domainId int64, annota
 	return app.Store.Call().CreateAnnotation(ctx, annotation)
 }
 
-func (app *App) UpdateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+func (app *App) UpdateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
 	_, err := app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
 		Ids: []string{annotation.CallId},
 	})
@@ -541,7 +541,7 @@ func (app *App) UpdateCallAnnotation(ctx context.Context, domainId int64, annota
 	return app.Store.Call().UpdateAnnotation(ctx, domainId, oldAnnotation)
 }
 
-func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, callId string) (*model.CallAnnotation, *model.AppError) {
+func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, callId string) (*model.CallAnnotation, model.AppError) {
 	_, err := app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
 		Ids: []string{callId},
 	})
@@ -562,7 +562,7 @@ func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, ca
 	return annotation, nil
 }
 
-func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string, p *model.HistoryCallPatch) (*model.HistoryCall, *model.AppError) {
+func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string, p *model.HistoryCallPatch) (*model.HistoryCall, model.AppError) {
 	err := app.Store.Call().UpdateHistoryCall(ctx, domainId, id, p)
 	if err != nil {
 		return nil, err
@@ -582,7 +582,7 @@ func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string
 	}
 
 	if len(list) == 0 {
-		return nil, model.NewAppError("UpdateHistoryCall", "app.call.update.not_found", nil, "Not found call", http.StatusNotFound)
+		return nil, model.NewNotFoundError("app.call.update.not_found", "Not found call")
 	}
 
 	return list[0], nil
@@ -590,7 +590,7 @@ func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string
 
 /*
 
-func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, *model.AppError) {
+func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, model.AppError) {
 	invite := &model.CallRequest{
 		Endpoints: from.GetCallEndpoints(),
 		Variables: map[string]string{
@@ -626,7 +626,7 @@ func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCall
 	return invite, nil
 }
 
-func (app *App) createOutboundCallToDestination(domainId int64, req *model.OutboundCallRequest, from *model.UserCallInfo) (*model.CallRequest, *model.AppError) {
+func (app *App) createOutboundCallToDestination(domainId int64, req *model.OutboundCallRequest, from *model.UserCallInfo) (*model.CallRequest, model.AppError) {
 	invite := &model.CallRequest{
 		Endpoints: from.GetCallEndpoints(),
 		Variables: map[string]string{

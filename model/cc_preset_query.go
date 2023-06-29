@@ -46,7 +46,7 @@ func (p *PresetQuery) Patch(patch *PresetQueryPatch) {
 	}
 }
 
-func (p PresetQuery) IsValid() *AppError {
+func (p PresetQuery) IsValid() AppError {
 	return nil
 }
 

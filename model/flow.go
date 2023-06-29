@@ -60,7 +60,7 @@ type RoutingSchemaPath struct {
 	Tags        []string `json:"tags" db:"tags"`
 }
 
-func (s *RoutingSchema) IsValid() *AppError {
+func (s *RoutingSchema) IsValid() AppError {
 	//FIXME
 	return nil
 }
@@ -106,7 +106,7 @@ type RoutingVariable struct {
 	Value    string `json:"value" db:"value"`
 }
 
-func (r *RoutingVariable) IsValid() *AppError {
+func (r *RoutingVariable) IsValid() AppError {
 	//FIXME
 	return nil
 }
@@ -186,7 +186,7 @@ func (r *RoutingOutboundCall) GetSchemaId() *int {
 	return &r.Schema.Id
 }
 
-func (s *RoutingOutboundCall) IsValid() *AppError {
+func (s *RoutingOutboundCall) IsValid() AppError {
 	//FIXME
 	return nil
 }

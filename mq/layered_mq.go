@@ -2,6 +2,7 @@ package mq
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
@@ -21,7 +22,7 @@ func NewMQ(mq LayeredMQLayer) MQ {
 	}
 }
 
-func (l *LayeredMQ) SendJSON(name string, data []byte) *model.AppError {
+func (l *LayeredMQ) SendJSON(name string, data []byte) model.AppError {
 	return l.MQLayer.SendJSON(name, data)
 }
 
@@ -41,22 +42,22 @@ func (l *LayeredMQ) UnBindCallEvents(domainId, userId int64) error {
 	return l.MQLayer.UnBindCallEvents(domainId, userId)
 }
 
-func (l *LayeredMQ) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (DomainQueue, *model.AppError) {
+func (l *LayeredMQ) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (DomainQueue, model.AppError) {
 	return l.MQLayer.NewDomainQueue(domainId, bindings)
 }
 
-func (l *LayeredMQ) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+func (l *LayeredMQ) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError {
 	return l.MQLayer.RegisterWebsocket(domainId, event)
 }
 
-func (l *LayeredMQ) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) *model.AppError {
+func (l *LayeredMQ) UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError {
 	return l.MQLayer.UnRegisterWebsocket(domainId, event)
 }
 
-func (l *LayeredMQ) SendStickingCall(event *model.CallServiceHangup) *model.AppError {
+func (l *LayeredMQ) SendStickingCall(event *model.CallServiceHangup) model.AppError {
 	return l.MQLayer.SendStickingCall(event)
 }
 
-func (l *LayeredMQ) SendNotification(domainId int64, event *model.Notification) *model.AppError {
+func (l *LayeredMQ) SendNotification(domainId int64, event *model.Notification) model.AppError {
 	return l.MQLayer.SendNotification(domainId, event)
 }

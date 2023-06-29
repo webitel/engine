@@ -28,7 +28,7 @@ func (a QueueResourceGroup) EntityName() string {
 	return "cc_queue_resource_view"
 }
 
-func (q *QueueResourceGroup) IsValid() *AppError {
+func (q *QueueResourceGroup) IsValid() AppError {
 	//FIXME
 	return nil
 }

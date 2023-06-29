@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -12,7 +13,7 @@ type SqlPresetQueryStore struct {
 	SqlStore
 }
 
-func (s SqlPresetQueryStore) Create(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, *model.AppError) {
+func (s SqlPresetQueryStore) Create(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&preset, `with p as (
     insert into call_center.cc_preset_query (domain_id, user_id, name, created_at, updated_at, preset, description, section)
     select :DomainId, :UserId, :Name, :CreatedAt, :UpdatedAt, :Preset, :Description, :Section
@@ -39,13 +40,13 @@ from p`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewInternalError("SqlPresetQueryStore", "store.sql_preset_query.save.app_error", err.Error())
+		return nil, model.NewInternalError("store.sql_preset_query.save.app_error", err.Error())
 	}
 
 	return preset, nil
 }
 
-func (s SqlPresetQueryStore) GetAllPage(ctx context.Context, domainId, userId int64, search *model.SearchPresetQuery) ([]*model.PresetQuery, *model.AppError) {
+func (s SqlPresetQueryStore) GetAllPage(ctx context.Context, domainId, userId int64, search *model.SearchPresetQuery) ([]*model.PresetQuery, model.AppError) {
 	var list []*model.PresetQuery
 
 	f := map[string]interface{}{
@@ -63,13 +64,13 @@ func (s SqlPresetQueryStore) GetAllPage(ctx context.Context, domainId, userId in
 				and (:Sections::varchar[] isnull or section = any(:Sections))`,
 		model.PresetQuery{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlPresetQueryStore.GetAllPage", "store.sql_preset_query.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_preset_query.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return list, nil
 }
 
-func (s SqlPresetQueryStore) Get(ctx context.Context, domainId, userId int64, id int32) (*model.PresetQuery, *model.AppError) {
+func (s SqlPresetQueryStore) Get(ctx context.Context, domainId, userId int64, id int32) (*model.PresetQuery, model.AppError) {
 	var preset *model.PresetQuery
 	f := map[string]interface{}{
 		"DomainId": domainId,
@@ -81,13 +82,13 @@ func (s SqlPresetQueryStore) Get(ctx context.Context, domainId, userId int64, id
 		`domain_id = :DomainId and id = :Id and user_id = :UserId`,
 		model.PresetQuery{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlPresetQueryStore.Get", "store.sql_preset_query.get.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_preset_query.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return preset, nil
 }
 
-func (s SqlPresetQueryStore) Update(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, *model.AppError) {
+func (s SqlPresetQueryStore) Update(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&preset, `with p as (
     update call_center.cc_preset_query
 	set updated_at = :UpdatedAt,
@@ -119,21 +120,20 @@ from p`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlPresetQueryStore", "store.sql_preset_query.update.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_preset_query.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return preset, nil
 }
 
-func (s SqlPresetQueryStore) Delete(ctx context.Context, domainId, userId int64, id int32) *model.AppError {
+func (s SqlPresetQueryStore) Delete(ctx context.Context, domainId, userId int64, id int32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_preset_query c where c.id=:Id and c.domain_id = :DomainId and user_id = :UserId`,
 		map[string]interface{}{
 			"Id":       id,
 			"UserId":   userId,
 			"DomainId": domainId,
 		}); err != nil {
-		return model.NewAppError("SqlPresetQueryStore.Delete", "store.sql_preset_query.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_preset_query.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }

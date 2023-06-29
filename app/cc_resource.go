@@ -7,19 +7,19 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) CreateOutboundResource(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
+func (a *App) CreateOutboundResource(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, model.AppError) {
 	return a.Store.OutboundResource().Create(ctx, resource)
 }
 
-func (a *App) OutboundResourceCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (a *App) OutboundResourceCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	return a.Store.OutboundResource().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (app *App) GetOutboundResource(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, *model.AppError) {
+func (app *App) GetOutboundResource(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, model.AppError) {
 	return app.Store.OutboundResource().Get(ctx, domainId, id)
 }
 
-func (a *App) GetOutboundResourcePage(ctx context.Context, domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
+func (a *App) GetOutboundResourcePage(ctx context.Context, domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, model.AppError) {
 	list, err := a.Store.OutboundResource().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -28,7 +28,7 @@ func (a *App) GetOutboundResourcePage(ctx context.Context, domainId int64, searc
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetOutboundResourcePageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, *model.AppError) {
+func (a *App) GetOutboundResourcePageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, bool, model.AppError) {
 	list, err := a.Store.OutboundResource().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -37,7 +37,7 @@ func (a *App) GetOutboundResourcePageByGroups(ctx context.Context, domainId int6
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) PatchOutboundResource(ctx context.Context, domainId, id int64, patch *model.OutboundCallResourcePath) (*model.OutboundCallResource, *model.AppError) {
+func (a *App) PatchOutboundResource(ctx context.Context, domainId, id int64, patch *model.OutboundCallResourcePath) (*model.OutboundCallResource, model.AppError) {
 	oldResource, err := a.GetOutboundResource(ctx, domainId, id)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (a *App) PatchOutboundResource(ctx context.Context, domainId, id int64, pat
 	return oldResource, nil
 }
 
-func (a *App) UpdateOutboundResource(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
+func (a *App) UpdateOutboundResource(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, model.AppError) {
 	oldResource, err := a.GetOutboundResource(ctx, resource.DomainId, resource.Id)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (a *App) UpdateOutboundResource(ctx context.Context, resource *model.Outbou
 	return oldResource, nil
 }
 
-func (a *App) RemoveOutboundResource(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, *model.AppError) {
+func (a *App) RemoveOutboundResource(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, model.AppError) {
 	resource, err := a.Store.OutboundResource().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -102,15 +102,15 @@ func (a *App) RemoveOutboundResource(ctx context.Context, domainId, id int64) (*
 	return resource, nil
 }
 
-func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
 	return a.Store.OutboundResource().SaveDisplay(ctx, display)
 }
 
-func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]int64, *model.AppError) {
+func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]int64, model.AppError) {
 	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, displays)
 }
 
-func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, *model.AppError) {
+func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, model.AppError) {
 	list, err := a.Store.OutboundResource().GetDisplayAllPage(ctx, domainId, resourceId, search)
 	if err != nil {
 		return nil, false, err
@@ -119,11 +119,11 @@ func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, reso
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetOutboundResourceDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+func (a *App) GetOutboundResourceDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, model.AppError) {
 	return a.Store.OutboundResource().GetDisplay(ctx, domainId, resourceId, id)
 }
 
-func (a *App) UpdateOutboundResourceDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+func (a *App) UpdateOutboundResourceDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
 	oldDisplay, err := a.GetOutboundResourceDisplay(ctx, domainId, display.ResourceId, display.Id)
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (a *App) UpdateOutboundResourceDisplay(ctx context.Context, domainId int64,
 	return oldDisplay, nil
 }
 
-func (a *App) RemoveOutboundResourceDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+func (a *App) RemoveOutboundResourceDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, model.AppError) {
 	display, err := a.Store.OutboundResource().GetDisplay(ctx, domainId, resourceId, id)
 
 	if err != nil {
@@ -153,6 +153,6 @@ func (a *App) RemoveOutboundResourceDisplay(ctx context.Context, domainId, resou
 	return display, nil
 }
 
-func (a *App) RemoveOutboundResourceDisplays(ctx context.Context, resourceId int64, ids []int64) *model.AppError {
+func (a *App) RemoveOutboundResourceDisplays(ctx context.Context, resourceId int64, ids []int64) model.AppError {
 	return a.Store.OutboundResource().DeleteDisplays(ctx, resourceId, ids)
 }

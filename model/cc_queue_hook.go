@@ -45,7 +45,7 @@ func (QueueHook) EntityName() string {
 	return "cc_queue_events_list"
 }
 
-func (qh *QueueHook) IsValid() *AppError {
+func (qh *QueueHook) IsValid() AppError {
 	//todo
 	return nil
 }

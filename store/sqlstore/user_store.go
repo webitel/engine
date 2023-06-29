@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -18,7 +19,7 @@ func NewSqlUserStore(sqlStore SqlStore) store.UserStore {
 	return us
 }
 
-func (s SqlUserStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlUserStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -37,7 +38,7 @@ func (s SqlUserStore) CheckAccess(ctx context.Context, domainId, id int64, group
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlUserStore) GetCallInfo(ctx context.Context, userId, domainId int64) (*model.UserCallInfo, *model.AppError) {
+func (s SqlUserStore) GetCallInfo(ctx context.Context, userId, domainId int64) (*model.UserCallInfo, model.AppError) {
 	var info *model.UserCallInfo
 	err := s.GetReplica().WithContext(ctx).SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name, 
 u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{}'::jsonb) as variables, false as has_push
@@ -50,13 +51,12 @@ where u.id = :UserId
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetCallInfo", "store.sql_user.get_call_info.app_error", nil,
-			fmt.Sprintf("UserId=%v, %s", userId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_user.get_call_info.app_error", fmt.Sprintf("UserId=%v, %s", userId, err.Error()), extractCodeFromErr(err))
 	}
 	return info, nil
 }
 
-func (s SqlUserStore) GetCallInfoEndpoint(ctx context.Context, domainId int64, e *model.EndpointRequest, isOnline bool) (*model.UserCallInfo, *model.AppError) {
+func (s SqlUserStore) GetCallInfoEndpoint(ctx context.Context, domainId int64, e *model.EndpointRequest, isOnline bool) (*model.UserCallInfo, model.AppError) {
 	var info *model.UserCallInfo
 	err := s.GetReplica().WithContext(ctx).SelectOne(&info, `select u.id,
        coalesce((u.name)::varchar, u.username)                              as name,
@@ -105,13 +105,12 @@ limit 1`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.GetCallInfoEndpoint", "store.sql_user.get_call_info.app_error", nil,
-			fmt.Sprintf("UserId=%v, Extension=%v %s", e.UserId, e.Extension, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_user.get_call_info.app_error", fmt.Sprintf("UserId=%v, Extension=%v %s", e.UserId, e.Extension, err.Error()), extractCodeFromErr(err))
 	}
 	return info, nil
 }
 
-func (s SqlUserStore) DefaultWebRTCDeviceConfig(ctx context.Context, userId, domainId int64) (*model.UserDeviceConfig, *model.AppError) {
+func (s SqlUserStore) DefaultWebRTCDeviceConfig(ctx context.Context, userId, domainId int64) (*model.UserDeviceConfig, model.AppError) {
 	var deviceConfig *model.UserDeviceConfig
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&deviceConfig, `select u.extension,
@@ -130,14 +129,13 @@ where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]i
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.DefaultDeviceConfig", "store.sql_user.get_default_device.app_error", nil,
-			fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_user.get_default_device.app_error", fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return deviceConfig, nil
 }
 
-func (s SqlUserStore) DefaultSipDeviceConfig(ctx context.Context, userId, domainId int64) (*model.UserSipDeviceConfig, *model.AppError) {
+func (s SqlUserStore) DefaultSipDeviceConfig(ctx context.Context, userId, domainId int64) (*model.UserSipDeviceConfig, model.AppError) {
 	var deviceConfig *model.UserSipDeviceConfig
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&deviceConfig, `select u.extension,
@@ -153,8 +151,7 @@ where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]i
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlUserStore.DefaultSipDeviceConfig", "store.sql_user.get_default_sip_device.app_error", nil,
-			fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_user.get_default_sip_device.app_error", fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return deviceConfig, nil

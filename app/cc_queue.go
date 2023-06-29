@@ -2,19 +2,20 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) QueueCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (a *App) QueueCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	return a.Store.Queue().CheckAccess(ctx, domainId, id, groups, access)
 }
 
-func (a *App) CreateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, *model.AppError) {
+func (a *App) CreateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	return a.Store.Queue().Create(ctx, queue)
 }
 
-func (a *App) GetQueuePage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, bool, *model.AppError) {
+func (a *App) GetQueuePage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, bool, model.AppError) {
 	list, err := a.Store.Queue().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -23,7 +24,7 @@ func (a *App) GetQueuePage(ctx context.Context, domainId int64, search *model.Se
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetQueuePageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, bool, *model.AppError) {
+func (a *App) GetQueuePageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, bool, model.AppError) {
 	list, err := a.Store.Queue().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -32,11 +33,11 @@ func (a *App) GetQueuePageByGroups(ctx context.Context, domainId int64, groups [
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetQueueById(ctx context.Context, domainId, id int64) (*model.Queue, *model.AppError) {
+func (a *App) GetQueueById(ctx context.Context, domainId, id int64) (*model.Queue, model.AppError) {
 	return a.Store.Queue().Get(ctx, domainId, id)
 }
 
-func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.QueuePatch) (*model.Queue, *model.AppError) {
+func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.QueuePatch) (*model.Queue, model.AppError) {
 	oldQueue, err := a.GetQueueById(ctx, domainId, id)
 	if err != nil {
 		return nil, err
@@ -56,7 +57,7 @@ func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.Q
 	return oldQueue, nil
 }
 
-func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, *model.AppError) {
+func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	oldQueue, err := a.GetQueueById(ctx, queue.DomainId, queue.Id)
 	if err != nil {
 		return nil, err
@@ -96,7 +97,7 @@ func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue
 	return oldQueue, nil
 }
 
-func (a *App) RemoveQueue(ctx context.Context, domainId, id int64) (*model.Queue, *model.AppError) {
+func (a *App) RemoveQueue(ctx context.Context, domainId, id int64) (*model.Queue, model.AppError) {
 	queue, err := a.Store.Queue().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -110,7 +111,7 @@ func (a *App) RemoveQueue(ctx context.Context, domainId, id int64) (*model.Queue
 	return queue, nil
 }
 
-func (a *App) GetQueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, bool, *model.AppError) {
+func (a *App) GetQueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, bool, model.AppError) {
 	list, err := a.Store.Queue().QueueReportGeneral(ctx, domainId, supervisorId, groups, access, search)
 	if err != nil {
 		return nil, false, err

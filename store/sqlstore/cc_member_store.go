@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
-	"strings"
 )
 
 type SqlMemberStore struct {
@@ -21,7 +22,7 @@ func NewSqlMemberStore(sqlStore SqlStore) store.MemberStore {
 	return us
 }
 
-func (s SqlMemberStore) Create(ctx context.Context, domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+func (s SqlMemberStore) Create(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError) {
 	var out *model.Member
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with m as (
 			insert into call_center.cc_member (queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, domain_id, agent_id, skill_id)
@@ -50,25 +51,24 @@ func (s SqlMemberStore) Create(ctx context.Context, domainId int64, member *mode
 			"AgentId":        member.Agent.GetSafeId(),
 			"SkillId":        member.Skill.GetSafeId(),
 		}); nil != err {
-		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", member.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.save.app_error", fmt.Sprintf("name=%v, %v", member.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, *model.AppError) {
+func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError) {
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
 	tx, err = s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
 
 	_, err = tx.WithContext(ctx).Exec("CREATE temp table cc_member_tmp ON COMMIT DROP as table call_center.cc_member with no data")
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
 	if fileName == "" {
 		fileName = model.NewId()
@@ -77,7 +77,7 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
 		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id", "import_id"))
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
 
 	defer stmp.Close()
@@ -111,19 +111,19 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 
 	err = tx.Commit()
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return result, nil
 
 _error:
 	tx.Rollback()
-	return nil, model.NewAppError("SqlMemberStore.Save", "store.sql_member.bulk_save.app_error", nil, err.Error(), extractCodeFromErr(err))
+	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
 // todo fix deprecated fields
 
-func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
 	var members []*model.Member
 
 	order := GetOrderBy("cc_member", model.MemberDeprecatedField(search.Sort))
@@ -239,13 +239,13 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 		"StopCauses": pq.Array(search.StopCauses),
 		"Name":       search.Name,
 	}); err != nil {
-		return nil, model.NewAppError("SqlMemberStore.GetAllPage", "store.sql_member.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_member.get_all.app_error", err.Error())
 	} else {
 		return members, nil
 	}
 }
 
-func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, *model.AppError) {
+func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError) {
 	var member *model.Member
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&member, `select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
 			   call_center.cc_member_communications(m.communications) as communications,  call_center.cc_get_lookup(qb.id, qb.name::text) as bucket, ready_at,
@@ -261,14 +261,13 @@ func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*
 		"DomainId": domainId,
 		"QueueId":  queueId,
 	}); err != nil {
-		return nil, model.NewAppError("SqlMemberStore.Get", "store.sql_member.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return member, nil
 	}
 }
 
-func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, *model.AppError) {
+func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&member, `with m as (
     update call_center.cc_member m1
         set priority = :Priority,
@@ -314,18 +313,16 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	if err != nil {
 		code := extractCodeFromErr(err)
 		if code == http.StatusNotFound { //todo
-			return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.lock", nil,
-				fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), http.StatusBadRequest)
+			return nil, model.NewBadRequestError("store.sql_member.update.lock", fmt.Sprintf("Id=%v, %s", member.Id, err.Error()))
 		}
 
-		return nil, model.NewAppError("SqlMemberStore.Update", "store.sql_member.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_member.update.app_error", fmt.Sprintf("Id=%v, %s", member.Id, err.Error()), code)
 	}
 	return member, nil
 }
 
 // TODO add force
-func (s SqlMemberStore) Delete(ctx context.Context, queueId, id int64) *model.AppError {
+func (s SqlMemberStore) Delete(ctx context.Context, queueId, id int64) model.AppError {
 	var cnt int64
 	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
 from call_center.cc_member c
@@ -335,25 +332,22 @@ where c.id = :Id
 		map[string]interface{}{"Id": id, "QueueId": queueId})
 
 	if err != nil {
-		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	cnt, err = res.RowsAffected()
 	if err != nil {
-		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	if cnt == 0 {
-		return model.NewAppError("SqlMemberStore.Delete", "store.sql_member.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, not found", id), http.StatusNotFound)
+		return model.NewNotFoundError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, not found", id))
 	}
 
 	return nil
 }
 
-func (s SqlMemberStore) MultiDelete(ctx context.Context, search *model.MultiDeleteMembers) ([]*model.Member, *model.AppError) {
+func (s SqlMemberStore) MultiDelete(ctx context.Context, search *model.MultiDeleteMembers) ([]*model.Member, model.AppError) {
 	var res []*model.Member
 
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `with m as (
@@ -419,14 +413,13 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.MultiDelete", "store.sql_member.multi_delete.app_error", nil,
-			fmt.Sprintf("Ids=%v, %s", search.Ids, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.multi_delete.app_error", fmt.Sprintf("Ids=%v, %s", search.Ids, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlMemberStore) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, *model.AppError) {
+func (s SqlMemberStore) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError) {
 	cnt, err := s.GetMaster().WithContext(ctx).SelectInt(`with upd as (
     update call_center.cc_member m
     set stop_cause = null,
@@ -455,14 +448,13 @@ from upd`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return 0, model.NewAppError("SqlMemberStore.ResetMembers", "store.sql_member.reset.app_error", nil,
-			fmt.Sprintf("QueueId=%v, %s", req.QueueId, err.Error()), extractCodeFromErr(err))
+		return 0, model.NewCustomCodeError("store.sql_member.reset.app_error", fmt.Sprintf("QueueId=%v, %s", req.QueueId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return cnt, nil
 }
 
-func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, *model.AppError) {
+func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) {
 	var attempts []*model.MemberAttempt
 	//FIXME
 	if _, err := s.GetReplica().WithContext(ctx).Select(&attempts, `with active as (
@@ -523,14 +515,13 @@ from active a
 union all
 select *
 from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
-		return nil, model.NewAppError("SqlMemberStore.AttemptsList", "store.sql_member.get_attempts_all.app_error", nil,
-			fmt.Sprintf("MemberId=%v, %s", memberId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.get_attempts_all.app_error", fmt.Sprintf("MemberId=%v, %s", memberId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return attempts, nil
 }
 
-func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, *model.AppError) {
+func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, model.AppError) {
 	var att []*model.AttemptHistory
 
 	f := map[string]interface{}{
@@ -580,14 +571,13 @@ func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int6
 `,
 		model.AttemptHistory{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.SearchAttemptsHistory", "store.sql_member.attempts_history.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.attempts_history.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return att, nil
 }
 
-func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, *model.AppError) {
+func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, model.AppError) {
 	var att []*model.Attempt
 
 	f := map[string]interface{}{
@@ -638,14 +628,13 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 	and (:Q::varchar isnull or ( destination->>'destination' ilike :Q or destination->>'display' ilike :Q))`,
 		model.Attempt{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.SearchAttempts", "store.sql_member.attempts.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.attempts.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return att, nil
 }
 
-func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, *model.AppError) {
+func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError) {
 	var att []*model.OfflineMember
 	_, err := s.GetReplica().WithContext(ctx).Select(&att, `with comm as (
     select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
@@ -686,14 +675,13 @@ from call_center.cc_member m
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.ListOfflineQueueForAgent", "store.sql_member.list_offline_queue.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.list_offline_queue.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return att, nil
 }
 
-func (s SqlMemberStore) GetAppointmentWidget(ctx context.Context, uri string) (*model.AppointmentWidget, *model.AppError) {
+func (s SqlMemberStore) GetAppointmentWidget(ctx context.Context, uri string) (*model.AppointmentWidget, model.AppError) {
 	var widget *model.AppointmentWidget
 	err := s.GetReplica().WithContext(ctx).SelectOne(&widget, `select profile, list
 from call_center.appointment_widget(:Uri::varchar)`, map[string]interface{}{
@@ -701,8 +689,7 @@ from call_center.appointment_widget(:Uri::varchar)`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.GetAppointmentWidget", "store.sql_member.appointment.widget.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.appointment.widget.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	widget.InitOrigin()
@@ -710,7 +697,7 @@ from call_center.appointment_widget(:Uri::varchar)`, map[string]interface{}{
 	return widget, nil
 }
 
-func (s SqlMemberStore) GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, *model.AppError) {
+func (s SqlMemberStore) GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, model.AppError) {
 	var res *model.Appointment
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select
@@ -729,14 +716,13 @@ where m.id = :Id and m.stop_at isnull and m.stop_cause isnull`, map[string]inter
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.GetAppointment", "store.sql_member.appointment.get.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.appointment.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlMemberStore) CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, *model.AppError) {
+func (s SqlMemberStore) CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&app, `
 insert into call_center.cc_member (queue_id, communications, timezone_id, domain_id, variables, ready_at, expire_at, name, import_id)
 select :QueueId,
@@ -776,14 +762,13 @@ returning call_center.cc_member.id,
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlMemberStore.CreateAppointment", "store.sql_member.appointment.create.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_member.appointment.create.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return app, nil
 }
 
-func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberId int64, reason string) *model.AppError {
+func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member 
 set stop_at = now(),
     stop_cause = :Reason
@@ -793,8 +778,7 @@ where id = :Id`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return model.NewAppError("SqlMemberStore.CancelAppointment", "store.sql_member.appointment.cancel.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_member.appointment.cancel.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return nil

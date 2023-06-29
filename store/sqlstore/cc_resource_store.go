@@ -3,7 +3,6 @@ package sqlstore
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -20,7 +19,7 @@ func NewSqlOutboundResourceStore(sqlStore SqlStore) store.OutboundResourceStore 
 	return us
 }
 
-func (s SqlOutboundResourceStore) Create(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) Create(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, model.AppError) {
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into call_center.cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
@@ -60,14 +59,13 @@ from s
 			"FailureDialDelay": resource.FailureDialDelay,
 			"Parameters":       resource.Parameters.ToJson(),
 		}); nil != err {
-		return nil, model.NewAppError("SqlOutboundResourceStore.Save", "store.sql_out_resource.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", resource.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.save.app_error", fmt.Sprintf("name=%v, %v", resource.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlOutboundResourceStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlOutboundResourceStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
@@ -85,7 +83,7 @@ func (s SqlOutboundResourceStore) CheckAccess(ctx context.Context, domainId, id 
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlOutboundResourceStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, model.AppError) {
 	var resources []*model.OutboundCallResource
 
 	f := map[string]interface{}{
@@ -101,14 +99,13 @@ func (s SqlOutboundResourceStore) GetAllPage(ctx context.Context, domainId int64
 		model.OutboundCallResource{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
-			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.get_all.app_error", fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return resources, nil
 	}
 }
 
-func (s SqlOutboundResourceStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, model.AppError) {
 	var resources []*model.OutboundCallResource
 
 	f := map[string]interface{}{
@@ -129,14 +126,13 @@ func (s SqlOutboundResourceStore) GetAllPageByGroups(ctx context.Context, domain
 		model.OutboundCallResource{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.GetAllPage", "store.sql_out_resource.get_all.app_error", nil,
-			fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.get_all.app_error", fmt.Sprintf("DomainId=%v, %s", domainId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return resources, nil
 	}
 }
 
-func (s SqlOutboundResourceStore) Get(ctx context.Context, domainId int64, id int64) (*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) Get(ctx context.Context, domainId int64, id int64) (*model.OutboundCallResource, model.AppError) {
 	var resource *model.OutboundCallResource
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&resource, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
@@ -149,14 +145,13 @@ func (s SqlOutboundResourceStore) Get(ctx context.Context, domainId int64, id in
 				left join directory.sip_gateway gw on gw.id = s.gateway_id
 		where s.domain_id = :DomainId and s.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.Get", "store.sql_out_resource.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return resource, nil
 	}
 }
 
-func (s SqlOutboundResourceStore) Update(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, *model.AppError) {
+func (s SqlOutboundResourceStore) Update(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, model.AppError) {
 
 	err := s.GetMaster().WithContext(ctx).SelectOne(&resource, `
 with s as (
@@ -209,23 +204,21 @@ from s
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.Update", "store.sql_out_resource.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", resource.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.update.app_error", fmt.Sprintf("Id=%v, %s", resource.Id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return resource, nil
 }
 
-func (s SqlOutboundResourceStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlOutboundResourceStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_outbound_resource c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlOutboundResourceStore.Delete", "store.sql_out_resource.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_out_resource.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, d *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
 	var out *model.ResourceDisplay
 	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_outbound_resource_display (resource_id, display)
 values (:ResourceId, :Display)
@@ -235,14 +228,13 @@ returning *`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.SaveDisplay", "store.sql_out_resource.save_display.app_error", nil,
-			fmt.Sprintf("name=%v, %v", d.Display, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.save_display.app_error", fmt.Sprintf("name=%v, %v", d.Display, err.Error()), extractCodeFromErr(err))
 	}
 
 	return out, nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]int64, *model.AppError) {
+func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]int64, model.AppError) {
 	params := map[string]interface{}{
 		"ResourceId": resourceId,
 	}
@@ -259,13 +251,12 @@ func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId i
 	queryBase = queryBase[:len(queryBase)-1] + " returning id"
 	_, err := s.GetMaster().WithContext(ctx).Select(&ids, queryBase, params)
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.SaveDisplays", "store.sql_out_resource.save_displays.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.save_displays.app_error", err.Error(), extractCodeFromErr(err))
 	}
 	return ids, nil
 }
 
-func (s SqlOutboundResourceStore) GetDisplayAllPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, *model.AppError) {
+func (s SqlOutboundResourceStore) GetDisplayAllPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
 	var list []*model.ResourceDisplay
 
 	f := map[string]interface{}{
@@ -283,14 +274,13 @@ func (s SqlOutboundResourceStore) GetDisplayAllPage(ctx context.Context, domainI
 		model.ResourceDisplay{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.GetDisplayAllPage", "store.sql_out_resource.get_display_all.app_error", nil,
-			fmt.Sprintf("ResourceId=%v, %s", resourceId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.get_display_all.app_error", fmt.Sprintf("ResourceId=%v, %s", resourceId, err.Error()), extractCodeFromErr(err))
 	} else {
 		return list, nil
 	}
 }
 
-func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, *model.AppError) {
+func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, model.AppError) {
 	var res *model.ResourceDisplay
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&res, `
 			select d.id, d.display, d.resource_id
@@ -298,14 +288,13 @@ func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, reso
 		where d.id = :Id and d.resource_id = :ResourceId and exists (select 1
 				from call_center.cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId, "ResourceId": resourceId}); err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.GetDisplay", "store.sql_out_resource.get_display.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.get_display.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return res, nil
 	}
 }
 
-func (s SqlOutboundResourceStore) UpdateDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, *model.AppError) {
+func (s SqlOutboundResourceStore) UpdateDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&display, `
 		update call_center.cc_outbound_resource_display d
 set display = :Display 
@@ -319,26 +308,23 @@ returning *`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlOutboundResourceStore.UpdateDisplay", "store.sql_out_resource.update_display.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", display.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_out_resource.update_display.app_error", fmt.Sprintf("Id=%v, %s", display.Id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return display, nil
 }
 
-func (s SqlOutboundResourceStore) DeleteDisplay(ctx context.Context, domainId, resourceId, id int64) *model.AppError {
+func (s SqlOutboundResourceStore) DeleteDisplay(ctx context.Context, domainId, resourceId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_outbound_resource_display d
 		where d.id = :Id and d.resource_id = :ResourceId and exists(select 1 from call_center.cc_outbound_resource r where r.id = d.resource_id and r.domain_id = :DomainId)`,
 		map[string]interface{}{"Id": id, "DomainId": domainId, "ResourceId": resourceId}); err != nil {
-		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplay", "store.sql_out_resource.delete_display.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_out_resource.delete_display.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
-func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId int64, ids []int64) *model.AppError {
+func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId int64, ids []int64) model.AppError {
 	if resourceId == 0 {
-		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
-			"resource id empty", http.StatusBadRequest)
+		return model.NewBadRequestError("store.sql_out_resource.delete_displays.app_error", "resource id empty")
 	}
 	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
 	from call_center.cc_outbound_resource_display d
@@ -348,12 +334,10 @@ func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId
 		"Ids":        pq.Array(ids),
 	})
 	if err != nil {
-		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.app_error", err.Error(), extractCodeFromErr(err))
 	}
 	if rows, err := res.RowsAffected(); err == nil && rows == 0 {
-		return model.NewAppError("SqlOutboundResourceStore.DeleteDisplays", "store.sql_out_resource.delete_displays.app_error", nil,
-			"no numbers with given filters found", http.StatusBadRequest)
+		return model.NewBadRequestError("store.sql_out_resource.delete_displays.app_error", "no numbers with given filters found")
 	}
 
 	return nil

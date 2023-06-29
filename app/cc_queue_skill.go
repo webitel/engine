@@ -2,10 +2,11 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) SearchQueueSkill(ctx context.Context, domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, bool, *model.AppError) {
+func (a *App) SearchQueueSkill(ctx context.Context, domainId int64, search *model.SearchQueueSkill) ([]*model.QueueSkill, bool, model.AppError) {
 	list, err := a.Store.QueueSkill().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -14,15 +15,15 @@ func (a *App) SearchQueueSkill(ctx context.Context, domainId int64, search *mode
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) CreateQueueSkill(ctx context.Context, domainId int64, qs *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
+func (a *App) CreateQueueSkill(ctx context.Context, domainId int64, qs *model.QueueSkill) (*model.QueueSkill, model.AppError) {
 	return a.Store.QueueSkill().Create(ctx, domainId, qs)
 }
 
-func (a *App) GetQueueSkill(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError) {
+func (a *App) GetQueueSkill(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, model.AppError) {
 	return a.Store.QueueSkill().Get(ctx, domainId, queueId, id)
 }
 
-func (a *App) UpdateQueueSkill(ctx context.Context, domainId int64, qs *model.QueueSkill) (*model.QueueSkill, *model.AppError) {
+func (a *App) UpdateQueueSkill(ctx context.Context, domainId int64, qs *model.QueueSkill) (*model.QueueSkill, model.AppError) {
 	oldQs, err := a.GetQueueSkill(ctx, domainId, qs.QueueId, qs.Id)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func (a *App) UpdateQueueSkill(ctx context.Context, domainId int64, qs *model.Qu
 	return oldQs, nil
 }
 
-func (a *App) PatchQueueSkill(ctx context.Context, domainId int64, queueId, id uint32, patch *model.QueueSkillPatch) (*model.QueueSkill, *model.AppError) {
+func (a *App) PatchQueueSkill(ctx context.Context, domainId int64, queueId, id uint32, patch *model.QueueSkillPatch) (*model.QueueSkill, model.AppError) {
 	oldQs, err := a.GetQueueSkill(ctx, domainId, queueId, id)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (a *App) PatchQueueSkill(ctx context.Context, domainId int64, queueId, id u
 	return oldQs, nil
 }
 
-func (a *App) RemoveQueueSkill(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, *model.AppError) {
+func (a *App) RemoveQueueSkill(ctx context.Context, domainId int64, queueId, id uint32) (*model.QueueSkill, model.AppError) {
 	qs, err := a.GetQueueSkill(ctx, domainId, queueId, id)
 
 	if err != nil {

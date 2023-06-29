@@ -16,7 +16,7 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := mux.Vars(r)
 	e, ok := c.App.MailOauthConfig(props["id"])
 	if !ok {
-		c.Err = model.NewAppError("API", "api.oauth2.callback.bad_request", nil, "Not found provider "+props["id"], http.StatusBadRequest)
+		c.Err = model.NewBadRequestError("api.oauth2.callback.bad_request", "Not found provider "+props["id"])
 		return
 	}
 
@@ -35,7 +35,7 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	token, err2 := e.Exchange(oauth2.NoContext, r.FormValue("code"))
 	if err2 != nil {
-		c.Err = model.NewAppError("API", "api.oauth2.callback.bad_request", nil, err2.Error(), http.StatusBadRequest)
+		c.Err = model.NewBadRequestError("api.oauth2.callback.bad_request", err2.Error())
 		return
 	}
 

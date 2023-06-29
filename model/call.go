@@ -157,7 +157,7 @@ func (e *EavesdropCall) StateName() string {
 	}
 }
 
-func (r *OutboundCallRequest) IsValid() *AppError {
+func (r *OutboundCallRequest) IsValid() AppError {
 	return nil
 }
 
@@ -308,7 +308,7 @@ func (c Call) EntityName() string {
 }
 
 // todo
-func (a *CallAnnotation) IsValid() *AppError {
+func (a *CallAnnotation) IsValid() AppError {
 	return nil
 }
 

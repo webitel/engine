@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -18,7 +19,7 @@ func (api *API) InitAgent() {
 	api.Router.Handle("cc_agent_task_close", api.ApiWebSocketHandler(api.closeAgentTask))
 }
 
-func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var ok bool
 
@@ -34,7 +35,7 @@ func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketReq
 	return nil, h.SubscribeSessionAgentStatus(conn, int(agentId))
 }
 
-func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var userId int64
 	var domainId int64
 	var ok bool
@@ -54,7 +55,7 @@ func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) 
 	return sess.ToMap(), nil
 }
 
-func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var onDemand bool
@@ -78,7 +79,7 @@ func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 	return res, nil
 }
 
-func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var ok bool
@@ -100,7 +101,7 @@ func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return res, nil
 }
 
-func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var payload string
@@ -127,7 +128,7 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return res, nil
 }
 
-func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var channel string
@@ -155,7 +156,7 @@ func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return res, nil
 }
 
-func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId, domainId float64
 	var ok bool
 
@@ -177,7 +178,7 @@ func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return res, nil
 }
 
-func (api *API) acceptAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) acceptAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId, attemptId float64
 	var ok bool
 
@@ -202,7 +203,7 @@ func (api *API) acceptAgentTask(conn *app.WebConn, req *model.WebSocketRequest) 
 	return nil, err
 }
 
-func (api *API) closeAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) closeAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId, attemptId float64
 	var ok bool
 

@@ -3,18 +3,18 @@ package app
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
-	"net/http"
-	"strings"
 )
 
-func (app *App) CountActiveEmailProfile(ctx context.Context, domainId int64) (int, *model.AppError) {
+func (app *App) CountActiveEmailProfile(ctx context.Context, domainId int64) (int, model.AppError) {
 	return app.Store.EmailProfile().CountEnabledByDomain(ctx, domainId)
 }
 
-func (app *App) ConstraintEmailProfileLimit(ctx context.Context, domainId int64, token string) *model.AppError {
+func (app *App) ConstraintEmailProfileLimit(ctx context.Context, domainId int64, token string) model.AppError {
 	count, err := app.CountActiveEmailProfile(ctx, domainId)
 	if err != nil {
 		return err
@@ -22,22 +22,21 @@ func (app *App) ConstraintEmailProfileLimit(ctx context.Context, domainId int64,
 
 	limit, errLic := app.sessionManager.ProductLimit(ctx, token, auth_manager.LicenseEmail)
 	if errLic != nil {
-		return model.NewAppError("ConstraintEmailProfileLimit", "app.email.app_error", nil, errLic.Error(), http.StatusInternalServerError)
+		return model.NewInternalError("app.email.app_error", errLic.Error())
 	}
 
 	if (count + 1) > limit {
-		return model.NewAppError("ConstraintEmailProfileLimit", "app.email.valid.license", nil,
-			fmt.Sprintf("mail profile registration is limited; maximum number of active: %d", limit), http.StatusPreconditionFailed)
+		return model.NewInternalError("app.email.valid.license", fmt.Sprintf("mail profile registration is limited; maximum number of active: %d", limit))
 	}
 
 	return nil
 }
 
-func (app *App) CreateEmailProfile(ctx context.Context, domainId int64, profile *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (app *App) CreateEmailProfile(ctx context.Context, domainId int64, profile *model.EmailProfile) (*model.EmailProfile, model.AppError) {
 	return app.Store.EmailProfile().Create(ctx, domainId, profile)
 }
 
-func (a *App) GetEmailProfilesPage(ctx context.Context, domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, bool, *model.AppError) {
+func (a *App) GetEmailProfilesPage(ctx context.Context, domainId int64, search *model.SearchEmailProfile) ([]*model.EmailProfile, bool, model.AppError) {
 	list, err := a.Store.EmailProfile().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -46,11 +45,11 @@ func (a *App) GetEmailProfilesPage(ctx context.Context, domainId int64, search *
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) GetEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+func (a *App) GetEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, model.AppError) {
 	return a.Store.EmailProfile().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, *model.AppError) {
+func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, model.AppError) {
 	oldProfile, err := a.GetEmailProfile(ctx, domainId, int(p.Id))
 	if err != nil {
 		return nil, err
@@ -78,7 +77,7 @@ func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.E
 	return oldProfile, nil
 }
 
-func (a *App) PatchEmailProfile(ctx context.Context, domainId int64, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, *model.AppError) {
+func (a *App) PatchEmailProfile(ctx context.Context, domainId int64, id int, patch *model.EmailProfilePatch) (*model.EmailProfile, model.AppError) {
 	oldProfile, err := a.GetEmailProfile(ctx, domainId, id)
 	if err != nil {
 		return nil, err
@@ -98,7 +97,7 @@ func (a *App) PatchEmailProfile(ctx context.Context, domainId int64, id int, pat
 	return oldProfile, nil
 }
 
-func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.EmailProfileLogin, *model.AppError) {
+func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.EmailProfileLogin, model.AppError) {
 
 	var oauthConf oauth2.Config
 	var ok bool
@@ -110,8 +109,7 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 	}
 
 	if !ok {
-		return nil, model.NewAppError("Email", "app.email.profile.login.not_found_oauth", nil,
-			"Not found server oauth config to "+profile.ImapHost, http.StatusForbidden)
+		return nil, model.NewForbiddenError("app.email.profile.login.not_found_oauth", "Not found server oauth config to "+profile.ImapHost)
 	}
 
 	oauthState, err := a.EncryptId(int64(profile.Id))
@@ -128,7 +126,7 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 	}, nil
 }
 
-func (a *App) LoginEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfileLogin, *model.AppError) {
+func (a *App) LoginEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfileLogin, model.AppError) {
 	profile, err := a.GetEmailProfile(ctx, domainId, id)
 	if err != nil {
 		return nil, err
@@ -139,11 +137,10 @@ func (a *App) LoginEmailProfile(ctx context.Context, domainId int64, id int) (*m
 		return a.loginEmailProfileOAuth2(profile)
 	}
 
-	return nil, model.NewAppError("Email", "app.email.profile.login.not_found_auth_type", nil,
-		"Not found auth type to "+profile.ImapHost, http.StatusForbidden)
+	return nil, model.NewForbiddenError("app.email.profile.login.not_found_auth_type", "Not found auth type to "+profile.ImapHost)
 }
 
-func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, *model.AppError) {
+func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, model.AppError) {
 	profile, err := app.Store.EmailProfile().Get(ctx, domainId, id)
 
 	if err != nil {
@@ -157,7 +154,7 @@ func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) 
 	return profile, nil
 }
 
-func (app *App) EmailLoginOAuth(ctx context.Context, id int, token *oauth2.Token) *model.AppError {
+func (app *App) EmailLoginOAuth(ctx context.Context, id int, token *oauth2.Token) model.AppError {
 	return app.Store.EmailProfile().SetupOAuth2(ctx, id, &model.MailProfileParams{
 		OAuth2: token,
 	})

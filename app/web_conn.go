@@ -228,7 +228,7 @@ func (webCon *WebConn) SendHello() {
 	webCon.Send <- msg
 }
 
-func (webCon *WebConn) SendError(err *model.AppError) {
+func (webCon *WebConn) SendError(err model.AppError) {
 	msg := model.NewWebSocketEvent(model.WebsocketError)
 	msg.Add("sock_id", webCon.id)
 	msg.Add("error", err)

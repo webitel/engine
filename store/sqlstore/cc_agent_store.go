@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
-	"strings"
 )
 
 type SqlAgentStore struct {
@@ -21,7 +22,7 @@ func NewSqlAgentStore(sqlStore SqlStore) store.AgentStore {
 	return us
 }
 
-func (s SqlAgentStore) HasAgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, *model.AppError) {
+func (s SqlAgentStore) HasAgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError) {
 	var res *model.AgentCC
 	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select length(coalesce(u.extension, '')) > 0 as has_extension,
        a.id notnull as has_agent
@@ -33,14 +34,13 @@ where u.id = :UserId and u.dc = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.HasAgentCC", "store.sql_agent.has_agent.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", userId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.has_agent.app_error", fmt.Sprintf("Id=%v, %s", userId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlAgentStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -59,7 +59,7 @@ func (s SqlAgentStore) CheckAccess(ctx context.Context, domainId, id int64, grou
 	return res.Valid && res.Int64 == 1, nil
 }
 
-func (s SqlAgentStore) AccessAgents(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, *model.AppError) {
+func (s SqlAgentStore) AccessAgents(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, model.AppError) {
 	var res []int64
 	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select distinct a.object::int agent_id
           from call_center.cc_agent_acl a
@@ -74,15 +74,14 @@ func (s SqlAgentStore) AccessAgents(ctx context.Context, domainId int64, agentId
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.AccessAgents", "store.sql_agent.access.app_error", nil,
-			fmt.Sprintf("record=%v, %v", agentIds, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_agent.access.app_error", fmt.Sprintf("record=%v, %v", agentIds, err.Error()))
 	}
 
 	return res, nil
 }
 
 // FIXME
-func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
+func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.Agent, model.AppError) {
 	var out *model.Agent
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with a as (
 			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
@@ -142,14 +141,13 @@ FROM a
 			"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 			"Supervisor":       agent.IsSupervisor,
 		}); err != nil {
-		return nil, model.NewAppError("SqlAgentStore.Save", "store.sql_agent.save.app_error", nil,
-			fmt.Sprintf("record=%v, %v", agent, err.Error()), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_agent.save.app_error", fmt.Sprintf("record=%v, %v", agent, err.Error()))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, *model.AppError) {
+func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, model.AppError) {
 	var agents []*model.Agent
 
 	f := map[string]interface{}{
@@ -197,13 +195,13 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
 		model.Agent{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.GetAllPage", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_agent.get_all.app_error", err.Error())
 	}
 
 	return agents, nil
 }
 
-func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, *model.AppError) {
+func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, model.AppError) {
 	var agents []*model.Agent
 
 	f := map[string]interface{}{
@@ -259,13 +257,13 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		  		)`,
 		model.Agent{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.GetAllPageByGroups", "store.sql_agent.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_agent.get_all.app_error", err.Error())
 	}
 
 	return agents, nil
 }
 
-func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, *model.AppError) {
+func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError) {
 	var res []*model.CCTask
 	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select a.id as attempt_id,
            a.channel,
@@ -298,14 +296,13 @@ where a.agent_id = :AgentId and a2.domain_id  = :DomainId and a.state != 'leavin
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.GetActiveTask", "store.sql_agent.get_tasks.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_tasks.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*model.Agent, *model.AppError) {
+func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*model.Agent, model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&agent, `
 		SELECT a.domain_id,
@@ -345,18 +342,16 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 				where a.domain_id = :DomainId and a.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlAgentStore.Get", "store.sql_agent.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusNotFound)
+			return nil, model.NewNotFoundError("store.sql_agent.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		} else {
-			return nil, model.NewAppError("SqlAgentStore.Get", "store.sql_agent.get.app_error", nil,
-				fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+			return nil, model.NewInternalError("store.sql_agent.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		}
 	} else {
 		return agent, nil
 	}
 }
 
-func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.Agent, *model.AppError) {
+func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.Agent, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&agent, `with a as (
 			update call_center.cc_agent
 			set user_id = :UserId,
@@ -433,39 +428,35 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			}
 		}
 
-		return nil, model.NewAppError("SqlAgentStore.Update", "store.sql_agent.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", agent.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_agent.update.app_error", fmt.Sprintf("Id=%v, %s", agent.Id, err.Error()), code)
 	}
 	return agent, nil
 }
 
-func (s SqlAgentStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlAgentStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_agent c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlAgentStore.Delete", "store.sql_agent.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_agent.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
-func (s SqlAgentStore) SetStatus(ctx context.Context, domainId, agentId int64, status string, payload interface{}) (bool, *model.AppError) {
+func (s SqlAgentStore) SetStatus(ctx context.Context, domainId, agentId int64, status string, payload interface{}) (bool, model.AppError) {
 	if r, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_agent
 			set status = :Status
   			,status_payload = :Payload
 			where id = :AgentId and domain_id = :DomainId and (status <> :Status or status_payload <> :Payload)`, map[string]interface{}{"AgentId": agentId, "Status": status, "Payload": payload, "DomainId": domainId}); err != nil {
-		return false, model.NewAppError("SqlAgentStore.SetStatus", "store.sql_agent.set_status.app_error", nil,
-			fmt.Sprintf("AgenetId=%v, %s", agentId, err.Error()), http.StatusInternalServerError)
+		return false, model.NewInternalError("store.sql_agent.set_status.app_error", fmt.Sprintf("AgenetId=%v, %s", agentId, err.Error()))
 	} else {
 		var cnt int64
 		if cnt, err = r.RowsAffected(); err != nil {
-			return false, model.NewAppError("SqlAgentStore.SetStatus", "store.sql_agent.set_status.app_error", nil,
-				fmt.Sprintf("AgenetId=%v, %s", agentId, err.Error()), http.StatusInternalServerError)
+			return false, model.NewInternalError("store.sql_agent.set_status.app_error", fmt.Sprintf("AgenetId=%v, %s", agentId, err.Error()))
 		}
 		return cnt > 0, nil
 	}
 }
 
-func (s SqlAgentStore) InQueue(ctx context.Context, domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, *model.AppError) {
+func (s SqlAgentStore) InQueue(ctx context.Context, domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, model.AppError) {
 	var res []*model.AgentInQueue
 
 	f := map[string]interface{}{
@@ -482,14 +473,13 @@ func (s SqlAgentStore) InQueue(ctx context.Context, domainId, id int64, search *
 		model.AgentInQueue{}, f)
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.InQueue", "store.sql_agent.get_queue.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_queue.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentStore) QueueStatistic(ctx context.Context, domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
+func (s SqlAgentStore) QueueStatistic(ctx context.Context, domainId, agentId int64) ([]*model.AgentInQueueStatistic, model.AppError) {
 	var stats []*model.AgentInQueueStatistic
 	_, err := s.GetReplica().WithContext(ctx).Select(&stats, `select
     call_center.cc_get_lookup(q.id, q.name) queue,
@@ -553,14 +543,13 @@ group by q.id`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.QueueStatistic", "store.sql_agent.get_queue_stats.app_error", nil,
-			fmt.Sprintf("AgentId=%v, %s", agentId, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_queue_stats.app_error", fmt.Sprintf("AgentId=%v, %s", agentId, err.Error()), extractCodeFromErr(err))
 	}
 
 	return stats, nil
 }
 
-func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, *model.AppError) {
+func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, model.AppError) {
 	var res []*model.AgentState
 
 	//fixme
@@ -602,14 +591,13 @@ offset :Offset`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.HistoryState", "store.sql_agent.get_state_history.app_error", nil,
-			err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_state_history.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentStore) LookupNotExistsUsers(ctx context.Context, domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, *model.AppError) {
+func (s SqlAgentStore) LookupNotExistsUsers(ctx context.Context, domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, model.AppError) {
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().WithContext(ctx).Select(&users,
@@ -626,13 +614,13 @@ offset :Offset`, map[string]interface{}{
 			"Offset":   search.GetOffset(),
 			"Q":        search.GetQ(),
 		}); err != nil {
-		return nil, model.NewAppError("SqlAgentStore.LookupNotExistsUsers", "store.sql_agent.lookup.users.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.lookup.users.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return users, nil
 	}
 }
 
-func (s SqlAgentStore) LookupNotExistsUsersByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, *model.AppError) {
+func (s SqlAgentStore) LookupNotExistsUsersByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, model.AppError) {
 	var users []*model.AgentUser
 
 	if _, err := s.GetReplica().WithContext(ctx).Select(&users,
@@ -656,13 +644,13 @@ offset :Offset`, map[string]interface{}{
 			"Groups":   pq.Array(groups),
 			"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 		}); err != nil {
-		return nil, model.NewAppError("SqlAgentStore.LookupNotExistsUsers", "store.sql_agent.lookup.users.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.lookup.users.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return users, nil
 	}
 }
 
-func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (*model.AgentSession, *model.AppError) {
+func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (*model.AgentSession, model.AppError) {
 	var agent *model.AgentSession
 	err := s.GetMaster().WithContext(ctx).SelectOne(&agent, `select a.id as agent_id,
        a.status,
@@ -698,12 +686,12 @@ where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.GetSession", "store.sql_agent.get_session.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_session.app_error", err.Error(), extractCodeFromErr(err))
 	}
 	return agent, nil
 }
 
-func (s SqlAgentStore) CallStatistics(ctx context.Context, domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, *model.AppError) {
+func (s SqlAgentStore) CallStatistics(ctx context.Context, domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, model.AppError) {
 	var stats []*model.AgentCallStatistics
 
 	_, err := s.GetReplica().WithContext(ctx).Select(&stats, `select `+strings.Join(GetFields(search.Fields, model.AgentCallStatistics{}), ", ")+`
@@ -819,13 +807,13 @@ offset :Offset`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.CallStatistics", "store.sql_agent.get_call_stats.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_call_stats.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return stats, nil
 }
 
-func (s SqlAgentStore) PauseCause(ctx context.Context, domainId int64, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
+func (s SqlAgentStore) PauseCause(ctx context.Context, domainId int64, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, model.AppError) {
 	var res []*model.AgentPauseCause
 	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select c.id,
        c.name,
@@ -854,7 +842,7 @@ order by c.name;`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.AgentPauseCause", "store.sql_agent.list_pause_causes.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.list_pause_causes.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return res, nil
@@ -862,7 +850,7 @@ order by c.name;`, map[string]interface{}{
 
 // FIXME sort, columns
 // allow_change
-func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, *model.AppError) {
+func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError) {
 	var list []*model.AgentStatusStatistics
 	_, err := s.GetReplica().WithContext(ctx).Select(&list, `select agent_id,
        name,
@@ -1092,13 +1080,13 @@ limit :Limit offset :Offset`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.StatusStatistic", "store.sql_agent.get_status_stats.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return list, nil
 }
 
-func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
+func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
 	var item *model.SupervisorAgentItem
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&item, `select a.id agent_id,
@@ -1164,13 +1152,13 @@ where a.id = :AgentId and a.domain_id = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.SupervisorAgentItem", "store.sql_agent.get_status_stats_item.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats_item.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return item, nil
 }
 
-func (s SqlAgentStore) DistributeInfoByUserId(ctx context.Context, domainId, userId int64) (*model.DistributeAgentInfo, *model.AppError) {
+func (s SqlAgentStore) DistributeInfoByUserId(ctx context.Context, domainId, userId int64) (*model.DistributeAgentInfo, model.AppError) {
 	var res *model.DistributeAgentInfo
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select a.id as agent_id,
    exists(select 1 from call_center.cc_member_attempt att
@@ -1184,13 +1172,13 @@ where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.DistributeInfoByUserId", "store.sql_agent.get_dis_stats_item.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.get_dis_stats_item.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return res, nil
 }
 
-func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId, agentId int64) (*model.AgentStatistics, *model.AppError) {
+func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId, agentId int64) (*model.AgentStatistics, model.AppError) {
 	var stat *model.AgentStatistics
 	err := s.GetReplica().WithContext(ctx).SelectOne(&stat, `select
 	s.utilization, 
@@ -1215,7 +1203,7 @@ where s.domain_id = :DomainId and s.agent_id = :Id`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentStore.TodayStatistics", "store.sql_agent.statistic.today", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent.statistic.today", err.Error(), extractCodeFromErr(err))
 	}
 
 	return stat, nil

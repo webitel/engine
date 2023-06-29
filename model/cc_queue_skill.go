@@ -85,6 +85,6 @@ func (q *QueueSkill) Patch(patch *QueueSkillPatch) {
 }
 
 // Todo
-func (q *QueueSkill) IsValid() *AppError {
+func (q *QueueSkill) IsValid() AppError {
 	return nil
 }

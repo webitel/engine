@@ -3,12 +3,12 @@ package call_manager
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
+
 	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
-	"net/http"
-	"strings"
-	"sync"
 )
 
 const (
@@ -19,10 +19,10 @@ const (
 type CallManager interface {
 	Start() error
 	Stop()
-	MakeOutboundCall(req *model.CallRequest) (string, *model.AppError)
-	Bridge(legA, legANode, legB, legBNode string) *model.AppError
-	CallClient() (CallClient, *model.AppError)
-	CallClientById(id string) (CallClient, *model.AppError)
+	MakeOutboundCall(req *model.CallRequest) (string, model.AppError)
+	Bridge(legA, legANode, legB, legBNode string) model.AppError
+	CallClient() (CallClient, model.AppError)
+	CallClientById(id string) (CallClient, model.AppError)
 
 	SipWsAddress() string
 	SipRouteUri() string
@@ -34,27 +34,27 @@ type CallClient interface {
 
 	Host() string
 
-	Execute(app string, args string) *model.AppError
+	Execute(app string, args string) model.AppError
 
-	GetServerVersion() (string, *model.AppError)
-	SetConnectionSps(sps int) (int, *model.AppError)
-	GetRemoteSps() (int, *model.AppError)
+	GetServerVersion() (string, model.AppError)
+	SetConnectionSps(sps int) (int, model.AppError)
+	GetRemoteSps() (int, model.AppError)
 
-	MakeOutboundCall(req *model.CallRequest) (string, *model.AppError)
+	MakeOutboundCall(req *model.CallRequest) (string, model.AppError)
 
-	NewCall(settings *model.CallRequest) (string, string, *model.AppError)
-	NewCallContext(ctx context.Context, settings *model.CallRequest) (string, string, *model.AppError)
+	NewCall(settings *model.CallRequest) (string, string, model.AppError)
+	NewCallContext(ctx context.Context, settings *model.CallRequest) (string, string, model.AppError)
 
-	HangupCall(id, cause string) *model.AppError
-	Hold(id string) *model.AppError
-	UnHold(id string) *model.AppError
-	SetCallVariables(id string, variables map[string]string) *model.AppError
-	BridgeCall(legAId, legBId, legBReserveId string) (string, *model.AppError)
-	DTMF(id string, ch rune) *model.AppError
-	SetEavesdropState(id string, state string) *model.AppError
-	Mute(id string, val bool) *model.AppError
-	BlindTransfer(id, destination string) *model.AppError
-	ConfirmPushCall(id string) *model.AppError
+	HangupCall(id, cause string) model.AppError
+	Hold(id string) model.AppError
+	UnHold(id string) model.AppError
+	SetCallVariables(id string, variables map[string]string) model.AppError
+	BridgeCall(legAId, legBId, legBReserveId string) (string, model.AppError)
+	DTMF(id string, ch rune) model.AppError
+	SetEavesdropState(id string, state string) model.AppError
+	Mute(id string, val bool) model.AppError
+	BlindTransfer(id, destination string) model.AppError
+	ConfirmPushCall(id string) model.AppError
 
 	Close() error
 }
@@ -102,18 +102,18 @@ func (cm *callManager) SipWsAddress() string {
 	return cm.sipServerAddr
 }
 
-func (c *callManager) CallClient() (CallClient, *model.AppError) {
+func (c *callManager) CallClient() (CallClient, model.AppError) {
 	cli, err := c.poolConnections.Get(discovery.StrategyRoundRobin)
 	if err != nil {
-		return nil, model.NewAppError("CallClient", "call.get_client.not_found", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewNotFoundError("call.get_client.not_found", err.Error())
 	}
 	return cli.(CallClient), nil
 }
 
-func (c *callManager) CallClientById(id string) (CallClient, *model.AppError) {
+func (c *callManager) CallClientById(id string) (CallClient, model.AppError) {
 	cli, err := c.poolConnections.GetById(id)
 	if err != nil {
-		return nil, model.NewAppError("CallClient", "call.get_client_by_id.not_found", nil, err.Error(), http.StatusNotFound)
+		return nil, model.NewNotFoundError("call.get_client_by_id.not_found", err.Error())
 	}
 	return cli.(CallClient), nil
 }
@@ -122,7 +122,7 @@ func (c *callManager) Start() error {
 	wlog.Debug(fmt.Sprintf("starting call manager [ws: %s, proxy: %s]", c.SipWsAddress(), c.SipRouteUri()))
 
 	if services, err := c.serviceDiscovery.GetByName(CLUSTER_CALL_SERVICE_NAME); err != nil {
-		return model.NewAppError("callManager.Start", "", nil, err.Error(), http.StatusInternalServerError) //
+		return model.NewInternalError("", err.Error()) //
 	} else {
 		for _, v := range services {
 			c.registerConnection(v)

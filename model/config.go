@@ -1,9 +1,9 @@
 package model
 
 import (
-	"golang.org/x/oauth2"
-	"net/http"
 	"reflect"
+
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -79,17 +79,17 @@ type SqlSettings struct {
 	QueryTimeout                *int     `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds"`
 }
 
-func (c *Config) IsValid() *AppError {
+func (c *Config) IsValid() AppError {
 	if len(c.WebSocketSettings.Address) < 3 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.websocket_address.app_error", nil, "", http.StatusBadRequest)
+		return NewBadRequestError("model.config.is_valid.websocket_address.app_error", "")
 	}
 
 	if len(c.DiscoverySettings.Url) < 3 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.discovery_url.app_error", nil, "", http.StatusBadRequest)
+		return NewBadRequestError("model.config.is_valid.discovery_url.app_error", "")
 	}
 
 	if c.SqlSettings.DataSource == nil || len(*c.SqlSettings.DataSource) < 3 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.sql_datasource.app_error", nil, "", http.StatusBadRequest)
+		return NewBadRequestError("model.config.is_valid.sql_datasource.app_error", "")
 	}
 	return nil
 }

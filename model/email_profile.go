@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+
 	"golang.org/x/oauth2"
 )
 
@@ -131,7 +132,7 @@ func (p EmailProfile) EntityName() string {
 	return "cc_email_profile_list"
 }
 
-func (p *EmailProfile) IsValid() *AppError {
+func (p *EmailProfile) IsValid() AppError {
 	return nil //TODO
 }
 

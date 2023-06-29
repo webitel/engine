@@ -3,10 +3,10 @@ package grpc_api
 import (
 	"context"
 	"fmt"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
-	"net/http"
 )
 
 type agent struct {
@@ -19,7 +19,7 @@ func NewAgentApi(api *API) *agent {
 }
 
 func (api *agent) SearchAgentInTeam(context.Context, *engine.SearchAgentInTeamRequest) (*engine.ListAgentInTeam, error) {
-	return nil, model.NewAppError("DEPRECATED", "deprecated", nil, "deprecated", http.StatusInternalServerError)
+	return nil, model.NewInternalError("deprecated", "deprecated")
 }
 
 func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest) (*engine.Agent, error) {
@@ -366,8 +366,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 	case model.AgentStatusOffline:
 		err = api.ctrl.LogoutAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId())
 	default:
-		err = model.NewAppError("GRPC.UpdateAgentStatus", "grpc.agent.update_status", nil, fmt.Sprintf("not found status %s", in.Status),
-			http.StatusBadRequest)
+		err = model.NewBadRequestError("grpc.agent.update_status", fmt.Sprintf("not found status %s", in.Status))
 	}
 
 	if err != nil {
@@ -646,7 +645,7 @@ func (api *agent) SearchAgentCallStatistics(ctx context.Context, in *engine.Sear
 	}
 
 	if in.GetTime() == nil {
-		return nil, model.NewAppError("GRPC.SearchAgentCallStatistics", "grpc.agent.report.call", nil, "filter time is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.agent.report.call", "filter time is required")
 	}
 
 	var list []*model.AgentCallStatistics
@@ -723,7 +722,7 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 	}
 
 	if in.GetTime() == nil {
-		return nil, model.NewAppError("GRPC.SearchAgentCallStatistics", "grpc.agent.report.call", nil, "filter time is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.agent.report.call", "filter time is required")
 	}
 
 	var list []*model.AgentStatusStatistics
@@ -809,7 +808,7 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 	}
 
 	if in.GetTime() == nil {
-		return nil, model.NewAppError("GRPC.SearchAgentStatusStatisticItem", "grpc.agent.report.call", nil, "filter time is required", http.StatusBadRequest)
+		return nil, model.NewBadRequestError("grpc.agent.report.call", "filter time is required")
 	}
 	var item *model.SupervisorAgentItem
 

@@ -30,7 +30,7 @@ func (a List) EntityName() string {
 	return "cc_list_view"
 }
 
-func (l *List) IsValid() *AppError {
+func (l *List) IsValid() AppError {
 	//FIXME
 	return nil
 }
@@ -65,7 +65,7 @@ func (a ListCommunication) EntityName() string {
 	return "cc_list_communications_view"
 }
 
-func (l *ListCommunication) IsValid() *AppError {
+func (l *ListCommunication) IsValid() AppError {
 	//FIXME
 	return nil
 }

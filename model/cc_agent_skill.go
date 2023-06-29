@@ -81,7 +81,7 @@ func (as *AgentSkill) Patch(patch *AgentSkillPatch) {
 	}
 }
 
-func (as *AgentSkill) IsValid() *AppError {
+func (as *AgentSkill) IsValid() AppError {
 	//FIXME
 	return nil
 }

@@ -53,6 +53,6 @@ func (r *Region) Patch(patch *RegionPatch) {
 }
 
 // Todo
-func (r *Region) IsValid() *AppError {
+func (r *Region) IsValid() AppError {
 	return nil
 }

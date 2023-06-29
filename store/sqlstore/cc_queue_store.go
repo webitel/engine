@@ -3,11 +3,11 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlQueueStore struct {
@@ -19,7 +19,7 @@ func NewSqlQueueStore(sqlStore SqlStore) store.QueueStore {
 	return us
 }
 
-func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
@@ -38,7 +38,7 @@ func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, grou
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Queue, *model.AppError) {
+func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	var out *model.Queue
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with q as (
     insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
@@ -119,14 +119,13 @@ from q
 			"FormSchemaId":         queue.FormSchema.GetSafeId(),
 			"GranteeId":            queue.Grantee.GetSafeId(),
 		}); nil != err {
-		return nil, model.NewAppError("SqlQueueStore.Save", "store.sql_queue.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue.save.app_error", fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
+func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, model.AppError) {
 	var queues []*model.Queue
 
 	f := map[string]interface{}{
@@ -143,13 +142,13 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueStore.GetAllPage", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_queue.get_all.app_error", err.Error())
 	}
 
 	return queues, nil
 }
 
-func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, *model.AppError) {
+func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, model.AppError) {
 	var queues []*model.Queue
 
 	f := map[string]interface{}{
@@ -168,13 +167,13 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		  	) and ( (:Ids::int[] isnull or id = any(:Ids) )  and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueStore.GetAllPageByGroups", "store.sql_queue.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_queue.get_all.app_error", err.Error())
 	}
 
 	return queues, nil
 }
 
-func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*model.Queue, *model.AppError) {
+func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*model.Queue, model.AppError) {
 	var queue *model.Queue
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&queue, `
 select q.id,
@@ -220,14 +219,13 @@ from call_center.cc_queue q
          left join storage.media_files mf on mf.id = q.ringtone_id 	
 where q.domain_id = :DomainId and q.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewAppError("SqlQueueStore.Get", "store.sql_queue.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return queue, nil
 	}
 }
 
-func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Queue, *model.AppError) {
+func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&queue, `with q as (
     update call_center.cc_queue q
 set updated_at = :UpdatedAt,
@@ -324,22 +322,20 @@ from  q
 		"GranteeId":            queue.Grantee.GetSafeId(),
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueStore.Update", "store.sql_queue.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", queue.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue.update.app_error", fmt.Sprintf("Id=%v, %s", queue.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return queue, nil
 }
 
-func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlQueueStore.Delete", "store.sql_queue.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_queue.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
 
-func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, *model.AppError) {
+func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError) {
 	var report *model.QueueReportGeneralAgg
 	err := s.GetReplica().WithContext(ctx).SelectOne(&report, `
 with queues  as  (
@@ -481,8 +477,7 @@ select
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlQueueStore.QueueReportGeneral", "store.sql_queue.report_general.app_error",
-			nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_queue.report_general.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return report, nil

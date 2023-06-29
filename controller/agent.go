@@ -2,11 +2,12 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.Session, domainId, userId int64) (*model.AgentSession, *model.AppError) {
+func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.Session, domainId, userId int64) (*model.AgentSession, model.AppError) {
 
 	err := c.app.HasAgentCC(ctx, session.Domain(domainId), userId)
 	if err != nil {
@@ -35,7 +36,7 @@ func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.
 	return c.app.GetAgentSession(ctx, session.Domain(domainId), userId)
 }
 
-func (c *Controller) LoginAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, onDemand bool) *model.AppError {
+func (c *Controller) LoginAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, onDemand bool) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -52,7 +53,7 @@ func (c *Controller) LoginAgent(ctx context.Context, session *auth_manager.Sessi
 	return c.app.LoginAgent(session.Domain(domainId), agentId, onDemand)
 }
 
-func (c *Controller) LogoutAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64) *model.AppError {
+func (c *Controller) LogoutAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -69,7 +70,7 @@ func (c *Controller) LogoutAgent(ctx context.Context, session *auth_manager.Sess
 	return c.app.LogoutAgent(session.Domain(domainId), agentId)
 }
 
-func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, payload string, timeout int) *model.AppError {
+func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, payload string, timeout int) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -86,7 +87,7 @@ func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Sessi
 	return c.app.PauseAgent(session.Domain(domainId), agentId, payload, timeout)
 }
 
-func (c *Controller) WaitingAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, channel string) (int64, *model.AppError) {
+func (c *Controller) WaitingAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, channel string) (int64, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return 0, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -103,7 +104,7 @@ func (c *Controller) WaitingAgent(ctx context.Context, session *auth_manager.Ses
 	return c.app.WaitingAgentChannel(session.Domain(domainId), agentId, channel)
 }
 
-func (c *Controller) ActiveAgentTasks(ctx context.Context, session *auth_manager.Session, domainId, agentId int64) ([]*model.CCTask, *model.AppError) {
+func (c *Controller) ActiveAgentTasks(ctx context.Context, session *auth_manager.Session, domainId, agentId int64) ([]*model.CCTask, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -120,7 +121,7 @@ func (c *Controller) ActiveAgentTasks(ctx context.Context, session *auth_manager
 	return c.app.GetAgentActiveTasks(ctx, session.Domain(domainId), agentId)
 }
 
-func (c *Controller) GetAgentInQueueStatistics(ctx context.Context, session *auth_manager.Session, domainId, agentId int64) ([]*model.AgentInQueueStatistic, *model.AppError) {
+func (c *Controller) GetAgentInQueueStatistics(ctx context.Context, session *auth_manager.Session, domainId, agentId int64) ([]*model.AgentInQueueStatistic, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -137,7 +138,7 @@ func (c *Controller) GetAgentInQueueStatistics(ctx context.Context, session *aut
 	return c.app.GetAgentInQueueStatistics(ctx, session.Domain(domainId), agentId)
 }
 
-func (c *Controller) AcceptAgentTask(session *auth_manager.Session, appId string, attemptId int64) *model.AppError {
+func (c *Controller) AcceptAgentTask(session *auth_manager.Session, appId string, attemptId int64) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -146,7 +147,7 @@ func (c *Controller) AcceptAgentTask(session *auth_manager.Session, appId string
 	return c.app.AcceptTask(appId, session.DomainId, attemptId)
 }
 
-func (c *Controller) CloseAgentTask(session *auth_manager.Session, appId string, attemptId int64) *model.AppError {
+func (c *Controller) CloseAgentTask(session *auth_manager.Session, appId string, attemptId int64) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -155,7 +156,7 @@ func (c *Controller) CloseAgentTask(session *auth_manager.Session, appId string,
 	return c.app.CloseTask(appId, session.DomainId, attemptId)
 }
 
-func (c *Controller) GetAgentPauseCause(ctx context.Context, session *auth_manager.Session, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, *model.AppError) {
+func (c *Controller) GetAgentPauseCause(ctx context.Context, session *auth_manager.Session, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -169,7 +170,7 @@ func (c *Controller) GetAgentPauseCause(ctx context.Context, session *auth_manag
 	return c.app.GetAgentPauseCause(ctx, session.Domain(0), session.UserId, toAgentId, allowChange)
 }
 
-func (c *Controller) GetSupervisorAgentItem(ctx context.Context, session *auth_manager.Session, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, *model.AppError) {
+func (c *Controller) GetSupervisorAgentItem(ctx context.Context, session *auth_manager.Session, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -183,7 +184,7 @@ func (c *Controller) GetSupervisorAgentItem(ctx context.Context, session *auth_m
 	return c.app.SupervisorAgentItem(ctx, session.DomainId, agentId, t)
 }
 
-func (c *Controller) GetAgentTodayStatistics(ctx context.Context, session *auth_manager.Session, agentId int64) (*model.AgentStatistics, *model.AppError) {
+func (c *Controller) GetAgentTodayStatistics(ctx context.Context, session *auth_manager.Session, agentId int64) (*model.AgentStatistics, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

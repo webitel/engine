@@ -2,23 +2,23 @@ package wsapi
 
 import (
 	"fmt"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
-	"net/http"
 )
 
-func (api *API) ApiWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+func (api *API) ApiWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh, false}
 }
-func (api *API) ApiAsyncWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+func (api *API) ApiAsyncWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh, true}
 }
 
 type webSocketHandler struct {
 	app         *app.App
-	handlerFunc func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, *model.AppError)
+	handlerFunc func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)
 	async       bool
 }
 
@@ -28,7 +28,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
 		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(localization.T), sessionErr.Error()))
-		sessionErr.DetailedError = ""
+		sessionErr.SetDetailedError("")
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
 		conn.Send <- errResp
@@ -41,7 +41,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.Locale = conn.Locale
 
 	var data map[string]interface{}
-	var err *model.AppError
+	var err model.AppError
 
 	if wh.async {
 
@@ -61,6 +61,6 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	conn.Send <- resp
 }
 
-func NewInvalidWebSocketParamError(action string, name string) *model.AppError {
-	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
+func NewInvalidWebSocketParamError(action string, name string) model.AppError {
+	return model.NewBadRequestError("api.websocket_handler.invalid_param.app_error", "").SetTranslationParams(map[string]interface{}{"Name": name})
 }

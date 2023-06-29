@@ -3,11 +3,11 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlAgentTeamStore struct {
@@ -19,7 +19,7 @@ func NewSqlAgentTeamStore(sqlStore SqlStore) store.AgentTeamStore {
 	return us
 }
 
-func (s SqlAgentTeamStore) Create(ctx context.Context, team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
+func (s SqlAgentTeamStore) Create(ctx context.Context, team *model.AgentTeam) (*model.AgentTeam, model.AppError) {
 	var out *model.AgentTeam
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with t as (
     insert into call_center.cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
@@ -60,14 +60,13 @@ from t`,
 			"UpdatedBy":         team.UpdatedBy.GetSafeId(),
 			"AdminIds":          pq.Array(model.LookupIds(team.Admin)),
 		}); nil != err {
-		return nil, model.NewAppError("SqlAgentTeamStore.Save", "store.sql_agent_team.save.app_error", nil,
-			fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent_team.save.app_error", fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlAgentTeamStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, *model.AppError) {
+func (s SqlAgentTeamStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
@@ -79,14 +78,13 @@ func (s SqlAgentTeamStore) CheckAccess(ctx context.Context, domainId, id int64, 
         )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
 
 	if err != nil {
-		return false, model.NewAppError("SqlAgentTeamStore.CheckAccess", "store.sql_agent_team.access.app_error", nil,
-			fmt.Sprintf("id=%v, domain_id=%v %v", id, domainId, err.Error()), http.StatusInternalServerError)
+		return false, model.NewInternalError("store.sql_agent_team.access.app_error", fmt.Sprintf("id=%v, domain_id=%v %v", id, domainId, err.Error()))
 	}
 
 	return (res.Valid && res.Int64 == 1), nil
 }
 
-func (s SqlAgentTeamStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError) {
+func (s SqlAgentTeamStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, model.AppError) {
 
 	var teams []*model.AgentTeam
 
@@ -105,13 +103,13 @@ func (s SqlAgentTeamStore) GetAllPage(ctx context.Context, domainId int64, searc
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentTeamStore.GetAllPage", "store.sql_agent_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_agent_team.get_all.app_error", err.Error())
 	}
 
 	return teams, nil
 }
 
-func (s SqlAgentTeamStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, *model.AppError) {
+func (s SqlAgentTeamStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, model.AppError) {
 	var teams []*model.AgentTeam
 
 	f := map[string]interface{}{
@@ -135,13 +133,13 @@ func (s SqlAgentTeamStore) GetAllPageByGroups(ctx context.Context, domainId int6
 			and (:Q::varchar isnull or (t.name ilike :Q::varchar or t.description ilike :Q::varchar or t.strategy ilike :Q::varchar ) ) )`,
 		model.AgentTeam{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentTeamStore.GetAllPageByGroups", "store.sql_agent_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewInternalError("store.sql_agent_team.get_all.app_error", err.Error())
 	}
 
 	return teams, nil
 }
 
-func (s SqlAgentTeamStore) Get(ctx context.Context, domainId int64, id int64) (*model.AgentTeam, *model.AppError) {
+func (s SqlAgentTeamStore) Get(ctx context.Context, domainId int64, id int64) (*model.AgentTeam, model.AppError) {
 	var team *model.AgentTeam
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&team, `select t.id,
        t.name,
@@ -161,14 +159,13 @@ where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
 	}); err != nil {
-		return nil, model.NewAppError("SqlAgentTeamStore.Get", "store.sql_agent_team.get.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent_team.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return team, nil
 	}
 }
 
-func (s SqlAgentTeamStore) Update(ctx context.Context, domainId int64, team *model.AgentTeam) (*model.AgentTeam, *model.AppError) {
+func (s SqlAgentTeamStore) Update(ctx context.Context, domainId int64, team *model.AgentTeam) (*model.AgentTeam, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&team, `with t as (
     update call_center.cc_team
     set name = :Name,
@@ -215,17 +212,15 @@ from t`, map[string]interface{}{
 		"AdminIds":          pq.Array(model.LookupIds(team.Admin)),
 	})
 	if err != nil {
-		return nil, model.NewAppError("SqlAgentTeamStore.Update", "store.sql_agent_team.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", team.Id, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_agent_team.update.app_error", fmt.Sprintf("Id=%v, %s", team.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return team, nil
 }
 
-func (s SqlAgentTeamStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlAgentTeamStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_team c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlAgentTeamStore.Delete", "store.sql_agent_team.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_agent_team.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }

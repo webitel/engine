@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/cipher"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
@@ -154,7 +155,7 @@ func (app *App) CallManager() call_manager.CallManager {
 	return app.callManager
 }
 
-func (app *App) Ready() (bool, *model.AppError) {
+func (app *App) Ready() (bool, model.AppError) {
 	//TODO
 	return true, nil
 }

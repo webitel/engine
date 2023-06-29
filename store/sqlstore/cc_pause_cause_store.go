@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -17,7 +18,7 @@ func NewSqlPauseCauseStore(sqlStore SqlStore) store.PauseCauseStore {
 	return us
 }
 
-func (s SqlPauseCauseStore) Create(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) Create(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
     insert into call_center.cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
                                       name, limit_min, allow_supervisor, allow_agent, allow_admin, description)
@@ -53,14 +54,13 @@ from s
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlPauseCauseStore.Create", "store.sql_pause_cause.create.app_error", nil,
-			fmt.Sprintf("name=%v, %v", cause.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_pause_cause.create.app_error", fmt.Sprintf("name=%v, %v", cause.Name, err.Error()), extractCodeFromErr(err))
 	}
 
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchPauseCause) ([]*model.PauseCause, model.AppError) {
 	var causes []*model.PauseCause
 
 	f := map[string]interface{}{
@@ -77,13 +77,13 @@ func (s SqlPauseCauseStore) GetAllPage(ctx context.Context, domainId int64, sear
 			`,
 		model.PauseCause{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlPauseCauseStore.GetAllPage", "store.sql_pause_cause.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_pause_cause.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return causes, nil
 }
 
-func (s SqlPauseCauseStore) Get(ctx context.Context, domainId int64, id uint32) (*model.PauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) Get(ctx context.Context, domainId int64, id uint32) (*model.PauseCause, model.AppError) {
 	var cause *model.PauseCause
 	err := s.GetReplica().WithContext(ctx).SelectOne(&cause, `select id, 
        created_at,
@@ -103,13 +103,13 @@ where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlPauseCauseStore.Get", "store.sql_pause_cause.get.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_pause_cause.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) Update(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, *model.AppError) {
+func (s SqlPauseCauseStore) Update(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
     update call_center.cc_pause_cause
         set updated_at = :UpdatedAt,
@@ -150,17 +150,16 @@ from s
 	})
 
 	if err != nil {
-		return nil, model.NewAppError("SqlPauseCauseStore.Update", "store.sql_pause_cause.update.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_pause_cause.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return cause, nil
 }
 
-func (s SqlPauseCauseStore) Delete(ctx context.Context, domainId int64, id uint32) *model.AppError {
+func (s SqlPauseCauseStore) Delete(ctx context.Context, domainId int64, id uint32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_pause_cause c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlPauseCauseStore.Delete", "store.sql_pause_cause.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_pause_cause.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }

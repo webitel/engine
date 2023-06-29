@@ -2,12 +2,13 @@ package controller
 
 import (
 	"context"
+	"time"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"time"
 )
 
-func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Session, req *model.OutboundCallRequest, variables map[string]string) (string, *model.AppError) {
+func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Session, req *model.OutboundCallRequest, variables map[string]string) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {
 		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -25,7 +26,7 @@ func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.CreateOutboundCall(ctx, session.DomainId, req, variables)
 }
 
-func (c *Controller) SearchCall(ctx context.Context, session *auth_manager.Session, search *model.SearchCall) ([]*model.Call, bool, *model.AppError) {
+func (c *Controller) SearchCall(ctx context.Context, session *auth_manager.Session, search *model.SearchCall) ([]*model.Call, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -38,7 +39,7 @@ func (c *Controller) SearchCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.GetActiveCallPage(ctx, session.DomainId, search)
 }
 
-func (c *Controller) UserActiveCall(ctx context.Context, session *auth_manager.Session) ([]*model.Call, *model.AppError) {
+func (c *Controller) UserActiveCall(ctx context.Context, session *auth_manager.Session) ([]*model.Call, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -47,7 +48,7 @@ func (c *Controller) UserActiveCall(ctx context.Context, session *auth_manager.S
 	return c.app.GetUserActiveCalls(ctx, session.DomainId, session.UserId)
 }
 
-func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manager.Session, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, *model.AppError) {
+func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manager.Session, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -60,7 +61,7 @@ func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manage
 	return c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), search)
 }
 
-func (c *Controller) AggregateHistoryCall(ctx context.Context, session *auth_manager.Session, aggs *model.CallAggregate) ([]*model.AggregateResult, *model.AppError) {
+func (c *Controller) AggregateHistoryCall(ctx context.Context, session *auth_manager.Session, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -69,7 +70,7 @@ func (c *Controller) AggregateHistoryCall(ctx context.Context, session *auth_man
 	return c.app.GetAggregateHistoryCallPage(ctx, session.Domain(aggs.DomainId), aggs)
 }
 
-func (c *Controller) GetCall(ctx context.Context, session *auth_manager.Session, domainId int64, id string) (*model.Call, *model.AppError) {
+func (c *Controller) GetCall(ctx context.Context, session *auth_manager.Session, domainId int64, id string) (*model.Call, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -78,7 +79,7 @@ func (c *Controller) GetCall(ctx context.Context, session *auth_manager.Session,
 	return c.app.GetCall(ctx, session.Domain(domainId), id)
 }
 
-func (c *Controller) HangupCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.HangupCall) *model.AppError {
+func (c *Controller) HangupCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.HangupCall) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanDelete() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
@@ -87,7 +88,7 @@ func (c *Controller) HangupCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.HangupCall(ctx, session.Domain(domainId), req)
 }
 
-func (c *Controller) HoldCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.UserCallRequest) *model.AppError {
+func (c *Controller) HoldCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.UserCallRequest) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -96,7 +97,7 @@ func (c *Controller) HoldCall(ctx context.Context, session *auth_manager.Session
 	return c.app.HoldCall(ctx, session.Domain(domainId), req)
 }
 
-func (c *Controller) UnHoldCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.UserCallRequest) *model.AppError {
+func (c *Controller) UnHoldCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.UserCallRequest) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -105,7 +106,7 @@ func (c *Controller) UnHoldCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.UnHoldCall(ctx, session.Domain(domainId), req)
 }
 
-func (c *Controller) DtmfCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.DtmfCall) *model.AppError {
+func (c *Controller) DtmfCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.DtmfCall) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -114,7 +115,7 @@ func (c *Controller) DtmfCall(ctx context.Context, session *auth_manager.Session
 	return c.app.DtmfCall(ctx, session.Domain(domainId), req)
 }
 
-func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCall) *model.AppError {
+func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCall) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -123,7 +124,7 @@ func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manage
 	return c.app.BlindTransferCall(ctx, session.Domain(domainId), req)
 }
 
-func (c *Controller) EavesdropCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.EavesdropCall, variables map[string]string) (string, *model.AppError) {
+func (c *Controller) EavesdropCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.EavesdropCall, variables map[string]string) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -132,7 +133,7 @@ func (c *Controller) EavesdropCall(ctx context.Context, session *auth_manager.Se
 	return c.app.EavesdropCall(ctx, session.Domain(domainId), session.UserId, req, variables)
 }
 
-func (c *Controller) EavesdropStateCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.EavesdropCall) *model.AppError {
+func (c *Controller) EavesdropStateCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.EavesdropCall) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -141,7 +142,7 @@ func (c *Controller) EavesdropStateCall(ctx context.Context, session *auth_manag
 	return c.app.EavesdropCallState(ctx, session.Domain(domainId), session.UserId, req)
 }
 
-func (c *Controller) CreateCallAnnotation(ctx context.Context, session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+func (c *Controller) CreateCallAnnotation(ctx context.Context, session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -163,7 +164,7 @@ func (c *Controller) CreateCallAnnotation(ctx context.Context, session *auth_man
 	return c.app.CreateCallAnnotation(ctx, session.DomainId, annotation)
 }
 
-func (c *Controller) UpdateCallAnnotation(ctx context.Context, session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, *model.AppError) {
+func (c *Controller) UpdateCallAnnotation(ctx context.Context, session *auth_manager.Session, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -181,7 +182,7 @@ func (c *Controller) UpdateCallAnnotation(ctx context.Context, session *auth_man
 	return c.app.UpdateCallAnnotation(ctx, session.DomainId, annotation)
 }
 
-func (c *Controller) DeleteCallAnnotation(ctx context.Context, session *auth_manager.Session, id int64, callId string) (*model.CallAnnotation, *model.AppError) {
+func (c *Controller) DeleteCallAnnotation(ctx context.Context, session *auth_manager.Session, id int64, callId string) (*model.CallAnnotation, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -190,7 +191,7 @@ func (c *Controller) DeleteCallAnnotation(ctx context.Context, session *auth_man
 	return c.app.DeleteCallAnnotation(ctx, session.DomainId, id, callId)
 }
 
-func (c *Controller) ConfirmPushCall(session *auth_manager.Session, callId string) *model.AppError {
+func (c *Controller) ConfirmPushCall(session *auth_manager.Session, callId string) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -199,7 +200,7 @@ func (c *Controller) ConfirmPushCall(session *auth_manager.Session, callId strin
 	return c.app.ConfirmPushCall(session.DomainId, callId)
 }
 
-func (c *Controller) SetCallVariables(ctx context.Context, session *auth_manager.Session, callId string, vars map[string]string) *model.AppError {
+func (c *Controller) SetCallVariables(ctx context.Context, session *auth_manager.Session, callId string, vars map[string]string) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -208,7 +209,7 @@ func (c *Controller) SetCallVariables(ctx context.Context, session *auth_manager
 	return c.app.SetCallVariables(ctx, session.Domain(0), callId, vars)
 }
 
-func (c *Controller) UpdateCallHistory(ctx context.Context, session *auth_manager.Session, id string, upd *model.HistoryCallPatch) (*model.HistoryCall, *model.AppError) {
+func (c *Controller) UpdateCallHistory(ctx context.Context, session *auth_manager.Session, id string, upd *model.HistoryCallPatch) (*model.HistoryCall, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)

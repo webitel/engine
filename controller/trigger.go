@@ -2,12 +2,13 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) CreateTrigger(ctx context.Context, session *auth_manager.Session, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) CreateTrigger(ctx context.Context, session *auth_manager.Session, trigger *model.Trigger) (*model.Trigger, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -27,7 +28,7 @@ func (c *Controller) CreateTrigger(ctx context.Context, session *auth_manager.Se
 	return c.app.CreateTrigger(ctx, session.Domain(0), trigger)
 }
 
-func (c *Controller) SearchTrigger(ctx context.Context, session *auth_manager.Session, search *model.SearchTrigger) ([]*model.Trigger, bool, *model.AppError) {
+func (c *Controller) SearchTrigger(ctx context.Context, session *auth_manager.Session, search *model.SearchTrigger) ([]*model.Trigger, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -40,8 +41,8 @@ func (c *Controller) SearchTrigger(ctx context.Context, session *auth_manager.Se
 	}
 }
 
-func (c *Controller) ReadTrigger(ctx context.Context, session *auth_manager.Session, id int32) (*model.Trigger, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) ReadTrigger(ctx context.Context, session *auth_manager.Session, id int32) (*model.Trigger, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -59,8 +60,8 @@ func (c *Controller) ReadTrigger(ctx context.Context, session *auth_manager.Sess
 	return c.app.GetTrigger(ctx, session.Domain(0), id)
 }
 
-func (c *Controller) UpdateTrigger(ctx context.Context, session *auth_manager.Session, trigger *model.Trigger) (*model.Trigger, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) UpdateTrigger(ctx context.Context, session *auth_manager.Session, trigger *model.Trigger) (*model.Trigger, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -86,8 +87,8 @@ func (c *Controller) UpdateTrigger(ctx context.Context, session *auth_manager.Se
 	return c.app.UpdateTrigger(ctx, session.Domain(0), trigger)
 }
 
-func (c *Controller) PatchTrigger(ctx context.Context, session *auth_manager.Session, id int32, patch *model.TriggerPatch) (*model.Trigger, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) PatchTrigger(ctx context.Context, session *auth_manager.Session, id int32, patch *model.TriggerPatch) (*model.Trigger, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -113,8 +114,8 @@ func (c *Controller) PatchTrigger(ctx context.Context, session *auth_manager.Ses
 	return c.app.PatchTrigger(ctx, session.Domain(0), id, patch)
 }
 
-func (c *Controller) RemoveTrigger(ctx context.Context, session *auth_manager.Session, id int32) (*model.Trigger, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) RemoveTrigger(ctx context.Context, session *auth_manager.Session, id int32) (*model.Trigger, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -135,8 +136,8 @@ func (c *Controller) RemoveTrigger(ctx context.Context, session *auth_manager.Se
 	return c.app.RemoveTrigger(ctx, session.Domain(0), id)
 }
 
-func (c *Controller) GetTriggerJobList(ctx context.Context, session *auth_manager.Session, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) GetTriggerJobList(ctx context.Context, session *auth_manager.Session, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -154,8 +155,8 @@ func (c *Controller) GetTriggerJobList(ctx context.Context, session *auth_manage
 	return c.app.GetTriggerJobList(ctx, session.Domain(0), triggerId, search)
 }
 
-func (c *Controller) CreateTriggerJob(ctx context.Context, session *auth_manager.Session, triggerId int32, vars map[string]string) (*model.TriggerJob, *model.AppError) {
-	var err *model.AppError
+func (c *Controller) CreateTriggerJob(ctx context.Context, session *auth_manager.Session, triggerId int32, vars map[string]string) (*model.TriggerJob, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_TRIGGER)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

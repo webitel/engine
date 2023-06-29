@@ -2,11 +2,12 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) SearchRegion(ctx context.Context, session *auth_manager.Session, search *model.SearchRegion) ([]*model.Region, bool, *model.AppError) {
+func (c *Controller) SearchRegion(ctx context.Context, session *auth_manager.Session, search *model.SearchRegion) ([]*model.Region, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -15,7 +16,7 @@ func (c *Controller) SearchRegion(ctx context.Context, session *auth_manager.Ses
 	return c.app.GetRegionsPage(ctx, session.Domain(search.DomainId), search)
 }
 
-func (c *Controller) CreateRegion(ctx context.Context, session *auth_manager.Session, region *model.Region) (*model.Region, *model.AppError) {
+func (c *Controller) CreateRegion(ctx context.Context, session *auth_manager.Session, region *model.Region) (*model.Region, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -28,7 +29,7 @@ func (c *Controller) CreateRegion(ctx context.Context, session *auth_manager.Ses
 	return c.app.CreateRegion(ctx, session.Domain(0), region)
 }
 
-func (c *Controller) GetRegion(ctx context.Context, session *auth_manager.Session, id int64) (*model.Region, *model.AppError) {
+func (c *Controller) GetRegion(ctx context.Context, session *auth_manager.Session, id int64) (*model.Region, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -37,7 +38,7 @@ func (c *Controller) GetRegion(ctx context.Context, session *auth_manager.Sessio
 	return c.app.GetRegion(ctx, session.Domain(0), id)
 }
 
-func (c *Controller) UpdateRegion(ctx context.Context, session *auth_manager.Session, region *model.Region) (*model.Region, *model.AppError) {
+func (c *Controller) UpdateRegion(ctx context.Context, session *auth_manager.Session, region *model.Region) (*model.Region, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -54,7 +55,7 @@ func (c *Controller) UpdateRegion(ctx context.Context, session *auth_manager.Ses
 	return c.app.UpdateRegion(ctx, session.DomainId, region)
 }
 
-func (c *Controller) PatchRegion(ctx context.Context, session *auth_manager.Session, id int64, patch *model.RegionPatch) (*model.Region, *model.AppError) {
+func (c *Controller) PatchRegion(ctx context.Context, session *auth_manager.Session, id int64, patch *model.RegionPatch) (*model.Region, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -67,7 +68,7 @@ func (c *Controller) PatchRegion(ctx context.Context, session *auth_manager.Sess
 	return c.app.PatchRegion(ctx, session.DomainId, id, patch)
 }
 
-func (c *Controller) DeleteRegion(ctx context.Context, session *auth_manager.Session, id int64) (*model.Region, *model.AppError) {
+func (c *Controller) DeleteRegion(ctx context.Context, session *auth_manager.Session, id int64) (*model.Region, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
 	if !permission.CanDelete() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)

@@ -76,6 +76,6 @@ func (p *PauseCause) Patch(patch *PauseCausePatch) {
 }
 
 // Todo
-func (r *PauseCause) IsValid() *AppError {
+func (r *PauseCause) IsValid() AppError {
 	return nil
 }

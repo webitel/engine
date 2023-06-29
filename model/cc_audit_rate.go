@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type QuestionAnswers []*QuestionAnswer
@@ -60,16 +59,16 @@ func (AuditRate) EntityName() string {
 	return "cc_audit_rate_view"
 }
 
-func (r *AuditRate) IsValid() *AppError {
+func (r *AuditRate) IsValid() AppError {
 
 	return nil
 }
 
 // TODO call_id
 
-func (r *AuditRate) SetRate(form *AuditForm, rate Rate) *AppError {
+func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 	if len(form.Questions) != len(rate.Answers) {
-		return NewAppError("AuditRate", "audit.rate.valid.answers", nil, "Answers not equals questions", http.StatusBadRequest)
+		return NewBadRequestError("audit.rate.valid.answers", "Answers not equals questions")
 	}
 
 	r.Answers = rate.Answers
@@ -82,21 +81,18 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) *AppError {
 	for i, a := range r.Answers {
 		if form.Questions[i].Required {
 			if a == nil {
-				return NewAppError("AuditRate", "audit.rate.valid.question", nil,
-					fmt.Sprintf("question \"%s\" is required", form.Questions[i].Question), http.StatusBadRequest)
+				return NewBadRequestError("audit.rate.valid.question", fmt.Sprintf("question \"%s\" is required", form.Questions[i].Question))
 			}
 
 			if !form.Questions[i].ValidAnswer(*a) {
-				return NewAppError("AuditRate", "audit.rate.valid.answer", nil,
-					fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score), http.StatusBadRequest)
+				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
 			}
 
 			r.ScoreRequired += float32(a.Score)
 		} else if a != nil && a.Score > 0 { // skip optional if empty
 
 			if !form.Questions[i].ValidAnswer(*a) {
-				return NewAppError("AuditRate", "audit.rate.valid.answer", nil,
-					fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score), http.StatusBadRequest)
+				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
 			}
 			r.ScoreOptional += float32(a.Score)
 		}

@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"net/http"
 )
 
 type SqlRoutingOutboundCallStore struct {
@@ -19,7 +20,7 @@ func NewSqlRoutingOutboundCallStore(sqlStore SqlStore) store.RoutingOutboundCall
 	return us
 }
 
-func (s SqlRoutingOutboundCallStore) Create(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) Create(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, model.AppError) {
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     insert into flow.acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
@@ -55,13 +56,12 @@ from tmp
 				code = http.StatusBadRequest
 			}
 		}
-		return nil, model.NewAppError("SqlRoutingOutboundCallStore.Create", "store.sql_routing_out_call.create.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", routing.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_routing_out_call.create.app_error", fmt.Sprintf("Id=%v, %s", routing.Id, err.Error()), code)
 	}
 	return out, nil
 }
 
-func (s SqlRoutingOutboundCallStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingOutboundCall) ([]*model.RoutingOutboundCall, model.AppError) {
 	var routing []*model.RoutingOutboundCall
 
 	f := map[string]interface{}{
@@ -85,13 +85,13 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(ctx context.Context, domainId in
 			`,
 		model.RoutingOutboundCall{}, f)
 	if err != nil {
-		return nil, model.NewAppError("SqlRoutingOutboundCallStore.GetAllPage", "store.sql_routing_out_call.get_all.app_error", nil, err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_routing_out_call.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return routing, nil
 	}
 }
 
-func (s SqlRoutingOutboundCallStore) Get(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) Get(ctx context.Context, domainId, id int64) (*model.RoutingOutboundCall, model.AppError) {
 	var routing *model.RoutingOutboundCall
 
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&routing,
@@ -104,16 +104,16 @@ from flow.acr_routing_outbound_call tmp
     inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id
 where tmp.id = :Id and tmp.domain_id = :DomainId`, map[string]interface{}{"DomainId": domainId, "Id": id}); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, model.NewAppError("SqlRoutingOutboundCallStore.Get", "store.sql_routing_out_call.get.app_error", nil, err.Error(), http.StatusNotFound)
+			return nil, model.NewNotFoundError("store.sql_routing_out_call.get.app_error", err.Error())
 		} else {
-			return nil, model.NewAppError("SqlRoutingOutboundCallStore.Get", "store.sql_routing_out_call.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewInternalError("store.sql_routing_out_call.get.app_error", err.Error())
 		}
 	} else {
 		return routing, nil
 	}
 }
 
-func (s SqlRoutingOutboundCallStore) Update(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, *model.AppError) {
+func (s SqlRoutingOutboundCallStore) Update(ctx context.Context, routing *model.RoutingOutboundCall) (*model.RoutingOutboundCall, model.AppError) {
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     update flow.acr_routing_outbound_call r
@@ -154,13 +154,12 @@ from tmp
 				code = http.StatusBadRequest
 			}
 		}
-		return nil, model.NewAppError("SqlRoutingOutboundCallStore.Update", "store.sql_routing_out_call.update.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", routing.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_routing_out_call.update.app_error", fmt.Sprintf("Id=%v, %s", routing.Id, err.Error()), code)
 	}
 	return out, nil
 }
 
-func (s SqlRoutingOutboundCallStore) ChangePosition(ctx context.Context, domainId, fromId, toId int64) *model.AppError {
+func (s SqlRoutingOutboundCallStore) ChangePosition(ctx context.Context, domainId, fromId, toId int64) model.AppError {
 	i, err := s.GetMaster().WithContext(ctx).SelectInt(`with t as (
 		select f.id,
            case when f.pos > lead(f.pos) over () then lead(f.pos) over () else lag(f.pos) over (order by f.pos desc) end as new_pos,
@@ -184,23 +183,20 @@ func (s SqlRoutingOutboundCallStore) ChangePosition(ctx context.Context, domainI
 	})
 
 	if err != nil {
-		return model.NewAppError("SqlRoutingOutboundCallStore.ChangePosition", "store.sql_routing_out_call.change_position.app_error", nil,
-			fmt.Sprintf("FromId=%v, ToId=%v %s", fromId, toId, err.Error()), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_routing_out_call.change_position.app_error", fmt.Sprintf("FromId=%v, ToId=%v %s", fromId, toId, err.Error()), extractCodeFromErr(err))
 	}
 
 	if i == 0 {
-		return model.NewAppError("SqlRoutingOutboundCallStore.ChangePosition", "store.sql_routing_out_call.change_position.not_found", nil,
-			fmt.Sprintf("FromId=%v, ToId=%v", fromId, toId), http.StatusNotFound)
+		return model.NewNotFoundError("store.sql_routing_out_call.change_position.not_found", fmt.Sprintf("FromId=%v, ToId=%v", fromId, toId))
 	}
 
 	return nil
 }
 
-func (s SqlRoutingOutboundCallStore) Delete(ctx context.Context, domainId, id int64) *model.AppError {
+func (s SqlRoutingOutboundCallStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_routing_outbound_call c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewAppError("SqlRoutingOutboundCallStore.Delete", "store.sql_routing_out_call.delete.app_error", nil,
-			fmt.Sprintf("Id=%v, %s", id, err.Error()), http.StatusInternalServerError)
+		return model.NewInternalError("store.sql_routing_out_call.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
 }
