@@ -923,15 +923,19 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		IsSupervisor:     src.IsSupervisor,
 		Skills:           GetProtoLookups(src.Skills),
 	}
+	agent.Channel = make([]*engine.AgentChannel, 0, len(src.Channel))
 
-	agent.Channel = &engine.AgentChannel{
-		Channel:  src.Channel.Channel,
-		State:    src.Channel.State,
-		JoinedAt: src.Channel.JoinedAt,
-	}
+	for _, v := range src.Channel {
+		c := &engine.AgentChannel{
+			Channel:  v.Channel,
+			State:    v.State,
+			JoinedAt: v.JoinedAt,
+		}
 
-	if src.Channel.Timeout != nil {
-		agent.Channel.Timeout = *src.Channel.Timeout
+		if v.Timeout != nil {
+			c.Timeout = *v.Timeout
+		}
+		agent.Channel = append(agent.Channel, c)
 	}
 
 	if src.Extension != nil {

@@ -118,9 +118,9 @@ FROM a
          LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
          left join call_center.cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id
-         LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
+         LEFT JOIN LATERAL ( SELECT jsonb_agg(jsonb_build_object('channel', c.channel, 'online', true, 'state', c.state,
                                                       'joined_at',
-                                                      (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
+                                                      (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true`,
 		map[string]interface{}{
@@ -334,11 +334,11 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
 				 left join call_center.cc_team t on t.id = a.team_id
 				 left join flow.region r on r.id = a.region_id
-				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
-															  'joined_at',
-															  (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
-									 FROM call_center.cc_agent_channel c
-									 WHERE c.agent_id = a.id) ch ON true
+				 LEFT JOIN LATERAL ( SELECT jsonb_agg(jsonb_build_object('channel', c.channel, 'online', true, 'state', c.state,
+                                                      'joined_at',
+                                                      (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
+                             FROM call_center.cc_agent_channel c
+                             WHERE c.agent_id = a.id) ch ON true
 				where a.domain_id = :DomainId and a.id = :Id 	
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
@@ -398,11 +398,11 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
 				 left join call_center.cc_team t on t.id = a.team_id
 				 left join flow.region r on r.id = a.region_id
-				 LEFT JOIN LATERAL ( SELECT json_build_object('channel', c.channel, 'online', true, 'state', c.state,
-															  'joined_at',
-															  (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint) AS x
-									 FROM call_center.cc_agent_channel c
-									 WHERE c.agent_id = a.id) ch ON true`, map[string]interface{}{
+				 LEFT JOIN LATERAL ( SELECT jsonb_agg(jsonb_build_object('channel', c.channel, 'online', true, 'state', c.state,
+                                                      'joined_at',
+                                                      (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
+                             FROM call_center.cc_agent_channel c
+                             WHERE c.agent_id = a.id) ch ON true`, map[string]interface{}{
 		"UserId":           agent.User.Id,
 		"Description":      agent.Description,
 		"ProgressiveCount": agent.ProgressiveCount,
@@ -670,7 +670,7 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
         WHERE aud.id = any(a.auditor_ids)) auditor
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
-     LEFT JOIN LATERAL ( SELECT json_build_array(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
+     LEFT JOIN LATERAL ( SELECT jsonb_agg(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
                                            'no_answer', c.no_answers,
                                            'wrap_time_ids', (select array_agg(att.id)
                                                 from call_center.cc_member_attempt att
@@ -1158,7 +1158,7 @@ where a.id = :AgentId and a.domain_id = :DomainId`, map[string]interface{}{
 	return item, nil
 }
 
-func (s SqlAgentStore) DistributeInfoByUserId(ctx context.Context, domainId, userId int64) (*model.DistributeAgentInfo, model.AppError) {
+func (s SqlAgentStore) DistributeInfoByUserId(ctx context.Context, domainId, userId int64, channel string) (*model.DistributeAgentInfo, model.AppError) {
 	var res *model.DistributeAgentInfo
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select a.id as agent_id,
    exists(select 1 from call_center.cc_member_attempt att
@@ -1166,9 +1166,10 @@ func (s SqlAgentStore) DistributeInfoByUserId(ctx context.Context, domainId, use
    c.state = any(array ['offering', 'bridged']) busy
 from call_center.cc_agent a
     inner join call_center.cc_agent_channel c on c.agent_id = a.id
-where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
+where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::varchar`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
+		"Channel":  channel,
 	})
 
 	if err != nil {

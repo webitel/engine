@@ -25,24 +25,24 @@ type AgentChannel struct {
 
 type Agent struct {
 	DomainRecord
-	User             Lookup       `json:"user" db:"user"`
-	Name             string       `json:"name" db:"name"`
-	Status           string       `json:"status" db:"status"`
-	LastStatusChange int64        `json:"last_status_change" db:"last_status_change"`
-	StatusDuration   int64        `json:"status_duration" db:"status_duration"`
-	Description      string       `json:"description" db:"description"`
-	ProgressiveCount int          `json:"progressive_count" db:"progressive_count"`
-	Channel          AgentChannel `json:"channel" db:"channel"`
-	GreetingMedia    *Lookup      `json:"greeting_media" db:"greeting_media"`
-	AllowChannels    StringArray  `json:"allow_channels" db:"allow_channels"`
-	ChatCount        uint32       `json:"chat_count" db:"chat_count"`
-	Supervisor       []*Lookup    `json:"supervisor" db:"supervisor"`
-	Team             *Lookup      `json:"team" db:"team"`
-	Region           *Lookup      `json:"region" db:"region"`
-	Auditor          []*Lookup    `json:"auditor" db:"auditor"`
-	IsSupervisor     bool         `json:"is_supervisor" db:"is_supervisor"`
-	Skills           []*Lookup    `json:"skills" db:"skills"`
-	Extension        *string      `json:"extension" db:"extension"`
+	User             Lookup         `json:"user" db:"user"`
+	Name             string         `json:"name" db:"name"`
+	Status           string         `json:"status" db:"status"`
+	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
+	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
+	Description      string         `json:"description" db:"description"`
+	ProgressiveCount int            `json:"progressive_count" db:"progressive_count"`
+	Channel          []AgentChannel `json:"channel" db:"channel"`
+	GreetingMedia    *Lookup        `json:"greeting_media" db:"greeting_media"`
+	AllowChannels    StringArray    `json:"allow_channels" db:"allow_channels"`
+	ChatCount        uint32         `json:"chat_count" db:"chat_count"`
+	Supervisor       []*Lookup      `json:"supervisor" db:"supervisor"`
+	Team             *Lookup        `json:"team" db:"team"`
+	Region           *Lookup        `json:"region" db:"region"`
+	Auditor          []*Lookup      `json:"auditor" db:"auditor"`
+	IsSupervisor     bool           `json:"is_supervisor" db:"is_supervisor"`
+	Skills           []*Lookup      `json:"skills" db:"skills"`
+	Extension        *string        `json:"extension" db:"extension"`
 }
 
 type AgentPatch struct {

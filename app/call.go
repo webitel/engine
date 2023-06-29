@@ -85,7 +85,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 	if req.Params.CancelDistribute {
 		var stat *model.DistributeAgentInfo
-		if stat, err = app.Store.Agent().DistributeInfoByUserId(ctx, domainId, from.Id); err != nil {
+		if stat, err = app.Store.Agent().DistributeInfoByUserId(ctx, domainId, from.Id, "call"); err != nil {
 			wlog.Error(err.Error())
 		} else if stat.Busy {
 			return "", model.NewBadRequestError("app.call.create.valid.agent", "Agent in call")
