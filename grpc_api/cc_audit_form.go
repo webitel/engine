@@ -301,18 +301,22 @@ func transformAuditFrom(src *model.AuditForm) *engine.AuditForm {
 
 func transformAuditRate(src *model.AuditRate) *engine.AuditRate {
 	return &engine.AuditRate{
-		Id:            src.Id,
-		CreatedAt:     model.TimeToInt64(src.CreatedAt),
-		CreatedBy:     GetProtoLookup(src.CreatedBy),
-		UpdatedAt:     model.TimeToInt64(src.UpdatedAt),
-		UpdatedBy:     GetProtoLookup(src.UpdatedBy),
-		Form:          GetProtoLookup(src.Form),
-		Questions:     transformAuditQuestions(src.Questions),
-		Answers:       transformAuditAnswers(src.Answers),
-		ScoreRequired: src.ScoreRequired,
-		ScoreOptional: src.ScoreOptional,
-		Comment:       src.Comment,
-		RatedUser:     GetProtoLookup(src.RatedUser),
+		Id:        src.Id,
+		CreatedAt: model.TimeToInt64(src.CreatedAt),
+		CreatedBy: GetProtoLookup(src.CreatedBy),
+		UpdatedAt: model.TimeToInt64(src.UpdatedAt),
+		UpdatedBy: GetProtoLookup(src.UpdatedBy),
+		Form:      GetProtoLookup(src.Form),
+		Questions: transformAuditQuestions(src.Questions),
+		Answers:   transformAuditAnswers(src.Answers),
+		ScoreRequired: &wrappers.FloatValue{
+			Value: src.ScoreRequired,
+		},
+		ScoreOptional: &wrappers.FloatValue{
+			Value: src.ScoreOptional,
+		},
+		Comment:   src.Comment,
+		RatedUser: GetProtoLookup(src.RatedUser),
 	}
 }
 
