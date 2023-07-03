@@ -36,3 +36,11 @@ func extractCodeFromErr(err error) int {
 	}
 	return code
 }
+
+func isDuplicationViolationErrorCode(err error) bool {
+	if e, ok := err.(*pq.Error); ok {
+		return e.Code == DuplicationViolationErrorCode
+	}
+
+	return false
+}

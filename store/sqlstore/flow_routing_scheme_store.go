@@ -45,7 +45,10 @@ from s
 			"Editor":    scheme.Editor,
 			"Tags":      pq.Array(scheme.Tags),
 		}); err != nil {
-		return nil, model.NewInternalError("store.sql_routing_schema.save.app_error", fmt.Sprintf("name=%v, %v", scheme.Name, err.Error()))
+		if isDuplicationViolationErrorCode(err) {
+			return nil, model.NewCustomCodeError("store.sql_routing_schema.save.valid.name", fmt.Sprintf("name=\"%v\" already exists", scheme.Name), extractCodeFromErr(err))
+		}
+		return nil, model.NewCustomCodeError("store.sql_routing_schema.save.app_error", fmt.Sprintf("name=%v", scheme.Name), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
