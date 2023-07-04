@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/webitel/engine/localization"
 	"net"
 	"net/http"
 	"strconv"
@@ -67,6 +68,7 @@ func unaryInterceptor(ctx context.Context,
 		switch err.(type) {
 		case model.AppError:
 			e := err.(model.AppError)
+			e.Translate(localization.TfuncWithFallback(model.DEFAULT_LOCALE))
 			return h, status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
 		default:
 			return h, err

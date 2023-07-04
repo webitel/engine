@@ -78,15 +78,21 @@ func (er *ApplicationError) GetDetailedError() string {
 }
 
 func (er *ApplicationError) Translate(T goi18n.TranslateFunc) {
-	if T == nil {
-		er.Status = er.Id
+	if T == nil && er.DetailedError == "" {
+		er.DetailedError = er.Id
 		return
 	}
 
+	var errText string
+
 	if er.params == nil {
-		er.Status = T(er.Id)
+		errText = T(er.Id)
 	} else {
-		er.Status = T(er.Id, er.params)
+		errText = T(er.Id, er.params)
+	}
+
+	if errText != er.Id {
+		er.DetailedError = errText
 	}
 }
 
