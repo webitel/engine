@@ -3,8 +3,6 @@ package sqlstore
 import (
 	"context"
 	"fmt"
-	"net/http"
-
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -147,14 +145,10 @@ from s
 		"Tags":        pq.Array(scheme.Tags),
 	})
 	if err != nil {
-		code := http.StatusInternalServerError
-		switch err.(type) {
-		case *pq.Error:
-			if err.(*pq.Error).Code == ForeignKeyViolationErrorCode {
-				code = http.StatusBadRequest
-			}
+		if isDuplicationViolationErrorCode(err) {
+			return nil, model.NewCustomCodeError("store.sql_routing_schema.save.valid.name", fmt.Sprintf("name=\"%v\" already exists", scheme.Name), extractCodeFromErr(err))
 		}
-		return nil, model.NewCustomCodeError("store.sql_routing_schema.update.app_error", fmt.Sprintf("Id=%v, %s", scheme.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_routing_schema.update.app_error", fmt.Sprintf("Id=%v, %s", scheme.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return scheme, nil
 }
