@@ -5,13 +5,14 @@ type CommunicationType struct {
 	DomainId    int64  `json:"domain_id" db:"domain_id"`
 	Name        string `json:"name" db:"name"`
 	Code        string `json:"code" db:"code"`
-	Type        string `json:"type" db:"type"`
+	Channel     string `json:"channel" db:"channel"`
 	Description string `json:"description" db:"description"`
 }
 
 type SearchCommunicationType struct {
 	ListRequest
-	Ids []uint32
+	Ids      []uint32
+	Channels []string
 }
 
 func (CommunicationType) DefaultOrder() string {
@@ -19,15 +20,15 @@ func (CommunicationType) DefaultOrder() string {
 }
 
 func (a CommunicationType) AllowFields() []string {
-	return []string{"id", "name", "code", "description", "domain_id"}
+	return []string{"id", "name", "code", "description", "domain_id", "channel"}
 }
 
 func (a CommunicationType) DefaultFields() []string {
-	return []string{"id", "name", "code", "description"}
+	return []string{"id", "name", "code", "description", "channel"}
 }
 
 func (a CommunicationType) EntityName() string {
-	return "cc_communication_view"
+	return "cc_communication_list"
 }
 
 func (s *CommunicationType) IsValid() AppError {

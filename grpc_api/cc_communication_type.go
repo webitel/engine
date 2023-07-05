@@ -27,7 +27,7 @@ func (api *communicationType) CreateCommunicationType(ctx context.Context, in *e
 		DomainId:    session.Domain(in.GetDomainId()),
 		Name:        in.Name,
 		Code:        in.GetCode(),
-		Type:        in.GetType(),
+		Channel:     in.GetChannel().String(),
 		Description: in.Description,
 	}
 
@@ -56,6 +56,13 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 			Sort:    in.Sort,
 		},
 		Ids: in.Id,
+	}
+
+	if len(in.Channel) != 0 {
+		req.Channels = make([]string, 0, len(in.Channel))
+		for _, v := range in.Channel {
+			req.Channels = append(req.Channels, v.String())
+		}
 	}
 
 	list, endList, err = api.ctrl.GetCommunicationTypePage(ctx, session, req)
@@ -99,7 +106,7 @@ func (api *communicationType) UpdateCommunicationType(ctx context.Context, in *e
 		DomainId:    session.Domain(in.GetDomainId()),
 		Name:        in.GetName(),
 		Code:        in.GetCode(),
-		Type:        in.GetType(),
+		Channel:     in.GetChannel().String(),
 		Description: in.GetDescription(),
 	}
 
@@ -133,7 +140,20 @@ func toEngineCommunicationType(src *model.CommunicationType) *engine.Communicati
 		DomainId:    src.DomainId,
 		Name:        src.Name,
 		Code:        src.Code,
-		Type:        src.Type,
+		Channel:     getChannelEnum(src.Channel),
 		Description: src.Description,
+	}
+}
+
+func getChannelEnum(c string) engine.CommunicationChannels {
+	switch c {
+	case engine.CommunicationChannels_Phone.String():
+		return engine.CommunicationChannels_Phone
+	case engine.CommunicationChannels_Messaging.String():
+		return engine.CommunicationChannels_Messaging
+	case engine.CommunicationChannels_Email.String():
+		return engine.CommunicationChannels_Email
+	default:
+		return engine.CommunicationChannels_Undefined
 	}
 }

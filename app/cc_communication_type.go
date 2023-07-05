@@ -32,7 +32,7 @@ func (app *App) UpdateCommunicationType(ctx context.Context, cType *model.Commun
 
 	oldCType.Name = cType.Name
 	oldCType.Description = cType.Description
-	oldCType.Type = cType.Type
+	oldCType.Channel = cType.Channel
 	oldCType.Code = cType.Code
 
 	_, err = app.Store.CommunicationType().Update(ctx, oldCType)

@@ -20,13 +20,13 @@ func NewSqlCommunicationTypeStore(sqlStore SqlStore) store.CommunicationTypeStor
 
 func (s SqlCommunicationTypeStore) Create(ctx context.Context, comm *model.CommunicationType) (*model.CommunicationType, model.AppError) {
 	var out *model.CommunicationType
-	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_communication (name, code, type, domain_id, description)
-		values (:Name, :Code, :Type, :DomainId, :Description)
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_communication (name, code, channel, domain_id, description)
+		values (:Name, :Code, :Channel, :DomainId, :Description)
 		returning *`,
 		map[string]interface{}{
 			"Name":        comm.Name,
 			"Code":        comm.Code,
-			"Type":        comm.Type,
+			"Channel":     comm.Channel,
 			"DomainId":    comm.DomainId,
 			"Description": comm.Description,
 		}); nil != err {
@@ -42,12 +42,14 @@ func (s SqlCommunicationTypeStore) GetAllPage(ctx context.Context, domainId int6
 	f := map[string]interface{}{
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
+		"Channels": pq.Array(search.Channels),
 		"Q":        search.GetQ(),
 	}
 
 	err := s.ListQuery(ctx, &communications, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Channels::text[] isnull or channel = any(:Channels))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
 		model.CommunicationType{}, f)
 
@@ -73,13 +75,13 @@ func (s SqlCommunicationTypeStore) Update(ctx context.Context, cType *model.Comm
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cType, `update call_center.cc_communication
 set name = :Name,
     description = :Description,
-    type = :Type,
+    channel = :Channel,
     code = :Code
 where id = :Id and domain_id = :DomainId
 returning *`, map[string]interface{}{
 		"Name":        cType.Name,
 		"Description": cType.Description,
-		"Type":        cType.Type,
+		"Channel":     cType.Channel,
 		"Code":        cType.Code,
 		"Id":          cType.Id,
 		"DomainId":    cType.DomainId,
