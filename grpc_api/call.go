@@ -33,7 +33,7 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetNumber() == "" && in.GetQ() == "" && in.GetDependencyId() == nil && in.GetId() == nil {
+	if in.GetCreatedAt() == nil && in.GetStoredAt() == nil && in.GetNumber() == "" && in.GetQ() == "" && in.GetDependencyId() == "" && in.GetId() == nil {
 		return nil, model.NewBadRequestError("grpc.call.search_history", "filter created_at or stored_at or q is required")
 	}
 
@@ -58,7 +58,6 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		Ids:              in.GetId(),
 		TransferFromIds:  in.GetTransferFrom(),
 		TransferToIds:    in.GetTransferTo(),
-		DependencyIds:    in.GetDependencyId(),
 		Tags:             in.GetTags(),
 		CauseArr:         in.GetCause(),
 		Variables:        in.GetVariables(),
@@ -73,6 +72,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		RatedByIds:       in.GetRatedBy(),
 		RatedUserIds:     in.GetRatedUser(),
 		Rated:            GetBool(in.GetRated()),
+	}
+
+	if in.GetDependencyId() != "" {
+		req.DependencyIds = []string{in.GetDependencyId()}
 	}
 
 	if in.GetDuration() != nil {
@@ -205,7 +208,6 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			Ids:              in.GetId(),
 			TransferFromIds:  in.GetTransferFrom(),
 			TransferToIds:    in.GetTransferTo(),
-			DependencyIds:    in.GetDependencyId(),
 			Tags:             in.GetTags(),
 			CauseArr:         in.GetCause(),
 			Variables:        in.GetVariables(),
@@ -215,6 +217,10 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			HasTranscript:    GetBool(in.GetHasTranscript()),
 			AgentDescription: in.GetAgentDescription(),
 		},
+	}
+
+	if in.GetDependencyId() != "" {
+		req.DependencyIds = []string{in.GetDependencyId()}
 	}
 
 	if in.GetDuration() != nil {
