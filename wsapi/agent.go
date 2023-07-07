@@ -138,9 +138,9 @@ func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
 	}
 
-	//if channel, ok = req.Data["channel"].(string); !ok {
-	//	return nil, NewInvalidWebSocketParamError(req.Action, "channel")
-	//}
+	if channel, ok = req.Data["channel"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel")
+	}
 
 	if domainId, ok = req.Data["domain_id"].(float64); !ok {
 		domainId = float64(conn.DomainId)
