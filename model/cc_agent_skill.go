@@ -53,7 +53,7 @@ func (a AgentSkill) AllowFields() []string {
 }
 
 func (a AgentSkill) DefaultFields() []string {
-	return []string{"id", "skill", "capacity", "enabled", "team"}
+	return []string{"id", "skill", "capacity", "enabled", "team", "agent"}
 }
 
 func (a AgentSkill) EntityName() string {
