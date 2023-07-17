@@ -500,6 +500,26 @@ func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string,
 	return err
 }
 
+func (app *App) SetCallParams(ctx context.Context, domainId int64, id string, params model.CallParameters) model.AppError {
+	var cli call_manager.CallClient
+	var err model.AppError
+
+	cli, err = app.getCallCli(ctx, domainId, id, nil)
+	if err != nil {
+		return err
+	}
+
+	if len(params.Variables) != 0 {
+		err = cli.SetCallVariables(id, params.Variables)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (app *App) GetLastCallFile(ctx context.Context, domainId int64, callId string) (int64, model.AppError) {
 	return app.Store.Call().LastFile(ctx, domainId, callId)
 }
