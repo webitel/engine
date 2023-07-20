@@ -81,8 +81,17 @@ func (m *Member) Patch(p *MemberPatch) {
 		m.Name = *p.Name
 	}
 
-	if p.Variables != nil {
-		m.Variables = p.Variables
+	if len(p.Variables) != 0 {
+		if m.Variables == nil {
+			m.Variables = make(StringMap)
+		}
+		for k, v := range p.Variables {
+			if v == "" {
+				delete(m.Variables, k)
+			} else {
+				m.Variables[k] = v
+			}
+		}
 	}
 
 	if p.Timezone != nil {
