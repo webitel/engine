@@ -271,6 +271,7 @@ type SearchAgent struct {
 	Extensions    []string
 	UserIds       []int64
 	NotTeamIds    []uint32
+	NotSkillIds   []uint32
 }
 
 type AgentUser struct {

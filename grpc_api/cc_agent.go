@@ -105,6 +105,7 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		Extensions:    in.GetExtension(),
 		UserIds:       in.GetUserId(),
 		NotTeamIds:    in.GetNotTeamId(),
+		NotSkillIds:   in.GetNotSkillId(),
 	}
 
 	if in.IsSupervisor {

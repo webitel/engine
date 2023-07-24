@@ -166,6 +166,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		"Extensions":    pq.Array(search.Extensions),
 		"UserIds":       pq.Array(search.UserIds),
 		"NotTeamIds":    pq.Array(search.NotTeamIds),
+		"NotSkillIds":   pq.Array(search.NotSkillIds),
 	}
 
 	err := s.ListQuery(ctx, &agents, search.ListRequest,
@@ -192,6 +193,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:IsSupervisor::bool isnull or is_supervisor = :IsSupervisor)
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
+				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
 		model.Agent{}, f)
 	if err != nil {
@@ -222,6 +224,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		"Extensions":    pq.Array(search.Extensions),
 		"UserIds":       pq.Array(search.UserIds),
 		"NotTeamIds":    pq.Array(search.NotTeamIds),
+		"NotSkillIds":   pq.Array(search.NotSkillIds),
 	}
 
 	err := s.ListQuery(ctx, &agents, search.ListRequest,
@@ -248,6 +251,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 						and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
 				))
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
+				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
 				and (
 					exists(select 1
