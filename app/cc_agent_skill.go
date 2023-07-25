@@ -129,3 +129,7 @@ func (app *App) RemoveAgentsSkill(ctx context.Context, domainId int64, skillId i
 	search.SkillIds = []int64{skillId}
 	return app.Store.AgentSkill().Delete(ctx, domainId, search)
 }
+
+func (app *App) HasDisabledSkill(ctx context.Context, domainId int64, skillId int64) (bool, model.AppError) {
+	return app.Store.AgentSkill().HasDisabledSkill(ctx, domainId, skillId)
+}

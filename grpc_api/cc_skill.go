@@ -163,6 +163,7 @@ func (api *skill) SearchSkillAgent(ctx context.Context, in *engine.SearchSkillAg
 
 	var list []*model.AgentSkill
 	var endList bool
+	var existsDisabled bool
 	req := &model.SearchAgentSkillList{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
@@ -177,7 +178,7 @@ func (api *skill) SearchSkillAgent(ctx context.Context, in *engine.SearchSkillAg
 			AgentIds: in.AgentId,
 		},
 	}
-	list, endList, err = api.ctrl.GetAgentsSkillBySkill(ctx, session, in.SkillId, req)
+	list, endList, existsDisabled, err = api.ctrl.GetAgentsSkillBySkill(ctx, session, in.SkillId, req)
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +186,9 @@ func (api *skill) SearchSkillAgent(ctx context.Context, in *engine.SearchSkillAg
 	res := &engine.ListSkillAgent{
 		Next:  !endList,
 		Items: make([]*engine.SkillAgentItem, 0, len(list)),
+		Aggs: &engine.ListSkillAgent_ListSkillAgg{
+			Enabled: !existsDisabled,
+		},
 	}
 
 	for _, v := range list {

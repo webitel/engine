@@ -140,6 +140,23 @@ func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, sear
 	}
 }
 
+func (s SqlAgentSkillStore) HasDisabledSkill(ctx context.Context, domainId int64, skillId int64) (bool, model.AppError) {
+	var exists bool
+	err := s.GetReplica().WithContext(ctx).SelectOne(&exists, `select not exists(select 1
+from call_center.cc_skill_in_agent_view s
+where s.domain_id = :DomainId::int8
+    and s.skill_id = :SkillId::int
+    and s.enabled) as has_disabled`, map[string]interface{}{
+		"DomainId": domainId,
+		"SkillId":  skillId,
+	})
+	if err != nil {
+		return false, model.NewCustomCodeError("store.sql_skill_in_agent.has_disabled.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return exists, nil
+}
+
 func (s SqlAgentSkillStore) GetById(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, model.AppError) {
 	var agentSkill *model.AgentSkill
 

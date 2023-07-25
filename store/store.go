@@ -163,6 +163,7 @@ type AgentSkillStore interface {
 	LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, model.AppError)
 
 	CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, model.AppError)
+	HasDisabledSkill(ctx context.Context, domainId int64, skillId int64) (bool, model.AppError)
 }
 
 type OutboundResourceStore interface {
