@@ -196,13 +196,14 @@ func (s SqlListStore) Delete(ctx context.Context, domainId, id int64) model.AppE
 // Communications
 func (s SqlListStore) CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	var out *model.ListCommunication
-	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description)
-values (:ListId, :Number, :Description)
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description, expire_at)
+values (:ListId, :Number, :Description, :ExpireAt)
 returning id, list_id, number, description, expire_at`,
 		map[string]interface{}{
 			"ListId":      comm.ListId,
 			"Number":      comm.Number,
 			"Description": comm.Description,
+			"ExpireAt":    comm.ExpireAt,
 		}); err != nil {
 		return nil, model.NewInternalError("store.sql_list.save_communication.app_error", fmt.Sprintf("number=%v, %v", comm.Number, err.Error()))
 	} else {
