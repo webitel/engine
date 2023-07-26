@@ -389,6 +389,8 @@ func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.Hangu
 		if e, err = app.Store.Call().SetEmptySeverCall(ctx, domainId, req.Id); err == nil {
 			//fixme rollback
 			err = app.MessageQueue.SendStickingCall(e)
+		} else if err.StatusCode == http.StatusNotFound {
+			err = nil
 		}
 	}
 
