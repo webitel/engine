@@ -1161,7 +1161,7 @@ func (s SqlCallStore) SetEmptySeverCall(ctx context.Context, domainId int64, id 
         c.id,
        call_center.cc_view_timestamp(now())::text as "timestamp",
        c.domain_id::text,
-       c.user_id::text,
+       coalesce(c.user_id::text, '') as user_id,
        c.app_id,
        coalesce(cma.node_id, '') as cc_app_id
     from  call_center.cc_calls c
