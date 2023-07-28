@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 )
@@ -134,7 +135,7 @@ func (api *skill) CreateSkillAgent(ctx context.Context, in *engine.CreateSkillAg
 		AgentIds:     LookupsIds(in.Agent),
 		SkillIds:     []int64{in.SkillId},
 		AgentSkillProps: model.AgentSkillProps{
-			Capacity: int(in.Capacity),
+			Capacity: int(in.GetCapacity().GetValue()),
 			Enabled:  in.Enabled,
 		},
 	})
@@ -218,7 +219,7 @@ func (api *skill) PatchSkillAgent(ctx context.Context, in *engine.PatchSkillAgen
 		case "skill.id":
 			patch.Skill = &model.Lookup{Id: int(in.GetSkill().GetId())}
 		case "capacity":
-			patch.Capacity = model.NewInt(int(in.Capacity))
+			patch.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
 		case "enabled":
 			patch.Enabled = &in.Enabled
 		}
@@ -275,12 +276,14 @@ func (api *skill) DeleteSkillAgent(ctx context.Context, in *engine.DeleteSkillAg
 
 func transformSkillAgentItem(src *model.AgentSkill) *engine.SkillAgentItem {
 	return &engine.SkillAgentItem{
-		Id:       src.Id,
-		Skill:    GetProtoLookup(src.Skill),
-		Capacity: int32(src.Capacity),
-		Enabled:  src.Enabled,
-		Agent:    GetProtoLookup(src.Agent),
-		Team:     GetProtoLookup(src.Team),
+		Id:    src.Id,
+		Skill: GetProtoLookup(src.Skill),
+		Capacity: &wrappers.Int32Value{
+			Value: int32(src.Capacity),
+		},
+		Enabled: src.Enabled,
+		Agent:   GetProtoLookup(src.Agent),
+		Team:    GetProtoLookup(src.Team),
 	}
 }
 

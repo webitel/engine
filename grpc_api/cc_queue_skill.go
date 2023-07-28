@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/engine"
 )
@@ -25,8 +26,8 @@ func (api *queueSkill) CreateQueueSkill(ctx context.Context, in *engine.CreateQu
 		QueueId:     in.QueueId,
 		Buckets:     GetLookups(in.Buckets),
 		Lvl:         int(in.Lvl),
-		MinCapacity: int(in.MinCapacity),
-		MaxCapacity: int(in.MaxCapacity),
+		MinCapacity: int(in.GetMinCapacity().GetValue()),
+		MaxCapacity: int(in.GetMaxCapacity().GetValue()),
 		Enabled:     in.Enabled,
 	}
 
@@ -114,8 +115,8 @@ func (api *queueSkill) UpdateQueueSkill(ctx context.Context, in *engine.UpdateQu
 		Skill:       model.Lookup{},
 		Buckets:     GetLookups(in.Buckets),
 		Lvl:         int(in.Lvl),
-		MinCapacity: int(in.MinCapacity),
-		MaxCapacity: int(in.MaxCapacity),
+		MinCapacity: int(in.GetMinCapacity().GetValue()),
+		MaxCapacity: int(in.GetMaxCapacity().GetValue()),
 		Enabled:     in.Enabled,
 	}
 
@@ -151,9 +152,9 @@ func (api *queueSkill) PatchQueueSkill(ctx context.Context, in *engine.PatchQueu
 		case "lvl":
 			patch.Lvl = model.NewInt(int(in.Lvl))
 		case "min_capacity":
-			patch.MinCapacity = model.NewInt(int(in.MinCapacity))
+			patch.MinCapacity = model.NewInt(int(in.GetMinCapacity().GetValue()))
 		case "max_capacity":
-			patch.MaxCapacity = model.NewInt(int(in.MaxCapacity))
+			patch.MaxCapacity = model.NewInt(int(in.GetMaxCapacity().GetValue()))
 		case "enabled":
 			patch.Enabled = &in.Enabled
 		}
@@ -183,12 +184,16 @@ func (api *queueSkill) DeleteQueueSkill(ctx context.Context, in *engine.DeleteQu
 
 func toEngineQueueSkill(src *model.QueueSkill) *engine.QueueSkill {
 	return &engine.QueueSkill{
-		Id:          src.Id,
-		Skill:       GetProtoLookup(&src.Skill),
-		Buckets:     GetProtoLookups(src.Buckets),
-		Lvl:         int32(src.Lvl),
-		MinCapacity: int32(src.MinCapacity),
-		MaxCapacity: int32(src.MaxCapacity),
-		Enabled:     src.Enabled,
+		Id:      src.Id,
+		Skill:   GetProtoLookup(&src.Skill),
+		Buckets: GetProtoLookups(src.Buckets),
+		Lvl:     int32(src.Lvl),
+		MinCapacity: &wrappers.Int32Value{
+			Value: int32(src.MinCapacity),
+		},
+		MaxCapacity: &wrappers.Int32Value{
+			Value: int32(src.MaxCapacity),
+		},
+		Enabled: src.Enabled,
 	}
 }

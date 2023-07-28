@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -57,7 +58,7 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 			Id: int(in.GetSkill().GetId()),
 		},
 		AgentSkillProps: model.AgentSkillProps{
-			Capacity: int(in.Capacity),
+			Capacity: int(in.GetCapacity().GetValue()),
 			Enabled:  in.Enabled,
 		},
 	}
@@ -120,10 +121,12 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.AgentSkillItem{
-			Id:       v.Id,
-			Skill:    GetProtoLookup(v.Skill),
-			Capacity: int32(v.Capacity),
-			Enabled:  v.Enabled,
+			Id:    v.Id,
+			Skill: GetProtoLookup(v.Skill),
+			Capacity: &wrappers.Int32Value{
+				Value: int32(v.Capacity),
+			},
+			Enabled: v.Enabled,
 		})
 	}
 	return &engine.ListAgentSkill{
@@ -205,7 +208,7 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 			Id: int(in.GetSkill().GetId()),
 		},
 		AgentSkillProps: model.AgentSkillProps{
-			Capacity: int(in.Capacity),
+			Capacity: int(in.GetCapacity().GetValue()),
 			Enabled:  in.Enabled,
 		},
 	})
@@ -252,7 +255,7 @@ func (api *agentSkill) PatchAgentSkill(ctx context.Context, in *engine.PatchAgen
 		case "skill.id":
 			patch.Skill = &model.Lookup{Id: int(in.GetSkill().GetId())}
 		case "capacity":
-			patch.Capacity = model.NewInt(int(in.Capacity))
+			patch.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
 		case "enabled":
 			patch.Enabled = &in.Enabled
 		}
@@ -299,7 +302,7 @@ func (api *agentSkill) PatchAgentSkills(ctx context.Context, in *engine.PatchAge
 	for _, v := range in.Fields {
 		switch v {
 		case "capacity":
-			patch.Capacity = model.NewInt(int(in.Capacity))
+			patch.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
 		case "enabled":
 			patch.Enabled = &in.Enabled
 		}
@@ -318,10 +321,12 @@ func (api *agentSkill) PatchAgentSkills(ctx context.Context, in *engine.PatchAge
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.AgentSkillItem{
-			Id:       v.Id,
-			Skill:    GetProtoLookup(v.Skill),
-			Capacity: int32(v.Capacity),
-			Enabled:  v.Enabled,
+			Id:    v.Id,
+			Skill: GetProtoLookup(v.Skill),
+			Capacity: &wrappers.Int32Value{
+				Value: int32(v.Capacity),
+			},
+			Enabled: v.Enabled,
 		})
 	}
 
@@ -395,10 +400,12 @@ func (api *agentSkill) DeleteAgentSkills(ctx context.Context, in *engine.DeleteA
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.AgentSkillItem{
-			Id:       v.Id,
-			Skill:    GetProtoLookup(v.Skill),
-			Capacity: int32(v.Capacity),
-			Enabled:  v.Enabled,
+			Id:    v.Id,
+			Skill: GetProtoLookup(v.Skill),
+			Capacity: &wrappers.Int32Value{
+				Value: int32(v.Capacity),
+			},
+			Enabled: v.Enabled,
 		})
 	}
 
@@ -501,7 +508,7 @@ func (api *agentSkill) CreateAgentSkills(ctx context.Context, in *engine.CreateA
 				Id: int(v.GetSkill().GetId()),
 			},
 			AgentSkillProps: model.AgentSkillProps{
-				Capacity: int(v.Capacity),
+				Capacity: int(v.GetCapacity().GetValue()),
 				Enabled:  v.Enabled,
 			},
 		}
@@ -531,7 +538,9 @@ func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
 		Id:        src.Id,
 		Agent:     GetProtoLookup(src.Agent),
 		Skill:     GetProtoLookup(src.Skill),
-		Capacity:  int32(src.Capacity),
-		Enabled:   src.Enabled,
+		Capacity: &wrappers.Int32Value{
+			Value: int32(src.Capacity),
+		},
+		Enabled: src.Enabled,
 	}
 }

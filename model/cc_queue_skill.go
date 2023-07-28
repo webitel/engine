@@ -86,5 +86,11 @@ func (q *QueueSkill) Patch(patch *QueueSkillPatch) {
 
 // Todo
 func (q *QueueSkill) IsValid() AppError {
+	if q.MinCapacity < 0 || q.MinCapacity > 100 {
+		return NewBadRequestError("queue_skill.valid.min_capacity", "Min capacity must be between 0 and 100")
+	}
+	if q.MaxCapacity < 0 || q.MaxCapacity > 100 {
+		return NewBadRequestError("queue_skill.valid.max_capacity", "Max capacity must be between 0 and 100")
+	}
 	return nil
 }
