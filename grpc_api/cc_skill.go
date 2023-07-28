@@ -291,8 +291,12 @@ func transformSkill(src *model.Skill) *engine.Skill {
 		Description: src.Description,
 	}
 
-	if src.Agents != nil {
-		res.Agents = *src.Agents
+	if src.TotalAgents != nil {
+		res.TotalAgents = *src.TotalAgents
+	}
+
+	if src.ActiveAgents != nil {
+		res.ActiveAgents = *src.ActiveAgents
 	}
 
 	return res
