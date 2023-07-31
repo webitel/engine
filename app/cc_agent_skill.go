@@ -122,6 +122,12 @@ func (app *App) GetAgentsSkillBySkill(ctx context.Context, domainId int64, skill
 
 func (app *App) PatchAgentsSkill(ctx context.Context, domainId int64, skillId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, model.AppError) {
 	search.SkillIds = []int64{skillId}
+
+	err := path.IsValid()
+	if err != nil {
+		return nil, err
+	}
+
 	return app.Store.AgentSkill().UpdateMany(ctx, domainId, search, path)
 }
 

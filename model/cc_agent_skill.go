@@ -88,3 +88,14 @@ func (as *AgentSkill) IsValid() AppError {
 	//FIXME
 	return nil
 }
+
+func (as *AgentSkillPatch) IsValid() AppError {
+	if as.Capacity != nil {
+		if *as.Capacity < 0 || *as.Capacity > 100 {
+			return NewBadRequestError("agent_skill.valid.capacity", "Capacity must be between 0 and 100")
+		}
+		//FIXME
+	}
+
+	return nil
+}
