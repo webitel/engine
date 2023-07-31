@@ -10,7 +10,7 @@ type AgentSkill struct {
 }
 
 type AgentSkillProps struct {
-	Capacity int  `json:"capacity" db:"capacity"`
+	Capacity *int `json:"capacity" db:"capacity"`
 	Enabled  bool `json:"enabled" db:"enabled"`
 }
 
@@ -73,7 +73,7 @@ func (as *AgentSkill) Patch(patch *AgentSkillPatch) {
 	}
 
 	if patch.Capacity != nil {
-		as.Capacity = *patch.Capacity
+		as.Capacity = patch.Capacity
 	}
 
 	if patch.Enabled != nil {
@@ -82,7 +82,10 @@ func (as *AgentSkill) Patch(patch *AgentSkillPatch) {
 }
 
 func (as *AgentSkill) IsValid() AppError {
-	if as.Capacity < 0 || as.Capacity > 100 {
+	if as.Capacity == nil {
+		return NewBadRequestError("agent_skill.valid.capacity", "Capacity is required")
+	}
+	if *as.Capacity < 0 || *as.Capacity > 100 {
 		return NewBadRequestError("agent_skill.valid.capacity", "Capacity must be between 0 and 100")
 	}
 	//FIXME
@@ -90,12 +93,13 @@ func (as *AgentSkill) IsValid() AppError {
 }
 
 func (as *AgentSkillPatch) IsValid() AppError {
-	if as.Capacity != nil {
-		if *as.Capacity < 0 || *as.Capacity > 100 {
-			return NewBadRequestError("agent_skill.valid.capacity", "Capacity must be between 0 and 100")
-		}
-		//FIXME
+	if as.Capacity == nil {
+		return NewBadRequestError("agent_skill.valid.capacity", "Capacity is required")
 	}
+	if *as.Capacity < 0 || *as.Capacity > 100 {
+		return NewBadRequestError("agent_skill.valid.capacity", "Capacity must be between 0 and 100")
+	}
+	//FIXME
 
 	return nil
 }

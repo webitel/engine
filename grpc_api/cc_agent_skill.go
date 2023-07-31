@@ -58,9 +58,12 @@ func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAg
 			Id: int(in.GetSkill().GetId()),
 		},
 		AgentSkillProps: model.AgentSkillProps{
-			Capacity: int(in.GetCapacity().GetValue()),
-			Enabled:  in.Enabled,
+			Enabled: in.Enabled,
 		},
+	}
+
+	if in.GetCapacity() != nil {
+		agentSkill.AgentSkillProps.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
 	}
 
 	err = agentSkill.IsValid()
@@ -120,14 +123,18 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
-		items = append(items, &engine.AgentSkillItem{
-			Id:    v.Id,
-			Skill: GetProtoLookup(v.Skill),
-			Capacity: &wrappers.Int32Value{
-				Value: int32(v.Capacity),
-			},
+		item := &engine.AgentSkillItem{
+			Id:      v.Id,
+			Skill:   GetProtoLookup(v.Skill),
 			Enabled: v.Enabled,
-		})
+		}
+
+		if v.Capacity != nil {
+			item.Capacity = &wrappers.Int32Value{
+				Value: int32(*v.Capacity),
+			}
+		}
+		items = append(items, item)
 	}
 	return &engine.ListAgentSkill{
 		Next:  !endList,
@@ -208,10 +215,13 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 			Id: int(in.GetSkill().GetId()),
 		},
 		AgentSkillProps: model.AgentSkillProps{
-			Capacity: int(in.GetCapacity().GetValue()),
-			Enabled:  in.Enabled,
+			Enabled: in.Enabled,
 		},
 	})
+
+	if in.GetCapacity() != nil {
+		agentSkill.AgentSkillProps.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
+	}
 
 	if err != nil {
 		return nil, err
@@ -320,14 +330,19 @@ func (api *agentSkill) PatchAgentSkills(ctx context.Context, in *engine.PatchAge
 
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
-		items = append(items, &engine.AgentSkillItem{
-			Id:    v.Id,
-			Skill: GetProtoLookup(v.Skill),
-			Capacity: &wrappers.Int32Value{
-				Value: int32(v.Capacity),
-			},
+		item := &engine.AgentSkillItem{
+			Id:      v.Id,
+			Skill:   GetProtoLookup(v.Skill),
 			Enabled: v.Enabled,
-		})
+		}
+
+		if v.Capacity != nil {
+			item.Capacity = &wrappers.Int32Value{
+				Value: int32(*v.Capacity),
+			}
+		}
+
+		items = append(items, item)
 	}
 
 	return &engine.ListAgentSkill{
@@ -399,14 +414,19 @@ func (api *agentSkill) DeleteAgentSkills(ctx context.Context, in *engine.DeleteA
 
 	items := make([]*engine.AgentSkillItem, 0, len(list))
 	for _, v := range list {
-		items = append(items, &engine.AgentSkillItem{
-			Id:    v.Id,
-			Skill: GetProtoLookup(v.Skill),
-			Capacity: &wrappers.Int32Value{
-				Value: int32(v.Capacity),
-			},
+		item := &engine.AgentSkillItem{
+			Id:      v.Id,
+			Skill:   GetProtoLookup(v.Skill),
 			Enabled: v.Enabled,
-		})
+		}
+
+		if v.Capacity != nil {
+			item.Capacity = &wrappers.Int32Value{
+				Value: int32(*v.Capacity),
+			}
+		}
+
+		items = append(items, item)
 	}
 
 	return &engine.ListAgentSkill{
@@ -508,9 +528,12 @@ func (api *agentSkill) CreateAgentSkills(ctx context.Context, in *engine.CreateA
 				Id: int(v.GetSkill().GetId()),
 			},
 			AgentSkillProps: model.AgentSkillProps{
-				Capacity: int(v.GetCapacity().GetValue()),
-				Enabled:  v.Enabled,
+				Enabled: v.Enabled,
 			},
+		}
+
+		if v.GetCapacity() != nil {
+			i.AgentSkillProps.Capacity = model.NewInt(int(v.GetCapacity().GetValue()))
 		}
 
 		if err = i.IsValid(); err != nil {
@@ -530,7 +553,7 @@ func (api *agentSkill) CreateAgentSkills(ctx context.Context, in *engine.CreateA
 }
 
 func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
-	return &engine.AgentSkill{
+	s := &engine.AgentSkill{
 		CreatedAt: src.CreatedAt,
 		CreatedBy: GetProtoLookup(src.CreatedBy),
 		UpdatedAt: src.UpdatedAt,
@@ -538,9 +561,13 @@ func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
 		Id:        src.Id,
 		Agent:     GetProtoLookup(src.Agent),
 		Skill:     GetProtoLookup(src.Skill),
-		Capacity: &wrappers.Int32Value{
-			Value: int32(src.Capacity),
-		},
-		Enabled: src.Enabled,
+		Enabled:   src.Enabled,
 	}
+	if src.Capacity != nil {
+		s.Capacity = &wrappers.Int32Value{
+			Value: int32(*src.Capacity),
+		}
+	}
+
+	return s
 }

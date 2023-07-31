@@ -130,15 +130,20 @@ func (api *skill) CreateSkillAgent(ctx context.Context, in *engine.CreateSkillAg
 
 	var list []*model.AgentSkill
 
-	list, err = api.ctrl.CreateAgentsSkills(ctx, session, &model.AgentsSkills{
+	s := &model.AgentsSkills{
 		DomainRecord: model.DomainRecord{},
 		AgentIds:     LookupsIds(in.Agent),
 		SkillIds:     []int64{in.SkillId},
 		AgentSkillProps: model.AgentSkillProps{
-			Capacity: int(in.GetCapacity().GetValue()),
-			Enabled:  in.Enabled,
+			Enabled: in.Enabled,
 		},
-	})
+	}
+
+	if in.GetCapacity() != nil {
+		s.AgentSkillProps.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
+	}
+
+	list, err = api.ctrl.CreateAgentsSkills(ctx, session, s)
 
 	if err != nil {
 		return nil, err
@@ -275,16 +280,22 @@ func (api *skill) DeleteSkillAgent(ctx context.Context, in *engine.DeleteSkillAg
 }
 
 func transformSkillAgentItem(src *model.AgentSkill) *engine.SkillAgentItem {
-	return &engine.SkillAgentItem{
-		Id:    src.Id,
-		Skill: GetProtoLookup(src.Skill),
-		Capacity: &wrappers.Int32Value{
-			Value: int32(src.Capacity),
-		},
+	s := &engine.SkillAgentItem{
+		Id:      src.Id,
+		Skill:   GetProtoLookup(src.Skill),
 		Enabled: src.Enabled,
 		Agent:   GetProtoLookup(src.Agent),
 		Team:    GetProtoLookup(src.Team),
 	}
+
+	if src.Capacity != nil {
+		s.Capacity = &wrappers.Int32Value{
+			Value: int32(*src.Capacity),
+		}
+
+	}
+
+	return s
 }
 
 func transformSkill(src *model.Skill) *engine.Skill {
