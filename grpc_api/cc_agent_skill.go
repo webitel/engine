@@ -193,9 +193,7 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 		}
 	}
 
-	var agentSkill *model.AgentSkill
-
-	agentSkill, err = api.app.UpdateAgentsSkill(ctx, &model.AgentSkill{
+	agentSkill := &model.AgentSkill{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -217,11 +215,13 @@ func (api *agentSkill) UpdateAgentSkill(ctx context.Context, in *engine.UpdateAg
 		AgentSkillProps: model.AgentSkillProps{
 			Enabled: in.Enabled,
 		},
-	})
+	}
 
 	if in.GetCapacity() != nil {
 		agentSkill.AgentSkillProps.Capacity = model.NewInt(int(in.GetCapacity().GetValue()))
 	}
+
+	agentSkill, err = api.app.UpdateAgentsSkill(ctx, agentSkill)
 
 	if err != nil {
 		return nil, err
