@@ -67,7 +67,7 @@ func (a ListCommunication) EntityName() string {
 
 func (l *ListCommunication) IsValid() AppError {
 	if l.ExpireAt != nil && l.ExpireAt.Unix() < time.Now().Unix() {
-		return NewBadRequestError("list_communication.valid.expire_at", "The expiry date has passed")
+		return NewBadRequestError("list_communication.valid.expire_at", "The date for the expiry has passed ")
 	}
 	//FIXME
 	return nil
