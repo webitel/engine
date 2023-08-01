@@ -295,7 +295,7 @@ func (s SqlCallStore) Get(ctx context.Context, domainId int64, id string) (*mode
 select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.parent_id, c.created_at,
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
-   (extract(epoch from now() -  c.created_at))::int8 duration	
+   (extract(epoch from now() -  c.created_at))::int8 duration, c.bridged_id	
 from call_center.cc_calls c
 where c.domain_id = :Domain and c.id = :Id::uuid`, map[string]interface{}{
 		"Domain": domainId,

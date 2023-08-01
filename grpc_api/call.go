@@ -822,6 +822,10 @@ func toEngineCall(src *model.Call) *engine.ActiveCall {
 		item.BlindTransfer = *src.BlindTransfer
 	}
 
+	if src.BridgedId != nil {
+		item.BridgedId = *src.BridgedId
+	}
+
 	return item
 }
 
@@ -967,6 +971,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 
 	if src.FormFields != nil {
 		item.FormFields = UnmarshalJsonpb(src.FormFields.ToSafeBytes())
+	}
+
+	if src.BridgedId != nil {
+		item.BridgedId = *src.BridgedId
 	}
 
 	return item

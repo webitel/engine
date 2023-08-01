@@ -222,6 +222,7 @@ type Call struct {
 	Task          *CCTask     `json:"task"`
 	Hold          []*CallHold `json:"hold" db:"hold"`
 	BlindTransfer *string     `json:"blind_transfer" db:"blind_transfer"`
+	BridgedId     *string     `json:"bridged_id" db:"bridged_id"`
 }
 
 type CCTask struct {
@@ -299,7 +300,7 @@ func (c Call) DefaultFields() []string {
 	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
-		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display", "supervisor", "blind_transfer",
+		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display", "supervisor", "blind_transfer", "bridged_id",
 	}
 }
 
@@ -429,6 +430,7 @@ type HistoryCall struct {
 	AttemptId       *int64          `json:"attempt_id" db:"attempt_id"`
 	AllowEvaluation *bool           `json:"allow_evaluation" db:"allow_evaluation"`
 	FormFields      StringInterface `json:"form_fields" db:"form_fields"`
+	BridgedId       *string         `json:"bridged_id" db:"bridged_id"`
 }
 
 type HistoryCallPatch struct {
@@ -446,7 +448,7 @@ func (c HistoryCall) AllowFields() []string {
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
-		"attempt_id", "allow_evaluation", "form_fields",
+		"attempt_id", "allow_evaluation", "form_fields", "bridged_id",
 	}
 }
 
