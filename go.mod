@@ -1,6 +1,6 @@
 module github.com/webitel/engine
 
-go 1.18
+go 1.20
 
 require (
 	github.com/BoRuDar/configuration/v4 v4.2.2
