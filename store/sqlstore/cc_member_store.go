@@ -421,16 +421,23 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 
 func (s SqlMemberStore) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError) {
 	cnt, err := s.GetMaster().WithContext(ctx).SelectInt(`with upd as (
-    update call_center.cc_member m
+    update call_center.cc_member m2
     set stop_cause = null,
         stop_at = null,
-        attempts = 0
+        attempts = 0,
+        communications = x.e
+    from call_center.cc_member m
+		left join lateral (
+			select jsonb_agg((x - 'stop_at' - 'attempts')::jsonb) as e
+			from jsonb_array_elements(m.communications) x
+		) x on true
     where m.domain_id = :DomainId
+		and m.id = m2.id
         and m.queue_id = :QueueId
-        and (stop_at notnull and not stop_cause in ('success', 'cancel', 'terminate', 'no_communications') )
+        and (m.stop_at notnull and not m.stop_cause in ('success', 'cancel', 'terminate', 'no_communications') )
         and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
-        and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])
-        and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
+        and (:Numbers::varchar[] isnull or m.search_destinations && :Numbers::varchar[])
+        and (:Variables::jsonb isnull or m.variables @> :Variables::jsonb)
         and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
         and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
 returning m.id
