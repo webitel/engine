@@ -2,10 +2,12 @@ package app
 
 import (
 	"context"
-
 	"github.com/webitel/engine/model"
 	client "github.com/webitel/protos/engine/chat"
+	"net/url"
 )
+
+var publicStorage *url.URL
 
 func (a *App) DeclineChat(authUserId int64, inviteId string, cause string) model.AppError {
 	chat, err := a.chatManager.Client()
@@ -64,10 +66,36 @@ func (a *App) SendTextMessage(authUserId int64, channelId, conversationId, text 
 	return nil
 }
 
+func setupPublicStorageUrl(storageUrl *string) {
+	var err error
+	if storageUrl == nil || *storageUrl == "" {
+		return
+	}
+
+	publicStorage, err = url.Parse(*storageUrl)
+	if err != nil {
+		panic(err.Error())
+	}
+
+}
+
 func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string, file *model.ChatFile) model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.send.file.client_err.not_found", err.Error())
+	}
+
+	// TODO WTEL-3713
+	if publicStorage != nil && file.Url != "" {
+		var u *url.URL
+		u, err = url.Parse(file.Url)
+		if err != nil {
+
+		}
+
+		u.Host = publicStorage.Host
+		u.Scheme = publicStorage.Scheme
+		file.Url = u.String()
 	}
 
 	err = chat.SendFile(authUserId, channelId, conversationId, file)

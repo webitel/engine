@@ -58,6 +58,8 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
 
+	setupPublicStorageUrl(config.PublicHostName)
+
 	if localization.T == nil {
 		if err := localization.TranslationsPreInit(config.TranslationsDirectory); err != nil {
 			return nil, errors.Wrapf(err, "unable to load translation files")
