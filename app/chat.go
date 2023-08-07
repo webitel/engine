@@ -90,7 +90,7 @@ func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string
 		var u *url.URL
 		u, err = url.Parse(file.Url)
 		if err != nil {
-
+			return model.NewInternalError("chat.send.file.valid.url", err.Error())
 		}
 
 		u.Host = publicStorage.Host
