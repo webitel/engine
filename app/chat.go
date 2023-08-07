@@ -5,7 +5,10 @@ import (
 	"github.com/webitel/engine/model"
 	client "github.com/webitel/protos/engine/chat"
 	"net/http"
+	"net/url"
 )
+
+var publicStorage *url.URL
 
 func (a *App) DeclineChat(authUserId int64, inviteId string, cause string) *model.AppError {
 	chat, err := a.chatManager.Client()
@@ -64,10 +67,36 @@ func (a *App) SendTextMessage(authUserId int64, channelId, conversationId, text 
 	return nil
 }
 
+func setupPublicStorageUrl(storageUrl *string) {
+	var err error
+	if storageUrl == nil || *storageUrl == "" {
+		return
+	}
+
+	publicStorage, err = url.Parse(*storageUrl)
+	if err != nil {
+		panic(err.Error())
+	}
+
+}
+
 func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string, file *model.ChatFile) *model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewAppError("SendFileMessage", "chat.send.file.client_err.not_found", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// TODO WTEL-3713
+	if publicStorage != nil && file.Url != "" {
+		var u *url.URL
+		u, err = url.Parse(file.Url)
+		if err != nil {
+			return model.NewAppError("SendFileMessage", "chat.send.file.valid.url", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		u.Host = publicStorage.Host
+		u.Scheme = publicStorage.Scheme
+		file.Url = u.String()
 	}
 
 	err = chat.SendFile(authUserId, channelId, conversationId, file)
