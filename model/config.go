@@ -45,6 +45,7 @@ type Config struct {
 	SuffixNumberMaskLen     int                      `json:"suffix_number_mask_len" flag:"suffix_number_mask_len|5|Suffix mask length number"`
 	EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
 	MaxMemberCommunications int                      `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications"`
+	PublicHostName          *string                  `json:"public_host" flag:"public_host||Public hostname"`
 }
 
 type DiscoverySettings struct {
