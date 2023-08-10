@@ -1,0 +1,82 @@
+syntax = "proto3";
+package webitel.contacts;
+option go_package = "webitel.go/api/contacts;contacts";
+
+import "contacts/media.proto";
+
+import "google/rpc/status.proto";
+// import "google/api/visibility.proto";
+// import "google/api/annotations.proto";
+// import "protoc-gen-openapiv2/options/annotations.proto";
+
+// message upload {
+//   message Media {
+//     string type = 1;
+//     int32  size = 2;
+//     repeated FileAttribute meta = 3;
+//   }
+//   message Chunk {
+//     uint32 offset = 1;
+//     bytes binary = 2;
+//     google.api.Status cancel = 3;
+//   }
+//   message Progress {
+//     // 0..100
+//     float percent = 1;
+//   }
+// }
+
+message UploadMediaRequest {
+
+  // File Metadata
+  message InputFile {
+    string type = 1;
+    int32  size = 2;
+    repeated MediaAttribute meta = 3;
+  }
+  // Multipart Chunk
+  message InputData {
+    uint32 offset = 1;
+    bytes binary = 2;
+    google.rpc.Status cancel = 3;
+  }
+  // Progress
+  oneof input {
+    InputFile file = 1;
+    InputData data = 2;
+  }
+}
+
+message UploadMediaResponse {
+
+  // Upload progress
+  message Progress {
+    // 0..100
+    float percent = 1;
+  }
+  // Progress
+  oneof output {
+    MediaFile file = 1; // START|COMPLETE
+    Progress data = 2;  // PROGRESS
+  }
+}
+
+service Upload {
+
+  // request.file           => response.file         | START
+  // request.data.binary[N] => response.data.percent | PROGRESS
+  // [ request.data.cancel  => google.rpc.Status     | CANCELED ]
+  // request.data.binary[0] => response.file         | COMPLETE
+
+  // Upload an image or photo
+  rpc UploadMedia(stream UploadMediaRequest) returns (stream UploadMediaResponse)
+  {
+    // option (google.api.http) = {
+    //   post: "/contacts/photos"
+    // };
+    // // https://swagger.io/docs/specification/2-0/file-upload/
+    // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+    //   consumes: "multipart/form-data"
+    // };
+  }
+}

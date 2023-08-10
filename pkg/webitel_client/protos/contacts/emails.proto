@@ -1,0 +1,440 @@
+syntax = "proto3";
+package webitel.contacts;
+option go_package = "webitel.go/api/contacts;contacts";
+
+import "contacts/fields.proto";
+import "google/protobuf/wrappers.proto";
+
+import "google/api/visibility.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// The Contact's email address.
+message EmailAddress {
+  
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // GET /contacts/{source.id}/emails/{id}
+    example: ""
+  };
+
+  // [META]: --------------------------------------
+
+  // The unique ID of the association. Never changes.
+  string id = 1;
+
+  // Version of the latest update. Numeric sequence.
+  int32 ver = 2;
+
+  // Unique ID of the latest version of the update.
+  // This ID changes after any update to the underlying value(s).
+  string etag = 3;
+
+  // // The Contact source associated with.
+  // webitel.contacts.Lookup contact = 4;
+
+  // The user who created this Field.
+  int64 created_at = 5;
+
+  // Timestamp(milli) of the Field creation.
+  webitel.contacts.Lookup created_by = 6;
+  
+  // Timestamp(milli) of the last Field update.
+  // Take part in Etag generation.
+  int64 updated_at = 7;
+  
+  // The user who performed last Update.
+  webitel.contacts.Lookup updated_by = 8;
+
+  // [VALUE]: --------------------------------------
+
+  // Indicates whether this phone number is default within other channels of the same type(phone).
+  bool primary = 11;
+
+  // Indicate whether Contact, as a Person, realy owns this associated phone number.
+  // In other words: whether Contact is reachable thru this 'email' communication channel ?
+  bool verified = 12;
+
+  // The email address.
+  string email = 13;
+
+  // The type of the email address.
+  // Lookup value from CommunicationType dictionary.
+  // The type can be custom or one of these predefined values:
+  // - home
+  // - work
+  // - other
+  webitel.contacts.Lookup type = 14;
+
+}
+
+// Input of the Contact's email address.
+message InputEmailAddress {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // PUT /contacts/{source.id}/emails/{etag}
+    example: "{\"etag\":\"1679792219687\",\"verified\":false,\"primary\":true,\"email\":\"user@domain\",\"type\":{\"name\":\"personal\"}}"
+    json_schema: {
+      required: ["email"]
+    }
+  };
+
+  // [META]: --------------------------------------
+
+  // Unique ID of the latest version of an existing resorce.
+  string etag = 1
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    field_configuration: {
+      path_param_name: "etag"
+    }
+  }];
+
+  // [VALUE]: --------------------------------------
+
+  // Indicates whether this phone number is default within other channels of the same type(phone).
+  bool primary = 11;
+
+  // Indicate whether Contact, as a Person, realy owns this associated phone number.
+  // In other words: whether Contact is reachable thru this 'email' communication channel ?
+  bool verified = 12;
+
+  // The email address.
+  string email = 13;
+
+  // The type of the email address.
+  // Lookup value from CommunicationType dictionary.
+  // The type can be custom or one of these predefined values:
+  // - home
+  // - work
+  // - other
+  webitel.contacts.Lookup type = 14;
+}
+
+
+// Contact email adresses service catalog.
+service Emails {
+
+  // ------------------ [WITH] Domain ------------------- //
+
+  // // Search for Contacts email addresses
+  // rpc SearchEmails(SearchEmailsRequest) returns (EmailList)
+  // {
+  //   option (google.api.http) = {
+  //     get: "/contacts/emails"
+  //   };
+  // }
+
+  // ------------------ [WITH] Contact ------------------- //
+
+  // Locates email address(es) of the contact.
+  rpc ListEmails(ListEmailsRequest) returns (EmailList)
+  {
+    option (google.api.http) = {
+      get: "/contacts/{contact_id}/emails"
+    };
+  }
+
+  // Update or append email address(es) of the contact.
+  rpc MergeEmails(MergeEmailsRequest) returns (EmailList)
+  {
+    option (google.api.http) = {
+      post: "/contacts/{contact_id}/emails"
+      body: "input"
+      // additional_bindings: {
+      //   patch: "/contacts/{contact_id}/emails"
+      //   body: "input"
+      // }
+    };
+  }
+  // Resets all emails of the contact according to the input dataset.
+  rpc ResetEmails(ResetEmailsRequest) returns (EmailList)
+  {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/emails"
+      body: "input"
+    };
+  }
+
+  // Remove email address(es) of the contact.
+  rpc DeleteEmails(DeleteEmailsRequest) returns (EmailList)
+  {
+    option (google.api.http) = {
+      delete: "/contacts/{contact_id}/emails"
+      // response_body: "data"
+    };
+  }
+
+  // ------------------ [WITH] Record ------------------- //
+
+  // Locate the email address link.
+  rpc LocateEmail(LocateEmailRequest) returns (EmailAddress) {
+    option (google.api.http) = {
+      get: "/contacts/{contact_id}/emails/{etag}"
+    };
+  }
+
+  // Update the contact's email address link details
+  rpc UpdateEmail(UpdateEmailRequest) returns (EmailList) // NOTE: update (primary) field MAY cause to update two records; clear current (primary) mark
+  {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/emails/{input.etag}"
+      body: "input"
+      additional_bindings: {
+        patch: "/contacts/{contact_id}/emails/{input.etag}"
+        body: "input"
+      }
+    };
+  }
+  
+  // Remove the contact's email address link
+  rpc DeleteEmail(DeleteEmailRequest) returns (EmailAddress)
+  {
+    option (google.api.http) = {
+      delete: "/contacts/{contact_id}/emails/{etag}"
+    };
+  }
+}
+
+// Email dataset.
+message EmailList {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // example: ""
+  };
+
+  // EmailAddress dataset page.
+  repeated EmailAddress data = 1;
+  // The page number of the partial result.
+  int32 page = 2;
+  // Indicates that this is a partial result.
+  // More data available upon query: ?size=${data.len}&page=${page++}
+  bool next = 3;
+}
+
+// Locate single Link by unique IDentifier.
+message LocateEmailRequest {
+
+  // ------- Result Options ------
+
+  // Fields to be retrieved into result.
+  repeated string fields = 1;
+
+  // ------- Locate Options ------ //
+  
+  // Contact source ID.
+  string contact_id = 2;
+  
+  // Unique mail address link IDentifier.
+  // Accept: `etag` (obsolete+) or `id`.
+  string etag = 3
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    format: "\\w+"
+  }];
+
+}
+
+
+message ListEmailsRequest {
+  
+  // ----- Result Options ----- //
+  
+  // Page number of result dataset records. offset = (page*size)
+  int32 page = 2;
+  
+  // Size count of records on result page. limit = (size++)
+  int32 size = 1;
+
+  // Search term: email address.
+  // `?` - matches any one character
+  // `*` - matches 0 or more characters
+  string q = 6;
+
+  // Sort the result according to fields.
+  repeated string sort = 3;
+  
+  // Fields to be retrieved into result.
+  repeated string fields = 4;
+
+  // ----- Locate Options ----- //
+  
+  // The Contact ID linked with.
+  string contact_id = 5;
+
+  // ----- Search Options ----- //
+  
+  // Link(s) with unique ID only.
+  repeated string id = 7;
+  
+  // Primary email address only.
+  google.protobuf.BoolValue primary = 8;
+  
+  // Verified email addresses only.
+  google.protobuf.BoolValue verified = 9;
+  
+  // Certain communication type associated with the address.
+  Lookup type = 10;
+
+}
+
+message MergeEmailsRequest {
+
+  // --------- PATCH Options -------- //
+
+  // JSON PATCH fields mask.
+  // List of JPath fields specified in body(input).
+  repeated string x_json_mask = 1
+  [(google.api.field_visibility) = {
+    restriction: "PREVIEW"
+  },
+  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    read_only: true
+    pattern: "^$"
+  }];
+
+  // ------- Result Options -------
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 2;
+
+  // ------- Create Options -------
+
+  // Link contact ID.
+  string contact_id = 3;
+
+  // Fixed set of email address(es) to be linked with the contact.
+  // Email address(es) that conflicts(email) with already linked will be updated.
+  repeated InputEmailAddress input = 4
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    example: "[{\"verified\":false,\"primary\":true,\"email\":\"user@domain\",\"type\":{\"name\":\"personal\"}}]"
+  }];
+
+}
+
+message ResetEmailsRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["input"]
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 1;
+
+  // ------- Reference Options ------- //
+
+  // Link contact ID.
+  string contact_id = 2;
+
+  // --------- Update Options -------- //
+
+  // Final set of email address(es) to be linked with the contact.
+  // Email address(es) that are already linked with the contact
+  // but not given in here will be removed.
+  repeated InputEmailAddress input = 3
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    example: "[{\"verified\":true,\"email\":\"johndoe_43@gmail.com\",\"type\":{\"name\":\"personal\"}},{\"primary\":true,\"etag\":\"k0WqvUn4IJGnuCyG\",\"email\":\"j.doe@x-company.org\",\"type\":{\"id\":\"11\",\"name\":\"business\"}}]"
+    min_items: 1
+    unique_items: true
+  }];
+
+}
+
+message UpdateEmailRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["input"]
+    }
+  };
+
+  // --------- PATCH Options -------- //
+
+  // JSON PATCH fields mask.
+  // List of JPath fields specified in body(input).
+  repeated string x_json_mask = 1
+  [(google.api.field_visibility) = {
+    restriction: "PREVIEW"
+  },
+  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    read_only: true
+    pattern: "^$"
+  }];
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 2;
+
+  // ------- Reference Options ------- //
+
+  // Link contact ID.
+  string contact_id = 3;
+
+  // --------- Update Options -------- //
+
+  // NEW Update of the email address link.
+  InputEmailAddress input = 4;
+
+}
+
+message DeleteEmailsRequest {
+  
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "etag"
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // --------- Delete Options -------- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+
+  // Set of unique ID(s) to remove.
+  repeated string etag = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      pattern: "^.+$"
+      unique_items: true
+      min_items: 1
+    }
+  ];
+
+}
+
+message DeleteEmailRequest {
+  
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "etag"
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ------- Delete Options ------- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+
+  // Unique ID to remove.
+  string etag = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      pattern: "^\\.+$"
+    }
+  ];
+
+}
