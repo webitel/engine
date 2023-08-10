@@ -19,9 +19,9 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.1.0
 	github.com/webitel/call_center v0.0.0-20230802140012-ac80f2929883
-	github.com/webitel/protos/cc v0.0.0-20230802125454-00746a3b1f45
-	github.com/webitel/protos/engine v0.0.0-20230802125454-00746a3b1f45
-	github.com/webitel/protos/fs v0.0.0-20230802125454-00746a3b1f45
+	github.com/webitel/protos/cc v0.0.0-20230810105513-705f264b0551
+	github.com/webitel/protos/engine v0.0.0-20230810105513-705f264b0551
+	github.com/webitel/protos/fs v0.0.0-20230810105513-705f264b0551
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0
@@ -102,7 +102,6 @@ require (
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.1.0 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
-	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.5.0 // indirect
