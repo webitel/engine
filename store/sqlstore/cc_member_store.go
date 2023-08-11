@@ -282,7 +282,7 @@ func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *mode
 			agent_id = :AgentId,
 			skill_id = :SkillId,
 			stop_at = case when :StopCause::varchar notnull and stop_at isnull then now() when :StopCause::varchar isnull and stop_at notnull then null else stop_at end,
-			attempts = case when :StopCause::varchar isnull and stop_cause notnull then 0 else attempts end
+			attempts = case when :StopCause::varchar isnull and stop_cause notnull then 0 else :Attempts end
     where m1.id = :Id and m1.queue_id = :QueueId
     returning *
 )
@@ -309,6 +309,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 		"StopCause":      member.StopCause,
 		"AgentId":        member.Agent.GetSafeId(),
 		"SkillId":        member.Skill.GetSafeId(),
+		"Attempts":       member.Attempts,
 	})
 	if err != nil {
 		code := extractCodeFromErr(err)
