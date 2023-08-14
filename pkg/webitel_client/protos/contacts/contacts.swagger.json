@@ -1,0 +1,2861 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Webitel Contacts ReSTfull API",
+    "version": "v23.07",
+    "contact": {
+      "name": "Webitel LLC",
+      "url": "https://www.webitel.com",
+      "email": "support@webitel.com"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "tags": [
+    {
+      "name": "Contacts"
+    },
+    {
+      "name": "Labels"
+    },
+    {
+      "name": "Emails"
+    }
+  ],
+  "host": "nx.webitel.org",
+  "basePath": "/api",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/contacts": {
+      "get": {
+        "summary": "Search for Contact(s)",
+        "description": "| Field       | Type \n| ----------- | ---- \n| **----------- READ-ONLY -----------** | \n| `id`        | int64 \n| `ver`       | int32 \n| `etag`      | string \n| **---------- OPERATIONAL ----------** | \n| `created_at` | int64(epoch:milli) \n| `created_by` | lookup(user) \n| `updated_at` | int64(epoch:milli) \n| `updated_by` | lookup(user) \n| **---------- ATTRIBUTES -----------** | \n| `name`      | name! \n| `about`     | string \n| `labels`    | list[label!] \n| `emails`    | list[email!] \n| `photos`    | list[photo!] \n| `phones`    | list[phone!] \n| `managers`  | list[manager!] \n| `comments`  | list[comment!] \n| `addresses` | list[address!] \n| `languages` | list[language!] \n| `timezones` | list[timezone!] \n| `variables` | list[variable!] \n| `imclients` | list[imClient!] \n",
+        "operationId": "Contacts_SearchContacts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.ContactList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "description": "Page number of result records.   _default(1); offset=(size*(page-1));_\n\n```javascript\nlet\n    offset = 0\n  , page = req.page\n;\nif (page \u003c= 0)\n    page = 1;\nif (page \u003e 1)\n    offset = ((page-1)*size);\n// . . .\n```",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "description": "Limit of result page records count.   _default(16); limit=(size\u003c=0?-1:size+1);_\n\n```javascript\nconst\n    default = 16\n  , maximum = 32\n;\nlet limit = req.size;\nif (limit \u003c= 0)\n    limit = default;\nif (maximum \u003c limit)\n    limit = maximum;\n// . . .\n```",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "q",
+            "description": "Search term:\n`?` - matches any character\n`*` - matches 0 or more characters\nUsed to query records within a set of `qin` fields, eg: name,emails{type},labels etc...",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "description": "Sort result dataset of records by fields.\n```\nsort ::= *( ORDER name )\n\nORDER  = ASC / DESC\nDESC   = \"-\" / \"!\"\nASC    = [ \"+\" ]   ; Default\n```\n\nFields available\n\n- `id`(seq)\n- `domain`{name}\n- `created_at`\n- `created_by`{name}\n- `updated_at`\n- `updated_by`{name}\n\nUse ?fields=`field.sort()` option to sort Edge fields.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "default": "id",
+              "pattern": "^[+|-|!]?\\w+$",
+              "uniqueItems": true
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "fields",
+            "description": "Fields [Q]uery to build result dataset record.\n```\nfields ::= field [ *( \",\" field ) ]\nfield  ::= name [ *( func ) ] [ inner ]\ninner  ::= \"{\" fields \"}\"\nfuncs  ::= *( func )\nfunc   ::= \".\" name \"(\" [ args ] \")\"\nname   ::= ALPHA / DIGIT / USCORE\n\nALPHA    = %x41-5A / %x61-7A  ; \"A\"-\"Z\" / \"a\"-\"z\"\nDIGIT    = %x30-39            ; \"0\"-\"9\"\nUSCORE   = %x5F ; underscore  ; \"_\"\n```",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "default": "name{common_name}",
+              "pattern": "(\\w+(\\.\\w+\\(([^\\)]*)\\))*(\\{\\1\\})*(,\\1)*)+",
+              "uniqueItems": true
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "id",
+            "description": "Records with unique IDentifier(s).\nAccept: `id` -or- `etag`.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "qin",
+            "description": "[Q]uery[IN] is a set of search fields for term `q`.\nDefault: `name{common_name}`.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "mode",
+            "description": "Source access mode requirement.\n\n - READ: Can `fetch` record. [GET]\n - WRITE: Can `update` record. [PUT|PATCH]\n - DELETE: Can `delete` record. [DELETE]",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "READ",
+              "WRITE",
+              "DELETE"
+            ],
+            "default": "READ"
+          }
+        ],
+        "tags": [
+          "Contacts"
+        ]
+      },
+      "post": {
+        "summary": "Create NEW Contact",
+        "operationId": "Contacts_CreateContact",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.Contact"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "description": "NEW Contact source changes",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.InputContact"
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Source Fields to return into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Contacts"
+        ]
+      }
+    },
+    "/contacts/labels": {
+      "get": {
+        "summary": "Search for Contacts engaged Label(s).",
+        "operationId": "Labels_GetLabels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.LabelTags"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "description": "Page number of result dataset records. offset = ((page-1)*size)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "description": "Size count of records on result page. limit = (size+1)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "q",
+            "description": "Search term: label.\n`?` - matches any one character\n`*` - matches 0 or more characters",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Labels"
+        ]
+      }
+    },
+    "/contacts/{contact_id}/emails": {
+      "get": {
+        "summary": "Locates email address(es) of the contact.",
+        "operationId": "Emails_ListEmails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "The Contact ID linked with.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "description": "Page number of result dataset records. offset = (page*size)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "description": "Size count of records on result page. limit = (size++)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "q",
+            "description": "Search term: email address.\n`?` - matches any one character\n`*` - matches 0 or more characters",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "description": "Sort the result according to fields.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "id",
+            "description": "Link(s) with unique ID only.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "primary",
+            "description": "Primary email address only.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "verified",
+            "description": "Verified email addresses only.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "type.id",
+            "description": "Reference Object unique ID.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "type.type",
+            "description": "Reference Object well-known type.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "type.name",
+            "description": "Reference Object display name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      },
+      "delete": {
+        "summary": "Remove email address(es) of the contact.",
+        "operationId": "Emails_DeleteEmails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Contact ID associated with.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved as a result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "etag",
+            "description": "Set of unique ID(s) to remove.",
+            "in": "query",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^.+$",
+              "uniqueItems": true
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      },
+      "post": {
+        "summary": "Update or append email address(es) of the contact.",
+        "operationId": "Emails_MergeEmails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "Fixed set of email address(es) to be linked with the contact.\nEmail address(es) that conflicts(email) with already linked will be updated.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "example": [
+                {
+                  "verified": false,
+                  "primary": true,
+                  "email": "user@domain",
+                  "type": {
+                    "name": "personal"
+                  }
+                }
+              ],
+              "items": {
+                "type": "object",
+                "$ref": "#/definitions/webitel.contacts.InputEmailAddress"
+              }
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result of changes.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      },
+      "put": {
+        "summary": "Resets all emails of the contact according to the input dataset.",
+        "operationId": "Emails_ResetEmails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "Final set of email address(es) to be linked with the contact.\nEmail address(es) that are already linked with the contact\nbut not given in here will be removed.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "example": [
+                {
+                  "verified": true,
+                  "email": "johndoe_43@gmail.com",
+                  "type": {
+                    "name": "personal"
+                  }
+                },
+                {
+                  "primary": true,
+                  "etag": "k0WqvUn4IJGnuCyG",
+                  "email": "j.doe@x-company.org",
+                  "type": {
+                    "id": "11",
+                    "name": "business"
+                  }
+                }
+              ],
+              "items": {
+                "type": "object",
+                "$ref": "#/definitions/webitel.contacts.InputEmailAddress",
+                "uniqueItems": true
+              },
+              "minItems": 1
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result of changes.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      }
+    },
+    "/contacts/{contact_id}/emails/{etag}": {
+      "get": {
+        "summary": "Locate the email address link.",
+        "operationId": "Emails_LocateEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailAddress"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Contact source ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "etag",
+            "description": "Unique mail address link IDentifier.\nAccept: `etag` (obsolete+) or `id`.",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "\\w+"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      },
+      "delete": {
+        "summary": "Remove the contact's email address link",
+        "operationId": "Emails_DeleteEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailAddress"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Contact ID associated with.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "etag",
+            "description": "Unique ID to remove.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved as a result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      },
+      "put": {
+        "summary": "Update the contact's email address link details",
+        "operationId": "Emails_UpdateEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "etag",
+            "description": "Unique ID of the latest version of an existing resorce.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "NEW Update of the email address link.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "example": {
+                "etag": "1679792219687",
+                "verified": false,
+                "primary": true,
+                "email": "user@domain",
+                "type": {
+                  "name": "personal"
+                }
+              },
+              "properties": {
+                "primary": {
+                  "type": "boolean",
+                  "description": "Indicates whether this phone number is default within other channels of the same type(phone)."
+                },
+                "verified": {
+                  "type": "boolean",
+                  "title": "Indicate whether Contact, as a Person, realy owns this associated phone number.\nIn other words: whether Contact is reachable thru this 'email' communication channel ?"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "The email address."
+                },
+                "type": {
+                  "$ref": "#/definitions/webitel.contacts.Lookup",
+                  "title": "The type of the email address.\nLookup value from CommunicationType dictionary.\nThe type can be custom or one of these predefined values:\n- home\n- work\n- other"
+                }
+              },
+              "title": "NEW Update of the email address link.",
+              "required": [
+                "email"
+              ]
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result of changes.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      },
+      "patch": {
+        "summary": "Update the contact's email address link details",
+        "operationId": "Emails_UpdateEmail2",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.EmailList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "etag",
+            "description": "Unique ID of the latest version of an existing resorce.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "NEW Update of the email address link.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "example": {
+                "etag": "1679792219687",
+                "verified": false,
+                "primary": true,
+                "email": "user@domain",
+                "type": {
+                  "name": "personal"
+                }
+              },
+              "properties": {
+                "primary": {
+                  "type": "boolean",
+                  "description": "Indicates whether this phone number is default within other channels of the same type(phone)."
+                },
+                "verified": {
+                  "type": "boolean",
+                  "title": "Indicate whether Contact, as a Person, realy owns this associated phone number.\nIn other words: whether Contact is reachable thru this 'email' communication channel ?"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "The email address."
+                },
+                "type": {
+                  "$ref": "#/definitions/webitel.contacts.Lookup",
+                  "title": "The type of the email address.\nLookup value from CommunicationType dictionary.\nThe type can be custom or one of these predefined values:\n- home\n- work\n- other"
+                }
+              },
+              "title": "NEW Update of the email address link.",
+              "required": [
+                "email"
+              ]
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result of changes.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Emails"
+        ]
+      }
+    },
+    "/contacts/{contact_id}/labels": {
+      "get": {
+        "summary": "Locate the Contact's associated Label(s).",
+        "operationId": "Labels_ListLabels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.LabelList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "description": "Page number of result dataset records. offset = ((page-1)*size)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "size",
+            "description": "Size count of records on result page. limit = (size+1)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "q",
+            "description": "Search term: label tag.\n`?` - matches any one character\n`*` - matches 0 or more characters",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "description": "Sort the result according to fields.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "id",
+            "description": "Record(s) with unique ID or ETag.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Labels"
+        ]
+      },
+      "delete": {
+        "summary": "Remove Contact Labels associations.",
+        "operationId": "Labels_DeleteLabels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.LabelList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "etag",
+            "description": "Set of unique label(s).etag identifiers.",
+            "in": "query",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^(\\w+)(,\\w+)*$",
+              "uniqueItems": true
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Labels"
+        ]
+      },
+      "post": {
+        "summary": "Associate NEW Labels to the Contact.",
+        "operationId": "Labels_MergeLabels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.LabelList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "Fixed set of label(s) to be linked with the contact.\nLabel(s) that conflicts with already linked will be updated.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "$ref": "#/definitions/webitel.contacts.InputLabel",
+                "uniqueItems": true
+              },
+              "minItems": 1
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Labels"
+        ]
+      },
+      "put": {
+        "summary": "Reset Labels to fit the specified final set.",
+        "operationId": "Labels_ResetLabels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.LabelList"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "contact_id",
+            "description": "Link contact ID.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "Final set of labels(s) to be linked with the contact.\nLabel(s) that are already linked with the contact\nbut not given in here will be removed.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "$ref": "#/definitions/webitel.contacts.InputLabel",
+                "uniqueItems": true
+              }
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Labels"
+        ]
+      }
+    },
+    "/contacts/{etag}": {
+      "delete": {
+        "summary": "Remove Contact source",
+        "operationId": "Contacts_DeleteContact",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.Contact"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "etag",
+            "description": "Unique ID of the latest version of a resource.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "description": "Fields to be retrieved into result of changes.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Contacts"
+        ]
+      },
+      "patch": {
+        "summary": "NEW Update of the Contact source",
+        "operationId": "Contacts_UpdateContact",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.Contact"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "etag",
+            "description": "Unique ID of the latest version of an existing resorce.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "input",
+            "description": "NEW Contact source changes",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "$ref": "#/definitions/webitel.contacts.InputName",
+                  "title": "The Contact's name. Singleton"
+                },
+                "about": {
+                  "type": "string",
+                  "description": "BIO. Short description about the Contact person.\nOPTIONAL. Multi-lined text."
+                },
+                "photos": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputPhoto"
+                  },
+                  "description": "Output only. The Contact's photo(s).",
+                  "readOnly": true
+                },
+                "labels": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputLabel"
+                  },
+                  "description": "The Contact's associated label(s)."
+                },
+                "emails": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputEmailAddress"
+                  },
+                  "description": "The Contact's email address(es)."
+                },
+                "phones": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputPhoneNumber"
+                  },
+                  "description": "The Contact's phone numbers."
+                },
+                "managers": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputManager"
+                  },
+                  "description": "The Contact's internal manager(s)."
+                },
+                "comments": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputComment"
+                  },
+                  "description": "Publish NEW comment(s) for this Contact."
+                },
+                "languages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputLanguage"
+                  },
+                  "description": "A Contact's locale preference(s)."
+                },
+                "timezones": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputTimezone"
+                  },
+                  "description": "The Contact's timezone preference(s)."
+                },
+                "imclients": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputIMClient"
+                  },
+                  "description": "The contact's [I]nstant[M]essaging clients."
+                },
+                "variables": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/webitel.contacts.InputVariable"
+                  },
+                  "description": "Arbitrary client data that is populated by clients."
+                }
+              },
+              "title": "NEW Contact source changes"
+            }
+          },
+          {
+            "name": "fields",
+            "description": "Source Fields to return into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "Contacts"
+        ]
+      }
+    },
+    "/contacts/{id}": {
+      "get": {
+        "summary": "Locate Contact source",
+        "operationId": "Contacts_LocateContact",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/webitel.contacts.Contact"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "The Contact source IDentifier.\nAccept: `etag` (obsolete+) or `id`.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "fields",
+            "description": "Source Fields to return into result.",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "mode",
+            "description": "The requirement of a special access mode to the Source.\n\n - READ: Can `fetch` record. [GET]\n - WRITE: Can `update` record. [PUT|PATCH]\n - DELETE: Can `delete` record. [DELETE]",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "READ",
+              "WRITE",
+              "DELETE"
+            ],
+            "default": "READ"
+          }
+        ],
+        "tags": [
+          "Contacts"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "google.protobuf.NullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\nThe JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "webitel.contacts.AccessMode": {
+      "type": "string",
+      "enum": [
+        "READ",
+        "WRITE",
+        "DELETE"
+      ],
+      "default": "READ",
+      "title": "- READ: Can `fetch` record. [GET]\n - WRITE: Can `update` record. [PUT|PATCH]\n - DELETE: Can `delete` record. [DELETE]"
+    },
+    "webitel.contacts.Comment": {
+      "type": "object",
+      "example": {
+        "id": "354",
+        "etag": "FqaTCDLbhpaoUreL",
+        "created_at": "1680268507698",
+        "created_by": {
+          "id": "34",
+          "name": "John Doe"
+        },
+        "updated_at": "1680268507698",
+        "updated_by": {
+          "id": "34",
+          "name": "John Doe"
+        },
+        "text": "This is a new note about the contact's recent activity. So ..."
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the Comment. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "text": {
+          "type": "string",
+          "description": "Rich Text, multi-line[d] string value."
+        },
+        "format": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Comment.Format"
+          },
+          "description": "Styles of the text components."
+        }
+      },
+      "title": "The Contact's internal Comment.\nOutput purpose only"
+    },
+    "webitel.contacts.Comment.Format": {
+      "type": "object",
+      "properties": {
+        "offset": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Offset text runes count."
+        },
+        "length": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Length text runes count."
+        },
+        "link": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Link"
+        },
+        "bold": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Bold"
+        },
+        "italic": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Italic"
+        },
+        "underline": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Underline"
+        },
+        "strikethrough": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Strikethrough"
+        },
+        "monospace": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Monospace"
+        },
+        "codeblock": {
+          "$ref": "#/definitions/webitel.contacts.Comment.Format.Codeblock"
+        }
+      }
+    },
+    "webitel.contacts.Comment.Format.Bold": {
+      "type": "object"
+    },
+    "webitel.contacts.Comment.Format.Codeblock": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "type": "string"
+        }
+      }
+    },
+    "webitel.contacts.Comment.Format.Italic": {
+      "type": "object"
+    },
+    "webitel.contacts.Comment.Format.Link": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "REQUIRED. If text[offset:length] is a regular plaintext, NOT an URL itself !"
+        }
+      }
+    },
+    "webitel.contacts.Comment.Format.Monospace": {
+      "type": "object"
+    },
+    "webitel.contacts.Comment.Format.Strikethrough": {
+      "type": "object"
+    },
+    "webitel.contacts.Comment.Format.Underline": {
+      "type": "object"
+    },
+    "webitel.contacts.CommentList": {
+      "type": "object",
+      "example": {
+        "data": [
+          {
+            "id": "354",
+            "etag": "FqaTCDLbhpaoUreL",
+            "created_at": "1680268507698",
+            "created_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "updated_at": "1680516785357",
+            "updated_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "text": "This is a new note about the contact's recent activity. So ..."
+          },
+          {
+            "id": "357",
+            "ver": "4",
+            "etag": "FZiTxVgr41VPFxyu",
+            "created_at": "1680268537698",
+            "created_by": {
+              "id": "56",
+              "name": "Bruce Wayne"
+            },
+            "updated_at": "1680268563357",
+            "updated_by": {
+              "name": "Jane Lee (deleted)"
+            },
+            "text": "This contact may become a customer in a few days"
+          }
+        ],
+        "page": 1,
+        "next": true
+      },
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Comment"
+          },
+          "description": "Comment dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Comment dataset."
+    },
+    "webitel.contacts.Contact": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "READONLY. Operational attributes\nVersion of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "domain": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "READONLY. The contact's metadata.\n\n// Sources of the contact fields.\n repeated Source sources = 5;"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "title": "unix"
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "title": "user"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "title": "unix"
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "title": "user"
+        },
+        "name": {
+          "$ref": "#/definitions/webitel.contacts.Name",
+          "description": "The Contact's name.\nThis field is a singleton for Contact sources."
+        },
+        "about": {
+          "type": "string",
+          "description": "BIO. Short description about the Contact person.\nOPTIONAL. Multi-lined text."
+        },
+        "labels": {
+          "$ref": "#/definitions/webitel.contacts.LabelList",
+          "description": "The Contact's associated tag(s)."
+        },
+        "emails": {
+          "$ref": "#/definitions/webitel.contacts.EmailList",
+          "description": "The Contact's email address(es)."
+        },
+        "phones": {
+          "$ref": "#/definitions/webitel.contacts.PhoneList",
+          "description": "The Contact's phone numbers."
+        },
+        "photos": {
+          "$ref": "#/definitions/webitel.contacts.PhotoList",
+          "description": "Output only. The Contact's photo(s).",
+          "readOnly": true
+        },
+        "managers": {
+          "$ref": "#/definitions/webitel.contacts.ManagerList",
+          "description": "The Contact's internal manager(s)."
+        },
+        "comments": {
+          "$ref": "#/definitions/webitel.contacts.CommentList",
+          "description": "The Contact's internal comment(s)."
+        },
+        "languages": {
+          "$ref": "#/definitions/webitel.contacts.LanguageList",
+          "description": "A Contact's locale preference(s)."
+        },
+        "timezones": {
+          "$ref": "#/definitions/webitel.contacts.TimezoneList",
+          "description": "The Contact's timezone preference(s)."
+        },
+        "imclients": {
+          "$ref": "#/definitions/webitel.contacts.IMClientList",
+          "description": "The contact's [I]nstant[M]essaging clients."
+        },
+        "variables": {
+          "$ref": "#/definitions/webitel.contacts.VariableList",
+          "description": "Arbitrary client data that is populated by clients.\nDuplicate keys and values are allowed."
+        }
+      },
+      "description": "The Contact principal source.\nOUTPUT purpose only."
+    },
+    "webitel.contacts.ContactList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Contact"
+          },
+          "description": "Contact(s) dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Contact dataset."
+    },
+    "webitel.contacts.EmailAddress": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this phone number is default within other channels of the same type(phone)."
+        },
+        "verified": {
+          "type": "boolean",
+          "title": "Indicate whether Contact, as a Person, realy owns this associated phone number.\nIn other words: whether Contact is reachable thru this 'email' communication channel ?"
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address."
+        },
+        "type": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "title": "The type of the email address.\nLookup value from CommunicationType dictionary.\nThe type can be custom or one of these predefined values:\n- home\n- work\n- other"
+        }
+      },
+      "description": "The Contact's email address."
+    },
+    "webitel.contacts.EmailList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.EmailAddress"
+          },
+          "description": "EmailAddress dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Email dataset."
+    },
+    "webitel.contacts.IMClient": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "user": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "example": {
+            "id": "596417343",
+            "type": "telegram",
+            "name": "John Doe"
+          },
+          "description": "End-User account used in the IM client."
+        },
+        "app": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "App (Text-Gateway) used to connect the IM client."
+        },
+        "via": {
+          "type": "string",
+          "description": "[Via] App(-specific) peer(-id) to connect[from] the IM client."
+        }
+      },
+      "description": "A contact's [I]nstant[M]essaging client."
+    },
+    "webitel.contacts.IMClientList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.IMClient"
+          },
+          "description": "IMClient dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      }
+    },
+    "webitel.contacts.InputComment": {
+      "type": "object",
+      "example": {
+        "text": "This is a new note about the contact's recent activity. So ..."
+      },
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "text": {
+          "type": "string",
+          "description": "NEW Text of the comment."
+        },
+        "format": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Comment.Format"
+          },
+          "description": "NEW Text components styling format."
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "webitel.contacts.InputContact": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "name": {
+          "$ref": "#/definitions/webitel.contacts.InputName",
+          "title": "The Contact's name. Singleton"
+        },
+        "about": {
+          "type": "string",
+          "description": "BIO. Short description about the Contact person.\nOPTIONAL. Multi-lined text."
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputPhoto"
+          },
+          "description": "Output only. The Contact's photo(s).",
+          "readOnly": true
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputLabel"
+          },
+          "description": "The Contact's associated label(s)."
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputEmailAddress"
+          },
+          "description": "The Contact's email address(es)."
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputPhoneNumber"
+          },
+          "description": "The Contact's phone numbers."
+        },
+        "managers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputManager"
+          },
+          "description": "The Contact's internal manager(s)."
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputComment"
+          },
+          "description": "Publish NEW comment(s) for this Contact."
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputLanguage"
+          },
+          "description": "A Contact's locale preference(s)."
+        },
+        "timezones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputTimezone"
+          },
+          "description": "The Contact's timezone preference(s)."
+        },
+        "imclients": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputIMClient"
+          },
+          "description": "The contact's [I]nstant[M]essaging clients."
+        },
+        "variables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.InputVariable"
+          },
+          "description": "Arbitrary client data that is populated by clients."
+        }
+      },
+      "description": "The Contact principal input."
+    },
+    "webitel.contacts.InputEmailAddress": {
+      "type": "object",
+      "example": {
+        "etag": "1679792219687",
+        "verified": false,
+        "primary": true,
+        "email": "user@domain",
+        "type": {
+          "name": "personal"
+        }
+      },
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this phone number is default within other channels of the same type(phone)."
+        },
+        "verified": {
+          "type": "boolean",
+          "title": "Indicate whether Contact, as a Person, realy owns this associated phone number.\nIn other words: whether Contact is reachable thru this 'email' communication channel ?"
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address."
+        },
+        "type": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "title": "The type of the email address.\nLookup value from CommunicationType dictionary.\nThe type can be custom or one of these predefined values:\n- home\n- work\n- other"
+        }
+      },
+      "description": "Input of the Contact's email address.",
+      "required": [
+        "email"
+      ]
+    },
+    "webitel.contacts.InputIMClient": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "user": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "example": {
+            "id": "596417343",
+            "type": "telegram",
+            "name": "John Doe"
+          },
+          "description": "End-User account used in the IM client."
+        },
+        "app": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "App (Text-Gateway) used to connect the IM client."
+        },
+        "via": {
+          "type": "string",
+          "description": "[Via] App(-specific) peer(-id) to connect[from] the IM client."
+        }
+      },
+      "description": "Input of the contact IM client.",
+      "required": [
+        "user"
+      ]
+    },
+    "webitel.contacts.InputLabel": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "label": {
+          "type": "string",
+          "description": "REQUIRED. Hashtag value;\nNOTE: Keep in mind, hashtags are not case-sensitive,\nbut adding capital letters does make them easier to read:\n#MakeAWish vs. #makeawish."
+        }
+      },
+      "description": "A Contact's associated Tag.\nOutput purpose only.",
+      "required": [
+        "tag"
+      ]
+    },
+    "webitel.contacts.InputLanguage": {
+      "type": "object",
+      "example": {
+        "primary": false,
+        "tag": "uk"
+      },
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing association."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this association must be default\namong others of the same type."
+        },
+        "tag": {
+          "type": "string",
+          "title": "NEW, well-formed IETF BCP 47 language tag representing the locale.\nhttps://www.rfc-editor.org/info/bcp47"
+        }
+      },
+      "description": "An input of the Contact's language.",
+      "required": [
+        "etag"
+      ]
+    },
+    "webitel.contacts.InputManager": {
+      "type": "object",
+      "example": {
+        "primary": true,
+        "user": {
+          "id": "357",
+          "name": "Bruce Wayne"
+        }
+      },
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resource."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this association must be default among others."
+        },
+        "user": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Responsible User."
+        }
+      },
+      "required": [
+        "etag"
+      ]
+    },
+    "webitel.contacts.InputName": {
+      "type": "object",
+      "properties": {
+        "verified": {
+          "type": "boolean",
+          "description": "Indicate whether Contact, as a Person, realy owns this associated name."
+        },
+        "given_name": {
+          "type": "string",
+          "title": "OPTIONAL. Given name(s) or first name(s) of the End-User.\nNote that in some cultures, people can have multiple given names;\nall can be present, with the names being separated by space characters.\nhttps://openid.net/specs/openid-connect-core-1_0.html#StandardClaims #given_name"
+        },
+        "middle_name": {
+          "type": "string",
+          "description": "OPTIONAL. Middle name(s) of the End-User.\nNote that in some cultures, people can have multiple middle names;\nall can be present, with the names being separated by space characters.\nAlso note that in some cultures, middle names are not used."
+        },
+        "family_name": {
+          "type": "string",
+          "title": "OPTIONAL. Surname(s) or last name(s) of the End-User.\nNote that in some cultures, people can have multiple family names or no family name;\nall can be present, with the names being separated by space characters.\nhttps://openid.net/specs/openid-connect-core-1_0.html#StandardClaims #family_name"
+        },
+        "common_name": {
+          "type": "string",
+          "description": "REQUIRED. End-User's full name in displayable form\nincluding all name parts, possibly including titles and suffixes,\nordered according to the End-User's locale and preferences."
+        }
+      }
+    },
+    "webitel.contacts.InputPhoneNumber": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this phone number is default within other channels of the same type(phone)."
+        },
+        "verified": {
+          "type": "boolean",
+          "title": "Indicate whether Contact, as a Person, realy owns this associated phone number.\nIn other words: whether Contact is reachable thru this 'phone' communication channel ?"
+        },
+        "number": {
+          "type": "string",
+          "description": "The phone number."
+        },
+        "type": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "title": "The type of the phone number.\nReference on CommunicationType dictionary.\nUsed for outbound routing while dialup a phone number.\nThe type can be custom or one of these predefined values:\n- home\n- work\n- mobile\n- homeFax\n- workFax\n- otherFax\n- pager\n- workMobile\n- workPager\n- main\n- googleVoice\n- other"
+        }
+      },
+      "description": "Input of the contact phone number.",
+      "required": [
+        "number"
+      ]
+    },
+    "webitel.contacts.InputPhoto": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing association."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "True if the photo is a default photo; false if the photo is a user-provided photo."
+        },
+        "photo_id": {
+          "type": "string",
+          "format": "int64",
+          "title": "File unique ID within 'storage' service"
+        },
+        "photo_url": {
+          "type": "string",
+          "title": "The URL of the photo.\nYou can change the desired size by appending\na query parameter sz={size} at the end of the url,\nwhere {size} is the size in pixels.\nExample: https://lh3.googleusercontent.com/-T_wVWLlmg7w/AAAAAAAAAAI/AAAAAAAABa8/00gzXvDBYqw/s100/photo.jpg?sz=50"
+        }
+      },
+      "description": "Input of the photo.",
+      "required": [
+        "file_url"
+      ]
+    },
+    "webitel.contacts.InputTimezone": {
+      "type": "object",
+      "example": {
+        "primary": false,
+        "location": "Europe/Dublin"
+      },
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resource."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this association must be default among others."
+        },
+        "location": {
+          "type": "string",
+          "description": "The Location name corresponding to a file\nin the IANA Time Zone database, such as \"Europe/Kyiv\" or custom."
+        },
+        "offset": {
+          "type": "string",
+          "format": "int64",
+          "description": "Custom location name with offset (seconds east of UTC)."
+        }
+      },
+      "description": "An input of the Contact's language.",
+      "required": [
+        "etag"
+      ]
+    },
+    "webitel.contacts.InputVariable": {
+      "type": "object",
+      "example": {
+        "key": "var_rename",
+        "value": [
+          "string_item",
+          [
+            3,
+            7
+          ],
+          false,
+          null
+        ]
+      },
+      "properties": {
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of an existing resorce."
+        },
+        "key": {
+          "type": "string",
+          "description": "NEW Key.",
+          "pattern": "^\\w+$"
+        },
+        "value": {
+          "description": "NEW Value."
+        }
+      },
+      "description": "Input of the Contact's variable.",
+      "required": [
+        "key"
+      ]
+    },
+    "webitel.contacts.Label": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "label": {
+          "type": "string",
+          "description": "REQUIRED. Tag value;\nNOTE: Keep in mind, hashtags are not case-sensitive,\nbut adding capital letters does make them easier to read:\n#MakeAWish vs. #makeawish."
+        }
+      },
+      "description": "A Contact's associated Tag.\nOutput purpose only."
+    },
+    "webitel.contacts.LabelInfo": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "description": "Label tag."
+        },
+        "count": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Count of sources."
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sources of Contacts assigned."
+        }
+      },
+      "title": "LabelInfo about the Label's tag"
+    },
+    "webitel.contacts.LabelList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Label"
+          },
+          "description": "Label(s) dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Page number of partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "LabelList dataset.\nNOTE: Edge represents connection between two nodes.\nSo this ContactLabels.data are always subordinate to some contact.id."
+    },
+    "webitel.contacts.LabelTags": {
+      "type": "object",
+      "properties": {
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.LabelInfo"
+          },
+          "title": "Labels info dataset"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Lookup"
+          },
+          "title": "Contact sources dataset"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Page number of partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Next page available ?"
+        }
+      },
+      "description": "LabelTags dataset list of label's info."
+    },
+    "webitel.contacts.Language": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this association is the default\namong others of the same type."
+        },
+        "tag": {
+          "type": "string",
+          "title": "The well-formed IETF BCP 47 language tag representing the locale.\nhttps://www.rfc-editor.org/info/bcp47"
+        },
+        "code": {
+          "type": "string",
+          "title": "uk              ; golang.org/x/text/language.MustParse(s).Base()"
+        },
+        "lang": {
+          "type": "string",
+          "title": "Ukrainian       ; golang.org/x/text/language/display.English.Languages().Name(tag)"
+        },
+        "name": {
+          "type": "string",
+          "title": "українська      ; golang.org/x/text/language/display.Self().Name(tag)"
+        },
+        "region": {
+          "type": "string",
+          "title": "UA              ; golang.org/x/text/language.MustParse(s).Region()"
+        },
+        "script": {
+          "type": "string",
+          "title": "Cyrl; (Cyrillic); golang.org/x/text/language.MustParse(s).Script()"
+        }
+      },
+      "description": "A Contact's locale preference.\nOutput purpose only."
+    },
+    "webitel.contacts.LanguageList": {
+      "type": "object",
+      "example": {
+        "data": [
+          {
+            "id": "7",
+            "ver": "3",
+            "etag": "FqaTCDLbhpaoUreL",
+            "created_at": "1680268507698",
+            "created_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "updated_at": "1680516785357",
+            "updated_by": {
+              "name": "Jane Lee (deleted)"
+            },
+            "primary": true,
+            "tag": "uk-UA",
+            "code": "uk",
+            "lang": "Ukrainian",
+            "name": "українська",
+            "region": "UA",
+            "script": "Cyrl"
+          }
+        ],
+        "page": 1,
+        "next": true
+      },
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Language"
+          },
+          "description": "Page of the Contact's Language(s) dataset."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Page number of partial result dataset records."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Next indicate whether there are more result records(page+) available.\nIf set - next page is available with query ?size=$(data.length)\u0026page=$(page++)"
+        }
+      },
+      "description": "LabelsData\nNOTE: Edge represents connection between two nodes.\nSo this ContactLabels.data are always subordinate to some contact.id."
+    },
+    "webitel.contacts.Lookup": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Reference Object unique ID."
+        },
+        "type": {
+          "type": "string",
+          "description": "Reference Object well-known type."
+        },
+        "name": {
+          "type": "string",
+          "description": "Reference Object display name."
+        }
+      },
+      "description": "Lookup reference information.\nSimplified search filter to uniquely identify related object."
+    },
+    "webitel.contacts.Manager": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this association is the default\namong others of the same type."
+        },
+        "user": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Responsible User."
+        }
+      },
+      "description": "Manager. The Contact's responsible User."
+    },
+    "webitel.contacts.ManagerList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Manager"
+          },
+          "description": "Manager dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Manager dataset."
+    },
+    "webitel.contacts.Name": {
+      "type": "object",
+      "properties": {
+        "verified": {
+          "type": "boolean",
+          "description": "Indicate whether Contact, as a Person, realy owns this associated name."
+        },
+        "given_name": {
+          "type": "string",
+          "title": "OPTIONAL. Given name(s) or first name(s) of the End-User.\nNote that in some cultures, people can have multiple given names;\nall can be present, with the names being separated by space characters.\nhttps://openid.net/specs/openid-connect-core-1_0.html#StandardClaims #given_name"
+        },
+        "middle_name": {
+          "type": "string",
+          "description": "OPTIONAL. Middle name(s) of the End-User.\nNote that in some cultures, people can have multiple middle names;\nall can be present, with the names being separated by space characters.\nAlso note that in some cultures, middle names are not used."
+        },
+        "family_name": {
+          "type": "string",
+          "title": "OPTIONAL. Surname(s) or last name(s) of the End-User.\nNote that in some cultures, people can have multiple family names or no family name;\nall can be present, with the names being separated by space characters.\nhttps://openid.net/specs/openid-connect-core-1_0.html#StandardClaims #family_name"
+        },
+        "common_name": {
+          "type": "string",
+          "description": "REQUIRED. End-User's full name in displayable form\nincluding all name parts, possibly including titles and suffixes,\nordered according to the End-User's locale and preferences."
+        }
+      },
+      "description": "A contact's name.\nIf the name is a mononym, the family name is empty.\n\nInspired:\nhttps://openid.net/specs/openid-connect-core-1_0.html#StandardClaims\nhttps://developers.google.com/people/api/rest/v1/people#name"
+    },
+    "webitel.contacts.PhoneList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.PhoneNumber"
+          },
+          "description": "PhoneNumber dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "PhoneNumber dataset."
+    },
+    "webitel.contacts.PhoneNumber": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this phone number is default within other channels of the same type(phone)."
+        },
+        "verified": {
+          "type": "boolean",
+          "title": "Indicate whether Contact, as a Person, realy owns this associated phone number.\nIn other words: whether Contact is reachable thru this 'phone' communication channel ?"
+        },
+        "number": {
+          "type": "string",
+          "description": "The phone number."
+        },
+        "type": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "title": "The type of the phone number.\nReference on CommunicationType dictionary.\nUsed for outbound routing while dialup a phone number.\nThe type can be custom or one of these predefined values:\n- home\n- work\n- mobile\n- homeFax\n- workFax\n- otherFax\n- pager\n- workMobile\n- workPager\n- main\n- googleVoice\n- other"
+        }
+      },
+      "description": "The Contact's phone number."
+    },
+    "webitel.contacts.Photo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "True if the photo is a default photo; false if the photo is a user-provided photo."
+        },
+        "photo_id": {
+          "type": "string",
+          "format": "int64",
+          "title": "File unique ID within 'storage' service"
+        },
+        "photo_url": {
+          "type": "string",
+          "title": "The URL of the photo.\nYou can change the desired size by appending\na query parameter sz={size} at the end of the url,\nwhere {size} is the size in pixels.\nExample: https://lh3.googleusercontent.com/-T_wVWLlmg7w/AAAAAAAAAAI/AAAAAAAABa8/00gzXvDBYqw/s100/photo.jpg?sz=50"
+        }
+      },
+      "description": "A contact's photo.\nA picture shown next to the contact's name\nto help others recognize the contact."
+    },
+    "webitel.contacts.PhotoList": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Photo"
+          },
+          "description": "Photo dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Photo dataset."
+    },
+    "webitel.contacts.Timezone": {
+      "type": "object",
+      "example": {
+        "id": "7",
+        "ver": "3",
+        "etag": "FqaTCDLbhpaoUreL",
+        "created_at": "1680268507698",
+        "created_by": {
+          "id": "34",
+          "name": "John Doe"
+        },
+        "updated_at": "1680516785357",
+        "updated_by": {
+          "name": "Jane Lee (deleted)"
+        },
+        "primary": true,
+        "location": "Europe/Kyiv"
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "primary": {
+          "type": "boolean",
+          "description": "Indicates whether this association is the default\namong others of the same type."
+        },
+        "location": {
+          "type": "string",
+          "description": "The Location name corresponding to a file\nin the IANA Time Zone database, such as \"Europe/Kyiv\"."
+        },
+        "offset": {
+          "type": "string",
+          "format": "int64",
+          "description": "Custom location offset (seconds east of UTC)."
+        },
+        "time": {
+          "type": "string",
+          "title": "Current time at this time zone location.\nQuery: `?fields=location{time.format(DateTime)}`"
+        }
+      },
+      "description": "A Contact's timezone preference."
+    },
+    "webitel.contacts.TimezoneList": {
+      "type": "object",
+      "example": {
+        "data": [
+          {
+            "id": "7",
+            "ver": "3",
+            "etag": "FqaTCDLbhpaoUreL",
+            "created_at": "1680268507698",
+            "created_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "updated_at": "1680516785357",
+            "updated_by": {
+              "name": "Jane Lee (deleted)"
+            },
+            "primary": true,
+            "location": "Europe/Kyiv"
+          }
+        ],
+        "page": 1,
+        "next": true
+      },
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Timezone"
+          },
+          "description": "Timezone dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Timezone dataset.\nNOTE: Edge represents connection between two nodes.\nSo this ContactLabels.data are always subordinate to some contact.id."
+    },
+    "webitel.contacts.Variable": {
+      "type": "object",
+      "example": {
+        "id": "6",
+        "ver": "2",
+        "etag": "FqaTCDLbhpaoUreL",
+        "created_at": "1680268507698",
+        "created_by": {
+          "id": "34",
+          "name": "John Doe"
+        },
+        "updated_at": "1680516785357",
+        "updated_by": {
+          "name": "Ja Lee (deleted)"
+        },
+        "key": "var_complex",
+        "value": {
+          "inner_var": null,
+          "value_arr": [
+            "string",
+            [
+              null
+            ],
+            false,
+            1
+          ]
+        }
+      },
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique ID of the association. Never changes."
+        },
+        "ver": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Version of the latest update. Numeric sequence."
+        },
+        "etag": {
+          "type": "string",
+          "description": "Unique ID of the latest version of the update.\nThis ID changes after any update to the underlying value(s)."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "The user who created this Field."
+        },
+        "created_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "Timestamp(milli) of the Field creation."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "Timestamp(milli) of the last Field update.\nTake part in Etag generation."
+        },
+        "updated_by": {
+          "$ref": "#/definitions/webitel.contacts.Lookup",
+          "description": "The user who performed last Update."
+        },
+        "key": {
+          "type": "string",
+          "description": "Key name of the variable."
+        },
+        "value": {
+          "description": "JSON value of the variable."
+        }
+      },
+      "description": "The Contact's variable.\nArbitrary data that is populated by users or clients.\nDuplicate keys and values are allowed."
+    },
+    "webitel.contacts.VariableList": {
+      "type": "object",
+      "example": {
+        "data": [
+          {
+            "id": "4",
+            "etag": "FqaTCDLbhpaoUreL",
+            "created_at": "1680268507698",
+            "created_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "updated_at": "1680268507698",
+            "updated_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "key": "my_string",
+            "value": "string_value"
+          },
+          {
+            "id": "6",
+            "ver": "2",
+            "etag": "ogTsuZAIA1CcEZGC",
+            "created_at": "1680268507698",
+            "created_by": {
+              "id": "34",
+              "name": "John Doe"
+            },
+            "updated_at": "1680516785357",
+            "updated_by": {
+              "name": "Ja Lee (deleted)"
+            },
+            "key": "var_complex",
+            "value": {
+              "inner_var": null,
+              "value_arr": [
+                "string",
+                [
+                  null
+                ],
+                false,
+                1
+              ]
+            }
+          }
+        ],
+        "page": 1,
+        "next": true
+      },
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/webitel.contacts.Variable"
+          },
+          "description": "Variable dataset page."
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The page number of the partial result."
+        },
+        "next": {
+          "type": "boolean",
+          "title": "Indicates that this is a partial result.\nMore data available upon query: ?size=${data.len}\u0026page=${page++}"
+        }
+      },
+      "description": "Variable dataset."
+    }
+  },
+  "securityDefinitions": {
+    "AccessToken": {
+      "type": "apiKey",
+      "name": "X-Webitel-Access",
+      "in": "header"
+    }
+  },
+  "security": [
+    {
+      "AccessToken": []
+    }
+  ]
+}

@@ -1,0 +1,301 @@
+syntax = "proto3";
+package webitel.contacts;
+option go_package = "webitel.go/api/contacts;contacts";
+
+import "contacts/fields.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// The Contact's internal Comment.
+// Output purpose only
+message Comment {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // GET /contacts/{source.id}/comments/{id}
+    example: "{\"id\":\"354\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680268507698\",\"updated_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"text\":\"This is a new note about the contact's recent activity. So ...\"}"
+  };
+
+  // [META]: --------------------------------------
+
+  // The unique ID of the Comment. Never changes.
+  string id = 1;
+  
+  // Version of the latest update. Numeric sequence.
+  int32 ver = 2;
+
+  // Unique ID of the latest version of the update.
+  // This ID changes after any update to the underlying value(s).
+  string etag = 3;
+
+  // // The Contact source associated with.
+  // // Return within global /labels lookup.
+  // webitel.contacts.Lookup contact = 4;
+
+  // The user who created this Field.
+  int64 created_at = 5;
+
+  // Timestamp(milli) of the Field creation.
+  webitel.contacts.Lookup created_by = 6;
+  
+  // Timestamp(milli) of the last Field update.
+  // Take part in Etag generation.
+  int64 updated_at = 7;
+  
+  // The user who performed last Update.
+  webitel.contacts.Lookup updated_by = 8;
+
+  // [VALUE]: --------------------------------------
+
+  // Rich Text, multi-line[d] string value.
+  string text = 11;
+
+  message Format {
+
+    // Offset text runes count.
+    int32 offset = 1;
+    // Length text runes count.
+    int32 length = 2;
+
+    // [DESIGN]: Idea ...
+    
+    message Link {
+      // REQUIRED. If text[offset:length] is a regular plaintext, NOT an URL itself !
+      string url = 1;
+    }
+    message Bold {}
+    message Italic {}
+    message Underline {}
+    message Strikethrough {}
+    message Monospace {}
+    message Codeblock {
+      string language = 1;
+    }
+    
+    // Style Options.
+    oneof style {
+      Link link = 5;
+      Bold bold = 6;
+      Italic italic = 7;
+      Underline underline = 8;
+      Strikethrough strikethrough = 9;
+      Monospace monospace = 10;
+      Codeblock codeblock = 11;
+    }
+  }
+
+  // Styles of the text components.
+  repeated Format format = 12;
+}
+
+message InputComment {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // PUT /contacts/{source.id}/comments/{etag}
+    // example: "{\"text\":\"Here is a new edition of my previous note.\"}"
+    example: "{\"text\":\"This is a new note about the contact's recent activity. So ...\"}"
+    json_schema: {
+      required: ["text"]
+    }
+  };
+
+  // Unique ID of the latest version of an existing resorce.
+  string etag = 1
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    field_configuration: {
+      path_param_name: "etag"
+    }
+  }];
+
+  // NEW Text of the comment.
+  string text = 11;
+
+  // NEW Text components styling format.
+  repeated Comment.Format format = 12;
+}
+
+// Comment dataset.
+message CommentList {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    example: "{\"data\":[{\"id\":\"354\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"text\":\"This is a new note about the contact's recent activity. So ...\"},{\"id\":\"357\",\"ver\":\"4\",\"etag\":\"FZiTxVgr41VPFxyu\",\"created_at\":\"1680268537698\",\"created_by\":{\"id\":\"56\",\"name\":\"Bruce Wayne\"},\"updated_at\":\"1680268563357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"text\":\"This contact may become a customer in a few days\"}],\"page\":1,\"next\":true}"
+  };
+
+  // Comment dataset page.
+  repeated Comment data = 1;
+  // The page number of the partial result.
+  int32 page = 2;
+  // Indicates that this is a partial result.
+  // More data available upon query: ?size=${data.len}&page=${page++}
+  bool next = 3;
+
+}
+
+// Contact comments service catalog.
+service Comments {
+  // Publish comment for a Contact.
+  rpc PublishComment(PublishCommentRequest) returns (Comment)
+  {
+    option (google.api.http) = {
+      post: "/contacts/{contact_id}/comments"
+      body: "input"
+    };
+  }
+  // Search for Contact Comment(s) ...
+  rpc SearchComments(SearchCommentsRequest) returns (CommentList)
+  {
+    option (google.api.http) = {
+      get: "/contacts/{contact_id}/comments"
+    };
+  }
+  // Update (edit) specific Comment text owned
+  rpc UpdateComment(UpdateCommentRequest) returns (Comment)
+  {
+    option (google.api.http) = {
+      put:  "/contacts/{contact_id}/comments/{input.etag}"
+      body: "input"
+    };
+  }
+  // Delete Comment(s) for Contact ...
+  rpc DeleteComment(DeleteCommentsRequest) returns (CommentList)
+  {
+    option (google.api.http) = {
+      delete: "/contacts/{contact_id}/comments/{etag}"
+      response_body: "data"
+    };
+  }
+}
+
+message PublishCommentRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "input"
+    }
+  };
+
+  // ----- Result Options ----- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ----- Create Options ----- //
+
+  // Link contact ID.
+  string contact_id = 2;
+
+  // NEW Comment for a Contact publication.
+  InputComment input = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "{\"text\":\"This is an internal note about recent activities.\"}"
+    }
+  ];
+
+}
+
+message TimeRange {
+  // Since timestamp(milli). Not before.
+  int64 since = 1;
+  // Until timestamp(milli). Not after.
+  int64 until = 2;
+}
+
+message SearchCommentsRequest {
+  
+  // ----- Result Options ----- //
+
+  // Page number of result. offset = ((page-1)*size)
+  int32 page = 2;
+
+  // Size of result page. limit = (size++)
+  int32 size = 1;
+
+  // Search term: comment text;
+  // `?` - matches any character
+  // `*` - matches 0 or more characters
+  string q = 6; // term-of-search: lookup[name|...]
+  
+  // Sort the result according to fields.
+  repeated string sort = 3;
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 4;
+
+  // ----- Search Options ----- //
+  
+  // Contact ID associated with.
+  int64 contact_id = 5;
+
+  // Comment(s) with unique ID only.
+  repeated string id = 7;
+  
+  // The requirement of [M]andatory [A]ccess [C]ontrol.
+  AccessMode mode = 8;
+
+  // ----- Contact-specific granular AND Filter(s) ----- //
+  
+  // Timerange of the publication
+  TimeRange date = 10;
+  // Author of the Comment{created_by}
+  webitel.contacts.Lookup author = 11;
+  // Editor of the Comment{updated_by}
+  webitel.contacts.Lookup editor = 12;
+}
+
+
+
+message UpdateCommentRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "input"
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 1;
+  
+  // ------- Update Options ------- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+  
+  // NEW Edition of the Comment.
+  InputComment input = 3;
+
+}
+
+message DeleteCommentsRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "etag"
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // --------- Delete Options -------- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+
+  // Set of unique ID(s) to remove.
+  repeated string etag = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      // pattern: "^.+$"
+      unique_items: true
+      min_items: 1
+    }
+  ];
+
+}

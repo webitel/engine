@@ -360,6 +360,8 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 			patch.Communications = toModelMemberCommunications(in.GetCommunications())
 		case "stop_cause":
 			patch.StopCause = model.NewString(in.StopCause)
+		case "attempts":
+			patch.Attempts = model.NewInt(int(in.Attempts))
 		case "agent.id":
 			//todo
 			if in.Agent != nil && in.Agent.Id == 0 {

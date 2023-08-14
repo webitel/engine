@@ -1,0 +1,117 @@
+syntax = "proto3";
+package webitel.contacts;
+option go_package = "webitel.go/api/contacts;contacts";
+
+// import "contacts/fields.proto";
+
+// import "google/rpc/status.proto";
+// import "google/api/visibility.proto";
+// import "google/api/annotations.proto";
+// import "protoc-gen-openapiv2/options/annotations.proto";
+
+message MediaAttribute {
+  // Defines the width and height of an image uploaded
+  message Image {
+    // Width of image
+    uint32 width = 1;
+    // Height of image
+    uint32 height = 2;
+    // Defines an animated GIF
+    bool animated = 3;
+  }
+  // // Defines an animated GIF
+  // message Animated {}
+  // Defines an audio
+  message Audio {
+    // Name of the song
+    string title = 1;
+    // Song Performer
+    string performer = 2;
+    // Duration in seconds
+    uint32 duration = 3;
+    // Waveform: consists in a series of bitpacked 5-bit values.
+    bytes waveform = 4;
+  }
+  // Defines a video
+  message Video {
+    // Video width
+    uint32 width = 1;
+    // Video height
+    uint32 height = 2;
+    // Duration in seconds
+    uint32 duration = 3;
+  }
+  // A simple document with a file name
+  message Filename {
+    // The file name
+    string file_name = 1;
+  }
+
+  oneof attribute {
+    Image image = 1;
+    Audio audio = 2;
+    Video video = 3;
+    string filename = 4;
+  }
+}
+
+message ImageSize {
+  // Image width
+  int32 width = 1;
+  // Image height
+  int32 height = 2;
+  // Size in bytes
+  int32 size = 3;
+}
+
+// Animated profile picture in MPEG4 format
+message VideoSize {
+  // Video width
+  uint32 width = 1;
+  // Video height
+  uint32 height = 2;
+  // File size in bytes
+  uint32 size = 3;
+  // Timestamp that should be shown as static preview to the user (seconds)
+  uint32 start_ts = 4;
+}
+
+message MediaFile {
+  // File unique ID
+  string id = 1;
+  // Creation date; timestamp(milli)
+  int64 date = 2;
+  // Size in bytes
+  uint32 size = 3;
+  // MIME type
+  string type = 4;
+  // Binary content
+  bytes data = 5;
+  // Check sum, dependent on unique ID
+  map<string, string> hash = 6; // md5, sha256, ..
+  // File attributes metadata
+  repeated MediaAttribute meta = 7;
+  // Thumbnails
+  repeated ImageSize thumb = 8;
+  // Video Thumbnails
+  repeated VideoSize video_thumb = 9;
+}
+
+// An Image or Photo
+message MediaImage {
+  // File unique ID.
+  string id = 1;
+  // Date of upload; timestamp(milli)
+  int64 date = 2;
+  // MIME type
+  string type = 3;
+  // Available sizes for download
+  repeated ImageSize sizes = 4;
+}
+
+message InputMedia {
+  // ID of the uploaded file.
+  string id = 1;
+  // Remote resource URL.
+  string url = 2;
+}

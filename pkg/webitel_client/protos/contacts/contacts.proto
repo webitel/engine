@@ -1,0 +1,465 @@
+syntax = "proto3";
+package webitel.contacts;
+option go_package = "webitel.go/api/contacts;contacts";
+
+import "contacts/fields.proto";
+import "contacts/contact.proto";
+
+import "google/api/visibility.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// message FieldQ {
+//   string name = 1;
+//   uint32 page = 2;
+//   uint32 size = 3;
+//   repeated FieldQ inner = 4;
+// }
+
+// Contacts service catalog.
+service Contacts {
+
+  // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_tag) = {
+  //   description: "catalog"
+  // };
+
+  // Search for Contact(s)
+  rpc SearchContacts(SearchContactsRequest) returns (ContactList) {
+    option (google.api.http) = {
+      get: "/contacts"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      description:
+      "| Field       | Type \n"
+      "| ----------- | ---- \n"
+      "| **----------- READ-ONLY -----------** | \n"
+      "| `id`        | int64 \n"
+      "| `ver`       | int32 \n"
+      "| `etag`      | string \n"
+      "| **---------- OPERATIONAL ----------** | \n"
+      "| `created_at` | int64(epoch:milli) \n"
+      "| `created_by` | lookup(user) \n"
+      "| `updated_at` | int64(epoch:milli) \n"
+      "| `updated_by` | lookup(user) \n"
+      "| **---------- ATTRIBUTES -----------** | \n"
+      "| `name`      | name! \n"
+      "| `about`     | string \n"
+      "| `labels`    | list[label!] \n"
+      "| `emails`    | list[email!] \n"
+      "| `photos`    | list[photo!] \n"
+      "| `phones`    | list[phone!] \n"
+      "| `managers`  | list[manager!] \n"
+      "| `comments`  | list[comment!] \n"
+      "| `addresses` | list[address!] \n"
+      "| `languages` | list[language!] \n"
+      "| `timezones` | list[timezone!] \n"
+      "| `variables` | list[variable!] \n"
+      "| `imclients` | list[imClient!] \n"
+    };
+  }
+  // // BULK Create Contacts
+  // rpc CreateContacts(InputContactsRequest) returns (ContactsDataset) {
+  //   option (google.api.http) = {
+  //     post: "/contacts/bulk"
+  //     body: "sources"
+  //     response_body: "data"
+  //   };
+  // }
+  // // BULK Update Contacts
+  // rpc UpdateContacts(InputContactsRequest) returns (ContactsDataset) {
+  //   option (google.api.http) = {
+  //     put: "/contacts/bulk"
+  //     body: "sources"
+  //     response_body: "data"
+  //   };
+  // }
+  // // BULK Remove Contacts
+  // rpc DeleteContacts(DeleteContactsRequest) returns (ContactsDataset) {
+  //   option (google.api.http) = {
+  //     delete: "/contacts/bulk"
+  //   };
+  // }
+
+  // ----------------------------------------------------------
+
+  // Locate Contact source
+  rpc LocateContact(LocateContactRequest) returns (Contact) {
+    option (google.api.http) = {
+      get: "/contacts/{id}"
+    };
+  }
+
+  // Create NEW Contact
+  rpc CreateContact(InputContactRequest) returns (Contact) {
+    option (google.api.http) = {
+      post: "/contacts"
+      body: "input"
+    };
+  }
+
+  // NEW Update of the Contact source
+  rpc UpdateContact(InputContactRequest) returns (Contact) {
+    option (google.api.http) = {
+      patch:  "/contacts/{input.etag}"
+      body: "input"
+      // additional_bindings {
+      //   put: "/contacts/{input.etag}"
+      //   body:  "input"
+      // }
+    };
+  }
+
+  // Remove Contact source
+  rpc DeleteContact(DeleteContactRequest) returns (Contact) {
+    option (google.api.http) = {
+      delete: "/contacts/{etag}"
+    };
+  }
+}
+
+// ----------- SEARCH Dataset ----------- //
+
+// Contact dataset.
+message ContactList {
+
+  // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+  //   example: "{\"data\":[{\"id\":\"7\",\"ver\":\"3\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"primary\":true,\"location\":\"Europe/Kyiv\"}],\"page\":1,\"next\":true}"
+  // };
+
+  // Contact(s) dataset page.
+  repeated Contact data = 1;
+  // The page number of the partial result.
+  int32 page = 2;
+  // Indicates that this is a partial result.
+  // More data available upon query: ?size=${data.len}&page=${page++}
+  bool next = 3;
+}
+
+// ---------- SEARCH Operation ---------- //
+
+message LocateContactRequest {
+
+  // ------- Result Options ------- //
+
+  // Source Fields to return into result.
+  repeated string fields = 1;
+
+  // ------- Locate Options ------- //
+
+  // The Contact source IDentifier.
+  // Accept: `etag` (obsolete+) or `id`.
+  string id = 2;
+
+  // The requirement of a special access mode to the Source.
+  AccessMode mode = 3;  
+  
+}
+
+message SearchContactsRequest {
+
+  
+  
+  // Page number of result records.   _default(1); offset=(size*(page-1));_
+  //
+  // ```javascript
+  // let
+  //     offset = 0
+  //   , page = req.page
+  // ;
+  // if (page <= 0)
+  //     page = 1;
+  // if (page > 1)
+  //     offset = ((page-1)*size);
+  // // . . .
+  // ```
+  int32 page = 2;
+  
+  // Limit of result page records count.   _default(16); limit=(size<=0?-1:size+1);_
+  //
+  // ```javascript
+  // const
+  //     default = 16
+  //   , maximum = 32
+  // ;
+  // let limit = req.size;
+  // if (limit <= 0)
+  //     limit = default;
+  // if (maximum < limit)
+  //     limit = maximum;
+  // // . . .
+  // ```
+  int32 size = 1;
+
+  // Search term:
+  // `?` - matches any character
+  // `*` - matches 0 or more characters
+  // Used to query records within a set of `qin` fields, eg: name,emails{type},labels etc...
+  string q = 5;
+
+  // Sort result dataset of records by fields.
+  // ```
+  // sort ::= *( ORDER name )
+  //
+  // ORDER  = ASC / DESC
+  // DESC   = "-" / "!"
+  // ASC    = [ "+" ]   ; Default
+  // ```
+  //
+  // Fields available
+  //
+  // - `id`(seq)
+  // - `domain`{name}
+  // - `created_at`
+  // - `created_by`{name}
+  // - `updated_at`
+  // - `updated_by`{name}
+  //
+  // Use ?fields=`field.sort()` option to sort Edge fields.
+  repeated string sort = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      type: ARRAY,
+      // title: "sort",
+      pattern: "^[+|-|!]?\\w+$",
+      // description: "Fields [Q]uery to build result record",
+      // format: "name[.func(args)][{fields}],..",
+      default: "id",
+      example: "\"!updated_at,tag\"",
+      unique_items: true,
+      // array: "id",
+      // array: "names",
+      // array: "labels",
+      // array: "emails",
+    }
+  ];
+
+  // Fields [Q]uery to build result dataset record.
+  // ```
+  // fields ::= field [ *( "," field ) ]
+  // field  ::= name [ *( func ) ] [ inner ]
+  // inner  ::= "{" fields "}"
+  // funcs  ::= *( func )
+  // func   ::= "." name "(" [ args ] ")"
+  // name   ::= ALPHA / DIGIT / USCORE
+  //
+  // ALPHA    = %x41-5A / %x61-7A  ; "A"-"Z" / "a"-"z"
+  // DIGIT    = %x30-39            ; "0"-"9"
+  // USCORE   = %x5F ; underscore  ; "_"
+  // ```
+  repeated string fields = 4
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      // type: ARRAY,
+      // title: "fields",
+      pattern: "(\\w+(\\.\\w+\\(([^\\)]*)\\))*(\\{\\1\\})*(,\\1)*)+",
+      // description: "Fields [Q]uery to build result record",
+      // format: "name[.func(args)][{fields}],..",
+      default: "name{common_name}",
+      example: "\"labels.limit(3).sort(!updated_at){tag,updated_at}\"",
+      unique_items: true,
+      // array: "id",
+      // array: "names",
+      // array: "labels",
+      // array: "emails",
+    }
+  ];
+
+  // ----- Search Options ---------------------------
+  
+  // Records with unique IDentifier(s).
+  // Accept: `id` -or- `etag`.
+  repeated string id = 6;
+  // [Q]uery[IN] is a set of search fields for term `q`.
+  // Default: `name{common_name}`.
+  repeated string qin = 7;
+  
+  // Source access mode requirement.
+  AccessMode mode = 8;
+
+  // enum View {
+  //   // All records available.
+  //   ANY = 0;
+  //   // Without `deleted` mark.
+  //   ACTIVE = 2;
+  //   // With mark as `deleted` only.
+  //   DELETED = 1;
+  // }
+
+  // // View of records with optional filter(s) preset.
+  // View view = 9;
+
+  // ----- Contact-specific granular AND Filter(s) --------
+  // webitel.contacts.Name name = 10;
+  // webitel.contacts.PhoneNumber phone = 11;
+  // webitel.contacts.EmailAddress email = 12;
+  // webitel.contacts.Locale locale = 13;
+  // webitel.contacts.Timezone timezone = 14;
+  // webitel.contacts.Address address = 15;
+  // webitel.contacts.Variable variable = 16;
+  // webitel.contacts.IMClient imClient = 17;
+  // webitel.contacts.ExternalId externalId = 18;
+  // webitel.contacts.Manager manager = 19;
+  // webitel.contacts.Comment comment = 20;
+  // webitel.contacts.Label label = 21;
+
+}
+
+// ---------- CREATE Operation ----------
+
+message InputContactRequest {
+
+  // ------- PATCH Options ------- //
+
+  // JSON PATCH fields mask.
+  // List of JPath fields specified in body(input).
+  repeated string x_json_mask = 1
+  [(google.api.field_visibility) = {
+    restriction: "PREVIEW" // "INTERNAL"
+  },
+  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    read_only: true
+    pattern: "^$"
+  }];
+
+  // ------- Result Options ------- //
+
+  // Source Fields to return into result.
+  repeated string fields = 2;
+
+  // ------- Update Options ------- //
+
+  // NEW Contact source changes
+  InputContact input = 3;
+
+}
+
+message InputContactsRequest {
+
+  // ------- PATCH Options ------- //
+
+  // JSON PATCH fields mask.
+  // List of JPath fields specified in body(input).
+  repeated string x_json_mask = 1
+  [(google.api.field_visibility) = {
+    restriction: "INTERNAL"
+  },
+  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    read_only: true
+    pattern: "^$"
+  }];
+
+  // ------- Result Options ------- //
+
+  // Source Fields to return into result.
+  repeated string fields = 2;
+
+  // ------- Update Options ------- //
+
+  // NEW Contacts source changes
+  repeated InputContact input = 3;
+
+}
+
+// message CreateContactRequest {
+//   // Required. Contact instance to create
+//   InputContact contact = 1;
+//   // Source Fields to return into result.
+//   repeated string fields = 2;
+// }
+
+
+
+message CreateContactsRequest {
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 1;
+
+  // --------- Create Options -------- //
+
+  // Data is a set of Contacts to be created.
+  repeated InputContact input = 2
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    // example: ""
+    min_items: 1
+    unique_items: true
+  }];
+
+}
+
+// ---------- UPDATE Operation ----------
+
+// message UpdateContactRequest InputContactRequest
+
+// ---------- DELETE Operation ----------
+
+message DeleteContactsRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["etag"]
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 1;
+
+  // --------- Delete Options -------- //
+
+  // Set of unique Contact IDs to deal with
+  repeated string etag = 2
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      field_configuration: {
+        path_param_name: "etag"
+      }
+      unique_items: true
+      pattern: "^\\w+$"
+      min_items: 1
+    }
+  ];
+
+  // // Indicates whether do:
+  // // - `false` - just mark source(s) as inactive
+  // // - `true` - delete permanently; cannot be undone
+  // bool permanent = 3; // YES !
+
+}
+
+message DeleteContactRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: ["etag"]
+    }
+  };
+
+  // --------- Result Options -------- //
+
+  // Fields to be retrieved into result of changes.
+  repeated string fields = 1;
+
+  // --------- Delete Options -------- //
+
+  // Unique Contact ID to deal with
+
+  // Unique ID of the latest version of a resource.
+  string etag = 2
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      field_configuration: {
+        path_param_name: "etag"
+      }
+      pattern: "^\\w+$"
+    }
+  ];
+
+  // // Indicates whether do:
+  // // - `false` - just mark source(s) as inactive
+  // // - `true` - delete permanently; cannot be undone
+  // bool permanent = 3; // YES !
+
+}

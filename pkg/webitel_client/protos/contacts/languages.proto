@@ -1,0 +1,479 @@
+syntax = "proto3";
+package webitel.contacts;
+option go_package = "webitel.go/api/contacts;contacts";
+
+import "contacts/fields.proto";
+import "google/protobuf/wrappers.proto";
+
+// import "google/api/visibility.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+// // A Contact's associated Tag.
+// // Output purpose only.
+// message Label {
+
+//   option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+//     // PUT /contacts/{source.id}/labels/{id}
+//     example: "{\"etag\":\"1679792219687\",\"tag\":\"VIP\"}"
+//   };
+
+//   // Metadata about the Label.
+//   FieldMetadata metadata = 1;
+//   // REQUIRED. Hashtag value;
+//   // NOTE: Keep in mind, hashtags are not case-sensitive,
+//   // but adding capital letters does make them easier to read:
+//   // #MakeAWish vs. #makeawish.
+//   string tag = 5;
+// }
+
+message LanguageTag {
+
+  string tag = 1;    // uk-UA           ; Unique(!)
+  string code = 2;   // uk              ; golang.org/x/text/language.MustParse(s).Base()
+  string lang = 3;   // Ukrainian       ; golang.org/x/text/language/display.English.Languages().Name(tag)
+  string name = 4;   // українська      ; golang.org/x/text/language/display.Self().Name(tag)
+  string region = 5; // UA              ; golang.org/x/text/language.MustParse(s).Region()
+  string script = 6; // Cyrl; (Cyrillic); golang.org/x/text/language.MustParse(s).Script()
+}
+
+// A Contact's locale preference.
+// Output purpose only.
+message Language {
+
+  // option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+  //   // PUT /contacts/{source.id}/labels/{id}
+  //   example: "{\"id\":\"7\",\"ver\":\"3\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"primary\":true,\"tag\":\"uk-UA\",\"code\":\"uk\",\"lang\":\"Ukrainian\",\"name\":\"\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430\",\"region\":\"UA\",\"script\":\"Cyrl\"}"
+  // };
+
+  // Identifier of the latest version of the resource.
+  // This Identifier changes after each update of the encapsulated value(s).
+  // 
+  // But since you cannot update the `tag` value (just: add or remove)
+  // we use this as an unique Identifier of the (contact:tag) association record.
+
+  // The unique ID of the association. Never changes.
+  string id = 1;
+
+  // Version of the latest update. Numeric sequence.
+  int32 ver = 2;
+
+  // Unique ID of the latest version of the update.
+  // This ID changes after any update to the underlying value(s).
+  string etag = 3;
+
+  // // The Contact source associated with.
+  // webitel.contacts.Lookup contact = 4;
+
+  // The user who created this Field.
+  int64 created_at = 5;
+
+  // Timestamp(milli) of the Field creation.
+  webitel.contacts.Lookup created_by = 6;
+  
+  // Timestamp(milli) of the last Field update.
+  // Take part in Etag generation.
+  int64 updated_at = 7;
+  
+  // The user who performed last Update.
+  webitel.contacts.Lookup updated_by = 8;
+  
+  // [VALUE]: --------------------------------------
+
+  // Indicates whether this association is the default
+  // among others of the same type.
+  bool primary = 10;
+
+  // The well-formed IETF BCP 47 language tag representing the locale.
+  // https://www.rfc-editor.org/info/bcp47
+  string tag = 11;
+
+  // [READ-ONLY] ----------------------------------
+
+  // Example: {lang:"uk"}
+
+  string code = 12;   // uk              ; golang.org/x/text/language.MustParse(s).Base()
+  string lang = 13;   // Ukrainian       ; golang.org/x/text/language/display.English.Languages().Name(tag)
+  string name = 14;   // українська      ; golang.org/x/text/language/display.Self().Name(tag)
+  string region = 15; // UA              ; golang.org/x/text/language.MustParse(s).Region()
+  string script = 16; // Cyrl; (Cyrillic); golang.org/x/text/language.MustParse(s).Script()
+
+  // package main
+
+  // import (
+  //   "fmt"
+
+  //   "golang.org/x/text/language"
+  //   "golang.org/x/text/language/display"
+  // )
+
+  // func main() {
+  //   supported := []string{
+  //     "en-US", "en-GB", "ja", "zh", "zh-Hans", "zh-Hant", "pt", "pt-PT", "ko", "ar", "el", "ru", "uk", "uk-RU", "pa",
+  //   }
+
+  //   en := display.English.Languages()
+
+  //   for _, s := range supported {
+  //     t := language.MustParse(s)
+  //     code, _ := t.Base()
+  //     region, _ := t.Region()
+  //     script, _ := t.Script()
+  //     fmt.Printf("%s [%s %s] %-20s (%s)\n", code, region, script, en.Name(t), display.Self.Name(t))
+  //   }
+  // }
+
+  // Output: --------------------------------------------------
+
+  // en [US Latn] American English     (American English)
+  // en [GB Latn] British English      (British English)
+  // ja [JP Jpan] Japanese             (日本語)
+  // zh [CN Hans] Chinese              (中文)
+  // zh [CN Hans] Simplified Chinese   (简体中文)
+  // zh [TW Hant] Traditional Chinese  (繁體中文)
+  // pt [BR Latn] Portuguese           (português)
+  // pt [PT Latn] European Portuguese  (português europeu)
+  // ko [KR Kore] Korean               (한국어)
+  // ar [EG Arab] Arabic               (العربية)
+  // el [GR Grek] Greek                (Ελληνικά)
+  // ru [RU Cyrl] Russian              (русский)
+  // uk [UA Cyrl] Ukrainian            (українська)
+  // uk [RU Cyrl] Ukrainian            (українська)
+  // pa [IN Guru] Punjabi              (ਪੰਜਾਬੀ)
+
+}
+
+// An input of the Contact's language.
+message InputLanguage {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // PUT /contacts/{source.id}/languages/{etag}
+    example: "{\"primary\":false,\"tag\":\"uk\"}"
+    json_schema: {
+      required: ["etag"]
+    }
+  };
+  
+  // Unique ID of the latest version of an existing association.
+  string etag = 1
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    field_configuration: {
+      path_param_name: "etag"
+    }
+  }];
+  
+  // Indicates whether this association must be default
+  // among others of the same type.
+  bool primary = 10;
+    
+  // NEW, well-formed IETF BCP 47 language tag representing the locale.
+  // https://www.rfc-editor.org/info/bcp47
+  string tag = 11;
+}
+
+// Languages service catalog.
+service Languages {
+
+  // // Search the Contact's Label(s).
+  // rpc ListLanguages(SearchLanguageRequest) returns (LanguageList) {
+  //   option (google.api.http) = {
+  //     get: "/languages"
+  //   };
+  // }
+
+  // rpc GetContactLanguages(ContactLanguageRequest) returns (LanguageList) {
+
+  // List of the Contact's language association(s).
+  rpc GetContactLanguages(SearchLanguagesRequest) returns (LanguageList) {
+    option (google.api.http) = {
+      get: "/contacts/{contact_id}/languages"
+    };
+  }
+  // Associate more language(s) with the Contact.
+  rpc AddContactLanguages(CreateLanguagesRequest) returns (LanguageList) {
+    option (google.api.http) = {
+      post: "/contacts/{contact_id}/languages"
+      // response_body: "data"
+      body: "input"
+    };
+  }
+  // Reset all Contact's languages to fit the specified fixed set.
+  rpc SetContactLanguages(UpdateLanguagesRequest) returns (LanguageList) {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/languages"
+      // response_body: "data"
+      body: "input"
+    };
+  }
+  // Update the Contact's language association details.
+  rpc SetContactLanguage(UpdateLanguageRequest) returns (LanguageList) {
+    option (google.api.http) = {
+      put: "/contacts/{contact_id}/languages/{input.etag}"
+      // response_body: "data"
+      body: "input"
+      additional_bindings: {
+        patch: "/contacts/{contact_id}/languages/{input.etag}"
+        // response_body: "data"
+        body: "input"
+      }
+    };
+  }
+  // Remove the Contact's language association(s).
+  rpc DelContactLanguages(DeleteLanguagesRequest) returns (LanguageList) {
+    option (google.api.http) = {
+      delete: "/contacts/{contact_id}/languages"
+      // response_body: "data"
+    };
+  }
+
+  // Remove the Contact's language association.
+  rpc DelContactLanguage(DeleteLanguageRequest) returns (Language) {
+    option (google.api.http) = {
+      delete: "/contacts/{contact_id}/languages/{etag}"
+    };
+  }
+}
+
+// LabelsData
+// NOTE: Edge represents connection between two nodes.
+// So this ContactLabels.data are always subordinate to some contact.id.
+message LanguageList {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    // PUT /contacts/{source.id}/labels/{id}
+    example: "{\"data\":[{\"id\":\"7\",\"ver\":\"3\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"primary\":true,\"tag\":\"uk-UA\",\"code\":\"uk\",\"lang\":\"Ukrainian\",\"name\":\"\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430\",\"region\":\"UA\",\"script\":\"Cyrl\"}],\"page\":1,\"next\":true}"
+  };
+
+  // Page of the Contact's Language(s) dataset.
+  repeated Language data = 1;
+  // Page number of partial result dataset records.
+  int32 page = 2;
+  // Next indicate whether there are more result records(page+) available.
+  // If set - next page is available with query ?size=$(data.length)&page=$(page++)
+  bool next = 3;
+}
+
+// Search for the Contact's Language(s) request.
+message SearchLanguagesRequest {
+
+  // ----- Result Options ----- //
+
+  // Page number of result dataset records. offset = (page*size)
+  int32 page = 2;
+
+  // Size count of records on result page. limit = (size++)
+  int32 size = 1;
+
+  // Search term: language tag (lang, name, region, ..)
+  // `?` - matches any one character
+  // `*` - matches 0 or more characters
+  string q = 6;
+
+  // Sort the result according to fields.
+  repeated string sort = 3;
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 4;
+
+  // ----- Search Options ----- //
+
+  // Contact ID associated with.
+  string contact_id = 5;
+  
+  // Lookup contact = 5;
+
+  // Language(s) with unique ID|ETag only.
+  repeated string id = 7;
+
+  // Primary language only.
+  google.protobuf.BoolValue primary = 8;
+
+  // [FIXME]: custom(field) substrings pattern
+
+  string code = 10; // 
+  string lang = 11; // 
+  string name = 12;
+  string region = 13;
+
+}
+
+
+message CreateLanguagesRequest {
+
+  // ----- Result Options ----- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ----- Create Options ----- //
+
+  // Link contact ID.
+  string contact_id = 2;
+  
+  // Lookup contact = 2;
+
+  // Fixed set of label(s) to be linked with the contact.
+  // Label(s) that conflicts with already linked will be updated.
+
+  // Array of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
+  // The first element will become `primary` one.
+  repeated InputLanguage input = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "[\"uk\",\"en-GB\",\"pl\"]"
+      // pattern: "^\\w+$"
+      unique_items: true
+      min_items: 1
+    }
+  ];
+
+}
+
+message UpdateLanguagesRequest {
+
+  // ----- Result Options ----- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ----- Filter Options ----- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+  
+  // Lookup contact = 2;
+
+  // ----- Update Options ----- //
+
+  // Final set of labels(s) to be linked with the contact.
+  // Label(s) that are already linked with the contact
+  // but not given in here will be removed.
+
+  // Final set [array] of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
+  // The first element will become `primary` one.
+  repeated InputLanguage input = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "[\"uk\",\"en-GB\",\"pl\"]"
+      // pattern: "^\\w+$"
+      unique_items: true
+      min_items: 1
+    }
+  ];
+
+}
+
+message UpdateLanguageRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "data"
+    }
+  };
+
+  // ----- Result Options ----- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ----- Locate Options ----- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+  
+  // Lookup contact = 2;
+
+  // ----- Update Options ----- //
+
+  // Final set of labels(s) to be linked with the contact.
+  // Label(s) that are already linked with the contact
+  // but not given in here will be removed.
+
+  // Final set [array] of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
+  // The first element will become `primary` one.
+  InputLanguage input = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      example: "[\"uk\",\"en-GB\",\"pl\"]"
+      // pattern: "^\\w+$"
+      unique_items: true
+      min_items: 1
+    }
+  ];
+
+}
+
+message DeleteLanguagesRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "etag"
+    }
+  };
+
+  // ----- Result Options ----- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ----- Filter Options ----- //
+
+  // Link contact ID.
+  string contact_id = 2;
+  
+  // Lookup contact = 2;
+
+  // ----- Delete Options ----- //
+
+  // Set of unique language{etag} association(s) to remove.
+  repeated string etag = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      // field_configuration: {
+      //   path_param_name: "id"
+      // }
+      // pattern: "^(\\w+)(,\\w+)*$"
+      unique_items: true
+      min_items: 1
+    }
+  ];
+
+}
+
+message DeleteLanguageRequest {
+
+  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+    json_schema: {
+      required: "contact_id"
+      required: "etag"
+    }
+  };
+
+  // ----- Result Options ----- //
+
+  // Fields to be retrieved as a result.
+  repeated string fields = 1;
+
+  // ----- Filter Options ----- //
+
+  // Contact ID associated with.
+  string contact_id = 2;
+  
+  // Lookup contact = 2;
+
+  // ----- Delete Options ----- //
+
+  // Unique ID of the language association: {id,etag,code}.
+  string etag = 3
+  [
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      // field_configuration: {
+      //   path_param_name: "id"
+      // }
+      // pattern: "^(\\w+)(,\\w+)*$"
+    }
+  ];
+
+}

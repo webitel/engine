@@ -41,6 +41,7 @@ type MemberPatch struct {
 	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
 	Agent          *Lookup               `json:"agent" db:"agent"`
 	Skill          *Lookup               `json:"skill" db:"skill"`
+	Attempts       *int
 }
 
 type MultiDeleteMembers struct {
@@ -128,6 +129,10 @@ func (m *Member) Patch(p *MemberPatch) {
 		} else {
 			m.Skill = p.Skill
 		}
+	}
+
+	if p.Attempts != nil {
+		m.Attempts = *p.Attempts
 	}
 }
 
