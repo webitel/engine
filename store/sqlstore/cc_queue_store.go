@@ -340,7 +340,8 @@ func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, s
 	var report *model.QueueReportGeneralAgg
 	err := s.GetReplica().WithContext(ctx).SelectOne(&report, `
 with queues  as  (
-    select *
+    select *, case when q.type between 0 and 5 then 'call'
+        when q.type = 6 then 'chat' else 'task' end as chan_name
     from call_center.cc_queue q
     where  q.id in (
         with x as (
@@ -380,11 +381,11 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'online' ) agent_on_ids,
                array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
-               array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free,
+               array_agg(distinct a.id) filter ( where status = 'online' and ac.state = 'waiting' ) free,
                array_agg(distinct a.id) total
         from queues q
             inner join call_center.cc_agent a on a.domain_id = q.domain_id
-            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id
+            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id and ac.channel = q.chan_name
             inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
         where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
