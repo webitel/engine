@@ -166,3 +166,13 @@ func NewCustomCodeError(id string, details string, code int) AppError {
 func newAppError(id string, details string) AppError {
 	return &ApplicationError{Id: id, Status: id, DetailedError: details}
 }
+
+func AppErrorFromJson(js string) *ApplicationError {
+	var err ApplicationError
+	json.Unmarshal([]byte(js), &err)
+	if err.Id == "" {
+		return nil
+	}
+
+	return &err
+}

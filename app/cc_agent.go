@@ -2,9 +2,10 @@ package app
 
 import (
 	"context"
-
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"google.golang.org/grpc/status"
+	"net/http"
 )
 
 func (app *App) AgentCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
@@ -195,6 +196,15 @@ func (a *App) WaitingAgentChannel(domainId int64, agentId int64, channel string)
 func (a *App) PauseAgent(domainId, agentId int64, payload string, timeout int) model.AppError {
 	err := a.cc.Agent().Pause(domainId, agentId, payload, timeout)
 	if err != nil {
+		st, ok := status.FromError(err)
+		if ok {
+			appErr := model.AppErrorFromJson(st.Message())
+			if appErr != nil {
+				appErr.SetStatusCode(http.StatusBadRequest)
+				return appErr
+			}
+		}
+
 		return model.NewBadRequestError("app.agent.pause.app_err", err.Error())
 	}
 
