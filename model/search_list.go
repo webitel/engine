@@ -110,7 +110,7 @@ func GetRegExpQ(q string) *string {
 		if q[0] == '+' {
 			q = "\\" + q
 		}
-		return NewString(strings.Replace(q, "*", "%", -1))
+		return &q //NewString(strings.Replace(q, "*", "%", -1))
 	}
 
 	return nil
