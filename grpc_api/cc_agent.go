@@ -708,6 +708,13 @@ func (api *agent) AgentTodayStatistics(ctx context.Context, in *engine.AgentToda
 		ScoreRequiredAvg: stat.ScoreRequiredAvg,
 		ScoreOptionalAvg: stat.ScoreOptionalAvg,
 		ScoreCount:       stat.ScoreCount,
+		ScoreRequiredSum: stat.ScoreRequiredSum,
+		ScoreOptionalSum: stat.ScoreOptionalSum,
+		SumTalkSec:       stat.SumTalkSec,
+		VoiceMail:        stat.VoiceMail,
+		Available:        stat.Available,
+		Online:           stat.Online,
+		Processing:       stat.Processing,
 	}, nil
 }
 

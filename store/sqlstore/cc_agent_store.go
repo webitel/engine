@@ -1200,7 +1200,12 @@ func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId, agentId in
 	s.score_optional_avg,
 	s.score_optional_sum,
 	s.score_required_avg,
-	s.score_required_sum
+	s.score_required_sum,
+    s.sum_talk_sec,
+    s.voice_mail,
+    s.available,
+    s.online,
+    s.processing
 from call_center.cc_agent_today_stats s
 where s.domain_id = :DomainId and s.agent_id = :Id`, map[string]interface{}{
 		"DomainId": domainId,

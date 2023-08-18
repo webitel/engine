@@ -19,4 +19,9 @@ type AgentStatistics struct {
 	ScoreRequiredSum float32 `json:"score_required_sum" db:"score_required_sum"`
 	ScoreOptionalSum float32 `json:"score_optional_sum" db:"score_optional_sum"`
 	ScoreCount       int64   `json:"score_count" db:"score_count"`
+	SumTalkSec       int64   `json:"sum_talk_sec" db:"sum_talk_sec"`
+	VoiceMail        int32   `json:"voice_mail" db:"voice_mail"`
+	Available        int32   `json:"available" db:"available"`
+	Online           int32   `json:"online" db:"online"`
+	Processing       int32   `json:"processing" db:"processing"`
 }
