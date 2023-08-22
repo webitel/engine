@@ -48,9 +48,9 @@ func GetOrderBy(t, s string) string {
 	if s != "" {
 		sort, field := orderBy(s)
 
-		return fmt.Sprintf(`order by case when call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s,
-         case when not call_center.cc_is_lookup(%s, %s) then %s end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field),
-			sort, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort)
+		return fmt.Sprintf(`order by case when not call_center.cc_is_lookup(%s, %s) then %s end %s,
+         case when call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort,
+			QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort)
 
 	}
 
