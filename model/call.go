@@ -427,10 +427,10 @@ type HistoryCall struct {
 	ScoreOptional *float32 `json:"score_optional" db:"score_optional"`
 	ScoreRequired *float32 `json:"score_required" db:"score_required"`
 
-	AttemptId       *int64          `json:"attempt_id" db:"attempt_id"`
-	AllowEvaluation *bool           `json:"allow_evaluation" db:"allow_evaluation"`
-	FormFields      StringInterface `json:"form_fields" db:"form_fields"`
-	BridgedId       *string         `json:"bridged_id" db:"bridged_id"`
+	AttemptId       *int64    `json:"attempt_id" db:"attempt_id"`
+	AllowEvaluation *bool     `json:"allow_evaluation" db:"allow_evaluation"`
+	FormFields      StringMap `json:"form_fields" db:"form_fields"`
+	BridgedId       *string   `json:"bridged_id" db:"bridged_id"`
 }
 
 type HistoryCallPatch struct {

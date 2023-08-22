@@ -68,6 +68,15 @@ func (s *StringMap) ToSafeJson() *string {
 	return res
 }
 
+func (s StringMap) ToSafeBytes() []byte {
+	if s == nil {
+		return nil
+	}
+
+	data, _ := json.Marshal(s)
+	return data
+}
+
 func (s StringInterface) ToSafeBytes() []byte {
 	if s == nil {
 		return nil
