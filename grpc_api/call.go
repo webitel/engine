@@ -973,7 +973,9 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	if src.FormFields != nil {
 		// TODO WTEL-3665 fix me
 		for k, v := range *src.FormFields {
-			if strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]") {
+			if v == "" {
+				delete(*src.FormFields, k)
+			} else if strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]") {
 				var s []string
 				if e := json.Unmarshal([]byte(v), &s); e == nil {
 					if len(s) == 0 {
