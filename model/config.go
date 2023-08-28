@@ -57,9 +57,10 @@ type MessageQueueSettings struct {
 }
 
 type ServerSettings struct {
-	Address string `json:"address" flag:"grpc_addr||GRPC host"`
-	Port    int    `json:"port" flag:"grpc_port|0|GRPC port"`
-	Network string `json:"network" flag:"grpc_network|tcp|GRPC network"`
+	Address        string   `json:"address" flag:"grpc_addr||GRPC host"`
+	Port           int      `json:"port" flag:"grpc_port|0|GRPC port"`
+	Network        string   `json:"network" flag:"grpc_network|tcp|GRPC network"`
+	MaxMessageSize ByteSize `json:"max_message_size" flag:"grpc_max_message_size|16MB|Maximum GRPC message size"`
 }
 
 type ByteSize int
