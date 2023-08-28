@@ -29,6 +29,13 @@ type Member struct {
 	Skill          *Lookup               `json:"skill" db:"skill"`
 }
 
+type WaitingMember struct {
+	AttemptId     int64               `json:"attempt_id" db:"attempt_id"`
+	Position      int32               `json:"position" db:"position"`
+	Duration      int32               `json:"duration" db:"duration"`
+	Communication MemberCommunication `json:"communication" db:"communication"`
+}
+
 type MemberPatch struct {
 	Priority       *int                  `json:"priority" db:"priority"`
 	ExpireAt       *time.Time            `json:"expire_at" db:"expire_at"`

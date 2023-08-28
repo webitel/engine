@@ -295,6 +295,8 @@ type MemberStore interface {
 	GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, model.AppError)
 	CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError)
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
+
+	LiveList(ctx context.Context, domainId int64, agentId int32) ([]model.WaitingMember, model.AppError)
 }
 
 type BucketStore interface {

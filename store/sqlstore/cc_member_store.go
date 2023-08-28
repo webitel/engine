@@ -791,3 +791,42 @@ where id = :Id`, map[string]interface{}{
 
 	return nil
 }
+
+func (s SqlMemberStore) LiveList(ctx context.Context, domainId int64, agentId int32) ([]model.WaitingMember, model.AppError) {
+	var list []model.WaitingMember
+
+	_, err := s.GetMaster().WithContext(ctx).Select(&list, `with queues as materialized (
+    SELECT q.name, qs.queue_id, q.priority, max(qs.lvl) lvl
+    FROM call_center.cc_queue q
+     join call_center.cc_queue_skill qs on qs.queue_id = q.id
+     JOIN call_center.cc_skill_in_agent csia ON csia.skill_id = qs.skill_id
+    WHERE q.domain_id = :DomainId::int8
+      AND csia.agent_id = :AgentId::int
+      and qs.enabled
+      AND csia.enabled
+      AND csia.capacity >= qs.min_capacity
+      AND csia.capacity <= qs.max_capacity
+    group by 1, 2, 3
+)
+select row_number() over (order by q.priority desc, (extract(epoch from now() - a.joined_at) + a.weight) desc) position,
+       extract(epoch from now() - joined_at)::int as duration,
+       destination
+from call_center.cc_member_attempt a
+    inner join queues q on q.queue_id = a.queue_id
+where a.domain_id = :DomainId::int8
+    and a.agent_id isnull
+    and a.state = 'wait_agent'
+    and a.queue_id = q.queue_id
+	and (a.reject_agent_ids isnull or :AgentId::int != any(a.reject_agent_ids))
+order by q.lvl, q.priority desc, (extract(epoch from now() - a.joined_at) + a.weight) desc
+limit 40`, map[string]interface{}{
+		"DomainId": domainId,
+		"AgentId":  agentId,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_member.waiting.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return list, nil
+}
