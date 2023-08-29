@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"fmt"
+	"github.com/golang/protobuf/ptypes/wrappers"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -417,7 +418,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	items := make([]*engine.AgentInQueue, 0, len(list))
 
 	for _, v := range list {
-		items = append(items, &engine.AgentInQueue{
+		el := &engine.AgentInQueue{
 			Queue:          GetProtoLookup(&v.Queue),
 			Priority:       int32(v.Priority),
 			Type:           int32(v.Type),
@@ -427,14 +428,21 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 			WaitingMembers: int32(v.WaitingMembers),
 			ActiveMembers:  int32(v.ActiveMembers),
 			Agents: &engine.AgentInQueue_AgentsInQueue{
-				Online:     v.Agents.Online,
-				Pause:      v.Agents.Pause,
-				Offline:    v.Agents.Offline,
-				Free:       v.Agents.Free,
-				Total:      v.Agents.Total,
-				AllowPause: v.Agents.AllowPause,
+				Online:  v.Agents.Online,
+				Pause:   v.Agents.Pause,
+				Offline: v.Agents.Offline,
+				Free:    v.Agents.Free,
+				Total:   v.Agents.Total,
 			},
-		})
+		}
+
+		if v.Agents.AllowPause != nil {
+			el.Agents.AllowPause = &wrappers.Int32Value{
+				Value: *v.Agents.AllowPause,
+			}
+		}
+
+		items = append(items, el)
 	}
 
 	return &engine.ListAgentInQueue{

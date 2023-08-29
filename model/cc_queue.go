@@ -78,7 +78,7 @@ type QueueAgentAgg struct {
 	Offline    uint32 `json:"offline" db:"offline"`
 	Free       uint32 `json:"free" db:"free"`
 	Total      uint32 `json:"total" db:"total"`
-	AllowPause uint32 `json:"allow_pause" db:"allow_pause"`
+	AllowPause *int32 `json:"allow_pause" db:"allow_pause"`
 }
 
 type QueueReportGeneral struct {
