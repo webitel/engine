@@ -73,11 +73,12 @@ type SearchQueueReportGeneral struct {
 }
 
 type QueueAgentAgg struct {
-	Online  uint32 `json:"online" db:"online"`
-	Pause   uint32 `json:"pause" db:"pause"`
-	Offline uint32 `json:"offline" db:"offline"`
-	Free    uint32 `json:"free" db:"free"`
-	Total   uint32 `json:"total" db:"total"`
+	Online     uint32 `json:"online" db:"online"`
+	Pause      uint32 `json:"pause" db:"pause"`
+	Offline    uint32 `json:"offline" db:"offline"`
+	Free       uint32 `json:"free" db:"free"`
+	Total      uint32 `json:"total" db:"total"`
+	AllowPause uint32 `json:"allow_pause" db:"allow_pause"`
 }
 
 type QueueReportGeneral struct {
