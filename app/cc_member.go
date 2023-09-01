@@ -222,3 +222,12 @@ func (app *App) ProcessingActionForm(domainId, attemptId int64, appId string, fo
 
 	return nil
 }
+
+func (app *App) InterceptAttempt(domainId, attemptId int64, agentId int32) model.AppError {
+	err := app.cc.Member().InterceptAttempt(context.Background(), domainId, attemptId, agentId)
+	if err != nil {
+		return model.NewBadRequestError("app.cc_member.intercept.app_err", err.Error())
+	}
+
+	return nil
+}

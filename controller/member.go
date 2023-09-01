@@ -60,3 +60,12 @@ func (c *Controller) ProcessingActionFormAttempt(session *auth_manager.Session, 
 
 	return c.app.ProcessingActionForm(session.DomainId, attemptId, appId, formId, action, fields)
 }
+
+func (c *Controller) InterceptAttempt(session *auth_manager.Session, attemptId int64, agentId int32) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.InterceptAttempt(session.DomainId, attemptId, agentId)
+}

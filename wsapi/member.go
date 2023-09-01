@@ -15,6 +15,27 @@ func (api *API) InitMember() {
 	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
 	api.Router.Handle("cc_renewal", api.ApiWebSocketHandler(api.renewalAttempt))
 	api.Router.Handle("cc_form_action", api.ApiWebSocketHandler(api.processingActionFormAttempt))
+	api.Router.Handle("cc_intercept_attempt", api.ApiWebSocketHandler(api.interceptAttempt))
+}
+
+func (api *API) interceptAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var attemptId, agentId float64
+	var ok bool
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	}
+
+	if err := api.ctrl.InterceptAttempt(conn.GetSession(), int64(attemptId), int32(agentId)); err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	return res, nil
 }
 
 func (api *API) renewalAttempt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
