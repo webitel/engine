@@ -8,7 +8,7 @@ import (
 type QuestionAnswers []*QuestionAnswer
 
 type QuestionAnswer struct {
-	Score int32 `json:"score"`
+	Score float32 `json:"score"`
 }
 
 type Rate struct {
@@ -88,13 +88,13 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
 			}
 
-			r.ScoreRequired += float32(a.Score)
+			r.ScoreRequired += a.Score
 		} else if a != nil && a.Score > 0 { // skip optional if empty
 
 			if !form.Questions[i].ValidAnswer(*a) {
 				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
 			}
-			r.ScoreOptional += float32(a.Score)
+			r.ScoreOptional += a.Score
 		}
 	}
 

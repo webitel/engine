@@ -388,7 +388,7 @@ func transformAuditAnswers(src model.QuestionAnswers) []*engine.QuestionAnswer {
 			q = append(q, nil)
 		} else {
 			q = append(q, &engine.QuestionAnswer{
-				Score: &wrappers.Int32Value{
+				Score: &wrappers.FloatValue{
 					Value: v.Score,
 				},
 			})

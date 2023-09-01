@@ -18,13 +18,13 @@ type Question struct {
 	//options
 	Options []QuestionOption `json:"options,omitempty"`
 	//score
-	Min int32 `json:"min,omitempty"`
-	Max int32 `json:"max,omitempty"`
+	Min float32 `json:"min,omitempty"`
+	Max float32 `json:"max,omitempty"`
 }
 
 type QuestionOption struct {
-	Name  string `json:"name"`
-	Score int32  `json:"score"`
+	Name  string  `json:"name"`
+	Score float32 `json:"score"`
 }
 
 func (q Questions) SumMax(required bool) int {
