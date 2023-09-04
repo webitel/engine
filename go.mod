@@ -20,7 +20,7 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/webitel/call_center v0.0.0-20230901125444-ab429edc1a57
 	github.com/webitel/protos/cc v0.0.0-20230828084019-b2f5e7c496f1
-	github.com/webitel/protos/engine v0.0.0-20230901125941-bc7c43a85647
+	github.com/webitel/protos/engine v0.0.0-20230904150228-ba4acf854de8
 	github.com/webitel/protos/fs v0.0.0-20230810105513-705f264b0551
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
@@ -201,6 +201,7 @@ require (
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	gitlab.com/bosi/decorder v0.2.3 // indirect
+	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0 // indirect
 	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect

@@ -21,6 +21,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
+		EnableCompression: true,
 	}
 
 	ws, err := upgrader.Upgrade(w, r, nil)

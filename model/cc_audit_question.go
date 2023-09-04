@@ -18,8 +18,8 @@ type Question struct {
 	//options
 	Options []QuestionOption `json:"options,omitempty"`
 	//score
-	Min float32 `json:"min,omitempty"`
-	Max float32 `json:"max,omitempty"`
+	Min int32 `json:"min,omitempty"`
+	Max int32 `json:"max,omitempty"`
 }
 
 type QuestionOption struct {
@@ -70,7 +70,7 @@ func maxScoreOption(ops []QuestionOption) int {
 func (q *Question) ValidAnswer(a QuestionAnswer) bool {
 	switch q.Type {
 	case QuestionTypeScore:
-		return (q.Min <= a.Score) && (a.Score <= q.Max)
+		return (float32(q.Min) <= a.Score) && (a.Score <= float32(q.Max))
 	case QuestionTypeOptions:
 		for _, v := range q.Options {
 			if v.Score == a.Score {
