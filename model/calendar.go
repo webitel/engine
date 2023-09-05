@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"unicode/utf8"
 )
 
@@ -64,11 +63,12 @@ func (a Calendar) EntityName() string {
 type Timezone struct {
 	Id     int64  `json:"id" db:"id"`
 	Name   string `json:"name" db:"name"`
-	Offset string `json:"offset" db:"offset"`
+	Offset string `json:"utc_offset" db:"utc_offset"`
 }
 
 type SearchTimezone struct {
 	ListRequest
+	Ids []uint32
 }
 
 func (a *CalendarAcceptOfDay) IsValid() AppError {
@@ -110,21 +110,23 @@ func (c *Calendar) IsValid() AppError {
 	return nil
 }
 
-func CalendarFromJson(data io.Reader) *Calendar {
-	var calendar Calendar
-	if err := json.NewDecoder(data).Decode(&calendar); err != nil {
-		return nil
-	} else {
-		return &calendar
-	}
-}
-
-func CalendarsToJson(calendars []*Calendar) string {
-	b, _ := json.Marshal(calendars)
-	return string(b)
-}
-
 func (c *Calendar) ToJson() string {
 	b, _ := json.Marshal(c)
 	return string(b)
+}
+
+func (Timezone) DefaultOrder() string {
+	return "name"
+}
+
+func (a Timezone) AllowFields() []string {
+	return []string{"id", "name", "utc_offset"}
+}
+
+func (a Timezone) DefaultFields() []string {
+	return []string{"id", "name", "utc_offset"}
+}
+
+func (a Timezone) EntityName() string {
+	return "calendar_timezones"
 }

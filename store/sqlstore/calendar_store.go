@@ -231,16 +231,20 @@ func (s SqlCalendarStore) Delete(ctx context.Context, domainId, id int64) model.
 func (s SqlCalendarStore) GetTimezoneAllPage(ctx context.Context, search *model.SearchTimezone) ([]*model.Timezone, model.AppError) {
 	var timezones []*model.Timezone
 
-	if _, err := s.GetReplica().WithContext(ctx).Select(&timezones, `select id, name, utc_offset::text as "offset" 
-		from flow.calendar_timezones  t
-		where  (:Q::varchar isnull or t.name ilike :Q::varchar)
-		order by name limit :Limit offset :Offset`, map[string]interface{}{
-		"Limit":  search.GetLimit(),
-		"Offset": search.GetOffset(),
-		"Q":      search.GetQ(),
-	}); err != nil {
-		return nil, model.NewInternalError("store.sql_calendar_timezone.get_all.app_error", err.Error())
-	} else {
-		return timezones, nil
+	f := map[string]interface{}{
+		"Q":   search.GetQ(),
+		"Ids": pq.Array(search.Ids),
 	}
+
+	err := s.ListQueryFromSchema(ctx, &timezones, "flow", search.ListRequest,
+		`(:Q::varchar isnull or t.name ilike :Q::varchar)
+				and (:Ids::int4[] isnull or id = any(:Ids))
+			`,
+		model.Timezone{}, f)
+
+	if err != nil {
+		return nil, model.NewInternalError("store.sql_calendar_timezone.get_all.app_error", err.Error())
+	}
+
+	return timezones, nil
 }
