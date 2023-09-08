@@ -192,6 +192,11 @@ func (api *calendar) DeleteCalendar(ctx context.Context, in *engine.DeleteCalend
 }
 
 func (api *calendar) SearchTimezones(ctx context.Context, in *engine.SearchTimezonesRequest) (*engine.ListTimezoneResponse, error) {
+	_, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	req := &model.SearchTimezone{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
