@@ -269,7 +269,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 
 func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError) {
 	var res []*model.CCTask
-	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select a.id as attempt_id,
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select a.id as attempt_id,
            a.channel,
 		   a.node_id as app_id,
            a.queue_id,
