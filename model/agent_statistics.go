@@ -24,4 +24,6 @@ type AgentStatistics struct {
 	Available        int32   `json:"available" db:"available"`
 	Online           int32   `json:"online" db:"online"`
 	Processing       int32   `json:"processing" db:"processing"`
+	TaskAccepts      int32   `json:"task_accepts" db:"task_accepts"`
+	QueueTalkSec     int32   `json:"queue_talk_sec" db:"queue_talk_sec"`
 }

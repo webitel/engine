@@ -724,6 +724,8 @@ func (api *agent) AgentTodayStatistics(ctx context.Context, in *engine.AgentToda
 		Available:        stat.Available,
 		Online:           stat.Online,
 		Processing:       stat.Processing,
+		TaskAccepts:      stat.TaskAccepts,
+		QueueTalkSec:     stat.QueueTalkSec,
 	}, nil
 }
 

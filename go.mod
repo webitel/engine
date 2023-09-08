@@ -20,7 +20,7 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/webitel/call_center v0.0.0-20230901125444-ab429edc1a57
 	github.com/webitel/protos/cc v0.0.0-20230828084019-b2f5e7c496f1
-	github.com/webitel/protos/engine v0.0.0-20230905100311-b7236180c10b
+	github.com/webitel/protos/engine v0.0.0-20230908133037-bcdee067aa20
 	github.com/webitel/protos/fs v0.0.0-20230810105513-705f264b0551
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
@@ -207,7 +207,7 @@ require (
 	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
 	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
