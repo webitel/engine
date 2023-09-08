@@ -49,7 +49,7 @@ func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *mod
 		"State":         pq.Array(search.State),
 	}
 
-	err := s.ListQuery(ctx, &out, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )
@@ -109,7 +109,7 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId int64, use
 		"UserSupervisorId": userSupervisorId,
 	}
 
-	err := s.ListQuery(ctx, &out, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
 	and (:Q::text isnull or destination ~ :Q  or  from_number ~ :Q or  to_number ~ :Q)
 	and ( (:From::timestamptz isnull or :To::timestamptz isnull) or created_at between :From and :To )

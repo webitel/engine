@@ -111,6 +111,18 @@ func (s *SqlSupplier) ListQuery(ctx context.Context, out interface{}, req model.
 
 	return nil
 }
+
+// fixme
+func (s *SqlSupplier) ListQueryMaster(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
+	q := Build(&req, "call_center", where, e, params)
+	_, err := s.GetMaster().WithContext(ctx).Select(out, q, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *SqlSupplier) One(ctx context.Context, out interface{}, where string, e Entity, params map[string]interface{}) error {
 	fields := make([]string, 0, len(e.AllowFields()))
 

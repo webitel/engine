@@ -14,6 +14,7 @@ type SqlStore interface {
 	GetAllConns() []*gorp.DbMap
 
 	ListQuery(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
+	ListQueryMaster(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error
 	One(ctx context.Context, out interface{}, where string, e Entity, params map[string]interface{}) error
 
 	ListQueryTimeout(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error

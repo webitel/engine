@@ -135,7 +135,7 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		"Types":    pq.Array(search.Types),
 	}
 
-	err := s.ListQuery(ctx, &queues, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &queues, search.ListRequest,
 		`domain_id = :DomainId 
 			and ( (:Ids::int[] isnull or id = any(:Ids) )  
 			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
@@ -159,7 +159,7 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(ctx, &queues, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &queues, search.ListRequest,
 		`domain_id = :DomainId and  (
 					exists(select 1
 					  from call_center.cc_queue_acl acl

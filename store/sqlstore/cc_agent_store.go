@@ -469,7 +469,7 @@ func (s SqlAgentStore) InQueue(ctx context.Context, domainId, id int64, search *
 		"Q":        search.GetQ(),
 	}
 
-	err := s.ListQuery(ctx, &res, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &res, search.ListRequest,
 		`domain_id = :DomainId
 				and enabled
 				and agent_id = :AgentId
