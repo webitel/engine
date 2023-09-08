@@ -63,7 +63,7 @@ func (a Calendar) EntityName() string {
 type Timezone struct {
 	Id     int64  `json:"id" db:"id"`
 	Name   string `json:"name" db:"name"`
-	Offset string `json:"utc_offset" db:"utc_offset"`
+	Offset string `json:"offset" db:"offset"`
 }
 
 type SearchTimezone struct {
@@ -120,13 +120,13 @@ func (Timezone) DefaultOrder() string {
 }
 
 func (a Timezone) AllowFields() []string {
-	return []string{"id", "name", "utc_offset"}
+	return []string{"id", "name", "offset"}
 }
 
 func (a Timezone) DefaultFields() []string {
-	return []string{"id", "name", "utc_offset"}
+	return []string{"id", "name", "offset"}
 }
 
 func (a Timezone) EntityName() string {
-	return "calendar_timezones"
+	return "calendar_timezones_view"
 }
