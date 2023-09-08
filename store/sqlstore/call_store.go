@@ -1141,7 +1141,7 @@ where f.domain_id = :DomainId and f.uuid = (
 }
 
 func (s SqlCallStore) BridgedId(ctx context.Context, id string) (string, model.AppError) {
-	res, err := s.GetReplica().WithContext(ctx).SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
+	res, err := s.GetMaster().WithContext(ctx).SelectStr(`select coalesce(c.bridged_id, c.parent_id, c.id)
 from call_center.cc_calls c
 where id = :Id::uuid`, map[string]string{
 		"Id": id,
