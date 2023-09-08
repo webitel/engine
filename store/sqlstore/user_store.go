@@ -58,7 +58,7 @@ where u.id = :UserId
 
 func (s SqlUserStore) GetCallInfoEndpoint(ctx context.Context, domainId int64, e *model.EndpointRequest, isOnline bool) (*model.UserCallInfo, model.AppError) {
 	var info *model.UserCallInfo
-	err := s.GetReplica().WithContext(ctx).SelectOne(&info, `select u.id,
+	err := s.GetMaster().WithContext(ctx).SelectOne(&info, `select u.id,
        coalesce((u.name)::varchar, u.username)                              as name,
        u.extension,
        u.extension                                                             endpoint,

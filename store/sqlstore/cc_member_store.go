@@ -213,7 +213,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                            order by result.rn)
 	select ` + strings.Join(fields, " ,") + ` from list`
 
-	if _, err := s.GetReplica().WithContext(ctx).Select(&members, query, map[string]interface{}{
+	if _, err := s.GetMaster().WithContext(ctx).Select(&members, query, map[string]interface{}{
 		"Domain": domainId,
 		"Limit":  search.GetLimit(),
 		"Offset": search.GetOffset(),
@@ -465,7 +465,7 @@ from upd`, map[string]interface{}{
 func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) {
 	var attempts []*model.MemberAttempt
 	//FIXME
-	if _, err := s.GetReplica().WithContext(ctx).Select(&attempts, `with active as (
+	if _, err := s.GetMaster().WithContext(ctx).Select(&attempts, `with active as (
     select a.id,
            --a.member_id,
            (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,

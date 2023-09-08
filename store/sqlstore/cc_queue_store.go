@@ -338,7 +338,7 @@ func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) model.App
 // QueueReportGeneral TODO call_center.cc_agent_channel not unique join
 func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError) {
 	var report *model.QueueReportGeneralAgg
-	err := s.GetReplica().WithContext(ctx).SelectOne(&report, `
+	err := s.GetMaster().WithContext(ctx).SelectOne(&report, `
 with queues  as  (
     select *
     from call_center.cc_queue q

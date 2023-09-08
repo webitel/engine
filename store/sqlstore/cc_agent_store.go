@@ -856,7 +856,7 @@ order by c.name;`, map[string]interface{}{
 // allow_change
 func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError) {
 	var list []*model.AgentStatusStatistics
-	_, err := s.GetReplica().WithContext(ctx).Select(&list, `select agent_id,
+	_, err := s.GetMaster().WithContext(ctx).Select(&list, `select agent_id,
        name,
        status,
        status_duration,
