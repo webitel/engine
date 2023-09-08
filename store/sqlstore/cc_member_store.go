@@ -644,7 +644,7 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 
 func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError) {
 	var att []*model.OfflineMember
-	_, err := s.GetReplica().WithContext(ctx).Select(&att, `with comm as (
+	_, err := s.GetMaster().WithContext(ctx).Select(&att, `with comm as (
     select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
     from call_center.cc_communication c
     where c.domain_id = :Domain
