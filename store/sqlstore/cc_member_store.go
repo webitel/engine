@@ -217,7 +217,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 		"Domain": domainId,
 		"Limit":  search.GetLimit(),
 		"Offset": search.GetOffset(),
-		"Q":      search.GetRegExpQ(),
+		"Q":      search.GetQ(),
 
 		"Ids":         pq.Array(search.Ids),
 		"QueueIds":    pq.Array(search.QueueIds),
