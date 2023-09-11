@@ -57,4 +57,5 @@ type SqlStore interface {
 	AuditForm() store.AuditFormStore
 	AuditRate() store.AuditRateStore
 	PresetQuery() store.PresetQueryStore
+	SystemSettings() store.SystemSettingsStore
 }

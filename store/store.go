@@ -66,6 +66,7 @@ type Store interface {
 	AuditForm() AuditFormStore
 	AuditRate() AuditRateStore
 	PresetQuery() PresetQueryStore
+	SystemSettings() SystemSettingsStore
 }
 
 // todo deprecated
@@ -437,4 +438,12 @@ type PresetQueryStore interface {
 	Get(ctx context.Context, domainId, userId int64, id int32) (*model.PresetQuery, model.AppError)
 	Update(ctx context.Context, domainId, userId int64, preset *model.PresetQuery) (*model.PresetQuery, model.AppError)
 	Delete(ctx context.Context, domainId, userId int64, id int32) model.AppError
+}
+
+type SystemSettingsStore interface {
+	Create(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchSystemSetting) ([]*model.SystemSetting, model.AppError)
+	Get(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError)
+	Update(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
+	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 }

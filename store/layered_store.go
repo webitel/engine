@@ -164,3 +164,7 @@ func (s *LayeredStore) AuditRate() AuditRateStore {
 func (s *LayeredStore) PresetQuery() PresetQueryStore {
 	return s.DatabaseLayer.PresetQuery()
 }
+
+func (s *LayeredStore) SystemSettings() SystemSettingsStore {
+	return s.DatabaseLayer.SystemSettings()
+}
