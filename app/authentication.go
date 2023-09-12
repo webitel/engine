@@ -44,3 +44,8 @@ func (a *App) MakeResourcePermissionError(session *auth_manager.Session, id int6
 
 	return model.NewForbiddenError("api.context.permissions.app_error", fmt.Sprintf("userId=%d, id=%d permission=%s access=%s", session.UserId, id, permission.Name, access.Name()))
 }
+
+func (a *App) MakeActionPermissionError(session *auth_manager.Session, action string, access auth_manager.PermissionAccess) model.AppError {
+
+	return model.NewForbiddenError("api.context.action.permissions", fmt.Sprintf("userId=%d, action=%s access=%s", session.UserId, action, access.Name()))
+}

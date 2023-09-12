@@ -18,9 +18,9 @@ func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
 
 func (s SqlSystemSettingsStore) Create(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError) {
 	var st *model.SystemSetting
-	err := s.GetMaster().SelectOne(&st, `with s as (
+	err := s.GetMaster().WithContext(ctx).SelectOne(&st, `with s as (
     insert into call_center.system_settings (domain_id, name, value)
-    values (:DomainId, :Name, :Value)
+    values (:DomainId::int8, :Name::varchar, :Value::jsonb)
     returning *
 )
 select s.id, s.name, s.value
@@ -58,16 +58,54 @@ func (s SqlSystemSettingsStore) GetAllPage(ctx context.Context, domainId int64, 
 }
 
 func (s SqlSystemSettingsStore) Get(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError) {
-	//TODO implement me
-	panic("implement me")
+	var ss *model.SystemSetting
+	err := s.GetReplica().WithContext(ctx).SelectOne(&ss, `select s.id, s.name, s.value
+from call_center.system_settings s
+where domain_id = :DomainId::int8 and id = :Id::int4`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_sys_settings.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return ss, nil
 }
 
 func (s SqlSystemSettingsStore) Update(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError) {
-	//TODO implement me
-	panic("implement me")
+	var ss *model.SystemSetting
+	err := s.GetMaster().WithContext(ctx).SelectOne(&ss, `with s as (
+    update call_center.system_settings
+        set value = :Value::jsonb
+    where domain_id = :DomainId::int8 and id = :Id::int4
+    returning *
+)
+select s.id, s.name, s.value
+from s;`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       setting.Id,
+		"Value":    setting.Value,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_sys_settings.update.app_error", fmt.Sprintf("Id=%v, %s", setting.Id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return ss, nil
 }
 
 func (s SqlSystemSettingsStore) Delete(ctx context.Context, domainId int64, id int32) model.AppError {
-	//TODO implement me
-	panic("implement me")
+	_, err := s.GetMaster().WithContext(ctx).Exec(`delete
+from call_center.system_settings s
+where domain_id = :DomainId::int8 and id = :Id::int4`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+	})
+
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_sys_settings.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return nil
 }

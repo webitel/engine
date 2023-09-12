@@ -20,7 +20,7 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/webitel/call_center v0.0.0-20230901125444-ab429edc1a57
 	github.com/webitel/protos/cc v0.0.0-20230828084019-b2f5e7c496f1
-	github.com/webitel/protos/engine v0.0.0-20230908133037-bcdee067aa20
+	github.com/webitel/protos/engine v0.0.0-20230912100543-4e51d4ce358e
 	github.com/webitel/protos/fs v0.0.0-20230810105513-705f264b0551
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
@@ -221,8 +221,4 @@ require (
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20221223090309-7455f1af531d // indirect
-)
-
-replace (
-	github.com/webitel/protos/engine => ../protos/engine
 )
