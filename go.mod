@@ -22,7 +22,7 @@ require (
 	github.com/webitel/protos/cc v0.0.0-20230912101845-338edb0de387
 	github.com/webitel/protos/engine v0.0.0-20230912101845-338edb0de387
 	github.com/webitel/protos/fs v0.0.0-20230912101845-338edb0de387
-	github.com/webitel/protos/logger v0.0.0-20230912101845-338edb0de387
+	github.com/webitel/protos/logger v0.0.0-20230912120054-6da4af35e96f
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0

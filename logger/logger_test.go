@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"github.com/webitel/engine/model"
 	"testing"
 )
 
@@ -18,7 +19,7 @@ var (
 	}{}
 )
 
-func (s *sender) Send(ctx context.Context, domainId int64, object string, body []byte) error {
+func (s *sender) Send(ctx context.Context, exchange string, rk string, body []byte) error {
 	// TODO
 	return nil
 }
@@ -42,10 +43,10 @@ func BenchmarkLogger(t *testing.B) {
 	}
 }
 
-func testLogger(logger *Api, t testing.TB) {
+func testLogger(logger *Audit, t testing.TB) {
 	ctx := context.TODO()
 
-	err := logger.Audit(ctx, 1, "TODO", &o)
+	err := logger.Update(ctx, nil, model.PERMISSION_SCOPE_SCHEMA, 1, &o)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

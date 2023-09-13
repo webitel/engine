@@ -61,3 +61,7 @@ func (l *LayeredMQ) SendStickingCall(event *model.CallServiceHangup) model.AppEr
 func (l *LayeredMQ) SendNotification(domainId int64, event *model.Notification) model.AppError {
 	return l.MQLayer.SendNotification(domainId, event)
 }
+
+func (l *LayeredMQ) Send(ctx context.Context, exchange string, rk string, body []byte) error {
+	return l.MQLayer.Send(ctx, exchange, rk, body)
+}

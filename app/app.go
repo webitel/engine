@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/cipher"
+	"github.com/webitel/engine/logger"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -35,6 +36,7 @@ type App struct {
 	chatManager    chat_manager.ChatManager
 	cc             client.CCManager
 	cipherBlock    cipher.Block
+	audit          *logger.Audit
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -124,6 +126,10 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.cc = client.NewCCManager(app.cluster.discovery)
 	if err := app.cc.Start(); err != nil {
+		return nil, err
+	}
+
+	if app.audit, err = logger.New(app.Config().DiscoverySettings.Url, app.MessageQueue); err != nil {
 		return nil, err
 	}
 

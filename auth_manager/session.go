@@ -18,6 +18,7 @@ type Session struct {
 	DomainName string `json:"domain_name"`
 	Expire     int64  `json:"expire"`
 	UserId     int64  `json:"user_id"`
+	UserIp     string `json:"user_ip"`
 	RoleIds    []int  `json:"role_ids"`
 
 	Token            string              `json:"token"`
@@ -54,6 +55,18 @@ func (self *Session) HasLicense(name string) bool {
 	}
 
 	return false
+}
+
+func (self *Session) GetUserId() int64 {
+	return self.UserId
+}
+
+func (self *Session) GetDomainId() int64 {
+	return self.DomainId
+}
+
+func (self *Session) GetUserIp() string {
+	return self.UserIp
 }
 
 func (self *Session) HasCallCenterLicense() bool {

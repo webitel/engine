@@ -1,15 +1,17 @@
 package model
 
+import "encoding/json"
+
 type RoutingSchema struct {
 	DomainRecord
-	Name        string      `json:"name" db:"name"`
-	Type        string      `json:"type" db:"type"`
-	Schema      []byte      `json:"schema" db:"schema"`
-	Payload     []byte      `json:"payload" db:"payload"`
-	Description string      `json:"description" db:"description"`
-	Debug       bool        `json:"debug" db:"debug"`
-	Editor      bool        `json:"editor" db:"editor"`
-	Tags        StringArray `json:"tags" db:"tags"`
+	Name        string          `json:"name" db:"name"`
+	Type        string          `json:"type" db:"type"`
+	Schema      json.RawMessage `json:"schema" db:"schema"`
+	Payload     json.RawMessage `json:"payload" db:"payload"`
+	Description string          `json:"description" db:"description"`
+	Debug       bool            `json:"debug" db:"debug"`
+	Editor      bool            `json:"editor" db:"editor"`
+	Tags        StringArray     `json:"tags" db:"tags"`
 }
 
 type SearchRoutingSchema struct {

@@ -1,6 +1,7 @@
 package mq
 
 import (
+	"context"
 	"github.com/webitel/engine/model"
 )
 
@@ -18,6 +19,8 @@ type MQ interface {
 	SendNotification(domainId int64, event *model.Notification) model.AppError
 
 	SendStickingCall(e *model.CallServiceHangup) model.AppError
+
+	Send(ctx context.Context, exchange string, rk string, body []byte) error
 }
 
 type DomainQueue interface {

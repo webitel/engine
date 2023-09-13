@@ -160,6 +160,8 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 		return nil, model.NewInternalError("api.context.session_expired.app_error", "token="+token[0])
 	}
 
+	session.UserIp = getClientIp(info)
+
 	return session, nil
 }
 

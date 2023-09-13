@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -197,6 +198,17 @@ func (a *AMQP) NewChannel() (*amqp.Channel, error) {
 		return nil, errors.New("connection closed")
 	}
 	return a.connection.Channel()
+}
+
+func (a *AMQP) Send(ctx context.Context, exchange string, rk string, body []byte) error {
+	if a.channel == nil || a.connection == nil || a.connection.IsClosed() {
+		return errors.New("connection closed")
+	}
+
+	return a.channel.Publish(exchange, rk, true, false, amqp.Publishing{
+		ContentType: "text/json",
+		Body:        body,
+	})
 }
 
 func (a *AMQP) init() {

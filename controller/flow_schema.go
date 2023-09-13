@@ -8,6 +8,7 @@ import (
 )
 
 func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_manager.Session, schema *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanCreate() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -30,7 +31,12 @@ func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_mana
 		return nil, err
 	}
 
-	return c.app.CreateRoutingSchema(ctx, schema)
+	schema, err = c.app.CreateRoutingSchema(ctx, schema)
+	if err != nil {
+		return nil, err
+	}
+
+	return schema, nil
 }
 
 func (c *Controller) SearchSchema(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, model.AppError) {
@@ -52,6 +58,7 @@ func (c *Controller) GetSchema(ctx context.Context, session *auth_manager.Sessio
 }
 
 func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Session, schema *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
+	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_SCHEMA)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -61,7 +68,7 @@ func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Ses
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if err := schema.IsValid(); err != nil {
+	if err = schema.IsValid(); err != nil {
 		return nil, err
 	}
 
@@ -71,7 +78,14 @@ func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Ses
 		Id: int(session.UserId),
 	}
 
-	return c.app.UpdateRoutingSchema(ctx, schema)
+	schema, err = c.app.UpdateRoutingSchema(ctx, schema)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+
+	return schema, nil
 }
 
 func (c *Controller) PatchSchema(ctx context.Context, session *auth_manager.Session, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, model.AppError) {
@@ -86,7 +100,14 @@ func (c *Controller) PatchSchema(ctx context.Context, session *auth_manager.Sess
 
 	patch.UpdatedById = int(session.UserId)
 
-	return c.app.PatchRoutingSchema(ctx, session.DomainId, id, patch)
+	schema, err := c.app.PatchRoutingSchema(ctx, session.DomainId, id, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+
+	return schema, nil
 }
 
 func (c *Controller) DeleteSchema(ctx context.Context, session *auth_manager.Session, id int64) (*model.RoutingSchema, model.AppError) {
@@ -95,7 +116,14 @@ func (c *Controller) DeleteSchema(ctx context.Context, session *auth_manager.Ses
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	return c.app.RemoveRoutingSchema(ctx, session.Domain(0), id)
+	schema, err := c.app.RemoveRoutingSchema(ctx, session.Domain(0), id)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+
+	return schema, nil
 }
 
 func (c *Controller) SearchSchemaTags(ctx context.Context, session *auth_manager.Session, search *model.SearchRoutingSchemaTag) ([]*model.RoutingSchemaTag, bool, model.AppError) {
