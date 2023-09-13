@@ -14,7 +14,7 @@ import (
 
 const (
 	sizeCache = 10 * 1000
-	expires   = 10 * 1000 // 10s
+	expires   = 10
 
 	exchange = "logger"
 	rkFormat = "logger.%d.%s"
@@ -81,7 +81,7 @@ func (api *Audit) checkIsActive(ctx context.Context, domainId int64, object stri
 			return nil, err
 		}
 
-		api.cache.Add(key, res.IsEnabled)
+		api.cache.AddWithDefaultExpires(key, res.IsEnabled)
 		return res.IsEnabled, nil
 	})
 
