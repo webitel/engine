@@ -138,6 +138,7 @@ type QueuePatch struct {
 func (q *Queue) Patch(p *QueuePatch) {
 	// TODO
 	q.UpdatedAt = GetMillis()
+	q.UpdatedBy = &p.UpdatedBy
 
 	if p.Strategy != nil {
 		q.Strategy = *p.Strategy

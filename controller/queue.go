@@ -90,12 +90,10 @@ func (c *Controller) UpdateQueue(ctx context.Context, session *auth_manager.Sess
 		}
 	}
 
-	queue.DomainRecord = model.DomainRecord{
-		DomainId:  session.Domain(0),
-		UpdatedAt: model.GetMillis(),
-		UpdatedBy: &model.Lookup{
-			Id: int(session.UserId),
-		},
+	queue.DomainId = session.Domain(0)
+	queue.UpdatedAt = model.GetMillis()
+	queue.UpdatedBy = &model.Lookup{
+		Id: int(session.UserId),
 	}
 
 	if err := queue.IsValid(); err != nil {
