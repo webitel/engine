@@ -36,6 +36,8 @@ func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_mana
 		return nil, err
 	}
 
+	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+
 	return schema, nil
 }
 
