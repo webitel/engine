@@ -112,6 +112,7 @@ type QueueReportGeneralAgg struct {
 }
 
 type QueuePatch struct {
+	UpdatedBy            Lookup
 	Strategy             *string         `json:"strategy" db:"strategy"`
 	Enabled              *bool           `json:"enabled" db:"enabled"`
 	Payload              StringInterface `json:"payload" db:"payload"`
