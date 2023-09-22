@@ -31,7 +31,11 @@ func (s SqlMemberStore) Create(ctx context.Context, domainId int64, member *mode
 		)
 		select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
 			   call_center.cc_member_communications(m.communications) as communications,  call_center.cc_get_lookup(qb.id, qb.name::text) as bucket, ready_at,
-               call_center.cc_get_lookup(agn.id, agn.name::text) as agent, call_center.cc_get_lookup(cs.id, cs.name::text) as skill
+               call_center.cc_get_lookup(agn.id, agn.name::text) as agent, call_center.cc_get_lookup(cs.id, cs.name::text) as skill,
+			   (select e.schema_id
+				from call_center.cc_queue_events e
+				where e.queue_id = m.queue_id and e.enabled and e.event = 'add_member'
+				limit 1) as hook_created
 		from m
 			left join flow.calendar_timezones ct on m.timezone_id = ct.id
 			left join call_center.cc_bucket qb on m.bucket_id = qb.id

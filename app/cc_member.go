@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/cc"
@@ -15,7 +16,17 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	if q.Type == 1 || q.Type == 6 {
 		return nil, model.NewBadRequestError("app.member.valid.queue", "Mismatch queue type")
 	}
-	return app.Store.Member().Create(ctx, domainId, member)
+	member, err = app.Store.Member().Create(ctx, domainId, member)
+	if err != nil {
+		return nil, err
+	}
+
+	if member.HookCreated != nil {
+		fmt.Println("send hook")
+
+	}
+
+	return member, nil
 }
 
 func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, model.AppError) {

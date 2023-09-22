@@ -27,6 +27,7 @@ type Member struct {
 	Reserved       bool                  `json:"reserved" db:"reserved"`
 	Agent          *Lookup               `json:"agent" db:"agent"`
 	Skill          *Lookup               `json:"skill" db:"skill"`
+	HookCreated    *int32                `json:"-" db:"hook_created"`
 }
 
 type WaitingMember struct {
