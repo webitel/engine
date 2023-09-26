@@ -61,6 +61,9 @@ func (api *queueBucket) CreateQueueBucket(ctx context.Context, in *engine.Create
 		return nil, err
 	}
 
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueBucket.QueueId), queueBucket)
+
 	return toEngineQueueBucket(queueBucket), nil
 }
 
@@ -187,6 +190,9 @@ func (api *queueBucket) UpdateQueueBucket(ctx context.Context, in *engine.Update
 		return nil, err
 	}
 
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qb.QueueId), qb)
+
 	return toEngineQueueBucket(qb), nil
 }
 
@@ -238,6 +244,9 @@ func (api *queueBucket) PatchQueueBucket(ctx context.Context, in *engine.PatchQu
 		return nil, err
 	}
 
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qb.QueueId), qb)
+
 	return toEngineQueueBucket(qb), nil
 }
 
@@ -271,6 +280,10 @@ func (api *queueBucket) DeleteQueueBucket(ctx context.Context, in *engine.Delete
 	if err != nil {
 		return nil, err
 	}
+
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qb.QueueId), qb)
+
 	return toEngineQueueBucket(qb), nil
 }
 

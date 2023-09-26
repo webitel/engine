@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
@@ -50,7 +49,14 @@ func (c *Controller) CreateQueueSkill(ctx context.Context, session *auth_manager
 		return nil, err
 	}
 
-	return c.app.CreateQueueSkill(ctx, session.Domain(0), qs)
+	qs, err = c.app.CreateQueueSkill(ctx, session.Domain(0), qs)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qs.QueueId), qs)
+
+	return qs, nil
 }
 
 func (c *Controller) GetQueueSkill(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueSkill, model.AppError) {
@@ -96,7 +102,14 @@ func (c *Controller) UpdateQueueSkill(ctx context.Context, session *auth_manager
 		return nil, err
 	}
 
-	return c.app.UpdateQueueSkill(ctx, session.DomainId, qs)
+	qs, err = c.app.UpdateQueueSkill(ctx, session.DomainId, qs)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qs.QueueId), qs)
+
+	return qs, nil
 }
 
 func (c *Controller) PatchQueueSkill(ctx context.Context, session *auth_manager.Session, queueId, id uint32, patch *model.QueueSkillPatch) (*model.QueueSkill, model.AppError) {
@@ -119,7 +132,16 @@ func (c *Controller) PatchQueueSkill(ctx context.Context, session *auth_manager.
 		}
 	}
 
-	return c.app.PatchQueueSkill(ctx, session.DomainId, queueId, id, patch)
+	var qs *model.QueueSkill
+
+	qs, err = c.app.PatchQueueSkill(ctx, session.DomainId, queueId, id, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), qs)
+
+	return qs, nil
 }
 
 func (c *Controller) DeleteQueueSkill(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueSkill, model.AppError) {
@@ -142,5 +164,14 @@ func (c *Controller) DeleteQueueSkill(ctx context.Context, session *auth_manager
 		}
 	}
 
-	return c.app.RemoveQueueSkill(ctx, session.DomainId, queueId, id)
+	var qs *model.QueueSkill
+
+	qs, err = c.app.RemoveQueueSkill(ctx, session.DomainId, queueId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), qs)
+
+	return qs, nil
 }

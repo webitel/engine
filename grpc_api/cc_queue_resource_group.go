@@ -58,6 +58,9 @@ func (api *queueResource) CreateQueueResourceGroup(ctx context.Context, in *engi
 		return nil, err
 	}
 
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueResourceGroup.QueueId), queueResourceGroup)
+
 	return toEngineQueueResourceGroup(queueResourceGroup), nil
 }
 
@@ -182,6 +185,9 @@ func (api *queueResource) UpdateQueueResourceGroup(ctx context.Context, in *engi
 		return nil, err
 	}
 
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qr.QueueId), qr)
+
 	return toEngineQueueResourceGroup(qr), nil
 }
 
@@ -215,6 +221,10 @@ func (api *queueResource) DeleteQueueResourceGroup(ctx context.Context, in *engi
 	if err != nil {
 		return nil, err
 	}
+
+	// todo
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qr.QueueId), qr)
+
 	return toEngineQueueResourceGroup(qr), nil
 }
 

@@ -57,7 +57,15 @@ func (c *Controller) CreateQueueHook(ctx context.Context, session *auth_manager.
 		return nil, err
 	}
 
-	return c.app.CreateQueueHook(ctx, session.Domain(0), queueId, hook)
+	hook, err = c.app.CreateQueueHook(ctx, session.Domain(0), queueId, hook)
+	if err != nil {
+		return nil, err
+	}
+
+	// todo
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+
+	return hook, nil
 }
 
 func (c *Controller) GetQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueHook, model.AppError) {
@@ -108,7 +116,15 @@ func (c *Controller) UpdateQueueHook(ctx context.Context, session *auth_manager.
 		return nil, err
 	}
 
-	return c.app.UpdateQueueHook(ctx, session.DomainId, queueId, hook)
+	hook, err = c.app.UpdateQueueHook(ctx, session.DomainId, queueId, hook)
+	if err != nil {
+		return nil, err
+	}
+
+	// todo
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+
+	return hook, nil
 }
 
 func (c *Controller) PatchQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32, patch *model.QueueHookPatch) (*model.QueueHook, model.AppError) {
@@ -133,7 +149,16 @@ func (c *Controller) PatchQueueHook(ctx context.Context, session *auth_manager.S
 	patch.UpdatedBy.Id = int(session.UserId)
 	patch.UpdatedAt = *model.GetTime()
 
-	return c.app.PatchQueueHook(ctx, session.DomainId, queueId, id, patch)
+	var hook *model.QueueHook
+	hook, err = c.app.PatchQueueHook(ctx, session.DomainId, queueId, id, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	// todo
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+
+	return hook, nil
 }
 
 func (c *Controller) DeleteQueueHook(ctx context.Context, session *auth_manager.Session, queueId, id uint32) (*model.QueueHook, model.AppError) {
@@ -156,5 +181,15 @@ func (c *Controller) DeleteQueueHook(ctx context.Context, session *auth_manager.
 		}
 	}
 
-	return c.app.RemoveQueueHook(ctx, session.DomainId, queueId, id)
+	var hook *model.QueueHook
+
+	hook, err = c.app.RemoveQueueHook(ctx, session.DomainId, queueId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// todo
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+
+	return hook, nil
 }
