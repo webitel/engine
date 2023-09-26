@@ -2,8 +2,6 @@ package app
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/cc"
 )
@@ -22,7 +20,7 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	}
 
 	if member.HookCreated != nil {
-		fmt.Println("send hook")
+		// WTEL-2787 send to mq
 
 	}
 
