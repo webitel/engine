@@ -2,6 +2,7 @@ package rabbit
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
@@ -244,6 +245,30 @@ func (a *AMQP) Close() {
 }
 
 func (a *AMQP) SendJSON(key string, data []byte) model.AppError {
+
+	return nil
+}
+
+func (a *AMQP) SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError {
+	exe := model.ExecFlow{
+		DomainId:  domainId,
+		SchemaId:  schemaId,
+		Variables: model.StructToVariable(in),
+	}
+
+	body, err := json.Marshal(exe)
+	if err != nil {
+		return model.NewInternalError("amqp.start_flow.parse", err.Error())
+	}
+
+	err = a.channel.Publish("flow", "flow", true, false, amqp.Publishing{
+		ContentType: "text/json",
+		Body:        body,
+	})
+
+	if err != nil {
+		return model.NewInternalError("amqp.start_flow.publish", err.Error())
+	}
 
 	return nil
 }

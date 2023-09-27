@@ -21,6 +21,8 @@ type MQ interface {
 	SendStickingCall(e *model.CallServiceHangup) model.AppError
 
 	Send(ctx context.Context, exchange string, rk string, body []byte) error
+
+	SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError
 }
 
 type DomainQueue interface {

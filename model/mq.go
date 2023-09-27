@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 const (
 	AppExchange        = "engine"
 	CallExchange       = "call"
@@ -26,3 +28,26 @@ type BindQueueEvent struct {
 }
 
 type GetAllBindings func() []*BindQueueEvent
+
+type ExecFlow struct {
+	DomainId  int64     `json:"domain_id"`
+	SchemaId  int32     `json:"schema_id"`
+	Variables Variables `json:"variables"`
+}
+
+func StructToVariable(input interface{}) Variables {
+	var res Variables
+
+	data, err := json.Marshal(input)
+	if err != nil {
+		// todo
+		return nil
+	}
+
+	err = json.Unmarshal(data, &res)
+	if err != nil {
+		// todo
+	}
+
+	return res
+}

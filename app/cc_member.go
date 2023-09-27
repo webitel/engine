@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/protos/cc"
+	"github.com/webitel/wlog"
 )
 
 func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError) {
@@ -20,7 +21,10 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	}
 
 	if member.HookCreated != nil {
-		// WTEL-2787 send to mq
+		err = app.MessageQueue.SendStartFlow(ctx, domainId, *member.HookCreated, member)
+		if err != nil {
+			wlog.Error(err.Error())
+		}
 
 	}
 
