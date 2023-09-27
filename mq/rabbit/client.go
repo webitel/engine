@@ -261,7 +261,7 @@ func (a *AMQP) SendStartFlow(ctx context.Context, domainId int64, schemaId int32
 		return model.NewInternalError("amqp.start_flow.parse", err.Error())
 	}
 
-	err = a.channel.Publish("flow", "flow", true, false, amqp.Publishing{
+	err = a.channel.Publish("flow", "exec", true, false, amqp.Publishing{
 		ContentType: "text/json",
 		Body:        body,
 	})
