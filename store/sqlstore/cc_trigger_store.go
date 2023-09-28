@@ -269,7 +269,7 @@ func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
-	err := s.ListQuery(ctx, &jobs, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &jobs, search.ListRequest,
 		`trigger_id = :TriggerId
 				and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
