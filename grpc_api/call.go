@@ -218,6 +218,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			HasFile:          GetBool(in.GetHasFile()),
 			HasTranscript:    GetBool(in.GetHasTranscript()),
 			AgentDescription: in.GetAgentDescription(),
+			ContactIds:       in.GetContactId(),
 		},
 	}
 
