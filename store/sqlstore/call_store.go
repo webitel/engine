@@ -365,6 +365,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 		"OwnerIds":         pq.Array(search.OwnerIds),
 		"GranteeIds":       pq.Array(search.GranteeIds),
+		"ContactIds":       pq.Array(search.ContactIds),
 		"AmdAiResult":      pq.Array(search.AmdAiResult),
 
 		"TalkFrom": model.GetBetweenFrom(search.Talk),
@@ -390,6 +391,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
 	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
+	and (:ContactIds::int8[] isnull or contact_id = any(:ContactIds::int8[]))
 	and (:Ids::uuid[] isnull or id = any(:Ids))
 	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
@@ -509,6 +511,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 		"AgentDescription": model.ReplaceWebSearch(search.AgentDescription),
 		"OwnerIds":         pq.Array(search.OwnerIds),
 		"GranteeIds":       pq.Array(search.GranteeIds),
+		"ContactIds":       pq.Array(search.ContactIds),
 		"AmdAiResult":      pq.Array(search.AmdAiResult),
 
 		"TalkFrom": model.GetBetweenFrom(search.Talk),
@@ -535,6 +538,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
 	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
 	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
+	and (:ContactIds::int8[] isnull or contact_id = any(:ContactIds::int8[]))
 	and (:Ids::uuid[] isnull or id = any(:Ids))
 	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))

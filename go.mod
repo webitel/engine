@@ -20,7 +20,7 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/webitel/call_center v0.0.0-20230928075601-637b50759fa9
 	github.com/webitel/protos/cc v0.0.0-20230919101002-a30f21070914
-	github.com/webitel/protos/engine v0.0.0-20230919101002-a30f21070914
+	github.com/webitel/protos/engine v0.0.0-20230929083624-34e29d2feb6a
 	github.com/webitel/protos/fs v0.0.0-20230919101002-a30f21070914
 	github.com/webitel/protos/logger v0.0.0-20230919101002-a30f21070914
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
