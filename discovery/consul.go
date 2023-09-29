@@ -73,6 +73,7 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 	}
 
 	c.ttl = ttl
+	c.id = fmt.Sprintf("%s-%s", name, c.id)
 	c.as = &api.AgentServiceRegistration{
 		Name:    name,
 		ID:      c.id,
@@ -82,6 +83,7 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 		Check: &api.AgentServiceCheck{
 			DeregisterCriticalServiceAfter: criticalTtl.String(),
 			TTL:                            c.ttl.String(),
+			CheckID:                        c.id,
 		},
 	}
 
