@@ -431,6 +431,7 @@ type HistoryCall struct {
 	AllowEvaluation *bool      `json:"allow_evaluation" db:"allow_evaluation"`
 	FormFields      *StringMap `json:"form_fields" db:"form_fields"`
 	BridgedId       *string    `json:"bridged_id" db:"bridged_id"`
+	Contact         *Lookup    `json:"contact" db:"contact"`
 }
 
 type HistoryCallPatch struct {
@@ -448,7 +449,7 @@ func (c HistoryCall) AllowFields() []string {
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
-		"attempt_id", "allow_evaluation", "form_fields", "bridged_id",
+		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact",
 	}
 }
 
@@ -533,6 +534,7 @@ type SearchHistoryCall struct {
 	ScoreRequired    *FilterBetween
 	Rated            *bool `json:"rated" db:"rated"`
 	Talk             *FilterBetween
+	ContactIds       []int64
 }
 
 type CallEventInfo struct {
