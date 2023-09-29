@@ -1007,6 +1007,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and (:TransferFromIds::uuid[] isnull or h.transfer_from = any(:TransferFromIds))
 		and (:TransferToIds::uuid[] isnull or h.transfer_to = any(:TransferToIds))
 		and (:QueueIds::int[] isnull or h.queue_id = any(:QueueIds) )
+		and (:ContactIds::int8[] isnull or h.contact_id = any(:ContactIds::int8[]))
 		and (:TeamIds::int[] isnull or h.team_id = any(:TeamIds) )  
 		and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds) )
 		and (:MemberIds::int8[] isnull or h.member_id = any(:MemberIds) )
@@ -1081,6 +1082,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		"TransferToIds":   pq.Array(aggs.TransferToIds),
 		"DependencyIds":   pq.Array(aggs.DependencyIds),
 		"Tags":            pq.Array(aggs.Tags),
+		"ContactIds":      pq.Array(aggs.ContactIds),
 
 		"AmdResult":        pq.Array(aggs.AmdResult),
 		"HasFile":          aggs.HasFile,
