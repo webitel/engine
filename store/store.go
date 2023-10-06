@@ -296,8 +296,6 @@ type MemberStore interface {
 	GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, model.AppError)
 	CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError)
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
-
-	LiveList(ctx context.Context, domainId int64, agentId int32) ([]model.WaitingMember, model.AppError)
 }
 
 type BucketStore interface {
@@ -446,4 +444,5 @@ type SystemSettingsStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError)
 	Update(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
+	ValueByName(ctx context.Context, domainId int64, name string) (model.SysValue, model.AppError)
 }
