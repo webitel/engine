@@ -130,7 +130,7 @@ func (app *App) RemoveMember(ctx context.Context, domainId, queueId, id int64) (
 }
 
 func (app *App) RemoveMultiMembers(ctx context.Context, domainId int64, del *model.MultiDeleteMembers) ([]*model.Member, model.AppError) {
-	return app.Store.Member().MultiDelete(ctx, del)
+	return app.Store.Member().MultiDelete(ctx, domainId, del)
 }
 
 func (app *App) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError) {

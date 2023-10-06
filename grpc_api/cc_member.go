@@ -461,7 +461,9 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 		QueueId: in.QueueId,
 		SearchMemberRequest: model.SearchMemberRequest{
 			ListRequest: model.ListRequest{
-				Q: in.GetQ(),
+				Q:       in.GetQ(),
+				PerPage: int(in.GetSize()),
+				Sort:    in.GetSort(),
 			},
 			Ids:        in.GetId(),
 			QueueIds:   []int32{int32(in.GetQueueId())},
