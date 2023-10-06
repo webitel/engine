@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-gorp/gorp"
@@ -18,7 +19,9 @@ type SqlMemberStore struct {
 }
 
 func NewSqlMemberStore(sqlStore SqlStore) store.MemberStore {
-	us := &SqlMemberStore{sqlStore}
+	us := &SqlMemberStore{
+		SqlStore: sqlStore,
+	}
 	return us
 }
 
@@ -65,12 +68,20 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 	var err error
 	var stmp *sql.Stmt
 	var tx *gorp.Transaction
+	var bulkCount = 5000
+
+	if v, appE := s.SystemSettings().ValueByName(ctx, domainId, model.SysNameMemberInsertChunkSize); appE == nil && v != nil && v.Int() != nil {
+		bulkCount = *v.Int()
+	}
+
 	tx, err = s.GetMaster().Begin()
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
 
-	_, err = tx.WithContext(ctx).Exec("CREATE temp table cc_member_tmp ON COMMIT DROP as table call_center.cc_member with no data")
+	tableName := fmt.Sprintf("cc_member_tmp_%d", model.GetMillis())
+
+	_, err = tx.WithContext(ctx).Exec("CREATE temp table " + tableName + " ON COMMIT DROP as table call_center.cc_member with no data")
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
@@ -78,7 +89,7 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 		fileName = model.NewId()
 	}
 
-	stmp, err = tx.Prepare(pq.CopyIn("cc_member_tmp", "id", "queue_id", "priority", "expire_at", "variables", "name",
+	stmp, err = tx.Prepare(pq.CopyIn(tableName, "id", "queue_id", "priority", "expire_at", "variables", "name",
 		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id", "import_id"))
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
@@ -99,17 +110,31 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 		goto _error
 	} else {
 
-		_, err = tx.Select(&result, `with i as (
+		for i := 0; ; i += bulkCount {
+			chunk := make([]int64, 0, bulkCount)
+
+			_, err = tx.Select(&chunk, `with i as (
 			insert into call_center.cc_member(queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, domain_id, agent_id, skill_id, import_id)
 			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, :DomainId, agent_id, skill_id, import_id
-			from cc_member_tmp
+			from `+tableName+`
+			order by `+tableName+`.id
+            limit `+strconv.Itoa(bulkCount)+` 
+            offset `+strconv.Itoa(i)+` 
 			returning id
 		)
 		select id from i`, map[string]interface{}{
-			"DomainId": domainId,
-		})
-		if err != nil {
-			goto _error
+				"DomainId": domainId,
+			})
+
+			if err != nil {
+				goto _error
+			}
+
+			result = append(result, chunk...)
+
+			if len(chunk) != bulkCount {
+				break
+			}
 		}
 	}
 
@@ -794,43 +819,4 @@ where id = :Id`, map[string]interface{}{
 	}
 
 	return nil
-}
-
-func (s SqlMemberStore) LiveList(ctx context.Context, domainId int64, agentId int32) ([]model.WaitingMember, model.AppError) {
-	var list []model.WaitingMember
-
-	_, err := s.GetMaster().WithContext(ctx).Select(&list, `with queues as materialized (
-    SELECT q.name, qs.queue_id, q.priority, max(qs.lvl) lvl
-    FROM call_center.cc_queue q
-     join call_center.cc_queue_skill qs on qs.queue_id = q.id
-     JOIN call_center.cc_skill_in_agent csia ON csia.skill_id = qs.skill_id
-    WHERE q.domain_id = :DomainId::int8
-      AND csia.agent_id = :AgentId::int
-      and qs.enabled
-      AND csia.enabled
-      AND csia.capacity >= qs.min_capacity
-      AND csia.capacity <= qs.max_capacity
-    group by 1, 2, 3
-)
-select row_number() over (order by q.priority desc, (extract(epoch from now() - a.joined_at) + a.weight) desc) position,
-       extract(epoch from now() - joined_at)::int as duration,
-       destination
-from call_center.cc_member_attempt a
-    inner join queues q on q.queue_id = a.queue_id
-where a.domain_id = :DomainId::int8
-    and a.agent_id isnull
-    and a.state = 'wait_agent'
-    and a.queue_id = q.queue_id
-	and (a.reject_agent_ids isnull or :AgentId::int != any(a.reject_agent_ids))
-order by q.lvl, q.priority desc, (extract(epoch from now() - a.joined_at) + a.weight) desc
-limit 40`, map[string]interface{}{
-		"DomainId": domainId,
-		"AgentId":  agentId,
-	})
-
-	if err != nil {
-		return nil, model.NewCustomCodeError("store.sql_member.waiting.app_error", err.Error(), extractCodeFromErr(err))
-	}
-
-	return list, nil
 }

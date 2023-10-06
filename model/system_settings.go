@@ -1,6 +1,16 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"strconv"
+)
+
+const (
+	SysNameOmnichannel           = "enable_omnichannel"
+	SysNameMemberInsertChunkSize = "member_chunk_size"
+)
+
+type SysValue json.RawMessage
 
 type SystemSetting struct {
 	Id    int32           `json:"id" db:"id"`
@@ -41,4 +51,17 @@ func (s *SystemSetting) Patch(p *SystemSettingPath) {
 	if p.Value != nil {
 		s.Value = p.Value
 	}
+}
+
+func (v *SysValue) Int() *int {
+	if v == nil {
+		return nil
+	}
+
+	i, err := strconv.Atoi(string(*v))
+	if err != nil {
+		return nil
+	}
+
+	return &i
 }
