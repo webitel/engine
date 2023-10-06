@@ -54,6 +54,7 @@ type CallClient interface {
 	SetEavesdropState(id string, state string) model.AppError
 	Mute(id string, val bool) model.AppError
 	BlindTransfer(id, destination string) model.AppError
+	BlindTransferExt(id, destination string, vars map[string]string) model.AppError
 	ConfirmPushCall(id string) model.AppError
 
 	Close() error

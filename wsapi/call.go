@@ -24,6 +24,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_dtmf", api.ApiWebSocketHandler(api.callDTMF))
 	api.Router.Handle("call_mute", api.ApiWebSocketHandler(api.callMute))
 	api.Router.Handle("call_blind_transfer", api.ApiWebSocketHandler(api.callBlindTransfer))
+	api.Router.Handle("call_blind_transfer_ext", api.ApiWebSocketHandler(api.callBlindTransferExt))
 	api.Router.Handle("call_bridge", api.ApiWebSocketHandler(api.callBridge))
 	api.Router.Handle("call_recordings", api.ApiWebSocketHandler(api.callRecording))
 	api.Router.Handle("call_set_params", api.ApiWebSocketHandler(api.callSetParams))
@@ -184,6 +185,32 @@ func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest
 			Id: id,
 		},
 		Destination: destination,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (api *API) callBlindTransferExt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id, destination string
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+	if destination, ok = req.Data["destination"].(string); !ok || len(destination) < 1 {
+		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
+	}
+
+	err := api.ctrl.BlindTransferCallExt(context.Background(), conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
+		UserCallRequest: model.UserCallRequest{
+			Id: id,
+		},
+		Destination: destination,
+		Variables:   variablesFromMap(req.Data, "variables"),
 	})
 
 	if err != nil {
@@ -518,4 +545,19 @@ func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (m
 	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
 
 	return nil, nil
+}
+
+func variablesFromMap(m map[string]interface{}, name string) map[string]string {
+	vi, ok := m[name].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	vars := make(map[string]string, len(vi))
+	for k, v := range vi {
+		vars[k] = fmt.Sprintf("%v", v)
+	}
+
+	return vars
+
 }

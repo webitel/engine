@@ -115,6 +115,7 @@ func (c *Controller) DtmfCall(ctx context.Context, session *auth_manager.Session
 	return c.app.DtmfCall(ctx, session.Domain(domainId), req)
 }
 
+// BlindTransferCall todo deprecated
 func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCall) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
@@ -122,6 +123,15 @@ func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manage
 	}
 
 	return c.app.BlindTransferCall(ctx, session.Domain(domainId), req)
+}
+
+func (c *Controller) BlindTransferCallExt(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCall) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.BlindTransferCallExt(ctx, session.Domain(domainId), req)
 }
 
 func (c *Controller) EavesdropCall(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.EavesdropCall, variables map[string]string) (string, model.AppError) {

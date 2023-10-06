@@ -470,6 +470,24 @@ func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *mode
 	return cli.BlindTransfer(id, req.Destination)
 }
 
+func (app *App) BlindTransferCallExt(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
+	var cli call_manager.CallClient
+	var err model.AppError
+	var id string
+
+	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
+	if err != nil {
+		return err
+	}
+
+	id, err = app.Store.Call().BridgedId(ctx, req.Id)
+	if err != nil {
+		return err
+	}
+
+	return cli.BlindTransferExt(id, req.Destination, req.Variables)
+}
+
 func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string) model.AppError {
 	var cli call_manager.CallClient
 	info, err := app.Store.Call().BridgeInfo(ctx, domainId, fromId, toId)
