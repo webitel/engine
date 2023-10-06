@@ -20,13 +20,13 @@ require (
 	github.com/streadway/amqp v1.1.0
 	github.com/webitel/call_center v0.0.0-20230928075601-637b50759fa9
 	github.com/webitel/protos/cc v0.0.0-20230919101002-a30f21070914
-	github.com/webitel/protos/engine v0.0.0-20231005063822-9116eb0960f0
+	github.com/webitel/protos/engine v0.0.0-20231006121357-a556ec62fc67
 	github.com/webitel/protos/fs v0.0.0-20231005063822-9116eb0960f0
 	github.com/webitel/protos/logger v0.0.0-20230919101002-a30f21070914
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0
-	golang.org/x/net v0.15.0
+	golang.org/x/net v0.16.0
 	golang.org/x/oauth2 v0.12.0
 	golang.org/x/sync v0.3.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97
@@ -208,7 +208,7 @@ require (
 	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect
 	golang.org/x/mod v0.11.0 // indirect
-	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
