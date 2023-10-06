@@ -94,6 +94,7 @@ type DtmfCall struct {
 type BlindTransferCall struct {
 	UserCallRequest
 	Destination string
+	Variables   map[string]string
 }
 
 type BridgeCall struct {
