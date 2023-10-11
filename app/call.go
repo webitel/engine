@@ -488,7 +488,7 @@ func (app *App) BlindTransferCallExt(ctx context.Context, domainId int64, req *m
 	return cli.BlindTransferExt(id, req.Destination, req.Variables)
 }
 
-func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string) model.AppError {
+func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string, vars map[string]string) model.AppError {
 	var cli call_manager.CallClient
 	info, err := app.Store.Call().BridgeInfo(ctx, domainId, fromId, toId)
 	if err != nil {
@@ -500,7 +500,7 @@ func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId str
 		return err
 	}
 
-	_, err = cli.BridgeCall(info.FromId, info.ToId, "")
+	_, err = cli.BridgeCall(info.FromId, info.ToId, vars)
 	return err
 }
 

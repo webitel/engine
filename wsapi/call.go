@@ -472,7 +472,7 @@ func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		return nil, NewInvalidWebSocketParamError(req.Action, "to_id")
 	}
 	res := make(map[string]interface{})
-	err := api.App.BridgeCall(context.Background(), conn.DomainId, fromId, toId)
+	err := api.App.BridgeCall(context.Background(), conn.DomainId, fromId, toId, variablesFromMap(req.Data, "variables"))
 	//FIXME set result
 	return res, err
 }

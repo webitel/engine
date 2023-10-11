@@ -51,7 +51,7 @@ func (cm *callManager) Bridge(legA, legANode, legB, legBNode string) model.AppEr
 	}
 
 	if legANode == legBNode {
-		_, err = cli.BridgeCall(legA, legB, "")
+		_, err = cli.BridgeCall(legA, legB, nil)
 	} else {
 
 		cli2, err = cm.getClient(legBNode)

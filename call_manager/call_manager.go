@@ -49,7 +49,7 @@ type CallClient interface {
 	Hold(id string) model.AppError
 	UnHold(id string) model.AppError
 	SetCallVariables(id string, variables map[string]string) model.AppError
-	BridgeCall(legAId, legBId, legBReserveId string) (string, model.AppError)
+	BridgeCall(legAId, legBId string, vars map[string]string) (string, model.AppError)
 	DTMF(id string, ch rune) model.AppError
 	SetEavesdropState(id string, state string) model.AppError
 	Mute(id string, val bool) model.AppError

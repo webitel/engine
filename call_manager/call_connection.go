@@ -266,10 +266,11 @@ func (c *CallConnection) UnHold(id string) model.AppError {
 	return nil
 }
 
-func (c *CallConnection) BridgeCall(legAId, legBId, legBReserveId string) (string, model.AppError) {
+func (c *CallConnection) BridgeCall(legAId, legBId string, vars map[string]string) (string, model.AppError) {
 	response, err := c.api.BridgeCall(context.Background(), &fs.BridgeCallRequest{
-		LegAId: legAId,
-		LegBId: legBId,
+		LegAId:    legAId,
+		LegBId:    legBId,
+		Variables: vars,
 	})
 	if err != nil {
 		return "", model.NewInternalError("external.bridge_call.app_error", err.Error())
