@@ -41,10 +41,6 @@ func (c *Controller) UpdateSystemSetting(ctx context.Context, session *auth_mana
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if err := s.IsValid(); err != nil {
-		return nil, err
-	}
-
 	return c.app.UpdateSystemSetting(ctx, session.DomainId, s)
 }
 

@@ -28,8 +28,11 @@ func (a *App) UpdateSystemSetting(ctx context.Context, domainId int64, setting *
 		return nil, err
 	}
 
-	oldSetting.Name = setting.Name // TODO allow ?
 	oldSetting.Value = setting.Value
+
+	if err = oldSetting.IsValid(); err != nil {
+		return nil, err
+	}
 
 	oldSetting, err = a.Store.SystemSettings().Update(ctx, domainId, oldSetting)
 	if err != nil {
