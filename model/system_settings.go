@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 )
 
@@ -43,7 +44,13 @@ func (SystemSetting) EntityName() string {
 }
 
 func (s *SystemSetting) IsValid() AppError {
-	//FIXME
+	switch s.Name {
+	case SysNameOmnichannel:
+	case SysNameMemberInsertChunkSize:
+		break
+	default:
+		return NewBadRequestError("model.SystemSetting.valid.name", fmt.Sprintf("%s not allow", s.Name))
+	}
 	return nil
 }
 

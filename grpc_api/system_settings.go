@@ -22,7 +22,7 @@ func (api systemSettings) CreateSystemSetting(ctx context.Context, in *engine.Cr
 	}
 
 	s := &model.SystemSetting{
-		Name:  in.GetName(),
+		Name:  in.GetName().String(),
 		Value: MarshalJsonpb(in.Value),
 	}
 
@@ -142,9 +142,13 @@ func (api systemSettings) DeleteSystemSetting(ctx context.Context, in *engine.De
 }
 
 func transformSystemSetting(s *model.SystemSetting) *engine.SystemSetting {
-	return &engine.SystemSetting{
+	res := &engine.SystemSetting{
 		Id:    s.Id,
-		Name:  s.Name,
 		Value: UnmarshalJsonpb(s.Value),
 	}
+
+	i, _ := engine.SystemSettingName_value[s.Name]
+	res.Name = engine.SystemSettingName(i)
+
+	return res
 }
