@@ -47,6 +47,7 @@ from (
 		select ch.id, ch.created_at, ch.conversation_id, ch.user_id, ch.updated_at, ch.props, ch.closed_at
 		from chat.channel ch
 		where ch.user_id = :UserId::int8
+		  and ch.internal	
 		  and (ch.closed_at isnull or exists(select 1
 											 from call_center.cc_member_attempt mat
 												 inner join call_center.cc_agent a on a.id = mat.agent_id
