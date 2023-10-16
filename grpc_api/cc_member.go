@@ -950,6 +950,7 @@ func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRe
 
 	var nextOffering *int64
 	var expire *int64
+	var waitBetweenRetries *int32
 
 	if in.MinOfferingAt > 0 {
 		nextOffering = &in.MinOfferingAt
@@ -959,8 +960,12 @@ func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRe
 		expire = &in.ExpireAt
 	}
 
+	if in.WaitBetweenRetries > 0 {
+		waitBetweenRetries = &in.WaitBetweenRetries
+	}
+
 	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
-		in.Display, in.AgentId, in.ExcludeCurrentCommunication)
+		in.Display, in.AgentId, in.ExcludeCurrentCommunication, waitBetweenRetries)
 	if err != nil {
 		return nil, err
 	}
@@ -978,6 +983,7 @@ func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallba
 
 	var nextOffering *int64
 	var expire *int64
+	var waitBetweenRetries *int32
 
 	if in.MinOfferingAt > 0 {
 		nextOffering = &in.MinOfferingAt
@@ -987,8 +993,12 @@ func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallba
 		expire = &in.ExpireAt
 	}
 
+	if in.WaitBetweenRetries > 0 {
+		waitBetweenRetries = &in.WaitBetweenRetries
+	}
+
 	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
-		in.Display, in.AgentId, in.ExcludeCurrentCommunication)
+		in.Display, in.AgentId, in.ExcludeCurrentCommunication, waitBetweenRetries)
 	if err != nil {
 		return nil, err
 	}

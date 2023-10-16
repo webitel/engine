@@ -18,19 +18,19 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/streadway/amqp v1.1.0
-	github.com/webitel/call_center v0.0.0-20230928075601-637b50759fa9
-	github.com/webitel/protos/cc v0.0.0-20230919101002-a30f21070914
-	github.com/webitel/protos/engine v0.0.0-20231012090009-a7f2817ce17f
-	github.com/webitel/protos/fs v0.0.0-20231005063822-9116eb0960f0
+	github.com/webitel/call_center v0.0.0-20231016113709-0c9af6452b82
+	github.com/webitel/protos/cc v0.0.0-20231016113342-4e297ed227c4
+	github.com/webitel/protos/engine v0.0.0-20231016113342-4e297ed227c4
+	github.com/webitel/protos/fs v0.0.0-20231016113342-4e297ed227c4
 	github.com/webitel/protos/logger v0.0.0-20230919101002-a30f21070914
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/net v0.17.0
-	golang.org/x/oauth2 v0.12.0
-	golang.org/x/sync v0.3.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20231009173412-8bfb1ae86b6c
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231009173412-8bfb1ae86b6c
+	golang.org/x/oauth2 v0.13.0
+	golang.org/x/sync v0.4.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20231012201019-e917dd12ba7a
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231012201019-e917dd12ba7a
 	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 )
@@ -97,7 +97,7 @@ require (
 	github.com/golangci/revgrep v0.0.0-20220804021717-745bb2f7c2e6 // indirect
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.1 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20230107090616-13ace0543b28 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
@@ -110,7 +110,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.4 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
@@ -204,15 +204,15 @@ require (
 	gitlab.com/bosi/decorder v0.2.3 // indirect
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.25.0 // indirect
-	golang.org/x/exp v0.0.0-20230801115018-d63ba01acd4b // indirect
+	go.uber.org/zap v1.26.0 // indirect
+	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect
-	golang.org/x/mod v0.11.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.7.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20231009173412-8bfb1ae86b6c // indirect
+	golang.org/x/tools v0.14.0 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
+	google.golang.org/genproto v0.0.0-20231012201019-e917dd12ba7a // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
