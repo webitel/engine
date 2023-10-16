@@ -167,7 +167,7 @@ func (a *App) ListActiveChat(ctx context.Context, token string, domainId, userId
 }
 
 func (a *App) BlindTransferChat(ctx context.Context, domainId int64, conversationId, channelId string, planId int32, vars map[string]string) model.AppError {
-	schemaId, err := a.Store.ChatPlan().GetSchemaId(ctx, domainId, planId)
+	schema, err := a.Store.ChatPlan().GetSchemaId(ctx, domainId, planId)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,13 @@ func (a *App) BlindTransferChat(ctx context.Context, domainId int64, conversatio
 		return model.NewInternalError("chat.transfer.client_err", errChat.Error())
 	}
 
-	errChat = chat.BlindTransfer(context.Background(), conversationId, channelId, int64(schemaId), vars)
+	if len(vars) == 0 {
+		vars = make(map[string]string)
+	}
+
+	vars["chatplan_name"] = schema.Name
+
+	errChat = chat.BlindTransfer(context.Background(), conversationId, channelId, int64(schema.Id), vars)
 	if errChat != nil {
 		return model.NewInternalError("chat.transfer.api_err", errChat.Error())
 	}

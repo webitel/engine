@@ -137,9 +137,11 @@ func (s SqlChatPlanStore) Delete(ctx context.Context, domainId int64, id int32) 
 	return nil
 }
 
-func (s SqlChatPlanStore) GetSchemaId(ctx context.Context, domainId int64, id int32) (int, model.AppError) {
-	schemaId, err := s.GetReplica().WithContext(ctx).SelectInt(`select p.schema_id
+func (s SqlChatPlanStore) GetSchemaId(ctx context.Context, domainId int64, id int32) (model.Lookup, model.AppError) {
+	var res model.Lookup
+	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select p.schema_id as id, p.name
 from flow.acr_chat_plan p
+    inner join flow.acr_routing_scheme s on s.id = p.schema_id
 where p.domain_id = :DomainId
     and p.enabled
     and p.id = :Id`, map[string]interface{}{
@@ -148,8 +150,8 @@ where p.domain_id = :DomainId
 	})
 
 	if err != nil {
-		return 0, model.NewCustomCodeError("store.sql_chat_plan.get.schema_id.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+		return model.Lookup{}, model.NewCustomCodeError("store.sql_chat_plan.get.schema_id.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
-	return int(schemaId), nil
+	return res, nil
 }

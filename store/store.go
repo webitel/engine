@@ -396,7 +396,7 @@ type ChatPlanStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.ChatPlan, model.AppError)
 	Update(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
-	GetSchemaId(ctx context.Context, domainId int64, id int32) (int, model.AppError)
+	GetSchemaId(ctx context.Context, domainId int64, id int32) (model.Lookup, model.AppError)
 }
 
 type TriggerStore interface {
