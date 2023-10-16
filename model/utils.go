@@ -21,8 +21,8 @@ type StringMap map[string]string
 type StringArray []string
 type Int64Array []int64
 type Lookup struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
+	Id   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
 }
 
 func (l *Lookup) GetSafeId() *int {
