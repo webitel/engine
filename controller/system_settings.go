@@ -28,6 +28,14 @@ func (c *Controller) SearchSystemSetting(ctx context.Context, session *auth_mana
 	return c.app.GetSystemSettingPage(ctx, session.Domain(0), search)
 }
 
+func (c *Controller) SearchAvailableSystemSetting(ctx context.Context, session *auth_manager.Session) ([]string, model.AppError) {
+	if !session.HasAction(auth_manager.PermissionSystemSetting) {
+		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.GetAvailableSystemSetting(ctx, session.Domain(0))
+}
+
 func (c *Controller) ReadSystemSetting(ctx context.Context, session *auth_manager.Session, id int32) (*model.SystemSetting, model.AppError) {
 	if !session.HasAction(auth_manager.PermissionSystemSetting) {
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_READ)

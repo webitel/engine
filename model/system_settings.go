@@ -19,11 +19,19 @@ type SystemSetting struct {
 	Value json.RawMessage `json:"value" db:"value"`
 }
 
+type AvailableSystemSetting struct {
+	Name string `json:"name" db:"name"`
+}
+
 type SystemSettingPath struct {
 	Value json.RawMessage `json:"value" db:"value"`
 }
 
 type SearchSystemSetting struct {
+	ListRequest
+}
+
+type AvailableSearchSystemSetting struct {
 	ListRequest
 }
 

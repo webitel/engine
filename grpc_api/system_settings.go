@@ -141,6 +141,33 @@ func (api systemSettings) DeleteSystemSetting(ctx context.Context, in *engine.De
 	return transformSystemSetting(s), nil
 }
 
+func (api systemSettings) SearchAvailableSystemSetting(ctx context.Context, _ *engine.SearchAvailableSystemSettingRequest) (*engine.ListAvailableSystemSetting, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []string
+
+	list, err = api.ctrl.SearchAvailableSystemSetting(ctx, session)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := &engine.ListAvailableSystemSetting{
+		Items: make([]*engine.AvailableSystemSetting, 0, len(list)),
+	}
+
+	for _, v := range list {
+		res.Items = append(res.Items, &engine.AvailableSystemSetting{
+			Name: v,
+		})
+	}
+
+	return res, nil
+}
+
 func transformSystemSetting(s *model.SystemSetting) *engine.SystemSetting {
 	res := &engine.SystemSetting{
 		Id:    s.Id,

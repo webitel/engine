@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 )
@@ -10,6 +11,10 @@ import (
 type SqlSystemSettingsStore struct {
 	SqlStore
 }
+
+var (
+	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize}
+)
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
 	us := &SqlSystemSettingsStore{sqlStore}
@@ -124,4 +129,20 @@ where domain_id = :DomainId::int8 and name = :Name::varchar`, map[string]interfa
 	}
 
 	return outValue, nil
+}
+
+func (s SqlSystemSettingsStore) Available(ctx context.Context, domainId int64) ([]string, model.AppError) {
+	var res []string
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select t
+from unnest(:All::varchar[]) t
+where not exists(select 1 from call_center.system_settings ss where ss.domain_id = :DomainId and ss.name = t)`, map[string]interface{}{
+		"All":      pq.Array(allSystemSettings),
+		"DomainId": domainId,
+	})
+
+	if err != nil {
+		return nil, model.NewInternalError("store.sql_sys_settings.get_available.app_error", err.Error())
+	}
+
+	return res, nil
 }
