@@ -657,7 +657,7 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
-	err := s.ListQuery(ctx, &att, search.ListRequest,
+	err := s.ListQueryMaster(ctx, &att, search.ListRequest,
 		`domain_id = :Domain
 	and ( :From::timestamptz isnull or joined_at_timestamp >= :From::timestamptz )
 	and ( :To::timestamptz isnull or joined_at_timestamp <= :To::timestamptz )
