@@ -149,6 +149,9 @@ type AgentStore interface {
 	StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError)
 	SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError)
 	DistributeInfoByUserId(ctx context.Context, domainId, userId int64, channel string) (*model.DistributeAgentInfo, model.AppError)
+
+	UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
+	UsersStatusByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
 }
 
 type AgentSkillStore interface {

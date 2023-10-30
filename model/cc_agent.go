@@ -328,6 +328,18 @@ type SearchAgentUser struct {
 	ListRequest
 }
 
+type UserStatus struct {
+	Id        int64       `json:"id" db:"id"`
+	Name      string      `json:"name" db:"name"`
+	Extension string      `json:"extension" db:"extension"`
+	Presence  StringArray `json:"presence" db:"presence"`
+	Status    string      `json:"status" db:"status"`
+}
+
+type SearchUserStatus struct {
+	ListRequest
+}
+
 type AgentState struct {
 	Id       int64      `json:"id" db:"id"`
 	Channel  *string    `json:"channel" db:"channel"`
@@ -393,6 +405,22 @@ func (a AgentInQueue) DefaultFields() []string {
 
 func (a AgentInQueue) EntityName() string {
 	return "cc_agent_in_queue_view"
+}
+
+func (UserStatus) DefaultOrder() string {
+	return "position"
+}
+
+func (a UserStatus) AllowFields() []string {
+	return []string{"id", "name", "extension", "presence", "status"}
+}
+
+func (a UserStatus) DefaultFields() []string {
+	return a.AllowFields()
+}
+
+func (a UserStatus) EntityName() string {
+	return "cc_user_status_view"
 }
 
 type AgentInQueueStatistic struct {

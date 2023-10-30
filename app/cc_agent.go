@@ -257,3 +257,21 @@ func (a *App) GetAgentPauseCause(ctx context.Context, domainId, fromUserId, toAg
 func (a *App) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
 	return a.Store.Agent().SupervisorAgentItem(ctx, domainId, agentId, t)
 }
+
+func (app *App) GetUsersStatusPage(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, bool, model.AppError) {
+	list, err := app.Store.Agent().UsersStatus(ctx, domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (app *App) GetUsersStatusPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, bool, model.AppError) {
+	list, err := app.Store.Agent().UsersStatusByGroup(ctx, domainId, groups, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}

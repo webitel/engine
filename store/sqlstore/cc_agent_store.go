@@ -1221,3 +1221,49 @@ where s.domain_id = :DomainId and s.agent_id = :Id`, map[string]interface{}{
 	return stat, nil
 
 }
+
+func (s SqlAgentStore) UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError) {
+	var users []*model.UserStatus
+
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Q":        search.GetQ(),
+	}
+
+	err := s.ListQuery(ctx, &users, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Q::varchar isnull or (name ilike :Q::varchar or extension ilike :Q::varchar ))`,
+		model.UserStatus{}, f)
+	if err != nil {
+		return nil, model.NewInternalError("store.sql_agent.get_users.app_error", err.Error())
+	}
+
+	return users, nil
+}
+
+func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError) {
+	var users []*model.UserStatus
+
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Q":        search.GetQ(),
+		"Groups":   pq.Array(groups),
+		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+	}
+
+	err := s.ListQuery(ctx, &users, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Q::varchar isnull or (name ilike :Q::varchar or extension ilike :Q::varchar ))
+				and (
+					exists(select 1
+					  from call_center.cc_agent_acl
+					  where call_center.cc_agent_acl.dc = t.domain_id and call_center.cc_agent_acl.object = t.id 
+						and call_center.cc_agent_acl.subject = any(:Groups::int[]) and call_center.cc_agent_acl.access&:Access = :Access)
+		  		)`,
+		model.UserStatus{}, f)
+	if err != nil {
+		return nil, model.NewInternalError("store.sql_agent.get_users.app_error", err.Error())
+	}
+
+	return users, nil
+}

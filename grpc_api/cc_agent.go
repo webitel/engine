@@ -863,6 +863,40 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 	}, nil
 }
 
+func (api *agent) SearchUserStatus(ctx context.Context, in *engine.SearchUserStatusRequest) (*engine.ListUserStatus, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.UserStatus
+	var endList bool
+	req := &model.SearchUserStatus{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
+		},
+	}
+
+	list, endList, err = api.ctrl.SearchUserStatus(ctx, session, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.UserStatus, 0, len(list))
+	for _, v := range list {
+		items = append(items, toUserStatus(v))
+	}
+	return &engine.ListUserStatus{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
 func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCallStatistics {
 	return &engine.AgentCallStatistics{
 		Name:        src.Name,
@@ -1001,4 +1035,14 @@ func toAgentStats(src []*model.AgentInQueueStats) []*engine.AgentInQueueStatisti
 		})
 	}
 	return res
+}
+
+func toUserStatus(src *model.UserStatus) *engine.UserStatus {
+	return &engine.UserStatus{
+		Id:        src.Id,
+		Name:      src.Name,
+		Extension: src.Extension,
+		Presence:  src.Presence,
+		Status:    src.Status,
+	}
 }
