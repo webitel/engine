@@ -27,9 +27,23 @@ func GetFields(f []string, e Entity) []string {
 
 	res := make([]string, 0, len(f))
 
+	jsonb := make(map[string][]string)
+
 	for _, v := range f {
 		if containsString(e.AllowFields(), v) {
 			res = append(res, pq.QuoteIdentifier(v))
+		} else {
+			i := strings.Index(v, ".")
+			if i > 0 {
+				jsonb[v[:i]] = append(jsonb[v[:i]], pq.QuoteLiteral(v[i+1:]))
+			}
+		}
+	}
+
+	for k, v := range jsonb {
+		if containsString(e.AllowFields(), k) && len(v) != 0 {
+			res = append(res, fmt.Sprintf(`call_center.cc_jsonb_show_fields(%s, array[%s]) as %s`, pq.QuoteIdentifier(k),
+				strings.Join(v, ","), pq.QuoteIdentifier(k)))
 		}
 	}
 
