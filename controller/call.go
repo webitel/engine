@@ -228,3 +228,13 @@ func (c *Controller) UpdateCallHistory(ctx context.Context, session *auth_manage
 
 	return c.app.UpdateHistoryCall(ctx, session.Domain(0), id, upd)
 }
+
+func (c *Controller) SetContactCall(ctx context.Context, session *auth_manager.Session, id string, conatctId int64) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	// TODO RBAC ?
+
+	return c.app.SetContactId(ctx, session.Domain(0), "", id, conatctId)
+}

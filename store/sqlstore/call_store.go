@@ -1261,3 +1261,38 @@ where id = :Id::uuid and domain_id = :DomainId`, map[string]interface{}{
 
 	return nil
 }
+
+func (s SqlCallStore) SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError {
+	var info *string
+	err := s.GetMaster().WithContext(ctx).SelectOne(&info, `with ua as (
+    update call_center.cc_calls
+        set contact_id  = :ContactId
+    where id = :Id and domain_id = :DomainId
+    returning id
+), uh as (
+    update call_center.cc_calls_history
+        set contact_id  = :ContactId
+    where id = :Id and domain_id = :DomainId
+        and not exists(select 1 from ua)
+    returning id
+)
+select ua.id as id
+from ua
+union all
+select uh.id as id
+from uh`, map[string]interface{}{
+		"DomainId":  domainId,
+		"ContactId": contactId,
+		"Id":        id,
+	})
+
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_call.set_contact.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if info == nil {
+		return model.NewNotFoundError("store.sql_call.set_contact.not_found", "Not found")
+	}
+
+	return nil
+}

@@ -3,11 +3,9 @@ package wsapi
 import (
 	"context"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
+	"strings"
 )
 
 func (api *API) InitCall() {
@@ -28,16 +26,11 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_bridge", api.ApiWebSocketHandler(api.callBridge))
 	api.Router.Handle("call_recordings", api.ApiWebSocketHandler(api.callRecording))
 	api.Router.Handle("call_set_params", api.ApiWebSocketHandler(api.callSetParams))
+	api.Router.Handle("call_set_contact", api.ApiWebSocketHandler(api.callSetContact))
 
 	api.Router.Handle("call_by_user", api.ApiAsyncWebSocketHandler(api.callByUser))
-	api.Router.Handle("test", api.ApiAsyncWebSocketHandler(api.test))
 
 	api.Router.Handle("sip_proxy", api.ApiWebSocketHandler(api.sipProxy))
-}
-
-func (api *API) test(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	time.Sleep(time.Second * 10)
-	return nil, nil
 }
 
 func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -523,6 +516,24 @@ func (api *API) callSetParams(conn *app.WebConn, req *model.WebSocketRequest) (m
 
 	res := make(map[string]interface{})
 	return res, nil
+}
+
+func (api *API) callSetContact(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id string
+	var contactId float64
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	if contactId, ok = req.Data["contact_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "contact_id")
+	}
+
+	res := make(map[string]interface{})
+	err := api.ctrl.SetContactCall(context.Background(), conn.GetSession(), id, int64(contactId))
+	return res, err
 }
 
 func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
