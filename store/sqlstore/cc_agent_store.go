@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -269,7 +270,10 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 
 func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError) {
 	var res []*model.CCTask
-	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select a.id as attempt_id,
+	cc, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+
+	_, err := s.GetMaster().WithContext(cc).Select(&res, `select a.id as attempt_id,
            a.channel,
 		   a.node_id as app_id,
            a.queue_id,
