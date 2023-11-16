@@ -41,6 +41,10 @@ func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.S
 }
 
 func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError) {
+	if len(members) == 0 {
+		return nil, nil
+	}
+
 	q, err := app.GetQueueById(ctx, domainId, queueId)
 	if err != nil {
 		return nil, err

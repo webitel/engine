@@ -4,14 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
+	"github.com/webitel/wlog"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 type SqlMemberStore struct {
@@ -80,23 +80,25 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 	}
 
 	tableName := fmt.Sprintf("cc_member_tmp_%d", model.GetMillis())
-
 	_, err = tx.WithContext(ctx).Exec("CREATE temp table " + tableName + " ON COMMIT DROP as table call_center.cc_member with no data")
+
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
+
 	if fileName == "" {
 		fileName = model.NewId()
 	}
 
+	result := make([]int64, 0, len(members))
+
 	stmp, err = tx.Prepare(pq.CopyIn(tableName, "id", "queue_id", "priority", "expire_at", "variables", "name",
 		"timezone_id", "communications", "bucket_id", "ready_at", "agent_id", "skill_id", "import_id"))
 	if err != nil {
-		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
+		goto _error
 	}
 
 	defer stmp.Close()
-	result := make([]int64, 0, len(members))
 	for k, v := range members {
 		_, err = stmp.Exec(k, queueId, v.Priority, v.ExpireAt, v.Variables.ToJson(), v.Name, v.Timezone.Id, v.ToJsonCommunications(),
 			v.Bucket.GetSafeId(), v.MinOfferingAt, v.Agent.GetSafeId(), v.Skill.GetSafeId(), fileName)
@@ -147,6 +149,11 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 
 _error:
 	tx.Rollback()
+	if err == nil {
+		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", "Unknown error")
+	}
+
+	wlog.Error(fmt.Sprintf("CreateMemberBulk: sql error, %s", err.Error()))
 	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
