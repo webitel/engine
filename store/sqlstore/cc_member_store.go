@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/webitel/wlog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -147,6 +148,11 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 
 _error:
 	tx.Rollback()
+	if err == nil {
+		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", "Unknown error")
+	}
+
+	wlog.Error(fmt.Sprintf("CreateMemberBulk: sql error, %s", err.Error()))
 	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
