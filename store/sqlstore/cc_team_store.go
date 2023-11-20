@@ -24,9 +24,9 @@ func (s SqlAgentTeamStore) Create(ctx context.Context, team *model.AgentTeam) (*
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with t as (
     insert into call_center.cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
                      no_answer_delay_time, call_timeout, updated_at, created_at, created_by, updated_by,
-                     admin_ids, invite_chat_timeout)
+                     admin_ids, invite_chat_timeout, task_accept_timeout)
     values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
-                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminIds, :InviteChatTimeout)
+                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminIds, :InviteChatTimeout, :TaskAcceptTimeout")
     returning *
 )
 select t.id,
@@ -38,6 +38,7 @@ select t.id,
        t.no_answer_delay_time,
        t.call_timeout,
 	   t.invite_chat_timeout,
+	   t.task_accept_timeout,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user adm
@@ -54,6 +55,7 @@ from t`,
 			"NoAnswerDelayTime": team.NoAnswerDelayTime,
 			"CallTimeout":       team.CallTimeout,
 			"InviteChatTimeout": team.InviteChatTimeout,
+			"TaskAcceptTimeout": team.TaskAcceptTimeout,
 			"CreatedAt":         team.CreatedAt,
 			"CreatedBy":         team.CreatedBy.GetSafeId(),
 			"UpdatedAt":         team.UpdatedAt,
@@ -150,6 +152,7 @@ func (s SqlAgentTeamStore) Get(ctx context.Context, domainId int64, id int64) (*
        t.no_answer_delay_time,
        t.call_timeout,
        t.invite_chat_timeout,
+       t.task_accept_timeout,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user adm
@@ -176,6 +179,7 @@ func (s SqlAgentTeamStore) Update(ctx context.Context, domainId int64, team *mod
         no_answer_delay_time = :NoAnswerDelayTime,
         call_timeout = :CallTimeout,
         invite_chat_timeout = :InviteChatTimeout,
+        task_accept_timeout = :TaskAcceptTimeout,
         updated_at = :UpdatedAt,
         updated_by = :UpdatedBy,
         admin_ids = :AdminIds
@@ -191,6 +195,7 @@ select t.id,
        t.no_answer_delay_time,
        t.call_timeout,
        t.invite_chat_timeout,
+       t.task_accept_timeout,
        t.updated_at,
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user adm
@@ -207,6 +212,7 @@ from t`, map[string]interface{}{
 		"NoAnswerDelayTime": team.NoAnswerDelayTime,
 		"CallTimeout":       team.CallTimeout,
 		"InviteChatTimeout": team.InviteChatTimeout,
+		"TaskAcceptTimeout": team.TaskAcceptTimeout,
 		"UpdatedAt":         team.UpdatedAt,
 		"UpdatedBy":         team.UpdatedBy.GetSafeId(),
 		"AdminIds":          pq.Array(model.LookupIds(team.Admin)),

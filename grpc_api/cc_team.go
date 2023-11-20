@@ -49,6 +49,7 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 		CallTimeout:       int16(in.CallTimeout),
 		Admin:             GetLookups(in.Admin),
 		InviteChatTimeout: int16(in.InviteChatTimeout),
+		TaskAcceptTimeout: int16(in.TaskAcceptTimeout),
 	}
 
 	err = team.IsValid()

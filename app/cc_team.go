@@ -51,6 +51,7 @@ func (a *App) UpdateAgentTeam(ctx context.Context, domainId int64, team *model.A
 	oldTeam.NoAnswerDelayTime = team.NoAnswerDelayTime
 	oldTeam.CallTimeout = team.CallTimeout
 	oldTeam.InviteChatTimeout = team.InviteChatTimeout
+	oldTeam.TaskAcceptTimeout = team.TaskAcceptTimeout
 	oldTeam.Admin = team.Admin
 
 	oldTeam.UpdatedAt = team.UpdatedAt
