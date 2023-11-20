@@ -131,13 +131,15 @@ where domain_id = :DomainId::int8 and name = :Name::varchar`, map[string]interfa
 	return outValue, nil
 }
 
-func (s SqlSystemSettingsStore) Available(ctx context.Context, domainId int64) ([]string, model.AppError) {
+func (s SqlSystemSettingsStore) Available(ctx context.Context, domainId int64, search *model.ListRequest) ([]string, model.AppError) {
 	var res []string
 	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select t
 from unnest(:All::varchar[]) t
-where not exists(select 1 from call_center.system_settings ss where ss.domain_id = :DomainId and ss.name = t)`, map[string]interface{}{
+where not exists(select 1 from call_center.system_settings ss where ss.domain_id = :DomainId and ss.name = t)
+	and (:Q::text isnull or ( t ilike :Q::varchar))`, map[string]interface{}{
 		"All":      pq.Array(allSystemSettings),
 		"DomainId": domainId,
+		"Q":        search.GetQ(),
 	})
 
 	if err != nil {

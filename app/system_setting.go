@@ -76,8 +76,8 @@ func (a *App) RemoveSystemSetting(ctx context.Context, domainId int64, id int32)
 	return setting, nil
 }
 
-func (a *App) GetAvailableSystemSetting(ctx context.Context, domainId int64) ([]string, model.AppError) {
-	list, err := a.Store.SystemSettings().Available(ctx, domainId)
+func (a *App) GetAvailableSystemSetting(ctx context.Context, domainId int64, search *model.ListRequest) ([]string, model.AppError) {
+	list, err := a.Store.SystemSettings().Available(ctx, domainId, search)
 	if err != nil {
 		return nil, err
 	}

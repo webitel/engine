@@ -449,5 +449,5 @@ type SystemSettingsStore interface {
 	Update(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 	ValueByName(ctx context.Context, domainId int64, name string) (model.SysValue, model.AppError)
-	Available(ctx context.Context, domainId int64) ([]string, model.AppError)
+	Available(ctx context.Context, domainId int64, search *model.ListRequest) ([]string, model.AppError)
 }
