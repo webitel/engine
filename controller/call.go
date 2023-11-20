@@ -236,5 +236,5 @@ func (c *Controller) SetContactCall(ctx context.Context, session *auth_manager.S
 	}
 	// TODO RBAC ?
 
-	return c.app.SetContactId(ctx, session.Domain(0), "", id, conatctId)
+	return c.app.SetContactId(ctx, session.Domain(0), session.UserId, "", id, conatctId)
 }
