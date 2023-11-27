@@ -189,6 +189,7 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		CallTimeout:       int16(in.CallTimeout),
 		Admin:             GetLookups(in.Admin),
 		InviteChatTimeout: int16(in.InviteChatTimeout),
+		TaskAcceptTimeout: int16(in.TaskAcceptTimeout),
 	})
 
 	if err != nil {
@@ -241,5 +242,6 @@ func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {
 		CallTimeout:       int32(src.CallTimeout),
 		Admin:             GetProtoLookups(src.Admin),
 		InviteChatTimeout: int32(src.InviteChatTimeout),
+		TaskAcceptTimeout: int32(src.TaskAcceptTimeout),
 	}
 }
