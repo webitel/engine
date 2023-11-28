@@ -63,3 +63,41 @@ func (api *userHelper) DefaultDeviceConfig(ctx context.Context, in *engine.Defau
 		return &engine.DefaultDeviceConfigResponse{}, nil
 	}
 }
+
+func (api *userHelper) ActivityWorkspaceWidget(ctx context.Context, in *engine.ActivityWorkspaceWidgetRequest) (*engine.ActivityWorkspaceWidgetResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var stat *model.AgentStatistics
+	stat, err = api.ctrl.GetUserTodayStatistics(ctx, session)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ActivityWorkspaceWidgetResponse{
+		Utilization:      stat.Utilization,
+		Occupancy:        stat.Occupancy,
+		CallAbandoned:    stat.CallAbandoned,
+		CallHandled:      stat.CallHandled,
+		AvgTalkSec:       stat.AvgTalkSec,
+		AvgHoldSec:       stat.AvgHoldSec,
+		ChatAccepts:      stat.ChatAccepts,
+		ChatAht:          stat.ChatAht,
+		CallMissed:       stat.CallMissed,
+		CallInbound:      stat.CallInbound,
+		ScoreRequiredAvg: stat.ScoreRequiredAvg,
+		ScoreOptionalAvg: stat.ScoreOptionalAvg,
+		ScoreCount:       stat.ScoreCount,
+		ScoreRequiredSum: stat.ScoreRequiredSum,
+		ScoreOptionalSum: stat.ScoreOptionalSum,
+		SumTalkSec:       stat.SumTalkSec,
+		VoiceMail:        stat.VoiceMail,
+		Available:        stat.Available,
+		Online:           stat.Online,
+		Processing:       stat.Processing,
+		TaskAccepts:      stat.TaskAccepts,
+		QueueTalkSec:     stat.QueueTalkSec,
+	}, nil
+}

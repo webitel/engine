@@ -1187,9 +1187,12 @@ where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::
 	return res, nil
 }
 
-func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId, agentId int64) (*model.AgentStatistics, model.AppError) {
-	var stat *model.AgentStatistics
-	err := s.GetReplica().WithContext(ctx).SelectOne(&stat, `select
+func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId int64, agentId *int64, userId *int64) (*model.AgentStatistics, model.AppError) {
+	params := map[string]interface{}{
+		"DomainId": domainId,
+	}
+
+	q := `select
 	s.utilization, 
 	s.occupancy, 
 	s.call_abandoned, 
@@ -1213,10 +1216,18 @@ func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId, agentId in
     s.task_accepts,
 	s.queue_talk_sec
 from call_center.cc_agent_today_stats s
-where s.domain_id = :DomainId and s.agent_id = :Id`, map[string]interface{}{
-		"DomainId": domainId,
-		"Id":       agentId,
-	})
+where s.domain_id = :DomainId and `
+
+	if agentId != nil {
+		params["Id"] = agentId
+		q += `s.agent_id = :Id`
+	} else {
+		params["Id"] = userId
+		q += `s.user_id = :Id`
+	}
+
+	var stat *model.AgentStatistics
+	err := s.GetReplica().WithContext(ctx).SelectOne(&stat, q, params)
 
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.statistic.today", err.Error(), extractCodeFromErr(err))

@@ -221,7 +221,11 @@ func (a *App) GetAgentReportCall(ctx context.Context, domainId int64, search *mo
 }
 
 func (a *App) GetAgentTodayStatistics(ctx context.Context, domainId, agentId int64) (*model.AgentStatistics, model.AppError) {
-	return a.Store.Agent().TodayStatistics(ctx, domainId, agentId)
+	return a.Store.Agent().TodayStatistics(ctx, domainId, &agentId, nil)
+}
+
+func (a *App) GetUserTodayStatistics(ctx context.Context, domainId, userId int64) (*model.AgentStatistics, model.AppError) {
+	return a.Store.Agent().TodayStatistics(ctx, domainId, nil, &userId)
 }
 
 func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, model.AppError) {

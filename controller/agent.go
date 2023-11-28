@@ -201,6 +201,10 @@ func (c *Controller) GetAgentTodayStatistics(ctx context.Context, session *auth_
 	return c.app.GetAgentTodayStatistics(ctx, session.Domain(0), agentId)
 }
 
+func (c *Controller) GetUserTodayStatistics(ctx context.Context, session *auth_manager.Session) (*model.AgentStatistics, model.AppError) {
+	return c.app.GetUserTodayStatistics(ctx, session.Domain(0), session.UserId)
+}
+
 func (c *Controller) SearchUserStatus(ctx context.Context, session *auth_manager.Session, search *model.SearchUserStatus) ([]*model.UserStatus, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_USERS)
 	if !permission.CanRead() {

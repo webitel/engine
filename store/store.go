@@ -135,7 +135,7 @@ type AgentStore interface {
 
 	/* stats */
 	CallStatistics(ctx context.Context, domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, model.AppError)
-	TodayStatistics(ctx context.Context, domainId, agentId int64) (*model.AgentStatistics, model.AppError)
+	TodayStatistics(ctx context.Context, domainId int64, agentId *int64, userId *int64) (*model.AgentStatistics, model.AppError)
 
 	/* view */
 	InQueue(ctx context.Context, domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, model.AppError)
