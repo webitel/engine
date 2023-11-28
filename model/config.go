@@ -40,6 +40,7 @@ type Config struct {
 	SipSettings             SipSettings              `json:"sip_settings"`
 	Cloudflare              bool                     `json:"cloudflare" flag:"cloudflare|0|Use cloudflare"`
 	PingClientInterval      int                      `json:"ping_client_interval" flag:"ping_client_interval|0|Interval websocket ping"`
+	PingClientLatency       bool                     `json:"ping_client_latency" flag:"ping_client_latency|0|Websocket ping latency"`
 	MinimumNumberMaskLen    int                      `json:"minimum_number_mask_len" flag:"min_mask_number_len|0|Minimum mask length number"`
 	PrefixNumberMaskLen     int                      `json:"prefix_number_mask_len" flag:"prefix_number_mask_len|5|Prefix mask length number"`
 	SuffixNumberMaskLen     int                      `json:"suffix_number_mask_len" flag:"suffix_number_mask_len|5|Suffix mask length number"`

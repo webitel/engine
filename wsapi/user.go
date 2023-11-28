@@ -13,6 +13,9 @@ func (api *API) InitUser() {
 
 	api.Router.Handle("subscribe_users_status", api.ApiWebSocketHandler(api.subscribeUsersStatus))
 	api.Router.Handle("ping", api.ApiWebSocketHandler(api.ping))
+
+	api.Router.Handle("latency_start", api.ApiWebSocketHandler(api.latencyStart))
+	api.Router.Handle("latency_ack", api.ApiWebSocketHandler(api.latencyAck))
 }
 
 func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -46,5 +49,19 @@ func (api *API) subscribeUsersStatus(conn *app.WebConn, req *model.WebSocketRequ
 func (api *API) ping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	data := map[string]interface{}{}
 	data["pong"] = 1
+	if api.pingClientLatency {
+		data["server_ts"] = model.GetMillis()
+	}
 	return data, nil
+}
+
+func (api *API) latencyStart(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	return map[string]interface{}{
+		"server_ts": model.GetMillis(),
+	}, nil
+}
+
+func (api *API) latencyAck(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	req.Data["server_ack_ts"] = model.GetMillis()
+	return req.Data, nil
 }
