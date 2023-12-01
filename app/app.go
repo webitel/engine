@@ -135,7 +135,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
-	app.b2b = b2bua.New(app)
+	//app.b2b = b2bua.New(app)
 
 	return app, outErr
 }
