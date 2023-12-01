@@ -23,7 +23,12 @@ func (s SqlAuditFormStore) CheckAccess(ctx context.Context, domainId int64, id i
             and a.object = :Id
             and a.subject = any (:Groups::int[])
             and a.access & :Access = :Access
-        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
+        )`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+		"Groups":   pq.Array(groups),
+		"Access":   access.Value(),
+	})
 
 	if err != nil {
 		return false, nil
@@ -117,7 +122,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
-		"TeamIds":  search.TeamIds,
+		"TeamIds":  pq.Array(search.TeamIds),
 		"Archive":  search.Archive,
 		"Editable": search.Editable,
 		"Question": model.ReplaceWebSearch(search.Question),
@@ -127,7 +132,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
 				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:TeamIds::int[] isnull or team_ids = any(:TeamIds))
+				and (:TeamIds::int[] isnull or team_ids && :TeamIds)
 				and (:Archive::bool isnull or archive = :Archive)
 			    and (:Editable::bool isnull or editable = :Editable)
 				and (:Question::varchar isnull or (exists(select 1 from jsonb_array_elements(questions) q where q->>'question' ilike :Question::varchar)))
