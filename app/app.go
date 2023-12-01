@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/cipher"
+	"github.com/webitel/engine/b2bua"
 	"github.com/webitel/engine/logger"
 
 	"github.com/gorilla/mux"
@@ -37,6 +38,7 @@ type App struct {
 	cc             client.CCManager
 	cipherBlock    cipher.Block
 	audit          *logger.Audit
+	b2b            *b2bua.B2B
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -132,6 +134,8 @@ func New(options ...string) (outApp *App, outErr error) {
 	if app.audit, err = logger.New(app.Config().DiscoverySettings.Url, app.MessageQueue); err != nil {
 		return nil, err
 	}
+
+	app.b2b = b2bua.New(app)
 
 	return app, outErr
 }

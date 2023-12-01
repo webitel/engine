@@ -224,6 +224,7 @@ type Call struct {
 	Hold          []*CallHold `json:"hold" db:"hold"`
 	BlindTransfer *string     `json:"blind_transfer" db:"blind_transfer"`
 	BridgedId     *string     `json:"bridged_id" db:"bridged_id"`
+	ContactId     *int64      `json:"contact_id" db:"contact_id"`
 }
 
 type CCTask struct {

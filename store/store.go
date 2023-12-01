@@ -349,6 +349,7 @@ type CallStore interface {
 	GetUserActiveCall(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError)
 	SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError)
 	SetVariables(ctx context.Context, domainId int64, id string, vars model.StringMap) (*model.CallDomain, model.AppError)
+	GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
 
 	CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError)
 	GetAnnotation(ctx context.Context, id int64) (*model.CallAnnotation, model.AppError)

@@ -249,6 +249,7 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
        c."hangup_at",
        c."hold_sec",
        call_center.cc_get_lookup(cq.id::bigint, cq.name)                                      AS queue,
+	   c.contact_id,
 	   to_timestamp(at.leaving_at::double precision/1000) as leaving_at --todo
 from call_center.cc_calls c
          left join call_center.cc_queue cq on c.queue_id = cq.id
@@ -1295,4 +1296,20 @@ from uh`, map[string]interface{}{
 	}
 
 	return nil
+}
+
+func (s SqlCallStore) GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError) {
+	sipId, err := s.GetMaster().WithContext(ctx).SelectStr(`select (params->>'sip_id')::varchar sip_id
+	from call_center.cc_calls c 
+	where c.id = :Id and c.domain_id = :Domain and c.user_id = :UserId`, map[string]interface{}{
+		"Id":     id,
+		"Domain": domainId,
+		"UserId": userId,
+	})
+
+	if err != nil {
+		return "", model.NewCustomCodeError("store.sql_call.get_sip_id.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return sipId, nil
 }

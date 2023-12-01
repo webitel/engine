@@ -1,0 +1,151 @@
+package b2bua
+
+import (
+	"fmt"
+	"github.com/webitel/engine/b2bua/account"
+	"github.com/webitel/engine/b2bua/media/rtp"
+	"github.com/webitel/engine/b2bua/session"
+	"github.com/webitel/engine/b2bua/stack"
+	"github.com/webitel/engine/b2bua/ua"
+	"github.com/webitel/engine/b2bua/utils"
+	"github.com/ghettovoice/gosip/log"
+	"github.com/ghettovoice/gosip/sip"
+	"github.com/ghettovoice/gosip/sip/parser"
+	"net"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
+var (
+	logger log.Logger
+	udp    *rtp.RtpUDPStream
+)
+
+type B2B struct {
+	stack   *stack.SipStack
+	ua      *ua.UserAgent
+	profile *account.Profile
+	cb      OnCallback
+}
+
+func init() {
+	logger = utils.NewLogrusLogger(log.DebugLevel, "Register", nil)
+}
+
+type OnCallback interface {
+	OnB2B(data string)
+}
+
+func New(cb OnCallback) *B2B {
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	stack := stack.NewSipStack(&stack.SipStackConfig{
+		UserAgent:  "example-webrtc",
+		Extensions: []string{"replaces", "outbound"},
+		Host:       "10.9.8.111",
+		Dns:        "8.8.8.8"})
+
+	if err := stack.Listen("tcp", "0.0.0.0:5067"); err != nil {
+		logger.Panic(err)
+	}
+
+	ua := ua.NewUserAgent(&ua.UserAgentConfig{
+		SipStack: stack,
+	})
+
+	ua.RegisterStateHandler = func(state account.RegisterState) {
+		logger.Infof("RegisterStateHandler: user => %s, state => %v, expires => %v, reason => %v", state.Account.AuthInfo.AuthUser, state.StatusCode, state.Expiration, state.Reason)
+	}
+
+	uri, err := parser.ParseUri("sip:1008@demo.webitel.com") // this acts as an identifier, not connection info
+	if err != nil {
+		logger.Error(err)
+	}
+
+	ua.InviteStateHandler = func(sess *session.Session, req *sip.Request, resp *sip.Response, state session.Status) {
+		logger.Infof("InviteStateHandler: state => %v, type => %s", state, sess.Direction())
+
+		switch state {
+		case session.InviteSent:
+			fmt.Println(resp)
+		case session.Confirmed:
+			fmt.Println(resp)
+			cb.OnB2B(sess.RemoteSdp())
+		case session.InviteReceived:
+			//udp = createUdp()
+			//udpLaddr := udp.LocalAddr()
+			//sdp := mock.BuildLocalSdp(udpLaddr.IP.String(), udpLaddr.Port)
+			//sess.ProvideAnswer(sdp)
+			//sess.Accept(200)
+		case session.Canceled:
+			fallthrough
+		case session.Failure:
+			fallthrough
+		case session.Terminated:
+			//udp.Close()
+		}
+	}
+
+	profile := account.NewProfile(uri.Clone(), "goSIP",
+		&account.AuthInfo{
+			AuthUser: "1008",
+			Password: "tWKtntyTB1UV",
+			Realm:    "demo.webitel.com",
+		},
+		1800,
+		stack,
+	)
+
+	recipient, err := parser.ParseSipUri("sip:1008@10.9.8.111;transport=tcp") // this is the remote address
+	if err != nil {
+		logger.Error(err)
+	}
+
+	register, err := ua.SendRegister(profile, recipient, profile.Expires, nil)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	register.SendRegister(300)
+
+	return &B2B{
+		stack:   stack,
+		ua:      ua,
+		profile: profile,
+		cb:      cb,
+	}
+
+}
+
+func (b *B2B) Dial(sdp string, destination string) {
+	to, _ := parser.ParseSipUri(fmt.Sprintf("sip:%s@10.9.8.111", destination))
+
+	if sess, err := b.ua.Invite(b.profile, &to, to, &sdp); err != nil {
+		panic(err.Error())
+	} else {
+		fmt.Println(sess)
+		fmt.Println("local ", sess.LocalSdp())
+		fmt.Println("remote", sess.RemoteSdp())
+
+	}
+}
+
+func (b *B2B) Stop() {
+	b.ua.Shutdown()
+}
+
+func createUdp() *rtp.RtpUDPStream {
+
+	udp = rtp.NewRtpUDPStream("127.0.0.1", rtp.DefaultPortMin, rtp.DefaultPortMax, func(data []byte, raddr net.Addr) {
+		logger.Infof("Rtp recevied: %v, laddr %s : raddr %s", len(data), udp.LocalAddr().String(), raddr)
+		dest, _ := net.ResolveUDPAddr(raddr.Network(), raddr.String())
+		logger.Infof("Echo rtp to %v", raddr)
+		udp.Send(data, dest)
+	})
+
+	go udp.Read()
+
+	return udp
+}
