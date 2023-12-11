@@ -384,7 +384,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
 		`domain_id = :Domain::int8 
 	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
-	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
+	and (:Number::text isnull or search_number ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
@@ -531,7 +531,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
 		`domain_id = :Domain::int8 
 	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
-	and (:Number::text isnull or from_number ~ :Number::text or to_number ~ :Number::text or destination ~ :Number::text)
+	and (:Number::text isnull or search_number ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
