@@ -271,10 +271,10 @@ type QueueHookStore interface {
 }
 
 type CommunicationTypeStore interface {
-	Create(ctx context.Context, comm *model.CommunicationType) (*model.CommunicationType, model.AppError)
+	Create(ctx context.Context, domainId int64, comm *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, model.AppError)
 	Get(ctx context.Context, domainId int64, id int64) (*model.CommunicationType, model.AppError)
-	Update(ctx context.Context, cType *model.CommunicationType) (*model.CommunicationType, model.AppError)
+	Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int64) model.AppError
 }
 

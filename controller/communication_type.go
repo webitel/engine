@@ -18,7 +18,7 @@ func (c *Controller) CreateCommunicationType(ctx context.Context, session *auth_
 		return nil, err
 	}
 
-	return c.app.CreateCommunicationType(ctx, ct)
+	return c.app.CreateCommunicationType(ctx, session.Domain(0), ct)
 }
 
 func (c *Controller) GetCommunicationTypePage(ctx context.Context, session *auth_manager.Session, search *model.SearchCommunicationType) ([]*model.CommunicationType, bool, model.AppError) {
@@ -45,8 +45,16 @@ func (c *Controller) UpdateCommunicationType(ctx context.Context, session *auth_
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	ct.DomainId = session.Domain(0)
-	return c.app.UpdateCommunicationType(ctx, ct)
+	return c.app.UpdateCommunicationType(ctx, session.Domain(0), ct)
+}
+
+func (c *Controller) PatchCommunicationType(ctx context.Context, session *auth_manager.Session, id int64, patch *model.CommunicationTypePatch) (*model.CommunicationType, model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_DICTIONARIES)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.PatchCommunicationType(ctx, session.Domain(0), id, patch)
 }
 
 func (c *Controller) RemoveCommunicationType(ctx context.Context, session *auth_manager.Session, id int64) (*model.CommunicationType, model.AppError) {

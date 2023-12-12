@@ -18,17 +18,23 @@ func NewSqlCommunicationTypeStore(sqlStore SqlStore) store.CommunicationTypeStor
 	return us
 }
 
-func (s SqlCommunicationTypeStore) Create(ctx context.Context, comm *model.CommunicationType) (*model.CommunicationType, model.AppError) {
+func (s SqlCommunicationTypeStore) Create(ctx context.Context, domainId int64, comm *model.CommunicationType) (*model.CommunicationType, model.AppError) {
 	var out *model.CommunicationType
-	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_communication (name, code, channel, domain_id, description)
-		values (:Name, :Code, :Channel, :DomainId, :Description)
-		returning *`,
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_communication (name, code, channel, domain_id, description, "default")
+		values (:Name, :Code, :Channel, :DomainId, :Description, :Default)
+		returning id,
+       		name,
+			code,
+       		description,
+       		channel,
+       		"default"`,
 		map[string]interface{}{
 			"Name":        comm.Name,
 			"Code":        comm.Code,
 			"Channel":     comm.Channel,
-			"DomainId":    comm.DomainId,
+			"DomainId":    domainId,
 			"Description": comm.Description,
+			"Default":     comm.Default,
 		}); nil != err {
 		return nil, model.NewInternalError("store.sql_communication_type.save.app_error", fmt.Sprintf("name=%v, %v", comm.Name, err.Error()))
 	} else {
@@ -44,11 +50,13 @@ func (s SqlCommunicationTypeStore) GetAllPage(ctx context.Context, domainId int6
 		"Ids":      pq.Array(search.Ids),
 		"Channels": pq.Array(search.Channels),
 		"Q":        search.GetQ(),
+		"Default":  search.Default,
 	}
 
 	err := s.ListQuery(ctx, &communications, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
+				and (:Default::bool isnull or "default")
 				and (:Channels::text[] isnull or channel = any(:Channels))
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar))`,
 		model.CommunicationType{}, f)
@@ -62,30 +70,38 @@ func (s SqlCommunicationTypeStore) GetAllPage(ctx context.Context, domainId int6
 
 func (s SqlCommunicationTypeStore) Get(ctx context.Context, domainId int64, id int64) (*model.CommunicationType, model.AppError) {
 	var out *model.CommunicationType
-	if err := s.GetReplica().WithContext(ctx).SelectOne(&out, `select *
-		from call_center.cc_communication s
-		where s.id = :Id and s.domain_id = :DomainId`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+	if err := s.One(ctx, &out, `id = :Id and domain_id = :DomainId`,
+		model.CommunicationType{},
+		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_communication_type.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
 }
 
-func (s SqlCommunicationTypeStore) Update(ctx context.Context, cType *model.CommunicationType) (*model.CommunicationType, model.AppError) {
+func (s SqlCommunicationTypeStore) Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cType, `update call_center.cc_communication
 set name = :Name,
     description = :Description,
     channel = :Channel,
-    code = :Code
+    code = :Code,
+	"default" = :Default
 where id = :Id and domain_id = :DomainId
-returning *`, map[string]interface{}{
-		"Name":        cType.Name,
-		"Description": cType.Description,
-		"Channel":     cType.Channel,
-		"Code":        cType.Code,
-		"Id":          cType.Id,
-		"DomainId":    cType.DomainId,
-	})
+returning id,
+		name,
+		code,
+		description,
+		channel,
+		"default"`,
+		map[string]interface{}{
+			"Name":        cType.Name,
+			"Description": cType.Description,
+			"Channel":     cType.Channel,
+			"Code":        cType.Code,
+			"Id":          cType.Id,
+			"DomainId":    domainId,
+			"Default":     cType.Default,
+		})
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_communication_type.update.app_error", fmt.Sprintf("Id=%v, %s", cType.Id, err.Error()))
 	}

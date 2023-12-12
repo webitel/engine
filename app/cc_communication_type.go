@@ -6,8 +6,8 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (app *App) CreateCommunicationType(ctx context.Context, comm *model.CommunicationType) (*model.CommunicationType, model.AppError) {
-	return app.Store.CommunicationType().Create(ctx, comm)
+func (app *App) CreateCommunicationType(ctx context.Context, domainId int64, comm *model.CommunicationType) (*model.CommunicationType, model.AppError) {
+	return app.Store.CommunicationType().Create(ctx, domainId, comm)
 }
 
 func (app *App) GetCommunicationTypePage(ctx context.Context, domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, bool, model.AppError) {
@@ -23,8 +23,8 @@ func (app *App) GetCommunicationType(ctx context.Context, id, domainId int64) (*
 	return app.Store.CommunicationType().Get(ctx, domainId, id)
 }
 
-func (app *App) UpdateCommunicationType(ctx context.Context, cType *model.CommunicationType) (*model.CommunicationType, model.AppError) {
-	oldCType, err := app.Store.CommunicationType().Get(ctx, cType.DomainId, cType.Id)
+func (app *App) UpdateCommunicationType(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError) {
+	oldCType, err := app.Store.CommunicationType().Get(ctx, domainId, cType.Id)
 
 	if err != nil {
 		return nil, err
@@ -34,13 +34,34 @@ func (app *App) UpdateCommunicationType(ctx context.Context, cType *model.Commun
 	oldCType.Description = cType.Description
 	oldCType.Channel = cType.Channel
 	oldCType.Code = cType.Code
+	oldCType.Default = cType.Default
 
-	_, err = app.Store.CommunicationType().Update(ctx, oldCType)
+	_, err = app.Store.CommunicationType().Update(ctx, domainId, oldCType)
 	if err != nil {
 		return nil, err
 	}
 
 	return oldCType, nil
+}
+
+func (app *App) PatchCommunicationType(ctx context.Context, domainId int64, id int64, patch *model.CommunicationTypePatch) (*model.CommunicationType, model.AppError) {
+	old, err := app.GetCommunicationType(ctx, id, domainId)
+	if err != nil {
+		return nil, err
+	}
+
+	old.Patch(patch)
+
+	if err = old.IsValid(); err != nil {
+		return nil, err
+	}
+
+	old, err = app.Store.CommunicationType().Update(ctx, domainId, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return old, nil
 }
 
 func (app *App) RemoveCommunicationType(ctx context.Context, domainId, id int64) (*model.CommunicationType, model.AppError) {

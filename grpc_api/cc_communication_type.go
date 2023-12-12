@@ -11,8 +11,6 @@ type communicationType struct {
 	engine.UnsafeCommunicationTypeServiceServer
 }
 
-//aaaa
-
 func NewCommunicationTypeApi(api *API) *communicationType {
 	return &communicationType{API: api}
 }
@@ -24,11 +22,11 @@ func (api *communicationType) CreateCommunicationType(ctx context.Context, in *e
 	}
 
 	cType := &model.CommunicationType{
-		DomainId:    session.Domain(in.GetDomainId()),
 		Name:        in.Name,
 		Code:        in.GetCode(),
 		Channel:     in.GetChannel().String(),
 		Description: in.Description,
+		Default:     in.Default,
 	}
 
 	cType, err = api.ctrl.CreateCommunicationType(ctx, session, cType)
@@ -56,6 +54,10 @@ func (api *communicationType) SearchCommunicationType(ctx context.Context, in *e
 			Sort:    in.Sort,
 		},
 		Ids: in.Id,
+	}
+
+	if in.Default {
+		req.Default = &in.Default
 	}
 
 	if len(in.Channel) != 0 {
@@ -103,11 +105,11 @@ func (api *communicationType) UpdateCommunicationType(ctx context.Context, in *e
 
 	cType := &model.CommunicationType{
 		Id:          in.GetId(),
-		DomainId:    session.Domain(in.GetDomainId()),
 		Name:        in.GetName(),
 		Code:        in.GetCode(),
 		Channel:     in.GetChannel().String(),
 		Description: in.GetDescription(),
+		Default:     in.Default,
 	}
 
 	cType, err = api.ctrl.UpdateCommunicationType(ctx, session, cType)
@@ -117,6 +119,40 @@ func (api *communicationType) UpdateCommunicationType(ctx context.Context, in *e
 	}
 
 	return toEngineCommunicationType(cType), nil
+}
+
+func (api *communicationType) PatchCommunicationType(ctx context.Context, in *engine.PatchCommunicationTypeRequest) (*engine.CommunicationType, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var ct *model.CommunicationType
+	patch := &model.CommunicationTypePatch{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "default":
+			patch.Default = &in.Default
+		case "name":
+			patch.Name = &in.Name
+		case "description":
+			patch.Description = &in.Description
+		case "code":
+			patch.Code = &in.Code
+		case "channel":
+			patch.Channel = model.NewString(in.GetChannel().String())
+		}
+	}
+
+	ct, err = api.ctrl.PatchCommunicationType(ctx, session, in.GetId(), patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineCommunicationType(ct), nil
 }
 
 func (api *communicationType) DeleteCommunicationType(ctx context.Context, in *engine.DeleteCommunicationTypeRequest) (*engine.CommunicationType, error) {
@@ -137,11 +173,11 @@ func (api *communicationType) DeleteCommunicationType(ctx context.Context, in *e
 func toEngineCommunicationType(src *model.CommunicationType) *engine.CommunicationType {
 	return &engine.CommunicationType{
 		Id:          src.Id,
-		DomainId:    src.DomainId,
 		Name:        src.Name,
 		Code:        src.Code,
 		Channel:     getChannelEnum(src.Channel),
 		Description: src.Description,
+		Default:     src.Default,
 	}
 }
 
