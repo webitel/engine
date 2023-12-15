@@ -2,6 +2,8 @@ package wsapi
 
 import (
 	"context"
+	"fmt"
+	"github.com/webitel/wlog"
 
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
@@ -63,5 +65,8 @@ func (api *API) latencyStart(conn *app.WebConn, req *model.WebSocketRequest) (ma
 
 func (api *API) latencyAck(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	req.Data["server_ack_ts"] = model.GetMillis()
+	if v, ok := req.Data["last_latency"].(float64); ok && v > 0 {
+		wlog.Debug(fmt.Sprintf("[%s] user_id=%d sock=%s latency=%f", conn.Ip(), conn.UserId, conn.Id(), v))
+	}
 	return req.Data, nil
 }
