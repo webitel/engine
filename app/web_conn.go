@@ -48,6 +48,7 @@ type WebConn struct {
 	listenEvents       map[string]*model.BindQueueEvent
 	mx                 sync.RWMutex
 	ip                 string
+	lastLatencyTime    atomic.Int64
 
 	//Sip *SipProxy
 }
@@ -83,6 +84,12 @@ func (wc *WebConn) Id() string {
 
 func (wc *WebConn) Ip() string {
 	return wc.ip
+}
+
+func (wc *WebConn) SetLastLatencyTime(new int64) int64 {
+	t := wc.lastLatencyTime.Load()
+	wc.lastLatencyTime.Store(new)
+	return t
 }
 
 func (wc *WebConn) Close() {
