@@ -68,7 +68,7 @@ func (api *API) latencyAck(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	if v, ok := req.Data["last_latency"].(float64); ok && v > 0 {
 		old := conn.SetLastLatencyTime(t)
 		if old > 0 {
-			wlog.Debug(fmt.Sprintf("[%s] user_id=%d sock=%s latency=%f diff=%d", conn.Ip(), conn.UserId, conn.Id(), v, (t-old)/1000))
+			wlog.Debug(fmt.Sprintf("[%s] user_id=%d sock=%s latency=%f diff=%ds", conn.Ip(), conn.UserId, conn.Id(), v, (t-old)/1000))
 		} else {
 			wlog.Debug(fmt.Sprintf("[%s] user_id=%d sock=%s latency=%f", conn.Ip(), conn.UserId, conn.Id(), v))
 		}
