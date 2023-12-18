@@ -14,14 +14,12 @@ import (
 )
 
 const (
-	SEND_QUEUE_SIZE           = 256
-	SEND_SLOW_WARN            = (SEND_QUEUE_SIZE * 50) / 100
-	SEND_DEADLOCK_WARN        = (SEND_QUEUE_SIZE * 95) / 100
-	WRITE_WAIT                = 30 * time.Second
-	PONG_WAIT                 = 100 * time.Second
-	PING_PERIOD               = (PONG_WAIT * 6) / 10
-	AUTH_TIMEOUT              = 15 * time.Second
-	WEBCONN_MEMBER_CACHE_TIME = 1000 * 60 * 30 // 30 minutes
+	SEND_QUEUE_SIZE    = 256
+	SEND_DEADLOCK_WARN = (SEND_QUEUE_SIZE * 95) / 100
+	WRITE_WAIT         = 30 * time.Second
+	PONG_WAIT          = 60 * time.Second
+	PING_PERIOD        = (PONG_WAIT * 6) / 10
+	AUTH_TIMEOUT       = 15 * time.Second
 )
 
 var (
@@ -118,7 +116,8 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadLimit(int64(c.App.MaxSocketInboundMsgSize()))
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
-		return c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
+		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
+		return nil
 	})
 
 	for {
@@ -127,12 +126,10 @@ func (c *WebConn) readPump() {
 
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
 			// browsers will appear as CloseNoStatusReceived
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-				wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v", c.UserId))
-			} else {
-				wlog.Debug(fmt.Sprintf("websocket.read: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v error=%s", c.UserId, err.Error()))
+				break
 			}
-			return
 		}
 
 		c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
@@ -151,8 +148,8 @@ func (c *WebConn) writePump() {
 	for {
 		select {
 		case msg, ok := <-c.Send:
+			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if !ok {
-				c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 				c.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
@@ -178,7 +175,6 @@ func (c *WebConn) writePump() {
 				}
 			}
 
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
 				// browsers will appear as CloseNoStatusReceived
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
