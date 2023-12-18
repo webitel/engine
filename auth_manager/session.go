@@ -3,6 +3,7 @@ package auth_manager
 import (
 	"fmt"
 	"github.com/webitel/wlog"
+	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
 	"time"
 )
@@ -12,14 +13,14 @@ var (
 )
 
 type Session struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	DomainId   int64  `json:"domain_id"`
-	DomainName string `json:"domain_name"`
-	Expire     int64  `json:"expire"`
-	UserId     int64  `json:"user_id"`
-	UserIp     string `json:"user_ip"`
-	RoleIds    []int  `json:"role_ids"`
+	Id         string        `json:"id"`
+	Name       string        `json:"name"`
+	DomainId   int64         `json:"domain_id"`
+	DomainName string        `json:"domain_name"`
+	Expire     int64         `json:"expire"`
+	UserId     int64         `json:"user_id"`
+	userIp     atomic.String `json:"user_ip"`
+	RoleIds    []int         `json:"role_ids"`
 
 	Token            string              `json:"token"`
 	Scopes           []SessionPermission `json:"scopes"`
@@ -65,8 +66,12 @@ func (self *Session) GetDomainId() int64 {
 	return self.DomainId
 }
 
+func (self *Session) SetIp(ip string) {
+	self.userIp.Store(ip)
+}
+
 func (self *Session) GetUserIp() string {
-	return self.UserIp
+	return self.userIp.Load()
 }
 
 func (self *Session) HasCallCenterLicense() bool {
