@@ -71,6 +71,8 @@ func (app *App) SipRegister(ctx context.Context, domainId, userId int64) model.A
 	err := app.b2b.Register(int(userId), b2bua.AuthInfo{
 		DisplayName: "igor",
 		Expires:     3200,
+		DomainId:    domainId,
+		UserId:      userId,
 		AuthInfo: account.AuthInfo{
 			AuthUser: sipConf.Auth,
 			Realm:    sipConf.Domain,

@@ -422,3 +422,13 @@ func (s *Session) makeRequest(uaType string, method sip.RequestMethod, msgID sip
 
 	return newRequest
 }
+
+func (s *Session) ContactParam(name string) string {
+	if s.contact != nil {
+		if val, ok := s.contact.Params.Get(name); ok {
+			return val.String()
+		}
+	}
+
+	return ""
+}

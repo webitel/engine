@@ -21,10 +21,12 @@ func init() {
 
 // AuthInfo .
 type AuthInfo struct {
-	AuthUser string
-	Realm    string
-	Password string
-	Ha1      string
+	AuthUser  string
+	Realm     string
+	Password  string
+	Ha1       string
+	DomainId  int64
+	ContactId int64
 }
 
 // Profile .
@@ -59,6 +61,9 @@ func (p *Profile) Contact() *sip.Address {
 		contact.Params.Add("+sip.instance", sip.String{Str: p.InstanceID})
 	}
 
+	contact.Params.Add("dc", sip.String{Str: fmt.Sprintf("%d", p.DomainId)})
+	contact.Params.Add("uid", sip.String{Str: fmt.Sprintf("%d", p.UserId)})
+
 	for key, value := range p.ContactParams {
 		contact.Params.Add(key, sip.String{Str: value})
 	}
@@ -71,6 +76,8 @@ func (p *Profile) Contact() *sip.Address {
 
 // NewProfile .
 func NewProfile(
+	domainId int64,
+	userId int64,
 	uri sip.Uri,
 	displayName string,
 	authInfo *AuthInfo,
@@ -83,6 +90,8 @@ func NewProfile(
 		AuthInfo:      authInfo,
 		Expires:       expires,
 		CustomHeaders: make(map[string]string),
+		DomainId:      domainId,
+		UserId:        userId,
 	}
 
 	if stack != nil { // populate the Contact field
