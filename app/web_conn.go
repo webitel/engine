@@ -109,7 +109,7 @@ func (c *WebConn) Pump() {
 
 func (c *WebConn) readPump() {
 	defer func() {
-		fmt.Printf("close " + c.WebSocket.RemoteAddr().String())
+		wlog.Debug(fmt.Sprintf("websocket.read: close userId=%v, sockId=%s, ip=%s", c.UserId, c.id, c.ip))
 		c.WebSocket.Close()
 	}()
 
@@ -127,8 +127,10 @@ func (c *WebConn) readPump() {
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
 			// browsers will appear as CloseNoStatusReceived
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v error=%s", c.UserId, err.Error()))
+				wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
 				break
+			} else {
+				wlog.Warn(fmt.Sprintf("websocket.read: decode JSON userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
 			}
 		}
 
