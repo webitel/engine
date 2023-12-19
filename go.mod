@@ -24,7 +24,7 @@ require (
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20231016113709-0c9af6452b82
 	github.com/webitel/protos/cc v0.0.0-20231016113342-4e297ed227c4
-	github.com/webitel/protos/engine v0.0.0-20231212152604-13498c37c9c1
+	github.com/webitel/protos/engine v0.0.0-20231219125449-5b30bbcb08c0
 	github.com/webitel/protos/fs v0.0.0-20231016113342-4e297ed227c4
 	github.com/webitel/protos/logger v0.0.0-20230919101002-a30f21070914
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28

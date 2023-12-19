@@ -61,9 +61,9 @@ func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAudi
 		req.Enabled = &in.Enabled
 	}
 
-	if in.Archive {
-		req.Archive = &in.Archive
-	}
+	//if in.Archive {
+	//	req.Archive = &in.Archive
+	//}
 
 	if in.Editable {
 		req.Editable = &in.Editable
@@ -294,8 +294,8 @@ func transformAuditFrom(src *model.AuditForm) *engine.AuditForm {
 		Enabled:     src.Enabled,
 		Questions:   transformAuditQuestions(src.Questions),
 		Teams:       GetProtoLookups(src.Teams),
-		Archive:     src.Archive,
-		Editable:    src.Editable,
+		//Archive:     src.Archive,
+		Editable: src.Editable,
 	}
 }
 
