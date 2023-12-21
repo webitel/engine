@@ -26,7 +26,7 @@ func (s SqlAgentTeamStore) Create(ctx context.Context, team *model.AgentTeam) (*
                      no_answer_delay_time, call_timeout, updated_at, created_at, created_by, updated_by,
                      admin_ids, invite_chat_timeout, task_accept_timeout)
     values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
-                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminIds, :InviteChatTimeout, :TaskAcceptTimeout")
+                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminIds, :InviteChatTimeout, :TaskAcceptTimeout)
     returning *
 )
 select t.id,
