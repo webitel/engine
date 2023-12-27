@@ -68,7 +68,6 @@ type Store interface {
 	AuditRate() AuditRateStore
 	PresetQuery() PresetQueryStore
 	SystemSettings() SystemSettingsStore
-
 	WebHook() WebHookStore
 	SchemeVersion() SchemeVersionsStore
 }
