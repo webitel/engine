@@ -67,6 +67,7 @@ type Store interface {
 	AuditRate() AuditRateStore
 	PresetQuery() PresetQueryStore
 	SystemSettings() SystemSettingsStore
+	SchemeVersion() SchemeVersionsStore
 }
 
 // todo deprecated
@@ -451,4 +452,8 @@ type SystemSettingsStore interface {
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 	ValueByName(ctx context.Context, domainId int64, name string) (model.SysValue, model.AppError)
 	Available(ctx context.Context, domainId int64, search *model.ListRequest) ([]string, model.AppError)
+}
+
+type SchemeVersionsStore interface {
+	Get(ctx context.Context, schemeId int32) ([]*model.SchemaVersion, model.AppError)
 }
