@@ -88,6 +88,7 @@ func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue
 	oldQueue.ProcessingRenewalSec = queue.ProcessingRenewalSec
 	oldQueue.FormSchema = queue.FormSchema
 	oldQueue.Grantee = queue.Grantee
+	oldQueue.Tags = queue.Tags
 
 	oldQueue, err = a.Store.Queue().Update(ctx, oldQueue)
 	if err != nil {
@@ -117,5 +118,14 @@ func (a *App) GetQueueReportGeneral(ctx context.Context, domainId int64, supervi
 		return nil, false, err
 	}
 	search.RemoveLastElemIfNeed(&list.Items)
+	return list, search.EndOfList(), nil
+}
+
+func (a *App) SearchQueueTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, bool, model.AppError) {
+	list, err := a.Store.Queue().ListTags(ctx, domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
 }

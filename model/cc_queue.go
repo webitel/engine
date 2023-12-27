@@ -30,6 +30,7 @@ type Queue struct {
 
 	TaskProcessing *QueueTaskProcessing `json:"task_processing" db:"task_processing"`
 	Grantee        *Lookup              `json:"grantee" db:"grantee"`
+	Tags           StringArray          `json:"tags" db:"tags"`
 }
 
 type QueueTaskProcessing struct {
@@ -40,7 +41,10 @@ type QueueTaskProcessing struct {
 }
 
 func (q Queue) AllowFields() []string {
-	return q.DefaultFields()
+	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
+		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
+		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
+		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing", "grantee", "tags"}
 }
 
 func (q Queue) DefaultOrder() string {
@@ -48,10 +52,8 @@ func (q Queue) DefaultOrder() string {
 }
 
 func (q Queue) DefaultFields() []string {
-	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
-		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
-		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
-		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing", "grantee"}
+	return []string{"id", "enabled", "priority", "updated_at", "name", "type", "created_at", "created_by", "updated_by",
+		"team", "count", "waiting", "active", "tags"}
 }
 
 func (q Queue) EntityName() string {
@@ -60,8 +62,11 @@ func (q Queue) EntityName() string {
 
 type SearchQueue struct {
 	ListRequest
-	Ids   []string
-	Types []uint32
+	Ids     []string
+	Types   []uint32
+	TeamIds []int32
+	Tags    []string
+	Enabled *bool
 }
 
 type SearchQueueReportGeneral struct {
@@ -133,6 +138,7 @@ type QueuePatch struct {
 	ProcessingRenewalSec *uint32         `json:"processing_renewal_sec" db:"processing_renewal_sec"`
 	FormSchema           *Lookup         `json:"form_schema" db:"form_schema"`
 	Grantee              *Lookup         `json:"grantee" db:"grantee"`
+	Tags                 StringArray     `json:"tags" db:"tags"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {

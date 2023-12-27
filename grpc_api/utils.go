@@ -163,3 +163,34 @@ func GetBool(in engine.BoolFilter) *bool {
 	}
 	return nil
 }
+
+func tagsToStrings(tags []*engine.Tag) []string {
+	l := len(tags)
+	if l == 0 {
+		return nil
+	}
+
+	res := make([]string, 0, l)
+
+	for _, v := range tags {
+		res = append(res, v.Name)
+	}
+
+	return res
+}
+
+func stringsToTags(tags []string) []*engine.Tag {
+	l := len(tags)
+	if l == 0 {
+		return nil
+	}
+
+	res := make([]*engine.Tag, 0, l)
+	for _, v := range tags {
+		res = append(res, &engine.Tag{
+			Name: v,
+		})
+	}
+
+	return res
+}

@@ -185,3 +185,12 @@ func (c *Controller) QueueReportGeneral(ctx context.Context, session *auth_manag
 		auth_manager.PERMISSION_ACCESS_READ, search)
 
 }
+
+func (c *Controller) SearchQueueTags(ctx context.Context, session *auth_manager.Session, search *model.ListRequest) ([]*model.Tag, bool, model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.SearchQueueTags(ctx, session.Domain(search.DomainId), search)
+}
