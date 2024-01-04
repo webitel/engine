@@ -32,7 +32,7 @@ var SchemeVersionFields = struct {
 	CreatedBy: "created_by",
 	Scheme:    "scheme",
 	Payload:   "payload",
-	Version:   "scheme",
+	Version:   "version",
 	Note:      "note",
 }
 

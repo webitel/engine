@@ -462,16 +462,22 @@ type SchemeVersionsStore interface {
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.
 // columnAlias is additional parameter applied to every model.Filter existing in {filters} and checks if {model.Filter.Column} has alias in the {columnAlias}
-func ApplyFiltersToBuilderBulk(base any, columnAlias map[string]string, filters any) any {
+func ApplyFiltersToBuilderBulk(base any, columnAlias map[string]string, filters any) (any, model.AppError) {
+	if filters == nil {
+		return base, nil
+	}
 	switch data := filters.(type) {
-	case model.FilterNode:
+	case *model.FilterNode:
 		switch data.Connection {
 		case model.AND:
 			result := squirrel.And{}
 			for _, bunch := range data.Nodes {
 				switch bunchType := bunch.(type) {
 				case model.FilterNode:
-					lowerResult := ApplyFiltersToBuilderBulk(result, columnAlias, bunchType)
+					lowerResult, err := ApplyFiltersToBuilderBulk(result, columnAlias, bunchType)
+					if err != nil {
+						return nil, err
+					}
 					switch newData := lowerResult.(type) {
 					case squirrel.And:
 						result = append(result, newData)
@@ -489,13 +495,16 @@ func ApplyFiltersToBuilderBulk(base any, columnAlias map[string]string, filters 
 			case squirrel.SelectBuilder:
 				base = baseType.Where(result)
 			}
-			return base
+			return base, nil
 		case model.OR:
 			result := squirrel.Or{}
 			for _, bunch := range data.Nodes {
 				switch v := bunch.(type) {
 				case model.FilterNode:
-					lowerResult := ApplyFiltersToBuilderBulk(result, columnAlias, v)
+					lowerResult, err := ApplyFiltersToBuilderBulk(result, columnAlias, v)
+					if err != nil {
+						return nil, err
+					}
 					switch newData := lowerResult.(type) {
 					case squirrel.And:
 						result = append(result, newData)
@@ -512,20 +521,20 @@ func ApplyFiltersToBuilderBulk(base any, columnAlias map[string]string, filters 
 			case squirrel.SelectBuilder:
 				base = baseType.Where(result)
 			}
-			return base
+			return base, nil
 		}
-	case model.Filter:
+	case *model.Filter:
 		switch baseType := base.(type) {
 		case squirrel.And:
-			base = append(baseType, applyFilter(&data, columnAlias))
+			base = append(baseType, applyFilter(data, columnAlias))
 		case squirrel.Or:
-			base = append(baseType, applyFilter(&data, columnAlias))
+			base = append(baseType, applyFilter(data, columnAlias))
 		case squirrel.SelectBuilder:
-			base = baseType.Where(applyFilter(&data, columnAlias))
+			base = baseType.Where(applyFilter(data, columnAlias))
 		}
 	}
 
-	return base
+	return base, nil
 }
 
 // Apply filter performs convertation between model.Filter and squirrel.Sqlizer.

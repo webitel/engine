@@ -11,8 +11,8 @@ import (
 
 var (
 	schemeVersionsSelectFieldsMap = map[string]string{
-		model.SchemeVersionFields.SchemeId:  "scheme_version.id",
-		model.SchemeVersionFields.CreatedBy: "call_center.cc_get_lookup(scheme_version.created_by, wbt_user.name::text) as created_by",
+		model.SchemeVersionFields.Id:        "scheme_version.id",
+		model.SchemeVersionFields.CreatedBy: "call_center.cc_get_lookup(scheme_version.created_by, wbt_auth.name::text) as created_by",
 		model.SchemeVersionFields.CreatedAt: "scheme_version.created_at",
 		model.SchemeVersionFields.SchemeId:  "scheme_version.scheme_id",
 		model.SchemeVersionFields.Scheme:    "scheme_version.scheme",
@@ -21,7 +21,7 @@ var (
 		model.SchemeVersionFields.Note:      "scheme_version.note",
 	}
 	schemeVersionsFiltersFieldsMap = map[string]string{
-		model.SchemeVersionFields.SchemeId:  "scheme_version.id",
+		model.SchemeVersionFields.Id:        "scheme_version.id",
 		model.SchemeVersionFields.CreatedBy: "scheme_version.created_by",
 		model.SchemeVersionFields.CreatedAt: "scheme_version.created_at",
 		model.SchemeVersionFields.SchemeId:  "scheme_version.scheme_id",
@@ -48,7 +48,10 @@ func (s *SqlSchemeVersionsStore) Search(ctx context.Context, searchOpts *model.L
 		args     []any
 	)
 
-	base := store.ApplyFiltersToBuilderBulk(s.GetQueryBaseFromSearchOptions(searchOpts), schemeVersionsFiltersFieldsMap, filters)
+	base, appErr := store.ApplyFiltersToBuilderBulk(s.GetQueryBaseFromSearchOptions(searchOpts), schemeVersionsFiltersFieldsMap, filters)
+	if appErr != nil {
+		return nil, appErr
+	}
 	switch req := base.(type) {
 	case squirrel.SelectBuilder:
 		query, args, _ = req.ToSql()
@@ -82,18 +85,15 @@ func (c *SqlSchemeVersionsStore) GetQueryBaseFromSearchOptions(opt *model.ListRe
 			c.getFields()...)
 	}
 	base := c.GetQueryBase(fields)
-	if opt.Q != "" {
-		base = base.Where(squirrel.Like{"user_ip": opt.Q + "%"})
-	}
 	if opt.Sort != "" {
 		splitted := strings.Split(opt.Sort, ":")
 		if len(splitted) == 2 {
 			order := splitted[0]
 			column := splitted[1]
-			if column == "user" {
-				column = "user_name"
+			if v, ok := schemeVersionsFiltersFieldsMap[column]; ok {
+				base = base.OrderBy(fmt.Sprintf("%s %s", v, order))
 			}
-			base = base.OrderBy(fmt.Sprintf("%s %s", column, order))
+
 		}
 
 	}
@@ -110,7 +110,7 @@ func (c *SqlSchemeVersionsStore) GetQueryBaseFromSearchOptions(opt *model.ListRe
 func (c *SqlSchemeVersionsStore) GetQueryBase(fields []string) squirrel.SelectBuilder {
 	base := squirrel.Select(fields...).
 		From("flow.scheme_version").
-		JoinClause("LEFT JOIN directory.wbt_user ON wbt_user.id = scheme_version.created_by").
+		JoinClause("LEFT JOIN directory.wbt_auth ON wbt_auth.id = scheme_version.created_by").
 		PlaceholderFormat(squirrel.Dollar)
 
 	return base

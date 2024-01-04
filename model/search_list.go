@@ -103,6 +103,9 @@ type Search interface {
 
 func ExtractSearchOptions(t Search) ListRequest {
 	var res ListRequest
+	if t.GetSort() != "" {
+		res.Sort = ConvertSort(t.GetSort())
+	}
 	if t.GetSize() <= 0 || t.GetSize() > PER_PAGE_MAXIMUM {
 		res.PerPage = PER_PAGE_DEFAULT
 	} else {

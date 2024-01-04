@@ -8,7 +8,7 @@ import (
 func (a *App) SearchSchemeVersions(ctx context.Context, in *model.SearchSchemeVersion) ([]*model.SchemeVersion, bool, model.AppError) {
 
 	filter := &model.Filter{
-		Column:         model.SchemeVersionFields.Id,
+		Column:         model.SchemeVersionFields.SchemeId,
 		Value:          in.SchemeId,
 		ComparisonType: model.Equal,
 	}
