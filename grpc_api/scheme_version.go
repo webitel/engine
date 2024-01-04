@@ -15,7 +15,7 @@ func NewSchemeVersionApi(api *API) *schemeVersion {
 	return &schemeVersion{API: api}
 }
 
-func (api schemeVersion) Search(ctx context.Context, in *engine.SearchSchemeVersionRequest) (*engine.SearchSchemeVersionResponse, error) {
+func (api schemeVersion) Search(ctx context.Context, in *engine.SearchSchemaVersionRequest) (*engine.SearchSchemaVersionResponse, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (api schemeVersion) Search(ctx context.Context, in *engine.SearchSchemeVers
 
 	req := &model.SearchSchemeVersion{
 		ListRequest: model.ExtractSearchOptions(in),
-		SchemeId:    in.GetSchemeId(),
+		SchemeId:    in.GetSchemaId(),
 	}
 
 	list, endList, err = api.ctrl.SearchSchemeVersions(ctx, session, req)
@@ -35,23 +35,23 @@ func (api schemeVersion) Search(ctx context.Context, in *engine.SearchSchemeVers
 		return nil, err
 	}
 
-	items := make([]*engine.SchemeVersion, 0, len(list))
+	items := make([]*engine.SchemaVersion, 0, len(list))
 	for _, v := range list {
 		items = append(items, transformSchemeVersion(v))
 	}
-	return &engine.SearchSchemeVersionResponse{
+	return &engine.SearchSchemaVersionResponse{
 		Next:  !endList,
 		Items: items,
 	}, nil
 }
 
-func transformSchemeVersion(s *model.SchemeVersion) *engine.SchemeVersion {
-	res := &engine.SchemeVersion{
+func transformSchemeVersion(s *model.SchemeVersion) *engine.SchemaVersion {
+	res := &engine.SchemaVersion{
 		Id:        s.Id,
-		SchemeId:  s.SchemeId,
+		SchemaId:  s.SchemeId,
 		CreatedAt: s.CreatedAt,
 		CreatedBy: &engine.Lookup{Id: int64(s.CreatedBy.Id), Name: s.CreatedBy.Name},
-		Scheme:    UnmarshalJsonpb(s.Scheme),
+		Schema:    UnmarshalJsonpb(s.Scheme),
 		Payload:   UnmarshalJsonpb(s.Payload),
 		Version:   uint64(s.Version),
 	}
