@@ -30,7 +30,7 @@ func (api *routingSchema) CreateRoutingSchema(ctx context.Context, in *engine.Cr
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
 		Editor:      in.Editor,
-		Tags:        tagsToStrings(in.GetTags()),
+		Tags:        flowTagsToStrings(in.GetTags()),
 	}
 
 	if scheme, err = api.ctrl.CreateRoutingSchema(ctx, session, scheme); err != nil {
@@ -110,7 +110,7 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 		Payload:     MarshalJsonpb(in.Payload),
 		Description: in.Description,
 		Editor:      in.Editor,
-		Tags:        tagsToStrings(in.GetTags()),
+		Tags:        flowTagsToStrings(in.GetTags()),
 	}
 
 	scheme, err = api.ctrl.UpdateSchema(ctx, session, scheme)
@@ -141,7 +141,7 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 		case "description":
 			patch.Description = &in.Description
 		case "tags":
-			patch.Tags = tagsToStrings(in.Tags)
+			patch.Tags = flowTagsToStrings(in.Tags)
 			if patch.Tags == nil {
 				patch.Tags = make([]string, 0, 0)
 			}
@@ -274,7 +274,7 @@ func transformTypes(tps []engine.RoutingSchemaType) []string {
 	return res
 }
 
-func tagsToStrings(tags []*engine.SchemaTag) []string {
+func flowTagsToStrings(tags []*engine.SchemaTag) []string {
 	l := len(tags)
 	if l == 0 {
 		return nil

@@ -16,6 +16,10 @@ import (
 	"github.com/pborman/uuid"
 )
 
+type Tag struct {
+	Name string `json:"name" db:"name"`
+}
+
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string

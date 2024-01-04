@@ -49,6 +49,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
 		FormSchema:           GetLookup(in.GetFormSchema()),
 		Grantee:              GetLookup(in.GetGrantee()),
+		Tags:                 tagsToStrings(in.GetTags()),
 	}
 
 	if in.TaskProcessing != nil {
@@ -82,8 +83,14 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
-		Ids:   in.Id,
-		Types: in.Type,
+		Ids:     in.Id,
+		Types:   in.Type,
+		TeamIds: in.TeamId,
+		Tags:    in.GetTags(),
+	}
+
+	if in.Enabled {
+		req.Enabled = &in.Enabled
 	}
 
 	list, endList, err = api.ctrl.SearchQueue(ctx, session, req)
@@ -173,6 +180,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.ProcessingRenewalSec = &in.ProcessingRenewalSec
 		case "grantee.id":
 			patch.Grantee = GetLookup(in.Grantee)
+		case "tags":
+			patch.Tags = tagsToStrings(in.Tags)
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables
@@ -224,6 +233,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		ProcessingSec:        in.ProcessingSec,
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
 		Grantee:              GetLookup(in.GetGrantee()),
+		Tags:                 tagsToStrings(in.GetTags()),
 	}
 
 	if in.TaskProcessing != nil {
@@ -310,6 +320,41 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 	}, nil
 }
 
+func (api *queue) SearchQueueTags(ctx context.Context, in *engine.SearchQueueTagsRequest) (*engine.ListTags, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.Tag
+	var endList bool
+
+	req := &model.ListRequest{
+		Q:       in.GetQ(),
+		Page:    int(in.GetPage()),
+		PerPage: int(in.GetSize()),
+		Fields:  in.Fields,
+		Sort:    in.Sort,
+	}
+
+	list, endList, err = api.ctrl.SearchQueueTags(ctx, session, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.Tag, 0, len(list))
+	for _, v := range list {
+		items = append(items, &engine.Tag{
+			Name: v.Name,
+		})
+	}
+	return &engine.ListTags{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
 func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {
 	return &engine.QueueReportGeneral{
 		Queue: GetProtoLookup(&src.Queue),
@@ -373,6 +418,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		ProcessingSec:        src.ProcessingSec,
 		ProcessingRenewalSec: src.ProcessingRenewalSec,
 		Grantee:              GetProtoLookup(src.Grantee),
+		Tags:                 stringsToTags(src.Tags),
 	}
 
 	if src.TaskProcessing != nil {

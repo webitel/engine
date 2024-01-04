@@ -44,10 +44,10 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
     insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
                       name, variables, domain_id, dnc_list_id, type, team_id,
                       created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
-					  processing, processing_sec, processing_renewal_sec, form_schema_id, grantee_id)
+					  processing, processing_sec, processing_renewal_sec, form_schema_id, grantee_id, tags)
 values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
         :Variables, :DomainId, :DncListId, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
-		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec, :FormSchemaId, :GranteeId)
+		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec, :FormSchemaId, :GranteeId, :Tags)
     returning *
 )
 select q.id,
@@ -78,7 +78,8 @@ select q.id,
 	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
        jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
                           q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
-	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee
+	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee,
+	   q.tags
 from q
          left join flow.calendar c on q.calendar_id = c.id
 		 left join directory.wbt_auth au on au.id = q.grantee_id
@@ -118,6 +119,7 @@ from q
 			"ProcessingRenewalSec": queue.ProcessingRenewalSec,
 			"FormSchemaId":         queue.FormSchema.GetSafeId(),
 			"GranteeId":            queue.Grantee.GetSafeId(),
+			"Tags":                 pq.Array(queue.Tags),
 		}); nil != err {
 		return nil, model.NewCustomCodeError("store.sql_queue.save.app_error", fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -133,12 +135,18 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
 		"Types":    pq.Array(search.Types),
+		"TeamIds":  pq.Array(search.TeamIds),
+		"Tags":     pq.Array(search.Tags),
+		"Enabled":  search.Enabled,
 	}
 
 	err := s.ListQueryMaster(ctx, &queues, search.ListRequest,
 		`domain_id = :DomainId 
 			and ( (:Ids::int[] isnull or id = any(:Ids) )  
 			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
+			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) ) 
+			and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
+			and (:Enabled::bool isnull or enabled)
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
 	if err != nil {
@@ -157,6 +165,10 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
+		"Types":    pq.Array(search.Types),
+		"TeamIds":  pq.Array(search.TeamIds),
+		"Tags":     pq.Array(search.Tags),
+		"Enabled":  search.Enabled,
 	}
 
 	err := s.ListQueryMaster(ctx, &queues, search.ListRequest,
@@ -164,7 +176,13 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 					exists(select 1
 					  from call_center.cc_queue_acl acl
 					  where acl.dc = t.domain_id and acl.object = t.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
-		  	) and ( (:Ids::int[] isnull or id = any(:Ids) )  and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
+		  	) 
+			and ( (:Ids::int[] isnull or id = any(:Ids) )  
+			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
+			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) ) 
+			and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
+			and (:Enabled::bool isnull or enabled)
+			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_queue.get_all.app_error", err.Error())
@@ -204,7 +222,8 @@ select q.id,
 	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
        jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
                           q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
-	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee
+	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee,
+       q.tags
 from call_center.cc_queue q
          left join flow.calendar c on q.calendar_id = c.id
 	     left join directory.wbt_auth au on au.id = q.grantee_id
@@ -250,7 +269,8 @@ set updated_at = :UpdatedAt,
 	processing_sec = :ProcessingSec,
     processing_renewal_sec = :ProcessingRenewalSec,
 	form_schema_id = :FormSchemaId,
-	grantee_id = :GranteeId
+	grantee_id = :GranteeId,
+    tags = :Tags
 where q.id = :Id and q.domain_id = :DomainId
     returning *
 )
@@ -282,7 +302,8 @@ select q.id,
 	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
        jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
                           q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
-	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee
+	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee,
+	   q.tags	
 from  q
          left join flow.calendar c on q.calendar_id = c.id
 		 left join directory.wbt_auth au on au.id = q.grantee_id
@@ -320,6 +341,7 @@ from  q
 		"ProcessingRenewalSec": queue.ProcessingRenewalSec,
 		"FormSchemaId":         queue.FormSchema.GetSafeId(),
 		"GranteeId":            queue.Grantee.GetSafeId(),
+		"Tags":                 pq.Array(queue.Tags),
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_queue.update.app_error", fmt.Sprintf("Id=%v, %s", queue.Id, err.Error()), extractCodeFromErr(err))
@@ -482,4 +504,40 @@ select
 	}
 
 	return report, nil
+}
+
+// todo
+func (s SqlQueueStore) ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError) {
+	var res []*model.Tag
+	if search.Sort == "" {
+		search.Sort = "name"
+	}
+	st, f := orderBy(search.Sort)
+	sort := fmt.Sprintf("order by %s %s", QuoteIdentifier(f), st)
+
+	q := `with tags as (
+    select distinct tag as name
+    from call_center.cc_queue s,
+         unnest(s.tags) tag
+    where s.domain_id = :DomainId
+        and (:Q::varchar isnull or tag ilike :Q::varchar)
+)
+select *
+from tags
+%s
+limit :Limit
+offset :Offset`
+
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]interface{}{
+		"DomainId": domainId,
+		"Q":        search.GetQ(),
+		"Limit":    search.GetLimit(),
+		"Offset":   search.GetOffset(),
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_queue.tags.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
 }

@@ -246,6 +246,7 @@ type QueueStore interface {
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
 	QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError)
+	ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError)
 }
 
 type QueueResourceStore interface {
