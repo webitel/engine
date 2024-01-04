@@ -6,16 +6,16 @@ import (
 	"github.com/webitel/protos/engine"
 )
 
-type schemeVersion struct {
+type schemaVersion struct {
 	*API
-	engine.UnsafeSchemeVersionServiceServer
+	engine.UnsafeSchemaVersionServiceServer
 }
 
-func NewSchemeVersionApi(api *API) *schemeVersion {
-	return &schemeVersion{API: api}
+func NewSchemeVersionApi(api *API) *schemaVersion {
+	return &schemaVersion{API: api}
 }
 
-func (api schemeVersion) Search(ctx context.Context, in *engine.SearchSchemaVersionRequest) (*engine.SearchSchemaVersionResponse, error) {
+func (api schemaVersion) SearchSchemaVersion(ctx context.Context, in *engine.SearchSchemaVersionRequest) (*engine.SearchSchemaVersionResponse, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
