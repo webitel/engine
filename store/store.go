@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"github.com/Masterminds/squirrel"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -455,5 +456,104 @@ type SystemSettingsStore interface {
 }
 
 type SchemeVersionsStore interface {
-	Get(ctx context.Context, schemeId int32) ([]*model.SchemaVersion, model.AppError)
+	Search(ctx context.Context, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVersion, model.AppError)
+}
+
+// ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.
+// columnAlias is additional parameter applied to every model.Filter existing in {filters} and checks if {model.Filter.Column} has alias in the {columnAlias}
+func ApplyFiltersToBuilderBulk(base any, columnAlias map[string]string, filters any) any {
+	switch data := filters.(type) {
+	case model.FilterNode:
+		switch data.Connection {
+		case model.AND:
+			result := squirrel.And{}
+			for _, bunch := range data.Nodes {
+				switch bunchType := bunch.(type) {
+				case model.FilterNode:
+					lowerResult := ApplyFiltersToBuilderBulk(result, columnAlias, bunchType)
+					switch newData := lowerResult.(type) {
+					case squirrel.And:
+						result = append(result, newData)
+					}
+				case model.Filter:
+					result = append(result, applyFilter(&bunchType, columnAlias))
+				}
+			}
+
+			switch baseType := base.(type) {
+			case squirrel.And:
+				base = append(baseType, result)
+			case squirrel.Or:
+				base = append(baseType, result)
+			case squirrel.SelectBuilder:
+				base = baseType.Where(result)
+			}
+			return base
+		case model.OR:
+			result := squirrel.Or{}
+			for _, bunch := range data.Nodes {
+				switch v := bunch.(type) {
+				case model.FilterNode:
+					lowerResult := ApplyFiltersToBuilderBulk(result, columnAlias, v)
+					switch newData := lowerResult.(type) {
+					case squirrel.And:
+						result = append(result, newData)
+					}
+				case model.Filter:
+					result = append(result, applyFilter(&v, columnAlias))
+				}
+			}
+			switch baseType := base.(type) {
+			case squirrel.And:
+				base = append(baseType, result)
+			case squirrel.Or:
+				base = append(baseType, result)
+			case squirrel.SelectBuilder:
+				base = baseType.Where(result)
+			}
+			return base
+		}
+	case model.Filter:
+		switch baseType := base.(type) {
+		case squirrel.And:
+			base = append(baseType, applyFilter(&data, columnAlias))
+		case squirrel.Or:
+			base = append(baseType, applyFilter(&data, columnAlias))
+		case squirrel.SelectBuilder:
+			base = baseType.Where(applyFilter(&data, columnAlias))
+		}
+	}
+
+	return base
+}
+
+// Apply filter performs convertation between model.Filter and squirrel.Sqlizer.
+// columnAlias is additional parameter to determine if model.Filter in the Column property has alias of the column and NOT the real DB column name.
+func applyFilter(filter *model.Filter, columnsAlias map[string]string) squirrel.Sqlizer {
+	columnName := filter.Column
+	if columnsAlias != nil {
+		if alias, ok := columnsAlias[columnName]; ok {
+			columnName = alias
+		}
+	}
+	var result squirrel.Sqlizer
+	switch filter.ComparisonType {
+	case model.GreaterThan:
+		result = squirrel.Gt{columnName: filter.Value}
+	case model.GreaterThanOrEqual:
+		result = squirrel.GtOrEq{columnName: filter.Value}
+	case model.LessThan:
+		result = squirrel.Lt{columnName: filter.Value}
+	case model.LessThanOrEqual:
+		result = squirrel.LtOrEq{columnName: filter.Value}
+	case model.NotEqual:
+		result = squirrel.NotEq{columnName: filter.Value}
+	case model.Like:
+		result = squirrel.Like{columnName: filter.Value}
+	case model.ILike:
+		result = squirrel.ILike{columnName: filter.Value}
+	default:
+		result = squirrel.Eq{columnName: filter.Value}
+	}
+	return result
 }

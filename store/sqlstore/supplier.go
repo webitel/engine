@@ -65,6 +65,7 @@ type SqlSupplierOldStores struct {
 	auditRate               store.AuditRateStore
 	presetQuery             store.PresetQueryStore
 	systemSetting           store.SystemSettingsStore
+	schemeVersion           store.SchemeVersionsStore
 }
 
 type SqlSupplier struct {
@@ -122,6 +123,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.auditRate = NewSqlAuditRateStore(supplier)
 	supplier.oldStores.presetQuery = NewSqlPresetQueryStore(supplier)
 	supplier.oldStores.systemSetting = NewSqlSystemSettingsStore(supplier)
+	supplier.oldStores.schemeVersion = NewSqlSchemeVersionsStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -362,6 +364,10 @@ func (ss *SqlSupplier) PresetQuery() store.PresetQueryStore {
 
 func (ss *SqlSupplier) SystemSettings() store.SystemSettingsStore {
 	return ss.oldStores.systemSetting
+}
+
+func (ss *SqlSupplier) SchemeVersion() store.SchemeVersionsStore {
+	return ss.oldStores.schemeVersion
 }
 
 type typeConverter struct{}

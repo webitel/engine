@@ -42,13 +42,7 @@ func (api systemSettings) SearchSystemSetting(ctx context.Context, in *engine.Se
 	var list []*model.SystemSetting
 	var endList bool
 	req := &model.SearchSystemSetting{
-		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
-		},
+		ListRequest: model.ExtractSearchOptions(in),
 	}
 
 	list, endList, err = api.ctrl.SearchSystemSetting(ctx, session, req)

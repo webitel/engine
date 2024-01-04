@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/BoRuDar/configuration/v4 v4.2.2
+	github.com/Masterminds/squirrel v1.5.4
 	github.com/ghettovoice/gosip v0.0.0-20231005134608-3b981d26e5cc
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.5.3
@@ -24,7 +25,7 @@ require (
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20231220151106-e1840f1a31e4
 	github.com/webitel/protos/cc v0.0.0-20231219144336-af0e727d5b1e
-	github.com/webitel/protos/engine v0.0.0-20231219144336-af0e727d5b1e
+	github.com/webitel/protos/engine v0.0.0-20240104102403-49d88132973a
 	github.com/webitel/protos/fs v0.0.0-20231219144336-af0e727d5b1e
 	github.com/webitel/protos/logger v0.0.0-20231219144336-af0e727d5b1e
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
@@ -135,6 +136,8 @@ require (
 	github.com/kulti/thelper v0.6.3 // indirect
 	github.com/kunwardeep/paralleltest v1.0.6 // indirect
 	github.com/kyoh86/exportloopref v0.1.11 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
+	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/ldez/gomoddirectives v0.2.3 // indirect
 	github.com/ldez/tagliatelle v0.4.0 // indirect
 	github.com/leonklingele/grouper v1.1.1 // indirect
