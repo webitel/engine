@@ -59,4 +59,5 @@ type SqlStore interface {
 	PresetQuery() store.PresetQueryStore
 	SystemSettings() store.SystemSettingsStore
 	WebHook() store.WebHookStore
+	//SchemeVersion() store.SystemSettingsStore
 }

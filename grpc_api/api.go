@@ -45,6 +45,7 @@ type API struct {
 	presetQuery    *presetQuery
 	systemSettings *systemSettings
 	webHook        *webHook
+	schemaVersion  *schemaVersion
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -85,6 +86,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.auditForm = NewAuditFormApi(api)
 	api.presetQuery = NewPresetQueryApi(api)
 	api.systemSettings = NewSystemSettingsApi(api)
+	api.schemaVersion = NewSchemeVersionApi(api)
 	api.webHook = NewWebHookApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
@@ -122,4 +124,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterPresetQueryServiceServer(server, api.presetQuery)
 	engine.RegisterSystemSettingServiceServer(server, api.systemSettings)
 	engine.RegisterWebHookServiceServer(server, api.webHook)
+	engine.RegisterSchemaVersionServiceServer(server, api.schemaVersion)
 }

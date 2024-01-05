@@ -93,6 +93,50 @@ func (l *ListRequest) GetQ() *string {
 	return ReplaceWebSearch(l.Q)
 }
 
+type Search interface {
+	GetPage() int32
+	GetSize() int32
+	GetQ() string
+	GetSort() string
+	GetFields() []string
+}
+
+func ExtractSearchOptions(t Search) ListRequest {
+	var res ListRequest
+	if t.GetSort() != "" {
+		res.Sort = ConvertSort(t.GetSort())
+	}
+	if t.GetSize() <= 0 || t.GetSize() > PER_PAGE_MAXIMUM {
+		res.PerPage = PER_PAGE_DEFAULT
+	} else {
+		res.PerPage = int(t.GetSize())
+	}
+	if t.GetPage() <= 0 {
+		res.Page = PAGE_DEFAULT
+	} else {
+		res.Page = int(t.GetPage())
+	}
+	if t.GetQ() != "" {
+		res.Q = strings.Replace(t.GetQ(), "*", "%", -1)
+
+	}
+	if s := t.GetFields(); len(s) != 0 {
+		res.Fields = s
+	}
+	return res
+}
+
+func ConvertSort(in string) string {
+	if len(in) < 2 || (in[0] != '+' && in[0] != '-') {
+		return ""
+	}
+	if in[0] == '+' {
+		return fmt.Sprintf("%s:%s", "ASC", in[1:])
+	} else {
+		return fmt.Sprintf("%s:%s", "DESC", in[1:])
+	}
+}
+
 func ReplaceWebSearch(s string) *string {
 	if s != "" {
 		return NewString(strings.Replace(s, "*", "%", -1))
