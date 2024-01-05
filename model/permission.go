@@ -23,4 +23,5 @@ const (
 	PermissionChat       = "chats"
 	PermissionAuditFrom  = "cc_audit_form" // "cc_form"
 	PermissionRecordFile = "record_file"
+	PermissionWebHook    = "email_profile" // todo
 )

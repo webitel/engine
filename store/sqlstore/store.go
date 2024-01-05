@@ -58,4 +58,5 @@ type SqlStore interface {
 	AuditRate() store.AuditRateStore
 	PresetQuery() store.PresetQueryStore
 	SystemSettings() store.SystemSettingsStore
+	WebHook() store.WebHookStore
 }

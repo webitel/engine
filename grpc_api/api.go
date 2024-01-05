@@ -44,6 +44,7 @@ type API struct {
 	auditForm      *auditForm
 	presetQuery    *presetQuery
 	systemSettings *systemSettings
+	webHook        *webHook
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -84,6 +85,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.auditForm = NewAuditFormApi(api)
 	api.presetQuery = NewPresetQueryApi(api)
 	api.systemSettings = NewSystemSettingsApi(api)
+	api.webHook = NewWebHookApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -119,4 +121,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterAuditFormServiceServer(server, api.auditForm)
 	engine.RegisterPresetQueryServiceServer(server, api.presetQuery)
 	engine.RegisterSystemSettingServiceServer(server, api.systemSettings)
+	engine.RegisterWebHookServiceServer(server, api.webHook)
 }

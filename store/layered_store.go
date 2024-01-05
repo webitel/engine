@@ -168,3 +168,7 @@ func (s *LayeredStore) PresetQuery() PresetQueryStore {
 func (s *LayeredStore) SystemSettings() SystemSettingsStore {
 	return s.DatabaseLayer.SystemSettings()
 }
+
+func (s *LayeredStore) WebHook() WebHookStore {
+	return s.DatabaseLayer.WebHook()
+}

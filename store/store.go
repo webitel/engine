@@ -67,6 +67,8 @@ type Store interface {
 	AuditRate() AuditRateStore
 	PresetQuery() PresetQueryStore
 	SystemSettings() SystemSettingsStore
+
+	WebHook() WebHookStore
 }
 
 // todo deprecated
@@ -452,4 +454,12 @@ type SystemSettingsStore interface {
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 	ValueByName(ctx context.Context, domainId int64, name string) (model.SysValue, model.AppError)
 	Available(ctx context.Context, domainId int64, search *model.ListRequest) ([]string, model.AppError)
+}
+
+type WebHookStore interface {
+	Create(ctx context.Context, domainId int64, hook *model.WebHook) (*model.WebHook, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchWebHook) ([]*model.WebHook, model.AppError)
+	Get(ctx context.Context, domainId int64, id int32) (*model.WebHook, model.AppError)
+	Update(ctx context.Context, domainId int64, hook *model.WebHook) (*model.WebHook, model.AppError)
+	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 }
