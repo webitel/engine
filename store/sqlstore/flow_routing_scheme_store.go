@@ -122,7 +122,8 @@ func (s SqlRoutingSchemaStore) Update(ctx context.Context, scheme *model.Routing
 		description = :Description,
 		debug = :Debug,
 		editor = :Editor,
-		tags = call_center.cc_array_merge(:Tags::varchar[], '{}')
+		tags = call_center.cc_array_merge(:Tags::varchar[], '{}'),
+		note = :Note
     where s.id = :Id and s.domain_id = :Domain
     returning *
 )
@@ -143,6 +144,7 @@ from s
 		"Debug":       scheme.Debug,
 		"Editor":      scheme.Editor,
 		"Tags":        pq.Array(scheme.Tags),
+		"Note":        scheme.Note,
 	})
 	if err != nil {
 		if isDuplicationViolationErrorCode(err) {

@@ -111,6 +111,7 @@ func (api *routingSchema) UpdateRoutingSchema(ctx context.Context, in *engine.Up
 		Description: in.Description,
 		Editor:      in.Editor,
 		Tags:        flowTagsToStrings(in.GetTags()),
+		Note:        in.GetNote(),
 	}
 
 	scheme, err = api.ctrl.UpdateSchema(ctx, session, scheme)
@@ -140,6 +141,8 @@ func (api *routingSchema) PatchRoutingSchema(ctx context.Context, in *engine.Pat
 			patch.Type = model.NewString(in.GetType().String())
 		case "description":
 			patch.Description = &in.Description
+		case "note":
+			patch.Note = &in.Note
 		case "tags":
 			patch.Tags = flowTagsToStrings(in.Tags)
 			if patch.Tags == nil {

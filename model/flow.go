@@ -12,6 +12,7 @@ type RoutingSchema struct {
 	Debug       bool            `json:"debug" db:"debug"`
 	Editor      bool            `json:"editor" db:"editor"`
 	Tags        StringArray     `json:"tags" db:"tags"`
+	Note        string          `json:"note" db:"note"`
 }
 
 type SearchRoutingSchema struct {
@@ -60,6 +61,7 @@ type RoutingSchemaPath struct {
 	Debug       *bool    `json:"debug" db:"debug"`
 	Editor      *bool    `json:"editor" db:"editor"`
 	Tags        []string `json:"tags" db:"tags"`
+	Note        *string  `json:"note" db:"note"`
 }
 
 func (s *RoutingSchema) IsValid() AppError {
@@ -86,6 +88,10 @@ func (s *RoutingSchema) Patch(in *RoutingSchemaPath) {
 
 	if in.Description != nil {
 		s.Description = *in.Description
+	}
+
+	if in.Note != nil {
+		s.Note = *in.Note
 	}
 
 	if in.Debug != nil {
@@ -121,6 +127,7 @@ type RoutingOutboundCall struct {
 	Position    int    `json:"position" db:"position"`
 	Pattern     string `json:"pattern" db:"pattern"`
 	Disabled    bool   `json:"disabled" db:"disabled"`
+	Note        string `json:"note" db:"note"`
 }
 
 type SearchRoutingOutboundCall struct {
@@ -130,6 +137,7 @@ type SearchRoutingOutboundCall struct {
 	SchemaIds   []uint32
 	Pattern     *string
 	Description *string
+	Note        *string
 }
 
 func (RoutingOutboundCall) DefaultOrder() string {
@@ -138,12 +146,12 @@ func (RoutingOutboundCall) DefaultOrder() string {
 
 func (a RoutingOutboundCall) AllowFields() []string {
 	return []string{"id", "domain_id", "name", "description", "created_at", "created_by", "updated_at", "updated_by",
-		"pattern", "disabled", "schema", "position"}
+		"pattern", "disabled", "schema", "position", "note"}
 }
 
 func (a RoutingOutboundCall) DefaultFields() []string {
 	return []string{"id", "name", "description",
-		"pattern", "disabled", "schema", "position"}
+		"pattern", "disabled", "schema", "position", "note"}
 }
 
 func (a RoutingOutboundCall) EntityName() string {
@@ -157,6 +165,7 @@ type RoutingOutboundCallPatch struct {
 	Schema      *Lookup `json:"schema" db:"scheme"`
 	Pattern     *string `json:"pattern" db:"pattern"`
 	Disabled    *bool   `json:"disabled" db:"disabled"`
+	Note        *string `json:"note" db:"note"`
 }
 
 func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
@@ -166,6 +175,9 @@ func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
 
 	if patch.Description != nil {
 		r.Description = *patch.Description
+	}
+	if patch.Note != nil {
+		r.Note = *patch.Note
 	}
 
 	if patch.Schema != nil {
