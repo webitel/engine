@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io/ioutil"
 )
 
@@ -30,6 +31,7 @@ func hash(msg []byte) []byte {
 }
 
 func NewPreSigned(pemLocation string) (PreSign, error) {
+	var pkey *rsa.PrivateKey
 	cert, err := ioutil.ReadFile(pemLocation)
 	if err != nil {
 		return nil, err
@@ -40,18 +42,26 @@ func NewPreSigned(pemLocation string) (PreSign, error) {
 		return nil, errors.New("decode certificate")
 	}
 
-	pkey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-	if err != nil {
-		pkey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+	switch block.Type {
+	case "PRIVATE KEY":
+		var key any
+		key, err = x509.ParsePKCS8PrivateKey(block.Bytes)
 		if err != nil {
-
 			return nil, err
 		}
+		pkey = key.(*rsa.PrivateKey)
+	case "RSA PRIVATE KEY":
+		pkey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+	default:
+		return nil, errors.New(fmt.Sprintf("Unknown block type \"%s\"", block.Type))
+	}
+
+	if err != nil {
 		return nil, err
 	}
 
 	return &preSign{
-		privateKey: pkey.(*rsa.PrivateKey),
+		privateKey: pkey,
 	}, nil
 }
 
