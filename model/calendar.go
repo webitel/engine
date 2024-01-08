@@ -17,10 +17,13 @@ type CalendarAcceptOfDay struct {
 // Description of the CalendarExceptDate
 // swagger:model CalendarExceptDate
 type CalendarExceptDate struct {
-	Name     string `json:"name" db:"name"`
-	Repeat   bool   `json:"repeat" db:"repeat"`
-	Date     int64  `json:"date" db:"date"`
-	Disabled bool   `json:"disabled" db:"disabled"`
+	Name      string `json:"name" db:"name"`
+	Repeat    bool   `json:"repeat" db:"repeat"`
+	Date      int64  `json:"date" db:"date"`
+	Disabled  bool   `json:"disabled" db:"disabled"`
+	WorkStart int32  `json:"work_start" db:"work_start"`
+	WorkStop  int32  `json:"work_stop" db:"work_stop"`
+	Working   bool   `json:"working" db:"working"`
 }
 
 // Description of the Calendar
