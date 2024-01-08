@@ -40,13 +40,18 @@ func NewPreSigned(pemLocation string) (PreSign, error) {
 		return nil, errors.New("decode certificate")
 	}
 
-	pkey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	pkey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
+		pkey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
+		if err != nil {
+
+			return nil, err
+		}
 		return nil, err
 	}
 
 	return &preSign{
-		privateKey: pkey,
+		privateKey: pkey.(*rsa.PrivateKey),
 	}, nil
 }
 
