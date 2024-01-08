@@ -52,10 +52,13 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 
 	for _, v := range in.Excepts {
 		calendar.Excepts = append(calendar.Excepts, &model.CalendarExceptDate{
-			Name:     v.GetName(),
-			Repeat:   v.GetRepeat(),
-			Date:     v.GetDate(),
-			Disabled: v.GetDisabled(),
+			Name:      v.GetName(),
+			Repeat:    v.GetRepeat(),
+			Date:      v.GetDate(),
+			Disabled:  v.GetDisabled(),
+			WorkStart: v.GetWorkStart(),
+			WorkStop:  v.GetWorkStop(),
+			Working:   v.GetWorking(),
 		})
 	}
 
@@ -285,9 +288,12 @@ func transformAcceptOfDay(src model.CalendarAcceptOfDay) *engine.AcceptOfDay {
 
 func transformExceptDate(src *model.CalendarExceptDate) *engine.ExceptDate {
 	return &engine.ExceptDate{
-		Name:     src.Name,
-		Date:     src.Date,
-		Repeat:   src.Repeat,
-		Disabled: src.Disabled,
+		Name:      src.Name,
+		Date:      src.Date,
+		Repeat:    src.Repeat,
+		Disabled:  src.Disabled,
+		Working:   src.Working,
+		WorkStart: src.WorkStart,
+		WorkStop:  src.WorkStop,
 	}
 }
