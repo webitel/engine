@@ -230,6 +230,10 @@ func (q *Queue) Patch(p *QueuePatch) {
 	if p.Grantee != nil {
 		q.Grantee = p.Grantee
 	}
+
+	if p.Tags != nil {
+		q.Tags = p.Tags
+	}
 }
 
 func (q *Queue) IsValid() AppError {
