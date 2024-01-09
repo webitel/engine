@@ -127,7 +127,6 @@ type RoutingOutboundCall struct {
 	Position    int    `json:"position" db:"position"`
 	Pattern     string `json:"pattern" db:"pattern"`
 	Disabled    bool   `json:"disabled" db:"disabled"`
-	Note        string `json:"note" db:"note"`
 }
 
 type SearchRoutingOutboundCall struct {
@@ -137,7 +136,6 @@ type SearchRoutingOutboundCall struct {
 	SchemaIds   []uint32
 	Pattern     *string
 	Description *string
-	Note        *string
 }
 
 func (RoutingOutboundCall) DefaultOrder() string {
@@ -146,12 +144,12 @@ func (RoutingOutboundCall) DefaultOrder() string {
 
 func (a RoutingOutboundCall) AllowFields() []string {
 	return []string{"id", "domain_id", "name", "description", "created_at", "created_by", "updated_at", "updated_by",
-		"pattern", "disabled", "schema", "position", "note"}
+		"pattern", "disabled", "schema", "position"}
 }
 
 func (a RoutingOutboundCall) DefaultFields() []string {
 	return []string{"id", "name", "description",
-		"pattern", "disabled", "schema", "position", "note"}
+		"pattern", "disabled", "schema", "position"}
 }
 
 func (a RoutingOutboundCall) EntityName() string {
@@ -165,7 +163,6 @@ type RoutingOutboundCallPatch struct {
 	Schema      *Lookup `json:"schema" db:"scheme"`
 	Pattern     *string `json:"pattern" db:"pattern"`
 	Disabled    *bool   `json:"disabled" db:"disabled"`
-	Note        *string `json:"note" db:"note"`
 }
 
 func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
@@ -175,9 +172,6 @@ func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
 
 	if patch.Description != nil {
 		r.Description = *patch.Description
-	}
-	if patch.Note != nil {
-		r.Note = *patch.Note
 	}
 
 	if patch.Schema != nil {
