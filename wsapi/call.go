@@ -567,13 +567,13 @@ func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (m
 func (api *API) sipRegister(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	//userId, _ := req.Data["user_id"].(float64)
 
-	return nil, api.App.SipRegister(context.Background(), conn.DomainId, int64(conn.UserId))
+	return nil, api.App.SipRegister(context.Background(), conn.GetSession().Name, conn.DomainId, int64(conn.UserId))
 }
 
 func (api *API) callSdp(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	sdp, _ := req.Data["sdp"].(string)
 	destination, _ := req.Data["destination"].(string)
-	sipId, err := api.App.SipDial(int(conn.UserId), sdp, destination)
+	sipId, err := api.App.SipDial(conn.Id(), conn.DomainId, conn.UserId, sdp, destination)
 	if err != nil {
 		return nil, err
 	}
@@ -587,7 +587,7 @@ func (api *API) callSdpRecovery(conn *app.WebConn, req *model.WebSocketRequest) 
 	sdp, _ := req.Data["sdp"].(string)
 	id, _ := req.Data["id"].(string)
 
-	sipId, err := api.App.SipRecovery(conn.DomainId, conn.UserId, id, sdp)
+	sipId, err := api.App.SipRecovery(conn.Id(), conn.DomainId, conn.UserId, id, sdp)
 	if err != nil {
 		return nil, err
 	}
@@ -613,7 +613,7 @@ func (api *API) callSdpAnswer(conn *app.WebConn, req *model.WebSocketRequest) (m
 
 func (api *API) callSdpRemote(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	id, _ := req.Data["id"].(string)
-	remoteSdp, err := api.App.SipRemoteSdp(int(conn.UserId), id)
+	remoteSdp, err := api.App.SipRemoteSdp(conn.UserId, id)
 	if err != nil {
 		return nil, err
 	}

@@ -31,7 +31,7 @@ type B2B struct {
 	stack *stack.SipStack
 	ua    *ua.UserAgent
 
-	accounts map[int]*Account
+	accounts map[int64]*Account
 	sync.RWMutex
 	calls []*call.Call
 
@@ -48,16 +48,16 @@ type SdpDescription struct {
 }
 
 type OnCallback interface {
-	OnB2B(sipId string, sdp SdpDescription)
+	OnB2B(sockId string, domainId int64, userId int64, sipId string, sdp SdpDescription)
 }
 
-func (b2b *B2B) AddAccount(id int, acc *Account) {
+func (b2b *B2B) AddAccount(id int64, acc *Account) {
 	b2b.Lock()
 	b2b.accounts[id] = acc // TODO
 	b2b.Unlock()
 }
 
-func (b2b *B2B) GetAccount(id int) (*Account, bool) {
+func (b2b *B2B) GetAccount(id int64) (*Account, bool) {
 	b2b.RLock()
 	acc, ok := b2b.accounts[id]
 	b2b.RUnlock()
@@ -65,17 +65,23 @@ func (b2b *B2B) GetAccount(id int) (*Account, bool) {
 	return acc, ok
 }
 
+func (b2b *B2B) RemoveAccount(id int64) {
+	b2b.Lock()
+	delete(b2b.accounts, id)
+	b2b.Unlock()
+}
+
 func New(cb OnCallback) *B2B {
 	st := stack.NewSipStack(&stack.SipStackConfig{
 		UserAgent:  "webitel-webrtc",
 		Extensions: []string{"replaces", "outbound"},
-		Host:       "10.9.8.111",
+		Host:       "10.10.10.25",
 		//Dns:        "8.8.8.8",
 	})
 	//utils.SetLogLevel("transport.Layer", 3)
 	//utils.SetLogLevel("transaction.Layer", 3)
 
-	if err := st.Listen(transport, "0.0.0.0:5067"); err != nil {
+	if err := st.Listen(transport, "10.10.10.25:5067"); err != nil {
 		logger.Panic(err)
 	}
 
@@ -88,7 +94,7 @@ func New(cb OnCallback) *B2B {
 		host:      "10.9.8.111",
 		stack:     st,
 		ua:        ua,
-		accounts:  make(map[int]*Account),
+		accounts:  make(map[int64]*Account),
 		cb:        cb,
 	}
 
@@ -118,7 +124,7 @@ AuthInfo{
 	}
 */
 
-func (b2b *B2B) Register(userId int, conf AuthInfo) error {
+func (b2b *B2B) Register(userId int64, conf AuthInfo) error {
 
 	if _, ok := b2b.GetAccount(userId); ok {
 		return errors.New("is registered")
@@ -138,12 +144,30 @@ func (b2b *B2B) Register(userId int, conf AuthInfo) error {
 	return nil
 }
 
+func (b2b *B2B) Unregister(userId int64) error {
+	var acc *Account
+	var ok bool
+
+	if acc, ok = b2b.GetAccount(userId); !ok {
+		return nil // errors.New("not found")
+	}
+
+	err := acc.UnRegister()
+	if err != nil {
+		return err
+	}
+
+	b2b.RemoveAccount(userId)
+	return nil
+}
+
 func (b2b *B2B) inviteStateHandler(sess *session.Session, req *sip.Request, resp *sip.Response, state session.Status) {
 	logger.Infof("InviteStateHandler: state => %v, type => %s", state, sess.Direction())
 
 	switch state {
 	case session.InviteReceived:
 		userId := findCustomHeaderValue("X-Webitel-User-Id", *req)
+		domainId := findCustomHeaderValue("X-Webitel-Domain-Id", *req)
 		wId := findCustomHeaderValue("X-Webitel-Uuid", *req)
 		call := &call.Call{
 			Src:     sess,
@@ -151,7 +175,10 @@ func (b2b *B2B) inviteStateHandler(sess *session.Session, req *sip.Request, resp
 			WCallId: wId,
 			Req:     req,
 		}
-		call.UserId, _ = strconv.Atoi(userId)
+		uid, _ := strconv.Atoi(userId)
+		did, _ := strconv.Atoi(domainId)
+		call.UserId = int64(uid)
+		call.DomainId = int64(did)
 		b2b.appendCall(call)
 
 		sess.Provisional(100, "Trying")
@@ -211,7 +238,7 @@ func (b2b *B2B) inviteStateHandler(sess *session.Session, req *sip.Request, resp
 	}
 }
 
-func (b2b *B2B) Dial(userId int, sdp string, destination string) (string, error) {
+func (b2b *B2B) Dial(sockId string, domainId int64, userId int64, sdp string, destination string) (string, error) {
 
 	acc, ok := b2b.GetAccount(userId)
 	if !ok {
@@ -224,7 +251,9 @@ func (b2b *B2B) Dial(userId int, sdp string, destination string) (string, error)
 	}
 
 	c := &call.Call{
-		UserId: userId,
+		UserId:   userId,
+		DomainId: domainId,
+		SockId:   sockId,
 	}
 
 	b2b.appendCall(c)
@@ -236,7 +265,7 @@ func (b2b *B2B) Dial(userId int, sdp string, destination string) (string, error)
 	return c.Src.CallID().Value(), nil
 }
 
-func (b2b *B2B) Recovery(userId int, sipId string, sdp string) (string, error) {
+func (b2b *B2B) Recovery(sockId string, userId int64, sipId string, sdp string) (string, error) {
 	acc, ok := b2b.GetAccount(userId)
 	if !ok {
 		return "", errors.New("not found account")
@@ -244,15 +273,16 @@ func (b2b *B2B) Recovery(userId int, sipId string, sdp string) (string, error) {
 
 	for _, v := range b2b.calls {
 		if v.Src != nil && v.Src.CallID().Value() == sipId {
+			v.SockId = sockId
 			err := b2b.ua.Recovery(acc.profile, acc.recipient, v.Src, &sdp)
 			if err != nil {
 				return "", err
 			}
-
 			return v.Src.RemoteSdp(), nil
 		}
 
 		if v.Dest != nil && v.Dest.CallID().Value() == sipId {
+			v.SockId = sockId
 			err := b2b.ua.Recovery(acc.profile, acc.recipient, v.Dest, &sdp)
 			if err != nil {
 				return "", err
@@ -309,7 +339,7 @@ func (b2b *B2B) Answer(userId int, wid string, sdp string) (string, error) {
 	return call.Src.RemoteSdp(), nil
 }
 
-func (b2b *B2B) RemoteSdp(userId int, wid string) (SdpDescription, error) {
+func (b2b *B2B) RemoteSdp(userId int64, wid string) (SdpDescription, error) {
 	_, ok := b2b.GetAccount(userId)
 	if !ok {
 		return SdpDescription{}, errors.New("not found account")
@@ -331,7 +361,7 @@ func (b2b *B2B) maybeSendSdp(sess *session.Session) {
 	if sess.Direction() == session.Outgoing {
 		c := b2b.findCall(sess)
 		if c != nil {
-			b2b.cb.OnB2B(sess.CallID().Value(), SdpDescription{
+			b2b.cb.OnB2B(c.SockId, c.DomainId, c.UserId, sess.CallID().Value(), SdpDescription{
 				Type: "answer",
 				Sdp:  sess.RemoteSdp(),
 			})

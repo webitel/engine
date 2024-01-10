@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"sync"
 	"sync/atomic"
@@ -133,11 +134,17 @@ func (c *WebConn) readPump() {
 
 		if err := c.WebSocket.ReadJSON(&req); err != nil {
 			// browsers will appear as CloseNoStatusReceived
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
-				break
-			} else {
-				wlog.Warn(fmt.Sprintf("websocket.read: decode JSON userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
+			switch err.(type) {
+			case *json.SyntaxError:
+				wlog.Warn(fmt.Sprintf("user_id=%d, receive message error: %s", c.UserId, err.Error()))
+				continue
+			default:
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+					wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
+				} else {
+					wlog.Warn(fmt.Sprintf("websocket.read: decode JSON userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
+				}
+				return
 			}
 		}
 

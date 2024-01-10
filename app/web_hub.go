@@ -119,6 +119,10 @@ func (wh *Hub) start() {
 
 			wlog.Debug(fmt.Sprintf("un-register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
 
+			if wh.app.b2b != nil && !connections.HasUser(webCon.UserId) {
+				wh.app.b2b.Unregister(webCon.UserId)
+			}
+
 		case msg := <-wh.domainQueue.Events():
 			candidates := connections.ForUser(msg.UserId)
 			for _, webCon := range candidates {
@@ -170,8 +174,11 @@ func (wh *Hub) start() {
 			}
 
 		case ev := <-wh.broadcast:
-			candidates := connections.ForUser(10)
+			candidates := connections.ForUser(ev.UserId)
 			for _, webCon := range candidates {
+				if ev.SockId != "" && ev.SockId != webCon.id {
+					//continue
+				}
 				select {
 				case webCon.Send <- ev:
 				default:
@@ -372,6 +379,11 @@ func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 
 func (i *hubConnectionIndex) ForUser(id int64) []*WebConn {
 	return i.byUserId[id]
+}
+
+func (i *hubConnectionIndex) HasUser(id int64) bool {
+	c, ok := i.byUserId[id]
+	return ok && len(c) > 0
 }
 
 func (i *hubConnectionIndex) All() map[*WebConn]int {

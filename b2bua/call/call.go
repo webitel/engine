@@ -8,10 +8,12 @@ import (
 type Call struct {
 	Src *session.Session
 	//TODO: Add support for forked calls
-	Dest    *session.Session
-	UserId  int
-	WCallId string
-	Req     *sip.Request
+	Dest     *session.Session
+	UserId   int64
+	DomainId int64
+	WCallId  string
+	SockId   string
+	Req      *sip.Request
 }
 
 func (c *Call) ToString() string {

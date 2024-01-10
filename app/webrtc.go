@@ -5,11 +5,21 @@ import (
 	"github.com/webitel/engine/b2bua"
 	"github.com/webitel/engine/b2bua/account"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/wlog"
 )
 
-func (app *App) OnB2B(sipId string, sdp b2bua.SdpDescription) {
-	h, _ := app.Hubs.Get(1)
+var ErrDisabledB2b = model.NewBadRequestError("app.b2b.disabled", "B2B disabled")
+
+func (app *App) OnB2B(sockId string, domainId int64, userId int64, sipId string, sdp b2bua.SdpDescription) {
+	h, ok := app.Hubs.Get(domainId)
+	if !ok {
+		wlog.Error("not found domain")
+		return
+	}
+
 	e := model.NewWebSocketEvent("sdp")
+	e.UserId = userId
+	e.SockId = sockId
 	e.Data = map[string]interface{}{
 		"sip_id": sipId,
 		"sdp":    sdp,
@@ -17,12 +27,19 @@ func (app *App) OnB2B(sipId string, sdp b2bua.SdpDescription) {
 	h.broadcast <- e
 }
 
-func (app *App) Dial(userId int, sdp string, destination string) {
-	app.b2b.Dial(userId, sdp, destination)
+func (app *App) Dial(sockId string, domainId int64, userId int64, sdp string, destination string) {
+	if app.b2b == nil {
+		return
+	}
+	app.b2b.Dial(sockId, domainId, userId, sdp, destination)
 }
 
-func (app *App) SipDial(userId int, sdp string, destination string) (string, model.AppError) {
-	sipId, rErr := app.b2b.Dial(userId, sdp, destination)
+func (app *App) SipDial(sockId string, domainId int64, userId int64, sdp string, destination string) (string, model.AppError) {
+	if app.b2b == nil {
+		return "", ErrDisabledB2b
+	}
+
+	sipId, rErr := app.b2b.Dial(sockId, domainId, userId, sdp, destination)
 	if rErr != nil {
 		return "", model.NewInternalError("app.sip.dial.app_err", rErr.Error())
 	}
@@ -30,7 +47,11 @@ func (app *App) SipDial(userId int, sdp string, destination string) (string, mod
 	return sipId, nil
 }
 
-func (app *App) SipRemoteSdp(userId int, wid string) (b2bua.SdpDescription, model.AppError) {
+func (app *App) SipRemoteSdp(userId int64, wid string) (b2bua.SdpDescription, model.AppError) {
+	if app.b2b == nil {
+		return b2bua.SdpDescription{}, ErrDisabledB2b
+	}
+
 	sdp, rErr := app.b2b.RemoteSdp(userId, wid)
 	if rErr != nil {
 		return b2bua.SdpDescription{}, model.NewInternalError("app.sip.remote_sdp.app_err", rErr.Error())
@@ -39,13 +60,17 @@ func (app *App) SipRemoteSdp(userId int, wid string) (b2bua.SdpDescription, mode
 	return sdp, nil
 }
 
-func (app *App) SipRecovery(domainId int64, userId int64, callId string, sdp string) (string, model.AppError) {
+func (app *App) SipRecovery(sockId string, domainId int64, userId int64, callId string, sdp string) (string, model.AppError) {
+	if app.b2b == nil {
+		return "", ErrDisabledB2b
+	}
+
 	sipId, err := app.Store.Call().GetSipId(context.Background(), domainId, userId, callId)
 	if err != nil {
 		return "", err
 	}
 
-	_, rErr := app.b2b.Recovery(int(userId), sipId, sdp)
+	_, rErr := app.b2b.Recovery(sockId, userId, sipId, sdp)
 	if rErr != nil {
 		return "", model.NewInternalError("app.sip.recovery.app_err", rErr.Error())
 	}
@@ -54,6 +79,10 @@ func (app *App) SipRecovery(domainId int64, userId int64, callId string, sdp str
 }
 
 func (app *App) SipAnswer(domainId int64, userId int64, callId string, sdp string) (string, model.AppError) {
+	if app.b2b == nil {
+		return "", ErrDisabledB2b
+	}
+
 	remSdp, rErr := app.b2b.Answer(int(userId), callId, sdp)
 	if rErr != nil {
 		return "", model.NewInternalError("app.sip.answer.app_err", rErr.Error())
@@ -62,14 +91,18 @@ func (app *App) SipAnswer(domainId int64, userId int64, callId string, sdp strin
 	return remSdp, nil
 }
 
-func (app *App) SipRegister(ctx context.Context, domainId, userId int64) model.AppError {
+func (app *App) SipRegister(ctx context.Context, name string, domainId, userId int64) model.AppError {
+	if app.b2b == nil {
+		return ErrDisabledB2b
+	}
+
 	sipConf, appErr := app.GetUserDefaultSipCDeviceConfig(ctx, userId, domainId)
 	if appErr != nil {
 		return appErr
 	}
 
-	err := app.b2b.Register(int(userId), b2bua.AuthInfo{
-		DisplayName: "igor",
+	err := app.b2b.Register(userId, b2bua.AuthInfo{
+		DisplayName: name,
 		Expires:     3200,
 		DomainId:    domainId,
 		UserId:      userId,

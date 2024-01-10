@@ -41,6 +41,7 @@ type WebSocketEvent struct {
 	Data     map[string]interface{} `json:"data"`
 	Sequence int64                  `json:"seq"`
 	UserId   int64                  `json:"user_id,omitempty"`
+	SockId   string                 `json:"sock_id,omitempty"`
 
 	precomputedJSON *precomputedWebSocketEventJSON
 }
