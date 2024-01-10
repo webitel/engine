@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sync"
@@ -129,27 +130,39 @@ func (c *WebConn) readPump() {
 	})
 
 	for {
+		msgType, rd, err := c.WebSocket.NextReader()
+		if err != nil {
+			wlog.Error(fmt.Sprintf("websocket.NextReader error: %s", err.Error()))
+			return
+		}
+
+		var decoder interface {
+			Decode(v any) error
+		}
+
+		if msgType == websocket.TextMessage {
+			decoder = json.NewDecoder(rd)
+		} else {
+			wlog.Error(fmt.Sprintf("user_id=%d receive bad type message", c.UserId))
+			continue
+		}
 
 		var req model.WebSocketRequest
 
-		if err := c.WebSocket.ReadJSON(&req); err != nil {
-			// browsers will appear as CloseNoStatusReceived
-			switch err.(type) {
-			case *json.SyntaxError:
-				wlog.Warn(fmt.Sprintf("user_id=%d, receive message error: %s", c.UserId, err.Error()))
-				continue
-			default:
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					wlog.Debug(fmt.Sprintf("websocket.read: client side closed socket userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
-				} else {
-					wlog.Warn(fmt.Sprintf("websocket.read: decode JSON userId=%v, sockId=%s, error=%s", c.UserId, c.id, err.Error()))
-				}
-				return
-			}
+		if err = decoder.Decode(&req); err != nil {
+			wlog.Error(fmt.Sprintf("user_id=%d decode message error: %s", c.UserId, err.Error()))
+			continue
 		}
 
 		c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
 	}
+}
+
+// writeMessageBuf is a helper utility that wraps the write to the socket
+// along with setting the write deadline.
+func (c *WebConn) writeMessageBuf(msgType int, data []byte) error {
+	c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
+	return c.WebSocket.WriteMessage(msgType, data)
 }
 
 func (c *WebConn) writePump() {
@@ -161,56 +174,56 @@ func (c *WebConn) writePump() {
 		authTicker.Stop()
 		c.WebSocket.Close()
 	}()
+
+	var buf bytes.Buffer
+	buf.Grow(1024 * 2)
+
+	enc := json.NewEncoder(&buf)
+
 	for {
 		select {
 		case msg, ok := <-c.Send:
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
 
 			if !ok {
-				c.WebSocket.WriteMessage(websocket.CloseMessage, []byte{})
+				c.writeMessageBuf(websocket.CloseMessage, []byte{})
 				return
 			}
-
 			evt, evtOk := msg.(*model.WebSocketEvent)
 
-			var msgBytes []byte
+			buf.Reset()
+			var err error
+
 			if evtOk {
 				cpyEvt := &model.WebSocketEvent{}
 				*cpyEvt = *evt
 				cpyEvt.Sequence = c.Sequence
-				msgBytes = []byte(cpyEvt.ToJson())
+				err = enc.Encode(cpyEvt)
 				c.Sequence++
 			} else {
-				msgBytes = []byte(msg.ToJson())
+				err = enc.Encode(msg)
+			}
+
+			if err != nil {
+				wlog.Warn("Error in encoding websocket message", wlog.Err(err))
+				continue
 			}
 
 			if len(c.Send) >= SEND_DEADLOCK_WARN {
 				if evtOk {
-					wlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
+					wlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), buf.Len()))
 				} else {
-					wlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
+					wlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), buf.Len()))
 				}
 			}
 
-			if err := c.WebSocket.WriteMessage(websocket.TextMessage, msgBytes); err != nil {
-				// browsers will appear as CloseNoStatusReceived
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					wlog.Debug(fmt.Sprintf("websocket.send: client side closed socket userId=%v", c.UserId))
-				} else {
-					wlog.Debug(fmt.Sprintf("websocket.send: closing websocket for userId=%v, error=%v", c.UserId, err.Error()))
-				}
+			if err = c.writeMessageBuf(websocket.TextMessage, buf.Bytes()); err != nil {
+				wlog.Error(fmt.Sprintf("user_id=%d, send message error: %s", c.UserId, err.Error()))
 				return
 			}
 
 		case <-ticker.C:
-			c.WebSocket.SetWriteDeadline(time.Now().Add(WRITE_WAIT))
-			if err := c.WebSocket.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
-				// browsers will appear as CloseNoStatusReceived
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					wlog.Debug(fmt.Sprintf("websocket.ticker: client side closed socket userId=%v", c.UserId))
-				} else {
-					wlog.Debug(fmt.Sprintf("websocket.ticker: closing websocket for userId=%v error=%v", c.UserId, err.Error()))
-				}
+			if err := c.writeMessageBuf(websocket.PingMessage, []byte{}); err != nil {
+				wlog.Error(fmt.Sprintf("user_id=%d, send ping message error: %s", c.UserId, err.Error()))
 				return
 			} else if c.App.config.Cloudflare {
 				c.WebSocket.WriteMessage(websocket.TextMessage, spamMessage)
