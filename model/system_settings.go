@@ -10,6 +10,7 @@ const (
 	SysNameOmnichannel           = "enable_omnichannel"
 	SysNameMemberInsertChunkSize = "member_chunk_size"
 	SysNameSchemeVersionLimit    = "scheme_version_limit"
+	SysNameAmdCancelNotHuman     = "amd_cancel_not_human"
 )
 
 type SysValue json.RawMessage
