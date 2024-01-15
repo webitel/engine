@@ -9,6 +9,7 @@ import (
 const (
 	SysNameOmnichannel           = "enable_omnichannel"
 	SysNameMemberInsertChunkSize = "member_chunk_size"
+	SysNameSchemeVersionLimit    = "scheme_version_limit"
 )
 
 type SysValue json.RawMessage
