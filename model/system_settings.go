@@ -54,7 +54,7 @@ func (SystemSetting) EntityName() string {
 
 func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
-	case SysNameOmnichannel:
+	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
 	case SysNameMemberInsertChunkSize:
 		value := SysValue(s.Value)
