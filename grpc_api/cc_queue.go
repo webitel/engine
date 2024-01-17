@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/webitel/engine/app"
@@ -308,6 +309,11 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 			Total:   report.Aggs.Total,
 		},
 	}, nil
+}
+
+func (api *queue) SearchQueueTags(ctx context.Context, request *engine.SearchQueueTagsRequest) (*engine.ListTags, error) {
+	//TODO implement me
+	return nil, errors.New("TODO")
 }
 
 func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {

@@ -515,7 +515,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 		}
 	}
 
-	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req)
+	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
 
 	if err != nil {
 		return nil, err
