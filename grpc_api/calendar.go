@@ -163,10 +163,13 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 
 	for _, v := range in.Excepts {
 		calendar.Excepts = append(calendar.Excepts, &model.CalendarExceptDate{
-			Name:     v.GetName(),
-			Repeat:   v.GetRepeat(),
-			Date:     v.GetDate(),
-			Disabled: v.GetDisabled(),
+			Name:      v.GetName(),
+			Repeat:    v.GetRepeat(),
+			Date:      v.GetDate(),
+			Disabled:  v.GetDisabled(),
+			WorkStart: v.GetWorkStart(),
+			WorkStop:  v.GetWorkStop(),
+			Working:   v.GetWorking(),
 		})
 	}
 
