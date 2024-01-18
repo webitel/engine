@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/webitel/engine/model"
+	"github.com/webitel/wlog"
 )
 
 type webSocketHandler interface {
@@ -41,11 +42,15 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
+		wlog.Debug("search session from token")
+
 		session, err := wr.app.GetSession(token)
 		if err != nil {
 			ReturnWebSocketError(conn, r, err)
 			return
 		}
+
+		wlog.Debug("found session from token")
 
 		if session.CountLicenses() == 0 {
 			ReturnWebSocketError(conn, r, model.SocketPermissionError)
