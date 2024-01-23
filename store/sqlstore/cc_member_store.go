@@ -76,6 +76,9 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 
 	tx, err = s.GetMaster().Begin()
 	if err != nil {
+		if tx != nil {
+			tx.Rollback()
+		}
 		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
 
