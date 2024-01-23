@@ -83,6 +83,9 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 	_, err = tx.WithContext(ctx).Exec("CREATE temp table " + tableName + " ON COMMIT DROP as table call_center.cc_member with no data")
 
 	if err != nil {
+		if tx != nil {
+			tx.Rollback()
+		}
 		return nil, model.NewInternalError("store.sql_member.bulk_save.app_error", err.Error())
 	}
 
