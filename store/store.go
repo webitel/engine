@@ -364,6 +364,9 @@ type CallStore interface {
 	GetOwnerUserCall(ctx context.Context, id string) (*int64, model.AppError)
 	UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError
 	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError
+
+	FromNumber(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
+	SetHideMissed(ctx context.Context, domainId int64, userId int64, id string) model.AppError
 }
 
 type EmailProfileStore interface {

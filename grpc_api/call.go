@@ -335,6 +335,10 @@ func (api *call) PatchHistoryCall(ctx context.Context, in *engine.PatchHistoryCa
 		(*req.Variables)[k] = v
 	}
 
+	if in.HideMissed != nil {
+		req.HideMissed = &in.HideMissed.Value
+	}
+
 	call, err = api.ctrl.UpdateCallHistory(ctx, session, in.Id, req)
 
 	if err != nil {
@@ -758,6 +762,23 @@ func (api *call) SetVariablesCall(ctx context.Context, in *engine.SetVariablesCa
 	}
 
 	return &engine.SetVariablesCallResponse{}, nil
+}
+
+func (api *call) RedialCall(ctx context.Context, in *engine.RedialCallRequest) (*engine.CreateCallResponse, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var id string
+	id, err = api.ctrl.RedialCall(ctx, session, in.GetCallId())
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.CreateCallResponse{
+		Id: id,
+	}, nil
 }
 
 func toEngineCall(src *model.Call) *engine.ActiveCall {

@@ -112,6 +112,43 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 }
 
+func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, callId string) (string, model.AppError) {
+
+	dest, err := app.Store.Call().FromNumber(ctx, domainId, userId, callId)
+	if err != nil {
+		return "", err
+	}
+
+	req := &model.OutboundCallRequest{
+		CreatedAt:   model.GetMillis(),
+		CreatedById: userId,
+		From: &model.EndpointRequest{
+			UserId: &userId,
+		},
+		To:          nil,
+		Destination: dest,
+		Params: model.CallParameters{
+			DisableStun: false,
+			HideNumber:  false,
+			Variables: map[string]string{
+				"wbt_redial": callId,
+			},
+		},
+	}
+
+	dest, err = app.CreateOutboundCall(ctx, domainId, req, nil)
+	if err != nil {
+		return "", err
+	}
+
+	err = app.Store.Call().SetHideMissed(ctx, domainId, userId, callId)
+	if err != nil {
+		return "", err
+	}
+
+	return dest, nil
+}
+
 func (app *App) GetCall(ctx context.Context, domainId int64, callId string) (*model.Call, model.AppError) {
 	return app.Store.Call().Get(ctx, domainId, callId)
 }

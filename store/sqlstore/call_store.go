@@ -410,7 +410,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
+	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound') and not hide_missed is true))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
@@ -1239,11 +1239,13 @@ where c.id = :Id::uuid`, map[string]interface{}{
 
 func (s SqlCallStore) UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError {
 	res, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history c
-set payload = coalesce(payload, '{}') || :Vars::jsonb
+set payload = coalesce(payload, '{}') || :Vars::jsonb,
+	hide_missed = coalesce(:HideMissed::bool, hide_missed)
 where id = :Id::uuid and domain_id = :DomainId`, map[string]interface{}{
-		"Vars":     upd.Variables.ToJson(),
-		"Id":       id,
-		"DomainId": domainId,
+		"Vars":       upd.Variables.ToJson(),
+		"Id":         id,
+		"HideMissed": upd.HideMissed,
+		"DomainId":   domainId,
 	})
 
 	if err != nil {
@@ -1312,4 +1314,40 @@ func (s SqlCallStore) GetSipId(ctx context.Context, domainId int64, userId int64
 	}
 
 	return sipId, nil
+}
+
+func (s SqlCallStore) SetHideMissed(ctx context.Context, domainId int64, userId int64, id string) model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history
+set hide_missed = true
+where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+		"UserId":   userId,
+	})
+
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_call.set_hide_missed.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
+}
+
+func (s SqlCallStore) FromNumber(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError) {
+	from, err := s.GetReplica().WithContext(ctx).SelectNullStr(`select from_number
+from call_center.cc_calls_history
+where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+		"UserId":   userId,
+	})
+
+	if err != nil {
+		return "", model.NewCustomCodeError("store.sql_call.from_number.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if !from.Valid {
+		return "", model.NewNotFoundError("store.sql_call.from_number.app_error", fmt.Sprintf("callId=%s not found", id))
+	}
+
+	return from.String, nil
 }

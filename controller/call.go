@@ -26,6 +26,15 @@ func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.CreateOutboundCall(ctx, session.DomainId, req, variables)
 }
 
+func (c *Controller) RedialCall(ctx context.Context, session *auth_manager.Session, callId string) (string, model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanCreate() {
+		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
+	return c.app.RedialCall(ctx, session.DomainId, session.UserId, callId)
+}
+
 func (c *Controller) SearchCall(ctx context.Context, session *auth_manager.Session, search *model.SearchCall) ([]*model.Call, bool, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanRead() {
