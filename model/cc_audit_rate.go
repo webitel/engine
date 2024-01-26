@@ -99,11 +99,11 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 	}
 
 	if r.ScoreRequired > 0 {
-		r.ScoreRequired = (r.ScoreRequired * 100) / float32(form.Questions.SumMax(true))
+		r.ScoreRequired = (r.ScoreRequired * 100) / form.Questions.SumMax(true)
 	}
 
 	if r.ScoreOptional > 0 {
-		r.ScoreOptional = (r.ScoreOptional * 100) / float32(form.Questions.SumMax(false))
+		r.ScoreOptional = (r.ScoreOptional * 100) / form.Questions.SumMax(false)
 	}
 
 	return nil
