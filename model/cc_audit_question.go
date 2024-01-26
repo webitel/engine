@@ -27,13 +27,14 @@ type QuestionOption struct {
 	Score float32 `json:"score"`
 }
 
-func (q Questions) SumMax(required bool) int {
-	i := 0
+func (q Questions) SumMax(required bool) float32 {
+	var i float32
+
 	for _, v := range q {
 		if v.Required == required {
 			switch v.Type {
 			case QuestionTypeScore:
-				i += int(v.Max)
+				i += float32(v.Max)
 			case QuestionTypeOptions:
 				i += maxScoreOption(v.Options)
 			}
@@ -52,7 +53,7 @@ func (q *Questions) ToJson() []byte {
 	return data
 }
 
-func maxScoreOption(ops []QuestionOption) int {
+func maxScoreOption(ops []QuestionOption) float32 {
 	if len(ops) == 0 {
 		return 0
 	}
@@ -64,7 +65,7 @@ func maxScoreOption(ops []QuestionOption) int {
 		}
 	}
 
-	return int(max)
+	return max
 }
 
 func (q *Question) ValidAnswer(a QuestionAnswer) bool {
