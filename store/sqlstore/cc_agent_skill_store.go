@@ -57,17 +57,26 @@ func (s SqlAgentSkillStore) BulkCreate(ctx context.Context, domainId, agentId in
 	var tx *gorp.Transaction
 	tx, err = s.GetMaster().Begin()
 	if err != nil {
+		if tx != nil {
+			tx.Rollback()
+		}
 		return nil, model.NewInternalError("store.sql_skill_in_agent.bulk_save.app_error", err.Error())
 	}
 
 	_, err = tx.WithContext(ctx).Exec("CREATE temp table cc_skill_in_agent_tmp ON COMMIT DROP as table call_center.cc_skill_in_agent with no data")
 	if err != nil {
+		if tx != nil {
+			tx.Rollback()
+		}
 		return nil, model.NewInternalError("store.sql_skill_in_agent.bulk_save.app_error", err.Error())
 	}
 
 	stmp, err = tx.Prepare(pq.CopyIn("cc_skill_in_agent_tmp", "id", "skill_id", "agent_id", "capacity", "created_at", "created_by",
 		"updated_at", "updated_by", "enabled"))
 	if err != nil {
+		if tx != nil {
+			tx.Rollback()
+		}
 		return nil, model.NewInternalError("store.sql_skill_in_agent.bulk_save.app_error", err.Error())
 	}
 
