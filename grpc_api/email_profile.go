@@ -36,7 +36,10 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 		ImapHost:      in.GetImapHost(),
 		ImapPort:      int(in.GetImapPort()),
 		FetchInterval: in.GetFetchInterval(),
+		AuthType:      authType(in.GetAuthType()),
+		Listen:        in.GetListen(),
 	}
+
 	var profile *model.EmailProfile
 	profile, err = api.ctrl.CreateEmailProfile(ctx, session, req)
 	if err != nil {
@@ -114,7 +117,7 @@ func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.Login
 	}
 
 	return &engine.LoginEmailProfileResponse{
-		AuthType:    login.AuthType,
+		AuthType:    engineAuthType(login.AuthType),
 		RedirectUrl: login.RedirectUrl,
 		Cookie:      login.Cookie,
 	}, nil
@@ -197,6 +200,8 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 		ImapHost:      in.GetImapHost(),
 		ImapPort:      int(in.GetImapPort()),
 		FetchInterval: in.GetFetchInterval(),
+		AuthType:      authType(in.GetAuthType()),
+		Listen:        in.GetListen(),
 	}
 
 	profile, err = api.ctrl.UpdateEmailProfile(ctx, session, profile)
@@ -243,7 +248,7 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		FetchInterval: src.FetchInterval,
 		State:         src.State,
 		ActivityAt:    src.ActivityAt,
-		AuthType:      src.AuthType,
+		AuthType:      engineAuthType(src.AuthType),
 		Listen:        src.Listen,
 	}
 
@@ -252,4 +257,26 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 	}
 
 	return profile
+}
+
+func engineAuthType(src string) engine.EmailAuthType {
+	switch src {
+	case model.EmailAuthTypeOAuth2:
+		return engine.EmailAuthType_OAuth2
+	case model.EmailAuthTypePlain:
+		return engine.EmailAuthType_Plain
+	default:
+		return engine.EmailAuthType_EmailAuthTypeUndefined
+	}
+}
+
+func authType(src engine.EmailAuthType) string {
+	switch src {
+	case engine.EmailAuthType_OAuth2:
+		return model.EmailAuthTypeOAuth2
+	case engine.EmailAuthType_Plain:
+		return model.EmailAuthTypePlain
+	default:
+		return ""
+	}
 }
