@@ -2,7 +2,9 @@ package sqlstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/webitel/wlog"
 	"strings"
 
 	"github.com/lib/pq"
@@ -462,6 +464,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
+		DUMP(f)
 		return nil, model.NewInternalError("store.sql_call.get_history.app_error", err.Error())
 	}
 
@@ -616,6 +619,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
+		DUMP(f)
 		return nil, model.NewInternalError("store.sql_call.get_history.app_error", err.Error())
 	}
 
@@ -1312,4 +1316,10 @@ func (s SqlCallStore) GetSipId(ctx context.Context, domainId int64, userId int64
 	}
 
 	return sipId, nil
+}
+
+func DUMP(i interface{}) string {
+	s, _ := json.MarshalIndent(i, "", "")
+	wlog.Error("sql filter:" + string(s))
+	return string(s)
 }
