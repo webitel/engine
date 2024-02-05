@@ -202,25 +202,8 @@ func (c *Controller) SearchAuditRate(ctx context.Context, session *auth_manager.
 	return c.app.GetAuditRatePage(ctx, session.Domain(0), search)
 }
 
+// WTEL-3870
 func (c *Controller) ReadAuditRate(ctx context.Context, session *auth_manager.Session, id int64) (*model.AuditRate, model.AppError) {
-	var err model.AppError
-	permission := session.GetPermission(model.PermissionAuditFrom)
-	if !permission.CanRead() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		var perm bool
-		var formId int32
-		formId, err = c.app.GetAuditRateFormId(ctx, session.Domain(0), id)
-
-		if perm, err = c.app.AuditFormCheckAccess(ctx, session.Domain(0), formId, session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, int64(formId), permission, auth_manager.PERMISSION_ACCESS_READ)
-		}
-	}
 
 	return c.app.GetAuditRate(ctx, session.Domain(0), id)
 }
