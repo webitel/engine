@@ -152,6 +152,8 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 				session.actions = append(session.actions, PERMISSION_RECORD_FILE)
 			case "system_setting":
 				session.actions = append(session.actions, PermissionSystemSetting)
+			case "scheme_variables":
+				session.actions = append(session.actions, PermissionSchemeVariables)
 			}
 		}
 	}

@@ -22,8 +22,9 @@ const (
 	PERMISSION_VIEW_NUMBERS = "view_cdr_phone_numbers"
 	PERMISSION_RECORD_FILE  = "playback_record_file"
 
-	PermissionAuditRate     = "audit_rate"
-	PermissionSystemSetting = "system_setting"
+	PermissionAuditRate       = "audit_rate"
+	PermissionSystemSetting   = "system_setting"
+	PermissionSchemeVariables = "scheme_variables"
 )
 
 func (p PermissionAccess) Value() uint32 {
