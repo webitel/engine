@@ -51,6 +51,14 @@ func (app *App) EncryptId(id int64) (string, model.AppError) {
 	return encrypt(app.cipherBlock, []byte(fmt.Sprintf("%v", id)))
 }
 
+func (app *App) EncryptBytes(v []byte) ([]byte, model.AppError) {
+	s, err := encrypt(app.cipherBlock, v)
+	if err != nil {
+		return nil, err
+	}
+	return []byte(s), nil
+}
+
 func encrypt(block cipher.Block, plainText []byte) (string, model.AppError) {
 
 	//Make the cipher text a byte array of size BlockSize + the length of the message

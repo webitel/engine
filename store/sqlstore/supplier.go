@@ -67,6 +67,7 @@ type SqlSupplierOldStores struct {
 	systemSetting           store.SystemSettingsStore
 	webHook                 store.WebHookStore
 	schemeVersion           store.SchemeVersionsStore
+	schemeVariable          store.SchemeVariablesStore
 }
 
 type SqlSupplier struct {
@@ -126,6 +127,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.systemSetting = NewSqlSystemSettingsStore(supplier)
 	supplier.oldStores.webHook = NewSqlSqlWebHookStore(supplier)
 	supplier.oldStores.schemeVersion = NewSqlSchemeVersionsStore(supplier)
+	supplier.oldStores.schemeVariable = NewSqlSqlSchemeVariablesStore(supplier)
 
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
@@ -374,6 +376,10 @@ func (ss *SqlSupplier) WebHook() store.WebHookStore {
 
 func (ss *SqlSupplier) SchemeVersion() store.SchemeVersionsStore {
 	return ss.oldStores.schemeVersion
+}
+
+func (ss *SqlSupplier) SchemeVariable() store.SchemeVariablesStore {
+	return ss.oldStores.schemeVariable
 }
 
 type typeConverter struct{}

@@ -46,6 +46,7 @@ type API struct {
 	systemSettings *systemSettings
 	webHook        *webHook
 	schemaVersion  *schemaVersion
+	schemaVariable *schemaVariable
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -87,6 +88,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.presetQuery = NewPresetQueryApi(api)
 	api.systemSettings = NewSystemSettingsApi(api)
 	api.schemaVersion = NewSchemeVersionApi(api)
+	api.schemaVariable = NewSchemeVariableApi(api)
 	api.webHook = NewWebHookApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
@@ -125,4 +127,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterSystemSettingServiceServer(server, api.systemSettings)
 	engine.RegisterWebHookServiceServer(server, api.webHook)
 	engine.RegisterSchemaVersionServiceServer(server, api.schemaVersion)
+	engine.RegisterSchemaVariablesServiceServer(server, api.schemaVariable)
 }

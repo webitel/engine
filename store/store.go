@@ -70,6 +70,7 @@ type Store interface {
 	SystemSettings() SystemSettingsStore
 	WebHook() WebHookStore
 	SchemeVersion() SchemeVersionsStore
+	SchemeVariable() SchemeVariablesStore
 }
 
 // todo deprecated
@@ -470,6 +471,14 @@ type WebHookStore interface {
 
 type SchemeVersionsStore interface {
 	Search(ctx context.Context, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVersion, model.AppError)
+}
+
+type SchemeVariablesStore interface {
+	Create(ctx context.Context, domainId int64, variable *model.SchemeVariable) (*model.SchemeVariable, model.AppError)
+	Search(ctx context.Context, domainId int64, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVariable, model.AppError)
+	Get(ctx context.Context, domainId int64, id int32) (*model.SchemeVariable, model.AppError)
+	Update(ctx context.Context, domainId int64, variable *model.SchemeVariable) (*model.SchemeVariable, model.AppError)
+	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.

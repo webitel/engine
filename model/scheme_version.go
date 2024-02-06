@@ -35,24 +35,3 @@ var SchemeVersionFields = struct {
 	Version:   "version",
 	Note:      "note",
 }
-
-const (
-	schemeName string = "scheme_version"
-)
-
-//func (SchemeVersion) DefaultOrder() string {
-//	return "name"
-//}
-//
-//func (SchemeVersion) AllowFields() []string {
-//	return []string{"id", "name", "description", "domain_id", "created_at", "created_by", "updated_at", "updated_by",
-//		"enabled", "questions", "teams", "archive", "editable"}
-//}
-//
-//func (SchemeVersion) DefaultFields() []string {
-//	return []string{"id", "name", "description", "teams", "archive", "editable", "enabled", "created_at", "created_by", "updated_at", "updated_by"}
-//}
-//
-//func (SchemeVersion) EntityName() string {
-//	return "cc_audit_form_view"
-//}

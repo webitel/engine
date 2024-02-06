@@ -176,3 +176,7 @@ func (s *LayeredStore) WebHook() WebHookStore {
 func (s *LayeredStore) SchemeVersion() SchemeVersionsStore {
 	return s.DatabaseLayer.SchemeVersion()
 }
+
+func (s *LayeredStore) SchemeVariable() SchemeVariablesStore {
+	return s.DatabaseLayer.SchemeVariable()
+}
