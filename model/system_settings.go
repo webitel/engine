@@ -57,12 +57,12 @@ func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize:
+	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit:
 		value := SysValue(s.Value)
 		i := value.Int()
 
 		if i == nil || *i < 1 {
-			return NewBadRequestError("model.SystemSetting.valid.member_chunk_size.value", "The value should be more than 1")
+			return NewBadRequestError("model.SystemSetting.valid.int.value", "The value should be more than 1")
 		}
 
 	default:
