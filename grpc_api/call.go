@@ -64,16 +64,25 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		Variables:        in.GetVariables(),
 		Number:           in.GetNumber(),
 		AmdResult:        in.GetAmdResult(),
-		HasFile:          GetBool(in.GetHasFile()),
-		HasTranscript:    GetBool(in.GetHasTranscript()),
 		AgentDescription: in.GetAgentDescription(),
 		OwnerIds:         in.GetOwnerId(),
 		GranteeIds:       in.GetGranteeId(),
 		AmdAiResult:      in.GetAmdAiResult(),
 		RatedByIds:       in.GetRatedBy(),
 		RatedUserIds:     in.GetRatedUser(),
-		Rated:            GetBool(in.GetRated()),
 		ContactIds:       in.GetContactId(),
+	}
+
+	if in.HasFile != nil {
+		req.HasFile = model.NewBool(in.GetHasFile().GetValue())
+	}
+
+	if in.HasTranscript != nil {
+		req.HasTranscript = model.NewBool(in.GetHasTranscript().GetValue())
+	}
+
+	if in.Rated != nil {
+		req.Rated = model.NewBool(in.GetRated().GetValue())
 	}
 
 	if in.GetDependencyId() != "" {
@@ -215,11 +224,17 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			Variables:        in.GetVariables(),
 			Number:           in.GetNumber(),
 			AmdResult:        in.GetAmdResult(),
-			HasFile:          GetBool(in.GetHasFile()),
-			HasTranscript:    GetBool(in.GetHasTranscript()),
 			AgentDescription: in.GetAgentDescription(),
 			ContactIds:       in.GetContactId(),
 		},
+	}
+
+	if in.HasFile != nil {
+		req.HasFile = model.NewBool(in.GetHasFile().GetValue())
+	}
+
+	if in.HasTranscript != nil {
+		req.HasTranscript = model.NewBool(in.GetHasTranscript().GetValue())
 	}
 
 	if in.GetDependencyId() != "" {
