@@ -86,9 +86,9 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
 	var out *model.Agent
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with a as (
 			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
-				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids)
+				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
-					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds)
+					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount)
 			returning *
 		)
 	SELECT a.domain_id,
@@ -105,6 +105,7 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
        call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 	   a.allow_channels,
        a.chat_count,
+	   a.task_count,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
         WHERE sag.id = any(a.supervisor_ids)) as supervisor,
@@ -141,6 +142,7 @@ FROM a
 			"RegionId":         agent.Region.GetSafeId(),
 			"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 			"Supervisor":       agent.IsSupervisor,
+			"TaskCount":        agent.TaskCount,
 		}); err != nil {
 		return nil, model.NewInternalError("store.sql_agent.save.app_error", fmt.Sprintf("record=%v, %v", agent, err.Error()))
 	} else {
@@ -327,6 +329,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
+			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
 				WHERE sag.id = any(a.supervisor_ids)) as supervisor,
@@ -374,7 +377,8 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 				team_id = :TeamId,
 				region_id = :RegionId,
 				supervisor = :Supervisor,
-				auditor_ids = :AuditorIds
+				auditor_ids = :AuditorIds,
+                task_count = :TaskCount
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
@@ -392,6 +396,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
+			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
 				WHERE sag.id = any(a.supervisor_ids)) as supervisor,
@@ -426,6 +431,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 		"RegionId":         agent.Region.GetSafeId(),
 		"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 		"Supervisor":       agent.IsSupervisor,
+		"TaskCount":        agent.TaskCount,
 	})
 	if err != nil {
 		code := http.StatusInternalServerError

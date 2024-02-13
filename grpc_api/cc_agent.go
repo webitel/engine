@@ -60,6 +60,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		Region:           GetLookup(in.Region),
 		Auditor:          GetLookups(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
+		TaskCount:        in.TaskCount,
 	}
 
 	err = agent.IsValid()
@@ -220,6 +221,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		Region:           GetLookup(in.Region),
 		Auditor:          GetLookups(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
+		TaskCount:        in.TaskCount,
 	})
 
 	if err != nil {
@@ -976,6 +978,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		Auditor:          GetProtoLookups(src.Auditor),
 		IsSupervisor:     src.IsSupervisor,
 		Skills:           GetProtoLookups(src.Skills),
+		TaskCount:        src.TaskCount,
 	}
 	agent.Channel = make([]*engine.AgentChannel, 0, len(src.Channel))
 
