@@ -47,6 +47,7 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 			OAuth2: &model.OAuth2Config{
 				ClientId:     oauth2.GetClientId(),
 				ClientSecret: oauth2.GetClientSecret(),
+				RedirectURL:  oauth2.GetRedirectUrl(),
 			},
 		}
 	}
@@ -222,6 +223,7 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 			OAuth2: &model.OAuth2Config{
 				ClientId:     oauth2.GetClientId(),
 				ClientSecret: oauth2.GetClientSecret(),
+				RedirectURL:  oauth2.GetRedirectUrl(),
 			},
 		}
 	}
@@ -284,6 +286,7 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 			Oauth2: &engine.EmailProfileParams_OAuth2{
 				ClientId:     src.Params.OAuth2.ClientId,
 				ClientSecret: src.Params.OAuth2.ClientSecret,
+				RedirectUrl:  src.Params.OAuth2.RedirectURL,
 			},
 		}
 	}

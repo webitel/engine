@@ -19,6 +19,7 @@ const (
 type OAuth2Config struct {
 	ClientId     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
+	RedirectURL  string `json:"redirect_url"`
 }
 
 type MailProfileParams struct {
@@ -48,18 +49,32 @@ type EmailProfile struct {
 	Logged        bool               `json:"logged" db:"logged"`
 }
 
+func (p *EmailProfile) oauthConfig() *OAuth2Config {
+	if p.Params != nil && p.Params.OAuth2 != nil {
+		return p.Params.OAuth2
+	}
+
+	return nil
+}
+
 func (p *EmailProfile) Oauth() (oauth2.Config, AppError) {
+	config := p.oauthConfig()
+	if config == nil {
+		// TODO
+		return oauth2.Config{}, nil
+	}
+
 	if strings.Index(p.ImapHost, MailGmail+".com") > -1 {
 
 	} else if strings.Index(p.ImapHost, MailOutlook) == 0 {
 		return oauth2.Config{
-			ClientID:     p.Params.OAuth2.ClientId,
-			ClientSecret: p.Params.OAuth2.ClientSecret,
+			ClientID:     config.ClientId,
+			ClientSecret: config.ClientSecret,
 			Endpoint: oauth2.Endpoint{
 				AuthURL:  "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
 				TokenURL: "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
 			},
-			RedirectURL: "https://dev.webitel.com/endpoint/oauth2/outlook/callback",
+			RedirectURL: config.RedirectURL, //"https://dev.webitel.com/endpoint/oauth2/outlook/callback",
 			Scopes: []string{
 				"https://outlook.office.com/User.Read",
 				"https://outlook.office.com/IMAP.AccessAsUser.All",
