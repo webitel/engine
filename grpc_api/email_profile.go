@@ -40,6 +40,17 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 		Listen:        in.GetListen(),
 	}
 
+	oauth2 := in.GetParams().GetOauth2()
+
+	if oauth2 != nil {
+		req.Params = &model.MailProfileParams{
+			OAuth2: &model.OAuth2Config{
+				ClientId:     oauth2.GetClientId(),
+				ClientSecret: oauth2.GetClientSecret(),
+			},
+		}
+	}
+
 	var profile *model.EmailProfile
 	profile, err = api.ctrl.CreateEmailProfile(ctx, session, req)
 	if err != nil {
@@ -204,6 +215,17 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 		Listen:        in.GetListen(),
 	}
 
+	oauth2 := in.GetParams().GetOauth2()
+
+	if oauth2 != nil {
+		profile.Params = &model.MailProfileParams{
+			OAuth2: &model.OAuth2Config{
+				ClientId:     oauth2.GetClientId(),
+				ClientSecret: oauth2.GetClientSecret(),
+			},
+		}
+	}
+
 	profile, err = api.ctrl.UpdateEmailProfile(ctx, session, profile)
 	if err != nil {
 		return nil, err
@@ -250,10 +272,20 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		ActivityAt:    src.ActivityAt,
 		AuthType:      engineAuthType(src.AuthType),
 		Listen:        src.Listen,
+		Logged:        src.Logged,
 	}
 
 	if src.FetchError != nil {
 		profile.FetchError = *src.FetchError
+	}
+
+	if src.Params != nil && src.Params.OAuth2 != nil {
+		profile.Params = &engine.EmailProfileParams{
+			Oauth2: &engine.EmailProfileParams_OAuth2{
+				ClientId:     src.Params.OAuth2.ClientId,
+				ClientSecret: src.Params.OAuth2.ClientSecret,
+			},
+		}
 	}
 
 	return profile

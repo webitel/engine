@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"github.com/Masterminds/squirrel"
+	"golang.org/x/oauth2"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -377,7 +378,7 @@ type EmailProfileStore interface {
 	Update(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int) model.AppError
 
-	SetupOAuth2(ctx context.Context, id int, params *model.MailProfileParams) model.AppError
+	SetupOAuth2(ctx context.Context, id int, token *oauth2.Token) model.AppError
 	CountEnabledByDomain(ctx context.Context, domainId int64) (int, model.AppError)
 }
 

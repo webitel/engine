@@ -1,10 +1,10 @@
 package apis
 
 import (
-	"github.com/gorilla/mux"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
 	"net/http"
+	"strings"
 )
 
 func (api *API) InitOAuth() {
@@ -12,34 +12,52 @@ func (api *API) InitOAuth() {
 }
 
 func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Read oauthState from Cookie
-	props := mux.Vars(r)
-	e, ok := c.App.MailOauthConfig(props["id"])
-	if !ok {
-		c.Err = model.NewBadRequestError("api.oauth2.callback.bad_request", "Not found provider "+props["id"])
-		return
+	var domainId, profileId int64
+	var err model.AppError
+
+	state := strings.Split(r.FormValue("state"), "::")
+	if len(state) != 2 {
+		// ERROR
 	}
 
-	//oauthState, _ := r.Cookie("oauthstate")
-	//
-	//if r.FormValue("state") != oauthState.Value {
-	//	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-	//	return
-	//}
-
-	id, err := c.App.DecryptId(r.FormValue("state"))
+	domainId, err = c.App.DecryptId(state[0])
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	token, err2 := e.Exchange(oauth2.NoContext, r.FormValue("code"))
+	profileId, err = c.App.DecryptId(state[1])
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	p, err := c.App.Store.EmailProfile().Get(r.Context(), domainId, int(profileId))
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	e, err := p.Oauth()
+	if err != nil {
+		c.Err = err
+		return
+	}
+	code := r.FormValue("code")
+
+	if code == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(r.Form.Get("error_description")))
+		return
+	}
+
+	token, err2 := e.Exchange(oauth2.NoContext, code)
 	if err2 != nil {
 		c.Err = model.NewBadRequestError("api.oauth2.callback.bad_request", err2.Error())
 		return
 	}
 
-	if c.Err = c.App.EmailLoginOAuth(r.Context(), int(id), token); c.Err != nil {
+	if c.Err = c.App.EmailLoginOAuth(r.Context(), int(profileId), token); c.Err != nil {
 		return
 	}
 
