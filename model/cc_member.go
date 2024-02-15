@@ -164,6 +164,7 @@ type SearchMemberRequest struct {
 	Attempts    *FilterBetween
 	AgentIds    []int32
 	QueueId     *int32
+	Variables   StringMap
 }
 
 type OfflineMember struct {
