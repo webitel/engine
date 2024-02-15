@@ -364,6 +364,9 @@ func (a *Agent) IsValid() AppError {
 	if a.IsSupervisor && a.Supervisor != nil {
 		a.Supervisor = nil
 	}
+	if a.TaskCount < 1 {
+		return NewBadRequestError("model.Agent.valid.TaskCount", "The value should be more or equal 1")
+	}
 	return nil //TODO
 }
 
