@@ -197,6 +197,7 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 		BucketIds:  in.GetBucketId(),
 		StopCauses: in.GetStopCause(),
 		AgentIds:   in.GetAgentId(),
+		Variables:  in.GetVariables(),
 	}
 
 	if in.Destination != "" {

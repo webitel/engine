@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/wlog"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 type SqlMemberStore struct {
@@ -173,6 +174,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                 from call_center.cc_member m
                 where m.domain_id = :Domain::int8
                   and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
+				  and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
                   and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
                   and (:QueueId::int4 isnull or m.queue_id = :QueueId::int4)
                   and (:BucketIds::int4[] isnull or m.bucket_id = any (:BucketIds::int4[]))
@@ -250,10 +252,11 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 	select ` + strings.Join(fields, " ,") + ` from list`
 
 	if _, err := s.GetMaster().WithContext(ctx).Select(&members, query, map[string]interface{}{
-		"Domain": domainId,
-		"Limit":  search.GetLimit(),
-		"Offset": search.GetOffset(),
-		"Q":      search.GetQ(),
+		"Domain":    domainId,
+		"Limit":     search.GetLimit(),
+		"Offset":    search.GetOffset(),
+		"Q":         search.GetQ(),
+		"Variables": search.Variables.ToSafeJson(),
 
 		"Ids":         pq.Array(search.Ids),
 		"QueueIds":    pq.Array(search.QueueIds),
