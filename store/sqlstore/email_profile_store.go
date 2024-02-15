@@ -2,7 +2,9 @@ package sqlstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"golang.org/x/oauth2"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -122,7 +124,9 @@ func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (
 		   t.enabled,
 		   t.password,
            t.auth_type,
-		   t.listen	
+		   t.listen,
+		   t.params,
+		   t.token->>'expiry' notnull and t.token->>'access_token' notnull as logged
 	FROM call_center.cc_email_profile t
 			 LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
 			 LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
@@ -184,7 +188,8 @@ SELECT t.id,
        t.enabled,
        t.password,
        t.auth_type,
-	   t.listen
+	   t.listen,
+	   t.token->>'expiry' notnull and t.token->>'access_token' notnull as logged
 FROM t
          LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
          LEFT JOIN directory.wbt_user cu ON cu.id = t.updated_by
@@ -223,12 +228,15 @@ func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int
 	return nil
 }
 
-func (s SqlEmailProfileStore) SetupOAuth2(ctx context.Context, id int, params *model.MailProfileParams) model.AppError {
+func (s SqlEmailProfileStore) SetupOAuth2(ctx context.Context, id int, token *oauth2.Token) model.AppError {
+
+	data, _ := json.Marshal(token)
+
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_email_profile
-set params = :Params
+set token = :Token
 where id = :Id;`, map[string]interface{}{
-		"Id":     id,
-		"Params": params.Json(),
+		"Id":    id,
+		"Token": data,
 	})
 
 	if err != nil {

@@ -36,7 +36,22 @@ func (api *emailProfile) CreateEmailProfile(ctx context.Context, in *engine.Crea
 		ImapHost:      in.GetImapHost(),
 		ImapPort:      int(in.GetImapPort()),
 		FetchInterval: in.GetFetchInterval(),
+		AuthType:      authType(in.GetAuthType()),
+		Listen:        in.GetListen(),
 	}
+
+	oauth2 := in.GetParams().GetOauth2()
+
+	if oauth2 != nil {
+		req.Params = &model.MailProfileParams{
+			OAuth2: &model.OAuth2Config{
+				ClientId:     oauth2.GetClientId(),
+				ClientSecret: oauth2.GetClientSecret(),
+				RedirectURL:  oauth2.GetRedirectUrl(),
+			},
+		}
+	}
+
 	var profile *model.EmailProfile
 	profile, err = api.ctrl.CreateEmailProfile(ctx, session, req)
 	if err != nil {
@@ -114,7 +129,7 @@ func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.Login
 	}
 
 	return &engine.LoginEmailProfileResponse{
-		AuthType:    login.AuthType,
+		AuthType:    engineAuthType(login.AuthType),
 		RedirectUrl: login.RedirectUrl,
 		Cookie:      login.Cookie,
 	}, nil
@@ -197,6 +212,20 @@ func (api *emailProfile) UpdateEmailProfile(ctx context.Context, in *engine.Upda
 		ImapHost:      in.GetImapHost(),
 		ImapPort:      int(in.GetImapPort()),
 		FetchInterval: in.GetFetchInterval(),
+		AuthType:      authType(in.GetAuthType()),
+		Listen:        in.GetListen(),
+	}
+
+	oauth2 := in.GetParams().GetOauth2()
+
+	if oauth2 != nil {
+		profile.Params = &model.MailProfileParams{
+			OAuth2: &model.OAuth2Config{
+				ClientId:     oauth2.GetClientId(),
+				ClientSecret: oauth2.GetClientSecret(),
+				RedirectURL:  oauth2.GetRedirectUrl(),
+			},
+		}
 	}
 
 	profile, err = api.ctrl.UpdateEmailProfile(ctx, session, profile)
@@ -243,13 +272,46 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		FetchInterval: src.FetchInterval,
 		State:         src.State,
 		ActivityAt:    src.ActivityAt,
-		AuthType:      src.AuthType,
+		AuthType:      engineAuthType(src.AuthType),
 		Listen:        src.Listen,
+		Logged:        src.Logged,
 	}
 
 	if src.FetchError != nil {
 		profile.FetchError = *src.FetchError
 	}
 
+	if src.Params != nil && src.Params.OAuth2 != nil {
+		profile.Params = &engine.EmailProfileParams{
+			Oauth2: &engine.EmailProfileParams_OAuth2{
+				ClientId:     src.Params.OAuth2.ClientId,
+				ClientSecret: src.Params.OAuth2.ClientSecret,
+				RedirectUrl:  src.Params.OAuth2.RedirectURL,
+			},
+		}
+	}
+
 	return profile
+}
+
+func engineAuthType(src string) engine.EmailAuthType {
+	switch src {
+	case model.EmailAuthTypeOAuth2:
+		return engine.EmailAuthType_OAuth2
+	case model.EmailAuthTypePlain:
+		return engine.EmailAuthType_Plain
+	default:
+		return engine.EmailAuthType_EmailAuthTypeUndefined
+	}
+}
+
+func authType(src engine.EmailAuthType) string {
+	switch src {
+	case engine.EmailAuthType_OAuth2:
+		return model.EmailAuthTypeOAuth2
+	case engine.EmailAuthType_Plain:
+		return model.EmailAuthTypePlain
+	default:
+		return ""
+	}
 }

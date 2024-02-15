@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"strings"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -59,6 +60,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		Region:           GetLookup(in.Region),
 		Auditor:          GetLookups(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
+		TaskCount:        in.TaskCount,
 	}
 
 	err = agent.IsValid()
@@ -219,6 +221,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		Region:           GetLookup(in.Region),
 		Auditor:          GetLookups(in.Auditor),
 		IsSupervisor:     in.GetIsSupervisor(),
+		TaskCount:        in.TaskCount,
 	})
 
 	if err != nil {
@@ -975,6 +978,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		Auditor:          GetProtoLookups(src.Auditor),
 		IsSupervisor:     src.IsSupervisor,
 		Skills:           GetProtoLookups(src.Skills),
+		TaskCount:        src.TaskCount,
 	}
 	agent.Channel = make([]*engine.AgentChannel, 0, len(src.Channel))
 
@@ -1038,11 +1042,18 @@ func toAgentStats(src []*model.AgentInQueueStats) []*engine.AgentInQueueStatisti
 }
 
 func toUserStatus(src *model.UserStatus) *engine.UserStatus {
+	s := ""
+	if len(src.Presence) != 0 {
+		s = strings.Join(src.Presence, ",")
+	}
+
 	return &engine.UserStatus{
 		Id:        src.Id,
 		Name:      src.Name,
 		Extension: src.Extension,
-		Presence:  src.Presence,
-		Status:    src.Status,
+		Presence: &engine.UserStatus_UserPresence{
+			Status: "{" + s + "}",
+		},
+		Status: src.Status,
 	}
 }

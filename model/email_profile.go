@@ -2,8 +2,8 @@ package model
 
 import (
 	"encoding/json"
-
 	"golang.org/x/oauth2"
+	"strings"
 )
 
 const (
@@ -16,8 +16,14 @@ const (
 	EmailAuthTypePlain  = "plain"
 )
 
+type OAuth2Config struct {
+	ClientId     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	RedirectURL  string `json:"redirect_url"`
+}
+
 type MailProfileParams struct {
-	OAuth2 *oauth2.Token `json:"oauth2"`
+	OAuth2 *OAuth2Config `json:"oauth2"`
 }
 
 type EmailProfile struct {
@@ -40,6 +46,45 @@ type EmailProfile struct {
 	Params        *MailProfileParams `json:"params" db:"params"`
 	AuthType      string             `json:"auth_type" db:"auth_type"`
 	Listen        bool               `json:"listen" db:"listen"`
+	Logged        bool               `json:"logged" db:"logged"`
+}
+
+func (p *EmailProfile) oauthConfig() *OAuth2Config {
+	if p.Params != nil && p.Params.OAuth2 != nil {
+		return p.Params.OAuth2
+	}
+
+	return nil
+}
+
+func (p *EmailProfile) Oauth() (oauth2.Config, AppError) {
+	config := p.oauthConfig()
+	if config == nil {
+		// TODO
+		return oauth2.Config{}, nil
+	}
+
+	if strings.Index(p.ImapHost, MailGmail+".com") > -1 {
+
+	} else if strings.Index(p.ImapHost, MailOutlook) == 0 {
+		return oauth2.Config{
+			ClientID:     config.ClientId,
+			ClientSecret: config.ClientSecret,
+			Endpoint: oauth2.Endpoint{
+				AuthURL:  "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+				TokenURL: "https://login.microsoftonline.com/organizations/oauth2/v2.0/token",
+			},
+			RedirectURL: config.RedirectURL, //"https://dev.webitel.com/endpoint/oauth2/outlook/callback",
+			Scopes: []string{
+				"https://outlook.office.com/User.Read",
+				"https://outlook.office.com/IMAP.AccessAsUser.All",
+				"https://outlook.office.com/SMTP.Send",
+				"offline_access",
+			},
+		}, nil
+	}
+
+	return oauth2.Config{}, NewBadRequestError("email.profile.valid.oauth", "Not found oauth config")
 }
 
 type EmailProfileLogin struct {
@@ -121,7 +166,7 @@ func (p EmailProfile) DefaultOrder() string {
 func (p EmailProfile) AllowFields() []string {
 	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "name", "enabled", "schema", "smtp_host",
 		"mailbox", "description", "login", "smtp_port", "imap_port", "password", "imap_host", "fetch_interval", "fetch_error",
-		"state", "activity_at", "listen"}
+		"state", "activity_at", "listen", "logged"}
 }
 
 func (p EmailProfile) DefaultFields() []string {

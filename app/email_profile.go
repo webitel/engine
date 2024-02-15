@@ -3,8 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
@@ -68,6 +66,7 @@ func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.E
 	oldProfile.SmtpPort = p.SmtpPort
 	oldProfile.SmtpHost = p.SmtpHost
 	oldProfile.FetchInterval = p.FetchInterval
+	oldProfile.Params = p.Params
 
 	oldProfile, err = a.Store.EmailProfile().Update(ctx, domainId, oldProfile)
 	if err != nil {
@@ -98,28 +97,27 @@ func (a *App) PatchEmailProfile(ctx context.Context, domainId int64, id int, pat
 }
 
 func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.EmailProfileLogin, model.AppError) {
-
-	var oauthConf oauth2.Config
-	var ok bool
-
-	if strings.Index(profile.ImapHost, model.MailGmail+".com") > -1 {
-		oauthConf, ok = a.MailOauthConfig(model.MailGmail)
-	} else if strings.Index(profile.ImapHost, model.MailOutlook) == 0 {
-		oauthConf, ok = a.MailOauthConfig(model.MailOutlook)
-	}
-
-	if !ok {
-		return nil, model.NewForbiddenError("app.email.profile.login.not_found_oauth", "Not found server oauth config to "+profile.ImapHost)
-	}
-
-	oauthState, err := a.EncryptId(int64(profile.Id))
+	oauthConf, err := profile.Oauth()
+	var domainEncrypt, profileEncrypt string
 	if err != nil {
 		return nil, err
 	}
 
+	profileEncrypt, err = a.EncryptId(int64(profile.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	domainEncrypt, err = a.EncryptId(profile.DomainId)
+	if err != nil {
+		return nil, err
+	}
+
+	oauthState := domainEncrypt + "::" + profileEncrypt
+
 	return &model.EmailProfileLogin{
 		AuthType:    profile.AuthType,
-		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.SetAuthURLParam("approval_prompt", "force")),
+		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline),
 		Cookie: map[string]string{
 			"oauthstate": oauthState,
 		},
@@ -155,16 +153,5 @@ func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) 
 }
 
 func (app *App) EmailLoginOAuth(ctx context.Context, id int, token *oauth2.Token) model.AppError {
-	return app.Store.EmailProfile().SetupOAuth2(ctx, id, &model.MailProfileParams{
-		OAuth2: token,
-	})
-}
-
-func (app *App) MailOauthConfig(name string) (oauth2.Config, bool) {
-	if app.config.EmailOAuth == nil {
-		return oauth2.Config{}, false
-	}
-
-	p, ok := app.config.EmailOAuth[name]
-	return p, ok
+	return app.Store.EmailProfile().SetupOAuth2(ctx, id, token)
 }

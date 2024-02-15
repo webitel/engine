@@ -423,6 +423,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.EavesdropInfo,
 		*model.Questions,
 		*model.QuestionAnswers,
+		**model.MailProfileParams,
 		*model.MailProfileParams:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)
