@@ -136,6 +136,7 @@ func (s *SqlSchemeVariablesStore) Update(ctx context.Context, domainId int64, va
 			"DomainId": domainId,
 			"Value":    variable.Value,
 			"Name":     variable.Name,
+			"Id":       variable.Id,
 		}); err != nil {
 		return nil, model.NewInternalError("store.sql_scheme_variable.update.app_error", fmt.Sprintf("id=%v, %v", variable.Id, err.Error()))
 	} else {
