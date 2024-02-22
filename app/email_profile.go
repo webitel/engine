@@ -68,6 +68,7 @@ func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.E
 	oldProfile.FetchInterval = p.FetchInterval
 	oldProfile.Params = p.Params
 	oldProfile.Listen = p.Listen
+	oldProfile.AuthType = p.AuthType
 
 	oldProfile, err = a.Store.EmailProfile().Update(ctx, domainId, oldProfile)
 	if err != nil {
