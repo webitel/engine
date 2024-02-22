@@ -23,9 +23,9 @@ func (s SqlEmailProfileStore) Create(ctx context.Context, domainId int64, p *mod
 	var profile *model.EmailProfile
 	err := s.GetMaster().WithContext(ctx).SelectOne(&profile, `with t as (
     insert into call_center.cc_email_profile ( domain_id, name, description, enabled, updated_at, flow_id, imap_host, mailbox, imap_port, smtp_port,
-                              login, password, created_at, created_by, updated_by, last_activity_at, smtp_host, fetch_interval, auth_type, "listen")
+                              login, password, created_at, created_by, updated_by, last_activity_at, smtp_host, fetch_interval, auth_type, "listen", params)
 values (:DomainId, :Name, :Description, :Enabled, now(), :FlowId, :ImapHost, :Mailbox, :Imap, :Smtp, :Login, :Pass,
-        now(), :CreatedBy, :UpdatedBy, now(), :SmtpHost, :FetchInterval, :AuthType, :Listen)
+        now(), :CreatedBy, :UpdatedBy, now(), :SmtpHost, :FetchInterval, :AuthType, :Listen, :Params)
 	returning *
 )
 SELECT t.id,
@@ -50,6 +50,7 @@ SELECT t.id,
        t.enabled,
        t.password,
 	   t.auth_type,
+	   t.params,
 	   t.listen
 FROM t
          LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
@@ -72,6 +73,7 @@ FROM t
 		"UpdatedBy":     p.UpdatedBy.GetSafeId(),
 		"AuthType":      p.AuthType,
 		"Listen":        p.Listen,
+		"Params":        p.Params.Json(),
 	})
 
 	if err != nil {
@@ -162,7 +164,8 @@ func (s SqlEmailProfileStore) Update(ctx context.Context, domainId int64, p *mod
 			smtp_host = :SmtpHost,
 			fetch_interval = :FetchInterval,
             auth_type = :AuthType,
-			"listen" = :Listen
+			"listen" = :Listen,
+            params = case when not :Params::jsonb isnull then :Params::jsonb end 
         where id = :Id and domain_id = :DomainId
         returning *
 )
@@ -189,6 +192,7 @@ SELECT t.id,
        t.password,
        t.auth_type,
 	   t.listen,
+	   t.params,
 	   t.token->>'expiry' notnull and t.token->>'access_token' notnull as logged
 FROM t
          LEFT JOIN directory.wbt_user cc ON cc.id = t.created_by
@@ -211,6 +215,7 @@ FROM t
 		"FetchInterval": p.FetchInterval,
 		"AuthType":      p.AuthType,
 		"Listen":        p.Listen,
+		"Params":        p.Params.Json(),
 	})
 
 	if err != nil {

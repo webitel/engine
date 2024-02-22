@@ -187,7 +187,7 @@ type SearchEmailProfile struct {
 
 func (p *MailProfileParams) Json() []byte {
 	if p == nil {
-		return nil
+		return []byte("{}")
 	}
 
 	data, _ := json.Marshal(p)
