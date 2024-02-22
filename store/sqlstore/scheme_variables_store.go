@@ -130,7 +130,7 @@ func (s *SqlSchemeVariablesStore) Update(ctx context.Context, domainId int64, va
 		id,
 		name,
 		encrypt,
-		case when not scheme_variable.encrypt then scheme_variable.value else 'null'::jsonb end as value
+		case when not upd.encrypt then upd.value else 'null'::jsonb end as value
 	from upd`,
 		map[string]interface{}{
 			"DomainId": domainId,

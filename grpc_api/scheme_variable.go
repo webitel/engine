@@ -95,9 +95,18 @@ func (api *schemaVariable) UpdateSchemaVariable(ctx context.Context, in *engine.
 	return toSchemeVariable(s), nil
 }
 
-func (s schemaVariable) DeleteSchemaVariable(ctx context.Context, request *engine.DeleteSchemaVariableRequest) (*engine.SchemaVariable, error) {
-	//TODO implement me
-	panic("implement me")
+func (api *schemaVariable) DeleteSchemaVariable(ctx context.Context, in *engine.DeleteSchemaVariableRequest) (*engine.SchemaVariable, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var s *model.SchemeVariable
+	s, err = api.ctrl.DeleteSchemaVariable(ctx, session, in.Id)
+	if err != nil {
+		return nil, err
+	}
+	return toSchemeVariable(s), nil
 }
 
 func toSchemeVariable(src *model.SchemeVariable) *engine.SchemaVariable {
