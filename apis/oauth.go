@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/webitel/engine/model"
 	"golang.org/x/oauth2"
 	"net/http"
@@ -61,5 +62,5 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	http.Redirect(w, r, fmt.Sprintf("%s/integrations/email-profile/%d", *c.App.Config().PublicHostName, profileId), http.StatusSeeOther)
 }
