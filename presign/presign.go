@@ -23,6 +23,7 @@ type PreSign interface {
 	Generate(data []byte) (string, error)
 	Valid(plaintext, signature string) bool
 	DecryptId(key string) (int64, error)
+	DecryptBytes(v []byte) ([]byte, error)
 	EncryptId(id int64) (string, error)
 	EncryptBytes(v []byte) ([]byte, error)
 }
@@ -123,6 +124,14 @@ func (p *preSign) DecryptId(key string) (int64, error) {
 	}
 
 	return int64(id), nil
+}
+
+func (p *preSign) DecryptBytes(v []byte) ([]byte, error) {
+	s, err := decrypt(p.cipherBlock, string(v))
+	if err != nil {
+		return nil, err
+	}
+	return []byte(s), nil
 }
 
 func (p *preSign) EncryptId(id int64) (string, error) {
