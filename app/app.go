@@ -1,9 +1,9 @@
 package app
 
 import (
-	"crypto/cipher"
 	"github.com/webitel/engine/b2bua"
 	"github.com/webitel/engine/logger"
+	"github.com/webitel/engine/presign"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
@@ -36,7 +36,7 @@ type App struct {
 	callManager    call_manager.CallManager
 	chatManager    chat_manager.ChatManager
 	cc             client.CCManager
-	cipherBlock    cipher.Block
+	cipher         presign.PreSign
 	audit          *logger.Audit
 	b2b            *b2bua.B2B
 }
