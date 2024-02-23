@@ -44,7 +44,9 @@ func (a *App) UpdateSchemaVariable(ctx context.Context, domainId int64, id int32
 
 	old.Name = variable.Name
 	if old.Encrypt {
-		old.Value, err = a.EncryptBytes(variable.Value)
+		if len(variable.Value) != 0 {
+			old.Value, err = a.EncryptBytes(variable.Value)
+		}
 	} else {
 		old.Value = variable.Value
 	}
