@@ -36,6 +36,34 @@ func (a *App) GetSchemeVariable(ctx context.Context, domainId int64, id int32) (
 	return a.Store.SchemeVariable().Get(ctx, domainId, id)
 }
 
+func (a *App) PatchSchemaVariable(ctx context.Context, domainId int64, id int32, patch *model.PatchSchemeVariable) (*model.SchemeVariable, model.AppError) {
+	old, err := a.GetSchemeVariable(ctx, domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if patch.Value != nil && ((patch.Encrypt != nil && *patch.Encrypt) || (old.Encrypt && patch.Encrypt == nil)) {
+		var buffer bytes.Buffer
+		buffer.WriteString(`"`)
+		buffer.Write(patch.Value)
+		buffer.WriteString(`"`)
+		patch.Value = buffer.Bytes()
+	}
+
+	old.Patch(patch)
+
+	if err = old.IsValid(); err != nil {
+		return nil, err
+	}
+
+	old, err = a.Store.SchemeVariable().Update(ctx, domainId, old)
+	if err != nil {
+		return nil, err
+	}
+
+	return old, nil
+}
+
 func (a *App) UpdateSchemaVariable(ctx context.Context, domainId int64, id int32, variable *model.SchemeVariable) (*model.SchemeVariable, model.AppError) {
 	old, err := a.GetSchemeVariable(ctx, domainId, id)
 	if err != nil {
@@ -46,6 +74,15 @@ func (a *App) UpdateSchemaVariable(ctx context.Context, domainId int64, id int32
 	if old.Encrypt {
 		if len(variable.Value) != 0 {
 			old.Value, err = a.EncryptBytes(variable.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			var buffer bytes.Buffer
+			buffer.WriteString(`"`)
+			buffer.Write(old.Value)
+			buffer.WriteString(`"`)
+			old.Value = buffer.Bytes()
 		}
 	} else {
 		old.Value = variable.Value

@@ -38,6 +38,14 @@ func (c *Controller) UpdateSchemaVariable(ctx context.Context, session *auth_man
 	return c.app.UpdateSchemaVariable(ctx, session.Domain(0), id, variable)
 }
 
+func (c *Controller) PatchSchemaVariable(ctx context.Context, session *auth_manager.Session, id int32, patch *model.PatchSchemeVariable) (*model.SchemeVariable, model.AppError) {
+	if !session.HasAction(auth_manager.PermissionSchemeVariables) {
+		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.PatchSchemaVariable(ctx, session.Domain(0), id, patch)
+}
+
 func (c *Controller) DeleteSchemaVariable(ctx context.Context, session *auth_manager.Session, id int32) (*model.SchemeVariable, model.AppError) {
 	if !session.HasAction(auth_manager.PermissionSchemeVariables) {
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_READ)

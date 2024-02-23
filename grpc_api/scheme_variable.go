@@ -95,6 +95,34 @@ func (api *schemaVariable) UpdateSchemaVariable(ctx context.Context, in *engine.
 	return toSchemeVariable(s), nil
 }
 
+func (api *schemaVariable) PatchSchemaVariable(ctx context.Context, in *engine.PatchSchemaVariableRequest) (*engine.SchemaVariable, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var sv *model.SchemeVariable
+	patch := &model.PatchSchemeVariable{}
+
+	//TODO
+	for _, v := range in.Fields {
+		switch v {
+		case "name":
+			patch.Name = &in.Name
+		case "value":
+			patch.Value = MarshalJsonpb(in.Value)
+		case "encrypt":
+			patch.Encrypt = &in.Encrypt
+		}
+	}
+
+	if sv, err = api.ctrl.PatchSchemaVariable(ctx, session, in.Id, patch); err != nil {
+		return nil, err
+	}
+
+	return toSchemeVariable(sv), nil
+}
+
 func (api *schemaVariable) DeleteSchemaVariable(ctx context.Context, in *engine.DeleteSchemaVariableRequest) (*engine.SchemaVariable, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
