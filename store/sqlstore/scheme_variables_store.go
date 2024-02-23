@@ -14,7 +14,7 @@ var (
 		model.SchemeVariableFields.Id:      "scheme_variable.id",
 		model.SchemeVariableFields.Name:    "scheme_variable.name",
 		model.SchemeVariableFields.Encrypt: "scheme_variable.encrypt",
-		model.SchemeVariableFields.Value:   "case when not scheme_variable.encrypt then scheme_variable.value else 'null'::jsonb end as value",
+		model.SchemeVariableFields.Value:   "scheme_variable.value",
 	}
 	schemeVariablesFiltersFieldsMap = map[string]string{
 		model.SchemeVariableFields.Id:      "scheme_variable.id",
@@ -44,7 +44,7 @@ func (s *SqlSchemeVariablesStore) Create(ctx context.Context, domainId int64, va
 		id,
 		name,
 		encrypt,
-		case when not encrypt then value else 'null'::jsonb end as value
+		value
 	from ins`,
 		map[string]interface{}{
 			"DomainId": domainId,
@@ -122,7 +122,8 @@ func (s *SqlSchemeVariablesStore) Update(ctx context.Context, domainId int64, va
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with upd as (
 		update flow.scheme_variable
 		set name = :Name,
-			value = :Value
+			value = :Value,
+			encrypt = :Encrypt
 		where domain_id = :DomainId and id = :Id
 		returning *
 	)
@@ -130,12 +131,13 @@ func (s *SqlSchemeVariablesStore) Update(ctx context.Context, domainId int64, va
 		id,
 		name,
 		encrypt,
-		case when not upd.encrypt then upd.value else 'null'::jsonb end as value
+		upd.value
 	from upd`,
 		map[string]interface{}{
 			"DomainId": domainId,
 			"Value":    variable.Value,
 			"Name":     variable.Name,
+			"Encrypt":  variable.Encrypt,
 			"Id":       variable.Id,
 		}); err != nil {
 		return nil, model.NewInternalError("store.sql_scheme_variable.update.app_error", fmt.Sprintf("id=%v, %v", variable.Id, err.Error()))

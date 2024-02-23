@@ -42,15 +42,21 @@ func (a *App) PatchSchemaVariable(ctx context.Context, domainId int64, id int32,
 		return nil, err
 	}
 
-	if patch.Value != nil && ((patch.Encrypt != nil && *patch.Encrypt) || (old.Encrypt && patch.Encrypt == nil)) {
-		var buffer bytes.Buffer
-		buffer.WriteString(`"`)
-		buffer.Write(patch.Value)
-		buffer.WriteString(`"`)
-		patch.Value = buffer.Bytes()
-	}
+	oldEnc := old.Encrypt
 
 	old.Patch(patch)
+
+	if old.Encrypt && oldEnc != old.Encrypt {
+		old.Value, err = a.EncryptBytes(old.Value)
+		if err != nil {
+			return nil, err
+		}
+		var buffer bytes.Buffer
+		buffer.WriteString(`"`)
+		buffer.Write(old.Value)
+		buffer.WriteString(`"`)
+		old.Value = buffer.Bytes()
+	}
 
 	if err = old.IsValid(); err != nil {
 		return nil, err
