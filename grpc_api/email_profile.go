@@ -135,6 +135,20 @@ func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.Login
 	}, nil
 }
 
+func (api *emailProfile) LogoutEmailProfile(ctx context.Context, in *engine.LogoutEmailProfileRequest) (*engine.LogoutEmailProfileResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = api.ctrl.LogoutEmailProfile(ctx, session, int(in.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.LogoutEmailProfileResponse{}, nil
+}
+
 func (api *emailProfile) PatchEmailProfile(ctx context.Context, in *engine.PatchEmailProfileRequest) (*engine.EmailProfile, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

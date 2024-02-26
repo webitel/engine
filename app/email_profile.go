@@ -140,6 +140,20 @@ func (a *App) LoginEmailProfile(ctx context.Context, domainId int64, id int) (*m
 	return nil, model.NewForbiddenError("app.email.profile.login.not_found_auth_type", "Not found auth type to "+profile.ImapHost)
 }
 
+func (a *App) LogoutEmailProfile(ctx context.Context, domainId int64, id int) model.AppError {
+	profile, err := a.GetEmailProfile(ctx, domainId, id)
+	if err != nil {
+		return err
+	}
+
+	switch profile.AuthType {
+	case model.EmailAuthTypeOAuth2:
+		return a.Store.EmailProfile().SetupOAuth2(ctx, id, nil)
+	}
+
+	return model.NewForbiddenError("app.email.profile.logout.not_found_auth_type", "Not found auth type to "+profile.ImapHost)
+}
+
 func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, model.AppError) {
 	profile, err := app.Store.EmailProfile().Get(ctx, domainId, id)
 

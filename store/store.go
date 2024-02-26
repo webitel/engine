@@ -33,6 +33,7 @@ type Store interface {
 	Skill() SkillStore
 	AgentTeam() AgentTeamStore
 	Agent() AgentStore
+	AgentHook() AgentHookStore
 	AgentSkill() AgentSkillStore
 	Queue() QueueStore
 	QueueResource() QueueResourceStore
@@ -157,6 +158,14 @@ type AgentStore interface {
 
 	UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
 	UsersStatusByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
+}
+
+type AgentHookStore interface {
+	Create(ctx context.Context, domainId int64, agentId int64, in *model.AgentHook) (*model.AgentHook, model.AppError)
+	Get(ctx context.Context, domainId int64, agentId int64, id int32) (*model.AgentHook, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, agentId int64, search *model.SearchAgentHook) ([]*model.AgentHook, model.AppError)
+	Update(ctx context.Context, domainId int64, agentId int64, qh *model.AgentHook) (*model.AgentHook, model.AppError)
+	Delete(ctx context.Context, domainId int64, agentId int64, id int32) model.AppError
 }
 
 type AgentSkillStore interface {
