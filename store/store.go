@@ -32,8 +32,8 @@ type Store interface {
 	Calendar() CalendarStore
 	Skill() SkillStore
 	AgentTeam() AgentTeamStore
+	TeamHook() TeamHookStore
 	Agent() AgentStore
-	AgentHook() AgentHookStore
 	AgentSkill() AgentSkillStore
 	Queue() QueueStore
 	QueueResource() QueueResourceStore
@@ -160,12 +160,12 @@ type AgentStore interface {
 	UsersStatusByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
 }
 
-type AgentHookStore interface {
-	Create(ctx context.Context, domainId int64, agentId int64, in *model.AgentHook) (*model.AgentHook, model.AppError)
-	Get(ctx context.Context, domainId int64, agentId int64, id int32) (*model.AgentHook, model.AppError)
-	GetAllPage(ctx context.Context, domainId int64, agentId int64, search *model.SearchAgentHook) ([]*model.AgentHook, model.AppError)
-	Update(ctx context.Context, domainId int64, agentId int64, qh *model.AgentHook) (*model.AgentHook, model.AppError)
-	Delete(ctx context.Context, domainId int64, agentId int64, id int32) model.AppError
+type TeamHookStore interface {
+	Create(ctx context.Context, domainId int64, teamId int64, in *model.TeamHook) (*model.TeamHook, model.AppError)
+	Get(ctx context.Context, domainId int64, teamId int64, id uint32) (*model.TeamHook, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, teamId int64, search *model.SearchTeamHook) ([]*model.TeamHook, model.AppError)
+	Update(ctx context.Context, domainId int64, teamId int64, qh *model.TeamHook) (*model.TeamHook, model.AppError)
+	Delete(ctx context.Context, domainId int64, teamId int64, id uint32) model.AppError
 }
 
 type AgentSkillStore interface {

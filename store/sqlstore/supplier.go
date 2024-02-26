@@ -37,7 +37,7 @@ type SqlSupplierOldStores struct {
 	skill                   store.SkillStore
 	agentTeam               store.AgentTeamStore
 	agent                   store.AgentStore
-	agentHook               store.AgentHookStore
+	teamHook                store.TeamHookStore
 	agentSkill              store.AgentSkillStore
 	outboundResource        store.OutboundResourceStore
 	outboundResourceGroup   store.OutboundResourceGroupStore
@@ -97,7 +97,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
 	supplier.oldStores.agent = NewSqlAgentStore(supplier)
-	supplier.oldStores.agentHook = NewSqlAgentHookStore(supplier)
+	supplier.oldStores.teamHook = NewSqlTeamHookStore(supplier)
 	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 	supplier.oldStores.outboundResource = NewSqlOutboundResourceStore(supplier)
 	supplier.oldStores.outboundResourceGroup = NewSqlOutboundResourceGroupStore(supplier)
@@ -260,8 +260,8 @@ func (ss *SqlSupplier) Agent() store.AgentStore {
 	return ss.oldStores.agent
 }
 
-func (ss *SqlSupplier) AgentHook() store.AgentHookStore {
-	return ss.oldStores.agentHook
+func (ss *SqlSupplier) TeamHook() store.TeamHookStore {
+	return ss.oldStores.teamHook
 }
 
 func (ss *SqlSupplier) AgentSkill() store.AgentSkillStore {

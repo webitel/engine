@@ -2,8 +2,8 @@ package model
 
 import "time"
 
-type AgentHook struct {
-	Id        int32     `json:"id" db:"id"`
+type TeamHook struct {
+	Id        uint32    `json:"id" db:"id"`
 	Schema    Lookup    `json:"schema" db:"schema"`
 	Event     string    `json:"event" db:"event"`
 	Enabled   bool      `json:"enabled" db:"enabled"`
@@ -13,7 +13,7 @@ type AgentHook struct {
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
-type AgentHookPatch struct {
+type TeamHookPatch struct {
 	UpdatedBy Lookup
 	UpdatedAt time.Time
 
@@ -22,35 +22,35 @@ type AgentHookPatch struct {
 	Enabled *bool
 }
 
-type SearchAgentHook struct {
+type SearchTeamHook struct {
 	ListRequest
 	Ids       []uint32
 	SchemaIds []uint32
 	Events    []string
 }
 
-func (qh AgentHook) AllowFields() []string {
+func (qh TeamHook) AllowFields() []string {
 	return qh.DefaultFields()
 }
 
-func (qh AgentHook) DefaultOrder() string {
+func (qh TeamHook) DefaultOrder() string {
 	return "+event"
 }
 
-func (AgentHook) DefaultFields() []string {
+func (TeamHook) DefaultFields() []string {
 	return []string{"id", "schema", "event", "enabled"}
 }
 
-func (AgentHook) EntityName() string {
-	return "cc_agent_events_list"
+func (TeamHook) EntityName() string {
+	return "cc_team_events_list"
 }
 
-func (qh *AgentHook) IsValid() AppError {
+func (qh *TeamHook) IsValid() AppError {
 	//todo
 	return nil
 }
 
-func (qh *AgentHook) Patch(patch *AgentHookPatch) {
+func (qh *TeamHook) Patch(patch *TeamHookPatch) {
 
 	if patch.Event != nil {
 		qh.Event = *patch.Event

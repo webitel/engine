@@ -57,8 +57,8 @@ func (s *LayeredStore) Agent() AgentStore {
 	return s.DatabaseLayer.Agent()
 }
 
-func (s *LayeredStore) AgentHook() AgentHookStore {
-	return s.DatabaseLayer.AgentHook()
+func (s *LayeredStore) TeamHook() TeamHookStore {
+	return s.DatabaseLayer.TeamHook()
 }
 
 func (s *LayeredStore) AgentSkill() AgentSkillStore {

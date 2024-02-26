@@ -7,28 +7,28 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func (c *Controller) SearchAgentHook(ctx context.Context, session *auth_manager.Session, agentId int64, search *model.SearchAgentHook) ([]*model.AgentHook, bool, model.AppError) {
+func (c *Controller) SearchTeamHook(ctx context.Context, session *auth_manager.Session, teamId int64, search *model.SearchTeamHook) ([]*model.TeamHook, bool, model.AppError) {
 	var err model.AppError
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), int64(agentId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = c.app.AgentTeamCheckAccess(ctx, session.Domain(0), teamId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, false, err
 		} else if !perm {
-			return nil, false, c.app.MakeResourcePermissionError(session, int64(agentId), permission, auth_manager.PERMISSION_ACCESS_READ)
+			return nil, false, c.app.MakeResourcePermissionError(session, teamId, permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
-	return c.app.SearchAgentHook(ctx, session.Domain(0), agentId, search)
+	return c.app.SearchTeamHook(ctx, session.Domain(0), teamId, search)
 }
 
-func (c *Controller) CreateAgentHook(ctx context.Context, session *auth_manager.Session, agentId int64, hook *model.AgentHook) (*model.AgentHook, model.AppError) {
+func (c *Controller) CreateTeamHook(ctx context.Context, session *auth_manager.Session, teamId int64, hook *model.TeamHook) (*model.TeamHook, model.AppError) {
 	var err model.AppError
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
@@ -39,10 +39,10 @@ func (c *Controller) CreateAgentHook(ctx context.Context, session *auth_manager.
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), int64(agentId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = c.app.AgentTeamCheckAccess(ctx, session.Domain(0), teamId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, int64(agentId), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+			return nil, c.app.MakeResourcePermissionError(session, teamId, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 	hook.CreatedBy = &model.Lookup{
@@ -57,7 +57,7 @@ func (c *Controller) CreateAgentHook(ctx context.Context, session *auth_manager.
 		return nil, err
 	}
 
-	hook, err = c.app.CreateAgentHook(ctx, session.Domain(0), agentId, hook)
+	hook, err = c.app.CreateTeamHook(ctx, session.Domain(0), teamId, hook)
 	if err != nil {
 		return nil, err
 	}
@@ -65,28 +65,28 @@ func (c *Controller) CreateAgentHook(ctx context.Context, session *auth_manager.
 	return hook, nil
 }
 
-func (c *Controller) GetAgentHook(ctx context.Context, session *auth_manager.Session, agentId int64, id int32) (*model.AgentHook, model.AppError) {
+func (c *Controller) GetTeamHook(ctx context.Context, session *auth_manager.Session, teamId int64, id uint32) (*model.TeamHook, model.AppError) {
 	var err model.AppError
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
 		var perm bool
-		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), int64(agentId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err = c.app.AgentTeamCheckAccess(ctx, session.Domain(0), teamId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, int64(agentId), permission, auth_manager.PERMISSION_ACCESS_READ)
+			return nil, c.app.MakeResourcePermissionError(session, teamId, permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
 
-	return c.app.GetAgentHook(ctx, session.Domain(0), agentId, id)
+	return c.app.GetTeamHook(ctx, session.Domain(0), teamId, id)
 }
 
-func (c *Controller) UpdateAgentHook(ctx context.Context, session *auth_manager.Session, agentId int64, hook *model.AgentHook) (*model.AgentHook, model.AppError) {
+func (c *Controller) UpdateTeamHook(ctx context.Context, session *auth_manager.Session, teamId int64, hook *model.TeamHook) (*model.TeamHook, model.AppError) {
 	var err model.AppError
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
@@ -97,10 +97,10 @@ func (c *Controller) UpdateAgentHook(ctx context.Context, session *auth_manager.
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), int64(agentId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = c.app.AgentTeamCheckAccess(ctx, session.Domain(0), teamId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, int64(agentId), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+			return nil, c.app.MakeResourcePermissionError(session, teamId, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
@@ -113,7 +113,7 @@ func (c *Controller) UpdateAgentHook(ctx context.Context, session *auth_manager.
 		return nil, err
 	}
 
-	hook, err = c.app.UpdateAgentHook(ctx, session.DomainId, agentId, hook)
+	hook, err = c.app.UpdateTeamHook(ctx, session.DomainId, teamId, hook)
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +121,9 @@ func (c *Controller) UpdateAgentHook(ctx context.Context, session *auth_manager.
 	return hook, nil
 }
 
-func (c *Controller) PatchAgentHook(ctx context.Context, session *auth_manager.Session, agentId int64, id int32, patch *model.AgentHookPatch) (*model.AgentHook, model.AppError) {
+func (c *Controller) PatchTeamHook(ctx context.Context, session *auth_manager.Session, teamId int64, id uint32, patch *model.TeamHookPatch) (*model.TeamHook, model.AppError) {
 	var err model.AppError
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
@@ -134,17 +134,17 @@ func (c *Controller) PatchAgentHook(ctx context.Context, session *auth_manager.S
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), int64(agentId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = c.app.AgentTeamCheckAccess(ctx, session.Domain(0), teamId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, int64(agentId), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+			return nil, c.app.MakeResourcePermissionError(session, teamId, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 	patch.UpdatedBy.Id = int(session.UserId)
 	patch.UpdatedAt = *model.GetTime()
 
-	var hook *model.AgentHook
-	hook, err = c.app.PatchAgentHook(ctx, session.DomainId, agentId, id, patch)
+	var hook *model.TeamHook
+	hook, err = c.app.PatchTeamHook(ctx, session.DomainId, teamId, id, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -152,9 +152,9 @@ func (c *Controller) PatchAgentHook(ctx context.Context, session *auth_manager.S
 	return hook, nil
 }
 
-func (c *Controller) DeleteAgentHook(ctx context.Context, session *auth_manager.Session, queueId int64, id int32) (*model.AgentHook, model.AppError) {
+func (c *Controller) DeleteTeamHook(ctx context.Context, session *auth_manager.Session, teamId int64, id uint32) (*model.TeamHook, model.AppError) {
 	var err model.AppError
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
@@ -165,16 +165,16 @@ func (c *Controller) DeleteAgentHook(ctx context.Context, session *auth_manager.
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
 		var perm bool
-		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), int64(queueId), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		if perm, err = c.app.AgentTeamCheckAccess(ctx, session.Domain(0), teamId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
 			return nil, err
 		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, int64(queueId), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+			return nil, c.app.MakeResourcePermissionError(session, teamId, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
-	var hook *model.AgentHook
+	var hook *model.TeamHook
 
-	hook, err = c.app.RemoveAgentHook(ctx, session.DomainId, queueId, id)
+	hook, err = c.app.RemoveTeamHook(ctx, session.DomainId, teamId, id)
 	if err != nil {
 		return nil, err
 	}

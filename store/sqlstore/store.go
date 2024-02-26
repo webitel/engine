@@ -25,8 +25,8 @@ type SqlStore interface {
 	Calendar() store.CalendarStore
 	Skill() store.SkillStore
 	AgentTeam() store.AgentTeamStore
+	TeamHook() store.TeamHookStore
 	Agent() store.AgentStore
-	AgentHook() store.AgentHookStore
 	AgentSkill() store.AgentSkillStore
 	OutboundResource() store.OutboundResourceStore
 	OutboundResourceGroup() store.OutboundResourceGroupStore
