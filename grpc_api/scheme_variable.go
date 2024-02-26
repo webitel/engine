@@ -84,8 +84,9 @@ func (api *schemaVariable) UpdateSchemaVariable(ctx context.Context, in *engine.
 	}
 
 	s := &model.SchemeVariable{
-		Name:  in.GetName(),
-		Value: MarshalJsonpb(in.Value),
+		Encrypt: in.Encrypt,
+		Name:    in.GetName(),
+		Value:   MarshalJsonpb(in.Value),
 	}
 
 	s, err = api.ctrl.UpdateSchemaVariable(ctx, session, in.GetId(), s)

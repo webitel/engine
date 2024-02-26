@@ -76,6 +76,7 @@ func (a *App) UpdateSchemaVariable(ctx context.Context, domainId int64, id int32
 		return nil, err
 	}
 
+	old.Encrypt = variable.Encrypt
 	old.Name = variable.Name
 	if old.Encrypt {
 		if len(variable.Value) != 0 {
