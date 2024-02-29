@@ -410,7 +410,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound') and not hide_missed is true))
+	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound') and not hide_missed is true and not parent_bridged))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
@@ -557,7 +557,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
 	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
 	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound')))
+	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound') and not hide_missed is true and not parent_bridged))
 	and (:Tags::varchar[] isnull or (tags && :Tags))
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
@@ -1316,7 +1316,7 @@ func (s SqlCallStore) GetSipId(ctx context.Context, domainId int64, userId int64
 	return sipId, nil
 }
 
-func (s SqlCallStore) SetHideMissed(ctx context.Context, domainId int64, userId int64, id string) model.AppError {
+func (s SqlCallStore) SetHideMissedLeg(ctx context.Context, domainId int64, userId int64, id string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history
 set hide_missed = true
 where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]interface{}{
@@ -1327,6 +1327,26 @@ where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[strin
 
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_call.set_hide_missed.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
+}
+
+func (s SqlCallStore) SetHideMissedAllParent(ctx context.Context, domainId int64, userId int64, id string) model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history
+    set hide_missed = true
+where domain_id = :DomainId
+    and not hide_missed is true
+    and parent_id = (select parent_id
+from call_center.cc_calls_history
+where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId)`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+		"UserId":   userId,
+	})
+
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_call.set_hide_missed_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return nil

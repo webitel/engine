@@ -377,7 +377,8 @@ type CallStore interface {
 	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError
 
 	FromNumber(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
-	SetHideMissed(ctx context.Context, domainId int64, userId int64, id string) model.AppError
+	SetHideMissedLeg(ctx context.Context, domainId int64, userId int64, id string) model.AppError
+	SetHideMissedAllParent(ctx context.Context, domainId int64, userId int64, id string) model.AppError
 }
 
 type EmailProfileStore interface {

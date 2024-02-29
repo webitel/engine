@@ -141,7 +141,7 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 		return "", err
 	}
 
-	err = app.Store.Call().SetHideMissed(ctx, domainId, userId, callId)
+	err = app.Store.Call().SetHideMissedAllParent(ctx, domainId, userId, callId)
 	if err != nil {
 		return "", err
 	}
