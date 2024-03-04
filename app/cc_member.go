@@ -57,6 +57,20 @@ func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, f
 		return nil, model.NewBadRequestError("app.member.valid.file_name", "The filename can not be more than 120 symbols")
 	}
 
+	if len(members) == 1 {
+		var m *model.Member
+		m, err = app.Store.Member().Create(ctx, domainId, members[0])
+		if err != nil {
+			return nil, err
+		}
+
+		if m == nil {
+			return nil, nil
+		}
+
+		return []int64{m.Id}, nil
+	}
+
 	return app.Store.Member().BulkCreate(ctx, domainId, queueId, fileName, members)
 }
 
