@@ -1371,3 +1371,21 @@ where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[strin
 
 	return from.String, nil
 }
+
+func (s SqlCallStore) FromNumberWithUserIds(ctx context.Context, domainId int64, userId int64, id string) (model.RedialFrom, model.AppError) {
+	var f model.RedialFrom
+	err := s.GetReplica().WithContext(ctx).SelectOne(&f, `select c.from_number as number, c2.user_ids
+from call_center.cc_calls_history c
+    left join call_center.cc_calls_history c2 on c2.id = c.parent_id
+where c.domain_id = :DomainId and c.id = :Id::uuid and c.user_id = :UserId`, map[string]interface{}{
+		"DomainId": domainId,
+		"Id":       id,
+		"UserId":   userId,
+	})
+
+	if err != nil {
+		return f, model.NewCustomCodeError("store.sql_call.from_number_users.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return f, nil
+}

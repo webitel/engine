@@ -379,6 +379,7 @@ type CallStore interface {
 	FromNumber(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
 	SetHideMissedLeg(ctx context.Context, domainId int64, userId int64, id string) model.AppError
 	SetHideMissedAllParent(ctx context.Context, domainId int64, userId int64, id string) model.AppError
+	FromNumberWithUserIds(ctx context.Context, domainId int64, userId int64, id string) (model.RedialFrom, model.AppError)
 }
 
 type EmailProfileStore interface {

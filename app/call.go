@@ -11,6 +11,10 @@ import (
 	"github.com/webitel/wlog"
 )
 
+const (
+	refreshMissedNotification = "refresh_missed"
+)
+
 func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, model.AppError) {
 	var callCli call_manager.CallClient
 	var err model.AppError
@@ -114,7 +118,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, callId string) (string, model.AppError) {
 
-	dest, err := app.Store.Call().FromNumber(ctx, domainId, userId, callId)
+	from, err := app.Store.Call().FromNumberWithUserIds(ctx, domainId, userId, callId)
 	if err != nil {
 		return "", err
 	}
@@ -126,7 +130,7 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 			UserId: &userId,
 		},
 		To:          nil,
-		Destination: dest,
+		Destination: from.Number,
 		Params: model.CallParameters{
 			DisableStun: false,
 			HideNumber:  false,
@@ -136,6 +140,7 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 		},
 	}
 
+	var dest string
 	dest, err = app.CreateOutboundCall(ctx, domainId, req, nil)
 	if err != nil {
 		return "", err
@@ -144,6 +149,18 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 	err = app.Store.Call().SetHideMissedAllParent(ctx, domainId, userId, callId)
 	if err != nil {
 		return "", err
+	}
+
+	if len(from.UserIds) != 0 {
+		err = app.MessageQueue.SendNotification(domainId, &model.Notification{
+			DomainId:  domainId,
+			Action:    refreshMissedNotification,
+			CreatedAt: model.GetMillis(),
+			ForUsers:  from.UniqueUsers(),
+			Body: map[string]interface{}{
+				"id": callId,
+			},
+		})
 	}
 
 	return dest, nil

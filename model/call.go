@@ -76,6 +76,11 @@ type OutboundCallRequest struct {
 	Params      CallParameters   `json:"params"`
 }
 
+type RedialFrom struct {
+	Number  string     `json:"number" db:"number"`
+	UserIds Int64Array `json:"user_ids" db:"user_ids"`
+}
+
 type UserCallRequest struct {
 	Id    string  `json:"id"`
 	AppId *string `json:"app_id"`
@@ -261,6 +266,10 @@ type CallAnnotation struct {
 	Note      string    `json:"note" db:"note"`
 	StartSec  int32     `json:"start_sec" db:"start_sec"`
 	EndSec    int32     `json:"end_sec" db:"end_sec"`
+}
+
+func (f *RedialFrom) UniqueUsers() []int64 {
+	return UniqueSliceElements(f.UserIds)
 }
 
 func (c *Call) MarshalJSON() ([]byte, error) {
