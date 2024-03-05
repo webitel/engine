@@ -50,7 +50,11 @@ func (api *list) CreateList(ctx context.Context, in *engine.CreateListRequest) (
 		return nil, err
 	}
 
-	return toEngineList(list), nil
+	res := toEngineList(list)
+
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, res.Id, res)
+
+	return res, nil
 }
 
 func (api *list) SearchList(ctx context.Context, in *engine.SearchListRequest) (*engine.ListOfList, error) {
@@ -173,7 +177,11 @@ func (api *list) UpdateList(ctx context.Context, in *engine.UpdateListRequest) (
 		return nil, err
 	}
 
-	return toEngineList(list), nil
+	res := toEngineList(list)
+
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, res.Id, res)
+
+	return res, nil
 }
 
 func (api *list) DeleteList(ctx context.Context, in *engine.DeleteListRequest) (*engine.List, error) {
@@ -203,7 +211,11 @@ func (api *list) DeleteList(ctx context.Context, in *engine.DeleteListRequest) (
 		return nil, err
 	}
 
-	return toEngineList(list), nil
+	res := toEngineList(list)
+
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST, res.Id, res)
+
+	return res, nil
 }
 
 func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateListCommunicationRequest) (*engine.ListCommunication, error) {

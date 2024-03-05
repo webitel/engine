@@ -73,7 +73,10 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		return nil, err
 	}
 
-	return transformAgent(agent), nil
+	res := transformAgent(agent)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+
+	return res, nil
 }
 
 func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest) (*engine.ListAgent, error) {
@@ -228,7 +231,10 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		return nil, err
 	}
 
-	return transformAgent(agent), nil
+	res := transformAgent(agent)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+
+	return res, nil
 }
 
 func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) (*engine.Agent, error) {
@@ -307,7 +313,10 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 		return nil, err
 	}
 
-	return transformAgent(agent), nil
+	res := transformAgent(agent)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+
+	return res, nil
 }
 
 func (api *agent) DeleteAgent(ctx context.Context, in *engine.DeleteAgentRequest) (*engine.Agent, error) {
@@ -337,7 +346,10 @@ func (api *agent) DeleteAgent(ctx context.Context, in *engine.DeleteAgentRequest
 		return nil, err
 	}
 
-	return transformAgent(agent), nil
+	res := transformAgent(agent)
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+
+	return res, nil
 }
 
 func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusRequest) (*engine.Response, error) {
