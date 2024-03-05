@@ -53,11 +53,17 @@ func (api *outboundResourceGroup) CreateOutboundResourceGroup(ctx context.Contex
 		return nil, err
 	}
 
-	if group, err = api.app.CreateOutboundResourceGroup(ctx, group); err != nil {
+	group, err = api.app.CreateOutboundResourceGroup(ctx, group)
+
+	if err != nil {
 		return nil, err
-	} else {
-		return toEngineOutboundResourceGroup(group), nil
 	}
+
+	res := toEngineOutboundResourceGroup(group)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, res.Id, res)
+
+	return res, nil
+
 }
 
 func (api *outboundResourceGroup) SearchOutboundResourceGroup(ctx context.Context, in *engine.SearchOutboundResourceGroupRequest) (*engine.ListOutboundResourceGroup, error) {
@@ -193,7 +199,10 @@ func (api *outboundResourceGroup) UpdateOutboundResourceGroup(ctx context.Contex
 		return nil, err
 	}
 
-	return toEngineOutboundResourceGroup(group), nil
+	res := toEngineOutboundResourceGroup(group)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, res.Id, res)
+
+	return res, nil
 }
 
 func (api *outboundResourceGroup) DeleteOutboundResourceGroup(ctx context.Context, in *engine.DeleteOutboundResourceGroupRequest) (*engine.OutboundResourceGroup, error) {
@@ -223,7 +232,10 @@ func (api *outboundResourceGroup) DeleteOutboundResourceGroup(ctx context.Contex
 		return nil, err
 	}
 
-	return toEngineOutboundResourceGroup(group), nil
+	res := toEngineOutboundResourceGroup(group)
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, res.Id, res)
+
+	return res, nil
 }
 
 func (api *outboundResourceGroup) CreateOutboundResourceInGroup(ctx context.Context, in *engine.CreateOutboundResourceInGroupRequest) (*engine.OutboundResourceInGroup, error) {

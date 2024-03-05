@@ -18,7 +18,13 @@ func (c *Controller) CreateCalendar(ctx context.Context, session *auth_manager.S
 	}
 
 	session.Domain(calendar.DomainId)
-	return c.app.CreateCalendar(ctx, calendar)
+
+	res, err := c.app.CreateCalendar(ctx, calendar)
+	if err != nil {
+		return nil, err
+	}
+	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CALENDAR, res.Id, res)
+	return res, nil
 }
 
 func (c *Controller) UpdateCalendar(ctx context.Context, session *auth_manager.Session, calendar *model.Calendar) (*model.Calendar, model.AppError) {
@@ -45,7 +51,12 @@ func (c *Controller) UpdateCalendar(ctx context.Context, session *auth_manager.S
 		return nil, err
 	}
 
-	return c.app.UpdateCalendar(ctx, calendar)
+	res, err := c.app.UpdateCalendar(ctx, calendar)
+	if err != nil {
+		return nil, err
+	}
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALENDAR, res.Id, res)
+	return res, nil
 }
 
 func (c *Controller) SearchCalendar(ctx context.Context, session *auth_manager.Session, search *model.SearchCalendar) ([]*model.Calendar, bool, model.AppError) {
@@ -91,6 +102,10 @@ func (c *Controller) DeleteCalendar(ctx context.Context, session *auth_manager.S
 			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 		}
 	}
-
-	return c.app.RemoveCalendar(ctx, session.Domain(domainId), id)
+	res, err := c.app.RemoveCalendar(ctx, session.Domain(domainId), id)
+	if err != nil {
+		return nil, err
+	}
+	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CALENDAR, res.Id, res)
+	return res, nil
 }

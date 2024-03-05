@@ -68,12 +68,15 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 	if err = resource.IsValid(); err != nil {
 		return nil, err
 	}
-
-	if resource, err = api.app.CreateOutboundResource(ctx, resource); err != nil {
+	resource, err = api.app.CreateOutboundResource(ctx, resource)
+	if err != nil {
 		return nil, err
-	} else {
-		return transformOutboundResource(resource), nil
 	}
+	res := transformOutboundResource(resource)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+
+	return res, nil
+
 }
 
 func (api *outboundResource) SearchOutboundResource(ctx context.Context, in *engine.SearchOutboundResourceRequest) (*engine.ListOutboundResource, error) {
@@ -217,7 +220,10 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 		return nil, err
 	}
 
-	return transformOutboundResource(resource), nil
+	res := transformOutboundResource(resource)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+
+	return res, nil
 }
 
 func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engine.PatchOutboundResourceRequest) (*engine.OutboundResource, error) {
@@ -276,7 +282,10 @@ func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engi
 		return nil, err
 	}
 
-	return transformOutboundResource(resource), nil
+	res := transformOutboundResource(resource)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+
+	return res, nil
 }
 
 func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *engine.DeleteOutboundResourceRequest) (*engine.OutboundResource, error) {
@@ -306,7 +315,10 @@ func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *eng
 		return nil, err
 	}
 
-	return transformOutboundResource(resource), nil
+	res := transformOutboundResource(resource)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+
+	return res, nil
 }
 
 func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, in *engine.CreateOutboundResourceDisplayRequest) (*engine.ResourceDisplay, error) {

@@ -62,7 +62,10 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 		return nil, err
 	}
 
-	return transformAgentTeam(team), nil
+	res := transformAgentTeam(team)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
+
+	return res, nil
 }
 
 func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgentTeamRequest) (*engine.ListAgentTeam, error) {
@@ -196,7 +199,10 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		return nil, err
 	}
 
-	return transformAgentTeam(team), nil
+	res := transformAgentTeam(team)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
+
+	return res, nil
 }
 
 func (api *agentTeam) DeleteAgentTeam(ctx context.Context, in *engine.DeleteAgentTeamRequest) (*engine.AgentTeam, error) {
@@ -226,7 +232,10 @@ func (api *agentTeam) DeleteAgentTeam(ctx context.Context, in *engine.DeleteAgen
 		return nil, err
 	}
 
-	return transformAgentTeam(team), nil
+	res := transformAgentTeam(team)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
+
+	return res, nil
 }
 
 func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {
