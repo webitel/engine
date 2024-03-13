@@ -46,7 +46,13 @@ func (api *region) SearchRegion(ctx context.Context, in *engine.SearchRegionRequ
 	var list []*model.Region
 	var endList bool
 	req := &model.SearchRegion{
-		ListRequest: model.ExtractSearchOptions(in),
+		ListRequest: model.ListRequest{
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Sort:    in.Sort,
+			Fields:  in.Fields,
+			Q:       in.GetQ(),
+		},
 		Ids:         in.GetId(),
 		TimezoneIds: in.GetTimezoneId(),
 	}
