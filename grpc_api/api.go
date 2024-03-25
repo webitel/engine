@@ -14,6 +14,7 @@ type API struct {
 	skill                 *skill
 	agentTeam             *agentTeam
 	teamHook              *teamHook
+	teamTrigger           *teamTrigger
 	agent                 *agent
 	agentSkill            *agentSkill
 	outboundResource      *outboundResource
@@ -59,6 +60,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.skill = NewSkillApi(api)
 	api.agentTeam = NewAgentTeamApi(a)
 	api.teamHook = NewTeamHookApi(api)
+	api.teamTrigger = NewTeamTriggerApi(api)
 	api.agent = NewAgentApi(api)
 	api.agentSkill = NewAgentSkillApi(a)
 	api.outboundResource = NewOutboundResourceApi(a)
@@ -97,6 +99,7 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterSkillServiceServer(server, api.skill)
 	engine.RegisterAgentTeamServiceServer(server, api.agentTeam)
 	engine.RegisterTeamHookServiceServer(server, api.teamHook)
+	engine.RegisterTeamTriggerServiceServer(server, api.teamTrigger)
 	engine.RegisterAgentServiceServer(server, api.agent)
 	engine.RegisterAgentSkillServiceServer(server, api.agentSkill)
 	engine.RegisterOutboundResourceServiceServer(server, api.outboundResource)

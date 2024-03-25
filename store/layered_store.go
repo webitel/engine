@@ -61,6 +61,10 @@ func (s *LayeredStore) TeamHook() TeamHookStore {
 	return s.DatabaseLayer.TeamHook()
 }
 
+func (s *LayeredStore) TeamTrigger() TeamTriggerStore {
+	return s.DatabaseLayer.TeamTrigger()
+}
+
 func (s *LayeredStore) AgentSkill() AgentSkillStore {
 	return s.DatabaseLayer.AgentSkill()
 }
