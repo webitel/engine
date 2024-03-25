@@ -25,7 +25,7 @@ require (
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20231220151106-e1840f1a31e4
 	github.com/webitel/protos/cc v0.0.0-20231219144336-af0e727d5b1e
-	github.com/webitel/protos/engine v0.0.0-20240226101527-828984a07f88
+	github.com/webitel/protos/engine v0.0.0-20240325094410-763f1bc08dba
 	github.com/webitel/protos/fs v0.0.0-20231219144336-af0e727d5b1e
 	github.com/webitel/protos/logger v0.0.0-20231219144336-af0e727d5b1e
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
@@ -210,6 +210,7 @@ require (
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.5 // indirect
 	github.com/uudashr/gocognit v1.0.6 // indirect
+	github.com/webitel/protos v1.0.1-0.20240322122244-6768201b1879 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
