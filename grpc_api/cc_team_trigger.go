@@ -79,8 +79,16 @@ func (api *teamTrigger) SearchTeamTrigger(ctx context.Context, in *engine.Search
 }
 
 func (api *teamTrigger) RunTeamTrigger(ctx context.Context, in *engine.RunTeamTriggerRequest) (*engine.RunTeamTriggerResponse, error) {
-	//TODO implement me
-	return &engine.RunTeamTriggerResponse{}, nil
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &engine.RunTeamTriggerResponse{}
+
+	res.JobId, err = api.ctrl.RunAgentTrigger(ctx, session, in.TriggerId, in.Variables)
+
+	return res, nil
 }
 
 func (api *teamTrigger) ReadTeamTrigger(ctx context.Context, in *engine.ReadTeamTriggerRequest) (*engine.TeamTrigger, error) {

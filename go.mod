@@ -23,9 +23,9 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/streadway/amqp v1.1.0
 	github.com/tevino/abool v1.2.0
-	github.com/webitel/call_center v0.0.0-20231220151106-e1840f1a31e4
-	github.com/webitel/protos/cc v0.0.0-20231219144336-af0e727d5b1e
-	github.com/webitel/protos/engine v0.0.0-20240325094410-763f1bc08dba
+	github.com/webitel/call_center v0.0.0-20240327131321-b29cc34de21f
+	github.com/webitel/protos/cc v0.0.0-20240327130525-7501c51c7a8e
+	github.com/webitel/protos/engine v0.0.0-20240327132302-ffcc68b6314f
 	github.com/webitel/protos/fs v0.0.0-20231219144336-af0e727d5b1e
 	github.com/webitel/protos/logger v0.0.0-20231219144336-af0e727d5b1e
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
@@ -162,6 +162,7 @@ require (
 	github.com/nishanths/exhaustive v0.9.5 // indirect
 	github.com/nishanths/predeclared v0.2.2 // indirect
 	github.com/nunnatsa/ginkgolinter v0.9.0 // indirect
+	github.com/olebedev/emitter v0.0.0-20190110104742-e8d1457e6aee // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
@@ -210,7 +211,9 @@ require (
 	github.com/ultraware/funlen v0.0.3 // indirect
 	github.com/ultraware/whitespace v0.0.5 // indirect
 	github.com/uudashr/gocognit v1.0.6 // indirect
+	github.com/webitel/flow_manager v0.0.0-20230928094914-a9c915fbadcb // indirect
 	github.com/webitel/protos v1.0.1-0.20240322122244-6768201b1879 // indirect
+	github.com/webitel/protos/workflow v0.0.0-20231219144336-af0e727d5b1e // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
@@ -225,6 +228,7 @@ require (
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/time v0.0.0-20220411224347-583f2d630306 // indirect
 	golang.org/x/tools v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231012201019-e917dd12ba7a // indirect
