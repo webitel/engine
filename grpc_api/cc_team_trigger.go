@@ -88,6 +88,10 @@ func (api *teamTrigger) RunTeamTrigger(ctx context.Context, in *engine.RunTeamTr
 
 	res.JobId, err = api.ctrl.RunAgentTrigger(ctx, session, in.TriggerId, in.Variables)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return res, nil
 }
 
