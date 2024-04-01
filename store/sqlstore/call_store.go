@@ -219,7 +219,7 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId int64, use
 // fixme
 func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError) {
 	var res []*model.Call
-	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select row_to_json(at) task,
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select row_to_json(at)                                                    task,
        c."id",
        c."app_id",
        c."state",
@@ -230,7 +230,7 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
        json_build_object('type', COALESCE(c.from_type, ''::character varying), 'number',
                          COALESCE(c.from_number, ''::character varying), 'id',
                          COALESCE(c.from_id, ''::character varying), 'name',
-                         COALESCE(c.from_name, ''::character varying))                        AS "from",
+                         COALESCE(c.from_name, ''::character varying)) AS "from",
        CASE
            WHEN c.to_number::text <> ''::text THEN json_build_object('type', COALESCE(c.to_type, ''::character varying),
                                                                      'number',
@@ -238,46 +238,45 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
                                                                      COALESCE(c.to_id, ''::character varying), 'name',
                                                                      COALESCE(c.to_name, ''::character varying))
            ELSE NULL::json
-           END                                                                                AS "to",
+           END                                                         AS "to",
        CASE
            WHEN c.payload IS NULL THEN '{}'::jsonb
            ELSE c.payload
-           END                                                                                AS variables,
+           END                                                         AS variables,
        c."created_at",
        c."answered_at",
        c."bridged_at",
        c."hangup_at",
        c."hold_sec",
-       call_center.cc_get_lookup(cq.id::bigint, cq.name)                                      AS queue,
-	   c.contact_id,
-	   to_timestamp(at.leaving_at::double precision/1000) as leaving_at --todo
+       call_center.cc_get_lookup(at.queue_id::bigint, at.queue_name)   AS queue,
+       c.contact_id,
+       to_timestamp(at.leaving_at::double precision / 1000)            as leaving_at --todo
 from call_center.cc_calls c
-         left join call_center.cc_queue cq on c.queue_id = cq.id
          left join lateral (
-    select a.id             as attempt_id,
+    select a.id                                                       as attempt_id,
            a.channel,
-		   a.node_id as app_id,
+           a.node_id                                                  as app_id,
            a.queue_id,
-           cq.name           as queue_name,
+           coalesce(a.queue_params ->> 'queue_name', '')               as queue_name,
            a.member_id,
-           a.member_call_id as member_channel_id,
-           a.agent_call_id as agent_channel_id,
+           a.member_call_id                                           as member_channel_id,
+           a.agent_call_id                                            as agent_channel_id,
            a.destination,
            a.state,
-		   call_center.cc_view_timestamp(a.leaving_at) leaving_at,
-           cq.processing     as has_reporting,
-		   cq.processing and cq.form_schema_id notnull as has_form,
-		   cq.processing_sec,
-		   cq.processing_renewal_sec,
-		   call_center.cc_view_timestamp(a.timeout) as processing_timeout_at,
-		   a.form_view as form
+           call_center.cc_view_timestamp(a.leaving_at)                   leaving_at,
+           coalesce((a.queue_params -> 'has_reporting')::bool, false) as has_reporting,
+           coalesce((a.queue_params -> 'has_form')::bool, false)      as has_form,
+           (a.queue_params -> 'processing_sec')::int                  as processing_sec,
+           (a.queue_params -> 'processing_renewal_sec')::int          as processing_renewal_sec,
+           call_center.cc_view_timestamp(a.timeout)                   as processing_timeout_at,
+           a.form_view                                                as form
     from call_center.cc_member_attempt a
     where a.id = c.attempt_id
       and a.agent_call_id = c.id::text
     ) at on true
 where c.user_id = :UserId
   and c.domain_id = :DomainId
-  and ((at.state != 'leaving') or c.hangup_at isnull);`, map[string]interface{}{
+  and ((at.state != 'leaving') or c.hangup_at isnull)`, map[string]interface{}{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
