@@ -451,11 +451,12 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'online' ) agent_on_ids,
                array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
-               array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free,
+               array_agg(distinct a.id) filter ( where status = 'online' and ac.state = 'waiting' ) free,
                array_agg(distinct a.id) total
         from queues q
             inner join call_center.cc_agent a on a.domain_id = q.domain_id
-            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id
+            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id and ac.channel = case when q.type in (0,1,2,3,4,5) then  'call'
+                                                                                when q.type in (6) then 'chat' else 'task' end
             inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
         where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
