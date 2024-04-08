@@ -138,7 +138,9 @@ func (p *EmailProfile) Patch(patch *EmailProfilePatch) {
 		p.Login = *patch.Login
 	}
 	if patch.Password != nil {
-		p.Password = *patch.Password
+		if *patch.Password != "" { // full password reset is not allowed (task: WTEL-4344)
+			p.Password = *patch.Password
+		}
 	}
 	if patch.Mailbox != nil {
 		p.Mailbox = *patch.Mailbox
@@ -178,6 +180,8 @@ func (p EmailProfile) EntityName() string {
 }
 
 func (p *EmailProfile) IsValid() AppError {
+	// on create action key from properties can't be empty
+	// on update action key can be empty (task: WTEL-4344)
 	return nil //TODO
 }
 
