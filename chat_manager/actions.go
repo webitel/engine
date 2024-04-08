@@ -1,11 +1,11 @@
 package chat_manager
 
 import (
+	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"context"
 	"errors"
 	"fmt"
 	"github.com/webitel/engine/model"
-	client "github.com/webitel/protos/engine/chat"
 	"github.com/webitel/wlog"
 	"google.golang.org/grpc/metadata"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 )
 
 func (cc *chatConnection) Decline(authUserId int64, inviteId string, cause string) error {
-	_, err := cc.api.DeclineInvitation(context.Background(), &client.DeclineInvitationRequest{
+	_, err := cc.api.DeclineInvitation(context.Background(), &proto.DeclineInvitationRequest{
 		InviteId:   inviteId,
 		AuthUserId: authUserId,
 		Cause:      cause,
@@ -23,7 +23,7 @@ func (cc *chatConnection) Decline(authUserId int64, inviteId string, cause strin
 }
 
 func (cc *chatConnection) Join(authUserId int64, inviteId string) (string, error) {
-	res, err := cc.api.JoinConversation(context.Background(), &client.JoinConversationRequest{
+	res, err := cc.api.JoinConversation(context.Background(), &proto.JoinConversationRequest{
 		InviteId:   inviteId,
 		AuthUserId: authUserId,
 	})
@@ -36,7 +36,7 @@ func (cc *chatConnection) Join(authUserId int64, inviteId string) (string, error
 }
 
 func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId string) error {
-	_, err := cc.api.LeaveConversation(context.Background(), &client.LeaveConversationRequest{
+	_, err := cc.api.LeaveConversation(context.Background(), &proto.LeaveConversationRequest{
 		ChannelId:      channelId,
 		ConversationId: conversationId,
 		AuthUserId:     authUserId,
@@ -47,7 +47,7 @@ func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId stri
 }
 
 func (cc *chatConnection) SetVariables(channelId string, vars map[string]string) error {
-	_, err := cc.api.SetVariables(context.Background(), &client.SetVariablesRequest{
+	_, err := cc.api.SetVariables(context.Background(), &proto.SetVariablesRequest{
 		ChannelId: channelId,
 		Variables: vars,
 	})
@@ -56,7 +56,7 @@ func (cc *chatConnection) SetVariables(channelId string, vars map[string]string)
 }
 
 func (cc *chatConnection) CloseConversation(authUserId int64, channelId, conversationId, cause string) error {
-	_, err := cc.api.CloseConversation(context.Background(), &client.CloseConversationRequest{
+	_, err := cc.api.CloseConversation(context.Background(), &proto.CloseConversationRequest{
 		ConversationId:  conversationId,
 		CloserChannelId: channelId,
 		Cause:           cause,
@@ -67,10 +67,10 @@ func (cc *chatConnection) CloseConversation(authUserId int64, channelId, convers
 }
 
 func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, text string) error {
-	_, err := cc.api.SendMessage(context.Background(), &client.SendMessageRequest{
+	_, err := cc.api.SendMessage(context.Background(), &proto.SendMessageRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
-		Message: &client.Message{
+		Message: &proto.Message{
 			Type: "text", // TODO
 			Text: text,
 		},
@@ -85,12 +85,12 @@ func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, 
 }
 
 func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId string, file *model.ChatFile) error {
-	_, err := cc.api.SendMessage(context.Background(), &client.SendMessageRequest{
+	_, err := cc.api.SendMessage(context.Background(), &proto.SendMessageRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
-		Message: &client.Message{
+		Message: &proto.Message{
 			Type: "file", // TODO
-			File: &client.File{
+			File: &proto.File{
 				Id:   file.Id,
 				Url:  file.Url,
 				Mime: file.Mime,
@@ -109,8 +109,8 @@ func (cc *chatConnection) SendFile(authUserId int64, channelId, conversationId s
 }
 
 func (cc *chatConnection) AddToChat(authUserId, userId int64, channelId, conversationId, title string) error { // запросити
-	_, err := cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
-		User: &client.User{
+	_, err := cc.api.InviteToConversation(context.Background(), &proto.InviteToConversationRequest{
+		User: &proto.User{
 			UserId:     userId,
 			Type:       "webitel",
 			Connection: "", // profile
@@ -126,8 +126,8 @@ func (cc *chatConnection) AddToChat(authUserId, userId int64, channelId, convers
 }
 
 func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) error {
-	res, err := cc.api.StartConversation(context.Background(), &client.StartConversationRequest{
-		User: &client.User{ // caller
+	res, err := cc.api.StartConversation(context.Background(), &proto.StartConversationRequest{
+		User: &proto.User{ // caller
 			UserId:     authUserId,
 			Type:       "webitel",
 			Connection: "", // profile
@@ -140,8 +140,8 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 		return err
 	}
 
-	c, err := cc.api.InviteToConversation(context.Background(), &client.InviteToConversationRequest{
-		User: &client.User{
+	c, err := cc.api.InviteToConversation(context.Background(), &proto.InviteToConversationRequest{
+		User: &proto.User{
 			UserId:     userId,
 			Type:       "webitel",
 			Connection: "", // profile
@@ -159,7 +159,7 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 		return err
 	}
 	time.Sleep(time.Second)
-	_, err = cc.api.JoinConversation(context.Background(), &client.JoinConversationRequest{
+	_, err = cc.api.JoinConversation(context.Background(), &proto.JoinConversationRequest{
 		InviteId:   c.InviteId,
 		AuthUserId: authUserId,
 	})
@@ -168,7 +168,7 @@ func (cc *chatConnection) NewInternalChat(domainId, authUserId, userId int64) er
 }
 
 func (cc *chatConnection) UpdateChannel(authUserId int64, channelId string, readUntil int64) error { // запросити
-	_, err := cc.api.UpdateChannel(context.Background(), &client.UpdateChannelRequest{
+	_, err := cc.api.UpdateChannel(context.Background(), &proto.UpdateChannelRequest{
 		ChannelId:  channelId,
 		AuthUserId: authUserId,
 		ReadUntil:  readUntil, //
@@ -176,10 +176,10 @@ func (cc *chatConnection) UpdateChannel(authUserId int64, channelId string, read
 	return err
 }
 
-func (cc *chatConnection) ListActive(token string, domainId, userId int64, page, size int) (*client.GetConversationsResponse, error) {
+func (cc *chatConnection) ListActive(token string, domainId, userId int64, page, size int) (*proto.GetConversationsResponse, error) {
 	header := metadata.New(map[string]string{model.HEADER_TOKEN: token})
 	// this is the critical step that includes your headers
-	return cc.api.GetConversations(metadata.NewOutgoingContext(context.Background(), header), &client.GetConversationsRequest{
+	return cc.api.GetConversations(metadata.NewOutgoingContext(context.Background(), header), &proto.GetConversationsRequest{
 		Active:      true,
 		Page:        int32(page),
 		Size:        int32(size),
@@ -193,8 +193,8 @@ func (cc *chatConnection) InviteToConversation(ctx context.Context, domainId, us
 
 	inviterUserId, _ := strconv.Atoi(invUserId)
 
-	res, err := cc.api.InviteToConversation(ctx, &client.InviteToConversationRequest{
-		User: &client.User{
+	res, err := cc.api.InviteToConversation(ctx, &proto.InviteToConversationRequest{
+		User: &proto.User{
 			UserId:   userId,
 			Type:     "webitel",
 			Internal: true,
@@ -217,7 +217,7 @@ func (cc *chatConnection) InviteToConversation(ctx context.Context, domainId, us
 }
 
 func (cc *chatConnection) BlindTransfer(ctx context.Context, conversationId, channelId string, schemaId int64, vars map[string]string) error {
-	_, err := cc.api.BlindTransfer(ctx, &client.ChatTransferRequest{
+	_, err := cc.api.BlindTransfer(ctx, &proto.ChatTransferRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
 		SchemaId:       schemaId,
@@ -227,9 +227,9 @@ func (cc *chatConnection) BlindTransfer(ctx context.Context, conversationId, cha
 	return err
 }
 
-//TODO check domainId
+// TODO check domainId
 func (cc *chatConnection) BlindTransferToUser(ctx context.Context, conversationId, channelId string, userId int64, vars map[string]string) error {
-	_, err := cc.api.BlindTransfer(ctx, &client.ChatTransferRequest{
+	_, err := cc.api.BlindTransfer(ctx, &proto.ChatTransferRequest{
 		ConversationId: conversationId,
 		ChannelId:      channelId,
 		Variables:      vars,
@@ -239,8 +239,8 @@ func (cc *chatConnection) BlindTransferToUser(ctx context.Context, conversationI
 	return err
 }
 
-func (cc *chatConnection) BroadcastMessage(ctx context.Context, message *client.Message, profileId int64, peer []string) error {
-	res, err := cc.mess.BroadcastMessage(ctx, &client.BroadcastMessageRequest{
+func (cc *chatConnection) BroadcastMessage(ctx context.Context, message *proto.Message, profileId int64, peer []string) error {
+	res, err := cc.mess.BroadcastMessage(ctx, &proto.BroadcastMessageRequest{
 		Message: message,
 		From:    profileId,
 		Peer:    peer,

@@ -1,13 +1,14 @@
 package grpc_api
 
 import (
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
-	"github.com/webitel/protos/engine"
 )
 
 type chatHelper struct {
 	*API
-	engine.UnsafeChatHelperServiceServer
+	gogrpc.UnsafeChatHelperServiceServer
 }
 
 func NewChatHelperApi(api *API) *chatHelper {

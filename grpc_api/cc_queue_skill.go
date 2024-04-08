@@ -1,15 +1,16 @@
 package grpc_api
 
 import (
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type queueSkill struct {
 	*API
-	engine.UnsafeQueueSkillServiceServer
+	gogrpc.UnsafeQueueSkillServiceServer
 }
 
 func NewQueueSkill(api *API) *queueSkill {

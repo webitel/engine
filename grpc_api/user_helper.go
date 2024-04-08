@@ -1,14 +1,15 @@
 package grpc_api
 
 import (
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type userHelper struct {
 	*API
-	engine.UnsafeUserHelperServiceServer
+	gogrpc.UnsafeUserHelperServiceServer
 }
 
 func NewUserHelperApi(api *API) *userHelper {

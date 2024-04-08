@@ -6,14 +6,15 @@ import (
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"strings"
 
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type agent struct {
 	*API
-	engine.UnsafeAgentServiceServer
+	gogrpc.UnsafeAgentServiceServer
 }
 
 func NewAgentApi(api *API) *agent {

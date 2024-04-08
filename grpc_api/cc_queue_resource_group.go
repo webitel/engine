@@ -1,16 +1,17 @@
 package grpc_api
 
 import (
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type queueResource struct {
 	app *app.App
-	engine.UnsafeQueueResourcesServiceServer
+	gogrpc.UnsafeQueueResourcesServiceServer
 }
 
 func NewQueueResourceApi(app *app.App) *queueResource {

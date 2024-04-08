@@ -3,7 +3,8 @@ package app
 import (
 	"context"
 	"github.com/webitel/engine/model"
-	client "github.com/webitel/protos/engine/chat"
+
+	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"net/url"
 )
 
@@ -217,7 +218,7 @@ func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId in
 		return model.NewInternalError("chat.broadcast.cli_err", err.Error())
 	}
 
-	msg := &client.Message{
+	msg := &proto.Message{
 		Type: "text", //TODO
 		Text: text,
 	}
