@@ -358,8 +358,57 @@ func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) model.App
 }
 
 // QueueReportGeneral TODO call_center.cc_agent_channel not unique join
+// FIXME hot fix WTEL-4333
+func sortQueueReportGeneral(val string) string {
+	sort, field := orderBy(val)
+
+	switch field {
+	case "queue":
+		field = "q.name"
+	case "team":
+		field = "ct.name"
+	case "agent_status":
+		field = "coalesce(array_length(queue_ag.total, 1), 0)"
+	case "missed":
+		field = "4"
+	case "processed":
+		field = "5"
+	case "waiting":
+		field = "6"
+	case "count":
+		field = "7"
+	case "transferred":
+		field = "8"
+	case "bridged":
+		field = "9"
+	case "abandoned":
+		field = "10"
+	case "sum_bill_sec":
+		field = "11"
+	case "sl20":
+		field = "12"
+	case "sl30":
+		field = "13"
+	case "avg_wrap_sec":
+		field = "14"
+	case "avg_awt_sec":
+		field = "15"
+	case "max_awt_sec":
+		field = "16"
+	case "avg_asa_sec":
+		field = "17"
+	case "avg_aht_sec":
+		field = "18"
+	default:
+		sort = "desc"
+		field = "q.priority"
+	}
+
+	return fmt.Sprintf("%s %s", field, sort)
+}
 func (s SqlQueueStore) QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError) {
 	var report *model.QueueReportGeneralAgg
+
 	err := s.GetMaster().WithContext(ctx).SelectOne(&report, `
 with queues  as  (
     select *
@@ -402,11 +451,12 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'online' ) agent_on_ids,
                array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
-               array_agg(distinct a.id) filter ( where status = 'online' and ac.channel isnull and ac.state = 'waiting' ) free,
+               array_agg(distinct a.id) filter ( where status = 'online' and ac.state = 'waiting' ) free,
                array_agg(distinct a.id) total
         from queues q
             inner join call_center.cc_agent a on a.domain_id = q.domain_id
-            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id
+            inner join call_center.cc_agent_channel ac on ac.agent_id = a.id and ac.channel = case when q.type in (0,1,2,3,4,5) then  'call'
+                                                                                when q.type in (6) then 'chat' else 'task' end
             inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
         where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
@@ -428,10 +478,8 @@ items as materialized (
                else (select sum(s.member_waiting) from call_center.cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
            coalesce(ag.count, 0) count,
            coalesce(ag.transferred, 0) transferred,
-		   0 attempts,
            coalesce(ag.bridged, 0) bridged,
            coalesce(ag.abandoned::int, 0) abandoned,
-
            coalesce(ag.sum_bill_sec, 0) sum_bill_sec,
            coalesce(ag.sl20, 0) sl20,
            coalesce(ag.sl30, 0) sl30,
@@ -471,7 +519,7 @@ items as materialized (
         and ( :Types::int[] isnull or q.type = any(:Types) )
         and ( :TeamIds::int[] isnull or q.team_id = any(:TeamIds) )
         and (:Q::varchar isnull or (q.name ilike :Q::varchar ) )
-    order by q.priority desc
+    order by `+sortQueueReportGeneral(search.Sort)+`
     limit :Limit
     offset :Offset
 )

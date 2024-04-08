@@ -217,3 +217,10 @@ func (c *Controller) SearchUserStatus(ctx context.Context, session *auth_manager
 		return c.app.GetUsersStatusPage(ctx, session.Domain(0), search)
 	}
 }
+
+func (c *Controller) RunAgentTrigger(ctx context.Context, session *auth_manager.Session, triggerId int32, vars map[string]string) (string, model.AppError) {
+	if !session.HasCallCenterLicense() {
+		return "", model.NewForbiddenError("app.license.cc", "Not found \"CALL_CENTER\" license")
+	}
+	return c.app.RunAgentTrigger(ctx, session.Domain(0), session.UserId, triggerId, vars)
+}

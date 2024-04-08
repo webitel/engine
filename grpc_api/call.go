@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type call struct {
@@ -16,7 +17,7 @@ type call struct {
 	minimumNumberMaskLen int
 	prefixNumberMaskLen  int
 	suffixNumberMaskLen  int
-	engine.UnsafeCallServiceServer
+	gogrpc.UnsafeCallServiceServer
 }
 
 func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *call {

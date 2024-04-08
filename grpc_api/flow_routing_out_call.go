@@ -1,15 +1,16 @@
 package grpc_api
 
 import (
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type routingOutboundCall struct {
 	*API
-	engine.UnsafeRoutingOutboundCallServiceServer
+	gogrpc.UnsafeRoutingOutboundCallServiceServer
 }
 
 func NewRoutingOutboundCallApi(api *API) *routingOutboundCall {

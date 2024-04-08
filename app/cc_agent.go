@@ -280,3 +280,12 @@ func (app *App) GetUsersStatusPageByGroups(ctx context.Context, domainId int64, 
 	search.RemoveLastElemIfNeed(&list)
 	return list, search.EndOfList(), nil
 }
+
+func (a *App) RunAgentTrigger(ctx context.Context, domainId int64, userId int64, triggerId int32, vars map[string]string) (string, model.AppError) {
+	jobId, err := a.cc.Agent().RunTrigger(ctx, domainId, userId, triggerId, vars)
+	if err != nil {
+		return "", model.NewBadRequestError("app.agent.run_trigger.app_err", err.Error())
+	}
+
+	return jobId, nil
+}

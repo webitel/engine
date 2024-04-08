@@ -1,10 +1,10 @@
 package grpc_api
 
 import (
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"bytes"
 	"encoding/json"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/ptypes/struct"

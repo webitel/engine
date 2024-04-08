@@ -1,17 +1,18 @@
 package grpc_api
 
 import (
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type agentSkill struct {
 	app *app.App
-	engine.UnsafeAgentSkillServiceServer
+	gogrpc.UnsafeAgentSkillServiceServer
 }
 
 func NewAgentSkillApi(app *app.App) *agentSkill {

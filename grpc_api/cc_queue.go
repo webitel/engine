@@ -4,15 +4,16 @@ import (
 	"context"
 	"strings"
 
+	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
+	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/engine"
 )
 
 type queue struct {
 	*API
 	app *app.App
-	engine.UnsafeQueueServiceServer
+	gogrpc.UnsafeQueueServiceServer
 }
 
 func NewQueueApi(app *app.App, api *API) *queue {

@@ -1,9 +1,9 @@
 package app
 
 import (
+	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
 	"context"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/protos/cc"
 	"github.com/webitel/wlog"
 )
 

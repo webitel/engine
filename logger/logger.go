@@ -1,12 +1,13 @@
 package logger
 
 import (
+	gogrpc "buf.build/gen/go/webitel/logger/grpc/go/_gogrpc"
+	proto "buf.build/gen/go/webitel/logger/protocolbuffers/go"
 	"context"
 	"encoding/json"
 	"fmt"
 	_ "github.com/mbobakov/grpc-consul-resolver"
 	"github.com/webitel/engine/utils"
-	proto "github.com/webitel/protos/logger"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc"
 	"time"
@@ -25,7 +26,7 @@ var (
 )
 
 type Audit struct {
-	service proto.ConfigServiceClient
+	service gogrpc.ConfigServiceClient
 	cache   *utils.Cache
 	channel Publisher
 }
@@ -55,7 +56,7 @@ func New(consulTarget string, channel Publisher) (*Audit, error) {
 		return nil, err
 	}
 
-	service := proto.NewConfigServiceClient(conn)
+	service := gogrpc.NewConfigServiceClient(conn)
 
 	return &Audit{
 		service: service,
