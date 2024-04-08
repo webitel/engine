@@ -32,7 +32,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/streadway/amqp v1.1.0
 	github.com/tevino/abool v1.2.0
-	github.com/webitel/call_center v0.0.0-20240327140533-6c031040bdcf
+	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.uber.org/atomic v1.11.0
@@ -244,5 +244,3 @@ require (
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20221223090309-7455f1af531d // indirect
 )
-
-replace github.com/webitel/call_center => ../call_center
