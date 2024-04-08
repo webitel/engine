@@ -58,7 +58,9 @@ func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.E
 	oldProfile.Description = p.Description
 	oldProfile.ImapHost = p.ImapHost
 	oldProfile.Login = p.Login
-	oldProfile.Password = p.Password
+	if p.Password != "" { // full password reset is not allowed (task: WTEL-4344)
+		oldProfile.Password = p.Password
+	}
 	oldProfile.Mailbox = p.Mailbox
 	oldProfile.Schema = p.Schema
 	oldProfile.Enabled = p.Enabled
