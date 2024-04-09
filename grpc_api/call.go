@@ -72,6 +72,7 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		RatedByIds:       in.GetRatedBy(),
 		RatedUserIds:     in.GetRatedUser(),
 		ContactIds:       in.GetContactId(),
+		SchemaIds:        in.GetSchemaId(),
 	}
 
 	if in.HasFile != nil {
@@ -932,6 +933,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		RatedUser:        GetProtoLookup(src.RatedUser),
 		AllowEvaluation:  src.AllowEvaluation != nil && *src.AllowEvaluation,
 		Contact:          GetProtoLookup(src.Contact),
+		Schemas:          GetProtoLookups(src.Schemas),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
