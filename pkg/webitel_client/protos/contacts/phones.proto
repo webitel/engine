@@ -5,16 +5,9 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 import "google/protobuf/wrappers.proto";
 
-import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // The Contact's phone number.
 message PhoneNumber {
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/variables/{id}
-    // example: "{\"id\":\"6\",\"ver\":\"2\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Ja Lee (deleted)\"},\"verified\":true,\"primary\":true,\"phone\":\"+38 (099) 672-23-54\",\"type\":{\"name\":\"mobile\"}}"
-  };
   
   // [META]: --------------------------------------
 
@@ -86,23 +79,10 @@ message PhoneNumber {
 // Input of the contact phone number.
 message InputPhoneNumber {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/phones/{etag}
-    // example: "{\"etag\":\"1679792219687\",\"verified\":true,\"primary\":true,\"phone\":\"+38 (099) 672-23-54\",\"type\":{\"name\":\"mobile\"}}"
-    json_schema: {
-      required: ["number"]
-    }
-  };
-
   // [META]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // [VALUE]: --------------------------------------
 
@@ -164,63 +144,38 @@ service Phones {
 
   // Locate the Contact's phone number association.
   rpc LocatePhone(LocatePhoneRequest) returns (PhoneNumber) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/phones/{id}"
-    };
+
   }
 
   // Search phone number(s)
   rpc SearchPhones(SearchPhonesRequest) returns (PhoneList)
   {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/phones"
-      // additional_bindings: {
-      //   get: "/contacts/phones"
-      // }
-    };
+
   }
   // Associate phone number(s) with the Contact
   rpc CreatePhones(CreatePhonesRequest) returns (PhoneList)
   {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/phones"
-      body: "input"
-    };
+
   }
   // Reset the Contact's phone numbers to fit given data set. 
   rpc UpdatePhones(UpdatePhonesRequest) returns (PhoneList)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/phones"
-      body: "input"
-    };
+
   }
   // Update the Contact's phone number association details
   rpc UpdatePhone(UpdatePhoneRequest) returns (PhoneList)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/phones/{input.etag}"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/phones/{input.etag}"
-        body: "input"
-      }
-    };
+
   }
   // Remove the Contact's phone number association(s)
   rpc DeletePhones(DeletePhonesRequest) returns (PhoneList)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/phones"
-      // response_body: "data"
-    };
+
   }
   // Remove the Contact's phone number
   rpc DeletePhone(DeletePhoneRequest) returns (PhoneNumber)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/phones/{etag}"
-    };
+
   }
 }
 
@@ -238,12 +193,7 @@ message LocatePhoneRequest {
   int64 contact_id = 2;
   
   // Association Record unique ID.
-  string id = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    format: "int64"
-    // pattern: "^[1-9](\\d){0,19}$"
-    required: ["id"]
-  }];
+  string id = 3;
 
 }
 
@@ -296,22 +246,11 @@ message CreatePhonesRequest {
 
   // Fixed set of phone number(s) to be linked with the Contact.
   // Phone number(s) that conflicts with already linked will be updated.
-  repeated InputPhoneNumber input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "[{\"verified\":false,\"primary\":true,\"number\":\"+38 (099) 672-23-54\",\"type\":{\"name\":\"mobile\"}}]"
-    }
-  ];
+  repeated InputPhoneNumber input = 3;
 
 }
 
 message UpdatePhonesRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -328,37 +267,17 @@ message UpdatePhonesRequest {
   // Final set of phone number(s) to be linked with the contact.
   // Phone number(s) that are already linked with the contact
   // but not given in here will be removed.
-  repeated InputPhoneNumber input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "[{\"etag\":\"1679792219687\",\"verified\":true,\"primary\":true,\"phone\":\"+38 (099) 672-23-54\",\"type\":{\"name\":\"personal\"}},{\"phone\":\"+1 482 555-36558\",\"type\":{\"name\":\"business\"}}]"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputPhoneNumber input = 3;
 
 }
 
 message UpdatePhoneRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
-
   // --------- PATCH Options -------- //
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // --------- Result Options -------- //
 
@@ -378,12 +297,6 @@ message UpdatePhoneRequest {
 }
 
 message DeletePhonesRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -398,28 +311,11 @@ message DeletePhonesRequest {
   // --------- Delete Options -------- //
 
   // Set of linked ID(s) to be removed.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      unique_items: true
-      min_items: 1
-      // format: "int64"
-      // pattern: "^[1-9](\\d){0,19}$"
-      // field_configuration: {
-      //   path_param_name: "id_or_number"
-      // }
-    }
-  ];
+  repeated string etag = 3;
 
 }
 
 message DeletePhoneRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -432,12 +328,6 @@ message DeletePhoneRequest {
   int64 contact_id = 2;
 
   // Unique link ID to be removed.
-  string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      format: "int64"
-      // pattern: "^[1-9](\\d){0,19}$"
-    }
-  ];
+  string etag = 3;
 
 }

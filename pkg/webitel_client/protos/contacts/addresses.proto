@@ -4,10 +4,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 
 import "contacts/fields.proto";
 
-// import "google/api/visibility.proto";
-// import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
-
 // A contact's physical mailing address.
 // May be a P.O. box or street address.
 // All fields are optional.
@@ -16,11 +12,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 // https://openid.net/specs/openid-connect-core-1_0.html#AddressClaim
 // https://developers.google.com/people/api/rest/v1/people#address
 message Address {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/emails/{id}
-    example: ""
-  };
 
   // [TUPLE]: --------------------------------------
 
@@ -103,23 +94,10 @@ message Address {
 // Input of the Contact's email address.
 message InputAddress {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/emails/{etag}
-    // example: "{\"etag\":\"1679792219687\",\"verified\":false,\"primary\":true,\"streetAddress\":\"st.Yrii sq. 5\",\"type\":{\"name\":\"work\"}}"
-    json_schema: {
-      // required: ["street"]
-    }
-  };
-
   // [TUPLE]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // [INPUT]: --------------------------------------
 
@@ -163,10 +141,6 @@ message InputAddress {
 
 // Address dataset.
 message AddressList {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // example: ""
-  };
 
   // Addresses dataset page.
   repeated Address data = 1;

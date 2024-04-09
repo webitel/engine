@@ -15,9 +15,6 @@ import "contacts/timezones.proto";
 // import "contacts/addresses.proto";
 import "contacts/imclients.proto";
 
-// import "google/protobuf/struct.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
-
 // A contact's name.
 // If the name is a mononym, the family name is empty.
 //
@@ -26,11 +23,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 // https://developers.google.com/people/api/rest/v1/people#name
 message Name {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{id}/names
-    example: ""
-  };
-  
   // // [OUTPUT]: --------------------------------------
 
   // // The unique ID of the association. Never changes.
@@ -318,12 +310,7 @@ message InputContact {
   // [IDENT]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
   
   // // READONLY. The contact's metadata.
   // webitel.contacts.Lookup domain = 2;

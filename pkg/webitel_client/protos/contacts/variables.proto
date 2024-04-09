@@ -5,10 +5,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 import "google/protobuf/struct.proto";
 
-import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
-
 // // The Contact's variable.
 // // Arbitrary data that is populated by users or clients.
 // // Duplicate keys and values are allowed.
@@ -31,11 +27,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 // Arbitrary data that is populated by users or clients.
 // Duplicate keys and values are allowed.
 message Variable {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/variables/{id}
-    example: "{\"id\":\"6\",\"ver\":\"2\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Ja Lee (deleted)\"},\"key\":\"var_complex\",\"value\":{\"inner_var\":null,\"value_arr\":[\"string\",[null],false,1]}}"
-  };
   
   // [META]: --------------------------------------
 
@@ -77,36 +68,15 @@ message Variable {
 // Input of the Contact's variable.
 message InputVariable {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/variables/{etag}
-    example: "{\"key\":\"var_rename\",\"value\":[\"string_item\",[3,7],false,null]}"
-    json_schema: {
-      required: ["key"]
-    }
-  };
-
   // [META]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // [VALUE]: --------------------------------------
 
   // NEW Key.
-  string key = 11
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      pattern: "^\\w+$"
-      field_configuration: {
-        path_param_name: "key"
-      }
-    }
-  ];
+  string key = 11;
 
   // NEW Value.
   google.protobuf.Value value = 12;
@@ -126,63 +96,37 @@ service Variables {
   // List variables of the contact
   rpc ListVariables(SearchVariablesRequest) returns (VariableList)
   {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/variables"
-    };
+
   }
   // Add variables to the contact
   rpc AddVariables(CreateVariablesRequest) returns (VariableList)
   {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/variables"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Reset all variables of the contact
   rpc SetVariables(UpdateVariablesRequest) returns (VariableList)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/variables"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Update value of the contact variable
   rpc SetVariable(UpdateVariableRequest) returns (Variable)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/variables/{input.etag}"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/variables/{input.etag}"
-        body: "input"
-      }
-    };
+
   }
   // Remove variable(s) of the contact
   rpc DelVariables(DeleteVariablesRequest) returns (VariableList)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/variables"
-      // response_body: "data"
-    };
+
   }
   // Remove the contact's variable by key
   rpc DelVariable(DeleteVariableRequest) returns (Variable)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/variables/{etag}"
-    };
+
   }
 }
 
 // Variable dataset.
 message VariableList {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    example: "{\"data\":[{\"id\":\"4\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680268507698\",\"updated_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"key\":\"my_string\",\"value\":\"string_value\"},{\"id\":\"6\",\"ver\":\"2\",\"etag\":\"ogTsuZAIA1CcEZGC\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Ja Lee (deleted)\"},\"key\":\"var_complex\",\"value\":{\"inner_var\":null,\"value_arr\":[\"string\",[null],false,1]}}],\"page\":1,\"next\":true}"
-  };
 
   // Variable dataset page.
   repeated Variable data = 1;
@@ -197,13 +141,6 @@ message VariableList {
 // Locate Variable by unique IDentifier.
 message LocateVariableRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "id"
-      required: "contact_id"
-    }
-  };
-
   // ------- Result Options ------
 
   // Fields to be retrieved as a result.
@@ -215,10 +152,7 @@ message LocateVariableRequest {
   int64 contact_id = 2;
   
   // Variable unique ID assigned.
-  string id = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    pattern: "^\\w+$"
-  }];
+  string id = 3;
 
 }
 
@@ -256,13 +190,6 @@ message SearchVariablesRequest {
 
 message CreateVariablesRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
-
   // ------- Result Options -------
 
   // Fields to be retrieved as a result.
@@ -276,23 +203,11 @@ message CreateVariablesRequest {
   // Fixed object of unique variables to associate with a Contact.
   // Each individual key of an object represents a separate variable.
   // Variable{key} already linked with the Contact and listed here will be updated.
-  map<string, google.protobuf.Value> input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "{\"is_bool\":true,\"my_string\":\"string_value\",\"var_complex\":{\"inner_var\":null,\"value_arr\":[\"string\",[null],false,1]}}"
-    }
-  ];
+  map<string, google.protobuf.Value> input = 3;
 
 }
 
 message UpdateVariablesRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -309,36 +224,17 @@ message UpdateVariablesRequest {
   // Fixed object of unique variables to associate with a Contact.
   // Each individual key of an object represents a separate variable.
   // Variable{key} already linked with the Contact but not listed here will be removed.
-  map<string, google.protobuf.Value> input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "{\"is_bool\":true,\"my_string\":\"string_value\",\"var_complex\":{\"inner_var\":null,\"value_arr\":[\"string\",[null],false,1]}}"
-    }
-  ];
+  map<string, google.protobuf.Value> input = 3;
 
 }
 
 message UpdateVariableRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
-
   // --------- PATCH Options -------- //
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // --------- Result Options -------- //
 
@@ -355,13 +251,6 @@ message UpdateVariableRequest {
 }
 
 message DeleteVariablesRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -374,25 +263,12 @@ message DeleteVariablesRequest {
   string contact_id = 2;
 
   // Set of unique ID(s) to remove.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      pattern: "^.+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated string etag = 3;
 
 }
 
 message DeleteVariableRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
+
 
   // --------- Result Options -------- //
 
@@ -405,11 +281,6 @@ message DeleteVariableRequest {
   string contact_id = 2;
 
   // Unique ID to remove.
-  string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      pattern: "^\\w+$"
-    }
-  ];
+  string etag = 3;
 
 }

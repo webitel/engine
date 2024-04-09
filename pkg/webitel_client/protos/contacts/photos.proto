@@ -6,9 +6,6 @@ import "contacts/fields.proto";
 import "contacts/upload.proto";
 import "google/protobuf/wrappers.proto";
 
-import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // A contact's photo.
 // A picture shown next to the contact's name
@@ -68,23 +65,10 @@ message Photo {
 // Input of the photo.
 message InputPhoto {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/photos/{etag}
-    // example: "{\"ver\":\"1679792219687\",\"primary\":true,\"file_url\":\"https://lh3.googleusercontent.com/-T_wVWLlmg7w/AAAAAAAAAAI/AAAAAAAABa8/00gzXvDBYqw/s100/photo.jpg\"}"
-    json_schema: {
-      required: ["file_url"]
-    }
-  };
-
   // [META]: --------------------------------------
 
   // Unique ID of the latest version of an existing association.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // [VALUE]: --------------------------------------
 
@@ -123,60 +107,37 @@ service Photos {
 
   // Locate the contact's photo link.
   rpc LocatePhoto(LocatePhotoRequest) returns (Photo) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/photos/{id}"
-    };
+
   }
 
   // Search the contact's photo(s)
   rpc SearchPhotos(SearchPhotosRequest) returns (PhotoList)
   {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/photos"
-    };
+
   }
   // Link photo(s) with the contact
   rpc CreatePhotos(CreatePhotosRequest) returns (PhotoList)
   {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/photos"
-      body: "input"
-    };
+
   }
   // Reset the contact's photos to fit given data set. 
   rpc UpdatePhotos(UpdatePhotosRequest) returns (PhotoList)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/photos"
-      body: "input"
-    };
   }
   // Update the contact's photo link details
   rpc UpdatePhoto(UpdatePhotoRequest) returns (Photo)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/photos/{input.etag}"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/photos/{input.etag}"
-        body: "input"
-      }
-    };
+
   }
   // Remove the contact's photo link(s)
   rpc DeletePhotos(DeletePhotosRequest) returns (PhotoList)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/photos"
-      // response_body: "data"
-    };
+
   }
   // Remove the contact's photo
   rpc DeletePhoto(DeletePhotoRequest) returns (Photo)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/photos/{etag}"
-    };
+
   }
 }
 
@@ -212,12 +173,7 @@ message LocatePhotoRequest {
   string contact_id = 2;
   
   // Link unique ID.
-  string id = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // format: "int64"
-    // pattern: "^[1-9](\\d){0,19}$"
-    required: ["id"]
-  }];
+  string id = 3;
 
 }
 
@@ -270,20 +226,11 @@ message CreatePhotosRequest {
 
   // Fixed set of photo(s) to be linked with the contact.
   // Photo(s) that conflicts(file_id) with already linked will be updated.
-  repeated InputPhoto input = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "[{\"photo_id\":\"3587\"},{\"primary\":true,\"photo_url\":\"https://lh3.googleusercontent.com/-T_wVWLlmg7w/AAAAAAAAAAI/AAAAAAAABa8/00gzXvDBYqw/s100/photo.jpg\"}]"
-  }];
+  repeated InputPhoto input = 3;
 
 }
 
 message UpdatePhotosRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -300,35 +247,17 @@ message UpdatePhotosRequest {
   // Final set of photo(s) to be linked with the contact.
   // Photo(s) that are already linked with the contact
   // but not given in here will be removed.
-  repeated InputPhoto input = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "[{\"id\":\"351354\",\"ver\":\"1679792219687\",\"photo_id\":\"3587\"},{\"primary\":true,\"photo_url\":\"https://lh3.googleusercontent.com/-T_wVWLlmg7w/AAAAAAAAAAI/AAAAAAAABa8/00gzXvDBYqw/s100/photo.jpg\"}]"
-    min_items: 1
-    unique_items: true
-  }];
+  repeated InputPhoto input = 3;
 
 }
 
 message UpdatePhotoRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
-
   // --------- PATCH Options -------- //
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // --------- Result Options -------- //
 
@@ -348,12 +277,6 @@ message UpdatePhotoRequest {
 }
 
 message DeletePhotosRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -368,26 +291,11 @@ message DeletePhotosRequest {
   // --------- Delete Options -------- //
 
   // Set of linked ID(s) to be removed.
-  repeated string etag = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // format: "int64"
-    min_items: 1
-    unique_items: true
-    // pattern: "^[1-9](\\d){0,19}$"
-    // field_configuration: {
-    //   path_param_name: "id_or_number"
-    // }
-  }];
+  repeated string etag = 3;
 
 }
 
 message DeletePhotoRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -400,14 +308,7 @@ message DeletePhotoRequest {
   string contact_id = 2;
 
   // Unique link ID to be removed.
-  string etag = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // format: "int64"
-    // pattern: "^[1-9](\\d){0,19}$"
-    // field_configuration: {
-    //   path_param_name: "id"
-    // }
-  }];
+  string etag = 3;
 
   
 

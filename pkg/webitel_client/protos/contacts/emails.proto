@@ -5,17 +5,9 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 import "google/protobuf/wrappers.proto";
 
-import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // The Contact's email address.
 message EmailAddress {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/emails/{id}
-    example: ""
-  };
 
   // [META]: --------------------------------------
 
@@ -70,23 +62,10 @@ message EmailAddress {
 // Input of the Contact's email address.
 message InputEmailAddress {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/emails/{etag}
-    example: "{\"etag\":\"1679792219687\",\"verified\":false,\"primary\":true,\"email\":\"user@domain\",\"type\":{\"name\":\"personal\"}}"
-    json_schema: {
-      required: ["email"]
-    }
-  };
-
   // [META]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // [VALUE]: --------------------------------------
 
@@ -128,78 +107,44 @@ service Emails {
   // Locates email address(es) of the contact.
   rpc ListEmails(ListEmailsRequest) returns (EmailList)
   {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/emails"
-    };
   }
 
   // Update or append email address(es) of the contact.
   rpc MergeEmails(MergeEmailsRequest) returns (EmailList)
   {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/emails"
-      body: "input"
-      // additional_bindings: {
-      //   patch: "/contacts/{contact_id}/emails"
-      //   body: "input"
-      // }
-    };
   }
   // Resets all emails of the contact according to the input dataset.
   rpc ResetEmails(ResetEmailsRequest) returns (EmailList)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/emails"
-      body: "input"
-    };
   }
 
   // Remove email address(es) of the contact.
   rpc DeleteEmails(DeleteEmailsRequest) returns (EmailList)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/emails"
-      // response_body: "data"
-    };
   }
 
   // ------------------ [WITH] Record ------------------- //
 
   // Locate the email address link.
   rpc LocateEmail(LocateEmailRequest) returns (EmailAddress) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/emails/{etag}"
-    };
+
   }
 
   // Update the contact's email address link details
   rpc UpdateEmail(UpdateEmailRequest) returns (EmailList) // NOTE: update (primary) field MAY cause to update two records; clear current (primary) mark
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/emails/{input.etag}"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/emails/{input.etag}"
-        body: "input"
-      }
-    };
+
   }
   
   // Remove the contact's email address link
   rpc DeleteEmail(DeleteEmailRequest) returns (EmailAddress)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/emails/{etag}"
-    };
+
   }
 }
 
 // Email dataset.
 message EmailList {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // example: ""
-  };
 
   // EmailAddress dataset page.
   repeated EmailAddress data = 1;
@@ -225,10 +170,7 @@ message LocateEmailRequest {
   
   // Unique mail address link IDentifier.
   // Accept: `etag` (obsolete+) or `id`.
-  string etag = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    format: "\\w+"
-  }];
+  string etag = 3;
 
 }
 
@@ -281,14 +223,7 @@ message MergeEmailsRequest {
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // ------- Result Options -------
 
@@ -302,20 +237,11 @@ message MergeEmailsRequest {
 
   // Fixed set of email address(es) to be linked with the contact.
   // Email address(es) that conflicts(email) with already linked will be updated.
-  repeated InputEmailAddress input = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "[{\"verified\":false,\"primary\":true,\"email\":\"user@domain\",\"type\":{\"name\":\"personal\"}}]"
-  }];
+  repeated InputEmailAddress input = 4;
 
 }
 
 message ResetEmailsRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -332,35 +258,17 @@ message ResetEmailsRequest {
   // Final set of email address(es) to be linked with the contact.
   // Email address(es) that are already linked with the contact
   // but not given in here will be removed.
-  repeated InputEmailAddress input = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "[{\"verified\":true,\"email\":\"johndoe_43@gmail.com\",\"type\":{\"name\":\"personal\"}},{\"primary\":true,\"etag\":\"k0WqvUn4IJGnuCyG\",\"email\":\"j.doe@x-company.org\",\"type\":{\"id\":\"11\",\"name\":\"business\"}}]"
-    min_items: 1
-    unique_items: true
-  }];
+  repeated InputEmailAddress input = 3;
 
 }
 
 message UpdateEmailRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
-
   // --------- PATCH Options -------- //
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // --------- Result Options -------- //
 
@@ -380,13 +288,6 @@ message UpdateEmailRequest {
 }
 
 message DeleteEmailsRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -399,25 +300,11 @@ message DeleteEmailsRequest {
   string contact_id = 2;
 
   // Set of unique ID(s) to remove.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      pattern: "^.+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated string etag = 3;
 
 }
 
 message DeleteEmailRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -430,11 +317,6 @@ message DeleteEmailRequest {
   string contact_id = 2;
 
   // Unique ID to remove.
-  string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      pattern: "^\\.+$"
-    }
-  ];
+  string etag = 3;
 
 }

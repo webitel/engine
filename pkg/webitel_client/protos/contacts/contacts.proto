@@ -5,9 +5,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 import "contacts/contact.proto";
 
-import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // message FieldQ {
 //   string name = 1;
@@ -25,37 +22,7 @@ service Contacts {
 
   // Search for Contact(s)
   rpc SearchContacts(SearchContactsRequest) returns (ContactList) {
-    option (google.api.http) = {
-      get: "/contacts"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      description:
-      "| Field       | Type \n"
-      "| ----------- | ---- \n"
-      "| **----------- READ-ONLY -----------** | \n"
-      "| `id`        | int64 \n"
-      "| `ver`       | int32 \n"
-      "| `etag`      | string \n"
-      "| **---------- OPERATIONAL ----------** | \n"
-      "| `created_at` | int64(epoch:milli) \n"
-      "| `created_by` | lookup(user) \n"
-      "| `updated_at` | int64(epoch:milli) \n"
-      "| `updated_by` | lookup(user) \n"
-      "| **---------- ATTRIBUTES -----------** | \n"
-      "| `name`      | name! \n"
-      "| `about`     | string \n"
-      "| `labels`    | list[label!] \n"
-      "| `emails`    | list[email!] \n"
-      "| `photos`    | list[photo!] \n"
-      "| `phones`    | list[phone!] \n"
-      "| `managers`  | list[manager!] \n"
-      "| `comments`  | list[comment!] \n"
-      "| `addresses` | list[address!] \n"
-      "| `languages` | list[language!] \n"
-      "| `timezones` | list[timezone!] \n"
-      "| `variables` | list[variable!] \n"
-      "| `imclients` | list[imClient!] \n"
-    };
+
   }
   // // BULK Create Contacts
   // rpc CreateContacts(InputContactsRequest) returns (ContactsDataset) {
@@ -84,36 +51,22 @@ service Contacts {
 
   // Locate Contact source
   rpc LocateContact(LocateContactRequest) returns (Contact) {
-    option (google.api.http) = {
-      get: "/contacts/{id}"
-    };
+
   }
 
   // Create NEW Contact
   rpc CreateContact(InputContactRequest) returns (Contact) {
-    option (google.api.http) = {
-      post: "/contacts"
-      body: "input"
-    };
+
   }
 
   // NEW Update of the Contact source
   rpc UpdateContact(InputContactRequest) returns (Contact) {
-    option (google.api.http) = {
-      patch:  "/contacts/{input.etag}"
-      body: "input"
-      // additional_bindings {
-      //   put: "/contacts/{input.etag}"
-      //   body:  "input"
-      // }
-    };
+
   }
 
   // Remove Contact source
   rpc DeleteContact(DeleteContactRequest) returns (Contact) {
-    option (google.api.http) = {
-      delete: "/contacts/{etag}"
-    };
+
   }
 }
 
@@ -215,23 +168,7 @@ message SearchContactsRequest {
   // - `updated_by`{name}
   //
   // Use ?fields=`field.sort()` option to sort Edge fields.
-  repeated string sort = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      type: ARRAY,
-      // title: "sort",
-      pattern: "^[+|-|!]?\\w+$",
-      // description: "Fields [Q]uery to build result record",
-      // format: "name[.func(args)][{fields}],..",
-      default: "id",
-      example: "\"!updated_at,tag\"",
-      unique_items: true,
-      // array: "id",
-      // array: "names",
-      // array: "labels",
-      // array: "emails",
-    }
-  ];
+  repeated string sort = 3;
 
   // Fields [Q]uery to build result dataset record.
   // ```
@@ -246,23 +183,7 @@ message SearchContactsRequest {
   // DIGIT    = %x30-39            ; "0"-"9"
   // USCORE   = %x5F ; underscore  ; "_"
   // ```
-  repeated string fields = 4
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // type: ARRAY,
-      // title: "fields",
-      pattern: "(\\w+(\\.\\w+\\(([^\\)]*)\\))*(\\{\\1\\})*(,\\1)*)+",
-      // description: "Fields [Q]uery to build result record",
-      // format: "name[.func(args)][{fields}],..",
-      default: "name{common_name}",
-      example: "\"labels.limit(3).sort(!updated_at){tag,updated_at}\"",
-      unique_items: true,
-      // array: "id",
-      // array: "names",
-      // array: "labels",
-      // array: "emails",
-    }
-  ];
+  repeated string fields = 4;
 
   // ----- Search Options ---------------------------
   
@@ -312,14 +233,7 @@ message InputContactRequest {
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW" // "INTERNAL"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // ------- Result Options ------- //
 
@@ -339,14 +253,7 @@ message InputContactsRequest {
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "INTERNAL"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // ------- Result Options ------- //
 
@@ -379,12 +286,7 @@ message CreateContactsRequest {
   // --------- Create Options -------- //
 
   // Data is a set of Contacts to be created.
-  repeated InputContact input = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // example: ""
-    min_items: 1
-    unique_items: true
-  }];
+  repeated InputContact input = 2;
 
 }
 
@@ -396,12 +298,6 @@ message CreateContactsRequest {
 
 message DeleteContactsRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
-
   // --------- Result Options -------- //
 
   // Fields to be retrieved into result of changes.
@@ -410,17 +306,7 @@ message DeleteContactsRequest {
   // --------- Delete Options -------- //
 
   // Set of unique Contact IDs to deal with
-  repeated string etag = 2
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      field_configuration: {
-        path_param_name: "etag"
-      }
-      unique_items: true
-      pattern: "^\\w+$"
-      min_items: 1
-    }
-  ];
+  repeated string etag = 2;
 
   // // Indicates whether do:
   // // - `false` - just mark source(s) as inactive
@@ -430,12 +316,6 @@ message DeleteContactsRequest {
 }
 
 message DeleteContactRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -447,15 +327,7 @@ message DeleteContactRequest {
   // Unique Contact ID to deal with
 
   // Unique ID of the latest version of a resource.
-  string etag = 2
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      field_configuration: {
-        path_param_name: "etag"
-      }
-      pattern: "^\\w+$"
-    }
-  ];
+  string etag = 2;
 
   // // Indicates whether do:
   // // - `false` - just mark source(s) as inactive

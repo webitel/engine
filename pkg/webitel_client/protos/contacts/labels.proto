@@ -5,8 +5,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 
 // import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // // A Contact's associated Tag.
 // // Output purpose only.
@@ -29,11 +27,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 // A Contact's associated Tag.
 // Output purpose only.
 message Label {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/labels/{id}
-    // example: "{\"etag\":\"1679792219687\",\"tag\":\"VIP\"}"
-  };
 
   // [META]: --------------------------------------
 
@@ -75,24 +68,11 @@ message Label {
 // A Contact's associated Tag.
 // Output purpose only.
 message InputLabel {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/labels/{id}
-    // example: "{\"ver\":\"1679792219687\",\"tag\":\"VIP\"}"
-    json_schema: {
-      required: ["tag"]
-    }
-  };
   
   // [META]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
   
   // [VALUE]: --------------------------------------
     
@@ -107,11 +87,6 @@ message InputLabel {
 // NOTE: Edge represents connection between two nodes.
 // So this ContactLabels.data are always subordinate to some contact.id.
 message LabelList {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/labels
-    // example: "{\"data\":[{\"etag\":\"1679792219687\",\"tag\":\"VIP\"},{\"etag\":\"j3w8Naf8ag7v\",\"tag\":\"#hashTag\"}],\"page\":1,\"next\":true}"
-  };
 
   // Label(s) dataset page.
   repeated Label data = 1;
@@ -129,42 +104,27 @@ service Labels {
 
   // Search for Contacts engaged Label(s).
   rpc GetLabels(GetLabelsRequest) returns (LabelTags) {
-    option (google.api.http) = {
-      get: "/contacts/labels"
-    };
+
   }
 
   // ------------------ [WITH] Contact ------------------- //
 
   // Locate the Contact's associated Label(s).
   rpc ListLabels(ListLabelsRequest) returns (LabelList) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/labels"
-    };
+
   }
 
   // Associate NEW Labels to the Contact.
   rpc MergeLabels(MergeLabelsRequest) returns (LabelList) {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/labels"
-      // response_body: "data" // NOTE: {error} -vs- [data]; HOWTO: handle such results ...
-      body: "input"
-    };
+
   }
   // Reset Labels to fit the specified final set.
   rpc ResetLabels(ResetLabelsRequest) returns (LabelList) {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/labels"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Remove Contact Labels associations.
   rpc DeleteLabels(DeleteLabelsRequest) returns (LabelList) {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/labels"
-      // response_body: "data"
-    };
+
   }
 }
 
@@ -307,15 +267,7 @@ message MergeLabelsRequest {
 
   // Fixed set of label(s) to be linked with the contact.
   // Label(s) that conflicts with already linked will be updated.
-  repeated InputLabel input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // example: "[\"NEW\",\"VIP\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputLabel input = 3;
 
 }
 
@@ -367,25 +319,11 @@ message ResetLabelsRequest {
   // Final set of labels(s) to be linked with the contact.
   // Label(s) that are already linked with the contact
   // but not given in here will be removed.
-  repeated InputLabel input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // example: "[\"VIP\",\"pending\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      // min_items: 1
-    }
-  ];
+  repeated InputLabel input = 3;
 
 }
 
 message DeleteLabelsRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -402,21 +340,6 @@ message DeleteLabelsRequest {
   // ----- Delete Options ----- //
 
   // Set of unique label(s).etag identifiers.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      field_configuration: {
-        path_param_name: "etag"
-      }
-      pattern: "^(\\w+)(,\\w+)*$"
-      unique_items: true
-      min_items: 1
-      // format: "int64"
-      // pattern: "^[1-9](\\d){0,19}$"
-      // field_configuration: {
-      //   path_param_name: "id_or_tag"
-      // }
-    }
-  ];
+  repeated string etag = 3;
 
 }
