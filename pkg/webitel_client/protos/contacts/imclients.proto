@@ -4,10 +4,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 
 import "contacts/fields.proto";
 
-import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
-
 // A contact's [I]nstant[M]essaging client.
 message IMClient {
 
@@ -47,10 +43,7 @@ message IMClient {
   // [VALUE]: --------------------------------------
 
   // End-User account used in the IM client.
-  Lookup user = 11
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "{\"id\":\"596417343\",\"type\":\"telegram\",\"name\":\"John Doe\"}"
-  }];
+  Lookup user = 11;
 
   // // The protocol of the IM client.
   // // The protocol can be custom or one of these predefined values:
@@ -87,31 +80,15 @@ message IMClient {
 // Input of the contact IM client.
 message InputIMClient {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/imclients/{id}
-    // example: "{\"ver\":\"1679792219687\",\"user\":{\"id\":\"5964113\",\"type\":\"telegram\",\"name\":\"Johnny Doe\"},\"app\":{\"id\":\"357\",\"type\":\"telegram\",\"name\":\"TGBot\"}}"
-    json_schema: {
-      required: ["user"]
-    }
-  };
-
   // [META]: --------------------------------------
 
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // [VALUE]: --------------------------------------
 
   // End-User account used in the IM client.
-  Lookup user = 11
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "{\"id\":\"596417343\",\"type\":\"telegram\",\"name\":\"John Doe\"}"
-  }];
+  Lookup user = 11;
 
   // // The protocol of the IM client.
   // // The protocol can be custom or one of these predefined values:
@@ -150,63 +127,36 @@ service IMClients {
 
   // Locate the IM client link.
   rpc LocateIMClient(LocateIMClientRequest) returns (IMClient) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/imclients/{id}"
-    };
+
   }
 
   // Search IM client links
   rpc SearchIMClients(SearchIMClientsRequest) returns (IMClientList)
   {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/imclients"
-      additional_bindings: {
-        get: "/contacts/imclients"
-      }
-    };
+
   }
   // Link IM client(s) with the Contact
   rpc CreateIMClients(CreateIMClientsRequest) returns (IMClientList)
   {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/imclients"
-      body: "input"
-    };
+
   }
   // Reset the Contact's IM clients to fit given data set. 
   rpc UpdateIMClients(UpdateIMClientsRequest) returns (IMClientList)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/imclients"
-      body: "input"
-    };
+
   }
   // Update the Contact's IM client link
   rpc UpdateIMClient(UpdateIMClientRequest) returns (IMClient)
   {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/imclients/{input.etag}"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/imclients/{input.etag}"
-        body: "input"
-      }
-    };
+
   }
   // Remove the Contact's IM client link(s)
   rpc DeleteIMClients(DeleteIMClientsRequest) returns (IMClientList)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/imclients"
-      // response_body: "data"
-    };
   }
   // Remove the Contact's IM client link
   rpc DeleteIMClient(DeleteIMClientRequest) returns (IMClient)
   {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/imclients/{etag}"
-    };
   }
 }
 
@@ -240,12 +190,7 @@ message LocateIMClientRequest {
   string contact_id = 2;
   
   // Link unique ID.
-  string id = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // format: "int64"
-    // pattern: "^[1-9](\\d){0,19}$"
-    required: ["id"]
-  }];
+  string id = 3;
 
 }
 
@@ -296,20 +241,11 @@ message CreateIMClientsRequest {
 
   // Fixed set of IM client(s) to be linked with the contact.
   // IM client(s) that conflicts(user.id) with already linked will be updated.
-  repeated InputIMClient input = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    example: "[{\"user\":{\"id\":\"5964113\",\"type\":\"telegram\",\"name\":\"Johnny Doe\"},\"app\":{\"id\":\"357\",\"type\":\"telegram\",\"name\":\"TGBot\"}},{\"user\":{\"id\":\"97397547754773\",\"type\":\"instagram\",\"name\":\"j.doe\"},\"app\":{\"id\":\"23\",\"type\":\"meta\",\"name\":\"FB&IG\"},\"via\":\"9687464235425\"}]"
-  }];
+  repeated InputIMClient input = 3;
 
 }
 
 message UpdateIMClientsRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -326,35 +262,17 @@ message UpdateIMClientsRequest {
   // Final set of IM-client(s) to be linked with the contact.
   // IM-client(s) that are already linked with the contact
   // but not given in here will be removed.
-  repeated InputIMClient input = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // example: "[{\"id\":\"17\",\"ver\":\"1679792219687\",\"user\":{\"id\":\"5964113\",\"type\":\"telegram\",\"name\":\"Johnny Doe\"},\"app\":{\"id\":\"357\",\"type\":\"telegram\",\"name\":\"TGBot\"}},{\"user\":{\"id\":\"962972342364023\",\"type\":\"facebook\",\"name\":\"John Doe\"},\"app\":{\"id\":\"23\",\"type\":\"meta\",\"name\":\"FB&IG\"},\"via\":\"968752654236452\"}]"
-    min_items: 1
-    unique_items: true
-  }];
+  repeated InputIMClient input = 3;
 
 }
 
 message UpdateIMClientRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["input"]
-    }
-  };
-
   // --------- PATCH Options -------- //
 
   // JSON PATCH fields mask.
   // List of JPath fields specified in body(input).
-  repeated string x_json_mask = 1
-  [(google.api.field_visibility) = {
-    restriction: "PREVIEW"
-  },
-  (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    read_only: true
-    pattern: "^$"
-  }];
+  repeated string x_json_mask = 1;
 
   // --------- Result Options -------- //
 
@@ -374,12 +292,6 @@ message UpdateIMClientRequest {
 }
 
 message DeleteIMClientsRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -394,26 +306,11 @@ message DeleteIMClientsRequest {
   // --------- Delete Options -------- //
 
   // Set of unique link.ID(s) to be removed.
-  repeated string etag = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // format: "int64"
-    min_items: 1
-    unique_items: true
-    // pattern: "^[1-9](\\d){0,19}$"
-    // field_configuration: {
-    //   path_param_name: "id_or_number"
-    // }
-  }];
+  repeated string etag = 3;
 
 }
 
 message DeleteIMClientRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: ["etag"]
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -426,13 +323,6 @@ message DeleteIMClientRequest {
   int64 contact_id = 2;
 
   // Link unique ID to be removed.
-  string etag = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    // format: "int64"
-    // pattern: "^[1-9](\\d){0,19}$"
-    // field_configuration: {
-    //   path_param_name: "id"
-    // }
-  }];
+  string etag = 3;
 
 }

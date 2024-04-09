@@ -5,9 +5,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 import "google/protobuf/wrappers.proto";
 
-// import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // // A Contact's associated Tag.
 // // Output purpose only.
@@ -42,11 +39,6 @@ message TimeLocation {
 
 // A Contact's timezone preference.
 message Timezone {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/timezones/{id}
-    example: "{\"id\":\"7\",\"ver\":\"3\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"primary\":true,\"location\":\"Europe/Kyiv\"}"
-  };
 
   // [META]: --------------------------------------
 
@@ -98,21 +90,9 @@ message Timezone {
 // An input of the Contact's language.
 message InputTimezone {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/locations/{etag}
-    example: "{\"primary\":false,\"location\":\"Europe/Dublin\"}"
-    json_schema: {
-      required: ["etag"]
-    }
-  };
   
   // Unique ID of the latest version of an existing resource.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
   
   // Indicates whether this association must be default among others.
   bool primary = 11;
@@ -140,52 +120,28 @@ service Timezones {
 
   // List of the Contact's language association(s).
   rpc GetContactTimezones(SearchTimezonesRequest) returns (TimezoneList) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/timezones"
-    };
+
   }
   // Associate more language(s) with the Contact.
   rpc AddContactTimezones(CreateTimezonesRequest) returns (TimezoneList) {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/timezones"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Reset all Contact's languages to fit the specified fixed set.
   rpc SetContactTimezones(UpdateTimezonesRequest) returns (TimezoneList) {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/timezones"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Update the Contact's language association details.
   rpc SetContactTimezone(UpdateTimezoneRequest) returns (TimezoneList) {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/timezones/{input.etag}"
-      // response_body: "data"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/timezones/{input.etag}"
-        // response_body: "data"
-        body: "input"
-      }
-    };
+
   }
   // Remove the Contact's language association(s).
   rpc DelContactTimezones(DeleteTimezonesRequest) returns (TimezoneList) {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/timezones"
-      response_body: "data"
-    };
+
   }
 
   // Remove the Contact's language association.
   rpc DelContactTimezone(DeleteTimezoneRequest) returns (Timezone) {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/timezones/{etag}"
-    };
+
   }
 }
 
@@ -193,10 +149,6 @@ service Timezones {
 // NOTE: Edge represents connection between two nodes.
 // So this ContactLabels.data are always subordinate to some contact.id.
 message TimezoneList {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    example: "{\"data\":[{\"id\":\"7\",\"ver\":\"3\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"primary\":true,\"location\":\"Europe/Kyiv\"}],\"page\":1,\"next\":true}"
-  };
 
   // Timezone dataset page.
   repeated Timezone data = 1;
@@ -265,15 +217,7 @@ message CreateTimezonesRequest {
 
   // Array of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
   // The first element will become `primary` one.
-  repeated InputTimezone input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // example: "[\"uk\",\"en-GB\",\"pl\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputTimezone input = 3;
 
 }
 
@@ -300,27 +244,12 @@ message UpdateTimezonesRequest {
 
   // Final set [array] of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
   // The first element will become `primary` one.
-  repeated InputTimezone input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // example: "[\"uk\",\"en-GB\",\"pl\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputTimezone input = 3;
 
 }
 
 
 message UpdateTimezoneRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -342,26 +271,11 @@ message UpdateTimezoneRequest {
 
   // Final set [array] of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
   // The first element will become `primary` one.
-  InputTimezone input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // example: "[\"uk\",\"en-GB\",\"pl\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  InputTimezone input = 3;
 
 }
 
 message DeleteTimezonesRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -378,28 +292,11 @@ message DeleteTimezonesRequest {
   // ----- Delete Options ----- //
 
   // Set of unique ID(s) to remove.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // field_configuration: {
-      //   path_param_name: "id"
-      // }
-      // pattern: "^(\\w+)(,\\w+)*$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated string etag = 3;
 
 }
 
 message DeleteTimezoneRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -414,14 +311,6 @@ message DeleteTimezoneRequest {
   // Lookup contact = 2;
 
   // Unique ID to remove.
-  string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // field_configuration: {
-      //   path_param_name: "id"
-      // }
-      // pattern: "^(\\w+)(,\\w+)*$"
-    }
-  ];
+  string etag = 3;
 
 }

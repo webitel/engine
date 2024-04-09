@@ -3,17 +3,10 @@ package webitel.contacts;
 option go_package = "webitel.go/api/contacts;contacts";
 
 import "contacts/fields.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // The Contact's internal Comment.
 // Output purpose only
 message Comment {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // GET /contacts/{source.id}/comments/{id}
-    example: "{\"id\":\"354\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680268507698\",\"updated_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"text\":\"This is a new note about the contact's recent activity. So ...\"}"
-  };
 
   // [META]: --------------------------------------
 
@@ -89,22 +82,8 @@ message Comment {
 
 message InputComment {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/comments/{etag}
-    // example: "{\"text\":\"Here is a new edition of my previous note.\"}"
-    example: "{\"text\":\"This is a new note about the contact's recent activity. So ...\"}"
-    json_schema: {
-      required: ["text"]
-    }
-  };
-
   // Unique ID of the latest version of an existing resorce.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
 
   // NEW Text of the comment.
   string text = 11;
@@ -116,9 +95,6 @@ message InputComment {
 // Comment dataset.
 message CommentList {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    example: "{\"data\":[{\"id\":\"354\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"text\":\"This is a new note about the contact's recent activity. So ...\"},{\"id\":\"357\",\"ver\":\"4\",\"etag\":\"FZiTxVgr41VPFxyu\",\"created_at\":\"1680268537698\",\"created_by\":{\"id\":\"56\",\"name\":\"Bruce Wayne\"},\"updated_at\":\"1680268563357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"text\":\"This contact may become a customer in a few days\"}],\"page\":1,\"next\":true}"
-  };
 
   // Comment dataset page.
   repeated Comment data = 1;
@@ -133,46 +109,16 @@ message CommentList {
 // Contact comments service catalog.
 service Comments {
   // Publish comment for a Contact.
-  rpc PublishComment(PublishCommentRequest) returns (Comment)
-  {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/comments"
-      body: "input"
-    };
-  }
+  rpc PublishComment(PublishCommentRequest) returns (Comment) {}
   // Search for Contact Comment(s) ...
-  rpc SearchComments(SearchCommentsRequest) returns (CommentList)
-  {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/comments"
-    };
-  }
+  rpc SearchComments(SearchCommentsRequest) returns (CommentList) {}
   // Update (edit) specific Comment text owned
-  rpc UpdateComment(UpdateCommentRequest) returns (Comment)
-  {
-    option (google.api.http) = {
-      put:  "/contacts/{contact_id}/comments/{input.etag}"
-      body: "input"
-    };
-  }
+  rpc UpdateComment(UpdateCommentRequest) returns (Comment) {}
   // Delete Comment(s) for Contact ...
-  rpc DeleteComment(DeleteCommentsRequest) returns (CommentList)
-  {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/comments/{etag}"
-      response_body: "data"
-    };
-  }
+  rpc DeleteComment(DeleteCommentsRequest) returns (CommentList) {}
 }
 
 message PublishCommentRequest {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -185,12 +131,7 @@ message PublishCommentRequest {
   string contact_id = 2;
 
   // NEW Comment for a Contact publication.
-  InputComment input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "{\"text\":\"This is an internal note about recent activities.\"}"
-    }
-  ];
+  InputComment input = 3;
 
 }
 
@@ -247,13 +188,6 @@ message SearchCommentsRequest {
 
 message UpdateCommentRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
-
   // --------- Result Options -------- //
 
   // Fields to be retrieved into result of changes.
@@ -271,12 +205,6 @@ message UpdateCommentRequest {
 
 message DeleteCommentsRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // --------- Result Options -------- //
 
@@ -289,13 +217,6 @@ message DeleteCommentsRequest {
   string contact_id = 2;
 
   // Set of unique ID(s) to remove.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // pattern: "^.+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated string etag = 3;
 
 }

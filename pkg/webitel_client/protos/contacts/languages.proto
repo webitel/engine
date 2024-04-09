@@ -5,9 +5,6 @@ option go_package = "webitel.go/api/contacts;contacts";
 import "contacts/fields.proto";
 import "google/protobuf/wrappers.proto";
 
-// import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // // A Contact's associated Tag.
 // // Output purpose only.
@@ -145,22 +142,9 @@ message Language {
 
 // An input of the Contact's language.
 message InputLanguage {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/languages/{etag}
-    example: "{\"primary\":false,\"tag\":\"uk\"}"
-    json_schema: {
-      required: ["etag"]
-    }
-  };
   
   // Unique ID of the latest version of an existing association.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
   
   // Indicates whether this association must be default
   // among others of the same type.
@@ -185,52 +169,28 @@ service Languages {
 
   // List of the Contact's language association(s).
   rpc GetContactLanguages(SearchLanguagesRequest) returns (LanguageList) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/languages"
-    };
+
   }
   // Associate more language(s) with the Contact.
   rpc AddContactLanguages(CreateLanguagesRequest) returns (LanguageList) {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/languages"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Reset all Contact's languages to fit the specified fixed set.
   rpc SetContactLanguages(UpdateLanguagesRequest) returns (LanguageList) {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/languages"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Update the Contact's language association details.
   rpc SetContactLanguage(UpdateLanguageRequest) returns (LanguageList) {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/languages/{input.etag}"
-      // response_body: "data"
-      body: "input"
-      additional_bindings: {
-        patch: "/contacts/{contact_id}/languages/{input.etag}"
-        // response_body: "data"
-        body: "input"
-      }
-    };
+
   }
   // Remove the Contact's language association(s).
   rpc DelContactLanguages(DeleteLanguagesRequest) returns (LanguageList) {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/languages"
-      // response_body: "data"
-    };
+
   }
 
   // Remove the Contact's language association.
   rpc DelContactLanguage(DeleteLanguageRequest) returns (Language) {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/languages/{etag}"
-    };
+
   }
 }
 
@@ -239,10 +199,6 @@ service Languages {
 // So this ContactLabels.data are always subordinate to some contact.id.
 message LanguageList {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/labels/{id}
-    example: "{\"data\":[{\"id\":\"7\",\"ver\":\"3\",\"etag\":\"FqaTCDLbhpaoUreL\",\"created_at\":\"1680268507698\",\"created_by\":{\"id\":\"34\",\"name\":\"John Doe\"},\"updated_at\":\"1680516785357\",\"updated_by\":{\"name\":\"Jane Lee (deleted)\"},\"primary\":true,\"tag\":\"uk-UA\",\"code\":\"uk\",\"lang\":\"Ukrainian\",\"name\":\"\u0443\u043a\u0440\u0430\u0457\u043d\u0441\u044c\u043a\u0430\",\"region\":\"UA\",\"script\":\"Cyrl\"}],\"page\":1,\"next\":true}"
-  };
 
   // Page of the Contact's Language(s) dataset.
   repeated Language data = 1;
@@ -317,15 +273,7 @@ message CreateLanguagesRequest {
 
   // Array of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
   // The first element will become `primary` one.
-  repeated InputLanguage input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "[\"uk\",\"en-GB\",\"pl\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputLanguage input = 3;
 
 }
 
@@ -351,26 +299,12 @@ message UpdateLanguagesRequest {
 
   // Final set [array] of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
   // The first element will become `primary` one.
-  repeated InputLanguage input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "[\"uk\",\"en-GB\",\"pl\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputLanguage input = 3;
 
 }
 
 message UpdateLanguageRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "data"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -392,26 +326,12 @@ message UpdateLanguageRequest {
 
   // Final set [array] of the unique well-formed IETF BCP 47 language tag(s) to associate with the Contact.
   // The first element will become `primary` one.
-  InputLanguage input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "[\"uk\",\"en-GB\",\"pl\"]"
-      // pattern: "^\\w+$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  InputLanguage input = 3;
 
 }
 
 message DeleteLanguagesRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -428,28 +348,12 @@ message DeleteLanguagesRequest {
   // ----- Delete Options ----- //
 
   // Set of unique language{etag} association(s) to remove.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // field_configuration: {
-      //   path_param_name: "id"
-      // }
-      // pattern: "^(\\w+)(,\\w+)*$"
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated string etag = 3;
 
 }
 
 message DeleteLanguageRequest {
 
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -466,14 +370,6 @@ message DeleteLanguageRequest {
   // ----- Delete Options ----- //
 
   // Unique ID of the language association: {id,etag,code}.
-  string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      // field_configuration: {
-      //   path_param_name: "id"
-      // }
-      // pattern: "^(\\w+)(,\\w+)*$"
-    }
-  ];
+  string etag = 3;
 
 }

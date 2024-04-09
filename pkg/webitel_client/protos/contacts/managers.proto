@@ -3,9 +3,6 @@ package webitel.contacts;
 option go_package = "webitel.go/api/contacts;contacts";
 
 import "contacts/fields.proto";
-// import "google/api/visibility.proto";
-import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 
 // Manager. The Contact's responsible User. 
 message Manager {
@@ -54,22 +51,9 @@ message Manager {
 }
 
 message InputManager {
-
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    // PUT /contacts/{source.id}/locations/{etag}
-    example: "{\"primary\":true,\"user\":{\"id\":\"357\",\"name\":\"Bruce Wayne\"}}"
-    json_schema: {
-      required: ["etag"]
-    }
-  };
   
   // Unique ID of the latest version of an existing resource.
-  string etag = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    field_configuration: {
-      path_param_name: "etag"
-    }
-  }];
+  string etag = 1;
   
   // Indicates whether this association must be default among others.
   bool primary = 11;
@@ -100,32 +84,19 @@ service Managers {
 
   // Search the Contact's Label(s).
   rpc GetManagers(SearchManagersRequest) returns (ManagerList) {
-    option (google.api.http) = {
-      get: "/contacts/{contact_id}/managers"
-    };
+
   }
   // Associate new Labels to the Contact.
   rpc AddManagers(CreateManagersRequest) returns (ManagerList) {
-    option (google.api.http) = {
-      post: "/contacts/{contact_id}/managers"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Reset Labels to fit the specified final set.
   rpc SetManagers(UpdateManagersRequest) returns (ManagerList) {
-    option (google.api.http) = {
-      put: "/contacts/{contact_id}/managers"
-      // response_body: "data"
-      body: "input"
-    };
+
   }
   // Remove Contact Labels associations.
   rpc DelManagers(DeleteManagersRequest) returns (ManagerList) {
-    option (google.api.http) = {
-      delete: "/contacts/{contact_id}/managers"
-      response_body: "data"
-    };
+
   }
 }
 
@@ -161,13 +132,7 @@ message SearchManagersRequest {
 }
 
 message CreateManagersRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "input"
-    }
-  };
+
 
   // ------- Result Options -------
 
@@ -181,12 +146,7 @@ message CreateManagersRequest {
 
   // Array of the unique User(s) to associate with the Contact.
   // Any duplicate of an already linked user{id} will result in an error.
-  repeated InputManager input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      example: "[{\"primary\":true,\"user\":{\"id\":\"357\",\"name\":\"Bruce Wayne\"}},{\"user\":{\"id\":\"354\",\"name\":\"Johnny Doe\"}}]"
-    }
-  ];
+  repeated InputManager input = 3;
 
 }
 
@@ -214,24 +174,11 @@ message UpdateManagersRequest {
   // User(s) that are already linked with the Contact
   // but not listed here will be removed.
   // The first element will become `primary` if no other specified.
-  repeated InputManager input = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated InputManager input = 3;
 
 }
 
 message DeleteManagersRequest {
-  
-  option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-    json_schema: {
-      required: "contact_id"
-      required: "etag"
-    }
-  };
 
   // ----- Result Options ----- //
 
@@ -248,12 +195,6 @@ message DeleteManagersRequest {
   // ----- Delete Options ----- //
 
   // Set of unique ID(s) to remove.
-  repeated string etag = 3
-  [
-    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      unique_items: true
-      min_items: 1
-    }
-  ];
+  repeated string etag = 3;
 
 }
