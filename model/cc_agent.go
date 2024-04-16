@@ -365,7 +365,13 @@ func (a *Agent) IsValid() AppError {
 		a.Supervisor = nil
 	}
 	if a.TaskCount < 1 {
-		return NewBadRequestError("model.Agent.valid.TaskCount", "The value should be more or equal 1")
+		return NewBadRequestError("model.Agent.valid.TaskCount", "The task count should be more or equal 1")
+	}
+	if a.ChatCount < 1 {
+		return NewBadRequestError("model.Agent.valid.ChatCount", "The chat count should be more or equal 1")
+	}
+	if a.ProgressiveCount < 1 {
+		return NewBadRequestError("model.Agent.valid.ProgressiveCount", "The call count should be more or equal 1")
 	}
 	return nil //TODO
 }
