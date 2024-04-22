@@ -896,6 +896,7 @@ func (api *agent) SearchUserStatus(ctx context.Context, in *engine.SearchUserSta
 			Sort:    in.Sort,
 		},
 	}
+	// TODO DEV-4075
 	lq := len(req.Q)
 	if lq != 0 && rune(req.Q[lq-1]) != rune('*') {
 		req.Q += "*"
