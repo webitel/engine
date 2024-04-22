@@ -896,6 +896,10 @@ func (api *agent) SearchUserStatus(ctx context.Context, in *engine.SearchUserSta
 			Sort:    in.Sort,
 		},
 	}
+	lq := len(req.Q)
+	if lq != 0 && rune(req.Q[lq]) == rune('*') {
+		req.Q += "*"
+	}
 
 	list, endList, err = api.ctrl.SearchUserStatus(ctx, session, req)
 
