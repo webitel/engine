@@ -368,6 +368,11 @@ func (dq *DomainQueue) readCallMessage(data []byte, rk string) {
 		return
 	}
 
+	if e.Event == model.CallEventNameHeartbeat {
+		wlog.Debug(fmt.Sprintf("call [%s] receive heartbeat", e.Id))
+		return
+	}
+
 	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive call event %v:%v [%v] rk=%s", dq.Id(), e.AppId, e.Id, e.Event, rk))
 	dq.callEvents <- e
 }
