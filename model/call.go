@@ -29,6 +29,10 @@ const (
 	CALL_STRATEGY_MULTIPLE
 )
 
+const (
+	CallEventNameHeartbeat = "heartbeat"
+)
+
 type CallRequestApplication struct {
 	AppName string
 	Args    string
