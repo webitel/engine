@@ -17,7 +17,7 @@ func (c *Controller) CreateSystemSetting(ctx context.Context, session *auth_mana
 		return nil, err
 	}
 
-	return c.app.CreateSystemSetting(ctx, session.DomainId, s)
+	return c.app.CreateSystemSetting(ctx, session.UserId, session.DomainId, s)
 }
 
 func (c *Controller) SearchSystemSetting(ctx context.Context, session *auth_manager.Session, search *model.SearchSystemSetting) ([]*model.SystemSetting, bool, model.AppError) {
@@ -49,7 +49,7 @@ func (c *Controller) UpdateSystemSetting(ctx context.Context, session *auth_mana
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	return c.app.UpdateSystemSetting(ctx, session.DomainId, s)
+	return c.app.UpdateSystemSetting(ctx, session.UserId, session.DomainId, s)
 }
 
 func (c *Controller) PatchSystemSetting(ctx context.Context, session *auth_manager.Session, id int32, patch *model.SystemSettingPath) (*model.SystemSetting, model.AppError) {
@@ -57,7 +57,7 @@ func (c *Controller) PatchSystemSetting(ctx context.Context, session *auth_manag
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	return c.app.PatchSystemSetting(ctx, session.Domain(0), id, patch)
+	return c.app.PatchSystemSetting(ctx, session.UserId, session.Domain(0), id, patch)
 }
 
 func (c *Controller) DeleteSystemSetting(ctx context.Context, session *auth_manager.Session, id int32) (*model.SystemSetting, model.AppError) {

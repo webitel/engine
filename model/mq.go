@@ -7,6 +7,7 @@ const (
 	CallExchange       = "call"
 	CallCenterExchange = "callcenter"
 	ChatExchange       = "chat"
+	EventExchange      = "event"
 
 	MQ_USER_STATUS_EXCHANGE = "webitel"
 

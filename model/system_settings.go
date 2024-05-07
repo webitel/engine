@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	SysNameOmnichannel           = "enable_omnichannel"
-	SysNameMemberInsertChunkSize = "member_chunk_size"
-	SysNameSchemeVersionLimit    = "scheme_version_limit"
-	SysNameAmdCancelNotHuman     = "amd_cancel_not_human"
+	SysNameOmnichannel            = "enable_omnichannel"
+	SysNameMemberInsertChunkSize  = "member_chunk_size"
+	SysNameSchemeVersionLimit     = "scheme_version_limit"
+	SysNameAmdCancelNotHuman      = "amd_cancel_not_human"
+	SysNameTwoFactorAuthorization = "enable_2fa"
 )
 
 type SysValue json.RawMessage
@@ -64,6 +65,13 @@ func (s *SystemSetting) IsValid() AppError {
 		if i == nil || *i < 1 {
 			return NewBadRequestError("model.SystemSetting.valid.int.value", "The value should be more than 1")
 		}
+	case SysNameTwoFactorAuthorization:
+		value := SysValue(s.Value)
+		i := value.Bool()
+
+		if i == nil {
+			return NewBadRequestError("model.SystemSetting.invalid.bool.value", "invalid bool value")
+		}
 
 	default:
 		return NewBadRequestError("model.SystemSetting.valid.name", fmt.Sprintf("%s not allow", s.Name))
@@ -83,6 +91,19 @@ func (v *SysValue) Int() *int {
 	}
 
 	i, err := strconv.Atoi(string(*v))
+	if err != nil {
+		return nil
+	}
+
+	return &i
+}
+
+func (v *SysValue) Bool() *bool {
+	if v == nil {
+		return nil
+	}
+
+	i, err := strconv.ParseBool(string(*v))
 	if err != nil {
 		return nil
 	}
