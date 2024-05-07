@@ -1,10 +1,12 @@
 package webitel_client
 
 import (
+	gogrpc "buf.build/gen/go/webitel/webitel-go/grpc/go/_gogrpc"
+	congrpc "buf.build/gen/go/webitel/webitel-go/grpc/go/contacts/contactsgrpc"
+	conproto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go/contacts"
 	"context"
 	"fmt"
-	auth_pb "github.com/webitel/engine/pkg/webitel_client/api"
-	contacts_pb "github.com/webitel/engine/pkg/webitel_client/api/contacts"
+
 	"github.com/webitel/engine/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -18,9 +20,9 @@ var (
 
 type Client struct {
 	session     utils.ObjectCache
-	contactApi  contacts_pb.ContactsClient
-	authApi     auth_pb.AuthClient
-	customerApi auth_pb.CustomersClient
+	contactApi  congrpc.ContactsClient
+	authApi     gogrpc.AuthClient
+	customerApi gogrpc.CustomersClient
 	conn        *grpc.ClientConn
 }
 
@@ -36,9 +38,9 @@ func New(cacheSize int, cacheTime int64, consulTarget string) (*Client, error) {
 	return &Client{
 		conn:        conn,
 		session:     utils.NewLruWithParams(cacheSize, "sessions", cacheTime, ""), //TODO session from config ?
-		contactApi:  contacts_pb.NewContactsClient(conn),
-		authApi:     auth_pb.NewAuthClient(conn),
-		customerApi: auth_pb.NewCustomersClient(conn),
+		contactApi:  congrpc.NewContactsClient(conn),
+		authApi:     gogrpc.NewAuthClient(conn),
+		customerApi: gogrpc.NewCustomersClient(conn),
 	}, nil
 
 }
@@ -51,7 +53,7 @@ func (cli *Client) Test() {
 	header := metadata.New(map[string]string{"x-webitel-access": "SUPER"})
 	outCtx := metadata.NewOutgoingContext(context.TODO(), header)
 
-	res, err := cli.contactApi.SearchContacts(outCtx, &contacts_pb.SearchContactsRequest{
+	res, err := cli.contactApi.SearchContacts(outCtx, &conproto.SearchContactsRequest{
 		Page:   0,
 		Size:   0,
 		Q:      "",

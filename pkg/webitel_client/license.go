@@ -1,16 +1,16 @@
 package webitel_client
 
 import (
+	proto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go"
 	"context"
 	"errors"
-	auth_pb "github.com/webitel/engine/pkg/webitel_client/api"
 	"google.golang.org/grpc/metadata"
 )
 
 func (cli *Client) ProductLimit(ctx context.Context, token string, productName string) (int, error) {
 	header := metadata.New(map[string]string{"x-webitel-access": token})
 	outCtx := metadata.NewOutgoingContext(ctx, header)
-	tenant, err := cli.customerApi.GetCustomer(outCtx, &auth_pb.GetCustomerRequest{})
+	tenant, err := cli.customerApi.GetCustomer(outCtx, &proto.GetCustomerRequest{})
 
 	if err != nil {
 		return 0, err
