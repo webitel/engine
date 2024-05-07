@@ -9,7 +9,8 @@ import (
 
 	"time"
 
-	"github.com/webitel/engine/auth_manager/api"
+	gogrpc "buf.build/gen/go/webitel/webitel-go/grpc/go/_gogrpc"
+	proto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/connectivity"
@@ -38,8 +39,8 @@ type authConnection struct {
 	name        string
 	host        string
 	client      *grpc.ClientConn
-	api         api.AuthClient
-	customerApi api.CustomersClient
+	api         gogrpc.AuthClient
+	customerApi gogrpc.CustomersClient
 }
 
 func NewAuthServiceConnection(name, url string) (AuthClient, error) {
@@ -55,8 +56,8 @@ func NewAuthServiceConnection(name, url string) (AuthClient, error) {
 		return nil, err
 	}
 
-	connection.api = api.NewAuthClient(connection.client)
-	connection.customerApi = api.NewCustomersClient(connection.client)
+	connection.api = gogrpc.NewAuthClient(connection.client)
+	connection.customerApi = gogrpc.NewCustomersClient(connection.client)
 
 	return connection, nil
 }
@@ -64,7 +65,7 @@ func NewAuthServiceConnection(name, url string) (AuthClient, error) {
 func (ac *authConnection) ProductLimit(ctx context.Context, token string, productName string) (int, error) {
 	header := metadata.New(map[string]string{"x-webitel-access": token})
 	outCtx := metadata.NewOutgoingContext(ctx, header)
-	tenant, err := ac.customerApi.GetCustomer(outCtx, &api.GetCustomerRequest{})
+	tenant, err := ac.customerApi.GetCustomer(outCtx, &proto.GetCustomerRequest{})
 
 	if err != nil {
 		return 0, err
@@ -105,7 +106,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 	header := metadata.New(map[string]string{"x-webitel-access": token})
 	ctx := metadata.NewOutgoingContext(context.TODO(), header)
 
-	resp, err := ac.api.UserInfo(ctx, &api.UserinfoRequest{})
+	resp, err := ac.api.UserInfo(ctx, &proto.UserinfoRequest{})
 
 	if err != nil {
 		if status.Code(err) == codes.Unauthenticated {
@@ -187,7 +188,7 @@ func (ac *authConnection) Close() error {
 // NOTE: include <readonly> access
 //
 //	{ obac:true, access:"r" }
-func transformScopes(src []*api.Objclass) []SessionPermission {
+func transformScopes(src []*proto.Objclass) []SessionPermission {
 	dst := make([]SessionPermission, 0, len(src))
 	var access int
 	for _, v := range src {
@@ -206,7 +207,7 @@ func transformScopes(src []*api.Objclass) []SessionPermission {
 
 // returns the scope from all license products
 // active now within their validity boundaries
-func licenseActiveScope(src *api.Userinfo) ([]string, []string) {
+func licenseActiveScope(src *proto.Userinfo) ([]string, []string) {
 	var (
 		l           = len(src.License)
 		validLicene = make([]string, 0, l)
@@ -288,7 +289,7 @@ func licenseActiveScope(src *api.Userinfo) ([]string, []string) {
 	return validLicene, scope
 }
 
-func transformRoles(userId int64, src []*api.ObjectId) []int {
+func transformRoles(userId int64, src []*proto.ObjectId) []int {
 	dst := make([]int, 0, len(src)+1)
 	dst = append(dst, int(userId))
 	for _, v := range src {
