@@ -1,24 +1,32 @@
 package app
 
 import (
-	"github.com/webitel/engine/b2bua"
-	"github.com/webitel/engine/logger"
-	"github.com/webitel/engine/presign"
-
+	"context"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
 	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/b2bua"
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/chat_manager"
 	"github.com/webitel/engine/localization"
+	"github.com/webitel/engine/logger"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/engine/mq/rabbit"
+	"github.com/webitel/engine/presign"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
 	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
+)
+
+const (
+	EventUpdateAction = "update"
+	EventDeleteAction = "delete"
+	EventCreateAction = "create"
+	EventExchangeName = "event"
 )
 
 type App struct {
@@ -170,4 +178,16 @@ func (app *App) CallManager() call_manager.CallManager {
 func (app *App) Ready() (bool, model.AppError) {
 	//TODO
 	return true, nil
+}
+
+func (a *App) PublishEventContext(ctx context.Context, body []byte, object string, keys ...string) model.AppError {
+	routingKey := object
+	for _, key := range keys {
+		routingKey += fmt.Sprintf(".%s", key)
+	}
+	err := a.MessageQueue.Send(ctx, EventExchangeName, routingKey, body)
+	if err != nil {
+		return model.NewInternalError("app.app.publish_event_context.send.error", err.Error())
+	}
+	return nil
 }

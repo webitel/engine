@@ -187,6 +187,17 @@ func (a *AMQP) createAppExchange() model.AppError {
 	if err := a.channel.ExchangeDeclare(model.AppExchange, "topic", true, false, false, true, nil); err != nil {
 		return model.NewInternalError("amqp.declare.exchange.app_err", err.Error())
 	}
+	if err := a.channel.ExchangeDeclare(
+		model.EventExchange,
+		model.MQ_TOPIC,
+		true,
+		false,
+		false,
+		false,
+		nil,
+	); err != nil {
+		return model.NewInternalError("amqp.declare.event_exchange.app_err", err.Error())
+	}
 	return nil
 }
 
