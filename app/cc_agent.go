@@ -158,13 +158,8 @@ func (a *App) GetAgentSession(ctx context.Context, domainId, id int64) (*model.A
 	return a.Store.Agent().GetSession(ctx, domainId, id)
 }
 
-func (a *App) HasAgentCC(ctx context.Context, domainId int64, userId int64) model.AppError {
-	v, err := a.Store.Agent().HasAgentCC(ctx, domainId, userId)
-	if err != nil {
-		return err
-	}
-
-	return v.Valid()
+func (a *App) AgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError) {
+	return a.Store.Agent().AgentCC(ctx, domainId, userId)
 }
 
 func (a *App) LoginAgent(domainId, agentId int64, onDemand bool) model.AppError {
