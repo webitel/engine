@@ -165,9 +165,9 @@ func (c *Controller) GetAgentPauseCause(ctx context.Context, session *auth_manag
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
+	//if !permission.CanUpdate() {
+	//	return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	//}
 	// todo RBAC ?
 
 	return c.app.GetAgentPauseCause(ctx, session.Domain(0), session.UserId, toAgentId, allowChange)
@@ -179,9 +179,9 @@ func (c *Controller) GetSupervisorAgentItem(ctx context.Context, session *auth_m
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
+	//if !permission.CanUpdate() {
+	//	return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	//}
 	// todo RBAC ?
 
 	return c.app.SupervisorAgentItem(ctx, session.DomainId, agentId, t)
