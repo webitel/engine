@@ -357,8 +357,17 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 	if err != nil {
 		return nil, err
 	}
+	var cc *model.AgentCC
+	var agentId int64 = 0
+	cc, err = api.app.AgentCC(ctx, session.Domain(0), session.UserId)
+	if err != nil {
+		return nil, err
+	}
+	if cc.AgentId != nil {
+		agentId = *cc.AgentId
+	}
 
-	if session.UserId != in.Id {
+	if agentId != in.Id {
 		permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 		if !permission.CanUpdate() {
 			return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
