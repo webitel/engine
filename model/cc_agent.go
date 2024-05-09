@@ -235,8 +235,9 @@ type AgentSession struct {
 }
 
 type AgentCC struct {
-	HasAgent     bool `json:"has_agent" db:"has_agent"`
-	HasExtension bool `json:"has_extension" db:"has_extension"`
+	HasAgent     bool   `json:"has_agent" db:"has_agent"`
+	HasExtension bool   `json:"has_extension" db:"has_extension"`
+	AgentId      *int64 `json:"agent_id" db:"agent_id"`
 }
 
 func (a *AgentCC) Valid() AppError {
