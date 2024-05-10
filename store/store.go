@@ -123,7 +123,7 @@ type AgentTeamStore interface {
 }
 
 type AgentStore interface {
-	HasAgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError)
+	AgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError)
 	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	AccessAgents(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, model.AppError)
 

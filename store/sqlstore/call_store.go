@@ -378,6 +378,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
 		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
 		"Rated":             search.Rated,
+		"SchemaIds":         pq.Array(search.SchemaIds),
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -414,6 +415,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
 	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
+	and ( :SchemaIds::int[] isnull or schema_ids && :SchemaIds::int[] )
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
@@ -524,7 +526,9 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
 		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
 		"Rated":             search.Rated,
-		"ClassName":         model.PERMISSION_SCOPE_CALL,
+		"SchemaIds":         pq.Array(search.SchemaIds),
+
+		"ClassName": model.PERMISSION_SCOPE_CALL,
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -561,6 +565,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
 	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
+	and ( :SchemaIds::int[] isnull or schema_ids && :SchemaIds::int[] )
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))

@@ -235,8 +235,9 @@ type AgentSession struct {
 }
 
 type AgentCC struct {
-	HasAgent     bool `json:"has_agent" db:"has_agent"`
-	HasExtension bool `json:"has_extension" db:"has_extension"`
+	HasAgent     bool   `json:"has_agent" db:"has_agent"`
+	HasExtension bool   `json:"has_extension" db:"has_extension"`
+	AgentId      *int64 `json:"agent_id" db:"agent_id"`
 }
 
 func (a *AgentCC) Valid() AppError {
@@ -365,7 +366,13 @@ func (a *Agent) IsValid() AppError {
 		a.Supervisor = nil
 	}
 	if a.TaskCount < 1 {
-		return NewBadRequestError("model.Agent.valid.TaskCount", "The value should be more or equal 1")
+		return NewBadRequestError("model.Agent.valid.TaskCount", "The task count should be more or equal 1")
+	}
+	if a.ChatCount < 1 {
+		return NewBadRequestError("model.Agent.valid.ChatCount", "The chat count should be more or equal 1")
+	}
+	if a.ProgressiveCount < 1 {
+		return NewBadRequestError("model.Agent.valid.ProgressiveCount", "The call count should be more or equal 1")
 	}
 	return nil //TODO
 }

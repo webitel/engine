@@ -3,7 +3,9 @@ package webitel_client
 import (
 	"context"
 	"fmt"
-	auth_pb "github.com/webitel/engine/pkg/webitel_client/api"
+
+	proto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go"
+
 	"github.com/webitel/wlog"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc/codes"
@@ -24,7 +26,7 @@ var (
 )
 
 func (cli *Client) getSession(token string) (*Session, error) {
-	resp, err := cli.authApi.UserInfo(tokenContext(token), &auth_pb.UserinfoRequest{})
+	resp, err := cli.authApi.UserInfo(tokenContext(token), &proto.UserinfoRequest{})
 
 	if err != nil {
 		if status.Code(err) == codes.Unauthenticated {
@@ -112,7 +114,7 @@ func tokenContext(token string) context.Context {
 // NOTE: include <readonly> access
 //
 //	{ obac:true, access:"r" }
-func transformScopes(src []*auth_pb.Objclass) []SessionPermission {
+func transformScopes(src []*proto.Objclass) []SessionPermission {
 	dst := make([]SessionPermission, 0, len(src))
 	var access int
 	for _, v := range src {
@@ -131,7 +133,7 @@ func transformScopes(src []*auth_pb.Objclass) []SessionPermission {
 
 // returns the scope from all license products
 // active now within their validity boundaries
-func licenseActiveScope(src *auth_pb.Userinfo) ([]string, []string) {
+func licenseActiveScope(src *proto.Userinfo) ([]string, []string) {
 	var (
 		l           = len(src.License)
 		validLicene = make([]string, 0, l)
@@ -213,7 +215,7 @@ func licenseActiveScope(src *auth_pb.Userinfo) ([]string, []string) {
 	return validLicene, scope
 }
 
-func transformRoles(userId int64, src []*auth_pb.ObjectId) []int {
+func transformRoles(userId int64, src []*proto.ObjectId) []int {
 	dst := make([]int, 0, len(src)+1)
 	dst = append(dst, int(userId))
 	for _, v := range src {

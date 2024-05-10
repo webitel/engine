@@ -1,7 +1,7 @@
 package webitel_client
 
 import (
-	contacts_pb "github.com/webitel/engine/pkg/webitel_client/api/contacts"
+	contacts_pb "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go/contacts"
 )
 
 type SearchContactsRequest = contacts_pb.SearchContactsRequest

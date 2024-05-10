@@ -9,8 +9,12 @@ import (
 
 func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.Session, domainId, userId int64) (*model.AgentSession, model.AppError) {
 
-	err := c.app.HasAgentCC(ctx, session.Domain(domainId), userId)
+	v, err := c.app.AgentCC(ctx, session.Domain(domainId), userId)
 	if err != nil {
+		return nil, err
+	}
+
+	if err = v.Valid(); err != nil {
 		return nil, err
 	}
 
@@ -25,8 +29,7 @@ func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		//FIXME agentID!
-		if perm, err := c.app.AgentCheckAccess(ctx, session.Domain(domainId), userId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+		if perm, err := c.app.AgentCheckAccess(ctx, session.Domain(domainId), *v.AgentId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
 			return nil, err
 		} else if !perm {
 			return nil, c.app.MakeResourcePermissionError(session, userId, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -162,9 +165,9 @@ func (c *Controller) GetAgentPauseCause(ctx context.Context, session *auth_manag
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
+	//if !permission.CanUpdate() {
+	//	return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	//}
 	// todo RBAC ?
 
 	return c.app.GetAgentPauseCause(ctx, session.Domain(0), session.UserId, toAgentId, allowChange)
@@ -176,9 +179,9 @@ func (c *Controller) GetSupervisorAgentItem(ctx context.Context, session *auth_m
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
+	//if !permission.CanUpdate() {
+	//	return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	//}
 	// todo RBAC ?
 
 	return c.app.SupervisorAgentItem(ctx, session.DomainId, agentId, t)

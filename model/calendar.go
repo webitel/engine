@@ -109,6 +109,17 @@ func (c *Calendar) IsValid() AppError {
 	if len(c.Accepts) == 0 {
 		return NewBadRequestError("model.calendar.is_valid.accepts.app_error", "name="+c.Name)
 	}
+	uq := make(map[string]struct{})
+	for _, v := range c.Excepts {
+		if v.Disabled {
+			continue
+		}
+		key := Int64ToTime(v.Date).Format("2006-02-01")
+		if _, ok := uq[key]; ok {
+			return NewBadRequestError("model.calendar.is_valid.excepts.date", "You can't add another holiday on the same date "+key)
+		}
+		uq[key] = struct{}{}
+	}
 
 	return nil
 }
