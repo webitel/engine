@@ -51,7 +51,7 @@ from qt
 	})
 
 	if err != nil {
-		return nil, model.NewCustomCodeError("store.sql_team_trigger.create.app_error", fmt.Sprintf("trigger=%v, %v", in.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_team_trigger.create.app_error", fmt.Sprintf("trigger=%v, %v", in.Name, messageFromErr(err)), extractCodeFromErr(err))
 	}
 
 	return qt, nil

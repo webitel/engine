@@ -23,6 +23,15 @@ func (d PostgresJSONDialect) ToSqlType(val reflect.Type, maxsize int, isAutoIncr
 	return d.PostgresDialect.ToSqlType(val, maxsize, isAutoIncr)
 }
 
+func messageFromErr(err error) string {
+	switch e := err.(type) {
+	case *pq.Error:
+		return e.Detail
+	default:
+		return e.Error()
+	}
+}
+
 func extractCodeFromErr(err error) int {
 	code := http.StatusInternalServerError
 
