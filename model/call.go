@@ -442,12 +442,20 @@ type HistoryCall struct {
 	ScoreOptional *float32 `json:"score_optional" db:"score_optional"`
 	ScoreRequired *float32 `json:"score_required" db:"score_required"`
 
-	AttemptId       *int64     `json:"attempt_id" db:"attempt_id"`
-	AllowEvaluation *bool      `json:"allow_evaluation" db:"allow_evaluation"`
-	FormFields      *StringMap `json:"form_fields" db:"form_fields"`
-	BridgedId       *string    `json:"bridged_id" db:"bridged_id"`
-	Contact         *Lookup    `json:"contact" db:"contact"`
-	Schemas         []*Lookup  `json:"schemas" db:"schemas"`
+	AttemptId       *int64           `json:"attempt_id" db:"attempt_id"`
+	AllowEvaluation *bool            `json:"allow_evaluation" db:"allow_evaluation"`
+	FormFields      *StringMap       `json:"form_fields" db:"form_fields"`
+	BridgedId       *string          `json:"bridged_id" db:"bridged_id"`
+	Contact         *Lookup          `json:"contact" db:"contact"`
+	Schemas         []*Lookup        `json:"schemas" db:"schemas"`
+	HangupPhrase    *string          `json:"hangup_phrase" db:"hangup_phrase"`
+	BlindTransfers  []*BlindTransfer `json:"blind_transfers" db:"blind_transfers"`
+}
+
+type BlindTransfer struct {
+	Number string  `json:"number"`
+	Time   int64   `json:"time"`
+	User   *Lookup `json:"user"`
 }
 
 type HistoryCallPatch struct {
@@ -467,6 +475,7 @@ func (c HistoryCall) AllowFields() []string {
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
+		"hangup_phrase", "blind_transfers",
 	}
 }
 

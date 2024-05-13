@@ -939,6 +939,17 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		item.ParentId = *src.ParentId
 	}
 
+	if src.HangupPhrase != nil {
+		item.HangupPhrase = *src.HangupPhrase
+	}
+
+	for _, v := range src.BlindTransfers {
+		item.BlindTransfers = append(item.BlindTransfers, &engine.HistoryCall_BlindTransfer{
+			Number: v.Number,
+			Time:   v.Time,
+		})
+	}
+
 	if src.TransferFrom != nil {
 		item.TransferFrom = *src.TransferFrom
 	}

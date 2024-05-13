@@ -6,8 +6,8 @@ require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.3.0-20240424123951-3e1c2bc5659e.3
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.0-20240424123951-3e1c2bc5659e.1
-	buf.build/gen/go/webitel/engine/grpc/go v1.3.0-20240409115721-df9a5ee21f4f.2
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.1-20240510121549-81e7464b1831.1
+	buf.build/gen/go/webitel/engine/grpc/go v1.3.0-20240513122855-9d9f01efd1a2.3
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.1-20240513122855-9d9f01efd1a2.1
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
@@ -41,15 +41,13 @@ require (
 	golang.org/x/net v0.20.0
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/sync v0.6.0
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80
 	google.golang.org/grpc v1.62.0
-	google.golang.org/protobuf v1.34.0
 )
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.0-20240502201324-7530ea77434f.1 // indirect
+	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.1-20231027202514-3f42134f4c56.1 // indirect
 	buf.build/gen/go/webitel/cc/grpc/go v1.3.0-20240404135440-3efb61ebef03.2 // indirect
 	github.com/Abirdcfly/dupword v0.0.11 // indirect
 	github.com/Antonboom/errname v0.1.9 // indirect
@@ -235,6 +233,8 @@ require (
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
