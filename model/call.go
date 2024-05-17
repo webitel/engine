@@ -562,6 +562,7 @@ type SearchHistoryCall struct {
 	Talk             *FilterBetween
 	ContactIds       []int64
 	SchemaIds        []int32
+	HasTransfer      *bool
 }
 
 type CallEventInfo struct {

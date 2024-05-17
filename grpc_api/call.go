@@ -87,6 +87,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.Rated = model.NewBool(in.GetRated().GetValue())
 	}
 
+	if in.HasTransfer != nil {
+		req.HasTransfer = model.NewBool(in.GetHasTransfer().GetValue())
+	}
+
 	if in.GetDependencyId() != "" {
 		req.DependencyIds = []string{in.GetDependencyId()}
 	}

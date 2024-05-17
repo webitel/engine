@@ -379,6 +379,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
 		"Rated":             search.Rated,
 		"SchemaIds":         pq.Array(search.SchemaIds),
+		"HasTransfer":       search.HasTransfer,
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -416,6 +417,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
 	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
 	and ( :SchemaIds::int[] isnull or schema_ids && :SchemaIds::int[] )
+	and (:HasTransfer::bool isnull or (case :HasTransfer::bool when true then (blind_transfer notnull or coalesce(transfer_to, transfer_from) notnull ) else (blind_transfer isnull and coalesce(transfer_to, transfer_from) isnull ) end))
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
@@ -527,6 +529,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
 		"Rated":             search.Rated,
 		"SchemaIds":         pq.Array(search.SchemaIds),
+		"HasTransfer":       search.HasTransfer,
 
 		"ClassName": model.PERMISSION_SCOPE_CALL,
 	}
@@ -566,6 +569,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
   	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
 	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
 	and ( :SchemaIds::int[] isnull or schema_ids && :SchemaIds::int[] )
+	and (:HasTransfer::bool isnull or (case :HasTransfer::bool when true then (blind_transfer notnull or coalesce(transfer_to, transfer_from) notnull ) else (blind_transfer isnull and coalesce(transfer_to, transfer_from) isnull ) end))
 	and (:AgentDescription::varchar isnull or
          (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
          or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
