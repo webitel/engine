@@ -142,13 +142,13 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 	}
 
 	if !ok {
-		return nil, model.NewInternalError("app.grpc.get_context", "Not found")
+		return nil, model.NewUnauthorizedError("app.grpc.get_context", "Not found")
 	} else {
 		token = info.Get(HEADER_TOKEN)
 	}
 
 	if len(token) < 1 {
-		return nil, model.NewInternalError("api.context.session_expired.app_error", "token not found")
+		return nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token not found")
 	}
 
 	session, err = a.GetSession(token[0])
@@ -157,7 +157,7 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 	}
 
 	if session.IsExpired() {
-		return nil, model.NewInternalError("api.context.session_expired.app_error", "token="+token[0])
+		return nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token="+token[0])
 	}
 
 	session.SetIp(getClientIp(info))
