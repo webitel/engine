@@ -4,16 +4,16 @@ go 1.19
 
 require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
-	buf.build/gen/go/webitel/chat/grpc/go v1.3.0-20240424123951-3e1c2bc5659e.3
-	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.0-20240424123951-3e1c2bc5659e.1
+	buf.build/gen/go/webitel/chat/grpc/go v1.3.0-20240527133227-7fcca6c163ea.3
+	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.1-20240527133227-7fcca6c163ea.1
 	buf.build/gen/go/webitel/engine/grpc/go v1.3.0-20240517121312-fb197671fcfd.3
 	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.1-20240517121312-fb197671fcfd.1
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
 	buf.build/gen/go/webitel/logger/protocolbuffers/go v1.33.0-20240404135439-f6c7830c29dd.1
-	buf.build/gen/go/webitel/webitel-go/grpc/go v1.3.0-20240503115012-a17a535809fe.3
-	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.34.0-20240503115012-a17a535809fe.1
+	buf.build/gen/go/webitel/webitel-go/grpc/go v1.3.0-20240527133231-c12eb2a85c36.3
+	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.34.1-20240527133231-c12eb2a85c36.1
 	github.com/BoRuDar/configuration/v4 v4.2.2
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/ghettovoice/gosip v0.0.0-20231005134608-3b981d26e5cc
@@ -47,7 +47,7 @@ require (
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.1-20231027202514-3f42134f4c56.1 // indirect
+	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.1-20240502201324-7530ea77434f.1 // indirect
 	buf.build/gen/go/webitel/cc/grpc/go v1.3.0-20240404135440-3efb61ebef03.2 // indirect
 	github.com/Abirdcfly/dupword v0.0.11 // indirect
 	github.com/Antonboom/errname v0.1.9 // indirect

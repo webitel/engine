@@ -1,6 +1,7 @@
 package webitel_client
 
 import (
+	chgrpc "buf.build/gen/go/webitel/chat/grpc/go/messages/messagesgrpc"
 	gogrpc "buf.build/gen/go/webitel/webitel-go/grpc/go/_gogrpc"
 	congrpc "buf.build/gen/go/webitel/webitel-go/grpc/go/contacts/contactsgrpc"
 	conproto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go/contacts"
@@ -19,11 +20,12 @@ var (
 )
 
 type Client struct {
-	session     utils.ObjectCache
-	contactApi  congrpc.ContactsClient
-	authApi     gogrpc.AuthClient
-	customerApi gogrpc.CustomersClient
-	conn        *grpc.ClientConn
+	session        utils.ObjectCache
+	contactApi     congrpc.ContactsClient
+	contactLinkApi chgrpc.ContactLinkingServiceClient
+	authApi        gogrpc.AuthClient
+	customerApi    gogrpc.CustomersClient
+	conn           *grpc.ClientConn
 }
 
 func New(cacheSize int, cacheTime int64, consulTarget string) (*Client, error) {
@@ -36,11 +38,12 @@ func New(cacheSize int, cacheTime int64, consulTarget string) (*Client, error) {
 	}
 
 	return &Client{
-		conn:        conn,
-		session:     utils.NewLruWithParams(cacheSize, "sessions", cacheTime, ""), //TODO session from config ?
-		contactApi:  congrpc.NewContactsClient(conn),
-		authApi:     gogrpc.NewAuthClient(conn),
-		customerApi: gogrpc.NewCustomersClient(conn),
+		conn:           conn,
+		session:        utils.NewLruWithParams(cacheSize, "sessions", cacheTime, ""), //TODO session from config ?
+		contactApi:     congrpc.NewContactsClient(conn),
+		contactLinkApi: chgrpc.NewContactLinkingServiceClient(conn),
+		authApi:        gogrpc.NewAuthClient(conn),
+		customerApi:    gogrpc.NewCustomersClient(conn),
 	}, nil
 
 }
