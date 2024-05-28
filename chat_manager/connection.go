@@ -64,6 +64,7 @@ func NewChatServiceConnection(name, url string) (Chat, error) {
 
 	connection.api = gogrpc.NewChatServiceClient(connection.client)
 	connection.mess = gogrpc.NewMessagesClient(connection.client)
+	connection.contact = messgrpc.NewContactLinkingServiceClient(connection.client)
 
 	return connection, nil
 }
