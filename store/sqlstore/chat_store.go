@@ -31,7 +31,7 @@ select c.id,
        call_center.cc_view_timestamp(ch.closed_at)                          closed_at,
        m.messages,
        mem.members,
-       coalesce(ch.props, '{}')::jsonb as                                   variables,
+       case when cont.contact_id notnull then jsonb_build_object('wbt_contact_id', cont.contact_id::text) else '{}' end || coalesce(ch.props, '{}')::jsonb as variables,
        row_to_json(at)                                                      task,
        at.leaving_at                   as                                   leaving_at
 from (select 1                    pri,
@@ -105,6 +105,14 @@ from (select 1                    pri,
             and (not ch2.id::uuid = ch.id or ch.id isnull)
           limit 10) t
     ) mem on true
+            left join lateral (
+            select i.contact_id
+            from chat.channel ch
+                left join contacts.contact_imclient i on i.user_id = ch.user_id
+            where not ch.internal and ch.conversation_id = c.id  and i.protocol = ch.type
+            order by c.created_at desc
+            limit 1
+        ) cont on true
          left join lateral (
     select a.id                                                       as attempt_id,
            a.channel,
