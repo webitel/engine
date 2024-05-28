@@ -271,10 +271,5 @@ func (cc *chatConnection) SetContact(token string, channelId string, conversatio
 		return err
 	}
 
-	cc.SetVariables(channelId, map[string]string{
-		"wbt_contact_id":   c,
-		"wbt_hide_contact": "false",
-	})
-
 	return nil
 }
