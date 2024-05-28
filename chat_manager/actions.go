@@ -2,6 +2,7 @@ package chat_manager
 
 import (
 	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
+	"buf.build/gen/go/webitel/chat/protocolbuffers/go/messages"
 	"context"
 	"errors"
 	"fmt"
@@ -253,6 +254,27 @@ func (cc *chatConnection) BroadcastMessage(ctx context.Context, message *proto.M
 	if len(res.Failure) > 0 {
 		return errors.New(res.Failure[0].String())
 	}
+
+	return nil
+}
+
+func (cc *chatConnection) SetContact(token string, channelId string, conversationId string, contactId int64) error {
+	header := metadata.New(map[string]string{"x-webitel-access": token})
+	ctx := metadata.NewOutgoingContext(context.TODO(), header)
+	c := fmt.Sprintf("%v", contactId)
+	_, err := cc.contact.LinkContactToClient(ctx, &messages.LinkContactToClientRequest{
+		ConversationId: conversationId,
+		ContactId:      c,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	cc.SetVariables(channelId, map[string]string{
+		"wbt_contact_id":   c,
+		"wbt_hide_contact": "false",
+	})
 
 	return nil
 }

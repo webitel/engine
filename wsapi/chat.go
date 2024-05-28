@@ -21,6 +21,7 @@ func (api *API) InitChat() {
 	api.Router.Handle("list_active_chat", api.ApiWebSocketHandler(api.listActiveChat))
 	api.Router.Handle("blind_transfer_chat", api.ApiWebSocketHandler(api.blindTransfer))
 	api.Router.Handle("transfer_user_chat", api.ApiWebSocketHandler(api.blindTransferToUser))
+	api.Router.Handle("chat_set_contact", api.ApiWebSocketHandler(api.chatSetContact))
 }
 
 func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -301,4 +302,27 @@ func listChatResponse(list []*model.Conversation) map[string]interface{} {
 	res["items"] = list
 
 	return res
+}
+
+func (api *API) chatSetContact(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id string
+	var channelId string
+	var contactId float64
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	if channelId, ok = req.Data["channel_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	}
+
+	if contactId, ok = req.Data["contact_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "contact_id")
+	}
+
+	res := make(map[string]interface{})
+	err := api.ctrl.SetContactChat(conn.GetSession(), channelId, id, int64(contactId))
+	return res, err
 }

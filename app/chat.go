@@ -230,3 +230,17 @@ func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId in
 
 	return nil
 }
+
+func (a *App) SetContactToChat(token string, channelId string, conversationId string, contactId int64) model.AppError {
+	cli, err := a.chatManager.Client()
+	if err != nil {
+		return model.NewInternalError("chat.set_contact.cli_err", err.Error())
+	}
+
+	err = cli.SetContact(token, channelId, conversationId, contactId)
+	if err != nil {
+		return model.NewInternalError("chat.set_contact.app_err", err.Error())
+	}
+
+	return nil
+}
