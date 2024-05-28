@@ -323,6 +323,6 @@ func (api *API) chatSetContact(conn *app.WebConn, req *model.WebSocketRequest) (
 	}
 
 	res := make(map[string]interface{})
-	err := api.ctrl.SetContact(conn.GetSession(), channelId, id, int64(contactId))
+	err := api.ctrl.SetContactChat(conn.GetSession(), channelId, id, int64(contactId))
 	return res, err
 }
