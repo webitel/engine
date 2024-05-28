@@ -1279,9 +1279,9 @@ func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, g
 				and (:Q::varchar isnull or (name ilike :Q::varchar or extension ilike :Q::varchar ))
 				and (
 					exists(select 1
-					  from call_center.cc_agent_acl
-					  where call_center.cc_agent_acl.dc = t.domain_id and call_center.cc_agent_acl.object = t.id 
-						and call_center.cc_agent_acl.subject = any(:Groups::int[]) and call_center.cc_agent_acl.access&:Access = :Access)
+					  from directory.wbt_auth_acl
+					  where directory.wbt_auth_acl.dc = t.domain_id and directory.wbt_auth_acl.object = t.id 
+						and directory.wbt_auth_acl.subject = any(:Groups::int[]) and directory.wbt_auth_acl.access&:Access = :Access)
 		  		)`,
 		model.UserStatus{}, f)
 	if err != nil {
