@@ -2,6 +2,7 @@ package chat_manager
 
 import (
 	gogrpc "buf.build/gen/go/webitel/chat/grpc/go/_gogrpc"
+	messgrpc "buf.build/gen/go/webitel/chat/grpc/go/messages/messagesgrpc"
 	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"context"
 	"github.com/webitel/engine/model"
@@ -36,14 +37,16 @@ type Chat interface {
 	BlindTransferToUser(ctx context.Context, conversationId, channelId string, userId int64, vars map[string]string) error
 	SetVariables(channelId string, vars map[string]string) error
 	BroadcastMessage(ctx context.Context, message *proto.Message, profileId int64, peer []string) error
+	SetContact(token string, channelId string, conversationId string, contactId int64) error
 }
 
 type chatConnection struct {
-	name   string
-	host   string
-	client *grpc.ClientConn
-	api    gogrpc.ChatServiceClient
-	mess   gogrpc.MessagesClient
+	name    string
+	host    string
+	client  *grpc.ClientConn
+	api     gogrpc.ChatServiceClient
+	mess    gogrpc.MessagesClient
+	contact messgrpc.ContactLinkingServiceClient
 }
 
 func NewChatServiceConnection(name, url string) (Chat, error) {
