@@ -48,7 +48,7 @@ func (app *App) SetChatContactId(ctx context.Context, domainId int64, userId int
 		CreatedAt: model.GetMillis(),
 		ForUsers:  []int64{userId},
 		Body: map[string]interface{}{
-			"id":         conversationId,
+			"id":         channelId,
 			"contact_id": contactId,
 			"channel":    model.ChatExchange,
 		},
