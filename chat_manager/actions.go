@@ -258,11 +258,9 @@ func (cc *chatConnection) BroadcastMessage(ctx context.Context, message *proto.M
 	return nil
 }
 
-func (cc *chatConnection) SetContact(token string, channelId string, conversationId string, contactId int64) error {
-	header := metadata.New(map[string]string{"x-webitel-access": token})
-	ctx := metadata.NewOutgoingContext(context.TODO(), header)
+func (cc *chatConnection) SetContact(ctx context.Context, channelId string, conversationId string, contactId int64) error {
 	c := fmt.Sprintf("%v", contactId)
-	_, err := cc.contact.LinkContactToClient(ctx, &messages.LinkContactToClientRequest{
+	_, err := cc.contact.LinkContactToClientNA(ctx, &messages.LinkContactToClientNARequest{
 		ConversationId: conversationId,
 		ContactId:      c,
 	})

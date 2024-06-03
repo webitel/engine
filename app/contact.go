@@ -31,13 +31,13 @@ func (app *App) SetCallContactId(ctx context.Context, domainId int64, userId int
 }
 
 // TODO
-func (app *App) SetChatContactId(token string, domainId int64, userId int64, id string, contactId int64, channelId, conversationId string) model.AppError {
+func (app *App) SetChatContactId(ctx context.Context, domainId int64, userId int64, contactId int64, channelId, conversationId string) model.AppError {
 	cli, err := app.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.set_contact.cli_err", err.Error())
 	}
 
-	err = cli.SetContact(token, channelId, conversationId, contactId)
+	err = cli.SetContact(ctx, channelId, conversationId, contactId)
 	if err != nil {
 		return model.NewInternalError("chat.set_contact.app_err", err.Error())
 	}
@@ -48,7 +48,7 @@ func (app *App) SetChatContactId(token string, domainId int64, userId int64, id 
 		CreatedAt: model.GetMillis(),
 		ForUsers:  []int64{userId},
 		Body: map[string]interface{}{
-			"id":         id,
+			"id":         conversationId,
 			"contact_id": contactId,
 			"channel":    model.ChatExchange,
 		},
