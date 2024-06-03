@@ -80,5 +80,5 @@ func (c *Controller) BroadcastChatBot(session *auth_manager.Session, profileId i
 // todo check userId in domain
 func (c *Controller) SetContactChat(session *auth_manager.Session, channelId string, conversationId string, contactId int64) model.AppError {
 	// FIXME PERMISSION
-	return c.app.SetContactToChat(session.Token, channelId, conversationId, contactId)
+	return c.app.SetChatContactId(context.Background(), session.DomainId, session.UserId, contactId, channelId, conversationId)
 }

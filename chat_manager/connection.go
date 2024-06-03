@@ -37,7 +37,7 @@ type Chat interface {
 	BlindTransferToUser(ctx context.Context, conversationId, channelId string, userId int64, vars map[string]string) error
 	SetVariables(channelId string, vars map[string]string) error
 	BroadcastMessage(ctx context.Context, message *proto.Message, profileId int64, peer []string) error
-	SetContact(token string, channelId string, conversationId string, contactId int64) error
+	SetContact(ctx context.Context, channelId string, conversationId string, contactId int64) error
 }
 
 type chatConnection struct {
