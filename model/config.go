@@ -18,6 +18,10 @@ type LocalizationSettings struct {
 	AvailableLocales    *string `json:"available_locales" default:"en"`
 }
 
+type B2BSettings struct {
+	Addr string `json:"b2b_addr" flag:"b2b_addr||B2B listen address"`
+}
+
 type SipSettings struct {
 	Proxy       string `json:"proxy" flag:"open_sip_addr|opensips|OpenSIP address"`
 	ServerAddr  string `json:"server_addr" flag:"ws_sip_addr||Sip websocket address"`
@@ -47,6 +51,7 @@ type Config struct {
 	EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
 	MaxMemberCommunications int                      `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications"`
 	PublicHostName          *string                  `json:"public_host" flag:"public_host||Public hostname"`
+	B2BSettings             B2BSettings
 }
 
 type DiscoverySettings struct {

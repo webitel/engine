@@ -143,7 +143,13 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
-	//app.b2b = b2bua.New(app)
+	if config.B2BSettings.Addr != "" {
+		app.b2b = b2bua.New(app, b2bua.Config{
+			Addr:     config.B2BSettings.Addr,
+			SipProxy: config.SipSettings.Proxy,
+		})
+
+	}
 
 	return app, outErr
 }

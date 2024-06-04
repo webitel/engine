@@ -12,8 +12,10 @@ import (
 	"github.com/webitel/engine/b2bua/stack"
 	"github.com/webitel/engine/b2bua/ua"
 	"github.com/webitel/engine/b2bua/utils"
+	"net"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var (
@@ -23,6 +25,11 @@ var (
 const (
 	transport = "udp"
 )
+
+type Config struct {
+	Addr     string
+	SipProxy string
+}
 
 type B2B struct {
 	transport string
@@ -71,17 +78,22 @@ func (b2b *B2B) RemoveAccount(id int64) {
 	b2b.Unlock()
 }
 
-func New(cb OnCallback) *B2B {
+func New(cb OnCallback, conf Config) *B2B {
+	host, _, err := net.SplitHostPort(conf.Addr)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	st := stack.NewSipStack(&stack.SipStackConfig{
 		UserAgent:  "webitel-webrtc",
 		Extensions: []string{"replaces", "outbound"},
-		Host:       "10.10.10.25",
+		Host:       host,
 		//Dns:        "8.8.8.8",
 	})
 	//utils.SetLogLevel("transport.Layer", 3)
 	//utils.SetLogLevel("transaction.Layer", 3)
 
-	if err := st.Listen(transport, "10.10.10.25:5067"); err != nil {
+	if err := st.Listen(transport, conf.Addr); err != nil {
 		logger.Panic(err)
 	}
 
@@ -91,7 +103,7 @@ func New(cb OnCallback) *B2B {
 
 	b2b := &B2B{
 		transport: transport,
-		host:      "10.9.8.111",
+		host:      conf.SipProxy,
 		stack:     st,
 		ua:        ua,
 		accounts:  make(map[int64]*Account),
@@ -111,18 +123,6 @@ func New(cb OnCallback) *B2B {
 
 	return b2b
 }
-
-/*
-AuthInfo{
-		DisplayName: "Igor",
-		Expires:     120,
-		AuthInfo: account.AuthInfo{
-			AuthUser: "1008",
-			Password: "tWKtntyTB1UV",
-			Realm:    "demo.webitel.com",
-		},
-	}
-*/
 
 func (b2b *B2B) Register(userId int64, conf AuthInfo) error {
 
@@ -433,4 +433,21 @@ func findCustomHeaderValue(name string, req sip.Request) string {
 	}
 
 	return ""
+}
+
+func schedule(what func(), delay time.Duration) chan struct{} {
+	stop := make(chan struct{})
+
+	go func() {
+		for {
+			select {
+			case <-time.After(delay):
+				what()
+			case <-stop:
+				return
+			}
+		}
+	}()
+
+	return stop
 }
