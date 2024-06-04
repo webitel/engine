@@ -248,6 +248,9 @@ func (webCon *WebConn) SendHello() {
 	msg.Add("server_time", model.GetMillis())
 	msg.Add("sock_id", webCon.id)
 	msg.Add("session", webCon.GetSession())
+	if webCon.App.b2b != nil {
+		msg.Add("b2bua", true)
+	}
 	if webCon.App.config.PingClientInterval > 0 {
 		msg.Add("ping_interval", webCon.App.config.PingClientInterval)
 	}
