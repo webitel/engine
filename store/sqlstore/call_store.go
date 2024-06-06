@@ -1309,9 +1309,11 @@ from uh`, map[string]interface{}{
 }
 
 func (s SqlCallStore) GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError) {
-	sipId, err := s.GetMaster().WithContext(ctx).SelectStr(`select (params->>'sip_id')::varchar sip_id
-	from call_center.cc_calls c 
-	where c.id = :Id and c.domain_id = :Domain and c.user_id = :UserId`, map[string]interface{}{
+	sipId, err := s.GetMaster().WithContext(ctx).SelectStr(`select coalesce((params ->> 'sip_id')::varchar, case when c.parent_id notnull then c.id::varchar end) sip_id
+from call_center.cc_calls c
+where c.id = :Id
+  and c.domain_id = :Domain
+  and c.user_id = :UserId`, map[string]interface{}{
 		"Id":     id,
 		"Domain": domainId,
 		"UserId": userId,

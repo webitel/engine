@@ -58,6 +58,10 @@ func (b2b *B2B) NewAccount(auth AuthInfo) (*Account, error) {
 
 	a.register, err = b2b.ua.SendRegister(a.profile, a.recipient, a.profile.Expires, a)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return a, nil
 }
 
