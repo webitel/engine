@@ -9,6 +9,7 @@ import (
 	"github.com/webitel/engine/b2bua/call"
 	"github.com/webitel/engine/b2bua/session"
 	"github.com/webitel/engine/b2bua/ua"
+	"sync"
 )
 
 type AuthInfo struct {
@@ -28,7 +29,9 @@ type Account struct {
 
 	calls []*call.Call
 
-	sess *session.Session
+	sess         *session.Session
+	mx           sync.RWMutex
+	unregisterCh chan struct{}
 }
 
 func (b2b *B2B) NewAccount(auth AuthInfo) (*Account, error) {
@@ -42,7 +45,7 @@ func (b2b *B2B) NewAccount(auth AuthInfo) (*Account, error) {
 		ctx:       context.TODO(),
 	}
 
-	uri, err = parser.ParseUri(fmt.Sprintf("sip:%s@%s", auth.AuthUser, auth.Realm)) // this acts as an identifier, not connection info
+	uri, err = parser.ParseUri(fmt.Sprintf("sip:%s@%s", auth.Extension, auth.Realm)) // this acts as an identifier, not connection info
 	if err != nil {
 		return nil, err
 	}
@@ -56,6 +59,19 @@ func (b2b *B2B) NewAccount(auth AuthInfo) (*Account, error) {
 	a.register, err = b2b.ua.SendRegister(a.profile, a.recipient, a.profile.Expires, a)
 
 	return a, nil
+}
+
+func (a *Account) setUnregisterChan(ch chan struct{}) {
+	a.mx.Lock()
+	a.unregisterCh = ch
+	a.mx.Unlock()
+}
+
+func (a *Account) getUnregisterChan() chan struct{} {
+	a.mx.RLock()
+	ch := a.unregisterCh
+	a.mx.RUnlock()
+	return ch
 }
 
 func (a *Account) Register() error {

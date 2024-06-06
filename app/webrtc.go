@@ -107,9 +107,10 @@ func (app *App) SipRegister(ctx context.Context, name string, domainId, userId i
 		DomainId:    domainId,
 		UserId:      userId,
 		AuthInfo: account.AuthInfo{
-			AuthUser: sipConf.Auth,
-			Realm:    sipConf.Domain,
-			Password: sipConf.Password,
+			AuthUser:  sipConf.Auth,
+			Realm:     sipConf.Domain,
+			Password:  sipConf.Password,
+			Extension: sipConf.Extension,
 		},
 	})
 	if err != nil {

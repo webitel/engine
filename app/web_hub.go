@@ -120,7 +120,7 @@ func (wh *Hub) start() {
 			wlog.Debug(fmt.Sprintf("un-register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
 
 			if wh.app.b2b != nil && !connections.HasUser(webCon.UserId) {
-				wh.app.b2b.Unregister(webCon.UserId)
+				wh.app.b2b.Unregister(webCon.UserId, 5)
 			}
 
 		case msg := <-wh.domainQueue.Events():

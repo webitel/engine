@@ -12,6 +12,7 @@ import (
 	"github.com/webitel/engine/b2bua/stack"
 	"github.com/webitel/engine/b2bua/ua"
 	"github.com/webitel/engine/b2bua/utils"
+	"github.com/webitel/wlog"
 	"net"
 	"strconv"
 	"sync"
@@ -125,12 +126,21 @@ func New(cb OnCallback, conf Config) *B2B {
 }
 
 func (b2b *B2B) Register(userId int64, conf AuthInfo) error {
+	var acc *Account
+	var ok bool
+	var err error
 
-	if _, ok := b2b.GetAccount(userId); ok {
+	if acc, ok = b2b.GetAccount(userId); ok {
+		ch := acc.getUnregisterChan()
+		if ch != nil {
+			acc.setUnregisterChan(nil)
+			close(ch)
+			return nil
+		}
 		return errors.New("is registered")
 	}
 
-	acc, err := b2b.NewAccount(conf)
+	acc, err = b2b.NewAccount(conf)
 	if err != nil {
 		return err
 	}
@@ -144,7 +154,7 @@ func (b2b *B2B) Register(userId int64, conf AuthInfo) error {
 	return nil
 }
 
-func (b2b *B2B) Unregister(userId int64) error {
+func (b2b *B2B) Unregister(userId int64, timeout int) error {
 	var acc *Account
 	var ok bool
 
@@ -152,12 +162,28 @@ func (b2b *B2B) Unregister(userId int64) error {
 		return nil // errors.New("not found")
 	}
 
+	if timeout > 0 {
+		acc.setUnregisterChan(schedule(func() {
+			err := b2b.unregisterAcc(acc)
+			if err != nil {
+				wlog.Error(err.Error())
+			}
+		}, time.Second*time.Duration(timeout)))
+	} else {
+		return b2b.unregisterAcc(acc)
+	}
+
+	return nil
+}
+
+func (b2b *B2B) unregisterAcc(acc *Account) error {
+
 	err := acc.UnRegister()
 	if err != nil {
 		return err
 	}
 
-	b2b.RemoveAccount(userId)
+	b2b.RemoveAccount(acc.auth.UserId)
 	return nil
 }
 

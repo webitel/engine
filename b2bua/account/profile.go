@@ -27,6 +27,7 @@ type AuthInfo struct {
 	Ha1       string
 	DomainId  int64
 	ContactId int64
+	Extension string
 }
 
 // Profile .
