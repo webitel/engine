@@ -13,7 +13,7 @@ type SqlSystemSettingsStore struct {
 }
 
 var (
-	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit, model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization}
+	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit, model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings}
 )
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
@@ -49,10 +49,15 @@ func (s SqlSystemSettingsStore) GetAllPage(ctx context.Context, domainId int64, 
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 	}
+	where := `domain_id = :DomainId
+				and (:Q::varchar isnull or (name ilike :Q::varchar))`
+	if len(search.Name) != 0 {
+		f["Name"] = pq.Array(search.Name)
+		where += " and name = any(:Name::varchar[])"
+	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
-		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar))`,
+		where,
 		model.SystemSetting{}, f)
 
 	if err != nil {

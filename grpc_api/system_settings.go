@@ -42,8 +42,13 @@ func (api systemSettings) SearchSystemSetting(ctx context.Context, in *engine.Se
 
 	var list []*model.SystemSetting
 	var endList bool
+	var nameFilters []string
+	for _, name := range in.GetName() {
+		nameFilters = append(nameFilters, name.String())
+	}
 	req := &model.SearchSystemSetting{
 		ListRequest: model.ExtractSearchOptions(in),
+		Name:        nameFilters,
 	}
 
 	list, endList, err = api.ctrl.SearchSystemSetting(ctx, session, req)

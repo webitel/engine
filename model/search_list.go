@@ -93,7 +93,7 @@ func (l *ListRequest) GetQ() *string {
 	return ReplaceWebSearch(l.Q)
 }
 
-type Search interface {
+type Searcher interface {
 	GetPage() int32
 	GetSize() int32
 	GetQ() string
@@ -101,7 +101,7 @@ type Search interface {
 	GetFields() []string
 }
 
-func ExtractSearchOptions(t Search) ListRequest {
+func ExtractSearchOptions(t Searcher) ListRequest {
 	var res ListRequest
 	if t.GetSort() != "" {
 		res.Sort = ConvertSort(t.GetSort())

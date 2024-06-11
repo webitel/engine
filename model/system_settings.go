@@ -12,6 +12,7 @@ const (
 	SysNameSchemeVersionLimit     = "scheme_version_limit"
 	SysNameAmdCancelNotHuman      = "amd_cancel_not_human"
 	SysNameTwoFactorAuthorization = "enable_2fa"
+	SysNameExportSettings         = "export_settings"
 )
 
 type SysValue json.RawMessage
@@ -32,6 +33,7 @@ type SystemSettingPath struct {
 
 type SearchSystemSetting struct {
 	ListRequest
+	Name []string
 }
 
 type AvailableSearchSystemSetting struct {
@@ -63,7 +65,7 @@ func (s *SystemSetting) IsValid() AppError {
 		i := value.Int()
 
 		if i == nil || *i < 1 {
-			return NewBadRequestError("model.SystemSetting.valid.int.value", "The value should be more than 1")
+			return NewBadRequestError("model.SystemSetting.invalid.int.value", "The value should be more than 1")
 		}
 	case SysNameTwoFactorAuthorization:
 		value := SysValue(s.Value)
@@ -72,9 +74,17 @@ func (s *SystemSetting) IsValid() AppError {
 		if i == nil {
 			return NewBadRequestError("model.SystemSetting.invalid.bool.value", "invalid bool value")
 		}
-
+	case SysNameExportSettings:
+		export := struct {
+			Format    string `json:"format,omitempty"`
+			Separator string `json:"separator,omitempty"`
+		}{}
+		err := json.Unmarshal(s.Value, &export)
+		if err != nil {
+			return NewBadRequestError("model.SystemSetting.export_settings.invalid.value", "value not properly formed")
+		}
 	default:
-		return NewBadRequestError("model.SystemSetting.valid.name", fmt.Sprintf("%s not allow", s.Name))
+		return NewBadRequestError("model.SystemSetting.export_settings.invalid_value", fmt.Sprintf("%s not allowed", s.Name))
 	}
 	return nil
 }

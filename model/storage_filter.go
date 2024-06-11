@@ -6,16 +6,6 @@ type Filter struct {
 	ComparisonType Comparison
 }
 
-type FilterBunch struct {
-	Bunch []*Filter
-	ConnectionType
-}
-
-type FilterArray struct {
-	Filters    []*FilterBunch
-	Connection ConnectionType
-}
-
 type FilterNode struct {
 	Nodes      []any
 	Connection ConnectionType
