@@ -13,6 +13,7 @@ const (
 	SysNameAmdCancelNotHuman      = "amd_cancel_not_human"
 	SysNameTwoFactorAuthorization = "enable_2fa"
 	SysNameExportSettings         = "export_settings"
+	SysNameSearchNumberLength     = "search_number_length"
 )
 
 type SysValue json.RawMessage
@@ -60,7 +61,7 @@ func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit:
+	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength:
 		value := SysValue(s.Value)
 		i := value.Int()
 
@@ -81,10 +82,10 @@ func (s *SystemSetting) IsValid() AppError {
 		}{}
 		err := json.Unmarshal(s.Value, &export)
 		if err != nil {
-			return NewBadRequestError("model.SystemSetting.export_settings.invalid.value", "value not properly formed")
+			return NewBadRequestError("model.SystemSetting.export_settings.invalid.value", "value is not properly formed")
 		}
 	default:
-		return NewBadRequestError("model.SystemSetting.export_settings.invalid_value", fmt.Sprintf("%s not allowed", s.Name))
+		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
 	}
 	return nil
 }
