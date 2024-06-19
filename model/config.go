@@ -47,6 +47,15 @@ type Config struct {
 	EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
 	MaxMemberCommunications int                      `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications"`
 	PublicHostName          *string                  `json:"public_host" flag:"public_host||Public hostname"`
+	Push                    PushConfig
+}
+
+type PushConfig struct {
+	FirebaseServiceAccount string `json:"push_firebase" flag:"push_firebase||Firebase service account file location"`
+
+	ApnCertFile string `json:"push_apn_cert_file" flag:"push_apn_cert_file||APN certificate file location"`
+	ApnKeyFile  string `json:"push_apn_key_file" flag:"push_apn_key_file||APN key file location"`
+	ApnTopic    string `json:"push_apn_topic" flag:"push_apn_topic|com.webitel.webitel-ios.voip|APN topic"`
 }
 
 type DiscoverySettings struct {
@@ -118,4 +127,8 @@ func (s *LocalizationSettings) SetDefaults() {
 	if s.AvailableLocales == nil {
 		s.AvailableLocales = NewString("")
 	}
+}
+
+func (c *PushConfig) ValidApn() bool {
+	return !(len(c.ApnCertFile) == 0 || len(c.ApnKeyFile) == 0 || len(c.ApnTopic) == 0)
 }

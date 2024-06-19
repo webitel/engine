@@ -101,6 +101,26 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.cluster = NewCluster(app)
 
+	if config.Push.FirebaseServiceAccount != "" {
+		err = initFirebase(config.Push.FirebaseServiceAccount)
+		if err != nil {
+			return nil, err
+		}
+		wlog.Info("enable push firebase")
+	} else {
+		wlog.Info("disabled push firebase")
+	}
+
+	if config.Push.ValidApn() {
+		err = initApn(config.Push)
+		if err != nil {
+			return nil, err
+		}
+		wlog.Info("enable push apn")
+	} else {
+		wlog.Info("disabled push apn")
+	}
+
 	app.Srv.WebSocketRouter = &WebSocketRouter{
 		app:      app,
 		handlers: make(map[string]webSocketHandler),
