@@ -6,14 +6,15 @@ require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.3.0-20240529130243-4bbb230be33b.3
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.1-20240611113234-5e9e3ffae210.1
-	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240612144851-2a9e13671fbb.1
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.1-20240612144851-2a9e13671fbb.1
+	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240618123100-3e740393d1cc.1
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240618123100-3e740393d1cc.2
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
 	buf.build/gen/go/webitel/logger/protocolbuffers/go v1.33.0-20240404135439-f6c7830c29dd.1
 	buf.build/gen/go/webitel/webitel-go/grpc/go v1.3.0-20240527133231-c12eb2a85c36.3
 	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.34.1-20240527133231-c12eb2a85c36.1
+	firebase.google.com/go v3.13.0+incompatible
 	github.com/BoRuDar/configuration/v4 v4.2.2
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/ghettovoice/gosip v0.0.0-20231005134608-3b981d26e5cc
@@ -41,14 +42,22 @@ require (
 	golang.org/x/net v0.20.0
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/sync v0.6.0
+	google.golang.org/api v0.155.0
 	google.golang.org/grpc v1.62.0
 )
 
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.1-20240502201324-7530ea77434f.1 // indirect
+	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.2-20231027202514-3f42134f4c56.2 // indirect
 	buf.build/gen/go/webitel/cc/grpc/go v1.3.0-20240404135440-3efb61ebef03.2 // indirect
+	cloud.google.com/go v0.112.0 // indirect
+	cloud.google.com/go/compute v1.23.3 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/firestore v1.14.0 // indirect
+	cloud.google.com/go/iam v1.1.5 // indirect
+	cloud.google.com/go/longrunning v0.5.4 // indirect
+	cloud.google.com/go/storage v1.36.0 // indirect
 	github.com/Abirdcfly/dupword v0.0.11 // indirect
 	github.com/Antonboom/errname v0.1.9 // indirect
 	github.com/Antonboom/nilnil v0.1.3 // indirect
@@ -82,11 +91,13 @@ require (
 	github.com/ettle/strcase v0.1.1 // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
-	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/firefart/nonamedreturns v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/fzipp/gocyclo v0.6.0 // indirect
 	github.com/go-critic/go-critic v0.7.0 // indirect
+	github.com/go-logr/logr v1.3.0 // indirect
+	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/form v3.1.4+incompatible // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
 	github.com/go-toolsmith/astcopy v1.1.0 // indirect
@@ -101,6 +112,7 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.1.0-rc.1 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golangci/check v0.0.0-20180506172741-cfe4005ccda2 // indirect
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
 	github.com/golangci/go-misc v0.0.0-20220329215616-d24fe342adfe // indirect
@@ -112,6 +124,9 @@ require (
 	github.com/golangci/revgrep v0.0.0-20220804021717-745bb2f7c2e6 // indirect
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
+	github.com/google/s2a-go v0.1.7 // indirect
+	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
+	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20230107090616-13ace0543b28 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
@@ -203,7 +218,7 @@ require (
 	github.com/ssgreg/nlreturn/v2 v2.2.1 // indirect
 	github.com/stbenjam/no-sprintf-host-port v0.1.1 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
-	github.com/stretchr/testify v1.8.3 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/t-yuki/gocover-cobertura v0.0.0-20180217150009-aaee18c8195c // indirect
 	github.com/tdakkota/asciicheck v0.2.0 // indirect
@@ -219,6 +234,12 @@ require (
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	gitlab.com/bosi/decorder v0.2.3 // indirect
+	go.opencensus.io v0.24.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.1 // indirect
+	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.46.1 // indirect
+	go.opentelemetry.io/otel v1.21.0 // indirect
+	go.opentelemetry.io/otel/metric v1.21.0 // indirect
+	go.opentelemetry.io/otel/trace v1.21.0 // indirect
 	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
@@ -229,12 +250,13 @@ require (
 	golang.org/x/sys v0.16.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/tools v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240123012728-ef4313101c80 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240123012728-ef4313101c80 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
-	google.golang.org/protobuf v1.34.1 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

@@ -49,6 +49,7 @@ type API struct {
 	webHook        *webHook
 	schemaVersion  *schemaVersion
 	schemaVariable *schemaVariable
+	push           *push
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -94,6 +95,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.schemaVersion = NewSchemeVersionApi(api)
 	api.schemaVariable = NewSchemeVariableApi(api)
 	api.webHook = NewWebHookApi(api)
+	api.push = NewPushApi(api)
 
 	gogrpc.RegisterCalendarServiceServer(server, api.calendar)
 	gogrpc.RegisterSkillServiceServer(server, api.skill)
@@ -134,4 +136,5 @@ func Init(a *app.App, server *grpc.Server) {
 	gogrpc.RegisterWebHookServiceServer(server, api.webHook)
 	gogrpc.RegisterSchemaVersionServiceServer(server, api.schemaVersion)
 	gogrpc.RegisterSchemaVariablesServiceServer(server, api.schemaVariable)
+	gogrpc.RegisterPushServiceServer(server, api.push)
 }
