@@ -9,9 +9,11 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"github.com/webitel/engine/model"
+	"io"
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -24,7 +26,7 @@ const (
 )
 
 // DefaultHost is a mutable var for testing purposes
-var DefaultHost = HostDevelopment
+var DefaultHost = HostProduction
 
 var (
 	// HTTPClientTimeout specifies a time limit for requests made by the
@@ -177,7 +179,7 @@ func (apn *ApnClient) Push(ctx context.Context, device string, r *model.SendPush
 	}
 
 	if r.Expiration > 0 {
-		//req.Header.Add("apns-expiration", strconv.Itoa(int(model.GetMillis())+int(r.Expiration)))
+		req.Header.Add("apns-expiration", strconv.Itoa(int(model.GetMillis()/1000)+int(r.Expiration/1000)))
 	}
 
 	res, err := apn.HTTPClient.Do(req)
@@ -186,6 +188,11 @@ func (apn *ApnClient) Push(ctx context.Context, device string, r *model.SendPush
 	}
 
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		e, _ := io.ReadAll(res.Body)
+		return model.NewInternalError("app.apn.response.code", string(e))
+	}
 
 	return nil
 }
