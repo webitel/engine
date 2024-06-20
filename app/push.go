@@ -62,7 +62,7 @@ func pushApn(ctx context.Context, r *model.SendPush, wg *sync.WaitGroup, send *i
 
 	var err model.AppError
 	for _, v := range r.Apple {
-		err = apnClient.Development().Push(ctx, v, r)
+		err = apnClient.Push(ctx, v, r)
 		if err != nil {
 			wlog.Error(err.Error())
 			continue
