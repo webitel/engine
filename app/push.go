@@ -43,11 +43,17 @@ func (app *App) SendPush(ctx context.Context, r *model.SendPush) (int, model.App
 	wg := sync.WaitGroup{}
 	if firebaseClient != nil && len(r.Android) != 0 {
 		wg.Add(1)
-		go pushFirebase(ctx, r, &wg, &sendAndroid)
+		go func() {
+			sendAndroid = pushFirebase(ctx, r)
+			wg.Done()
+		}()
 	}
 	if apnClient != nil && len(r.Apple) != 0 {
 		wg.Add(1)
-		go pushApn(ctx, r, &wg, &sendAPN)
+		go func() {
+			sendAPN = pushApn(ctx, r)
+			wg.Done()
+		}()
 	}
 
 	wg.Wait()
@@ -55,26 +61,23 @@ func (app *App) SendPush(ctx context.Context, r *model.SendPush) (int, model.App
 	return sendAndroid + sendAPN, nil
 }
 
-func pushApn(ctx context.Context, r *model.SendPush, wg *sync.WaitGroup, send *int) {
-	go func() {
-		wg.Done()
-	}()
+func pushApn(ctx context.Context, r *model.SendPush) int {
 
 	var err model.AppError
+	var send = 0
 	for _, v := range r.Apple {
 		err = apnClient.Push(ctx, v, r)
 		if err != nil {
 			wlog.Error(err.Error())
 			continue
 		}
-		*send++
+		send++
 	}
+
+	return send
 }
 
-func pushFirebase(ctx context.Context, r *model.SendPush, wg *sync.WaitGroup, send *int) {
-	defer func() {
-		wg.Done()
-	}()
+func pushFirebase(ctx context.Context, r *model.SendPush) int {
 
 	t := time.Millisecond * time.Duration(r.Expiration)
 	priority := "normal"
@@ -101,6 +104,8 @@ func pushFirebase(ctx context.Context, r *model.SendPush, wg *sync.WaitGroup, se
 	if err != nil {
 		wlog.Error(fmt.Sprintf("firebase send error: %v", err.Error()))
 	} else {
-		*send = res.SuccessCount
+		return res.SuccessCount
 	}
+
+	return 0
 }
