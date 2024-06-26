@@ -38,6 +38,24 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		delimiter = "," // Default delimiter
 	}
 
+	mapCol := r.FormValue("map")
+	reader := csv.NewReader(file)
+
+	// Read the header row
+	headers, err := reader.Read()
+	if err != nil {
+		http.Error(w, "Error reading CSV file", http.StatusInternalServerError)
+	}
+
+	// Find the index of the column by name
+	var columnIndex int
+	for i, header := range headers {
+		if header == mapCol {
+			columnIndex = i
+			break
+		}
+	}
+
 	resourceId, err := strconv.ParseInt(getIdFromRequest(r), 10, 64)
 	if err != nil {
 		http.Error(w, "Error resourceId", http.StatusBadRequest)
@@ -49,7 +67,7 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mappedData, err := mapData(records)
+	mappedData, err := mapData(records, columnIndex)
 	if err != nil {
 		http.Error(w, "Error mapping data", http.StatusInternalServerError)
 		return
@@ -71,15 +89,15 @@ func readCSV(file io.Reader, delimiter string) ([][]string, error) {
 	return reader.ReadAll()
 }
 
-func mapData(records [][]string) ([]*model.ResourceDisplay, error) {
+func mapData(records [][]string, mapColIndex int) ([]*model.ResourceDisplay, error) {
 	var mappedData []*model.ResourceDisplay
 
-	for _, row := range records[1:] { // Skip the header
-		resourceId, err := strconv.ParseInt(row[0], 10, 64)
+	for _, row := range records[1:] {
+		resourceId, err := strconv.ParseInt(row[0], 10, 64) //TODO: Add multiple resources ID's insert
 		if err != nil {
 			return nil, err
 		}
-		display := row[1]
+		display := row[mapColIndex]
 		mappedData = append(mappedData, &model.ResourceDisplay{
 			ResourceId: resourceId,
 			Display:    display,
