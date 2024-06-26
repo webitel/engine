@@ -203,7 +203,7 @@ type OutboundResourceStore interface {
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
 	SaveDisplay(ctx context.Context, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError)
-	SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]int64, model.AppError)
+	SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError)
 	GetDisplayAllPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, model.AppError)
 	GetDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, model.AppError)
 	UpdateDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError)

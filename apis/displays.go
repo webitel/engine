@@ -1,0 +1,90 @@
+package apis
+
+import (
+	"encoding/csv"
+	"encoding/json"
+	"io"
+	"net/http"
+	"strconv"
+
+	"github.com/webitel/engine/model"
+)
+
+func (api *API) InitDisplays() {
+	api.Routes.Root.Handle("/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
+}
+
+func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	err := r.ParseMultipartForm(10 << 20) // 10MB limit
+	if err != nil {
+		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Error retrieving file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	delimiter := r.FormValue("delimiter")
+	if delimiter == "" {
+		delimiter = "," // Default delimiter
+	}
+
+	resourceId, err := strconv.ParseInt(getIdFromRequest(r), 10, 64)
+	if err != nil {
+		http.Error(w, "Error resourceId", http.StatusBadRequest)
+	}
+
+	records, err := readCSV(file, delimiter)
+	if err != nil {
+		http.Error(w, "Error reading CSV file", http.StatusInternalServerError)
+		return
+	}
+
+	mappedData, err := mapData(records)
+	if err != nil {
+		http.Error(w, "Error mapping data", http.StatusInternalServerError)
+		return
+	}
+
+	displays, err := c.App.CreateOutboundResourceDisplays(r.Context(), resourceId, mappedData)
+	if err != nil {
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(displays)
+	}
+}
+
+func readCSV(file io.Reader, delimiter string) ([][]string, error) {
+	reader := csv.NewReader(file)
+	reader.Comma = rune(delimiter[0])
+	return reader.ReadAll()
+}
+
+func mapData(records [][]string) ([]*model.ResourceDisplay, error) {
+	var mappedData []*model.ResourceDisplay
+
+	for _, row := range records[1:] { // Skip the header
+		resourceId, err := strconv.ParseInt(row[0], 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		display := row[1]
+		mappedData = append(mappedData, &model.ResourceDisplay{
+			ResourceId: resourceId,
+			Display:    display,
+		})
+	}
+
+	return mappedData, nil
+}
