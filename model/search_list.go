@@ -151,10 +151,11 @@ func (l *ListRequest) GetRegExpQ() *string {
 
 func GetRegExpQ(q string) *string {
 	if q != "" {
-		if q[0] == '+' {
+		switch q[0] {
+		case '+', '\\', ' ', '?', '$', '|', '*':
 			q = "\\" + q
 		}
-		return &q //NewString(strings.Replace(q, "*", "%", -1))
+		return &q
 	}
 
 	return nil

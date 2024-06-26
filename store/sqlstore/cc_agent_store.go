@@ -152,11 +152,10 @@ FROM a
 
 func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, model.AppError) {
 	var agents []*model.Agent
-
 	f := map[string]interface{}{
 		"DomainId":      domainId,
 		"Ids":           pq.Array(search.Ids),
-		"Q":             search.GetQ(),
+		"Q":             search.GetRegExpQ(),
 		"TeamIds":       pq.Array(search.TeamIds),
 		"AllowChannels": pq.Array(search.AllowChannels),
 		"SupervisorIds": pq.Array(search.SupervisorIds),
@@ -197,7 +196,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
-				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))`,
+				and (:Q::varchar isnull or (name ~ :Q::varchar or description ~ :Q::varchar or status ~ :Q::varchar ))`,
 		model.Agent{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.get_all.app_error", err.Error())
@@ -214,7 +213,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		"Access":        auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"DomainId":      domainId,
 		"Ids":           pq.Array(search.Ids),
-		"Q":             search.GetQ(),
+		"Q":             search.GetRegExpQ(),
 		"TeamIds":       pq.Array(search.TeamIds),
 		"AllowChannels": pq.Array(search.AllowChannels),
 		"SupervisorIds": pq.Array(search.SupervisorIds),
@@ -255,7 +254,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 				))
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
-				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar or status ilike :Q::varchar ))
+				and (:Q::varchar isnull or (name ~ :Q::varchar or description ~ :Q::varchar or status ~ :Q::varchar ))
 				and (
 					exists(select 1
 					  from call_center.cc_agent_acl
