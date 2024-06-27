@@ -14,6 +14,7 @@ const (
 	SysNameTwoFactorAuthorization = "enable_2fa"
 	SysNameExportSettings         = "export_settings"
 	SysNameSearchNumberLength     = "search_number_length"
+	SysNameChatAiConnection       = "chat_ai_connection"
 )
 
 type SysValue json.RawMessage
@@ -68,6 +69,13 @@ func (s *SystemSetting) IsValid() AppError {
 		if i == nil || *i < 1 {
 			return NewBadRequestError("model.SystemSetting.invalid.int.value", "The value should be more than 1")
 		}
+	case SysNameChatAiConnection:
+		value := SysValue(s.Value)
+		str := value.Str()
+		if str == nil || *str == "" {
+			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
+
 	case SysNameTwoFactorAuthorization:
 		value := SysValue(s.Value)
 		i := value.Bool()
@@ -107,6 +115,20 @@ func (v *SysValue) Int() *int {
 	}
 
 	return &i
+}
+
+func (v *SysValue) Str() *string {
+	if v == nil {
+		return nil
+	}
+
+	var val string
+	err := json.Unmarshal(*v, &val)
+	if err != nil {
+		return nil
+	}
+
+	return &val
 }
 
 func (v *SysValue) Bool() *bool {
