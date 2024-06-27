@@ -173,6 +173,7 @@ type TeamTriggerStore interface {
 	Create(ctx context.Context, domainId int64, teamId int64, in *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
 	Get(ctx context.Context, domainId int64, teamId int64, id uint32) (*model.TeamTrigger, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, teamId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
+	GetAllPageByUser(ctx context.Context, domainId int64, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	Update(ctx context.Context, domainId int64, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
 	Delete(ctx context.Context, domainId int64, teamId int64, id uint32) model.AppError
 }

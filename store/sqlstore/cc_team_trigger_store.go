@@ -115,6 +115,44 @@ func (s SqlTeamTriggerStore) GetAllPage(ctx context.Context, domainId int64, tea
 	return list, nil
 }
 
+func (s SqlTeamTriggerStore) GetAllPageByUser(ctx context.Context, domainId int64, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError) {
+	var list []*model.TeamTrigger
+
+	f := map[string]interface{}{
+		"DomainId":  domainId,
+		"UserId":    userId,
+		"Q":         search.GetQ(),
+		"Ids":       pq.Array(search.Ids),
+		"SchemaIds": pq.Array(search.SchemaIds),
+		"Enabled":   search.Enabled,
+	}
+
+	_, err := s.GetReplica().WithContext(ctx).Select(&list, `select qt.id,
+		   call_center.cc_get_lookup(qt.schema_id, s.name) "schema",
+		   qt.name,
+		   qt.description,
+		   qt.enabled,
+		   call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) "created_by",
+		   qt.created_at,
+		   call_center.cc_get_lookup(uu.id, coalesce(uu.name, uu.username)) "updated_by"
+	from call_center.cc_team_trigger qt
+		left join flow.acr_routing_scheme s on s.id = qt.schema_id
+		left join directory.wbt_user uc on uc.id = qt.created_by
+		left join directory.wbt_user uu on uu.id = qt.updated_by
+	where
+		qt.team_id = any(select a.team_id from call_center.cc_agent a where a.user_id = :UserId)
+		and exists (select 1 from call_center.cc_team q where q.id = qt.team_id and q.domain_id = :DomainId
+		and (:Q::text isnull or ( "name" ilike :Q::varchar or "description" ilike :Q::varchar ))
+		and (:Ids::int4[] isnull or id = any(:Ids))
+		and (:Enabled::bool isnull or enabled = :Enabled)
+		and (:SchemaIds::int4[] isnull or schema_id = any(:SchemaIds)))`, f)
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_team_trigger.get_all_page_by_user.execute.error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return list, nil
+}
+
 func (s SqlTeamTriggerStore) Update(ctx context.Context, domainId int64, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError) {
 
 	err := s.GetMaster().WithContext(ctx).SelectOne(&qt, `with qt as (

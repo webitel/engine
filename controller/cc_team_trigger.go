@@ -25,6 +25,26 @@ func (c *Controller) SearchTeamTrigger(ctx context.Context, session *auth_manage
 	return c.app.SearchTeamTrigger(ctx, session.Domain(0), teamId, search)
 }
 
+func (c *Controller) SearchAgentTrigger(ctx context.Context, session *auth_manager.Session, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, bool, model.AppError) {
+	var err model.AppError
+	userId := session.GetUserId()
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		var perm bool
+		if perm, err = c.app.AgentCheckAccess(ctx, session.Domain(0), userId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, false, err
+		} else if !perm {
+			return nil, false, c.app.MakeResourcePermissionError(session, userId, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.SearchAgentTrigger(ctx, session.Domain(0), userId, search)
+}
+
 func (c *Controller) CreateTeamTrigger(ctx context.Context, session *auth_manager.Session, teamId int64, trigger *model.TeamTrigger) (*model.TeamTrigger, model.AppError) {
 	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
