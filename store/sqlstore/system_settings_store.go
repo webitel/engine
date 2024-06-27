@@ -13,7 +13,10 @@ type SqlSystemSettingsStore struct {
 }
 
 var (
-	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit, model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings, model.SysNameSearchNumberLength}
+	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
+		model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
+		model.SysNameSearchNumberLength, model.SysNameChatAiConnection,
+	}
 )
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
