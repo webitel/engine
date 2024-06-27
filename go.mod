@@ -6,8 +6,8 @@ require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.4.0-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240703121916-db3266bbfcd3.2
-	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240618123100-3e740393d1cc.1
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240618123100-3e740393d1cc.2
+	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240627102531-08342cefa670.1
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240627102531-08342cefa670.2
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2

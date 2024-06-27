@@ -79,6 +79,46 @@ func (api *teamTrigger) SearchTeamTrigger(ctx context.Context, in *engine.Search
 	}, nil
 }
 
+func (api *teamTrigger) SearchAgentTrigger(ctx context.Context, in *engine.SearchAgentTriggerRequest) (*engine.ListTeamTrigger, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var list []*model.TeamTrigger
+	var endList bool
+	req := &model.SearchTeamTrigger{
+		ListRequest: model.ListRequest{
+			Q:       in.GetQ(),
+			Page:    int(in.GetPage()),
+			PerPage: int(in.GetSize()),
+			Fields:  in.Fields,
+			Sort:    in.Sort,
+		},
+		Ids:       in.GetId(),
+		SchemaIds: in.SchemaId,
+	}
+
+	if in.Enabled != nil {
+		req.Enabled = &in.Enabled.Value
+	}
+
+	list, endList, err = api.ctrl.SearchAgentTrigger(ctx, session, req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.TeamTrigger, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineTeamTrigger(v))
+	}
+	return &engine.ListTeamTrigger{
+		Next:  !endList,
+		Items: items,
+	}, nil
+}
+
 func (api *teamTrigger) RunTeamTrigger(ctx context.Context, in *engine.RunTeamTriggerRequest) (*engine.RunTeamTriggerResponse, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

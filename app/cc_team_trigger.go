@@ -18,6 +18,15 @@ func (app *App) SearchTeamTrigger(ctx context.Context, domainId int64, teamId in
 	return list, search.EndOfList(), nil
 }
 
+func (app *App) SearchAgentTrigger(ctx context.Context, domainId int64, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, bool, model.AppError) {
+	list, err := app.Store.TeamTrigger().GetAllPageByUser(ctx, domainId, userId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
 func (app *App) GetTeamTrigger(ctx context.Context, domainId int64, teamId int64, id uint32) (*model.TeamTrigger, model.AppError) {
 	return app.Store.TeamTrigger().Get(ctx, domainId, teamId, id)
 }
