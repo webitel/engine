@@ -15,6 +15,7 @@ const (
 	SysNameExportSettings         = "export_settings"
 	SysNameSearchNumberLength     = "search_number_length"
 	SysNameChatAiConnection       = "chat_ai_connection"
+	SysNamePasswordRegExp         = "password_reg_exp"
 )
 
 type SysValue json.RawMessage
@@ -75,7 +76,12 @@ func (s *SystemSetting) IsValid() AppError {
 		if str == nil || *str == "" {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
 		}
-
+	case SysNamePasswordRegExp:
+		value := SysValue(s.Value)
+		str := value.Str()
+		if str == nil || *str == "" {
+			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
 	case SysNameTwoFactorAuthorization:
 		value := SysValue(s.Value)
 		i := value.Bool()
