@@ -100,7 +100,7 @@ func (api *API) closeChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 		return nil, NewInvalidWebSocketParamError(req.Action, "cause")
 	}
 
-	err := api.ctrl.CloseChat(conn.GetSession(), channelId, conversationId, cause)
+	err := api.ctrl.CloseChat(conn.GetSession(), channelId, conversationId, "what reason is this??")
 	return nil, err
 }
 
@@ -118,7 +118,7 @@ func (api *API) leaveChat(conn *app.WebConn, req *model.WebSocketRequest) (map[s
 		return nil, NewInvalidWebSocketParamError(req.Action, "conversation_id")
 	}
 
-	err := api.ctrl.LeaveChat(conn.GetSession(), channelId, conversationId)
+	err := api.ctrl.LeaveChat(conn.GetSession(), channelId, conversationId, model.AgentLeave)
 	return nil, err
 }
 
