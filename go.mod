@@ -5,9 +5,9 @@ go 1.19
 require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.3.0-20240529130243-4bbb230be33b.3
-	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.1-20240611113234-5e9e3ffae210.1
-	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240627112700-3fe53516f45c.1
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240627112700-3fe53516f45c.2
+	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240702143950-364c79a4f8d2.2
+	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240618123100-3e740393d1cc.1
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240618123100-3e740393d1cc.2
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2

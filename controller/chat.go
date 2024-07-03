@@ -17,12 +17,12 @@ func (c *Controller) JoinChat(session *auth_manager.Session, inviteId string) (s
 	return c.app.JoinChat(session.UserId, inviteId)
 }
 
-func (c *Controller) LeaveChat(session *auth_manager.Session, channelId, conversationId string) model.AppError {
+func (c *Controller) LeaveChat(session *auth_manager.Session, channelId, conversationId string, reason model.LeaveCause) model.AppError {
 	// FIXME PERMISSION
-	return c.app.LeaveChat(session.UserId, channelId, conversationId)
+	return c.app.LeaveChat(session.UserId, channelId, conversationId, reason)
 }
 
-func (c *Controller) CloseChat(session *auth_manager.Session, channelId, conversationId, cause string) model.AppError {
+func (c *Controller) CloseChat(session *auth_manager.Session, channelId, conversationId string, cause model.CloseCause) model.AppError {
 	// FIXME PERMISSION
 	return c.app.CloseChat(session.UserId, channelId, conversationId, cause)
 }

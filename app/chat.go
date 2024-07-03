@@ -39,13 +39,13 @@ func (a *App) JoinChat(authUserId int64, inviteId string) (string, model.AppErro
 	return channelId, nil
 }
 
-func (a *App) LeaveChat(authUserId int64, channelId, conversationId string) model.AppError {
+func (a *App) LeaveChat(authUserId int64, channelId, conversationId string, reason model.LeaveCause) model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.leave.client_err", err.Error())
 	}
 
-	err = chat.Leave(authUserId, channelId, conversationId)
+	err = chat.Leave(authUserId, channelId, conversationId, reason)
 	if err != nil {
 		return model.NewInternalError("chat.leave.app_err", err.Error())
 	}
@@ -107,7 +107,7 @@ func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string
 	return nil
 }
 
-func (a *App) CloseChat(authUserId int64, channelId, conversationId, cause string) model.AppError {
+func (a *App) CloseChat(authUserId int64, channelId, conversationId string, cause model.CloseCause) model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.close.client_err", err.Error())

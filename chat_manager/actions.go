@@ -36,12 +36,13 @@ func (cc *chatConnection) Join(authUserId int64, inviteId string) (string, error
 	return res.ChannelId, nil
 }
 
-func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId string) error {
+func (cc *chatConnection) Leave(authUserId int64, channelId, conversationId string, cause model.LeaveCause) error {
+
 	_, err := cc.api.LeaveConversation(context.Background(), &proto.LeaveConversationRequest{
 		ChannelId:      channelId,
 		ConversationId: conversationId,
 		AuthUserId:     authUserId,
-		Cause:          "",
+		Cause:          findLeaveConversationCause(cause.String()),
 	})
 
 	return err
@@ -56,15 +57,37 @@ func (cc *chatConnection) SetVariables(channelId string, vars map[string]string)
 	return err
 }
 
-func (cc *chatConnection) CloseConversation(authUserId int64, channelId, conversationId, cause string) error {
+func (cc *chatConnection) CloseConversation(authUserId int64, channelId, conversationId string, cause model.CloseCause) error {
 	_, err := cc.api.CloseConversation(context.Background(), &proto.CloseConversationRequest{
 		ConversationId:  conversationId,
 		CloserChannelId: channelId,
-		Cause:           cause,
+		Cause:           findCloseChatCause(cause.String()),
 		AuthUserId:      authUserId,
 	})
 
 	return err
+}
+
+// findLeaveConversationCause tries to find leave reason in the proto.LeaveConversationCause enum.
+// If not found returns default_cause
+func findLeaveConversationCause(cause string) proto.LeaveConversationCause {
+	for name, i := range proto.LeaveConversationCause_value {
+		if name == cause {
+			return proto.LeaveConversationCause(i)
+		}
+	}
+	return 0
+}
+
+// findCloseChatCause tries to find close reason in the proto.CloseConversationCause enum
+// If not found returns no_cause
+func findCloseChatCause(cause string) proto.CloseConversationCause {
+	for name, i := range proto.CloseConversationCause_value {
+		if name == cause {
+			return proto.CloseConversationCause(i)
+		}
+	}
+	return 0
 }
 
 func (cc *chatConnection) SendText(authUserId int64, channelId, conversationId, text string) error {

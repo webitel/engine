@@ -22,8 +22,8 @@ type Chat interface {
 
 	Join(authUserId int64, inviteId string) (string, error)
 	Decline(authUserId int64, inviteId string, cause string) error
-	Leave(authUserId int64, channelId, conversationId string) error
-	CloseConversation(authUserId int64, channelId, conversationId, cause string) error
+	Leave(authUserId int64, channelId, conversationId string, cause model.LeaveCause) error
+	CloseConversation(authUserId int64, channelId, conversationId string, cause model.CloseCause) error
 
 	SendText(authUserId int64, channelId, conversationId, text string) error
 	SendFile(authUserId int64, channelId, conversationId string, file *model.ChatFile) error
