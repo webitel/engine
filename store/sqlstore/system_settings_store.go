@@ -15,7 +15,7 @@ type SqlSystemSettingsStore struct {
 var (
 	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
 		model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
-		model.SysNameSearchNumberLength, model.SysNameChatAiConnection,
+		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
 	}
 )
 
