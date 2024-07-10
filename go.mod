@@ -6,8 +6,8 @@ require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.3.0-20240529130243-4bbb230be33b.3
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240702143950-364c79a4f8d2.2
-	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240618123100-3e740393d1cc.1
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240627112700-3fe53516f45c.2
+	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240704112916-e6cc7cc3a9e3.2
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240704112916-e6cc7cc3a9e3.2
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
@@ -43,7 +43,7 @@ require (
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/sync v0.6.0
 	google.golang.org/api v0.155.0
-	google.golang.org/grpc v1.62.0
+	google.golang.org/grpc v1.62.2
 )
 
 require (
