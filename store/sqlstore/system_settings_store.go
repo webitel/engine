@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -15,7 +16,7 @@ type SqlSystemSettingsStore struct {
 var (
 	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
 		model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
-		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
+		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp, model.SysNamePasswordValidationText,
 	}
 )
 
