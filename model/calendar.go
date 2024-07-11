@@ -30,13 +30,14 @@ type CalendarExceptDate struct {
 // swagger:model Calendar
 type Calendar struct {
 	DomainRecord
-	Name        string                `json:"name" db:"name"`
-	StartAt     *int64                `json:"start_at" db:"start_at"`
-	EndAt       *int64                `json:"end_at" db:"end_at"`
-	Timezone    Lookup                `json:"timezone"`
-	Description string                `json:"description,omitempty"`
-	Accepts     []CalendarAcceptOfDay `json:"accepts" db:"accepts"`
-	Excepts     []*CalendarExceptDate `json:"excepts" db:"excepts"`
+	Name        string                 `json:"name" db:"name"`
+	StartAt     *int64                 `json:"start_at" db:"start_at"`
+	EndAt       *int64                 `json:"end_at" db:"end_at"`
+	Timezone    Lookup                 `json:"timezone"`
+	Description string                 `json:"description,omitempty"`
+	Accepts     []CalendarAcceptOfDay  `json:"accepts" db:"accepts"`
+	Excepts     []*CalendarExceptDate  `json:"excepts" db:"excepts"`
+	Specials    []*CalendarAcceptOfDay `json:"specials" db:"specials"`
 }
 
 type SearchCalendar struct {
@@ -50,7 +51,7 @@ func (Calendar) DefaultOrder() string {
 
 func (a Calendar) AllowFields() []string {
 	return []string{"id", "domain_id", "name", "description", "start_at", "end_at", "timezone", "created_at", "created_by", "updated_at", "updated_by",
-		"accepts", "excepts"}
+		"accepts", "excepts", "specials"}
 }
 
 func (a Calendar) DefaultFields() []string {
@@ -75,17 +76,22 @@ type SearchTimezone struct {
 }
 
 func (a *CalendarAcceptOfDay) IsValid() AppError {
-	//TODO FIXME
+	// TODO FIXME
 	return nil
 }
 
 func (a *CalendarExceptDate) IsValid() AppError {
-	//TODO FIXME
+	// TODO FIXME
 	return nil
 }
 
 func (c *Calendar) AcceptsToJson() string {
 	b, _ := json.Marshal(c.Accepts)
+	return string(b)
+}
+
+func (c *Calendar) SpecialsToJson() string {
+	b, _ := json.Marshal(c.Specials)
 	return string(b)
 }
 
