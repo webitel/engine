@@ -3,20 +3,22 @@ package sqlstore
 import (
 	"context"
 	dbsql "database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/webitel/engine/localization"
 	sqltrace "log"
 	"os"
+	"sync/atomic"
 	"time"
 
-	"encoding/json"
+	"github.com/webitel/engine/localization"
+
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
+	wlog "github.com/webitel/wlog"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	wlog "github.com/webitel/wlog"
-	"sync/atomic"
 )
 
 const (
@@ -78,7 +80,7 @@ type SqlSupplier struct {
 	next      store.LayeredStoreSupplier
 	master    *gorp.DbMap
 	replicas  []*gorp.DbMap
-	//searchReplicas []*gorp.DbMap
+	// searchReplicas []*gorp.DbMap
 	oldStores      SqlSupplierOldStores
 	settings       *model.SqlSettings
 	lockedToMaster bool
@@ -436,6 +438,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*[]*model.CCTask,
 		*[]model.OutboundResourceGroupTime,
 		*[]model.CalendarAcceptOfDay,
+		*[]*model.CalendarAcceptOfDay,
 		*[]model.AgentChannel,
 		*[]*model.QueueReportGeneral,
 		*model.QueueAgentAgg,
@@ -533,7 +536,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 			}
 		}
 		return gorp.CustomScanner{Holder: &[]byte{}, Target: target, Binder: binder}, true
-	//case *model.StringInterface:
+	// case *model.StringInterface:
 	//	binder := func(holder, target interface{}) error {
 	//		s, ok := holder.(*string)
 	//		if !ok {

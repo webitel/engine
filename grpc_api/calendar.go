@@ -284,8 +284,8 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 
 	if len(src.Specials) > 0 {
 		item.Specials = make([]*engine.AcceptOfDay, 0, len(src.Specials))
-		for _, v := range src.Accepts {
-			item.Specials = append(item.Specials, transformAcceptOfDay(v))
+		for _, v := range src.Specials {
+			item.Specials = append(item.Specials, transformAcceptOfDay(*v))
 		}
 	}
 

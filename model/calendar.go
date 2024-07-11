@@ -90,9 +90,12 @@ func (c *Calendar) AcceptsToJson() string {
 	return string(b)
 }
 
-func (c *Calendar) SpecialsToJson() string {
+func (c *Calendar) SpecialsToJson() *string {
+	if c.Specials == nil {
+		return nil
+	}
 	b, _ := json.Marshal(c.Specials)
-	return string(b)
+	return NewString(string(b))
 }
 
 func (c *Calendar) ExceptsToJson() *string {
