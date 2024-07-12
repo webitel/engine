@@ -2,6 +2,7 @@ package ua
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -140,6 +141,14 @@ func (r *Register) SendRegister(expires uint32) error {
 				}
 				select {
 				case <-r.timer.C:
+					if r.profile.DoRegister != nil {
+						var err error
+						r.profile.AuthInfo, err = r.profile.DoRegister()
+						//r.authorizer = nil
+						if err != nil {
+							fmt.Println("error")
+						}
+					}
 					r.SendRegister(expires)
 				case <-r.ctx.Done():
 					return
