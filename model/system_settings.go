@@ -16,6 +16,7 @@ const (
 	SysNameSearchNumberLength     = "search_number_length"
 	SysNameChatAiConnection       = "chat_ai_connection"
 	SysNamePasswordRegExp         = "password_reg_exp"
+	SysNamePasswordValidationText = "password_validation_text"
 )
 
 type SysValue json.RawMessage
@@ -77,6 +78,12 @@ func (s *SystemSetting) IsValid() AppError {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
 		}
 	case SysNamePasswordRegExp:
+		value := SysValue(s.Value)
+		str := value.Str()
+		if str == nil || *str == "" {
+			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
+	case SysNamePasswordValidationText:
 		value := SysValue(s.Value)
 		str := value.Str()
 		if str == nil || *str == "" {
