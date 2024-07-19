@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -27,7 +28,7 @@ func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) 
 	var out *model.Calendar
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with c as (
 		  insert into flow.calendar (name,  domain_id, start_at, end_at, description, timezone_id, created_at, created_by, updated_at, updated_by, accepts, excepts)
-		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, flow.calendar_json_to_accepts(:Accepts::jsonb), flow.calendar_json_to_excepts(:Excepts::jsonb))
+		  values (:Name, :DomainId, :StartAt, :EndAt, :Description, :TimezoneId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, flow.calendar_json_to_accepts(:Accepts::jsonb, :Specials::jsonb), flow.calendar_json_to_excepts(:Excepts::jsonb))
 		  returning *
 		)
 		select
@@ -43,7 +44,8 @@ func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) 
 		    c.updated_at,
 		    call_center.cc_get_lookup(u.id, u.name) as updated_by,
 		    flow.calendar_accepts_to_jsonb(c.accepts)::jsonb as accepts,
-		    call_center.cc_arr_type_to_jsonb(c.excepts)::jsonb as excepts
+		    call_center.cc_arr_type_to_jsonb(c.excepts)::jsonb as excepts,
+			flow.calendar_specials_to_jsonb(c.accepts)::jsonb as specials
 		from c
 		  inner join flow.calendar_timezones ct on ct.id = c.timezone_id
 	      left join directory.wbt_user uc on uc.id = c.created_by
@@ -61,6 +63,7 @@ func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) 
 			"UpdatedBy":   calendar.UpdatedBy.GetSafeId(),
 			"Accepts":     calendar.AcceptsToJson(),
 			"Excepts":     calendar.ExceptsToJson(),
+			"Specials":    calendar.SpecialsToJson(),
 		}); err != nil {
 		return nil, model.NewInternalError("store.sql_calendar.save.app_error", fmt.Sprintf("id=%v, %v", calendar.Id, err.Error()))
 	} else {
@@ -153,7 +156,8 @@ func (s SqlCalendarStore) Get(ctx context.Context, domainId int64, id int64) (*m
 			   c.updated_at,
 			   call_center.cc_get_lookup(u.id, u.name) as updated_by,
 			   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
-			   call_center.cc_arr_type_to_jsonb(c.excepts) as excepts
+			   call_center.cc_arr_type_to_jsonb(c.excepts) as excepts,
+			   flow.calendar_specials_to_jsonb(c.accepts) as specials
 		from flow.calendar c
 			   left join flow.calendar_timezones ct on c.timezone_id = ct.id
 			   left join directory.wbt_user uc on uc.id = c.created_by
@@ -180,14 +184,14 @@ func (s SqlCalendarStore) Update(ctx context.Context, calendar *model.Calendar) 
     start_at = :StartAt,
     updated_at = :UpdatedAt,
 	updated_by = :UpdatedBy,
-	accepts = flow.calendar_json_to_accepts(:Accepts),
+	accepts = flow.calendar_json_to_accepts(:Accepts, :Specials),
 	excepts = flow.calendar_json_to_excepts(:Excepts::jsonb)
 where id = :Id and domain_id = :DomainId
     returning *
 )
 select c.id,
        c.name,
-       c.end_at,
+       c.start_at,
        c.end_at,
        c.description,
        c.domain_id,
@@ -197,7 +201,8 @@ select c.id,
        c.updated_at,
        call_center.cc_get_lookup(u.id, u.name) as updated_by,
 	   flow.calendar_accepts_to_jsonb(c.accepts) as accepts,
-	   call_center.cc_arr_type_to_jsonb(c.excepts) as excepts
+	   call_center.cc_arr_type_to_jsonb(c.excepts) as excepts,
+       flow.calendar_specials_to_jsonb(c.accepts) as specials
 from c
        left join flow.calendar_timezones ct on c.timezone_id = ct.id
        left join directory.wbt_user uc on uc.id = c.created_by
@@ -213,6 +218,7 @@ from c
 		"UpdatedBy":   calendar.UpdatedBy.GetSafeId(),
 		"Accepts":     calendar.AcceptsToJson(),
 		"Excepts":     calendar.ExceptsToJson(),
+		"Specials":    calendar.SpecialsToJson(),
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_calendar.update.app_error", fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), extractCodeFromErr(err))

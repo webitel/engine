@@ -140,7 +140,11 @@ func (b2b *B2B) Register(userId int64, conf AuthInfo) error {
 		return errors.New("is registered")
 	}
 
-	acc, err = b2b.NewAccount(conf)
+	acc, err = b2b.NewAccount(conf, func() (*account.AuthInfo, error) {
+		fmt.Println("DO REGISTER")
+		//acc.profile.AuthInfo.Password = "323"
+		return acc.profile.AuthInfo, nil
+	})
 	if err != nil {
 		return err
 	}

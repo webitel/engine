@@ -30,6 +30,8 @@ type AuthInfo struct {
 	Extension string
 }
 
+type DoRegister func() (*AuthInfo, error)
+
 // Profile .
 type Profile struct {
 	URI           sip.Uri
@@ -43,6 +45,7 @@ type Profile struct {
 	CustomHeaders map[string]string
 	DomainId      int64
 	UserId        int64
+	DoRegister    DoRegister
 }
 
 // Contact .
@@ -64,7 +67,7 @@ func (p *Profile) Contact() *sip.Address {
 
 	contact.Params.Add("dc", sip.String{Str: fmt.Sprintf("%d", p.DomainId)})
 	contact.Params.Add("uid", sip.String{Str: fmt.Sprintf("%d", p.UserId)})
-
+	//contact.Params.Add("expires", sip.String{Str: fmt.Sprintf("%d", p.Expires)})
 	for key, value := range p.ContactParams {
 		contact.Params.Add(key, sip.String{Str: value})
 	}
@@ -84,6 +87,7 @@ func NewProfile(
 	authInfo *AuthInfo,
 	expires uint32,
 	stack *stack.SipStack,
+	doRegister DoRegister,
 ) *Profile {
 	p := &Profile{
 		URI:           uri,
@@ -93,6 +97,7 @@ func NewProfile(
 		CustomHeaders: make(map[string]string),
 		DomainId:      domainId,
 		UserId:        userId,
+		DoRegister:    doRegister,
 	}
 
 	if stack != nil { // populate the Contact field

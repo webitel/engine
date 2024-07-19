@@ -34,7 +34,7 @@ type Account struct {
 	unregisterCh chan struct{}
 }
 
-func (b2b *B2B) NewAccount(auth AuthInfo) (*Account, error) {
+func (b2b *B2B) NewAccount(auth AuthInfo, doRegister account.DoRegister) (*Account, error) {
 	var err error
 	var uri sip.Uri
 
@@ -49,7 +49,7 @@ func (b2b *B2B) NewAccount(auth AuthInfo) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.profile = account.NewProfile(auth.DomainId, auth.UserId, uri.Clone(), auth.DisplayName, &a.auth.AuthInfo, auth.Expires, b2b.stack)
+	a.profile = account.NewProfile(auth.DomainId, auth.UserId, uri.Clone(), auth.DisplayName, &a.auth.AuthInfo, auth.Expires, b2b.stack, doRegister)
 
 	a.recipient, err = parser.ParseSipUri(fmt.Sprintf("sip:%s@%s;transport=%s", auth.AuthUser, b2b.host, b2b.transport)) // this is the remote address
 	if err != nil {

@@ -44,6 +44,7 @@ func (a *App) UpdateCalendar(ctx context.Context, calendar *model.Calendar) (*mo
 	oldCalendar.UpdatedBy = calendar.UpdatedBy
 	oldCalendar.Accepts = calendar.Accepts
 	oldCalendar.Excepts = calendar.Excepts
+	oldCalendar.Specials = calendar.Specials
 
 	oldCalendar, err = a.Store.Calendar().Update(ctx, oldCalendar)
 	if err != nil {

@@ -1,9 +1,11 @@
 package grpc_api
 
 import (
+	"context"
+
 	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
 	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
-	"context"
+
 	"github.com/webitel/engine/model"
 )
 
@@ -60,6 +62,15 @@ func (api *calendar) CreateCalendar(ctx context.Context, in *engine.CreateCalend
 			WorkStart: v.GetWorkStart(),
 			WorkStop:  v.GetWorkStop(),
 			Working:   v.GetWorking(),
+		})
+	}
+
+	for _, v := range in.Specials {
+		calendar.Specials = append(calendar.Specials, &model.CalendarAcceptOfDay{
+			Day:            int8(v.GetDay()),
+			StartTimeOfDay: int16(v.GetStartTimeOfDay()),
+			EndTimeOfDay:   int16(v.GetEndTimeOfDay()),
+			Disabled:       v.GetDisabled(),
 		})
 	}
 
@@ -174,6 +185,15 @@ func (api *calendar) UpdateCalendar(ctx context.Context, in *engine.UpdateCalend
 		})
 	}
 
+	for _, v := range in.Specials {
+		calendar.Specials = append(calendar.Specials, &model.CalendarAcceptOfDay{
+			Day:            int8(v.GetDay()),
+			StartTimeOfDay: int16(v.GetStartTimeOfDay()),
+			EndTimeOfDay:   int16(v.GetEndTimeOfDay()),
+			Disabled:       v.GetDisabled(),
+		})
+	}
+
 	calendar, err = api.ctrl.UpdateCalendar(ctx, session, calendar)
 
 	if err != nil {
@@ -259,6 +279,13 @@ func transformCalendar(src *model.Calendar) *engine.Calendar {
 		item.Excepts = make([]*engine.ExceptDate, 0, len(src.Excepts))
 		for _, v := range src.Excepts {
 			item.Excepts = append(item.Excepts, transformExceptDate(v))
+		}
+	}
+
+	if len(src.Specials) > 0 {
+		item.Specials = make([]*engine.AcceptOfDay, 0, len(src.Specials))
+		for _, v := range src.Specials {
+			item.Specials = append(item.Specials, transformAcceptOfDay(*v))
 		}
 	}
 
