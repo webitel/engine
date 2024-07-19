@@ -151,11 +151,20 @@ FROM a
 }
 
 func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, model.AppError) {
-	var agents []*model.Agent
+	var (
+		agents         []*model.Agent
+		searchOperator string
+	)
+	q, regExpFound := model.ParseRegexp(search.Q)
+	if regExpFound {
+		searchOperator = "~"
+	} else {
+		searchOperator = "ilike"
+	}
 	f := map[string]interface{}{
 		"DomainId":      domainId,
 		"Ids":           pq.Array(search.Ids),
-		"Q":             search.GetRegExpQ(),
+		"Q":             q,
 		"TeamIds":       pq.Array(search.TeamIds),
 		"AllowChannels": pq.Array(search.AllowChannels),
 		"SupervisorIds": pq.Array(search.SupervisorIds),
@@ -170,9 +179,8 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		"NotTeamIds":    pq.Array(search.NotTeamIds),
 		"NotSkillIds":   pq.Array(search.NotSkillIds),
 	}
-
 	err := s.ListQuery(ctx, &agents, search.ListRequest,
-		`domain_id = :DomainId
+		fmt.Sprintf(`domain_id = :DomainId
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_id = any(:TeamIds))
 				and (:AllowChannels::varchar[] isnull or allow_channels && :AllowChannels )
@@ -196,7 +204,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
-				and (:Q::varchar isnull or (name ~ :Q::varchar or description ~ :Q::varchar or status ~ :Q::varchar ))`,
+				and (:Q::varchar isnull or (name %s :Q::varchar or description %[1]s :Q::varchar or status %[1]s :Q::varchar ))`, searchOperator),
 		model.Agent{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.get_all.app_error", err.Error())
