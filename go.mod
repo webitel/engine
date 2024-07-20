@@ -1,6 +1,6 @@
 module github.com/webitel/engine
 
-go 1.19
+go 1.22
 
 require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
@@ -31,8 +31,8 @@ require (
 	github.com/nicksnyder/go-i18n v1.10.1
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/sirupsen/logrus v1.9.0
-	github.com/streadway/amqp v1.1.0
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
 	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
@@ -240,7 +240,6 @@ require (
 	go.opentelemetry.io/otel v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
-	go.uber.org/goleak v1.2.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.26.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
