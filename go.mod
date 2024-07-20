@@ -1,6 +1,6 @@
 module github.com/webitel/engine
 
-go 1.22
+go 1.22.0
 
 require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
