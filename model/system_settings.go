@@ -12,6 +12,8 @@ const (
 	SysNameSchemeVersionLimit     = "scheme_version_limit"
 	SysNameAmdCancelNotHuman      = "amd_cancel_not_human"
 	SysNameTwoFactorAuthorization = "enable_2fa"
+	SysNamePasswordRegExp         = "password_reg_exp"
+	SysNamePasswordValidationText = "password_validation_text"
 )
 
 type SysValue json.RawMessage
@@ -36,6 +38,20 @@ type SearchSystemSetting struct {
 
 type AvailableSearchSystemSetting struct {
 	ListRequest
+}
+
+func (v *SysValue) Str() *string {
+	if v == nil {
+		return nil
+	}
+
+	var val string
+	err := json.Unmarshal(*v, &val)
+	if err != nil {
+		return nil
+	}
+
+	return &val
 }
 
 func (SystemSetting) DefaultOrder() string {
@@ -72,7 +88,18 @@ func (s *SystemSetting) IsValid() AppError {
 		if i == nil {
 			return NewBadRequestError("model.SystemSetting.invalid.bool.value", "invalid bool value")
 		}
-
+	case SysNamePasswordRegExp:
+		value := SysValue(s.Value)
+		str := value.Str()
+		if str == nil || *str == "" {
+			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
+	case SysNamePasswordValidationText:
+		value := SysValue(s.Value)
+		str := value.Str()
+		if str == nil || *str == "" {
+			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
 	default:
 		return NewBadRequestError("model.SystemSetting.valid.name", fmt.Sprintf("%s not allow", s.Name))
 	}
