@@ -64,7 +64,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		notificationEvent: make(chan *model.Notification),
 		fnGetAllBindings:  bindings,
 
-		bindChan: make(chan *model.BindQueueEvent, 100), //TODO
+		bindChan: make(chan *model.BindQueueEvent, 1000), //TODO
 
 		closeChannel: make(chan *amqp.Error, 1),
 		reconnect:    make(chan error, 1),
@@ -198,6 +198,7 @@ func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
 	ch := dq.getChannel()
 	if ch == nil {
 		wlog.Error("not found active channel")
+		return
 	}
 
 	err := ch.QueueBind(
@@ -406,6 +407,7 @@ func (dq *DomainQueue) connect() error {
 
 	defer func() {
 		if err != nil {
+			wlog.Error(fmt.Sprintf("DomainQueue [%d] error: %s", dq.Id(), err.Error()))
 			time.Sleep(time.Second * RECONNECT_SEC)
 			go dq.connect()
 		}
@@ -415,6 +417,7 @@ func (dq *DomainQueue) connect() error {
 
 	ch, err = dq.client.NewChannel()
 	if err != nil {
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] channel error: %s", dq.Id(), err.Error()))
 		return err
 	}
 
@@ -428,16 +431,18 @@ func (dq *DomainQueue) connect() error {
 		false,
 		false,
 		true,
-		false,
+		true,
 		nil,
 	)
 
 	if err != nil {
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] declare error: %s", dq.Id(), err.Error()))
 		return err
 	}
 
 	err = ch.QueueBind(dq.queue.Name, fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
 	if err != nil {
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] bind error: %s", dq.Id(), err.Error()))
 		return err
 	}
 
@@ -447,11 +452,12 @@ func (dq *DomainQueue) connect() error {
 		true,
 		true,
 		false,
-		false,
+		true,
 		nil,
 	)
 
 	if err != nil {
+		wlog.Error(fmt.Sprintf("DomainQueue [%d] consume error: %s", dq.Id(), err.Error()))
 		return err
 	}
 
