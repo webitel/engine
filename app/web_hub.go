@@ -37,8 +37,8 @@ func (a *App) NewWebHub(name string, id int64) *Hub {
 		id:               id,
 		app:              a,
 		name:             name,
-		register:         make(chan *WebConn, 1),
-		unregister:       make(chan *WebConn, 1),
+		register:         make(chan *WebConn, 10),
+		unregister:       make(chan *WebConn, 10),
 		broadcast:        make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
 		stop:             make(chan struct{}),
 		didStop:          make(chan struct{}),
@@ -75,7 +75,7 @@ func (wh *Hub) start() {
 		select {
 		case <-ticker.C:
 
-			if wh.connectionCount == 0 && (wh.lastUnregisterAt+(5*60*1000)) < model.GetMillis() {
+			if wh.connectionCount == 0 && (wh.lastUnregisterAt+(24*60*60*1000)) < model.GetMillis() {
 				wh.domainQueue.Stop()
 				wh.app.DeleteHub(wh.id)
 				wlog.Debug(fmt.Sprintf("shutdown domain=%s hub", wh.name))
