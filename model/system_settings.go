@@ -71,19 +71,9 @@ func (s *SystemSetting) IsValid() AppError {
 		if i == nil || *i < 1 {
 			return NewBadRequestError("model.SystemSetting.invalid.int.value", "The value should be more than 1")
 		}
-	case SysNameChatAiConnection:
-		value := SysValue(s.Value)
-		str := value.Str()
-		if str == nil || *str == "" {
-			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
-		}
-	case SysNamePasswordRegExp:
-		value := SysValue(s.Value)
-		str := value.Str()
-		if str == nil || *str == "" {
-			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
-		}
-	case SysNamePasswordValidationText:
+	case SysNameChatAiConnection,
+		SysNamePasswordRegExp,
+		SysNamePasswordValidationText:
 		value := SysValue(s.Value)
 		str := value.Str()
 		if str == nil || *str == "" {
