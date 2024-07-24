@@ -17,6 +17,7 @@ const (
 	SysNameChatAiConnection       = "chat_ai_connection"
 	SysNamePasswordRegExp         = "password_reg_exp"
 	SysNamePasswordValidationText = "password_validation_text"
+	SysNameAutolinkCallToContact  = "autolink_call_to_contact"
 )
 
 type SysValue json.RawMessage
@@ -79,7 +80,7 @@ func (s *SystemSetting) IsValid() AppError {
 		if str == nil || *str == "" {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
 		}
-	case SysNameTwoFactorAuthorization:
+	case SysNameTwoFactorAuthorization, SysNameAutolinkCallToContact:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
