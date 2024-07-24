@@ -157,9 +157,9 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 	)
 	q, regExpFound := model.ParseRegexp(search.Q)
 	if regExpFound {
-		searchOperator = "~"
+		searchOperator = RegExpComparisonOperator
 	} else {
-		searchOperator = "ilike"
+		searchOperator = ILikeComparisonOperator
 	}
 	f := map[string]interface{}{
 		"DomainId":      domainId,
@@ -874,8 +874,18 @@ order by c.name;`, map[string]interface{}{
 // FIXME sort, columns
 // allow_change
 func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError) {
-	var list []*model.AgentStatusStatistics
-	_, err := s.GetMaster().WithContext(ctx).Select(&list, `select agent_id,
+	var (
+		list           []*model.AgentStatusStatistics
+		searchOperator string
+	)
+
+	q, found := model.ParseRegexp(search.Q)
+	if found {
+		searchOperator = RegExpComparisonOperator
+	} else {
+		searchOperator = ILikeComparisonOperator
+	}
+	_, err := s.GetMaster().WithContext(ctx).Select(&list, fmt.Sprintf(`select agent_id,
        name,
        status,
        status_duration,
@@ -1064,7 +1074,7 @@ from (
      ) t
 where t.domain_id = :DomainId
   and (:AgentIds::int[] isnull or t.agent_id = any (:AgentIds))
-  and (:Q::varchar isnull or t.name ilike :Q::varchar)
+  and (:Q::varchar isnull or t.name %s :Q::varchar)
   and (:Status::varchar[] isnull or (t.status = any (:Status)))
   and ((:UFrom::numeric isnull or t.utilization >= :UFrom::numeric) and
        (:UTo::numeric isnull or t.utilization <= :UTo::numeric))
@@ -1079,12 +1089,12 @@ order by case t.status
              when 'pause' then 1
              when 'online' then 2
              else 3 end, t.name
-limit :Limit offset :Offset`, map[string]interface{}{
+limit :Limit offset :Offset`, searchOperator), map[string]interface{}{
 		"DomainId":         domainId,
 		"UserSupervisorId": supervisorUserId,
 		//"Groups":     pq.Array(groups),
 		//"Access":     access.Value(),
-		"Q":             search.GetQ(),
+		"Q":             q,
 		"Limit":         search.GetLimit(),
 		"Offset":        search.GetOffset(),
 		"From":          model.GetBetweenFromTime(&search.Time),

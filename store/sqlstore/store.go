@@ -8,6 +8,11 @@ import (
 	"github.com/webitel/engine/store"
 )
 
+const (
+	ILikeComparisonOperator  = "ilike"
+	RegExpComparisonOperator = "~"
+)
+
 type SqlStore interface {
 	GetMaster() *gorp.DbMap
 	GetReplica() *gorp.DbMap
