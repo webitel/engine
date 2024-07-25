@@ -525,11 +525,11 @@ func (api *API) callSetParams(conn *app.WebConn, req *model.WebSocketRequest) (m
 }
 
 // TODO WTEL-4809
-func (api *API) callSetContact(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSetContactTODO(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	res := make(map[string]interface{})
 	return res, nil
 }
-func (api *API) callSetContactOld(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSetContact(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id string
 	var contactId float64
