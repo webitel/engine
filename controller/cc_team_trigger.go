@@ -26,8 +26,9 @@ func (c *Controller) SearchTeamTrigger(ctx context.Context, session *auth_manage
 }
 
 func (c *Controller) SearchAgentTrigger(ctx context.Context, session *auth_manager.Session, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, bool, model.AppError) {
-	var err model.AppError
+	//var err model.AppError
 	userId := session.GetUserId()
+	/* TODO
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -41,6 +42,7 @@ func (c *Controller) SearchAgentTrigger(ctx context.Context, session *auth_manag
 			return nil, false, c.app.MakeResourcePermissionError(session, userId, permission, auth_manager.PERMISSION_ACCESS_READ)
 		}
 	}
+	*/
 
 	return c.app.SearchAgentTrigger(ctx, session.Domain(0), userId, search)
 }
