@@ -1263,16 +1263,24 @@ where s.domain_id = :DomainId and `
 }
 
 func (s SqlAgentStore) UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError) {
-	var users []*model.UserStatus
-
+	var (
+		users          []*model.UserStatus
+		searchOperator string
+	)
+	q, regExpFound := model.ParseRegexp(search.Q)
+	if regExpFound {
+		searchOperator = RegExpComparisonOperator
+	} else {
+		searchOperator = ILikeComparisonOperator
+	}
 	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Q":        search.GetQ(),
+		"Q":        q,
 	}
 
 	err := s.ListQuery(ctx, &users, search.ListRequest,
-		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar or extension ilike :Q::varchar ))`,
+		fmt.Sprintf(`domain_id = :DomainId
+				and (:Q::varchar isnull or (name %s :Q::varchar or extension %[1]s :Q::varchar ))`, searchOperator),
 		model.UserStatus{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.get_users.app_error", err.Error())
@@ -1282,24 +1290,32 @@ func (s SqlAgentStore) UsersStatus(ctx context.Context, domainId int64, search *
 }
 
 func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError) {
-	var users []*model.UserStatus
-
+	var (
+		users          []*model.UserStatus
+		searchOperator string
+	)
+	q, found := model.ParseRegexp(search.Q)
+	if found {
+		searchOperator = RegExpComparisonOperator
+	} else {
+		searchOperator = ILikeComparisonOperator
+	}
 	f := map[string]interface{}{
 		"DomainId": domainId,
-		"Q":        search.GetQ(),
+		"Q":        q,
 		"Groups":   pq.Array(groups),
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 	}
 
 	err := s.ListQuery(ctx, &users, search.ListRequest,
-		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar or extension ilike :Q::varchar ))
+		fmt.Sprintf(`domain_id = :DomainId
+				and (:Q::varchar isnull or (name %s :Q::varchar or extension %[1]s :Q::varchar ))
 				and (
 					exists(select 1
 					  from directory.wbt_auth_acl
 					  where directory.wbt_auth_acl.dc = t.domain_id and directory.wbt_auth_acl.object = t.id 
 						and directory.wbt_auth_acl.subject = any(:Groups::int[]) and directory.wbt_auth_acl.access&:Access = :Access)
-		  		)`,
+		  		)`, searchOperator),
 		model.UserStatus{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.get_users.app_error", err.Error())

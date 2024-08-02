@@ -905,11 +905,12 @@ func (api *agent) SearchUserStatus(ctx context.Context, in *engine.SearchUserSta
 			Sort:    in.Sort,
 		},
 	}
+	// Commented by WTEL-4615 requirement
 	// TODO DEV-4075
-	lq := len(req.Q)
-	if lq != 0 && rune(req.Q[lq-1]) != rune('*') {
-		req.Q += "*"
-	}
+	//lq := len(req.Q)
+	//if lq != 0 && rune(req.Q[lq-1]) != rune('*') {
+	//	req.Q += "*"
+	//}
 
 	list, endList, err = api.ctrl.SearchUserStatus(ctx, session, req)
 
