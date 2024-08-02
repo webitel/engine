@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/localization"
@@ -23,8 +24,7 @@ type webSocketHandler struct {
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
-	wlog.Debug(fmt.Sprintf("[%s] websock (%s) method %s", conn.Ip(), conn.Id(), r.Action))
-
+	start := time.Now()
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
 		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(localization.T), sessionErr.Error()))
@@ -48,7 +48,10 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	}
 
 	if data, err = wh.handlerFunc(conn, r); err != nil {
-		wlog.Error(fmt.Sprintf("%v %v seq=%vq [details: %v]", "websocket", r.Action, r.Seq, err.Error()))
+		conn.Log().With(
+			wlog.String("method", r.Action),
+			wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
+		).Error(err.Error(), wlog.Err(err))
 		//err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 
@@ -57,6 +60,10 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	}
 
 	resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, data)
+	conn.Log().With(
+		wlog.String("method", r.Action),
+		wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
+	).Debug("receive")
 
 	conn.Send <- resp
 }
