@@ -96,6 +96,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		"name":    model.APP_SERVICE_NAME,
 		"version": model.CurrentVersion,
 		"id":      config.NodeName,
+		"build":   model.BuildNumberInt(),
 	}))
 
 	wlog.RedirectStdLog(app.Log)
