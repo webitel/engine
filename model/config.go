@@ -28,6 +28,12 @@ type SipSettings struct {
 	PublicProxy string `json:"public_proxy" flag:"sip_proxy_addr||Public sip proxy address"`
 }
 
+type LogSettings struct {
+	Lvl  string `json:"lvl" flag:"log_lvl|debug|Log level"`
+	Json bool   `json:"json" flag:"log_json|false|Log format JSON"`
+	File string `json:"file" flag:"log_file||Log file directory"`
+}
+
 type Config struct {
 	ConfigFile              *string                  `json:"-" flag:"config_file||JSON file configuration"`
 	PresignedCert           string                   `json:"presigned_cert" flag:"presigned_cert|/opt/storage/key.pem|Location to pre signed certificate"`
@@ -53,6 +59,7 @@ type Config struct {
 	PublicHostName          *string                  `json:"public_host" flag:"public_host||Public hostname"`
 	B2BSettings             B2BSettings
 	Push                    PushConfig
+	Log                     LogSettings `json:"log"`
 }
 
 type PushConfig struct {

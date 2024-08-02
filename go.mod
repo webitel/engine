@@ -1,19 +1,21 @@
 module github.com/webitel/engine
 
-go 1.22.0
+go 1.22
+
+toolchain go1.22.5
 
 require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.33.0-20240404135440-3efb61ebef03.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.4.0-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/engine/grpc/go v1.4.0-20240716105448-884410e96afe.2
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240716105448-884410e96afe.2
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.34.2-20240724130654-91f864624152.2
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
 	buf.build/gen/go/webitel/logger/protocolbuffers/go v1.33.0-20240404135439-f6c7830c29dd.1
-	buf.build/gen/go/webitel/webitel-go/grpc/go v1.3.0-20240527133231-c12eb2a85c36.3
-	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.34.1-20240527133231-c12eb2a85c36.1
+	buf.build/gen/go/webitel/webitel-go/grpc/go v1.4.0-20240725111140-8ade8003e454.2
+	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.34.2-20240725111140-8ade8003e454.2
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/BoRuDar/configuration/v4 v4.2.2
 	github.com/Masterminds/squirrel v1.5.4
@@ -35,7 +37,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
-	github.com/webitel/wlog v0.0.0-20220608103744-93b33e61bd28
+	github.com/webitel/wlog v0.0.0-20240802100804-ad06704b174f
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0
@@ -49,7 +51,7 @@ require (
 require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.2-20231027202514-3f42134f4c56.2 // indirect
+	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.34.2-20240502201324-7530ea77434f.2 // indirect
 	buf.build/gen/go/webitel/cc/grpc/go v1.3.0-20240404135440-3efb61ebef03.2 // indirect
 	cloud.google.com/go v0.112.0 // indirect
 	cloud.google.com/go/compute v1.23.3 // indirect
@@ -241,7 +243,7 @@ require (
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	go.uber.org/zap v1.26.0 // indirect
+	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect

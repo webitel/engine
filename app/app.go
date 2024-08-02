@@ -79,10 +79,25 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 	model.AppErrorInit(localization.T)
 
-	app.Log = wlog.NewLogger(&wlog.LoggerConfiguration{
+	logConfig := &wlog.LoggerConfiguration{
 		EnableConsole: true,
-		ConsoleLevel:  wlog.LevelDebug,
-	})
+		ConsoleJson:   false,
+		ConsoleLevel:  config.Log.Lvl,
+	}
+
+	if config.Log.File != "" {
+		logConfig.FileLocation = config.Log.File
+		logConfig.EnableFile = true
+		logConfig.FileJson = true
+		logConfig.FileLevel = config.Log.Lvl
+	}
+
+	app.Log = wlog.NewLogger(logConfig).With(wlog.Any("service", map[string]interface{}{
+		"name":    model.APP_SERVICE_NAME,
+		"version": model.CurrentVersion,
+		"id":      config.NodeName,
+		"build":   model.BuildNumberInt(),
+	}))
 
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)

@@ -85,6 +85,10 @@ func (wh *Hub) start() {
 			connections.Add(webCon)
 			atomic.StoreInt64(&wh.connectionCount, int64(len(connections.All())))
 
+			webCon.SetLog(webCon.Log().With(wlog.Int64("user_id", webCon.UserId),
+				wlog.Int64("domain_id", webCon.DomainId),
+			))
+
 			err := wh.app.MessageQueue.RegisterWebsocket(webCon.DomainId, &model.RegisterToWebsocketEvent{
 				AppId:     wh.app.nodeId,
 				Timestamp: model.GetMillis(),

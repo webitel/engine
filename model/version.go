@@ -1,5 +1,7 @@
 package model
 
+import "strconv"
+
 var versions = []string{
 	"24.04",
 	"24.02",
@@ -17,3 +19,8 @@ var versions = []string{
 
 var CurrentVersion string = versions[0]
 var BuildNumber string
+
+func BuildNumberInt() int {
+	n, _ := strconv.Atoi(BuildNumber)
+	return n
+}

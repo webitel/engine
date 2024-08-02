@@ -49,6 +49,8 @@ type WebConn struct {
 	mx                 sync.RWMutex
 	ip                 string
 	lastLatencyTime    atomic.Int64
+	log                *wlog.Logger
+	logMx              sync.RWMutex
 
 	//Sip *SipProxy
 }
@@ -69,6 +71,13 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		ip:                 ip,
 	}
 
+	wc.log = a.Log.With(
+		wlog.Namespace("context"),
+		wlog.String("ip_address", ip),
+		wlog.String("protocol", "wss"),
+		wlog.String("sock_id", wc.id),
+	)
+
 	//wc.Sip = NewSipProxy(wc)
 
 	wc.SetSession(&session)
@@ -76,6 +85,19 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 	wc.SetSessionExpiresAt(session.Expire)
 
 	return wc
+}
+
+func (wc *WebConn) SetLog(l *wlog.Logger) {
+	wc.logMx.Lock()
+	wc.log = l
+	wc.logMx.Unlock()
+}
+
+func (wc *WebConn) Log() *wlog.Logger {
+	wc.logMx.RLock()
+	l := wc.log
+	wc.logMx.RUnlock()
+	return l
 }
 
 func (wc *WebConn) Id() string {
@@ -118,7 +140,7 @@ func (c *WebConn) Pump() {
 
 func (c *WebConn) readPump() {
 	defer func() {
-		wlog.Debug(fmt.Sprintf("websocket.read: close userId=%v, sockId=%s, ip=%s", c.UserId, c.id, c.ip))
+		c.Log().Debug("websocket.read: close")
 		c.WebSocket.Close()
 	}()
 
