@@ -30,8 +30,8 @@ type SipSettings struct {
 
 type LogSettings struct {
 	Lvl  string `json:"lvl" flag:"log_lvl|debug|Log level"`
-	Json bool   `json:"json" flag:"log_json|1|Log format JSON"`
-	File string `json:"file" flag:"log_file|/var/log/webitel/engine|Log file directory"`
+	Json bool   `json:"json" flag:"log_json|false|Log format JSON"`
+	File string `json:"file" flag:"log_file||Log file directory"`
 }
 
 type Config struct {

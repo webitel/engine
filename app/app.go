@@ -81,7 +81,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	logConfig := &wlog.LoggerConfiguration{
 		EnableConsole: true,
-		ConsoleJson:   config.Log.File == "",
+		ConsoleJson:   false,
 		ConsoleLevel:  config.Log.Lvl,
 	}
 
