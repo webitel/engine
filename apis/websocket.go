@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/web"
@@ -24,19 +23,22 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		EnableCompression: true,
 	}
 
+	log := c.App.Log.With(wlog.Namespace("context")).
+		With(wlog.String("protocol", "wss"))
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		wlog.Error(fmt.Sprintf("websocket connect err: %v", err))
+		log.Err(err)
 		return
 	}
 
 	defer func() {
 		c.App.Count.Add(-1)
-		wlog.Info(fmt.Sprintf("count socket %d", c.App.Count.Load()))
+		log.Debug("close socket", wlog.Int64("count", c.App.Count.Load()))
 	}()
 
 	c.App.Count.Add(1)
-	wlog.Info(fmt.Sprintf("count socket %d", c.App.Count.Load()))
+	log.Debug("open socket", wlog.Int64("count", c.App.Count.Load()))
 
 	wc := c.App.NewWebConn(ws, c.Session, c.T, "", web.ReadUserIP(r))
 	wc.Pump()

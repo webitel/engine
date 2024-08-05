@@ -33,9 +33,11 @@ type authManager struct {
 	startOnce sync.Once
 	stop      chan struct{}
 	stopped   chan struct{}
+
+	log *wlog.Logger
 }
 
-func NewAuthManager(cacheSize int, cacheTime int64, serviceDiscovery discovery.ServiceDiscovery) AuthManager {
+func NewAuthManager(cacheSize int, cacheTime int64, serviceDiscovery discovery.ServiceDiscovery, log *wlog.Logger) AuthManager {
 	if cacheTime < 1 {
 		// 0 disabled cache
 		cacheTime = 1
@@ -46,11 +48,12 @@ func NewAuthManager(cacheSize int, cacheTime int64, serviceDiscovery discovery.S
 		poolConnections:  discovery.NewPoolConnections(),
 		session:          utils.NewLruWithParams(cacheSize, "auth manager", cacheTime, ""), //TODO session from config ?
 		serviceDiscovery: serviceDiscovery,
+		log:              log.With(wlog.Namespace("context")).With(wlog.String("scope", "auth_manager")),
 	}
 }
 
 func (am *authManager) Start() error {
-	wlog.Debug("starting auth service")
+	am.log.Debug("starting")
 
 	if services, err := am.serviceDiscovery.GetByName(AUTH_SERVICE_NAME); err != nil {
 		return err
@@ -65,14 +68,14 @@ func (am *authManager) Start() error {
 		go am.watcher.Start()
 		go func() {
 			defer func() {
-				wlog.Debug("stopper auth manager")
+				am.log.Debug("stopper")
 				close(am.stopped)
 			}()
 
 			for {
 				select {
 				case <-am.stop:
-					wlog.Debug("auth manager received stop signal")
+					am.log.Debug("received stop signal")
 					return
 				}
 			}
@@ -106,17 +109,19 @@ func (am *authManager) registerConnection(v *discovery.ServiceConnection) {
 	addr := fmt.Sprintf("%s:%d", v.Host, v.Port)
 	client, err := NewAuthServiceConnection(v.Id, addr)
 	if err != nil {
-		wlog.Error(fmt.Sprintf("connection %s [%s] error: %s", v.Id, addr, err.Error()))
+		am.log.With(wlog.String("service_id", v.Id), wlog.String("ip_address", addr)).
+			Err(err)
 		return
 	}
 	am.poolConnections.Append(client)
-	wlog.Debug(fmt.Sprintf("register connection %s [%s]", client.Name(), addr))
+	am.log.With(wlog.String("service_id", v.Id), wlog.String("ip_address", addr)).
+		Debug("register")
 }
 
 func (am *authManager) wakeUp() {
 	list, err := am.serviceDiscovery.GetByName(AUTH_SERVICE_NAME)
 	if err != nil {
-		wlog.Error(err.Error())
+		am.log.Error(err.Error())
 		return
 	}
 

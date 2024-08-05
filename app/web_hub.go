@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"strconv"
 	"sync/atomic"
 	"time"
@@ -30,6 +29,8 @@ type Hub struct {
 	ExplicitStop     bool
 	domainQueue      mq.DomainQueue
 	lastUnregisterAt int64
+
+	log *wlog.Logger
 }
 
 func (a *App) NewWebHub(name string, id int64) *Hub {
@@ -45,6 +46,10 @@ func (a *App) NewWebHub(name string, id int64) *Hub {
 		lastUnregisterAt: model.GetMillis(),
 		invalidateUser:   make(chan string),
 		ExplicitStop:     false,
+		log: a.Log.With(wlog.Namespace("context"),
+			wlog.String("scope", "wsHub"),
+			wlog.Int64("domain_id", id),
+		),
 	}
 	dq, _ := a.MessageQueue.NewDomainQueue(id, hub.GetAllBindings)
 	hub.domainQueue = dq
@@ -61,12 +66,12 @@ func (wh *Hub) GetAllBindings() []*model.BindQueueEvent {
 }
 
 func (wh *Hub) start() {
-	wlog.Debug(fmt.Sprintf("hub %s started", wh.name))
+	wh.log.Debug("started")
 
 	ticker := time.NewTicker(SHUTDOWN_TICKER)
 	defer func() {
 		ticker.Stop()
-		wlog.Debug(fmt.Sprintf("hub %s stopped", wh.name))
+		wh.log.Debug("stopped")
 	}()
 
 	connections := newHubConnectionIndex()
@@ -78,7 +83,7 @@ func (wh *Hub) start() {
 			if wh.connectionCount == 0 && (wh.lastUnregisterAt+(24*60*60*1000)) < model.GetMillis() {
 				wh.domainQueue.Stop()
 				wh.app.DeleteHub(wh.id)
-				wlog.Debug(fmt.Sprintf("shutdown domain=%s hub", wh.name))
+				wh.log.Debug("shutdown")
 				return
 			}
 		case webCon := <-wh.register:
@@ -97,10 +102,10 @@ func (wh *Hub) start() {
 				SocketId:  webCon.id,
 			})
 			if err != nil {
-				wlog.Error(err.Error())
+				webCon.Log().Err(err)
 			}
 
-			wlog.Debug(fmt.Sprintf("register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
+			wlog.Debug("register", wlog.Int("count", len(connections.ForUser(webCon.UserId))))
 
 		case webCon := <-wh.unregister:
 			connections.Remove(webCon)
@@ -118,10 +123,10 @@ func (wh *Hub) start() {
 				SocketId:  webCon.id,
 			})
 			if err != nil {
-				wlog.Error(err.Error())
+				webCon.Log().Err(err)
 			}
 
-			wlog.Debug(fmt.Sprintf("un-register user %d opened socket %d", webCon.UserId, len(connections.ForUser(webCon.UserId))))
+			wlog.Debug("deregister", wlog.Int("count", len(connections.ForUser(webCon.UserId))))
 
 			if wh.app.b2b != nil && !connections.HasUser(webCon.UserId) {
 				wh.app.b2b.Unregister(webCon.UserId, 5)
@@ -134,7 +139,7 @@ func (wh *Hub) start() {
 					select {
 					case webCon.Send <- msg:
 					default:
-						wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+						webCon.Log().Error("webcon.broadcast.dq: cannot send, closing websocket", wlog.String("event_type", "dq"))
 						close(webCon.Send)
 						connections.Remove(webCon)
 					}
@@ -155,12 +160,12 @@ func (wh *Hub) start() {
 					select {
 					case webCon.Send <- msg:
 					default:
-						wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+						webCon.Log().Error("webcon.broadcast.call: cannot send, closing websocket", wlog.String("event_type", "call"))
 						close(webCon.Send)
 						connections.Remove(webCon)
 					}
-					// todo delete me DEV-1574
-					wlog.Debug(fmt.Sprintf("Hub [%d] send event %s [%s]  to %d [%s]", wh.id, ev.Event, ev.Id, webCon.UserId, webCon.id))
+					// todo delete me
+					webCon.Log().Debug("send event", wlog.String("event_type", "call"), wlog.String("event_name", ev.Event), wlog.String("event_id", ev.Id))
 				}
 			}
 
@@ -171,7 +176,7 @@ func (wh *Hub) start() {
 				select {
 				case webCon.Send <- msg:
 				default:
-					wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+					webCon.Log().Error("webcon.broadcast.chat: cannot send, closing websocket", wlog.String("event_type", "chat"))
 					close(webCon.Send)
 					connections.Remove(webCon)
 				}
@@ -186,7 +191,7 @@ func (wh *Hub) start() {
 				select {
 				case webCon.Send <- ev:
 				default:
-					wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+					webCon.Log().Error("webhub.broadcast: cannot send, closing websocket", wlog.String("event_type", "webhub"))
 					close(webCon.Send)
 					connections.Remove(webCon)
 				}
@@ -203,7 +208,7 @@ func (wh *Hub) start() {
 				select {
 				case webCon.Send <- msg:
 				default:
-					wlog.Error(fmt.Sprintf("webhub.broadcast: cannot send, closing websocket for userId=%v", webCon.UserId))
+					webCon.Log().Error("webhub.broadcast.user_status: cannot send, closing websocket", wlog.String("event_type", "user_status"))
 					close(webCon.Send)
 					connections.Remove(webCon)
 				}
@@ -221,7 +226,7 @@ func (wh *Hub) start() {
 							select {
 							case webCon.Send <- msg:
 							default:
-								wlog.Error(fmt.Sprintf("webhub.notification: cannot send, closing websocket for userId=%v", webCon.UserId))
+								webCon.Log().Error("webhub.broadcast.notification: cannot send, closing websocket", wlog.String("event_type", "notification"))
 								close(webCon.Send)
 								connections.Remove(webCon)
 							}
@@ -287,7 +292,7 @@ func (a *App) GetHubById(id int64) (*Hub, model.AppError) {
 	if h, ok := a.Hubs.Get(id); ok {
 		return h, nil
 	} else {
-		h = a.Hubs.Register(id, "TODO")
+		h = a.Hubs.Register(id, "")
 		return h, nil
 	}
 }

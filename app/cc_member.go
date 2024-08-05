@@ -23,7 +23,7 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	if member.HookCreated != nil {
 		err = app.MessageQueue.SendStartFlow(ctx, domainId, *member.HookCreated, member)
 		if err != nil {
-			wlog.Error(err.Error())
+			app.Log.Error("send hook start flow", wlog.Err(err))
 		}
 
 	}

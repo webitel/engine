@@ -68,7 +68,10 @@ func pushApn(ctx context.Context, r *model.SendPush) int {
 	for _, v := range r.Apple {
 		err = apnClient.Push(ctx, v, r)
 		if err != nil {
-			wlog.Error(err.Error())
+			wlog.Error(err.Error(), wlog.Namespace("context"),
+				wlog.String("protocol", "apn"),
+				wlog.Err(err),
+			)
 			continue
 		}
 		send++
@@ -102,7 +105,10 @@ func pushFirebase(ctx context.Context, r *model.SendPush) int {
 	})
 
 	if err != nil {
-		wlog.Error(fmt.Sprintf("firebase send error: %v", err.Error()))
+		wlog.Error(err.Error(), wlog.Namespace("context"),
+			wlog.String("protocol", "firebase"),
+			wlog.Err(err),
+		)
 	} else {
 		return res.SuccessCount
 	}

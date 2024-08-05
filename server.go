@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/webitel/engine/apis"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/grpc_api"
@@ -17,9 +16,8 @@ import (
 func main() {
 	interruptChan := make(chan os.Signal, 1)
 	a, err := app.New()
-	wlog.Info(fmt.Sprintf("server build version: %s", app.Version()))
 	if err != nil {
-		wlog.Critical(err.Error())
+		wlog.Critical("failed to start", wlog.Err(err))
 		return
 	}
 	defer a.Shutdown()
@@ -38,20 +36,28 @@ func main() {
 		panic(err.Error())
 	}
 
+	var dbg *http.Server
+
 	if a.Config().Dev {
-		setDebug()
+		dbg = setDebug()
 	}
 
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
+	if dbg != nil {
+		dbg.Close()
+	}
 }
 
-func setDebug() {
+func setDebug() *http.Server {
 	//debug.SetGCPercent(-1)
+	server := &http.Server{Addr: ":8091", Handler: nil}
 
-	go func() {
+	go func(s *http.Server) {
 		wlog.Info("start debug server on http://localhost:8091/debug/pprof/")
-		err := http.ListenAndServe(":8091", nil)
-		wlog.Info(err.Error())
-	}()
+		s.ListenAndServe()
+		wlog.Info("stop debug server on http://localhost:8091/debug/pprof/")
+	}(server)
+
+	return server
 }

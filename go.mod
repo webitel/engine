@@ -37,7 +37,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
-	github.com/webitel/wlog v0.0.0-20240802100804-ad06704b174f
+	github.com/webitel/wlog v0.0.0-20240805104530-8e14129556dd
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0

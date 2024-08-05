@@ -1,7 +1,6 @@
 package discovery
 
 import (
-	"fmt"
 	"github.com/webitel/wlog"
 	"time"
 )
@@ -14,6 +13,7 @@ type Watcher struct {
 	stopped         chan struct{}
 	pollingInterval int
 	PollAndNotify   WatcherNotify
+	log             *wlog.Logger
 }
 
 func MakeWatcher(name string, pollingInterval int, pollAndNotify WatcherNotify) *Watcher {
@@ -23,22 +23,25 @@ func MakeWatcher(name string, pollingInterval int, pollAndNotify WatcherNotify) 
 		stopped:         make(chan struct{}),
 		pollingInterval: pollingInterval,
 		PollAndNotify:   pollAndNotify,
+		log: wlog.GlobalLogger().
+			With(wlog.Namespace("context")).
+			With(wlog.String("scope", "watcher"), wlog.String("name", name)),
 	}
 }
 
 func (watcher *Watcher) Start() {
-	wlog.Debug(fmt.Sprintf("watcher [%s] started", watcher.name))
+	watcher.log.Debug("started")
 	//<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
-		wlog.Debug(fmt.Sprintf("watcher [%s] finished", watcher.name))
+		watcher.log.Debug("finished")
 		close(watcher.stopped)
 	}()
 
 	for {
 		select {
 		case <-watcher.stop:
-			wlog.Debug(fmt.Sprintf("watcher [%s] received stop signal", watcher.name))
+			watcher.log.Debug("received stop signal")
 			return
 		case <-time.After(time.Duration(watcher.pollingInterval) * time.Millisecond):
 			watcher.PollAndNotify()
@@ -47,7 +50,7 @@ func (watcher *Watcher) Start() {
 }
 
 func (watcher *Watcher) Stop() {
-	wlog.Debug(fmt.Sprintf("watcher [%s] stopping", watcher.name))
+	watcher.log.Debug("stopping")
 	close(watcher.stop)
 	<-watcher.stopped
 }

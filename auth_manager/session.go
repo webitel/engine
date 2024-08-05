@@ -1,7 +1,6 @@
 package auth_manager
 
 import (
-	"fmt"
 	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
@@ -170,7 +169,7 @@ func (am *authManager) GetSession(token string) (*Session, error) {
 
 	if !shared {
 		am.session.AddWithDefaultExpires(token, session)
-		wlog.Debug(fmt.Sprintf("store token %s", session.Name))
+		am.log.With(wlog.String("user_name", session.Name)).Debug("store")
 	}
 
 	return session, nil

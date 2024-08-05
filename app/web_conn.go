@@ -3,7 +3,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"errors"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -151,10 +151,12 @@ func (c *WebConn) readPump() {
 		return nil
 	})
 
+	c.Log().Error("websocket.NextReader error", wlog.Err(errors.New("bla bla")))
+
 	for {
 		msgType, rd, err := c.WebSocket.NextReader()
 		if err != nil {
-			wlog.Error(fmt.Sprintf("websocket.NextReader error: %s", err.Error()))
+			c.Log().Debug("websocket.NextReader error", wlog.Err(err))
 			return
 		}
 
@@ -165,14 +167,14 @@ func (c *WebConn) readPump() {
 		if msgType == websocket.TextMessage {
 			decoder = json.NewDecoder(rd)
 		} else {
-			wlog.Error(fmt.Sprintf("user_id=%d receive bad type message", c.UserId))
+			c.Log().Error("receive bad type message")
 			continue
 		}
 
 		var req model.WebSocketRequest
 
 		if err = decoder.Decode(&req); err != nil {
-			wlog.Error(fmt.Sprintf("user_id=%d decode message error: %s", c.UserId, err.Error()))
+			c.Log().Error("decode message error", wlog.Err(err))
 			continue
 		}
 
@@ -226,26 +228,22 @@ func (c *WebConn) writePump() {
 			}
 
 			if err != nil {
-				wlog.Warn("Error in encoding websocket message", wlog.Err(err))
+				c.Log().Debug("encoding websocket message", wlog.Err(err))
 				continue
 			}
 
 			if len(c.Send) >= SEND_DEADLOCK_WARN {
-				if evtOk {
-					wlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), buf.Len()))
-				} else {
-					wlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), buf.Len()))
-				}
+				c.Log().Warn("websocket.full", wlog.String("event", msg.EventType()), wlog.Int("length", buf.Len()))
 			}
 
 			if err = c.writeMessageBuf(websocket.TextMessage, buf.Bytes()); err != nil {
-				wlog.Error(fmt.Sprintf("user_id=%d, send message error: %s", c.UserId, err.Error()))
+				c.Log().Error("send message", wlog.Err(err))
 				return
 			}
 
 		case <-ticker.C:
 			if err := c.writeMessageBuf(websocket.PingMessage, []byte{}); err != nil {
-				wlog.Error(fmt.Sprintf("user_id=%d, send ping message error: %s", c.UserId, err.Error()))
+				c.Log().Error("ping message", wlog.Err(err))
 				return
 			} else if c.App.config.Cloudflare {
 				c.WebSocket.WriteMessage(websocket.TextMessage, spamMessage)
@@ -254,7 +252,7 @@ func (c *WebConn) writePump() {
 			return
 		case <-authTicker.C:
 			if c.GetSessionToken() == "" {
-				wlog.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
+				c.Log().Debug("websocket.authTicker: did not authenticate")
 				return
 			}
 			authTicker.Stop()
@@ -322,7 +320,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			err = model.SocketPermissionError
 		}
 		if err != nil {
-			wlog.Error(fmt.Sprintf("invalid session err=%v", err.Error()))
+			webCon.Log().Error("invalid session", wlog.Err(err))
 			webCon.SetSessionToken("")
 			webCon.SetSession(nil)
 			webCon.SetSessionExpiresAt(0)

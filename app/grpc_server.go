@@ -56,10 +56,17 @@ func unaryInterceptor(ctx context.Context,
 		reqCtx = context.WithValue(ctx, RequestContextName, nil)
 	}
 
+	log := wlog.GlobalLogger().With(wlog.Namespace("context"),
+		//wlog.Int64("domain_id", -1),
+		//wlog.Int64("user_id", -1),
+		wlog.String("ip_address", ip),
+		wlog.String("method", info.FullMethod),
+	)
+
 	h, err := handler(reqCtx, req)
 
 	if err != nil {
-		wlog.Error(fmt.Sprintf("[%s] method %s duration %s, error: %v", ip, info.FullMethod, time.Since(start), err.Error()))
+		log.Error(err.Error(), wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
 
 		switch err.(type) {
 		case model.AppError:
@@ -70,7 +77,7 @@ func unaryInterceptor(ctx context.Context,
 			return h, err
 		}
 	} else {
-		wlog.Debug(fmt.Sprintf("[%s] method %s duration %s", ip, info.FullMethod, time.Since(start)))
+		log.Debug("ok", wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
 	}
 
 	return h, err
