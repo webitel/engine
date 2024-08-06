@@ -3,9 +3,16 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
+	"github.com/webitel/webitel-go-kit/logging"
+	"github.com/webitel/wlog"
+	"go.opentelemetry.io/otel/attribute"
+	"go.uber.org/atomic"
+	"gopkg.in/natefinch/lumberjack.v2"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/b2bua"
 	"github.com/webitel/engine/call_manager"
@@ -18,8 +25,6 @@ import (
 	"github.com/webitel/engine/presign"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
-	"github.com/webitel/wlog"
-	"go.uber.org/atomic"
 )
 
 const (
@@ -30,23 +35,24 @@ const (
 )
 
 type App struct {
-	nodeId         string
-	config         *model.Config
-	Log            *wlog.Logger
-	Srv            *Server
-	GrpcServer     *GrpcServer
-	Hubs           *Hubs
-	MessageQueue   mq.MQ
-	Count          atomic.Int64
-	Store          store.Store
-	cluster        *cluster
-	sessionManager auth_manager.AuthManager
-	callManager    call_manager.CallManager
-	chatManager    chat_manager.ChatManager
-	cc             client.CCManager
-	cipher         presign.PreSign
-	audit          *logger.Audit
-	b2b            *b2bua.B2B
+	nodeId          string
+	config          *model.Config
+	Log             *wlog.Logger
+	Srv             *Server
+	GrpcServer      *GrpcServer
+	Hubs            *Hubs
+	MessageQueue    mq.MQ
+	Count           atomic.Int64
+	Store           store.Store
+	cluster         *cluster
+	sessionManager  auth_manager.AuthManager
+	callManager     call_manager.CallManager
+	chatManager     chat_manager.ChatManager
+	cc              client.CCManager
+	cipher          presign.PreSign
+	audit           *logger.Audit
+	b2b             *b2bua.B2B
+	loggingProvider logging.LoggerProvider
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -79,26 +85,83 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 	model.AppErrorInit(localization.T)
 
-	logConfig := &wlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   false,
-		ConsoleLevel:  config.Log.Lvl,
+	initOTLPExporter := func(ctx context.Context, opts ...logging.Option) error {
+		opts = append(opts, logging.WithServiceVersion(model.CurrentVersion),
+			logging.WithAttributes(attribute.String("service.id", config.NodeName),
+				attribute.Int("service.build", model.BuildNumberInt()),
+			),
+		)
+
+		app.loggingProvider, err = logging.New(context.Background(), model.APP_SERVICE_NAME, opts...)
+		if err != nil {
+			return fmt.Errorf("unable to initialize logger provider: %v", err)
+		}
+
+		return nil
 	}
 
-	if config.Log.File != "" {
-		logConfig.FileLocation = config.Log.File
-		logConfig.EnableFile = true
-		logConfig.FileJson = true
-		logConfig.FileLevel = config.Log.Lvl
+	var logCfg *wlog.LoggerConfiguration
+	switch config.Log.Format {
+	case "legacy":
+		logCfg = &wlog.LoggerConfiguration{
+			EnableConsole: true,
+			ConsoleLevel:  config.Log.Lvl,
+		}
+	case "legacy-json":
+		logCfg = &wlog.LoggerConfiguration{}
+		if config.Log.File != "" {
+			logCfg.EnableFile = true
+			logCfg.FileLevel = config.Log.Lvl
+			logCfg.FileJson = true
+			logCfg.FileLocation = config.Log.File
+		} else {
+			logCfg.EnableConsole = true
+			logCfg.ConsoleLevel = config.Log.Lvl
+			logCfg.ConsoleJson = true
+		}
+
+	case "otlp":
+		logCfg = &wlog.LoggerConfiguration{
+			EnableExport: true,
+		}
+
+		var lo []logging.Option
+		if config.Log.Exporter == "" {
+			return nil, fmt.Errorf("log exporter address must be configured if you wish to send logs to OTLP-compatible endpoint")
+		}
+
+		lo = append(lo, logging.WithExporter(string(logging.OTLPExporter)),
+			logging.WithAddress(config.Log.Exporter),
+		)
+
+		if err = initOTLPExporter(context.Background(), lo...); err != nil {
+			return nil, err
+		}
+	case "otlp-file":
+		logCfg = &wlog.LoggerConfiguration{
+			EnableExport: true,
+		}
+
+		if config.Log.File == "" {
+			return nil, fmt.Errorf("log file location must be configured if you wish to store logs in a file")
+		}
+
+		w := &lumberjack.Logger{
+			Filename: config.Log.File,
+			Compress: true,
+		}
+
+		var lo []logging.Option
+		lo = append(lo, logging.WithExporter(string(logging.STDOutExporter)),
+			logging.WithSTDOutWriter(w),
+		)
+
+		if err = initOTLPExporter(context.Background(), lo...); err != nil {
+			return nil, err
+		}
 	}
 
-	app.Log = wlog.NewLogger(logConfig).With(wlog.Any("service", map[string]interface{}{
-		"name":    model.APP_SERVICE_NAME,
-		"version": model.CurrentVersion,
-		"id":      config.NodeName,
-		"build":   model.BuildNumberInt(),
-	}))
-
+	app.Log = wlog.NewLogger(logCfg)
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
@@ -210,6 +273,10 @@ func (app *App) Shutdown() {
 
 	app.cluster.Stop()
 	app.sessionManager.Stop()
+
+	if app.loggingProvider != nil {
+		app.loggingProvider.Shutdown(context.Background())
+	}
 }
 
 func (app *App) CallManager() call_manager.CallManager {
@@ -217,7 +284,7 @@ func (app *App) CallManager() call_manager.CallManager {
 }
 
 func (app *App) Ready() (bool, model.AppError) {
-	//TODO
+	// TODO
 	return true, nil
 }
 

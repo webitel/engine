@@ -1,23 +1,26 @@
 package main
 
 import (
-	"github.com/webitel/engine/apis"
-	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/grpc_api"
-	"github.com/webitel/engine/wsapi"
-	"github.com/webitel/wlog"
+	"fmt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/webitel/wlog"
+
+	"github.com/webitel/engine/apis"
+	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/grpc_api"
+	"github.com/webitel/engine/wsapi"
 )
 
 func main() {
 	interruptChan := make(chan os.Signal, 1)
 	a, err := app.New()
 	if err != nil {
-		wlog.Critical("failed to start", wlog.Err(err))
+		wlog.Critical(fmt.Sprintf("failed to start: %s", err.Error()))
 		return
 	}
 	defer a.Shutdown()
@@ -50,7 +53,7 @@ func main() {
 }
 
 func setDebug() *http.Server {
-	//debug.SetGCPercent(-1)
+	// debug.SetGCPercent(-1)
 	server := &http.Server{Addr: ":8091", Handler: nil}
 
 	go func(s *http.Server) {

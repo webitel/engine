@@ -210,6 +210,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	}
 
 	if settings.Trace {
+		// TODO: change sqltrace logger to wlog or move it to tracing only
 		dbmap.TraceOn("[SQL]", sqltrace.New(os.Stdout, "", sqltrace.LstdFlags))
 	}
 

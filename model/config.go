@@ -29,9 +29,10 @@ type SipSettings struct {
 }
 
 type LogSettings struct {
-	Lvl  string `json:"lvl" flag:"log_lvl|debug|Log level"`
-	Json bool   `json:"json" flag:"log_json|false|Log format JSON"`
-	File string `json:"file" flag:"log_file||Log file directory"`
+	Lvl      string `json:"lvl" flag:"log_lvl|debug|Log level (debug, info, warn, error)"`
+	Format   string `json:"format" flag:"log_format|debug|Log format (legacy, legacy-json, otlp, otlp-file)"`
+	File     string `json:"file" flag:"log_file||Log file directory (eg. /var/log/webitel/engine.jsonl)"`
+	Exporter string `json:"exporter" flag:"log_exporter||Log exporter URL (eg. grpc://127.0.0.1:4317)"`
 }
 
 type Config struct {
