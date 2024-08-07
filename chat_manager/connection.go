@@ -1,14 +1,17 @@
 package chat_manager
 
 import (
+	"context"
+	"time"
+
 	gogrpc "buf.build/gen/go/webitel/chat/grpc/go/_gogrpc"
 	messgrpc "buf.build/gen/go/webitel/chat/grpc/go/messages/messagesgrpc"
 	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
-	"context"
-	"github.com/webitel/engine/model"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
-	"time"
+
+	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 )
 
 const (
@@ -56,8 +59,7 @@ func NewChatServiceConnection(name, url string) (Chat, error) {
 		host: url,
 	}
 
-	connection.client, err = grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(CONNECTION_TIMEOUT))
-
+	connection.client, err = utils.NewGRPCClientConn(url, CONNECTION_TIMEOUT)
 	if err != nil {
 		return nil, err
 	}

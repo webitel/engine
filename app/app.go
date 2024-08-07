@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
 	"github.com/webitel/webitel-go-kit/logging"
+	"github.com/webitel/webitel-go-kit/tracing"
 	"github.com/webitel/wlog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/atomic"
@@ -53,6 +54,7 @@ type App struct {
 	audit           *logger.Audit
 	b2b             *b2bua.B2B
 	loggingProvider logging.LoggerProvider
+	tracingProvider tracing.TracerProvider
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -165,6 +167,16 @@ func New(options ...string) (outApp *App, outErr error) {
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
+	app.tracingProvider, err = tracing.New(app.Log, model.APP_SERVICE_NAME,
+		tracing.WithServiceVersion(model.CurrentVersion),
+		tracing.WithAttributes(attribute.String("service.id", config.NodeName),
+			attribute.Int("service.build", model.BuildNumberInt()),
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := app.setupCipher(); err != nil {
 		return nil, err
 	}
@@ -276,6 +288,10 @@ func (app *App) Shutdown() {
 
 	if app.loggingProvider != nil {
 		app.loggingProvider.Shutdown(context.Background())
+	}
+
+	if app.tracingProvider != nil {
+		app.tracingProvider.Shutdown(context.Background())
 	}
 }
 

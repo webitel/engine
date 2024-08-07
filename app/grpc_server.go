@@ -3,21 +3,25 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/webitel/engine/localization"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/webitel/engine/auth_manager"
-	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/utils"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+
+	"github.com/webitel/engine/localization"
+
 	"github.com/webitel/wlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
+	"github.com/webitel/engine/auth_manager"
+	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 )
 
 var (
@@ -57,8 +61,8 @@ func unaryInterceptor(ctx context.Context,
 	}
 
 	log := wlog.GlobalLogger().With(wlog.Namespace("context"),
-		//wlog.Int64("domain_id", -1),
-		//wlog.Int64("user_id", -1),
+		// wlog.Int64("domain_id", -1),
+		// wlog.Int64("user_id", -1),
 		wlog.String("ip_address", ip),
 		wlog.String("method", info.FullMethod),
 	)
@@ -107,7 +111,7 @@ func NewGrpcServer(settings model.ServerSettings) *GrpcServer {
 
 	return &GrpcServer{
 		lis: lis,
-		srv: grpc.NewServer(
+		srv: grpc.NewServer(grpc.StatsHandler(otelgrpc.NewServerHandler(otelgrpc.WithMessageEvents(otelgrpc.ReceivedEvents, otelgrpc.SentEvents))),
 			grpc.UnaryInterceptor(unaryInterceptor),
 			grpc.MaxRecvMsgSize(int(settings.MaxMessageSize)),
 			grpc.MaxSendMsgSize(int(settings.MaxMessageSize)),
@@ -125,7 +129,7 @@ func (a *App) StartGrpcServer() error {
 		wlog.Debug(fmt.Sprintf("[grpc] server listening %s", a.GrpcServer.lis.Addr().String()))
 		err := a.GrpcServer.srv.Serve(a.GrpcServer.lis)
 		if err != nil {
-			//FIXME
+			// FIXME
 			panic(err.Error())
 		}
 	}()

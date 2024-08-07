@@ -10,10 +10,12 @@ import (
 
 	fsgrpc "buf.build/gen/go/webitel/fs/grpc/go/_gogrpc"
 	fs "buf.build/gen/go/webitel/fs/protocolbuffers/go"
-	"github.com/webitel/engine/model"
 	"go.uber.org/ratelimit"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+
+	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 )
 
 const (
@@ -42,8 +44,7 @@ func NewCallConnection(name, host, proxy string, port int) (CallClient, model.Ap
 		port:  port,
 	}
 
-	c.client, err = grpc.Dial(fmt.Sprintf("%s:%d", c.host, c.port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(FS_CONNECTION_TIMEOUT))
-
+	c.client, err = utils.NewGRPCClientConn(fmt.Sprintf("%s:%d", c.host, c.port), FS_CONNECTION_TIMEOUT)
 	if err != nil {
 		return nil, model.NewInternalError("grpc.create_connection.app_error", err.Error())
 	}
@@ -58,14 +59,14 @@ func (c *CallConnection) MakeOutboundCall(req *model.CallRequest) (string, model
 	}
 
 	req.Variables["sip_route_uri"] = c.proxy
-	//DUMP(req)
+	// DUMP(req)
 	uuid, cause, err := c.NewCall(req)
 	if err != nil {
 		return "", err
 	}
 
 	if cause != "" {
-		//FIXME
+		// FIXME
 	}
 
 	return uuid, nil
@@ -193,7 +194,7 @@ func (c *CallConnection) HangupCall(id, cause string) model.AppError {
 	}
 
 	if res.Error != nil {
-		//todo
+		// todo
 		if res.Error.Message == "No such channel!" {
 
 			return NotFoundCall
@@ -214,7 +215,7 @@ func (c *CallConnection) ConfirmPushCall(id string) model.AppError {
 	}
 
 	if res.Error != nil {
-		//todo
+		// todo
 		if res.Error.Message == "No such channel!" {
 
 			return NotFoundCall

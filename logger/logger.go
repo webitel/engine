@@ -1,16 +1,18 @@
 package logger
 
 import (
-	gogrpc "buf.build/gen/go/webitel/logger/grpc/go/_gogrpc"
-	proto "buf.build/gen/go/webitel/logger/protocolbuffers/go"
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
+	gogrpc "buf.build/gen/go/webitel/logger/grpc/go/_gogrpc"
+	proto "buf.build/gen/go/webitel/logger/protocolbuffers/go"
 	_ "github.com/mbobakov/grpc-consul-resolver"
-	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc"
-	"time"
+
+	"github.com/webitel/engine/utils"
 )
 
 const (
@@ -47,11 +49,8 @@ type Publisher interface {
 }
 
 func New(consulTarget string, channel Publisher) (*Audit, error) {
-	conn, err := grpc.Dial(fmt.Sprintf("consul://%s/logger?wait=14s", consulTarget),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
-		grpc.WithInsecure(),
-	)
-
+	conn, err := utils.NewGRPCClientConn(fmt.Sprintf("consul://%s/logger?wait=14s", consulTarget),
+		14*time.Second, grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 	if err != nil {
 		return nil, err
 	}
