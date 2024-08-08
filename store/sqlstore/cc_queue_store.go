@@ -474,7 +474,7 @@ items as materialized (
 
            coalesce(ag.abandoned::int, 0) missed,
            (select count(*) from call_center.cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
-           coalesce(case when q.type = 1 then (select count(*) from call_center.cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
+           coalesce(case when q.type in (1, 6) then (select count(*) from call_center.cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
                else (select sum(s.member_waiting) from call_center.cc_queue_statistics s where s.queue_id = q.id) end, 0) waiting,
            coalesce(ag.count, 0) count,
            coalesce(ag.transferred, 0) transferred,
