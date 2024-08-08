@@ -6,9 +6,10 @@ import (
 	"net/http"
 
 	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 const (
@@ -56,7 +57,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 		invite.AddVariable(k, v)
 	}
 
-	//invite.AddVariable("media_webrtc", "true")
+	// invite.AddVariable("media_webrtc", "true")
 
 	if req.Params.Video {
 		invite.AddVariable(model.CALL_VARIABLE_USE_VIDEO, "true")
@@ -68,7 +69,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 	if !req.Params.DisableAutoAnswer {
 		invite.AddVariable(model.CALL_VARIABLE_SIP_AUTO_ANSWER, "true")
-		//FIXME
+		// FIXME
 		invite.AddVariable("wbt_auto_answer", "true")
 	}
 
@@ -288,11 +289,11 @@ func (app *App) EavesdropCall(ctx context.Context, domainId, userId int64, req *
 		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
-	//if req.Notify {
+	// if req.Notify {
 	invite.AddVariable("wbt_eavesdrop_type", "notify")
-	//} else {
+	// } else {
 	//	invite.AddVariable("wbt_eavesdrop_type", "hide")
-	//}
+	// }
 
 	invite.AddVariable("wbt_eavesdrop_agent_id", info.AgentCallId)
 	invite.AddVariable("wbt_eavesdrop_state", req.StateName()) // todo remove WhisperALeg && WhisperBLeg
@@ -345,9 +346,9 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 				"wbt_from_name":          usr.Name,
 				"wbt_from_type":          model.EndpointTypeUser,
 
-				//"wbt_to_id":   fmt.Sprintf("%v", toEndpoint.Id),
-				//"wbt_to_name": toEndpoint.Name,
-				//"wbt_to_type": toEndpoint.Type,
+				// "wbt_to_id":   fmt.Sprintf("%v", toEndpoint.Id),
+				// "wbt_to_name": toEndpoint.Name,
+				// "wbt_to_type": toEndpoint.Type,
 
 				"effective_caller_id_number": usr.Extension,
 				"effective_caller_id_name":   usr.Name,
@@ -442,7 +443,7 @@ func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.Hangu
 	if err == call_manager.NotFoundCall {
 		var e *model.CallServiceHangup
 		if e, err = app.Store.Call().SetEmptySeverCall(ctx, domainId, req.Id); err == nil {
-			//fixme rollback
+			// fixme rollback
 			err = app.MessageQueue.SendStickingCall(e)
 		} else if err.GetStatusCode() == http.StatusNotFound {
 			err = nil
@@ -456,8 +457,8 @@ func (app *App) ConfirmPushCall(domainId int64, callId string) model.AppError {
 	var cli call_manager.CallClient
 	var err model.AppError
 
-	//todo get from store
-	cli, err = app.CallManager().CallClient() //app.getCallCli(domainId, callId, nil)
+	// todo get from store
+	cli, err = app.CallManager().CallClient() // app.getCallCli(domainId, callId, nil)
 	if err != nil {
 		return err
 	}
@@ -564,12 +565,12 @@ func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string,
 		return err
 	}
 	if domain.AppId != nil {
-		//var cli call_manager.CallClient
-		//cli, err = app.getCallCli(domainId, id, domain.AppId)
-		//if err != nil {
+		// var cli call_manager.CallClient
+		// cli, err = app.getCallCli(domainId, id, domain.AppId)
+		// if err != nil {
 		//	return err
-		//}
-		//err = cli.SetCallVariables(id, vars)
+		// }
+		// err = cli.SetCallVariables(id, vars)
 	}
 
 	return err

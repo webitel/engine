@@ -3,13 +3,14 @@ package app
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
 	"github.com/webitel/webitel-go-kit/logging"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 	"github.com/webitel/webitel-go-kit/tracing"
-	"github.com/webitel/wlog"
 	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/atomic"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -111,17 +112,16 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	case "legacy-json":
 		logCfg = &wlog.LoggerConfiguration{}
-		if config.Log.File != "" {
+		if config.Log.Exporter != "" {
 			logCfg.EnableFile = true
 			logCfg.FileLevel = config.Log.Lvl
 			logCfg.FileJson = true
-			logCfg.FileLocation = config.Log.File
+			logCfg.FileLocation = config.Log.Exporter
 		} else {
 			logCfg.EnableConsole = true
 			logCfg.ConsoleLevel = config.Log.Lvl
 			logCfg.ConsoleJson = true
 		}
-
 	case "otlp":
 		logCfg = &wlog.LoggerConfiguration{
 			EnableExport: true,
@@ -144,12 +144,12 @@ func New(options ...string) (outApp *App, outErr error) {
 			EnableExport: true,
 		}
 
-		if config.Log.File == "" {
+		if config.Log.Exporter == "" {
 			return nil, fmt.Errorf("log file location must be configured if you wish to store logs in a file")
 		}
 
 		w := &lumberjack.Logger{
-			Filename: config.Log.File,
+			Filename: config.Log.Exporter,
 			Compress: true,
 		}
 
@@ -167,14 +167,33 @@ func New(options ...string) (outApp *App, outErr error) {
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
-	app.tracingProvider, err = tracing.New(app.Log, model.APP_SERVICE_NAME,
-		tracing.WithServiceVersion(model.CurrentVersion),
-		tracing.WithAttributes(attribute.String("service.id", config.NodeName),
-			attribute.Int("service.build", model.BuildNumberInt()),
-		),
-	)
-	if err != nil {
-		return nil, err
+	if config.Trace.Exporter != "" {
+		var opts []tracing.Option
+
+		u, err := url.Parse(config.Trace.Exporter)
+		if err != nil {
+			w := lumberjack.Logger{
+				Filename: config.Trace.Exporter,
+				Compress: true,
+			}
+
+			opts = append(opts, tracing.WithExporter("stdout"), tracing.WithWriter(&w))
+		} else {
+			opts = append(opts, tracing.WithExporter("otlp"),
+				tracing.WithAddress(fmt.Sprintf("%s:%s", u.Hostname(), u.Port())),
+			)
+		}
+
+		opts = append(opts, tracing.WithServiceVersion(model.CurrentVersion),
+			tracing.WithAttributes(attribute.String("service.id", config.NodeName),
+				attribute.Int("service.build", model.BuildNumberInt()),
+			),
+		)
+
+		app.tracingProvider, err = tracing.New(app.Log, model.APP_SERVICE_NAME, opts...)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := app.setupCipher(); err != nil {

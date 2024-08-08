@@ -10,9 +10,10 @@ import (
 
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
-	"github.com/webitel/wlog"
 )
 
 const (
@@ -231,12 +232,12 @@ func (a *AMQP) init() {
 		os.Exit(1)
 	}
 
-	//err = a.DeclareQueues()
-	//if err != nil {
+	// err = a.DeclareQueues()
+	// if err != nil {
 	//	wlog.Critical(fmt.Sprintf("failed to declare queues: %v", err.Error()))
 	//	time.Sleep(time.Second)
 	//	os.Exit(1)
-	//}
+	// }
 }
 
 func (a *AMQP) Close() {

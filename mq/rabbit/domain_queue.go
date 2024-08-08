@@ -9,9 +9,10 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
-	"github.com/webitel/wlog"
 )
 
 type DomainQueue struct {
@@ -64,7 +65,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		notificationEvent: make(chan *model.Notification),
 		fnGetAllBindings:  bindings,
 
-		bindChan: make(chan *model.BindQueueEvent, 1000), //TODO
+		bindChan: make(chan *model.BindQueueEvent, 1000), // TODO
 
 		closeChannel: make(chan *amqp.Error, 1),
 		reconnect:    make(chan error, 1),
@@ -188,7 +189,7 @@ func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) model.AppError {
 		err = dq.Unbind(v)
 
 		if err != nil {
-			//TODO
+			// TODO
 		}
 	}
 	return nil

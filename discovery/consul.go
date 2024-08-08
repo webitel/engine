@@ -3,10 +3,11 @@ package discovery
 import (
 	"errors"
 	"fmt"
-	"github.com/hashicorp/consul/api"
-	"github.com/webitel/wlog"
 	"net/http"
 	"time"
+
+	"github.com/hashicorp/consul/api"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 )
 
 type consul struct {

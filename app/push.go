@@ -2,14 +2,16 @@ package app
 
 import (
 	"context"
-	firebase "firebase.google.com/go"
-	"firebase.google.com/go/messaging"
 	"fmt"
-	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
-	"google.golang.org/api/option"
 	"sync"
 	"time"
+
+	firebase "firebase.google.com/go"
+	"firebase.google.com/go/messaging"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+	"google.golang.org/api/option"
+
+	"github.com/webitel/engine/model"
 )
 
 var firebaseClient *messaging.Client
@@ -89,7 +91,7 @@ func pushFirebase(ctx context.Context, r *model.SendPush) int {
 	}
 	res, err := firebaseClient.SendMulticast(ctx, &messaging.MulticastMessage{
 		Tokens: r.Android,
-		//Data:         r.Data,
+		// Data:         r.Data,
 		Notification: nil,
 		Android: &messaging.AndroidConfig{
 			CollapseKey:           "",

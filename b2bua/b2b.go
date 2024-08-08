@@ -3,20 +3,22 @@ package b2bua
 import (
 	"errors"
 	"fmt"
+	"net"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/ghettovoice/gosip/log"
 	"github.com/ghettovoice/gosip/sip"
 	"github.com/ghettovoice/gosip/sip/parser"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/b2bua/account"
 	"github.com/webitel/engine/b2bua/call"
 	"github.com/webitel/engine/b2bua/session"
 	"github.com/webitel/engine/b2bua/stack"
 	"github.com/webitel/engine/b2bua/ua"
 	"github.com/webitel/engine/b2bua/utils"
-	"github.com/webitel/wlog"
-	"net"
-	"strconv"
-	"sync"
-	"time"
 )
 
 var (
@@ -89,10 +91,10 @@ func New(cb OnCallback, conf Config) *B2B {
 		UserAgent:  "webitel-webrtc",
 		Extensions: []string{"replaces", "outbound"},
 		Host:       host,
-		//Dns:        "8.8.8.8",
+		// Dns:        "8.8.8.8",
 	})
-	//utils.SetLogLevel("transport.Layer", 3)
-	//utils.SetLogLevel("transaction.Layer", 3)
+	// utils.SetLogLevel("transport.Layer", 3)
+	// utils.SetLogLevel("transaction.Layer", 3)
 
 	if err := st.Listen(transport, conf.Addr); err != nil {
 		logger.Panic(err)
@@ -111,7 +113,7 @@ func New(cb OnCallback, conf Config) *B2B {
 		cb:        cb,
 	}
 
-	//utils.SetLogLevel("UserAgent", 3)
+	// utils.SetLogLevel("UserAgent", 3)
 
 	ua.RegisterStateHandler = func(state account.RegisterState) {
 		logger.Infof("RegisterStateHandler: user => %s%s, state => %v, expires => %v, reason => %v", state.Account.AuthInfo.AuthUser,
@@ -142,7 +144,7 @@ func (b2b *B2B) Register(userId int64, conf AuthInfo) error {
 
 	acc, err = b2b.NewAccount(conf, func() (*account.AuthInfo, error) {
 		fmt.Println("DO REGISTER")
-		//acc.profile.AuthInfo.Password = "323"
+		// acc.profile.AuthInfo.Password = "323"
 		return acc.profile.AuthInfo, nil
 	})
 	if err != nil {
@@ -214,7 +216,7 @@ func (b2b *B2B) inviteStateHandler(sess *session.Session, req *sip.Request, resp
 		sess.Provisional(100, "Trying")
 		sess.Provisional(180, "Ringing")
 
-		//sess.Reject(403, "TODO")
+		// sess.Reject(403, "TODO")
 
 	case session.InviteSent:
 		(*req).AppendHeader(&sip.GenericHeader{
@@ -222,19 +224,19 @@ func (b2b *B2B) inviteStateHandler(sess *session.Session, req *sip.Request, resp
 			Contents:   "true",
 		})
 		fmt.Println("FIXME")
-		//b2b.cb.OnB2B(sess.CallID().Value(), SdpDescription{
+		// b2b.cb.OnB2B(sess.CallID().Value(), SdpDescription{
 		//	Type: "answer",
 		//	Sdp:  sess.RemoteSdp(),
-		//})
+		// })
 	case session.Confirmed:
 		b2b.maybeSendSdp(sess)
-		//TODO: Add support for forked calls
-		//c := b2b.findCall(sess)
-		//if c != nil && c.Dest == sess {
+		// TODO: Add support for forked calls
+		// c := b2b.findCall(sess)
+		// if c != nil && c.Dest == sess {
 		//	answer := c.Dest.RemoteSdp()
 		//	c.Src.ProvideAnswer(answer)
 		//	c.Src.Accept(200)
-		//}
+		// }
 
 	case session.ReInviteReceived:
 		logger.Infof("re-INVITE")
@@ -242,7 +244,7 @@ func (b2b *B2B) inviteStateHandler(sess *session.Session, req *sip.Request, resp
 		case session.Incoming:
 			sess.Accept(200)
 		case session.Outgoing:
-			//TODO: Need to provide correct answer.
+			// TODO: Need to provide correct answer.
 		}
 
 	// Handle 4XX+
@@ -325,43 +327,43 @@ func (b2b *B2B) Recovery(sockId string, userId int64, sipId string, sdp string) 
 }
 
 func (b2b *B2B) Answer(userId int, wid string, sdp string) (string, error) {
-	//acc, ok := b2b.GetAccount(userId)
-	//if !ok {
+	// acc, ok := b2b.GetAccount(userId)
+	// if !ok {
 	//	return "", errors.New("not found account")
-	//}
+	// }
 
 	var call = b2b.findCallByWId(wid)
 	if call == nil {
 		return "", errors.New("not found call")
 	}
-	//req := call.Req
-	//to, _ := (*req).To()
-	//from, _ := (*req).From()
-	//caller := from.Address
-	//called := to.Address
+	// req := call.Req
+	// to, _ := (*req).To()
+	// from, _ := (*req).From()
+	// caller := from.Address
+	// called := to.Address
 	//
-	//displayName := ""
-	//if from.DisplayName != nil {
+	// displayName := ""
+	// if from.DisplayName != nil {
 	//	displayName = from.DisplayName.String()
-	//}
-	//// Create a temporary profile. In the future, it will support reading profiles from files or data
-	//// For example: use a specific ip or sip account as outbound trunk
-	//profile := account.NewProfile(caller, displayName, nil, 0, b2b.stack)
+	// }
+	// // Create a temporary profile. In the future, it will support reading profiles from files or data
+	// // For example: use a specific ip or sip account as outbound trunk
+	// profile := account.NewProfile(caller, displayName, nil, 0, b2b.stack)
 	//
-	//fmt.Println(acc.profile.Contact())
-	////s := "sip:" + called.User().String() + "@" + "10.9.8.111" + ";transport=" + "udp"
-	//recipient, err2 := parser.ParseSipUri(profile.URI.String())
-	//if err2 != nil {
+	// fmt.Println(acc.profile.Contact())
+	// //s := "sip:" + called.User().String() + "@" + "10.9.8.111" + ";transport=" + "udp"
+	// recipient, err2 := parser.ParseSipUri(profile.URI.String())
+	// if err2 != nil {
 	//	logger.Error(err2)
-	//}
+	// }
 	//
-	////offer := call.Src.RemoteSdp()
-	//dest, err := b2b.ua.Invite(profile, called, recipient, &sdp)
-	//if err != nil {
+	// //offer := call.Src.RemoteSdp()
+	// dest, err := b2b.ua.Invite(profile, called, recipient, &sdp)
+	// if err != nil {
 	//	return "", err
-	//}
+	// }
 	//
-	//call.Dest = dest
+	// call.Dest = dest
 
 	call.Src.ProvideAnswer(sdp)
 	call.Src.Provisional(200, "OK")

@@ -1,13 +1,15 @@
 package wsapi
 
 import (
+	"context"
 	"fmt"
 	"time"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 func (api *API) ApiWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
@@ -25,14 +27,15 @@ type webSocketHandler struct {
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	start := time.Now()
-	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
+	// TODO: change context to trace ctx
+	session, sessionErr := wh.app.GetSession(context.Background(), conn.GetSessionToken())
 	if sessionErr != nil {
 		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(localization.T), sessionErr.Error()))
 		sessionErr.SetDetailedError("")
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
 		conn.Send <- errResp
-		//conn.Close()
+		// conn.Close()
 		return
 	}
 	r.Session = *session
@@ -52,7 +55,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 			wlog.String("method", r.Action),
 			wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
 		).Error(err.Error(), wlog.Err(err))
-		//err.DetailedError = ""
+		// err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 
 		conn.Send <- errResp

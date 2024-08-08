@@ -3,10 +3,12 @@ package auth_manager
 import (
 	"context"
 	"fmt"
+	"sync"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/utils"
-	"github.com/webitel/wlog"
-	"sync"
 )
 
 var (
@@ -20,7 +22,7 @@ const (
 type AuthManager interface {
 	Start() error
 	Stop()
-	GetSession(token string) (*Session, error)
+	GetSession(ctx context.Context, token string) (*Session, error)
 	ProductLimit(ctx context.Context, token string, productName string) (int, error)
 }
 
@@ -46,7 +48,7 @@ func NewAuthManager(cacheSize int, cacheTime int64, serviceDiscovery discovery.S
 		stop:             make(chan struct{}),
 		stopped:          make(chan struct{}),
 		poolConnections:  discovery.NewPoolConnections(),
-		session:          utils.NewLruWithParams(cacheSize, "auth manager", cacheTime, ""), //TODO session from config ?
+		session:          utils.NewLruWithParams(cacheSize, "auth manager", cacheTime, ""), // TODO session from config ?
 		serviceDiscovery: serviceDiscovery,
 		log:              log.With(wlog.Namespace("context")).With(wlog.String("scope", "auth_manager")),
 	}

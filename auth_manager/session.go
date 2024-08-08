@@ -1,10 +1,12 @@
 package auth_manager
 
 import (
-	"github.com/webitel/wlog"
+	"context"
+	"time"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
-	"time"
 )
 
 var (
@@ -125,9 +127,9 @@ func (self *Session) IsValid() error {
 		return ErrValidToken
 	}
 
-	//if self.DomainId < 1 {
+	// if self.DomainId < 1 {
 	//	return model.NewBadRequestError("model.session.is_valid.domain_id.app_error", "").SetTranslationParams(self.Trace())
-	//}
+	// }
 
 	if len(self.RoleIds) < 1 {
 		return ErrValidRoleIds
@@ -146,8 +148,7 @@ func (self *Session) HasAction(name string) bool {
 	return false
 }
 
-func (am *authManager) GetSession(token string) (*Session, error) {
-
+func (am *authManager) GetSession(ctx context.Context, token string) (*Session, error) {
 	if v, ok := am.session.Get(token); ok {
 		return v.(*Session), nil
 	}
@@ -158,7 +159,7 @@ func (am *authManager) GetSession(token string) (*Session, error) {
 			return nil, err
 		}
 
-		return client.GetSession(token)
+		return client.GetSession(ctx, token)
 	})
 
 	if err != nil {

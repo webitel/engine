@@ -22,7 +22,7 @@ type AuthClient interface {
 	Name() string
 	Close() error
 	Ready() bool
-	GetSession(token string) (*Session, error)
+	GetSession(ctx context.Context, token string) (*Session, error)
 	ProductLimit(ctx context.Context, token string, productName string) (int, error)
 }
 
@@ -101,13 +101,12 @@ func (ac *authConnection) ProductLimit(ctx context.Context, token string, produc
 	return int(limitMax), nil
 }
 
-func (ac *authConnection) GetSession(token string) (*Session, error) {
+func (ac *authConnection) GetSession(ctx context.Context, token string) (*Session, error) {
 	// FIXME
 	header := metadata.New(map[string]string{"x-webitel-access": token})
-	ctx := metadata.NewOutgoingContext(context.TODO(), header)
+	ctx = metadata.NewOutgoingContext(ctx, header)
 
 	resp, err := ac.api.UserInfo(ctx, &proto.UserinfoRequest{})
-
 	if err != nil {
 		if status.Code(err) == codes.Unauthenticated {
 			return nil, ErrStatusUnauthenticated

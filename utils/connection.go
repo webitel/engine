@@ -3,7 +3,7 @@ package utils
 import (
 	"time"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	otelgrpc "github.com/webitel/webitel-go-kit/tracing/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

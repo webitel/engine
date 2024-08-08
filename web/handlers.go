@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 type Handler struct {

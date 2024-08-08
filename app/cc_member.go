@@ -1,10 +1,12 @@
 package app
 
 import (
-	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
 	"context"
+
+	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError) {

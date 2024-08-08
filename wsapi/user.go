@@ -3,9 +3,11 @@ package wsapi
 import (
 	"context"
 	"fmt"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 func (api *API) InitUser() {
@@ -20,7 +22,7 @@ func (api *API) InitUser() {
 }
 
 func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	//return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
+	// return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 
 	data := map[string]interface{}{}
 	data["text"] = "pong"
@@ -39,7 +41,7 @@ func (api *API) userDefaultDeviceConfig(conn *app.WebConn, req *model.WebSocketR
 }
 
 func (api *API) subscribeUsersStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	h, e := api.App.GetHubById(req.Session.Domain(0)) //FIXME
+	h, e := api.App.GetHubById(req.Session.Domain(0)) // FIXME
 	if e != nil {
 		return nil, e
 	}

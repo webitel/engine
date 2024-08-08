@@ -1,16 +1,18 @@
 package chat_manager
 
 import (
-	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
-	"buf.build/gen/go/webitel/chat/protocolbuffers/go/messages"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
-	"google.golang.org/grpc/metadata"
 	"strconv"
 	"time"
+
+	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
+	"buf.build/gen/go/webitel/chat/protocolbuffers/go/messages"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+	"google.golang.org/grpc/metadata"
+
+	"github.com/webitel/engine/model"
 )
 
 func (cc *chatConnection) Decline(authUserId int64, inviteId string, cause string) error {
@@ -209,7 +211,7 @@ func (cc *chatConnection) ListActive(token string, domainId, userId int64, page,
 		Size:        int32(size),
 		DomainId:    domainId,
 		UserId:      userId,
-		MessageSize: 40, //TODO
+		MessageSize: 40, // TODO
 	})
 }
 

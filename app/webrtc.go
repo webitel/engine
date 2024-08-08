@@ -2,10 +2,12 @@ package app
 
 import (
 	"context"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/b2bua"
 	"github.com/webitel/engine/b2bua/account"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 var ErrDisabledB2b = model.NewBadRequestError("app.b2b.disabled", "B2B disabled")

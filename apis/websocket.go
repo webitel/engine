@@ -1,11 +1,13 @@
 package apis
 
 import (
+	"net/http"
+
 	"github.com/gorilla/websocket"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/web"
-	"github.com/webitel/wlog"
-	"net/http"
 )
 
 func (api *API) InitWebSocket() {

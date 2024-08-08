@@ -1,8 +1,11 @@
 package app
 
 import (
+	"context"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 type webSocketHandler interface {
@@ -44,7 +47,8 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 		wlog.Debug("search session from token")
 
-		session, err := wr.app.GetSession(token)
+		// TODO: change context to trace ctx
+		session, err := wr.app.GetSession(context.Background(), token)
 		if err != nil {
 			ReturnWebSocketError(conn, r, err)
 			return
@@ -82,7 +86,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
-	//FIXME
+	// FIXME
 	go handler.ServeWebSocket(conn, r)
 }
 

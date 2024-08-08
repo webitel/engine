@@ -13,7 +13,7 @@ import (
 
 	"github.com/webitel/engine/localization"
 
-	"github.com/webitel/wlog"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -162,7 +162,7 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 		return nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token not found")
 	}
 
-	session, err = a.GetSession(token[0])
+	session, err = a.GetSession(ctx, token[0])
 	if err != nil {
 		return nil, err
 	}

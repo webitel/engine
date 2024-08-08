@@ -5,9 +5,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
-	"github.com/webitel/wlog"
 )
 
 const (
@@ -155,7 +156,7 @@ func (wh *Hub) start() {
 			msg.PrecomputeJSON()
 			candidates := connections.ForUser(int64(usr))
 			for _, webCon := range candidates {
-				//FIXME permission call events
+				// FIXME permission call events
 				if webCon.ShouldSendEvent(msg) {
 					select {
 					case webCon.Send <- msg:
@@ -186,7 +187,7 @@ func (wh *Hub) start() {
 			candidates := connections.ForUser(ev.UserId)
 			for _, webCon := range candidates {
 				if ev.SockId != "" && ev.SockId != webCon.id {
-					//continue
+					// continue
 				}
 				select {
 				case webCon.Send <- ev:
@@ -242,7 +243,7 @@ func (wh *Hub) UnSubscribeCalls(conn *WebConn) model.AppError {
 	if b, ok := conn.GetListenEvent("call"); ok {
 		wh.domainQueue.Unbind(b)
 	} else {
-		//NOTFOUND
+		// NOTFOUND
 	}
 
 	return nil
@@ -251,7 +252,7 @@ func (wh *Hub) UnSubscribeCalls(conn *WebConn) model.AppError {
 func (wh *Hub) SubscribeSessionCalls(conn *WebConn) model.AppError {
 
 	b := wh.domainQueue.BindUserCall(conn.Id(), conn.GetSession().UserId)
-	//TODO
+	// TODO
 	conn.SetListenEvent("call", b)
 
 	return nil
@@ -260,7 +261,7 @@ func (wh *Hub) SubscribeSessionCalls(conn *WebConn) model.AppError {
 func (wh *Hub) SubscribeSessionChat(conn *WebConn) model.AppError {
 
 	b := wh.domainQueue.BindUserChat(conn.Id(), conn.GetSession().UserId)
-	//TODO
+	// TODO
 	conn.SetListenEvent("chat", b)
 
 	return nil
@@ -269,7 +270,7 @@ func (wh *Hub) SubscribeSessionChat(conn *WebConn) model.AppError {
 func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) model.AppError {
 
 	b := wh.domainQueue.BindUsersStatus(conn.Id(), conn.GetSession().UserId)
-	//TODO
+	// TODO
 	conn.SetListenEvent("status", b)
 
 	return nil
@@ -278,11 +279,11 @@ func (wh *Hub) SubscribeSessionUsersStatus(conn *WebConn) model.AppError {
 func (wh *Hub) SubscribeSessionAgentStatus(conn *WebConn, agentId int) model.AppError {
 
 	b := wh.domainQueue.BindAgentStatusEvents(conn.Id(), conn.GetSession().UserId, agentId)
-	//TODO
+	// TODO
 	conn.SetListenEvent("agent_status", b)
 
 	b2 := wh.domainQueue.BindAgentChannelEvents(conn.Id(), conn.GetSession().UserId, agentId)
-	//TODO
+	// TODO
 	conn.SetListenEvent("agent_channel", b2)
 
 	return nil
@@ -310,7 +311,7 @@ func (a *App) HubRegister(webCon *WebConn) {
 
 func (a *App) HubUnregister(webConn *WebConn) {
 	if webConn.UserId == 0 {
-		return //TODO user not register
+		return // TODO user not register
 	}
 	hub, _ := a.GetHubById(webConn.DomainId)
 	if hub != nil {

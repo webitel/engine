@@ -6,9 +6,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 const (

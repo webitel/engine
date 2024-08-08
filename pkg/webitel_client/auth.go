@@ -3,16 +3,16 @@ package webitel_client
 import (
 	"context"
 	"fmt"
+	"strings"
+	"time"
 
 	proto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go"
 
-	"github.com/webitel/wlog"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 	"golang.org/x/sync/singleflight"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-	"strings"
-	"time"
 )
 
 const (
@@ -47,7 +47,7 @@ func (cli *Client) getSession(token string) (*Session, error) {
 		DomainName: resp.Domain,
 		Expire:     resp.ExpiresAt,
 		Token:      token,
-		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
+		RoleIds:    transformRoles(resp.UserId, resp.Roles), // /FIXME
 		Scopes:     transformScopes(resp.Scope),
 		actions:    make([]string, 0, 1),
 		Name:       resp.Name,
@@ -103,7 +103,7 @@ func (cli *Client) GetSession(token string) (*Session, error) {
 }
 
 func tokenContext(token string) context.Context {
-	//FIXME
+	// FIXME
 	header := metadata.New(map[string]string{"x-webitel-access": token})
 	return metadata.NewOutgoingContext(context.TODO(), header)
 }
@@ -122,7 +122,7 @@ func transformScopes(src []*proto.Objclass) []SessionPermission {
 		dst = append(dst, SessionPermission{
 			Id:   int(v.Id),
 			Name: v.Class,
-			//Abac:   v.Abac,
+			// Abac:   v.Abac,
 			Obac:   v.Obac,
 			rbac:   v.Rbac,
 			Access: uint32(access),

@@ -4,11 +4,12 @@ import (
 	"net/http"
 
 	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 type Context struct {

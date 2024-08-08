@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
 
 type Call interface {

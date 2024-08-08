@@ -2,7 +2,8 @@ package rabbit
 
 import (
 	"fmt"
-	"github.com/webitel/wlog"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 )
 
 func (a *AMQP) Listen() {

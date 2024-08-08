@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/webitel/wlog"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 
 	"github.com/webitel/engine/apis"
 	"github.com/webitel/engine/app"

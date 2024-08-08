@@ -3,8 +3,10 @@ package app
 import (
 	"context"
 	"fmt"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/auth_manager"
-	"github.com/webitel/wlog"
 )
 
 func (app *App) AuditCreate(ctx context.Context, session *auth_manager.Session, object string, recordId int64, data interface{}) {

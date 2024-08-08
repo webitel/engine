@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/webitel/wlog"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 )
 
 type Server struct {
@@ -34,7 +35,7 @@ type CorsWrapper struct {
 }
 
 func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//TODO
+	// TODO
 	if r.Header.Get("Origin") == "" {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 	} else {

@@ -10,9 +10,10 @@ import (
 
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
-	"github.com/webitel/wlog"
 )
 
 type SqlMemberStore struct {
@@ -358,7 +359,7 @@ select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_a
 	})
 	if err != nil {
 		code := extractCodeFromErr(err)
-		if code == http.StatusNotFound { //todo
+		if code == http.StatusNotFound { // todo
 			return nil, model.NewBadRequestError("store.sql_member.update.lock", fmt.Sprintf("Id=%v, %s", member.Id, err.Error()))
 		}
 
@@ -567,7 +568,7 @@ from upd`, map[string]interface{}{
 		"DomainId": domainId,
 		"Ids":      pq.Array(req.Ids),
 		"Buckets":  pq.Array(req.Buckets),
-		//"Cause":     pq.Array(req.Causes),
+		// "Cause":     pq.Array(req.Causes),
 		"AgentIds":  pq.Array(req.AgentIds),
 		"Numbers":   pq.Array(req.Numbers),
 		"Variables": req.Variables.ToSafeJson(),
@@ -583,7 +584,7 @@ from upd`, map[string]interface{}{
 
 func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) {
 	var attempts []*model.MemberAttempt
-	//FIXME
+	// FIXME
 	if _, err := s.GetMaster().WithContext(ctx).Select(&attempts, `with active as (
     select a.id,
            --a.member_id,

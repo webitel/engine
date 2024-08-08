@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"sync"
@@ -10,9 +11,10 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nicksnyder/go-i18n/i18n"
+	wlog "github.com/webitel/webitel-go-kit/logging/wlog"
+
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	wlog "github.com/webitel/wlog"
 )
 
 const (
@@ -52,7 +54,7 @@ type WebConn struct {
 	log                *wlog.Logger
 	logMx              sync.RWMutex
 
-	//Sip *SipProxy
+	// Sip *SipProxy
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18n.TranslateFunc, locale string, ip string) *WebConn {
@@ -78,7 +80,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		wlog.String("sock_id", wc.id),
 	)
 
-	//wc.Sip = NewSipProxy(wc)
+	// wc.Sip = NewSipProxy(wc)
 
 	wc.SetSession(&session)
 	wc.SetSessionToken(session.Token)
@@ -315,7 +317,8 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			return false
 		}
 
-		session, err := webCon.App.GetSession(webCon.GetSessionToken())
+		// TODO: change context to trace ctx
+		session, err := webCon.App.GetSession(context.Background(), webCon.GetSessionToken())
 		if err == nil && session.CountLicenses() == 0 {
 			err = model.SocketPermissionError
 		}
@@ -360,7 +363,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	switch msg.EventType() {
-	//case model.WEBSOCKET_EVENT_CALL:
+	// case model.WEBSOCKET_EVENT_CALL:
 	//
 	//	return false
 	}

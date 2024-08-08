@@ -11,11 +11,14 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/webitel/webitel-go-kit/storage/sql"
+
 	"github.com/webitel/engine/localization"
 
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
-	wlog "github.com/webitel/wlog"
+	wlog "github.com/webitel/webitel-go-kit/logging/wlog"
+	otelsql "github.com/webitel/webitel-go-kit/tracing/sql"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
@@ -169,7 +172,14 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 }
 
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
-	db, err := dbsql.Open(*settings.DriverName, dataSource)
+	dn, err := sql.Register(*settings.DriverName, sql.TraceAll(), sql.WithTracer(otelsql.NewTracer()))
+	if err != nil {
+		wlog.Critical(fmt.Sprintf("register SQL driver: %v", err.Error()))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_DB_OPEN)
+	}
+
+	db, err := dbsql.Open(dn, dataSource)
 	if err != nil {
 		wlog.Critical(fmt.Sprintf("failed to open SQL connection to err:%v", err.Error()))
 		time.Sleep(time.Second)

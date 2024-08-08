@@ -2,9 +2,11 @@ package chat_manager
 
 import (
 	"fmt"
-	"github.com/webitel/engine/discovery"
-	"github.com/webitel/wlog"
 	"sync"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
+
+	"github.com/webitel/engine/discovery"
 )
 
 var (

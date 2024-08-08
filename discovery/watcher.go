@@ -1,8 +1,9 @@
 package discovery
 
 import (
-	"github.com/webitel/wlog"
 	"time"
+
+	"github.com/webitel/webitel-go-kit/logging/wlog"
 )
 
 type WatcherNotify func()
@@ -31,7 +32,7 @@ func MakeWatcher(name string, pollingInterval int, pollAndNotify WatcherNotify) 
 
 func (watcher *Watcher) Start() {
 	watcher.log.Debug("started")
-	//<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
+	// <-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
 		watcher.log.Debug("finished")
