@@ -162,7 +162,7 @@ func GetRegExpQ(q string) *string {
 
 // ParseRegexp delimit searches for the regexp search indicators and if found returns string without indicators and indicator that regexp search found.
 // Returns changed copy of the input slice.
-func ParseRegexp(q string) (s string, found bool) {
+func ParseRegexp(q string) (s *string, found bool) {
 	var (
 		escapePre = "/"
 		escapeSu  = "/"
@@ -170,7 +170,7 @@ func ParseRegexp(q string) (s string, found bool) {
 		f         bool
 	)
 	if q == "" {
-		return q, false
+		return nil, false
 	}
 	if strings.HasPrefix(q, escapePre) && strings.HasSuffix(q, escapeSu) {
 		pre, _ := strings.CutPrefix(q, escapePre)
@@ -181,7 +181,7 @@ func ParseRegexp(q string) (s string, found bool) {
 		res = "%" + q + "%"
 		f = false
 	}
-	return res, f
+	return &res, f
 }
 
 func (l *ListRequest) GetLimit() int {
