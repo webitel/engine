@@ -31,6 +31,7 @@ type SipSettings struct {
 type LogSettings struct {
 	Lvl  string `json:"lvl" flag:"log_lvl|debug|Log level"`
 	Json bool   `json:"json" flag:"log_json|false|Log format JSON"`
+	Otel bool   `json:"otel" flag:"log_otel|false|Log OTEL"`
 	File string `json:"file" flag:"log_file||Log file directory"`
 }
 

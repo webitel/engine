@@ -18,8 +18,20 @@ import (
 	"github.com/webitel/engine/presign"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
+	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
 	"github.com/webitel/wlog"
+	"go.opentelemetry.io/otel/log"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/atomic"
+
+	// -------------------- plugin(s) -------------------- //
+	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/otlp"
+	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/stdout"
+	_ "github.com/webitel/webitel-go-kit/otel/sdk/metric/otlp"
+	_ "github.com/webitel/webitel-go-kit/otel/sdk/metric/stdout"
+	_ "github.com/webitel/webitel-go-kit/otel/sdk/trace/otlp"
+	_ "github.com/webitel/webitel-go-kit/otel/sdk/trace/stdout"
 )
 
 const (
@@ -92,12 +104,24 @@ func New(options ...string) (outApp *App, outErr error) {
 		logConfig.FileLevel = config.Log.Lvl
 	}
 
-	app.Log = wlog.NewLogger(logConfig).With(wlog.Any("service", map[string]interface{}{
-		"name":    model.APP_SERVICE_NAME,
-		"version": model.CurrentVersion,
-		"id":      config.NodeName,
-		"build":   model.BuildNumberInt(),
-	}))
+	if config.Log.Otel {
+		// TODO
+		logConfig.EnableExport = true
+	}
+
+	ctx := context.Background()
+	otelsdk.Setup(
+		ctx,
+		otelsdk.WithResource(resource.NewSchemaless(
+			semconv.ServiceName(model.APP_SERVICE_NAME),
+			semconv.ServiceVersion(model.CurrentVersion),
+			semconv.ServiceInstanceID(app.nodeId),
+			semconv.ServiceNamespace("webitel"),
+		)),
+		otelsdk.WithLogLevel(log.SeverityDebug),
+	)
+
+	app.Log = wlog.NewLogger(logConfig)
 
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
