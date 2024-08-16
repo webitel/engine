@@ -165,7 +165,7 @@ func (wh *Hub) start() {
 						connections.Remove(webCon)
 					}
 					// todo delete me
-					webCon.Log().Debug("send event", wlog.String("event_type", "call"), wlog.String("event_name", ev.Event), wlog.String("event_id", ev.Id))
+					webCon.Log().Debug("send event "+ev.Event, wlog.String("event_type", "call"), wlog.String("event_name", ev.Event), wlog.String("event_id", ev.Id))
 				}
 			}
 

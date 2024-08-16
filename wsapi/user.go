@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+	"fmt"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
@@ -70,11 +71,11 @@ func (api *API) latencyAck(conn *app.WebConn, req *model.WebSocketRequest) (map[
 			conn.Log().With(
 				wlog.Float64("latency", v),
 				wlog.Int64("diff", (t-old)/1000),
-			).Debug("latency")
+			).Debug(fmt.Sprintf("latency web socket %v", v))
 		} else {
 			conn.Log().With(
 				wlog.Float64("latency", v),
-			).Debug("latency")
+			).Debug(fmt.Sprintf("latency web socket %v", v))
 		}
 
 	}

@@ -63,7 +63,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	conn.Log().With(
 		wlog.String("method", r.Action),
 		wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
-	).Debug("receive")
+	).Debug("send response action " + r.Action)
 
 	conn.Send <- resp
 }
