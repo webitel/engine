@@ -6,7 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	sqltrace "log"
+	"github.com/XSAM/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"os"
 	"sync/atomic"
 	"time"
@@ -169,7 +170,16 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 }
 
 func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
-	db, err := dbsql.Open(*settings.DriverName, dataSource)
+	var db *dbsql.DB
+	var err error
+	if settings.Trace {
+		db, err = otelsql.Open(*settings.DriverName, dataSource, otelsql.WithAttributes(
+			semconv.DBSystemPostgreSQL,
+		))
+	} else {
+		db, err = dbsql.Open(*settings.DriverName, dataSource)
+	}
+
 	if err != nil {
 		wlog.Critical(fmt.Sprintf("failed to open SQL connection to err:%v", err.Error()))
 		time.Sleep(time.Second)
@@ -179,8 +189,8 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 	for i := 0; i < DB_PING_ATTEMPTS; i++ {
 		wlog.Info(fmt.Sprintf("pinging SQL %v database", con_type))
 		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
-		defer cancel()
 		err = db.PingContext(ctx)
+		cancel()
 		if err == nil {
 			break
 		} else {
@@ -192,6 +202,18 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 				wlog.Error(fmt.Sprintf("failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err))
 				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
 			}
+		}
+	}
+
+	if settings.Trace {
+		// Register DB stats to meter
+		err = otelsql.RegisterDBStatsMetrics(db, otelsql.WithAttributes(
+			semconv.DBSystemPostgreSQL,
+		))
+		if err != nil {
+			wlog.Critical(fmt.Sprintf("failed to trace SQL connection to err:%v", err.Error()))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_DB_OPEN)
 		}
 	}
 
@@ -209,11 +231,27 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 		os.Exit(EXIT_NO_DRIVER)
 	}
 
-	if settings.Trace {
-		dbmap.TraceOn("[SQL]", sqltrace.New(os.Stdout, "", sqltrace.LstdFlags))
+	if settings.Log {
+		dbmap.TraceOn("", &sqlLogger{
+			log: wlog.GlobalLogger().With(
+				wlog.Namespace("sql"),
+			),
+		})
 	}
 
 	return dbmap
+}
+
+type sqlLogger struct {
+	log *wlog.Logger
+}
+
+func (l *sqlLogger) Printf(format string, v ...any) {
+	l.log.Debug("sql query",
+		wlog.String("query", v[1].(string)),
+		wlog.String("parameters", v[2].(string)),
+		wlog.Duration("duration", v[3].(time.Duration)),
+	)
 }
 
 func (s *SqlSupplier) initConnection() {

@@ -101,6 +101,7 @@ type SqlSettings struct {
 	MaxOpenConns                *int     `json:"max_open_conns" flag:"sql_max_open_conns|5|Maximum open connections"`
 	ConnMaxLifetimeMilliseconds *int     `json:"conn_max_lifetime_milliseconds" flag:"sql_conn_max_lifetime_milliseconds|300000|Connection maximum lifetime milliseconds"`
 	Trace                       bool     `json:"trace" flag:"sql_trace|false|Trace SQL"`
+	Log                         bool     `json:"log" flag:"sql_log|false|Log SQL"`
 	QueryTimeout                *int     `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds"`
 }
 
