@@ -408,7 +408,7 @@ func (dq *DomainQueue) readCallMessage(data []byte, rk string) {
 		return
 	}
 
-	log.Debug("receive heartbeat",
+	log.Debug("receive call event "+e.Event,
 		wlog.String("event", e.Event),
 		wlog.String("call_id", e.Id),
 		wlog.String("user_id", e.UserId),
