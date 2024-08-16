@@ -34,9 +34,9 @@ func (app *App) GetSession(token string) (*auth_manager.Session, model.AppError)
 		}
 	}
 
-	if session == nil {
+	if session.UserId == 0 {
 		return nil, model.NewInternalError("app.session.not_found", err.Error())
 	}
 
-	return session, nil
+	return &session, nil
 }

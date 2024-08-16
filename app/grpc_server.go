@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/webitel/engine/localization"
+	"go.opentelemetry.io/otel"
 	"net"
 	"net/http"
 	"strconv"
@@ -23,7 +24,8 @@ import (
 var (
 	HEADER_TOKEN = strings.ToLower(model.HEADER_TOKEN)
 
-	RequestContextName = "grpc_ctx"
+	RequestContextName    = "grpc_ctx"
+	RequestContextSession = "session"
 )
 
 type GrpcServer struct {
@@ -40,47 +42,57 @@ func (grpc *GrpcServer) GetPublicInterface() (string, int) {
 	return h, port
 }
 
-func unaryInterceptor(ctx context.Context,
-	req interface{},
-	info *grpc.UnaryServerInfo,
-	handler grpc.UnaryHandler) (interface{}, error) {
-	start := time.Now()
-	var reqCtx context.Context
-	var ip string
+func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
+	tp := otel.GetTracerProvider()
+	tc := tp.Tracer("engine")
 
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		reqCtx = context.WithValue(ctx, RequestContextName, md)
-		ip = getClientIp(md)
-	} else {
-		ip = "<not found>"
-		reqCtx = context.WithValue(ctx, RequestContextName, nil)
-	}
+	return func(ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (interface{}, error) {
+		var err error
+		var sess *auth_manager.Session
 
-	log := wlog.GlobalLogger().With(wlog.Namespace("context"),
-		//wlog.Int64("domain_id", -1),
-		//wlog.Int64("user_id", -1),
-		wlog.String("ip_address", ip),
-		wlog.String("method", info.FullMethod),
-	)
+		start := time.Now()
 
-	h, err := handler(reqCtx, req)
-
-	if err != nil {
-		log.Error(err.Error(), wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
-
-		switch err.(type) {
-		case model.AppError:
-			e := err.(model.AppError)
-			e.Translate(localization.TfuncWithFallback(model.DEFAULT_LOCALE))
-			return h, status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
-		default:
-			return h, err
+		sess, err = app.getSessionFromCtx(ctx)
+		if err != nil {
+			return nil, err
 		}
-	} else {
-		log.Debug("ok", wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
-	}
 
-	return h, err
+		var reqCtx context.Context
+
+		_, span := tc.Start(ctx, info.FullMethod)
+		defer span.End()
+
+		reqCtx = context.WithValue(ctx, RequestContextSession, sess)
+		log := wlog.GlobalLogger().With(wlog.Namespace("context"),
+			wlog.Int64("domain_id", sess.DomainId),
+			wlog.Int64("user_id", sess.UserId),
+			wlog.String("ip_address", sess.GetUserIp()),
+			wlog.String("method", info.FullMethod),
+		)
+
+		var h any
+		h, err = handler(reqCtx, req)
+
+		if err != nil {
+			log.Error(err.Error(), wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
+
+			switch err.(type) {
+			case model.AppError:
+				e := err.(model.AppError)
+				e.Translate(localization.TfuncWithFallback(model.DEFAULT_LOCALE))
+				return h, status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
+			default:
+				return h, err
+			}
+		} else {
+			log.Debug("200", wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
+		}
+
+		return h, err
+	}
 }
 
 func httpCodeToGrpc(c int) codes.Code {
@@ -98,7 +110,7 @@ func httpCodeToGrpc(c int) codes.Code {
 	}
 }
 
-func NewGrpcServer(settings model.ServerSettings) *GrpcServer {
+func NewGrpcServer(app *App, settings model.ServerSettings) *GrpcServer {
 	address := fmt.Sprintf("%s:%d", settings.Address, settings.Port)
 	lis, err := net.Listen(settings.Network, address)
 	if err != nil {
@@ -108,7 +120,9 @@ func NewGrpcServer(settings model.ServerSettings) *GrpcServer {
 	return &GrpcServer{
 		lis: lis,
 		srv: grpc.NewServer(
-			grpc.UnaryInterceptor(unaryInterceptor),
+			//grpc.StatsHandler(otelgrpc.NewServerHandler()),
+			//grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+			grpc.UnaryInterceptor(GetUnaryInterceptor(app)),
 			grpc.MaxRecvMsgSize(int(settings.MaxMessageSize)),
 			grpc.MaxSendMsgSize(int(settings.MaxMessageSize)),
 		),
@@ -134,6 +148,17 @@ func (a *App) StartGrpcServer() error {
 }
 
 func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, model.AppError) {
+	v := ctx.Value(RequestContextSession)
+	sess, ok := v.(*auth_manager.Session)
+
+	// todo
+	if !ok {
+
+	}
+	return sess, nil
+}
+
+func (a *App) getSessionFromCtx(ctx context.Context) (*auth_manager.Session, model.AppError) {
 	var session *auth_manager.Session
 	var err model.AppError
 	var token []string

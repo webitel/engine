@@ -146,10 +146,10 @@ func (self *Session) HasAction(name string) bool {
 	return false
 }
 
-func (am *authManager) GetSession(token string) (*Session, error) {
+func (am *authManager) GetSession(token string) (Session, error) {
 
 	if v, ok := am.session.Get(token); ok {
-		return v.(*Session), nil
+		return v.(Session), nil
 	}
 
 	result, err, shared := sessionGroupRequest.Do(token, func() (interface{}, error) {
@@ -162,15 +162,15 @@ func (am *authManager) GetSession(token string) (*Session, error) {
 	})
 
 	if err != nil {
-		return nil, err
+		return Session{}, err
 	}
 
 	session := result.(*Session)
 
 	if !shared {
-		am.session.AddWithDefaultExpires(token, session)
+		am.session.AddWithDefaultExpires(token, *session)
 		am.log.With(wlog.String("user_name", session.Name)).Debug("store")
 	}
 
-	return session, nil
+	return *session, nil
 }

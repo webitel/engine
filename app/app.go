@@ -42,23 +42,25 @@ const (
 )
 
 type App struct {
-	nodeId         string
-	config         *model.Config
-	Log            *wlog.Logger
-	Srv            *Server
-	GrpcServer     *GrpcServer
-	Hubs           *Hubs
-	MessageQueue   mq.MQ
-	Count          atomic.Int64
-	Store          store.Store
-	cluster        *cluster
-	sessionManager auth_manager.AuthManager
-	callManager    call_manager.CallManager
-	chatManager    chat_manager.ChatManager
-	cc             client.CCManager
-	cipher         presign.PreSign
-	audit          *logger.Audit
-	b2b            *b2bua.B2B
+	nodeId           string
+	config           *model.Config
+	Log              *wlog.Logger
+	Srv              *Server
+	GrpcServer       *GrpcServer
+	Hubs             *Hubs
+	MessageQueue     mq.MQ
+	Count            atomic.Int64
+	Store            store.Store
+	cluster          *cluster
+	sessionManager   auth_manager.AuthManager
+	callManager      call_manager.CallManager
+	chatManager      chat_manager.ChatManager
+	cc               client.CCManager
+	cipher           presign.PreSign
+	audit            *logger.Audit
+	b2b              *b2bua.B2B
+	ctx              context.Context
+	otelShutdownFunc otelsdk.ShutdownFunc
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -78,6 +80,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		Srv: &Server{
 			RootRouter: mux.NewRouter(),
 		},
+		ctx: context.Background(),
 	}
 
 	app.Srv.Router = app.Srv.RootRouter.PathPrefix("/").Subrouter()
@@ -107,19 +110,20 @@ func New(options ...string) (outApp *App, outErr error) {
 	if config.Log.Otel {
 		// TODO
 		logConfig.EnableExport = true
+		app.otelShutdownFunc, err = otelsdk.Setup(
+			app.ctx,
+			otelsdk.WithResource(resource.NewSchemaless(
+				semconv.ServiceName(model.APP_SERVICE_NAME),
+				semconv.ServiceVersion(model.CurrentVersion),
+				semconv.ServiceInstanceID(app.nodeId),
+				semconv.ServiceNamespace("webitel"),
+			)),
+			otelsdk.WithLogLevel(log.SeverityDebug),
+		)
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	ctx := context.Background()
-	otelsdk.Setup(
-		ctx,
-		otelsdk.WithResource(resource.NewSchemaless(
-			semconv.ServiceName(model.APP_SERVICE_NAME),
-			semconv.ServiceVersion(model.CurrentVersion),
-			semconv.ServiceInstanceID(app.nodeId),
-			semconv.ServiceNamespace("webitel"),
-		)),
-		otelsdk.WithLogLevel(log.SeverityDebug),
-	)
 
 	app.Log = wlog.NewLogger(logConfig)
 
@@ -172,7 +176,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.Hubs = NewHubs(app)
 
-	app.GrpcServer = NewGrpcServer(app.Config().ServerSettings)
+	app.GrpcServer = NewGrpcServer(app, app.Config().ServerSettings)
 
 	if outErr = app.cluster.Start(); outErr != nil {
 		return nil, outErr
@@ -231,6 +235,7 @@ func (app *App) Shutdown() {
 	if app.chatManager != nil {
 		app.chatManager.Stop()
 	}
+	app.otelShutdownFunc(app.ctx)
 
 	app.cluster.Stop()
 	app.sessionManager.Stop()
