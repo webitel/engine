@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/webitel/engine/localization"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"net"
 	"net/http"
 	"strconv"
@@ -62,10 +64,17 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 
 		var reqCtx context.Context
 
-		_, span := tc.Start(ctx, info.FullMethod)
+		spanCtx, span := tc.Start(ctx, info.FullMethod)
 		defer span.End()
 
-		reqCtx = context.WithValue(ctx, RequestContextSession, sess)
+		span.SetAttributes(
+			attribute.Int64("domain_id", sess.DomainId),
+			attribute.Int64("user_id", sess.UserId),
+			attribute.String("ip_address", sess.GetUserIp()),
+			attribute.String("method", info.FullMethod),
+		)
+
+		reqCtx = context.WithValue(spanCtx, RequestContextSession, sess)
 		log := wlog.GlobalLogger().With(wlog.Namespace("context"),
 			wlog.Int64("domain_id", sess.DomainId),
 			wlog.Int64("user_id", sess.UserId),
@@ -78,6 +87,7 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 
 		if err != nil {
 			log.Error(err.Error(), wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
+			span.SetStatus(otelCodes.Error, err.Error())
 
 			switch err.(type) {
 			case model.AppError:
@@ -88,6 +98,7 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 				return h, err
 			}
 		} else {
+			span.SetStatus(otelCodes.Ok, "success")
 			log.Debug("200", wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
 		}
 
