@@ -7,7 +7,7 @@ import (
 
 func (a *AMQP) Listen() {
 	defer func() {
-		wlog.Info("close amqp listener")
+		a.log.Info("close amqp listener")
 		close(a.stopped)
 	}()
 
@@ -17,13 +17,13 @@ func (a *AMQP) Listen() {
 			if !ok {
 				break
 			}
-			wlog.Error(fmt.Sprintf("amqp connection receive error: %s", err.Error()))
+			a.log.Error(fmt.Sprintf("amqp connection receive error: %s", err.Error()), wlog.Err(err))
 			a.initConnection()
 		case <-a.stop:
 			for _, q := range a.domainQueues {
 				q.Stop()
 			}
-			wlog.Debug("listener call received stop signal")
+			a.log.Debug("listener call received stop signal")
 			return
 
 		case q := <-a.registerDomainQueue:

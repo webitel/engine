@@ -39,6 +39,7 @@ type DomainQueue struct {
 
 	stop    chan struct{}
 	stopped chan struct{}
+	log     *wlog.Logger
 
 	sync.RWMutex
 }
@@ -70,6 +71,10 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		reconnect:    make(chan error, 1),
 		stop:         make(chan struct{}),
 		stopped:      make(chan struct{}),
+		log: client.log.With(
+			wlog.String("scope", "domain queue"),
+			wlog.Int64("domain_id", id),
+		),
 	}
 	return q
 }
@@ -89,7 +94,7 @@ func (dq *DomainQueue) setChannel(ch *amqp.Channel) {
 }
 
 func (dq *DomainQueue) Start() {
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] started", dq.Id()))
+	dq.log.Debug(fmt.Sprintf("started"))
 	dq.startOnce.Do(func() {
 		dq.connect()
 	})
@@ -178,7 +183,12 @@ func (dq *DomainQueue) Unbind(bind *model.BindQueueEvent) model.AppError {
 		return model.NewInternalError("mq.unbind.queue.error", err.Error())
 	}
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] unbind userId=%d sockId=%s from %s", dq.Id(), bind.UserId, bind.Id, bind.Exchange))
+	dq.log.With(
+		wlog.Int64("user_id", bind.UserId),
+		wlog.String("sock_id", bind.Id),
+		wlog.String("exchange", bind.Exchange),
+	).Debug("unbind domain queue")
+
 	return nil
 }
 
@@ -197,7 +207,11 @@ func (dq *DomainQueue) BulkUnbind(b []*model.BindQueueEvent) model.AppError {
 func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
 	ch := dq.getChannel()
 	if ch == nil {
-		wlog.Error("not found active channel")
+		dq.log.With(
+			wlog.Int64("user_id", b.UserId),
+			wlog.String("sock_id", b.Id),
+			wlog.String("exchange", b.Exchange),
+		).Error("not found active channel")
 		return
 	}
 
@@ -210,15 +224,30 @@ func (dq *DomainQueue) bind(b *model.BindQueueEvent) {
 			"x-sock-id": b.Id,
 		})
 	if err != nil {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to %s events: %s", dq.Id(), b.UserId, b.Id, b.Routing, err.Error()))
+		dq.log.With(
+			wlog.Int64("user_id", b.UserId),
+			wlog.String("sock_id", b.Id),
+			wlog.String("exchange", b.Exchange),
+			wlog.String("routing", b.Routing),
+		).Error(err.Error())
 	} else {
-		wlog.Debug(fmt.Sprintf("DomainQueue [%d] bind userId=%d sockId=%s to %s events", dq.Id(), b.UserId, b.Id, b.Routing))
+		dq.log.With(
+			wlog.Int64("user_id", b.UserId),
+			wlog.String("sock_id", b.Id),
+			wlog.String("exchange", b.Exchange),
+			wlog.String("routing", b.Routing),
+		).Debug("bind events")
 	}
 }
 
 func (dq *DomainQueue) readMessage(m amqp.Delivery) {
+	log := dq.log.With(
+		wlog.String("content_type", m.ContentType),
+		wlog.String("exchange", m.Exchange),
+		wlog.String("routing", m.RoutingKey),
+	)
 	if m.ContentType != "text/json" && m.Exchange != model.ChatExchange {
-		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed receive event content type: %v\n%s", dq.Id(), m.ContentType, m.Body))
+		log.Warn("failed receive event content type")
 		return
 	}
 
@@ -239,7 +268,7 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 		dq.readUserStateMessage(m.Body, m.RoutingKey)
 
 	default:
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] not implement parser from exchange %s", dq.Id(), m.Exchange))
+		log.Error("not implement parser")
 	}
 }
 
@@ -254,52 +283,57 @@ func parseNotification(data []byte) (*model.Notification, error) {
 }
 
 func (dq *DomainQueue) readAppMessage(data []byte, rk string) {
+	log := dq.log.With(
+		wlog.String("routing", rk),
+	)
 	route := strings.Split(rk, ".")
 	if len(route) < 1 {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] read app message, error: bad routing key %s", dq.id, rk))
+		log.Error("read app message, error: bad routing key")
 	}
 
 	switch route[0] {
 	case "notification":
 		e, err := parseNotification(data)
 		if err != nil {
-			wlog.Warn(err.Error())
-			wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event notification, skip %s", dq.Id(), string(data)))
+			log.Warn("failed parse json event notification, skip", wlog.String("message", string(data)))
 			return
 		}
-
-		wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive notification event %v rk=%s", dq.Id(), e.Id, rk))
+		log.Debug("receive notification event", wlog.Int64("notification_id", e.Id))
 		dq.notificationEvent <- e
 
 	default:
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] read app message, error: no handler %s", dq.id, rk))
+		log.Error("read app message, error: no handler")
 	}
 }
 
 func (dq *DomainQueue) readChatEvent(data []byte, rk string) {
-	ev := parseChatMessage(data, rk)
+	ev := dq.parseChatMessage(data, rk)
 	if ev != nil {
 		dq.chatEvents <- ev
 	}
 }
 
-func parseChatMessage(body []byte, rk string) *model.ChatEvent {
+func (dq *DomainQueue) parseChatMessage(body []byte, rk string) *model.ChatEvent {
+	log := dq.log.With(
+		wlog.String("routing", rk),
+		wlog.String("channel", "chat"),
+	)
 	rks := strings.Split(rk, ".")
 	if len(rks) != 4 {
-		wlog.Error(fmt.Sprintf("event %s: bad rk format", rk))
+		log.Error("bad rk format")
 		return nil
 	}
 
 	domainId, err := strconv.Atoi(rks[2])
 	if err != nil {
-		wlog.Error(fmt.Sprintf("event %s: bad domainId", rk))
+		log.Error("bad domainId")
 		return nil
 
 	}
 
 	userId, err := strconv.Atoi(rks[3])
 	if err != nil {
-		wlog.Error(fmt.Sprintf("event %s: bad userId", rk))
+		log.Error("bad userId")
 		return nil
 	}
 
@@ -312,7 +346,7 @@ func parseChatMessage(body []byte, rk string) *model.ChatEvent {
 
 	err = json.Unmarshal(body, &ev.Data)
 	if err != nil {
-		wlog.Error(fmt.Sprintf("event %s: %s", rk, err.Error()))
+		log.Error(err.Error())
 		return nil
 	}
 
@@ -320,22 +354,24 @@ func parseChatMessage(body []byte, rk string) *model.ChatEvent {
 }
 
 func (dq *DomainQueue) readAgentStatusEvent(data []byte, rk string) {
+	log := dq.log.With(
+		wlog.String("routing", rk),
+		wlog.String("channel", "agent"),
+	)
 	e, err := parseAgentStatusEvent(data)
 	if err != nil {
-		wlog.Warn(err.Error())
-		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), string(data)))
+		log.Warn(err.Error())
 		return
 	}
 
 	if ev, appErr := model.NewWebSocketCallCenterEvent(e); appErr != nil {
-		wlog.Warn(appErr.Error())
-		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse event, skip %s", dq.Id(), string(data)))
+		log.Warn(err.Error())
 		return
 	} else {
 		if len(data) < 400 {
-			wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive cc event %v <%v> rk=%s", dq.Id(), e.Event, string(data), rk))
+			log.Debug("receive cc event", wlog.String("event", e.Event), wlog.String("message", string(data)))
 		} else {
-			wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive cc event %v <%v> rk=%s", dq.Id(), e.Event, "big data", rk))
+			log.Debug("receive cc event", wlog.String("event", e.Event), wlog.String("message", "#big data#"))
 		}
 		dq.events <- ev
 	}
@@ -362,20 +398,27 @@ func parseCallEvent(data []byte) (*model.CallEvent, error) {
 }
 
 func (dq *DomainQueue) readCallMessage(data []byte, rk string) {
+	log := dq.log.With(
+		wlog.String("routing", rk),
+		wlog.String("channel", "call"),
+	)
 	e, err := parseCallEvent(data)
 	if err != nil {
-		wlog.Warn(err.Error())
-		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), string(data)))
+		log.Warn(err.Error())
 		return
 	}
 
-	if e.Event == model.CallEventNameHeartbeat {
-		wlog.Debug(fmt.Sprintf("call [%s] receive heartbeat", e.Id))
-		return
-	}
+	log.Debug("receive heartbeat",
+		wlog.String("event", e.Event),
+		wlog.String("call_id", e.Id),
+		wlog.String("user_id", e.UserId),
+		wlog.String("domain_id", e.DomainId),
+		wlog.String("app_id", e.AppId),
+	)
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive call event %v:%v [%v] rk=%s", dq.Id(), e.AppId, e.Id, e.Event, rk))
-	dq.callEvents <- e
+	if e.Event != model.CallEventNameHeartbeat {
+		dq.callEvents <- e
+	}
 }
 
 func parseUserStateEvent(data []byte) (*model.UserState, error) {
@@ -389,25 +432,33 @@ func parseUserStateEvent(data []byte) (*model.UserState, error) {
 }
 
 func (dq *DomainQueue) readUserStateMessage(data []byte, rk string) {
+	log := dq.log.With(
+		wlog.String("routing", rk),
+		wlog.String("channel", "user"),
+	)
 	e, err := parseUserStateEvent(data)
 	if err != nil {
-		wlog.Warn(err.Error())
-		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), string(data)))
+		log.Warn(err.Error())
 		return
 	}
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] receive event %v:%v [%v] rk=%s", dq.Id(), e.App, e.Id, e.Status, rk))
+
+	log.Debug("receive user status event",
+		wlog.String("app_id", e.App),
+		wlog.Int64("user_id", e.Id),
+		wlog.String("user_status", e.Status),
+	)
 	dq.userStateEvents <- e
 
 }
 
 func (dq *DomainQueue) connect() error {
 	var err error
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] trying connect...", dq.Id()))
+	dq.log.Debug("trying connect...")
 	dq.setChannel(nil)
 
 	defer func() {
 		if err != nil {
-			wlog.Error(fmt.Sprintf("DomainQueue [%d] error: %s", dq.Id(), err.Error()))
+			dq.log.Error(err.Error())
 			time.Sleep(time.Second * RECONNECT_SEC)
 			go dq.connect()
 		}
@@ -417,7 +468,7 @@ func (dq *DomainQueue) connect() error {
 
 	ch, err = dq.client.NewChannel()
 	if err != nil {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] channel error: %s", dq.Id(), err.Error()))
+		dq.log.Error(err.Error())
 		return err
 	}
 
@@ -436,13 +487,13 @@ func (dq *DomainQueue) connect() error {
 	)
 
 	if err != nil {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] declare error: %s", dq.Id(), err.Error()))
+		dq.log.Error("declare error", wlog.Err(err))
 		return err
 	}
 
 	err = ch.QueueBind(dq.queue.Name, fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
 	if err != nil {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] bind error: %s", dq.Id(), err.Error()))
+		dq.log.Error("bind error", wlog.Err(err))
 		return err
 	}
 
@@ -457,17 +508,17 @@ func (dq *DomainQueue) connect() error {
 	)
 
 	if err != nil {
-		wlog.Error(fmt.Sprintf("DomainQueue [%d] consume error: %s", dq.Id(), err.Error()))
+		dq.log.Error("consume error", wlog.Err(err))
 		return err
 	}
 
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] connected", dq.Id()))
+	dq.log.Debug("connected")
 
 	dq.rebindingUsers()
 
 	go func() {
 		if err := dq.Listen(); err != nil {
-			wlog.Error(fmt.Sprintf("DomainQueue [%d] error: %s", dq.Id(), err.Error()))
+			dq.log.Error(err.Error())
 		}
 	}()
 
@@ -496,8 +547,9 @@ func (dq *DomainQueue) removeQueue() {
 func (dq *DomainQueue) Listen() error {
 	var ok bool
 	var err error
+	dq.log.Debug("start listener")
 	wlog.Debug(fmt.Sprintf("DomainQueue [%d] start listener", dq.Id()))
-	defer wlog.Debug(fmt.Sprintf("DomainQueue [%d] close listener", dq.Id()))
+	defer dq.log.Debug("close listener")
 
 	for {
 		select {
@@ -544,7 +596,7 @@ func (dq *DomainQueue) NotificationEvents() <-chan *model.Notification {
 }
 
 func (dq *DomainQueue) Stop() {
-	wlog.Debug(fmt.Sprintf("DomainQueue [%d] stopping", dq.Id()))
+	dq.log.Debug("stopping")
 	close(dq.stop)
 	<-dq.stopped
 }
@@ -553,8 +605,7 @@ func (dq *DomainQueue) getCallEvent(data []byte) *model.CallEvent {
 	e := &REvent{}
 	err := json.Unmarshal(data, e)
 	if err != nil {
-		wlog.Warn(err.Error())
-		wlog.Warn(fmt.Sprintf("DomainQueue [%d] failed parse json event, skip %s", dq.Id(), data))
+		dq.log.Warn("failed parse json event", wlog.Err(err))
 		return nil
 	}
 

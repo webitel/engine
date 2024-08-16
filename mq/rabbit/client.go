@@ -49,6 +49,7 @@ type AMQP struct {
 
 	registerDomainQueue   chan mq.DomainQueue
 	unRegisterDomainQueue chan mq.DomainQueue
+	log                   *wlog.Logger
 
 	mx sync.Mutex
 }
@@ -64,6 +65,10 @@ func NewRabbitMQ(nodeName string, settings *model.MessageQueueSettings) mq.Layer
 		registerDomainQueue:   make(chan mq.DomainQueue, MAX_QUEUE_REGISTER_SIZE),
 		unRegisterDomainQueue: make(chan mq.DomainQueue, MAX_QUEUE_REGISTER_SIZE),
 		nodeName:              nodeName,
+		log: wlog.GlobalLogger().With(
+			wlog.Namespace("context"),
+			wlog.String("protocol", "amqp"),
+		),
 	}
 
 	return mq_
@@ -88,7 +93,7 @@ func (a *AMQP) addDomainQueue(id int64, q mq.DomainQueue) {
 	defer a.mx.Unlock()
 
 	a.domainQueues[id] = q
-	wlog.Debug(fmt.Sprintf("added domain queue[%d]", id))
+	a.log.Debug("added domain queue", wlog.Int64("domain_id", id))
 }
 
 func (a *AMQP) RemoveDomainQueue(q *DomainQueue) {
@@ -96,21 +101,21 @@ func (a *AMQP) RemoveDomainQueue(q *DomainQueue) {
 	defer a.mx.Unlock()
 
 	delete(a.domainQueues, q.Id())
-	wlog.Debug(fmt.Sprintf("remove domain queue[%d] %s", q.Id(), q.Name()))
+	a.log.Debug("remove domain queue", wlog.Int64("domain_id", q.Id()))
 }
 
 func (a *AMQP) initConnection() {
 	var err error
 
 	if a.connectionAttempts >= MAX_ATTEMPTS_CONNECT {
-		wlog.Critical(fmt.Sprintf("failed to open AMQP connection..."))
+		a.log.Critical(fmt.Sprintf("failed to open AMQP connection..."))
 		time.Sleep(time.Second)
 		os.Exit(1)
 	}
 	a.connectionAttempts++
 	a.connection, err = amqp.Dial(a.settings.Url)
 	if err != nil {
-		wlog.Critical(fmt.Sprintf("failed to open AMQP connection to err:%v", err.Error()))
+		a.log.Critical(fmt.Sprintf("failed to open AMQP connection to err:%v", err.Error()))
 		time.Sleep(time.Second * RECONNECT_SEC)
 		a.initConnection()
 	} else {
@@ -120,14 +125,14 @@ func (a *AMQP) initConnection() {
 
 		a.channel.NotifyClose(a.errorChan)
 		if err != nil {
-			wlog.Critical(fmt.Sprintf("failed to open AMQP channel to err:%v", err.Error()))
+			a.log.Critical(fmt.Sprintf("failed to open AMQP channel to err:%v", err.Error()))
 			time.Sleep(time.Second)
 			os.Exit(1)
 		} else {
 			if err := a.createAppExchange(); err != nil {
 				panic(err.Error())
 			}
-			wlog.Info(fmt.Sprintf("success opened AMQP connection"))
+			a.log.Info("success opened AMQP connection")
 		}
 	}
 }
@@ -226,32 +231,32 @@ func (a *AMQP) Send(ctx context.Context, exchange string, rk string, body []byte
 func (a *AMQP) init() {
 	err := a.DeclareExchanges()
 	if err != nil {
-		wlog.Critical(fmt.Sprintf("failed to declare exchanges: %v", err.Error()))
+		a.log.Critical(fmt.Sprintf("failed to declare exchanges: %v", err.Error()))
 		time.Sleep(time.Second)
 		os.Exit(1)
 	}
 
 	//err = a.DeclareQueues()
 	//if err != nil {
-	//	wlog.Critical(fmt.Sprintf("failed to declare queues: %v", err.Error()))
+	//	a.log.Critical(fmt.Sprintf("failed to declare queues: %v", err.Error()))
 	//	time.Sleep(time.Second)
 	//	os.Exit(1)
 	//}
 }
 
 func (a *AMQP) Close() {
-	wlog.Debug("AMQP receive stop client")
+	a.log.Debug("AMQP receive stop client")
 	close(a.stop)
 	<-a.stopped
 
 	if a.channel != nil {
 		a.channel.Close()
-		wlog.Debug("close AMQP channel")
+		a.log.Debug("close AMQP channel")
 	}
 
 	if a.connection != nil {
 		a.connection.Close()
-		wlog.Debug("close AMQP connection")
+		a.log.Debug("close AMQP connection")
 	}
 }
 

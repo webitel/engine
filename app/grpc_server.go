@@ -75,7 +75,7 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 		)
 
 		reqCtx = context.WithValue(spanCtx, RequestContextSession, sess)
-		log := wlog.GlobalLogger().With(wlog.Namespace("context"),
+		log := app.Log.With(wlog.Namespace("context"),
 			wlog.Int64("domain_id", sess.DomainId),
 			wlog.Int64("user_id", sess.UserId),
 			wlog.String("ip_address", sess.GetUserIp()),
