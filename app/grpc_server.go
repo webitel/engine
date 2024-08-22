@@ -46,7 +46,7 @@ func (grpc *GrpcServer) GetPublicInterface() (string, int) {
 
 func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 	tp := otel.GetTracerProvider()
-	tc := tp.Tracer("engine")
+	tc := tp.Tracer("")
 
 	return func(ctx context.Context,
 		req interface{},
@@ -63,7 +63,6 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 		}
 
 		var reqCtx context.Context
-
 		spanCtx, span := tc.Start(ctx, info.FullMethod)
 		defer span.End()
 

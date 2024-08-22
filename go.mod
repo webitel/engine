@@ -35,7 +35,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
-	github.com/webitel/webitel-go-kit v0.0.13-0.20240813213129-56a49a38c8a6
+	github.com/webitel/webitel-go-kit v0.0.13-0.20240821134957-dcfde983f48b
 	github.com/webitel/wlog v0.0.0-20240815102009-b8f74bd674e2
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.opentelemetry.io/otel v1.28.0
