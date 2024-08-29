@@ -40,6 +40,9 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.T = conn.T
 	r.Locale = conn.Locale
 
+	_, span := wh.app.Tracer().Start(conn.Ctx, r.Action)
+	defer span.End()
+
 	var data map[string]interface{}
 	var err model.AppError
 

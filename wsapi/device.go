@@ -1,8 +1,6 @@
 package wsapi
 
 import (
-	"context"
-
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -21,7 +19,7 @@ func (api *API) deviceDefault(conn *app.WebConn, req *model.WebSocketRequest) (m
 	//}
 
 	typeName, _ := req.Data["name"].(string)
-	config, err := api.App.GetUserDefaultDeviceConfig(context.TODO(), conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
+	config, err := api.App.GetUserDefaultDeviceConfig(conn.Ctx, conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
 	if err != nil {
 		return nil, err
 	}

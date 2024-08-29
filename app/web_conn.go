@@ -2,8 +2,10 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"go.opentelemetry.io/otel/trace"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -51,6 +53,8 @@ type WebConn struct {
 	lastLatencyTime    atomic.Int64
 	log                *wlog.Logger
 	logMx              sync.RWMutex
+	Ctx                context.Context
+	Span               trace.Span
 
 	//Sip *SipProxy
 }
@@ -70,6 +74,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		listenEvents:       make(map[string]*model.BindQueueEvent),
 		ip:                 ip,
 	}
+	wc.Ctx, wc.Span = a.Tracer().Start(context.Background(), "websocket")
 
 	wc.log = a.Log.With(
 		wlog.Namespace("context"),
@@ -142,6 +147,10 @@ func (c *WebConn) readPump() {
 	defer func() {
 		c.Log().Debug("websocket.read: close")
 		c.WebSocket.Close()
+
+		if c.Span != nil {
+			c.Span.End()
+		}
 	}()
 
 	c.WebSocket.SetReadLimit(int64(c.App.MaxSocketInboundMsgSize()))

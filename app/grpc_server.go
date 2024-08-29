@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/webitel/engine/localization"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 	"net"
 	"net/http"
 	"strconv"
@@ -30,6 +30,11 @@ var (
 	RequestContextSession = "session"
 )
 
+const (
+	traceparentHeader = "micro-trace-id"
+	tracestateHeader  = "micro-span-id"
+)
+
 type GrpcServer struct {
 	srv *grpc.Server
 	lis net.Listener
@@ -44,10 +49,28 @@ func (grpc *GrpcServer) GetPublicInterface() (string, int) {
 	return h, port
 }
 
-func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
-	tp := otel.GetTracerProvider()
-	tc := tp.Tracer("")
+func ExtractContextFromMessageAttributes(ctx context.Context) context.Context {
+	attributes := make(map[string]string)
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		md = metadata.MD{}
+	}
+	if val, ok := md[traceparentHeader]; ok {
+		attributes["traceparent"] = val[0]
+	}
+	if val, ok := md[tracestateHeader]; ok {
+		attributes["tracestate"] = val[0]
+	}
 
+	if len(attributes) == 0 {
+		return ctx
+	}
+
+	return propagation.TraceContext{}.Extract(ctx, propagation.MapCarrier(attributes))
+}
+
+func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
+	tc := app.Tracer()
 	return func(ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
@@ -63,6 +86,19 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 		}
 
 		var reqCtx context.Context
+
+		/*
+			propgator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{},
+				propagation.Baggage{})
+
+			// Serialize the context into carrier
+			carrier := propagation.MapCarrier{}
+			propgator.Inject(ctx, carrier)
+			// This carrier is sent accros the process
+			fmt.Println(carrier)
+		*/
+		ctx = ExtractContextFromMessageAttributes(ctx)
+
 		spanCtx, span := tc.Start(ctx, info.FullMethod)
 		defer span.End()
 

@@ -60,6 +60,7 @@ type App struct {
 	audit            *logger.Audit
 	b2b              *b2bua.B2B
 	ctx              context.Context
+	tracer           *Tracer
 	otelShutdownFunc otelsdk.ShutdownFunc
 }
 
@@ -124,6 +125,7 @@ func New(options ...string) (outApp *App, outErr error) {
 			return nil, err
 		}
 	}
+	app.tracer = NewTrace()
 
 	app.Log = wlog.NewLogger(logConfig)
 

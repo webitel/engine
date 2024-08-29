@@ -1,8 +1,6 @@
 package wsapi
 
 import (
-	"context"
-
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -35,7 +33,7 @@ func (api *API) subscribeSelfChat(conn *app.WebConn, req *model.WebSocketRequest
 		return nil, e
 	}
 
-	list, err := api.ctrl.ListActiveChat(context.TODO(), conn.GetSession(), 0, model.PER_PAGE_DEFAULT)
+	list, err := api.ctrl.ListActiveChat(conn.Ctx, conn.GetSession(), 0, model.PER_PAGE_DEFAULT)
 
 	if err != nil {
 		return nil, err
@@ -252,7 +250,7 @@ func (api *API) listActiveChat(conn *app.WebConn, req *model.WebSocketRequest) (
 		size = model.PER_PAGE_DEFAULT
 	}
 
-	list, err := api.ctrl.ListActiveChat(context.TODO(), conn.GetSession(), int(page), int(size))
+	list, err := api.ctrl.ListActiveChat(conn.Ctx, conn.GetSession(), int(page), int(size))
 
 	if err != nil {
 		return nil, err
@@ -276,7 +274,7 @@ func (api *API) blindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (m
 		return nil, NewInvalidWebSocketParamError(req.Action, "plan_id")
 	}
 
-	return nil, api.ctrl.BlindTransferChat(context.TODO(), conn.GetSession(), conversationId, channelId, int32(planId), nil)
+	return nil, api.ctrl.BlindTransferChat(conn.Ctx, conn.GetSession(), conversationId, channelId, int32(planId), nil)
 }
 
 func (api *API) blindTransferToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {

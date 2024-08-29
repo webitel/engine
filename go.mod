@@ -17,6 +17,7 @@ require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/BoRuDar/configuration/v4 v4.2.2
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/XSAM/otelsql v0.32.0
 	github.com/ghettovoice/gosip v0.0.0-20231005134608-3b981d26e5cc
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.5.4
@@ -35,12 +36,13 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
 	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
-	github.com/webitel/webitel-go-kit v0.0.13-0.20240821134957-dcfde983f48b
+	github.com/webitel/webitel-go-kit v0.0.13-0.20240813213129-56a49a38c8a6
 	github.com/webitel/wlog v0.0.0-20240815102009-b8f74bd674e2
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.opentelemetry.io/otel v1.28.0
 	go.opentelemetry.io/otel/log v0.4.0
 	go.opentelemetry.io/otel/sdk v1.28.0
+	go.opentelemetry.io/otel/trace v1.28.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/net v0.27.0
@@ -69,7 +71,6 @@ require (
 	github.com/GaijinEntertainment/go-exhaustruct/v2 v2.3.0 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/OpenPeeDeeP/depguard v1.1.1 // indirect
-	github.com/XSAM/otelsql v0.32.0 // indirect
 	github.com/alexkohler/prealloc v1.0.0 // indirect
 	github.com/alingse/asasalint v0.0.11 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
@@ -256,7 +257,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.4.0 // indirect
 	go.opentelemetry.io/otel/sdk/metric v1.28.0 // indirect
-	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect

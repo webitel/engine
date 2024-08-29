@@ -1,8 +1,6 @@
 package wsapi
 
 import (
-	"context"
-
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -15,7 +13,7 @@ func (api *API) sendNotification(conn *app.WebConn, req *model.WebSocketRequest)
 	desc, _ := req.Data["description"].(string)
 	action, _ := req.Data["action"].(string)
 
-	err := api.App.SendNotification(context.Background(), conn.DomainId, &conn.UserId, []int64{1}, action, desc)
+	err := api.App.SendNotification(conn.Ctx, conn.DomainId, &conn.UserId, []int64{1}, action, desc)
 	if err != nil {
 		return nil, err
 	}
