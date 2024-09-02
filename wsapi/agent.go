@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -17,7 +18,7 @@ func (api *API) InitAgent() {
 	api.Router.Handle("cc_agent_task_close", api.ApiWebSocketHandler(api.closeAgentTask))
 }
 
-func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) subscribeAgentsStatus(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var ok bool
 
@@ -33,7 +34,7 @@ func (api *API) subscribeAgentsStatus(conn *app.WebConn, req *model.WebSocketReq
 	return nil, h.SubscribeSessionAgentStatus(conn, int(agentId))
 }
 
-func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var userId int64
 	var domainId int64
 	var ok bool
@@ -45,7 +46,7 @@ func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) 
 		domainId = conn.DomainId
 	}
 
-	sess, err := api.ctrl.GetAgentSession(conn.Ctx, conn.GetSession(), domainId, userId)
+	sess, err := api.ctrl.GetAgentSession(ctx, conn.GetSession(), domainId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +54,7 @@ func (api *API) getAgentSession(conn *app.WebConn, req *model.WebSocketRequest) 
 	return sess.ToMap(), nil
 }
 
-func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) onlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var onDemand bool
@@ -68,7 +69,7 @@ func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 	}
 
 	onDemand, _ = req.Data["on_demand"].(bool)
-	err := api.ctrl.LoginAgent(conn.Ctx, conn.GetSession(), int64(domainId), int64(agentId), onDemand)
+	err := api.ctrl.LoginAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), onDemand)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +78,7 @@ func (api *API) onlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map
 	return res, nil
 }
 
-func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) offlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var ok bool
@@ -90,7 +91,7 @@ func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 		domainId = float64(conn.DomainId)
 	}
 
-	err := api.ctrl.LogoutAgent(conn.Ctx, conn.GetSession(), int64(domainId), int64(agentId))
+	err := api.ctrl.LogoutAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId))
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +100,7 @@ func (api *API) offlineAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return res, nil
 }
 
-func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) pauseAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var payload string
@@ -117,7 +118,7 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	payload, _ = req.Data["payload"].(string)
 	timeout, _ = req.Data["timeout"].(float64)
 
-	err := api.ctrl.PauseAgent(conn.Ctx, conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
+	err := api.ctrl.PauseAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +127,7 @@ func (api *API) pauseAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return res, nil
 }
 
-func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) waitingAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId float64
 	var domainId float64
 	var channel string
@@ -144,7 +145,7 @@ func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 		domainId = float64(conn.DomainId)
 	}
 
-	timestamp, err := api.ctrl.WaitingAgent(conn.Ctx, conn.GetSession(), int64(domainId), int64(agentId), channel)
+	timestamp, err := api.ctrl.WaitingAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), channel)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +155,7 @@ func (api *API) waitingAgent(conn *app.WebConn, req *model.WebSocketRequest) (ma
 	return res, nil
 }
 
-func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) agentTasks(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId, domainId float64
 	var ok bool
 
@@ -166,7 +167,7 @@ func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		domainId = float64(conn.DomainId)
 	}
 
-	list, err := api.ctrl.ActiveAgentTasks(conn.Ctx, conn.GetSession(), int64(domainId), int64(agentId))
+	list, err := api.ctrl.ActiveAgentTasks(ctx, conn.GetSession(), int64(domainId), int64(agentId))
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +177,7 @@ func (api *API) agentTasks(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return res, nil
 }
 
-func (api *API) acceptAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) acceptAgentTask(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId, attemptId float64
 	var ok bool
 
@@ -201,7 +202,7 @@ func (api *API) acceptAgentTask(conn *app.WebConn, req *model.WebSocketRequest) 
 	return nil, err
 }
 
-func (api *API) closeAgentTask(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) closeAgentTask(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var agentId, attemptId float64
 	var ok bool
 

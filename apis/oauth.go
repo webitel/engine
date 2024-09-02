@@ -62,5 +62,5 @@ func handleOAuth2Callback(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("%s/integrations/email-profile/%d", *c.App.Config().PublicHostName, profileId), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("%s/integrations/email-profiles/%d/general", *c.App.Config().PublicHostName, profileId), http.StatusSeeOther)
 }

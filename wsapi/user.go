@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
@@ -18,7 +19,7 @@ func (api *API) InitUser() {
 	api.Router.Handle("latency_ack", api.ApiWebSocketHandler(api.latencyAck))
 }
 
-func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) userTyping(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	//return nil, NewInvalidWebSocketParamError(req.Action, "channel_id")
 
 	data := map[string]interface{}{}
@@ -28,16 +29,16 @@ func (api *API) userTyping(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return data, nil
 }
 
-func (api *API) userDefaultDeviceConfig(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) userDefaultDeviceConfig(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	typeName, _ := req.Data["name"].(string)
-	config, err := api.App.GetUserDefaultDeviceConfig(conn.Ctx, conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
+	config, err := api.App.GetUserDefaultDeviceConfig(ctx, conn.GetSession().UserId, conn.GetSession().DomainId, typeName)
 	if err != nil {
 		return nil, err
 	}
 	return config, nil
 }
 
-func (api *API) subscribeUsersStatus(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) subscribeUsersStatus(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	h, e := api.App.GetHubById(req.Session.Domain(0)) //FIXME
 	if e != nil {
 		return nil, e
@@ -46,7 +47,7 @@ func (api *API) subscribeUsersStatus(conn *app.WebConn, req *model.WebSocketRequ
 	return nil, h.SubscribeSessionUsersStatus(conn)
 }
 
-func (api *API) ping(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) ping(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	data := map[string]interface{}{}
 	data["pong"] = 1
 	if api.pingClientLatency {
@@ -55,13 +56,13 @@ func (api *API) ping(conn *app.WebConn, req *model.WebSocketRequest) (map[string
 	return data, nil
 }
 
-func (api *API) latencyStart(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) latencyStart(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	return map[string]interface{}{
 		"server_ts": model.GetMillis(),
 	}, nil
 }
 
-func (api *API) latencyAck(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) latencyAck(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	t := model.GetMillis()
 	req.Data["server_ack_ts"] = t
 	if v, ok := req.Data["last_latency"].(float64); ok && v > 0 {

@@ -1,6 +1,7 @@
 package wsapi
 
 import (
+	"context"
 	"fmt"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
@@ -38,8 +39,8 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_sdp_remote", api.ApiWebSocketHandler(api.callSdpRemote))
 }
 
-func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	calls, err := api.ctrl.UserActiveCall(conn.Ctx, conn.GetSession())
+func (api *API) callByUser(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	calls, err := api.ctrl.UserActiveCall(ctx, conn.GetSession())
 
 	if err != nil {
 		return nil, err
@@ -50,7 +51,7 @@ func (api *API) callByUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return res, nil
 }
 
-func (api *API) sipProxy(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) sipProxy(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var data string
 	if data, ok = req.Data["data"].(string); !ok {
@@ -62,7 +63,7 @@ func (api *API) sipProxy(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	return nil, nil
 }
 
-func (api *API) subscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) subscribeSelfCalls(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	h, e := api.App.GetHubById(req.Session.Domain(0))
 	if e != nil {
 		return nil, e
@@ -73,10 +74,10 @@ func (api *API) subscribeSelfCalls(conn *app.WebConn, req *model.WebSocketReques
 		return nil, e
 	}
 
-	return api.callByUser(conn, req)
+	return api.callByUser(ctx, conn, req)
 }
 
-func (api *API) unSubscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) unSubscribeSelfCalls(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	h, e := api.App.GetHubById(req.Session.Domain(0))
 	if e != nil {
 		return nil, e
@@ -85,7 +86,7 @@ func (api *API) unSubscribeSelfCalls(conn *app.WebConn, req *model.WebSocketRequ
 	return nil, h.UnSubscribeCalls(conn)
 }
 
-func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callEavesdrop(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	reqEa := &model.EavesdropCall{}
 
@@ -106,7 +107,7 @@ func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (m
 	vars := make(map[string]string)
 	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
 
-	callId, err := api.ctrl.EavesdropCall(conn.Ctx, conn.GetSession(), req.Session.DomainId, reqEa, vars)
+	callId, err := api.ctrl.EavesdropCall(ctx, conn.GetSession(), req.Session.DomainId, reqEa, vars)
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +117,7 @@ func (api *API) callEavesdrop(conn *app.WebConn, req *model.WebSocketRequest) (m
 	return res, nil
 }
 
-func (api *API) callEavesdropState(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callEavesdropState(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	reqEa := &model.EavesdropCall{}
 
@@ -127,7 +128,7 @@ func (api *API) callEavesdropState(conn *app.WebConn, req *model.WebSocketReques
 		return nil, NewInvalidWebSocketParamError(req.Action, "state")
 	}
 
-	err := api.ctrl.EavesdropStateCall(conn.Ctx, conn.GetSession(), req.Session.DomainId, reqEa)
+	err := api.ctrl.EavesdropStateCall(ctx, conn.GetSession(), req.Session.DomainId, reqEa)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +137,7 @@ func (api *API) callEavesdropState(conn *app.WebConn, req *model.WebSocketReques
 	return res, nil
 }
 
-func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callHangup(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, nodeId string
 
@@ -162,12 +163,12 @@ func (api *API) callHangup(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		cr.Cause = &cause
 	}
 
-	err := api.App.HangupCall(conn.Ctx, conn.GetSession().DomainId, &cr)
+	err := api.App.HangupCall(ctx, conn.GetSession().DomainId, &cr)
 
 	return nil, err
 }
 
-func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callBlindTransfer(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, destination string
 
@@ -178,7 +179,7 @@ func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	err := api.ctrl.BlindTransferCall(conn.Ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
+	err := api.ctrl.BlindTransferCall(ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
 		UserCallRequest: model.UserCallRequest{
 			Id: id,
 		},
@@ -192,7 +193,7 @@ func (api *API) callBlindTransfer(conn *app.WebConn, req *model.WebSocketRequest
 	return nil, nil
 }
 
-func (api *API) callBlindTransferExt(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callBlindTransferExt(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, destination string
 
@@ -203,7 +204,7 @@ func (api *API) callBlindTransferExt(conn *app.WebConn, req *model.WebSocketRequ
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	err := api.ctrl.BlindTransferCallExt(conn.Ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
+	err := api.ctrl.BlindTransferCallExt(ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCall{
 		UserCallRequest: model.UserCallRequest{
 			Id: id,
 		},
@@ -218,7 +219,7 @@ func (api *API) callBlindTransferExt(conn *app.WebConn, req *model.WebSocketRequ
 	return nil, nil
 }
 
-func (api *API) callHold(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callHold(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, nodeId string
 
@@ -241,7 +242,7 @@ func (api *API) callHold(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	return nil, nil
 }
 
-func (api *API) callDTMF(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callDTMF(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, nodeId string
 	var key string
@@ -267,7 +268,7 @@ func (api *API) callDTMF(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	return nil, nil
 }
 
-func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callUnHold(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, nodeId string
 
@@ -290,7 +291,7 @@ func (api *API) callUnHold(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return nil, nil
 }
 
-func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callInvite(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var callReq = &model.OutboundCallRequest{}
 	var ok bool
 	var props map[string]interface{}
@@ -325,7 +326,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	vars := make(map[string]string)
 	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
 
-	if id, err := api.ctrl.CreateCall(conn.Ctx, conn.GetSession(), callReq, vars); err != nil {
+	if id, err := api.ctrl.CreateCall(ctx, conn.GetSession(), callReq, vars); err != nil {
 		return nil, err
 	} else {
 		data := make(map[string]interface{})
@@ -334,7 +335,7 @@ func (api *API) callInvite(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	}
 }
 
-func (api *API) callToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callToUser(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok, useVideo, useScreen bool
 	var callId, callToId, parentCallId, sendToCallId string
 	var toUserId float64
@@ -348,12 +349,12 @@ func (api *API) callToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	callId = model.NewUuid()
 	callToId = model.NewUuid()
 
-	info, err := api.App.GetUserCallInfo(conn.Ctx, conn.UserId, conn.DomainId)
+	info, err := api.App.GetUserCallInfo(ctx, conn.UserId, conn.DomainId)
 	if err != nil {
 		return nil, err
 	}
 
-	infoTo, err := api.App.GetUserCallInfo(conn.Ctx, int64(toUserId), conn.DomainId)
+	infoTo, err := api.App.GetUserCallInfo(ctx, int64(toUserId), conn.DomainId)
 	if err != nil {
 		return nil, err
 	}
@@ -432,7 +433,7 @@ func (api *API) callToUser(conn *app.WebConn, req *model.WebSocketRequest) (map[
 	return data, nil
 }
 
-func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callMute(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok, mute bool
 	var id, nodeId string
 
@@ -458,7 +459,7 @@ func (api *API) callMute(conn *app.WebConn, req *model.WebSocketRequest) (map[st
 	return nil, nil
 }
 
-func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callBridge(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var fromId, toId string
 
@@ -470,12 +471,12 @@ func (api *API) callBridge(conn *app.WebConn, req *model.WebSocketRequest) (map[
 		return nil, NewInvalidWebSocketParamError(req.Action, "to_id")
 	}
 	res := make(map[string]interface{})
-	err := api.App.BridgeCall(conn.Ctx, conn.DomainId, fromId, toId, variablesFromMap(req.Data, "variables"))
+	err := api.App.BridgeCall(ctx, conn.DomainId, fromId, toId, variablesFromMap(req.Data, "variables"))
 	//FIXME set result
 	return res, err
 }
 
-func (api *API) callRecording(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callRecording(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var id string
 	var ok bool
 
@@ -483,7 +484,7 @@ func (api *API) callRecording(conn *app.WebConn, req *model.WebSocketRequest) (m
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
 
-	fileId, err := api.App.GetLastCallFile(conn.Ctx, conn.DomainId, id)
+	fileId, err := api.App.GetLastCallFile(ctx, conn.DomainId, id)
 	if err != nil {
 		return nil, err
 	}
@@ -493,7 +494,7 @@ func (api *API) callRecording(conn *app.WebConn, req *model.WebSocketRequest) (m
 	return res, nil
 }
 
-func (api *API) callSetParams(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSetParams(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var id string
 	var ok bool
 	var params model.CallParameters
@@ -514,7 +515,7 @@ func (api *API) callSetParams(conn *app.WebConn, req *model.WebSocketRequest) (m
 		}
 	}
 
-	err := api.App.SetCallParams(conn.Ctx, conn.DomainId, id, params)
+	err := api.App.SetCallParams(ctx, conn.DomainId, id, params)
 	if err != nil {
 		return nil, err
 	}
@@ -524,11 +525,11 @@ func (api *API) callSetParams(conn *app.WebConn, req *model.WebSocketRequest) (m
 }
 
 // TODO WTEL-4809
-func (api *API) callSetContactTODO(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSetContactTODO(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	res := make(map[string]interface{})
 	return res, nil
 }
-func (api *API) callSetContact(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSetContact(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id string
 	var contactId float64
@@ -542,11 +543,11 @@ func (api *API) callSetContact(conn *app.WebConn, req *model.WebSocketRequest) (
 	}
 
 	res := make(map[string]interface{})
-	err := api.ctrl.SetContactCall(conn.Ctx, conn.GetSession(), id, int64(contactId))
+	err := api.ctrl.SetContactCall(ctx, conn.GetSession(), id, int64(contactId))
 	return res, err
 }
 
-func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSendVideo(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, nodeId, id2, nodeId2 string
 
@@ -568,13 +569,13 @@ func (api *API) callSendVideo(conn *app.WebConn, req *model.WebSocketRequest) (m
 	return nil, nil
 }
 
-func (api *API) sipRegister(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) sipRegister(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	//userId, _ := req.Data["user_id"].(float64)
 
-	return nil, api.App.SipRegister(conn.Ctx, conn.GetSession().Name, conn.DomainId, int64(conn.UserId))
+	return nil, api.App.SipRegister(ctx, conn.GetSession().Name, conn.DomainId, int64(conn.UserId))
 }
 
-func (api *API) callSdp(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSdp(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	sdp, _ := req.Data["sdp"].(string)
 	destination, _ := req.Data["destination"].(string)
 	sipId, err := api.App.SipDial(conn.Id(), conn.DomainId, conn.UserId, sdp, destination)
@@ -587,7 +588,7 @@ func (api *API) callSdp(conn *app.WebConn, req *model.WebSocketRequest) (map[str
 	return res, nil
 }
 
-func (api *API) callSdpRecovery(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSdpRecovery(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	sdp, _ := req.Data["sdp"].(string)
 	id, _ := req.Data["id"].(string)
 
@@ -601,7 +602,7 @@ func (api *API) callSdpRecovery(conn *app.WebConn, req *model.WebSocketRequest) 
 	return res, nil
 }
 
-func (api *API) callSdpAnswer(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSdpAnswer(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	sdp, _ := req.Data["sdp"].(string)
 	id, _ := req.Data["id"].(string)
 	remoteSdp, err := api.App.SipAnswer(conn.DomainId, conn.UserId, id, sdp)
@@ -615,7 +616,7 @@ func (api *API) callSdpAnswer(conn *app.WebConn, req *model.WebSocketRequest) (m
 	return res, nil
 }
 
-func (api *API) callSdpRemote(conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callSdpRemote(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	id, _ := req.Data["id"].(string)
 	remoteSdp, err := api.App.SipRemoteSdp(conn.UserId, id)
 	if err != nil {
