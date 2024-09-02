@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
 	"sync"
 	"sync/atomic"
@@ -75,6 +75,12 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		ip:                 ip,
 	}
 	wc.Ctx, wc.Span = a.Tracer().Start(context.Background(), "websocket")
+	wc.Span.SetAttributes(
+		attribute.Int64("domain_id", session.DomainId),
+		attribute.Int64("user_id", session.UserId),
+		attribute.String("ip_address", ip),
+		attribute.String("sock_id", wc.id),
+	)
 
 	wc.log = a.Log.With(
 		wlog.Namespace("context"),
@@ -159,8 +165,6 @@ func (c *WebConn) readPump() {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		return nil
 	})
-
-	c.Log().Error("websocket.NextReader error", wlog.Err(errors.New("bla bla")))
 
 	for {
 		msgType, rd, err := c.WebSocket.NextReader()

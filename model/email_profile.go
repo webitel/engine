@@ -65,7 +65,19 @@ func (p *EmailProfile) Oauth() (oauth2.Config, AppError) {
 	}
 
 	if strings.Index(p.ImapHost, MailGmail+".com") > -1 {
-
+		return oauth2.Config{
+			ClientID:     config.ClientId,
+			ClientSecret: config.ClientSecret,
+			Endpoint: oauth2.Endpoint{
+				AuthURL: "https://www.googleapis.com/auth/gmail.imap_admin",
+				//AuthURL:  "https://accounts.google.com/o/oauth2/v2/auth",
+				TokenURL: "https://www.googleapis.com/oauth2/v4/token",
+			},
+			RedirectURL: config.RedirectURL, //"https://dev.webitel.com/endpoint/oauth2/outlook/callback",
+			Scopes: []string{
+				"https://mail.google.com/",
+			},
+		}, nil
 	} else if strings.Index(p.ImapHost, MailOutlook) == 0 {
 		return oauth2.Config{
 			ClientID:     config.ClientId,

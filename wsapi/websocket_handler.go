@@ -1,7 +1,9 @@
 package wsapi
 
 import (
+	"context"
 	"fmt"
+	"go.opentelemetry.io/otel/attribute"
 	"time"
 
 	"github.com/webitel/engine/app"
@@ -10,16 +12,16 @@ import (
 	"github.com/webitel/wlog"
 )
 
-func (api *API) ApiWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
+func (api *API) ApiWebSocketHandler(wh func(context.Context, *app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh, false}
 }
-func (api *API) ApiAsyncWebSocketHandler(wh func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
+func (api *API) ApiAsyncWebSocketHandler(wh func(context.Context, *app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)) webSocketHandler {
 	return webSocketHandler{api.App, wh, true}
 }
 
 type webSocketHandler struct {
 	app         *app.App
-	handlerFunc func(*app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)
+	handlerFunc func(context.Context, *app.WebConn, *model.WebSocketRequest) (map[string]interface{}, model.AppError)
 	async       bool
 }
 
@@ -40,8 +42,16 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	r.T = conn.T
 	r.Locale = conn.Locale
 
-	_, span := wh.app.Tracer().Start(conn.Ctx, r.Action)
+	ctx, span := wh.app.Tracer().Start(conn.Ctx, r.Action)
 	defer span.End()
+
+	span.SetAttributes(
+		attribute.Int64("domain_id", session.DomainId),
+		attribute.Int64("user_id", session.UserId),
+		attribute.String("ip_address", session.GetUserIp()),
+		attribute.String("method", r.Action),
+		attribute.String("sock_id", conn.Id()),
+	)
 
 	var data map[string]interface{}
 	var err model.AppError
@@ -50,7 +60,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 
 	}
 
-	if data, err = wh.handlerFunc(conn, r); err != nil {
+	if data, err = wh.handlerFunc(ctx, conn, r); err != nil {
 		conn.Log().With(
 			wlog.String("method", r.Action),
 			wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/1000),
