@@ -946,8 +946,8 @@ from (
                 max_bridged_at,
                 max_offering_at,
                 active_call.id                                    as                                  active_call_id,
-                q.skills,
-                q.skill_ids,
+                sa.skills,
+                sa.skill_ids,
                 (SELECT jsonb_agg(sag."user") AS jsonb_agg
                  FROM call_center.cc_agent_with_user sag
                  WHERE sag.id = any (a.supervisor_ids))                                               supervisor,
@@ -964,10 +964,15 @@ from (
                   inner join directory.wbt_user u on u.id = a.user_id
                   left join call_center.cc_team team on team.id = a.team_id
                   left join flow.region r on r.id = a.region_id
+             	  left join lateral (
+             	    select array_agg(distinct sia.skill_id) skill_ids,
+						   jsonb_agg(distinct call_center.cc_get_lookup(cs.id, cs.name)) skills
+					from call_center.cc_skill_in_agent sia
+						inner join call_center.cc_skill cs on cs.id = sia.skill_id
+					where sia.agent_id = a.id
+             	  ) sa on true
                   left join lateral (
              select array_agg(distinct q.id)                          queue_ids,
-                    array_agg(distinct sia.skill_id)                  skill_ids,
-                    jsonb_agg(distinct call_center.cc_get_lookup(cs.id, cs.name)) skills,
                     jsonb_agg(distinct call_center.cc_get_lookup(q.id, q.name))   queues
              from call_center.cc_skill_in_agent sia
                       inner join call_center.cc_queue q on sia.agent_id = a.id and sia.enabled
