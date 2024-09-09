@@ -111,7 +111,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	if config.Log.Otel {
 		// TODO
 		logConfig.EnableExport = true
-		app.otelShutdownFunc, err = otelsdk.Setup(
+		app.otelShutdownFunc, err = otelsdk.Configure(
 			app.ctx,
 			otelsdk.WithResource(resource.NewSchemaless(
 				semconv.ServiceName(model.APP_SERVICE_NAME),
@@ -237,7 +237,10 @@ func (app *App) Shutdown() {
 	if app.chatManager != nil {
 		app.chatManager.Stop()
 	}
-	app.otelShutdownFunc(app.ctx)
+
+	if app.otelShutdownFunc != nil {
+		app.otelShutdownFunc(app.ctx)
+	}
 
 	app.cluster.Stop()
 	app.sessionManager.Stop()
