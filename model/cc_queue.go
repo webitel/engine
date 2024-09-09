@@ -1,5 +1,10 @@
 package model
 
+const (
+	QueueTypeInboundCall = 1
+	QueueTypeInboundChat = 6
+)
+
 type Queue struct {
 	DomainRecord
 	Strategy             string          `json:"strategy" db:"strategy"`
@@ -237,6 +242,9 @@ func (q *Queue) Patch(p *QueuePatch) {
 }
 
 func (q *Queue) IsValid() AppError {
+	if q.Calendar == nil && !(q.Type == QueueTypeInboundCall || q.Type == QueueTypeInboundChat) {
+		return NewBadRequestError("model.queue.valid.calendar", "Calendar is required")
+	}
 	//FIXME
 	return nil
 }
