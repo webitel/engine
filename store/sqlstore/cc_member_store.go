@@ -910,3 +910,21 @@ where id = :Id`, map[string]interface{}{
 
 	return nil
 }
+
+func (s SqlMemberStore) QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError) {
+	queueId, err := s.GetMaster().WithContext(ctx).SelectInt(`select queue_id
+from call_center.cc_member
+where id = :Id::int8 and domain_id = :DomainId::int8`, map[string]interface{}{
+		"Id":       memberId,
+		"DomainId": domainId,
+	})
+	if err != nil {
+		return 0, model.NewCustomCodeError("store.sql_member.get_queue.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if queueId == 0 {
+		return 0, model.NewBadRequestError("store.sql_member.get_queue.not_found", "Not found member or queue")
+	}
+
+	return queueId, nil
+}

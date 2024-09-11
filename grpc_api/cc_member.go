@@ -399,6 +399,103 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 
 }
 
+func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOneRequest) (*engine.MemberInQueue, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	var queueId int64
+	queueId, err = api.app.MemberQueueId(ctx, session.Domain(0), in.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), queueId, session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, queueId, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	var m *model.Member
+	patch := &model.MemberPatch{}
+
+	//TODO FIXME
+	for _, v := range in.Fields {
+		switch v {
+		case "priority":
+			patch.Priority = model.NewInt(int(in.Priority))
+		case "expire_at":
+			patch.ExpireAt = model.Int64ToTime(in.ExpireAt)
+		case "min_offering_at":
+			patch.MinOfferingAt = model.Int64ToTime(in.MinOfferingAt)
+		case "name":
+			patch.Name = model.NewString(in.Name)
+		case "timezone.id":
+			patch.Timezone = GetLookup(in.Timezone)
+		case "bucket.id":
+			//todo
+			if in.Bucket != nil && in.Bucket.Id == 0 {
+				patch.Bucket = &model.Lookup{
+					Id: 0,
+				}
+			} else {
+				patch.Bucket = GetLookup(in.Bucket)
+			}
+		case "communications":
+			patch.Communications = toModelMemberCommunications(in.GetCommunications())
+		case "stop_cause":
+			patch.StopCause = model.NewString(in.StopCause)
+		case "attempts":
+			patch.Attempts = model.NewInt(int(in.Attempts))
+		case "agent.id":
+			//todo
+			if in.Agent != nil && in.Agent.Id == 0 {
+				patch.Agent = &model.Lookup{
+					Id: 0,
+				}
+			} else {
+				patch.Agent = GetLookup(in.Agent)
+			}
+		case "skill.id":
+			//todo
+			if in.Skill != nil && in.Skill.Id == 0 {
+				patch.Skill = &model.Lookup{
+					Id: 0,
+				}
+			} else {
+				patch.Skill = GetLookup(in.Skill)
+			}
+
+		default:
+			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
+				patch.Variables = in.Variables
+			}
+		}
+	}
+
+	m, err = api.app.PatchMember(ctx, session.Domain(in.GetDomainId()), queueId, in.GetId(), patch)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return toEngineMember(m), nil
+}
+
 func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequest) (*engine.MemberInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
