@@ -266,3 +266,7 @@ func (app *App) InterceptAttempt(domainId, attemptId int64, agentId int32) model
 
 	return nil
 }
+
+func (app *App) MemberQueueId(ctx context.Context, domainId int64, memberId int64) (int64, model.AppError) {
+	return app.Store.Member().QueueId(ctx, domainId, memberId)
+}
