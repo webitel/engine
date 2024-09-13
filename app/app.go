@@ -20,7 +20,6 @@ import (
 	"github.com/webitel/engine/store/sqlstore"
 	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
 	"github.com/webitel/wlog"
-	"go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/atomic"
@@ -119,7 +118,6 @@ func New(options ...string) (outApp *App, outErr error) {
 				semconv.ServiceInstanceID(app.nodeId),
 				semconv.ServiceNamespace("webitel"),
 			)),
-			otelsdk.WithLogLevel(log.SeverityDebug),
 		)
 		if err != nil {
 			return nil, err
