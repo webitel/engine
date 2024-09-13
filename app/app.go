@@ -23,6 +23,8 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/atomic"
+	"os"
+	"strings"
 
 	// -------------------- plugin(s) -------------------- //
 	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/otlp"
@@ -105,6 +107,12 @@ func New(options ...string) (outApp *App, outErr error) {
 		logConfig.EnableFile = true
 		logConfig.FileJson = true
 		logConfig.FileLevel = config.Log.Lvl
+	}
+
+	for _, v := range os.Environ() {
+		if strings.HasPrefix(v, "OTEL") {
+			fmt.Println(v)
+		}
 	}
 
 	if config.Log.Otel {
