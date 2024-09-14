@@ -82,7 +82,7 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 
 		sess, err = app.getSessionFromCtx(ctx)
 		if err != nil {
-			return nil, err
+			sess = &auth_manager.Session{}
 		}
 
 		var reqCtx context.Context
@@ -197,9 +197,8 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 	v := ctx.Value(RequestContextSession)
 	sess, ok := v.(*auth_manager.Session)
 
-	// todo
-	if !ok {
-
+	if !ok || sess.UserId == 0 {
+		return nil, model.NewUnauthorizedError("session.valid", "Unauthenticated")
 	}
 	return sess, nil
 }

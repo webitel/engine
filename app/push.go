@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
-	firebase "firebase.google.com/go"
-	"firebase.google.com/go/messaging"
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
 	"fmt"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
@@ -87,7 +87,7 @@ func pushFirebase(ctx context.Context, r *model.SendPush) int {
 	if r.Priority > 5 {
 		priority = "high"
 	}
-	res, err := firebaseClient.SendMulticast(ctx, &messaging.MulticastMessage{
+	res, err := firebaseClient.SendEachForMulticast(ctx, &messaging.MulticastMessage{
 		Tokens: r.Android,
 		//Data:         r.Data,
 		Notification: nil,
@@ -108,6 +108,11 @@ func pushFirebase(ctx context.Context, r *model.SendPush) int {
 		wlog.Error(err.Error(), wlog.Namespace("context"),
 			wlog.String("protocol", "firebase"),
 			wlog.Err(err),
+		)
+	} else if res.FailureCount > 0 {
+		wlog.Error(err.Error(), wlog.Namespace("context"),
+			wlog.String("protocol", "firebase"),
+			wlog.Any("response", res.Responses),
 		)
 	} else {
 		return res.SuccessCount
