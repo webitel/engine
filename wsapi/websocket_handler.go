@@ -56,10 +56,6 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	var data map[string]interface{}
 	var err model.AppError
 
-	if wh.async {
-
-	}
-
 	if data, err = wh.handlerFunc(ctx, conn, r); err != nil {
 		conn.Log().With(
 			wlog.String("method", r.Action),
