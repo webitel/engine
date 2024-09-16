@@ -95,7 +95,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	model.AppErrorInit(localization.T)
 
 	logConfig := &wlog.LoggerConfiguration{
-		EnableConsole: true,
+		EnableConsole: config.Log.Console,
 		ConsoleJson:   false,
 		ConsoleLevel:  config.Log.Lvl,
 	}
