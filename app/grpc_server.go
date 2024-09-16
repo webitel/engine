@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/webitel/engine/localization"
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
@@ -69,6 +70,31 @@ func ExtractContextFromMessageAttributes(ctx context.Context) context.Context {
 	return propagation.TraceContext{}.Extract(ctx, propagation.MapCarrier(attributes))
 }
 
+// TODO sync map ?
+type GrpcHeaderCarrier map[string][]string
+
+// Get returns the value associated with the passed key.
+func (hc GrpcHeaderCarrier) Get(key string) string {
+	if v, ok := hc[key]; ok && len(v) != 0 {
+		return v[0]
+	}
+	return ""
+}
+
+// Set stores the key-value pair.
+func (hc GrpcHeaderCarrier) Set(key string, value string) {
+	hc[key] = []string{value}
+}
+
+// Keys lists the keys stored in this carrier.
+func (hc GrpcHeaderCarrier) Keys() []string {
+	keys := make([]string, 0, len(hc))
+	for k := range hc {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 	tc := app.Tracer()
 	return func(ctx context.Context,
@@ -77,30 +103,30 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 		handler grpc.UnaryHandler) (interface{}, error) {
 		var err error
 		var sess *auth_manager.Session
+		var md metadata.MD
 
 		start := time.Now()
 
-		sess, err = app.getSessionFromCtx(ctx)
+		md, sess, err = app.getSessionFromCtx(ctx)
 		if err != nil {
 			sess = &auth_manager.Session{}
 		}
 
 		var reqCtx context.Context
 
-		/*
-			propgator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{},
-				propagation.Baggage{})
+		if md == nil {
+			md = metadata.MD{}
+		}
 
-			// Serialize the context into carrier
-			carrier := propagation.MapCarrier{}
-			propgator.Inject(ctx, carrier)
-			// This carrier is sent accros the process
-			fmt.Println(carrier)
-		*/
-		ctx = ExtractContextFromMessageAttributes(ctx)
+		propagators := otel.GetTextMapPropagator()
+		ctx = propagators.Extract(
+			ctx, GrpcHeaderCarrier(md),
+		)
 
 		spanCtx, span := tc.Start(ctx, info.FullMethod)
-		defer span.End()
+		defer func() {
+			span.End()
+		}()
 
 		span.SetAttributes(
 			attribute.Int64("domain_id", sess.DomainId),
@@ -166,8 +192,6 @@ func NewGrpcServer(app *App, settings model.ServerSettings) *GrpcServer {
 	return &GrpcServer{
 		lis: lis,
 		srv: grpc.NewServer(
-			//grpc.StatsHandler(otelgrpc.NewServerHandler()),
-			//grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
 			grpc.UnaryInterceptor(GetUnaryInterceptor(app)),
 			grpc.MaxRecvMsgSize(int(settings.MaxMessageSize)),
 			grpc.MaxSendMsgSize(int(settings.MaxMessageSize)),
@@ -203,7 +227,7 @@ func (a *App) GetSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 	return sess, nil
 }
 
-func (a *App) getSessionFromCtx(ctx context.Context) (*auth_manager.Session, model.AppError) {
+func (a *App) getSessionFromCtx(ctx context.Context) (metadata.MD, *auth_manager.Session, model.AppError) {
 	var session *auth_manager.Session
 	var err model.AppError
 	var token []string
@@ -219,27 +243,27 @@ func (a *App) getSessionFromCtx(ctx context.Context) (*auth_manager.Session, mod
 	}
 
 	if !ok {
-		return nil, model.NewUnauthorizedError("app.grpc.get_context", "Not found")
+		return info, nil, model.NewUnauthorizedError("app.grpc.get_context", "Not found")
 	} else {
 		token = info.Get(HEADER_TOKEN)
 	}
 
 	if len(token) < 1 {
-		return nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token not found")
+		return info, nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token not found")
 	}
 
 	session, err = a.GetSession(token[0])
 	if err != nil {
-		return nil, err
+		return info, nil, err
 	}
 
 	if session.IsExpired() {
-		return nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token="+token[0])
+		return info, nil, model.NewUnauthorizedError("api.context.session_expired.app_error", "token="+token[0])
 	}
 
 	session.SetIp(getClientIp(info))
 
-	return session, nil
+	return info, session, nil
 }
 
 func getClientIp(info metadata.MD) string {
