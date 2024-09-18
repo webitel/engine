@@ -68,7 +68,7 @@ func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue
 	oldQueue.Strategy = queue.Strategy
 	oldQueue.Enabled = queue.Enabled
 	oldQueue.Payload = queue.Payload
-	oldQueue.Calendar.Id = queue.Calendar.Id
+	oldQueue.Calendar = queue.Calendar
 	oldQueue.Priority = queue.Priority
 	oldQueue.Name = queue.Name
 	oldQueue.Variables = queue.Variables
