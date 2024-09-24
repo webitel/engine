@@ -563,6 +563,7 @@ type SearchHistoryCall struct {
 	ContactIds       []int64
 	SchemaIds        []int32
 	HasTransfer      *bool
+	Timeline         *bool
 }
 
 type CallEventInfo struct {

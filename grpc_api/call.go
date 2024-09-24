@@ -91,6 +91,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		req.HasTransfer = model.NewBool(in.GetHasTransfer().GetValue())
 	}
 
+	if in.Timeline != nil {
+		req.Timeline = model.NewBool(in.GetTimeline().GetValue())
+	}
+
 	if in.GetDependencyId() != "" {
 		req.DependencyIds = []string{in.GetDependencyId()}
 	}
