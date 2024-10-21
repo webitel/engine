@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -1230,23 +1231,27 @@ where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'br
 	return res, nil
 }
 
-func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (*int64, model.AppError) {
-	r, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select coalesce(c.user_id, p.user_id) as rate_user
+func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (int64, time.Time, model.AppError) {
+	var userId int64
+	var createdAt time.Time
+
+	row := s.GetReplica().WithContext(ctx).QueryRow(`select coalesce(c.user_id, p.user_id) as rate_user,
+       case when c.user_id notnull then c.created_at else p.created_at end as created_at
 from call_center.cc_calls_history c
     left join call_center.cc_calls_history p on p.id = c.bridged_id
-where c.id = :Id::uuid`, map[string]interface{}{
-		"Id": id,
-	})
+where c.id = $1::uuid`, id)
 
+	err := row.Err()
 	if err != nil {
-		return nil, model.NewCustomCodeError("store.sql_call.get.owner.app_error", err.Error(), extractCodeFromErr(err))
+		return userId, createdAt, model.NewCustomCodeError("store.sql_call.get.owner.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	if !r.Valid {
-		return nil, nil
+	err = row.Scan(&userId, &createdAt)
+	if err != nil {
+		return userId, createdAt, model.NewCustomCodeError("store.sql_call.get.owner.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return &r.Int64, nil
+	return userId, createdAt, nil
 }
 
 func (s SqlCallStore) UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError {

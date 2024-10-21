@@ -126,12 +126,12 @@ func (app *App) RateAuditForm(ctx context.Context, domainId int64, userId int64,
 		return nil, model.NewBadRequestError("app.audit.rate.valid.call_id", "call_id is required")
 	}
 
-	rateUserId, err := app.Store.Call().GetOwnerUserCall(ctx, *rate.CallId)
+	rateUserId, callCreatedAt, err := app.Store.Call().GetOwnerUserCall(ctx, *rate.CallId)
 	if err != nil {
 		return nil, err
 	}
 
-	if rateUserId == nil {
+	if rateUserId == 0 {
 		return nil, model.NewNotFoundError("app.audit.rate.valid.call_id", fmt.Sprintf("Not fond call_id %v", *rate.CallId))
 	}
 
@@ -149,7 +149,8 @@ func (app *App) RateAuditForm(ctx context.Context, domainId int64, userId int64,
 		return nil, model.NewBadRequestError("app.audit.rate.valid.form", "form is archive")
 	}
 
-	rate.RatedUser = &model.Lookup{Id: int(*rateUserId)}
+	rate.RatedUser = &model.Lookup{Id: int(rateUserId)}
+	rate.CallCreatedAt = &callCreatedAt
 
 	auditRate := &model.AuditRate{
 		AclRecord: model.AclRecord{

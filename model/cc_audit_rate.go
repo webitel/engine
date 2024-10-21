@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type QuestionAnswers []*QuestionAnswer
@@ -12,11 +13,12 @@ type QuestionAnswer struct {
 }
 
 type Rate struct {
-	CallId    *string         `json:"call_id" db:"call_id"`
-	RatedUser *Lookup         `json:"rated_user" db:"rated_user"`
-	Form      *Lookup         `json:"form" db:"form"`
-	Answers   QuestionAnswers `json:"answers" db:"answers"`
-	Comment   string          `json:"comment" db:"comment"`
+	CallId        *string         `json:"call_id" db:"call_id"`
+	CallCreatedAt *time.Time      `json:"call_created_at" db:"call_created_at"`
+	RatedUser     *Lookup         `json:"rated_user" db:"rated_user"`
+	Form          *Lookup         `json:"form" db:"form"`
+	Answers       QuestionAnswers `json:"answers" db:"answers"`
+	Comment       string          `json:"comment" db:"comment"`
 }
 
 type AuditRate struct {
@@ -76,6 +78,7 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 	r.Form = &Lookup{Id: int(form.Id)}
 	r.RatedUser = rate.RatedUser
 	r.CallId = rate.CallId
+	r.CallCreatedAt = rate.CallCreatedAt
 	r.Comment = rate.Comment
 
 	for i, a := range r.Answers {

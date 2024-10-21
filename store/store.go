@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Masterminds/squirrel"
 	"golang.org/x/oauth2"
+	"time"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -383,7 +384,7 @@ type CallStore interface {
 	DeleteAnnotation(ctx context.Context, id int64) model.AppError
 	GetEavesdropInfo(ctx context.Context, domainId int64, id string) (*model.EavesdropInfo, model.AppError)
 
-	GetOwnerUserCall(ctx context.Context, id string) (*int64, model.AppError)
+	GetOwnerUserCall(ctx context.Context, id string) (int64, time.Time, model.AppError)
 	UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError
 	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError
 

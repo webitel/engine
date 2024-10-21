@@ -14,8 +14,10 @@ type SqlAuditRateStore struct {
 
 func (s SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&rate, `with r as (
-    insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional, comment, call_id, rated_user_id)
-    values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional, :Comment, :CallId, :RatedUserId)
+    insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional, 
+		comment, call_id, call_created_at, rated_user_id)
+    values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional, 
+		:Comment, :CallId, :CallCreatedAt, :RatedUserId)
     returning *
 )
 select r.id,
@@ -47,6 +49,7 @@ from  r
 		"ScoreOptional": rate.ScoreOptional,
 		"Comment":       rate.Comment,
 		"CallId":        rate.CallId,
+		"CallCreatedAt": rate.CallCreatedAt,
 		"RatedUserId":   rate.RatedUser.GetSafeId(),
 	})
 
