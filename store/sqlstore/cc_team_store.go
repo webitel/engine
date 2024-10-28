@@ -64,7 +64,7 @@ from t
 			"UpdatedAt":             team.UpdatedAt,
 			"UpdatedBy":             team.UpdatedBy.GetSafeId(),
 			"AdminIds":              pq.Array(model.LookupIds(team.Admin)),
-			"ForecastCalculationId": team.ForecastCalculationId(),
+			"ForecastCalculationId": team.ForecastCalculation.GetSafeId(),
 		}); nil != err {
 		return nil, model.NewCustomCodeError("store.sql_agent_team.save.app_error", fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -225,7 +225,7 @@ from t
 		"UpdatedAt":             team.UpdatedAt,
 		"UpdatedBy":             team.UpdatedBy.GetSafeId(),
 		"AdminIds":              pq.Array(model.LookupIds(team.Admin)),
-		"ForecastCalculationId": team.ForecastCalculationId(),
+		"ForecastCalculationId": team.ForecastCalculation.GetSafeId(),
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent_team.update.app_error", fmt.Sprintf("Id=%v, %s", team.Id, err.Error()), extractCodeFromErr(err))

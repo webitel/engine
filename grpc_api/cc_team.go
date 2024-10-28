@@ -264,17 +264,18 @@ func (api *agentTeam) checkForecastCalculation(session *auth_manager.Session, fc
 
 func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {
 	return &engine.AgentTeam{
-		Id:                src.Id,
-		DomainId:          src.DomainId,
-		Name:              src.Name,
-		Description:       src.Description,
-		Strategy:          src.Strategy,
-		MaxNoAnswer:       int32(src.MaxNoAnswer),
-		WrapUpTime:        int32(src.WrapUpTime),
-		NoAnswerDelayTime: int32(src.NoAnswerDelayTime),
-		CallTimeout:       int32(src.CallTimeout),
-		Admin:             GetProtoLookups(src.Admin),
-		InviteChatTimeout: int32(src.InviteChatTimeout),
-		TaskAcceptTimeout: int32(src.TaskAcceptTimeout),
+		Id:                  src.Id,
+		DomainId:            src.DomainId,
+		Name:                src.Name,
+		Description:         src.Description,
+		Strategy:            src.Strategy,
+		MaxNoAnswer:         int32(src.MaxNoAnswer),
+		WrapUpTime:          int32(src.WrapUpTime),
+		NoAnswerDelayTime:   int32(src.NoAnswerDelayTime),
+		CallTimeout:         int32(src.CallTimeout),
+		Admin:               GetProtoLookups(src.Admin),
+		InviteChatTimeout:   int32(src.InviteChatTimeout),
+		TaskAcceptTimeout:   int32(src.TaskAcceptTimeout),
+		ForecastCalculation: GetProtoLookup(src.ForecastCalculation),
 	}
 }

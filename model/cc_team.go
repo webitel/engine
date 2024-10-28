@@ -43,11 +43,3 @@ type SearchAgentTeam struct {
 func (team *AgentTeam) IsValid() AppError {
 	return nil
 }
-
-func (team *AgentTeam) ForecastCalculationId() *int64 {
-	if team.ForecastCalculation != nil {
-		return NewInt64(int64(team.ForecastCalculation.Id))
-	}
-
-	return nil
-}
