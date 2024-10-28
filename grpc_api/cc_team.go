@@ -1,9 +1,12 @@
 package grpc_api
 
 import (
+	"context"
+	"fmt"
+
 	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
 	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
-	"context"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -51,6 +54,10 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 		Admin:             GetLookups(in.Admin),
 		InviteChatTimeout: int16(in.InviteChatTimeout),
 		TaskAcceptTimeout: int16(in.TaskAcceptTimeout),
+	}
+
+	if err := api.checkForecastCalculation(session, in.ForecastCalculation, team); err != nil {
+		return nil, err
 	}
 
 	err = team.IsValid()
@@ -173,9 +180,7 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		}
 	}
 
-	var team *model.AgentTeam
-
-	team, err = api.app.UpdateAgentTeam(ctx, session.Domain(in.GetDomainId()), &model.AgentTeam{
+	team := &model.AgentTeam{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -194,13 +199,19 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		Admin:             GetLookups(in.Admin),
 		InviteChatTimeout: int16(in.InviteChatTimeout),
 		TaskAcceptTimeout: int16(in.TaskAcceptTimeout),
-	})
+	}
+
+	if err := api.checkForecastCalculation(session, in.ForecastCalculation, team); err != nil {
+		return nil, err
+	}
+
+	out, err := api.app.UpdateAgentTeam(ctx, session.Domain(in.GetDomainId()), team)
 
 	if err != nil {
 		return nil, err
 	}
 
-	res := transformAgentTeam(team)
+	res := transformAgentTeam(out)
 	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
 
 	return res, nil
@@ -237,6 +248,18 @@ func (api *agentTeam) DeleteAgentTeam(ctx context.Context, in *engine.DeleteAgen
 	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
 
 	return res, nil
+}
+
+func (api *agentTeam) checkForecastCalculation(session *auth_manager.Session, fc *engine.Lookup, team *model.AgentTeam) error {
+	if fc != nil {
+		if !session.HasLicense(auth_manager.LicenseWFM) {
+			return model.NewForbiddenError("grpc_api.cc_team.forecast_calculation", fmt.Sprintf("license %s required to proceed with forecast calculation", auth_manager.LicenseWFM))
+		}
+
+		team.ForecastCalculation = GetLookup(fc)
+	}
+
+	return nil
 }
 
 func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {

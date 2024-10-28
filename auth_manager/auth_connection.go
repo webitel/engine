@@ -4,10 +4,9 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc/metadata"
-
-	"time"
 
 	gogrpc "buf.build/gen/go/webitel/webitel-go/grpc/go/_gogrpc"
 	proto "buf.build/gen/go/webitel/webitel-go/protocolbuffers/go"
@@ -33,6 +32,7 @@ const (
 	LicenseCallManager = "CALL_MANAGER"
 	LicenseCallCenter  = "CALL_CENTER"
 	LicenseEmail       = "EMAIL"
+	LicenseWFM         = "WFM"
 )
 
 type authConnection struct {
@@ -102,7 +102,7 @@ func (ac *authConnection) ProductLimit(ctx context.Context, token string, produc
 }
 
 func (ac *authConnection) GetSession(token string) (*Session, error) {
-	//FIXME
+	// FIXME
 	header := metadata.New(map[string]string{"x-webitel-access": token})
 	ctx := metadata.NewOutgoingContext(context.TODO(), header)
 
@@ -127,7 +127,7 @@ func (ac *authConnection) GetSession(token string) (*Session, error) {
 		DomainName: resp.Domain,
 		Expire:     resp.ExpiresAt,
 		Token:      token,
-		RoleIds:    transformRoles(resp.UserId, resp.Roles), ///FIXME
+		RoleIds:    transformRoles(resp.UserId, resp.Roles), // /FIXME
 		Scopes:     transformScopes(resp.Scope),
 		actions:    make([]string, 0, 1),
 		Name:       resp.Name,
@@ -196,7 +196,7 @@ func transformScopes(src []*proto.Objclass) []SessionPermission {
 		dst = append(dst, SessionPermission{
 			Id:   int(v.Id),
 			Name: v.Class,
-			//Abac:   v.Abac,
+			// Abac:   v.Abac,
 			Obac:   v.Obac,
 			rbac:   v.Rbac,
 			Access: uint32(access),

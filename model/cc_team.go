@@ -12,7 +12,8 @@ type AgentTeam struct {
 	InviteChatTimeout int16  `json:"invite_chat_timeout" db:"invite_chat_timeout"`
 	TaskAcceptTimeout int16  `json:"task_accept_timeout" db:"task_accept_timeout"`
 
-	Admin []*Lookup `json:"admin" db:"admin"`
+	Admin               []*Lookup `json:"admin" db:"admin"`
+	ForecastCalculation *Lookup   `json:"forecast_calculation" db:"forecast_calculation_id"`
 }
 
 func (team AgentTeam) DefaultOrder() string {
@@ -20,7 +21,7 @@ func (team AgentTeam) DefaultOrder() string {
 }
 
 func (team AgentTeam) AllowFields() []string {
-	return team.DefaultFields()
+	return append(team.DefaultFields(), "forecast_calculation")
 }
 
 func (team AgentTeam) DefaultFields() []string {
@@ -40,5 +41,13 @@ type SearchAgentTeam struct {
 }
 
 func (team *AgentTeam) IsValid() AppError {
+	return nil
+}
+
+func (team *AgentTeam) ForecastCalculationId() *int64 {
+	if team.ForecastCalculation != nil {
+		return NewInt64(int64(team.ForecastCalculation.Id))
+	}
+
 	return nil
 }
