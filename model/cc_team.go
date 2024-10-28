@@ -13,7 +13,7 @@ type AgentTeam struct {
 	TaskAcceptTimeout int16  `json:"task_accept_timeout" db:"task_accept_timeout"`
 
 	Admin               []*Lookup `json:"admin" db:"admin"`
-	ForecastCalculation *Lookup   `json:"forecast_calculation" db:"forecast_calculation_id"`
+	ForecastCalculation *Lookup   `json:"forecast_calculation" db:"forecast_calculation"`
 }
 
 func (team AgentTeam) DefaultOrder() string {
