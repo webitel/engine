@@ -21,12 +21,12 @@ func (team AgentTeam) DefaultOrder() string {
 }
 
 func (team AgentTeam) AllowFields() []string {
-	return append(team.DefaultFields(), "forecast_calculation")
+	return team.DefaultFields()
 }
 
 func (team AgentTeam) DefaultFields() []string {
-	return []string{"id", "name", "description", "strategy", "max_no_answer", "wrap_up_time",
-		"no_answer_delay_time", "call_timeout", "updated_at", "admin", "invite_chat_timeout", "task_accept_timeout"}
+	return []string{"id", "name", "description", "strategy", "max_no_answer", "wrap_up_time", "no_answer_delay_time",
+		"call_timeout", "updated_at", "admin", "invite_chat_timeout", "task_accept_timeout", "forecast_calculation"}
 }
 
 func (team AgentTeam) EntityName() string {
