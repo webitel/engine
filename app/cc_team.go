@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -53,7 +54,20 @@ func (a *App) UpdateAgentTeam(ctx context.Context, domainId int64, team *model.A
 	oldTeam.InviteChatTimeout = team.InviteChatTimeout
 	oldTeam.TaskAcceptTimeout = team.TaskAcceptTimeout
 	oldTeam.Admin = team.Admin
-	oldTeam.ForecastCalculation = team.ForecastCalculation
+
+	if oldTeam.ForecastCalculation.GetSafeId() != team.ForecastCalculation.GetSafeId() {
+		session, err := a.GetSessionFromCtx(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// if session has a WFM license, then set the new value,
+		if !session.HasLicense(auth_manager.LicenseWFM) {
+			return nil, model.NewForbiddenError("app.cc_team.forecast_calculation", fmt.Sprintf("license %s required to update forecast calculation", auth_manager.LicenseWFM))
+		}
+
+		oldTeam.ForecastCalculation = team.ForecastCalculation
+	}
 
 	oldTeam.UpdatedAt = team.UpdatedAt
 	oldTeam.UpdatedBy = team.UpdatedBy
