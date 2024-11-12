@@ -309,31 +309,6 @@ from tmp
 	return res, nil
 }
 
-func (s SqlAgentSkillStore) LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, model.AppError) {
-	var skills []*model.Skill
-
-	if _, err := s.GetReplica().WithContext(ctx).Select(&skills,
-		`select c.id,
-       c.name,
-       c.description
-from call_center.cc_skill c
-where c.domain_id = :DomainId and ( (:Q::varchar isnull or (c.name ilike :Q::varchar or c.description ilike :Q::varchar ) )) 
-	and not exists(select 1 from call_center.cc_skill_in_agent sa where sa.agent_id = :AgentId and sa.skill_id = c.id)
-order by id
-limit :Limit
-offset :Offset`, map[string]interface{}{
-			"DomainId": domainId,
-			"Limit":    search.GetLimit(),
-			"Offset":   search.GetOffset(),
-			"AgentId":  agentId,
-			"Q":        search.GetQ(),
-		}); err != nil {
-		return nil, model.NewInternalError("store.sql_skill_in_agent.lookup.skill.app_error", err.Error())
-	} else {
-		return skills, nil
-	}
-}
-
 func (s SqlAgentSkillStore) CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, model.AppError) {
 	var items []*model.AgentSkill
 	_, err := s.GetMaster().WithContext(ctx).Select(&items, `with tmp as (

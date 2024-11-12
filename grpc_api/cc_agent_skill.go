@@ -5,18 +5,17 @@ import (
 	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )
 
 type agentSkill struct {
-	app *app.App
+	*API
 	gogrpc.UnsafeAgentSkillServiceServer
 }
 
-func NewAgentSkillApi(app *app.App) *agentSkill {
-	return &agentSkill{app: app}
+func NewAgentSkillApi(api *API) *agentSkill {
+	return &agentSkill{API: api}
 }
 
 func (api *agentSkill) CreateAgentSkill(ctx context.Context, in *engine.CreateAgentSkillRequest) (*engine.AgentSkill, error) {
@@ -459,16 +458,16 @@ func (api *agentSkill) SearchLookupAgentNotExistsSkill(ctx context.Context, in *
 
 	var list []*model.Skill
 	var endList bool
-	req := &model.SearchAgentSkillList{
+	req := &model.SearchSkill{
 		ListRequest: model.ListRequest{
-			//DomainId: in.GetDomainId(),
 			Q:       in.GetQ(),
 			Page:    int(in.GetPage()),
 			PerPage: int(in.GetSize()),
 		},
+		NotExistsAgent: &in.AgentId,
 	}
 
-	list, endList, err = api.app.LookupSkillIfNotExistsAgent(ctx, session.Domain(in.DomainId), in.GetAgentId(), req)
+	list, endList, err = api.ctrl.SearchSkill(ctx, session, req)
 	if err != nil {
 		return nil, err
 	}

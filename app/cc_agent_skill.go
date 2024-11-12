@@ -97,15 +97,6 @@ func (a *App) RemoveAgentSkills(ctx context.Context, domainId, agentId int64, se
 	return res, nil
 }
 
-func (app *App) LookupSkillIfNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, bool, model.AppError) {
-	list, err := app.Store.AgentSkill().LookupNotExistsAgent(ctx, domainId, agentId, search)
-	if err != nil {
-		return nil, false, err
-	}
-	search.RemoveLastElemIfNeed(&list)
-	return list, search.EndOfList(), nil
-}
-
 func (app *App) CreateAgentsSkills(ctx context.Context, domainId int64, items *model.AgentsSkills) ([]*model.AgentSkill, model.AppError) {
 	return app.Store.AgentSkill().CreateMany(ctx, domainId, items)
 }
