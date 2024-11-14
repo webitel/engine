@@ -105,9 +105,11 @@ type CalendarStore interface {
 }
 
 type SkillStore interface {
+	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Create(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError)
 	Get(ctx context.Context, domainId int64, id int64) (*model.Skill, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, model.AppError)
+	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchSkill) ([]*model.Skill, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 	Update(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError)
 }
@@ -188,8 +190,6 @@ type AgentSkillStore interface {
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, model.AppError)
 	DeleteById(ctx context.Context, agentId, id int64) model.AppError
 	Delete(ctx context.Context, domainId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, model.AppError)
-
-	LookupNotExistsAgent(ctx context.Context, domainId, agentId int64, search *model.SearchAgentSkillList) ([]*model.Skill, model.AppError)
 
 	CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, model.AppError)
 	HasDisabledSkill(ctx context.Context, domainId int64, skillId int64) (bool, model.AppError)

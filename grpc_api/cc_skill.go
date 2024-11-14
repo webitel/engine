@@ -304,6 +304,10 @@ func transformSkill(src *model.Skill) *engine.Skill {
 		Id:          src.Id,
 		Name:        src.Name,
 		Description: src.Description,
+		CreatedBy:   GetProtoLookup(src.CreatedBy),
+		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
+		CreatedAt:   model.TimeToInt64(src.CreatedAt),
+		UpdatedAt:   model.TimeToInt64(src.UpdatedAt),
 	}
 
 	if src.TotalAgents != nil {

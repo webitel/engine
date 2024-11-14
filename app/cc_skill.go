@@ -2,9 +2,14 @@ package app
 
 import (
 	"context"
+	"github.com/webitel/engine/auth_manager"
 
 	"github.com/webitel/engine/model"
 )
+
+func (app *App) SkillCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
+	return app.Store.Skill().CheckAccess(ctx, domainId, id, groups, access)
+}
 
 func (app *App) CreateSkill(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError) {
 	return app.Store.Skill().Create(ctx, skill)
@@ -16,6 +21,15 @@ func (app *App) GetSkill(ctx context.Context, id, domainId int64) (*model.Skill,
 
 func (app *App) GetSkillsPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, bool, model.AppError) {
 	list, err := app.Store.Skill().GetAllPage(ctx, domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
+
+func (app *App) GetSkillsPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchSkill) ([]*model.Skill, bool, model.AppError) {
+	list, err := app.Store.Skill().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -46,6 +60,8 @@ func (app *App) UpdateSkill(ctx context.Context, skill *model.Skill) (*model.Ski
 
 	oldSkill.Name = skill.Name
 	oldSkill.Description = skill.Description
+	oldSkill.UpdatedBy = skill.UpdatedBy
+	oldSkill.UpdatedAt = skill.UpdatedAt
 
 	_, err = app.Store.Skill().Update(ctx, oldSkill)
 	if err != nil {
