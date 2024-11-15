@@ -450,6 +450,8 @@ type HistoryCall struct {
 	Schemas         []*Lookup        `json:"schemas" db:"schemas"`
 	HangupPhrase    *string          `json:"hangup_phrase" db:"hangup_phrase"`
 	BlindTransfers  []*BlindTransfer `json:"blind_transfers" db:"blind_transfers"`
+	FromNumber      *string          `json:"from_number" db:"from_number"`
+	ToNumber        *string          `json:"to_number" db:"to_number"`
 }
 
 type BlindTransfer struct {
@@ -475,7 +477,7 @@ func (c HistoryCall) AllowFields() []string {
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
-		"hangup_phrase", "blind_transfers",
+		"hangup_phrase", "blind_transfers", "from_number", "to_number",
 	}
 }
 

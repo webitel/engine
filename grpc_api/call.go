@@ -988,6 +988,14 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		}
 	}
 
+	if src.FromNumber != nil {
+		item.FromNumber = *src.FromNumber
+	}
+
+	if src.ToNumber != nil {
+		item.ToNumber = *src.ToNumber
+	}
+
 	if src.SipCode != nil {
 		item.SipCode = int32(*src.SipCode)
 	}
