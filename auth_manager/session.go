@@ -77,6 +77,10 @@ func (self *Session) HasCallCenterLicense() bool {
 	return self.HasLicense(LicenseCallCenter)
 }
 
+func (self *Session) HasChatLicense() bool {
+	return self.HasLicense(LicenseChat)
+}
+
 func (self *Session) CountLicenses() int {
 	return len(self.active)
 }

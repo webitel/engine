@@ -31,6 +31,7 @@ const (
 const (
 	LicenseCallManager = "CALL_MANAGER"
 	LicenseCallCenter  = "CALL_CENTER"
+	LicenseChat        = "CHAT"
 	LicenseEmail       = "EMAIL"
 	LicenseWFM         = "WFM"
 )
