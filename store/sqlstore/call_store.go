@@ -430,18 +430,21 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 
     ))
 	and (:DependencyIds::uuid[] isnull or id::uuid = any (
-			array(with recursive a as (
-                select d.id::uuid
-                from call_center.cc_calls_history d
-                where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
-                union all
-                select d.id::uuid
-                from call_center.cc_calls_history d, a
-                where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
-            )
-            select id::uuid ids
-            from a
-            where not a.id = any(:DependencyIds::uuid[]))
+			array(with recursive a as (select *
+                                  from (select d.id::uuid
+                                        from call_center.cc_calls_history d
+                                        where d.id::uuid = any (:DependencyIds::uuid[])
+                                          and d.domain_id = :Domain
+                                        limit array_length(:DependencyIds::text[], 1)) x
+
+                                  union all
+                                  select d.id::uuid
+                                  from call_center.cc_calls_history d,
+                                       a
+                                  where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid))
+             select id::uuid ids
+             from a
+             where not a.id = any (:DependencyIds::uuid[]))
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
@@ -582,18 +585,21 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 
     ))
 	and (:DependencyIds::uuid[] isnull or id::uuid = any (
-			array(with recursive a as (
-                select d.id::uuid
-                from call_center.cc_calls_history d
-                where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
-                union all
-                select d.id::uuid
-                from call_center.cc_calls_history d, a
-                where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
-            )
-            select id::uuid ids
-            from a
-            where not a.id = any(:DependencyIds::uuid[]))
+			array(with recursive a as (select *
+                                  from (select d.id::uuid
+                                        from call_center.cc_calls_history d
+                                        where d.id::uuid = any (:DependencyIds::uuid[])
+                                          and d.domain_id = :Domain
+                                        limit array_length(:DependencyIds::text[], 1)) x
+
+                                  union all
+                                  select d.id::uuid
+                                  from call_center.cc_calls_history d,
+                                       a
+                                  where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid))
+             select id::uuid ids
+             from a
+             where not a.id = any (:DependencyIds::uuid[]))
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
