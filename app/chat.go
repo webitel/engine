@@ -163,8 +163,8 @@ func (a *App) UpdateChannelChat(authUserId int64, channelId string, readUntil in
 	return nil
 }
 
-func (a *App) ListActiveChat(ctx context.Context, token string, domainId, userId int64, page, size int) ([]*model.Conversation, model.AppError) {
-	return a.Store.Chat().OpenedConversations(ctx, domainId, userId)
+func (a *App) ListActiveChat(ctx context.Context, token string, domainId, userId int64, page, size int, hasContact bool) ([]*model.Conversation, model.AppError) {
+	return a.Store.Chat().OpenedConversations(ctx, domainId, userId, hasContact)
 }
 
 func (a *App) BlindTransferChat(ctx context.Context, domainId int64, conversationId, channelId string, planId int32, vars map[string]string) model.AppError {

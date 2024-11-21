@@ -79,7 +79,7 @@ type Store interface {
 
 // todo deprecated
 type ChatStore interface {
-	OpenedConversations(ctx context.Context, domainId, userId int64) ([]*model.Conversation, model.AppError)
+	OpenedConversations(ctx context.Context, domainId, userId int64, hasContact bool) ([]*model.Conversation, model.AppError)
 	ValidDomain(ctx context.Context, domainId int64, profileId int64) model.AppError
 }
 
