@@ -25,4 +25,5 @@ const (
 	PermissionRecordFile = "record_file"
 	PermissionSkill      = "cc_skill"
 	PermissionWebHook    = "email_profile" // todo
+	PermissionContacts   = "contacts"
 )
