@@ -1127,62 +1127,57 @@ limit :Limit offset :Offset`, searchOperator), map[string]interface{}{
 func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
 	var item *model.SupervisorAgentItem
 
-	err := s.GetReplica().WithContext(ctx).SelectOne(&item, `select a.id agent_id,
-       coalesce(cawu.name, cawu.username) as name,
-       call_center.cc_get_lookup(cawu.id, coalesce(cawu.name, cawu.username)) as user,
-       coalesce(cawu.extension, '') as extension,
+	err := s.GetReplica().WithContext(ctx).SelectOne(&item, `select a.id                                                                           agent_id,
+       coalesce(cawu.name, cawu.username)                                     as      name,
+       call_center.cc_get_lookup(cawu.id, coalesce(cawu.name, cawu.username)) as      user,
+       coalesce(cawu.extension, '')                                           as      extension,
        a.status,
-       extract(epoch from x.t)::int status_duration,
+       extract(epoch from x.t)::int                                                   status_duration,
 
-       call_center.cc_get_lookup(t.id, t.name) team,
+       call_center.cc_get_lookup(t.id, t.name)                                        team,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
-        WHERE sag.id = any(a.supervisor_ids)) supervisor,
+        WHERE sag.id = any (a.supervisor_ids))                                        supervisor,
        (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
         FROM directory.wbt_user aud
-        WHERE aud.id = any(a.auditor_ids)) as auditor,
-       call_center.cc_get_lookup(r.id, r.name) region,
+        WHERE aud.id = any (a.auditor_ids))                                   as      auditor,
+       call_center.cc_get_lookup(r.id, r.name)                                        region,
        a.progressive_count,
        a.chat_count,
 
-       (coalesce(extract(epoch from stat.online), 0) + case when a.status = 'online' then  extract(epoch from x.t) else 0 end)::int8 online,
-       (coalesce(extract(epoch from stat.offline), 0) + case when a.status = 'offline' then  extract(epoch from x.t) else 0 end)::int8 offline,
-       (coalesce(extract(epoch from stat.pause), 0) + case when a.status = 'pause' then  extract(epoch from x.t) else 0 end)::int8 pause,
-       coalesce(a.status_payload, '') pause_cause,
-       coalesce(rate.score_optional, 0.0) as score_optional_avg,
-       coalesce(rate.score_required, 0.0) as score_required_avg,
-       coalesce(rate.count, 0) as score_count
+       (coalesce(extract(epoch from stat.online), 0) +
+        case when a.status = 'online' then extract(epoch from x.t) else 0 end)::int8  online,
+       (coalesce(extract(epoch from stat.offline), 0) +
+        case when a.status = 'offline' then extract(epoch from x.t) else 0 end)::int8 offline,
+       (coalesce(extract(epoch from stat.pause), 0) +
+        case when a.status = 'pause' then extract(epoch from x.t) else 0 end)::int8   pause,
+       coalesce(a.status_payload, '')                                                 pause_cause,
+       coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
+       coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
+       coalesce(ts.score_count, 0)                                                as      score_count
 from call_center.cc_agent a
-  left join call_center.cc_team t on t.id = a.team_id
-  left join flow.region r on r.id = a.region_id
-  left join flow.calendar_timezones tz on tz.id = r.timezone_id
-  left join lateral (
-     select
-        ah.agent_id,
-        coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0')    online,
-        coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval '0')   offline,
-        coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval '0')     pause
-     from call_center.cc_agent_state_history ah
-     where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
-        and ah.agent_id = a.id
-     group by 1
-  ) stat on true
-  inner join lateral (select case
-                             when (stat isnull and a.last_state_change < :From::timestamptz) or
-                                  (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
-                                 then (:To::timestamptz) - (:From::timestamptz)
-                             else now() - a.last_state_change end t) x on true
-    left join directory.wbt_user cawu on a.user_id = cawu.id
-    left join lateral (
-        select count(*) count,
-               avg(ar.score_required) as score_required,
-               avg(ar.score_optional) as score_optional
-        from call_center.cc_audit_rate ar
-        where ar.rated_user_id = a.user_id
-            and ar.created_at between (date_trunc('month', now() at time zone COALESCE(tz.sys_name, 'UTC'::text)) at time zone COALESCE(tz.sys_name, 'UTC'::text))
-                and ((date_trunc('month', now() at time zone COALESCE(tz.sys_name, 'UTC'::text))+'1month'::interval-'1day 1s'::interval) at time zone COALESCE(tz.sys_name, 'UTC'::text))
-    ) rate on true
-where a.id = :AgentId and a.domain_id = :DomainId`, map[string]interface{}{
+         left join call_center.cc_team t on t.id = a.team_id
+         left join flow.region r on r.id = a.region_id
+         left join flow.calendar_timezones tz on tz.id = r.timezone_id
+         left join lateral (
+    select ah.agent_id,
+           coalesce(sum(duration) filter ( where ah.state = 'online' ), interval '0')  online,
+           coalesce(sum(duration) filter ( where ah.state = 'offline' ), interval '0') offline,
+           coalesce(sum(duration) filter ( where ah.state = 'pause' ), interval '0')   pause
+    from call_center.cc_agent_state_history ah
+    where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
+      and ah.agent_id = a.id
+    group by 1
+    ) stat on true
+         inner join lateral (select case
+                                        when (stat isnull and a.last_state_change < :From::timestamptz) or
+                                             (now() - a.last_state_change > :To::timestamptz - :From::timestamptz)
+                                            then (:To::timestamptz) - (:From::timestamptz)
+                                        else now() - a.last_state_change end t) x on true
+         left join directory.wbt_user cawu on a.user_id = cawu.id
+         left join call_center.cc_agent_today_stats ts on ts.agent_id = a.id
+where a.id = :AgentId
+  and a.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"AgentId":  agentId,
 		"From":     model.GetBetweenFromTime(t),
