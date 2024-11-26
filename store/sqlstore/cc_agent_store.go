@@ -1152,9 +1152,9 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, 
        (coalesce(extract(epoch from stat.pause), 0) +
         case when a.status = 'pause' then extract(epoch from x.t) else 0 end)::int8   pause,
        coalesce(a.status_payload, '')                                                 pause_cause,
-       coalesce(rate.score_optional, 0.0)                                     as      score_optional_avg,
-       coalesce(rate.score_required, 0.0)                                     as      score_required_avg,
-       coalesce(rate.count, 0)                                                as      score_count
+       coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
+       coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
+       coalesce(ts.score_count, 0)                                                as      score_count
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id
@@ -1175,16 +1175,7 @@ from call_center.cc_agent a
                                             then (:To::timestamptz) - (:From::timestamptz)
                                         else now() - a.last_state_change end t) x on true
          left join directory.wbt_user cawu on a.user_id = cawu.id
-         left join lateral (
-    select count(*)                  count,
-           avg(ar.score_required) as score_required,
-           avg(ar.score_optional) as score_optional
-    from call_center.cc_audit_rate ar
-    WHERE ar.rated_user_id = a.user_id
-      and ((ar.call_created_at >= (date_trunc('month'::text, (now() AT TIME ZONE tz.sys_name)) AT TIME ZONE tz.sys_name)) AND
-           (ar.call_created_at <= (((date_trunc('month'::text, (now() AT TIME ZONE tz.sys_name)) + '1 mon'::interval) -
-                               '1 day 00:00:01'::interval) AT TIME ZONE tz.sys_name)))
-    ) rate on true
+         left join call_center.cc_agent_today_stats ts on ts.agent_id = a.id
 where a.id = :AgentId
   and a.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
