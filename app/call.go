@@ -509,19 +509,25 @@ func (app *App) DtmfCall(ctx context.Context, domainId int64, req *model.DtmfCal
 func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
 	var cli call_manager.CallClient
 	var err model.AppError
-	var id string
+	var info *model.BlindTransferInfo
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
 	if err != nil {
 		return err
 	}
 
-	id, err = app.Store.Call().BridgedId(ctx, req.Id)
+	info, err = app.Store.Call().BlindTransferInfo(ctx, req.Id)
 	if err != nil {
 		return err
 	}
+	var v map[string]string
+	if info.ContactId != nil {
+		v = map[string]string{
+			"wbt_contact_id": fmt.Sprintf("%d", *info.ContactId),
+		}
+	}
 
-	return cli.BlindTransfer(id, req.Destination)
+	return cli.BlindTransferExt(info.Id, req.Destination, v)
 }
 
 func (app *App) BlindTransferCallExt(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
