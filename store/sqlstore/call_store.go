@@ -1174,6 +1174,21 @@ where id = :Id::uuid`, map[string]string{
 	}
 }
 
+func (s SqlCallStore) BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError) {
+	var res *model.BlindTransferInfo
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id, c.contact_id
+from call_center.cc_calls c
+where id = :Id::uuid`, map[string]string{
+		"Id": id,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.blind_transfer.app_error", err.Error(), extractCodeFromErr(err))
+	} else {
+		return res, nil
+	}
+}
+
 func (s SqlCallStore) SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError) {
 	var e *model.CallServiceHangup
 	err := s.GetMaster().WithContext(ctx).SelectOne(&e, `with c as (
