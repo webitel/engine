@@ -560,6 +560,13 @@ func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId str
 		return err
 	}
 
+	if info.ContactId != nil {
+		if vars == nil {
+			vars = make(map[string]string)
+		}
+		vars["wbt_contact_id"] = fmt.Sprintf("%d", *info.ContactId)
+	}
+
 	_, err = cli.BridgeCall(info.FromId, info.ToId, vars)
 	return err
 }
