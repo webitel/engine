@@ -1125,7 +1125,8 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 
 func (s SqlCallStore) BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, model.AppError) {
 	var res *model.BridgeCall
-	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, 
+       c.app_id, c.contact_id
 from call_center.cc_calls c,
      call_center.cc_calls c2
 where c.id = :FromId::uuid and c2.id = :ToId::uuid and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
