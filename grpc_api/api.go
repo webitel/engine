@@ -95,7 +95,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.schemaVersion = NewSchemeVersionApi(api)
 	api.schemaVariable = NewSchemeVariableApi(api)
 	api.webHook = NewWebHookApi(api)
-	api.push = NewPushApi(api)
+	api.push = NewPushApi(api, a.Config().MinimumNumberMaskLen, a.Config().PrefixNumberMaskLen, a.Config().SuffixNumberMaskLen)
 
 	gogrpc.RegisterCalendarServiceServer(server, api.calendar)
 	gogrpc.RegisterSkillServiceServer(server, api.skill)

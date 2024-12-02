@@ -9,18 +9,37 @@ import (
 
 type push struct {
 	*API
+	minimumNumberMaskLen int
+	prefixNumberMaskLen  int
+	suffixNumberMaskLen  int
 	gogrpc.UnsafePushServiceServer
 }
 
-func NewPushApi(api *API) *push {
-	return &push{API: api}
+func NewPushApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *push {
+	return &push{
+		API:                  api,
+		minimumNumberMaskLen: minimumNumberMaskLen,
+		prefixNumberMaskLen:  prefixNumberMaskLen,
+		suffixNumberMaskLen:  suffixNumberMaskLen,
+	}
 }
 
-func (p push) SendPush(ctx context.Context, in *engine.SendPushRequest) (*engine.SendPushResponse, error) {
-	c, err := p.app.SendPush(ctx, &model.SendPush{
+func (api *push) SendPush(ctx context.Context, in *engine.SendPushRequest) (*engine.SendPushResponse, error) {
+	m := in.Data
+	// TODO WMA-84
+	if tmp, ok := m["hide_number"]; ok && tmp == "true" {
+		tmp, _ = m["from_number"]
+		m["from_number"] = model.HideString(tmp,
+			api.minimumNumberMaskLen,
+			api.prefixNumberMaskLen,
+			api.suffixNumberMaskLen,
+		)
+	}
+
+	c, err := api.app.SendPush(ctx, &model.SendPush{
 		Android:    in.Android,
 		Apple:      in.Apple,
-		Data:       in.Data,
+		Data:       m,
 		Expiration: in.Expiration,
 		Priority:   in.Priority,
 	})

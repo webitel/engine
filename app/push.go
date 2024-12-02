@@ -109,11 +109,15 @@ func pushFirebase(ctx context.Context, r *model.SendPush) int {
 			wlog.String("protocol", "firebase"),
 			wlog.Err(err),
 		)
-	} else if res.FailureCount > 0 {
-		wlog.Error(err.Error(), wlog.Namespace("context"),
-			wlog.String("protocol", "firebase"),
-			wlog.Any("response", res.Responses),
-		)
+	} else if res != nil && res.FailureCount > 0 {
+		for _, v := range res.Responses {
+			if !v.Success {
+				wlog.Error(v.Error.Error(), wlog.Namespace("context"),
+					wlog.String("protocol", "firebase"),
+					wlog.Any("response", v.Error),
+				)
+			}
+		}
 	} else {
 		return res.SuccessCount
 	}
