@@ -206,7 +206,7 @@ func (a *App) BlindTransferChatToUser(domainId int64, conversationId, channelId 
 	return nil
 }
 
-func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId int64, peer []string, text string) model.AppError {
+func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId int64, peer []string, msg *proto.Message) model.AppError {
 
 	appErr := a.Store.Chat().ValidDomain(ctx, domainId, profileId)
 	if appErr != nil {
@@ -216,11 +216,6 @@ func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId in
 	cli, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.broadcast.cli_err", err.Error())
-	}
-
-	msg := &proto.Message{
-		Type: "text", //TODO
-		Text: text,
 	}
 
 	err = cli.BroadcastMessage(ctx, msg, profileId, peer)
