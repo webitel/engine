@@ -83,6 +83,7 @@ func pushApn(ctx context.Context, r *model.SendPush) int {
 func pushFirebase(ctx context.Context, r *model.SendPush) int {
 
 	t := time.Millisecond * time.Duration(r.Expiration)
+	count := 0
 	priority := "normal"
 	if r.Priority > 5 {
 		priority = "high"
@@ -109,18 +110,22 @@ func pushFirebase(ctx context.Context, r *model.SendPush) int {
 			wlog.String("protocol", "firebase"),
 			wlog.Err(err),
 		)
-	} else if res != nil && res.FailureCount > 0 {
-		for _, v := range res.Responses {
-			if !v.Success {
-				wlog.Error(v.Error.Error(), wlog.Namespace("context"),
-					wlog.String("protocol", "firebase"),
-					wlog.Any("response", v.Error),
-				)
+	} else if res != nil {
+
+		if res.FailureCount > 0 {
+			for _, v := range res.Responses {
+				if !v.Success {
+					wlog.Error(v.Error.Error(), wlog.Namespace("context"),
+						wlog.String("protocol", "firebase"),
+						wlog.Any("response", v.Error),
+					)
+				}
 			}
 		}
-	} else {
-		return res.SuccessCount
+
+		count += res.SuccessCount
+
 	}
 
-	return 0
+	return count
 }
