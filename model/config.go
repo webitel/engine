@@ -33,7 +33,7 @@ type LogSettings struct {
 	Json    bool   `json:"json" flag:"log_json|false|Log format JSON" env:"LOG_JSON"`
 	Otel    bool   `json:"otel" flag:"log_otel|false|Log OTEL" env:"LOG_OTEL"`
 	File    string `json:"file" flag:"log_file||Log file directory" env:"LOG_FILE"`
-	Console bool   `json:"console" flag:"log_console||Log console" env:"LOG_CONSOLE"`
+	Console bool   `json:"console" flag:"log_console|true|Log console" env:"LOG_CONSOLE"`
 }
 
 type Config struct {
