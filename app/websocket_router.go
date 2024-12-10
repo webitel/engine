@@ -38,11 +38,12 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 
 		token, ok := r.Data["token"].(string)
 		if !ok {
+			conn.log.Error("not found token")
 			conn.WebSocket.Close()
 			return
 		}
 
-		wlog.Debug("search session from token")
+		conn.log.Debug("search session from token")
 
 		session, err := wr.app.GetSession(token)
 		if err != nil {
@@ -50,7 +51,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		wlog.Debug("found session from token")
+		conn.log.Debug("found session from token")
 
 		if session.CountLicenses() == 0 {
 			ReturnWebSocketError(conn, r, model.SocketPermissionError)
@@ -87,6 +88,10 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 }
 
 func ReturnWebSocketError(conn *WebConn, r *model.WebSocketRequest, err model.AppError) {
+	conn.log.Error(err.Error(),
+		wlog.Err(err),
+	)
+
 	errorResp := model.NewWebSocketError(r.Seq, err)
 	conn.Send <- errorResp
 }
