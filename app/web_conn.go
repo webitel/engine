@@ -291,6 +291,9 @@ func (webCon *WebConn) SendHello() {
 }
 
 func (webCon *WebConn) SendError(err model.AppError) {
+	webCon.log.Error(err.Error(),
+		wlog.Err(err),
+	)
 	msg := model.NewWebSocketEvent(model.WebsocketError)
 	msg.Add("sock_id", webCon.id)
 	msg.Add("error", err)
