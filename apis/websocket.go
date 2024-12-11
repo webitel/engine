@@ -20,7 +20,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		CheckOrigin: func(r *http.Request) bool {
 			return true
 		},
-		EnableCompression: true,
+		EnableCompression: false,
 	}
 
 	log := c.App.Log.With(wlog.Namespace("context")).
