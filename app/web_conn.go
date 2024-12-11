@@ -3,9 +3,11 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"net"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -60,8 +62,35 @@ type WebConn struct {
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18n.TranslateFunc, locale string, ip string) *WebConn {
+
+	id := model.NewId()
+	log := a.Log.With(
+		wlog.Namespace("context"),
+		wlog.String("ip_address", ip),
+		wlog.String("protocol", "wss"),
+		wlog.String("sock_id", id),
+	)
+	// Disable TCP_NO_DELAY for higher throughput
+	var tcpConn *net.TCPConn
+	switch conn := ws.NetConn().(type) {
+	case *net.TCPConn:
+		tcpConn = conn
+	case *tls.Conn:
+		newConn, ok := conn.NetConn().(*net.TCPConn)
+		if ok {
+			tcpConn = newConn
+		}
+	}
+
+	if tcpConn != nil {
+		err := tcpConn.SetNoDelay(false)
+		if err != nil {
+			log.Warn("Error in setting NoDelay socket opts", wlog.Err(err))
+		}
+	}
+
 	wc := &WebConn{
-		id:                 model.NewId(),
+		id:                 id,
 		App:                a,
 		WebSocket:          ws,
 		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
@@ -73,6 +102,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		pumpFinished:       make(chan struct{}),
 		listenEvents:       make(map[string]*model.BindQueueEvent),
 		ip:                 ip,
+		log:                log,
 	}
 	wc.Ctx, wc.Span = a.Tracer().Start(context.Background(), "websocket")
 	wc.Span.SetAttributes(
@@ -80,13 +110,6 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		attribute.Int64("user_id", session.UserId),
 		attribute.String("ip_address", ip),
 		attribute.String("sock_id", wc.id),
-	)
-
-	wc.log = a.Log.With(
-		wlog.Namespace("context"),
-		wlog.String("ip_address", ip),
-		wlog.String("protocol", "wss"),
-		wlog.String("sock_id", wc.id),
 	)
 
 	//wc.Sip = NewSipProxy(wc)
