@@ -331,7 +331,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			return false
 		}
 
-		session, err := webCon.App.GetSession(webCon.GetSessionToken())
+		session, err := webCon.App.GetSessionWitchContext(webCon.Ctx, webCon.GetSessionToken())
 		if err == nil && session.CountLicenses() == 0 {
 			err = model.SocketPermissionError
 		}

@@ -27,7 +27,7 @@ type webSocketHandler struct {
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	start := time.Now()
-	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
+	session, sessionErr := wh.app.GetSessionWitchContext(conn.Ctx, conn.GetSessionToken())
 	if sessionErr != nil {
 		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(localization.T), sessionErr.Error()))
 		sessionErr.SetDetailedError("")
