@@ -20,7 +20,7 @@ const (
 type AuthManager interface {
 	Start() error
 	Stop()
-	GetSession(token string) (Session, error)
+	GetSession(ctx context.Context, token string) (Session, error)
 	ProductLimit(ctx context.Context, token string, productName string) (int, error)
 }
 

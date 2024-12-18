@@ -1,6 +1,7 @@
 package auth_manager
 
 import (
+	"context"
 	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
@@ -10,6 +11,8 @@ import (
 var (
 	sessionGroupRequest singleflight.Group
 )
+
+const tokenRequestTimeout = time.Second * 15
 
 type Session struct {
 	Id         string        `json:"id"`
@@ -150,7 +153,11 @@ func (self *Session) HasAction(name string) bool {
 	return false
 }
 
-func (am *authManager) GetSession(token string) (Session, error) {
+func (am *authManager) GetSession(ctx context.Context, token string) (Session, error) {
+	return am.getSession(ctx, token)
+}
+
+func (am *authManager) getSession(c context.Context, token string) (Session, error) {
 
 	if v, ok := am.session.Get(token); ok {
 		return v.(Session), nil
@@ -161,8 +168,10 @@ func (am *authManager) GetSession(token string) (Session, error) {
 		if err != nil {
 			return nil, err
 		}
+		ctx, cancel := context.WithTimeout(c, tokenRequestTimeout)
+		defer cancel()
 
-		return client.GetSession(token)
+		return client.GetSession(ctx, token)
 	})
 
 	if err != nil {

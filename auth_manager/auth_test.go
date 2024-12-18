@@ -1,6 +1,7 @@
 package auth_manager
 
 import (
+	"context"
 	"github.com/webitel/engine/discovery"
 	"testing"
 )
@@ -32,7 +33,7 @@ func TestAuthManager(t *testing.T) {
 
 func testGetSession(t *testing.T, token string, am AuthManager) {
 
-	session, err := am.GetSession(token)
+	session, err := am.GetSession(context.Background(), token)
 	if err != nil {
 		t.Errorf("get session \"%s\" error: %s", token, err.Error())
 		return
