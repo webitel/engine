@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
 	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
@@ -27,6 +28,39 @@ func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumbe
 		prefixNumberMaskLen:  prefixNumberMaskLen,
 		suffixNumberMaskLen:  suffixNumberMaskLen,
 	}
+}
+
+func (api *call) timeLimitedFromDate(ctx context.Context, session *auth_manager.Session, accessFiles bool) *time.Time {
+	var showFromDate *time.Time
+	if !accessFiles && session.HasAction(auth_manager.PermissionTimeLimitedRecordFile) {
+		if showFilePeriodDay, _ := api.app.GetCachedSystemSetting(ctx, session.Domain(0), model.SysNamePeriodToPlaybackRecord); showFilePeriodDay.Int() != nil {
+			t := time.Now().Add(-(time.Hour * 24 * time.Duration(*showFilePeriodDay.Int())))
+			showFromDate = &t
+		}
+	}
+
+	return showFromDate
+}
+
+func (api *call) listHistory(ctx context.Context, session *auth_manager.Session, hideNumbers bool, list []*model.HistoryCall) []*engine.HistoryCall {
+	items := make([]*engine.HistoryCall, 0, len(list))
+
+	permissionRecord := session.GetPermission(model.PermissionRecordFile)
+	accessFiles := session.HasAction(auth_manager.PermissionRecordFile) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord)
+
+	showFileFromDate := api.timeLimitedFromDate(ctx, session, accessFiles)
+
+	for _, v := range list {
+		items = append(items, toEngineHistoryCall(
+			v,
+			api.minimumNumberMaskLen,
+			api.prefixNumberMaskLen,
+			api.suffixNumberMaskLen,
+			hideNumbers,
+			accessFiles || (showFileFromDate != nil && v.CreatedAt != nil && v.CreatedAt.After(*showFileFromDate)),
+		))
+	}
+	return items
 }
 
 func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistoryCallRequest) (*engine.ListHistoryCall, error) {
@@ -168,26 +202,12 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		return nil, err
 	}
 
-	items := make([]*engine.HistoryCall, 0, len(list))
-
-	permissionRecord := session.GetPermission(model.PermissionRecordFile)
-	//todo
-	accessString := !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS) &&
+	hideNumbers := !session.HasAction(auth_manager.PermissionViewNumbers) &&
 		!((len(in.UserId) == 1 && in.UserId[0] == session.UserId) && in.Missed && (len(in.Cause) == 2 && in.Cause[0] == "NO_ANSWER" && in.Cause[1] == "ORIGINATOR_CANCEL"))
-	for _, v := range list {
-		items = append(items, toEngineHistoryCall(
-			v,
-			api.minimumNumberMaskLen,
-			api.prefixNumberMaskLen,
-			api.suffixNumberMaskLen,
-			accessString,
-			session.HasAction(auth_manager.PERMISSION_RECORD_FILE) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord),
-		))
-	}
 
 	return &engine.ListHistoryCall{
 		Next:  !endList,
-		Items: items,
+		Items: api.listHistory(ctx, session, hideNumbers, list),
 	}, nil
 }
 
@@ -351,7 +371,7 @@ func (api *call) PatchHistoryCall(ctx context.Context, in *engine.PatchHistoryCa
 	if err != nil {
 		return nil, err
 	}
-	var call *model.HistoryCall
+	var c *model.HistoryCall
 	req := &model.HistoryCallPatch{
 		Variables: &model.Variables{},
 	}
@@ -364,22 +384,25 @@ func (api *call) PatchHistoryCall(ctx context.Context, in *engine.PatchHistoryCa
 		req.HideMissed = &in.HideMissed.Value
 	}
 
-	call, err = api.ctrl.UpdateCallHistory(ctx, session, in.Id, req)
+	c, err = api.ctrl.UpdateCallHistory(ctx, session, in.Id, req)
 
 	if err != nil {
 		return nil, err
 	}
+
+	hideNumbers := !session.HasAction(auth_manager.PermissionViewNumbers)
 	permissionRecord := session.GetPermission(model.PermissionRecordFile)
-	//todo
-	accessString := !session.HasAction(auth_manager.PERMISSION_VIEW_NUMBERS)
+	accessFiles := session.HasAction(auth_manager.PermissionRecordFile) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord)
+
+	showFileFromDate := api.timeLimitedFromDate(ctx, session, accessFiles)
 
 	return toEngineHistoryCall(
-		call,
+		c,
 		api.minimumNumberMaskLen,
 		api.prefixNumberMaskLen,
 		api.suffixNumberMaskLen,
-		accessString,
-		session.HasAction(auth_manager.PERMISSION_RECORD_FILE) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord),
+		hideNumbers,
+		accessFiles || (showFileFromDate != nil && c.CreatedAt != nil && c.CreatedAt.After(*showFileFromDate)),
 	), nil
 }
 
@@ -892,7 +915,7 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	}
 }
 
-func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, accessString bool, accessFile bool) *engine.HistoryCall {
+func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, hideNumbers bool, accessFile bool) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
 		AppId:            src.AppId,
@@ -901,7 +924,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Extension:        "",
 		Gateway:          GetProtoLookup(src.Gateway),
 		Direction:        src.Direction,
-		Destination:      setAccessString(src.Destination, minHideString, pref, suff, accessString),
+		Destination:      setAccessString(src.Destination, minHideString, pref, suff, hideNumbers),
 		Variables:        prettyVariables(src.Variables),
 		CreatedAt:        model.TimeToInt64(src.CreatedAt),
 		AnsweredAt:       model.TimeToInt64(src.AnsweredAt),
@@ -973,7 +996,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	if src.From != nil {
 		item.From = &engine.Endpoint{
 			Type:   src.From.Type,
-			Number: setAccessString(src.From.Number, minHideString, pref, suff, accessString),
+			Number: setAccessString(src.From.Number, minHideString, pref, suff, hideNumbers),
 			Id:     src.From.Id,
 			Name:   src.From.Name,
 		}
@@ -982,7 +1005,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	if src.To != nil {
 		item.To = &engine.Endpoint{
 			Type:   src.To.Type,
-			Number: setAccessString(src.To.Number, minHideString, pref, suff, accessString),
+			Number: setAccessString(src.To.Number, minHideString, pref, suff, hideNumbers),
 			Id:     src.To.Id,
 			Name:   src.To.Name,
 		}

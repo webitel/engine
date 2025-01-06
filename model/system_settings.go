@@ -18,6 +18,7 @@ const (
 	SysNamePasswordRegExp         = "password_reg_exp"
 	SysNamePasswordValidationText = "password_validation_text"
 	SysNameAutolinkCallToContact  = "autolink_call_to_contact"
+	SysNamePeriodToPlaybackRecord = "period_to_playback_records"
 )
 
 type SysValue json.RawMessage
@@ -65,7 +66,7 @@ func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength:
+	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength, SysNamePeriodToPlaybackRecord:
 		value := SysValue(s.Value)
 		i := value.Int()
 
