@@ -25,7 +25,7 @@ const (
 	WRITE_WAIT         = 10 * time.Second
 	PONG_WAIT          = 60 * time.Second
 	PING_PERIOD        = (PONG_WAIT * 9) / 10
-	AUTH_TIMEOUT       = 15 * time.Second
+	AUTH_TIMEOUT       = 20 * time.Second
 )
 
 var (
