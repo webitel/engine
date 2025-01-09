@@ -198,6 +198,21 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		}
 	}
 
+	permissionRecord := session.GetPermission(model.PermissionRecordFile)
+	accessFiles := session.HasAction(auth_manager.PermissionRecordFile) || session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permissionRecord)
+
+	showFileFromDate := api.timeLimitedFromDate(ctx, session, accessFiles)
+
+	// TODO
+	if showFileFromDate != nil {
+		if req.CreatedAt == nil {
+			req.CreatedAt = &model.FilterBetween{}
+		}
+		if req.CreatedAt.From < model.TimeToInt64(showFileFromDate) {
+			req.CreatedAt.From = model.TimeToInt64(showFileFromDate)
+		}
+	}
+
 	if list, endList, err = api.ctrl.SearchHistoryCall(ctx, session, req); err != nil {
 		return nil, err
 	}
@@ -205,9 +220,22 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	hideNumbers := !session.HasAction(auth_manager.PermissionViewNumbers) &&
 		!((len(in.UserId) == 1 && in.UserId[0] == session.UserId) && in.Missed && (len(in.Cause) == 2 && in.Cause[0] == "NO_ANSWER" && in.Cause[1] == "ORIGINATOR_CANCEL"))
 
+	items := make([]*engine.HistoryCall, 0, len(list))
+
+	for _, v := range list {
+		items = append(items, toEngineHistoryCall(
+			v,
+			api.minimumNumberMaskLen,
+			api.prefixNumberMaskLen,
+			api.suffixNumberMaskLen,
+			hideNumbers,
+			accessFiles || (showFileFromDate != nil && v.CreatedAt != nil && v.CreatedAt.After(*showFileFromDate)),
+		))
+	}
+
 	return &engine.ListHistoryCall{
 		Next:  !endList,
-		Items: api.listHistory(ctx, session, hideNumbers, list),
+		Items: items,
 	}, nil
 }
 
