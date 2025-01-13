@@ -148,9 +148,11 @@ func (ac *authConnection) GetSession(c context.Context, token string) (*Session,
 			case "delete":
 				session.adminPermissions = append(session.adminPermissions, PERMISSION_ACCESS_DELETE)
 			case "view_cdr_phone_numbers":
-				session.actions = append(session.actions, PERMISSION_VIEW_NUMBERS)
+				session.actions = append(session.actions, PermissionViewNumbers)
 			case "playback_record_file":
-				session.actions = append(session.actions, PERMISSION_RECORD_FILE)
+				session.actions = append(session.actions, PermissionRecordFile)
+			case "time_limited_record_file":
+				session.actions = append(session.actions, PermissionTimeLimitedRecordFile)
 			case "system_setting":
 				session.actions = append(session.actions, PermissionSystemSetting)
 			case "scheme_variables":
