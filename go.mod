@@ -21,7 +21,6 @@ require (
 	github.com/ghettovoice/gosip v0.0.0-20231005134608-3b981d26e5cc
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.5.4
-	github.com/golangci/golangci-lint v1.52.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -29,7 +28,6 @@ require (
 	github.com/hashicorp/consul/api v1.25.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
-	github.com/matryer/moq v0.3.1
 	github.com/mbobakov/grpc-consul-resolver v1.5.2
 	github.com/nicksnyder/go-i18n v1.10.1
 	github.com/pborman/uuid v1.2.1
@@ -126,6 +124,7 @@ require (
 	github.com/golangci/dupl v0.0.0-20180902072040-3e9179ac440a // indirect
 	github.com/golangci/go-misc v0.0.0-20220329215616-d24fe342adfe // indirect
 	github.com/golangci/gofmt v0.0.0-20220901101216-f2edd75033f2 // indirect
+	github.com/golangci/golangci-lint v1.52.2 // indirect
 	github.com/golangci/lint-1 v0.0.0-20191013205115-297bf364a8e0 // indirect
 	github.com/golangci/maligned v0.0.0-20180506175553-b1d89398deca // indirect
 	github.com/golangci/misspell v0.4.0 // indirect
@@ -175,6 +174,7 @@ require (
 	github.com/maratori/testableexamples v1.0.0 // indirect
 	github.com/maratori/testpackage v1.1.1 // indirect
 	github.com/matoous/godox v0.0.0-20230222163458-006bad1f9d26 // indirect
+	github.com/matryer/moq v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
