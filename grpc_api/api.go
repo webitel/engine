@@ -39,6 +39,7 @@ type API struct {
 	region       *region
 	pauseCause   *pauseCause
 	userHelper   *userHelper
+	quickReply   *quickReply
 
 	chatPlan       *chatPlanApi
 	trigger        *trigger
@@ -86,6 +87,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.region = NewRegionApi(api)
 	api.pauseCause = NewPauseCause(api)
 	api.userHelper = NewUserHelperApi(api)
+	api.quickReply = NewQuickReply(api)
 	api.chatPlan = NewChatPlan(api)
 	api.trigger = NewTriggerApi(api)
 	api.chatHelper = NewChatHelperApi(api)
@@ -126,6 +128,7 @@ func Init(a *app.App, server *grpc.Server) {
 	gogrpc.RegisterRegionServiceServer(server, api.region)
 	gogrpc.RegisterAgentPauseCauseServiceServer(server, api.pauseCause)
 	gogrpc.RegisterUserHelperServiceServer(server, api.userHelper)
+	gogrpc.RegisterQuickRepliesServiceServer(server, api.quickReply)
 	gogrpc.RegisterRoutingChatPlanServiceServer(server, api.chatPlan)
 	gogrpc.RegisterTriggerServiceServer(server, api.trigger)
 
