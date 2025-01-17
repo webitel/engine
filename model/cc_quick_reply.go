@@ -4,9 +4,12 @@ import "time"
 
 type QuickReply struct {
 	AclRecord
-	Id   int    `json:"id" db:"id"`
-	Name string `json:"name" db:"name"`
-	Text string `json:"text" db:"text"`
+	Id      int     `json:"id" db:"id"`
+	Name    string  `json:"name" db:"name"`
+	Text    string  `json:"text" db:"text"`
+	Queue   *Lookup `json:"queue" db:"queue"`
+	Team    *Lookup `json:"team" db:"team"`
+	Article *Lookup `json:"article" db:"article"`
 }
 
 type SearchQuickReply struct {
@@ -20,6 +23,9 @@ type QuickReplyPatch struct {
 	UpdatedBy Lookup     `json:"updated_by"`
 	Name      *string    `json:"name"`
 	Text      *string    `json:"text"`
+	Queue     *Lookup    `json:"queue" db:"queue"`
+	Team      *Lookup    `json:"team" db:"team"`
+	Article   *Lookup    `json:"article" db:"article"`
 }
 
 func (p QuickReply) AllowFields() []string {
@@ -48,6 +54,18 @@ func (p *QuickReply) Patch(patch *QuickReplyPatch) {
 
 	if patch.Text != nil {
 		p.Text = *patch.Text
+	}
+
+	if patch.Queue != nil {
+		p.Queue = patch.Queue
+	}
+
+	if patch.Team != nil {
+		p.Team = patch.Team
+	}
+
+	if patch.Article != nil {
+		p.Article = patch.Article
 	}
 }
 

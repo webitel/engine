@@ -34,6 +34,9 @@ func (a *App) UpdateQuickReply(ctx context.Context, domainId int64, cause *model
 
 	oldCause.Name = cause.Name
 	oldCause.Text = cause.Text
+	oldCause.Queue = cause.Queue
+	oldCause.Team = cause.Team
+	oldCause.Article = cause.Article
 
 	oldCause, err = a.Store.QuickReply().Update(ctx, domainId, oldCause)
 	if err != nil {

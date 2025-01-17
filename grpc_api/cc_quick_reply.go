@@ -13,7 +13,6 @@ type quickReply struct {
 	gogrpc.QuickRepliesServiceClient
 }
 
-
 func NewQuickReply(api *API) *quickReply {
 	return &quickReply{API: api}
 }
@@ -25,8 +24,11 @@ func (api *quickReply) CreateQuickReply(ctx context.Context, in *engine.CreateQu
 	}
 
 	cause := &model.QuickReply{
-		Name: in.Name,
-		Text: in.Text,
+		Name:    in.Name,
+		Text:    in.Text,
+		Article: GetLookup(in.Article),
+		Team:    GetLookup(in.Team),
+		Queue:   GetLookup(in.Queue),
 	}
 
 	cause, err = api.ctrl.CreateQuickReply(ctx, session, cause)
@@ -101,7 +103,7 @@ func (api *quickReply) PatchQuickReply(ctx context.Context, in *engine.PatchQuic
 		switch v {
 		case "name":
 			patch.Name = model.NewString(in.Name)
-		case "description":
+		case "text":
 			patch.Text = model.NewString(in.Text)
 		}
 	}
@@ -124,6 +126,9 @@ func (api *quickReply) UpdateQuickReply(ctx context.Context, in *engine.UpdateQu
 		Id:        int(in.Id),
 		Name:      in.Name,
 		Text:      in.Text,
+		Article:   GetLookup(in.Article),
+		Team:      GetLookup(in.Team),
+		Queue:     GetLookup(in.Queue),
 	}
 
 	cause, err = api.ctrl.UpdateQuickReply(ctx, session, cause)
@@ -159,5 +164,8 @@ func toEngineQuickReply(src *model.QuickReply) *engine.QuickReply {
 		UpdatedBy: GetProtoLookup(src.UpdatedBy),
 		Name:      src.Name,
 		Text:      src.Text,
+		Queue:     GetProtoLookup(src.Queue),
+		Team:      GetProtoLookup(src.Team),
+		Article:   GetProtoLookup(src.Article),
 	}
 }

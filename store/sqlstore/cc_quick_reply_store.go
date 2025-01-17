@@ -88,7 +88,7 @@ func (s SqlQuickReplyStore) Get(ctx context.Context, domainId int64, id uint32) 
        allow_supervisor,
 	   allow_admin,
        limit_min
-from call_center.cc_pause_cause_list
+from call_center.cc_quick_reply
 where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
@@ -103,7 +103,7 @@ where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 
 func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
-    update call_center.cc_pause_cause
+    update call_center.cc_quick_reply
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
             name = :Name,
@@ -145,7 +145,7 @@ from s
 }
 
 func (s SqlQuickReplyStore) Delete(ctx context.Context, domainId int64, id uint32) model.AppError {
-	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_pause_cause c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_quick_reply c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_quick_reply.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
