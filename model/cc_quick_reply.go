@@ -29,7 +29,7 @@ type QuickReplyPatch struct {
 }
 
 func (p QuickReply) AllowFields() []string {
-	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "team", "queue", "article"}
+	return []string{"id", "dc", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "team", "queue", "article"}
 }
 
 func (QuickReply) DefaultOrder() string {
@@ -37,11 +37,11 @@ func (QuickReply) DefaultOrder() string {
 }
 
 func (QuickReply) DefaultFields() []string {
-	return []string{"id", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
+	return []string{"id", "name", "text"}
 }
 
 func (QuickReply) EntityName() string {
-	return "cc_pause_cause_list"
+	return "cc_quick_reply"
 }
 
 func (p *QuickReply) Patch(patch *QuickReplyPatch) {
