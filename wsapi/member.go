@@ -89,7 +89,7 @@ func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.Web
 	var expire *int64
 	var waitBetweenRetries *int32
 	var status string
-	var exclDes bool
+	var exclDes, onlyComm bool
 
 	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
@@ -119,11 +119,12 @@ func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.Web
 	}
 
 	exclDes, _ = req.Data["exclude_current_communication"].(bool)
+	onlyComm, _ = req.Data["only_current_communication"].(bool)
 
 	agentId, _ = req.Data["agent_id"].(float64)
 
 	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire,
-		nil, display, int32(agentId), exclDes, waitBetweenRetries)
+		nil, display, int32(agentId), exclDes, waitBetweenRetries, onlyComm)
 	if err != nil {
 		return nil, err
 	}

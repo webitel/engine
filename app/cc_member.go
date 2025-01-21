@@ -196,7 +196,7 @@ func (app *App) ListOfflineQueueForAgent(ctx context.Context, domainId int64, se
 }
 
 func (app *App) ReportingAttempt(attemptId int64, status, description string, nextOffering *int64, expireAt *int64, vars map[string]string,
-	stickyDisplay bool, agentId int32, excludeDes bool, waitBetweenRetries *int32) model.AppError {
+	stickyDisplay bool, agentId int32, excludeDes bool, waitBetweenRetries *int32, onlyComm bool) model.AppError {
 
 	res := &cc.AttemptResultRequest{
 		AttemptId:                   attemptId,
@@ -209,6 +209,7 @@ func (app *App) ReportingAttempt(attemptId int64, status, description string, ne
 		TransferQueueId:             0,
 		AgentId:                     agentId,
 		ExcludeCurrentCommunication: excludeDes,
+		OnlyCurrentCommunication:    onlyComm,
 	}
 
 	if expireAt != nil {

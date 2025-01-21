@@ -35,7 +35,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
-	github.com/webitel/call_center v0.0.0-20240408094329-d1463ef11b35
+	github.com/webitel/call_center v0.0.0-20250114140215-f71a324a37c2
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20240909100805-822697e17a45
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
@@ -178,6 +178,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/mbilski/exhaustivestruct v1.2.0 // indirect
 	github.com/mgechev/revive v1.3.1 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
