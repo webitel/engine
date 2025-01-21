@@ -10,7 +10,7 @@ import (
 
 type quickReply struct {
 	*API
-	gogrpc.QuickRepliesServiceClient
+	gogrpc.UnsafeQuickRepliesServiceServer
 }
 
 func NewQuickReply(api *API) *quickReply {
