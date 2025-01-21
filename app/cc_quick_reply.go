@@ -15,59 +15,59 @@ func (a *App) GetQuickReplyPage(ctx context.Context, domainId int64, search *mod
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) CreateQuickReply(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError) {
-	return a.Store.QuickReply().Create(ctx, domainId, cause)
+func (a *App) CreateQuickReply(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
+	return a.Store.QuickReply().Create(ctx, domainId, reply)
 }
 
 func (a *App) GetQuickReply(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError) {
 	return a.Store.QuickReply().Get(ctx, domainId, id)
 }
 
-func (a *App) UpdateQuickReply(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError) {
-	oldCause, err := a.GetQuickReply(ctx, domainId, uint32(cause.Id))
+func (a *App) UpdateQuickReply(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
+	oldReply, err := a.GetQuickReply(ctx, domainId, uint32(reply.Id))
 	if err != nil {
 		return nil, err
 	}
 
-	oldCause.UpdatedBy = cause.UpdatedBy
-	oldCause.UpdatedAt = cause.UpdatedAt
+	oldReply.UpdatedBy = reply.UpdatedBy
+	oldReply.UpdatedAt = reply.UpdatedAt
 
-	oldCause.Name = cause.Name
-	oldCause.Text = cause.Text
-	oldCause.Queue = cause.Queue
-	oldCause.Team = cause.Team
-	oldCause.Article = cause.Article
+	oldReply.Name = reply.Name
+	oldReply.Text = reply.Text
+	oldReply.Queue = reply.Queue
+	oldReply.Team = reply.Team
+	oldReply.Article = reply.Article
 
-	oldCause, err = a.Store.QuickReply().Update(ctx, domainId, oldCause)
+	oldReply, err = a.Store.QuickReply().Update(ctx, domainId, oldReply)
 	if err != nil {
 		return nil, err
 	}
 
-	return oldCause, nil
+	return oldReply, nil
 }
 
 func (a *App) PatchQuickReply(ctx context.Context, domainId int64, id uint32, patch *model.QuickReplyPatch) (*model.QuickReply, model.AppError) {
-	oldCause, err := a.GetQuickReply(ctx, domainId, id)
+	oldReply, err := a.GetQuickReply(ctx, domainId, id)
 	if err != nil {
 		return nil, err
 	}
 
-	oldCause.Patch(patch)
+	oldReply.Patch(patch)
 
-	if err = oldCause.IsValid(); err != nil {
+	if err = oldReply.IsValid(); err != nil {
 		return nil, err
 	}
 
-	oldCause, err = a.Store.QuickReply().Update(ctx, domainId, oldCause)
+	oldReply, err = a.Store.QuickReply().Update(ctx, domainId, oldReply)
 	if err != nil {
 		return nil, err
 	}
 
-	return oldCause, nil
+	return oldReply, nil
 }
 
 func (a *App) RemoveQuickReply(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError) {
-	cause, err := a.GetQuickReply(ctx, domainId, id)
+	reply, err := a.GetQuickReply(ctx, domainId, id)
 
 	if err != nil {
 		return nil, err
@@ -77,5 +77,5 @@ func (a *App) RemoveQuickReply(ctx context.Context, domainId int64, id uint32) (
 	if err != nil {
 		return nil, err
 	}
-	return cause, nil
+	return reply, nil
 }
