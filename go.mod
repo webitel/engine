@@ -3,13 +3,13 @@ module github.com/webitel/engine
 go 1.22.5
 
 require (
-	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.3-20250117130012-7aa88165384f.1
+	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.1-20240527133229-8d9250d78122.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.4.0-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240703121916-db3266bbfcd3.2
-	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250103094420-c77bbc1e2f66.2
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.36.3-20250117130010-f6c8f17c4f44.1
-	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240425073915-5e104cd55a71.2
-	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240425073915-5e104cd55a71.1
+	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250117075936-6883b96d3ed2.2
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.36.3-20250117075936-6883b96d3ed2.1
+	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240404140117-b025f673b11a.2
+	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240404140117-b025f673b11a.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
 	buf.build/gen/go/webitel/logger/protocolbuffers/go v1.33.0-20240404135439-f6c7830c29dd.1
 	buf.build/gen/go/webitel/webitel-go/grpc/go v1.4.0-20240725111140-8ade8003e454.2
@@ -55,7 +55,7 @@ require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
 	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.3-20231027202514-3f42134f4c56.1 // indirect
-	buf.build/gen/go/webitel/cc/grpc/go v1.3.0-20240425073914-85c52be6ff00.2 // indirect
+	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20240527133229-8d9250d78122.2 // indirect
 	cloud.google.com/go v0.112.1 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/firestore v1.15.0 // indirect
