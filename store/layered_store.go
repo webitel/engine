@@ -188,3 +188,7 @@ func (s *LayeredStore) SchemeVersion() SchemeVersionsStore {
 func (s *LayeredStore) SchemeVariable() SchemeVariablesStore {
 	return s.DatabaseLayer.SchemeVariable()
 }
+
+func (s *LayeredStore) QuickReply() QuickReplyStore {
+	return s.DatabaseLayer.QuickReply()
+}

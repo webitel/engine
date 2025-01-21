@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
+	"time"
+
 	"github.com/Masterminds/squirrel"
 	"golang.org/x/oauth2"
-	"time"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -64,6 +65,7 @@ type Store interface {
 
 	PauseCause() PauseCauseStore
 	Notification() NotificationStore
+	QuickReply() QuickReplyStore
 
 	ChatPlan() ChatPlanStore
 	Trigger() TriggerStore
@@ -426,6 +428,14 @@ type NotificationStore interface {
 	Create(ctx context.Context, notification *model.Notification) (*model.Notification, model.AppError)
 	Close(ctx context.Context, id, userId int64) (*model.Notification, model.AppError)
 	Accept(ctx context.Context, id, userId int64) (*model.Notification, model.AppError)
+}
+
+type QuickReplyStore interface {
+	Create(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError)
+	Get(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError)
+	Update(ctx context.Context, domainId int64, region *model.QuickReply) (*model.QuickReply, model.AppError)
+	Delete(ctx context.Context, domainId int64, id uint32) model.AppError
 }
 
 type ChatPlanStore interface {
