@@ -20,7 +20,7 @@ func NewSqlQuickReplyStore(sqlStore SqlStore) store.QuickReplyStore {
 
 func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&reply, `with s as (
-    insert into call_center.cc_quick_reply (dc, created_at, updated_at, created_by, updated_by,
+    insert into call_center.cc_quick_reply (domain_id, created_at, updated_at, created_by, updated_by,
                                       name, text, article, team, queue)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
             :Name, :Text, :Article, :Team, :Queue)
@@ -66,7 +66,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 	}
 
 	err := s.ListQuery(ctx, &replies, search.ListRequest,
-		`dc = :DomainId
+		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or text ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
 			`,
@@ -96,7 +96,7 @@ from call_center.cc_quick_reply q
 	left join call_center.cc_team t on t.id = q.team
 	left join knowledge_base.article a on a.id = q.article
 	left join call_center.cc_queue cq on cq.id = q.team
-where q.id = :Id and q.dc = :DomainId`, map[string]interface{}{
+where q.id = :Id and q.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
 	})
@@ -118,7 +118,7 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
             article = :Article,
 			team = :Team,
 			queue = :Queue
-        where id = :Id and dc = :DomainId
+        where id = :Id and domain_id = :DomainId
     returning *
 )
 select s.id,
@@ -156,7 +156,7 @@ from s
 }
 
 func (s SqlQuickReplyStore) Delete(ctx context.Context, domainId int64, id uint32) model.AppError {
-	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_quick_reply c where c.id=:Id and c.dc = :DomainId`,
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_quick_reply c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_quick_reply.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}

@@ -29,7 +29,7 @@ type QuickReplyPatch struct {
 }
 
 func (p QuickReply) AllowFields() []string {
-	return []string{"id", "dc", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "team", "queue", "article"}
+	return []string{"id", "domain_id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "team", "queue", "article"}
 }
 
 func (QuickReply) DefaultOrder() string {
