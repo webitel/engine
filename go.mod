@@ -3,7 +3,7 @@ module github.com/webitel/engine
 go 1.22.5
 
 require (
-	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.1-20240527133229-8d9250d78122.1
+	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.3-20250117130012-7aa88165384f.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.4.0-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250117075936-6883b96d3ed2.2
