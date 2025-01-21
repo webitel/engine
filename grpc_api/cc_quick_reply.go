@@ -23,7 +23,7 @@ func (api *quickReply) CreateQuickReply(ctx context.Context, in *engine.CreateQu
 		return nil, err
 	}
 
-	cause := &model.QuickReply{
+	reply := &model.QuickReply{
 		Name:    in.Name,
 		Text:    in.Text,
 		Article: GetLookup(in.Article),
@@ -31,12 +31,12 @@ func (api *quickReply) CreateQuickReply(ctx context.Context, in *engine.CreateQu
 		Queue:   GetLookup(in.Queue),
 	}
 
-	cause, err = api.ctrl.CreateQuickReply(ctx, session, cause)
+	reply, err = api.ctrl.CreateQuickReply(ctx, session, reply)
 	if err != nil {
 		return nil, err
 	}
 
-	return toEngineQuickReply(cause), nil
+	return toEngineQuickReply(reply), nil
 }
 
 func (api *quickReply) SearchQuickReplies(ctx context.Context, in *engine.SearchQuickRepliesRequest) (*engine.ListQuickReplies, error) {
@@ -79,14 +79,14 @@ func (api *quickReply) ReadQuickReply(ctx context.Context, in *engine.ReadQuickR
 	if err != nil {
 		return nil, err
 	}
-	var cause *model.QuickReply
-	cause, err = api.ctrl.GetQuickReply(ctx, session, in.Id)
+	var reply *model.QuickReply
+	reply, err = api.ctrl.GetQuickReply(ctx, session, in.Id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return toEngineQuickReply(cause), nil
+	return toEngineQuickReply(reply), nil
 }
 
 func (api *quickReply) PatchQuickReply(ctx context.Context, in *engine.PatchQuickReplyRequest) (*engine.QuickReply, error) {
@@ -95,7 +95,7 @@ func (api *quickReply) PatchQuickReply(ctx context.Context, in *engine.PatchQuic
 		return nil, err
 	}
 
-	var cause *model.QuickReply
+	var reply *model.QuickReply
 	patch := &model.QuickReplyPatch{}
 
 	//TODO
@@ -108,11 +108,11 @@ func (api *quickReply) PatchQuickReply(ctx context.Context, in *engine.PatchQuic
 		}
 	}
 
-	if cause, err = api.ctrl.PatchQuickReply(ctx, session, in.Id, patch); err != nil {
+	if reply, err = api.ctrl.PatchQuickReply(ctx, session, in.Id, patch); err != nil {
 		return nil, err
 	}
 
-	return toEngineQuickReply(cause), nil
+	return toEngineQuickReply(reply), nil
 }
 
 func (api *quickReply) UpdateQuickReply(ctx context.Context, in *engine.UpdateQuickReplyRequest) (*engine.QuickReply, error) {
@@ -121,7 +121,7 @@ func (api *quickReply) UpdateQuickReply(ctx context.Context, in *engine.UpdateQu
 		return nil, err
 	}
 
-	cause := &model.QuickReply{
+	reply := &model.QuickReply{
 		AclRecord: model.AclRecord{},
 		Id:        int(in.Id),
 		Name:      in.Name,
@@ -131,13 +131,13 @@ func (api *quickReply) UpdateQuickReply(ctx context.Context, in *engine.UpdateQu
 		Queue:     GetLookup(in.Queue),
 	}
 
-	cause, err = api.ctrl.UpdateQuickReply(ctx, session, cause)
+	reply, err = api.ctrl.UpdateQuickReply(ctx, session, reply)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return toEngineQuickReply(cause), nil
+	return toEngineQuickReply(reply), nil
 }
 
 func (api *quickReply) DeleteQuickReply(ctx context.Context, in *engine.DeleteQuickReplyRequest) (*engine.QuickReply, error) {
@@ -146,13 +146,13 @@ func (api *quickReply) DeleteQuickReply(ctx context.Context, in *engine.DeleteQu
 		return nil, err
 	}
 
-	var cause *model.QuickReply
-	cause, err = api.ctrl.DeleteQuickReply(ctx, session, in.Id)
+	var reply *model.QuickReply
+	reply, err = api.ctrl.DeleteQuickReply(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return toEngineQuickReply(cause), nil
+	return toEngineQuickReply(reply), nil
 }
 
 func toEngineQuickReply(src *model.QuickReply) *engine.QuickReply {

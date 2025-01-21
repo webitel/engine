@@ -18,8 +18,8 @@ func NewSqlQuickReplyStore(sqlStore SqlStore) store.QuickReplyStore {
 	return us
 }
 
-func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError) {
-	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
+func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&reply, `with s as (
     insert into call_center.cc_quick_reply (dc, created_at, updated_at, created_by, updated_by,
                                       name, text, article, team, queue)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
@@ -37,26 +37,26 @@ from s
          left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by`, map[string]interface{}{
 		"DomainId":  domainId,
-		"CreatedAt": cause.CreatedAt,
-		"UpdatedAt": cause.UpdatedAt,
-		"CreatedBy": cause.CreatedBy.GetSafeId(),
-		"UpdatedBy": cause.UpdatedBy.GetSafeId(),
-		"Name":      cause.Name,
-		"Text":      cause.Text,
-		"Article":   cause.Article.GetSafeId(),
-		"Team":      cause.Team.GetSafeId(),
-		"Queue":     cause.Queue.GetSafeId(),
+		"CreatedAt": reply.CreatedAt,
+		"UpdatedAt": reply.UpdatedAt,
+		"CreatedBy": reply.CreatedBy.GetSafeId(),
+		"UpdatedBy": reply.UpdatedBy.GetSafeId(),
+		"Name":      reply.Name,
+		"Text":      reply.Text,
+		"Article":   reply.Article.GetSafeId(),
+		"Team":      reply.Team.GetSafeId(),
+		"Queue":     reply.Queue.GetSafeId(),
 	})
 
 	if err != nil {
-		return nil, model.NewCustomCodeError("store.sql_quick_reply.create.app_error", fmt.Sprintf("name=%v, %v", cause.Name, err.Error()), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_quick_reply.create.app_error", fmt.Sprintf("name=%v, %v", reply.Name, err.Error()), extractCodeFromErr(err))
 	}
 
-	return cause, nil
+	return reply, nil
 }
 
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError) {
-	var causes []*model.QuickReply
+	var replies []*model.QuickReply
 
 	f := map[string]interface{}{
 		"DomainId": domainId,
@@ -65,7 +65,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		"Name":     search.Name,
 	}
 
-	err := s.ListQuery(ctx, &causes, search.ListRequest,
+	err := s.ListQuery(ctx, &replies, search.ListRequest,
 		`dc = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or text ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
@@ -75,12 +75,12 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return causes, nil
+	return replies, nil
 }
 
 func (s SqlQuickReplyStore) Get(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError) {
-	var cause *model.QuickReply
-	err := s.GetReplica().WithContext(ctx).SelectOne(&cause, `select q.id, 
+	var reply *model.QuickReply
+	err := s.GetReplica().WithContext(ctx).SelectOne(&reply, `select q.id, 
        q.created_at,
        q.updated_at,
 	   call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
@@ -105,11 +105,11 @@ where q.id = :Id and q.dc = :DomainId`, map[string]interface{}{
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return cause, nil
+	return reply, nil
 }
 
-func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError) {
-	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
+func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
+	err := s.GetMaster().WithContext(ctx).SelectOne(&reply, `with s as (
     update call_center.cc_quick_reply
         set updated_at = :UpdatedAt,
             updated_by = :UpdatedBy,
@@ -138,21 +138,21 @@ from s
 		 left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by;`, map[string]interface{}{
 		"DomainId":  domainId,
-		"Id":        cause.Id,
-		"Name":      cause.Name,
-		"Text":      cause.Text,
-		"UpdatedAt": cause.UpdatedAt,
-		"UpdatedBy": cause.UpdatedBy.GetSafeId(),
-		"Article":   cause.Article.GetSafeId(),
-		"Team":      cause.Team.GetSafeId(),
-		"Queue":     cause.Queue.GetSafeId(),
+		"Id":        reply.Id,
+		"Name":      reply.Name,
+		"Text":      reply.Text,
+		"UpdatedAt": reply.UpdatedAt,
+		"UpdatedBy": reply.UpdatedBy.GetSafeId(),
+		"Article":   reply.Article.GetSafeId(),
+		"Team":      reply.Team.GetSafeId(),
+		"Queue":     reply.Queue.GetSafeId(),
 	})
 
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return cause, nil
+	return reply, nil
 }
 
 func (s SqlQuickReplyStore) Delete(ctx context.Context, domainId int64, id uint32) model.AppError {
