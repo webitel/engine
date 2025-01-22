@@ -30,7 +30,7 @@ func initApn(conf model.PushConfig) error {
 	if err != nil {
 		return err
 	}
-	apnClient = NewApnClient(cert, map[string]string{
+	apnClient = NewApnClient(conf.ApnHost, cert, map[string]string{
 		"Content-Type": "application/json",
 		"apns-topic":   conf.ApnTopic,
 	})

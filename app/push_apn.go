@@ -137,7 +137,7 @@ func ApnCertificate(config *model.PushConfig) (tls.Certificate, model.AppError) 
 //
 // If your use case involves multiple long-lived connections, consider using
 // the ClientManager, which manages clients for you.
-func NewApnClient(certificate tls.Certificate, headers map[string]string) *ApnClient {
+func NewApnClient(host string, certificate tls.Certificate, headers map[string]string) *ApnClient {
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{certificate},
 	}
@@ -149,13 +149,18 @@ func NewApnClient(certificate tls.Certificate, headers map[string]string) *ApnCl
 		DialTLS:         DialTLS,
 		ReadIdleTimeout: ReadIdleTimeout,
 	}
+
+	if host == "" {
+		host = DefaultHost
+	}
+
 	return &ApnClient{
 		HTTPClient: &http.Client{
 			Transport: transport,
 			Timeout:   HTTPClientTimeout,
 		},
 		Certificate:   certificate,
-		Host:          DefaultHost,
+		Host:          host,
 		CustomHeaders: headers,
 	}
 }

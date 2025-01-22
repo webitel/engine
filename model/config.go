@@ -67,6 +67,7 @@ type Config struct {
 type PushConfig struct {
 	FirebaseServiceAccount string `json:"push_firebase" flag:"push_firebase||Firebase service account file location" env:"PUSH_FIREBASE"`
 
+	ApnHost     string `json:"push_apn_host" flag:"push_apn_host||APN http host" env:"PUSH_APN_HOST"`
 	ApnCertFile string `json:"push_apn_cert_file" flag:"push_apn_cert_file||APN certificate file location" env:"PUSH_APN_CERT_FILE"`
 	ApnKeyFile  string `json:"push_apn_key_file" flag:"push_apn_key_file||APN key file location" env:"PUSH_APN_KEY_FILE"`
 	ApnTopic    string `json:"push_apn_topic" flag:"push_apn_topic|com.webitel.webitel-ios.voip|APN topic" env:"PUSH_APN_TOPIC"`
