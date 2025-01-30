@@ -1247,13 +1247,14 @@ where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'br
 	return res, nil
 }
 
-func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (int64, time.Time, model.AppError) {
-	var userId int64
+func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (*int64, time.Time, model.AppError) {
+	var userId *int64
 	var createdAt time.Time
 
 	row := s.GetReplica().WithContext(ctx).QueryRow(`select coalesce(c.user_id, p.user_id) as rate_user,
-       case when c.user_id notnull then c.created_at else p.created_at end as created_at
+       case when c.user_id notnull or q.type = 2  then c.created_at else p.created_at end as created_at
 from call_center.cc_calls_history c
+    left join call_center.cc_queue q on q.id = c.queue_id
     left join call_center.cc_calls_history p on p.id = c.bridged_id
 where c.id = $1::uuid`, id)
 
