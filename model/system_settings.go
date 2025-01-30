@@ -7,18 +7,19 @@ import (
 )
 
 const (
-	SysNameOmnichannel            = "enable_omnichannel"
-	SysNameMemberInsertChunkSize  = "member_chunk_size"
-	SysNameSchemeVersionLimit     = "scheme_version_limit"
-	SysNameAmdCancelNotHuman      = "amd_cancel_not_human"
-	SysNameTwoFactorAuthorization = "enable_2fa"
-	SysNameExportSettings         = "export_settings"
-	SysNameSearchNumberLength     = "search_number_length"
-	SysNameChatAiConnection       = "chat_ai_connection"
-	SysNamePasswordRegExp         = "password_reg_exp"
-	SysNamePasswordValidationText = "password_validation_text"
-	SysNameAutolinkCallToContact  = "autolink_call_to_contact"
-	SysNamePeriodToPlaybackRecord = "period_to_playback_records"
+	SysNameOmnichannel             = "enable_omnichannel"
+	SysNameMemberInsertChunkSize   = "member_chunk_size"
+	SysNameSchemeVersionLimit      = "scheme_version_limit"
+	SysNameAmdCancelNotHuman       = "amd_cancel_not_human"
+	SysNameTwoFactorAuthorization  = "enable_2fa"
+	SysNameExportSettings          = "export_settings"
+	SysNameSearchNumberLength      = "search_number_length"
+	SysNameChatAiConnection        = "chat_ai_connection"
+	SysNamePasswordRegExp          = "password_reg_exp"
+	SysNamePasswordValidationText  = "password_validation_text"
+	SysNameAutolinkCallToContact   = "autolink_call_to_contact"
+	SysNamePeriodToPlaybackRecord  = "period_to_playback_records"
+	SysNameIsFulltextSearchEnabled = "is_fulltext_search_enabled"
 )
 
 type SysValue json.RawMessage
@@ -81,7 +82,7 @@ func (s *SystemSetting) IsValid() AppError {
 		if str == nil || *str == "" {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
 		}
-	case SysNameTwoFactorAuthorization, SysNameAutolinkCallToContact:
+	case SysNameTwoFactorAuthorization, SysNameAutolinkCallToContact, SysNameIsFulltextSearchEnabled:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
