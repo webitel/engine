@@ -1,11 +1,9 @@
 package app
 
 import (
+	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
 	"context"
 	"fmt"
-	"net/http"
-
-	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
@@ -439,15 +437,18 @@ func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.Hangu
 	}
 
 	err = cli.HangupCall(req.Id, cause)
-	if err == call_manager.NotFoundCall {
-		var e *model.CallServiceHangup
-		if e, err = app.Store.Call().SetEmptySeverCall(ctx, domainId, req.Id); err == nil {
-			//fixme rollback
-			err = app.MessageQueue.SendStickingCall(e)
-		} else if err.GetStatusCode() == http.StatusNotFound {
-			err = nil
+	// TODO DEV-4972, WTEL-4498
+	/*
+		if err == call_manager.NotFoundCall {
+			var e *model.CallServiceHangup
+			if e, err = app.Store.Call().SetEmptySeverCall(ctx, domainId, req.Id); err == nil {
+				//fixme rollback
+				err = app.MessageQueue.SendStickingCall(e)
+			} else if err.GetStatusCode() == http.StatusNotFound {
+				err = nil
+			}
 		}
-	}
+	*/
 
 	return err
 }
