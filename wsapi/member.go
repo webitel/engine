@@ -14,6 +14,7 @@ func (api *API) InitMember() {
 	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
 	api.Router.Handle("cc_renewal", api.ApiWebSocketHandler(api.renewalAttempt))
 	api.Router.Handle("cc_form_action", api.ApiWebSocketHandler(api.processingActionFormAttempt))
+	api.Router.Handle("cc_form_save", api.ApiWebSocketHandler(api.processingSaveFormAttempt))
 	api.Router.Handle("cc_intercept_attempt", api.ApiWebSocketHandler(api.interceptAttempt))
 }
 
@@ -75,6 +76,30 @@ func (api *API) processingActionFormAttempt(ctx context.Context, conn *app.WebCo
 
 	if err := api.ctrl.ProcessingActionFormAttempt(conn.GetSession(), int64(attemptId), appId,
 		formId, action, model.MapInterfaceToString(fields)); err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	return res, nil
+}
+
+func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var attemptId float64
+	var ok bool
+	var fields map[string]interface{}
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	// TODO app_id for node
+	if _, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
+	}
+
+	fields, _ = req.Data["fields"].(map[string]interface{})
+
+	if err := api.ctrl.ProcessingSaveForm(conn.GetSession(), int64(attemptId), model.MapInterfaceToString(fields)); err != nil {
 		return nil, err
 	}
 

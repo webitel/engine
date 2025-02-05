@@ -3,7 +3,7 @@ module github.com/webitel/engine
 go 1.22.5
 
 require (
-	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.3-20250117130012-7aa88165384f.1
+	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.4-20250204132723-b92fee1d7d12.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.4.0-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.34.2-20240703121916-db3266bbfcd3.2
 	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250130131313-1f628ed6696e.2
@@ -35,7 +35,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
-	github.com/webitel/call_center v0.0.0-20250114140215-f71a324a37c2
+	github.com/webitel/call_center v0.0.0-20250205144033-a355df2560de
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20240909100805-822697e17a45
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
@@ -55,7 +55,7 @@ require (
 	4d63.com/gocheckcompilerdirectives v1.2.1 // indirect
 	4d63.com/gochecknoglobals v0.2.1 // indirect
 	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.4-20231027202514-3f42134f4c56.1 // indirect
-	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20240527133229-8d9250d78122.2 // indirect
+	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20250204132723-b92fee1d7d12.2 // indirect
 	cloud.google.com/go v0.112.1 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/firestore v1.15.0 // indirect
