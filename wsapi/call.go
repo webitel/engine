@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/wlog"
 	"strings"
 )
 
@@ -164,6 +165,14 @@ func (api *API) callHangup(ctx context.Context, conn *app.WebConn, req *model.We
 	}
 
 	err := api.App.HangupCall(ctx, conn.GetSession().DomainId, &cr)
+
+	if err == nil {
+		// DEV-4198
+		conn.Log().Debug("success hangup",
+			wlog.String("call_id", id),
+			wlog.String("cause", cause),
+		)
+	}
 
 	return nil, err
 }
