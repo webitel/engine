@@ -3,12 +3,14 @@ package app
 import (
 	"context"
 	"github.com/webitel/engine/model"
+	"regexp"
 
 	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"net/url"
 )
 
 var publicStorage *url.URL
+var reErrDetail = regexp.MustCompile(`"detail":"(.*?)"`)
 
 func (a *App) DeclineChat(authUserId int64, inviteId string, cause string) model.AppError {
 	chat, err := a.chatManager.Client()
@@ -61,7 +63,7 @@ func (a *App) SendTextMessage(authUserId int64, channelId, conversationId, text 
 
 	err = chat.SendText(authUserId, channelId, conversationId, text)
 	if err != nil {
-		return model.NewInternalError("chat.send.text.app_err", err.Error())
+		return model.NewInternalError("chat.send.text.app_err", extractErrDetail(err))
 	}
 
 	return nil
@@ -101,7 +103,7 @@ func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string
 
 	err = chat.SendFile(authUserId, channelId, conversationId, file)
 	if err != nil {
-		return model.NewInternalError("chat.send.file.app_err", err.Error())
+		return model.NewInternalError("chat.send.file.app_err", extractErrDetail(err))
 	}
 
 	return nil
@@ -224,4 +226,12 @@ func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId in
 	}
 
 	return nil
+}
+
+func extractErrDetail(err error) string {
+	match := reErrDetail.FindStringSubmatch(err.Error())
+	if len(match) > 1 {
+		return match[1]
+	}
+	return err.Error()
 }
