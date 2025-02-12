@@ -21,9 +21,6 @@ func (c *Controller) CreateSystemSetting(ctx context.Context, session *auth_mana
 }
 
 func (c *Controller) SearchSystemSetting(ctx context.Context, session *auth_manager.Session, search *model.SearchSystemSetting) ([]*model.SystemSetting, bool, model.AppError) {
-	if !session.HasAction(auth_manager.PermissionSystemSetting) {
-		return nil, false, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_READ)
-	}
 
 	return c.app.GetSystemSettingPage(ctx, session.Domain(0), search)
 }
