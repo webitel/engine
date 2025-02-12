@@ -1,7 +1,6 @@
 package controller
 
 import (
-	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"context"
 
 	"github.com/webitel/engine/auth_manager"
@@ -108,14 +107,6 @@ func (c *Controller) BlindTransferChatToUser(session *auth_manager.Session, conv
 	}
 
 	return c.app.BlindTransferChatToUser(session.DomainId, conversationId, channelId, userId, vars)
-}
-
-func (c *Controller) BroadcastChatBot(session *auth_manager.Session, profileId int64, peer []string, msg *proto.Message) model.AppError {
-	if !session.HasCallCenterLicense() {
-		return noChatAccessError
-	}
-
-	return c.app.BroadcastChatBot(context.TODO(), session.Domain(0), profileId, peer, msg)
 }
 
 // todo check userId in domain
