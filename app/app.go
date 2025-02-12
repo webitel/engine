@@ -18,6 +18,7 @@ import (
 	"github.com/webitel/engine/presign"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
+	flow "github.com/webitel/flow_manager/client"
 	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
 	"github.com/webitel/wlog"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -53,6 +54,7 @@ type App struct {
 	sessionManager   auth_manager.AuthManager
 	callManager      call_manager.CallManager
 	chatManager      chat_manager.ChatManager
+	flowManager      flow.FlowManager
 	cc               client.CCManager
 	cipher           presign.PreSign
 	audit            *logger.Audit
@@ -196,6 +198,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
+	app.flowManager = flow.NewFlowManager(app.cluster.discovery)
+	if err := app.flowManager.Start(); err != nil {
+		return nil, err
+	}
+
 	app.cc = client.NewCCManager(app.cluster.discovery)
 	if err := app.cc.Start(); err != nil {
 		return nil, err
@@ -233,6 +240,10 @@ func (app *App) Shutdown() {
 
 	if app.chatManager != nil {
 		app.chatManager.Stop()
+	}
+
+	if app.flowManager != nil {
+		app.flowManager.Stop()
 	}
 
 	if app.otelShutdownFunc != nil {

@@ -5,7 +5,6 @@ import (
 	"github.com/webitel/engine/model"
 	"regexp"
 
-	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"net/url"
 )
 
@@ -203,26 +202,6 @@ func (a *App) BlindTransferChatToUser(domainId int64, conversationId, channelId 
 	errChat = chat.BlindTransferToUser(context.Background(), conversationId, channelId, userId, vars)
 	if errChat != nil {
 		return model.NewInternalError("chat.transfer.api_err", errChat.Error())
-	}
-
-	return nil
-}
-
-func (a *App) BroadcastChatBot(ctx context.Context, domainId int64, profileId int64, peer []string, msg *proto.Message) model.AppError {
-
-	appErr := a.Store.Chat().ValidDomain(ctx, domainId, profileId)
-	if appErr != nil {
-		return appErr
-	}
-
-	cli, err := a.chatManager.Client()
-	if err != nil {
-		return model.NewInternalError("chat.broadcast.cli_err", err.Error())
-	}
-
-	err = cli.BroadcastMessage(ctx, msg, profileId, peer)
-	if err != nil {
-		return model.NewInternalError("chat.broadcast.api_err", err.Error())
 	}
 
 	return nil
