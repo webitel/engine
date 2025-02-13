@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -86,6 +87,21 @@ from t
 	} else {
 		return trigger, nil
 	}
+}
+
+func (s SqlTriggerStore) GetAllByType(ctx context.Context, type_ string) ([]*model.Trigger, model.AppError) {
+	var triggers []*model.Trigger
+	fields := strings.Join(model.Trigger{}.DefaultFields(), ", ")
+	query := fmt.Sprintf(`select %s from call_center.cc_trigger WHERE "type" =:Type`, fields)
+	args := map[string]interface{}{
+		"Type": type_,
+	}
+
+	_, err := s.GetReplica().WithContext(ctx).Select(&triggers, query, args)
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_trigger.get_by_type.app_error", err.Error(), extractCodeFromErr(err))
+	}
+	return triggers, nil
 }
 
 func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, model.AppError) {
