@@ -1,9 +1,13 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	TriggerTypeCron = "cron"
+	TriggerTypeCase = "case"
 )
 
 type Trigger struct {
@@ -68,8 +72,10 @@ func (t Trigger) EntityName() string {
 }
 
 func (t *Trigger) IsValid() AppError {
-	if t.Type != TriggerTypeCron {
-		//error
+	switch t.Type {
+	case TriggerTypeCron, TriggerTypeCase:
+	default:
+		return newAppError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
 	}
 	return nil
 }

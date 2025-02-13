@@ -61,7 +61,8 @@ type Config struct {
 	PublicHostName          *string                  `json:"public_host" flag:"public_host||Public hostname" env:"PUBLIC_HOST"`
 	B2BSettings             B2BSettings
 	Push                    PushConfig
-	Log                     LogSettings `json:"log"`
+	Log                     LogSettings          `json:"log"`
+	CaseTriggersSettings    CaseTriggersSettings `json:"case_triggers_settings"`
 }
 
 type PushConfig struct {
@@ -105,6 +106,14 @@ type SqlSettings struct {
 	Trace                       bool     `json:"trace" flag:"sql_trace|false|Trace SQL" env:"SQL_TRACE"`
 	Log                         bool     `json:"log" flag:"sql_log|false|Log SQL" env:"SQL_LOG"`
 	QueryTimeout                *int     `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds" env:"QUERY_TIMEOUT"`
+}
+
+type CaseTriggersSettings struct {
+	AMQPUrl     string `json:"url" flag:"amqp|amqp://webitel:webitel@rabbit:5672?heartbeat=10|AMQP connection" env:"AMQP"`
+	Exchange    string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
+	CreateQueue string `json:"createQueue" flag:"case_triggers_create_queue|create_queue|Queue name for create cases" env:"CASE_TRIGGERS_CREATE_QUEUE"`
+	UpdateQueue string `json:"updateQueue" flag:"case_triggers_update_queue|update_queue|Queue name for update cases" env:"CASE_TRIGGERS_UPDATE_QUEUE"`
+	DeleteQueue string `json:"deleteQueue" flag:"case_triggers_delete_queue|delete_queue|Queue name for delete cases" env:"CASE_TRIGGERS_DELETE_QUEUE"`
 }
 
 func (c *Config) IsValid() AppError {
