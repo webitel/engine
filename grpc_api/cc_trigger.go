@@ -40,9 +40,6 @@ func (api *trigger) CreateTrigger(ctx context.Context, in *engine.CreateTriggerR
 		return nil, err
 	}
 
-	// notify about triggers were changed
-	api.app.TriggerCases.NotifyUpdateTrigger()
-
 	return toEngineTrigger(tr), nil
 }
 
@@ -121,9 +118,6 @@ func (api *trigger) UpdateTrigger(ctx context.Context, in *engine.UpdateTriggerR
 		return nil, err
 	}
 
-	// notify about triggers were changed
-	api.app.TriggerCases.NotifyUpdateTrigger()
-
 	return toEngineTrigger(tr), nil
 }
 
@@ -163,9 +157,6 @@ func (api *trigger) PatchTrigger(ctx context.Context, in *engine.PatchTriggerReq
 		return nil, err
 	}
 
-	// notify about triggers were changed
-	api.app.TriggerCases.NotifyUpdateTrigger()
-
 	return toEngineTrigger(tr), nil
 }
 
@@ -180,9 +171,6 @@ func (api *trigger) DeleteTrigger(ctx context.Context, in *engine.DeleteTriggerR
 	if err != nil {
 		return nil, err
 	}
-
-	// notify about triggers were changed
-	api.app.TriggerCases.NotifyUpdateTrigger()
 
 	return toEngineTrigger(tr), nil
 }
