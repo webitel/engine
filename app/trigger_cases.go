@@ -231,10 +231,10 @@ func (ct *TriggerCaseMQ) initConnection() error {
 	var err error
 
 	for {
-		ct.connection, err = amqp.Dial(ct.config.AMQPUrl)
+		ct.connection, err = amqp.Dial(ct.config.BrokerUrl)
 		if err != nil {
 			if ct.backoff.Attempt() > AMQPMaxAttemptsConnect {
-				return fmt.Errorf("failed to open AMQP connection for %s: %w", ct.config.AMQPUrl, err)
+				return fmt.Errorf("failed to open AMQP connection for %s: %w", ct.config.BrokerUrl, err)
 			}
 			time.Sleep(ct.backoff.Duration())
 			continue
@@ -244,7 +244,7 @@ func (ct *TriggerCaseMQ) initConnection() error {
 	ct.backoff.Reset()
 	ct.channel, err = ct.connection.Channel()
 	if err != nil {
-		return fmt.Errorf("failed to open channel for %s: %w", ct.config.AMQPUrl, err)
+		return fmt.Errorf("failed to open channel for %s: %w", ct.config.BrokerUrl, err)
 	}
 	ct.errorChan = make(chan *amqp.Error, 1)
 	ct.channel.NotifyClose(ct.errorChan)
