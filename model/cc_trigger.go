@@ -29,6 +29,11 @@ type Trigger struct {
 	UpdatedBy *Lookup    `json:"updated_by" db:"updated_by"`
 }
 
+type TriggerWithDomainID struct {
+	Trigger
+	DomainId int64 `json:"domain_id" db:"domain_id"`
+}
+
 type TriggerJob struct {
 	Id         int64      `json:"id" db:"id"`
 	Trigger    Lookup     `json:"trigger" db:"trigger"`

@@ -3,6 +3,7 @@ package app
 import (
 	workflow "buf.build/gen/go/webitel/workflow/protocolbuffers/go"
 	"context"
+	"encoding/json"
 	"fmt"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/webitel/engine/model"
@@ -24,7 +25,18 @@ type Backoff interface {
 	Reset()
 }
 
-type TriggersByExpression map[string][]*model.Trigger
+type TriggersByExpression map[string][]*model.TriggerWithDomainID
+
+type messageCase struct {
+	Case     string `json:"case"`
+	DomainId int64  `json:"domain_id"`
+}
+
+type TriggerCase interface {
+	Start() error
+	Stop()
+	NotifyUpdateTrigger()
+}
 
 type TriggerCaseMQ struct {
 	log                 *wlog.Logger
@@ -34,7 +46,6 @@ type TriggerCaseMQ struct {
 	stopCreateQueueChan chan struct{}
 	stopUpdateQueueChan chan struct{}
 	stopDeleteQueueChan chan struct{}
-	stoppedChan         chan struct{}
 	reloadChan          chan struct{}
 	errorChan           chan *amqp.Error
 	connection          *amqp.Connection
@@ -56,6 +67,9 @@ func (ct *TriggerCaseMQ) storeTriggersByExpression(triggers TriggersByExpression
 }
 
 func (ct *TriggerCaseMQ) Start() error {
+	if ct == nil {
+		return nil
+	}
 	err := ct.init()
 	if err != nil {
 		return err
@@ -65,18 +79,26 @@ func (ct *TriggerCaseMQ) Start() error {
 		return err
 	}
 
+	go ct.reloadTriggers()
+
 	return nil
 
 }
 
 func (ct *TriggerCaseMQ) NotifyUpdateTrigger() {
-	ct.reloadChan <- struct{}{}
+	if ct == nil {
+		return
+	}
+	go func() { ct.reloadChan <- struct{}{} }()
 }
 
 func (ct *TriggerCaseMQ) reloadTriggers() {
 	for {
 		select {
-		case <-ct.reloadChan:
+		case _, ok := <-ct.reloadChan:
+			if !ok {
+				return
+			}
 			err := ct.loadTriggers()
 			if err != nil {
 				ct.log.Error(fmt.Sprintf("Could not reload triggers: %s", err.Error()))
@@ -87,8 +109,12 @@ func (ct *TriggerCaseMQ) reloadTriggers() {
 }
 
 func (ct *TriggerCaseMQ) Stop() {
+	if ct == nil {
+		return
+	}
 	ct.log.Debug("Trying to stopping TriggerCaseMQ")
 	close(ct.stopChan)
+	close(ct.reloadChan)
 	<-ct.stopCreateQueueChan
 	<-ct.stopUpdateQueueChan
 	<-ct.stopDeleteQueueChan
@@ -126,7 +152,7 @@ func (ct *TriggerCaseMQ) listen() error {
 func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopChan chan struct{}, expression string) {
 	for {
 		select {
-		case <-ct.stoppedChan:
+		case <-ct.stopChan:
 			close(stopChan)
 			return
 		case msg := <-messages:
@@ -134,12 +160,24 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			if len(triggers) == 0 {
 				continue
 			}
+			message := &messageCase{}
+			err := json.Unmarshal(msg.Body, message)
+			if err != nil {
+				ct.log.Error(fmt.Sprintf("Could not unmarshal message  %s: %s", msg.Body, err.Error()))
+				continue
+			}
 			for _, trigger := range triggers {
-				v := map[string]string{
-					"$json": string(msg.Body),
+				if trigger.DomainId != message.DomainId {
+					ct.log.Debug(fmt.Sprintf("Skipping trigger %s because domain ID does not match: %d, %dd", message.DomainId, trigger.DomainId))
+					continue
 				}
+				variables := trigger.Variables
+				if variables == nil {
+					variables = make(model.StringMap, 1)
+				}
+				variables["$case"] = string(msg.Body)
 
-				request := workflow.StartFlowRequest{DomainId: 1, SchemaId: uint32(trigger.Schema.Id), Variables: v}
+				request := workflow.StartFlowRequest{DomainId: trigger.DomainId, SchemaId: uint32(trigger.Schema.Id), Variables: variables}
 				id, err := ct.flowManager.Queue().StartFlow(&request)
 				if err != nil {
 					ct.log.Error(fmt.Sprintf("Could not start flow: %s", err.Error()))
@@ -257,9 +295,8 @@ func NewTriggerCases(log *wlog.Logger, store store.Store, flow flow.FlowManager,
 		store:               store,
 		flowManager:         flow,
 		config:              cfg,
-		reloadChan:          make(chan struct{}, 1),
+		reloadChan:          make(chan struct{}, 32),
 		stopChan:            make(chan struct{}),
-		stoppedChan:         make(chan struct{}),
 		stopCreateQueueChan: make(chan struct{}),
 		stopUpdateQueueChan: make(chan struct{}),
 		stopDeleteQueueChan: make(chan struct{}),

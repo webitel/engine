@@ -62,7 +62,7 @@ type App struct {
 	ctx              context.Context
 	tracer           *Tracer
 	otelShutdownFunc otelsdk.ShutdownFunc
-	triggerCases     *TriggerCaseMQ
+	TriggerCases     TriggerCase
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -222,8 +222,8 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	// start triggers for cases
-	app.triggerCases = NewTriggerCases(app.Log, app.Store, app.flowManager, &app.config.CaseTriggersSettings)
-	if err := app.triggerCases.Start(); err != nil {
+	app.TriggerCases = NewTriggerCases(app.Log, app.Store, app.flowManager, &app.config.CaseTriggersSettings)
+	if err := app.TriggerCases.Start(); err != nil {
 		return nil, fmt.Errorf("unable to start cases trigger: %w", err)
 	}
 
@@ -258,8 +258,8 @@ func (app *App) Shutdown() {
 	}
 
 	// shutdown Cases Triggers
-	if app.triggerCases != nil {
-		app.triggerCases.Stop()
+	if app.TriggerCases != nil {
+		app.TriggerCases.Stop()
 	}
 
 	app.cluster.Stop()

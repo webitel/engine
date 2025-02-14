@@ -89,9 +89,10 @@ from t
 	}
 }
 
-func (s SqlTriggerStore) GetAllByType(ctx context.Context, type_ string) ([]*model.Trigger, model.AppError) {
-	var triggers []*model.Trigger
-	fields := strings.Join(model.Trigger{}.DefaultFields(), ", ")
+func (s SqlTriggerStore) GetAllByType(ctx context.Context, type_ string) ([]*model.TriggerWithDomainID, model.AppError) {
+	var triggers []*model.TriggerWithDomainID
+	//fields := []string{"id", "name", "enabled", "type", "schema_id", "variables", "description", "expression",}
+	fields := strings.Join(model.Trigger{}.AllowFields(), ", ")
 	query := fmt.Sprintf(`select %s from call_center.cc_trigger WHERE "type" =:Type`, fields)
 	args := map[string]interface{}{
 		"Type": type_,

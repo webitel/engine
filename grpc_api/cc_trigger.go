@@ -13,7 +13,7 @@ type trigger struct {
 	gogrpc.UnsafeTriggerServiceServer
 }
 
-func NewTriggerApi(api *API) *trigger {
+func newTriggerApi(api *API) *trigger {
 	return &trigger{API: api}
 }
 
@@ -26,7 +26,7 @@ func (api *trigger) CreateTrigger(ctx context.Context, in *engine.CreateTriggerR
 	req := &model.Trigger{
 		Name:        in.Name,
 		Enabled:     in.Enabled,
-		Type:        model.TriggerTypeCron,
+		Type:        getTriggerTypeByEngineType(in.Type),
 		Schema:      GetLookup(in.Schema),
 		Variables:   in.GetVariables(),
 		Description: in.Description,
@@ -39,6 +39,9 @@ func (api *trigger) CreateTrigger(ctx context.Context, in *engine.CreateTriggerR
 	if err != nil {
 		return nil, err
 	}
+
+	// notify about triggers were changed
+	api.app.TriggerCases.NotifyUpdateTrigger()
 
 	return toEngineTrigger(tr), nil
 }
@@ -104,7 +107,7 @@ func (api *trigger) UpdateTrigger(ctx context.Context, in *engine.UpdateTriggerR
 		Id:          in.Id,
 		Name:        in.Name,
 		Enabled:     in.Enabled,
-		Type:        model.TriggerTypeCron,
+		Type:        getTriggerTypeByEngineType(in.Type),
 		Schema:      GetLookup(in.Schema),
 		Variables:   in.GetVariables(),
 		Description: in.Description,
@@ -117,6 +120,9 @@ func (api *trigger) UpdateTrigger(ctx context.Context, in *engine.UpdateTriggerR
 	if err != nil {
 		return nil, err
 	}
+
+	// notify about triggers were changed
+	api.app.TriggerCases.NotifyUpdateTrigger()
 
 	return toEngineTrigger(tr), nil
 }
@@ -157,6 +163,9 @@ func (api *trigger) PatchTrigger(ctx context.Context, in *engine.PatchTriggerReq
 		return nil, err
 	}
 
+	// notify about triggers were changed
+	api.app.TriggerCases.NotifyUpdateTrigger()
+
 	return toEngineTrigger(tr), nil
 }
 
@@ -171,6 +180,9 @@ func (api *trigger) DeleteTrigger(ctx context.Context, in *engine.DeleteTriggerR
 	if err != nil {
 		return nil, err
 	}
+
+	// notify about triggers were changed
+	api.app.TriggerCases.NotifyUpdateTrigger()
 
 	return toEngineTrigger(tr), nil
 }
@@ -259,7 +271,7 @@ func toEngineTrigger(src *model.Trigger) *engine.Trigger {
 		Id:          src.Id,
 		Name:        src.Name,
 		Enabled:     src.Enabled,
-		Type:        engine.TriggerType_cron, // TODO
+		Type:        getEngineTypeByTriggerType(src.Type),
 		Schema:      GetProtoLookup(src.Schema),
 		Variables:   src.Variables,
 		Description: src.Description,
@@ -292,4 +304,26 @@ func toEngineTriggerJob(src *model.TriggerJob) *engine.TriggerJob {
 	}
 
 	return j
+}
+
+func getTriggerTypeByEngineType(type_ engine.TriggerType) string {
+	switch type_ {
+	case engine.TriggerType_default_trigger_type, engine.TriggerType_cron:
+		return model.TriggerTypeCron
+	case 2: // todo use TriggerType_case
+		return model.TriggerTypeCase
+	default:
+		return ""
+	}
+}
+
+func getEngineTypeByTriggerType(type_ string) engine.TriggerType {
+	switch type_ {
+	case model.TriggerTypeCron:
+		return engine.TriggerType_cron
+	case model.TriggerTypeCase:
+		return engine.TriggerType(2)
+	default:
+		return engine.TriggerType_default_trigger_type
+	}
 }
