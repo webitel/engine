@@ -181,6 +181,10 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 				id, err := ct.flowManager.Queue().StartFlow(&request)
 				if err != nil {
 					ct.log.Error(fmt.Sprintf("Could not start flow: %s", err.Error()))
+					err = msg.Nack(false, true)
+					if err != nil {
+						ct.log.Error(fmt.Sprintf("Could not nack message: %s", err.Error()))
+					}
 					continue
 				}
 				ct.log.Info(fmt.Sprintf("Started flow with id %s", id))
