@@ -298,7 +298,7 @@ func getTriggerTypeByEngineType(type_ engine.TriggerType) string {
 	switch type_ {
 	case engine.TriggerType_default_trigger_type, engine.TriggerType_cron:
 		return model.TriggerTypeCron
-	case 2: // todo use TriggerType_case
+	case engine.TriggerType_case:
 		return model.TriggerTypeCase
 	default:
 		return ""
@@ -310,7 +310,7 @@ func getEngineTypeByTriggerType(type_ string) engine.TriggerType {
 	case model.TriggerTypeCron:
 		return engine.TriggerType_cron
 	case model.TriggerTypeCase:
-		return engine.TriggerType(2)
+		return engine.TriggerType_case
 	default:
 		return engine.TriggerType_default_trigger_type
 	}
