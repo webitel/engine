@@ -168,14 +168,14 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			}
 			for _, trigger := range triggers {
 				if trigger.DomainId != message.DomainId {
-					ct.log.Debug(fmt.Sprintf("Skipping trigger %s because domain ID does not match: %d, %dd", message.DomainId, trigger.DomainId))
+					ct.log.Debug(fmt.Sprintf("Skipping trigger %d because domain ID does not match: %d, %dd", trigger.Id, message.DomainId, trigger.DomainId))
 					continue
 				}
 				variables := trigger.Variables
 				if variables == nil {
 					variables = make(model.StringMap, 1)
 				}
-				variables["case"] = string(msg.Body)
+				variables["case"] = message.Case
 
 				request := workflow.StartFlowRequest{DomainId: trigger.DomainId, SchemaId: uint32(trigger.Schema.Id), Variables: variables}
 				id, err := ct.flowManager.Queue().StartFlow(&request)
