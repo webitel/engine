@@ -109,7 +109,7 @@ type SqlSettings struct {
 }
 
 type CaseTriggersSettings struct {
-	BrokerUrl   string `json:"broker_url" flag:"broker_url|amqp://webitel:webitel@rabbit:5672?heartbeat=10|Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
+	BrokerUrl   string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
 	Exchange    string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
 	CreateQueue string `json:"createQueue" flag:"case_triggers_create_queue|create_queue|Queue name for create cases" env:"CASE_TRIGGERS_CREATE_QUEUE"`
 	UpdateQueue string `json:"updateQueue" flag:"case_triggers_update_queue|update_queue|Queue name for update cases" env:"CASE_TRIGGERS_UPDATE_QUEUE"`

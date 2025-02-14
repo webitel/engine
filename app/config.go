@@ -50,5 +50,10 @@ func loadConfig() (*model.Config, error) {
 		config.Log.Console = true
 	}
 
+	// CaseTriggersSettings  : trying to use default AMQP url if config option is empty
+	if config.CaseTriggersSettings.BrokerUrl == "" {
+		config.CaseTriggersSettings.BrokerUrl = config.MessageQueueSettings.Url
+	}
+
 	return &config, nil
 }
