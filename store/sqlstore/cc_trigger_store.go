@@ -93,7 +93,7 @@ func (s SqlTriggerStore) GetAllByType(ctx context.Context, type_ string) ([]*mod
 	var triggers []*model.TriggerWithDomainID
 	//fields := []string{"id", "name", "enabled", "type", "schema_id", "variables", "description", "expression",}
 	fields := strings.Join(model.Trigger{}.AllowFields(), ", ")
-	query := fmt.Sprintf(`select %s from call_center.cc_trigger WHERE "type" =:Type`, fields)
+	query := fmt.Sprintf(`select %s from call_center.cc_trigger_list WHERE "type" =:Type`, fields)
 	args := map[string]interface{}{
 		"Type": type_,
 	}

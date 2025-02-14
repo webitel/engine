@@ -175,7 +175,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 				if variables == nil {
 					variables = make(model.StringMap, 1)
 				}
-				variables["$case"] = string(msg.Body)
+				variables["case"] = string(msg.Body)
 
 				request := workflow.StartFlowRequest{DomainId: trigger.DomainId, SchemaId: uint32(trigger.Schema.Id), Variables: variables}
 				id, err := ct.flowManager.Queue().StartFlow(&request)
@@ -254,39 +254,39 @@ func (ct *TriggerCaseMQ) initConnection() error {
 
 func (ct *TriggerCaseMQ) initExchangeQueues() error {
 	// create exchanges
-	err := ct.channel.ExchangeDeclare(ct.config.Exchange, "direct", true, false, false, true, nil)
+	err := ct.channel.ExchangeDeclare(ct.config.Exchange, "direct", true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create exchange %s: %w", ct.config.Exchange, err)
 	}
 
 	// create queues
-	ct.createQueue, err = ct.channel.QueueDeclare(ct.config.CreateQueue, false, false, true, true, nil)
+	ct.createQueue, err = ct.channel.QueueDeclare(ct.config.CreateQueue, false, false, true, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create Create queue %s: %w", ct.config.CreateQueue, err)
 	}
 
-	ct.updateQueue, err = ct.channel.QueueDeclare(ct.config.UpdateQueue, false, false, true, true, nil)
+	ct.updateQueue, err = ct.channel.QueueDeclare(ct.config.UpdateQueue, false, false, true, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create Update queue %s: %w", ct.config.UpdateQueue, err)
 	}
 
-	ct.deleteQueue, err = ct.channel.QueueDeclare(ct.config.DeleteQueue, false, false, true, true, nil)
+	ct.deleteQueue, err = ct.channel.QueueDeclare(ct.config.DeleteQueue, false, false, true, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create Delete queue %s: %w", ct.config.CreateQueue, err)
 	}
 
 	//bind queues
-	err = ct.channel.QueueBind(ct.config.Exchange, ct.config.CreateQueue, "create_case_key", false, nil)
+	err = ct.channel.QueueBind(ct.config.CreateQueue, "create_case_key", ct.config.Exchange, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not bind create create_queue: %w", err)
 	}
 
-	err = ct.channel.QueueBind(ct.config.Exchange, ct.config.UpdateQueue, "update_case_key", false, nil)
+	err = ct.channel.QueueBind(ct.config.UpdateQueue, "update_case_key", ct.config.Exchange, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not bind create update_queue: %w", err)
 	}
 
-	err = ct.channel.QueueBind(ct.config.Exchange, ct.config.DeleteQueue, "delete_case_key", false, nil)
+	err = ct.channel.QueueBind(ct.config.DeleteQueue, "delete_case_key", ct.config.Exchange, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not bind delete create_queue: %w", err)
 	}
