@@ -222,9 +222,11 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	// start triggers for cases
-	app.TriggerCases = NewTriggerCases(app.Log, app.Store, app.flowManager, &app.config.CaseTriggersSettings)
-	if err := app.TriggerCases.Start(); err != nil {
-		return nil, fmt.Errorf("unable to start cases trigger: %w", err)
+	if app.config.CaseTriggersSettings.Enabled {
+		app.TriggerCases = NewTriggerCases(app.Log, app.Store, app.flowManager, &app.config.CaseTriggersSettings)
+		if err := app.TriggerCases.Start(); err != nil {
+			return nil, fmt.Errorf("unable to start cases trigger: %w", err)
+		}
 	}
 
 	return app, outErr
