@@ -89,7 +89,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.userHelper = NewUserHelperApi(api)
 	api.quickReply = NewQuickReply(api)
 	api.chatPlan = NewChatPlan(api)
-	api.trigger = NewTriggerApi(api)
+	api.trigger = newTriggerApi(api)
 	api.chatHelper = NewChatHelperApi(api)
 	api.auditForm = NewAuditFormApi(api)
 	api.presetQuery = NewPresetQueryApi(api)

@@ -450,6 +450,7 @@ type ChatPlanStore interface {
 type TriggerStore interface {
 	CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Create(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError)
+	GetAllByType(ctx context.Context, type_ string) ([]*model.TriggerWithDomainID, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, model.AppError)
 	GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, model.AppError)
 	Get(ctx context.Context, domainId int64, id int32) (*model.Trigger, model.AppError)

@@ -3,6 +3,8 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"github.com/webitel/engine/utils"
+	"strings"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/auth_manager"
@@ -86,6 +88,22 @@ from t
 	} else {
 		return trigger, nil
 	}
+}
+
+func (s SqlTriggerStore) GetAllByType(ctx context.Context, type_ string) ([]*model.TriggerWithDomainID, model.AppError) {
+	var triggers []*model.TriggerWithDomainID
+	fields := strings.Join(utils.MapFn(pq.QuoteIdentifier, model.Trigger{}.AllowFields()), ", ")
+	tableName := fmt.Sprintf("call_center.%s", pq.QuoteIdentifier(model.Trigger{}.EntityName())) // TODO :: do not hardcode scheme
+	query := fmt.Sprintf(`select %s from %s WHERE "type" =:Type`, fields, tableName)
+	args := map[string]interface{}{
+		"Type": type_,
+	}
+
+	_, err := s.GetReplica().WithContext(ctx).Select(&triggers, query, args)
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_trigger.get_by_type.app_error", err.Error(), extractCodeFromErr(err))
+	}
+	return triggers, nil
 }
 
 func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, model.AppError) {

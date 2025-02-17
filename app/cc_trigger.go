@@ -12,7 +12,15 @@ func (a *App) TriggerCheckAccess(ctx context.Context, domainId int64, id int32, 
 }
 
 func (a *App) CreateTrigger(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError) {
-	return a.Store.Trigger().Create(ctx, domainId, trigger)
+	createdTrigger, err := a.Store.Trigger().Create(ctx, domainId, trigger)
+	if err != nil {
+		return nil, err
+	}
+
+	// notify about triggers were changed
+	a.TriggerCases.NotifyUpdateTrigger()
+
+	return createdTrigger, nil
 }
 
 func (a *App) GetTriggerList(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, bool, model.AppError) {
@@ -59,6 +67,9 @@ func (a *App) UpdateTrigger(ctx context.Context, domainId int64, trigger *model.
 		return nil, err
 	}
 
+	// notify about triggers were changed
+	a.TriggerCases.NotifyUpdateTrigger()
+
 	return oldTrigger, nil
 }
 
@@ -79,6 +90,9 @@ func (a *App) PatchTrigger(ctx context.Context, domainId int64, id int32, patch 
 		return nil, err
 	}
 
+	// notify about triggers were changed
+	a.TriggerCases.NotifyUpdateTrigger()
+
 	return oldTrigger, nil
 }
 
@@ -93,6 +107,9 @@ func (a *App) RemoveTrigger(ctx context.Context, domainId int64, id int32) (*mod
 	if err != nil {
 		return nil, err
 	}
+
+	// notify about triggers were changed
+	a.TriggerCases.NotifyUpdateTrigger()
 
 	return trigger, nil
 }
