@@ -166,8 +166,11 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			err := json.Unmarshal(msg.Body, message)
 			if err != nil {
 				ct.log.Error(fmt.Sprintf("Could not unmarshal message  %s: %s", msg.Body, err.Error()))
+				msg.Nack(false, false) // drop message
 				continue
 			}
+
+			// TODO if not found domain
 			for _, trigger := range triggers {
 				if trigger.DomainId != message.DomainId {
 					ct.log.Debug(fmt.Sprintf("Skipping trigger %d because domain ID does not match: %d, %dd", trigger.Id, message.DomainId, trigger.DomainId))
