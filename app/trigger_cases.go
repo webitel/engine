@@ -158,6 +158,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			close(stopChan)
 			return
 		case msg := <-messages:
+			ct.log.Debug(fmt.Sprintf("Received a message: %s", string(msg.Body)))
 			triggers := ct.loadTriggersByExpression()[expression]
 			if len(triggers) == 0 {
 				continue
@@ -166,7 +167,10 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			err := json.Unmarshal(msg.Body, message)
 			if err != nil {
 				ct.log.Error(fmt.Sprintf("Could not unmarshal message  %s: %s", msg.Body, err.Error()))
-				msg.Nack(false, false) // drop message
+				err = msg.Nack(false, false) // drop message
+				if err != nil {
+					ct.log.Error(fmt.Sprintf("Could not NACK message  %s: %s", msg.Body, err.Error()))
+				}
 				continue
 			}
 
@@ -258,42 +262,21 @@ func (ct *TriggerCaseMQ) initConnection() error {
 }
 
 func (ct *TriggerCaseMQ) initExchangeQueues() error {
-	// create exchanges
-	err := ct.channel.ExchangeDeclare(ct.config.Exchange, "direct", true, false, false, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not create exchange %s: %w", ct.config.Exchange, err)
-	}
-
+	var err error
 	// create queues
-	ct.createQueue, err = ct.channel.QueueDeclare(ct.config.CreateQueue, false, false, true, false, nil)
+	ct.createQueue, err = ct.channel.QueueDeclare(ct.config.CreateQueue, true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create Create queue %s: %w", ct.config.CreateQueue, err)
 	}
 
-	ct.updateQueue, err = ct.channel.QueueDeclare(ct.config.UpdateQueue, false, false, true, false, nil)
+	ct.updateQueue, err = ct.channel.QueueDeclare(ct.config.UpdateQueue, true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create Update queue %s: %w", ct.config.UpdateQueue, err)
 	}
 
-	ct.deleteQueue, err = ct.channel.QueueDeclare(ct.config.DeleteQueue, false, false, true, false, nil)
+	ct.deleteQueue, err = ct.channel.QueueDeclare(ct.config.DeleteQueue, true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not create Delete queue %s: %w", ct.config.CreateQueue, err)
-	}
-
-	//bind queues
-	err = ct.channel.QueueBind(ct.config.CreateQueue, "create_case_key", ct.config.Exchange, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not bind create create_queue: %w", err)
-	}
-
-	err = ct.channel.QueueBind(ct.config.UpdateQueue, "update_case_key", ct.config.Exchange, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not bind create update_queue: %w", err)
-	}
-
-	err = ct.channel.QueueBind(ct.config.DeleteQueue, "delete_case_key", ct.config.Exchange, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not bind delete create_queue: %w", err)
 	}
 	return nil
 }
