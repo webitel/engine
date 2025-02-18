@@ -112,9 +112,9 @@ type CaseTriggersSettings struct {
 	Enabled     bool   `json:"enabled" flag:"case_trigger_enabled|true|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
 	BrokerUrl   string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
 	Exchange    string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
-	CreateQueue string `json:"createQueue" flag:"case_triggers_create_queue|create_queue|Queue name for create cases" env:"CASE_TRIGGERS_CREATE_QUEUE"`
-	UpdateQueue string `json:"updateQueue" flag:"case_triggers_update_queue|update_queue|Queue name for update cases" env:"CASE_TRIGGERS_UPDATE_QUEUE"`
-	DeleteQueue string `json:"deleteQueue" flag:"case_triggers_delete_queue|delete_queue|Queue name for delete cases" env:"CASE_TRIGGERS_DELETE_QUEUE"`
+	CreateQueue string `json:"create_queue" flag:"case_triggers_create_queue|create_queue|Queue name for create cases" env:"CASE_TRIGGERS_CREATE_QUEUE"`
+	UpdateQueue string `json:"update_queue" flag:"case_triggers_update_queue|update_queue|Queue name for update cases" env:"CASE_TRIGGERS_UPDATE_QUEUE"`
+	DeleteQueue string `json:"delete_queue" flag:"case_triggers_delete_queue|delete_queue|Queue name for delete cases" env:"CASE_TRIGGERS_DELETE_QUEUE"`
 }
 
 func (c *Config) IsValid() AppError {
