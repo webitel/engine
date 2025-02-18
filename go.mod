@@ -12,8 +12,8 @@ require (
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240425073915-5e104cd55a71.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
 	buf.build/gen/go/webitel/logger/protocolbuffers/go v1.33.0-20240404135439-f6c7830c29dd.1
-	buf.build/gen/go/webitel/webitel-go/grpc/go v1.4.0-20240725111140-8ade8003e454.2
-	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.34.2-20240725111140-8ade8003e454.2
+	buf.build/gen/go/webitel/webitel-go/grpc/go v1.5.1-20250218105124-2ee3869e4b3a.2
+	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.36.5-20250218105124-2ee3869e4b3a.1
 	buf.build/gen/go/webitel/workflow/protocolbuffers/go v1.33.0-20240411132047-cd3c8f61d791.1
 	firebase.google.com/go/v4 v4.14.1
 	github.com/BoRuDar/configuration/v4 v4.5.0
@@ -54,7 +54,7 @@ require (
 )
 
 require (
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.5-20231027202514-3f42134f4c56.1 // indirect
+	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.5-20240502201324-7530ea77434f.1 // indirect
 	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20250204132723-b92fee1d7d12.2 // indirect
 	buf.build/gen/go/webitel/workflow/grpc/go v1.3.0-20240411120545-24ef43af6db3.2 // indirect
 	cloud.google.com/go v0.112.1 // indirect
