@@ -95,6 +95,9 @@ func (ct *TriggerCaseMQ) NotifyUpdateTrigger() {
 func (ct *TriggerCaseMQ) reloadTriggers() {
 	for {
 		select {
+		case <-ct.stopChan:
+			return
+
 		case _, ok := <-ct.reloadChan:
 			if !ok {
 				return
@@ -103,7 +106,6 @@ func (ct *TriggerCaseMQ) reloadTriggers() {
 			if err != nil {
 				ct.log.Error(fmt.Sprintf("Could not reload triggers: %s", err.Error()))
 			}
-		default:
 		}
 	}
 }
