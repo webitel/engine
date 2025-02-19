@@ -559,8 +559,7 @@ from (
       and (:Buckets::int8[] isnull or m.bucket_id = any (:Buckets::int8[]))
       and (:AgentIds::int4[] isnull or m.agent_id = any (:AgentIds::int4[]))
  ) x
-where m2.id = x.id
-returning m2.id`, map[string]interface{}{
+where m2.id = x.id`, map[string]interface{}{
 		"DomainId": domainId,
 		"Ids":      pq.Array(req.Ids),
 		"Buckets":  pq.Array(req.Buckets),
