@@ -23,6 +23,14 @@ func (api *quickReply) CreateQuickReply(ctx context.Context, in *engine.CreateQu
 		return nil, err
 	}
 
+	if in.Name == "" {
+		return nil, model.NewBadRequestError("grpc.quickReply.create.name", "field Name is required")
+	}
+
+	if in.Text == "" {
+		return nil, model.NewBadRequestError("grpc.quickReply.create.text", "field Text is required")
+	}
+
 	reply := &model.QuickReply{
 		Name:    in.Name,
 		Text:    in.Text,
@@ -31,12 +39,12 @@ func (api *quickReply) CreateQuickReply(ctx context.Context, in *engine.CreateQu
 		Queue:   GetLookup(in.Queue),
 	}
 
-	reply, err = api.ctrl.CreateQuickReply(ctx, session, reply)
+	replyq, err := api.ctrl.CreateQuickReply(ctx, session, reply)
 	if err != nil {
 		return nil, err
 	}
 
-	return toEngineQuickReply(reply), nil
+	return toEngineQuickReply(replyq), nil
 }
 
 func (api *quickReply) SearchQuickReplies(ctx context.Context, in *engine.SearchQuickRepliesRequest) (*engine.ListQuickReplies, error) {
