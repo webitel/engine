@@ -19,7 +19,8 @@ func NewSqlQuickReplyStore(sqlStore SqlStore) store.QuickReplyStore {
 }
 
 func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
-	err := s.GetMaster().WithContext(ctx).SelectOne(&reply, `with s as (
+	resp := &model.QuickReply{}
+	err := s.GetMaster().WithContext(ctx).SelectOne(&resp, `with s as (
     insert into call_center.cc_quick_reply (domain_id, created_at, updated_at, created_by, updated_by,
                                       name, text, article, team, queue)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
@@ -43,7 +44,7 @@ from s
 		"UpdatedBy": reply.UpdatedBy.GetSafeId(),
 		"Name":      reply.Name,
 		"Text":      reply.Text,
-		"Article":   reply.Article.GetSafeId(),
+		"Article":   reply.Article.Id,
 		"Team":      reply.Team.GetSafeId(),
 		"Queue":     reply.Queue.GetSafeId(),
 	})
@@ -51,8 +52,8 @@ from s
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.create.app_error", fmt.Sprintf("name=%v, %v", reply.Name, err.Error()), extractCodeFromErr(err))
 	}
-
-	return reply, nil
+	resp, err = s.Get(ctx, domainId, uint32(resp.Id))
+	return resp, nil
 }
 
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError) {
@@ -95,7 +96,7 @@ from call_center.cc_quick_reply q
 	left join directory.wbt_user u on u.id = q.updated_by
 	left join call_center.cc_team t on t.id = q.team
 	left join knowledge_base.article a on a.id = q.article
-	left join call_center.cc_queue cq on cq.id = q.team
+	left join call_center.cc_queue cq on cq.id = q.queue
 where q.id = :Id and q.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
