@@ -540,30 +540,27 @@ func (s SqlMemberStore) MultiDelete(ctx context.Context, domainId int64, search 
 }
 
 func (s SqlMemberStore) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError) {
-	cnt, err := s.GetMaster().WithContext(ctx).SelectInt(`with upd as (
-    update call_center.cc_member m2
+	res, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member m2
     set stop_cause = null,
         stop_at = null,
         attempts = 0,
-        communications = x.e
+        communications = (select jsonb_agg((xx - 'stop_at' - 'attempts')::jsonb) as e
+			from jsonb_array_elements(m2.communications) xx)
+from (
+    select m.id
     from call_center.cc_member m
-		left join lateral (
-			select jsonb_agg((x - 'stop_at' - 'attempts')::jsonb) as e
-			from jsonb_array_elements(m.communications) x
-		) x on true
     where m.domain_id = :DomainId
-		and m.id = m2.id
-        and m.queue_id = :QueueId
-        and (m.stop_at notnull and not m.stop_cause in ('success', 'cancel', 'terminate', 'no_communications') )
-        and (:Ids::int8[] isnull or m.id = any(:Ids::int8[]))
-        and (:Numbers::varchar[] isnull or m.search_destinations && :Numbers::varchar[])
-        and (:Variables::jsonb isnull or m.variables @> :Variables::jsonb)
-        and (:Buckets::int8[] isnull or m.bucket_id = any(:Buckets::int8[]))
-        and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
-returning m.id
-)
-select count(*) cnt
-from upd`, map[string]interface{}{
+      and m.queue_id = :QueueId
+      and (stop_at IS NOT NULL)
+      AND ((stop_cause)::text <> ALL ('{success,cancel,terminate,no_communications}'::text[]))
+      and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
+      and (:Numbers::varchar[] isnull or m.search_destinations && :Numbers::varchar[])
+      and (:Variables::jsonb isnull or m.variables @> :Variables::jsonb)
+      and (:Buckets::int8[] isnull or m.bucket_id = any (:Buckets::int8[]))
+      and (:AgentIds::int4[] isnull or m.agent_id = any (:AgentIds::int4[]))
+ ) x
+where m2.id = x.id
+returning m2.id`, map[string]interface{}{
 		"DomainId": domainId,
 		"Ids":      pq.Array(req.Ids),
 		"Buckets":  pq.Array(req.Buckets),
@@ -574,6 +571,11 @@ from upd`, map[string]interface{}{
 		"QueueId":   req.QueueId,
 	})
 
+	if err != nil {
+		return 0, model.NewCustomCodeError("store.sql_member.reset.app_error", fmt.Sprintf("QueueId=%v, %s", req.QueueId, err.Error()), extractCodeFromErr(err))
+	}
+	var cnt int64
+	cnt, err = res.RowsAffected()
 	if err != nil {
 		return 0, model.NewCustomCodeError("store.sql_member.reset.app_error", fmt.Sprintf("QueueId=%v, %s", req.QueueId, err.Error()), extractCodeFromErr(err))
 	}
