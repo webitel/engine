@@ -43,7 +43,6 @@ type API struct {
 
 	chatPlan       *chatPlanApi
 	trigger        *trigger
-	chatHelper     *chatHelper
 	auditForm      *auditForm
 	presetQuery    *presetQuery
 	systemSettings *systemSettings
@@ -90,7 +89,6 @@ func Init(a *app.App, server *grpc.Server) {
 	api.quickReply = NewQuickReply(api)
 	api.chatPlan = NewChatPlan(api)
 	api.trigger = newTriggerApi(api)
-	api.chatHelper = NewChatHelperApi(api)
 	api.auditForm = NewAuditFormApi(api)
 	api.presetQuery = NewPresetQueryApi(api)
 	api.systemSettings = NewSystemSettingsApi(api)
@@ -132,7 +130,6 @@ func Init(a *app.App, server *grpc.Server) {
 	gogrpc.RegisterRoutingChatPlanServiceServer(server, api.chatPlan)
 	gogrpc.RegisterTriggerServiceServer(server, api.trigger)
 
-	gogrpc.RegisterChatHelperServiceServer(server, api.chatHelper)
 	gogrpc.RegisterAuditFormServiceServer(server, api.auditForm)
 	gogrpc.RegisterPresetQueryServiceServer(server, api.presetQuery)
 	gogrpc.RegisterSystemSettingServiceServer(server, api.systemSettings)
