@@ -26,10 +26,6 @@ func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.CreateOutboundCall(ctx, session.DomainId, req, variables)
 }
 
-func (c *Controller) CreateCallNA(ctx context.Context, domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, model.AppError) {
-	return c.app.CreateOutboundCall(ctx, domainId, req, variables)
-}
-
 func (c *Controller) RedialCall(ctx context.Context, session *auth_manager.Session, callId string) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {

@@ -644,7 +644,7 @@ func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest)
 
 	}
 	var id string
-	id, err := api.ctrl.CreateCallNA(ctx, in.GetDomainId(), req, in.GetParams().GetVariables())
+	id, err := api.app.CreateOutboundCall(ctx, in.GetDomainId(), req, in.GetParams().GetVariables())
 	if err != nil {
 		return nil, err
 	}
