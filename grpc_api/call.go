@@ -547,7 +547,21 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 }
 
 func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest) (*engine.CreateCallResponse, error) {
+	if in.From == nil || in.From.Id == 0 {
+		return nil, model.NewBadRequestError("grpc_api.call.create_call_na.check_params.from.required", "from required")
+	}
+	from := &model.EndpointRequest{
+		UserId: model.NewInt64(in.From.Id),
+	}
+	if in.From.AppId != "" {
+		from.AppId = model.NewString(in.From.AppId)
+	}
+
+	if in.From.Extension != "" {
+		from.Extension = model.NewString(in.From.Extension)
+	}
 	var req = &model.OutboundCallRequest{
+		From:        from,
 		Destination: in.GetDestination(),
 		Params: model.CallParameters{
 			Timeout:           int(in.GetParams().GetTimeout()),
@@ -563,6 +577,8 @@ func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest)
 			IsOnline:          in.GetParams().GetIsOnline(),
 			HideNumber:        in.GetParams().GetHideNumber(),
 		},
+		CreatedAt:   model.GetMillis(),
+		CreatedById: in.From.Id,
 	}
 
 	if in.To != nil {
@@ -576,12 +592,6 @@ func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest)
 		}
 
 	}
-
-	if req.From == nil || req.From.UserId == nil {
-		return nil, model.NewBadRequestError("grpc_api.call.create_call_na.check_params.from.required", "from required")
-	}
-	req.CreatedAt = model.GetMillis()
-	req.CreatedById = *req.From.UserId
 	var id string
 	id, err := api.ctrl.CreateCallNA(ctx, in.GetDomainId(), req, in.GetParams().GetVariables())
 	if err != nil {
