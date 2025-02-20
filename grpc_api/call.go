@@ -597,6 +597,63 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}, nil
 }
 
+func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest) (*engine.CreateCallResponse, error) {
+	if in.From == nil || in.From.Id == 0 {
+		return nil, model.NewBadRequestError("grpc_api.call.create_call_na.check_params.from.required", "from required")
+	}
+	from := &model.EndpointRequest{
+		UserId: model.NewInt64(in.From.Id),
+	}
+	if in.From.AppId != "" {
+		from.AppId = model.NewString(in.From.AppId)
+	}
+
+	if in.From.Extension != "" {
+		from.Extension = model.NewString(in.From.Extension)
+	}
+	var req = &model.OutboundCallRequest{
+		From:        from,
+		Destination: in.GetDestination(),
+		Params: model.CallParameters{
+			Timeout:           int(in.GetParams().GetTimeout()),
+			Audio:             in.GetParams().GetAudio(),
+			Video:             in.GetParams().GetVideo(),
+			Screen:            in.GetParams().GetScreen(),
+			Record:            in.GetParams().GetRecord(),
+			Variables:         in.GetParams().GetVariables(),
+			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
+			Display:           in.GetParams().GetDisplay(),
+			DisableStun:       in.GetParams().GetDisableStun(),
+			CancelDistribute:  in.GetParams().GetCancelDistribute(),
+			IsOnline:          in.GetParams().GetIsOnline(),
+			HideNumber:        in.GetParams().GetHideNumber(),
+		},
+		CreatedAt:   model.GetMillis(),
+		CreatedById: in.From.Id,
+	}
+
+	if in.To != nil {
+		req.To = &model.EndpointRequest{}
+		if in.To.AppId != "" {
+			req.To.AppId = model.NewString(in.To.AppId)
+		}
+
+		if in.To.Id != 0 {
+			req.To.UserId = model.NewInt64(in.To.Id)
+		}
+
+	}
+	var id string
+	id, err := api.app.CreateOutboundCall(ctx, in.GetDomainId(), req, in.GetParams().GetVariables())
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.CreateCallResponse{
+		Id: id,
+	}, nil
+}
+
 func (api *call) HangupCall(ctx context.Context, in *engine.HangupCallRequest) (*engine.HangupCallResponse, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
