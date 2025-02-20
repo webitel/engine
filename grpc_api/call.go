@@ -546,6 +546,53 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 	}, nil
 }
 
+func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest) (*engine.CreateCallResponse, error) {
+	var req = &model.OutboundCallRequest{
+		Destination: in.GetDestination(),
+		Params: model.CallParameters{
+			Timeout:           int(in.GetParams().GetTimeout()),
+			Audio:             in.GetParams().GetAudio(),
+			Video:             in.GetParams().GetVideo(),
+			Screen:            in.GetParams().GetScreen(),
+			Record:            in.GetParams().GetRecord(),
+			Variables:         in.GetParams().GetVariables(),
+			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
+			Display:           in.GetParams().GetDisplay(),
+			DisableStun:       in.GetParams().GetDisableStun(),
+			CancelDistribute:  in.GetParams().GetCancelDistribute(),
+			IsOnline:          in.GetParams().GetIsOnline(),
+			HideNumber:        in.GetParams().GetHideNumber(),
+		},
+	}
+
+	if in.To != nil {
+		req.To = &model.EndpointRequest{}
+		if in.To.AppId != "" {
+			req.To.AppId = model.NewString(in.To.AppId)
+		}
+
+		if in.To.Id != 0 {
+			req.To.UserId = model.NewInt64(in.To.Id)
+		}
+
+	}
+
+	if req.From == nil || req.From.UserId == nil {
+		return nil, model.NewBadRequestError("grpc_api.call.create_call_na.check_params.from.required", "from required")
+	}
+	req.CreatedAt = model.GetMillis()
+	req.CreatedById = *req.From.UserId
+	var id string
+	id, err := api.ctrl.CreateCallNA(ctx, in.GetDomainId(), req, in.GetParams().GetVariables())
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.CreateCallResponse{
+		Id: id,
+	}, nil
+}
+
 func (api *call) HangupCall(ctx context.Context, in *engine.HangupCallRequest) (*engine.HangupCallResponse, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
