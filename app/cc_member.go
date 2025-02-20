@@ -259,8 +259,8 @@ func (app *App) ProcessingActionForm(domainId, attemptId int64, appId string, fo
 	return nil
 }
 
-func (app *App) ProcessingSaveForm(domainId, attemptId int64, fields map[string]string) model.AppError {
-	err := app.cc.Member().SaveFormFields(domainId, attemptId, fields)
+func (app *App) ProcessingSaveForm(domainId, attemptId int64, fields map[string]string, form []byte) model.AppError {
+	err := app.cc.Member().SaveFormFields(domainId, attemptId, fields, form)
 
 	if err != nil {
 		return model.NewBadRequestError("app.cc_member.form_save.app_err", err.Error())

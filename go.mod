@@ -3,7 +3,7 @@ module github.com/webitel/engine
 go 1.22.5
 
 require (
-	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.4-20250204132723-b92fee1d7d12.1
+	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.5-20250220080817-337dbf2ba82b.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.5.1-20250205144922-f80b8cb6a2bd.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.36.4-20250205144922-f80b8cb6a2bd.1
 	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250130131313-1f628ed6696e.2
@@ -36,8 +36,8 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/tevino/abool v1.2.0
-	github.com/webitel/call_center v0.0.0-20250205144033-a355df2560de
-	github.com/webitel/flow_manager v0.0.0-20250211160527-e52c95bed7ff
+	github.com/webitel/call_center v0.0.0-20250220082307-bc120c121b1b
+	github.com/webitel/flow_manager v0.0.0-20250220081756-b0aa37f80489
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20240909100805-822697e17a45
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
@@ -54,8 +54,8 @@ require (
 )
 
 require (
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.5-20240502201324-7530ea77434f.1 // indirect
-	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20250204132723-b92fee1d7d12.2 // indirect
+	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.5-20240617172850-a48fcebcf8f1.1 // indirect
+	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20250220080817-337dbf2ba82b.2 // indirect
 	buf.build/gen/go/webitel/workflow/grpc/go v1.3.0-20240411120545-24ef43af6db3.2 // indirect
 	cloud.google.com/go v0.112.1 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
@@ -99,10 +99,12 @@ require (
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/olebedev/emitter v0.0.0-20190110104742-e8d1457e6aee // indirect
 	github.com/onsi/gomega v1.26.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/poy/onpar v1.1.2 // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
+	github.com/streadway/amqp v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.opencensus.io v0.24.0 // indirect

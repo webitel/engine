@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -87,6 +88,7 @@ func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn
 	var attemptId float64
 	var ok bool
 	var fields map[string]interface{}
+	var form []byte
 
 	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
@@ -98,8 +100,11 @@ func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn
 	}
 
 	fields, _ = req.Data["fields"].(map[string]interface{})
+	if v, ok := req.Data["form"]; ok {
+		form, _ = json.Marshal(v)
+	}
 
-	if err := api.ctrl.ProcessingSaveForm(conn.GetSession(), int64(attemptId), model.MapInterfaceToString(fields)); err != nil {
+	if err := api.ctrl.ProcessingSaveForm(conn.GetSession(), int64(attemptId), model.MapInterfaceToString(fields), form); err != nil {
 		return nil, err
 	}
 
