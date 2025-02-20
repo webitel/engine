@@ -36,7 +36,6 @@ type Chat interface {
 	BlindTransfer(ctx context.Context, conversationId, channelId string, schemaId int64, vars map[string]string) error
 	BlindTransferToUser(ctx context.Context, conversationId, channelId string, userId int64, vars map[string]string) error
 	SetVariables(channelId string, vars map[string]string) error
-	BroadcastMessage(ctx context.Context, message *proto.Message, profileId int64, peer []string) error
 	SetContact(ctx context.Context, channelId string, conversationId string, contactId int64) error
 }
 
@@ -45,7 +44,6 @@ type chatConnection struct {
 	host    string
 	client  *grpc.ClientConn
 	api     gogrpc.ChatServiceClient
-	mess    gogrpc.MessagesClient
 	contact messgrpc.ContactLinkingServiceClient
 }
 
@@ -63,7 +61,6 @@ func NewChatServiceConnection(name, url string) (Chat, error) {
 	}
 
 	connection.api = gogrpc.NewChatServiceClient(connection.client)
-	connection.mess = gogrpc.NewMessagesClient(connection.client)
 	connection.contact = messgrpc.NewContactLinkingServiceClient(connection.client)
 
 	return connection, nil

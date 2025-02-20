@@ -33,7 +33,7 @@ type LogSettings struct {
 	Json    bool   `json:"json" flag:"log_json|false|Log format JSON" env:"LOG_JSON"`
 	Otel    bool   `json:"otel" flag:"log_otel|false|Log OTEL" env:"LOG_OTEL"`
 	File    string `json:"file" flag:"log_file||Log file directory" env:"LOG_FILE"`
-	Console bool   `json:"console" flag:"log_console||Log console" env:"LOG_CONSOLE"`
+	Console bool   `json:"console" flag:"log_console|false|Log console" env:"LOG_CONSOLE"`
 }
 
 type Config struct {
@@ -61,12 +61,14 @@ type Config struct {
 	PublicHostName          *string                  `json:"public_host" flag:"public_host||Public hostname" env:"PUBLIC_HOST"`
 	B2BSettings             B2BSettings
 	Push                    PushConfig
-	Log                     LogSettings `json:"log"`
+	Log                     LogSettings          `json:"log"`
+	CaseTriggersSettings    CaseTriggersSettings `json:"case_triggers_settings"`
 }
 
 type PushConfig struct {
 	FirebaseServiceAccount string `json:"push_firebase" flag:"push_firebase||Firebase service account file location" env:"PUSH_FIREBASE"`
 
+	ApnHost     string `json:"push_apn_host" flag:"push_apn_host||APN http host" env:"PUSH_APN_HOST"`
 	ApnCertFile string `json:"push_apn_cert_file" flag:"push_apn_cert_file||APN certificate file location" env:"PUSH_APN_CERT_FILE"`
 	ApnKeyFile  string `json:"push_apn_key_file" flag:"push_apn_key_file||APN key file location" env:"PUSH_APN_KEY_FILE"`
 	ApnTopic    string `json:"push_apn_topic" flag:"push_apn_topic|com.webitel.webitel-ios.voip|APN topic" env:"PUSH_APN_TOPIC"`
@@ -104,6 +106,15 @@ type SqlSettings struct {
 	Trace                       bool     `json:"trace" flag:"sql_trace|false|Trace SQL" env:"SQL_TRACE"`
 	Log                         bool     `json:"log" flag:"sql_log|false|Log SQL" env:"SQL_LOG"`
 	QueryTimeout                *int     `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds" env:"QUERY_TIMEOUT"`
+}
+
+type CaseTriggersSettings struct {
+	Enabled     bool   `json:"enabled" flag:"case_trigger_enabled|true|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
+	BrokerUrl   string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
+	Exchange    string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
+	CreateQueue string `json:"create_queue" flag:"case_triggers_create_queue|create_queue|Queue name for create cases" env:"CASE_TRIGGERS_CREATE_QUEUE"`
+	UpdateQueue string `json:"update_queue" flag:"case_triggers_update_queue|update_queue|Queue name for update cases" env:"CASE_TRIGGERS_UPDATE_QUEUE"`
+	DeleteQueue string `json:"delete_queue" flag:"case_triggers_delete_queue|delete_queue|Queue name for delete cases" env:"CASE_TRIGGERS_DELETE_QUEUE"`
 }
 
 func (c *Config) IsValid() AppError {

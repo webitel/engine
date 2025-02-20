@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -14,6 +15,7 @@ func (api *API) InitMember() {
 	api.Router.Handle("cc_reporting", api.ApiWebSocketHandler(api.reporting))
 	api.Router.Handle("cc_renewal", api.ApiWebSocketHandler(api.renewalAttempt))
 	api.Router.Handle("cc_form_action", api.ApiWebSocketHandler(api.processingActionFormAttempt))
+	api.Router.Handle("cc_form_save", api.ApiWebSocketHandler(api.processingSaveFormAttempt))
 	api.Router.Handle("cc_intercept_attempt", api.ApiWebSocketHandler(api.interceptAttempt))
 }
 
@@ -82,6 +84,34 @@ func (api *API) processingActionFormAttempt(ctx context.Context, conn *app.WebCo
 	return res, nil
 }
 
+func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var attemptId float64
+	var ok bool
+	var fields map[string]interface{}
+	var form []byte
+
+	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
+	}
+
+	// TODO app_id for node
+	if _, ok = req.Data["app_id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
+	}
+
+	fields, _ = req.Data["fields"].(map[string]interface{})
+	if v, ok := req.Data["form"]; ok {
+		form, _ = json.Marshal(v)
+	}
+
+	if err := api.ctrl.ProcessingSaveForm(conn.GetSession(), int64(attemptId), model.MapInterfaceToString(fields), form); err != nil {
+		return nil, err
+	}
+
+	res := make(map[string]interface{})
+	return res, nil
+}
+
 func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var attemptId, agentId float64
 	var ok bool
@@ -89,7 +119,7 @@ func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.Web
 	var expire *int64
 	var waitBetweenRetries *int32
 	var status string
-	var exclDes bool
+	var exclDes, onlyComm bool
 
 	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
@@ -119,11 +149,12 @@ func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.Web
 	}
 
 	exclDes, _ = req.Data["exclude_current_communication"].(bool)
+	onlyComm, _ = req.Data["only_current_communication"].(bool)
 
 	agentId, _ = req.Data["agent_id"].(float64)
 
 	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire,
-		nil, display, int32(agentId), exclDes, waitBetweenRetries)
+		nil, display, int32(agentId), exclDes, waitBetweenRetries, onlyComm)
 	if err != nil {
 		return nil, err
 	}

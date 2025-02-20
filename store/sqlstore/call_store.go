@@ -1125,7 +1125,8 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 
 func (s SqlCallStore) BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, model.AppError) {
 	var res *model.BridgeCall
-	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, c.app_id
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, 
+       c.app_id, c.contact_id
 from call_center.cc_calls c,
      call_center.cc_calls c2
 where c.id = :FromId::uuid and c2.id = :ToId::uuid and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
@@ -1169,6 +1170,21 @@ where id = :Id::uuid`, map[string]string{
 
 	if err != nil {
 		return "", model.NewCustomCodeError("store.sql_call.get_bridge_id.app_error", err.Error(), extractCodeFromErr(err))
+	} else {
+		return res, nil
+	}
+}
+
+func (s SqlCallStore) BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError) {
+	var res *model.BlindTransferInfo
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id, c.contact_id
+from call_center.cc_calls c
+where id = :Id::uuid`, map[string]string{
+		"Id": id,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.blind_transfer.app_error", err.Error(), extractCodeFromErr(err))
 	} else {
 		return res, nil
 	}
@@ -1231,13 +1247,14 @@ where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'br
 	return res, nil
 }
 
-func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (int64, time.Time, model.AppError) {
-	var userId int64
+func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (*int64, time.Time, model.AppError) {
+	var userId *int64
 	var createdAt time.Time
 
 	row := s.GetReplica().WithContext(ctx).QueryRow(`select coalesce(c.user_id, p.user_id) as rate_user,
-       case when c.user_id notnull then c.created_at else p.created_at end as created_at
+       case when c.user_id notnull or q.type = 2  then c.created_at else p.created_at end as created_at
 from call_center.cc_calls_history c
+    left join call_center.cc_queue q on q.id = c.queue_id
     left join call_center.cc_calls_history p on p.id = c.bridged_id
 where c.id = $1::uuid`, id)
 

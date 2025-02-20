@@ -46,5 +46,14 @@ func loadConfig() (*model.Config, error) {
 		}
 	}
 
+	if !config.Log.Console && !config.Log.Otel && len(config.Log.File) == 0 {
+		config.Log.Console = true
+	}
+
+	// CaseTriggersSettings  : trying to use default AMQP url if config option is empty
+	if config.CaseTriggersSettings.BrokerUrl == "" {
+		config.CaseTriggersSettings.BrokerUrl = config.MessageQueueSettings.Url
+	}
+
 	return &config, nil
 }

@@ -109,6 +109,7 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 
 		md, sess, err = app.getSessionFromCtx(ctx)
 		if err != nil {
+			app.Log.Error(err.Error(), wlog.Err(err))
 			sess = &auth_manager.Session{}
 		}
 

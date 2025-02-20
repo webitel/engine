@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/XSAM/otelsql"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"os"
 	"sync/atomic"
 	"time"
+
+	"github.com/XSAM/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	"github.com/webitel/engine/localization"
 
@@ -65,6 +66,7 @@ type SqlSupplierOldStores struct {
 	region                  store.RegionStore
 	pauseCause              store.PauseCauseStore
 	notification            store.NotificationStore
+	quickReply              store.QuickReplyStore
 	trigger                 store.TriggerStore
 	auditForm               store.AuditFormStore
 	auditRate               store.AuditRateStore
@@ -127,6 +129,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.region = NewSqlRegionStore(supplier)
 	supplier.oldStores.pauseCause = NewSqlPauseCauseStore(supplier)
 	supplier.oldStores.notification = NewSqlNotificationStore(supplier)
+	supplier.oldStores.quickReply = NewSqlQuickReplyStore(supplier)
 	supplier.oldStores.trigger = NewSqlTriggerStore(supplier)
 	supplier.oldStores.auditForm = NewSqlAuditFormStore(supplier)
 	supplier.oldStores.auditRate = NewSqlAuditRateStore(supplier)
@@ -400,6 +403,10 @@ func (ss *SqlSupplier) PauseCause() store.PauseCauseStore {
 
 func (ss *SqlSupplier) Notification() store.NotificationStore {
 	return ss.oldStores.notification
+}
+
+func (ss *SqlSupplier) QuickReply() store.QuickReplyStore {
+	return ss.oldStores.quickReply
 }
 
 func (ss *SqlSupplier) Trigger() store.TriggerStore {

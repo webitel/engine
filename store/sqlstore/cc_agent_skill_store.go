@@ -94,7 +94,7 @@ func (s SqlAgentSkillStore) BulkCreate(ctx context.Context, domainId, agentId in
 
 		_, err = tx.Select(&result, `with i as (
 			insert into call_center.cc_skill_in_agent (skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled)
-			select skill_id, agent_id, capacity, created_at, created_by, updated_at, updated_by, enabled
+			select t.skill_id, t.agent_id, t.capacity, t.created_at, t.created_by, t.updated_at, t.updated_by, t.enabled
 			from cc_skill_in_agent_tmp t
 				inner join call_center.cc_skill s on s.id = t.skill_id
 			where s.domain_id = :DomainId

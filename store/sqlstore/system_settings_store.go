@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/lib/pq"
@@ -17,7 +18,8 @@ var (
 	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
 		model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
 		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
-		model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact,
+		model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,
+		model.SysNameIsFulltextSearchEnabled,
 	}
 )
 
@@ -134,7 +136,7 @@ where domain_id = :DomainId::int8 and name = :Name::varchar`, map[string]interfa
 		"Name":     name,
 	})
 
-	if err != nil {
+	if err != nil && err != sql.ErrNoRows {
 		return nil, model.NewCustomCodeError("store.sql_sys_settings.value.app_error", fmt.Sprintf("Name=%v, %s", name, err.Error()), extractCodeFromErr(err))
 	}
 

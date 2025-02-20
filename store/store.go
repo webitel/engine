@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
+	"time"
+
 	"github.com/Masterminds/squirrel"
 	"golang.org/x/oauth2"
-	"time"
 
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
@@ -64,6 +65,7 @@ type Store interface {
 
 	PauseCause() PauseCauseStore
 	Notification() NotificationStore
+	QuickReply() QuickReplyStore
 
 	ChatPlan() ChatPlanStore
 	Trigger() TriggerStore
@@ -79,7 +81,7 @@ type Store interface {
 
 // todo deprecated
 type ChatStore interface {
-	OpenedConversations(ctx context.Context, domainId, userId int64) ([]*model.Conversation, model.AppError)
+	OpenedConversations(ctx context.Context, domainId, userId int64, hasContact bool) ([]*model.Conversation, model.AppError)
 	ValidDomain(ctx context.Context, domainId int64, profileId int64) model.AppError
 }
 
@@ -377,6 +379,7 @@ type CallStore interface {
 	SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError)
 	SetVariables(ctx context.Context, domainId int64, id string, vars model.StringMap) (*model.CallDomain, model.AppError)
 	GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
+	BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError)
 
 	CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError)
 	GetAnnotation(ctx context.Context, id int64) (*model.CallAnnotation, model.AppError)
@@ -384,7 +387,7 @@ type CallStore interface {
 	DeleteAnnotation(ctx context.Context, id int64) model.AppError
 	GetEavesdropInfo(ctx context.Context, domainId int64, id string) (*model.EavesdropInfo, model.AppError)
 
-	GetOwnerUserCall(ctx context.Context, id string) (int64, time.Time, model.AppError)
+	GetOwnerUserCall(ctx context.Context, id string) (*int64, time.Time, model.AppError)
 	UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError
 	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError
 
@@ -427,6 +430,14 @@ type NotificationStore interface {
 	Accept(ctx context.Context, id, userId int64) (*model.Notification, model.AppError)
 }
 
+type QuickReplyStore interface {
+	Create(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError)
+	Get(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError)
+	Update(ctx context.Context, domainId int64, region *model.QuickReply) (*model.QuickReply, model.AppError)
+	Delete(ctx context.Context, domainId int64, id uint32) model.AppError
+}
+
 type ChatPlanStore interface {
 	Create(ctx context.Context, domainId int64, plan *model.ChatPlan) (*model.ChatPlan, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchChatPlan) ([]*model.ChatPlan, model.AppError)
@@ -439,6 +450,7 @@ type ChatPlanStore interface {
 type TriggerStore interface {
 	CheckAccess(ctx context.Context, domainId int64, id int32, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Create(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError)
+	GetAllByType(ctx context.Context, type_ string) ([]*model.TriggerWithDomainID, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchTrigger) ([]*model.Trigger, model.AppError)
 	GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchTrigger) ([]*model.Trigger, model.AppError)
 	Get(ctx context.Context, domainId int64, id int32) (*model.Trigger, model.AppError)

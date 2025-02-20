@@ -18,7 +18,7 @@ func NewSqlChatStore(sqlStore SqlStore) store.ChatStore {
 }
 
 // todo deprecated
-func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId int64) ([]*model.Conversation, model.AppError) {
+func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId int64, hasContact bool) ([]*model.Conversation, model.AppError) {
 	var res []*model.Conversation
 	_, err := s.GetMaster().WithContext(ctx).Select(&res, `
 select c.id,
@@ -112,7 +112,7 @@ from (select 1                    pri,
             where not ch.internal and ch.conversation_id = c.id  and i.protocol = ch.type
             order by c.created_at desc
             limit 1
-        ) cont on true
+        ) cont on :HasContact::bool
          left join lateral (
     select a.id                                                       as attempt_id,
            a.channel,
@@ -135,8 +135,9 @@ from (select 1                    pri,
     where a.agent_call_id = ch.id::varchar
     ) at on true
 order by ch.pri, ch.updated_at desc`, map[string]interface{}{
-		"UserId":   userId,
-		"DomainId": domainId,
+		"UserId":     userId,
+		"DomainId":   domainId,
+		"HasContact": hasContact,
 	})
 
 	if err != nil {

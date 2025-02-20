@@ -1,9 +1,13 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 const (
 	TriggerTypeCron = "cron"
+	TriggerTypeCase = "case"
 )
 
 type Trigger struct {
@@ -23,6 +27,11 @@ type Trigger struct {
 	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
 	CreatedBy *Lookup    `json:"created_by" db:"created_by"`
 	UpdatedBy *Lookup    `json:"updated_by" db:"updated_by"`
+}
+
+type TriggerWithDomainID struct {
+	Trigger
+	DomainId int64 `json:"domain_id" db:"domain_id"`
 }
 
 type TriggerJob struct {
@@ -68,8 +77,10 @@ func (t Trigger) EntityName() string {
 }
 
 func (t *Trigger) IsValid() AppError {
-	if t.Type != TriggerTypeCron {
-		//error
+	switch t.Type {
+	case TriggerTypeCron, TriggerTypeCase:
+	default:
+		return newAppError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
 	}
 	return nil
 }

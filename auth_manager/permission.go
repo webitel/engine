@@ -19,12 +19,13 @@ const (
 )
 
 const (
-	PERMISSION_VIEW_NUMBERS = "view_cdr_phone_numbers"
-	PERMISSION_RECORD_FILE  = "playback_record_file"
+	PermissionViewNumbers = "view_cdr_phone_numbers"
+	PermissionRecordFile  = "playback_record_file"
 
-	PermissionAuditRate       = "audit_rate"
-	PermissionSystemSetting   = "system_setting"
-	PermissionSchemeVariables = "scheme_variables"
+	PermissionAuditRate             = "audit_rate"
+	PermissionSystemSetting         = "system_setting"
+	PermissionSchemeVariables       = "scheme_variables"
+	PermissionTimeLimitedRecordFile = "time_limited_record_file"
 )
 
 func (p PermissionAccess) Value() uint32 {

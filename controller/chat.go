@@ -88,7 +88,8 @@ func (c *Controller) ListActiveChat(ctx context.Context, session *auth_manager.S
 		return nil, noChatAccessError
 	}
 
-	return c.app.ListActiveChat(ctx, session.Token, session.DomainId, session.UserId, page, size)
+	permission := session.GetPermission(model.PermissionContacts)
+	return c.app.ListActiveChat(ctx, session.Token, session.DomainId, session.UserId, page, size, permission.CanRead())
 }
 
 func (c *Controller) BlindTransferChat(ctx context.Context, session *auth_manager.Session, conversationId, channelId string, planId int32, vars map[string]string) model.AppError {
@@ -106,14 +107,6 @@ func (c *Controller) BlindTransferChatToUser(session *auth_manager.Session, conv
 	}
 
 	return c.app.BlindTransferChatToUser(session.DomainId, conversationId, channelId, userId, vars)
-}
-
-func (c *Controller) BroadcastChatBot(session *auth_manager.Session, profileId int64, peer []string, text string) model.AppError {
-	if !session.HasCallCenterLicense() {
-		return noChatAccessError
-	}
-
-	return c.app.BroadcastChatBot(context.TODO(), session.Domain(0), profileId, peer, text)
 }
 
 // todo check userId in domain

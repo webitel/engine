@@ -264,21 +264,7 @@ func (cc *chatConnection) BlindTransferToUser(ctx context.Context, conversationI
 }
 
 func (cc *chatConnection) BroadcastMessage(ctx context.Context, message *proto.Message, profileId int64, peer []string) error {
-	res, err := cc.mess.BroadcastMessage(ctx, &proto.BroadcastMessageRequest{
-		Message: message,
-		From:    profileId,
-		Peer:    peer,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	if len(res.Failure) > 0 {
-		return errors.New(res.Failure[0].String())
-	}
-
-	return nil
+	return errors.New("deprecated")
 }
 
 func (cc *chatConnection) SetContact(ctx context.Context, channelId string, conversationId string, contactId int64) error {

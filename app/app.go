@@ -18,6 +18,7 @@ import (
 	"github.com/webitel/engine/presign"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
+	flow "github.com/webitel/flow_manager/client"
 	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
 	"github.com/webitel/wlog"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -53,6 +54,7 @@ type App struct {
 	sessionManager   auth_manager.AuthManager
 	callManager      call_manager.CallManager
 	chatManager      chat_manager.ChatManager
+	flowManager      flow.FlowManager
 	cc               client.CCManager
 	cipher           presign.PreSign
 	audit            *logger.Audit
@@ -60,6 +62,7 @@ type App struct {
 	ctx              context.Context
 	tracer           *Tracer
 	otelShutdownFunc otelsdk.ShutdownFunc
+	TriggerCases     TriggerCase
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -196,6 +199,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
+	app.flowManager = flow.NewFlowManager(app.cluster.discovery)
+	if err := app.flowManager.Start(); err != nil {
+		return nil, err
+	}
+
 	app.cc = client.NewCCManager(app.cluster.discovery)
 	if err := app.cc.Start(); err != nil {
 		return nil, err
@@ -211,6 +219,14 @@ func New(options ...string) (outApp *App, outErr error) {
 			SipProxy: config.SipSettings.Proxy,
 		})
 
+	}
+
+	// start triggers for cases
+	if app.config.CaseTriggersSettings.Enabled {
+		app.TriggerCases = NewTriggerCases(app.Log, app.Store, app.flowManager, &app.config.CaseTriggersSettings)
+		if err := app.TriggerCases.Start(); err != nil {
+			return nil, fmt.Errorf("unable to start cases trigger: %w", err)
+		}
 	}
 
 	return app, outErr
@@ -235,8 +251,17 @@ func (app *App) Shutdown() {
 		app.chatManager.Stop()
 	}
 
+	if app.flowManager != nil {
+		app.flowManager.Stop()
+	}
+
 	if app.otelShutdownFunc != nil {
 		app.otelShutdownFunc(app.ctx)
+	}
+
+	// shutdown Cases Triggers
+	if app.TriggerCases != nil {
+		app.TriggerCases.Stop()
 	}
 
 	app.cluster.Stop()

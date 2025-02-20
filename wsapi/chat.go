@@ -275,7 +275,8 @@ func (api *API) blindTransfer(ctx context.Context, conn *app.WebConn, req *model
 		return nil, NewInvalidWebSocketParamError(req.Action, "plan_id")
 	}
 
-	return nil, api.ctrl.BlindTransferChat(ctx, conn.GetSession(), conversationId, channelId, int32(planId), nil)
+	return nil, api.ctrl.BlindTransferChat(ctx, conn.GetSession(), conversationId, channelId, int32(planId),
+		variablesFromMap(req.Data, "variables"))
 }
 
 func (api *API) blindTransferToUser(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -293,7 +294,8 @@ func (api *API) blindTransferToUser(ctx context.Context, conn *app.WebConn, req 
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_id")
 	}
 
-	return nil, api.ctrl.BlindTransferChatToUser(conn.GetSession(), conversationId, channelId, int64(userId), nil)
+	return nil, api.ctrl.BlindTransferChatToUser(conn.GetSession(), conversationId, channelId, int64(userId),
+		variablesFromMap(req.Data, "variables"))
 }
 
 func listChatResponse(list []*model.Conversation) map[string]interface{} {

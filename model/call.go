@@ -107,9 +107,15 @@ type BlindTransferCall struct {
 }
 
 type BridgeCall struct {
-	FromId string `json:"from_id" db:"from_id"`
-	ToId   string `json:"to_id" db:"to_id"`
-	AppId  string `json:"app_id" db:"app_id"`
+	FromId    string `json:"from_id" db:"from_id"`
+	ToId      string `json:"to_id" db:"to_id"`
+	ContactId *int64 `json:"contact_id" db:"contact_id"`
+	AppId     string `json:"app_id" db:"app_id"`
+}
+
+type BlindTransferInfo struct {
+	Id        string `json:"id" db:"id"`
+	ContactId *int64 `json:"contact_id" db:"contact_id"`
 }
 
 const (
