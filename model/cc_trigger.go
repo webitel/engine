@@ -65,7 +65,7 @@ func (t Trigger) DefaultOrder() string {
 
 func (t Trigger) AllowFields() []string {
 	return []string{"id", "name", "enabled", "type", "schema", "variables", "description", "expression",
-		"timezone", "timeout", "created_at", "updated_at", "created_by", "updated_by"}
+		"timezone", "timeout", "created_at", "updated_at", "created_by", "updated_by", "domain_id"}
 }
 
 func (t Trigger) DefaultFields() []string {
