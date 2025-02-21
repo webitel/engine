@@ -131,17 +131,17 @@ func (ct *TriggerCaseMQ) Stop() {
 }
 
 func (ct *TriggerCaseMQ) listen() error {
-	createMessages, err := ct.channel.Consume(ct.createQueue.Name, "", false, false, false, false, nil)
+	createMessages, err := ct.channel.Consume(ct.createQueue.Name, "", true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.createQueue.Name, err)
 	}
 
-	updateMessages, err := ct.channel.Consume(ct.updateQueue.Name, "", false, false, false, false, nil)
+	updateMessages, err := ct.channel.Consume(ct.updateQueue.Name, "", true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.updateQueue.Name, err)
 	}
 
-	deleteMessages, err := ct.channel.Consume(ct.deleteQueue.Name, "", false, false, false, false, nil)
+	deleteMessages, err := ct.channel.Consume(ct.deleteQueue.Name, "", true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.deleteQueue.Name, err)
 	}
@@ -174,7 +174,6 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 				continue
 			}
 
-			// TODO if not found domain
 			for _, trigger := range triggers {
 				if trigger.DomainId != message.DomainId {
 					ct.log.Debug(fmt.Sprintf("Skipping trigger %d because domain ID does not match: %d, %dd", trigger.Id, message.DomainId, trigger.DomainId))
@@ -197,10 +196,6 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 					continue
 				}
 				ct.log.Info(fmt.Sprintf("Started flow with id %s", id))
-				err = msg.Ack(false)
-				if err != nil {
-					ct.log.Error(fmt.Sprintf("Could not ack message: %s", err.Error()))
-				}
 			}
 		}
 	}
