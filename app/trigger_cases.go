@@ -131,17 +131,17 @@ func (ct *TriggerCaseMQ) Stop() {
 }
 
 func (ct *TriggerCaseMQ) listen() error {
-	createMessages, err := ct.channel.Consume(ct.createQueue.Name, "", true, false, false, false, nil)
+	createMessages, err := ct.channel.Consume(ct.createQueue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.createQueue.Name, err)
 	}
 
-	updateMessages, err := ct.channel.Consume(ct.updateQueue.Name, "", true, false, false, false, nil)
+	updateMessages, err := ct.channel.Consume(ct.updateQueue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.updateQueue.Name, err)
 	}
 
-	deleteMessages, err := ct.channel.Consume(ct.deleteQueue.Name, "", true, false, false, false, nil)
+	deleteMessages, err := ct.channel.Consume(ct.deleteQueue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.deleteQueue.Name, err)
 	}
@@ -159,12 +159,18 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			return
 		case msg := <-messages:
 			ct.log.Debug(fmt.Sprintf("Received a message: %s", string(msg.Body)))
+
+			err := msg.Ack(false)
+			if err != nil {
+				ct.log.Error(fmt.Sprintf("Could not ack message %s: %s", msg.Body, err.Error()))
+			}
+
 			triggers := ct.loadTriggersByExpression()[expression]
 			if len(triggers) == 0 {
 				continue
 			}
 			message := &messageCase{}
-			err := json.Unmarshal(msg.Body, message)
+			err = json.Unmarshal(msg.Body, message)
 			if err != nil {
 				ct.log.Error(fmt.Sprintf("Could not unmarshal message  %s: %s", msg.Body, err.Error()))
 				err = msg.Nack(false, false) // drop message
