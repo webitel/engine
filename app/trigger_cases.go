@@ -159,12 +159,18 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 			return
 		case msg := <-messages:
 			ct.log.Debug(fmt.Sprintf("Received a message: %s", string(msg.Body)))
+
+			err := msg.Ack(false)
+			if err != nil {
+				ct.log.Error(fmt.Sprintf("Could not ack message %s: %s", msg.Body, err.Error()))
+			}
+
 			triggers := ct.loadTriggersByExpression()[expression]
 			if len(triggers) == 0 {
 				continue
 			}
 			message := &messageCase{}
-			err := json.Unmarshal(msg.Body, message)
+			err = json.Unmarshal(msg.Body, message)
 			if err != nil {
 				ct.log.Error(fmt.Sprintf("Could not unmarshal message  %s: %s", msg.Body, err.Error()))
 				err = msg.Nack(false, false) // drop message
@@ -174,7 +180,6 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 				continue
 			}
 
-			// TODO if not found domain
 			for _, trigger := range triggers {
 				if trigger.DomainId != message.DomainId {
 					ct.log.Debug(fmt.Sprintf("Skipping trigger %d because domain ID does not match: %d, %dd", trigger.Id, message.DomainId, trigger.DomainId))
@@ -197,10 +202,6 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 					continue
 				}
 				ct.log.Info(fmt.Sprintf("Started flow with id %s", id))
-				err = msg.Ack(false)
-				if err != nil {
-					ct.log.Error(fmt.Sprintf("Could not ack message: %s", err.Error()))
-				}
 			}
 		}
 	}
