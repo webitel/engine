@@ -552,7 +552,7 @@ from (
     where m.domain_id = :DomainId
       and m.queue_id = :QueueId
       and (stop_at IS NOT NULL)
-      AND ((stop_cause)::text <> ALL ('{success,cancel,terminate,no_communications}'::text[]))
+      AND ((stop_cause)::text <> ALL ('{success,expired,cancel,terminate,no_communications}'::text[]))
       and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
       and (:Numbers::varchar[] isnull or m.search_destinations && :Numbers::varchar[])
       and (:Variables::jsonb isnull or m.variables @> :Variables::jsonb)
