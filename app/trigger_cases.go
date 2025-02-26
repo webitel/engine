@@ -11,6 +11,7 @@ import (
 	"github.com/webitel/engine/utils"
 	flow "github.com/webitel/flow_manager/client"
 	"github.com/webitel/wlog"
+	"strings"
 	"sync/atomic"
 	"time"
 )
@@ -55,6 +56,7 @@ type TriggerCaseMQ struct {
 	createQueue         amqp.Queue
 	updateQueue         amqp.Queue
 	deleteQueue         amqp.Queue
+	Queue               amqp.Queue
 	flowManager         flow.FlowManager
 }
 
@@ -131,36 +133,28 @@ func (ct *TriggerCaseMQ) Stop() {
 }
 
 func (ct *TriggerCaseMQ) listen() error {
-	createMessages, err := ct.channel.Consume(ct.createQueue.Name, "", false, false, false, false, nil)
+	messages, err := ct.channel.Consume(ct.Queue.Name, "", true, false, false, false, nil)
 	if err != nil {
-		return fmt.Errorf("could not consume messages from %s: %w", ct.createQueue.Name, err)
+		return fmt.Errorf("could not consume messages from %s: %w", ct.Queue.Name, err)
 	}
 
-	updateMessages, err := ct.channel.Consume(ct.updateQueue.Name, "", false, false, false, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not consume messages from %s: %w", ct.updateQueue.Name, err)
-	}
-
-	deleteMessages, err := ct.channel.Consume(ct.deleteQueue.Name, "", false, false, false, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not consume messages from %s: %w", ct.deleteQueue.Name, err)
-	}
-	go ct.processedMessages(createMessages, ct.stopCreateQueueChan, "create")
-	go ct.processedMessages(updateMessages, ct.stopUpdateQueueChan, "update")
-	go ct.processedMessages(deleteMessages, ct.stopDeleteQueueChan, "delete")
+	go ct.processedMessages(messages, ct.stopCreateQueueChan)
 	return nil
 }
 
-func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopChan chan struct{}, expression string) {
+func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopChan chan struct{}) {
 	for {
 		select {
 		case <-ct.stopChan:
 			close(stopChan)
 			return
 		case msg := <-messages:
-			ct.log.Debug(fmt.Sprintf("Received a message: %s", string(msg.Body)))
+			ct.log.Debug(fmt.Sprintf("Received a message: %s; by routiong key: %s", string(msg.Body), msg.RoutingKey))
+			expression := ct.getExpressionByRoutingKey(msg.RoutingKey)
+
 			triggers := ct.loadTriggersByExpression()[expression]
 			if len(triggers) == 0 {
+				ct.log.Debug(fmt.Sprintf("No trigger found for key %s and expression %s", msg.RoutingKey, expression))
 				continue
 			}
 			message := &messageCase{}
@@ -190,10 +184,6 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery, stopCh
 				id, err := ct.flowManager.Queue().StartFlow(&request)
 				if err != nil {
 					ct.log.Error(fmt.Sprintf("Could not start flow: %s", err.Error()))
-					err = msg.Nack(false, true)
-					if err != nil {
-						ct.log.Error(fmt.Sprintf("Could not nack message: %s", err.Error()))
-					}
 					continue
 				}
 				ct.log.Info(fmt.Sprintf("Started flow with id %s", id))
@@ -211,7 +201,7 @@ func (ct *TriggerCaseMQ) init() error {
 		return err
 	}
 
-	if err := ct.initExchangeQueues(); err != nil {
+	if err := ct.initQueue(); err != nil {
 		return err
 	}
 
@@ -261,24 +251,21 @@ func (ct *TriggerCaseMQ) initConnection() error {
 	return nil
 }
 
-func (ct *TriggerCaseMQ) initExchangeQueues() error {
+func (ct *TriggerCaseMQ) initQueue() error {
 	var err error
-	// create queues
-	ct.createQueue, err = ct.channel.QueueDeclare(ct.config.CreateQueue, true, false, false, false, nil)
+	ct.Queue, err = ct.channel.QueueDeclare(ct.config.Queue, true, false, false, false, map[string]interface{}{
+		"x-message-ttl": ct.config.QueueMessagesTTL,
+	})
 	if err != nil {
-		return fmt.Errorf("could not create Create queue %s: %w", ct.config.CreateQueue, err)
+		return fmt.Errorf("could not create queue %s: %w", ct.config.Queue, err)
 	}
 
-	ct.updateQueue, err = ct.channel.QueueDeclare(ct.config.UpdateQueue, true, false, false, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not create Update queue %s: %w", ct.config.UpdateQueue, err)
-	}
-
-	ct.deleteQueue, err = ct.channel.QueueDeclare(ct.config.DeleteQueue, true, false, false, false, nil)
-	if err != nil {
-		return fmt.Errorf("could not create Delete queue %s: %w", ct.config.CreateQueue, err)
-	}
 	return nil
+}
+
+func (ct *TriggerCaseMQ) getExpressionByRoutingKey(routingKey string) string {
+	topic := strings.Replace(ct.config.Topic, "*", "", 1)
+	return strings.Replace(routingKey, topic, "", 1)
 }
 
 func NewTriggerCases(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.CaseTriggersSettings) *TriggerCaseMQ {
