@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
@@ -144,7 +143,7 @@ FROM a
 			"Supervisor":       agent.IsSupervisor,
 			"TaskCount":        agent.TaskCount,
 		}); err != nil {
-		return nil, model.NewInternalError("store.sql_agent.save.app_error", fmt.Sprintf("record=%v, %v", agent, err.Error()))
+		return nil, model.NewCustomCodeError("store.sql_agent.save.app_error", fmt.Sprintf("%v", err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
@@ -443,15 +442,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 		"TaskCount":        agent.TaskCount,
 	})
 	if err != nil {
-		code := http.StatusInternalServerError
-		switch err.(type) {
-		case *pq.Error:
-			if err.(*pq.Error).Code == ForeignKeyViolationErrorCode {
-				code = http.StatusBadRequest
-			}
-		}
-
-		return nil, model.NewCustomCodeError("store.sql_agent.update.app_error", fmt.Sprintf("Id=%v, %s", agent.Id, err.Error()), code)
+		return nil, model.NewCustomCodeError("store.sql_agent.update.app_error", fmt.Sprintf("Id=%v, %s", agent.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return agent, nil
 }
@@ -459,7 +450,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 func (s SqlAgentStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_agent c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return model.NewInternalError("store.sql_agent.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
+		return model.NewCustomCodeError("store.sql_agent.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
