@@ -8,26 +8,28 @@ import (
 )
 
 type Member struct {
-	Id             int64                 `json:"id" db:"id"`
-	Queue          Lookup                `json:"queue" db:"queue"`
-	CreatedAt      time.Time             `json:"created_at" db:"created_at"`
-	QueueId        int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
-	Priority       int                   `json:"priority" db:"priority"`
-	ExpireAt       *time.Time            `json:"expire_at" db:"expire_at"`
-	MinOfferingAt  *time.Time            `json:"min_offering_at" db:"ready_at"`
-	Name           string                `json:"name" db:"name"`
-	Variables      StringMap             `json:"variables" db:"variables"`
-	LastActivityAt int64                 `json:"last_hangup_at" db:"last_hangup_at"`
-	Attempts       int                   `json:"attempts" db:"attempts"`
-	Timezone       Lookup                `json:"timezone" db:"timezone"`
-	Bucket         *Lookup               `json:"bucket" db:"bucket"`
-	Communications []MemberCommunication `json:"communications" db:"communications"`
-	StopAt         *time.Time            `json:"stop_at" db:"stop_at"`
-	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
-	Reserved       bool                  `json:"reserved" db:"reserved"`
-	Agent          *Lookup               `json:"agent" db:"agent"`
-	Skill          *Lookup               `json:"skill" db:"skill"`
-	HookCreated    *int32                `json:"-" db:"hook_created"`
+	Id              int64                 `json:"id" db:"id"`
+	Queue           Lookup                `json:"queue" db:"queue"`
+	CreatedAt       time.Time             `json:"created_at" db:"created_at"`
+	QueueId         int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
+	Priority        int                   `json:"priority" db:"priority"`
+	ExpireAt        *time.Time            `json:"expire_at" db:"expire_at"`
+	MinOfferingAt   *time.Time            `json:"min_offering_at" db:"ready_at"`
+	Name            string                `json:"name" db:"name"`
+	Variables       StringMap             `json:"variables" db:"variables"`
+	LastActivityAt  int64                 `json:"last_hangup_at" db:"last_hangup_at"`
+	Attempts        int                   `json:"attempts" db:"attempts"`
+	Timezone        Lookup                `json:"timezone" db:"timezone"`
+	Bucket          *Lookup               `json:"bucket" db:"bucket"`
+	Communications  []MemberCommunication `json:"communications" db:"communications"`
+	StopAt          *time.Time            `json:"stop_at" db:"stop_at"`
+	StopCause       *string               `json:"stop_cause" db:"stop_cause"`
+	Reserved        bool                  `json:"reserved" db:"reserved"`
+	Agent           *Lookup               `json:"agent" db:"agent"`
+	Skill           *Lookup               `json:"skill" db:"skill"`
+	HookCreated     *int32                `json:"-" db:"hook_created"`
+	ActiveAttemptId *int64                `json:"active_attempt_id" db:"active_attempt_id"`
+	ActiveAppId     *string               `json:"active_app_id" db:"active_app_id"`
 }
 
 type MemberPatch struct {
