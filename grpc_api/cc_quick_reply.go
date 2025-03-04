@@ -113,6 +113,12 @@ func (api *quickReply) PatchQuickReply(ctx context.Context, in *engine.PatchQuic
 			patch.Name = model.NewString(in.Name)
 		case "text":
 			patch.Text = model.NewString(in.Text)
+		case "article":
+			patch.Article = GetLookup(in.Article)
+		case "teams":
+			patch.Teams = GetLookups(in.Teams)
+		case "queues":
+			patch.Queues = GetLookups(in.Queues)
 		}
 	}
 

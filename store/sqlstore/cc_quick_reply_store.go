@@ -132,12 +132,14 @@ select s.id,
        s.name,
        s.text,
 	   call_center.cc_get_lookup(a.id, a.title)         as article,
-	   call_center.cc_get_lookup(t.id, t.name)         as teams,
-	   call_center.cc_get_lookup(cq.id, cq.name)         as queues
+	   ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
+           FROM call_center.cc_team t
+          WHERE t.id = ANY (s.teams)) AS teams,
+	   ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
+           FROM call_center.cc_queue a
+          WHERE a.id = ANY (s.queues)) AS queues
 from s
          left join knowledge_base.article a on a.id = s.article
-		 left join call_center.cc_team t on t.id = s.teams
-		 left join call_center.cc_queue cq on cq.id = s.queues
 		 left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by;`, map[string]interface{}{
 		"DomainId":  domainId,
