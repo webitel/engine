@@ -22,9 +22,9 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
 	resp := &model.QuickReply{}
 	err := s.GetMaster().WithContext(ctx).SelectOne(&resp, `with s as (
     insert into call_center.cc_quick_reply (domain_id, created_at, updated_at, created_by, updated_by,
-                                      name, text, article, team, queue)
+                                      name, text, article, teams, queues)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
-            :Name, :Text, :Article, :Team, :Queue)
+            :Name, :Text, :Article, :Teams, :Queues)
     returning *
 )
 select s.id,
@@ -45,8 +45,8 @@ from s
 		"Name":      reply.Name,
 		"Text":      reply.Text,
 		"Article":   reply.Article.Id,
-		"Team":      reply.Team.GetSafeId(),
-		"Queue":     reply.Queue.GetSafeId(),
+		"Teams":     pq.Array(model.LookupIds(reply.Teams)),
+		"Queues":    pq.Array(model.LookupIds(reply.Queues)),
 	})
 
 	if err != nil {
@@ -89,14 +89,14 @@ func (s SqlQuickReplyStore) Get(ctx context.Context, domainId int64, id uint32) 
        q.name,
        q.text,
 	   call_center.cc_get_lookup(a.id, a.title)         as article,
-	   call_center.cc_get_lookup(t.id, t.name)         as team,
-	   call_center.cc_get_lookup(cq.id, cq.name)         as queue
+	   call_center.cc_get_lookup(t.id, t.name)         as teams,
+	   call_center.cc_get_lookup(cq.id, cq.name)         as queues
 from call_center.cc_quick_reply q
 	left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
-	left join call_center.cc_team t on t.id = q.team
+	left join call_center.cc_team t on t.id = q.teams
 	left join knowledge_base.article a on a.id = q.article
-	left join call_center.cc_queue cq on cq.id = q.queue
+	left join call_center.cc_queue cq on cq.id = q.queues
 where q.id = :Id and q.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
@@ -117,8 +117,8 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
             name = :Name,
             text = :Text,
             article = :Article,
-			team = :Team,
-			queue = :Queue
+			teams = :Teams,
+			queues = :Queues
         where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -130,12 +130,12 @@ select s.id,
        s.name,
        s.text,
 	   call_center.cc_get_lookup(a.id, a.title)         as article,
-	   call_center.cc_get_lookup(t.id, t.name)         as team,
-	   call_center.cc_get_lookup(cq.id, cq.name)         as queue
+	   call_center.cc_get_lookup(t.id, t.name)         as teams,
+	   call_center.cc_get_lookup(cq.id, cq.name)         as queues
 from s
          left join knowledge_base.article a on a.id = s.article
-		 left join call_center.cc_team t on t.id = s.team
-		 left join call_center.cc_queue cq on cq.id = s.queue
+		 left join call_center.cc_team t on t.id = s.teams
+		 left join call_center.cc_queue cq on cq.id = s.queues
 		 left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by;`, map[string]interface{}{
 		"DomainId":  domainId,
@@ -145,8 +145,8 @@ from s
 		"UpdatedAt": reply.UpdatedAt,
 		"UpdatedBy": reply.UpdatedBy.GetSafeId(),
 		"Article":   reply.Article.GetSafeId(),
-		"Team":      reply.Team.GetSafeId(),
-		"Queue":     reply.Queue.GetSafeId(),
+		"Teams":     pq.Array(model.LookupIds(reply.Teams)),
+		"Queues":    pq.Array(model.LookupIds(reply.Queues)),
 	})
 
 	if err != nil {
