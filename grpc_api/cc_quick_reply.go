@@ -35,8 +35,8 @@ func (api *quickReply) CreateQuickReply(ctx context.Context, in *engine.CreateQu
 		Name:    in.Name,
 		Text:    in.Text,
 		Article: GetLookup(in.Article),
-		Team:    GetLookup(in.Team),
-		Queue:   GetLookup(in.Queue),
+		Teams:   GetLookups(in.Teams),
+		Queues:  GetLookups(in.Queues),
 	}
 
 	replyq, err := api.ctrl.CreateQuickReply(ctx, session, reply)
@@ -135,8 +135,8 @@ func (api *quickReply) UpdateQuickReply(ctx context.Context, in *engine.UpdateQu
 		Name:      in.Name,
 		Text:      in.Text,
 		Article:   GetLookup(in.Article),
-		Team:      GetLookup(in.Team),
-		Queue:     GetLookup(in.Queue),
+		Teams:     GetLookups(in.Teams),
+		Queues:    GetLookups(in.Queues),
 	}
 
 	reply, err = api.ctrl.UpdateQuickReply(ctx, session, reply)
@@ -172,8 +172,8 @@ func toEngineQuickReply(src *model.QuickReply) *engine.QuickReply {
 		UpdatedBy: GetProtoLookup(src.UpdatedBy),
 		Name:      src.Name,
 		Text:      src.Text,
-		Queue:     GetProtoLookup(src.Queue),
-		Team:      GetProtoLookup(src.Team),
+		Queues:    GetProtoLookups(src.Queues),
+		Teams:     GetProtoLookups(src.Teams),
 		Article:   GetProtoLookup(src.Article),
 	}
 }

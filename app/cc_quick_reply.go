@@ -34,8 +34,8 @@ func (a *App) UpdateQuickReply(ctx context.Context, domainId int64, reply *model
 
 	oldReply.Name = reply.Name
 	oldReply.Text = reply.Text
-	oldReply.Queue = reply.Queue
-	oldReply.Team = reply.Team
+	oldReply.Queues = reply.Queues
+	oldReply.Teams = reply.Teams
 	oldReply.Article = reply.Article
 
 	oldReply, err = a.Store.QuickReply().Update(ctx, domainId, oldReply)
