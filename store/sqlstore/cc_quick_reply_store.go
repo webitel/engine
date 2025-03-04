@@ -89,14 +89,16 @@ func (s SqlQuickReplyStore) Get(ctx context.Context, domainId int64, id uint32) 
        q.name,
        q.text,
 	   call_center.cc_get_lookup(a.id, a.title)         as article,
-	   call_center.cc_get_lookup(t.id, t.name)         as teams,
-	   call_center.cc_get_lookup(cq.id, cq.name)         as queues
+	   ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
+           FROM call_center.cc_team t
+          WHERE t.id = ANY (q.teams)) AS teams,
+	   ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
+           FROM call_center.cc_queue a
+          WHERE a.id = ANY (q.queues)) AS queues
 from call_center.cc_quick_reply q
 	left join directory.wbt_user uc on uc.id = q.created_by
 	left join directory.wbt_user u on u.id = q.updated_by
-	left join call_center.cc_team t on t.id = q.teams
 	left join knowledge_base.article a on a.id = q.article
-	left join call_center.cc_queue cq on cq.id = q.queues
 where q.id = :Id and q.domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
 		"Id":       id,
