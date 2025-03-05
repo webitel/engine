@@ -133,12 +133,24 @@ func (ct *TriggerCaseMQ) listen() error {
 
 func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
 	for {
 		select {
 		case <-ct.stopChan:
 			close(ct.stopQueueChan)
-			cancelFunc()
 			return
+		case amqpErr, ok := <-ct.errorChan:
+			if !ok {
+				ct.log.Info("Closed rabbit error channel")
+				return
+			}
+			ct.log.Error(fmt.Sprintf("amqp connection error: %s", amqpErr.Error()))
+			err := ct.initConnection()
+			if err != nil {
+				ct.log.Error(fmt.Sprintf("Could not reconnect ro amqp: %s", err.Error()))
+				return
+			}
+
 		case msg := <-messages:
 			ct.log.Debug(fmt.Sprintf("Received a message: %s; by routiong key: %s", string(msg.Body), msg.RoutingKey))
 			expression := ct.getExpressionByRoutingKey(msg.RoutingKey)
@@ -173,7 +185,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 						ct.log.Error(fmt.Sprintf("Could not start flow request: %s: %s", r, err.Error()))
 						return
 					}
-					ct.log.Info(fmt.Sprintf("Started flow for request: %s with id : %s", r, id))
+					ct.log.Info(fmt.Sprintf("Started flow for with id : %s", id))
 				}(&request)
 			}
 		}
