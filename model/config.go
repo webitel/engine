@@ -109,12 +109,12 @@ type SqlSettings struct {
 }
 
 type CaseTriggersSettings struct {
-	Enabled     bool   `json:"enabled" flag:"case_trigger_enabled|true|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
-	BrokerUrl   string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
-	Exchange    string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
-	CreateQueue string `json:"create_queue" flag:"case_triggers_create_queue|create_queue|Queue name for create cases" env:"CASE_TRIGGERS_CREATE_QUEUE"`
-	UpdateQueue string `json:"update_queue" flag:"case_triggers_update_queue|update_queue|Queue name for update cases" env:"CASE_TRIGGERS_UPDATE_QUEUE"`
-	DeleteQueue string `json:"delete_queue" flag:"case_triggers_delete_queue|delete_queue|Queue name for delete cases" env:"CASE_TRIGGERS_DELETE_QUEUE"`
+	Enabled          bool   `json:"enabled" flag:"case_trigger_enabled|true|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
+	BrokerUrl        string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
+	Exchange         string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
+	Queue            string `json:"queue" flag:"case_triggers_queue|watcher_queue|Queue name for triggers cases" env:"CASE_TRIGGERS_QUEUE"`
+	Topic            string `json:"topic" flag:"case_trigger_topic|trigger_case.*|Topic name for triggers cases" env:"CASE_TRIGGER_TOPIC"`
+	QueueMessagesTTL int    `json:"queue_messages_ttl" flag:"case_trigger_queue_messages_ttl|10000|Queue messages TTL for triggers cases" env:"CASE_TRIGGER_QUEUE_MESSAGES_TTL"`
 }
 
 func (c *Config) IsValid() AppError {

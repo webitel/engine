@@ -18,7 +18,9 @@ func (a *App) CreateTrigger(ctx context.Context, domainId int64, trigger *model.
 	}
 
 	// notify about triggers were changed
-	a.TriggerCases.NotifyUpdateTrigger()
+	if a.TriggerCases != nil {
+		a.TriggerCases.NotifyUpdateTrigger()
+	}
 
 	return createdTrigger, nil
 }
@@ -68,7 +70,9 @@ func (a *App) UpdateTrigger(ctx context.Context, domainId int64, trigger *model.
 	}
 
 	// notify about triggers were changed
-	a.TriggerCases.NotifyUpdateTrigger()
+	if a.TriggerCases != nil {
+		a.TriggerCases.NotifyUpdateTrigger()
+	}
 
 	return oldTrigger, nil
 }
@@ -91,7 +95,9 @@ func (a *App) PatchTrigger(ctx context.Context, domainId int64, id int32, patch 
 	}
 
 	// notify about triggers were changed
-	a.TriggerCases.NotifyUpdateTrigger()
+	if a.TriggerCases != nil {
+		a.TriggerCases.NotifyUpdateTrigger()
+	}
 
 	return oldTrigger, nil
 }
@@ -109,7 +115,9 @@ func (a *App) RemoveTrigger(ctx context.Context, domainId int64, id int32) (*mod
 	}
 
 	// notify about triggers were changed
-	a.TriggerCases.NotifyUpdateTrigger()
+	if a.TriggerCases != nil {
+		a.TriggerCases.NotifyUpdateTrigger()
+	}
 
 	return trigger, nil
 }
