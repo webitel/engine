@@ -44,7 +44,7 @@ from s
 		"UpdatedBy": reply.UpdatedBy.GetSafeId(),
 		"Name":      reply.Name,
 		"Text":      reply.Text,
-		"Article":   reply.Article.Id,
+		"Article":   reply.Article.GetSafeId(),
 		"Teams":     pq.Array(model.LookupIds(reply.Teams)),
 		"Queues":    pq.Array(model.LookupIds(reply.Queues)),
 	})
