@@ -147,9 +147,13 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 			ct.log.Error(fmt.Sprintf("amqp connection error: %s", amqpErr.Error()))
 			err := ct.initConnection()
 			if err != nil {
+				// TODO reconnect
 				ct.log.Error(fmt.Sprintf("Could not reconnect ro amqp: %s", err.Error()))
 				return
 			}
+
+			ct.listen()
+			return
 
 		case msg := <-messages:
 			ct.log.Debug(fmt.Sprintf("Received a message: %s; by routiong key: %s", string(msg.Body), msg.RoutingKey))
