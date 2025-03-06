@@ -624,6 +624,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
 			or (t.user_ids notnull and t.user_ids::int[] && call_center.rbac_users_from_group(:ClassName::varchar, :Domain::int8, :Access::int2, :Groups::int[]))
 			or (t.grantee_id = any(:Groups::int[]))
+			or (t.user_ids::int[] && array[:UserSupervisorId::int] and t.parent_id isnull )
 		)
 	)
 `,
