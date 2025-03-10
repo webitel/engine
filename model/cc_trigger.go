@@ -73,7 +73,7 @@ func (t Trigger) AllowFieldsWithDomainId() []string {
 }
 
 func (t Trigger) DefaultFields() []string {
-	return []string{"id", "name", "enabled", "schema", "expression"}
+	return []string{"id", "name", "type", "enabled", "schema", "expression"}
 }
 
 func (t Trigger) EntityName() string {

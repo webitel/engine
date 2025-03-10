@@ -109,7 +109,7 @@ type SqlSettings struct {
 }
 
 type CaseTriggersSettings struct {
-	Enabled          bool   `json:"enabled" flag:"case_trigger_enabled|true|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
+	Enabled          bool   `json:"enabled" flag:"case_trigger_enabled|false|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
 	BrokerUrl        string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers" env:"CASE_TRIGGER_BROKER_URL"`
 	Exchange         string `json:"exchange" flag:"case_triggers_exchange|watcher_exchange|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
 	Queue            string `json:"queue" flag:"case_triggers_queue|watcher_queue|Queue name for triggers cases" env:"CASE_TRIGGERS_QUEUE"`
