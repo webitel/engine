@@ -274,6 +274,25 @@ func (api *auditForm) ReadAuditRate(ctx context.Context, in *engine.ReadAuditRat
 	return transformAuditRate(rate), nil
 }
 
+func (api *auditForm) UpdateAuditRate(ctx context.Context, in *engine.UpdateAuditRateRequest) (*engine.AuditRate, error) {
+	panic(1)
+}
+
+func (api *auditForm) DeleteAuditRate(ctx context.Context, in *engine.DeleteAuditRateRequest) (*engine.AuditRate, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var rate *model.AuditRate
+	rate, err = api.ctrl.DeleteAuditRate(ctx, session, in.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transformAuditRate(rate), nil
+}
+
 //func (a auditForm) mustEmbedUnimplementedAuditFormServiceServer() {
 //	//TODO implement me
 //	panic("implement me")
@@ -388,11 +407,20 @@ func transformAuditAnswers(src model.QuestionAnswers) []*engine.QuestionAnswer {
 		if v == nil {
 			q = append(q, nil)
 		} else {
-			q = append(q, &engine.QuestionAnswer{
+			x := &engine.QuestionAnswer{
 				Score: &wrappers.FloatValue{
 					Value: v.Score,
 				},
-			})
+				UpdatedBy: GetProtoLookup(v.UpdatedBy),
+			}
+			if v.Comment != nil {
+				x.Comment = *v.Comment
+			}
+			if v.UpdatedAt != nil {
+				x.UpdatedAt = *v.UpdatedAt
+			}
+
+			q = append(q, x)
 		}
 	}
 

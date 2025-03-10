@@ -204,6 +204,37 @@ func (c *Controller) SearchAuditRate(ctx context.Context, session *auth_manager.
 
 // WTEL-3870
 func (c *Controller) ReadAuditRate(ctx context.Context, session *auth_manager.Session, id int64) (*model.AuditRate, model.AppError) {
+	permission := session.GetPermission(model.PermissionAuditRate)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
 
 	return c.app.GetAuditRate(ctx, session.Domain(0), id)
+}
+
+func (c *Controller) DeleteAuditRate(ctx context.Context, session *auth_manager.Session, id int64) (*model.AuditRate, model.AppError) {
+	permission := session.GetPermission(model.PermissionAuditRate)
+	if !permission.CanDelete() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
+		if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+		}
+	}
+
+	return c.app.DeleteAuditRate(ctx, session.Domain(0), id)
 }

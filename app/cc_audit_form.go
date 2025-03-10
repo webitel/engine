@@ -201,3 +201,15 @@ func (app *App) GetAuditRatePage(ctx context.Context, domainId int64, search *mo
 func (app *App) GetAuditRateFormId(ctx context.Context, domainId, id int64) (int32, model.AppError) {
 	return app.Store.AuditRate().FormId(ctx, domainId, id)
 }
+
+func (app *App) AuditRateCheckAccess(ctx context.Context, domainId int64, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
+	return app.Store.AuditRate().CheckAccess(ctx, domainId, id, groups, access)
+}
+
+func (app *App) DeleteAuditRate(ctx context.Context, domainId int64, id int64) (*model.AuditRate, model.AppError) {
+	rate, err := app.GetAuditRate(ctx, domainId, id)
+	if err != nil {
+		return nil, err
+	}
+	return rate, app.Store.AuditRate().Delete(ctx, domainId, id)
+}

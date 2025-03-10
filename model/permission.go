@@ -22,6 +22,7 @@ const (
 
 	PermissionChat       = "chats"
 	PermissionAuditFrom  = "cc_audit_form" // "cc_form"
+	PermissionAuditRate  = "cc_audit_form" // "cc_form"
 	PermissionRecordFile = "record_file"
 	PermissionSkill      = "cc_skill"
 	PermissionWebHook    = "email_profile" // todo

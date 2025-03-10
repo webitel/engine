@@ -9,7 +9,10 @@ import (
 type QuestionAnswers []*QuestionAnswer
 
 type QuestionAnswer struct {
-	Score float32 `json:"score"`
+	Score     float32 `json:"score"`
+	UpdatedAt *int64  `json:"updated_at,omitempty"`
+	UpdatedBy *Lookup `json:"updated_by,omitempty"`
+	Comment   *string `json:"comment,omitempty"`
 }
 
 type Rate struct {
