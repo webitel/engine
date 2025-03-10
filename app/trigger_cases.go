@@ -152,7 +152,10 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 				return
 			}
 
-			ct.listen()
+			err = ct.listen()
+			if err != nil {
+				ct.log.Error(fmt.Sprintf("Could not start listen messages: %s", err.Error()))
+			}
 			return
 
 		case msg := <-messages:
