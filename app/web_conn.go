@@ -311,14 +311,8 @@ func (webCon *WebConn) SendHello() {
 	if webCon.App.config.PingClientInterval > 0 {
 		msg.Add("ping_interval", webCon.App.config.PingClientInterval)
 	}
-
-	if sess.HasChatLicense() {
-		msg.Add("use_chat", true)
-	}
-
-	if sess.HasCallCenterLicense() {
-		msg.Add("use_cc", true)
-	}
+	msg.Add("use_cc", sess.HasCallCenterLicense())
+	msg.Add("use_chat", sess.HasChatLicense())
 
 	webCon.Send <- msg
 }
