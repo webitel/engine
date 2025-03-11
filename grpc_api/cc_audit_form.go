@@ -13,6 +13,10 @@ type auditForm struct {
 	gogrpc.UnsafeAuditFormServiceServer
 }
 
+func NewAuditFormApi(api *API) *auditForm {
+	return &auditForm{API: api}
+}
+
 func (api *auditForm) CreateAuditForm(ctx context.Context, in *engine.CreateAuditFormRequest) (*engine.AuditForm, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -34,7 +38,7 @@ func (api *auditForm) CreateAuditForm(ctx context.Context, in *engine.CreateAudi
 		return nil, err
 	}
 
-	return transformAuditFrom(form), nil
+	return modelToProtobufAuditFrom(form), nil
 }
 
 func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAuditFormRequest) (*engine.ListAuditForm, error) {
@@ -78,7 +82,7 @@ func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAudi
 
 	items := make([]*engine.AuditForm, 0, len(list))
 	for _, v := range list {
-		items = append(items, transformAuditFrom(v))
+		items = append(items, modelToProtobufAuditFrom(v))
 	}
 	return &engine.ListAuditForm{
 		Next:  !endList,
@@ -98,7 +102,7 @@ func (api *auditForm) ReadAuditForm(ctx context.Context, in *engine.ReadAuditFor
 		return nil, err
 	}
 
-	return transformAuditFrom(form), nil
+	return modelToProtobufAuditFrom(form), nil
 }
 
 func (api *auditForm) UpdateAuditForm(ctx context.Context, in *engine.UpdateAuditFormRequest) (*engine.AuditForm, error) {
@@ -123,7 +127,7 @@ func (api *auditForm) UpdateAuditForm(ctx context.Context, in *engine.UpdateAudi
 		return nil, err
 	}
 
-	return transformAuditFrom(form), nil
+	return modelToProtobufAuditFrom(form), nil
 }
 
 func (api *auditForm) PatchAuditForm(ctx context.Context, in *engine.PatchAuditFormRequest) (*engine.AuditForm, error) {
@@ -157,7 +161,7 @@ func (api *auditForm) PatchAuditForm(ctx context.Context, in *engine.PatchAuditF
 		return nil, err
 	}
 
-	return transformAuditFrom(form), nil
+	return modelToProtobufAuditFrom(form), nil
 }
 
 func (api *auditForm) DeleteAuditForm(ctx context.Context, in *engine.DeleteAuditFormRequest) (*engine.AuditForm, error) {
@@ -172,7 +176,7 @@ func (api *auditForm) DeleteAuditForm(ctx context.Context, in *engine.DeleteAudi
 		return nil, err
 	}
 
-	return transformAuditFrom(form), nil
+	return modelToProtobufAuditFrom(form), nil
 }
 
 func (api *auditForm) CreateAuditFormRate(ctx context.Context, in *engine.CreateAuditFormRateRequest) (*engine.AuditRate, error) {
@@ -210,7 +214,7 @@ func (api *auditForm) CreateAuditFormRate(ctx context.Context, in *engine.Create
 		return nil, err
 	}
 
-	return transformAuditRate(auditRate), nil
+	return modelToProtobufAuditRate(auditRate), nil
 }
 
 func (api *auditForm) SearchAuditRate(ctx context.Context, in *engine.SearchAuditRateRequest) (*engine.ListAuditRate, error) {
@@ -251,7 +255,7 @@ func (api *auditForm) SearchAuditRate(ctx context.Context, in *engine.SearchAudi
 
 	items := make([]*engine.AuditRate, 0, len(list))
 	for _, v := range list {
-		items = append(items, transformAuditRate(v))
+		items = append(items, modelToProtobufAuditRate(v))
 	}
 	return &engine.ListAuditRate{
 		Next:  !endList,
@@ -271,19 +275,58 @@ func (api *auditForm) ReadAuditRate(ctx context.Context, in *engine.ReadAuditRat
 		return nil, err
 	}
 
-	return transformAuditRate(rate), nil
+	return modelToProtobufAuditRate(rate), nil
 }
 
-//func (a auditForm) mustEmbedUnimplementedAuditFormServiceServer() {
-//	//TODO implement me
-//	panic("implement me")
-//}
+func (api *auditForm) UpdateAuditRate(ctx context.Context, in *engine.UpdateAuditRateRequest) (*engine.AuditRate, error) {
+	session, err := api.ctrl.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
 
-func NewAuditFormApi(api *API) *auditForm {
-	return &auditForm{API: api}
+	ans := make([]*model.QuestionAnswer, 0, len(in.Answers))
+	for _, v := range in.Answers {
+		if v != nil && v.Score == nil {
+			ans = append(ans, nil)
+		} else {
+			x := &model.QuestionAnswer{
+				Score:   v.GetScore().GetValue(),
+				Comment: v.GetComment(),
+			}
+			ans = append(ans, x)
+		}
+	}
+
+	rate := &model.Rate{
+		Answers: ans,
+		Comment: in.Comment,
+	}
+
+	ar, err := api.ctrl.UpdateAuditRate(ctx, session, in.GetId(), rate)
+	if err != nil {
+		return nil, err
+	}
+
+	return modelToProtobufAuditRate(ar), nil
+
 }
 
-func transformAuditFrom(src *model.AuditForm) *engine.AuditForm {
+func (api *auditForm) DeleteAuditRate(ctx context.Context, in *engine.DeleteAuditRateRequest) (*engine.AuditRate, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var rate *model.AuditRate
+	rate, err = api.ctrl.DeleteAuditRate(ctx, session, in.Id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return modelToProtobufAuditRate(rate), nil
+}
+
+func modelToProtobufAuditFrom(src *model.AuditForm) *engine.AuditForm {
 	return &engine.AuditForm{
 		Id:          src.Id,
 		CreatedAt:   model.TimeToInt64(src.CreatedAt),
@@ -293,14 +336,14 @@ func transformAuditFrom(src *model.AuditForm) *engine.AuditForm {
 		Name:        src.Name,
 		Description: src.Description,
 		Enabled:     src.Enabled,
-		Questions:   transformAuditQuestions(src.Questions),
+		Questions:   modelToProtobufAuditQuestions(src.Questions),
 		Teams:       GetProtoLookups(src.Teams),
 		//Archive:     src.Archive,
 		Editable: src.Editable,
 	}
 }
 
-func transformAuditRate(src *model.AuditRate) *engine.AuditRate {
+func modelToProtobufAuditRate(src *model.AuditRate) *engine.AuditRate {
 	return &engine.AuditRate{
 		Id:        src.Id,
 		CreatedAt: model.TimeToInt64(src.CreatedAt),
@@ -308,8 +351,8 @@ func transformAuditRate(src *model.AuditRate) *engine.AuditRate {
 		UpdatedAt: model.TimeToInt64(src.UpdatedAt),
 		UpdatedBy: GetProtoLookup(src.UpdatedBy),
 		Form:      GetProtoLookup(src.Form),
-		Questions: transformAuditQuestions(src.Questions),
-		Answers:   transformAuditAnswers(src.Answers),
+		Questions: modelToProtobufAuditQuestions(src.Questions),
+		Answers:   modelToProtobufAuditAnswers(src.Answers),
 		ScoreRequired: &wrappers.FloatValue{
 			Value: src.ScoreRequired,
 		},
@@ -352,7 +395,7 @@ func toAuditQuestions(src []*engine.Question) model.Questions {
 	return q
 }
 
-func transformAuditQuestions(src model.Questions) []*engine.Question {
+func modelToProtobufAuditQuestions(src model.Questions) []*engine.Question {
 	q := make([]*engine.Question, 0, len(src))
 	for _, v := range src {
 		item := &engine.Question{
@@ -382,17 +425,24 @@ func transformAuditQuestions(src model.Questions) []*engine.Question {
 	return q
 }
 
-func transformAuditAnswers(src model.QuestionAnswers) []*engine.QuestionAnswer {
+func modelToProtobufAuditAnswers(src model.QuestionAnswers) []*engine.QuestionAnswer {
 	q := make([]*engine.QuestionAnswer, 0, len(src))
 	for _, v := range src {
 		if v == nil {
 			q = append(q, nil)
 		} else {
-			q = append(q, &engine.QuestionAnswer{
+			x := &engine.QuestionAnswer{
 				Score: &wrappers.FloatValue{
 					Value: v.Score,
 				},
-			})
+				UpdatedBy: GetProtoLookup(v.UpdatedBy),
+				Comment:   v.Comment,
+			}
+			if v.UpdatedAt != nil {
+				x.UpdatedAt = *v.UpdatedAt
+			}
+
+			q = append(q, x)
 		}
 	}
 

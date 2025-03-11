@@ -20,8 +20,8 @@ const (
 	PERMISSION_SCOPE_USERS   = "users"
 	PERMISSION_SCOPE_TRIGGER = "trigger"
 
-	PermissionChat       = "chats"
 	PermissionAuditFrom  = "cc_audit_form" // "cc_form"
+	PermissionAuditRate  = "rating"
 	PermissionRecordFile = "record_file"
 	PermissionSkill      = "cc_skill"
 	PermissionWebHook    = "email_profile" // todo

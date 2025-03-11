@@ -9,7 +9,10 @@ import (
 type QuestionAnswers []*QuestionAnswer
 
 type QuestionAnswer struct {
-	Score float32 `json:"score"`
+	Score     float32 `json:"score"`
+	UpdatedAt *int64  `json:"updated_at,omitempty"`
+	UpdatedBy *Lookup `json:"updated_by"`
+	Comment   string  `json:"comment,omitempty"`
 }
 
 type Rate struct {
@@ -80,6 +83,13 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 	r.CallId = rate.CallId
 	r.CallCreatedAt = rate.CallCreatedAt
 	r.Comment = rate.Comment
+
+	return r.ScoreCalc(form)
+}
+
+func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
+	r.ScoreRequired = 0
+	r.ScoreOptional = 0
 
 	for i, a := range r.Answers {
 		if form.Questions[i].Required {
