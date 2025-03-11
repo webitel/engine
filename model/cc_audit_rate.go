@@ -40,6 +40,7 @@ type SearchAuditRate struct {
 	CreatedAt    *FilterBetween
 	FormIds      []int32
 	RatedUserIds []int64
+	RolesIds     []int
 }
 
 func (a QuestionAnswers) ToJson() []byte {

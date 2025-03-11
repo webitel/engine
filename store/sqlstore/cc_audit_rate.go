@@ -104,6 +104,9 @@ func (s *SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, sear
 		"CallIds":      pq.Array(search.CallIds),
 		"FormIds":      pq.Array(search.FormIds),
 		"RatedUserIds": pq.Array(search.RatedUserIds),
+		"RolesIds":     pq.Array(search.RolesIds),
+		"ClassName":    model.PermissionAuditRate,
+		"Access":       auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"From":         model.GetBetweenFromTime(search.CreatedAt),
 		"To":           model.GetBetweenToTime(search.CreatedAt),
 	}
@@ -117,6 +120,18 @@ func (s *SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, sear
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 	and (:Q::varchar isnull or ("comment" ilike :Q::varchar))
+	and (:RolesIds::int8[] isnull or (grantor in (
+		select distinct (case when a2.can_login then a2.id else a3.id end)::int8
+		from directory.wbt_class c
+			inner join directory.wbt_default_acl a on a.object = c.id
+			inner join directory.wbt_auth a2 on a2.id = a.grantor
+			left join directory.wbt_auth_member am on am.role_id = a2.id
+			left join directory.wbt_auth a3 on a3.id = am.member_id and a3.can_login
+		where c.name = :ClassName::varchar
+		  and c.dc = :DomainId::int8
+		  and a.access&:Access = :Access
+		  and a.subject = any(:RolesIds::int[])
+	) ) )
 `,
 		model.AuditRate{}, f)
 	if err != nil {

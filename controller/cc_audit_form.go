@@ -199,6 +199,10 @@ func (c *Controller) SearchAuditRate(ctx context.Context, session *auth_manager.
 		}
 	}
 
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, session.GetPermission(model.PermissionAuditRate)) {
+		search.RolesIds = session.GetAclRoles()
+	}
+
 	return c.app.GetAuditRatePage(ctx, session.Domain(0), search)
 }
 
