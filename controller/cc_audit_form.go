@@ -221,6 +221,25 @@ func (c *Controller) ReadAuditRate(ctx context.Context, session *auth_manager.Se
 	return c.app.GetAuditRate(ctx, session.Domain(0), id)
 }
 
+func (c *Controller) UpdateAuditRate(ctx context.Context, session *auth_manager.Session, id int64,
+	rate *model.Rate) (*model.AuditRate, model.AppError) {
+	permission := session.GetPermission(model.PermissionAuditRate)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	return c.app.UpdateAuditRate(ctx, session.Domain(0), id, session.UserId, rate)
+
+}
+
 func (c *Controller) DeleteAuditRate(ctx context.Context, session *auth_manager.Session, id int64) (*model.AuditRate, model.AppError) {
 	permission := session.GetPermission(model.PermissionAuditRate)
 	if !permission.CanDelete() {

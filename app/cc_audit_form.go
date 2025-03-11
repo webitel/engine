@@ -206,6 +206,53 @@ func (app *App) AuditRateCheckAccess(ctx context.Context, domainId int64, id int
 	return app.Store.AuditRate().CheckAccess(ctx, domainId, id, groups, access)
 }
 
+func (app *App) UpdateAuditRate(ctx context.Context, domainId, id int64, updatedBy int64, rate *model.Rate) (*model.AuditRate, model.AppError) {
+	oldRate, err := app.GetAuditRate(ctx, domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(oldRate.Answers) != len(rate.Answers) {
+		return nil, model.NewBadRequestError("audit.rate.valid", "Answers")
+	}
+
+	oldRate.UpdatedBy = &model.Lookup{Id: int(updatedBy)}
+	oldRate.UpdatedAt = model.GetTime()
+	oldRate.Comment = rate.Comment
+
+	for k, v := range rate.Answers {
+		if v == nil {
+			// TODO
+			oldRate.Answers[k] = nil
+			continue
+		}
+		if oldRate.Answers[k] == nil {
+			oldRate.Answers[k] = &model.QuestionAnswer{}
+		}
+
+		if oldRate.Answers[k].Score != v.Score || oldRate.Answers[k].Comment != v.Comment {
+			oldRate.Answers[k].Score = v.Score
+			oldRate.Answers[k].Comment = v.Comment
+			oldRate.Answers[k].UpdatedBy = oldRate.UpdatedBy
+			oldRate.Answers[k].UpdatedAt = model.NewInt64(model.GetMillis())
+		}
+
+	}
+
+	var form *model.AuditForm
+	form, err = app.GetAuditForm(ctx, domainId, int32(oldRate.Form.Id))
+	if err != nil {
+		return nil, err
+	}
+
+	err = oldRate.ScoreCalc(form)
+	if err != nil {
+		return nil, err
+	}
+
+	return app.Store.AuditRate().Update(ctx, domainId, oldRate)
+}
+
 func (app *App) DeleteAuditRate(ctx context.Context, domainId int64, id int64) (*model.AuditRate, model.AppError) {
 	rate, err := app.GetAuditRate(ctx, domainId, id)
 	if err != nil {

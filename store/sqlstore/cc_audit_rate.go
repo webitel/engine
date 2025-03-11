@@ -158,6 +158,65 @@ where r.id = :Id and r.domain_id = :DomainId`, map[string]interface{}{
 	return int32(res.Int64), nil
 }
 
+func (s *SqlAuditRateStore) Update(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError) {
+	var ar *model.AuditRate
+	err := s.GetMaster().WithContext(ctx).SelectOne(&ar, `with r as (
+    update call_center.cc_audit_rate ar
+    set answers = :Answers,
+        comment = :Comment,
+        updated_by = :UpdatedBy,
+        updated_at = :UpdatedAt,
+        score_required = :ScoreRequired,
+        score_optional = :ScoreOptional
+    where id = :Id and domain_id = :DomainId
+    returning *
+)
+select r.id,
+       r.created_at,
+       call_center.cc_get_lookup(uc.id, coalesce(uc.name::character varying, uc.username::character varying)) AS created_by,
+       r.updated_at,
+       call_center.cc_get_lookup(u.id, coalesce(u.name::character varying, u.username::character varying))   AS updated_by,
+       call_center.cc_get_lookup(ur.id, ur.name::character varying)   AS rated_user,
+       call_center.cc_get_lookup(f.id, f.name::character varying)   AS form,
+       ans.v AS answers,
+       r.score_required,
+       r.score_optional,
+       r.comment,
+       r.call_id,
+       f.questions
+from  r
+    LEFT JOIN LATERAL ( SELECT jsonb_agg(
+                                            CASE
+                                                WHEN u_1.id IS NOT NULL THEN x.j || jsonb_build_object('updated_by',
+                                                                                                       call_center.cc_get_lookup(
+                                                                                                               u_1.id,
+                                                                                                               COALESCE(u_1.name, u_1.username::text)::character varying))
+                                                ELSE x.j
+                                                END ORDER BY x.i) AS v
+                             FROM jsonb_array_elements(r.answers) WITH ORDINALITY x(j, i)
+                                      LEFT JOIN directory.wbt_user u_1
+                                                ON u_1.id = (x.j -> 'updated_by'->'id'::text)::bigint) ans ON true
+    left join call_center.cc_audit_form f on f.id = r.form_id
+    LEFT JOIN directory.wbt_user uc ON uc.id = r.created_by
+    LEFT JOIN directory.wbt_user u ON u.id = r.updated_by
+    LEFT JOIN directory.wbt_user ur ON ur.id = r.rated_user_id`, map[string]any{
+		"DomainId":      domainId,
+		"Id":            rate.Id,
+		"UpdatedAt":     rate.UpdatedAt,
+		"UpdatedBy":     rate.UpdatedBy.GetSafeId(),
+		"Answers":       rate.Answers.ToJson(),
+		"ScoreRequired": rate.ScoreRequired,
+		"ScoreOptional": rate.ScoreOptional,
+		"Comment":       rate.Comment,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_audit_rate.update.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return ar, nil
+}
+
 func (s *SqlAuditRateStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	var rows int64
 	r, err := s.GetMaster().WithContext(ctx).Exec(`delete
