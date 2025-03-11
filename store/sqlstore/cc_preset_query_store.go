@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -40,7 +41,13 @@ from p`, map[string]interface{}{
 	})
 
 	if err != nil {
-		return nil, model.NewInternalError("store.sql_preset_query.save.app_error", err.Error())
+		switch e := err.(type) {
+		case *pq.Error: // TODO
+			if e.Constraint == "cc_preset_query_user_id_name_uindex" {
+				return nil, model.NewCustomCodeError("store.sql_preset_query.save.name", err.Error(), http.StatusConflict)
+			}
+		}
+		return nil, model.NewCustomCodeError("store.sql_preset_query.save.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return preset, nil
