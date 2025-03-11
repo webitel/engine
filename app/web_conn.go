@@ -297,19 +297,29 @@ func (c *WebConn) writePump() {
 }
 
 func (webCon *WebConn) SendHello() {
+	sess := webCon.GetSession()
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO)
 	msg.Add("server_node_id", webCon.App.nodeId)
 	msg.Add("server_build_commit", model.BuildNumber)
 	msg.Add("server_version", model.CurrentVersion)
 	msg.Add("server_time", model.GetMillis())
 	msg.Add("sock_id", webCon.id)
-	msg.Add("session", webCon.GetSession())
+	msg.Add("session", sess)
 	if webCon.App.b2b != nil {
 		msg.Add("b2bua", true)
 	}
 	if webCon.App.config.PingClientInterval > 0 {
 		msg.Add("ping_interval", webCon.App.config.PingClientInterval)
 	}
+
+	if sess.HasChatLicense() {
+		msg.Add("use_chat", true)
+	}
+
+	if sess.HasCallCenterLicense() {
+		msg.Add("use_cc", true)
+	}
+
 	webCon.Send <- msg
 }
 
