@@ -61,7 +61,9 @@ func (s SqlPresetQueryStore) GetAllPage(ctx context.Context, domainId, userId in
 		`domain_id = :DomainId
 				and user_id = :UserId
 				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:Sections::varchar[] isnull or section = any(:Sections))`,
+				and (:Sections::varchar[] isnull or section = any(:Sections))
+				and (:Q::varchar isnull or (name ilike :Q::varchar))
+	`,
 		model.PresetQuery{}, f)
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_preset_query.get_all.app_error", err.Error(), extractCodeFromErr(err))
