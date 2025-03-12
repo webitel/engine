@@ -22,8 +22,8 @@ func (api *presetQuery) CreatePresetQuery(ctx context.Context, in *engine.Create
 	preset := &model.PresetQuery{
 		Name:        in.Name,
 		Description: in.GetDescription(),
-		//Section:     in.Section, // todo
-		Preset: MarshalJsonpbToMap(in.Preset),
+		Section:     in.Section.String(),
+		Preset:      MarshalJsonpbToMap(in.Preset),
 	}
 
 	preset, err = api.ctrl.CreatePresetQuery(ctx, session, preset)
@@ -51,7 +51,10 @@ func (api *presetQuery) SearchPresetQuery(ctx context.Context, in *engine.Search
 			Sort:    in.Sort,
 		},
 		Ids: in.Id,
-		//Section: in.Section
+	}
+
+	for _, v := range in.Section {
+		req.Section = append(req.Section, v.String())
 	}
 
 	list, endList, err = api.ctrl.SearchPresetQuery(ctx, session, req)
@@ -95,8 +98,8 @@ func (api *presetQuery) UpdatePresetQuery(ctx context.Context, in *engine.Update
 		Id:          in.Id,
 		Name:        in.Name,
 		Description: in.GetDescription(),
-		//Section:     in.Section, // todo
-		Preset: MarshalJsonpbToMap(in.Preset),
+		Section:     in.Section.String(),
+		Preset:      MarshalJsonpbToMap(in.Preset),
 	}
 
 	preset, err = api.ctrl.UpdatePresetQuery(ctx, session, preset)
@@ -160,6 +163,7 @@ func NewPresetQueryApi(api *API) *presetQuery {
 }
 
 func transformPresetQuery(src *model.PresetQuery) *engine.PresetQuery {
+	s, _ := engine.PresetQuerySection_value[src.Section]
 	return &engine.PresetQuery{
 		Id:          src.Id,
 		Name:        src.Name,
@@ -167,6 +171,6 @@ func transformPresetQuery(src *model.PresetQuery) *engine.PresetQuery {
 		Preset:      UnmarshalJsonpb(src.Preset.ToSafeBytes()),
 		CreatedAt:   model.TimeToInt64(src.CreatedAt),
 		UpdatedAt:   model.TimeToInt64(src.UpdatedAt),
-		//Section:     0,
+		Section:     engine.PresetQuerySection(s),
 	}
 }
