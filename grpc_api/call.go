@@ -598,19 +598,22 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 }
 
 func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest) (*engine.CreateCallResponse, error) {
-	if in.From == nil || in.From.Id == 0 {
+	if in.From == nil || (in.From.Id == 0 && in.From.Extension == "") {
 		return nil, model.NewBadRequestError("grpc_api.call.create_call_na.check_params.from.required", "from required")
 	}
-	from := &model.EndpointRequest{
-		UserId: model.NewInt64(in.From.Id),
+
+	from := &model.EndpointRequest{}
+
+	if in.From.Id != 0 {
+		from.UserId = &in.From.Id
+	} else if in.From.Extension != "" {
+		from.Extension = model.NewString(in.From.Extension)
 	}
+
 	if in.From.AppId != "" {
 		from.AppId = model.NewString(in.From.AppId)
 	}
 
-	if in.From.Extension != "" {
-		from.Extension = model.NewString(in.From.Extension)
-	}
 	var req = &model.OutboundCallRequest{
 		From:        from,
 		Destination: in.GetDestination(),
