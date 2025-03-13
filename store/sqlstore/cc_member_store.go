@@ -322,24 +322,48 @@ func (s SqlMemberStore) Update(ctx context.Context, domainId int64, member *mode
             timezone_id = :TimezoneId,
             communications = :Communications,
             bucket_id = :BucketId,
-			ready_at = :MinOfferingAt,
-			stop_cause = :StopCause::varchar,
-			agent_id = :AgentId,
-			skill_id = :SkillId,
-			stop_at = case when :StopCause::varchar notnull and stop_at isnull then now() when :StopCause::varchar isnull and stop_at notnull then null else stop_at end,
-			attempts = :Attempts
-    where m1.id = :Id and m1.queue_id = :QueueId
-    returning *
-)
-select m.id,  m.stop_at, m.stop_cause, m.attempts, m.last_hangup_at, m.created_at, m.queue_id, m.priority, m.expire_at, m.variables, m.name, call_center.cc_get_lookup(ct.id, ct.name) as "timezone",
-			   call_center.cc_member_communications(m.communications) as communications,  call_center.cc_get_lookup(qb.id, qb.name::text) as bucket, ready_at,
-               call_center.cc_get_lookup(cs.id, cs.name::text) as skill, call_center.cc_get_lookup(a.id, (coalesce(agn.name, agn.username))::varchar) agent
-		from m
-			left join flow.calendar_timezones ct on m.timezone_id = ct.id
-			left join call_center.cc_bucket qb on m.bucket_id = qb.id
-			left join call_center.cc_skill cs on m.skill_id = cs.id
-			left join call_center.cc_agent a on m.agent_id = a.id
-			left join directory.wbt_user agn on agn.id = a.user_id`, map[string]interface{}{
+            ready_at = :MinOfferingAt,
+            stop_cause = :StopCause::varchar,
+            agent_id = :AgentId,
+            skill_id = :SkillId,
+            stop_at = case
+                          when :StopCause::varchar notnull and stop_at isnull then now()
+                          when :StopCause::varchar isnull and stop_at notnull then null
+                          else stop_at end,
+            attempts = :Attempts
+        where m1.id = :Id and m1.queue_id = :QueueId
+        returning *)
+select m.id,
+       m.stop_at,
+       m.stop_cause,
+       m.attempts,
+       m.last_hangup_at,
+       m.created_at,
+       m.queue_id,
+       m.priority,
+       m.expire_at,
+       m.variables,
+       m.name,
+       call_center.cc_get_lookup(ct.id, ct.name)              as                    "timezone",
+       call_center.cc_member_communications(m.communications) as                    communications,
+       call_center.cc_get_lookup(qb.id, qb.name::text)        as                    bucket,
+       ready_at,
+       call_center.cc_get_lookup(cs.id, cs.name::text)        as                    skill,
+       call_center.cc_get_lookup(a.id, (coalesce(agn.name, agn.username))::varchar) agent,
+       ac.id active_attempt_id,
+       ac.node_id active_app_id
+from m
+         left join flow.calendar_timezones ct on m.timezone_id = ct.id
+         left join call_center.cc_bucket qb on m.bucket_id = qb.id
+         left join call_center.cc_skill cs on m.skill_id = cs.id
+         left join call_center.cc_agent a on m.agent_id = a.id
+         left join directory.wbt_user agn on agn.id = a.user_id
+         left join lateral (
+              select a.id, a.node_id
+              from call_center.cc_member_attempt a 
+              where a.member_id = m.id and a.leaving_at isnull 
+              limit 1
+    ) ac on true`, map[string]interface{}{
 		"Priority":       member.Priority,
 		"ExpireAt":       member.ExpireAt,
 		"Variables":      member.Variables.ToJson(),

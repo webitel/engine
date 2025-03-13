@@ -130,6 +130,10 @@ func (app *App) PatchMember(ctx context.Context, domainId, queueId, id int64, pa
 		return nil, err
 	}
 
+	if oldMember.StopCause != nil && oldMember.ActiveAttemptId != nil && oldMember.ActiveAppId != nil && *oldMember.StopCause == "cancel" {
+		app.cc.Member().CancelAttempt(ctx, *oldMember.ActiveAttemptId, *oldMember.StopCause, *oldMember.ActiveAppId)
+	}
+
 	return oldMember, nil
 }
 
