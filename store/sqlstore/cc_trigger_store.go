@@ -185,7 +185,8 @@ func (s SqlTriggerStore) Update(ctx context.Context, domainId int64, trigger *mo
             timezone_id = :TimezoneId,
             timeout_sec = :Timeout,
             updated_by = :UpdatedBy,
-            updated_at = :UpdatedAt
+            updated_at = :UpdatedAt,
+			type = :Type
         where domain_id = :DomainId and id = :Id
         returning *)
 select t.id,
@@ -219,6 +220,7 @@ from t
 		"UpdatedBy":   trigger.UpdatedBy.GetSafeId(),
 		"UpdatedAt":   trigger.UpdatedAt,
 		"Timeout":     trigger.Timeout,
+		"Type":        trigger.Type,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_trigger.update.app_error", fmt.Sprintf("Id=%v, %s", trigger.Id, err.Error()), extractCodeFromErr(err))
