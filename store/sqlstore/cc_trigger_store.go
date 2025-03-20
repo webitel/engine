@@ -94,7 +94,7 @@ func (s SqlTriggerStore) GetAllByType(ctx context.Context, type_ string) ([]*mod
 	var triggers []*model.TriggerWithDomainID
 	fields := strings.Join(utils.MapFn(pq.QuoteIdentifier, model.Trigger{}.AllowFieldsWithDomainId()), ", ")
 	tableName := fmt.Sprintf("call_center.%s", pq.QuoteIdentifier(model.Trigger{}.EntityName())) // TODO :: do not hardcode scheme
-	query := fmt.Sprintf(`select %s from %s WHERE "type" =:Type`, fields, tableName)
+	query := fmt.Sprintf(`select %s from %s WHERE "type" =:Type and enabled`, fields, tableName)
 	args := map[string]interface{}{
 		"Type": type_,
 	}
