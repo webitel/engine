@@ -198,11 +198,24 @@ func (a *AMQP) createAppExchange() model.AppError {
 		true,
 		false,
 		false,
-		false,
+		true,
 		nil,
 	); err != nil {
 		return model.NewInternalError("amqp.declare.event_exchange.app_err", err.Error())
 	}
+
+	if err := a.channel.ExchangeDeclare(
+		model.CallExchange,
+		model.MQ_TOPIC,
+		true,
+		false,
+		false,
+		true,
+		nil,
+	); err != nil {
+		return model.NewInternalError("amqp.declare.case_exchange.app_err", err.Error())
+	}
+
 	return nil
 }
 
@@ -226,22 +239,6 @@ func (a *AMQP) Send(ctx context.Context, exchange string, rk string, body []byte
 		ContentType: "text/json",
 		Body:        body,
 	})
-}
-
-func (a *AMQP) init() {
-	err := a.DeclareExchanges()
-	if err != nil {
-		a.log.Critical(fmt.Sprintf("failed to declare exchanges: %v", err.Error()))
-		time.Sleep(time.Second)
-		os.Exit(1)
-	}
-
-	//err = a.DeclareQueues()
-	//if err != nil {
-	//	a.log.Critical(fmt.Sprintf("failed to declare queues: %v", err.Error()))
-	//	time.Sleep(time.Second)
-	//	os.Exit(1)
-	//}
 }
 
 func (a *AMQP) Close() {

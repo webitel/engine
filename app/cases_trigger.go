@@ -11,6 +11,7 @@ import (
 	"github.com/webitel/engine/utils"
 	flow "github.com/webitel/flow_manager/client"
 	"github.com/webitel/wlog"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -26,8 +27,7 @@ const (
 type TriggersByExpression map[string][]*model.TriggerWithDomainID
 
 type messageCase struct {
-	Case     string `json:"case"`
-	DomainId int64  `json:"domain_id"`
+	Case json.RawMessage `json:"case"`
 }
 
 type TriggerCase interface {
@@ -48,7 +48,22 @@ type TriggerCaseMQ struct {
 	channel       *amqp.Channel
 	store         store.Store
 	Queue         amqp.Queue
+	Exchange      string
 	flowManager   flow.FlowManager
+}
+
+func NewTriggerCases(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.CaseTriggersSettings) *TriggerCaseMQ {
+	return &TriggerCaseMQ{
+		log: log.With(wlog.Namespace("context"),
+			wlog.String("scope", "trigger-cases"),
+		),
+		store:         store,
+		flowManager:   flow,
+		config:        cfg,
+		reloadChan:    make(chan struct{}, 16),
+		stopChan:      make(chan struct{}),
+		stopQueueChan: make(chan struct{}),
+	}
 }
 
 func (ct *TriggerCaseMQ) loadTriggersByExpression() TriggersByExpression {
@@ -97,7 +112,7 @@ func (ct *TriggerCaseMQ) reloadTriggers() {
 			}
 			err := ct.loadTriggers()
 			if err != nil {
-				ct.log.Error(fmt.Sprintf("Could not reload triggers: %s", err.Error()))
+				ct.log.Error(fmt.Sprintf("could not reload triggers: %s", err.Error()))
 			}
 		}
 	}
@@ -107,7 +122,7 @@ func (ct *TriggerCaseMQ) Stop() {
 	if ct == nil {
 		return
 	}
-	ct.log.Debug("Trying to stopping TriggerCaseMQ")
+	ct.log.Debug("trying to stopping TriggerCaseMQ")
 	close(ct.stopChan)
 	close(ct.reloadChan)
 	<-ct.stopQueueChan
@@ -131,9 +146,55 @@ func (ct *TriggerCaseMQ) listen() error {
 	return nil
 }
 
+type trigger struct {
+	variables map[string]string
+	schemaId  int
+}
+
+func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, expression string) []*workflow.StartFlowRequest {
+	triggers := ct.loadTriggersByExpression()[expression]
+	if len(triggers) == 0 {
+		return nil
+	}
+
+	res := make([]*workflow.StartFlowRequest, 0, 3)
+
+	for _, tr := range triggers {
+		if tr.DomainId == domainId {
+			res = append(res, &workflow.StartFlowRequest{
+				SchemaId:  uint32(tr.Schema.Id),
+				DomainId:  domainId,
+				Variables: model.UnionStringMaps(tr.Variables),
+			})
+		}
+	}
+
+	return res
+}
+
 func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
+	reconnect := false
+	defer func() {
+		if !reconnect {
+			return
+		}
+		reconnect = false
+
+		err := ct.initConnection()
+		if err != nil {
+			// TODO fatal
+			ct.log.Error(fmt.Sprintf("could not reconnect ro amqp: %s", err.Error()))
+			return
+		}
+
+		err = ct.listen()
+		if err != nil {
+			ct.log.Error(fmt.Sprintf("could not start listen messages: %s", err.Error()))
+		}
+	}()
+
 	for {
 		select {
 		case <-ct.stopChan:
@@ -141,59 +202,45 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 			return
 		case amqpErr, ok := <-ct.errorChan:
 			if !ok {
-				ct.log.Info("Closed rabbit error channel")
+				ct.log.Info("closed rabbit error channel")
 				return
 			}
 			ct.log.Error(fmt.Sprintf("amqp connection error: %s", amqpErr.Error()))
-			err := ct.initConnection()
-			if err != nil {
-				// TODO reconnect
-				ct.log.Error(fmt.Sprintf("Could not reconnect ro amqp: %s", err.Error()))
+			reconnect = true
+
+		case msg, ok := <-messages:
+			if !ok {
 				return
 			}
 
-			err = ct.listen()
-			if err != nil {
-				ct.log.Error(fmt.Sprintf("Could not start listen messages: %s", err.Error()))
-			}
-			return
+			expression, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
 
-		case msg := <-messages:
-			ct.log.Debug(fmt.Sprintf("Received a message: %s; by routiong key: %s", string(msg.Body), msg.RoutingKey))
-			expression := ct.getExpressionByRoutingKey(msg.RoutingKey)
+			requests := ct.getFlowRequests(domainId, expression)
 
-			triggers := ct.loadTriggersByExpression()[expression]
-			if len(triggers) == 0 {
-				ct.log.Debug(fmt.Sprintf("No trigger found for key %s and expression %s", msg.RoutingKey, expression))
+			if len(requests) == 0 {
+				ct.log.Debug(fmt.Sprintf("no trigger found for key %s and expression %s", msg.RoutingKey, expression))
 				continue
 			}
+
 			message := &messageCase{}
 			err := json.Unmarshal(msg.Body, message)
 			if err != nil {
-				ct.log.Error(fmt.Sprintf("Could not unmarshal message  %s: %s", msg.Body, err.Error()))
+				ct.log.Error(fmt.Sprintf("could not unmarshal message  %s: %s", msg.Body, err.Error()))
 				continue
 			}
 
-			for _, trigger := range triggers {
-				if trigger.DomainId != message.DomainId {
-					ct.log.Debug(fmt.Sprintf("Skipping trigger %d because domain ID does not match: %d, %dd", trigger.Id, message.DomainId, trigger.DomainId))
-					continue
-				}
-				variables := trigger.Variables
-				if variables == nil {
-					variables = make(model.StringMap, 1)
-				}
-				variables["case"] = message.Case
-
-				request := workflow.StartFlowRequest{DomainId: trigger.DomainId, SchemaId: uint32(trigger.Schema.Id), Variables: variables}
+			for _, rs := range requests {
 				go func(r *workflow.StartFlowRequest) {
+					r.Variables["case"] = string(message.Case)
+					r.Variables["action"] = expression
+
 					id, err := ct.startFlowRequestWithContext(ctx, r)
 					if err != nil {
-						ct.log.Error(fmt.Sprintf("Could not start flow request: %s: %s", r, err.Error()))
+						ct.log.Error(fmt.Sprintf("could not start flow request: %s: %s", r, err.Error()))
 						return
 					}
-					ct.log.Info(fmt.Sprintf("Started flow for with id : %s", id))
-				}(&request)
+					ct.log.Info(fmt.Sprintf("started flow for with id : %s", id))
+				}(rs)
 			}
 		}
 	}
@@ -211,7 +258,7 @@ func (ct *TriggerCaseMQ) startFlowRequestWithContext(context context.Context, re
 				if backoff.Attempt() > FlowMaxAttemptsToStart {
 					return "", err
 				}
-				ct.log.Debug(fmt.Sprintf("Retrying to start flow with request %s: %s. Attempt: %d", request, err.Error(), backoff.Attempt()))
+				ct.log.Debug(fmt.Sprintf("retrying to start flow with request %s: %s. Attempt: %d", request, err.Error(), backoff.Attempt()))
 				time.Sleep(backoff.Duration())
 				continue
 			}
@@ -246,7 +293,7 @@ func (ct *TriggerCaseMQ) loadTriggers() error {
 	for _, trigger := range triggerSlice {
 		triggersMap[trigger.Expression] = append(triggersMap[trigger.Expression], trigger)
 	}
-	ct.log.Debug(fmt.Sprintf("Loaded %d triggers: %+v", len(triggersMap), triggersMap))
+	ct.log.Debug(fmt.Sprintf("loaded %d triggers: %+v", len(triggersMap), triggersMap))
 	ct.storeTriggersByExpression(triggersMap)
 	return nil
 }
@@ -277,28 +324,31 @@ func (ct *TriggerCaseMQ) initConnection() error {
 
 func (ct *TriggerCaseMQ) initQueue() error {
 	var err error
-	ct.Queue, err = ct.channel.QueueDeclare(ct.config.Queue, true, false, false, false, map[string]interface{}{
-		"x-message-ttl": ct.config.QueueMessagesTTL,
-	})
+
+	err = ct.channel.ExchangeDeclare(ct.config.Exchange, "topic", true, false, false, true, nil)
+	if err != nil {
+		return err
+	}
+
+	ct.Queue, err = ct.channel.QueueDeclare(ct.config.Queue, true, false, false, true, nil)
 	if err != nil {
 		return fmt.Errorf("could not create queue %s: %w", ct.config.Queue, err)
+	}
+
+	err = ct.channel.QueueBind(ct.Queue.Name, "#", ct.config.Exchange, true, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (ct *TriggerCaseMQ) getExpressionByRoutingKey(routingKey string) string {
-	topic := strings.Replace(ct.config.Topic, "*", "", 1)
-	return strings.Replace(routingKey, topic, "", 1)
-}
-
-func NewTriggerCases(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.CaseTriggersSettings) *TriggerCaseMQ {
-	return &TriggerCaseMQ{
-		log:           log,
-		store:         store,
-		flowManager:   flow,
-		config:        cfg,
-		reloadChan:    make(chan struct{}, 32),
-		stopChan:      make(chan struct{}),
-		stopQueueChan: make(chan struct{})}
+func (ct *TriggerCaseMQ) getExpressionByRoutingKey(routingKey string) (expression string, domainId int64) {
+	s := strings.Split(routingKey, ".")
+	if len(s) < 2 {
+		return "", 0
+	}
+	expression = s[0]
+	domainId, _ = strconv.ParseInt(s[1], 10, 64)
+	return
 }
