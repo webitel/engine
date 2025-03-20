@@ -151,7 +151,7 @@ type trigger struct {
 	schemaId  int
 }
 
-func (ct *TriggerCaseMQ) getRequests(domainId int64, expression string) []*workflow.StartFlowRequest {
+func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, expression string) []*workflow.StartFlowRequest {
 	triggers := ct.loadTriggersByExpression()[expression]
 	if len(triggers) == 0 {
 		return nil
@@ -215,7 +215,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 
 			expression, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
 
-			requests := ct.getRequests(domainId, expression)
+			requests := ct.getFlowRequests(domainId, expression)
 
 			if len(requests) == 0 {
 				ct.log.Debug(fmt.Sprintf("no trigger found for key %s and expression %s", msg.RoutingKey, expression))
