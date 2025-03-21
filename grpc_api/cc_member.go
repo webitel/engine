@@ -669,6 +669,20 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 		search.Ids = in.GetId()
 	}
 
+	if in.GetPriority() != nil {
+		search.Priority = &model.FilterBetween{
+			From: in.GetPriority().GetFrom(),
+			To:   in.GetPriority().GetTo(),
+		}
+	}
+
+	if in.GetCreatedAt() != nil {
+		search.CreatedAt = &model.FilterBetween{
+			From: in.GetCreatedAt().GetFrom(),
+			To:   in.GetCreatedAt().GetTo(),
+		}
+	}
+
 	cnt, err = api.app.ResetMembers(ctx, session.Domain(0), search)
 
 	if err != nil {
