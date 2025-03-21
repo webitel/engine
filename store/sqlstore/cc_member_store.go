@@ -582,16 +582,25 @@ from (
       and (:Variables::jsonb isnull or m.variables @> :Variables::jsonb)
       and (:Buckets::int8[] isnull or m.bucket_id = any (:Buckets::int8[]))
       and (:AgentIds::int4[] isnull or m.agent_id = any (:AgentIds::int4[]))
+      and (:Cause::text[] isnull or m.stop_cause = any (:Cause::text[]))
+	  and ( (:PriorityFrom::smallint isnull or :PriorityFrom::smallint = 0 or priority >= :PriorityFrom ))
+	  and ( (:PriorityTo::smallint isnull or :PriorityTo::smallint = 0 or priority <= :PriorityTo ))
+	  and ( :CreatedAtFrom::timestamptz isnull or created_at >= :CreatedAtFrom::timestamptz )
+	  and ( :CreatedAtTo::timestamptz isnull or created_at <= :CreatedAtTo::timestamptz )
  ) x
 where m2.id = x.id`, map[string]interface{}{
-		"DomainId": domainId,
-		"Ids":      pq.Array(req.Ids),
-		"Buckets":  pq.Array(req.Buckets),
-		//"Cause":     pq.Array(req.Causes),
-		"AgentIds":  pq.Array(req.AgentIds),
-		"Numbers":   pq.Array(req.Numbers),
-		"Variables": req.Variables.ToSafeJson(),
-		"QueueId":   req.QueueId,
+		"DomainId":      domainId,
+		"Ids":           pq.Array(req.Ids),
+		"Buckets":       pq.Array(req.Buckets),
+		"Cause":         pq.Array(req.Causes),
+		"AgentIds":      pq.Array(req.AgentIds),
+		"Numbers":       pq.Array(req.Numbers),
+		"Variables":     req.Variables.ToSafeJson(),
+		"QueueId":       req.QueueId,
+		"PriorityFrom":  model.GetBetweenFrom(req.Priority),
+		"PriorityTo":    model.GetBetweenTo(req.Priority),
+		"CreatedAtFrom": model.GetBetweenFromTime(req.CreatedAt),
+		"CreatedAtTo":   model.GetBetweenToTime(req.CreatedAt),
 	})
 
 	if err != nil {
