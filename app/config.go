@@ -2,10 +2,12 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/BoRuDar/configuration/v4"
-	"github.com/webitel/engine/model"
+	"fmt"
 	"io"
 	"os"
+
+	"github.com/BoRuDar/configuration/v5"
+	"github.com/webitel/engine/model"
 )
 
 func (app *App) Config() *model.Config {
@@ -17,18 +19,13 @@ func (app *App) MaxSocketInboundMsgSize() int {
 }
 
 func loadConfig() (*model.Config, error) {
-	var config model.Config
-	configurator := configuration.New(
-		&config,
+	config, err := configuration.New[model.Config](
 		configuration.NewEnvProvider(),
 		configuration.NewFlagProvider(),
 		configuration.NewDefaultProvider(),
-	).SetOptions(configuration.OnFailFnOpt(func(err error) {
-		//log.Println(err)
-	}))
-
-	if err := configurator.InitValues(); err != nil {
-		//return nil, err
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to init config: %w", err)
 	}
 
 	if config.ConfigFile != nil && *config.ConfigFile != "" {
@@ -55,5 +52,5 @@ func loadConfig() (*model.Config, error) {
 		config.CaseTriggersSettings.BrokerUrl = config.MessageQueueSettings.Url
 	}
 
-	return &config, nil
+	return config, nil
 }

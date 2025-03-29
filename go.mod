@@ -16,7 +16,7 @@ require (
 	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.36.5-20250218105124-2ee3869e4b3a.1
 	buf.build/gen/go/webitel/workflow/protocolbuffers/go v1.33.0-20240411132047-cd3c8f61d791.1
 	firebase.google.com/go/v4 v4.14.1
-	github.com/BoRuDar/configuration/v4 v4.5.0
+	github.com/BoRuDar/configuration/v5 v5.0.1
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/XSAM/otelsql v0.32.0
 	github.com/ghettovoice/gosip v0.0.0-20231005134608-3b981d26e5cc

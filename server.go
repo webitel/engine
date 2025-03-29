@@ -17,7 +17,7 @@ func main() {
 	interruptChan := make(chan os.Signal, 1)
 	a, err := app.New()
 	if err != nil {
-		wlog.Critical("failed to start", wlog.Err(err))
+		wlog.Critical("failed to start", wlog.String("error", err.Error()))
 		return
 	}
 	defer a.Shutdown()
