@@ -19,7 +19,7 @@ var (
 		model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
 		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
 		model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,
-		model.SysNameIsFulltextSearchEnabled,
+		model.SysNameIsFulltextSearchEnabled, model.SysNameHideContact,
 	}
 )
 

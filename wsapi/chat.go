@@ -99,6 +99,7 @@ func (api *API) closeChat(ctx context.Context, conn *app.WebConn, req *model.Web
 		return nil, NewInvalidWebSocketParamError(req.Action, "cause")
 	}
 
+	// TODO: chat close reason
 	err := api.ctrl.CloseChat(conn.GetSession(), channelId, conversationId, "what reason is this??")
 	return nil, err
 }
