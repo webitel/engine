@@ -118,6 +118,16 @@ func (c *Calendar) IsValid() AppError {
 	if len(c.Accepts) == 0 {
 		return NewBadRequestError("model.calendar.is_valid.accepts.app_error", "name="+c.Name)
 	}
+
+	for _, a := range c.Accepts {
+		if !(a.StartTimeOfDay >= 0 && a.StartTimeOfDay <= 1440) {
+			return NewBadRequestError("model.calendar.is_valid.accepts.start_time_of_day", "start_time_of_day must be in the range 0-1440.")
+		}
+		if !(a.EndTimeOfDay >= 0 && a.EndTimeOfDay <= 1440) {
+			return NewBadRequestError("model.calendar.is_valid.accepts.end_time_of_day", "end_time_of_day must be in the range 0-1440.")
+		}
+	}
+
 	uq := make(map[string]struct{})
 	for _, v := range c.Excepts {
 		if v.Disabled {
