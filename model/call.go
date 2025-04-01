@@ -114,8 +114,9 @@ type BridgeCall struct {
 }
 
 type BlindTransferInfo struct {
-	Id        string `json:"id" db:"id"`
-	ContactId *int64 `json:"contact_id" db:"contact_id"`
+	Id              string `json:"id" db:"id"`
+	ContactId       *int64 `json:"contact_id" db:"contact_id"`
+	QueueUnanswered bool   `json:"queue_unanswered" db:"queue_unanswered"`
 }
 
 const (
