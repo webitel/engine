@@ -520,6 +520,11 @@ func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *mode
 	if err != nil {
 		return err
 	}
+
+	if info.QueueUnanswered {
+		return model.NewBadRequestError("app.call.transfer", "сannot transfer an unanswered call from the queue.")
+	}
+
 	var v map[string]string
 	if info.ContactId != nil {
 		v = map[string]string{
