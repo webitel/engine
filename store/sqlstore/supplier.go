@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -261,8 +262,9 @@ func (s *SqlSupplier) initConnection() {
 	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
 
 	if len(s.settings.DataSourceReplicas) > 0 {
-		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
-		for i, replica := range s.settings.DataSourceReplicas {
+		replicas := strings.Split(s.settings.DataSourceReplicas, ";")
+		s.replicas = make([]*gorp.DbMap, len(replicas))
+		for i, replica := range replicas {
 			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
 		}
 	}

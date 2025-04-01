@@ -3,11 +3,16 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-
 	"github.com/BoRuDar/configuration/v5"
 	"github.com/webitel/engine/model"
+	"io"
+	"os"
+	"reflect"
+)
+
+const (
+	DefaultProviderName = `DefaultProvider`
+	DefaultProviderTag  = `default`
 )
 
 func (app *App) Config() *model.Config {
@@ -22,8 +27,9 @@ func loadConfig() (*model.Config, error) {
 	config, err := configuration.New[model.Config](
 		configuration.NewEnvProvider(),
 		configuration.NewFlagProvider(),
-		configuration.NewDefaultProvider(),
+		NewDefaultProvider(),
 	)
+
 	if err != nil {
 		return nil, fmt.Errorf("unable to init config: %w", err)
 	}
@@ -53,4 +59,31 @@ func loadConfig() (*model.Config, error) {
 	}
 
 	return config, nil
+}
+
+// NewDefaultProvider creates new provider which sets values from `default` tag
+// nolint:revive
+func NewDefaultProvider() defaultProvider {
+	return defaultProvider{}
+}
+
+type defaultProvider struct{}
+
+func (defaultProvider) Name() string {
+	return DefaultProviderName
+}
+
+func (defaultProvider) Tag() string {
+	return DefaultProviderTag
+}
+
+func (defaultProvider) Init(_ any) error {
+	return nil
+}
+
+func (dp defaultProvider) Provide(field reflect.StructField, v reflect.Value) error {
+	valStr := field.Tag.Get(DefaultProviderTag)
+	// allow empty string
+
+	return configuration.SetField(field, v, valStr)
 }
