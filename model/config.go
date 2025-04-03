@@ -56,7 +56,7 @@ type Config struct {
 	SuffixNumberMaskLen   int                  `json:"suffix_number_mask_len" flag:"suffix_number_mask_len|5|Suffix mask length number" env:"SUFFIX_NUMBER_MASK_LEN"`
 	//EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
 	MaxMemberCommunications int     `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications" env:"MAX_MEMBER_COMMUNICATIONS"`
-	PublicHostName          *string `json:"public_host" flag:"public_host||Public hostname" env:"PUBLIC_HOST"`
+	PublicHostName          *string `json:"public_host" flag:"public_host||Public hostname" default:"" env:"PUBLIC_HOST"`
 	B2BSettings             B2BSettings
 	Push                    PushConfig
 	Log                     LogSettings          `json:"log"`
