@@ -48,11 +48,18 @@ type ChatMessage struct {
 }
 
 type ChatMember struct {
-	Id         string  `json:"id"`
-	UserId     int64   `json:"user_id"`
-	Type       string  `json:"type"`
-	Name       string  `json:"name"`
-	ExternalId *string `json:"external_id,omitempty"`
+	Id         string   `json:"id"`
+	UserId     int64    `json:"user_id"`
+	Type       string   `json:"type"`
+	Name       string   `json:"name"`
+	ExternalId *string  `json:"external_id,omitempty"`
+	Via        *Gateway `json:"via,omitempty"`
+}
+
+type Gateway struct {
+	Id   int64  `json:"id,omitempty"`
+	Type string `json:"type,omitempty"`
+	Name string `json:"name,omitempty"`
 }
 
 type Conversation struct {

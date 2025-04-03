@@ -99,8 +99,10 @@ from (select 1                    pri,
                  ch2.type,
                  ch2.user_id,
                  ch2.name,
-                 ch2.props ->> 'user' as external_id
+                 ch2.props ->> 'user' as external_id,
+          		 case when ch2.internal then null else json_build_object('id', b.id, 'name', b.name, 'type', b.provider) end AS via
           from chat.channel ch2
+            left join chat.bot b on connection = b.id::text
           where ch2.conversation_id = c.id::uuid
             and (not ch2.id::uuid = ch.id or ch.id isnull)
           limit 10) t
