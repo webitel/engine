@@ -22,7 +22,7 @@ type B2BSettings struct {
 
 type SipSettings struct {
 	Proxy       string `json:"proxy" flag:"open_sip_addr|opensips|OpenSIP address" env:"OPEN_SIP_ADDR"`
-	ServerAddr  string `json:"server_addr" flag:"ws_sip_addr||Sip websocket address"  env:"WS_SIP_ADDR"`
+	ServerAddr  string `json:"server_addr" flag:"ws_sip_addr||Sip websocket address" default:""  env:"WS_SIP_ADDR"`
 	PublicProxy string `json:"public_proxy" flag:"sip_proxy_addr||Public sip proxy address" default:"" env:"SIP_PROXY_ADDR"`
 }
 
@@ -64,7 +64,7 @@ type Config struct {
 }
 
 type PushConfig struct {
-	FirebaseServiceAccount string `json:"push_firebase" flag:"push_firebase||Firebase service account file location" env:"PUSH_FIREBASE"`
+	FirebaseServiceAccount string `json:"push_firebase" flag:"push_firebase||Firebase service account file location" default:"" env:"PUSH_FIREBASE"`
 
 	ApnHost     string `json:"push_apn_host" flag:"push_apn_host||APN http host"  default:"" env:"PUSH_APN_HOST"`
 	ApnCertFile string `json:"push_apn_cert_file" flag:"push_apn_cert_file||APN certificate file location"  default:"" env:"PUSH_APN_CERT_FILE"`
@@ -81,7 +81,7 @@ type MessageQueueSettings struct {
 }
 
 type ServerSettings struct {
-	Address        string   `json:"address" flag:"grpc_addr||GRPC host" env:"GRPC_ADDR"`
+	Address        string   `json:"address" flag:"grpc_addr||GRPC host" default:"" env:"GRPC_ADDR"`
 	Port           int      `json:"port" flag:"grpc_port|0|GRPC port" env:"GRPC_PORT"`
 	Network        string   `json:"network" flag:"grpc_network|tcp|GRPC network" env:"GRPC_NETWORK"`
 	MaxMessageSize ByteSize `json:"max_message_size" flag:"grpc_max_message_size|16MB|Maximum GRPC message size" env:"GRPC_MAX_MESSAGE_SIZE"`
