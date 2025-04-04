@@ -198,18 +198,19 @@ type AttemptHistory struct {
 	MemberCallId *string           `json:"member_call_id" db:"member_call_id"`
 	Variables    map[string]string `json:"variables" db:"variables"`
 
-	Agent       *Lookup             `json:"agent" db:"agent"`
-	AgentCallId *string             `json:"agent_call_id" db:"agent_call_id"`
-	Position    int                 `json:"position" db:"position"`
-	Resource    *Lookup             `json:"resource" db:"resource"`
-	Bucket      *Lookup             `json:"bucket" db:"bucket"`
-	List        *Lookup             `json:"list" db:"list"`
-	Display     string              `json:"display" db:"display"`
-	Destination MemberCommunication `json:"destination" db:"destination"`
-	Active      bool                `json:"active" db:"active"` // FIXME delete me
-	Result      string              `json:"result" db:"result"`
-	AmdResult   *string             `json:"amd_result" db:"amd_result"`
-	Attempts    *int32              `json:"attempts" db:"attempts"`
+	Agent         *Lookup             `json:"agent" db:"agent"`
+	OfferedAgents []*Lookup           `json:"offered_agents" db:"offered_agents"`
+	AgentCallId   *string             `json:"agent_call_id" db:"agent_call_id"`
+	Position      int                 `json:"position" db:"position"`
+	Resource      *Lookup             `json:"resource" db:"resource"`
+	Bucket        *Lookup             `json:"bucket" db:"bucket"`
+	List          *Lookup             `json:"list" db:"list"`
+	Display       string              `json:"display" db:"display"`
+	Destination   MemberCommunication `json:"destination" db:"destination"`
+	Active        bool                `json:"active" db:"active"` // FIXME delete me
+	Result        string              `json:"result" db:"result"`
+	AmdResult     *string             `json:"amd_result" db:"amd_result"`
+	Attempts      *int32              `json:"attempts" db:"attempts"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -228,6 +229,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"member",
 		"variables",
 		"agent",
+		"offered_agents",
 		"position",
 		"resource",
 		"bucket",
@@ -328,11 +330,12 @@ type SearchAttempts struct {
 	QueueIds  []int64 `json:"queue_ids" db:"queue_ids"`
 	BucketIds []int64 `json:"bucket_ids" db:"bucket_ids"`
 	//Destination *string       `json:"destination" db:"destination"`
-	AgentIds   []int64        `json:"agent_ids" db:"agent_ids"`
-	Result     []string       `json:"result" db:"result"`
-	LeavingAt  *FilterBetween `json:"leaving_at" db:"leaving_at"`
-	OfferingAt *FilterBetween `json:"offering_at" db:"offering_at"`
-	Duration   *FilterBetween `json:"duration" db:"duration"`
+	AgentIds        []int64        `json:"agent_ids" db:"agent_ids"`
+	Result          []string       `json:"result" db:"result"`
+	LeavingAt       *FilterBetween `json:"leaving_at" db:"leaving_at"`
+	OfferingAt      *FilterBetween `json:"offering_at" db:"offering_at"`
+	Duration        *FilterBetween `json:"duration" db:"duration"`
+	OfferedAgentIds []int64        `json:"offered_agent_ids" db:"offered_agent_ids"`
 }
 
 type SearchOfflineQueueMembers struct {
