@@ -86,6 +86,11 @@ func (t *Trigger) IsValid() AppError {
 	default:
 		return newAppError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
 	}
+
+	if len(t.Expression) == 0 {
+		return NewBadRequestError("trigger.validation.expression", "expression is required")
+	}
+
 	return nil
 }
 
