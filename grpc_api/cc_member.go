@@ -630,6 +630,11 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 	}, nil
 }
 
+func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMembersRequest) (*engine.ListMember, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequest) (*engine.ResetMembersResponse, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -831,12 +836,13 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 			Fields:  in.GetFields(),
 			Sort:    in.GetSort(),
 		},
-		Ids:       in.GetId(),
-		MemberIds: in.GetMemberId(),
-		QueueIds:  in.GetQueueId(),
-		BucketIds: in.GetBucketId(),
-		AgentIds:  in.GetAgentId(),
-		Result:    in.GetResult(),
+		Ids:             in.GetId(),
+		MemberIds:       in.GetMemberId(),
+		QueueIds:        in.GetQueueId(),
+		BucketIds:       in.GetBucketId(),
+		AgentIds:        in.GetAgentId(),
+		OfferedAgentIds: in.GetOfferedAgentId(),
+		Result:          in.GetResult(),
 	}
 
 	if in.JoinedAt != nil {
@@ -1247,27 +1253,28 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 
 func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 	item := &engine.AttemptHistory{
-		Id:           src.Id,
-		JoinedAt:     model.TimeToInt64(src.JoinedAt),
-		OfferingAt:   model.TimeToInt64(src.OfferingAt),
-		BridgedAt:    model.TimeToInt64(src.BridgedAt),
-		ReportingAt:  model.TimeToInt64(src.ReportingAt),
-		LeavingAt:    model.TimeToInt64(src.LeavingAt),
-		Channel:      src.Channel,
-		Queue:        GetProtoLookup(src.Queue),
-		Member:       GetProtoLookup(src.Member),
-		MemberCallId: "",
-		Variables:    src.Variables,
-		Agent:        GetProtoLookup(src.Agent),
-		AgentCallId:  "",
-		Position:     int32(src.Position),
-		Resource:     GetProtoLookup(src.Resource),
-		Bucket:       GetProtoLookup(src.Bucket),
-		List:         GetProtoLookup(src.List),
-		Display:      src.Display,
-		Destination:  toEngineDestination(src.Destination),
-		Result:       src.Result,
-		AmdResult:    defaultString(src.AmdResult),
+		Id:            src.Id,
+		JoinedAt:      model.TimeToInt64(src.JoinedAt),
+		OfferingAt:    model.TimeToInt64(src.OfferingAt),
+		BridgedAt:     model.TimeToInt64(src.BridgedAt),
+		ReportingAt:   model.TimeToInt64(src.ReportingAt),
+		LeavingAt:     model.TimeToInt64(src.LeavingAt),
+		Channel:       src.Channel,
+		Queue:         GetProtoLookup(src.Queue),
+		Member:        GetProtoLookup(src.Member),
+		MemberCallId:  "",
+		Variables:     src.Variables,
+		Agent:         GetProtoLookup(src.Agent),
+		OfferedAgents: GetProtoLookups(src.OfferedAgents),
+		AgentCallId:   "",
+		Position:      int32(src.Position),
+		Resource:      GetProtoLookup(src.Resource),
+		Bucket:        GetProtoLookup(src.Bucket),
+		List:          GetProtoLookup(src.List),
+		Display:       src.Display,
+		Destination:   toEngineDestination(src.Destination),
+		Result:        src.Result,
+		AmdResult:     defaultString(src.AmdResult),
 	}
 
 	if src.MemberCallId != nil {

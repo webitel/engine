@@ -686,24 +686,25 @@ func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int6
 	var att []*model.AttemptHistory
 
 	f := map[string]interface{}{
-		"Domain":       domainId,
-		"Q":            search.GetQ(),
-		"Limit":        search.GetLimit(),
-		"Offset":       search.GetOffset(),
-		"From":         model.GetBetweenFromTime(search.JoinedAt),
-		"To":           model.GetBetweenToTime(search.JoinedAt),
-		"Ids":          pq.Array(search.Ids),
-		"QueueIds":     pq.Array(search.QueueIds),
-		"BucketIds":    pq.Array(search.BucketIds),
-		"MemberIds":    pq.Array(search.MemberIds),
-		"AgentIds":     pq.Array(search.AgentIds),
-		"Result":       pq.Array(search.Result),
-		"OfferingFrom": model.GetBetweenFromTime(search.OfferingAt),
-		"OfferingTo":   model.GetBetweenToTime(search.OfferingAt),
-		"LeavingFrom":  model.GetBetweenFromTime(search.LeavingAt),
-		"LeavingTo":    model.GetBetweenToTime(search.LeavingAt),
-		"DurationFrom": model.GetBetweenFrom(search.Duration),
-		"DurationTo":   model.GetBetweenTo(search.Duration),
+		"Domain":          domainId,
+		"Q":               search.GetQ(),
+		"Limit":           search.GetLimit(),
+		"Offset":          search.GetOffset(),
+		"From":            model.GetBetweenFromTime(search.JoinedAt),
+		"To":              model.GetBetweenToTime(search.JoinedAt),
+		"Ids":             pq.Array(search.Ids),
+		"QueueIds":        pq.Array(search.QueueIds),
+		"BucketIds":       pq.Array(search.BucketIds),
+		"MemberIds":       pq.Array(search.MemberIds),
+		"AgentIds":        pq.Array(search.AgentIds),
+		"OfferedAgentIds": pq.Array(search.OfferedAgentIds),
+		"Result":          pq.Array(search.Result),
+		"OfferingFrom":    model.GetBetweenFromTime(search.OfferingAt),
+		"OfferingTo":      model.GetBetweenToTime(search.OfferingAt),
+		"LeavingFrom":     model.GetBetweenFromTime(search.LeavingAt),
+		"LeavingTo":       model.GetBetweenToTime(search.LeavingAt),
+		"DurationFrom":    model.GetBetweenFrom(search.Duration),
+		"DurationTo":      model.GetBetweenTo(search.Duration),
 	}
 
 	err := s.ListQuery(ctx, &att, search.ListRequest,
@@ -714,6 +715,7 @@ func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int6
 	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
+	and (:OfferedAgentIds::int[] isnull or offered_agent_ids && :OfferedAgentIds::int[] )
 	
 	and ( :OfferingFrom::timestamptz isnull or offering_at >= :OfferingFrom::timestamptz )
 	and ( :OfferingTo::timestamptz isnull or offering_at <= :OfferingTo::timestamptz )
