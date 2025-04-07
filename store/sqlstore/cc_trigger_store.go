@@ -43,9 +43,9 @@ func (s SqlTriggerStore) CheckAccess(ctx context.Context, domainId int64, id int
 func (s SqlTriggerStore) Create(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError) {
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&trigger, `with t as (
     insert into call_center.cc_trigger (domain_id, name, enabled, type, schema_id, variables, description, expression,
-                                    timezone_id, created_by, updated_by, created_at, updated_at, timeout_sec)
+                                    timezone_id, created_by, updated_by, created_at, updated_at, timeout_sec, "object", "event")
     values (:DomainId, :Name, :Enabled, :Type, :SchemaId, :Variables, :Description, :Expression,
-                :TimezoneId, :CreatedBy, :UpdatedBy, :CreatedAt, :UpdatedAt, :TimeoutSec)
+                :TimezoneId, :CreatedBy, :UpdatedBy, :CreatedAt, :UpdatedAt, :TimeoutSec, :Object, :Event)
     returning *
 )
 select
@@ -62,7 +62,9 @@ select
     call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)::text) as created_by,
     call_center.cc_get_lookup(uu.id, coalesce(uu.name, uu.username)::text) as updated_by,
     t.created_at,
-    t.updated_at
+    t.updated_at,
+   	t.object,
+    t.event
 from t
     left join flow.acr_routing_scheme s on s.id = t.schema_id
     left join flow.calendar_timezones tz on tz.id = t.timezone_id
@@ -83,6 +85,8 @@ from t
 			"CreatedAt":   trigger.CreatedAt,
 			"UpdatedAt":   trigger.UpdatedAt,
 			"TimeoutSec":  trigger.Timeout,
+			"Object":      trigger.Object,
+			"Event":       trigger.Event,
 		}); nil != err {
 		return nil, model.NewCustomCodeError("store.sql_trigger.save.app_error", fmt.Sprintf("name=%v, %v", trigger.Name, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -186,7 +190,9 @@ func (s SqlTriggerStore) Update(ctx context.Context, domainId int64, trigger *mo
             timeout_sec = :Timeout,
             updated_by = :UpdatedBy,
             updated_at = :UpdatedAt,
-			type = :Type
+			type = :Type,
+			"object" = :Object,
+			"event" = :Event
         where domain_id = :DomainId and id = :Id
         returning *)
 select t.id,
@@ -202,7 +208,9 @@ select t.id,
        call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)::text) as created_by,
        call_center.cc_get_lookup(uu.id, coalesce(uu.name, uu.username)::text) as updated_by,
        t.created_at,
-       t.updated_at
+       t.updated_at,
+	   t.object,
+	   t.event
 from t
          left join flow.acr_routing_scheme s on s.id = t.schema_id
          left join flow.calendar_timezones tz on tz.id = t.timezone_id
@@ -221,6 +229,8 @@ from t
 		"UpdatedAt":   trigger.UpdatedAt,
 		"Timeout":     trigger.Timeout,
 		"Type":        trigger.Type,
+		"Object":      trigger.Object,
+		"Event":       trigger.Event,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_trigger.update.app_error", fmt.Sprintf("Id=%v, %s", trigger.Id, err.Error()), extractCodeFromErr(err))

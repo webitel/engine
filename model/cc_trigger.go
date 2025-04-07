@@ -7,7 +7,7 @@ import (
 
 const (
 	TriggerTypeCron = "cron"
-	TriggerTypeCase = "case"
+	TriggerTypeEven = "event"
 )
 
 type Trigger struct {
@@ -27,6 +27,8 @@ type Trigger struct {
 	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
 	CreatedBy *Lookup    `json:"created_by" db:"created_by"`
 	UpdatedBy *Lookup    `json:"updated_by" db:"updated_by"`
+	Object    string     `json:"object" db:"object"`
+	Event     string     `json:"event" db:"event"`
 }
 
 type TriggerWithDomainID struct {
@@ -65,7 +67,7 @@ func (t Trigger) DefaultOrder() string {
 
 func (t Trigger) AllowFields() []string {
 	return []string{"id", "name", "enabled", "type", "schema", "variables", "description", "expression",
-		"timezone", "timeout", "created_at", "updated_at", "created_by", "updated_by"}
+		"timezone", "timeout", "created_at", "updated_at", "created_by", "updated_by", "object", "event"}
 }
 
 func (t Trigger) AllowFieldsWithDomainId() []string {
@@ -82,7 +84,20 @@ func (t Trigger) EntityName() string {
 
 func (t *Trigger) IsValid() AppError {
 	switch t.Type {
-	case TriggerTypeCron, TriggerTypeCase:
+	case TriggerTypeCron:
+		if len(t.Expression) == 0 {
+			return NewBadRequestError("trigger.validation.expression", "expression is required")
+		}
+		t.Object = ""
+		t.Event = ""
+	case TriggerTypeEven:
+		if len(t.Object) == 0 {
+			return NewBadRequestError("trigger.validation.object", "object is required")
+		}
+		if len(t.Event) == 0 {
+			return NewBadRequestError("trigger.validation.event", "event is required")
+		}
+		t.Expression = ""
 	default:
 		return newAppError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
 	}
@@ -105,6 +120,8 @@ type TriggerPatch struct {
 	Expression  *string    `json:"expression" db:"expression"`
 	Timezone    *Lookup    `json:"timezone" db:"timezone"`
 	Timeout     *int32     `json:"timeout" db:"timeout"`
+	Object      *string    `json:"object" db:"object"`
+	Event       *string    `json:"event" db:"event"`
 }
 
 func (t *Trigger) Patch(p *TriggerPatch) {
@@ -134,6 +151,12 @@ func (t *Trigger) Patch(p *TriggerPatch) {
 	}
 	if p.Timeout != nil {
 		t.Timeout = *p.Timeout
+	}
+	if p.Object != nil {
+		t.Object = *p.Object
+	}
+	if p.Event != nil {
+		t.Event = *p.Event
 	}
 }
 

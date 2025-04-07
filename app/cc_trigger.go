@@ -64,6 +64,8 @@ func (a *App) UpdateTrigger(ctx context.Context, domainId int64, trigger *model.
 	oldTrigger.Timezone = trigger.Timezone
 	oldTrigger.Timeout = trigger.Timeout
 	oldTrigger.Type = trigger.Type
+	oldTrigger.Object = trigger.Object
+	oldTrigger.Event = trigger.Event
 
 	oldTrigger, err = a.Store.Trigger().Update(ctx, domainId, oldTrigger)
 	if err != nil {
