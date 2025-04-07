@@ -21,6 +21,7 @@ const (
 	SysNamePeriodToPlaybackRecord  = "period_to_playback_records"
 	SysNameIsFulltextSearchEnabled = "is_fulltext_search_enabled"
 	SysNameHideContact             = "wbt_hide_contact"
+	SysNameShowFullContact         = "show_full_contact"
 )
 
 type SysValue json.RawMessage
@@ -83,7 +84,11 @@ func (s *SystemSetting) IsValid() AppError {
 		if str == nil || *str == "" {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
 		}
-	case SysNameTwoFactorAuthorization, SysNameAutolinkCallToContact, SysNameIsFulltextSearchEnabled, SysNameHideContact:
+	case SysNameTwoFactorAuthorization,
+		SysNameAutolinkCallToContact,
+		SysNameIsFulltextSearchEnabled,
+		SysNameHideContact,
+		SysNameShowFullContact:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
