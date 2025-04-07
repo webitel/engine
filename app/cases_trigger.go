@@ -285,7 +285,7 @@ func (ct *TriggerCaseMQ) init() error {
 
 func (ct *TriggerCaseMQ) loadTriggers() error {
 	ctx := context.Background()
-	triggerSlice, err := ct.store.Trigger().GetAllByType(ctx, model.TriggerTypeEven)
+	triggerSlice, err := ct.store.Trigger().GetAllByType(ctx, model.TriggerTypeEvent)
 	if err != nil {
 		return fmt.Errorf("could not load triggers: %v", err)
 	}

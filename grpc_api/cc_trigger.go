@@ -152,7 +152,7 @@ func (api *trigger) PatchTrigger(ctx context.Context, in *engine.PatchTriggerReq
 		case "object":
 			patch.Object = model.NewString(engine.TriggerObjectType_name[int32(in.Object)])
 		case "event":
-			patch.Event = model.NewString(engine.TriggerEventType_name[int32(in.Object)])
+			patch.Event = model.NewString(engine.TriggerEventType_name[int32(in.Event)])
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables

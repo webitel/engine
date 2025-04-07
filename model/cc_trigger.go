@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	TriggerTypeCron = "cron"
-	TriggerTypeEven = "event"
+	TriggerTypeCron  = "cron"
+	TriggerTypeEvent = "event"
 )
 
 type Trigger struct {
@@ -90,7 +90,7 @@ func (t *Trigger) IsValid() AppError {
 		}
 		t.Object = ""
 		t.Event = ""
-	case TriggerTypeEven:
+	case TriggerTypeEvent:
 		if len(t.Object) == 0 {
 			return NewBadRequestError("trigger.validation.object", "object is required")
 		}
