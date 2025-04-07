@@ -151,8 +151,8 @@ type trigger struct {
 	schemaId  int
 }
 
-func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, expression string) []*workflow.StartFlowRequest {
-	triggers := ct.loadTriggersByExpression()[expression]
+func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, event string) []*workflow.StartFlowRequest {
+	triggers := ct.loadTriggersByExpression()[event]
 	if len(triggers) == 0 {
 		return nil
 	}
@@ -213,12 +213,12 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 				return
 			}
 
-			expression, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
+			event, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
 
-			requests := ct.getFlowRequests(domainId, expression)
+			requests := ct.getFlowRequests(domainId, event)
 
 			if len(requests) == 0 {
-				ct.log.Debug(fmt.Sprintf("no trigger found for key %s and expression %s", msg.RoutingKey, expression))
+				ct.log.Debug(fmt.Sprintf("no trigger found for key %s and expression %s", msg.RoutingKey, event))
 				continue
 			}
 
@@ -232,7 +232,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 			for _, rs := range requests {
 				go func(r *workflow.StartFlowRequest) {
 					r.Variables["case"] = string(message.Case)
-					r.Variables["action"] = expression
+					r.Variables["action"] = event
 
 					id, err := ct.startFlowRequestWithContext(ctx, r)
 					if err != nil {
@@ -285,13 +285,13 @@ func (ct *TriggerCaseMQ) init() error {
 
 func (ct *TriggerCaseMQ) loadTriggers() error {
 	ctx := context.Background()
-	triggerSlice, err := ct.store.Trigger().GetAllByType(ctx, model.TriggerTypeCase)
+	triggerSlice, err := ct.store.Trigger().GetAllByType(ctx, model.TriggerTypeEvent)
 	if err != nil {
 		return fmt.Errorf("could not load triggers: %v", err)
 	}
-	triggersMap := make(TriggersByExpression, 3)
+	triggersMap := make(TriggersByExpression, 4)
 	for _, trigger := range triggerSlice {
-		triggersMap[trigger.Expression] = append(triggersMap[trigger.Expression], trigger)
+		triggersMap[trigger.Event] = append(triggersMap[trigger.Event], trigger)
 	}
 	ct.log.Debug(fmt.Sprintf("loaded %d triggers: %+v", len(triggersMap), triggersMap))
 	ct.storeTriggersByExpression(triggersMap)

@@ -26,13 +26,15 @@ func (api *trigger) CreateTrigger(ctx context.Context, in *engine.CreateTriggerR
 	req := &model.Trigger{
 		Name:        in.Name,
 		Enabled:     in.Enabled,
-		Type:        getTriggerTypeByEngineType(in.Type),
+		Type:        engine.TriggerType_name[int32(in.Type)],
 		Schema:      GetLookup(in.Schema),
 		Variables:   in.GetVariables(),
 		Description: in.Description,
 		Expression:  in.Expression,
 		Timezone:    GetLookup(in.Timezone),
 		Timeout:     in.Timeout,
+		Object:      engine.TriggerObjectType_name[int32(in.Object)],
+		Event:       engine.TriggerEventType_name[int32(in.Event)],
 	}
 	var tr *model.Trigger
 	tr, err = api.ctrl.CreateTrigger(ctx, session, req)
@@ -104,13 +106,15 @@ func (api *trigger) UpdateTrigger(ctx context.Context, in *engine.UpdateTriggerR
 		Id:          in.Id,
 		Name:        in.Name,
 		Enabled:     in.Enabled,
-		Type:        getTriggerTypeByEngineType(in.Type),
+		Type:        engine.TriggerType_name[int32(in.Type)],
 		Schema:      GetLookup(in.Schema),
 		Variables:   in.GetVariables(),
 		Description: in.Description,
 		Expression:  in.Expression,
 		Timezone:    GetLookup(in.Timezone),
 		Timeout:     in.Timeout,
+		Object:      engine.TriggerObjectType_name[int32(in.Object)],
+		Event:       engine.TriggerEventType_name[int32(in.Event)],
 	}
 	var tr *model.Trigger
 	tr, err = api.ctrl.UpdateTrigger(ctx, session, req)
@@ -145,6 +149,10 @@ func (api *trigger) PatchTrigger(ctx context.Context, in *engine.PatchTriggerReq
 			patch.Expression = &in.Expression
 		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
+		case "object":
+			patch.Object = model.NewString(engine.TriggerObjectType_name[int32(in.Object)])
+		case "event":
+			patch.Event = model.NewString(engine.TriggerEventType_name[int32(in.Event)])
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables
@@ -254,18 +262,19 @@ func (api *trigger) SearchTriggerJob(ctx context.Context, in *engine.SearchTrigg
 }
 
 func toEngineTrigger(src *model.Trigger) *engine.Trigger {
-
 	return &engine.Trigger{
 		Id:          src.Id,
 		Name:        src.Name,
 		Enabled:     src.Enabled,
-		Type:        getEngineTypeByTriggerType(src.Type),
+		Type:        engine.TriggerType(engine.TriggerType_value[src.Type]),
 		Schema:      GetProtoLookup(src.Schema),
 		Variables:   src.Variables,
 		Description: src.Description,
 		Expression:  src.Expression,
 		Timezone:    GetProtoLookup(src.Timezone),
 		Timeout:     src.Timeout,
+		Object:      engine.TriggerObjectType(engine.TriggerObjectType_value[src.Object]),
+		Event:       engine.TriggerEventType(engine.TriggerEventType_value[src.Event]),
 	}
 }
 
@@ -292,26 +301,4 @@ func toEngineTriggerJob(src *model.TriggerJob) *engine.TriggerJob {
 	}
 
 	return j
-}
-
-func getTriggerTypeByEngineType(type_ engine.TriggerType) string {
-	switch type_ {
-	case engine.TriggerType_default_trigger_type, engine.TriggerType_cron:
-		return model.TriggerTypeCron
-	case engine.TriggerType_case:
-		return model.TriggerTypeCase
-	default:
-		return ""
-	}
-}
-
-func getEngineTypeByTriggerType(type_ string) engine.TriggerType {
-	switch type_ {
-	case model.TriggerTypeCron:
-		return engine.TriggerType_cron
-	case model.TriggerTypeCase:
-		return engine.TriggerType_case
-	default:
-		return engine.TriggerType_default_trigger_type
-	}
 }
