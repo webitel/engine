@@ -67,6 +67,10 @@ func (a *App) UpdateTrigger(ctx context.Context, domainId int64, trigger *model.
 	oldTrigger.Object = trigger.Object
 	oldTrigger.Event = trigger.Event
 
+	if err = oldTrigger.IsValid(); err != nil {
+		return nil, err
+	}
+
 	oldTrigger, err = a.Store.Trigger().Update(ctx, domainId, oldTrigger)
 	if err != nil {
 		return nil, err
