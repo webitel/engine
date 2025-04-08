@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
 )

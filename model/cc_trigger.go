@@ -83,6 +83,19 @@ func (t Trigger) EntityName() string {
 }
 
 func (t *Trigger) IsValid() AppError {
+
+	if t.Name == "" {
+		return NewBadRequestError("trigger.validation.name", "name is required")
+	}
+
+	if t.Timezone == nil {
+		return NewBadRequestError("trigger.validation.timezone", "timezone is required")
+	}
+
+	if t.Schema == nil {
+		return NewBadRequestError("trigger.validation.schema", "schema is required")
+	}
+
 	switch t.Type {
 	case TriggerTypeCron:
 		if len(t.Expression) == 0 {
