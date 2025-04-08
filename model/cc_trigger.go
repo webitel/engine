@@ -107,7 +107,7 @@ func (t *Trigger) IsValid() AppError {
 		if len(t.Object) == 0 || t.Object == "empty_trigger_object" {
 			return NewBadRequestError("trigger.validation.object", "object is required")
 		}
-		if len(t.Event) == 0 || t.Object == "empty_trigger_event" {
+		if len(t.Event) == 0 || t.Event == "empty_trigger_event" {
 			return NewBadRequestError("trigger.validation.event", "event is required")
 		}
 		t.Expression = ""
