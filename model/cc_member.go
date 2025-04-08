@@ -343,6 +343,13 @@ type SearchOfflineQueueMembers struct {
 	AgentId int
 }
 
+type ResetActiveMemberAttempts struct {
+	DomainId       int64
+	IdleForMinutes int64
+	Result         string
+	AttemptTypes   []string
+}
+
 type MembersAttempt struct {
 	Member Lookup
 	MemberAttempt

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
@@ -844,6 +845,48 @@ from call_center.cc_member m
 	return att, nil
 }
 
+func (s SqlMemberStore) ResetActiveMemberAttempts(ctx context.Context, payload *model.ResetActiveMemberAttempts) ([]*model.MemberAttempt, model.AppError) {
+	var (
+		res []*model.MemberAttempt
+	)
+	if payload == nil {
+		return nil, model.NewBadRequestError("store.sql_member.reset_active_call_attempts.check_args.payload.app_error", "payload required")
+	}
+	if payload.DomainId <= 0 {
+		return nil, model.NewBadRequestError("store.sql_member.reset_active_call_attempts.check_args.domain.app_error", "domain id required")
+	}
+	if payload.Result == "" {
+		return nil, model.NewBadRequestError("store.sql_member.reset_active_call_attempts.check_args.reason.app_error", "reason required")
+	}
+	if payload.IdleForMinutes <= 0 {
+		return nil, model.NewBadRequestError("store.sql_member.reset_active_call_attempts.check_args.idle.app_error", "idle for required")
+	}
+	if len(payload.AttemptTypes) == 0 {
+		return nil, model.NewBadRequestError("store.sql_member.reset_active_call_attempts.check_args.idle.app_error", "attempt type required")
+	}
+	_, err := s.GetMaster().WithContext(ctx).Select(&res,
+		`update call_center.cc_member_attempt
+				set state = 'leaving',
+					leaving_at = now(),
+					result = :Result
+				where domain_id = :DomainId
+					 and channel = ANY(:Types)
+					and now() - joined_at > :Interval
+					returning id, node_id as node`,
+		map[string]interface{}{
+			"Result":   payload.Result,
+			"DomainId": payload.DomainId,
+			"Interval": time.Duration(payload.IdleForMinutes) * time.Minute,
+			"Types":    pq.Array(payload.AttemptTypes),
+		})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_member.reset_active_call_attempts.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 func (s SqlMemberStore) GetAppointmentWidget(ctx context.Context, uri string) (*model.AppointmentWidget, model.AppError) {
 	var widget *model.AppointmentWidget
 	err := s.GetReplica().WithContext(ctx).SelectOne(&widget, `select profile, list
@@ -934,10 +977,10 @@ returning call_center.cc_member.id,
 func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member 
 set stop_at = now(),
-    stop_cause = :Reason
+    stop_cause = :Result
 where id = :Id`, map[string]interface{}{
 		"Id":     memberId,
-		"Reason": reason,
+		"Result": reason,
 	})
 
 	if err != nil {

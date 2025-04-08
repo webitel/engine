@@ -321,6 +321,7 @@ type MemberStore interface {
 	SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, model.AppError)
 	SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, model.AppError)
 	ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError)
+	ResetActiveMemberAttempts(ctx context.Context, payload *model.ResetActiveMemberAttempts) ([]*model.MemberAttempt, model.AppError)
 
 	// Appointments
 	GetAppointmentWidget(ctx context.Context, uri string) (*model.AppointmentWidget, model.AppError)
