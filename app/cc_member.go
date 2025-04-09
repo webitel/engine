@@ -191,7 +191,16 @@ func (app *App) ResetActiveMemberAttempts(ctx context.Context, upd *model.ResetA
 			return model.NewInternalError("app.cc_member_attempt.reset_active.check_args.app_err", "attempt node id required")
 		}
 
-		_ = app.cc.Member().CancelAttempt(ctx, attempt.Id, upd.Result, *attempt.Node)
+		defErr := app.cc.Member().CancelAttempt(ctx, attempt.Id, upd.Result, *attempt.Node)
+		if defErr != nil {
+			app.Log.Error(
+				"reset active member attempts failed at call_center.CancelAttempt call",
+				wlog.Int64("attempt_id", attempt.Id),
+				wlog.String("call_center.CancelAttempt error", defErr.Error()),
+				wlog.String("attempt.node_id", *attempt.Node),
+			)
+			break
+		}
 	}
 	return nil
 }
