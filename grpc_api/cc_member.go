@@ -809,6 +809,39 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 	}, nil
 }
 
+func (api *member) ResetActiveAttempts(ctx context.Context, in *engine.ResetActiveAttemptsRequest) (*engine.ResetActiveAttemptsResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	dbRequest := &model.ResetActiveMemberAttempts{
+		DomainId:       session.GetDomainId(),
+		IdleForMinutes: in.GetIdleForMinutes(),
+		Result:         in.GetResult(),
+		AttemptTypes:   in.GetAttemptType(),
+	}
+	if dbRequest.IdleForMinutes == 0 {
+		dbRequest.IdleForMinutes = 1
+	}
+	if dbRequest.Result == "" {
+		dbRequest.Result = "error"
+	}
+	// hardcode for now
+	dbRequest.AttemptTypes = []string{"call"}
+	err = api.app.ResetActiveMemberAttempts(ctx, dbRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ResetActiveAttemptsResponse{}, nil
+}
+
 func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchAttemptsRequest) (*engine.ListHistoryAttempt, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

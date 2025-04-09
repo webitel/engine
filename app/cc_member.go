@@ -181,6 +181,30 @@ func (app *App) SearchAttempts(ctx context.Context, domainId int64, search *mode
 	return list, search.EndOfList(), nil
 }
 
+func (app *App) ResetActiveMemberAttempts(ctx context.Context, upd *model.ResetActiveMemberAttempts) model.AppError {
+	list, err := app.Store.Member().ResetActiveMemberAttempts(ctx, upd)
+	if err != nil {
+		return err
+	}
+	for _, attempt := range list {
+		if attempt.Node == nil {
+			return model.NewInternalError("app.cc_member_attempt.reset_active.check_args.app_err", "attempt node id required")
+		}
+
+		defErr := app.cc.Member().CancelAttempt(ctx, attempt.Id, upd.Result, *attempt.Node)
+		if defErr != nil {
+			app.Log.Error(
+				"reset active member attempts failed at call_center.CancelAttempt call",
+				wlog.Int64("attempt_id", attempt.Id),
+				wlog.String("call_center.CancelAttempt error", defErr.Error()),
+				wlog.String("attempt.node_id", *attempt.Node),
+			)
+			break
+		}
+	}
+	return nil
+}
+
 func (app *App) DirectAgentToMember(domainId, memberId int64, communicationId int, agentId int64) (int64, model.AppError) {
 	attemptId, err := app.cc.Member().DirectAgentToMember(domainId, memberId, communicationId, agentId)
 	if err != nil {
