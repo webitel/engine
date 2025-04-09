@@ -458,7 +458,7 @@ type TriggerStore interface {
 	Update(ctx context.Context, domainId int64, trigger *model.Trigger) (*model.Trigger, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 
-	CreateJob(ctx context.Context, domainId int64, triggerId int32, vars map[string]string) (*model.TriggerJob, model.AppError)
+	CreateJob(ctx context.Context, domainId int64, triggerId int32, params model.StringMap) (*model.TriggerJob, model.AppError)
 	GetAllJobs(ctx context.Context, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, model.AppError)
 }
 

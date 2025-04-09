@@ -246,14 +246,14 @@ func (s SqlTriggerStore) Delete(ctx context.Context, domainId int64, id int32) m
 	return nil
 }
 
-func (s SqlTriggerStore) CreateJob(ctx context.Context, domainId int64, triggerId int32, _ map[string]string) (*model.TriggerJob, model.AppError) {
+func (s SqlTriggerStore) CreateJob(ctx context.Context, domainId int64, triggerId int32, params model.StringMap) (*model.TriggerJob, model.AppError) {
 	var job *model.TriggerJob
 	err := s.GetMaster().WithContext(ctx).SelectOne(&job, `with j as (
     insert into call_center.cc_trigger_job (trigger_id, state, created_at, parameters, domain_id)
         select t.id,
                0,
                now(),
-               jsonb_build_object('variables', t.variables,
+               jsonb_build_object('variables', coalesce(t.variables, '{}') || coalesce(:Params::jsonb, '{}'),
                                   'schema_id', t.schema_id,
                                   'timeout', t.timeout_sec
                    ) as params,
@@ -276,6 +276,7 @@ from j
     left join call_center.cc_trigger t on t.id = j.trigger_id`, map[string]interface{}{
 		"TriggerId": triggerId,
 		"DomainId":  domainId,
+		"Params":    params.ToSafeJson(),
 	})
 
 	if err != nil {

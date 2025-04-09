@@ -1,7 +1,6 @@
 package app
 
 import (
-	workflow "buf.build/gen/go/webitel/workflow/protocolbuffers/go"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -19,9 +18,6 @@ import (
 
 const (
 	AMQPMaxAttemptsConnect = 100
-	FlowMaxAttemptsToStart = 5
-	FlowMinDuration        = 100 * time.Millisecond
-	FlowMaxDuration        = 1 * time.Second
 )
 
 type TriggersByExpression map[string][]*model.TriggerWithDomainID
@@ -146,25 +142,30 @@ func (ct *TriggerCaseMQ) listen() error {
 	return nil
 }
 
-type trigger struct {
-	variables map[string]string
+type triggerRequest struct {
+	name      string
+	triggerId int32
+	variables model.StringMap
 	schemaId  int
+	domainId  int64
 }
 
-func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, event string) []*workflow.StartFlowRequest {
+func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, event string) []triggerRequest {
 	triggers := ct.loadTriggersByExpression()[event]
 	if len(triggers) == 0 {
 		return nil
 	}
 
-	res := make([]*workflow.StartFlowRequest, 0, 3)
+	res := make([]triggerRequest, 0, 3)
 
 	for _, tr := range triggers {
 		if tr.DomainId == domainId {
-			res = append(res, &workflow.StartFlowRequest{
-				SchemaId:  uint32(tr.Schema.Id),
-				DomainId:  domainId,
-				Variables: model.UnionStringMaps(tr.Variables),
+			res = append(res, triggerRequest{
+				name:      tr.Name,
+				triggerId: tr.Id,
+				schemaId:  tr.Schema.Id,
+				domainId:  domainId,
+				variables: make(model.StringMap),
 			})
 		}
 	}
@@ -230,39 +231,15 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 			}
 
 			for _, rs := range requests {
-				go func(r *workflow.StartFlowRequest) {
-					r.Variables["case"] = string(message.Case)
-					r.Variables["action"] = event
-
-					id, err := ct.startFlowRequestWithContext(ctx, r)
-					if err != nil {
-						ct.log.Error(fmt.Sprintf("could not start flow request: %s: %s", r, err.Error()))
-						return
-					}
-					ct.log.Info(fmt.Sprintf("started flow for with id : %s", id))
-				}(rs)
-			}
-		}
-	}
-}
-
-func (ct *TriggerCaseMQ) startFlowRequestWithContext(context context.Context, request *workflow.StartFlowRequest) (id string, err error) {
-	var backoff = utils.NewBackoff(FlowMinDuration, FlowMaxDuration, 2, false)
-	for {
-		select {
-		case <-context.Done():
-			return "", context.Err()
-		default:
-			id, err = ct.flowManager.Queue().StartFlow(request)
-			if err != nil {
-				if backoff.Attempt() > FlowMaxAttemptsToStart {
-					return "", err
+				rs.variables["case"] = string(message.Case)
+				rs.variables["action"] = event
+				job, err := ct.store.Trigger().CreateJob(ctx, rs.domainId, rs.triggerId, rs.variables)
+				if err != nil {
+					ct.log.Error(fmt.Sprintf("could not create job: %v: %s", rs, err.Error()))
+					return
 				}
-				ct.log.Debug(fmt.Sprintf("retrying to start flow with request %s: %s. Attempt: %d", request, err.Error(), backoff.Attempt()))
-				time.Sleep(backoff.Duration())
-				continue
+				ct.log.Info(fmt.Sprintf("started trigger \"%s\" job_id : %d", rs.name, job.Id))
 			}
-			return id, err
 		}
 	}
 }
