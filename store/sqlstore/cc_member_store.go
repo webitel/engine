@@ -4,16 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
-
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/wlog"
+	"net/http"
+	"strconv"
+	"strings"
 )
 
 type SqlMemberStore struct {
@@ -871,12 +869,12 @@ func (s SqlMemberStore) ResetActiveMemberAttempts(ctx context.Context, payload *
 					result = :Result
 				where domain_id = :DomainId
 					 and channel = ANY(:Types)
-					and now() - joined_at > :Interval
+					and now() - joined_at > (:Interval || ' min')::interval
 					returning id, node_id as node`,
 		map[string]interface{}{
 			"Result":   payload.Result,
 			"DomainId": payload.DomainId,
-			"Interval": time.Duration(payload.IdleForMinutes) * time.Minute,
+			"Interval": payload.IdleForMinutes,
 			"Types":    pq.Array(payload.AttemptTypes),
 		})
 
