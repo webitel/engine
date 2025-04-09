@@ -72,7 +72,13 @@ func GetOrderBy(t, s string) string {
 }
 
 func orderBy(s string) (sort string, field string) {
-	if s[0] == '+' || s[0] == 32 {
+	if len(s) >= 3 && s[:3] == "ASC" {
+		sort = "asc"
+		field = s[4:]
+	} else if len(s) >= 4 && s[:4] == "DESC" {
+		sort = "desc"
+		field = s[5:]
+	} else if s[0] == '+' || s[0] == 32 {
 		sort = "asc"
 		field = s[1:]
 	} else if s[0] == '-' {
@@ -80,6 +86,7 @@ func orderBy(s string) (sort string, field string) {
 		field = s[1:]
 	} else {
 		field = s
+		sort = "asc"
 	}
 
 	return
