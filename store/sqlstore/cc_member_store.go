@@ -392,7 +392,21 @@ from m
 
 // TODO add force
 func (s SqlMemberStore) Delete(ctx context.Context, queueId, id int64) model.AppError {
-	var cnt int64
+	var cntCheck, cnt int64
+
+	check, err := s.GetMaster().WithContext(ctx).Exec(`select 1 from call_center.cc_member_attempt a where a.member_id = :Id and a.state != 'leaving' for update`,
+		map[string]interface{}{"Id": id})
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+	cntCheck, err = check.RowsAffected()
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	if cntCheck == 0 {
+		return model.NewCustomCodeError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, member reserved", id), http.StatusForbidden)
+	}
 	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
 from call_center.cc_member c
 where c.id = :Id
