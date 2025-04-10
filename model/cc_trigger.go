@@ -88,10 +88,6 @@ func (t *Trigger) IsValid() AppError {
 		return NewBadRequestError("trigger.validation.name", "name is required")
 	}
 
-	if t.Timezone == nil {
-		return NewBadRequestError("trigger.validation.timezone", "timezone is required")
-	}
-
 	if t.Schema == nil {
 		return NewBadRequestError("trigger.validation.schema", "schema is required")
 	}
@@ -100,6 +96,9 @@ func (t *Trigger) IsValid() AppError {
 	case TriggerTypeCron:
 		if len(t.Expression) == 0 {
 			return NewBadRequestError("trigger.validation.expression", "expression is required")
+		}
+		if t.Timezone == nil {
+			return NewBadRequestError("trigger.validation.timezone", "timezone is required")
 		}
 		t.Object = ""
 		t.Event = ""
@@ -111,6 +110,7 @@ func (t *Trigger) IsValid() AppError {
 			return NewBadRequestError("trigger.validation.event", "event is required")
 		}
 		t.Expression = ""
+		t.Timezone = nil
 	default:
 		return newAppError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
 	}
