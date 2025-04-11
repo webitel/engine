@@ -431,10 +431,11 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 	communication, err = api.app.RemoveListCommunication(ctx, session.Domain(in.GetDomainId()), in.GetListId(), in.GetId())
 	if err != nil {
 		return nil, err
-	} else {
-		api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST, communication.ListId, communication)
-		return toEngineListCommunication(communication), nil
 	}
+
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST, communication.ListId, communication)
+
+	return toEngineListCommunication(communication), nil
 }
 
 func toEngineList(src *model.List) *engine.List {
