@@ -312,7 +312,7 @@ type MemberStore interface {
 	SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError)
 	Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError)
 	Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
-	Delete(ctx context.Context, queueId, id int64) model.AppError
+	Delete(ctx context.Context, queueId, id int64, force bool) model.AppError
 	MultiDelete(ctx context.Context, domainId int64, del *model.MultiDeleteMembers, withoutMembers bool) ([]*model.Member, model.AppError)
 	ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError)
 

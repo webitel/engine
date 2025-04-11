@@ -521,8 +521,10 @@ func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequ
 		}
 	}
 
+	const force = false
+
 	var m *model.Member
-	m, err = api.app.RemoveMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	m, err = api.app.RemoveMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), force)
 	if err != nil {
 		return nil, err
 	}

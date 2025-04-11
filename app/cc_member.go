@@ -137,14 +137,18 @@ func (app *App) PatchMember(ctx context.Context, domainId, queueId, id int64, pa
 	return oldMember, nil
 }
 
-func (app *App) RemoveMember(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError) {
+func (app *App) RemoveMember(ctx context.Context, domainId, queueId, id int64, force bool) (*model.Member, model.AppError) {
 	member, err := app.GetMember(ctx, domainId, queueId, id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	err = app.Store.Member().Delete(ctx, queueId, id)
+	if !force && member.Reserved {
+		return nil, model.NewBadRequestError("member.reserved", "Member is reserved")
+	}
+
+	err = app.Store.Member().Delete(ctx, queueId, id, force)
 	if err != nil {
 		return nil, err
 	}
