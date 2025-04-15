@@ -6,8 +6,8 @@ require (
 	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.6-20250414063239-00fc6a2d0c7b.1
 	buf.build/gen/go/webitel/chat/grpc/go v1.5.1-20250408125457-371160df8edc.2
 	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.36.6-20250408125457-371160df8edc.1
-	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250408125948-099378df4bdb.2
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.36.6-20250408125948-099378df4bdb.1
+	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250415070058-4ab6518d5817.2
+	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.36.6-20250415070058-4ab6518d5817.1
 	buf.build/gen/go/webitel/fs/grpc/go v1.3.0-20240425073915-5e104cd55a71.2
 	buf.build/gen/go/webitel/fs/protocolbuffers/go v1.33.0-20240425073915-5e104cd55a71.1
 	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
@@ -63,7 +63,6 @@ require (
 	cloud.google.com/go/iam v1.1.7 // indirect
 	cloud.google.com/go/longrunning v0.5.5 // indirect
 	cloud.google.com/go/storage v1.40.0 // indirect
-	github.com/BoRuDar/configuration/v4 v4.5.0 // indirect
 	github.com/MicahParks/keyfunc v1.9.0 // indirect
 	github.com/andres-erbsen/clock v0.0.0-20160526145045-9e14626cd129 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
@@ -100,12 +99,10 @@ require (
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/olebedev/emitter v0.0.0-20190110104742-e8d1457e6aee // indirect
 	github.com/onsi/gomega v1.26.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/poy/onpar v1.1.2 // indirect
 	github.com/satori/go.uuid v1.2.1-0.20181028125025-b2ce2384e17b // indirect
-	github.com/streadway/amqp v1.1.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
