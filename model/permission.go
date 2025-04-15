@@ -9,6 +9,7 @@ const (
 	PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE       = "cc_resource"
 	PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP = "cc_resource_group"
 	PERMISSION_SCOPE_CC_LIST                    = "cc_list"
+	PERMISSION_SCOPE_CC_LIST_NUMBER             = "cc_list_number"
 	PERMISSION_SCOPE_ACR_ROUTING                = "acr_routing"   //rename
 	PERMISSION_SCOPE_ACR_CHAT_PLAN              = "acr_chat_plan" //"acr_chat_plan"
 
