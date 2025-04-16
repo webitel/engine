@@ -225,16 +225,16 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	if !permission.CanCreate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
 		var perm bool
 		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(0), in.GetListId(), session.GetAclRoles(),
 			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
@@ -261,7 +261,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, err
 	}
 
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, communication.ListId, communication)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.ListId, communication)
 
 	return toEngineListCommunication(communication), nil
 }
@@ -272,12 +272,12 @@ func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchL
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
 		var perm bool
 		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(0), in.GetListId(), session.GetAclRoles(),
 			auth_manager.PERMISSION_ACCESS_READ); err != nil {
@@ -329,12 +329,12 @@ func (api *list) ReadListCommunication(ctx context.Context, in *engine.ReadListC
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
 		var perm bool
 		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(),
 			auth_manager.PERMISSION_ACCESS_READ); err != nil {
@@ -360,7 +360,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
@@ -369,7 +369,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
 		var perm bool
 		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(0), in.GetListId(), session.GetAclRoles(),
 			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
@@ -397,7 +397,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 		return nil, err
 	}
 
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, communication.ListId, communication)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.ListId, communication)
 
 	return toEngineListCommunication(communication), nil
 }
@@ -408,16 +408,16 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	if !permission.CanDelete() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
 		var perm bool
 		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetListId(), session.GetAclRoles(),
 			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
@@ -431,11 +431,10 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 	communication, err = api.app.RemoveListCommunication(ctx, session.Domain(in.GetDomainId()), in.GetListId(), in.GetId())
 	if err != nil {
 		return nil, err
+	} else {
+		api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.ListId, communication)
+		return toEngineListCommunication(communication), nil
 	}
-
-	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST, communication.ListId, communication)
-
-	return toEngineListCommunication(communication), nil
 }
 
 func toEngineList(src *model.List) *engine.List {
