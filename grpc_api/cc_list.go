@@ -230,8 +230,8 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	if !permission.CanCreate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
@@ -413,8 +413,8 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	if !permission.CanDelete() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
