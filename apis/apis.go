@@ -27,6 +27,7 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitWebSocket()
 	api.InitAppointments()
 	api.InitOAuth()
+	api.InitDisplays()
 
 	return api
 }

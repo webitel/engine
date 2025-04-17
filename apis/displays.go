@@ -75,11 +75,13 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	displays, err := c.App.CreateOutboundResourceDisplays(r.Context(), resourceId, mappedData)
 	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
+		http.Error(w, "Failed to create outbound resource displays", http.StatusInternalServerError)
 		return
-	} else {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(displays)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(displays); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }
 
