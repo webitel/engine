@@ -261,7 +261,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, err
 	}
 
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.ListId, communication)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.Id, communication)
 
 	return toEngineListCommunication(communication), nil
 }
@@ -397,7 +397,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 		return nil, err
 	}
 
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.ListId, communication)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.Id, communication)
 
 	return toEngineListCommunication(communication), nil
 }
@@ -432,7 +432,7 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 	if err != nil {
 		return nil, err
 	} else {
-		api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.ListId, communication)
+		api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.Id, communication)
 		return toEngineListCommunication(communication), nil
 	}
 }
