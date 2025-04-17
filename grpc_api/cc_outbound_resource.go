@@ -405,7 +405,11 @@ func (api *outboundResource) CreateOutboundResourceDisplayBulk(ctx context.Conte
 		return nil, err
 	}
 
-	return &engine.ListResourceDisplay{Id: ids}, nil
+	var idList []int64
+	for _, display := range ids {
+		idList = append(idList, int64(display.Id))
+	}
+	return &engine.ListResourceDisplay{Id: idList}, nil
 }
 
 func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, in *engine.SearchOutboundResourceDisplayRequest) (*engine.ListOutboundResourceDisplay, error) {
