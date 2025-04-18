@@ -60,7 +60,7 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mappedData, err := mapData(records, columnIndex)
+	mappedData, err := mapData(records, columnIndex, resourceId)
 	if err != nil {
 		http.Error(w, "Error mapping data", http.StatusInternalServerError)
 		return
@@ -102,14 +102,10 @@ func findColumnIndex(headers []string, columnName string) (int, error) {
 	return -1, errors.New("specified column not found in CSV headers")
 }
 
-func mapData(records [][]string, mapColIndex int) ([]*model.ResourceDisplay, error) {
+func mapData(records [][]string, mapColIndex int, resourceId int64) ([]*model.ResourceDisplay, error) {
 	var mappedData []*model.ResourceDisplay
 
 	for _, row := range records[1:] {
-		resourceId, err := strconv.ParseInt(row[0], 10, 64)
-		if err != nil {
-			return nil, err
-		}
 		mappedData = append(mappedData, &model.ResourceDisplay{
 			ResourceId: resourceId,
 			Display:    row[mapColIndex],
