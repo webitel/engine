@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -91,10 +92,23 @@ func MapInterfaceToString(src map[string]interface{}) map[string]string {
 	if src == nil {
 		return nil
 	}
-
+	// TODO DEV-5230
 	res := make(map[string]string)
-	for k, v := range src {
-		res[k] = fmt.Sprintf("%v", v)
+	for k, val := range src {
+		switch v := val.(type) {
+		case int:
+			res[k] = strconv.Itoa(v)
+		case int64:
+			res[k] = strconv.FormatInt(v, 10)
+		case float64:
+			if v == float64(int64(v)) {
+				res[k] = strconv.FormatInt(int64(v), 10)
+			} else {
+				res[k] = fmt.Sprintf("%f", v)
+			}
+		default:
+			res[k] = fmt.Sprintf("%v", v)
+		}
 	}
 
 	return res
