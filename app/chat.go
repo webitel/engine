@@ -2,13 +2,18 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"github.com/webitel/engine/model"
+	"golang.org/x/sync/singleflight"
 
 	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"net/url"
 )
 
 var publicStorage *url.URL
+var (
+	chatTransferGroupRequest singleflight.Group
+)
 
 func (a *App) DeclineChat(authUserId int64, inviteId string, cause string) model.AppError {
 	chat, err := a.chatManager.Client()
@@ -168,6 +173,29 @@ func (a *App) ListActiveChat(ctx context.Context, token string, domainId, userId
 }
 
 func (a *App) BlindTransferChat(ctx context.Context, domainId int64, conversationId, channelId string, planId int32, vars map[string]string) model.AppError {
+
+	// TODO DEV-4889
+	_, err, _ := chatTransferGroupRequest.Do(fmt.Sprintf("%s-%s-%d", conversationId, channelId, planId), func() (interface{}, error) {
+		err := a.blindTransferChat(ctx, domainId, conversationId, channelId, planId, vars)
+		if err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+
+	if err != nil {
+		switch err.(type) {
+		case model.AppError:
+			return err.(model.AppError)
+		default:
+			return model.NewInternalError("app.audit_form.get", err.Error())
+		}
+	}
+
+	return nil
+
+}
+func (a *App) blindTransferChat(ctx context.Context, domainId int64, conversationId, channelId string, planId int32, vars map[string]string) model.AppError {
 	schema, err := a.Store.ChatPlan().GetSchemaId(ctx, domainId, planId)
 	if err != nil {
 		return err
