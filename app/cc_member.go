@@ -287,6 +287,26 @@ func (app *App) ProcessingActionForm(domainId, attemptId int64, appId string, fo
 	return nil
 }
 
+func (app *App) ProcessingActionComponent(domainId, attemptId int64, appId string, formId, componentId string,
+	action string, vars map[string]string, sync bool) model.AppError {
+	_, err := app.cc.Member().ProcessingActionComponent(context.Background(), &cc.ProcessingComponentActionRequest{
+		DomainId:    domainId,
+		AttemptId:   attemptId,
+		AppId:       appId,
+		FormId:      formId,
+		ComponentId: componentId,
+		Action:      action,
+		Variables:   vars,
+		Sync:        sync,
+	})
+
+	if err != nil {
+		return model.NewBadRequestError("app.cc_member.component_action.app_err", err.Error())
+	}
+
+	return nil
+}
+
 func (app *App) ProcessingSaveForm(domainId, attemptId int64, fields map[string]string, form []byte) model.AppError {
 	err := app.cc.Member().SaveFormFields(domainId, attemptId, fields, form)
 

@@ -234,26 +234,28 @@ returning *`, map[string]interface{}{
 	return out, nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]int64, model.AppError) {
+func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
 	params := map[string]interface{}{
 		"ResourceId": resourceId,
 	}
 	var (
-		ids  []int64
 		name string
+		displays []*model.ResourceDisplay
 	)
+
 	queryBase := "insert into call_center.cc_outbound_resource_display (resource_id, display) values"
 	for i, rd := range d {
 		name = fmt.Sprintf("Val%d", i)
 		queryBase += fmt.Sprintf(" (:ResourceId, :%s),", name)
 		params[name] = rd.Display
 	}
-	queryBase = queryBase[:len(queryBase)-1] + " returning id"
-	_, err := s.GetMaster().WithContext(ctx).Select(&ids, queryBase, params)
+	queryBase = queryBase[:len(queryBase)-1] + " returning id, display, resource_id"
+	_, err := s.GetMaster().WithContext(ctx).Select(&displays, queryBase, params)
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.save_displays.app_error", err.Error(), extractCodeFromErr(err))
 	}
-	return ids, nil
+	
+	return displays, nil
 }
 
 func (s SqlOutboundResourceStore) GetDisplayAllPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {

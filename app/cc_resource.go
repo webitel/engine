@@ -106,7 +106,7 @@ func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.
 	return a.Store.OutboundResource().SaveDisplay(ctx, display)
 }
 
-func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]int64, model.AppError) {
+func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
 	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, displays)
 }
 
