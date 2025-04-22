@@ -157,6 +157,8 @@ func (ac *authConnection) GetSession(c context.Context, token string) (*Session,
 				session.actions = append(session.actions, PermissionSystemSetting)
 			case "scheme_variables":
 				session.actions = append(session.actions, PermissionSchemeVariables)
+			case "reset_active_attempts":
+				session.actions = append(session.actions, PermissionResetActiveAttempts)
 			}
 		}
 	}

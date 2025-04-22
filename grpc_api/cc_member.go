@@ -815,9 +815,8 @@ func (api *member) ResetActiveAttempts(ctx context.Context, in *engine.ResetActi
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	if !session.HasAction(auth_manager.PermissionResetActiveAttempts) {
+		return nil, api.app.MakeActionPermissionError(session, auth_manager.PermissionResetActiveAttempts, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	dbRequest := &model.ResetActiveMemberAttempts{
