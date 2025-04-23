@@ -398,6 +398,7 @@ type AgentInQueue struct {
 	CountMembers   int           `json:"count_members" db:"count_members"`
 	WaitingMembers int           `json:"waiting_members" db:"waiting_members"`
 	ActiveMembers  int           `json:"active_members" db:"active_members"`
+	MaxMemberLimit int           `json:"max_member_limit" db:"max_member_limit"`
 	Agents         QueueAgentAgg `json:"agents" db:"agents"`
 }
 
@@ -407,7 +408,7 @@ func (AgentInQueue) DefaultOrder() string {
 
 func (a AgentInQueue) AllowFields() []string {
 	return []string{"queue", "type", "strategy", "count_members", "waiting_members", "active_members",
-		"priority", "enabled", "queue_id", "queue_name", "domain_id", "agent_id", "agents"}
+		"priority", "enabled", "queue_id", "queue_name", "domain_id", "agent_id", "agents", "max_member_limit"}
 }
 
 func (a AgentInQueue) DefaultFields() []string {

@@ -452,6 +452,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 			CountMembers:   int32(v.CountMembers),
 			WaitingMembers: int32(v.WaitingMembers),
 			ActiveMembers:  int32(v.ActiveMembers),
+			MaxMemberLimit: int32(v.MaxMemberLimit),
 			Agents: &engine.AgentInQueue_AgentsInQueue{
 				Online:  v.Agents.Online,
 				Pause:   v.Agents.Pause,
