@@ -41,5 +41,17 @@ type SearchAgentTeam struct {
 }
 
 func (team *AgentTeam) IsValid() AppError {
+	if team == nil {
+		return NewBadRequestError("model.cc_team.is_valid.nil.app_error", "Team cannot be nil")
+	}
+
+	if len(team.Name) == 0 {
+		return NewBadRequestError("model.cc_team.is_valid.name.app_error", "Name is required")
+	}
+
+	if len(team.Strategy) == 0 {
+		return NewBadRequestError("model.cc_team.is_valid.strategy.app_error", "Strategy is required")
+	}
+
 	return nil
 }
