@@ -38,6 +38,32 @@ func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, grou
 	return (res.Valid && res.Int64 == 1), nil
 }
 
+func (s SqlQueueStore) RbacUniqueQueues(ctx context.Context, domainId int64, queueIds []int64, groups []int) ([]int32, model.AppError) {
+	var res []int32
+	_, err := s.GetReplica().WithContext(ctx).
+		Select(&res, `select distinct object
+from call_center.cc_queue_acl a
+where a.dc = :DomainId
+    and (:QueueIds::int[] isnull or object = any (:QueueIds::int[]))
+    and a.subject = any (:Groups::int[])
+    and a.access & :Access = :Access;`, map[string]any{
+			"DomainId": domainId,
+			"QueueIds": pq.Array(queueIds),
+			"Groups":   pq.Array(groups),
+			"Access":   auth_manager.PERMISSION_ACCESS_UPDATE.Value(),
+		})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_queue.rbac_queues.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if len(res) == 0 {
+		return nil, model.NewNotFoundError("store.sql_queue.rbac_queues", "Not found")
+	}
+
+	return res, nil
+}
+
 func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	var out *model.Queue
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with q as (

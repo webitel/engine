@@ -8,8 +8,6 @@ import (
 	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type member struct {
@@ -633,6 +631,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 }
 
 func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMembersRequest) (*engine.ListMember, error) {
+	var queueIds []int32
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -641,6 +640,23 @@ func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMem
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		queueIds, err = api.app.RbacUniqueQueues(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles())
+		if err != nil {
+			return nil, err
+		}
+	} else if len(in.QueueId) != 0 {
+		// TODO
+		queueIds = make([]int32, 0, len(in.QueueId))
+		for _, queueId := range in.QueueId {
+			queueIds = append(queueIds, int32(queueId))
+		}
 	}
 
 	var list []*model.Member
@@ -656,39 +672,13 @@ func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMem
 			BucketIds:  in.GetBucketId(),
 			StopCauses: in.GetStopCause(),
 			AgentIds:   in.GetAgentId(),
-			Variables: in.GetVariables(),
+			Variables:  in.GetVariables(),
+			QueueIds:   queueIds,
 		},
 		Numbers:   in.GetNumbers(),
 		Variables: in.GetVariables(),
 	}
 
-	var queueIds []int
-
-	if list, _, err = api.app.SearchMembers(ctx, session.Domain(0), &req.SearchMemberRequest); err != nil {
-		return nil, err
-	}
-	if list != nil {
-		for _, v := range list {
-			queueIds = append(queueIds, int(v.Queue.Id))
-		}
-
-		uniqueQueueIds := removeDuplicates(queueIds)
-		for _, id := range uniqueQueueIds {
-			if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
-				var perm bool
-				if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
-					auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
-					return nil, err
-				} else if !perm {
-					return nil, api.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-				}
-			}
-		}
-
-	} else {
-		return nil, status.Errorf(codes.NotFound, "Members not found")
-	}
-	
 	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
 
 	if err != nil {
@@ -1154,7 +1144,7 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		res.Queue = GetProtoLookup(&src.Queue)
 	} else {
 		res.Queue = &engine.Lookup{
-			Id:   int64(src.QueueId),
+			Id: int64(src.QueueId),
 		}
 	}
 	if src.StopCause != nil {
@@ -1398,18 +1388,4 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 	}
 
 	return item
-}
-
-func removeDuplicates(ids []int) []int64 {
-	seen := make(map[int]bool)
-	unique := []int64{}
-
-	for _, id := range ids {
-		if !seen[id] {
-			seen[id] = true
-			unique = append(unique, int64(id))
-		}
-	}
-
-	return unique
 }

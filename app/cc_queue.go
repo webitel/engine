@@ -15,6 +15,10 @@ func (a *App) CreateQueue(ctx context.Context, queue *model.Queue) (*model.Queue
 	return a.Store.Queue().Create(ctx, queue)
 }
 
+func (app *App) RbacUniqueQueues(ctx context.Context, domainId int64, queueIds []int64, groups []int) ([]int32, model.AppError) {
+	return app.Store.Queue().RbacUniqueQueues(ctx, domainId, queueIds, groups)
+}
+
 func (a *App) GetQueuePage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, bool, model.AppError) {
 	list, err := a.Store.Queue().GetAllPage(ctx, domainId, search)
 	if err != nil {
