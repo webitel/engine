@@ -651,6 +651,11 @@ func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMem
 		if err != nil {
 			return nil, err
 		}
+
+		if len(queueIds) == 0 {
+			return &engine.ListMember{}, nil
+		}
+
 	} else if len(in.QueueId) != 0 {
 		// TODO
 		queueIds = make([]int32, 0, len(in.QueueId))

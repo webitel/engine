@@ -57,10 +57,6 @@ where a.dc = :DomainId
 		return nil, model.NewCustomCodeError("store.sql_queue.rbac_queues.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	if len(res) == 0 {
-		return nil, model.NewNotFoundError("store.sql_queue.rbac_queues", "Not found")
-	}
-
 	return res, nil
 }
 
