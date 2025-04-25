@@ -12,9 +12,10 @@ const (
 type Questions []Question
 
 type Question struct {
-	Type     QuestionType `json:"type"`
-	Required bool         `json:"required"`
-	Question string       `json:"question"`
+	Type        QuestionType `json:"type"`
+	Required    bool         `json:"required"`
+	Question    string       `json:"question"`
+	Description string       `json:"description"`
 	//options
 	Options []QuestionOption `json:"options,omitempty"`
 	//score
