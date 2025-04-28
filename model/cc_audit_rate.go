@@ -103,8 +103,7 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 			}
 
 			r.ScoreRequired += a.Score
-		} else if a != nil && a.Score > 0 { // skip optional if empty
-
+		} else if a != nil { 
 			if !form.Questions[i].ValidAnswer(*a) {
 				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
 			}
@@ -112,12 +111,21 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 		}
 	}
 
-	if r.ScoreRequired > 0 {
-		r.ScoreRequired = (r.ScoreRequired * 100) / form.Questions.SumMax(true)
+	maxRequiredScore := form.Questions.SumMax(true)
+	maxOptionalScore := form.Questions.SumMax(false)
+
+	if maxRequiredScore != 0 {
+		r.ScoreRequired = (r.ScoreRequired * 100) / maxRequiredScore
+		if r.ScoreRequired < 0 {
+			r.ScoreRequired = 0
+		}
 	}
 
-	if r.ScoreOptional > 0 {
-		r.ScoreOptional = (r.ScoreOptional * 100) / form.Questions.SumMax(false)
+	if maxOptionalScore != 0 {
+		r.ScoreOptional = (r.ScoreOptional * 100) / maxOptionalScore
+		if r.ScoreOptional < 0 {
+			r.ScoreOptional = 0
+		}
 	}
 
 	return nil
