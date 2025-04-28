@@ -803,7 +803,7 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 
 	//FIXME check queue PERMISSION
 
-	if in.GetJoinedAt() == nil {
+	if in.GetJoinedAt() == nil && len(in.GetMemberId()) == 0 {
 		return nil, model.NewBadRequestError("grpc.member.search_attempt", "filter joined_at is required")
 	}
 

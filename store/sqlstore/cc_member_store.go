@@ -699,7 +699,9 @@ func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int6
 
 	err := s.ListQuery(ctx, &att, search.ListRequest,
 		`domain_id = :Domain
-	and joined_at between :From::timestamptz and :To::timestamptz
+	and ( :From::timestamptz isnull or joined_at >= :From::timestamptz )
+	and ( :To::timestamptz isnull or joined_at <= :To::timestamptz )
+
 	and (:Ids::int8[] isnull or id = any(:Ids))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
