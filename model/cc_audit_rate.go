@@ -103,7 +103,7 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 			}
 
 			r.ScoreRequired += a.Score
-		} else if a != nil { 
+		} else if a != nil {
 			if !form.Questions[i].ValidAnswer(*a) {
 				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
 			}
@@ -111,20 +111,24 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 		}
 	}
 
-	maxRequiredScore := form.Questions.SumMax(true)
-	maxOptionalScore := form.Questions.SumMax(false)
+	maxRequiredPositiveScore := form.Questions.SumMax(true)
+	maxRequiredNegativeScore := form.Questions.SumMin(true)
+	maxOptionalPositiveScore := form.Questions.SumMax(false)
+	maxOptionalNegativeScore := form.Questions.SumMin(false)
 
-	if maxRequiredScore != 0 {
-		r.ScoreRequired = (r.ScoreRequired * 100) / maxRequiredScore
-		if r.ScoreRequired < 0 {
-			r.ScoreRequired = 0
+	if maxRequiredPositiveScore != 0 || maxRequiredNegativeScore != 0 {
+		if r.ScoreRequired >= 0 {
+			r.ScoreRequired = float32(int((r.ScoreRequired * 100) / maxRequiredPositiveScore))
+		} else {
+			r.ScoreRequired = float32(int(-(r.ScoreRequired * 100) / maxRequiredNegativeScore))
 		}
 	}
 
-	if maxOptionalScore != 0 {
-		r.ScoreOptional = (r.ScoreOptional * 100) / maxOptionalScore
-		if r.ScoreOptional < 0 {
-			r.ScoreOptional = 0
+	if maxOptionalPositiveScore != 0 || maxOptionalNegativeScore != 0 {
+		if r.ScoreOptional >= 0 {
+			r.ScoreOptional = float32(int((r.ScoreOptional * 100) / maxOptionalPositiveScore))
+		} else {
+			r.ScoreOptional = float32(int(-(r.ScoreOptional * 100) / maxOptionalNegativeScore))
 		}
 	}
 
