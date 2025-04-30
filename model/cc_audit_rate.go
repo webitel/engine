@@ -118,17 +118,17 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 
 	if maxRequiredPositiveScore != 0 || maxRequiredNegativeScore != 0 {
 		if r.ScoreRequired >= 0 {
-			r.ScoreRequired = float32(int((r.ScoreRequired * 100) / maxRequiredPositiveScore))
+			r.ScoreRequired = (r.ScoreRequired * 100) / maxRequiredPositiveScore
 		} else {
-			r.ScoreRequired = float32(int(-(r.ScoreRequired * 100) / maxRequiredNegativeScore))
+			r.ScoreRequired = -(r.ScoreRequired * 100) / maxRequiredNegativeScore
 		}
 	}
 
 	if maxOptionalPositiveScore != 0 || maxOptionalNegativeScore != 0 {
 		if r.ScoreOptional >= 0 {
-			r.ScoreOptional = float32(int((r.ScoreOptional * 100) / maxOptionalPositiveScore))
+			r.ScoreOptional = (r.ScoreOptional * 100) / maxOptionalPositiveScore
 		} else {
-			r.ScoreOptional = float32(int(-(r.ScoreOptional * 100) / maxOptionalNegativeScore))
+			r.ScoreOptional = -(r.ScoreOptional * 100) / maxOptionalNegativeScore
 		}
 	}
 
