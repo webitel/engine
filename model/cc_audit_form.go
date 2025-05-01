@@ -76,7 +76,7 @@ func (AuditForm) AllowFields() []string {
 }
 
 func (AuditForm) DefaultFields() []string {
-	return []string{"id", "name", "description", "teams", "archive", "editable", "enabled", "created_at", "created_by", "updated_at", "updated_by"}
+	return []string{"id", "name", "description", "teams", "archive", "editable", "enabled", "created_at", "created_by", "updated_at", "updated_by", "questions"}
 }
 
 func (AuditForm) EntityName() string {
@@ -107,6 +107,8 @@ func (af *AuditForm) IsValid() AppError {
 			if len(v.Options) == 0 {
 				return NewBadRequestError("app.audit_form.is_valid.option.options", "")
 			}
+		case QuestionTypeYes:
+			continue
 		default:
 			return NewBadRequestError("app.audit_form.is_valid.question.type", "")
 		}

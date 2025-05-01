@@ -7,15 +7,17 @@ type QuestionType string
 const (
 	QuestionTypeScore   QuestionType = "score"
 	QuestionTypeOptions QuestionType = "options"
+	QuestionTypeYes     QuestionType = "yes"
 )
 
 type Questions []Question
 
 type Question struct {
-	Type        QuestionType `json:"type"`
-	Required    bool         `json:"required"`
-	Question    string       `json:"question"`
-	Description string       `json:"description"`
+	Type              QuestionType `json:"type"`
+	Required          bool         `json:"required"`
+	Question          string       `json:"question"`
+	Description       string       `json:"description"`
+	CriticalViolation bool         `json:"critical_violation"`
 	//options
 	Options []QuestionOption `json:"options,omitempty"`
 	//score
@@ -111,6 +113,8 @@ func (q *Question) ValidAnswer(a QuestionAnswer) bool {
 				return true
 			}
 		}
+	case QuestionTypeYes:
+		return a.Score == 1 || a.Score == 0
 	}
 
 	return false

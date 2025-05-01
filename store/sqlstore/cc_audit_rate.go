@@ -49,9 +49,9 @@ func (s *SqlAuditRateStore) CheckAccess(ctx context.Context, domainId, rateId in
 func (s *SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&rate, `with r as (
     insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional, 
-		comment, call_id, call_created_at, rated_user_id)
+		comment, call_id, call_created_at, rated_user_id, select_yes_count, critical_count)
     values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional, 
-		:Comment, :CallId, :CallCreatedAt, :RatedUserId)
+		:Comment, :CallId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
     returning *
 )
 select r.id,
@@ -66,25 +66,29 @@ select r.id,
        r.score_optional,
        r.comment,
        r.call_id,
-       f.questions
+       f.questions,
+       r.select_yes_count,
+       r.critical_count
 from  r
     left join call_center.cc_audit_form f on f.id = r.form_id
     LEFT JOIN directory.wbt_user uc ON uc.id = r.created_by
     LEFT JOIN directory.wbt_user u ON u.id = r.updated_by
     LEFT JOIN directory.wbt_user ur ON ur.id = r.rated_user_id`, map[string]interface{}{
-		"DomainId":      domainId,
-		"FormId":        rate.Form.Id,
-		"CreatedAt":     rate.CreatedAt,
-		"CreatedBy":     rate.CreatedBy.GetSafeId(),
-		"UpdatedAt":     rate.UpdatedAt,
-		"UpdatedBy":     rate.UpdatedBy.GetSafeId(),
-		"Answers":       rate.Answers.ToJson(),
-		"ScoreRequired": rate.ScoreRequired,
-		"ScoreOptional": rate.ScoreOptional,
-		"Comment":       rate.Comment,
-		"CallId":        rate.CallId,
-		"CallCreatedAt": rate.CallCreatedAt,
-		"RatedUserId":   rate.RatedUser.GetSafeId(),
+		"DomainId":       domainId,
+		"FormId":         rate.Form.Id,
+		"CreatedAt":      rate.CreatedAt,
+		"CreatedBy":      rate.CreatedBy.GetSafeId(),
+		"UpdatedAt":      rate.UpdatedAt,
+		"UpdatedBy":      rate.UpdatedBy.GetSafeId(),
+		"Answers":        rate.Answers.ToJson(),
+		"ScoreRequired":  rate.ScoreRequired,
+		"ScoreOptional":  rate.ScoreOptional,
+		"Comment":        rate.Comment,
+		"CallId":         rate.CallId,
+		"CallCreatedAt":  rate.CallCreatedAt,
+		"RatedUserId":    rate.RatedUser.GetSafeId(),
+		"SelectYesCount": rate.SelectYesCount,
+		"CriticalCount":  rate.CriticalCount,
 	})
 
 	if err != nil {
@@ -182,7 +186,9 @@ func (s *SqlAuditRateStore) Update(ctx context.Context, domainId int64, rate *mo
         updated_by = :UpdatedBy,
         updated_at = :UpdatedAt,
         score_required = :ScoreRequired,
-        score_optional = :ScoreOptional
+        score_optional = :ScoreOptional,
+        select_yes_count = :SelectYesCount,
+        critical_count = :CriticalCount
     where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -198,7 +204,9 @@ select r.id,
        r.score_optional,
        r.comment,
        r.call_id,
-       f.questions
+       f.questions,
+	   r.select_yes_count,
+	   r.critical_count
 from  r
     LEFT JOIN LATERAL ( SELECT jsonb_agg(
                                             CASE
@@ -215,14 +223,16 @@ from  r
     LEFT JOIN directory.wbt_user uc ON uc.id = r.created_by
     LEFT JOIN directory.wbt_user u ON u.id = r.updated_by
     LEFT JOIN directory.wbt_user ur ON ur.id = r.rated_user_id`, map[string]any{
-		"DomainId":      domainId,
-		"Id":            rate.Id,
-		"UpdatedAt":     rate.UpdatedAt,
-		"UpdatedBy":     rate.UpdatedBy.GetSafeId(),
-		"Answers":       rate.Answers.ToJson(),
-		"ScoreRequired": rate.ScoreRequired,
-		"ScoreOptional": rate.ScoreOptional,
-		"Comment":       rate.Comment,
+		"DomainId":       domainId,
+		"Id":             rate.Id,
+		"UpdatedAt":      rate.UpdatedAt,
+		"UpdatedBy":      rate.UpdatedBy.GetSafeId(),
+		"Answers":        rate.Answers.ToJson(),
+		"ScoreRequired":  rate.ScoreRequired,
+		"ScoreOptional":  rate.ScoreOptional,
+		"Comment":        rate.Comment,
+		"SelectYesCount": rate.SelectYesCount,
+		"CriticalCount":  rate.CriticalCount,
 	})
 
 	if err != nil {
