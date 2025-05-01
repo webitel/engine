@@ -164,21 +164,24 @@ func GetRegExpQ(q string) *string {
 // Returns changed copy of the input slice.
 func ParseRegexp(q string) (s *string, found bool) {
 	var (
-		escapePre = "/"
-		escapeSu  = "/"
-		res       string
-		f         bool
+		escapePre  = "/"
+		escapeSu   = "/"
+		escapeStar = "*"
+		res        = q
+		f          bool
 	)
-	if q == "" {
+	if res == "" {
 		return nil, false
 	}
-	if strings.HasPrefix(q, escapePre) && strings.HasSuffix(q, escapeSu) {
-		pre, _ := strings.CutPrefix(q, escapePre)
-		su, _ := strings.CutSuffix(pre, escapeSu)
-		res = su
+	res, _ = strings.CutSuffix(q, escapeStar)
+	if strings.HasPrefix(res, escapePre) && strings.HasSuffix(res, escapeSu) {
+		res, _ = strings.CutPrefix(res, escapePre)
+		res, _ = strings.CutSuffix(res, escapeSu)
 		f = true
 	} else {
-		res = "%" + q + "%"
+		res, _ = strings.CutSuffix(res, escapeStar)
+		res, _ = strings.CutPrefix(res, escapeStar)
+		res = "%" + res + "%"
 		f = false
 	}
 	return &res, f

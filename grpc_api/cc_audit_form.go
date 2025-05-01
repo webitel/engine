@@ -368,8 +368,9 @@ func toAuditQuestions(src []*engine.Question) model.Questions {
 	q := make(model.Questions, 0, len(src))
 	for _, v := range src {
 		item := model.Question{
-			Required: v.Required,
-			Question: v.Question,
+			Required:    v.Required,
+			Question:    v.Question,
+			Description: v.Description,
 		}
 
 		switch v.Type {
@@ -399,8 +400,9 @@ func modelToProtobufAuditQuestions(src model.Questions) []*engine.Question {
 	q := make([]*engine.Question, 0, len(src))
 	for _, v := range src {
 		item := &engine.Question{
-			Required: v.Required,
-			Question: v.Question,
+			Required:    v.Required,
+			Question:    v.Question,
+			Description: v.Description,
 		}
 		switch v.Type {
 		case model.QuestionTypeScore:

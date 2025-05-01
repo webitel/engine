@@ -39,7 +39,7 @@ require (
 	github.com/webitel/call_center v0.0.0-20250414071704-f046edd67cd4
 	github.com/webitel/flow_manager v0.0.0-20250414065241-bfbc42c2c019
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
-	github.com/webitel/wlog v0.0.0-20240909100805-822697e17a45
+	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.opentelemetry.io/otel v1.29.0
 	go.opentelemetry.io/otel/sdk v1.29.0

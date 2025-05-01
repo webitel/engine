@@ -26,6 +26,7 @@ const (
 	PermissionSystemSetting         = "system_setting"
 	PermissionSchemeVariables       = "scheme_variables"
 	PermissionTimeLimitedRecordFile = "time_limited_record_file"
+	PermissionResetActiveAttempts   = "reset_active_attempts"
 )
 
 func (p PermissionAccess) Value() uint32 {

@@ -631,8 +631,73 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 }
 
 func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMembersRequest) (*engine.ListMember, error) {
-	//TODO implement me
-	panic("implement me")
+	var queueIds []int32
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		queueIds, err = api.app.RbacUniqueQueues(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles())
+		if err != nil {
+			return nil, err
+		}
+
+		if len(queueIds) == 0 {
+			return &engine.ListMember{}, nil
+		}
+
+	} else if len(in.QueueId) != 0 {
+		// TODO
+		queueIds = make([]int32, 0, len(in.QueueId))
+		for _, queueId := range in.QueueId {
+			queueIds = append(queueIds, int32(queueId))
+		}
+	}
+
+	var list []*model.Member
+
+	req := &model.MultiDeleteMembers{
+		SearchMemberRequest: model.SearchMemberRequest{
+			ListRequest: model.ListRequest{
+				Q:       in.GetQ(),
+				PerPage: int(in.GetSize()),
+				Sort:    in.GetSort(),
+			},
+			Ids:        in.GetId(),
+			BucketIds:  in.GetBucketId(),
+			StopCauses: in.GetStopCause(),
+			AgentIds:   in.GetAgentId(),
+			Variables:  in.GetVariables(),
+			QueueIds:   queueIds,
+		},
+		Numbers:   in.GetNumbers(),
+		Variables: in.GetVariables(),
+	}
+
+	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.MemberInQueue, 0, len(list))
+	for _, v := range list {
+		items = append(items, toEngineMember(v))
+	}
+
+	return &engine.ListMember{
+		Items: items,
+	}, nil
 }
 
 func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequest) (*engine.ResetMembersResponse, error) {
@@ -815,9 +880,8 @@ func (api *member) ResetActiveAttempts(ctx context.Context, in *engine.ResetActi
 		return nil, err
 	}
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	if !session.HasAction(auth_manager.PermissionResetActiveAttempts) {
+		return nil, api.app.MakeActionPermissionError(session, auth_manager.PermissionResetActiveAttempts, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	dbRequest := &model.ResetActiveMemberAttempts{
@@ -855,7 +919,7 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 
 	//FIXME check queue PERMISSION
 
-	if in.GetJoinedAt() == nil {
+	if in.GetJoinedAt() == nil && len(in.GetMemberId()) == 0 {
 		return nil, model.NewBadRequestError("grpc.member.search_attempt", "filter joined_at is required")
 	}
 
@@ -1057,7 +1121,6 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 	res := &engine.MemberInQueue{
 		Id:        src.Id,
 		CreatedAt: model.TimeToInt64(&src.CreatedAt),
-		Queue:     GetProtoLookup(&src.Queue),
 		Priority:  int32(src.Priority),
 		ExpireAt:  model.TimeToInt64(src.ExpireAt),
 		Variables: src.Variables,
@@ -1082,6 +1145,13 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 		}
 	}
 
+	if src.Queue.Id != 0 {
+		res.Queue = GetProtoLookup(&src.Queue)
+	} else {
+		res.Queue = &engine.Lookup{
+			Id: int64(src.QueueId),
+		}
+	}
 	if src.StopCause != nil {
 		res.StopCause = *src.StopCause
 	}

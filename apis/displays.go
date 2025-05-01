@@ -3,25 +3,26 @@ package apis
 import (
 	"encoding/csv"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/webitel/engine/model"
 )
 
 func (api *API) InitDisplays() {
-	api.Routes.Root.Handle("/api/call_center/resources/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
+	api.Routes.Root.Handle("/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
 }
 
 func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
 
-	err := r.ParseMultipartForm(10 << 20) // 10MB limit
-	if err != nil {
+	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB limit
 		http.Error(w, "Error parsing form data", http.StatusBadRequest)
 		return
 	}
@@ -33,32 +34,13 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	delimiter := r.FormValue("delimiter")
-	if delimiter == "" {
-		delimiter = "," // Default delimiter
-	}
-
+	delimiter := getDelimiter(r.FormValue("delimiter"))
 	mapCol := r.FormValue("map")
-	reader := csv.NewReader(file)
 
-	// Read the header row
-	headers, err := reader.Read()
+	resourceId, err := parseResourceID(r)
 	if err != nil {
-		http.Error(w, "Error reading CSV file", http.StatusInternalServerError)
-	}
-
-	// Find the index of the column by name
-	var columnIndex int
-	for i, header := range headers {
-		if header == mapCol {
-			columnIndex = i
-			break
-		}
-	}
-
-	resourceId, err := strconv.ParseInt(getIdFromRequest(r), 10, 64)
-	if err != nil {
-		http.Error(w, "Error resourceId", http.StatusBadRequest)
+		http.Error(w, "Invalid resource ID", http.StatusBadRequest)
+		return
 	}
 
 	records, err := readCSV(file, delimiter)
@@ -67,7 +49,18 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mappedData, err := mapData(records, columnIndex)
+	if len(records) == 0 {
+		http.Error(w, "CSV file is empty", http.StatusBadRequest)
+		return
+	}
+
+	columnIndex, err := findColumnIndex(records[0], mapCol)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	mappedData, err := mapData(records, columnIndex, resourceId)
 	if err != nil {
 		http.Error(w, "Error mapping data", http.StatusInternalServerError)
 		return
@@ -79,10 +72,19 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(displays); err != nil {
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	writeJSONResponse(w, displays)
+}
+
+func getDelimiter(delimiter string) string {
+	if delimiter == "" {
+		return ","
 	}
+	return delimiter
+}
+
+func parseResourceID(r *http.Request) (int64, error) {
+	idStr := mux.Vars(r)["id"]
+	return strconv.ParseInt(idStr, 10, 64)
 }
 
 func readCSV(file io.Reader, delimiter string) ([][]string, error) {
@@ -91,20 +93,31 @@ func readCSV(file io.Reader, delimiter string) ([][]string, error) {
 	return reader.ReadAll()
 }
 
-func mapData(records [][]string, mapColIndex int) ([]*model.ResourceDisplay, error) {
+func findColumnIndex(headers []string, columnName string) (int, error) {
+	for i, header := range headers {
+		if header == columnName {
+			return i, nil
+		}
+	}
+	return -1, errors.New("specified column not found in CSV headers")
+}
+
+func mapData(records [][]string, mapColIndex int, resourceId int64) ([]*model.ResourceDisplay, error) {
 	var mappedData []*model.ResourceDisplay
 
 	for _, row := range records[1:] {
-		resourceId, err := strconv.ParseInt(row[0], 10, 64) //TODO: Add multiple resources ID's insert
-		if err != nil {
-			return nil, err
-		}
-		display := row[mapColIndex]
 		mappedData = append(mappedData, &model.ResourceDisplay{
 			ResourceId: resourceId,
-			Display:    display,
+			Display:    row[mapColIndex],
 		})
 	}
 
 	return mappedData, nil
+}
+
+func writeJSONResponse(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 }
