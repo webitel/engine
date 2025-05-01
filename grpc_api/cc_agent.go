@@ -751,6 +751,10 @@ func (api *agent) AgentTodayStatistics(ctx context.Context, in *engine.AgentToda
 		Processing:       stat.Processing,
 		TaskAccepts:      stat.TaskAccepts,
 		QueueTalkSec:     stat.QueueTalkSec,
+		CallQueueMissed:  stat.CallQueueMissed,
+		CallInboundQueue: stat.CallInboundQueue,
+		CallDialerQueue:  stat.CallDialerQueue,
+		CallManual:       stat.CallManual,
 	}, nil
 }
 
