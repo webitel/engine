@@ -1230,7 +1230,11 @@ func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId int64, agen
     s.online,
     s.processing,
     s.task_accepts,
-	s.queue_talk_sec
+	s.queue_talk_sec,
+	s.call_queue_missed,
+	s.call_inbound_queue,
+	s.call_dialer_queue,
+	s.call_manual
 from call_center.cc_agent_today_stats s
 where s.domain_id = :DomainId and `
 
