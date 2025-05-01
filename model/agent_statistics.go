@@ -26,4 +26,9 @@ type AgentStatistics struct {
 	Processing       int32   `json:"processing" db:"processing"`
 	TaskAccepts      int32   `json:"task_accepts" db:"task_accepts"`
 	QueueTalkSec     int32   `json:"queue_talk_sec" db:"queue_talk_sec"`
+
+	CallQueueMissed  int32 `json:"call_queue_missed" db:"call_queue_missed"`
+	CallInboundQueue int32 `json:"call_inbound_queue" db:"call_inbound_queue"`
+	CallDialerQueue  int32 `json:"call_dialer_queue" db:"call_dialer_queue"`
+	CallManual       int32 `json:"call_manual" db:"call_manual"`
 }
