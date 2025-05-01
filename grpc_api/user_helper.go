@@ -100,5 +100,9 @@ func (api *userHelper) ActivityWorkspaceWidget(ctx context.Context, in *engine.A
 		Processing:       stat.Processing,
 		TaskAccepts:      stat.TaskAccepts,
 		QueueTalkSec:     stat.QueueTalkSec,
+		CallQueueMissed:  stat.CallQueueMissed,
+		CallInboundQueue: stat.CallInboundQueue,
+		CallDialerQueue:  stat.CallDialerQueue,
+		CallManual:       stat.CallManual,
 	}, nil
 }
