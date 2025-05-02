@@ -99,13 +99,13 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 			}
 
 			if !form.Questions[i].ValidAnswer(*a) {
-				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
+				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %.2f", form.Questions[i].Question, a.Score))
 			}
 
 			r.ScoreRequired += a.Score
 		} else if a != nil {
 			if !form.Questions[i].ValidAnswer(*a) {
-				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %d", form.Questions[i].Question, a.Score))
+				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %.2f", form.Questions[i].Question, a.Score))
 			}
 			r.ScoreOptional += a.Score
 		}
