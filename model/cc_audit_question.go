@@ -45,6 +45,23 @@ func (q Questions) SumMax(required bool) float32 {
 	return i
 }
 
+func (q Questions) SumMin(required bool) float32 {
+	var i float32
+
+	for _, v := range q {
+		if v.Required == required {
+			switch v.Type {
+			case QuestionTypeScore:
+				i += float32(v.Min)
+			case QuestionTypeOptions:
+				i += minScoreOption(v.Options)
+			}
+		}
+	}
+
+	return i
+}
+
 func (q *Questions) ToJson() []byte {
 	if q == nil {
 		return nil
@@ -67,6 +84,21 @@ func maxScoreOption(ops []QuestionOption) float32 {
 	}
 
 	return max
+}
+
+func minScoreOption(ops []QuestionOption) float32 {
+	if len(ops) == 0 {
+		return 0
+	}
+
+	min := ops[0].Score
+	for _, v := range ops {
+		if v.Score < min {
+			min = v.Score
+		}
+	}
+
+	return min
 }
 
 func (q *Question) ValidAnswer(a QuestionAnswer) bool {
