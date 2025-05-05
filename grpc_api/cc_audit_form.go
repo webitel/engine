@@ -359,8 +359,10 @@ func modelToProtobufAuditRate(src *model.AuditRate) *engine.AuditRate {
 		ScoreOptional: &wrappers.FloatValue{
 			Value: src.ScoreOptional,
 		},
-		Comment:   src.Comment,
-		RatedUser: GetProtoLookup(src.RatedUser),
+		Comment:        src.Comment,
+		RatedUser:      GetProtoLookup(src.RatedUser),
+		SelectYesCount: int64(src.SelectYesCount),
+		CriticalCount:  int64(src.CriticalCount),
 	}
 }
 
@@ -388,6 +390,9 @@ func toAuditQuestions(src []*engine.Question) model.Questions {
 				})
 			}
 
+		case engine.AuditQuestionType_question_yes:
+			item.Type = model.QuestionTypeYes
+			item.CriticalViolation = v.CriticalViolation
 		}
 
 		q = append(q, item)
@@ -418,6 +423,9 @@ func modelToProtobufAuditQuestions(src model.Questions) []*engine.Question {
 					Score: j.Score,
 				})
 			}
+		case model.QuestionTypeYes:
+			item.Type = engine.AuditQuestionType_question_yes
+			item.CriticalViolation = v.CriticalViolation
 		}
 
 		q = append(q, item)
