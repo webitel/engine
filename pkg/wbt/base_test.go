@@ -11,8 +11,12 @@ var consulAddr = "10.9.8.111:8500"
 
 func TestCli(t *testing.T) {
 	c, _ := NewClient(consulAddr, "freeswitch", fs.NewApiClient)
+	c2, _ := NewClient(consulAddr, "freeswitch", fs.NewApiClient)
 	testFsDirect(c)
+	testFsDirect(c2)
+	testFsRR(c2)
 	testFsRR(c)
+
 }
 
 func testFsDirect(c *Client[fs.ApiClient]) {
