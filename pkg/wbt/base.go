@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/pkg/wbt/consul"
 	_ "github.com/webitel/engine/pkg/wbt/consul"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 //go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.fs.yaml
@@ -37,6 +38,11 @@ func NewClient[T any](consulTarget string, service string, api func(conn grpc.Cl
 
 func (c *Client[T]) StaticHost(ctx context.Context, name string) context.Context {
 	return context.WithValue(ctx, consul.StaticHostKey, consul.StaticHost{Name: name})
+}
+
+func (c *Client[T]) WithToken(ctx context.Context, token string) context.Context {
+	header := metadata.New(map[string]string{"x-webitel-access": token})
+	return metadata.NewOutgoingContext(ctx, header)
 }
 
 func (c *Client[T]) Close() error {
