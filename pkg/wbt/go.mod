@@ -5,9 +5,13 @@ go 1.24.1
 require (
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/hashicorp/consul/api v1.32.1
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/jpillora/backoff v1.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
+	go.uber.org/atomic v1.11.0
+	golang.org/x/sync v0.12.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 )
