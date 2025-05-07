@@ -2,8 +2,8 @@ package controller
 
 import (
 	"context"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (c *Controller) CreateSchemeVariable(ctx context.Context, session *auth_manager.Session, variable *model.SchemeVariable) (*model.SchemeVariable, model.AppError) {

@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (app *App) CreateBucket(ctx context.Context, bucket *model.Bucket) (*model.Bucket, model.AppError) {

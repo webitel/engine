@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
 )
 
@@ -239,7 +239,7 @@ func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId i
 		"ResourceId": resourceId,
 	}
 	var (
-		name string
+		name     string
 		displays []*model.ResourceDisplay
 	)
 
@@ -254,7 +254,7 @@ func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId i
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.save_displays.app_error", err.Error(), extractCodeFromErr(err))
 	}
-	
+
 	return displays, nil
 }
 

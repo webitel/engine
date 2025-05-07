@@ -2,8 +2,8 @@ package app
 
 import (
 	"context"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (app *App) GetSession(token string) (*auth_manager.Session, model.AppError) {
@@ -43,5 +43,5 @@ func (app *App) GetSessionWitchContext(ctx context.Context, token string) (*auth
 		return nil, model.NewInternalError("app.session.not_found", err.Error())
 	}
 
-	return &session, nil
+	return session, nil
 }

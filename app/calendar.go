@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (a *App) GetCalendarsPage(ctx context.Context, domainId int64, search *model.SearchCalendar) ([]*model.Calendar, bool, model.AppError) {

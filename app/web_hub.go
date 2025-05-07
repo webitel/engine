@@ -128,10 +128,6 @@ func (wh *Hub) start() {
 
 			wlog.Debug("deregister", wlog.Int("count", len(connections.ForUser(webCon.UserId))))
 
-			if wh.app.b2b != nil && !connections.HasUser(webCon.UserId) {
-				wh.app.b2b.Unregister(webCon.UserId, 5)
-			}
-
 		case msg := <-wh.domainQueue.Events():
 			candidates := connections.ForUser(msg.UserId)
 			for _, webCon := range candidates {

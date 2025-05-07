@@ -16,10 +16,6 @@ type LocalizationSettings struct {
 	AvailableLocales    *string `json:"available_locales" default:"en"`
 }
 
-type B2BSettings struct {
-	Addr string `json:"b2b_addr" flag:"b2b_addr||B2B listen address" default:"" env:"B2B_ADDR"`
-}
-
 type SipSettings struct {
 	Proxy       string `json:"proxy" flag:"open_sip_addr|opensips|OpenSIP address" env:"OPEN_SIP_ADDR"`
 	ServerAddr  string `json:"server_addr" flag:"ws_sip_addr||Sip websocket address" default:""  env:"WS_SIP_ADDR"`
@@ -57,7 +53,6 @@ type Config struct {
 	//EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
 	MaxMemberCommunications int     `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications" env:"MAX_MEMBER_COMMUNICATIONS"`
 	PublicHostName          *string `json:"public_host" flag:"public_host||Public hostname" default:"" env:"PUBLIC_HOST"`
-	B2BSettings             B2BSettings
 	Push                    PushConfig
 	Log                     LogSettings          `json:"log"`
 	CaseTriggersSettings    CaseTriggersSettings `json:"case_triggers_settings"`

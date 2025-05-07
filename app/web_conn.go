@@ -14,8 +14,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	wlog "github.com/webitel/wlog"
 )
 
@@ -305,9 +305,6 @@ func (webCon *WebConn) SendHello() {
 	msg.Add("server_time", model.GetMillis())
 	msg.Add("sock_id", webCon.id)
 	msg.Add("session", sess)
-	if webCon.App.b2b != nil {
-		msg.Add("b2bua", true)
-	}
 	if webCon.App.config.PingClientInterval > 0 {
 		msg.Add("ping_interval", webCon.App.config.PingClientInterval)
 	}

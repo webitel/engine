@@ -3,8 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (c *Controller) CreateCommunicationType(ctx context.Context, session *auth_manager.Session, ct *model.CommunicationType) (*model.CommunicationType, model.AppError) {

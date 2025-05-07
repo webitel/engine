@@ -32,12 +32,6 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_by_user", api.ApiAsyncWebSocketHandler(api.callByUser))
 
 	api.Router.Handle("sip_proxy", api.ApiWebSocketHandler(api.sipProxy))
-
-	api.Router.Handle("sip_register", api.ApiWebSocketHandler(api.sipRegister))
-	api.Router.Handle("call_sdp", api.ApiWebSocketHandler(api.callSdp))
-	api.Router.Handle("call_sdp_recovery", api.ApiWebSocketHandler(api.callSdpRecovery))
-	api.Router.Handle("call_sdp_answer", api.ApiWebSocketHandler(api.callSdpAnswer))
-	api.Router.Handle("call_sdp_remote", api.ApiWebSocketHandler(api.callSdpRemote))
 }
 
 func (api *API) callByUser(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -576,66 +570,6 @@ func (api *API) callSendVideo(ctx context.Context, conn *app.WebConn, req *model
 	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
 
 	return nil, nil
-}
-
-func (api *API) sipRegister(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	//userId, _ := req.Data["user_id"].(float64)
-
-	return nil, api.App.SipRegister(ctx, conn.GetSession().Name, conn.DomainId, int64(conn.UserId))
-}
-
-func (api *API) callSdp(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	sdp, _ := req.Data["sdp"].(string)
-	destination, _ := req.Data["destination"].(string)
-	sipId, err := api.App.SipDial(conn.Id(), conn.DomainId, conn.UserId, sdp, destination)
-	if err != nil {
-		return nil, err
-	}
-	res := make(map[string]interface{})
-	res["sip_id"] = sipId
-
-	return res, nil
-}
-
-func (api *API) callSdpRecovery(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	sdp, _ := req.Data["sdp"].(string)
-	id, _ := req.Data["id"].(string)
-
-	sipId, err := api.App.SipRecovery(conn.Id(), conn.DomainId, conn.UserId, id, sdp)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make(map[string]interface{})
-	res["sip_id"] = sipId
-	return res, nil
-}
-
-func (api *API) callSdpAnswer(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	sdp, _ := req.Data["sdp"].(string)
-	id, _ := req.Data["id"].(string)
-	remoteSdp, err := api.App.SipAnswer(conn.DomainId, conn.UserId, id, sdp)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make(map[string]interface{})
-	res["remote_sdp"] = remoteSdp
-
-	return res, nil
-}
-
-func (api *API) callSdpRemote(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	id, _ := req.Data["id"].(string)
-	remoteSdp, err := api.App.SipRemoteSdp(conn.UserId, id)
-	if err != nil {
-		return nil, err
-	}
-
-	res := make(map[string]interface{})
-	res["sdp"] = remoteSdp
-
-	return res, nil
 }
 
 func variablesFromMap(m map[string]interface{}, name string) map[string]string {
