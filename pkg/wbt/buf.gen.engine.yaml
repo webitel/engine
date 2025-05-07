@@ -19,3 +19,13 @@ inputs:
     subdir: engine
     types:
       - engine.Lookup
+      - engine.FilterBetween
+      - engine.ListRequest
+      - engine.DomainRecord
+      - engine.ListForItemRequest
+      - engine.ItemRequest
+      - engine.Response
+      - engine.BoolFilter
+      - engine.Tag
+      - engine.ListTags
+      - engine.CallService
