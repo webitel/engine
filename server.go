@@ -14,6 +14,7 @@ import (
 )
 
 //go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.fs.yaml
+//go:generate go mod tidy
 
 func main() {
 	interruptChan := make(chan os.Signal, 1)
