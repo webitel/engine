@@ -8,6 +8,12 @@ import (
 	"google.golang.org/grpc"
 )
 
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.fs.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.webitel.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.engine.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.cc.yaml
+//go:generate go mod tidy
+
 type Client[T any] struct {
 	conn *grpc.ClientConn
 	Api  T
