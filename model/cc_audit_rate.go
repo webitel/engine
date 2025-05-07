@@ -60,7 +60,7 @@ func (AuditRate) AllowFields() []string {
 }
 
 func (AuditRate) DefaultFields() []string {
-	return []string{"id", "created_at", "created_by", "rated_user", "form", "score_required", "score_optional","select_yes_count", "critical_count"}
+	return []string{"id", "created_at", "created_by", "rated_user", "form", "score_required", "score_optional", "select_yes_count", "critical_count"}
 }
 
 func (AuditRate) EntityName() string {
@@ -91,16 +91,14 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 }
 
 func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
+	if len(form.Questions) != len(r.Answers) {
+		return NewBadRequestError("audit.rate.valid.answers", "Answers not equals questions")
+	}
+
 	r.ScoreRequired = 0
 	r.ScoreOptional = 0
 	r.SelectYesCount = 0
 	r.CriticalCount = 0
-
-	for i, q := range form.Questions {
-		if q.CriticalViolation && r.Answers[i] != nil && r.Answers[i].Score == 1 {
-			r.CriticalCount++
-		}
-	}
 
 	for i, a := range r.Answers {
 		if form.Questions[i].Required {
@@ -112,24 +110,37 @@ func (r *AuditRate) ScoreCalc(form *AuditForm) AppError {
 				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %.2f", form.Questions[i].Question, a.Score))
 			}
 
-			if form.Questions[i].Type == QuestionTypeYes && a.Score == 1 {
-				r.SelectYesCount++
-			}
-
-			if form.Questions[i].Type != QuestionTypeYes {
+			if form.Questions[i].Type == QuestionTypeYes {
+				if a.Score == 1 {
+					r.SelectYesCount++
+					if form.Questions[i].CriticalViolation {
+						r.CriticalCount++
+					}
+				}
+			} else {
 				r.ScoreRequired += a.Score
 			}
 		} else if a != nil {
 			if !form.Questions[i].ValidAnswer(*a) {
 				return NewBadRequestError("audit.rate.valid.answer", fmt.Sprintf("answer \"%s\" not allowed %.2f", form.Questions[i].Question, a.Score))
 			}
-			if form.Questions[i].Type == QuestionTypeYes && a.Score == 1 {
-				r.SelectYesCount++
-			}
-			if form.Questions[i].Type != QuestionTypeYes {
+			if form.Questions[i].Type == QuestionTypeYes {
+				if a.Score == 1 {
+					r.SelectYesCount++
+					if form.Questions[i].CriticalViolation {
+						r.CriticalCount++
+					}
+				}
+			} else {
 				r.ScoreOptional += a.Score
 			}
 		}
+	}
+
+	if r.CriticalCount > 0 {
+		r.ScoreRequired = 0
+		r.ScoreOptional = 0
+		return nil
 	}
 
 	maxRequiredPositiveScore := form.Questions.SumMax(true)
