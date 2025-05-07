@@ -8,8 +8,7 @@ import (
 	"strings"
 	"time"
 
-	fsgrpc "buf.build/gen/go/webitel/fs/grpc/go/_gogrpc"
-	fs "buf.build/gen/go/webitel/fs/protocolbuffers/go"
+	"github.com/webitel/engine/gen/fs"
 	"github.com/webitel/engine/model"
 	"go.uber.org/ratelimit"
 	"google.golang.org/grpc"
@@ -30,7 +29,7 @@ type CallConnection struct {
 	port        int
 	rateLimiter ratelimit.Limiter
 	client      *grpc.ClientConn
-	api         fsgrpc.ApiClient
+	api         fs.ApiClient
 }
 
 func NewCallConnection(name, host, proxy string, port int) (CallClient, model.AppError) {
@@ -48,7 +47,7 @@ func NewCallConnection(name, host, proxy string, port int) (CallClient, model.Ap
 		return nil, model.NewInternalError("grpc.create_connection.app_error", err.Error())
 	}
 
-	c.api = fsgrpc.NewApiClient(c.client)
+	c.api = fs.NewApiClient(c.client)
 	return c, nil
 }
 
