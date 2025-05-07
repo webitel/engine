@@ -6,8 +6,8 @@ import (
 
 	"github.com/lib/pq"
 
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
 )
 

@@ -14,8 +14,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	wlog "github.com/webitel/wlog"
 )
 

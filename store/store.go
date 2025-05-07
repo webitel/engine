@@ -7,8 +7,8 @@ import (
 	"github.com/Masterminds/squirrel"
 	"golang.org/x/oauth2"
 
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 type StoreResult struct {

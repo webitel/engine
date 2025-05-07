@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (api *API) InitMember() {

@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/webitel/call_center/grpc_api/client"
-	"github.com/webitel/engine/auth_manager"
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/chat_manager"
 	"github.com/webitel/engine/localization"
@@ -15,6 +14,7 @@ import (
 	"github.com/webitel/engine/mq"
 	"github.com/webitel/engine/mq/rabbit"
 	"github.com/webitel/engine/pkg/presign"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
 	flow "github.com/webitel/flow_manager/client"
@@ -182,7 +182,8 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, outErr
 	}
 
-	app.sessionManager = auth_manager.NewAuthManager(model.SESSION_CACHE_SIZE, app.Config().AuthCacheExpire, app.cluster.discovery, app.Log)
+	app.sessionManager = auth_manager.NewAuthManager(model.SESSION_CACHE_SIZE, app.Config().AuthCacheExpire,
+		app.Config().DiscoverySettings.Url, app.Log)
 	if err := app.sessionManager.Start(); err != nil {
 		return nil, err
 	}
