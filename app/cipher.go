@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/webitel/engine/model"
-	"github.com/webitel/engine/presign"
+	"github.com/webitel/engine/pkg/presign"
 )
 
 func (app *App) setupCipher() model.AppError {
