@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/webitel/engine/localization"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -154,7 +153,6 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 			switch err.(type) {
 			case model.AppError:
 				e := err.(model.AppError)
-				e.Translate(localization.TfuncWithFallback(model.DEFAULT_LOCALE))
 				return h, status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
 			default:
 				return h, err

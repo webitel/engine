@@ -3,9 +3,7 @@ package web
 import (
 	"net/http"
 
-	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/wlog"
@@ -19,7 +17,6 @@ type Context struct {
 	IpAddress      string
 	UserAgent      string
 	AcceptLanguage string
-	T              i18n.TranslateFunc
 	Err            model.AppError
 }
 
@@ -29,7 +26,7 @@ func (c *Context) LogError(err model.AppError) {
 		c.LogDebug(err)
 	} else {
 		c.Log.Error(
-			err.SystemMessage(localization.TDefault),
+			err.Error(),
 			wlog.Int("http_code", err.GetStatusCode()),
 			wlog.String("err_details", err.GetDetailedError()),
 		)
@@ -42,7 +39,7 @@ func (c *Context) LogInfo(err model.AppError) {
 		c.LogDebug(err)
 	} else {
 		c.Log.Info(
-			err.SystemMessage(localization.TDefault),
+			err.Error(),
 			wlog.Int("http_code", err.GetStatusCode()),
 			wlog.String("err_details", err.GetDetailedError()),
 		)
@@ -51,7 +48,7 @@ func (c *Context) LogInfo(err model.AppError) {
 
 func (c *Context) LogDebug(err model.AppError) {
 	c.Log.Debug(
-		err.SystemMessage(localization.TDefault),
+		err.Error(),
 		wlog.Int("http_code", err.GetStatusCode()),
 		wlog.String("err_details", err.GetDetailedError()),
 	)

@@ -112,7 +112,7 @@ func (t *Trigger) IsValid() AppError {
 		t.Expression = ""
 		t.Timezone = nil
 	default:
-		return newAppError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
+		return NewBadRequestError("trigger.validation.invalid_type", fmt.Sprintf("invalid trigger type: %s", t.Type))
 	}
 
 	return nil
