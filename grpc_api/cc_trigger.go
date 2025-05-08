@@ -1,16 +1,15 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"strings"
 )
 
 type trigger struct {
 	*API
-	gogrpc.UnsafeTriggerServiceServer
+	engine.UnsafeTriggerServiceServer
 }
 
 func newTriggerApi(api *API) *trigger {

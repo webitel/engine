@@ -4,15 +4,14 @@ import (
 	"context"
 	"strings"
 
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 type member struct {
 	*API
-	gogrpc.UnsafeMemberServiceServer
+	engine.UnsafeMemberServiceServer
 }
 
 func NewMemberApi(api *API) *member {

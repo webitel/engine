@@ -1,15 +1,14 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
 
 type teamHook struct {
 	*API
-	gogrpc.UnsafeTeamHookServiceServer
+	engine.UnsafeTeamHookServiceServer
 }
 
 func NewTeamHookApi(api *API) *teamHook {

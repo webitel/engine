@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/webitel/engine/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
@@ -20,7 +19,7 @@ var (
 )
 
 type Client struct {
-	session        utils.ObjectCache
+	session        ObjectCache
 	contactApi     congrpc.ContactsClient
 	contactLinkApi chgrpc.ContactLinkingServiceClient
 	authApi        gogrpc.AuthClient
@@ -39,7 +38,7 @@ func New(cacheSize int, cacheTime int64, consulTarget string) (*Client, error) {
 
 	return &Client{
 		conn:           conn,
-		session:        utils.NewLruWithParams(cacheSize, "sessions", cacheTime, ""), //TODO session from config ?
+		session:        NewLruWithParams(cacheSize, "sessions", cacheTime, ""), //TODO session from config ?
 		contactApi:     congrpc.NewContactsClient(conn),
 		contactLinkApi: chgrpc.NewContactLinkingServiceClient(conn),
 		authApi:        gogrpc.NewAuthClient(conn),

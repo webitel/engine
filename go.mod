@@ -3,16 +3,6 @@ module github.com/webitel/engine
 go 1.24.1
 
 require (
-	buf.build/gen/go/webitel/cc/protocolbuffers/go v1.36.6-20250414063239-00fc6a2d0c7b.1
-	buf.build/gen/go/webitel/chat/grpc/go v1.5.1-20250408125457-371160df8edc.2
-	buf.build/gen/go/webitel/chat/protocolbuffers/go v1.36.6-20250408125457-371160df8edc.1
-	buf.build/gen/go/webitel/engine/grpc/go v1.5.1-20250220123754-4f4595344295.2
-	buf.build/gen/go/webitel/engine/protocolbuffers/go v1.36.6-20250501140211-5164c02f8471.1
-	buf.build/gen/go/webitel/logger/grpc/go v1.3.0-20240404135439-f6c7830c29dd.2
-	buf.build/gen/go/webitel/logger/protocolbuffers/go v1.33.0-20240404135439-f6c7830c29dd.1
-	buf.build/gen/go/webitel/webitel-go/grpc/go v1.5.1-20250218105124-2ee3869e4b3a.2
-	buf.build/gen/go/webitel/webitel-go/protocolbuffers/go v1.36.5-20250218105124-2ee3869e4b3a.1
-	buf.build/gen/go/webitel/workflow/protocolbuffers/go v1.36.6-20250414063240-06c5c0a2dc53.1
 	firebase.google.com/go/v4 v4.14.1
 	github.com/BoRuDar/configuration/v5 v5.0.1
 	github.com/Masterminds/squirrel v1.5.4
@@ -22,18 +12,16 @@ require (
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.21.0
 	github.com/hashicorp/consul/api v1.32.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
-	github.com/mbobakov/grpc-consul-resolver v1.5.3
 	github.com/nicksnyder/go-i18n v1.10.1
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/webitel/call_center v0.0.0-20250414071704-f046edd67cd4
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
-	github.com/webitel/engine/pkg/wbt v0.0.0-20250507123601-4e6943ad1e27
-	github.com/webitel/flow_manager v0.0.0-20250414065241-bfbc42c2c019
+	github.com/webitel/engine/pkg/wbt v0.0.0-20250508054544-d6ded5802c40
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
 	go.opentelemetry.io/otel v1.34.0
@@ -45,14 +33,12 @@ require (
 	golang.org/x/oauth2 v0.26.0
 	golang.org/x/sync v0.12.0
 	google.golang.org/api v0.170.0
+	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.6
 )
 
 require (
-	buf.build/gen/go/grpc-ecosystem/grpc-gateway/protocolbuffers/go v1.36.6-20241220201140-4c5ba75caaf8.1 // indirect
-	buf.build/gen/go/webitel/cc/grpc/go v1.5.1-20250414063239-00fc6a2d0c7b.2 // indirect
-	buf.build/gen/go/webitel/workflow/grpc/go v1.5.1-20250414063240-06c5c0a2dc53.2 // indirect
 	cloud.google.com/go v0.112.1 // indirect
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/firestore v1.15.0 // indirect
@@ -68,19 +54,20 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-playground/form v3.1.4+incompatible // indirect
+	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.21.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
+	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
@@ -89,6 +76,7 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
@@ -123,7 +111,6 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine/v2 v2.0.2 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

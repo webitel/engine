@@ -1,25 +1,12 @@
 package chat_manager
 
 import (
-	gogrpc "buf.build/gen/go/webitel/chat/grpc/go/_gogrpc"
-	messgrpc "buf.build/gen/go/webitel/chat/grpc/go/messages/messagesgrpc"
-	proto "buf.build/gen/go/webitel/chat/protocolbuffers/go"
 	"context"
+	proto "github.com/webitel/engine/gen/chat"
 	"github.com/webitel/engine/model"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
-	"time"
-)
-
-const (
-	CONNECTION_TIMEOUT = 2 * time.Second
 )
 
 type Chat interface {
-	Name() string
-	Close() error
-	Ready() bool
-
 	Join(authUserId int64, inviteId string) (string, error)
 	Decline(authUserId int64, inviteId string, cause string) error
 	Leave(authUserId int64, channelId, conversationId string, cause model.LeaveCause) error
@@ -40,48 +27,11 @@ type Chat interface {
 }
 
 type chatConnection struct {
-	name    string
-	host    string
-	client  *grpc.ClientConn
-	api     gogrpc.ChatServiceClient
-	contact messgrpc.ContactLinkingServiceClient
+	cm *chatManager
 }
 
-func NewChatServiceConnection(name, url string) (Chat, error) {
-	var err error
-	connection := &chatConnection{
-		name: name,
-		host: url,
+func NewChat(cm *chatManager) Chat {
+	return &chatConnection{
+		cm: cm,
 	}
-
-	connection.client, err = grpc.Dial(url, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(CONNECTION_TIMEOUT))
-
-	if err != nil {
-		return nil, err
-	}
-
-	connection.api = gogrpc.NewChatServiceClient(connection.client)
-	connection.contact = messgrpc.NewContactLinkingServiceClient(connection.client)
-
-	return connection, nil
-}
-
-func (cc *chatConnection) Ready() bool {
-	switch cc.client.GetState() {
-	case connectivity.Idle, connectivity.Ready:
-		return true
-	}
-	return false
-}
-
-func (cc *chatConnection) Name() string {
-	return cc.name
-}
-
-func (cc *chatConnection) Close() error {
-	err := cc.client.Close()
-	if err != nil {
-		return ErrInternal
-	}
-	return nil
 }

@@ -1,16 +1,15 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"strings"
 )
 
 type presetQuery struct {
 	*API
-	gogrpc.UnsafePresetQueryServiceServer
+	engine.UnsafePresetQueryServiceServer
 }
 
 func (api *presetQuery) CreatePresetQuery(ctx context.Context, in *engine.CreatePresetQueryRequest) (*engine.PresetQuery, error) {

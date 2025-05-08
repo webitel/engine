@@ -1,7 +1,7 @@
 package app
 
 import (
-	workflow "buf.build/gen/go/webitel/workflow/protocolbuffers/go"
+	"github.com/webitel/engine/gen/workflow"
 	"github.com/webitel/engine/model"
 )
 
