@@ -1,15 +1,13 @@
 package logger
 
 import (
-	gogrpc "buf.build/gen/go/webitel/logger/grpc/go/_gogrpc"
-	proto "buf.build/gen/go/webitel/logger/protocolbuffers/go"
 	"context"
 	"encoding/json"
 	"fmt"
-	_ "github.com/mbobakov/grpc-consul-resolver"
+	proto "github.com/webitel/engine/gen/logger"
+	"github.com/webitel/engine/pkg/wbt"
 	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
-	"google.golang.org/grpc"
 	"time"
 )
 
@@ -17,8 +15,9 @@ const (
 	sizeCache = 10 * 1000
 	expires   = 10
 
-	exchange = "logger"
-	rkFormat = "logger.%d.%s"
+	exchange          = "logger"
+	rkFormat          = "logger.%d.%s"
+	loggerServiceName = "logger"
 )
 
 var (
@@ -26,7 +25,7 @@ var (
 )
 
 type Audit struct {
-	service gogrpc.ConfigServiceClient
+	service *wbt.Client[proto.ConfigServiceClient]
 	cache   *utils.Cache
 	channel Publisher
 }
@@ -47,16 +46,10 @@ type Publisher interface {
 }
 
 func New(consulTarget string, channel Publisher) (*Audit, error) {
-	conn, err := grpc.Dial(fmt.Sprintf("consul://%s/logger?wait=14s", consulTarget),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`),
-		grpc.WithInsecure(),
-	)
-
+	service, err := wbt.NewClient(consulTarget, loggerServiceName, proto.NewConfigServiceClient)
 	if err != nil {
 		return nil, err
 	}
-
-	service := gogrpc.NewConfigServiceClient(conn)
 
 	return &Audit{
 		service: service,
@@ -73,7 +66,7 @@ func (api *Audit) checkIsActive(ctx context.Context, domainId int64, object stri
 			return res.(bool), nil
 		}
 
-		res, err := api.service.CheckConfigStatus(ctx, &proto.CheckConfigStatusRequest{
+		res, err := api.service.Api.CheckConfigStatus(ctx, &proto.CheckConfigStatusRequest{
 			ObjectName: object,
 			DomainId:   domainId,
 		})

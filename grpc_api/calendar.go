@@ -3,15 +3,14 @@ package grpc_api
 import (
 	"context"
 
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
+	"github.com/webitel/engine/gen/engine"
 
 	"github.com/webitel/engine/model"
 )
 
 type calendar struct {
 	*API
-	gogrpc.UnsafeCalendarServiceServer
+	engine.UnsafeCalendarServiceServer
 }
 
 func NewCalendarApi(api *API) *calendar {

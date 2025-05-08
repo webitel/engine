@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	cc "buf.build/gen/go/webitel/cc/protocolbuffers/go"
 	"github.com/webitel/engine/call_manager"
+	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 )

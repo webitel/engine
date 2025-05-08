@@ -1,17 +1,16 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 type routingVariable struct {
 	app *app.App
-	gogrpc.UnsafeRoutingVariableServiceServer
+	engine.UnsafeRoutingVariableServiceServer
 }
 
 func NewRoutingVariableApi(app *app.App) *routingVariable {

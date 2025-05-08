@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
+	"github.com/webitel/engine/gen/engine"
 
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
@@ -14,7 +13,7 @@ import (
 
 type agentTeam struct {
 	app *app.App
-	gogrpc.UnsafeAgentTeamServiceServer
+	engine.UnsafeAgentTeamServiceServer
 }
 
 func NewAgentTeamApi(app *app.App) *agentTeam {

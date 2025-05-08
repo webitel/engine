@@ -1,9 +1,8 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
 
@@ -12,7 +11,7 @@ type push struct {
 	minimumNumberMaskLen int
 	prefixNumberMaskLen  int
 	suffixNumberMaskLen  int
-	gogrpc.UnsafePushServiceServer
+	engine.UnsafePushServiceServer
 }
 
 func NewPushApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *push {

@@ -1,16 +1,15 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
 
 type auditForm struct {
 	*API
-	gogrpc.UnsafeAuditFormServiceServer
+	engine.UnsafeAuditFormServiceServer
 }
 
 func NewAuditFormApi(api *API) *auditForm {

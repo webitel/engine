@@ -1,16 +1,15 @@
 package grpc_api
 
 import (
-	gogrpc "buf.build/gen/go/webitel/engine/grpc/go/_gogrpc"
-	engine "buf.build/gen/go/webitel/engine/protocolbuffers/go"
 	"context"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
 
 type skill struct {
 	*API
-	gogrpc.UnsafeSkillServiceServer
+	engine.UnsafeSkillServiceServer
 }
 
 func NewSkillApi(api *API) *skill {

@@ -8,6 +8,19 @@ import (
 
 type sender struct {
 }
+type session struct {
+}
+
+func (s *session) GetUserIp() string {
+	return "test"
+}
+
+func (s *session) GetUserId() int64 {
+	return 10
+}
+func (s *session) GetDomainId() int64 {
+	return 1
+}
 
 var (
 	o = struct {
@@ -46,7 +59,7 @@ func BenchmarkLogger(t *testing.B) {
 func testLogger(logger *Audit, t testing.TB) {
 	ctx := context.TODO()
 
-	err := logger.Update(ctx, nil, model.PERMISSION_SCOPE_SCHEMA, 1, &o)
+	err := logger.Update(ctx, &session{}, model.PERMISSION_SCOPE_SCHEMA, 1, &o)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

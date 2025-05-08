@@ -1,6 +1,7 @@
 package wbt
 
 const (
+	ChatServiceName    = "webitel.chat.server"
 	WebitelServiceName = "go.webitel.app"
 	EngineServiceName  = "engine"
 	StorageServiceName = "storage"
@@ -9,4 +10,5 @@ const (
 	FSServiceName      = "freeswitch"
 	FlowServiceName    = "workflow"
 	WFMServiceName     = "wfm"
+	LoggerServiceName  = "logger"
 )
