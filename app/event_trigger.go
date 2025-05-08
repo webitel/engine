@@ -26,13 +26,13 @@ type messageCase struct {
 	Case json.RawMessage `json:"case"`
 }
 
-type TriggerCase interface {
+type EventTrigger interface {
 	Start() error
 	Stop()
 	NotifyUpdateTrigger()
 }
 
-type TriggerCaseMQ struct {
+type TriggerEventMQ struct {
 	log           *wlog.Logger
 	config        *model.CaseTriggersSettings
 	triggers      atomic.Value
@@ -48,10 +48,10 @@ type TriggerCaseMQ struct {
 	flowManager   flow.FlowManager
 }
 
-func NewTriggerCases(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.CaseTriggersSettings) *TriggerCaseMQ {
-	return &TriggerCaseMQ{
+func NewEventTrigger(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.CaseTriggersSettings) *TriggerEventMQ {
+	return &TriggerEventMQ{
 		log: log.With(wlog.Namespace("context"),
-			wlog.String("scope", "trigger-cases"),
+			wlog.String("scope", "event-trigger"),
 		),
 		store:         store,
 		flowManager:   flow,
@@ -62,15 +62,15 @@ func NewTriggerCases(log *wlog.Logger, store store.Store, flow flow.FlowManager,
 	}
 }
 
-func (ct *TriggerCaseMQ) loadTriggersByExpression() TriggersByExpression {
+func (ct *TriggerEventMQ) loadTriggersByExpression() TriggersByExpression {
 	return ct.triggers.Load().(TriggersByExpression)
 }
 
-func (ct *TriggerCaseMQ) storeTriggersByExpression(triggers TriggersByExpression) {
+func (ct *TriggerEventMQ) storeTriggersByExpression(triggers TriggersByExpression) {
 	ct.triggers.Store(triggers)
 }
 
-func (ct *TriggerCaseMQ) Start() error {
+func (ct *TriggerEventMQ) Start() error {
 	if ct == nil {
 		return nil
 	}
@@ -89,14 +89,14 @@ func (ct *TriggerCaseMQ) Start() error {
 
 }
 
-func (ct *TriggerCaseMQ) NotifyUpdateTrigger() {
+func (ct *TriggerEventMQ) NotifyUpdateTrigger() {
 	if ct == nil {
 		return
 	}
 	go func() { ct.reloadChan <- struct{}{} }()
 }
 
-func (ct *TriggerCaseMQ) reloadTriggers() {
+func (ct *TriggerEventMQ) reloadTriggers() {
 	for {
 		select {
 		case <-ct.stopChan:
@@ -114,7 +114,7 @@ func (ct *TriggerCaseMQ) reloadTriggers() {
 	}
 }
 
-func (ct *TriggerCaseMQ) Stop() {
+func (ct *TriggerEventMQ) Stop() {
 	if ct == nil {
 		return
 	}
@@ -132,7 +132,7 @@ func (ct *TriggerCaseMQ) Stop() {
 	}
 }
 
-func (ct *TriggerCaseMQ) listen() error {
+func (ct *TriggerEventMQ) listen() error {
 	messages, err := ct.channel.Consume(ct.Queue.Name, "", true, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.Queue.Name, err)
@@ -150,7 +150,7 @@ type triggerRequest struct {
 	domainId  int64
 }
 
-func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, event string) []triggerRequest {
+func (ct *TriggerEventMQ) getFlowRequests(domainId int64, event string) []triggerRequest {
 	triggers := ct.loadTriggersByExpression()[event]
 	if len(triggers) == 0 {
 		return nil
@@ -173,7 +173,7 @@ func (ct *TriggerCaseMQ) getFlowRequests(domainId int64, event string) []trigger
 	return res
 }
 
-func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
+func (ct *TriggerEventMQ) processedMessages(messages <-chan amqp.Delivery) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 	reconnect := false
@@ -214,9 +214,10 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 				return
 			}
 
-			event, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
+			object, event, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
 
-			requests := ct.getFlowRequests(domainId, event)
+			// TODO
+			requests := ct.getFlowRequests(domainId, triggerHash(object, event))
 
 			if len(requests) == 0 {
 				ct.log.Debug(fmt.Sprintf("no trigger found for key %s and expression %s", msg.RoutingKey, event))
@@ -231,7 +232,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 			}
 
 			for _, rs := range requests {
-				rs.variables["case"] = string(message.Case)
+				rs.variables[object] = string(message.Case)
 				rs.variables["action"] = event
 				job, err := ct.store.Trigger().CreateJob(ctx, rs.domainId, rs.triggerId, rs.variables)
 				if err != nil {
@@ -244,7 +245,7 @@ func (ct *TriggerCaseMQ) processedMessages(messages <-chan amqp.Delivery) {
 	}
 }
 
-func (ct *TriggerCaseMQ) init() error {
+func (ct *TriggerEventMQ) init() error {
 	if err := ct.initConnection(); err != nil {
 		return err
 	}
@@ -260,7 +261,7 @@ func (ct *TriggerCaseMQ) init() error {
 	return nil
 }
 
-func (ct *TriggerCaseMQ) loadTriggers() error {
+func (ct *TriggerEventMQ) loadTriggers() error {
 	ctx := context.Background()
 	triggerSlice, err := ct.store.Trigger().GetAllByType(ctx, model.TriggerTypeEvent)
 	if err != nil {
@@ -268,14 +269,19 @@ func (ct *TriggerCaseMQ) loadTriggers() error {
 	}
 	triggersMap := make(TriggersByExpression, 4)
 	for _, trigger := range triggerSlice {
-		triggersMap[trigger.Event] = append(triggersMap[trigger.Event], trigger)
+		ex := triggerHash(trigger.Object, trigger.Event)
+		triggersMap[ex] = append(triggersMap[ex], trigger)
 	}
 	ct.log.Debug(fmt.Sprintf("loaded %d triggers: %+v", len(triggersMap), triggersMap))
 	ct.storeTriggersByExpression(triggersMap)
 	return nil
 }
 
-func (ct *TriggerCaseMQ) initConnection() error {
+func triggerHash(object string, event string) string {
+	return object + "." + event
+}
+
+func (ct *TriggerEventMQ) initConnection() error {
 	var err error
 	var backoff = utils.NewDefaultBackoff()
 	for {
@@ -299,7 +305,7 @@ func (ct *TriggerCaseMQ) initConnection() error {
 	return nil
 }
 
-func (ct *TriggerCaseMQ) initQueue() error {
+func (ct *TriggerEventMQ) initQueue() error {
 	var err error
 
 	err = ct.channel.ExchangeDeclare(ct.config.Exchange, "topic", true, false, false, true, nil)
@@ -320,12 +326,13 @@ func (ct *TriggerCaseMQ) initQueue() error {
 	return nil
 }
 
-func (ct *TriggerCaseMQ) getExpressionByRoutingKey(routingKey string) (expression string, domainId int64) {
+func (ct *TriggerEventMQ) getExpressionByRoutingKey(routingKey string) (object string, expression string, domainId int64) {
 	s := strings.Split(routingKey, ".")
-	if len(s) < 2 {
-		return "", 0
+	if len(s) < 3 {
+		return "", "", 0
 	}
-	expression = s[0]
-	domainId, _ = strconv.ParseInt(s[1], 10, 64)
+	object = s[1]
+	expression = s[2]
+	domainId, _ = strconv.ParseInt(s[3], 10, 64)
 	return
 }
