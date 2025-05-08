@@ -3,7 +3,6 @@ package model
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"io"
 )
@@ -15,7 +14,6 @@ type WebSocketRequest struct {
 	Data   map[string]interface{} `json:"data"`
 
 	Session auth_manager.Session `json:"-"`
-	T       i18n.TranslateFunc   `json:"-"`
 	Locale  string               `json:"-"`
 }
 

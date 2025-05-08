@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 )
@@ -27,7 +26,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App = h.App
 	c.RequestId = model.NewId()
 	c.UserAgent = r.UserAgent()
-	c.T, _ = localization.GetTranslationsAndLocale(w, r)
 	c.AcceptLanguage = r.Header.Get("Accept-Language")
 	c.IpAddress = ip
 	c.Log = h.App.Log
@@ -45,7 +43,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err != nil {
-		c.Err.Translate(c.T)
 		c.Err.SetRequestId(c.RequestId)
 
 		if c.Err.GetId() == "api.context.session_expired.app_error" {

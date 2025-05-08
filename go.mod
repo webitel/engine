@@ -82,6 +82,7 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/poy/onpar v1.1.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect

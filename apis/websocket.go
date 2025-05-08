@@ -40,6 +40,6 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.App.Count.Add(1)
 	log.Debug("open socket", wlog.Int64("count", c.App.Count.Load()))
 
-	wc := c.App.NewWebConn(ws, c.Session, c.T, "", web.ReadUserIP(r))
+	wc := c.App.NewWebConn(ws, c.Session, "", web.ReadUserIP(r))
 	wc.Pump()
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/webitel/engine/app"
-	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
 )
@@ -29,7 +28,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	start := time.Now()
 	session, sessionErr := wh.app.GetSessionWitchContext(conn.Ctx, conn.GetSessionToken())
 	if sessionErr != nil {
-		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(localization.T), sessionErr.Error()))
+		wlog.Error(fmt.Sprintf("%v:%v seq=%v uid=%v %v [details: %v]", "websocket", r.Action, r.Seq, conn.UserId, sessionErr.GetDetailedError(), sessionErr.Error()))
 		sessionErr.SetDetailedError("")
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
@@ -39,7 +38,6 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	}
 	r.Session = *session
 
-	r.T = conn.T
 	r.Locale = conn.Locale
 
 	ctx, span := wh.app.Tracer().Start(conn.Ctx, r.Action)

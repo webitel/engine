@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/nicksnyder/go-i18n/i18n"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	wlog "github.com/webitel/wlog"
@@ -42,7 +41,6 @@ type WebConn struct {
 	LastUserActivityAt int64
 	UserId             int64
 	DomainId           int64
-	T                  i18n.TranslateFunc
 	Locale             string
 	Send               chan model.WebSocketMessage
 	Sequence           int64
@@ -61,7 +59,7 @@ type WebConn struct {
 	//Sip *SipProxy
 }
 
-func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18n.TranslateFunc, locale string, ip string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, locale string, ip string) *WebConn {
 
 	id := model.NewId()
 	log := a.Log.With(
@@ -96,7 +94,6 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, t i18
 		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
 		LastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
-		T:                  t,
 		Locale:             locale,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),

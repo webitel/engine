@@ -4,12 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"github.com/webitel/engine/app/cc"
 	"github.com/webitel/engine/app/flow"
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/chat_manager"
-	"github.com/webitel/engine/localization"
 	"github.com/webitel/engine/logger"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/mq"
@@ -87,13 +85,6 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	setupPublicStorageUrl(config.PublicHostName)
 
-	if localization.T == nil {
-		if err := localization.TranslationsPreInit(config.TranslationsDirectory); err != nil {
-			return nil, errors.Wrapf(err, "unable to load translation files")
-		}
-	}
-	model.AppErrorInit(localization.T)
-
 	logConfig := &wlog.LoggerConfiguration{
 		EnableConsole: config.Log.Console,
 		ConsoleJson:   false,
@@ -132,14 +123,6 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	if err := app.setupCipher(); err != nil {
 		return nil, err
-	}
-
-	if err := localization.InitTranslations(model.LocalizationSettings{
-		DefaultClientLocale: model.NewString(model.DEFAULT_LOCALE),
-		DefaultServerLocale: model.NewString(model.DEFAULT_LOCALE),
-		AvailableLocales:    model.NewString(model.DEFAULT_LOCALE),
-	}); err != nil {
-		return nil, errors.Wrapf(err, "unable to load translation files")
 	}
 
 	app.cluster = NewCluster(app)
