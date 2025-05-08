@@ -203,7 +203,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
-	app.cc = cc.NewCCManager(app.Config().SipSettings.ServerAddr)
+	app.cc = cc.NewCCManager(app.Config().DiscoverySettings.Url)
 	if err := app.cc.Start(); err != nil {
 		return nil, err
 	}
