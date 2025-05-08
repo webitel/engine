@@ -1,0 +1,32 @@
+version: v2
+
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/webitel/engine/pkg/wbt/gen/chat
+      module: buf.build/webitel/chat
+
+    - file_option: go_package_prefix
+      value: github.com/grpc-ecosystem/grpc-gateway/v2
+      module: buf.build/grpc-ecosystem/grpc-gateway
+
+plugins:
+  # Base types for Go. Generates message and enum types.
+  - remote: buf.build/protocolbuffers/go:v1.30.0
+    out: gen/chat
+
+    opt: paths=source_relative
+
+  # Generates Go client and server stubs for the gRPC framework.
+  - remote: buf.build/grpc/go:v1.3.0
+    out: gen/chat
+    opt: paths=source_relative
+
+inputs:
+#  - directory: "../../../protos/chat"
+  - git_repo: "https://github.com/webitel/protos"
+    branch: "main"
+    subdir: chat
+    types:
+      - webitel.chat.server.Message

@@ -11,10 +11,12 @@ import (
 	"sync"
 )
 
-//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.fs.yaml
-//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.webitel.yaml
-//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.engine.yaml
-//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf.gen.cc.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf/buf.gen.fs.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf/buf.gen.webitel.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf/buf.gen.engine.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf/buf.gen.cc.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf/buf.gen.chat.yaml
+//go:generate go run github.com/bufbuild/buf/cmd/buf@latest generate --template buf/buf.gen.flow.yaml
 //go:generate go mod tidy
 
 type Client[T any] struct {
