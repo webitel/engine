@@ -20,6 +20,9 @@ var (
 		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
 		model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,
 		model.SysNameIsFulltextSearchEnabled, model.SysNameHideContact, model.SysNameShowFullContact,
+		model.SysNameCallEndSoundNotification, model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification,
+		model.SysNameChatEndPushNotification, model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification,
+		model.SysNamePushNotificationTimeout,
 	}
 )
 
