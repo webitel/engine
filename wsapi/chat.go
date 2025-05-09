@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/chat_manager"
 )
 
 func (api *API) InitChat() {
@@ -118,7 +119,7 @@ func (api *API) leaveChat(ctx context.Context, conn *app.WebConn, req *model.Web
 		return nil, NewInvalidWebSocketParamError(req.Action, "conversation_id")
 	}
 
-	err := api.ctrl.LeaveChat(conn.GetSession(), channelId, conversationId, model.AgentLeave)
+	err := api.ctrl.LeaveChat(conn.GetSession(), channelId, conversationId, chat_manager.AgentLeave)
 	return nil, err
 }
 
@@ -177,7 +178,7 @@ func (api *API) sendFileChat(ctx context.Context, conn *app.WebConn, req *model.
 	}
 	mimeType, _ = req.Data["mime"].(string)
 
-	err := api.ctrl.SendFileChat(conn.GetSession(), channelId, conversationId, &model.ChatFile{
+	err := api.ctrl.SendFileChat(conn.GetSession(), channelId, conversationId, &chat_manager.ChatFile{
 		Id:   int64(id),
 		Name: name,
 		Url:  url,
