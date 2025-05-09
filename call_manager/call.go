@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/webitel/engine/discovery"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/discovery"
 	"github.com/webitel/wlog"
 )
 

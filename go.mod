@@ -13,15 +13,15 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.21.0
-	github.com/hashicorp/consul/api v1.32.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
-	github.com/nicksnyder/go-i18n v1.10.1
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/webitel/engine/pkg/discovery v0.0.0-20250508135218-1dfa763ecc23
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
 	github.com/webitel/engine/pkg/wbt v0.0.0-20250508054544-d6ded5802c40
+	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
 	go.opentelemetry.io/otel v1.34.0
@@ -61,6 +61,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.3 // indirect
+	github.com/hashicorp/consul/api v1.32.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
@@ -79,10 +80,8 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/poy/onpar v1.1.2 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
-	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
@@ -114,5 +113,4 @@ require (
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
