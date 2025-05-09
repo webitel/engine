@@ -1,5 +1,7 @@
 package wbt
 
+const AuthHeaderName = "x-webitel-access"
+
 const (
 	ChatServiceName    = "webitel.chat.server"
 	WebitelServiceName = "go.webitel.app"

@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"fmt"
 	"github.com/webitel/engine/pkg/wbt/gen/workflow"
 	"testing"
 )
@@ -13,14 +14,17 @@ func TestFlow(t *testing.T) {
 	if err != nil {
 		panic(err.Error())
 	}
+	var job string
 
-	_, err = f.Queue().StartSyncFlow(&workflow.StartSyncFlowRequest{
+	job, err = f.Queue().StartSyncFlow(&workflow.StartSyncFlowRequest{
 		SchemaId:   1302,
 		DomainId:   1,
 		TimeoutSec: 0,
 		Variables:  nil,
 		Scope:      nil,
 	})
+
+	fmt.Println(job)
 
 	if err != nil {
 		panic(err.Error())

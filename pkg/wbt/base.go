@@ -65,7 +65,7 @@ func StaticHost(ctx context.Context, name string) context.Context {
 }
 
 func WithToken(ctx context.Context, token string) context.Context {
-	header := metadata.New(map[string]string{"x-webitel-access": token})
+	header := metadata.New(map[string]string{AuthHeaderName: token})
 	return metadata.NewOutgoingContext(ctx, header)
 }
 

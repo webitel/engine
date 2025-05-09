@@ -29,4 +29,5 @@ inputs:
     branch: "main"
     subdir: chat
     types:
-      - webitel.chat.server.Message
+      - webitel.chat.server.ChatService
+      - webitel.chat.ContactLinkingService
