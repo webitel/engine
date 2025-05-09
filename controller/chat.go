@@ -5,6 +5,7 @@ import (
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"github.com/webitel/engine/pkg/wbt/chat_manager"
 )
 
 var (
@@ -27,7 +28,7 @@ func (c *Controller) JoinChat(session *auth_manager.Session, inviteId string) (s
 	return c.app.JoinChat(session.UserId, inviteId)
 }
 
-func (c *Controller) LeaveChat(session *auth_manager.Session, channelId, conversationId string, reason model.LeaveCause) model.AppError {
+func (c *Controller) LeaveChat(session *auth_manager.Session, channelId, conversationId string, reason chat_manager.LeaveCause) model.AppError {
 	if !session.HasCallCenterLicense() {
 		return noChatAccessError
 	}
@@ -35,7 +36,7 @@ func (c *Controller) LeaveChat(session *auth_manager.Session, channelId, convers
 	return c.app.LeaveChat(session.UserId, channelId, conversationId, reason)
 }
 
-func (c *Controller) CloseChat(session *auth_manager.Session, channelId, conversationId string, cause model.CloseCause) model.AppError {
+func (c *Controller) CloseChat(session *auth_manager.Session, channelId, conversationId string, cause chat_manager.CloseCause) model.AppError {
 	if !session.HasCallCenterLicense() {
 		return noChatAccessError
 	}
@@ -51,7 +52,7 @@ func (c *Controller) SendTextChat(session *auth_manager.Session, channelId, conv
 	return c.app.SendTextMessage(session.UserId, channelId, conversationId, text)
 }
 
-func (c *Controller) SendFileChat(session *auth_manager.Session, channelId, conversationId string, file *model.ChatFile) model.AppError {
+func (c *Controller) SendFileChat(session *auth_manager.Session, channelId, conversationId string, file *chat_manager.ChatFile) model.AppError {
 	if !session.HasCallCenterLicense() {
 		return noChatAccessError
 	}

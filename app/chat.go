@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/chat_manager"
 	"regexp"
 
 	"net/url"
@@ -40,7 +41,7 @@ func (a *App) JoinChat(authUserId int64, inviteId string) (string, model.AppErro
 	return channelId, nil
 }
 
-func (a *App) LeaveChat(authUserId int64, channelId, conversationId string, reason model.LeaveCause) model.AppError {
+func (a *App) LeaveChat(authUserId int64, channelId, conversationId string, reason chat_manager.LeaveCause) model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.leave.client_err", err.Error())
@@ -81,7 +82,7 @@ func setupPublicStorageUrl(storageUrl *string) {
 
 }
 
-func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string, file *model.ChatFile) model.AppError {
+func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string, file *chat_manager.ChatFile) model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.send.file.client_err.not_found", err.Error())
@@ -108,7 +109,7 @@ func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string
 	return nil
 }
 
-func (a *App) CloseChat(authUserId int64, channelId, conversationId string, cause model.CloseCause) model.AppError {
+func (a *App) CloseChat(authUserId int64, channelId, conversationId string, cause chat_manager.CloseCause) model.AppError {
 	chat, err := a.chatManager.Client()
 	if err != nil {
 		return model.NewInternalError("chat.close.client_err", err.Error())
