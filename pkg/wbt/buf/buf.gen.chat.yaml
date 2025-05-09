@@ -24,9 +24,10 @@ plugins:
     opt: paths=source_relative
 
 inputs:
-#  - directory: "../../../protos/chat"
-  - git_repo: "https://github.com/webitel/protos"
-    branch: "main"
-    subdir: chat
+  - directory: "../../../protos/chat"
+#  - git_repo: "https://github.com/webitel/protos"
+#    branch: "main"
+#    subdir: chat
     types:
-      - webitel.chat.server.Message
+      - webitel.chat.server.ChatService
+      - webitel.chat.ContactLinkingService
