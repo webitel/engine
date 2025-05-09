@@ -22,9 +22,7 @@ const (
 
 type TriggersByExpression map[string][]*model.TriggerWithDomainID
 
-type messageCase struct {
-	Case json.RawMessage `json:"case"`
-}
+type EventMessage map[string]json.RawMessage
 
 type EventTrigger interface {
 	Start() error
@@ -224,15 +222,17 @@ func (ct *TriggerEventMQ) processedMessages(messages <-chan amqp.Delivery) {
 				continue
 			}
 
-			message := &messageCase{}
-			err := json.Unmarshal(msg.Body, message)
+			message := EventMessage{}
+			err := json.Unmarshal(msg.Body, &message)
 			if err != nil {
-				ct.log.Error(fmt.Sprintf("could not unmarshal message  %s: %s", msg.Body, err.Error()))
+				ct.log.Error(fmt.Sprintf("could not unmarshal message  %s: %s", string(msg.Body), err.Error()))
 				continue
 			}
 
 			for _, rs := range requests {
-				rs.variables[object] = string(message.Case)
+				for k, v := range message {
+					rs.variables[k] = string(v)
+				}
 				rs.variables["action"] = event
 				job, err := ct.store.Trigger().CreateJob(ctx, rs.domainId, rs.triggerId, rs.variables)
 				if err != nil {
