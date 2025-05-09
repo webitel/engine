@@ -20,7 +20,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/webitel/engine/pkg/discovery v0.0.0-20250508135218-1dfa763ecc23
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
-	github.com/webitel/engine/pkg/wbt v0.0.0-20250509071626-0be700c3eb4b
+	github.com/webitel/engine/pkg/wbt v0.0.0-20250509074643-d2d6d2fe6f89
 	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
