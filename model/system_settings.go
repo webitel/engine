@@ -119,13 +119,12 @@ func (s *SystemSetting) IsValid() AppError {
 			return NewBadRequestError("model.SystemSetting.export_settings.invalid.value", "value is not properly formed")
 		}
 	case SysNameLabelsToLimitContacts:
-		var lookups []struct {
-			Id   int32  `json:"id"`
-			Name string `json:"name"`
+		var labels []struct {
+			Label string `json:"label"`
 		}
-		err := json.Unmarshal(s.Value, &lookups)
+		err := json.Unmarshal(s.Value, &labels)
 		if err != nil {
-			return NewBadRequestError("model.SystemSetting.labels_to_limit_contacts.invalid.value", `value is not properly formed required: [{"id": "string", "name": "string"}]`)
+			return NewBadRequestError("model.SystemSetting.labels_to_limit_contacts.invalid.value", `value is not properly formed required: [{"label":"string"}]`)
 		}
 	default:
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
