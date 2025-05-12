@@ -29,6 +29,7 @@ const (
 	SysNameTaskEndSoundNotification = "task_end_sound_notification"
 	SysNameTaskEndPushNotification  = "task_end_push_notification"
 	SysNamePushNotificationTimeout  = "push_notification_timeout"
+	SysNameLabelsToLimitContacts    = "labels_to_limit_contacts"
 )
 
 type SysValue json.RawMessage
@@ -116,6 +117,15 @@ func (s *SystemSetting) IsValid() AppError {
 		err := json.Unmarshal(s.Value, &export)
 		if err != nil {
 			return NewBadRequestError("model.SystemSetting.export_settings.invalid.value", "value is not properly formed")
+		}
+	case SysNameLabelsToLimitContacts:
+		var lookups []struct {
+			Id   int32  `json:"id"`
+			Name string `json:"name"`
+		}
+		err := json.Unmarshal(s.Value, &lookups)
+		if err != nil {
+			return NewBadRequestError("model.SystemSetting.labels_to_limit_contacts.invalid.value", `value is not properly formed required: [{"id": "string", "name": "string"}]`)
 		}
 	default:
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
