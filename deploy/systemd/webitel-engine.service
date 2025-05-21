@@ -1,0 +1,33 @@
+[Unit]
+Description=Engine Startup process
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+LimitNOFILE=64000
+TimeoutStartSec=0
+ExecStart=/usr/local/bin/engine -id 10 \
+	-translations_directory /usr/share/webitel/engine/i18n \
+	-consul 127.0.0.1:8500 \
+	-grpc_addr 127.0.0.1 \
+	-grpc_port 10040 \
+    -grpc_max_message_size 16MB \
+	-websocket 127.0.0.1:10022 \
+	-sip_proxy_addr sip:1.1.1.1 \
+	-open_sip_addr 1.1.1.1 \
+	-ws_sip_addr 1.1.1.1 \
+	-min_mask_number_len 0 \
+	-prefix_number_mask_len 0 \
+	-suffix_number_mask_len 0 \
+	-sql_query_timeout 10 \
+	-ping_client_interval 60000 \
+    -presigned_cert /opt/storage/key.pem \
+	-amqp amqp://webitel:webitel@127.0.0.1:5672?heartbeat=10 \
+	-data_source postgres://opensips:webitel@127.0.0.1:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10 \
+    -push_firebase "" \
+    -push_apn_cert_file "" \
+    -push_apn_key_file  ""
+
+[Install]
+WantedBy=default.target
