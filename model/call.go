@@ -106,6 +106,12 @@ type BlindTransferCall struct {
 	Variables   map[string]string
 }
 
+type BlindTransferCallToQueue struct {
+	UserCallRequest
+	QueueId   int
+	Variables map[string]string
+}
+
 type BridgeCall struct {
 	FromId    string `json:"from_id" db:"from_id"`
 	ToId      string `json:"to_id" db:"to_id"`
@@ -117,6 +123,13 @@ type BlindTransferInfo struct {
 	Id              string `json:"id" db:"id"`
 	ContactId       *int64 `json:"contact_id" db:"contact_id"`
 	QueueUnanswered bool   `json:"queue_unanswered" db:"queue_unanswered"`
+}
+
+type TransferInfo struct {
+	BlindTransferInfo
+	QueueName *string `json:"queue_name" db:"queue_name"`
+	AgentName *string `json:"agent_name" db:"agent_name"`
+	AppId     *string `json:"app_id" db:"app_id"`
 }
 
 const (

@@ -22,6 +22,10 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_unhold", api.ApiWebSocketHandler(api.callUnHold))
 	api.Router.Handle("call_dtmf", api.ApiWebSocketHandler(api.callDTMF))
 	api.Router.Handle("call_mute", api.ApiWebSocketHandler(api.callMute))
+
+	api.Router.Handle("call_bt_queue", api.ApiWebSocketHandler(api.callBTQueue))
+	api.Router.Handle("call_to_queue", api.ApiWebSocketHandler(api.callToQueue))
+
 	api.Router.Handle("call_blind_transfer", api.ApiWebSocketHandler(api.callBlindTransfer))
 	api.Router.Handle("call_blind_transfer_ext", api.ApiWebSocketHandler(api.callBlindTransferExt))
 	api.Router.Handle("call_bridge", api.ApiWebSocketHandler(api.callBridge))
@@ -171,6 +175,58 @@ func (api *API) callHangup(ctx context.Context, conn *app.WebConn, req *model.We
 	return nil, err
 }
 
+func (api *API) callBTQueue(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id string
+	var queueId float64
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	if queueId, ok = req.Data["queue_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "queue_id")
+	}
+
+	err := api.ctrl.BlindTransferCallToQueue(ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCallToQueue{
+		UserCallRequest: model.UserCallRequest{
+			Id: id,
+		},
+		Variables: variablesFromMap(req.Data, "variables"),
+		QueueId:   int(queueId),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (api *API) callToQueue(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var cp model.CallParameters
+	var queueId *int
+	var agentId *int
+
+	sess := conn.GetSession()
+
+	parentId, _ := req.Data["parent_id"].(string)
+
+	if tmp, ok := req.Data["queue_id"].(float64); ok {
+		queueId = model.NewInt(int(tmp))
+	} else if tmp, ok = req.Data["agent_id"].(float64); ok {
+		agentId = model.NewInt(int(tmp))
+	}
+
+	_, err := api.ctrl.CallToQueue(ctx, sess, sess.UserId, parentId, cp, queueId, agentId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
 func (api *API) callBlindTransfer(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id, destination string
@@ -303,27 +359,7 @@ func (api *API) callInvite(ctx context.Context, conn *app.WebConn, req *model.We
 	}
 
 	if props, ok = req.Data["params"].(map[string]interface{}); ok {
-		var variables map[string]interface{}
-
-		callReq.Params.Timeout, _ = props["timeout"].(int)
-		callReq.Params.Video, _ = props["video"].(bool)
-		callReq.Params.Screen, _ = props["screen"].(bool)
-		callReq.Params.Record, _ = props["record"].(bool)
-		callReq.Params.DisableAutoAnswer, _ = props["disableAutoAnswer"].(bool)
-		callReq.Params.Display, _ = props["display"].(string)
-		callReq.Params.HideNumber, _ = props["hide_number"].(bool)
-
-		if variables, ok = props["variables"].(map[string]interface{}); ok {
-			callReq.Params.Variables = make(map[string]string)
-			for k, v := range variables {
-				switch v.(type) {
-				case string:
-					callReq.Params.Variables[k] = v.(string)
-				case interface{}:
-					callReq.Params.Variables[k] = fmt.Sprintf("%v", v)
-				}
-			}
-		}
+		callReq.Params = callParams(props)
 	}
 
 	vars := make(map[string]string)
@@ -527,11 +563,6 @@ func (api *API) callSetParams(ctx context.Context, conn *app.WebConn, req *model
 	return res, nil
 }
 
-// TODO WTEL-4809
-func (api *API) callSetContactTODO(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	res := make(map[string]interface{})
-	return res, nil
-}
 func (api *API) callSetContact(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id string
@@ -585,4 +616,30 @@ func variablesFromMap(m map[string]interface{}, name string) map[string]string {
 
 	return vars
 
+}
+
+func callParams(props map[string]any) model.CallParameters {
+	var params model.CallParameters
+
+	params.Timeout, _ = props["timeout"].(int)
+	params.Video, _ = props["video"].(bool)
+	params.Screen, _ = props["screen"].(bool)
+	params.Record, _ = props["record"].(bool)
+	params.DisableAutoAnswer, _ = props["disableAutoAnswer"].(bool)
+	params.Display, _ = props["display"].(string)
+	params.HideNumber, _ = props["hide_number"].(bool)
+
+	if variables, ok := props["variables"].(map[string]interface{}); ok {
+		params.Variables = make(map[string]string)
+		for k, v := range variables {
+			switch v.(type) {
+			case string:
+				params.Variables[k] = v.(string)
+			case interface{}:
+				params.Variables[k] = fmt.Sprintf("%v", v)
+			}
+		}
+	}
+
+	return params
 }

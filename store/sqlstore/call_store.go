@@ -1191,6 +1191,29 @@ where id = :Id::uuid`, map[string]string{
 	}
 }
 
+func (s SqlCallStore) TransferInfo(ctx context.Context, id string, domainId int64, queueId *int, agentId *int) (*model.TransferInfo, model.AppError) {
+	var res *model.TransferInfo
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as  id,
+       c.contact_id,
+       (c.answered_at isnull and c.queue_id notnull) queue_unanswered,
+       c.app_id,
+       (select q.name from call_center.cc_queue q where q.id = :QueueId and q.enabled) queue_name,
+       (select a."user"->>'name' from call_center.cc_agent_with_user a where a.id = :AgentId) agent_name
+from call_center.cc_calls c
+where id = :Id::uuid and c.domain_id = :DomainId;`, map[string]any{
+		"Id":       id,
+		"DomainId": domainId,
+		"QueueId":  queueId,
+		"AgentId":  agentId,
+	})
+
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.transfer_info.app_error", err.Error(), extractCodeFromErr(err))
+	} else {
+		return res, nil
+	}
+}
+
 func (s SqlCallStore) SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError) {
 	var e *model.CallServiceHangup
 	err := s.GetMaster().WithContext(ctx).SelectOne(&e, `with c as (
