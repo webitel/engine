@@ -134,6 +134,28 @@ func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manage
 	return c.app.BlindTransferCall(ctx, session.Domain(domainId), req)
 }
 
+func (c *Controller) BlindTransferCallToQueue(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCallToQueue) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.BlindTransferCallToQueue(ctx, session.Domain(domainId), req)
+}
+
+func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Session, userId int64, parentId string, cp model.CallParameters, queueId *int, agentId *int) (string, model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanCreate() {
+		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
+	if agentId == nil && queueId == nil {
+		return "", model.NewBadRequestError("call.queue.valid", "invalid agent id or queue id")
+	}
+
+	return c.app.CallToQueue(ctx, session.Domain(0), userId, parentId, cp, queueId, agentId)
+}
+
 func (c *Controller) BlindTransferCallExt(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCall) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {

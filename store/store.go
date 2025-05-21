@@ -382,6 +382,7 @@ type CallStore interface {
 	SetVariables(ctx context.Context, domainId int64, id string, vars model.StringMap) (*model.CallDomain, model.AppError)
 	GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
 	BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError)
+	TransferInfo(ctx context.Context, id string, domainId int64, queueId *int, agentId *int) (*model.TransferInfo, model.AppError)
 
 	CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError)
 	GetAnnotation(ctx context.Context, id int64) (*model.CallAnnotation, model.AppError)
