@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.21.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.9
 	github.com/pborman/uuid v1.2.1
@@ -33,7 +33,7 @@ require (
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/sync v0.14.0
 	google.golang.org/api v0.170.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a
+	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
 	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6
 )
@@ -111,6 +111,6 @@ require (
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/appengine/v2 v2.0.2 // indirect
 	google.golang.org/genproto v0.0.0-20240213162025-012b6fc9bca9 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250218202821-56aae31c358a // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20250303144028-a0af3efb3deb // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 )
