@@ -30,7 +30,7 @@ require (
 	go.uber.org/atomic v1.11.0
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/net v0.40.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.30.0
 	golang.org/x/sync v0.14.0
 	google.golang.org/api v0.170.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250218202821-56aae31c358a
