@@ -1197,10 +1197,17 @@ func (s SqlCallStore) TransferInfo(ctx context.Context, id string, domainId int6
        c.contact_id,
        (c.answered_at isnull and c.queue_id notnull) queue_unanswered,
        c.app_id,
-       (select q.name from call_center.cc_queue q where q.id = :QueueId and q.enabled) queue_name,
-       (select a."user"->>'name' from call_center.cc_agent_with_user a where a.id = :AgentId) agent_name
+       (select q.name from call_center.cc_queue q where q.id = :QueueId::int and q.enabled) queue_name,
+       a.agent_name,
+       a.extension as agent_extension
 from call_center.cc_calls c
-where id = :Id::uuid and c.domain_id = :DomainId;`, map[string]any{
+    left join (
+        select coalesce(u.name::text, u.username) agent_name, u.extension
+        from call_center.cc_agent a
+            inner join directory.wbt_user u on u.id = a.user_id
+        where a.id = :AgentId::int
+    ) a on :AgentId::int notnull
+where id = :Id::uuid and c.domain_id = :DomainId::int8;`, map[string]any{
 		"Id":       id,
 		"DomainId": domainId,
 		"QueueId":  queueId,
