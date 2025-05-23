@@ -170,7 +170,7 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, parentId string, cp model.CallParameters, queueId *int, agentId *int) (string, model.AppError) {
 	var info *model.TransferInfo
 	var cli call_manager.CallClient
-	var name string
+	var name, number string
 
 	usr, err := app.GetUserCallInfo(ctx, userId, domainId)
 	if err != nil {
@@ -198,19 +198,20 @@ func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, p
 				model.CALL_VARIABLE_USER_ID:           fmt.Sprintf("%v", usr.Id),
 				model.CALL_VARIABLE_DOMAIN_ID:         fmt.Sprintf("%v", domainId),
 
-				"hangup_after_bridge": "true",
-				"wbt_auto_answer":     "true",
-				"wbt_parent_id":       info.Id,
+				"hangup_after_bridge":    "true",
+				"ignore_display_updates": "true",
+				"wbt_auto_answer":        "true",
+				"wbt_parent_id":          info.Id,
+
+				"origination_caller_id_number": usr.Endpoint,
+				"effective_caller_id_number":   usr.Endpoint,
+				"origination_caller_id_name":   usr.Name,
+				"effective_caller_id_namer":    usr.Name,
 
 				"wbt_from_id":     fmt.Sprintf("%v", usr.Id),
 				"wbt_from_number": usr.Endpoint,
 				"wbt_from_name":   usr.Name,
 				"wbt_from_type":   model.EndpointTypeUser,
-
-				"effective_caller_id_number":   usr.Extension,
-				"effective_caller_id_name":     usr.Name,
-				"origination_callee_id_name":   usr.Name,
-				"origination_callee_id_number": usr.Extension,
 			},
 		),
 	}
@@ -218,22 +219,21 @@ func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, p
 	if queueId != nil && info.QueueName != nil {
 		invite.AddVariable("wbt_bt_queue_id", fmt.Sprintf("%v", *queueId))
 		name = *info.QueueName
+		number = name
 	} else if agentId != nil && info.AgentName != nil {
 		invite.AddVariable("wbt_bt_agent_id", fmt.Sprintf("%v", *agentId))
 		name = *info.AgentName
+		if info.AgentExtension != nil {
+			number = *info.AgentExtension
+		}
 	} else {
 		// TODO
 		return "", nil
 	}
 
-	invite.CallerNumber = name
-	invite.CallerName = name
-	invite.Destination = name
-
-	for _, v := range []string{"wbt_destination", "effective_callee_id_name", "effective_callee_id_number",
-		"origination_caller_id_name", "origination_caller_id_number"} {
-		invite.AddVariable(v, name)
-	}
+	invite.Destination = number
+	invite.AddVariable("effective_callee_id_number", number)
+	invite.AddVariable("effective_callee_id_name", name)
 
 	var id string
 	id, err = cli.MakeOutboundCall(invite)
@@ -593,6 +593,7 @@ func (app *App) BlindTransferCallToQueue(ctx context.Context, domainId int64, re
 	q := strconv.Itoa(req.QueueId)
 
 	req.Variables["wbt_bt_queue_id"] = q
+	req.Variables["wbt_bt_queue"] = "true"
 
 	return app.BlindTransferCallExt(ctx, domainId, &model.BlindTransferCall{
 		UserCallRequest: req.UserCallRequest,

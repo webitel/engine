@@ -127,9 +127,10 @@ type BlindTransferInfo struct {
 
 type TransferInfo struct {
 	BlindTransferInfo
-	QueueName *string `json:"queue_name" db:"queue_name"`
-	AgentName *string `json:"agent_name" db:"agent_name"`
-	AppId     *string `json:"app_id" db:"app_id"`
+	QueueName      *string `json:"queue_name" db:"queue_name"`
+	AgentName      *string `json:"agent_name" db:"agent_name"`
+	AgentExtension *string `json:"agent_extension" db:"agent_extension"`
+	AppId          *string `json:"app_id" db:"app_id"`
 }
 
 const (
