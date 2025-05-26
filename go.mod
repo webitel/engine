@@ -6,7 +6,7 @@ require (
 	firebase.google.com/go/v4 v4.14.1
 	github.com/BoRuDar/configuration/v5 v5.0.1
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/XSAM/otelsql v0.32.0
+	github.com/XSAM/otelsql v0.38.0
 	github.com/go-gorp/gorp v2.2.0+incompatible
 	github.com/golang/protobuf v1.5.4
 	github.com/gorilla/handlers v1.5.2
@@ -100,7 +100,7 @@ require (
 	go.opentelemetry.io/otel/log v0.5.0 // indirect
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/otel/sdk/log v0.5.0 // indirect
-	go.opentelemetry.io/otel/sdk/metric v1.34.0 // indirect
+	go.opentelemetry.io/otel/sdk/metric v1.35.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
