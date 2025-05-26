@@ -32,7 +32,7 @@ type EventTrigger interface {
 
 type TriggerEventMQ struct {
 	log           *wlog.Logger
-	config        *model.CaseTriggersSettings
+	config        *model.TriggersSettings
 	triggers      atomic.Value
 	stopChan      chan struct{}
 	stopQueueChan chan struct{}
@@ -46,7 +46,7 @@ type TriggerEventMQ struct {
 	flowManager   flow.FlowManager
 }
 
-func NewEventTrigger(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.CaseTriggersSettings) *TriggerEventMQ {
+func NewEventTrigger(log *wlog.Logger, store store.Store, flow flow.FlowManager, cfg *model.TriggersSettings) *TriggerEventMQ {
 	return &TriggerEventMQ{
 		log: log.With(wlog.Namespace("context"),
 			wlog.String("scope", "event-trigger"),
@@ -313,7 +313,12 @@ func (ct *TriggerEventMQ) initQueue() error {
 		return err
 	}
 
-	ct.Queue, err = ct.channel.QueueDeclare(ct.config.Queue, true, false, false, true, nil)
+	ct.Queue, err = ct.channel.QueueDeclare(ct.config.Queue,
+		true,
+		false,
+		false,
+		false, amqp.Table{"x-queue-type": "quorum"},
+	)
 	if err != nil {
 		return fmt.Errorf("could not create queue %s: %w", ct.config.Queue, err)
 	}

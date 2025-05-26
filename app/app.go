@@ -196,8 +196,8 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	// start triggers for cases
-	if app.config.CaseTriggersSettings.Enabled {
-		app.eventTrigger = NewEventTrigger(app.Log, app.Store, app.flowManager, &app.config.CaseTriggersSettings)
+	if app.config.TriggersSettings.Enabled {
+		app.eventTrigger = NewEventTrigger(app.Log, app.Store, app.flowManager, &app.config.TriggersSettings)
 		if err := app.eventTrigger.Start(); err != nil {
 			return nil, fmt.Errorf("unable to start cases trigger: %w", err)
 		}
