@@ -54,8 +54,8 @@ type Config struct {
 	MaxMemberCommunications int     `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications" env:"MAX_MEMBER_COMMUNICATIONS"`
 	PublicHostName          *string `json:"public_host" flag:"public_host||Public hostname" default:"" env:"PUBLIC_HOST"`
 	Push                    PushConfig
-	Log                     LogSettings          `json:"log"`
-	CaseTriggersSettings    CaseTriggersSettings `json:"case_triggers_settings"`
+	Log                     LogSettings      `json:"log"`
+	TriggersSettings        TriggersSettings `json:"triggers_settings"`
 }
 
 type PushConfig struct {
@@ -101,12 +101,11 @@ type SqlSettings struct {
 	QueryTimeout                *int    `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds" env:"QUERY_TIMEOUT"`
 }
 
-type CaseTriggersSettings struct {
-	Enabled   bool   `json:"enabled" flag:"case_trigger_enabled|true|Enable cases trigger" env:"CASE_TRIGGER_ENABLED"`
-	BrokerUrl string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers"  default:"" env:"CASE_TRIGGER_BROKER_URL"`
-	Exchange  string `json:"exchange" flag:"case_triggers_exchange|cases|Exchange name for triggers cases" env:"CASE_TRIGGERS_EXCHANGE"`
-	Queue     string `json:"queue" flag:"case_triggers_queue|engine_cases|Queue name for triggers cases" env:"CASE_TRIGGERS_QUEUE"`
-	Topic     string `json:"topic" flag:"case_trigger_topic|*|Topic name for triggers cases" env:"CASE_TRIGGER_TOPIC"`
+type TriggersSettings struct {
+	Enabled   bool   `json:"enabled" flag:"trigger_enabled|true|Enable trigger" env:"TRIGGER_ENABLED"`
+	BrokerUrl string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers"  default:"" env:"TRIGGER_BROKER_URL"`
+	Exchange  string `json:"exchange" flag:"triggers_exchange|cases|Exchange name for triggers cases" env:"TRIGGERS_EXCHANGE"`
+	Queue     string `json:"queue" flag:"triggers_queue|engine.trigger|Queue name for triggers" env:"TRIGGERS_QUEUE"`
 }
 
 func (c *Config) IsValid() AppError {

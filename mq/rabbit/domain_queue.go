@@ -478,12 +478,15 @@ func (dq *DomainQueue) connect() error {
 	ch.NotifyClose(dq.closeChannel)
 
 	dq.queue, err = ch.QueueDeclare(
-		fmt.Sprintf("engine.call.%s.%d", model.NewId()[0:10], dq.id),
+		fmt.Sprintf("engine.ws.%s.%d", model.NewId()[0:10], dq.id),
+		true,
 		false,
 		false,
 		true,
-		true,
-		nil,
+		amqp.Table{
+			"x-queue-type": "quorum",
+			"x-expires":    10000, // delete after 10s
+		},
 	)
 
 	if err != nil {
@@ -491,7 +494,8 @@ func (dq *DomainQueue) connect() error {
 		return err
 	}
 
-	err = ch.QueueBind(dq.queue.Name, fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
+	err = ch.QueueBind(dq.queue.Name,
+		fmt.Sprintf("notification.%d", dq.id), model.AppExchange, true, nil)
 	if err != nil {
 		dq.log.Error("bind error", wlog.Err(err))
 		return err
