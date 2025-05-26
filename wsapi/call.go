@@ -218,6 +218,10 @@ func (api *API) callToQueue(ctx context.Context, conn *app.WebConn, req *model.W
 		agentId = model.NewInt(int(tmp))
 	}
 
+	if props, ok := req.Data["params"].(map[string]interface{}); ok {
+		cp = callParams(props)
+	}
+
 	_, err := api.ctrl.CallToQueue(ctx, sess, sess.UserId, parentId, cp, queueId, agentId)
 
 	if err != nil {
