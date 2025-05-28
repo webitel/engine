@@ -218,7 +218,7 @@ func (wh *Hub) start() {
 				for _, u := range ev.ForUsers {
 					candidates := connections.ForUser(u)
 					for _, webCon := range candidates {
-						if webCon.ShouldSendEvent(msg) {
+						if webCon.ShouldSendEvent(msg) && (ev.SockId == nil || webCon.id == *ev.SockId) {
 							select {
 							case webCon.Send <- msg:
 							default:
