@@ -19,6 +19,7 @@ type Notification struct {
 	ForUsers    Int64Array  `json:"for_users" db:"for_users"`
 	Description string      `json:"description,omitempty" db:"description"`
 	Body        interface{} `json:"body,omitempty" db:"-"`
+	SockId      *string     `json:"sock_id,omitempty" db:"-"`
 }
 
 func (n *Notification) ToJson() string {
