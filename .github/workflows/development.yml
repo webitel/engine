@@ -33,6 +33,10 @@ jobs:
     uses: webitel/reusable-workflows/.github/workflows/go-build.yml@21902d7a29b8e661522391c7fb95e7a5abb1be76
     with:
       binary-name: ${{ vars.SERVICE_NAME }}
+      ldflags: >
+        -s -w
+        -X github.com/webitel/engine/model.BuildNumber=${{ github.run_number }}
+
       upload-artifact-pattern: |
         ${{ vars.SERVICE_NAME }}
         deploy/systemd/${{ vars.SERVICE_NAME }}.service
