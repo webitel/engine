@@ -35,7 +35,7 @@ jobs:
       binary-name: ${{ vars.SERVICE_NAME }}
       upload-artifact-pattern: |
         ${{ vars.SERVICE_NAME }}
-        deploy/systemd/${{ vars.SERVICE_NAME }}.service
+        deploy/systemd/webitel-engine.service
 
       version: ${{ needs.prepare.outputs.version }}
       version-build: ${{ github.run_number }}
@@ -45,7 +45,7 @@ jobs:
 
       package-contents: |
         src=${{ vars.SERVICE_NAME }} dst=/usr/local/bin/${{ vars.SERVICE_NAME }} type=file
-        src=deploy/systemd/${{ vars.SERVICE_NAME }}.service dst=/etc/systemd/system/${{ vars.SERVICE_NAME }}.service type=config
+        src=deploy/systemd/webitel-engine.service dst=/etc/systemd/system/webitel-engine.service type=config
 
   deploy:
     name: Deploy
