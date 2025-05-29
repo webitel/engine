@@ -105,21 +105,11 @@ func (api *quickReply) PatchQuickReply(ctx context.Context, in *engine.PatchQuic
 	var reply *model.QuickReply
 	patch := &model.QuickReplyPatch{}
 
-	//TODO
-	for _, v := range in.Fields {
-		switch v {
-		case "name":
-			patch.Name = model.NewString(in.Name)
-		case "text":
-			patch.Text = model.NewString(in.Text)
-		case "article":
-			patch.Article = GetLookup(in.Article)
-		case "teams":
-			patch.Teams = GetLookups(in.Teams)
-		case "queues":
-			patch.Queues = GetLookups(in.Queues)
-		}
-	}
+	patch.Name = model.NewString(in.Name)
+	patch.Text = model.NewString(in.Text)
+	patch.Article = GetLookup(in.Article)
+	patch.Teams = GetLookups(in.Teams)
+	patch.Queues = GetLookups(in.Queues)
 
 	if reply, err = api.ctrl.PatchQuickReply(ctx, session, in.Id, patch); err != nil {
 		return nil, err
