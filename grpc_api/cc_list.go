@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"strconv"
 )
 
 type list struct {
@@ -52,7 +53,7 @@ func (api *list) CreateList(ctx context.Context, in *engine.CreateListRequest) (
 
 	res := toEngineList(list)
 
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, res.Id, res)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -179,7 +180,7 @@ func (api *list) UpdateList(ctx context.Context, in *engine.UpdateListRequest) (
 
 	res := toEngineList(list)
 
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -213,7 +214,7 @@ func (api *list) DeleteList(ctx context.Context, in *engine.DeleteListRequest) (
 
 	res := toEngineList(list)
 
-	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST, res.Id, res)
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -260,7 +261,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, err
 	}
 
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.Id, communication)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, strconv.FormatInt(communication.Id, 10), communication)
 
 	return toEngineListCommunication(communication), nil
 }
@@ -396,7 +397,7 @@ func (api *list) UpdateListCommunication(ctx context.Context, in *engine.UpdateL
 		return nil, err
 	}
 
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.Id, communication)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, strconv.FormatInt(communication.Id, 10), communication)
 
 	return toEngineListCommunication(communication), nil
 }
@@ -431,7 +432,7 @@ func (api *list) DeleteListCommunication(ctx context.Context, in *engine.DeleteL
 	if err != nil {
 		return nil, err
 	} else {
-		api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, communication.Id, communication)
+		api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, strconv.FormatInt(communication.Id, 10), communication)
 		return toEngineListCommunication(communication), nil
 	}
 }

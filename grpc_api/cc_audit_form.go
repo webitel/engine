@@ -213,7 +213,11 @@ func (api *auditForm) CreateAuditFormRate(ctx context.Context, in *engine.Create
 		return nil, err
 	}
 
-	return modelToProtobufAuditRate(auditRate), nil
+	resModel := modelToProtobufAuditRate(auditRate)
+	if callId := rate.CallId; callId != nil {
+		api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALL, *callId, resModel)
+	}
+	return resModel, nil
 }
 
 func (api *auditForm) SearchAuditRate(ctx context.Context, in *engine.SearchAuditRateRequest) (*engine.ListAuditRate, error) {
@@ -305,8 +309,11 @@ func (api *auditForm) UpdateAuditRate(ctx context.Context, in *engine.UpdateAudi
 	if err != nil {
 		return nil, err
 	}
-
-	return modelToProtobufAuditRate(ar), nil
+	resModel := modelToProtobufAuditRate(ar)
+	if callId := ar.CallId; callId != nil {
+		api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALL, *callId, resModel)
+	}
+	return resModel, nil
 
 }
 
@@ -321,8 +328,11 @@ func (api *auditForm) DeleteAuditRate(ctx context.Context, in *engine.DeleteAudi
 	if err != nil {
 		return nil, err
 	}
-
-	return modelToProtobufAuditRate(rate), nil
+	resModel := modelToProtobufAuditRate(rate)
+	if callId := rate.CallId; callId != nil {
+		api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALL, *callId, resModel)
+	}
+	return resModel, nil
 }
 
 func modelToProtobufAuditFrom(src *model.AuditForm) *engine.AuditForm {

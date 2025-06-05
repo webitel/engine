@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"strconv"
 )
 
 type outboundResourceGroup struct {
@@ -60,7 +61,7 @@ func (api *outboundResourceGroup) CreateOutboundResourceGroup(ctx context.Contex
 	}
 
 	res := toEngineOutboundResourceGroup(group)
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, res.Id, res)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 
@@ -200,7 +201,7 @@ func (api *outboundResourceGroup) UpdateOutboundResourceGroup(ctx context.Contex
 	}
 
 	res := toEngineOutboundResourceGroup(group)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -233,7 +234,7 @@ func (api *outboundResourceGroup) DeleteOutboundResourceGroup(ctx context.Contex
 	}
 
 	res := toEngineOutboundResourceGroup(group)
-	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, res.Id, res)
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE_GROUP, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }

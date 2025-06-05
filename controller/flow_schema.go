@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -36,7 +37,7 @@ func (c *Controller) CreateRoutingSchema(ctx context.Context, session *auth_mana
 		return nil, err
 	}
 
-	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, strconv.FormatInt(schema.Id, 10), schema)
 
 	return schema, nil
 }
@@ -85,7 +86,7 @@ func (c *Controller) UpdateSchema(ctx context.Context, session *auth_manager.Ses
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, strconv.FormatInt(schema.Id, 10), schema)
 
 	return schema, nil
 }
@@ -107,7 +108,7 @@ func (c *Controller) PatchSchema(ctx context.Context, session *auth_manager.Sess
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_SCHEMA, strconv.FormatInt(schema.Id, 10), schema)
 
 	return schema, nil
 }
@@ -123,7 +124,7 @@ func (c *Controller) DeleteSchema(ctx context.Context, session *auth_manager.Ses
 		return nil, err
 	}
 
-	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_SCHEMA, schema.Id, schema)
+	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_SCHEMA, strconv.FormatInt(schema.Id, 10), schema)
 
 	return schema, nil
 }

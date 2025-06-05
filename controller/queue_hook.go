@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -63,7 +64,7 @@ func (c *Controller) CreateQueueHook(ctx context.Context, session *auth_manager.
 	}
 
 	// todo
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(queueId)), hook)
 
 	return hook, nil
 }
@@ -122,7 +123,7 @@ func (c *Controller) UpdateQueueHook(ctx context.Context, session *auth_manager.
 	}
 
 	// todo
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(queueId)), hook)
 
 	return hook, nil
 }
@@ -156,7 +157,7 @@ func (c *Controller) PatchQueueHook(ctx context.Context, session *auth_manager.S
 	}
 
 	// todo
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(queueId)), hook)
 
 	return hook, nil
 }
@@ -189,7 +190,7 @@ func (c *Controller) DeleteQueueHook(ctx context.Context, session *auth_manager.
 	}
 
 	// todo
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), hook)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(queueId)), hook)
 
 	return hook, nil
 }

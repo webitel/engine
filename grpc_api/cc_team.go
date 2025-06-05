@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/webitel/engine/gen/engine"
 
@@ -74,7 +75,7 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 	}
 
 	res := transformAgentTeam(team)
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -211,7 +212,7 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 	}
 
 	res := transformAgentTeam(out)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -244,7 +245,7 @@ func (api *agentTeam) DeleteAgentTeam(ctx context.Context, in *engine.DeleteAgen
 	}
 
 	res := transformAgentTeam(team)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_TEAM, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }

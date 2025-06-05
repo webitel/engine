@@ -191,7 +191,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		return nil, err
 	}
 
-	if app.audit, err = logger.New(app.Config().DiscoverySettings.Url, app.MessageQueue); err != nil {
+	if app.audit, err = logger.New(app.MessageQueue); err != nil {
 		return nil, err
 	}
 

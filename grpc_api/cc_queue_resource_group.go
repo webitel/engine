@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"strconv"
 )
 
 type queueResource struct {
@@ -59,7 +60,7 @@ func (api *queueResource) CreateQueueResourceGroup(ctx context.Context, in *engi
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueResourceGroup.QueueId), queueResourceGroup)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queueResourceGroup.QueueId, 10), queueResourceGroup)
 
 	return toEngineQueueResourceGroup(queueResourceGroup), nil
 }
@@ -186,7 +187,7 @@ func (api *queueResource) UpdateQueueResourceGroup(ctx context.Context, in *engi
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qr.QueueId), qr)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(qr.QueueId, 10), qr)
 
 	return toEngineQueueResourceGroup(qr), nil
 }
@@ -223,7 +224,7 @@ func (api *queueResource) DeleteQueueResourceGroup(ctx context.Context, in *engi
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qr.QueueId), qr)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(qr.QueueId, 10), qr)
 
 	return toEngineQueueResourceGroup(qr), nil
 }

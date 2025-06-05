@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -23,7 +24,7 @@ func (c *Controller) CreateCalendar(ctx context.Context, session *auth_manager.S
 	if err != nil {
 		return nil, err
 	}
-	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CALENDAR, res.Id, res)
+	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CALENDAR, strconv.FormatInt(res.Id, 10), res)
 	return res, nil
 }
 
@@ -55,7 +56,7 @@ func (c *Controller) UpdateCalendar(ctx context.Context, session *auth_manager.S
 	if err != nil {
 		return nil, err
 	}
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALENDAR, res.Id, res)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALENDAR, strconv.FormatInt(res.Id, 10), res)
 	return res, nil
 }
 
@@ -106,6 +107,6 @@ func (c *Controller) DeleteCalendar(ctx context.Context, session *auth_manager.S
 	if err != nil {
 		return nil, err
 	}
-	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CALENDAR, res.Id, res)
+	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CALENDAR, strconv.FormatInt(res.Id, 10), res)
 	return res, nil
 }

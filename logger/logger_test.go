@@ -38,7 +38,7 @@ func (s *sender) Send(ctx context.Context, exchange string, rk string, body []by
 }
 
 func TestLogger(t *testing.T) {
-	logger, err := New("10.9.8.111:8500", &sender{})
+	logger, err := New(&sender{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -47,7 +47,7 @@ func TestLogger(t *testing.T) {
 }
 
 func BenchmarkLogger(t *testing.B) {
-	logger, err := New("10.9.8.111:8500", &sender{})
+	logger, err := New(&sender{})
 	if err != nil {
 		t.Fatal(err.Error())
 	}

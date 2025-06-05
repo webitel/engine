@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/gen/engine"
@@ -73,7 +74,7 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 		return nil, err
 	}
 	res := transformOutboundResource(resource)
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 
@@ -221,7 +222,7 @@ func (api *outboundResource) UpdateOutboundResource(ctx context.Context, in *eng
 	}
 
 	res := transformOutboundResource(resource)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -283,7 +284,7 @@ func (api *outboundResource) PatchOutboundResource(ctx context.Context, in *engi
 	}
 
 	res := transformOutboundResource(resource)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -316,7 +317,7 @@ func (api *outboundResource) DeleteOutboundResource(ctx context.Context, in *eng
 	}
 
 	res := transformOutboundResource(resource)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }

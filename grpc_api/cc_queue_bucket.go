@@ -6,6 +6,7 @@ import (
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"strconv"
 )
 
 type queueBucket struct {
@@ -62,7 +63,7 @@ func (api *queueBucket) CreateQueueBucket(ctx context.Context, in *engine.Create
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueBucket.QueueId), queueBucket)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queueBucket.QueueId, 10), queueBucket)
 
 	return toEngineQueueBucket(queueBucket), nil
 }
@@ -191,7 +192,7 @@ func (api *queueBucket) UpdateQueueBucket(ctx context.Context, in *engine.Update
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qb.QueueId), qb)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(qb.QueueId, 10), qb)
 
 	return toEngineQueueBucket(qb), nil
 }
@@ -245,7 +246,7 @@ func (api *queueBucket) PatchQueueBucket(ctx context.Context, in *engine.PatchQu
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qb.QueueId), qb)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(qb.QueueId, 10), qb)
 
 	return toEngineQueueBucket(qb), nil
 }
@@ -282,7 +283,7 @@ func (api *queueBucket) DeleteQueueBucket(ctx context.Context, in *engine.Delete
 	}
 
 	// todo
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qb.QueueId), qb)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(qb.QueueId, 10), qb)
 
 	return toEngineQueueBucket(qb), nil
 }

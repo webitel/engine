@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"strconv"
 )
 
 func (c *Controller) SearchQueueSkill(ctx context.Context, session *auth_manager.Session, search *model.SearchQueueSkill) ([]*model.QueueSkill, bool, model.AppError) {
@@ -54,7 +55,7 @@ func (c *Controller) CreateQueueSkill(ctx context.Context, session *auth_manager
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qs.QueueId), qs)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(qs.QueueId)), qs)
 
 	return qs, nil
 }
@@ -107,7 +108,7 @@ func (c *Controller) UpdateQueueSkill(ctx context.Context, session *auth_manager
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(qs.QueueId), qs)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(qs.QueueId)), qs)
 
 	return qs, nil
 }
@@ -139,7 +140,7 @@ func (c *Controller) PatchQueueSkill(ctx context.Context, session *auth_manager.
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), qs)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(queueId)), qs)
 
 	return qs, nil
 }
@@ -171,7 +172,7 @@ func (c *Controller) DeleteQueueSkill(ctx context.Context, session *auth_manager
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, int64(queueId), qs)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.Itoa(int(queueId)), qs)
 
 	return qs, nil
 }

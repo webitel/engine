@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/golang/protobuf/ptypes/wrappers"
+	"strconv"
 	"strings"
 
 	"github.com/webitel/engine/gen/engine"
@@ -74,7 +75,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 	}
 
 	res := transformAgent(agent)
-	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -232,7 +233,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 	}
 
 	res := transformAgent(agent)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -314,7 +315,7 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 	}
 
 	res := transformAgent(agent)
-	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+	api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }
@@ -347,7 +348,7 @@ func (api *agent) DeleteAgent(ctx context.Context, in *engine.DeleteAgentRequest
 	}
 
 	res := transformAgent(agent)
-	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, res.Id, res)
+	api.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_AGENT, strconv.FormatInt(res.Id, 10), res)
 
 	return res, nil
 }

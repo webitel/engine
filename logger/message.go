@@ -24,7 +24,7 @@ type RequiredFields struct {
 }
 
 type Record struct {
-	Id       int64  `json:"id,omitempty"`
+	Id       string `json:"id,omitempty"`
 	NewState []byte `json:"newState,omitempty"`
 }
 

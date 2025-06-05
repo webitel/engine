@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"strconv"
 )
 
 func (c *Controller) CreateQueue(ctx context.Context, session *auth_manager.Session, queue *model.Queue) (*model.Queue, model.AppError) {
@@ -34,7 +35,7 @@ func (c *Controller) CreateQueue(ctx context.Context, session *auth_manager.Sess
 		return nil, err
 	}
 
-	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, queue.Id, queue)
+	c.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queue.Id, 10), queue)
 
 	return queue, nil
 }
@@ -105,7 +106,7 @@ func (c *Controller) UpdateQueue(ctx context.Context, session *auth_manager.Sess
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, queue.Id, queue)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queue.Id, 10), queue)
 
 	return queue, nil
 }
@@ -141,7 +142,7 @@ func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Sessi
 		return nil, err
 	}
 
-	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, queue.Id, queue)
+	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queue.Id, 10), queue)
 
 	return queue, nil
 }
@@ -170,7 +171,7 @@ func (c *Controller) DeleteQueue(ctx context.Context, session *auth_manager.Sess
 		return nil, err
 	}
 
-	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, queue.Id, queue)
+	c.app.AuditDelete(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queue.Id, 10), queue)
 
 	return queue, nil
 }
