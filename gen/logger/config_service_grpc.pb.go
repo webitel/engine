@@ -23,7 +23,6 @@ const (
 	ConfigService_PatchConfig_FullMethodName          = "/logger.ConfigService/PatchConfig"
 	ConfigService_CreateConfig_FullMethodName         = "/logger.ConfigService/CreateConfig"
 	ConfigService_DeleteConfig_FullMethodName         = "/logger.ConfigService/DeleteConfig"
-	ConfigService_DeleteConfigBulk_FullMethodName     = "/logger.ConfigService/DeleteConfigBulk"
 	ConfigService_ReadConfigByObjectId_FullMethodName = "/logger.ConfigService/ReadConfigByObjectId"
 	ConfigService_CheckConfigStatus_FullMethodName    = "/logger.ConfigService/CheckConfigStatus"
 	ConfigService_ReadSystemObjects_FullMethodName    = "/logger.ConfigService/ReadSystemObjects"
@@ -39,7 +38,6 @@ type ConfigServiceClient interface {
 	PatchConfig(ctx context.Context, in *PatchConfigRequest, opts ...grpc.CallOption) (*Config, error)
 	CreateConfig(ctx context.Context, in *CreateConfigRequest, opts ...grpc.CallOption) (*Config, error)
 	DeleteConfig(ctx context.Context, in *DeleteConfigRequest, opts ...grpc.CallOption) (*Empty, error)
-	DeleteConfigBulk(ctx context.Context, in *DeleteConfigBulkRequest, opts ...grpc.CallOption) (*Empty, error)
 	ReadConfigByObjectId(ctx context.Context, in *ReadConfigByObjectIdRequest, opts ...grpc.CallOption) (*Config, error)
 	CheckConfigStatus(ctx context.Context, in *CheckConfigStatusRequest, opts ...grpc.CallOption) (*ConfigStatus, error)
 	ReadSystemObjects(ctx context.Context, in *ReadSystemObjectsRequest, opts ...grpc.CallOption) (*SystemObjects, error)
@@ -85,15 +83,6 @@ func (c *configServiceClient) CreateConfig(ctx context.Context, in *CreateConfig
 func (c *configServiceClient) DeleteConfig(ctx context.Context, in *DeleteConfigRequest, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := c.cc.Invoke(ctx, ConfigService_DeleteConfig_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *configServiceClient) DeleteConfigBulk(ctx context.Context, in *DeleteConfigBulkRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
-	err := c.cc.Invoke(ctx, ConfigService_DeleteConfigBulk_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +142,6 @@ type ConfigServiceServer interface {
 	PatchConfig(context.Context, *PatchConfigRequest) (*Config, error)
 	CreateConfig(context.Context, *CreateConfigRequest) (*Config, error)
 	DeleteConfig(context.Context, *DeleteConfigRequest) (*Empty, error)
-	DeleteConfigBulk(context.Context, *DeleteConfigBulkRequest) (*Empty, error)
 	ReadConfigByObjectId(context.Context, *ReadConfigByObjectIdRequest) (*Config, error)
 	CheckConfigStatus(context.Context, *CheckConfigStatusRequest) (*ConfigStatus, error)
 	ReadSystemObjects(context.Context, *ReadSystemObjectsRequest) (*SystemObjects, error)
@@ -177,9 +165,6 @@ func (UnimplementedConfigServiceServer) CreateConfig(context.Context, *CreateCon
 }
 func (UnimplementedConfigServiceServer) DeleteConfig(context.Context, *DeleteConfigRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteConfig not implemented")
-}
-func (UnimplementedConfigServiceServer) DeleteConfigBulk(context.Context, *DeleteConfigBulkRequest) (*Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteConfigBulk not implemented")
 }
 func (UnimplementedConfigServiceServer) ReadConfigByObjectId(context.Context, *ReadConfigByObjectIdRequest) (*Config, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadConfigByObjectId not implemented")
@@ -277,24 +262,6 @@ func _ConfigService_DeleteConfig_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ConfigServiceServer).DeleteConfig(ctx, req.(*DeleteConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ConfigService_DeleteConfigBulk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteConfigBulkRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ConfigServiceServer).DeleteConfigBulk(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: ConfigService_DeleteConfigBulk_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConfigServiceServer).DeleteConfigBulk(ctx, req.(*DeleteConfigBulkRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -411,10 +378,6 @@ var ConfigService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteConfig",
 			Handler:    _ConfigService_DeleteConfig_Handler,
-		},
-		{
-			MethodName: "DeleteConfigBulk",
-			Handler:    _ConfigService_DeleteConfigBulk_Handler,
 		},
 		{
 			MethodName: "ReadConfigByObjectId",
