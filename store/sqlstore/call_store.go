@@ -249,7 +249,8 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
        c."bridged_at",
        c."hangup_at",
        c."hold_sec",
-       call_center.cc_get_lookup(at.queue_id::bigint, at.queue_name)   AS queue,
+       call_center.cc_get_lookup(
+               case when at.attempt_id::bigint notnull then coalesce(at.queue_id::bigint, 0) end, at.queue_name)   AS queue,
        c.contact_id,
        to_timestamp(at.leaving_at::double precision / 1000)            as leaving_at --todo
 from call_center.cc_calls c
