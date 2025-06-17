@@ -25,7 +25,7 @@ type RequiredFields struct {
 
 type Record struct {
 	Id       string `json:"id,omitempty"`
-	NewState []byte `json:"newState,omitempty"`
+	NewState any    `json:"newState,omitempty"`
 }
 
 type Message struct {

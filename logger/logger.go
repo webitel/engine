@@ -2,7 +2,6 @@ package logger
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
@@ -49,17 +48,11 @@ func New(channel Publisher) (*Audit, error) {
 }
 
 func (api *Audit) Audit(action Action, ctx context.Context, session Session, object string, recordId string, data interface{}) error {
-	var body []byte
-	body, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
 	msg := Message{
 		Records: []Record{
 			{
 				Id:       recordId,
-				NewState: body,
+				NewState: data,
 			},
 		},
 		RequiredFields: RequiredFields{
@@ -72,7 +65,7 @@ func (api *Audit) Audit(action Action, ctx context.Context, session Session, obj
 		},
 	}
 
-	err = api.channel.Send(ctx, exchange, fmt.Sprintf(rkFormat, msg.DomainId, object), msg.ToJson())
+	err := api.channel.Send(ctx, exchange, fmt.Sprintf(rkFormat, msg.DomainId, object), msg.ToJson())
 	if err != nil {
 		fmt.Println(err.Error())
 	}
