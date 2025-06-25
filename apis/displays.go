@@ -13,7 +13,7 @@ import (
 )
 
 func (api *API) InitDisplays() {
-	api.Routes.Root.Handle("/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
+	api.Routes.Root.Handle("/api/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
 }
 
 func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
