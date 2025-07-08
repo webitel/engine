@@ -30,6 +30,7 @@ const (
 	SysNameTaskEndPushNotification  = "task_end_push_notification"
 	SysNamePushNotificationTimeout  = "push_notification_timeout"
 	SysNameLabelsToLimitContacts    = "labels_to_limit_contacts"
+	SysNameAutolinkMailToContact    = "autolink_mail_to_contact"
 )
 
 type SysValue json.RawMessage
@@ -94,6 +95,7 @@ func (s *SystemSetting) IsValid() AppError {
 		}
 	case SysNameTwoFactorAuthorization,
 		SysNameAutolinkCallToContact,
+		SysNameAutolinkMailToContact,
 		SysNameIsFulltextSearchEnabled,
 		SysNameHideContact,
 		SysNameShowFullContact,
