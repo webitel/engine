@@ -7,30 +7,32 @@ import (
 )
 
 const (
-	SysNameOmnichannel              = "enable_omnichannel"
-	SysNameMemberInsertChunkSize    = "member_chunk_size"
-	SysNameSchemeVersionLimit       = "scheme_version_limit"
-	SysNameAmdCancelNotHuman        = "amd_cancel_not_human"
-	SysNameTwoFactorAuthorization   = "enable_2fa"
-	SysNameExportSettings           = "export_settings"
-	SysNameSearchNumberLength       = "search_number_length"
-	SysNameChatAiConnection         = "chat_ai_connection"
-	SysNamePasswordRegExp           = "password_reg_exp"
-	SysNamePasswordValidationText   = "password_validation_text"
-	SysNameAutolinkCallToContact    = "autolink_call_to_contact"
-	SysNamePeriodToPlaybackRecord   = "period_to_playback_records"
-	SysNameIsFulltextSearchEnabled  = "is_fulltext_search_enabled"
-	SysNameHideContact              = "wbt_hide_contact"
-	SysNameShowFullContact          = "show_full_contact"
-	SysNameCallEndSoundNotification = "call_end_sound_notification"
-	SysNameCallEndPushNotification  = "call_end_push_notification"
-	SysNameChatEndSoundNotification = "chat_end_sound_notification"
-	SysNameChatEndPushNotification  = "chat_end_push_notification"
-	SysNameTaskEndSoundNotification = "task_end_sound_notification"
-	SysNameTaskEndPushNotification  = "task_end_push_notification"
-	SysNamePushNotificationTimeout  = "push_notification_timeout"
-	SysNameLabelsToLimitContacts    = "labels_to_limit_contacts"
-	SysNameAutolinkMailToContact    = "autolink_mail_to_contact"
+	SysNameOmnichannel                 = "enable_omnichannel"
+	SysNameMemberInsertChunkSize       = "member_chunk_size"
+	SysNameSchemeVersionLimit          = "scheme_version_limit"
+	SysNameAmdCancelNotHuman           = "amd_cancel_not_human"
+	SysNameTwoFactorAuthorization      = "enable_2fa"
+	SysNameExportSettings              = "export_settings"
+	SysNameSearchNumberLength          = "search_number_length"
+	SysNameChatAiConnection            = "chat_ai_connection"
+	SysNamePasswordRegExp              = "password_reg_exp"
+	SysNamePasswordValidationText      = "password_validation_text"
+	SysNameAutolinkCallToContact       = "autolink_call_to_contact"
+	SysNamePeriodToPlaybackRecord      = "period_to_playback_records"
+	SysNameIsFulltextSearchEnabled     = "is_fulltext_search_enabled"
+	SysNameHideContact                 = "wbt_hide_contact"
+	SysNameShowFullContact             = "show_full_contact"
+	SysNameCallEndSoundNotification    = "call_end_sound_notification"
+	SysNameCallEndPushNotification     = "call_end_push_notification"
+	SysNameChatEndSoundNotification    = "chat_end_sound_notification"
+	SysNameChatEndPushNotification     = "chat_end_push_notification"
+	SysNameTaskEndSoundNotification    = "task_end_sound_notification"
+	SysNameTaskEndPushNotification     = "task_end_push_notification"
+	SysNamePushNotificationTimeout     = "push_notification_timeout"
+	SysNameLabelsToLimitContacts       = "labels_to_limit_contacts"
+	SysNameAutolinkMailToContact       = "autolink_mail_to_contact"
+	SysNameNewMessageSoundNotification = "new_message_sound_notification"
+	SysNameNewChatSoundNotification    = "new_chat_sound_notification"
 )
 
 type SysValue json.RawMessage
@@ -104,7 +106,9 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameChatEndSoundNotification,
 		SysNameChatEndPushNotification,
 		SysNameTaskEndSoundNotification,
-		SysNameTaskEndPushNotification:
+		SysNameTaskEndPushNotification,
+		SysNameNewMessageSoundNotification,
+		SysNameNewChatSoundNotification:
 		value := SysValue(s.Value)
 		i := value.Bool()
 

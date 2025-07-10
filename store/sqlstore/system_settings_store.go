@@ -22,7 +22,8 @@ var (
 		model.SysNameIsFulltextSearchEnabled, model.SysNameHideContact, model.SysNameShowFullContact,
 		model.SysNameCallEndSoundNotification, model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification,
 		model.SysNameChatEndPushNotification, model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification,
-		model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact,
+		model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
+		model.SysNameNewMessageSoundNotification,
 	}
 )
 
