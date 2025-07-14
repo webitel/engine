@@ -352,7 +352,8 @@ func (h *Hub) Unregister(webConn *WebConn) {
 func (h *Hub) Pong(webConn *WebConn) {
 	h.app.Hubs.storePool.Exec(&taskHubPong{
 		taskHub: taskHub{
-			a: h.app,
+			a:   h.app,
+			log: webConn.log,
 		},
 		id: webConn.id,
 		t:  time.Now(),

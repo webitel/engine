@@ -13,3 +13,36 @@ type SocketSession struct {
 	Client    string    `json:"client" db:"client"`
 	AppId     string    `json:"app_id" db:"app_id"`
 }
+
+type SocketSessionView struct {
+	Id        string     `json:"id" db:"id"`
+	CreatedAt *time.Time `json:"created_at" db:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at" db:"updated_at"`
+	UserAgent string     `json:"user_agent" db:"user_agent"`
+	Ip        string     `json:"ip" db:"ip"`
+	Client    string     `json:"client" db:"client"`
+	User      *Lookup    `json:"user" db:"user"`
+	Duration  int64      `json:"duration" db:"duration"`
+	Pong      int64      `json:"pong" db:"pong"`
+}
+
+type SearchSocketSessionView struct {
+	ListRequest
+	UserIds []int64
+}
+
+func (SocketSessionView) DefaultOrder() string {
+	return "created_at"
+}
+
+func (SocketSessionView) AllowFields() []string {
+	return []string{"id", "created_at", "updated_at", "user_agent", "ip", "client", "user", "duration", "pong"}
+}
+
+func (s SocketSessionView) DefaultFields() []string {
+	return s.AllowFields()
+}
+
+func (SocketSessionView) EntityName() string {
+	return "socket_session_view"
+}
