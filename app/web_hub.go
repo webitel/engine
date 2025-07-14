@@ -302,6 +302,15 @@ func (a *App) HubRegister(webCon *WebConn) {
 	if hub != nil {
 		hub.Register(webCon)
 	}
+
+	webCon.hookPong = hub.Pong
+	a.Hubs.storePool.Exec(&taskHubCreate{
+		taskHub: taskHub{
+			a:   a,
+			log: webCon.log,
+		},
+		session: webCon.SocketSession(),
+	})
 }
 
 func (a *App) HubUnregister(webConn *WebConn) {
@@ -330,6 +339,24 @@ func (h *Hub) Unregister(webConn *WebConn) {
 	case h.unregister <- webConn:
 	case <-h.stop:
 	}
+
+	h.app.Hubs.storePool.Exec(&taskHubDelete{
+		taskHub: taskHub{
+			a:   h.app,
+			log: webConn.log,
+		},
+		id: webConn.id,
+	})
+}
+
+func (h *Hub) Pong(webConn *WebConn) {
+	h.app.Hubs.storePool.Exec(&taskHubPong{
+		taskHub: taskHub{
+			a: h.app,
+		},
+		id: webConn.id,
+		t:  time.Now(),
+	})
 }
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.

@@ -192,3 +192,7 @@ func (s *LayeredStore) SchemeVariable() SchemeVariablesStore {
 func (s *LayeredStore) QuickReply() QuickReplyStore {
 	return s.DatabaseLayer.QuickReply()
 }
+
+func (s *LayeredStore) SocketSession() SocketSessionStore {
+	return s.DatabaseLayer.SocketSession()
+}

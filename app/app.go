@@ -158,6 +158,8 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.MessageQueue.Start()
 
 	app.Hubs = NewHubs(app)
+	// remove all session by app id
+	app.Hubs.Clean()
 
 	app.GrpcServer = NewGrpcServer(app, app.Config().ServerSettings)
 
@@ -208,6 +210,10 @@ func New(options ...string) (outApp *App, outErr error) {
 
 func (app *App) Shutdown() {
 	wlog.Info("stopping Server...")
+
+	if app.Hubs != nil {
+		app.Hubs.Clean()
+	}
 
 	if app.MessageQueue != nil {
 		app.MessageQueue.Close()

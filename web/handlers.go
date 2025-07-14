@@ -66,3 +66,11 @@ func ReadUserIP(r *http.Request) string {
 	}
 	return IPAddress
 }
+
+func ReadUserAgent(r *http.Request) string {
+	return r.Header.Get("User-Agent")
+}
+
+func ReadClientName(r *http.Request) string {
+	return r.URL.Query().Get("client")
+}
