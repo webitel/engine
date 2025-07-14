@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	UserHelperService_DefaultDeviceConfig_FullMethodName     = "/engine.UserHelperService/DefaultDeviceConfig"
 	UserHelperService_ActivityWorkspaceWidget_FullMethodName = "/engine.UserHelperService/ActivityWorkspaceWidget"
+	UserHelperService_OpenedWebSockets_FullMethodName        = "/engine.UserHelperService/OpenedWebSockets"
 )
 
 // UserHelperServiceClient is the client API for UserHelperService service.
@@ -29,6 +30,7 @@ const (
 type UserHelperServiceClient interface {
 	DefaultDeviceConfig(ctx context.Context, in *DefaultDeviceConfigRequest, opts ...grpc.CallOption) (*DefaultDeviceConfigResponse, error)
 	ActivityWorkspaceWidget(ctx context.Context, in *ActivityWorkspaceWidgetRequest, opts ...grpc.CallOption) (*ActivityWorkspaceWidgetResponse, error)
+	OpenedWebSockets(ctx context.Context, in *OpenedWebSocketsRequest, opts ...grpc.CallOption) (*ListOpenedWebSocket, error)
 }
 
 type userHelperServiceClient struct {
@@ -57,12 +59,22 @@ func (c *userHelperServiceClient) ActivityWorkspaceWidget(ctx context.Context, i
 	return out, nil
 }
 
+func (c *userHelperServiceClient) OpenedWebSockets(ctx context.Context, in *OpenedWebSocketsRequest, opts ...grpc.CallOption) (*ListOpenedWebSocket, error) {
+	out := new(ListOpenedWebSocket)
+	err := c.cc.Invoke(ctx, UserHelperService_OpenedWebSockets_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserHelperServiceServer is the server API for UserHelperService service.
 // All implementations must embed UnimplementedUserHelperServiceServer
 // for forward compatibility
 type UserHelperServiceServer interface {
 	DefaultDeviceConfig(context.Context, *DefaultDeviceConfigRequest) (*DefaultDeviceConfigResponse, error)
 	ActivityWorkspaceWidget(context.Context, *ActivityWorkspaceWidgetRequest) (*ActivityWorkspaceWidgetResponse, error)
+	OpenedWebSockets(context.Context, *OpenedWebSocketsRequest) (*ListOpenedWebSocket, error)
 	mustEmbedUnimplementedUserHelperServiceServer()
 }
 
@@ -75,6 +87,9 @@ func (UnimplementedUserHelperServiceServer) DefaultDeviceConfig(context.Context,
 }
 func (UnimplementedUserHelperServiceServer) ActivityWorkspaceWidget(context.Context, *ActivityWorkspaceWidgetRequest) (*ActivityWorkspaceWidgetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ActivityWorkspaceWidget not implemented")
+}
+func (UnimplementedUserHelperServiceServer) OpenedWebSockets(context.Context, *OpenedWebSocketsRequest) (*ListOpenedWebSocket, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OpenedWebSockets not implemented")
 }
 func (UnimplementedUserHelperServiceServer) mustEmbedUnimplementedUserHelperServiceServer() {}
 
@@ -125,6 +140,24 @@ func _UserHelperService_ActivityWorkspaceWidget_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserHelperService_OpenedWebSockets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OpenedWebSocketsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserHelperServiceServer).OpenedWebSockets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserHelperService_OpenedWebSockets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserHelperServiceServer).OpenedWebSockets(ctx, req.(*OpenedWebSocketsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserHelperService_ServiceDesc is the grpc.ServiceDesc for UserHelperService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -139,6 +172,10 @@ var UserHelperService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ActivityWorkspaceWidget",
 			Handler:    _UserHelperService_ActivityWorkspaceWidget_Handler,
+		},
+		{
+			MethodName: "OpenedWebSockets",
+			Handler:    _UserHelperService_OpenedWebSockets_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -525,6 +525,7 @@ type SchemeVariablesStore interface {
 }
 
 type SocketSessionStore interface {
+	Search(ctx context.Context, domainId int64, search *model.SearchSocketSessionView) ([]*model.SocketSessionView, model.AppError)
 	Create(ctx context.Context, session model.SocketSession) model.AppError
 	SetUpdatedAt(ctx context.Context, id string, t time.Time) model.AppError
 	DeleteByApp(ctx context.Context, appId string) model.AppError

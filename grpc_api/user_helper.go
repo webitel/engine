@@ -105,3 +105,46 @@ func (api *userHelper) ActivityWorkspaceWidget(ctx context.Context, in *engine.A
 		CallManual:       stat.CallManual,
 	}, nil
 }
+
+func (api *userHelper) OpenedWebSockets(ctx context.Context, in *engine.OpenedWebSocketsRequest) (*engine.ListOpenedWebSocket, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(in.UserId) == 0 {
+		return &engine.ListOpenedWebSocket{}, nil
+	}
+
+	var list []*model.SocketSessionView
+	var endList bool
+	list, endList, err = api.ctrl.GetWebSocketsPage(ctx, session, in.UserId[0], &model.ListRequest{
+		Q:       in.GetQ(),
+		Page:    int(in.GetPage()),
+		PerPage: int(in.GetSize()),
+		Fields:  in.GetFields(),
+		Sort:    in.GetSort(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]*engine.OpenedWebSocket, 0, len(list))
+	for _, v := range list {
+		items = append(items, &engine.OpenedWebSocket{
+			Id:        v.Id,
+			CreatedAt: model.TimeToInt64(v.CreatedAt),
+			UpdatedAt: model.TimeToInt64(v.UpdatedAt),
+			UserAgent: v.UserAgent,
+			Ip:        v.Ip,
+			Client:    v.Client,
+			Duration:  v.Duration,
+			Pong:      v.Pong,
+		})
+	}
+	return &engine.ListOpenedWebSocket{
+		Next:  !endList,
+		Items: items,
+	}, nil
+
+}

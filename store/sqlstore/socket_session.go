@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"context"
+	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"time"
@@ -76,4 +77,26 @@ where id = :Id`, map[string]any{
 	}
 
 	return nil
+}
+
+func (s *SqlSocketSessionStore) Search(ctx context.Context, domainId int64, search *model.SearchSocketSessionView) ([]*model.SocketSessionView, model.AppError) {
+	var list []*model.SocketSessionView
+
+	f := map[string]interface{}{
+		"DomainId": domainId,
+		"Q":        search.GetQ(),
+		"Ids":      pq.Array(search.UserIds),
+	}
+
+	err := s.ListQuery(ctx, &list, search.ListRequest,
+		`domain_id = :DomainId
+				and (:Q::text isnull or client ilike :Q or user_agent ilike :Q)
+				and (:Ids::int8[] isnull or user_id = any(:Ids))
+			`,
+		model.SocketSessionView{}, f)
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_socket.list.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return list, nil
 }

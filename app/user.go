@@ -57,3 +57,12 @@ func (app *App) GetUserDefaultDeviceConfig(ctx context.Context, userId, domainId
 		}
 	}
 }
+
+func (app *App) GetWebSocketsPage(ctx context.Context, domainId int64, search *model.SearchSocketSessionView) ([]*model.SocketSessionView, bool, model.AppError) {
+	list, err := app.Store.SocketSession().Search(ctx, domainId, search)
+	if err != nil {
+		return nil, false, err
+	}
+	search.RemoveLastElemIfNeed(&list)
+	return list, search.EndOfList(), nil
+}
