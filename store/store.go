@@ -77,6 +77,7 @@ type Store interface {
 	WebHook() WebHookStore
 	SchemeVersion() SchemeVersionsStore
 	SchemeVariable() SchemeVariablesStore
+	SocketSession() SocketSessionStore
 }
 
 // todo deprecated
@@ -521,6 +522,13 @@ type SchemeVariablesStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.SchemeVariable, model.AppError)
 	Update(ctx context.Context, domainId int64, variable *model.SchemeVariable) (*model.SchemeVariable, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
+}
+
+type SocketSessionStore interface {
+	Create(ctx context.Context, session model.SocketSession) model.AppError
+	SetUpdatedAt(ctx context.Context, id string, t time.Time) model.AppError
+	DeleteByApp(ctx context.Context, appId string) model.AppError
+	DeleteById(ctx context.Context, id string) model.AppError
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.

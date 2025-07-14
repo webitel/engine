@@ -35,6 +35,7 @@ type WebConn struct {
 	id                 string
 	sessionExpiresAt   int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	App                *App
+	hookPong           func(conn *WebConn)
 	WebSocket          *websocket.Conn
 	sessionToken       atomic.Value
 	session            atomic.Value
@@ -48,6 +49,10 @@ type WebConn struct {
 	endWritePump       chan struct{}
 	pumpFinished       chan struct{}
 	listenEvents       map[string]*model.BindQueueEvent
+	createdAt          time.Time
+	client             string
+	userAgent          string
+	appId              string
 	mx                 sync.RWMutex
 	ip                 string
 	lastLatencyTime    atomic.Int64
@@ -59,7 +64,7 @@ type WebConn struct {
 	//Sip *SipProxy
 }
 
-func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, locale string, ip string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, client string, ua string, ip string) *WebConn {
 
 	id := model.NewId()
 	log := a.Log.With(
@@ -94,7 +99,11 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, local
 		Send:               make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
 		LastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
-		Locale:             locale,
+		createdAt:          time.Now(),
+		client:             client,
+		userAgent:          ua,
+		appId:              a.nodeId,
+		Locale:             "",
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
 		listenEvents:       make(map[string]*model.BindQueueEvent),
@@ -183,6 +192,9 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
+		if c.hookPong != nil {
+			c.hookPong(c)
+		}
 		return nil
 	})
 
@@ -309,6 +321,20 @@ func (webCon *WebConn) SendHello() {
 	msg.Add("use_chat", sess.HasChatLicense())
 
 	webCon.Send <- msg
+}
+
+func (c *WebConn) SocketSession() model.SocketSession {
+	return model.SocketSession{
+		Id:        c.id,
+		UserId:    c.UserId,
+		DomainId:  c.DomainId,
+		CreatedAt: c.createdAt,
+		UpdatedAt: time.Now(),
+		Client:    c.client,
+		UserAgent: c.userAgent,
+		Ip:        c.ip,
+		AppId:     c.appId,
+	}
 }
 
 func (webCon *WebConn) SendError(err model.AppError) {
