@@ -23,7 +23,7 @@ var (
 		model.SysNameCallEndSoundNotification, model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification,
 		model.SysNameChatEndPushNotification, model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification,
 		model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
-		model.SysNameNewMessageSoundNotification,
+		model.SysNameNewMessageSoundNotification, model.SysNameScreenshotInterval,
 	}
 )
 
