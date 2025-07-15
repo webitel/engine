@@ -33,6 +33,7 @@ const (
 	SysNameAutolinkMailToContact       = "autolink_mail_to_contact"
 	SysNameNewMessageSoundNotification = "new_message_sound_notification"
 	SysNameNewChatSoundNotification    = "new_chat_sound_notification"
+	SysNameScreenshotInterval          = "screenshot_interval"
 )
 
 type SysValue json.RawMessage
@@ -80,7 +81,8 @@ func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength, SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout:
+	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
+		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval:
 		value := SysValue(s.Value)
 		i := value.Int()
 
