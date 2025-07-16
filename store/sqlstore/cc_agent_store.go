@@ -114,7 +114,8 @@ WHERE aud.id = any(a.auditor_ids)) as auditor,
 	   call_center.cc_get_lookup(t.id, t.name) as team,
 	   call_center.cc_get_lookup(r.id, r.name) as region,
        a.supervisor as is_supervisor,
-	   a.screen_control	
+	   a.screen_control,
+	   t.screen_control is false allow_set_screen_control	
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
          LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -350,6 +351,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			   call_center.cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor,
 			   a.screen_control,
+			   t.screen_control is false allow_set_screen_control,
 			   ct.extension	
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
@@ -418,7 +420,8 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			   call_center.cc_get_lookup(t.id, t.name) as team,
 			   call_center.cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor,
-			   a.screen_control
+			   a.screen_control,
+			   t.screen_control is false allow_set_screen_control
 		FROM  a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
