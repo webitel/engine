@@ -25,9 +25,10 @@ func (s SqlAgentTeamStore) Create(ctx context.Context, team *model.AgentTeam) (*
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with t as (
     insert into call_center.cc_team (domain_id, name, description, strategy, max_no_answer, wrap_up_time,
                      no_answer_delay_time, call_timeout, updated_at, created_at, created_by, updated_by,
-                     admin_ids, invite_chat_timeout, task_accept_timeout, forecast_calculation_id)
+                     admin_ids, invite_chat_timeout, task_accept_timeout, forecast_calculation_id, screen_control)
     values (:DomainId, :Name, :Description, :Strategy, :MaxNoAnswer, :WrapUpTime,
-                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, :AdminIds, :InviteChatTimeout, :TaskAcceptTimeout, :ForecastCalculationId)
+                    :NoAnswerDelayTime, :CallTimeout, :UpdatedAt, :CreatedAt, :CreatedBy,  :UpdatedBy, 
+					:AdminIds, :InviteChatTimeout, :TaskAcceptTimeout, :ForecastCalculationId, :ScreenControl)
     returning *
 )
 select t.id,
@@ -45,7 +46,8 @@ select t.id,
         FROM call_center.cc_agent_with_user adm
 		WHERE adm.id = any(t.admin_ids)) as admin,
        t.domain_id,
-       call_center.cc_get_lookup(fc.id, fc.name) AS forecast_calculation
+       call_center.cc_get_lookup(fc.id, fc.name) AS forecast_calculation,
+	   t.screen_control
 from t
 	left join wfm.forecast_calculation fc on fc.id = t.forecast_calculation_id`,
 		map[string]interface{}{
@@ -65,6 +67,7 @@ from t
 			"UpdatedBy":             team.UpdatedBy.GetSafeId(),
 			"AdminIds":              pq.Array(model.LookupIds(team.Admin)),
 			"ForecastCalculationId": team.ForecastCalculation.GetSafeId(),
+			"ScreenControl":         team.ScreenControl,
 		}); nil != err {
 		return nil, model.NewCustomCodeError("store.sql_agent_team.save.app_error", fmt.Sprintf("name=%v, %v", team.Name, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -161,7 +164,8 @@ func (s SqlAgentTeamStore) Get(ctx context.Context, domainId int64, id int64) (*
        (SELECT jsonb_agg(adm."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user adm
 		WHERE adm.id = any(t.admin_ids)) as admin,
-	    call_center.cc_get_lookup(fc.id, fc.name) AS forecast_calculation
+	    call_center.cc_get_lookup(fc.id, fc.name) AS forecast_calculation,
+	    t.screen_control
 from call_center.cc_team t
 	left join wfm.forecast_calculation fc on fc.id = t.forecast_calculation_id
 where t.domain_id = :DomainId and t.id = :Id`, map[string]interface{}{
@@ -189,7 +193,8 @@ func (s SqlAgentTeamStore) Update(ctx context.Context, domainId int64, team *mod
         updated_at = :UpdatedAt,
         updated_by = :UpdatedBy,
         admin_ids = :AdminIds,
-		forecast_calculation_id = :ForecastCalculationId
+		forecast_calculation_id = :ForecastCalculationId,
+		screen_control = :ScreenControl
     where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -208,7 +213,8 @@ select t.id,
         FROM call_center.cc_agent_with_user adm
 		WHERE adm.id = any(t.admin_ids)) as admin,
        t.domain_id,
-		call_center.cc_get_lookup(fc.id, fc.name) AS forecast_calculation
+		call_center.cc_get_lookup(fc.id, fc.name) AS forecast_calculation,
+	   t.screen_control	
 from t
 	left join wfm.forecast_calculation fc on fc.id = t.forecast_calculation_id`, map[string]interface{}{
 		"Id":                    team.Id,
@@ -226,6 +232,7 @@ from t
 		"UpdatedBy":             team.UpdatedBy.GetSafeId(),
 		"AdminIds":              pq.Array(model.LookupIds(team.Admin)),
 		"ForecastCalculationId": team.ForecastCalculation.GetSafeId(),
+		"ScreenControl":         team.ScreenControl,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent_team.update.app_error", fmt.Sprintf("Id=%v, %s", team.Id, err.Error()), extractCodeFromErr(err))
