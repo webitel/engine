@@ -44,17 +44,18 @@ where id = :Id;`, map[string]any{
 }
 
 func (s *SqlSocketSessionStore) Create(ctx context.Context, session model.SocketSession) model.AppError {
-	_, err := s.GetMaster().WithContext(ctx).Exec(`insert into call_center.socket_session (id, created_at, updated_at, user_agent, user_id, ip, client, app_id, domain_id)
-values (:Id, :CreatedAt, :UpdatedAt, :UA, :UserId, :Ip, :Client, :AppId, :DomainId)`, map[string]any{
-		"Id":        session.Id,
-		"CreatedAt": session.CreatedAt,
-		"UpdatedAt": session.UpdatedAt,
-		"UA":        session.UserAgent,
-		"UserId":    session.UserId,
-		"Ip":        session.Ip,
-		"Client":    session.Client,
-		"AppId":     session.AppId,
-		"DomainId":  session.DomainId,
+	_, err := s.GetMaster().WithContext(ctx).Exec(`insert into call_center.socket_session (id, created_at, updated_at, user_agent, user_id, ip, application_name, ver, app_id, domain_id)
+values (:Id, :CreatedAt, :UpdatedAt, :UA, :UserId, :Ip, :ApplicationName, :Ver, :AppId, :DomainId)`, map[string]any{
+		"Id":              session.Id,
+		"CreatedAt":       session.CreatedAt,
+		"UpdatedAt":       session.UpdatedAt,
+		"UA":              session.UserAgent,
+		"UserId":          session.UserId,
+		"Ip":              session.Ip,
+		"ApplicationName": session.ApplicationName,
+		"Ver":             session.Ver,
+		"AppId":           session.AppId,
+		"DomainId":        session.DomainId,
 	})
 
 	if err != nil {
@@ -90,7 +91,7 @@ func (s *SqlSocketSessionStore) Search(ctx context.Context, domainId int64, sear
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
-				and (:Q::text isnull or client ilike :Q or user_agent ilike :Q)
+				and (:Q::text isnull or ver ilike :Q or user_agent ilike :Q or application_name ilike :Q)
 				and (:Ids::int8[] isnull or user_id = any(:Ids))
 			`,
 		model.SocketSessionView{}, f)

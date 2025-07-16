@@ -50,7 +50,8 @@ type WebConn struct {
 	pumpFinished       chan struct{}
 	listenEvents       map[string]*model.BindQueueEvent
 	createdAt          time.Time
-	client             string
+	applicationName    string
+	applicationVer     string
 	userAgent          string
 	appId              string
 	mx                 sync.RWMutex
@@ -64,7 +65,7 @@ type WebConn struct {
 	//Sip *SipProxy
 }
 
-func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, client string, ua string, ip string) *WebConn {
+func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, appName string, appVer string, ua string, ip string) *WebConn {
 
 	id := model.NewId()
 	log := a.Log.With(
@@ -72,6 +73,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, clien
 		wlog.String("ip_address", ip),
 		wlog.String("protocol", "wss"),
 		wlog.String("sock_id", id),
+		wlog.String("app_name", appName),
 	)
 	// Disable TCP_NO_DELAY for higher throughput
 	var tcpConn *net.TCPConn
@@ -100,7 +102,8 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, clien
 		LastUserActivityAt: model.GetMillis(),
 		UserId:             session.UserId,
 		createdAt:          time.Now(),
-		client:             client,
+		applicationName:    appName,
+		applicationVer:     appVer,
 		userAgent:          ua,
 		appId:              a.nodeId,
 		Locale:             "",
@@ -116,6 +119,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, clien
 		attribute.Int64("user_id", session.UserId),
 		attribute.String("ip_address", ip),
 		attribute.String("sock_id", wc.id),
+		attribute.String("app_name", appName),
 	)
 
 	//wc.Sip = NewSipProxy(wc)
@@ -325,15 +329,16 @@ func (webCon *WebConn) SendHello() {
 
 func (c *WebConn) SocketSession() model.SocketSession {
 	return model.SocketSession{
-		Id:        c.id,
-		UserId:    c.UserId,
-		DomainId:  c.DomainId,
-		CreatedAt: c.createdAt,
-		UpdatedAt: time.Now(),
-		Client:    c.client,
-		UserAgent: c.userAgent,
-		Ip:        c.ip,
-		AppId:     c.appId,
+		Id:              c.id,
+		UserId:          c.UserId,
+		DomainId:        c.DomainId,
+		CreatedAt:       c.createdAt,
+		UpdatedAt:       time.Now(),
+		ApplicationName: c.applicationName,
+		Ver:             c.applicationVer,
+		UserAgent:       c.userAgent,
+		Ip:              c.ip,
+		AppId:           c.appId,
 	}
 }
 

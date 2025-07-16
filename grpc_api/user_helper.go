@@ -132,14 +132,15 @@ func (api *userHelper) OpenedWebSockets(ctx context.Context, in *engine.OpenedWe
 	items := make([]*engine.OpenedWebSocket, 0, len(list))
 	for _, v := range list {
 		items = append(items, &engine.OpenedWebSocket{
-			Id:        v.Id,
-			CreatedAt: model.TimeToInt64(v.CreatedAt),
-			UpdatedAt: model.TimeToInt64(v.UpdatedAt),
-			UserAgent: v.UserAgent,
-			Ip:        v.Ip,
-			Client:    v.Client,
-			Duration:  v.Duration,
-			Pong:      v.Pong,
+			Id:              v.Id,
+			CreatedAt:       model.TimeToInt64(v.CreatedAt),
+			UpdatedAt:       model.TimeToInt64(v.UpdatedAt),
+			UserAgent:       v.UserAgent,
+			Ip:              v.Ip,
+			ApplicationName: v.ApplicationName,
+			Ver:             v.Ver,
+			Duration:        v.Duration,
+			Pong:            v.Pong,
 		})
 	}
 	return &engine.ListOpenedWebSocket{
