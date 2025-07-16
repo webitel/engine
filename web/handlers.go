@@ -71,6 +71,10 @@ func ReadUserAgent(r *http.Request) string {
 	return r.Header.Get("User-Agent")
 }
 
-func ReadClientName(r *http.Request) string {
-	return r.URL.Query().Get("client")
+func ReadApplicationName(r *http.Request) string {
+	return r.URL.Query().Get("application_name")
+}
+
+func ReadApplicationVersion(r *http.Request) string {
+	return r.URL.Query().Get("ver")
 }
