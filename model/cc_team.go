@@ -14,6 +14,8 @@ type AgentTeam struct {
 
 	Admin               []*Lookup `json:"admin" db:"admin"`
 	ForecastCalculation *Lookup   `json:"forecast_calculation" db:"forecast_calculation"`
+
+	ScreenControl bool `json:"screen_control" db:"screen_control"`
 }
 
 func (team AgentTeam) DefaultOrder() string {
@@ -26,7 +28,7 @@ func (team AgentTeam) AllowFields() []string {
 
 func (team AgentTeam) DefaultFields() []string {
 	return []string{"id", "name", "description", "strategy", "max_no_answer", "wrap_up_time", "no_answer_delay_time",
-		"call_timeout", "updated_at", "admin", "invite_chat_timeout", "task_accept_timeout", "forecast_calculation"}
+		"call_timeout", "updated_at", "admin", "invite_chat_timeout", "task_accept_timeout", "forecast_calculation", "screen_control"}
 }
 
 func (team AgentTeam) EntityName() string {

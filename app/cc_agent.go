@@ -76,6 +76,7 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Age
 	oldAgent.Auditor = agent.Auditor
 	oldAgent.IsSupervisor = agent.IsSupervisor
 	oldAgent.TaskCount = agent.TaskCount
+	oldAgent.ScreenControl = agent.ScreenControl
 
 	if err = oldAgent.IsValid(); err != nil {
 		return nil, err

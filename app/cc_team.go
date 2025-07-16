@@ -54,6 +54,7 @@ func (a *App) UpdateAgentTeam(ctx context.Context, domainId int64, team *model.A
 	oldTeam.InviteChatTimeout = team.InviteChatTimeout
 	oldTeam.TaskAcceptTimeout = team.TaskAcceptTimeout
 	oldTeam.Admin = team.Admin
+	oldTeam.ScreenControl = team.ScreenControl
 
 	if oldTeam.ForecastCalculation.GetSafeId() != team.ForecastCalculation.GetSafeId() {
 		session, err := a.GetSessionFromCtx(ctx)

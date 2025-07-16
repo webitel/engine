@@ -11,6 +11,7 @@ import (
 
 const ForeignKeyViolationErrorCode = pq.ErrorCode("23503")
 const DuplicationViolationErrorCode = pq.ErrorCode("23505")
+const FromTriggerValidationErrorCode = pq.ErrorCode("09000")
 
 type PostgresJSONDialect struct {
 	gorp.PostgresDialect
@@ -39,7 +40,7 @@ func extractCodeFromErr(err error) int {
 		code = http.StatusNotFound
 	} else if e, ok := err.(*pq.Error); ok {
 		switch e.Code {
-		case ForeignKeyViolationErrorCode, DuplicationViolationErrorCode:
+		case ForeignKeyViolationErrorCode, DuplicationViolationErrorCode, FromTriggerValidationErrorCode:
 			code = http.StatusBadRequest
 		}
 	}

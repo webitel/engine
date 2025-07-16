@@ -54,6 +54,7 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 		Admin:             GetLookups(in.Admin),
 		InviteChatTimeout: int16(in.InviteChatTimeout),
 		TaskAcceptTimeout: int16(in.TaskAcceptTimeout),
+		ScreenControl:     in.ScreenControl,
 	}
 
 	if in.ForecastCalculation != nil {
@@ -204,6 +205,7 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		InviteChatTimeout:   int16(in.InviteChatTimeout),
 		TaskAcceptTimeout:   int16(in.TaskAcceptTimeout),
 		ForecastCalculation: GetLookup(in.ForecastCalculation),
+		ScreenControl:       in.ScreenControl,
 	}
 
 	out, err := api.app.UpdateAgentTeam(ctx, session.Domain(in.GetDomainId()), team)
@@ -265,5 +267,6 @@ func transformAgentTeam(src *model.AgentTeam) *engine.AgentTeam {
 		InviteChatTimeout:   int32(src.InviteChatTimeout),
 		TaskAcceptTimeout:   int32(src.TaskAcceptTimeout),
 		ForecastCalculation: GetProtoLookup(src.ForecastCalculation),
+		ScreenControl:       src.ScreenControl,
 	}
 }

@@ -44,6 +44,7 @@ type Agent struct {
 	Skills           []*Lookup      `json:"skills" db:"skills"`
 	Extension        *string        `json:"extension" db:"extension"`
 	TaskCount        uint32         `json:"task_count" db:"task_count"`
+	ScreenControl    bool           `json:"screen_control" db:"screen_control"`
 }
 
 type AgentPatch struct {
@@ -59,6 +60,7 @@ type AgentPatch struct {
 	Region           *Lookup
 	Auditor          []*Lookup
 	IsSupervisor     *bool
+	ScreenControl    *bool
 }
 
 type AgentStatusStatistics struct {
@@ -188,6 +190,10 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	if patch.IsSupervisor != nil {
 		a.IsSupervisor = *patch.IsSupervisor
 	}
+
+	if patch.ScreenControl != nil {
+		a.ScreenControl = *patch.ScreenControl
+	}
 }
 
 func (a Agent) DefaultOrder() string {
@@ -197,7 +203,7 @@ func (a Agent) DefaultOrder() string {
 func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "skills", "extension", "task_count"}
+		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control"}
 }
 
 func (a Agent) DefaultFields() []string {
@@ -230,8 +236,9 @@ type AgentSession struct {
 	IsAdmin          bool           `json:"is_admin" db:"is_admin"`
 	Channels         []AgentChannel `json:"channels" db:"channels"`
 
-	Supervisor []*Lookup `json:"supervisor" db:"supervisor"`
-	Auditor    []*Lookup `json:"auditor" db:"auditor"`
+	Supervisor    []*Lookup `json:"supervisor" db:"supervisor"`
+	Auditor       []*Lookup `json:"auditor" db:"auditor"`
+	ScreenControl bool      `json:"screen_control" db:"screen_control"`
 }
 
 type AgentCC struct {

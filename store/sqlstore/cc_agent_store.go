@@ -85,9 +85,9 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
 	var out *model.Agent
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with a as (
 			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
-				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count)
+				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
-					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount)
+					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl)
 			returning *
 		)
 	SELECT a.domain_id,
@@ -113,7 +113,8 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
 WHERE aud.id = any(a.auditor_ids)) as auditor,
 	   call_center.cc_get_lookup(t.id, t.name) as team,
 	   call_center.cc_get_lookup(r.id, r.name) as region,
-       a.supervisor as is_supervisor
+       a.supervisor as is_supervisor,
+	   a.screen_control	
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
          LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -142,6 +143,7 @@ FROM a
 			"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 			"Supervisor":       agent.IsSupervisor,
 			"TaskCount":        agent.TaskCount,
+			"ScreenControl":    agent.ScreenControl,
 		}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.save.app_error", fmt.Sprintf("%v", err.Error()), extractCodeFromErr(err))
 	} else {
@@ -347,6 +349,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			   call_center.cc_get_lookup(t.id, t.name) as team,
 			   call_center.cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor,
+			   a.screen_control,
 			   ct.extension	
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
@@ -386,7 +389,8 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 				region_id = :RegionId,
 				supervisor = :Supervisor,
 				auditor_ids = :AuditorIds,
-                task_count = :TaskCount
+                task_count = :TaskCount,
+                screen_control = :ScreenControl
 			where id = :Id and domain_id = :DomainId
 			returning *
 		)
@@ -413,7 +417,8 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 				WHERE aud.id = any(a.auditor_ids)) as auditor,
 			   call_center.cc_get_lookup(t.id, t.name) as team,
 			   call_center.cc_get_lookup(r.id, r.name) as region,
-			   a.supervisor as is_supervisor
+			   a.supervisor as is_supervisor,
+			   a.screen_control
 		FROM  a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -440,6 +445,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 		"AuditorIds":       pq.Array(model.LookupIds(agent.Auditor)),
 		"Supervisor":       agent.IsSupervisor,
 		"TaskCount":        agent.TaskCount,
+		"ScreenControl":    agent.ScreenControl,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.update.app_error", fmt.Sprintf("Id=%v, %s", agent.Id, err.Error()), extractCodeFromErr(err))
@@ -681,7 +687,8 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
         WHERE sag.id = any(a.supervisor_ids)) supervisor,
        (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
         FROM directory.wbt_user aud
-        WHERE aud.id = any(a.auditor_ids)) auditor
+        WHERE aud.id = any(a.auditor_ids)) auditor,
+    	a.screen_control
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT jsonb_agg(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
