@@ -910,12 +910,14 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supe
        auditor,
        pause_cause,
        chat_count,
-       coalesce(occupancy, 0) as occupancy
+       coalesce(occupancy, 0) as occupancy,
+       desc_track
 from (
          select a.id                                                                                  agent_id,
                 a.domain_id,
                 coalesce(u.name, u.username)::varchar COLLATE "default"                      as                                  name,
                 coalesce(u.extension, '')                         as                                  extension,
+                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
                 a.status,
                 extract(epoch from x.t)::int                                                          status_duration,
                 coalesce(a.status_payload, '')                                                        pause_cause,
@@ -1051,7 +1053,7 @@ from (
                      else stat.pause end,
                  interval '0')) pause_all on true
          where a.domain_id = :DomainId
-		   and (:SupervisorIds::int4[] isnull or a.supervisor_ids && :SupervisorIds )	
+		   and (:SupervisorIds::int4[] isnull or a.supervisor_ids && :SupervisorIds )
            and a.id in (
                 with x as (
                     select a.user_id, a.id agent_id, a.supervisor, a.domain_id
@@ -1155,7 +1157,8 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, 
        coalesce(a.status_payload, '')                                                 pause_cause,
        coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
        coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
-       coalesce(ts.score_count, 0)                                                as      score_count
+       coalesce(ts.score_count, 0)                                                as      score_count,
+       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id

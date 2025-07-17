@@ -894,6 +894,7 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		ScoreRequiredAvg: item.ScoreRequiredAvg,
 		ScoreOptionalAvg: item.ScoreOptionalAvg,
 		ScoreCount:       item.ScoreCount,
+		DescTrack:        item.DescTrack,
 	}, nil
 }
 
@@ -984,6 +985,7 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		PauseCause:     src.PauseCause,
 		ChatCount:      src.ChatCount,
 		Occupancy:      src.Occupancy,
+		DescTrack:      src.DescTrack,
 	}
 
 	if src.ActiveCallId != nil {
