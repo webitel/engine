@@ -12,6 +12,7 @@ type QueueProcessing struct {
 	form *workflow.Form
 	sync.RWMutex
 	fields map[string]string
+	appId  string
 }
 
 func (q *queueApi) NewProcessing(ctx context.Context, domainId int64, schemaId int, vars map[string]string) (*QueueProcessing, error) {
@@ -27,6 +28,10 @@ func (q *queueApi) NewProcessing(ctx context.Context, domainId int64, schemaId i
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	if qp.form != nil {
+		qp.appId = qp.form.AppId
 	}
 
 	return qp, nil
@@ -50,7 +55,7 @@ func (p *QueueProcessing) Id() string {
 }
 
 func (p *QueueProcessing) ActionForm(ctx context.Context, action string, vars map[string]string) ([]byte, error) {
-	f, err := p.cli.Api.FormAction(ctx, &workflow.FormActionRequest{
+	f, err := p.cli.Api.FormAction(wbt.StaticHost(ctx, p.appId), &workflow.FormActionRequest{
 		Id:        p.Id(),
 		Action:    action,
 		Variables: vars,
@@ -69,7 +74,7 @@ func (p *QueueProcessing) ActionForm(ctx context.Context, action string, vars ma
 }
 
 func (p *QueueProcessing) ActionComponent(ctx context.Context, formId, componentId, action string, vars map[string]string, sync bool) error {
-	_, err := p.cli.Api.ComponentAction(ctx, &workflow.ComponentActionRequest{
+	_, err := p.cli.Api.ComponentAction(wbt.StaticHost(ctx, p.appId), &workflow.ComponentActionRequest{
 		Id:          p.Id(),
 		FormId:      formId,
 		ComponentId: componentId,
@@ -86,7 +91,7 @@ func (p *QueueProcessing) ActionComponent(ctx context.Context, formId, component
 }
 
 func (p *QueueProcessing) Close() error {
-	_, err := p.cli.Api.CancelProcessing(context.Background(), &workflow.CancelProcessingRequest{
+	_, err := p.cli.Api.CancelProcessing(wbt.StaticHost(context.Background(), p.appId), &workflow.CancelProcessingRequest{
 		Id: p.Id(),
 	})
 

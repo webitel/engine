@@ -92,7 +92,7 @@ func (p *QueueProcessing) ActionComponent(ctx context.Context, formId, component
 }
 
 func (p *QueueProcessing) Close() error {
-	_, err := p.cli.Api.CancelProcessing(context.Background(), &workflow.CancelProcessingRequest{
+	_, err := p.cli.Api.CancelProcessing(wbt.StaticHost(context.Background(), p.appId), &workflow.CancelProcessingRequest{
 		Id: p.Id(),
 	})
 
