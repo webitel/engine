@@ -1106,6 +1106,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		item.ToNumber = *src.ToNumber
 	}
 
+	if src.DestinationName != nil {
+		item.DestinationName = *src.DestinationName
+	}
+
 	if src.SipCode != nil {
 		item.SipCode = int32(*src.SipCode)
 	}
