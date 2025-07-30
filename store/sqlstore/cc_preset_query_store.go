@@ -43,7 +43,7 @@ from p`, map[string]interface{}{
 	if err != nil {
 		switch e := err.(type) {
 		case *pq.Error: // TODO
-			if e.Constraint == "cc_preset_query_user_id_name_uindex" {
+			if e.Constraint == "cc_preset_query_user_id_section_name_uindex" {
 				return nil, model.NewCustomCodeError("store.sql_preset_query.save.name", err.Error(), http.StatusConflict)
 			}
 		}
