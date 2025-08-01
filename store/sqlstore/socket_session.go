@@ -101,3 +101,23 @@ func (s *SqlSocketSessionStore) Search(ctx context.Context, domainId int64, sear
 
 	return list, nil
 }
+
+func (s *SqlSocketSessionStore) SockIdByApp(ctx context.Context, domainId, userId int64, appId string) (string, model.AppError) {
+	id, err := s.GetMaster().WithContext(ctx).SelectStr(`select id
+from call_center.socket_session
+where user_id = :UserId
+  	and domain_id = :DomainId
+    and application_name = :AppId
+order by updated_at desc
+limit 1`, map[string]any{
+		"DomainId": domainId,
+		"UserId":   userId,
+		"AppId":    appId,
+	})
+
+	if err != nil {
+		return "", model.NewCustomCodeError("store.sql_socket.sock_id", err.Error(), extractCodeFromErr(err))
+	}
+
+	return id, nil
+}

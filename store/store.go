@@ -530,6 +530,7 @@ type SocketSessionStore interface {
 	SetUpdatedAt(ctx context.Context, id string, t time.Time) model.AppError
 	DeleteByApp(ctx context.Context, appId string) model.AppError
 	DeleteById(ctx context.Context, id string) model.AppError
+	SockIdByApp(ctx context.Context, domainId, userId int64, appId string) (string, model.AppError)
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.
