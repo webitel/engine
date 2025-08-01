@@ -27,4 +27,6 @@ const (
 	PermissionSkill      = "cc_skill"
 	PermissionWebHook    = "email_profile" // todo
 	PermissionContacts   = "contacts"
+
+	PermissionControlAgentScreen = "control_agent_screen"
 )

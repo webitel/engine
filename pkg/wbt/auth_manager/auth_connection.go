@@ -117,6 +117,8 @@ func (am *authManager) GetSession(c context.Context, token string) (*Session, er
 				session.actions = append(session.actions, PermissionSchemeVariables)
 			case "reset_active_attempts":
 				session.actions = append(session.actions, PermissionResetActiveAttempts)
+			default:
+				session.actions = append(session.actions, v.Id)
 			}
 		}
 	}
