@@ -7,7 +7,8 @@ import (
 )
 
 func (a *App) GetQuickReplyPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, bool, model.AppError) {
-	list, err := a.Store.QuickReply().GetAllPage(ctx, domainId, search)
+	_, session, _ := a.getSessionFromCtx(ctx)
+	list, err := a.Store.QuickReply().GetAllPage(ctx, domainId, search, session.UserId)
 	if err != nil {
 		return nil, false, err
 	}

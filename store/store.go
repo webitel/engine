@@ -436,7 +436,7 @@ type NotificationStore interface {
 
 type QuickReplyStore interface {
 	Create(ctx context.Context, domainId int64, cause *model.QuickReply) (*model.QuickReply, model.AppError)
-	GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError)
 	Get(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError)
 	Update(ctx context.Context, domainId int64, region *model.QuickReply) (*model.QuickReply, model.AppError)
 	Delete(ctx context.Context, domainId int64, id uint32) model.AppError
