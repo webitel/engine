@@ -18,14 +18,14 @@ const (
 	appDescTrack = "desc_track"
 )
 
-func (app *App) RequestScreenShare(ctx context.Context, domainId int64, fromUserId, toUserId int64, sockId string, sdp, id string) model.AppError {
+func (app *App) RequestScreenShare(ctx context.Context, domainId int64, fromUserId, toUserId int64, sockId string, sdp, id string) (string, model.AppError) {
 	toSockId, err := app.Store.SocketSession().SockIdByApp(ctx, domainId, toUserId, appDescTrack)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if toSockId == "" {
-		return model.NewNotFoundError("app.request_screen_share", "not found session")
+		return "", model.NewNotFoundError("app.request_screen_share", "not found session")
 	}
 
 	err = app.MessageQueue.SendNotification(domainId, &model.Notification{
@@ -44,10 +44,10 @@ func (app *App) RequestScreenShare(ctx context.Context, domainId int64, fromUser
 			"sdp":          sdp,
 		},
 	})
-	return err
+	return sockId, err
 }
 
-func (app *App) AcceptScreenShare(domainId int64, toUserId int64, sockId string, sess, sdp string) model.AppError {
+func (app *App) AcceptScreenShare(domainId int64, toUserId int64, sockId string, sess, sdp string, fromSockId string) model.AppError {
 	return app.MessageQueue.SendNotification(domainId, &model.Notification{
 		DomainId:  domainId,
 		Action:    requestScreenShare,
@@ -55,14 +55,15 @@ func (app *App) AcceptScreenShare(domainId int64, toUserId int64, sockId string,
 		ForUsers:  []int64{toUserId},
 		SockId:    &sockId,
 		Body: map[string]interface{}{
-			"state":      screenShareAccept,
-			"sdp":        sdp,
-			"session_id": sess,
+			"state":        screenShareAccept,
+			"sdp":          sdp,
+			"session_id":   sess,
+			"from_sock_id": fromSockId,
 		},
 	})
 }
 
-func (app *App) Screenshot(ctx context.Context, domainId int64, toUserId int64) model.AppError {
+func (app *App) Screenshot(ctx context.Context, domainId int64, toUserId int64, fromSockId string) model.AppError {
 	sockId, err := app.Store.SocketSession().SockIdByApp(ctx, domainId, toUserId, appDescTrack)
 	if err != nil {
 		return err
@@ -78,7 +79,9 @@ func (app *App) Screenshot(ctx context.Context, domainId int64, toUserId int64) 
 		SockId:    &sockId,
 		CreatedAt: model.GetMillis(),
 		ForUsers:  []int64{toUserId},
-		Body:      map[string]interface{}{},
+		Body: map[string]any{
+			"from_sock_id": fromSockId,
+		},
 	})
 }
 
