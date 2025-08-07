@@ -56,7 +56,7 @@ from s
 	return resp, nil
 }
 
-func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError) {
+func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError) {
 	var replies []*model.QuickReply
 
 	f := map[string]interface{}{
@@ -64,12 +64,23 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		"Q":        search.GetQ(),
 		"Ids":      pq.Array(search.Ids),
 		"Name":     search.Name,
+		"UserId":   userId,
 	}
+
+	
 
 	err := s.ListQuery(ctx, &replies, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or text ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
+				and (t.team_ids && (
+						SELECT array_agg(ca.team_id)::bigint[]
+						FROM call_center.cc_agent ca
+						WHERE ca.user_id = :UserId
+					)
+					OR t.team_ids IS NULL
+					OR t.team_ids = '{}'
+					)
 			`,
 		model.QuickReply{}, f)
 	if err != nil {
