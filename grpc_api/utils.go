@@ -54,6 +54,10 @@ var (
 )
 
 func UnmarshalJsonpb(data []byte) *structpb.Value {
+	if len(data) == 0 {
+		return nil
+	}
+
 	var pb structpb.Value
 	rd := bytes.NewReader(data)
 	err := jsonpbCodec.Unmarshal(rd, &pb)

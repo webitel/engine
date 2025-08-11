@@ -1153,31 +1153,43 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		item.AttemptId = *src.AttemptId
 	}
 
-	if src.FormFields != nil {
-		// TODO WTEL-3665 fix me
-		for k, v := range *src.FormFields {
-			if v == "" {
-				delete(*src.FormFields, k)
-			} else if strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]") {
-				var s []string
-				if e := json.Unmarshal([]byte(v), &s); e == nil {
-					if len(s) == 0 {
-						delete(*src.FormFields, k)
-					} else {
-						(*src.FormFields)[k] = strings.Join(s, ", ")
-					}
-				}
-			}
-
-		}
-		item.FormFields = UnmarshalJsonpb(src.FormFields.ToSafeBytes())
-	}
+	item.FormFields = UnmarshalJsonpb(prettyStringMap(src.FormFields))
 
 	if src.BridgedId != nil {
 		item.BridgedId = *src.BridgedId
 	}
 
+	for _, v := range src.Forms {
+		item.Forms = append(item.Forms, &engine.HistoryCall_CallForm{
+			Agent:       GetProtoLookup(v.Agent),
+			FormFields:  UnmarshalJsonpb(prettyStringMap(v.FormFields)),
+			ReportingAt: v.ReportingAt,
+		})
+	}
+
 	return item
+}
+
+func prettyStringMap(ff *model.StringMap) []byte {
+	if ff == nil {
+		return nil
+	}
+	for k, v := range *ff {
+		if v == "" {
+			delete(*ff, k)
+		} else if strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]") {
+			var s []string
+			if e := json.Unmarshal([]byte(v), &s); e == nil {
+				if len(s) == 0 {
+					delete(*ff, k)
+				} else {
+					(*ff)[k] = strings.Join(s, ", ")
+				}
+			}
+		}
+	}
+
+	return ff.ToSafeBytes()
 }
 
 // todo, change proto response

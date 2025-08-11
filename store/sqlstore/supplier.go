@@ -509,7 +509,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.QuestionAnswers,
 		**model.MailProfileParams,
 		*[]*model.BlindTransfer,
-		*model.MailProfileParams:
+		*model.MailProfileParams,
+		*[]*model.CallForm:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*[]byte)
 			if !ok {

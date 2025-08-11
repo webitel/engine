@@ -393,6 +393,13 @@ type HistoryFileJob struct {
 	Error     *string `json:"error"`
 }
 
+type CallForm struct {
+	Id          int64      `json:"id"`
+	Agent       *Lookup    `json:"agent,omitempty"`
+	FormFields  *StringMap `json:"form_fields,omitempty"`
+	ReportingAt int64      `json:"reporting_at"`
+}
+
 type HistoryCall struct {
 	Id          string     `json:"id" db:"id"`
 	AppId       string     `json:"app_id" db:"app_id"`
@@ -474,6 +481,7 @@ type HistoryCall struct {
 	FromNumber      *string          `json:"from_number" db:"from_number"`
 	ToNumber        *string          `json:"to_number" db:"to_number"`
 	DestinationName *string          `json:"destination_name" db:"destination_name"`
+	Forms           []*CallForm      `json:"forms" db:"forms"`
 }
 
 type BlindTransfer struct {
@@ -499,7 +507,7 @@ func (c HistoryCall) AllowFields() []string {
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
-		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name",
+		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms",
 	}
 }
 
