@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SERVICE_NAME="webitel-engine"
+SERVICE_NAME="engine"
 
 # Stop service if running during upgrade
 stop_service_on_upgrade() {
