@@ -1,4 +1,4 @@
-name: PR
+name: PR (webitel-engine)
 
 on:
   pull_request:

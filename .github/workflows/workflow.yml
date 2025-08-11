@@ -1,4 +1,6 @@
-name: Workflow
+name: Workflow (webitel-engine)
+run-name: >
+  webitel-engine@${{ github.ref_name }}#${{ github.run_number }} - ${{ github.event.head_commit.message || github.event.pull_request.title || 'Manual trigger' }}
 
 on:
   push:
@@ -39,9 +41,9 @@ jobs:
 
       version: ${{ needs.prepare.outputs.version }}
       version-build: ${{ github.run_number }}
-      prerelease: ${{ github.event.repository.default_branch == github.ref_name && 'dev' }}
+      prerelease: ${{ github.event.repository.default_branch == github.ref_name && 'dev' || '' }}
       package-name: ${{ vars.SERVICE_NAME }}
-      package-description: ${{ vars.SERVICE_DESCRIPTION }}
+      package-description: ${{ github.event.repository.description }}
       package-contents: |
         src=deploy/systemd/${{ vars.SERVICE_NAME }}.service dst=/etc/systemd/system/${{ vars.SERVICE_NAME }}.service type=config
 
