@@ -357,12 +357,13 @@ type CallFileTranscriptLookup struct {
 }
 
 type CallFile struct {
-	Id       int64  `json:"id"`
-	Name     string `json:"name"`
-	Size     int64  `json:"size"`
-	MimeType string `json:"mime_type"`
-	StartAt  int64  `json:"start_at"`
-	StopAt   int64  `json:"stop_at"`
+	Id          int64  `json:"id"`
+	Name        string `json:"name"`
+	Size        int64  `json:"size"`
+	MimeType    string `json:"mime_type"`
+	StartAt     int64  `json:"start_at"`
+	StopAt      int64  `json:"stop_at"`
+	StartRecord string `json:"start_record"`
 }
 
 func TimeToInt64(t *time.Time) int64 {
