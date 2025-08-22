@@ -987,7 +987,7 @@ from (
                and qs.skill_id = sia.skill_id
                and sia.capacity between qs.min_capacity and qs.max_capacity
              ) q on true
-                  left join lateral (
+                  left join (
              select ares.agent_id,
                     case when l.state = 'online' then l.delta + ares.online else ares.online end    online,
                     case when l.state = 'offline' then l.delta + ares.offline else ares.offline end offline,
@@ -1015,7 +1015,6 @@ from (
                              min(ah.joined_at)
                       from call_center.cc_agent_state_history ah
                       where ah.joined_at between (:From::timestamptz) and (:To::timestamptz)
-                        and ah.agent_id = a.id
                       group by 1
                   ) ares
                       left join lateral (
