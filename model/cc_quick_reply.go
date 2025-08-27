@@ -1,10 +1,8 @@
 package model
 
-import "time"
-
 type QuickReply struct {
-	AclRecord
-	Id      int       `json:"id" db:"id"`
+	DomainRecord
+
 	Name    string    `json:"name" db:"name"`
 	Text    string    `json:"text" db:"text"`
 	Queues  []*Lookup `json:"queue" db:"queues"`
@@ -19,13 +17,12 @@ type SearchQuickReply struct {
 }
 
 type QuickReplyPatch struct {
-	UpdatedAt *time.Time `json:"updated_at"`
-	UpdatedBy Lookup     `json:"updated_by"`
-	Name      *string    `json:"name"`
-	Text      *string    `json:"text"`
-	Queues    []*Lookup  `json:"queue" db:"queues"`
-	Teams     []*Lookup  `json:"team" db:"teams"`
-	Article   *Lookup    `json:"article" db:"article"`
+	UpdatedBy Lookup    `json:"updated_by"`
+	Name      *string   `json:"name"`
+	Text      *string   `json:"text"`
+	Queues    []*Lookup `json:"queue" db:"queues"`
+	Teams     []*Lookup `json:"team" db:"teams"`
+	Article   *Lookup   `json:"article" db:"article"`
 }
 
 func (p QuickReply) AllowFields() []string {
@@ -45,7 +42,7 @@ func (QuickReply) EntityName() string {
 }
 
 func (p *QuickReply) Patch(patch *QuickReplyPatch) {
-	p.UpdatedAt = patch.UpdatedAt
+	p.UpdatedAt = GetMillis()
 	p.UpdatedBy = &patch.UpdatedBy
 
 	if patch.Name != nil {
