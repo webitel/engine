@@ -125,13 +125,14 @@ func (api *quickReply) UpdateQuickReply(ctx context.Context, in *engine.UpdateQu
 	}
 
 	reply := &model.QuickReply{
-		AclRecord: model.AclRecord{},
-		Id:        int(in.Id),
-		Name:      in.Name,
-		Text:      in.Text,
-		Article:   GetLookup(in.Article),
-		Teams:     GetLookups(in.Teams),
-		Queues:    GetLookups(in.Queues),
+		DomainRecord: model.DomainRecord{
+			Id: int64(in.Id),
+		},
+		Name:    in.Name,
+		Text:    in.Text,
+		Article: GetLookup(in.Article),
+		Teams:   GetLookups(in.Teams),
+		Queues:  GetLookups(in.Queues),
 	}
 
 	reply, err = api.ctrl.UpdateQuickReply(ctx, session, reply)
@@ -161,9 +162,9 @@ func (api *quickReply) DeleteQuickReply(ctx context.Context, in *engine.DeleteQu
 func toEngineQuickReply(src *model.QuickReply) *engine.QuickReply {
 	return &engine.QuickReply{
 		Id:        uint32(src.Id),
-		CreatedAt: model.TimeToInt64(src.CreatedAt),
+		CreatedAt: src.CreatedAt,
 		CreatedBy: GetProtoLookup(src.CreatedBy),
-		UpdatedAt: model.TimeToInt64(src.UpdatedAt),
+		UpdatedAt: src.UpdatedAt,
 		UpdatedBy: GetProtoLookup(src.UpdatedBy),
 		Name:      src.Name,
 		Text:      src.Text,
