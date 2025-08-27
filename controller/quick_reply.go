@@ -3,9 +3,8 @@ package controller
 import (
 	"context"
 
-	"github.com/webitel/engine/pkg/wbt/auth_manager"
-
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 func (c *Controller) SearchQuickReply(ctx context.Context, session *auth_manager.Session, search *model.SearchQuickReply) ([]*model.QuickReply, bool, model.AppError) {
@@ -26,15 +25,13 @@ func (c *Controller) CreateQuickReply(ctx context.Context, session *auth_manager
 	if err := cause.IsValid(); err != nil {
 		return nil, err
 	}
-
-	cause.DomainId = session.Domain(0)
-	cause.CreatedAt = model.GetMillis()
-	cause.UpdatedAt = cause.CreatedAt
 	cause.CreatedBy = &model.Lookup{
 		Id: int(session.UserId),
 	}
-
 	cause.UpdatedBy = cause.CreatedBy
+
+	cause.CreatedAt = model.GetTime()
+	cause.UpdatedAt = cause.CreatedAt
 
 	return c.app.CreateQuickReply(ctx, session.Domain(0), cause)
 }
@@ -62,10 +59,10 @@ func (c *Controller) UpdateQuickReply(ctx context.Context, session *auth_manager
 		return nil, err
 	}
 
-	cause.UpdatedAt = model.GetMillis()
 	cause.UpdatedBy = &model.Lookup{
 		Id: int(session.UserId),
 	}
+	cause.UpdatedAt = model.GetTime()
 
 	return c.app.UpdateQuickReply(ctx, session.DomainId, cause)
 }
@@ -83,6 +80,7 @@ func (c *Controller) PatchQuickReply(ctx context.Context, session *auth_manager.
 	patch.UpdatedBy = model.Lookup{
 		Id: int(session.UserId),
 	}
+	patch.UpdatedAt = model.GetTime()
 
 	return c.app.PatchQuickReply(ctx, session.DomainId, id, patch)
 }

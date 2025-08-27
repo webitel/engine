@@ -1,8 +1,10 @@
 package model
 
-type QuickReply struct {
-	DomainRecord
+import "time"
 
+type QuickReply struct {
+	AclRecord
+	Id      int       `json:"id" db:"id"`
 	Name    string    `json:"name" db:"name"`
 	Text    string    `json:"text" db:"text"`
 	Queues  []*Lookup `json:"queue" db:"queues"`
@@ -17,16 +19,17 @@ type SearchQuickReply struct {
 }
 
 type QuickReplyPatch struct {
-	UpdatedBy Lookup    `json:"updated_by"`
-	Name      *string   `json:"name"`
-	Text      *string   `json:"text"`
-	Queues    []*Lookup `json:"queue" db:"queues"`
-	Teams     []*Lookup `json:"team" db:"teams"`
-	Article   *Lookup   `json:"article" db:"article"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	UpdatedBy Lookup     `json:"updated_by"`
+	Name      *string    `json:"name"`
+	Text      *string    `json:"text"`
+	Queues    []*Lookup  `json:"queue" db:"queues"`
+	Teams     []*Lookup  `json:"team" db:"teams"`
+	Article   *Lookup    `json:"article" db:"article"`
 }
 
 func (p QuickReply) AllowFields() []string {
-	return []string{"id", "domain_id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "teams", "queues"}
+	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "text", "teams", "queues"}
 }
 
 func (QuickReply) DefaultOrder() string {
@@ -42,7 +45,7 @@ func (QuickReply) EntityName() string {
 }
 
 func (p *QuickReply) Patch(patch *QuickReplyPatch) {
-	p.UpdatedAt = GetMillis()
+	p.UpdatedAt = patch.UpdatedAt
 	p.UpdatedBy = &patch.UpdatedBy
 
 	if patch.Name != nil {
