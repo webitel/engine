@@ -40,12 +40,25 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
                                       name, text, article, teams, queues)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
             :Name, :Text, :Article, :Teams, :Queues)
-    returning id
+    returning *
 	)
-	
-	select l.id, l.created_at, l.created_by, l.updated_at, l.updated_by, l.name, l.text, l.teams, l.queues
+
+	select s.id
+       	, s.created_at
+       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by
+       	, s.updated_at
+       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by
+		, s.name
+       	, s.text
+		, ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
+           	FROM call_center.cc_team t
+          	WHERE t.id = ANY (s.teams)) AS teams
+	   	, ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
+			FROM call_center.cc_queue a
+          	WHERE a.id = ANY (s.queues)) AS queues
 	from s
-		inner join call_center.cc_quick_reply_list l on l.id = s.id`
+		left join directory.wbt_user uc on uc.id = s.created_by
+		left join directory.wbt_user uu on uu.id = s.updated_by`
 
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&resp, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.create.app_error", fmt.Sprintf("name=%v, %v", reply.Name, err.Error()), extractCodeFromErr(err))
@@ -124,12 +137,25 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
 				teams = :Teams,
 				queues = :Queues
 			where id = :Id and domain_id = :DomainId
-		returning id
+		returning *
 	)
 	
-	select l.id, l.created_at, l.created_by, l.updated_at, l.updated_by, l.name, l.text, l.teams, l.queues
+	select s.id
+       	, s.created_at
+       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by
+       	, s.updated_at
+       	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as updated_by
+		, s.name
+       	, s.text
+		, ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
+           	FROM call_center.cc_team t
+          	WHERE t.id = ANY (s.teams)) AS teams
+	   	, ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
+			FROM call_center.cc_queue a
+          	WHERE a.id = ANY (s.queues)) AS queues
 	from s
-		inner join call_center.cc_quick_reply_list l on l.id = s.id`
+		left join directory.wbt_user uc on uc.id = s.created_by
+		left join directory.wbt_user uu on uu.id = s.updated_by`
 
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&reply, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.update.app_error", err.Error(), extractCodeFromErr(err))
