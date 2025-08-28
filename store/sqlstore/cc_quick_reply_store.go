@@ -52,7 +52,7 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
        	, s.text
 		, ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
            	FROM call_center.cc_team t
-          	WHERE t.id = ANY (s.teams)) AS teams,
+          	WHERE t.id = ANY (s.teams)) AS teams
 	   	, ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
 			FROM call_center.cc_queue a
           	WHERE a.id = ANY (s.queues)) AS queues
@@ -149,7 +149,7 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
        	, s.text
 		, ( SELECT jsonb_agg(call_center.cc_get_lookup(t.id, t.name)) AS jsonb_agg
            	FROM call_center.cc_team t
-          	WHERE t.id = ANY (s.teams)) AS teams,
+          	WHERE t.id = ANY (s.teams)) AS teams
 	   	, ( SELECT jsonb_agg(call_center.cc_get_lookup(a.id::bigint, a.name)) AS jsonb_agg
 			FROM call_center.cc_queue a
           	WHERE a.id = ANY (s.queues)) AS queues
