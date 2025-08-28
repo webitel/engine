@@ -76,6 +76,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		"Ids":      pq.Array(search.Ids),
 		"Name":     search.Name,
 		"UserId":   userId,
+		"Queue":    pq.Array(search.Queue),
 	}
 
 	err := s.ListQuery(ctx, &replies, search.ListRequest,
