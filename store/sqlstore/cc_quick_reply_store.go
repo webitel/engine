@@ -80,7 +80,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 
 	err := s.ListQuery(ctx, &replies, search.ListRequest,
 		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar or text ilike :Q::varchar))
+				and (:Q::varchar isnull or (name ilike :Q::varchar))
 				and (:Ids::int4[] isnull or id = any(:Ids))
 				and (t.team_ids && (
 						SELECT array_agg(ca.team_id)::bigint[]
