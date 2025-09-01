@@ -78,6 +78,7 @@ type Store interface {
 	SchemeVersion() SchemeVersionsStore
 	SchemeVariable() SchemeVariablesStore
 	SocketSession() SocketSessionStore
+	Feedback() FeedbackStore
 }
 
 // todo deprecated
@@ -531,6 +532,11 @@ type SocketSessionStore interface {
 	DeleteByApp(ctx context.Context, appId string) model.AppError
 	DeleteById(ctx context.Context, id string) model.AppError
 	SockIdByApp(ctx context.Context, domainId, userId int64, appId string) (string, model.AppError)
+}
+
+type FeedbackStore interface {
+	Get(ctx context.Context, key model.FeedbackKey) (model.Feedback, model.AppError)
+	Create(ctx context.Context, key model.FeedbackKey, rating float32, description string) (model.Feedback, model.AppError)
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.

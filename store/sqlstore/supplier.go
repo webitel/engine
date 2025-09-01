@@ -75,6 +75,7 @@ type SqlSupplierOldStores struct {
 	schemeVersion           store.SchemeVersionsStore
 	schemeVariable          store.SchemeVariablesStore
 	socketSession           store.SocketSessionStore
+	feedback                store.FeedbackStore
 }
 
 type SqlSupplier struct {
@@ -143,6 +144,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	// todo deprecated
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
 	supplier.oldStores.chatPlan = NewSqlChatPlanStore(supplier)
+	supplier.oldStores.feedback = NewSqlFeedbackStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -445,6 +447,10 @@ func (ss *SqlSupplier) SchemeVariable() store.SchemeVariablesStore {
 
 func (ss *SqlSupplier) SocketSession() store.SocketSessionStore {
 	return ss.oldStores.socketSession
+}
+
+func (ss *SqlSupplier) Feedback() store.FeedbackStore {
+	return ss.oldStores.feedback
 }
 
 type typeConverter struct{}
