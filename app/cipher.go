@@ -40,3 +40,12 @@ func (app *App) EncryptBytes(v []byte) ([]byte, model.AppError) {
 
 	return v, nil
 }
+
+func (app *App) DecryptBytes(v []byte) ([]byte, model.AppError) {
+	v, err := app.cipher.DecryptBytes(v)
+	if err != nil {
+		return nil, model.NewBadRequestError("app.appointment.decrypt_bytes", err.Error())
+	}
+
+	return v, nil
+}

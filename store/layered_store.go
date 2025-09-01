@@ -196,3 +196,7 @@ func (s *LayeredStore) QuickReply() QuickReplyStore {
 func (s *LayeredStore) SocketSession() SocketSessionStore {
 	return s.DatabaseLayer.SocketSession()
 }
+
+func (s *LayeredStore) Feedback() FeedbackStore {
+	return s.DatabaseLayer.Feedback()
+}
