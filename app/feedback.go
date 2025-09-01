@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"github.com/webitel/engine/model"
+	"net/url"
 )
 
 func (app *App) GenerateFeedback(domainId int64, f *model.FeedbackKey) (string, model.AppError) {
@@ -13,7 +14,7 @@ func (app *App) GenerateFeedback(domainId int64, f *model.FeedbackKey) (string, 
 		return "", err
 	}
 
-	return string(v), nil
+	return url.QueryEscape(string(v)), nil
 }
 
 func (app *App) CreateFeedback(ctx context.Context, key string, f model.Feedback) (model.Feedback, model.AppError) {
@@ -49,6 +50,7 @@ func (app *App) GetFeedback(ctx context.Context, key string) (model.Feedback, mo
 }
 
 func (app *App) feedbackHashKey(key string) (model.FeedbackKey, model.AppError) {
+	key, _ = url.QueryUnescape(key)
 	v, err := app.DecryptBytes([]byte(key))
 	if err != nil {
 		return model.FeedbackKey{}, err
