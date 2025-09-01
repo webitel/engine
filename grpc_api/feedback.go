@@ -15,7 +15,7 @@ func NewFeedbackApi(api *API) *feedback {
 	return &feedback{API: api}
 }
 
-func (api *feedback) Generate(ctx context.Context, in *engine.GenerateFeedbackRequest) (*engine.GenerateFeedbackResponse, error) {
+func (api *feedback) GenerateFeedback(ctx context.Context, in *engine.GenerateFeedbackRequest) (*engine.GenerateFeedbackResponse, error) {
 	key, err := api.app.GenerateFeedback(in.DomainId, &model.FeedbackKey{
 		Source:   in.Source,
 		SourceId: in.SourceId,
@@ -31,7 +31,7 @@ func (api *feedback) Generate(ctx context.Context, in *engine.GenerateFeedbackRe
 	}, nil
 }
 
-func (api *feedback) Get(ctx context.Context, in *engine.GetFeedbackRequest) (*engine.Feedback, error) {
+func (api *feedback) GetFeedback(ctx context.Context, in *engine.GetFeedbackRequest) (*engine.Feedback, error) {
 
 	f, err := api.app.GetFeedback(ctx, in.Key)
 	if err != nil {
@@ -46,7 +46,7 @@ func (api *feedback) Get(ctx context.Context, in *engine.GetFeedbackRequest) (*e
 	}, nil
 }
 
-func (api *feedback) Create(ctx context.Context, in *engine.CreateFeedbackRequest) (*engine.Feedback, error) {
+func (api *feedback) CreateFeedback(ctx context.Context, in *engine.CreateFeedbackRequest) (*engine.Feedback, error) {
 
 	f, err := api.app.CreateFeedback(ctx, in.Key, model.Feedback{
 		Rating:      in.Rating,
