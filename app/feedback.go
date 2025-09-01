@@ -19,12 +19,14 @@ func (app *App) GenerateFeedback(domainId int64, f *model.FeedbackKey) (string, 
 func (app *App) CreateFeedback(ctx context.Context, key string, f model.Feedback) (model.Feedback, model.AppError) {
 	hk, err := app.feedbackHashKey(key)
 	if err != nil {
-		return model.Feedback{}, err
+		app.Log.Error(err.Error())
+		return model.Feedback{}, model.NewBadRequestError("feedback", "bad request")
 	}
 
 	f, err = app.Store.Feedback().Create(ctx, hk, f.Rating, f.Description)
 	if err != nil {
-		return model.Feedback{}, err
+		app.Log.Error(err.Error())
+		return model.Feedback{}, model.NewBadRequestError("feedback", "bad request")
 	}
 
 	return f, nil
@@ -33,12 +35,14 @@ func (app *App) CreateFeedback(ctx context.Context, key string, f model.Feedback
 func (app *App) GetFeedback(ctx context.Context, key string) (model.Feedback, model.AppError) {
 	hk, err := app.feedbackHashKey(key)
 	if err != nil {
-		return model.Feedback{}, err
+		app.Log.Error(err.Error())
+		return model.Feedback{}, model.NewBadRequestError("feedback", "bad request")
 	}
 
 	f, err := app.Store.Feedback().Get(ctx, hk)
 	if err != nil {
-		return model.Feedback{}, err
+		app.Log.Error(err.Error())
+		return model.Feedback{}, model.NewCustomCodeError("feedback", "", err.GetStatusCode())
 	}
 
 	return f, nil
