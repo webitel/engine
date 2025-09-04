@@ -213,6 +213,37 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 	return queues, nil
 }
 
+func (s SqlQueueStore) PatchQueues(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue, p *model.QueuePatch) ([]int32, model.AppError) {
+	var ids []int32
+	_, err := s.GetMaster().WithContext(ctx).Select(&ids, `with q as (
+    update call_center.cc_queue q
+set updated_at = now(),
+    updated_by = :UpdatedBy,
+    enabled = :Enabled
+where q.domain_id = :DomainId
+            and  ( :Groups::int[] isnull or
+					exists(select 1
+					  from call_center.cc_queue_acl acl
+					  where acl.dc = q.domain_id and acl.object = q.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
+		  	)
+			and ( (:Ids::int[] isnull or id = any(:Ids) )
+			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))
+    returning id
+)
+select q.id
+from  q;`, map[string]any{
+		"UpdatedBy": p.UpdatedBy.GetSafeId(),
+		"Enabled":   p.Enabled,
+		//
+	})
+
+	if err != nil {
+
+	}
+
+	return ids, nil
+}
+
 func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*model.Queue, model.AppError) {
 	var queue *model.Queue
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&queue, `

@@ -61,6 +61,26 @@ func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.Q
 	return oldQueue, nil
 }
 
+func (a *App) PatchQueues(ctx context.Context, domainId, id int64, patch *model.QueuePatch) (*model.Queue, model.AppError) {
+	oldQueue, err := a.GetQueueById(ctx, domainId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	oldQueue.Patch(patch)
+
+	if err = oldQueue.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldQueue, err = a.Store.Queue().Update(ctx, oldQueue)
+	if err != nil {
+		return nil, err
+	}
+
+	return oldQueue, nil
+}
+
 func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	oldQueue, err := a.GetQueueById(ctx, queue.DomainId, queue.Id)
 	if err != nil {

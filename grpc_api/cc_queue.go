@@ -355,6 +355,11 @@ func (api *queue) SearchQueueTags(ctx context.Context, in *engine.SearchQueueTag
 	}, nil
 }
 
+func (api *queue) PatchQueues(ctx context.Context, in *engine.PatchQueuesRequest) (*engine.PatchQueuesResponse, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {
 	return &engine.QueueReportGeneral{
 		Queue: GetProtoLookup(&src.Queue),
