@@ -21,9 +21,9 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	QueueService_CreateQueue_FullMethodName              = "/engine.QueueService/CreateQueue"
 	QueueService_SearchQueue_FullMethodName              = "/engine.QueueService/SearchQueue"
+	QueueService_PatchQueues_FullMethodName              = "/engine.QueueService/PatchQueues"
 	QueueService_ReadQueue_FullMethodName                = "/engine.QueueService/ReadQueue"
 	QueueService_PatchQueue_FullMethodName               = "/engine.QueueService/PatchQueue"
-	QueueService_PatchQueues_FullMethodName              = "/engine.QueueService/PatchQueues"
 	QueueService_UpdateQueue_FullMethodName              = "/engine.QueueService/UpdateQueue"
 	QueueService_DeleteQueue_FullMethodName              = "/engine.QueueService/DeleteQueue"
 	QueueService_SearchQueueReportGeneral_FullMethodName = "/engine.QueueService/SearchQueueReportGeneral"
@@ -38,12 +38,12 @@ type QueueServiceClient interface {
 	CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// List of Queue
 	SearchQueue(ctx context.Context, in *SearchQueueRequest, opts ...grpc.CallOption) (*ListQueue, error)
+	// Patch queues
+	PatchQueues(ctx context.Context, in *PatchQueuesRequest, opts ...grpc.CallOption) (*PatchQueuesResponse, error)
 	// Queue item
 	ReadQueue(ctx context.Context, in *ReadQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// Patch Queue
 	PatchQueue(ctx context.Context, in *PatchQueueRequest, opts ...grpc.CallOption) (*Queue, error)
-	// Patch Queue
-	PatchQueues(ctx context.Context, in *PatchQueuesRequest, opts ...grpc.CallOption) (*PatchQueuesResponse, error)
 	// Update Queue
 	UpdateQueue(ctx context.Context, in *UpdateQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// Remove Queue
@@ -79,6 +79,15 @@ func (c *queueServiceClient) SearchQueue(ctx context.Context, in *SearchQueueReq
 	return out, nil
 }
 
+func (c *queueServiceClient) PatchQueues(ctx context.Context, in *PatchQueuesRequest, opts ...grpc.CallOption) (*PatchQueuesResponse, error) {
+	out := new(PatchQueuesResponse)
+	err := c.cc.Invoke(ctx, QueueService_PatchQueues_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queueServiceClient) ReadQueue(ctx context.Context, in *ReadQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
 	err := c.cc.Invoke(ctx, QueueService_ReadQueue_FullMethodName, in, out, opts...)
@@ -91,15 +100,6 @@ func (c *queueServiceClient) ReadQueue(ctx context.Context, in *ReadQueueRequest
 func (c *queueServiceClient) PatchQueue(ctx context.Context, in *PatchQueueRequest, opts ...grpc.CallOption) (*Queue, error) {
 	out := new(Queue)
 	err := c.cc.Invoke(ctx, QueueService_PatchQueue_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queueServiceClient) PatchQueues(ctx context.Context, in *PatchQueuesRequest, opts ...grpc.CallOption) (*PatchQueuesResponse, error) {
-	out := new(PatchQueuesResponse)
-	err := c.cc.Invoke(ctx, QueueService_PatchQueues_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -150,12 +150,12 @@ type QueueServiceServer interface {
 	CreateQueue(context.Context, *CreateQueueRequest) (*Queue, error)
 	// List of Queue
 	SearchQueue(context.Context, *SearchQueueRequest) (*ListQueue, error)
+	// Patch queues
+	PatchQueues(context.Context, *PatchQueuesRequest) (*PatchQueuesResponse, error)
 	// Queue item
 	ReadQueue(context.Context, *ReadQueueRequest) (*Queue, error)
 	// Patch Queue
 	PatchQueue(context.Context, *PatchQueueRequest) (*Queue, error)
-	// Patch Queue
-	PatchQueues(context.Context, *PatchQueuesRequest) (*PatchQueuesResponse, error)
 	// Update Queue
 	UpdateQueue(context.Context, *UpdateQueueRequest) (*Queue, error)
 	// Remove Queue
@@ -176,14 +176,14 @@ func (UnimplementedQueueServiceServer) CreateQueue(context.Context, *CreateQueue
 func (UnimplementedQueueServiceServer) SearchQueue(context.Context, *SearchQueueRequest) (*ListQueue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchQueue not implemented")
 }
+func (UnimplementedQueueServiceServer) PatchQueues(context.Context, *PatchQueuesRequest) (*PatchQueuesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchQueues not implemented")
+}
 func (UnimplementedQueueServiceServer) ReadQueue(context.Context, *ReadQueueRequest) (*Queue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadQueue not implemented")
 }
 func (UnimplementedQueueServiceServer) PatchQueue(context.Context, *PatchQueueRequest) (*Queue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PatchQueue not implemented")
-}
-func (UnimplementedQueueServiceServer) PatchQueues(context.Context, *PatchQueuesRequest) (*PatchQueuesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PatchQueues not implemented")
 }
 func (UnimplementedQueueServiceServer) UpdateQueue(context.Context, *UpdateQueueRequest) (*Queue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateQueue not implemented")
@@ -246,6 +246,24 @@ func _QueueService_SearchQueue_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _QueueService_PatchQueues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchQueuesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueueServiceServer).PatchQueues(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QueueService_PatchQueues_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueueServiceServer).PatchQueues(ctx, req.(*PatchQueuesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _QueueService_ReadQueue_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReadQueueRequest)
 	if err := dec(in); err != nil {
@@ -278,24 +296,6 @@ func _QueueService_PatchQueue_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueueServiceServer).PatchQueue(ctx, req.(*PatchQueueRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _QueueService_PatchQueues_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PatchQueuesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueueServiceServer).PatchQueues(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: QueueService_PatchQueues_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueueServiceServer).PatchQueues(ctx, req.(*PatchQueuesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -388,16 +388,16 @@ var QueueService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _QueueService_SearchQueue_Handler,
 		},
 		{
+			MethodName: "PatchQueues",
+			Handler:    _QueueService_PatchQueues_Handler,
+		},
+		{
 			MethodName: "ReadQueue",
 			Handler:    _QueueService_ReadQueue_Handler,
 		},
 		{
 			MethodName: "PatchQueue",
 			Handler:    _QueueService_PatchQueue_Handler,
-		},
-		{
-			MethodName: "PatchQueues",
-			Handler:    _QueueService_PatchQueues_Handler,
 		},
 		{
 			MethodName: "UpdateQueue",

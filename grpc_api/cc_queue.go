@@ -356,8 +356,29 @@ func (api *queue) SearchQueueTags(ctx context.Context, in *engine.SearchQueueTag
 }
 
 func (api *queue) PatchQueues(ctx context.Context, in *engine.PatchQueuesRequest) (*engine.PatchQueuesResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	patch := &model.QueuePatch{}
+	patch.Enabled = &in.Enable
+
+	search := &model.SearchQueue{
+		ListRequest: model.ListRequest{
+			Q: in.GetQ(),
+		},
+		Ids: in.GetIds(),
+	}
+
+	res, err := api.ctrl.PatchQueues(ctx, session, search, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.PatchQueuesResponse{
+		Ids: res,
+	}, nil
 }
 
 func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {
