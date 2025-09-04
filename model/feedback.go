@@ -10,13 +10,13 @@ type FeedbackKey struct {
 }
 
 type Feedback struct {
-	Id          int64             `json:"id" db:"id"`
-	SourceId    string            `json:"source_id" db:"source_id"`
-	Source      string            `json:"source" db:"source"`
-	Payload     map[string]string `json:"payload" db:"payload"`
-	CreatedAt   int64             `json:"created_at" db:"created_at"`
-	Rating      float32           `json:"rating" db:"rating"`
-	Description string            `json:"description" db:"description"`
+	Id          int64     `json:"id" db:"id"`
+	SourceId    string    `json:"source_id" db:"source_id"`
+	Source      string    `json:"source" db:"source"`
+	Payload     StringMap `json:"payload" db:"payload"`
+	CreatedAt   int64     `json:"created_at" db:"created_at"`
+	Rating      float32   `json:"rating" db:"rating"`
+	Description string    `json:"description" db:"description"`
 }
 
 func (f *FeedbackKey) ToJson() []byte {
