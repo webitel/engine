@@ -58,7 +58,7 @@ from  f`, map[string]any{
 		"DomainId":    key.DomainId,
 		"Source":      key.Source,
 		"SourceId":    key.SourceId,
-		"Payload":     key.Payload.ToSafeBytes(),
+		"Payload":     key.Payload.ToJson(),
 		"Rating":      rating,
 		"Description": description,
 	})
