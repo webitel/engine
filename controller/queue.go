@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"strconv"
 )
 
 func (c *Controller) CreateQueue(ctx context.Context, session *auth_manager.Session, queue *model.Queue) (*model.Queue, model.AppError) {
@@ -111,6 +112,8 @@ func (c *Controller) UpdateQueue(ctx context.Context, session *auth_manager.Sess
 	return queue, nil
 }
 
+//#region Patch
+
 func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Session, id int64, patch *model.QueuePatch) (*model.Queue, model.AppError) {
 	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
@@ -146,6 +149,25 @@ func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Sessi
 
 	return queue, nil
 }
+
+func (c *Controller) PatchQueues(ctx context.Context, session *auth_manager.Session, search *model.SearchQueue, p *model.QueuePatch) ([]int32, model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	p.UpdatedBy = model.Lookup{
+		Id: int(session.UserId),
+	}
+	res, err := c.app.PatchQueues(ctx, session.Domain(0), session.GetAclRoles(), search, p)
+
+	return res, err
+}
+
+//#endregion
 
 func (c *Controller) DeleteQueue(ctx context.Context, session *auth_manager.Session, id int64) (*model.Queue, model.AppError) {
 	var err model.AppError

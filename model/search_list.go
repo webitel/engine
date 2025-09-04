@@ -139,7 +139,7 @@ func ConvertSort(in string) string {
 
 func ReplaceWebSearch(s string) *string {
 	if s != "" {
-		return NewString(strings.Replace(s, "*", "%", -1))
+		return NewString(strings.ReplaceAll(s, "*", "%"))
 	}
 
 	return nil

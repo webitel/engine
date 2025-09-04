@@ -271,7 +271,7 @@ type QueueStore interface {
 	Get(ctx context.Context, domainId int64, id int64) (*model.Queue, model.AppError)
 	Update(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
-	PatchQueues(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue, p *model.QueuePatch) ([]int32, model.AppError)
+	PatchQueues(ctx context.Context, patchRequest *model.PatchQueuesRequest) ([]int32, model.AppError)
 
 	QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError)
 	ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError)
