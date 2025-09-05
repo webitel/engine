@@ -2,10 +2,12 @@ package auth_manager
 
 import (
 	"context"
+	"slices"
+	"time"
+
 	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
-	"time"
 )
 
 var (
@@ -44,6 +46,10 @@ func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool 
 	}
 
 	return perm.rbac
+}
+
+func (s *Session) HasAdminPermission(permAccess PermissionAccess) bool {
+	return slices.Contains(s.adminPermissions, permAccess)
 }
 
 func (self *Session) GetAclRoles() []int {
