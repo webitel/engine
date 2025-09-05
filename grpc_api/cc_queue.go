@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 type queue struct {
@@ -355,32 +356,6 @@ func (api *queue) SearchQueueTags(ctx context.Context, in *engine.SearchQueueTag
 	}, nil
 }
 
-func (api *queue) PatchQueues(ctx context.Context, in *engine.PatchQueuesRequest) (*engine.PatchQueuesResponse, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	patch := &model.QueuePatch{}
-	patch.Enabled = &in.Enable
-
-	search := &model.SearchQueue{
-		ListRequest: model.ListRequest{
-			Q: in.GetQ(),
-		},
-		Ids: in.GetIds(),
-	}
-
-	res, err := api.ctrl.PatchQueues(ctx, session, search, patch)
-	if err != nil {
-		return nil, err
-	}
-
-	return &engine.PatchQueuesResponse{
-		Ids: res,
-	}, nil
-}
-
 func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueReportGeneral {
 	return &engine.QueueReportGeneral{
 		Queue: GetProtoLookup(&src.Queue),
@@ -457,4 +432,36 @@ func transformQueue(src *model.Queue) *engine.Queue {
 	}
 
 	return q
+}
+
+func (api *queue) SetQueuesGlobalState(ctx context.Context, in *engine.SetQueuesGlobalStateRequest) (*engine.SetQueuesGlobalStateResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rowsAffected, err := api.ctrl.SetQueuesGlobalState(ctx, session, in.Enabled)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.SetQueuesGlobalStateResponse{
+		AffectedRowsCount: rowsAffected,
+	}, nil
+}
+
+func (api *queue) GetQueuesGlobalState(ctx context.Context, in *engine.GetQueuesGlobalStateRequest) (*engine.GetQueuesGlobalStateResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := api.ctrl.GetQueuesGlobalState(ctx, session)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.GetQueuesGlobalStateResponse{
+		IsAllEnabled: wrapperspb.Bool(res),
+	}, nil
 }

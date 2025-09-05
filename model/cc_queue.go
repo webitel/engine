@@ -82,22 +82,6 @@ type SearchQueueReportGeneral struct {
 	Types    []int32
 }
 
-type PatchQueuesRequest struct {
-	DomainId       int64
-	Groups         []int
-	SearchTemplate *SearchQueue
-	PatchTemplate  *QueuePatch
-}
-
-func (p *PatchQueuesRequest) SetDef() {
-	if len(p.SearchTemplate.Ids) == 0 {
-		p.SearchTemplate.Ids = nil
-	}
-	if len(p.Groups) == 0 {
-		p.Groups = nil
-	}
-}
-
 type QueueAgentAgg struct {
 	Online     uint32 `json:"online" db:"online"`
 	Pause      uint32 `json:"pause" db:"pause"`
