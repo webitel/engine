@@ -271,11 +271,13 @@ type QueueStore interface {
 	Get(ctx context.Context, domainId int64, id int64) (*model.Queue, model.AppError)
 	Update(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
-	PatchQueues(ctx context.Context, patchRequest *model.PatchQueuesRequest) ([]int32, model.AppError)
 
 	QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError)
 	ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError)
 	RbacUniqueQueues(ctx context.Context, domainId int64, queueIds []int64, groups []int) ([]int32, model.AppError)
+
+	GetGlobalState(ctx context.Context, domainId int64) (bool, model.AppError)
+	SetGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup) (int32, model.AppError)
 }
 
 type QueueResourceStore interface {

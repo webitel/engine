@@ -61,16 +61,12 @@ func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.Q
 	return oldQueue, nil
 }
 
-func (a *App) PatchQueues(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue, p *model.QueuePatch) ([]int32, model.AppError) {
-	queuesPatchRequest := &model.PatchQueuesRequest{
-		DomainId:       domainId,
-		Groups:         groups,
-		SearchTemplate: search,
-		PatchTemplate:  p,
-	}
-	queuesPatchRequest.SetDef()
+func (a *App) GetQueuesGlobalState(ctx context.Context, domainId int64) (bool, model.AppError) {
+	return a.Store.Queue().GetGlobalState(ctx, domainId)
+}
 
-	return a.Store.Queue().PatchQueues(ctx, queuesPatchRequest)
+func (a *App) SetQueuesGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup) (int32, model.AppError) {
+	return a.Store.Queue().SetGlobalState(ctx, domainId, newState, updatedBy)
 }
 
 func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {

@@ -112,8 +112,6 @@ func (c *Controller) UpdateQueue(ctx context.Context, session *auth_manager.Sess
 	return queue, nil
 }
 
-//#region Patch
-
 func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Session, id int64, patch *model.QueuePatch) (*model.Queue, model.AppError) {
 	var err model.AppError
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
@@ -150,24 +148,25 @@ func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Sessi
 	return queue, nil
 }
 
-func (c *Controller) PatchQueues(ctx context.Context, session *auth_manager.Session, search *model.SearchQueue, p *model.QueuePatch) ([]int32, model.AppError) {
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
-	if !permission.CanRead() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-	if !permission.CanUpdate() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+func (c *Controller) GetQueuesGlobalState(ctx context.Context, session *auth_manager.Session) (bool, model.AppError) {
+	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_READ) {
+		return false, model.NewForbiddenError("controller.controller.get_global_state", "user must have admin rights")
 	}
 
-	p.UpdatedBy = model.Lookup{
-		Id: int(session.UserId),
-	}
-	res, err := c.app.PatchQueues(ctx, session.Domain(0), session.GetAclRoles(), search, p)
-
-	return res, err
+	return c.app.GetQueuesGlobalState(ctx, session.Domain(0))
 }
 
-//#endregion
+func (c *Controller) SetQueuesGlobalState(ctx context.Context, session *auth_manager.Session, newState bool) (int32, model.AppError) {
+	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_UPDATE) {
+		return -1, model.NewForbiddenError("controller.controller.set_global_state", "user must have admin rights")
+	}
+
+	updatedBy := &model.Lookup{
+		Id: int(session.UserId),
+	}
+
+	return c.app.SetQueuesGlobalState(ctx, session.Domain(0), newState, updatedBy)
+}
 
 func (c *Controller) DeleteQueue(ctx context.Context, session *auth_manager.Session, id int64) (*model.Queue, model.AppError) {
 	var err model.AppError
