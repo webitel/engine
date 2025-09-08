@@ -34,6 +34,9 @@ const (
 	SysNameNewMessageSoundNotification = "new_message_sound_notification"
 	SysNameNewChatSoundNotification    = "new_chat_sound_notification"
 	SysNameScreenshotInterval          = "screenshot_interval"
+	SysNamePasswordExpiryDays          = "password_expiry_days"
+	SysNamePasswordMinLength           = "password_min_length"
+	SysNamePasswordMinCategories       = "password_min_categories"
 )
 
 type SysValue json.RawMessage
@@ -82,7 +85,7 @@ func (s *SystemSetting) IsValid() AppError {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
-		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval:
+		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordMinCategories:
 		value := SysValue(s.Value)
 		i := value.Int()
 
