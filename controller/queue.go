@@ -150,7 +150,8 @@ func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Sessi
 
 func (c *Controller) GetQueuesGlobalState(ctx context.Context, session *auth_manager.Session) (bool, model.AppError) {
 	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_READ) {
-		return false, model.NewForbiddenError("controller.controller.get_global_state", "user must have admin rights")
+		perm := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+		return false, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
 	return c.app.GetQueuesGlobalState(ctx, session.Domain(0))
@@ -158,7 +159,8 @@ func (c *Controller) GetQueuesGlobalState(ctx context.Context, session *auth_man
 
 func (c *Controller) SetQueuesGlobalState(ctx context.Context, session *auth_manager.Session, newState bool) (int32, model.AppError) {
 	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_UPDATE) {
-		return -1, model.NewForbiddenError("controller.controller.set_global_state", "user must have admin rights")
+		perm := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+		return -1, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
 	updatedBy := &model.Lookup{
