@@ -7,7 +7,6 @@ import (
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 type queue struct {
@@ -446,7 +445,7 @@ func (api *queue) SetQueuesGlobalState(ctx context.Context, in *engine.SetQueues
 	}
 
 	return &engine.SetQueuesGlobalStateResponse{
-		AffectedRowsCount: rowsAffected,
+		Count: rowsAffected,
 	}, nil
 }
 
@@ -462,6 +461,6 @@ func (api *queue) GetQueuesGlobalState(ctx context.Context, in *engine.GetQueues
 	}
 
 	return &engine.GetQueuesGlobalStateResponse{
-		IsAllEnabled: wrapperspb.Bool(res),
+		IsAllEnabled: res,
 	}, nil
 }
