@@ -11,7 +11,7 @@ concurrency:
 jobs:
   prepare:
     name: Prepare
-    uses: webitel/reusable-workflows/.github/workflows/golang-prepare.yml@bbc62c74ef328e4bae45d28b859b2c8cea859bb5
+    uses: webitel/reusable-workflows/.github/workflows/golang-prepare.yml@cbf5a7837a9320f5054902ba3547a9ce7e47f28e
     with:
       development-branch: ${{ github.event.repository.default_branch }}
       triggered-branch: ${{ github.event.pull_request.base.ref }}
@@ -20,7 +20,7 @@ jobs:
   checks:
     name: Checks
     needs: [ prepare ]
-    uses: webitel/reusable-workflows/.github/workflows/golang-checks.yml@bbc62c74ef328e4bae45d28b859b2c8cea859bb5
+    uses: webitel/reusable-workflows/.github/workflows/golang-checks.yml@cbf5a7837a9320f5054902ba3547a9ce7e47f28e
     permissions:
       contents: read
       actions: read
@@ -29,7 +29,7 @@ jobs:
   compile:
     name: Build
     needs: [ prepare ]
-    uses: webitel/reusable-workflows/.github/workflows/golang-build.yml@bbc62c74ef328e4bae45d28b859b2c8cea859bb5
+    uses: webitel/reusable-workflows/.github/workflows/golang-build.yml@cbf5a7837a9320f5054902ba3547a9ce7e47f28e
     with:
       binary-name: engine
       ldflags: >
