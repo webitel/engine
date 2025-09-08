@@ -21,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	QueueService_CreateQueue_FullMethodName              = "/engine.QueueService/CreateQueue"
 	QueueService_SearchQueue_FullMethodName              = "/engine.QueueService/SearchQueue"
+	QueueService_SetQueuesGlobalState_FullMethodName     = "/engine.QueueService/SetQueuesGlobalState"
+	QueueService_GetQueuesGlobalState_FullMethodName     = "/engine.QueueService/GetQueuesGlobalState"
 	QueueService_ReadQueue_FullMethodName                = "/engine.QueueService/ReadQueue"
 	QueueService_PatchQueue_FullMethodName               = "/engine.QueueService/PatchQueue"
 	QueueService_UpdateQueue_FullMethodName              = "/engine.QueueService/UpdateQueue"
@@ -37,6 +39,8 @@ type QueueServiceClient interface {
 	CreateQueue(ctx context.Context, in *CreateQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// List of Queue
 	SearchQueue(ctx context.Context, in *SearchQueueRequest, opts ...grpc.CallOption) (*ListQueue, error)
+	SetQueuesGlobalState(ctx context.Context, in *SetQueuesGlobalStateRequest, opts ...grpc.CallOption) (*SetQueuesGlobalStateResponse, error)
+	GetQueuesGlobalState(ctx context.Context, in *GetQueuesGlobalStateRequest, opts ...grpc.CallOption) (*GetQueuesGlobalStateResponse, error)
 	// Queue item
 	ReadQueue(ctx context.Context, in *ReadQueueRequest, opts ...grpc.CallOption) (*Queue, error)
 	// Patch Queue
@@ -70,6 +74,24 @@ func (c *queueServiceClient) CreateQueue(ctx context.Context, in *CreateQueueReq
 func (c *queueServiceClient) SearchQueue(ctx context.Context, in *SearchQueueRequest, opts ...grpc.CallOption) (*ListQueue, error) {
 	out := new(ListQueue)
 	err := c.cc.Invoke(ctx, QueueService_SearchQueue_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queueServiceClient) SetQueuesGlobalState(ctx context.Context, in *SetQueuesGlobalStateRequest, opts ...grpc.CallOption) (*SetQueuesGlobalStateResponse, error) {
+	out := new(SetQueuesGlobalStateResponse)
+	err := c.cc.Invoke(ctx, QueueService_SetQueuesGlobalState_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queueServiceClient) GetQueuesGlobalState(ctx context.Context, in *GetQueuesGlobalStateRequest, opts ...grpc.CallOption) (*GetQueuesGlobalStateResponse, error) {
+	out := new(GetQueuesGlobalStateResponse)
+	err := c.cc.Invoke(ctx, QueueService_GetQueuesGlobalState_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +160,8 @@ type QueueServiceServer interface {
 	CreateQueue(context.Context, *CreateQueueRequest) (*Queue, error)
 	// List of Queue
 	SearchQueue(context.Context, *SearchQueueRequest) (*ListQueue, error)
+	SetQueuesGlobalState(context.Context, *SetQueuesGlobalStateRequest) (*SetQueuesGlobalStateResponse, error)
+	GetQueuesGlobalState(context.Context, *GetQueuesGlobalStateRequest) (*GetQueuesGlobalStateResponse, error)
 	// Queue item
 	ReadQueue(context.Context, *ReadQueueRequest) (*Queue, error)
 	// Patch Queue
@@ -161,6 +185,12 @@ func (UnimplementedQueueServiceServer) CreateQueue(context.Context, *CreateQueue
 }
 func (UnimplementedQueueServiceServer) SearchQueue(context.Context, *SearchQueueRequest) (*ListQueue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchQueue not implemented")
+}
+func (UnimplementedQueueServiceServer) SetQueuesGlobalState(context.Context, *SetQueuesGlobalStateRequest) (*SetQueuesGlobalStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetQueuesGlobalState not implemented")
+}
+func (UnimplementedQueueServiceServer) GetQueuesGlobalState(context.Context, *GetQueuesGlobalStateRequest) (*GetQueuesGlobalStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetQueuesGlobalState not implemented")
 }
 func (UnimplementedQueueServiceServer) ReadQueue(context.Context, *ReadQueueRequest) (*Queue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadQueue not implemented")
@@ -225,6 +255,42 @@ func _QueueService_SearchQueue_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueueServiceServer).SearchQueue(ctx, req.(*SearchQueueRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QueueService_SetQueuesGlobalState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetQueuesGlobalStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueueServiceServer).SetQueuesGlobalState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QueueService_SetQueuesGlobalState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueueServiceServer).SetQueuesGlobalState(ctx, req.(*SetQueuesGlobalStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QueueService_GetQueuesGlobalState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetQueuesGlobalStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueueServiceServer).GetQueuesGlobalState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QueueService_GetQueuesGlobalState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueueServiceServer).GetQueuesGlobalState(ctx, req.(*GetQueuesGlobalStateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -351,6 +417,14 @@ var QueueService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchQueue",
 			Handler:    _QueueService_SearchQueue_Handler,
+		},
+		{
+			MethodName: "SetQueuesGlobalState",
+			Handler:    _QueueService_SetQueuesGlobalState_Handler,
+		},
+		{
+			MethodName: "GetQueuesGlobalState",
+			Handler:    _QueueService_GetQueuesGlobalState_Handler,
 		},
 		{
 			MethodName: "ReadQueue",

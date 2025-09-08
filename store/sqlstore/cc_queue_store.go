@@ -611,3 +611,58 @@ offset :Offset`
 
 	return res, nil
 }
+
+func (s SqlQueueStore) GetGlobalState(ctx context.Context, domainId int64) (bool, model.AppError) {
+	query := `
+		select not exists (
+			select 
+				1
+			from 
+				call_center.cc_queue q
+			where
+				q.domain_id = :DomainId
+				and q.enabled <> true
+		) as is_all_enabled
+	`
+	params := map[string]any{
+		"DomainId": domainId,
+	}
+
+	var isAllEnabled bool
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&isAllEnabled, query, params); err != nil {
+		return false, model.NewCustomCodeError("sqlstore.sql_queue.get_global_state.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return isAllEnabled, nil
+}
+
+func (s SqlQueueStore) SetGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup) (int32, model.AppError) {
+	query := `
+		update
+			call_center.cc_queue q
+		set
+			updated_by = :UpdatedBy,
+			updated_at = :UpdatedAt,
+			enabled = :Enabled
+		where
+			q.domain_id = :DomainId
+			and q.enabled <> :Enabled
+	`
+	params := map[string]any{
+		"UpdatedBy": updatedBy.GetSafeId(),
+		"UpdatedAt": model.GetMillis(),
+		"Enabled":   newState,
+		"DomainId":  domainId,
+	}
+
+	res, err := s.GetMaster().WithContext(ctx).Exec(query, params)
+	if err != nil {
+		return -1, model.NewCustomCodeError("sqlstore.sql_queue.set_global_state.app_error", err.Error(), extractCodeFromErr(err))
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return -1, model.NewCustomCodeError("sqlstore.sql_queue.set_global_state.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return int32(rowsAffected), nil
+}

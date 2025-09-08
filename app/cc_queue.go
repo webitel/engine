@@ -61,6 +61,14 @@ func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.Q
 	return oldQueue, nil
 }
 
+func (a *App) GetQueuesGlobalState(ctx context.Context, domainId int64) (bool, model.AppError) {
+	return a.Store.Queue().GetGlobalState(ctx, domainId)
+}
+
+func (a *App) SetQueuesGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup) (int32, model.AppError) {
+	return a.Store.Queue().SetGlobalState(ctx, domainId, newState, updatedBy)
+}
+
 func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	oldQueue, err := a.GetQueueById(ctx, queue.DomainId, queue.Id)
 	if err != nil {

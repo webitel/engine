@@ -432,3 +432,35 @@ func transformQueue(src *model.Queue) *engine.Queue {
 
 	return q
 }
+
+func (api *queue) SetQueuesGlobalState(ctx context.Context, in *engine.SetQueuesGlobalStateRequest) (*engine.SetQueuesGlobalStateResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	rowsAffected, err := api.ctrl.SetQueuesGlobalState(ctx, session, in.Enabled)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.SetQueuesGlobalStateResponse{
+		Count: rowsAffected,
+	}, nil
+}
+
+func (api *queue) GetQueuesGlobalState(ctx context.Context, in *engine.GetQueuesGlobalStateRequest) (*engine.GetQueuesGlobalStateResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := api.ctrl.GetQueuesGlobalState(ctx, session)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.GetQueuesGlobalStateResponse{
+		IsAllEnabled: res,
+	}, nil
+}

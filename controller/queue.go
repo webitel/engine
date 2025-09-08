@@ -2,9 +2,10 @@ package controller
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"strconv"
 )
 
 func (c *Controller) CreateQueue(ctx context.Context, session *auth_manager.Session, queue *model.Queue) (*model.Queue, model.AppError) {
@@ -145,6 +146,28 @@ func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Sessi
 	c.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CC_QUEUE, strconv.FormatInt(queue.Id, 10), queue)
 
 	return queue, nil
+}
+
+func (c *Controller) GetQueuesGlobalState(ctx context.Context, session *auth_manager.Session) (bool, model.AppError) {
+	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_READ) {
+		perm := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+		return false, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	return c.app.GetQueuesGlobalState(ctx, session.Domain(0))
+}
+
+func (c *Controller) SetQueuesGlobalState(ctx context.Context, session *auth_manager.Session, newState bool) (int32, model.AppError) {
+	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_UPDATE) {
+		perm := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+		return -1, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	updatedBy := &model.Lookup{
+		Id: int(session.UserId),
+	}
+
+	return c.app.SetQueuesGlobalState(ctx, session.Domain(0), newState, updatedBy)
 }
 
 func (c *Controller) DeleteQueue(ctx context.Context, session *auth_manager.Session, id int64) (*model.Queue, model.AppError) {
