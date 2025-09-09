@@ -218,6 +218,7 @@ func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, p
 
 	if queueId != nil && info.QueueName != nil {
 		invite.AddVariable("wbt_bt_queue_id", fmt.Sprintf("%v", *queueId))
+		invite.AddVariable("wbt_transfer_form", "false")
 		name = *info.QueueName
 		number = name
 	} else if agentId != nil && info.AgentName != nil {
