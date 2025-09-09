@@ -31,6 +31,10 @@ func (c *Controller) CreateQueue(ctx context.Context, session *auth_manager.Sess
 		return nil, err
 	}
 
+	if err := queue.TaskProcessing.ProlongationOptions.IsValid(); err != nil {
+		return nil, err
+	}
+
 	queue, err = c.app.CreateQueue(ctx, queue)
 	if err != nil {
 		return nil, err
@@ -99,6 +103,10 @@ func (c *Controller) UpdateQueue(ctx context.Context, session *auth_manager.Sess
 	}
 
 	if err := queue.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err := queue.TaskProcessing.ProlongationOptions.IsValid(); err != nil {
 		return nil, err
 	}
 
