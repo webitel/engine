@@ -4,14 +4,15 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/wlog"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 type SqlMemberStore struct {
@@ -163,12 +164,27 @@ _error:
 	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
+func getMemberSortClause(sort string) string {
+    if sort == "" {
+        return "order by created_at desc"
+    }
+    
+    direction, field := orderBy(sort)
+    
+    // we don't have agent field in cc_member table
+    if field == "agent" {
+        return fmt.Sprintf("order by coalesce((select agn.name from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
+    }
+
+    return GetOrderBy("cc_member", sort)
+}
+
 // todo fix deprecated fields
 
 func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
 	var members []*model.Member
 
-	order := GetOrderBy("cc_member", model.MemberDeprecatedField(search.Sort))
+    order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
 	if order == "" {
 		order = "order by created_at desc"
 	}
