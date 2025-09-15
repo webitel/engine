@@ -131,6 +131,9 @@ from (select 1                    pri,
            coalesce((a.queue_params -> 'has_form')::bool, false)      as has_form,
            (a.queue_params -> 'processing_sec')::int                  as processing_sec,
            (a.queue_params -> 'processing_renewal_sec')::int          as processing_renewal_sec,
+           coalesce((a.queue_params->'has_prolongation')::bool, false) as has_prolongation,
+			     (a.queue_params->'remaining_prolongations')::int           as remaining_prolongations,
+			     (a.queue_params->'prolongation_sec')::int                  as prolongation_sec,
            call_center.cc_view_timestamp(a.timeout)                   as processing_timeout_at,
            a.form_view                                                as form
     from call_center.cc_member_attempt a

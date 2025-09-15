@@ -280,43 +280,55 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 }
 
 func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError) {
-	var res []*model.CCTask
+	query := `
+		select 
+		    a.id as attempt_id,
+		    a.channel,
+		    a.node_id as app_id,
+		    a.queue_id,
+		    coalesce(a.queue_params->>'queue_name', '') as queue_name,
+		    a.member_id,
+		    a.member_call_id as member_channel_id,
+		    a.agent_call_id as agent_channel_id,
+		    a.destination,
+		    a.state,
+		    call_center.cc_view_timestamp(a.leaving_at) as leaving_at,
+		    coalesce((a.queue_params->'has_reporting')::bool, false) as has_reporting,
+		    coalesce((a.queue_params->'has_form')::bool, false) as has_form,
+		    (a.queue_params->'processing_sec')::int as processing_sec,
+		    (a.queue_params->'processing_renewal_sec')::int as processing_renewal_sec,
+			coalesce((a.queue_params->'has_prolongation')::bool, false) as has_prolongation,
+			(a.queue_params->'remaining_prolongations')::int as remaining_prolongations,
+			(a.queue_params->'prolongation_sec')::int as prolongation_sec,
+			call_center.cc_view_timestamp(a.timeout) as processing_timeout_at,
+		    a.form_view as form,
+		    m.variables,
+		    m.name as member_name,
+		    call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
+		    a.agent_id
+		from 
+			call_center.cc_member_attempt a
+		inner join 
+			call_center.cc_agent a2 on a2.id = a.agent_id
+		left join 
+			call_center.cc_member m on a.member_id = m.id
+		where 
+			a.agent_id = :AgentId
+		    and a2.domain_id = :DomainId
+		    and a.state != 'leaving'
+		    and a.node_id notnull
+	`
+
+	args := map[string]any{
+		"AgentId":  id,
+		"DomainId": domainId,
+	}
+
 	cc, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	_, err := s.GetMaster().WithContext(cc).Select(&res, `select a.id                                                       as attempt_id,
-       a.channel,
-       a.node_id                                                  as app_id,
-       a.queue_id,
-       coalesce(a.queue_params ->> 'queue_name', '')              as queue_name,
-       a.member_id,
-       a.member_call_id                                           as member_channel_id,
-       a.agent_call_id                                            as agent_channel_id,
-       a.destination,
-       a.state,
-       call_center.cc_view_timestamp(a.leaving_at)                as leaving_at,
-       coalesce((a.queue_params -> 'has_reporting')::bool, false) as has_reporting,
-       coalesce((a.queue_params -> 'has_form')::bool, false)      as has_form,
-       (a.queue_params -> 'processing_sec')::int                  as processing_sec,
-       (a.queue_params -> 'processing_renewal_sec')::int          as processing_renewal_sec,
-       call_center.cc_view_timestamp(a.timeout)                   as processing_timeout_at,
-       a.form_view                                                as form,
-       m.variables,
-       m.name                                                     as member_name,
-       call_center.cc_view_timestamp(a.bridged_at)                as bridged_at,
-       a.agent_id
-from call_center.cc_member_attempt a
-         inner join call_center.cc_agent a2 on a2.id = a.agent_id
-         left join call_center.cc_member m on a.member_id = m.id
-where a.agent_id = :AgentId
-  and a2.domain_id = :DomainId
-  and a.state != 'leaving'
-  and a.node_id notnull`, map[string]interface{}{
-		"AgentId":  id,
-		"DomainId": domainId,
-	})
-
-	if err != nil {
+	var res []*model.CCTask
+	if _, err := s.GetMaster().WithContext(cc).Select(&res, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_tasks.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
