@@ -3,11 +3,12 @@ package grpc_api
 import (
 	"bytes"
 	"encoding/json"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 
 	"github.com/golang/protobuf/jsonpb"
-	"github.com/golang/protobuf/ptypes/struct"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 )
 
 var (
@@ -197,4 +198,34 @@ func stringsToTags(tags []string) []*engine.Tag {
 	}
 
 	return res
+}
+
+func stringsToResourceGroups(resourceGroups []string) []*engine.ResourceGroup {
+	length := len(resourceGroups)
+	if length == 0 {
+		return nil
+	}
+
+	resGroupList := make([]*engine.ResourceGroup, 0, length)
+	for _, v := range resourceGroups {
+		resGroupList = append(resGroupList, &engine.ResourceGroup{
+			Name: v,
+		})
+	}
+	return resGroupList
+}
+
+func stringsToResources(resources []string) []*engine.Resource {
+	length := len(resources)
+	if length == 0 {
+		return nil
+	}
+
+	resGroupList := make([]*engine.Resource, 0, length)
+	for _, v := range resources {
+		resGroupList = append(resGroupList, &engine.Resource{
+			Name: v,
+		})
+	}
+	return resGroupList
 }

@@ -36,6 +36,9 @@ type Queue struct {
 	TaskProcessing *QueueTaskProcessing `json:"task_processing" db:"task_processing"`
 	Grantee        *Lookup              `json:"grantee" db:"grantee"`
 	Tags           StringArray          `json:"tags" db:"tags"`
+
+	ResourceGroups StringArray `json:"resource_groups" db:"resource_groups"`
+	Resources      StringArray `json:"resources" db:"resources"`
 }
 
 type QueueTaskProcessing struct {
@@ -49,7 +52,8 @@ func (q Queue) AllowFields() []string {
 	return []string{"id", "strategy", "enabled", "payload", "priority", "updated_at", "name", "variables",
 		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
-		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing", "grantee", "tags"}
+		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing", "grantee", "tags",
+		"resource_groups", "resources"}
 }
 
 func (q Queue) DefaultOrder() string {
@@ -58,7 +62,7 @@ func (q Queue) DefaultOrder() string {
 
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "enabled", "priority", "updated_at", "name", "type", "created_at", "created_by", "updated_by",
-		"team", "count", "waiting", "active", "tags"}
+		"team", "count", "waiting", "active", "tags", "resource_groups", "resources"}
 }
 
 func (q Queue) EntityName() string {
