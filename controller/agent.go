@@ -73,7 +73,7 @@ func (c *Controller) LogoutAgent(ctx context.Context, session *auth_manager.Sess
 	return c.app.LogoutAgent(session.Domain(domainId), agentId)
 }
 
-func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, payload string, timeout int) model.AppError {
+func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, payload, statusComment string, timeout int) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -87,7 +87,7 @@ func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Sessi
 		}
 	}
 
-	return c.app.PauseAgent(session.Domain(domainId), agentId, payload, timeout)
+	return c.app.PauseAgent(session.Domain(domainId), agentId, payload, statusComment, timeout)
 }
 
 func (c *Controller) WaitingAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, channel string) (int64, model.AppError) {

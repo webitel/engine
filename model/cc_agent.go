@@ -69,6 +69,7 @@ type AgentStatusStatistics struct {
 	Name           string     `json:"name" db:"name"`
 	Status         string     `json:"status" db:"status"`
 	StatusDuration int64      `json:"status_duration" db:"status_duration"`
+	StatusComment  *string    `json:"status_comment" db:"status_comment"`
 	User           Lookup     `json:"user" json:"user"`
 	Extension      string     `json:"extension" db:"extension"`
 	Team           *Lookup    `json:"team" db:"team"`
@@ -110,7 +111,8 @@ type SupervisorAgentItem struct {
 	ProgressiveCount uint32    `json:"progressive_count" db:"progressive_count"`
 	ChatCount        uint32    `json:"chat_count" db:"chat_count"`
 
-	PauseCause string `json:"pause_cause" db:"pause_cause"`
+	PauseCause    string `json:"pause_cause" db:"pause_cause"`
+	StatusComment string `json:"status_comment" db:"status_comment"`
 
 	Online           int64   `json:"online" db:"online"`
 	Offline          int64   `json:"offline" db:"offline"`
@@ -231,6 +233,7 @@ type AgentSession struct {
 	AgentId          int64          `json:"agent_id" db:"agent_id"`
 	Status           string         `json:"status" db:"status"`
 	StatusPayload    *string        `json:"status_payload" db:"status_payload"`
+	StatusComment    *string        `json:"status_comment" db:"status_comment"`
 	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
 	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
 	OnDemand         bool           `json:"on_demand" db:"on_demand"`

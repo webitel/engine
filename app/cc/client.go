@@ -2,10 +2,11 @@ package cc
 
 import (
 	"context"
+	"sync"
+
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/pkg/wbt"
 	"github.com/webitel/wlog"
-	"sync"
 )
 
 const ServiceName = "call_center"
@@ -13,7 +14,7 @@ const ServiceName = "call_center"
 type AgentApi interface {
 	Online(domainId, agentId int64, onDemand bool) error
 	Offline(domainId, agentId int64) error
-	Pause(domainId, agentId int64, payload string, timeout int) error
+	Pause(domainId, agentId int64, payload, statusComment string, timeout int) error
 
 	WaitingChannel(agentId int, channel string) (int64, error)
 

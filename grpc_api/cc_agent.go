@@ -3,9 +3,10 @@ package grpc_api
 import (
 	"context"
 	"fmt"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"strconv"
 	"strings"
+
+	"github.com/golang/protobuf/ptypes/wrappers"
 
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
@@ -393,7 +394,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 	case model.AgentStatusOnline:
 		err = api.ctrl.LoginAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.OnDemand)
 	case model.AgentStatusPause:
-		err = api.ctrl.PauseAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), 0)
+		err = api.ctrl.PauseAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), in.GetStatusComment(), 0)
 	case model.AgentStatusOffline:
 		err = api.ctrl.LogoutAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId())
 	default:
@@ -895,6 +896,7 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		ScoreOptionalAvg: item.ScoreOptionalAvg,
 		ScoreCount:       item.ScoreCount,
 		DescTrack:        item.DescTrack,
+		StatusComment:    item.StatusComment,
 	}, nil
 }
 
@@ -990,6 +992,10 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 
 	if src.ActiveCallId != nil {
 		item.ActiveCallId = *src.ActiveCallId
+	}
+
+	if src.StatusComment != nil {
+		item.StatusComment = *src.StatusComment
 	}
 
 	return item
