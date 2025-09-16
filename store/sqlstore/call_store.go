@@ -252,14 +252,14 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
        call_center.cc_get_lookup(
                case when at.attempt_id::bigint notnull then coalesce(at.queue_id::bigint, 0) end, at.queue_name)   AS queue,
        c.contact_id,
-       to_timestamp(at.leaving_at::double precision / 1000)            as leaving_at --todo
+       to_timestamp(at.leaving_at::double precision / 1000)           as leaving_at --todo
 from call_center.cc_calls c
          left join lateral (
     select a.id                                                       as attempt_id,
            a.channel,
            a.node_id                                                  as app_id,
            a.queue_id,
-           coalesce(a.queue_params ->> 'queue_name', '')               as queue_name,
+           coalesce(a.queue_params ->> 'queue_name', '')              as queue_name,
            a.member_id,
            a.member_call_id                                           as member_channel_id,
            a.agent_call_id                                            as agent_channel_id,
@@ -270,6 +270,9 @@ from call_center.cc_calls c
            coalesce((a.queue_params -> 'has_form')::bool, false)      as has_form,
            (a.queue_params -> 'processing_sec')::int                  as processing_sec,
            (a.queue_params -> 'processing_renewal_sec')::int          as processing_renewal_sec,
+		   coalesce((a.queue_params -> 'has_prolongation')::bool, false) as has_prolongation,
+		   (a.queue_params -> 'remaining_prolongations')::int  		  as remaining_prolongations,
+		   (a.queue_params -> 'prolongation_sec')::int 				  as prolongation_sec,
            call_center.cc_view_timestamp(a.timeout)                   as processing_timeout_at,
            a.form_view                                                as form
     from call_center.cc_member_attempt a
