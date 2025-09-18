@@ -364,6 +364,7 @@ type CallFile struct {
 	StartAt     int64  `json:"start_at"`
 	StopAt      int64  `json:"stop_at"`
 	StartRecord string `json:"start_record"`
+	Channel     string `json:"channel"`
 }
 
 func TimeToInt64(t *time.Time) int64 {
