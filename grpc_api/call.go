@@ -1290,6 +1290,7 @@ func toCallFile(src []*model.CallFile) []*engine.CallFile {
 			StartAt:     v.StartAt,
 			StopAt:      v.StopAt,
 			StartRecord: v.StartRecord,
+			Channel:     v.Channel,
 		})
 	}
 
