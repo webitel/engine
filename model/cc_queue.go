@@ -41,6 +41,9 @@ type Queue struct {
 	TaskProcessing *QueueTaskProcessing `json:"task_processing" db:"task_processing"`
 	Grantee        *Lookup              `json:"grantee" db:"grantee"`
 	Tags           StringArray          `json:"tags" db:"tags"`
+
+	ResourceGroups StringArray `json:"resource_groups" db:"resource_groups"`
+	Resources      StringArray `json:"resources" db:"resources"`
 }
 
 type QueueTaskProcessing struct {
@@ -83,7 +86,7 @@ func (q Queue) DefaultOrder() string {
 
 func (q Queue) DefaultFields() []string {
 	return []string{"id", "enabled", "priority", "updated_at", "name", "type", "created_at", "created_by", "updated_by",
-		"team", "count", "waiting", "active", "tags"}
+		"team", "count", "waiting", "active", "tags", "resource_groups", "resources"}
 }
 
 func (q Queue) EntityName() string {

@@ -441,6 +441,8 @@ func transformQueue(src *model.Queue) *engine.Queue {
 		ProcessingRenewalSec: src.ProcessingRenewalSec,
 		Grantee:              GetProtoLookup(src.Grantee),
 		Tags:                 stringsToTags(src.Tags),
+		ResourceGroups:       stringsToResourceGroups(src.ResourceGroups),
+		Resources:            stringsToResources(src.Resources),
 	}
 
 	if src.TaskProcessing != nil {
