@@ -119,7 +119,10 @@ func GetMillis() int64 {
 }
 
 func (self *Session) IsExpired() bool {
-	return self.Expire*1000 < GetMillis()
+	if self.Expire > 0 {
+		return self.Expire*1000 < GetMillis()
+	}
+	return false //never expire
 }
 
 func (self *Session) Trace() map[string]interface{} {
