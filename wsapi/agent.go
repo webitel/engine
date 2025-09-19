@@ -2,6 +2,7 @@ package wsapi
 
 import (
 	"context"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 )
@@ -100,10 +101,10 @@ func (api *API) offlineAgent(ctx context.Context, conn *app.WebConn, req *model.
 	return res, nil
 }
 
-func (api *API) pauseAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) pauseAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
 	var agentId float64
 	var domainId float64
-	var payload string
+	var payload, statusComment string
 	var timeout float64
 	var ok bool
 
@@ -116,14 +117,15 @@ func (api *API) pauseAgent(ctx context.Context, conn *app.WebConn, req *model.We
 	}
 
 	payload, _ = req.Data["payload"].(string)
+	statusComment, _ = req.Data["status_comment"].(string)
 	timeout, _ = req.Data["timeout"].(float64)
 
-	err := api.ctrl.PauseAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), payload, int(timeout))
+	err := api.ctrl.PauseAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), payload, statusComment, int(timeout))
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
+	res := make(map[string]any)
 	return res, nil
 }
 

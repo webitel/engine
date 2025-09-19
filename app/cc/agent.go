@@ -2,6 +2,7 @@ package cc
 
 import (
 	"context"
+
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/pkg/wbt"
 )
@@ -33,13 +34,14 @@ func (api *agentApi) Offline(domainId, agentId int64) error {
 	return err
 }
 
-func (api *agentApi) Pause(domainId, agentId int64, payload string, timeout int) error {
+func (api *agentApi) Pause(domainId, agentId int64, payload, statusComment string, timeout int) error {
 
 	_, err := api.Api.Pause(context.TODO(), &cc.PauseRequest{
-		AgentId:  agentId,
-		Payload:  payload,
-		Timeout:  int32(timeout),
-		DomainId: domainId,
+		AgentId:       agentId,
+		Payload:       payload,
+		StatusComment: statusComment,
+		Timeout:       int32(timeout),
+		DomainId:      domainId,
 	})
 	return err
 }
