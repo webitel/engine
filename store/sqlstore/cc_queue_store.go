@@ -20,7 +20,6 @@ func NewSqlQueueStore(sqlStore SqlStore) store.QueueStore {
 }
 
 func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
-
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
@@ -61,92 +60,147 @@ where a.dc = :DomainId
 }
 
 func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
-	var out *model.Queue
-	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with q as (
-    insert into call_center.cc_queue (strategy, enabled, payload, calendar_id, priority, updated_at,
-                      name, variables, domain_id, dnc_list_id, type, team_id,
-                      created_at, created_by, updated_by, description, ringtone_id, schema_id, do_schema_id, after_schema_id, sticky_agent,
-					  processing, processing_sec, processing_renewal_sec, form_schema_id, grantee_id, tags)
-values (:Strategy, :Enabled, :Payload, :CalendarId, :Priority, :UpdatedAt, :Name,
-        :Variables, :DomainId, :DncListId, :Type, :TeamId, :CreatedAt, :CreatedBy, :UpdatedBy, :Description, :RingtoneId,
-		:SchemaId, :DoSchemaId, :AfterSchemaId, :StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec, :FormSchemaId, :GranteeId, :Tags)
-    returning *
-)
-select q.id,
-       q.strategy,
-       q.enabled,
-       q.payload,
-       q.priority,
-       q.updated_at,
-       q.name,
-       q.variables,
-       q.domain_id,
-       q.type,
-       q.created_at,
-       call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
-       call_center.cc_get_lookup(u.id, u.name)           as updated_by,
-       call_center.cc_get_lookup(c.id, c.name)           as calendar,
-       call_center.cc_get_lookup(cl.id, cl.name)         as dnc_list,
-       call_center.cc_get_lookup(ct.id, ct.name)         as team,
-       q.description,
-       call_center.cc_get_lookup(s.id, s.name)           as schema,
-       call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
-       call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
-       call_center.cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
-	   q.sticky_agent,
-	   q.processing,
-	   q.processing_sec,
-	   q.processing_renewal_sec,
-	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
-       jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
-                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
-	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee,
-	   q.tags
-from q
-         left join flow.calendar c on q.calendar_id = c.id
-		 left join directory.wbt_auth au on au.id = q.grantee_id
-         left join directory.wbt_user uc on uc.id = q.created_by
-         left join directory.wbt_user u on u.id = q.updated_by
-         left join call_center.cc_list cl on q.dnc_list_id = cl.id
-         left join flow.acr_routing_scheme s on q.schema_id = s.id
-         LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
-         LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
-		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
-         left join call_center.cc_team ct on q.team_id = ct.id
-         left join storage.media_files mf on mf.id = q.ringtone_id`,
-		map[string]interface{}{
-			"Strategy":             queue.Strategy,
-			"Enabled":              queue.Enabled,
-			"Payload":              queue.Payload.ToSafeBytes(),
-			"CalendarId":           queue.Calendar.GetSafeId(),
-			"Priority":             queue.Priority,
-			"UpdatedAt":            queue.UpdatedAt,
-			"Name":                 queue.Name,
-			"Variables":            queue.Variables.ToJson(),
-			"DomainId":             queue.DomainId,
-			"DncListId":            queue.DncListId(),
-			"Type":                 queue.Type,
-			"TeamId":               queue.TeamId(),
-			"CreatedAt":            queue.CreatedAt,
-			"CreatedBy":            queue.CreatedBy.GetSafeId(),
-			"UpdatedBy":            queue.UpdatedBy.GetSafeId(),
-			"Description":          queue.Description,
-			"SchemaId":             queue.SchemaId(),
-			"DoSchemaId":           queue.DoSchemaId(),
-			"AfterSchemaId":        queue.AfterSchemaId(),
-			"RingtoneId":           queue.RingtoneId(),
-			"StickyAgent":          queue.StickyAgent,
-			"Processing":           queue.Processing,
-			"ProcessingSec":        queue.ProcessingSec,
-			"ProcessingRenewalSec": queue.ProcessingRenewalSec,
-			"FormSchemaId":         queue.FormSchema.GetSafeId(),
-			"GranteeId":            queue.Grantee.GetSafeId(),
-			"Tags":                 pq.Array(queue.Tags),
-		}); nil != err {
-		return nil, model.NewCustomCodeError("store.sql_queue.save.app_error", fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
-	} else {
-		return out, nil
+	query := `
+		with q as (
+			insert into call_center.cc_queue (
+				strategy, enabled, payload, calendar_id,
+				priority, updated_at, name, variables,
+				domain_id, dnc_list_id, type, team_id,
+				created_at, created_by, updated_by, description,
+				ringtone_id, schema_id, do_schema_id, after_schema_id,
+				sticky_agent, processing, processing_sec, processing_renewal_sec,
+				form_schema_id, grantee_id, tags, prolongation_enabled,
+				prolongation_repeats_number, prolongation_time_sec, 
+				prolongation_is_timeout_retry
+			)
+			values (
+				:Strategy, :Enabled, :Payload, :CalendarId,
+				:Priority, :UpdatedAt, :Name, :Variables,
+				:DomainId, :DncListId, :Type, :TeamId,
+				:CreatedAt, :CreatedBy, :UpdatedBy, :Description,
+				:RingtoneId, :SchemaId, :DoSchemaId, :AfterSchemaId,
+				:StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec,
+				:FormSchemaId, :GranteeId, :Tags, :ProlongationEnabled,
+				:ProlongationNotifyAfterSec, :ProlongationRepeatsNumber,
+				:ProlongationTimeSec, :ProlongationIsTimeoutRetry
+			)
+			returning *
+		)
+		select
+			q.id,
+			q.strategy,
+			q.enabled,
+			q.payload,
+			q.priority,
+			q.updated_at,
+			q.name,
+			q.variables,
+			q.domain_id,
+			q.type,
+			q.created_at,
+			q.description,
+			q.sticky_agent,
+			q.processing,
+			q.processing_sec,
+			q.processing_renewal_sec,
+			q.prolongation_enabled,
+			q.prolongation_repeats_number,
+			q.prolongation_time_sec,
+			q.prolongation_is_timeout_retry,
+			q.tags,
+			call_center.cc_get_lookup(uc.id, uc.name) 			as created_by,
+			call_center.cc_get_lookup(u.id, u.name) 			as updated_by,
+			call_center.cc_get_lookup(c.id, c.name) 			as calendar,
+			call_center.cc_get_lookup(cl.id, cl.name) 			as dnc_list,
+			call_center.cc_get_lookup(ct.id, ct.name) 			as team,
+			call_center.cc_get_lookup(s.id, s.name) 			as schema,
+			call_center.cc_get_lookup(ds.id, ds.name) 			as do_schema,
+			call_center.cc_get_lookup(afs.id, afs.name) 		as after_schema,
+			call_center.cc_get_lookup(q.ringtone_id, mf.name) 	as ringtone,
+			call_center.cc_get_lookup(fs.id, fs.name) 			as form_schema,
+			call_center.cc_get_lookup(au.id, au.name) 			as grantee,
+			jsonb_build_object (
+				'enabled', q.processing,
+				'form_schema', call_center.cc_get_lookup(fs.id, fs.name),
+				'sec', q.processing_sec,
+				'renewal_sec', q.processing_renewal_sec,
+				'prolongation_options',
+					case
+						when q.prolongation_enabled then jsonb_build_object (
+							'prolongation_enabled', q.prolongation_enabled,
+							'prolongation_repeats_number', q.prolongation_repeats_number,
+							'prolongation_time_sec', q.prolongation_time_sec,
+							'prolongation_is_timeout_retry', q.prolongation_is_timeout_retry
+						)
+						else null
+					end
+			) as task_processing
+		from
+			q
+		left join
+			flow.calendar c on q.calendar_id = c.id
+		left join
+			directory.wbt_auth au on au.id = q.grantee_id
+		left join
+			directory.wbt_user uc on uc.id = q.created_by
+		left join
+			directory.wbt_user u on u.id = q.updated_by
+		left join
+			call_center.cc_list cl on q.dnc_list_id = cl.id
+		left join
+			flow.acr_routing_scheme s on q.schema_id = s.id
+		left join
+			flow.acr_routing_scheme ds on q.do_schema_id = ds.id
+		left join
+			flow.acr_routing_scheme afs on q.after_schema_id = afs.id
+		left join
+			flow.acr_routing_scheme fs on q.form_schema_id = fs.id
+		left join
+			call_center.cc_team ct on q.team_id = ct.id
+		left join
+			storage.media_files mf on mf.id = q.ringtone_id
+	`
+
+	args := map[string]any{
+		"Strategy":                   queue.Strategy,
+		"Enabled":                    queue.Enabled,
+		"Payload":                    queue.Payload.ToSafeBytes(),
+		"CalendarId":                 queue.Calendar.GetSafeId(),
+		"Priority":                   queue.Priority,
+		"UpdatedAt":                  queue.UpdatedAt,
+		"Name":                       queue.Name,
+		"Variables":                  queue.Variables.ToJson(),
+		"DomainId":                   queue.DomainId,
+		"DncListId":                  queue.DncListId(),
+		"Type":                       queue.Type,
+		"TeamId":                     queue.TeamId(),
+		"CreatedAt":                  queue.CreatedAt,
+		"CreatedBy":                  queue.CreatedBy.GetSafeId(),
+		"UpdatedBy":                  queue.UpdatedBy.GetSafeId(),
+		"Description":                queue.Description,
+		"SchemaId":                   queue.SchemaId(),
+		"DoSchemaId":                 queue.DoSchemaId(),
+		"AfterSchemaId":              queue.AfterSchemaId(),
+		"RingtoneId":                 queue.RingtoneId(),
+		"StickyAgent":                queue.StickyAgent,
+		"Processing":                 queue.Processing,
+		"ProcessingSec":              queue.ProcessingSec,
+		"ProcessingRenewalSec":       queue.ProcessingRenewalSec,
+		"FormSchemaId":               queue.FormSchema.GetSafeId(),
+		"GranteeId":                  queue.Grantee.GetSafeId(),
+		"Tags":                       pq.Array(queue.Tags),
+		"ProlongationEnabled":        queue.TaskProcessing.ProlongationOptions.ProlongationEnabled,
+		"ProlongationRepeatsNumber":  queue.TaskProcessing.ProlongationOptions.RepeatsNumber,
+		"ProlongationTimeSec":        queue.TaskProcessing.ProlongationOptions.ProlongationTimeSec,
+		"ProlongationIsTimeoutRetry": queue.TaskProcessing.ProlongationOptions.IsTimeoutRetry,
 	}
+
+	var out *model.Queue
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, query, args); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_queue.save.app_error", fmt.Sprintf("name=%v, %v", queue.Name, err.Error()), extractCodeFromErr(err))
+	}
+
+	return out, nil
 }
 
 func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, model.AppError) {
@@ -214,160 +268,247 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 }
 
 func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*model.Queue, model.AppError) {
-	var queue *model.Queue
-	if err := s.GetReplica().WithContext(ctx).SelectOne(&queue, `
-select q.id,
-       q.strategy,
-       q.enabled,
-       q.payload,
-       q.priority,
-       q.updated_at,
-       q.name,
-       q.variables,
-       q.domain_id,
-       q.type,
-       q.created_at,
-       call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
-       call_center.cc_get_lookup(u.id, u.name)           as updated_by,
-       call_center.cc_get_lookup(c.id, c.name)           as calendar,
-       call_center.cc_get_lookup(cl.id, cl.name)         as dnc_list,
-       call_center.cc_get_lookup(ct.id, ct.name)         as team,
-       q.description,
-       call_center.cc_get_lookup(s.id, s.name)           as schema,
-       call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
-       call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
-       call_center.cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
-	   q.sticky_agent,
-	   q.processing,
-	   q.processing_sec,
-	   q.processing_renewal_sec,
-	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
-       jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
-                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
-	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee,
-       q.tags
-from call_center.cc_queue q
-         left join flow.calendar c on q.calendar_id = c.id
-	     left join directory.wbt_auth au on au.id = q.grantee_id
-         left join directory.wbt_user uc on uc.id = q.created_by
-         left join directory.wbt_user u on u.id = q.updated_by
-         left join call_center.cc_list cl on q.dnc_list_id = cl.id
-         left join flow.acr_routing_scheme s on q.schema_id = s.id
-         LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
-         LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
-		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
-         left join call_center.cc_team ct on q.team_id = ct.id
-         left join storage.media_files mf on mf.id = q.ringtone_id 	
-where q.domain_id = :DomainId and q.id = :Id
-		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
-		return nil, model.NewCustomCodeError("store.sql_queue.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
-	} else {
-		return queue, nil
+	query := `
+		select
+			q.id,
+			q.strategy,
+			q.enabled,
+			q.payload,
+			q.priority,
+			q.updated_at,
+			q.name,
+			q.variables,
+			q.domain_id,
+			q.type,
+			q.created_at,
+			q.description,
+			q.sticky_agent,
+			q.processing,
+			q.processing_sec,
+			q.processing_renewal_sec,
+			q.prolongation_enabled,
+			q.prolongation_repeats_number,
+			q.prolongation_time_sec,
+			q.prolongation_is_timeout_retry,
+			q.tags,
+			call_center.cc_get_lookup(uc.id, uc.name) 			as created_by,
+			call_center.cc_get_lookup(u.id, u.name) 			as updated_by,
+			call_center.cc_get_lookup(c.id, c.name) 			as calendar,
+			call_center.cc_get_lookup(cl.id, cl.name) 			as dnc_list,
+			call_center.cc_get_lookup(ct.id, ct.name) 			as team,
+			call_center.cc_get_lookup(s.id, s.name) 			as schema,
+			call_center.cc_get_lookup(ds.id, ds.name) 			as do_schema,
+			call_center.cc_get_lookup(afs.id, afs.name) 		as after_schema,
+			call_center.cc_get_lookup(q.ringtone_id, mf.name) 	as ringtone,
+			call_center.cc_get_lookup(fs.id, fs.name) 			as form_schema,
+			call_center.cc_get_lookup(au.id, au.name) 			as grantee,
+			jsonb_build_object (
+				'enabled', q.processing,
+				'form_schema', call_center.cc_get_lookup(fs.id, fs.name),
+				'sec', q.processing_sec,
+				'renewal_sec', q.processing_renewal_sec,
+				'prolongation_options',
+					case
+						when q.prolongation_enabled then jsonb_build_object (
+							'prolongation_enabled', q.prolongation_enabled,
+							'prolongation_repeats_number', q.prolongation_repeats_number,
+							'prolongation_time_sec', q.prolongation_time_sec,
+							'prolongation_is_timeout_retry', q.prolongation_is_timeout_retry
+						)
+						else null
+					end
+			) as task_processing
+			from
+				call_center.cc_queue q
+			left join
+				flow.calendar c on q.calendar_id = c.id
+			left join
+				directory.wbt_auth au on au.id = q.grantee_id
+			left join
+				directory.wbt_user uc on uc.id = q.created_by
+			left join
+				directory.wbt_user u on u.id = q.updated_by
+			left join
+				call_center.cc_list cl on q.dnc_list_id = cl.id
+			left join
+				flow.acr_routing_scheme s on q.schema_id = s.id
+			left join
+				flow.acr_routing_scheme ds on q.do_schema_id = ds.id
+			left join
+				flow.acr_routing_scheme afs on q.after_schema_id = afs.id
+			left join
+				flow.acr_routing_scheme fs on q.form_schema_id = fs.id
+			left join
+				call_center.cc_team ct on q.team_id = ct.id
+			left join
+				storage.media_files mf on mf.id = q.ringtone_id
+			where
+				q.domain_id = :DomainId 
+				and q.id = :Id
+	`
+	args := map[string]any{
+		"Id":       id,
+		"DomainId": domainId,
 	}
+
+	var queue *model.Queue
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&queue, query, args); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_queue.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
+
+	return queue, nil
 }
 
 func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
-	err := s.GetMaster().WithContext(ctx).SelectOne(&queue, `with q as (
-    update call_center.cc_queue q
-set updated_at = :UpdatedAt,
-    updated_by = :UpdatedBy,
-    strategy = :Strategy,
-    enabled = :Enabled,
-    payload = :Payload,
-    calendar_id = :CalendarId,
-    priority = :Priority,
-    name = :Name,
-    variables = :Variables,
-    dnc_list_id = :DncListId,
-    type = :Type,
-    team_id = :TeamId,
-	description = :Description,
-	schema_id = :SchemaId,
-	ringtone_id = :RingtoneId,
-	do_schema_id = :DoSchemaId,
-	after_schema_id = :AfterSchemaId,
-	sticky_agent = :StickyAgent,
-	processing = :Processing,
-	processing_sec = :ProcessingSec,
-    processing_renewal_sec = :ProcessingRenewalSec,
-	form_schema_id = :FormSchemaId,
-	grantee_id = :GranteeId,
-    tags = :Tags
-where q.id = :Id and q.domain_id = :DomainId
-    returning *
-)
-select q.id,
-       q.strategy,
-       q.enabled,
-       q.payload,
-       q.priority,
-       q.updated_at,
-       q.name,
-       q.variables,
-       q.domain_id,
-       q.type,
-       q.created_at,
-       call_center.cc_get_lookup(uc.id, uc.name)         as created_by,
-       call_center.cc_get_lookup(u.id, u.name)           as updated_by,
-       call_center.cc_get_lookup(c.id, c.name)           as calendar,
-       call_center.cc_get_lookup(cl.id, cl.name)         as dnc_list,
-       call_center.cc_get_lookup(ct.id, ct.name)         as team,
-       q.description,
-       call_center.cc_get_lookup(s.id, s.name)           as schema,
-       call_center.cc_get_lookup(ds.id, ds.name)                      AS do_schema,
-       call_center.cc_get_lookup(afs.id, afs.name)                      AS after_schema,
-       call_center.cc_get_lookup(q.ringtone_id, mf.name) as ringtone,
-	   q.sticky_agent,
-	   q.processing,
-	   q.processing_sec,
-	   q.processing_renewal_sec,
-	   call_center.cc_get_lookup(fs.id, fs.name)                      AS form_schema,
-       jsonb_build_object('enabled', q.processing, 'form_schema', call_center.cc_get_lookup(fs.id, fs.name), 'sec',
-                          q.processing_sec, 'renewal_sec', q.processing_renewal_sec) AS task_processing,
-	   call_center.cc_get_lookup(au.id, au.name)                                     AS grantee,
-	   q.tags	
-from  q
-         left join flow.calendar c on q.calendar_id = c.id
-		 left join directory.wbt_auth au on au.id = q.grantee_id
-         left join directory.wbt_user uc on uc.id = q.created_by
-         left join directory.wbt_user u on u.id = q.updated_by
-         left join call_center.cc_list cl on q.dnc_list_id = cl.id
-         left join flow.acr_routing_scheme s on q.schema_id = s.id
-         LEFT JOIN flow.acr_routing_scheme ds ON q.do_schema_id = ds.id
-         LEFT JOIN flow.acr_routing_scheme afs ON q.after_schema_id = afs.id
-		 LEFT JOIN flow.acr_routing_scheme fs ON q.form_schema_id = fs.id
-         left join call_center.cc_team ct on q.team_id = ct.id
-         left join storage.media_files mf on mf.id = q.ringtone_id`, map[string]interface{}{
-		"UpdatedAt":            queue.UpdatedAt,
-		"UpdatedBy":            queue.UpdatedBy.GetSafeId(),
-		"Strategy":             queue.Strategy,
-		"Enabled":              queue.Enabled,
-		"Payload":              queue.Payload.ToSafeBytes(),
-		"CalendarId":           queue.Calendar.GetSafeId(),
-		"Priority":             queue.Priority,
-		"Name":                 queue.Name,
-		"Variables":            queue.Variables.ToJson(),
-		"DncListId":            queue.DncListId(),
-		"Type":                 queue.Type,
-		"TeamId":               queue.TeamId(),
-		"SchemaId":             queue.SchemaId(),
-		"Id":                   queue.Id,
-		"DomainId":             queue.DomainId,
-		"Description":          queue.Description,
-		"RingtoneId":           queue.RingtoneId(),
-		"DoSchemaId":           queue.DoSchemaId(),
-		"AfterSchemaId":        queue.AfterSchemaId(),
-		"StickyAgent":          queue.StickyAgent,
-		"Processing":           queue.Processing,
-		"ProcessingSec":        queue.ProcessingSec,
-		"ProcessingRenewalSec": queue.ProcessingRenewalSec,
-		"FormSchemaId":         queue.FormSchema.GetSafeId(),
-		"GranteeId":            queue.Grantee.GetSafeId(),
-		"Tags":                 pq.Array(queue.Tags),
-	})
-	if err != nil {
+	query := `
+		with q as (
+			update 
+				call_center.cc_queue q
+			set
+				updated_at 	= :UpdatedAt,
+				updated_by 	= :UpdatedBy,
+				strategy 	= :Strategy,
+				enabled 	= :Enabled,
+				payload 	= :Payload,
+				calendar_id = :CalendarId,
+				priority 	= :Priority,
+				name 		= :Name,
+				variables 	= :Variables,
+				dnc_list_id = :DncListId,
+    			type 		= :Type,
+    			team_id 	= :TeamId,
+				description = :Description,
+				schema_id 	= :SchemaId,
+				ringtone_id = :RingtoneId,
+				do_schema_id = :DoSchemaId,
+				after_schema_id = :AfterSchemaId,
+				sticky_agent = :StickyAgent,
+				processing 	= :Processing,
+				processing_sec = :ProcessingSec,
+    			processing_renewal_sec = :ProcessingRenewalSec,
+				form_schema_id = :FormSchemaId,
+				grantee_id = :GranteeId,
+    			tags 	= :Tags,
+				prolongation_enabled 			= :ProlongationEnabled,
+				prolongation_repeats_number 	= :ProlongationRepeatsNumber,
+				prolongation_time_sec 			= :ProlongationTimeSec,
+				prolongation_is_timeout_retry 	= :ProlongationIsTimeoutRetry
+			where
+				q.id = :Id
+				and q.domain_id = :DomainId
+			returning *
+		)
+		select
+			q.id,
+			q.strategy,
+			q.enabled,
+			q.payload,
+			q.priority,
+			q.updated_at,
+			q.name,
+			q.variables,
+			q.domain_id,
+			q.type,
+			q.created_at,
+			q.description,
+			q.sticky_agent,
+			q.processing,
+			q.processing_sec,
+			q.processing_renewal_sec,
+			q.prolongation_enabled,
+			q.prolongation_repeats_number,
+			q.prolongation_time_sec,
+			q.prolongation_is_timeout_retry,
+			q.tags,
+			call_center.cc_get_lookup(uc.id, uc.name) 			as created_by,
+			call_center.cc_get_lookup(u.id, u.name) 			as updated_by,
+			call_center.cc_get_lookup(c.id, c.name) 			as calendar,
+			call_center.cc_get_lookup(cl.id, cl.name) 			as dnc_list,
+			call_center.cc_get_lookup(ct.id, ct.name) 			as team,
+			call_center.cc_get_lookup(s.id, s.name) 			as schema,
+			call_center.cc_get_lookup(ds.id, ds.name) 			as do_schema,
+			call_center.cc_get_lookup(afs.id, afs.name) 		as after_schema,
+			call_center.cc_get_lookup(q.ringtone_id, mf.name) 	as ringtone,
+			call_center.cc_get_lookup(fs.id, fs.name) 			as form_schema,
+			call_center.cc_get_lookup(au.id, au.name) 			as grantee,
+			jsonb_build_object (
+				'enabled', q.processing,
+				'form_schema', call_center.cc_get_lookup(fs.id, fs.name),
+				'sec', q.processing_sec,
+				'renewal_sec', q.processing_renewal_sec,
+				'prolongation_options',
+					case
+						when q.prolongation_enabled then jsonb_build_object (
+							'prolongation_enabled', q.prolongation_enabled,
+							'prolongation_repeats_number', q.prolongation_repeats_number,
+							'prolongation_time_sec', q.prolongation_time_sec,
+							'prolongation_is_timeout_retry', q.prolongation_is_timeout_retry
+						)
+						else null
+					end
+			) as task_processing
+		from
+			q
+		left join
+			flow.calendar c on q.calendar_id = c.id
+		left join
+			directory.wbt_auth au on au.id = q.grantee_id
+		left join
+			directory.wbt_user uc on uc.id = q.created_by
+		left join
+			directory.wbt_user u on u.id = q.updated_by
+		left join
+			call_center.cc_list cl on q.dnc_list_id = cl.id
+		left join
+			flow.acr_routing_scheme s on q.schema_id = s.id
+		left join
+			flow.acr_routing_scheme ds on q.do_schema_id = ds.id
+		left join
+			flow.acr_routing_scheme afs on q.after_schema_id = afs.id
+		left join
+			flow.acr_routing_scheme fs on q.form_schema_id = fs.id
+		left join
+			call_center.cc_team ct on q.team_id = ct.id
+		left join
+			storage.media_files mf on mf.id = q.ringtone_id
+	`
+	args := map[string]any{
+		"UpdatedAt":                  queue.UpdatedAt,
+		"UpdatedBy":                  queue.UpdatedBy.GetSafeId(),
+		"Strategy":                   queue.Strategy,
+		"Enabled":                    queue.Enabled,
+		"Payload":                    queue.Payload.ToSafeBytes(),
+		"CalendarId":                 queue.Calendar.GetSafeId(),
+		"Priority":                   queue.Priority,
+		"Name":                       queue.Name,
+		"Variables":                  queue.Variables.ToJson(),
+		"DncListId":                  queue.DncListId(),
+		"Type":                       queue.Type,
+		"TeamId":                     queue.TeamId(),
+		"SchemaId":                   queue.SchemaId(),
+		"Id":                         queue.Id,
+		"DomainId":                   queue.DomainId,
+		"Description":                queue.Description,
+		"RingtoneId":                 queue.RingtoneId(),
+		"DoSchemaId":                 queue.DoSchemaId(),
+		"AfterSchemaId":              queue.AfterSchemaId(),
+		"StickyAgent":                queue.StickyAgent,
+		"Processing":                 queue.Processing,
+		"ProcessingSec":              queue.ProcessingSec,
+		"ProcessingRenewalSec":       queue.ProcessingRenewalSec,
+		"FormSchemaId":               queue.FormSchema.GetSafeId(),
+		"GranteeId":                  queue.Grantee.GetSafeId(),
+		"Tags":                       pq.Array(queue.Tags),
+		"ProlongationEnabled":        queue.TaskProcessing.ProlongationOptions.ProlongationEnabled,
+		"ProlongationRepeatsNumber":  queue.TaskProcessing.ProlongationOptions.RepeatsNumber,
+		"ProlongationTimeSec":        queue.TaskProcessing.ProlongationOptions.ProlongationTimeSec,
+		"ProlongationIsTimeoutRetry": queue.TaskProcessing.ProlongationOptions.IsTimeoutRetry,
+	}
+
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&queue, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_queue.update.app_error", fmt.Sprintf("Id=%v, %s", queue.Id, err.Error()), extractCodeFromErr(err))
 	}
+
 	return queue, nil
 }
 

@@ -50,6 +50,9 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		FormSchema:           GetLookup(in.GetFormSchema()),
 		Grantee:              GetLookup(in.GetGrantee()),
 		Tags:                 tagsToStrings(in.GetTags()),
+		TaskProcessing: &model.QueueTaskProcessing{ //?rewrite better
+			ProlongationOptions: &model.QueueTaskProcessingProlongationOptions{},
+		},
 	}
 
 	if in.TaskProcessing != nil {
@@ -57,6 +60,13 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		queue.ProcessingSec = in.TaskProcessing.Sec
 		queue.ProcessingRenewalSec = in.TaskProcessing.RenewalSec
 		queue.FormSchema = GetLookup(in.TaskProcessing.GetFormSchema())
+
+		if in.TaskProcessing.ProlongationOptions != nil {
+			queue.TaskProcessing.ProlongationOptions.ProlongationEnabled = in.TaskProcessing.ProlongationOptions.Enabled
+			queue.TaskProcessing.ProlongationOptions.IsTimeoutRetry = in.TaskProcessing.ProlongationOptions.IsTimeoutRetry
+			queue.TaskProcessing.ProlongationOptions.ProlongationTimeSec = in.TaskProcessing.ProlongationOptions.ProlongationTimeSec
+			queue.TaskProcessing.ProlongationOptions.RepeatsNumber = in.TaskProcessing.ProlongationOptions.RepeatsNumber
+		}
 	}
 
 	queue, err = api.ctrl.CreateQueue(ctx, session, queue)
@@ -94,7 +104,6 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 	}
 
 	list, endList, err = api.ctrl.SearchQueue(ctx, session, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -103,6 +112,7 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 	for _, v := range list {
 		items = append(items, transformQueue(v))
 	}
+
 	return &engine.ListQueue{
 		Next:  !endList,
 		Items: items,
@@ -115,10 +125,7 @@ func (api *queue) ReadQueue(ctx context.Context, in *engine.ReadQueueRequest) (*
 		return nil, err
 	}
 
-	var queue *model.Queue
-
-	queue, err = api.ctrl.GetQueue(ctx, session, in.Id)
-
+	queue, err := api.ctrl.GetQueue(ctx, session, in.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +139,6 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 		return nil, err
 	}
 
-	var queue *model.Queue
 	patch := &model.QueuePatch{}
 
 	//TODO
@@ -182,6 +188,14 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.Grantee = GetLookup(in.Grantee)
 		case "tags":
 			patch.Tags = tagsToStrings(in.Tags)
+		case "task_processing.prolongation_options.enabled":
+			patch.ProlongationEnabled = &in.GetTaskProcessing().GetProlongationOptions().Enabled
+		case "task_processing.prolongation_options.repeats_number":
+			patch.RepeatsNumber = &in.GetTaskProcessing().GetProlongationOptions().RepeatsNumber
+		case "task_processing.prolongation_options.prolongation_time_sec":
+			patch.ProlongationTimeSec = &in.GetTaskProcessing().GetProlongationOptions().ProlongationTimeSec
+		case "task_processing.prolongation_options.prolongation_is_timeout_retry":
+			patch.IsTimeoutRetry = &in.GetTaskProcessing().GetProlongationOptions().IsTimeoutRetry
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables
@@ -191,8 +205,7 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 		}
 	}
 
-	queue, err = api.ctrl.PatchQueue(ctx, session, in.GetId(), patch)
-
+	queue, err := api.ctrl.PatchQueue(ctx, session, in.GetId(), patch)
 	if err != nil {
 		return nil, err
 	}
@@ -234,6 +247,9 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
 		Grantee:              GetLookup(in.GetGrantee()),
 		Tags:                 tagsToStrings(in.GetTags()),
+		TaskProcessing: &model.QueueTaskProcessing{
+			ProlongationOptions: &model.QueueTaskProcessingProlongationOptions{},
+		},
 	}
 
 	if in.TaskProcessing != nil {
@@ -241,10 +257,16 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 		queue.ProcessingSec = in.TaskProcessing.Sec
 		queue.ProcessingRenewalSec = in.TaskProcessing.RenewalSec
 		queue.FormSchema = GetLookup(in.TaskProcessing.GetFormSchema())
+
+		if in.TaskProcessing.ProlongationOptions != nil {
+			queue.TaskProcessing.ProlongationOptions.ProlongationEnabled = in.TaskProcessing.ProlongationOptions.Enabled
+			queue.TaskProcessing.ProlongationOptions.IsTimeoutRetry = in.TaskProcessing.ProlongationOptions.IsTimeoutRetry
+			queue.TaskProcessing.ProlongationOptions.ProlongationTimeSec = in.TaskProcessing.ProlongationOptions.ProlongationTimeSec
+			queue.TaskProcessing.ProlongationOptions.RepeatsNumber = in.TaskProcessing.ProlongationOptions.RepeatsNumber
+		}
 	}
 
 	queue, err = api.ctrl.UpdateQueue(ctx, session, queue)
-
 	if err != nil {
 		return nil, err
 	}
@@ -429,6 +451,15 @@ func transformQueue(src *model.Queue) *engine.Queue {
 			FormSchema: GetProtoLookup(src.TaskProcessing.FormSchema),
 			Sec:        src.TaskProcessing.Sec,
 			RenewalSec: src.TaskProcessing.RenewalSec,
+		}
+
+		if src.TaskProcessing.ProlongationOptions != nil {
+			q.TaskProcessing.ProlongationOptions = &engine.TaskProcessingProlongationOptions{
+				Enabled:             src.TaskProcessing.ProlongationOptions.ProlongationEnabled,
+				RepeatsNumber:       src.TaskProcessing.ProlongationOptions.RepeatsNumber,
+				ProlongationTimeSec: src.TaskProcessing.ProlongationOptions.ProlongationTimeSec,
+				IsTimeoutRetry:      src.TaskProcessing.ProlongationOptions.IsTimeoutRetry,
+			}
 		}
 	}
 

@@ -33,6 +33,11 @@ type Queue struct {
 	ProcessingRenewalSec uint32          `json:"processing_renewal_sec" db:"processing_renewal_sec"`
 	FormSchema           *Lookup         `json:"form_schema" db:"form_schema"`
 
+	ProlongationEnabled bool   `json:"prolongation_enabled" db:"prolongation_enabled"`
+	RepeatsNumber       uint32 `json:"prolongation_repeats_number" db:"prolongation_repeats_number"`
+	ProlongationTimeSec uint32 `json:"prolongation_time_sec" db:"prolongation_time_sec"`
+	IsTimeoutRetry      bool   `json:"prolongation_is_timeout_retry" db:"prolongation_is_timeout_retry"`
+
 	TaskProcessing *QueueTaskProcessing `json:"task_processing" db:"task_processing"`
 	Grantee        *Lookup              `json:"grantee" db:"grantee"`
 	Tags           StringArray          `json:"tags" db:"tags"`
@@ -46,6 +51,23 @@ type QueueTaskProcessing struct {
 	Sec        uint32  `json:"sec"`
 	RenewalSec uint32  `json:"renewal_sec"`
 	FormSchema *Lookup `json:"form_schema"`
+
+	ProlongationOptions *QueueTaskProcessingProlongationOptions `json:"prolongation_options" db:"prolongation_options"`
+}
+
+type QueueTaskProcessingProlongationOptions struct {
+	ProlongationEnabled bool   `json:"prolongation_enabled"`
+	RepeatsNumber       uint32 `json:"prolongation_repeats_number"`
+	ProlongationTimeSec uint32 `json:"prolongation_time_sec"`
+	IsTimeoutRetry      bool   `json:"prolongation_is_timeout_retry"`
+}
+
+func (q *QueueTaskProcessingProlongationOptions) IsValid() AppError {
+	if q.ProlongationEnabled && (q.ProlongationTimeSec == 0 || q.RepeatsNumber == 0) {
+		return NewBadRequestError("controller.queue.valid.prolongation_fields", "prolongation number fields must be greater than 0")
+	}
+
+	return nil
 }
 
 func (q Queue) AllowFields() []string {
@@ -53,7 +75,9 @@ func (q Queue) AllowFields() []string {
 		"domain_id", "type", "created_at", "created_by", "updated_by", "calendar", "dnc_list", "team", "description",
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
 		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing", "grantee", "tags",
-		"resource_groups", "resources"}
+		"prolongation_enabled", "prolongation_repeats_number", "prolongation_time_sec",
+		"prolongation_is_timeout_retry",
+	}
 }
 
 func (q Queue) DefaultOrder() string {
@@ -148,6 +172,11 @@ type QueuePatch struct {
 	FormSchema           *Lookup         `json:"form_schema" db:"form_schema"`
 	Grantee              *Lookup         `json:"grantee" db:"grantee"`
 	Tags                 StringArray     `json:"tags" db:"tags"`
+
+	ProlongationEnabled *bool   `json:"prolongation_enabled" db:"prolongation_enabled"`
+	RepeatsNumber       *uint32 `json:"prolongation_repeats_number" db:"prolongation_repeats_number"`
+	ProlongationTimeSec *uint32 `json:"prolongation_time_sec" db:"prolongation_time_sec"`
+	IsTimeoutRetry      *bool   `json:"prolongation_is_timeout_retry" db:"prolongation_is_timeout_retry"`
 }
 
 func (q *Queue) Patch(p *QueuePatch) {
@@ -242,6 +271,22 @@ func (q *Queue) Patch(p *QueuePatch) {
 
 	if p.Tags != nil {
 		q.Tags = p.Tags
+	}
+
+	if p.ProlongationEnabled != nil && q.TaskProcessing.ProlongationOptions != nil {
+		q.TaskProcessing.ProlongationOptions.ProlongationEnabled = *p.ProlongationEnabled
+	}
+
+	if p.RepeatsNumber != nil && q.TaskProcessing.ProlongationOptions != nil {
+		q.TaskProcessing.ProlongationOptions.RepeatsNumber = *p.RepeatsNumber
+	}
+
+	if p.ProlongationTimeSec != nil && q.TaskProcessing.ProlongationOptions != nil {
+		q.TaskProcessing.ProlongationOptions.ProlongationTimeSec = *p.ProlongationTimeSec
+	}
+
+	if p.IsTimeoutRetry != nil && q.TaskProcessing.ProlongationOptions != nil {
+		q.TaskProcessing.ProlongationOptions.IsTimeoutRetry = *p.IsTimeoutRetry
 	}
 }
 

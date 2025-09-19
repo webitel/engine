@@ -279,6 +279,10 @@ type CCTask struct {
 	Variables            *Variables           `json:"variables,omitempty" db:"variables"`
 	BridgedAt            *int64               `json:"bridged_at,omitempty" db:"bridged_at"`
 	AgentId              *int                 `json:"agent_id,omitempty" db:"agent_id"`
+
+	HasProlongation        bool    `json:"has_prolongation" db:"has_prolongation"`
+	RemainingProlongations *uint32 `json:"remaining_prolongations" db:"remaining_prolongations"`
+	ProlongationSec        *uint32 `json:"prolongation_sec" db:"prolongation_sec"`
 }
 
 type CallAnnotation struct {
@@ -364,6 +368,7 @@ type CallFile struct {
 	StartAt     int64  `json:"start_at"`
 	StopAt      int64  `json:"stop_at"`
 	StartRecord string `json:"start_record"`
+	Channel     string `json:"channel"`
 }
 
 func TimeToInt64(t *time.Time) int64 {

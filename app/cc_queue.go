@@ -47,9 +47,17 @@ func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.Q
 		return nil, err
 	}
 
+	if oldQueue.TaskProcessing.ProlongationOptions == nil {
+		oldQueue.TaskProcessing.ProlongationOptions = &model.QueueTaskProcessingProlongationOptions{}
+	}
+
 	oldQueue.Patch(patch)
 
 	if err = oldQueue.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err = oldQueue.TaskProcessing.ProlongationOptions.IsValid(); err != nil {
 		return nil, err
 	}
 
@@ -101,6 +109,7 @@ func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue
 	oldQueue.FormSchema = queue.FormSchema
 	oldQueue.Grantee = queue.Grantee
 	oldQueue.Tags = queue.Tags
+	oldQueue.TaskProcessing.ProlongationOptions = queue.TaskProcessing.ProlongationOptions
 
 	oldQueue, err = a.Store.Queue().Update(ctx, oldQueue)
 	if err != nil {
