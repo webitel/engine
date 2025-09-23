@@ -175,6 +175,7 @@ type CallParameters struct {
 	CancelDistribute  bool
 	IsOnline          bool
 	HideNumber        bool
+	ContactId         int
 }
 
 // todo
