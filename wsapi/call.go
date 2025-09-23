@@ -624,9 +624,14 @@ func variablesFromMap(m map[string]interface{}, name string) map[string]string {
 
 func callParams(props map[string]any) model.CallParameters {
 	var params model.CallParameters
+	var tmp float64
 
-	params.Timeout, _ = props["timeout"].(int)
-	params.ContactId, _ = props["contact_id"].(int)
+	tmp, _ = props["timeout"].(float64)
+	params.Timeout = int(tmp)
+
+	tmp, _ = props["contact_id"].(float64)
+	params.ContactId = int(tmp)
+
 	params.Video, _ = props["video"].(bool)
 	params.Screen, _ = props["screen"].(bool)
 	params.Record, _ = props["record"].(bool)
