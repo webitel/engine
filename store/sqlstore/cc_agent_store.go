@@ -340,7 +340,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&agent, `
 		SELECT a.domain_id,
 			   a.id,
-			   COALESCE(ct.name::character varying::name, ct.username)::character varying                             AS name,
+			   COALESCE(ct.name, ct.username)                             AS name,
 			   a.status,
 			   a.description,
 			   (date_part('epoch'::text, a.last_state_change) *
@@ -348,7 +348,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			   date_part('epoch'::text, now() - a.last_state_change)::bigint                                          AS status_duration,
 			   a.progressive_count,
 			   ch.x                                                                                                   AS channel,
-			   json_build_object('id', ct.id, 'name', COALESCE(ct.name::character varying::name, ct.username))::jsonb AS "user",
+			   json_build_object('id', ct.id, 'name', COALESCE(ct.name, ct.username))::jsonb AS "user",
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
