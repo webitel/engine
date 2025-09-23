@@ -555,6 +555,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 			CancelDistribute:  in.GetParams().GetCancelDistribute(),
 			IsOnline:          in.GetParams().GetIsOnline(),
 			HideNumber:        in.GetParams().GetHideNumber(),
+			ContactId:         int(in.GetParams().GetContactId()),
 		},
 	}
 
