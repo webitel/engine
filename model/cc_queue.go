@@ -76,7 +76,7 @@ func (q Queue) AllowFields() []string {
 		"schema", "count", "waiting", "active", "ringtone", "do_schema", "after_schema", "sticky_agent",
 		"processing", "processing_sec", "processing_renewal_sec", "form_schema", "task_processing", "grantee", "tags",
 		"prolongation_enabled", "prolongation_repeats_number", "prolongation_time_sec",
-		"prolongation_is_timeout_retry",
+		"prolongation_is_timeout_retry", "resource_groups", "resources",
 	}
 }
 
