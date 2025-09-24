@@ -36,7 +36,8 @@ const (
 	SysNameScreenshotInterval          = "screenshot_interval"
 	SysNamePasswordExpiryDays          = "password_expiry_days"
 	SysNamePasswordMinLength           = "password_min_length"
-	SysNamePasswordMinCategories       = "password_min_categories"
+	SysNamePasswordCategories          = "password_categories"
+	SysNamePasswordContainsUsername    = "password_contains_username"
 )
 
 type SysValue json.RawMessage
@@ -85,7 +86,7 @@ func (s *SystemSetting) IsValid() AppError {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
-		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordMinCategories:
+		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength:
 		value := SysValue(s.Value)
 		i := value.Int()
 
@@ -113,7 +114,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameTaskEndSoundNotification,
 		SysNameTaskEndPushNotification,
 		SysNameNewMessageSoundNotification,
-		SysNameNewChatSoundNotification:
+		SysNameNewChatSoundNotification,
+		SysNamePasswordContainsUsername:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
@@ -136,6 +138,14 @@ func (s *SystemSetting) IsValid() AppError {
 		err := json.Unmarshal(s.Value, &labels)
 		if err != nil {
 			return NewBadRequestError("model.SystemSetting.labels_to_limit_contacts.invalid.value", `value is not properly formed required: [{"label":"string"}]`)
+		}
+	case SysNamePasswordCategories:
+		var categories []struct {
+			Category string `json:"category"`
+		}
+		err := json.Unmarshal(s.Value, &categories)
+		if err != nil {
+			return NewBadRequestError("model.SystemSetting.password_categories.invalid.value", `value is not properly formed required: [{"category":"string"}]`)
 		}
 	default:
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
