@@ -629,7 +629,7 @@ func callParams(props map[string]any) model.CallParameters {
 	tmp, _ = props["timeout"].(float64)
 	params.Timeout = int(tmp)
 
-	tmp, _ = props["contact_id"].(float64)
+	tmp, _ = props["contactId"].(float64)
 	params.ContactId = int(tmp)
 
 	params.Video, _ = props["video"].(bool)
