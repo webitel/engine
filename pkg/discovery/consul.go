@@ -3,10 +3,11 @@ package discovery
 import (
 	"errors"
 	"fmt"
-	"github.com/hashicorp/consul/api"
-	"github.com/webitel/wlog"
 	"net/http"
 	"time"
+
+	"github.com/hashicorp/consul/api"
+	"github.com/webitel/wlog"
 )
 
 type consul struct {
@@ -48,18 +49,19 @@ func NewConsul(id, addr string, check CheckFunction) (*consul, error) {
 }
 
 func (c *consul) GetByName(serviceName string) (ListConnections, error) {
-	list, err := c.agent.ServicesWithFilter(fmt.Sprintf("Service == %s", serviceName))
+	entries, _, err := c.cli.Health().Service(serviceName, "", true, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]*ServiceConnection, 0, len(list))
-	for _, v := range list {
+	result := make([]*ServiceConnection, 0, len(entries))
+	for _, entry := range entries {
+		svc := entry.Service
 		result = append(result, &ServiceConnection{
-			Id:      v.ID,
-			Service: v.Service,
-			Host:    v.Address,
-			Port:    v.Port,
+			Id:      svc.ID,
+			Service: svc.Service,
+			Host:    svc.Address,
+			Port:    svc.Port,
 		})
 	}
 
