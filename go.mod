@@ -18,7 +18,7 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/webitel/engine/pkg/discovery v0.0.0-20250924123523-9c98a8a1adb1
+	github.com/webitel/engine/pkg/discovery v0.0.0-20250925090335-284caa978daa
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
 	github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a
 	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
