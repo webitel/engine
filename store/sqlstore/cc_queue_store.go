@@ -81,8 +81,7 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 				:RingtoneId, :SchemaId, :DoSchemaId, :AfterSchemaId,
 				:StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec,
 				:FormSchemaId, :GranteeId, :Tags, :ProlongationEnabled,
-				:ProlongationNotifyAfterSec, :ProlongationRepeatsNumber,
-				:ProlongationTimeSec, :ProlongationIsTimeoutRetry
+				:ProlongationRepeatsNumber, :ProlongationTimeSec, :ProlongationIsTimeoutRetry
 			)
 			returning *
 		)
