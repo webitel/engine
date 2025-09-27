@@ -334,12 +334,10 @@ github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf
 github.com/tmc/grpc-websocket-proxy v0.0.0-20190109142713-0ad062ec5ee5/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
-github.com/webitel/engine/pkg/discovery v0.0.0-20250508135218-1dfa763ecc23 h1:pFVUCDQrgIoJLErdyhbxwzLyaKiYpPiEbnNPG07Ign0=
-github.com/webitel/engine/pkg/discovery v0.0.0-20250508135218-1dfa763ecc23/go.mod h1:SYOLV0TUj7A8ZfCLdNgI08twGMXAlPzqkQ68XL5ePzo=
+github.com/webitel/engine/pkg/discovery v0.0.0-20250925090335-284caa978daa h1:5sLvYZmi0X/Bsi6gK+OkG4N4VW4Nxcro1ak16CiMG+Y=
+github.com/webitel/engine/pkg/discovery v0.0.0-20250925090335-284caa978daa/go.mod h1:SYOLV0TUj7A8ZfCLdNgI08twGMXAlPzqkQ68XL5ePzo=
 github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27 h1:DeL310n2Tx91iQvvFFQkY4EHMoUhK1pvmh7gOmp1eFw=
 github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27/go.mod h1:C5rpf4XfdQ6a5+MpL0Ix0SsH/RNcrerpzqSomDH3VQY=
-github.com/webitel/engine/pkg/wbt v0.0.0-20250509074643-d2d6d2fe6f89 h1:65dXln9m2To52A3FRPSkUpxFlaJk/D7oPs4pyHfuPpM=
-github.com/webitel/engine/pkg/wbt v0.0.0-20250509074643-d2d6d2fe6f89/go.mod h1:X0IamnomNaWvRaJihNIZSTiz3rcFuRm19qZq6uO8Tig=
 github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a h1:OJpRP+CApAOQVNT073qii9V1z7l87MfAuCD3UfZRnv8=
 github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a/go.mod h1:15PVfPhimD18i+1ARcWq5ZZ8P5ugjpriGIT1+5/bDEw=
 github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8 h1:3++AqBWhwSUuhOSNcrSOpW8UdFaUn/CsXm++zzichCI=
