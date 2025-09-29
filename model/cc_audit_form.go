@@ -107,6 +107,14 @@ func (af *AuditForm) IsValid() AppError {
 			if len(v.Options) == 0 {
 				return NewBadRequestError("app.audit_form.is_valid.option.options", "")
 			}
+			// Check for duplicate scores
+			scores := make(map[float32]bool)
+			for _, opt := range v.Options {
+				if _, exists := scores[opt.Score]; exists {
+					return NewBadRequestError("app.audit_form.is_valid.option.duplicate_score", "Options cannot have duplicate scores")
+				}
+				scores[opt.Score] = true
+			}
 		case QuestionTypeYes:
 			continue
 		default:
