@@ -92,8 +92,9 @@ type AgentStatusStatistics struct {
 	PauseCause  string    `json:"pause_cause" db:"pause_cause"`
 	ChatCount   int32     `json:"chat_count" db:"chat_count"`
 
-	Occupancy float32 `json:"occupancy" db:"occupancy"`
-	DescTrack bool    `json:"desc_track" db:"desc_track"`
+	Occupancy     float32 `json:"occupancy" db:"occupancy"`
+	DescTrack     bool    `json:"desc_track" db:"desc_track"`
+	ScreenControl bool    `json:"screen_control" db:"screen_control"`
 }
 
 type SupervisorAgentItem struct {
@@ -121,6 +122,7 @@ type SupervisorAgentItem struct {
 	ScoreOptionalAvg float32 `json:"score_optional_avg" db:"score_optional_avg"`
 	ScoreCount       int64   `json:"score_count" db:"score_count"`
 	DescTrack        bool    `json:"desc_track" db:"desc_track"`
+	ScreenControl    bool    `json:"screen_control" db:"screen_control"`
 }
 
 type SearchAgentStatusStatistic struct {
