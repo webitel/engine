@@ -247,6 +247,7 @@ type AgentSession struct {
 	Supervisor    []*Lookup `json:"supervisor" db:"supervisor"`
 	Auditor       []*Lookup `json:"auditor" db:"auditor"`
 	ScreenControl bool      `json:"screen_control" db:"screen_control"`
+	DescTrack     bool      `json:"desc_track" db:"desc_track"`
 }
 
 type AgentCC struct {

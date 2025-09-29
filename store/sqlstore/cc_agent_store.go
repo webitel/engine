@@ -704,7 +704,8 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
        (SELECT jsonb_agg(call_center.cc_get_lookup(aud.id, coalesce(aud.name, aud.username))) AS jsonb_agg
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) auditor,
-    	a.screen_control
+    	a.screen_control,
+    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT jsonb_agg(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
