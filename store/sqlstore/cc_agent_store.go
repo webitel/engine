@@ -925,7 +925,8 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supe
        pause_cause,
        chat_count,
        coalesce(occupancy, 0) as occupancy,
-       desc_track
+       desc_track,
+       screen_control
 from (
          select a.id                                                                                  agent_id,
                 a.domain_id,
@@ -977,7 +978,8 @@ from (
                 a.team_id,
                 a.auditor_ids,
                 a.supervisor_ids,
-                a.region_id
+                a.region_id,
+                a.screen_control
          from call_center.cc_agent a
                   inner join directory.wbt_user u on u.id = a.user_id
                   left join call_center.cc_team team on team.id = a.team_id
@@ -1173,7 +1175,8 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, 
        coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
        coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
        coalesce(ts.score_count, 0)                                                as      score_count,
-       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track
+       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+       a.screen_control
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id
