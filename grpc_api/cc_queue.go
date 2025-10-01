@@ -184,6 +184,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.ProcessingRenewalSec = &in.GetTaskProcessing().RenewalSec
 		case "processing_renewal_sec":
 			patch.ProcessingRenewalSec = &in.ProcessingRenewalSec
+		case "task_processing.form_schema.id":
+			patch.FormSchema = GetLookup(in.TaskProcessing.FormSchema)
 		case "grantee.id":
 			patch.Grantee = GetLookup(in.Grantee)
 		case "tags":
