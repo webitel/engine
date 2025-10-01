@@ -196,7 +196,7 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.RepeatsNumber = &in.GetTaskProcessing().GetProlongationOptions().RepeatsNumber
 		case "task_processing.prolongation_options.prolongation_time_sec":
 			patch.ProlongationTimeSec = &in.GetTaskProcessing().GetProlongationOptions().ProlongationTimeSec
-		case "task_processing.prolongation_options.prolongation_is_timeout_retry":
+		case "task_processing.prolongation_options.is_timeout_retry":
 			patch.IsTimeoutRetry = &in.GetTaskProcessing().GetProlongationOptions().IsTimeoutRetry
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
