@@ -956,7 +956,7 @@ from (
                         interval '0'))::int                                                           pause,
 
                 case when onl_all > 0 then (onl_all / (onl_all + pause_all)) * 100 else 0 end         utilization,
-                case when onl_all > 0 then ((coalesce(work_dur, 0) / (onl_all + pause_all))) * 100 else 0 end occupancy,
+                coalesce(ts.occupancy, 0) as occupancy,
 
                 coalesce(extract(epoch from call_time)::int8, 0)                                      call_time,
                 coalesce(handles, 0)                                                                  handles,
@@ -985,6 +985,7 @@ from (
                   inner join directory.wbt_user u on u.id = a.user_id
                   left join call_center.cc_team team on team.id = a.team_id
                   left join flow.region r on r.id = a.region_id
+                  left join call_center.cc_agent_today_stats ts on ts.agent_id = a.id
              	  left join lateral (
              	    select array_agg(distinct sia.skill_id) skill_ids,
 						   jsonb_agg(distinct call_center.cc_get_lookup(cs.id, cs.name)) skills
