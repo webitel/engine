@@ -63,6 +63,7 @@ func (api *quickReply) SearchQuickReplies(ctx context.Context, in *engine.Search
 			Sort:    in.Sort,
 		},
 		Ids: in.GetId(),
+		Queue: in.GetQueue(),
 	}
 
 	list, endList, err = api.ctrl.SearchQuickReply(ctx, session, req)

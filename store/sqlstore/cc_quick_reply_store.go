@@ -67,32 +67,99 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
 	return resp, nil
 }
 
+func toInt64Slice(a any) []int64 {
+	switch v := a.(type) {
+	case nil:
+		return []int64{}
+	case []int64:
+		return v
+	case []int:
+		out := make([]int64, len(v))
+		for i, x := range v { out[i] = int64(x) }
+		return out
+	case int64:
+		return []int64{v}
+	case int:
+		return []int64{int64(v)}
+	default:
+		return []int64{}
+	}
+}
+
+func toInt32Slice(a any) []int32 {
+	switch v := a.(type) {
+	case nil:
+		return []int32{}
+	case []int32:
+		return v
+	case []int:
+		out := make([]int32, len(v))
+		for i, x := range v { out[i] = int32(x) }
+		return out
+	case []int64:
+		out := make([]int32, len(v))
+		for i, x := range v { out[i] = int32(x) }
+		return out
+	case int32:
+		return []int32{v}
+	case int64:
+		return []int32{int32(v)}
+	case int:
+		return []int32{int32(v)}
+	default:
+		return []int32{}
+	}
+}
+
+
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError) {
 	var replies []*model.QuickReply
+	
 
 	args := map[string]interface{}{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
-		"Ids":      pq.Array(search.Ids),
+		"Ids":      pq.Array(toInt64Slice(search.Ids)),   // -> :Ids::bigint[]
 		"Name":     search.Name,
 		"UserId":   userId,
-		"Queue":    pq.Array(search.Queue),
+		"Queue":    pq.Array(toInt32Slice(search.Queue)), // -> :Queue::int4[]
 	}
 
-	err := s.ListQuery(ctx, &replies, search.ListRequest,
-		`domain_id = :DomainId
-				and (:Q::varchar isnull or (name ilike :Q::varchar))
-				and (:Ids::int4[] isnull or id = any(:Ids))
-				and (t.team_ids && (
-						SELECT array_agg(ca.team_id)::bigint[]
-						FROM call_center.cc_agent ca
-						WHERE ca.user_id = :UserId
-					)
-					OR t.team_ids IS NULL
-					OR t.team_ids = '{}'
-					)
-			`,
-		model.QuickReply{}, args)
+	if len(search.Ids) > 0 {
+    args["Ids"] = pq.Array(search.Ids) // []int64
+	} else {
+		args["Ids"] = nil                  // => NULL у SQL
+	}
+
+	if len(search.Queue) > 0 {
+		args["Queue"] = pq.Array(search.Queue) // []int32
+	} else {
+		args["Queue"] = nil                    // теж можна NULL
+	}
+
+	where := `
+	domain_id = :DomainId
+	AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar)
+	AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
+	`
+
+	search.ListRequest.Sort = `
+		CASE
+		WHEN t.queue_ids && :Queue::int4[] THEN 1
+		WHEN t.team_ids  && COALESCE(
+				(SELECT array_agg(DISTINCT ca.team_id)::bigint[]
+				FROM call_center.cc_agent ca
+				WHERE ca.user_id = :UserId),
+				'{}'::bigint[]
+			) THEN 2
+		ELSE 3
+		END,
+		t.name
+
+	`
+
+	err := s.ListQuery(ctx, &replies, search.ListRequest, where, model.QuickReply{}, args)
+
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
