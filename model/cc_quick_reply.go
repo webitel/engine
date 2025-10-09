@@ -14,7 +14,7 @@ type QuickReply struct {
 
 type SearchQuickReply struct {
 	ListRequest
-	Queue int64
+	Queue []uint32
 	Ids   []uint32
 	Name  *string
 }

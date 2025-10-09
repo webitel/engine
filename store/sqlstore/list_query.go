@@ -58,18 +58,45 @@ func QuoteLiteral(name string) string {
 	return pq.QuoteLiteral(name)
 }
 
-func GetOrderBy(t, s string) string {
-	if s != "" {
-		sort, field := orderBy(s)
-
-		return fmt.Sprintf(`order by case when not call_center.cc_is_lookup(%s, %s) then %s end %s,
-         case when call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s`, QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort,
-			QuoteLiteral(t), QuoteLiteral(field), QuoteIdentifier(field), sort)
-
-	}
-
-	return "" //TODO
+func isRawOrder(s string) bool {
+    ls := strings.ToLower(s)
+    // якщо це складний вираз або кілька полів — віддаємо як є
+    return strings.Contains(ls, "case ") ||
+           strings.Contains(s, "(") ||
+           strings.Contains(s, ")") ||
+           strings.Contains(ls, "::") ||
+           strings.Contains(ls, "json") ||
+           strings.Contains(s, ",")
 }
+
+func GetOrderBy(t, s string) string {
+    s = strings.TrimSpace(s)
+    if s == "" {
+        return ""
+    }
+
+    if isRawOrder(s) {
+        return "order by " + s
+    }
+
+    sort, field := orderBy(s)
+
+    fld := pq.QuoteIdentifier(field)
+
+    nulls := "NULLS LAST"
+    if strings.EqualFold(sort, "desc") {
+        nulls = "NULLS FIRST"
+    }
+
+    return fmt.Sprintf(
+        `order by 
+           case when not call_center.cc_is_lookup(%s, %s) then %s end %s %s,
+           case when     call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s %s`,
+        QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
+        QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
+    )
+}
+
 
 func orderBy(s string) (sort string, field string) {
 	if s[0] == '+' || s[0] == 32 {
