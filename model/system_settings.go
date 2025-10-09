@@ -38,6 +38,7 @@ const (
 	SysNamePasswordMinLength           = "password_min_length"
 	SysNamePasswordCategories          = "password_categories"
 	SysNamePasswordContainsUsername    = "password_contains_username"
+	SysNamePasswordWarningDays         = "password_warning_days"
 )
 
 type SysValue json.RawMessage
@@ -86,7 +87,7 @@ func (s *SystemSetting) IsValid() AppError {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
-		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength:
+		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
 		value := SysValue(s.Value)
 		i := value.Int()
 
