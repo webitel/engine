@@ -114,6 +114,10 @@ func (app *App) RemoveAuditForm(ctx context.Context, domainId int64, id int32) (
 		return nil, err
 	}
 
+	if !form.Editable {
+		return nil, model.NewForbiddenError("app.audit.rate.valid.form", "form is not editable")
+	}
+
 	err = app.Store.AuditForm().Delete(ctx, domainId, id)
 	if err != nil {
 		return nil, err
