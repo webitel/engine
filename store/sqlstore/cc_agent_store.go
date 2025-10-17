@@ -206,7 +206,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
-				and (:Q::varchar isnull or (name %s :Q::varchar or description %[1]s :Q::varchar or status %[1]s :Q::varchar ))`, searchOperator),
+				and (:Q::varchar isnull or (name %s :Q::varchar or description %[1]s :Q::varchar or status %[1]s :Q::varchar or extension %[1]s :Q::varchar))`, searchOperator),
 		model.Agent{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.get_all.app_error", err.Error())
@@ -264,7 +264,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 				))
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
-				and (:Q::varchar isnull or (name ~ :Q::varchar or description ~ :Q::varchar or status ~ :Q::varchar ))
+				and (:Q::varchar isnull or (name ~ :Q::varchar or description ~ :Q::varchar or status ~ :Q::varchar or extension ~ :Q::varchar))
 				and (
 					exists(select 1
 					  from call_center.cc_agent_acl
