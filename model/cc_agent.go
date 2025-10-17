@@ -46,6 +46,8 @@ type Agent struct {
 	TaskCount             uint32         `json:"task_count" db:"task_count"`
 	ScreenControl         bool           `json:"screen_control" db:"screen_control"`
 	AllowSetScreenControl bool           `json:"allow_set_screen_control" db:"allow_set_screen_control"`
+
+	UserPresenceStatus StringArray `json:"user_presence_status" db:"user_presence_status"`
 }
 
 type AgentPatch struct {
@@ -210,7 +212,7 @@ func (a Agent) DefaultOrder() string {
 func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control"}
+		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status"}
 }
 
 func (a Agent) DefaultFields() []string {

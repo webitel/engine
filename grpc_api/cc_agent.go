@@ -926,7 +926,6 @@ func (api *agent) SearchUserStatus(ctx context.Context, in *engine.SearchUserSta
 	//}
 
 	list, endList, err = api.ctrl.SearchUserStatus(ctx, session, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -1046,6 +1045,14 @@ func transformAgent(src *model.Agent) *engine.Agent {
 
 	if src.Extension != nil {
 		agent.Extension = *src.Extension
+	}
+
+	userPresenceStatus := ""
+	if len(src.UserPresenceStatus) != 0 {
+		userPresenceStatus = strings.Join(src.UserPresenceStatus, ",")
+		agent.UserPresenceStatus = &engine.Agent_UserPresence{
+			Status: "{" + userPresenceStatus + "}",
+		}
 	}
 
 	return agent
