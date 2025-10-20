@@ -20,8 +20,7 @@ func NewSqlChatStore(sqlStore SqlStore) store.ChatStore {
 // todo deprecated
 func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId int64, hasContact bool) ([]*model.Conversation, model.AppError) {
 	var res []*model.Conversation
-	_, err := s.GetMaster().WithContext(ctx).Select(&res, `
-select c.id,
+	_, err := s.GetMaster().WithContext(ctx).Select(&res, `select c.id,
        ch.invite_id,
        ch.id                                                                channel_id,
        c.title,
@@ -31,9 +30,11 @@ select c.id,
        call_center.cc_view_timestamp(ch.closed_at)                          closed_at,
        m.messages,
        mem.members,
-       case when cont.contact_id notnull then jsonb_build_object('wbt_contact_id', cont.contact_id::text) else '{}' end || coalesce(ch.props, '{}')::jsonb as variables,
+       case
+           when cont.contact_id notnull then jsonb_build_object('wbt_contact_id', cont.contact_id::text)
+           else '{}' end || coalesce(ch.props, '{}')::jsonb as              variables,
        row_to_json(at)                                                      task,
-       at.leaving_at                   as                                   leaving_at
+       at.leaving_at                                        as              leaving_at
 from (select 1                    pri,
              inv.created_at,
              null::uuid           id,
@@ -84,11 +85,13 @@ from (select 1                    pri,
                       when (m.file_id isnull and nullif(m.file_url, '') isnull) then null
                       else
                           json_build_object('id', m.file_id, 'size', m.file_size, 'mime', m.file_type, 'name',
-                                            m.file_name, 'url', m.file_url)
+                                            m.file_name, 'url', m.file_url)::jsonb ||
+                          (case when (f.malware -> 'found')::bool then '{"malware":true}' else '{}' end)::jsonb
                      end) as                                 "file",
                  m.type,
                  m.channel_id
           from chat.message m
+                   left join storage.files f on f.id = m.file_id
           where m.conversation_id = ch.conversation_id
           order by m.created_at desc
           limit 250) t
@@ -99,47 +102,51 @@ from (select 1                    pri,
                  ch2.type,
                  ch2.user_id,
                  ch2.name,
-                 ch2.props ->> 'user' as external_id,
-          		 case when ch2.internal then null else json_build_object('id', b.id, 'name', b.name, 'type', b.provider) end AS via
+                 ch2.props ->> 'user'                                                           as external_id,
+                 case
+                     when ch2.internal then null
+                     else json_build_object('id', b.id, 'name', b.name, 'type', b.provider) end AS via
           from chat.channel ch2
-            left join chat.bot b on connection = b.id::text
+                   left join chat.bot b on connection = b.id::text
           where ch2.conversation_id = c.id::uuid
             and (not ch2.id::uuid = ch.id or ch.id isnull)
           limit 10) t
     ) mem on true
-            left join lateral (
-            select i.contact_id
-            from chat.channel ch
-                left join contacts.contact_imclient i on i.user_id = ch.user_id
-            where not ch.internal and ch.conversation_id = c.id  and i.protocol = ch.type
-            order by c.created_at desc
-            limit 1
-        ) cont on :HasContact::bool
          left join lateral (
-    select a.id                                                       as attempt_id,
+    select i.contact_id
+    from chat.channel ch
+             left join contacts.contact_imclient i on i.user_id = ch.user_id
+    where not ch.internal
+      and ch.conversation_id = c.id
+      and i.protocol = ch.type
+    order by c.created_at desc
+    limit 1
+    ) cont on :HasContact::bool
+         left join lateral (
+    select a.id                                                          as attempt_id,
            a.channel,
-           a.node_id                                                  as app_id,
+           a.node_id                                                     as app_id,
            a.queue_id,
-           coalesce((a.queue_params ->> 'queue_name'), '')            as queue_name,
+           coalesce((a.queue_params ->> 'queue_name'), '')               as queue_name,
            a.member_id,
-           a.member_call_id                                           as member_channel_id,
-           a.agent_call_id                                            as agent_channel_id,
+           a.member_call_id                                              as member_channel_id,
+           a.agent_call_id                                               as agent_channel_id,
            a.destination,
            a.state,
-           call_center.cc_view_timestamp(a.leaving_at)                as leaving_at,
-           coalesce((a.queue_params -> 'has_reporting')::bool, false) as has_reporting,
-           coalesce((a.queue_params -> 'has_form')::bool, false)      as has_form,
-           (a.queue_params -> 'processing_sec')::int                  as processing_sec,
-           (a.queue_params -> 'processing_renewal_sec')::int          as processing_renewal_sec,
-           coalesce((a.queue_params->'has_prolongation')::bool, false) as has_prolongation,
-			     (a.queue_params->'remaining_prolongations')::int           as remaining_prolongations,
-			     (a.queue_params->'prolongation_sec')::int                  as prolongation_sec,
-           call_center.cc_view_timestamp(a.timeout)                   as processing_timeout_at,
-           a.form_view                                                as form
+           call_center.cc_view_timestamp(a.leaving_at)                   as leaving_at,
+           coalesce((a.queue_params -> 'has_reporting')::bool, false)    as has_reporting,
+           coalesce((a.queue_params -> 'has_form')::bool, false)         as has_form,
+           (a.queue_params -> 'processing_sec')::int                     as processing_sec,
+           (a.queue_params -> 'processing_renewal_sec')::int             as processing_renewal_sec,
+           coalesce((a.queue_params -> 'has_prolongation')::bool, false) as has_prolongation,
+           (a.queue_params -> 'remaining_prolongations')::int            as remaining_prolongations,
+           (a.queue_params -> 'prolongation_sec')::int                   as prolongation_sec,
+           call_center.cc_view_timestamp(a.timeout)                      as processing_timeout_at,
+           a.form_view                                                   as form
     from call_center.cc_member_attempt a
     where a.agent_call_id = ch.id::varchar
     ) at on true
-order by ch.pri, ch.updated_at desc`, map[string]interface{}{
+order by ch.pri, ch.updated_at desc;`, map[string]interface{}{
 		"UserId":     userId,
 		"DomainId":   domainId,
 		"HasContact": hasContact,
