@@ -3,10 +3,12 @@ package sqlstore
 import (
 	"context"
 	"fmt"
-	"github.com/lib/pq"
-	"github.com/webitel/engine/model"
 	"strings"
 	"time"
+
+	"github.com/lib/pq"
+
+	"github.com/webitel/engine/model"
 )
 
 type Filter map[string][]interface{}
@@ -59,46 +61,49 @@ func QuoteLiteral(name string) string {
 }
 
 func isRawOrder(s string) bool {
-    ls := strings.ToLower(s)
-    // якщо це складний вираз або кілька полів — віддаємо як є
-    return strings.Contains(ls, "case ") ||
-           strings.Contains(s, "(") ||
-           strings.Contains(s, ")") ||
-           strings.Contains(ls, "::") ||
-           strings.Contains(ls, "json") ||
-           strings.Contains(s, ",")
+	ls := strings.ToLower(s)
+	// якщо це складний вираз або кілька полів — віддаємо як є
+	return strings.Contains(ls, "case ") ||
+		strings.Contains(s, "(") ||
+		strings.Contains(s, ")") ||
+		strings.Contains(ls, "::") ||
+		strings.Contains(ls, "json") ||
+		strings.Contains(s, ",")
 }
 
 func GetOrderBy(t, s string) string {
-    s = strings.TrimSpace(s)
-    if s == "" {
-        return ""
-    }
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return ""
+	}
 
-    if isRawOrder(s) {
-        return "order by " + s
-    }
+	if isRawOrder(s) {
+		return "order by " + s
+	}
 
-    sort, field := orderBy(s)
+	sort, field := orderBy(s)
 
-    fld := pq.QuoteIdentifier(field)
+	fld := pq.QuoteIdentifier(field)
 
-    nulls := "NULLS LAST"
-    if strings.EqualFold(sort, "desc") {
-        nulls = "NULLS FIRST"
-    }
+	nulls := "NULLS LAST"
+	if strings.EqualFold(sort, "desc") {
+		nulls = "NULLS FIRST"
+	}
 
-    return fmt.Sprintf(
-        `order by 
+	return fmt.Sprintf(
+		`order by 
            case when not call_center.cc_is_lookup(%s, %s) then %s end %s %s,
            case when     call_center.cc_is_lookup(%s, %s) then (%s::text)::json->>'name' end %s %s`,
-        QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
-        QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
-    )
+		QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
+		QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
+	)
 }
 
-
 func orderBy(s string) (sort string, field string) {
+	if len(s) == 0 {
+		return "", ""
+	}
+
 	if s[0] == '+' || s[0] == 32 {
 		sort = "asc"
 		field = s[1:]
