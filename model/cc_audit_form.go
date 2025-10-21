@@ -29,12 +29,13 @@ type AuditFormPatch struct {
 
 type SearchAuditForm struct {
 	ListRequest
-	Ids      []int32
-	TeamIds  []int32 `json:"team_ids" db:"team_ids"`
-	Archive  *bool   `json:"archive"`
-	Editable *bool   `json:"editable"`
-	Enabled  *bool   `json:"enabled"`
-	Question string  `json:"question"`
+	Ids        []int32
+	TeamUserID *int64
+	TeamIds    []int32 `json:"team_ids" db:"team_ids"`
+	Archive    *bool   `json:"archive"`
+	Editable   *bool   `json:"editable"`
+	Enabled    *bool   `json:"enabled"`
+	Question   string  `json:"question"`
 }
 
 func (q *AuditForm) Patch(p *AuditFormPatch) {
