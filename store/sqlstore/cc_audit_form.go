@@ -134,7 +134,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 		"Question":   model.ReplaceWebSearch(search.Question),
 		"TeamUserID": search.TeamUserID,
 	}
-	// teamids
+
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
