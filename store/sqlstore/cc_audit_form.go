@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
@@ -23,13 +24,12 @@ func (s SqlAuditFormStore) CheckAccess(ctx context.Context, domainId int64, id i
             and a.object = :Id
             and a.subject = any (:Groups::int[])
             and a.access & :Access = :Access
-        )`, map[string]interface{}{
+        )`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 		"Groups":   pq.Array(groups),
 		"Access":   access.Value(),
 	})
-
 	if err != nil {
 		return false, nil
 	}
@@ -60,7 +60,7 @@ SELECT i.id,
        i.archive
 FROM ins i
          LEFT JOIN directory.wbt_user uc ON uc.id = i.created_by
-         LEFT JOIN directory.wbt_user u ON u.id = i.updated_by`, map[string]interface{}{
+         LEFT JOIN directory.wbt_user u ON u.id = i.updated_by`, map[string]any{
 		"DomainId":    domainId,
 		"Name":        form.Name,
 		"Description": form.Description,
@@ -72,7 +72,6 @@ FROM ins i
 		"Questions":   form.Questions.ToJson(),
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_audit_form.save.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -83,20 +82,28 @@ FROM ins i
 func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditForm) ([]*model.AuditForm, model.AppError) {
 	var list []*model.AuditForm
 
-	f := map[string]interface{}{
-		"DomainId": domainId,
-		"Ids":      pq.Array(search.Ids),
-		"Q":        search.GetQ(),
-		"TeamIds":  pq.Array(search.TeamIds),
-		"Archive":  search.Archive,
-		"Editable": search.Editable,
-		"Enabled":  search.Enabled,
-		"Question": model.ReplaceWebSearch(search.Question),
+	f := map[string]any{
+		"DomainId":   domainId,
+		"Ids":        pq.Array(search.Ids),
+		"Q":          search.GetQ(),
+		"TeamIds":    pq.Array(search.TeamIds),
+		"Archive":    search.Archive,
+		"Editable":   search.Editable,
+		"Enabled":    search.Enabled,
+		"Question":   model.ReplaceWebSearch(search.Question),
+		"TeamUserID": search.TeamUserID,
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
+				and (:TeamUserID::int8 isnull or
+					team_ids isnull
+					or (team_ids && array(select (a.team_id)
+						from call_center.cc_agent a
+						where user_id = :TeamUserID::int8
+						and a.team_id notnull))
+   				)
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_ids && :TeamIds)
 				and (:Archive::bool isnull or archive = :Archive)
@@ -115,21 +122,29 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchAuditForm) ([]*model.AuditForm, model.AppError) {
 	var list []*model.AuditForm
 
-	f := map[string]interface{}{
-		"Groups":   pq.Array(groups),
-		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
-		"DomainId": domainId,
-		"Ids":      pq.Array(search.Ids),
-		"Q":        search.GetQ(),
-		"TeamIds":  pq.Array(search.TeamIds),
-		"Archive":  search.Archive,
-		"Editable": search.Editable,
-		"Question": model.ReplaceWebSearch(search.Question),
+	f := map[string]any{
+		"Groups":     pq.Array(groups),
+		"Access":     auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId":   domainId,
+		"Ids":        pq.Array(search.Ids),
+		"Q":          search.GetQ(),
+		"TeamIds":    pq.Array(search.TeamIds),
+		"Archive":    search.Archive,
+		"Editable":   search.Editable,
+		"Question":   model.ReplaceWebSearch(search.Question),
+		"TeamUserID": search.TeamUserID,
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
 				and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ))
+				and (:TeamUserID::int8 isnull or
+					team_ids isnull
+					or (team_ids && array(select (a.team_id)
+						from call_center.cc_agent a
+						where user_id = :TeamUserID::int8
+						and a.team_id notnull))
+   				)
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:TeamIds::int[] isnull or team_ids && :TeamIds)
 				and (:Archive::bool isnull or archive = :Archive)
@@ -169,11 +184,10 @@ func (s SqlAuditFormStore) Get(ctx context.Context, domainId int64, id int32) (*
 FROM call_center.cc_audit_form i
          LEFT JOIN directory.wbt_user uc ON uc.id = i.created_by
          LEFT JOIN directory.wbt_user u ON u.id = i.updated_by
-where i.domain_id = :DomainId and i.id = :Id`, map[string]interface{}{
+where i.domain_id = :DomainId and i.id = :Id`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_audit_form.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
@@ -212,7 +226,7 @@ SELECT i.id,
        i.archive
 FROM ins i
          LEFT JOIN directory.wbt_user uc ON uc.id = i.created_by
-         LEFT JOIN directory.wbt_user u ON u.id = i.updated_by`, map[string]interface{}{
+         LEFT JOIN directory.wbt_user u ON u.id = i.updated_by`, map[string]any{
 		"Id":          form.Id,
 		"DomainId":    domainId,
 		"Name":        form.Name,
@@ -224,7 +238,6 @@ FROM ins i
 		"Archive":     form.Archive,
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_audit_form.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -234,7 +247,7 @@ FROM ins i
 
 func (s SqlAuditFormStore) Delete(ctx context.Context, domainId int64, id int32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_audit_form c where c.id=:Id and c.domain_id = :DomainId`,
-		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+		map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_audit_form.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
@@ -243,7 +256,7 @@ func (s SqlAuditFormStore) Delete(ctx context.Context, domainId int64, id int32)
 func (s SqlAuditFormStore) SetEditable(ctx context.Context, id int32, editable bool) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_audit_form
 set editable = :Editable 
-where id = :Id`, map[string]interface{}{
+where id = :Id`, map[string]any{
 		"Editable": editable,
 		"Id":       id,
 	})

@@ -2,7 +2,9 @@ package grpc_api
 
 import (
 	"context"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
@@ -65,6 +67,9 @@ func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAudi
 		req.Enabled = &in.Enabled
 	}
 
+	if in.TeamFilter{
+		req.TeamUserID = &session.UserId
+	}
 	//if in.Archive {
 	//	req.Archive = &in.Archive
 	//}
@@ -74,7 +79,6 @@ func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAudi
 	}
 
 	list, endList, err = api.ctrl.SearchAuditForm(ctx, session, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +100,6 @@ func (api *auditForm) ReadAuditForm(ctx context.Context, in *engine.ReadAuditFor
 	}
 	var form *model.AuditForm
 	form, err = api.ctrl.ReadAuditForm(ctx, session, in.Id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +124,6 @@ func (api *auditForm) UpdateAuditForm(ctx context.Context, in *engine.UpdateAudi
 	}
 
 	form, err = api.ctrl.PutAuditForm(ctx, session, form)
-
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +140,7 @@ func (api *auditForm) PatchAuditForm(ctx context.Context, in *engine.PatchAuditF
 	var form *model.AuditForm
 	patch := &model.AuditFormPatch{}
 
-	//TODO
+	// TODO
 	for _, v := range in.Fields {
 		switch v {
 		case "name":
@@ -155,7 +157,6 @@ func (api *auditForm) PatchAuditForm(ctx context.Context, in *engine.PatchAuditF
 	}
 
 	form, err = api.ctrl.PatchAuditForm(ctx, session, in.GetId(), patch)
-
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +252,6 @@ func (api *auditForm) SearchAuditRate(ctx context.Context, in *engine.SearchAudi
 	}
 
 	list, endList, err = api.ctrl.SearchAuditRate(ctx, session, in.GetFormId(), req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,6 @@ func (api *auditForm) ReadAuditRate(ctx context.Context, in *engine.ReadAuditRat
 	}
 	var rate *model.AuditRate
 	rate, err = api.ctrl.ReadAuditRate(ctx, session, in.Id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -314,7 +313,6 @@ func (api *auditForm) UpdateAuditRate(ctx context.Context, in *engine.UpdateAudi
 		api.app.AuditUpdate(ctx, session, model.PERMISSION_SCOPE_CALL, *callId, resModel)
 	}
 	return resModel, nil
-
 }
 
 func (api *auditForm) DeleteAuditRate(ctx context.Context, in *engine.DeleteAuditRateRequest) (*engine.AuditRate, error) {
@@ -324,7 +322,6 @@ func (api *auditForm) DeleteAuditRate(ctx context.Context, in *engine.DeleteAudi
 	}
 	var rate *model.AuditRate
 	rate, err = api.ctrl.DeleteAuditRate(ctx, session, in.Id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +344,7 @@ func modelToProtobufAuditFrom(src *model.AuditForm) *engine.AuditForm {
 		Enabled:     src.Enabled,
 		Questions:   modelToProtobufAuditQuestions(src.Questions),
 		Teams:       GetProtoLookups(src.Teams),
-		//Archive:     src.Archive,
+		// Archive:     src.Archive,
 		Editable: src.Editable,
 	}
 }
