@@ -9,6 +9,7 @@ import (
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
+	sqloptions "github.com/webitel/engine/store/sql_options"
 	"github.com/webitel/wlog"
 )
 
@@ -471,8 +472,10 @@ func (app *App) GetUserActiveCalls(ctx context.Context, domainId, userId int64) 
 	return app.Store.Call().GetUserActiveCall(ctx, domainId, userId)
 }
 
-func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
-	list, err := app.Store.Call().GetHistory(ctx, domainId, search)
+func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, userId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
+	userGlobalGrantOption := sqloptions.WithUserGrantFilterOption(uint(userId), model.GLOBAL_SELECT_GRANT)
+
+	list, err := app.Store.Call().GetHistory(ctx, domainId, search, userGlobalGrantOption)
 	if err != nil {
 		return nil, false, err
 	}

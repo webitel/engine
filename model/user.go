@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+const (
+	GLOBAL_SELECT_GRANT string = "read"
+)
+
 type User struct {
 	Id       *int64  `json:"id"`
 	DomainId *int64  `json:"domain_id"`
