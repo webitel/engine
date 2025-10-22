@@ -10,6 +10,7 @@ import (
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
+	sqloptions "github.com/webitel/engine/store/sql_options"
 )
 
 type SqlCallStore struct {
@@ -329,10 +330,91 @@ where c.id = :Id::uuid and c.domain_id = :Domain`, map[string]interface{}{
 	return inst, nil
 }
 
-func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError) {
-	var out []*model.HistoryCall
+func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError) {
+	whereQuery := `
+		domain_id = :Domain::int8 
+		and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
+		and (:Number::text isnull or coalesce(search_number, call_center.cc_array_to_string(array[destination, from_number, to_number], '|')) ~ :Number::text)
+		and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
+		and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
+		and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
+		and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
+		and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
+		and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
+		and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
+		and (:ContactIds::int8[] isnull or contact_id = any(:ContactIds::int8[]))
+		and (:Ids::uuid[] isnull or id = any(:Ids))
+		and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
+		and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
+		and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
+		and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
+		and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
+		and (:AgentIds::int[] isnull or (agent_id = any(:AgentIds) or agent_ids && :AgentIds::int[]) )
+		and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
+		and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
+		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
+		and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
+		and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
+		and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
+		and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
+		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
+		and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
+		and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
+		and (:Direction::varchar isnull or direction = :Direction )
+		and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound') and not hide_missed is true and not parent_bridged))
+		and (:Tags::varchar[] isnull or (tags && :Tags))
+		and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
+  		and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
+		and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
+		and ( :SchemaIds::int[] isnull or schema_ids && :SchemaIds::int[] )
+		and (:HasTransfer::bool isnull or (case :HasTransfer::bool when true then (blind_transfer notnull or coalesce(transfer_to, transfer_from) notnull ) else (blind_transfer isnull and coalesce(transfer_to, transfer_from) isnull ) end))
+		and (:AgentDescription::varchar isnull or
+    	     (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
+    	     or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
+    	)
+    	and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
+    	    case :HasTranscript::bool when false
+    	     then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
+    	     else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+    	    end
 
-	f := map[string]interface{}{
+    	))
+		and (:DependencyIds::uuid[] isnull or id::uuid = any (
+				array(with recursive a as (
+    	            select d.id::uuid
+    	            from call_center.cc_calls_history d
+    	            where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
+    	            union all
+    	            select d.id::uuid
+    	            from call_center.cc_calls_history d, a
+    	            where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
+    	        )
+    	        select id::uuid ids
+    	        from a
+    	        where not a.id = any(:DependencyIds::uuid[]))
+		))
+		and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
+					and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
+				case when not :Rated::bool then not exists(
+						select 1
+						from call_center.cc_audit_rate ar
+						where ar.call_id = t.id::text) 
+ 					else exists(
+						select 1
+						from call_center.cc_audit_rate ar
+						where ar.call_id = t.id::text
+							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+							and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
+							and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
+							and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
+							and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
+					)
+				 end
+		)
+	`
+
+	filters := map[string]any{
 		"Domain":           domainId,
 		"Limit":            search.GetLimit(),
 		"Offset":           search.GetOffset(),
@@ -388,93 +470,14 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"Timeline":          search.Timeline,
 	}
 
-	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
-		`domain_id = :Domain::int8 
-	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
-	and (:Number::text isnull or coalesce(search_number, call_center.cc_array_to_string(array[destination, from_number, to_number], '|')) ~ :Number::text)
-	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
-	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
-	and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
-	and ( (:StoredAtFrom::timestamptz isnull or :StoredAtTo::timestamptz isnull) or stored_at between :StoredAtFrom and :StoredAtTo )
-	and (:UserIds::int8[] isnull or (user_id = any(:UserIds::int8[]) or user_ids::int[] && :UserIds::int[]))
-	and (:OwnerIds::int8[] isnull or user_id = any(:OwnerIds::int8[]))
-	and (:GranteeIds::int8[] isnull or grantee_id = any(:GranteeIds::int8[]))
-	and (:ContactIds::int8[] isnull or contact_id = any(:ContactIds::int8[]))
-	and (:Ids::uuid[] isnull or id = any(:Ids))
-	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
-	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-	and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
-	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
-	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
-	and (:AgentIds::int[] isnull or (agent_id = any(:AgentIds) or agent_ids && :AgentIds::int[]) )
-	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
-	and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
-	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
-	and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
-	and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
-	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
-	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
-	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
-	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
-	and ( (:DurationTo::int8 isnull or :DurationTo::int8 = 0 or duration <= :DurationTo ))
-	and (:Direction::varchar isnull or direction = :Direction )
-	and (:Missed::bool isnull or (:Missed and bridged_at isnull and (direction = 'inbound') and not hide_missed is true and not parent_bridged))
-	and (:Tags::varchar[] isnull or (tags && :Tags))
-	and (:AmdAiResult::varchar[] isnull or amd_ai_result = any(lower(:AmdAiResult::varchar[]::text)::varchar[]))
-  	and ( :TalkFrom::int isnull or talk_sec >= :TalkFrom::int )
-	and ( :TalkTo::int isnull or talk_sec <= :TalkTo::int )
-	and ( :SchemaIds::int[] isnull or schema_ids && :SchemaIds::int[] )
-	and (:HasTransfer::bool isnull or (case :HasTransfer::bool when true then (blind_transfer notnull or coalesce(transfer_to, transfer_from) notnull ) else (blind_transfer isnull and coalesce(transfer_to, transfer_from) isnull ) end))
-	and (:AgentDescription::varchar isnull or
-         (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar))
-         or (exists(select 1 from call_center.cc_calls_annotation ca where ca.call_id = t.id::text and ca.note ilike :AgentDescription::varchar))
-    )
-    and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
-        case :HasTranscript::bool when false
-         then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
-         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
-        end
-
-    ))
-	and (:DependencyIds::uuid[] isnull or id::uuid = any (
-			array(with recursive a as (
-                select d.id::uuid
-                from call_center.cc_calls_history d
-                where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
-                union all
-                select d.id::uuid
-                from call_center.cc_calls_history d, a
-                where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
-            )
-            select id::uuid ids
-            from a
-            where not a.id = any(:DependencyIds::uuid[]))
-	))
-	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
-				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
-			case when not :Rated::bool then not exists(
-					select 1
-					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id::text) 
- 				else exists(
-					select 1
-					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id::text
-						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-						and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
-						and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
-						and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
-						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
-				)
-			 end
-		)
-`,
-		model.HistoryCall{}, f)
-	if err != nil {
-		return nil, model.NewInternalError("store.sql_call.get_history.app_error", err.Error())
+	for _, filterOption := range filterOptions {
+		filterOption(&whereQuery, filters)
 	}
 
+	var out []*model.HistoryCall
+	if err := s.ListQueryTimeout(ctx, &out, search.ListRequest, whereQuery, model.HistoryCall{}, filters); err != nil {
+		return nil, model.NewInternalError("store.sql_call.get_history.app_error", err.Error())
+	}
 	return out, nil
 }
 
@@ -625,6 +628,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 		)
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
+			or :UserSupervisorId = any (t.user_ids)
 			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
 			or (t.user_ids notnull and t.user_ids::int[] && call_center.rbac_users_from_group(:ClassName::varchar, :Domain::int8, :Access::int2, :Groups::int[]))
 			or (t.grantee_id = any(:Groups::int[]))

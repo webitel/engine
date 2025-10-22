@@ -67,7 +67,7 @@ func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manage
 		return c.app.GetHistoryCallPageByGroups(ctx, session.DomainId, session.UserId, session.RoleIds, search)
 	}
 
-	return c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), search)
+	return c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), session.UserId, search)
 }
 
 func (c *Controller) AggregateHistoryCall(ctx context.Context, session *auth_manager.Session, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError) {

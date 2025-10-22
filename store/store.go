@@ -9,6 +9,7 @@ import (
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	sqloptions "github.com/webitel/engine/store/sql_options"
 )
 
 type StoreResult struct {
@@ -372,7 +373,7 @@ type ListStore interface {
 }
 
 type CallStore interface {
-	GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError)
+	GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError)
 	GetHistoryByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError)
 	Aggregate(ctx context.Context, domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError)
 	GetActive(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, model.AppError)
