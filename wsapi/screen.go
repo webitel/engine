@@ -8,10 +8,24 @@ import (
 
 func (api *API) InitScreenShare() {
 	api.Router.Handle("ss_invite", api.ApiWebSocketHandler(api.ssInvite))
+	api.Router.Handle("ss_ack", api.ApiWebSocketHandler(api.ssACK))
 	api.Router.Handle("ss_accept", api.ApiWebSocketHandler(api.ssAccept))
 	api.Router.Handle("screenshot", api.ApiWebSocketHandler(api.screenshot))
 	api.Router.Handle("start_record_screen", api.ApiWebSocketHandler(api.ssStartRecord))
 	api.Router.Handle("stop_record_screen", api.ApiWebSocketHandler(api.ssStopRecord))
+}
+
+func (api *API) ssACK(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ackId, errText string
+	ackId, _ = req.Data["ack_id"].(string)
+	errText, _ = req.Data["error"].(string)
+
+	err := api.ctrl.ACK(ctx, conn.GetSession(), ackId, errText)
+	if err != nil {
+		return nil, err
+	}
+
+	return make(map[string]interface{}), nil
 }
 
 func (api *API) ssInvite(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -29,8 +43,9 @@ func (api *API) ssInvite(ctx context.Context, conn *app.WebConn, req *model.WebS
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError("ss_invite", "id")
 	}
+	ackId, _ := req.Data["ack_id"].(string)
 
-	spySockId, err := api.ctrl.RequestScreenShare(ctx, conn.GetSession(), conn.UserId, int64(toUserId), conn.Id(), sdp, id)
+	spySockId, err := api.ctrl.RequestScreenShare(ctx, conn.GetSession(), conn.UserId, int64(toUserId), conn.Id(), sdp, id, ackId)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +71,9 @@ func (api *API) ssAccept(ctx context.Context, conn *app.WebConn, req *model.WebS
 	if sess, ok = req.Data["session_id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError("ss_accept", "session_id")
 	}
+	ackId, _ := req.Data["ack_id"].(string)
 
-	err := api.ctrl.AcceptScreenShare(ctx, conn.GetSession(), int64(toUserId), sockId, sess, sdp, conn.Id())
+	err := api.ctrl.AcceptScreenShare(ctx, conn.GetSession(), int64(toUserId), sockId, sess, sdp, conn.Id(), ackId)
 	if err != nil {
 		return nil, err
 	}
@@ -66,13 +82,16 @@ func (api *API) ssAccept(ctx context.Context, conn *app.WebConn, req *model.WebS
 
 func (api *API) screenshot(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var toUserId float64
+	var ackId string
 	var ok bool
 
 	if toUserId, ok = req.Data["to_user_id"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError("screenshot", "to_user_id")
 	}
 
-	err := api.ctrl.Screenshot(ctx, conn.GetSession(), int64(toUserId), conn.Id())
+	ackId, _ = req.Data["ack_id"].(string)
+
+	err := api.ctrl.Screenshot(ctx, conn.GetSession(), int64(toUserId), conn.Id(), ackId)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +112,9 @@ func (api *API) ssStartRecord(ctx context.Context, conn *app.WebConn, req *model
 		return nil, NewInvalidWebSocketParamError("start_record_screen", "root_id")
 	}
 
-	err := api.ctrl.ScreenShareRecordStart(ctx, conn.GetSession(), int64(toUserId), sessionId)
+	ackId, _ := req.Data["ack_id"].(string)
+
+	err := api.ctrl.ScreenShareRecordStart(ctx, conn.GetSession(), int64(toUserId), sessionId, ackId)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +135,9 @@ func (api *API) ssStopRecord(ctx context.Context, conn *app.WebConn, req *model.
 		return nil, NewInvalidWebSocketParamError("screenshot", "root_id")
 	}
 
-	err := api.ctrl.ScreenShareRecordStop(ctx, conn.GetSession(), int64(toUserId), sessionId)
+	ackId, _ := req.Data["ack_id"].(string)
+
+	err := api.ctrl.ScreenShareRecordStop(ctx, conn.GetSession(), int64(toUserId), sessionId, ackId)
 	if err != nil {
 		return nil, err
 	}
