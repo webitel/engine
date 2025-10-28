@@ -15,9 +15,10 @@ func (c *Controller) Screenshot(ctx context.Context, session *auth_manager.Sessi
 }
 
 func (c *Controller) ACK(ctx context.Context, session *auth_manager.Session, ackId, errText string) model.AppError {
-	if !session.HasAction(model.PermissionControlAgentScreen) {
-		return c.app.MakeActionPermissionError(session, model.PermissionControlAgentScreen, auth_manager.PERMISSION_ACCESS_READ)
-	}
+	// TODO
+	//if !session.HasAction(model.PermissionControlAgentScreen) {
+	//	return c.app.MakeActionPermissionError(session, model.PermissionControlAgentScreen, auth_manager.PERMISSION_ACCESS_READ)
+	//}
 
 	return c.app.ACK(ctx, session.Domain(0), ackId, errText)
 }
