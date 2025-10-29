@@ -180,6 +180,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		"UserIds":       pq.Array(search.UserIds),
 		"NotTeamIds":    pq.Array(search.NotTeamIds),
 		"NotSkillIds":   pq.Array(search.NotSkillIds),
+		"NotUserIds":    pq.Array(search.NotUserIds),
 	}
 	err := s.ListQuery(ctx, &agents, search.ListRequest,
 		fmt.Sprintf(`domain_id = :DomainId
@@ -206,6 +207,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
+				and (:NotUserIds::int8[] isnull or not user_id = any(:NotUserIds))
 				and (:Q::varchar isnull or (name %s :Q::varchar or description %[1]s :Q::varchar or status %[1]s :Q::varchar or extension %[1]s :Q::varchar))`, searchOperator),
 		model.Agent{}, f)
 	if err != nil {
@@ -1302,13 +1304,15 @@ func (s SqlAgentStore) UsersStatus(ctx context.Context, domainId int64, search *
 		searchOperator = ILikeComparisonOperator
 	}
 	f := map[string]interface{}{
-		"DomainId": domainId,
-		"Q":        q,
+		"DomainId":   domainId,
+		"Q":          q,
+		"NotUserIds": pq.Array(search.NotUserIds),
 	}
 
 	err := s.ListQuery(ctx, &users, search.ListRequest,
 		fmt.Sprintf(`domain_id = :DomainId
-				and (:Q::varchar isnull or (name %s :Q::varchar or extension %[1]s :Q::varchar ))`, searchOperator),
+				and (:Q::varchar isnull or (name %s :Q::varchar or extension %[1]s :Q::varchar ))
+				and (:NotUserIds::int8[] isnull or not id = any(:NotUserIds))`, searchOperator),
 		model.UserStatus{}, f)
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.get_users.app_error", err.Error())
@@ -1329,15 +1333,17 @@ func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, g
 		searchOperator = ILikeComparisonOperator
 	}
 	f := map[string]interface{}{
-		"DomainId": domainId,
-		"Q":        q,
-		"Groups":   pq.Array(groups),
-		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId":   domainId,
+		"Q":          q,
+		"Groups":     pq.Array(groups),
+		"Access":     auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"NotUserIds": pq.Array(search.NotUserIds),
 	}
 
 	err := s.ListQuery(ctx, &users, search.ListRequest,
 		fmt.Sprintf(`domain_id = :DomainId
 				and (:Q::varchar isnull or (name %s :Q::varchar or extension %[1]s :Q::varchar ))
+				and (:NotUserIds::int8[] isnull or not id = any(:NotUserIds))
 				and (
 					exists(select 1
 					  from directory.wbt_auth_acl

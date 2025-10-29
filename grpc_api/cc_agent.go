@@ -115,6 +115,7 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		UserIds:       in.GetUserId(),
 		NotTeamIds:    in.GetNotTeamId(),
 		NotSkillIds:   in.GetNotSkillId(),
+		NotUserIds:    in.GetNotUserId(),
 	}
 
 	if in.IsSupervisor {
@@ -917,6 +918,7 @@ func (api *agent) SearchUserStatus(ctx context.Context, in *engine.SearchUserSta
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
+		NotUserIds: in.GetNotUserId(),
 	}
 	// Commented by WTEL-4615 requirement
 	// TODO DEV-4075
