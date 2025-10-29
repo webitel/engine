@@ -359,6 +359,7 @@ type UserStatus struct {
 
 type SearchUserStatus struct {
 	ListRequest
+	NotUserIds []int64
 }
 
 type AgentState struct {
