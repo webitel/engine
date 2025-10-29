@@ -292,6 +292,7 @@ type SearchAgent struct {
 	UserIds       []int64
 	NotTeamIds    []uint32
 	NotSkillIds   []uint32
+	NotUserIds    []int64
 }
 
 type AgentUser struct {
