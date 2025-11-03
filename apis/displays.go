@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"bytes"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -14,6 +15,16 @@ import (
 
 func (api *API) InitDisplays() {
 	api.Routes.Root.Handle("/api/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
+}
+
+//see https://stackoverflow.com/a/21375405
+var bom = []byte{0xef, 0xbb, 0xbf}
+
+func trimBOM(data []byte) []byte {
+	if bytes.HasPrefix(data, bom) {
+		return data[len(bom):]
+	}
+	return data
 }
 
 func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -34,6 +45,7 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	
 	delimiter := getDelimiter(r.FormValue("delimiter"))
 	mapCol := r.FormValue("map")
 
@@ -82,6 +94,7 @@ func getDelimiter(delimiter string) string {
 	return delimiter
 }
 
+
 func parseResourceID(r *http.Request) (int64, error) {
 	idStr := mux.Vars(r)["id"]
 	return strconv.ParseInt(idStr, 10, 64)
@@ -95,7 +108,8 @@ func readCSV(file io.Reader, delimiter string) ([][]string, error) {
 
 func findColumnIndex(headers []string, columnName string) (int, error) {
 	for i, header := range headers {
-		if header == columnName {
+		trimHeader := trimBOM([]byte(header)) 
+		if string(trimHeader) == columnName {
 			return i, nil
 		}
 	}
