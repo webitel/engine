@@ -3,6 +3,7 @@ package model
 import "strconv"
 
 var versions = []string{
+	"25.10",
 	"25.08",
 	"25.05",
 	"25.04",
