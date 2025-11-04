@@ -17,6 +17,8 @@ type SearchQuickReply struct {
 	Queue []uint32
 	Ids   []uint32
 	Name  *string
+	
+	RestrictToAgent bool
 }
 
 type QuickReplyPatch struct {

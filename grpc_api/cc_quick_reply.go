@@ -64,6 +64,7 @@ func (api *quickReply) SearchQuickReplies(ctx context.Context, in *engine.Search
 		},
 		Ids: in.GetId(),
 		Queue: in.GetQueue(),
+		RestrictToAgent: in.GetRestrictToAgent(),
 	}
 
 	list, endList, err = api.ctrl.SearchQuickReply(ctx, session, req)
