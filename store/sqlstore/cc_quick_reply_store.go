@@ -120,6 +120,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		"Name":     search.Name,
 		"UserId":   userId,
 		"Queue":    pq.Array(toInt32Slice(search.Queue)), // -> :Queue::int4[]
+		"RestrictToAgent": search.RestrictToAgent,
 	}
 
 	if len(search.Ids) > 0 {
@@ -138,6 +139,23 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		domain_id = :DomainId
 		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar)
 		AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
+		and (
+			:RestrictToAgent = false 
+    		or (
+        		(
+        		    t.team_ids is null or (
+        		        select ca.team_id
+        		        from call_center.cc_agent ca
+        		        where ca.user_id = :UserId and ca.domain_id = :DomainId
+        		        limit 1
+        		    ) = any (t.team_ids)
+        		)
+        		or (
+        		    t.queue_ids is null
+        		    or call_center.cc_get_agent_queues(:DomainId, :UserId) && t.queue_ids
+        		)
+    		)
+		)
 	`
 
 	if search.ListRequest.Sort == "" {
