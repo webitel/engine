@@ -113,9 +113,6 @@ func toInt32Slice(a any) []int32 {
 
 
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError) {
-	var replies []*model.QuickReply
-	
-
 	args := map[string]interface{}{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
@@ -138,32 +135,19 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 	}
 
 	where := `
-	domain_id = :DomainId
-	AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar)
-	AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
+		domain_id = :DomainId
+		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar)
+		AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
 	`
 
-	search.ListRequest.Sort = `
-		CASE
-		WHEN t.queue_ids && :Queue::int4[] THEN 1
-		WHEN t.team_ids  && COALESCE(
-				(SELECT array_agg(DISTINCT ca.team_id)::bigint[]
-				FROM call_center.cc_agent ca
-				WHERE ca.user_id = :UserId),
-				'{}'::bigint[]
-			) THEN 2
-		ELSE 3
-		END,
-		t.name
-
-	`
-
-	err := s.ListQuery(ctx, &replies, search.ListRequest, where, model.QuickReply{}, args)
-
-	if err != nil {
+	if search.ListRequest.Sort == "" {
+		search.ListRequest.Sort = "+sort_priority"
+	} 
+	
+	var replies []*model.QuickReply
+	if err := s.ListQuery(ctx, &replies, search.ListRequest, where, model.QuickReply{}, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.get_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
-
 	return replies, nil
 }
 
