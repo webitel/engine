@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"net/http"
 
 	"github.com/webitel/engine/app"
@@ -34,7 +35,12 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if c.Err == nil && h.RequireSession {
-		c.SessionRequired()
+		var s *auth_manager.Session
+		s, c.Err = c.App.GetSessionWitchContext(r.Context(), AuthToken(r))
+		if c.Err == nil {
+			c.Session = *s
+			c.SessionRequired()
+		}
 	}
 
 	//
@@ -65,6 +71,10 @@ func ReadUserIP(r *http.Request) string {
 		IPAddress = r.RemoteAddr
 	}
 	return IPAddress
+}
+
+func AuthToken(r *http.Request) string {
+	return r.Header.Get(model.HEADER_TOKEN)
 }
 
 func ReadUserAgent(r *http.Request) string {

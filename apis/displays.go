@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"io"
 	"net/http"
 	"strconv"
@@ -14,10 +15,10 @@ import (
 )
 
 func (api *API) InitDisplays() {
-	api.Routes.Root.Handle("/api/displays/{id}", api.ApiHandlerTrustRequester(createDisplays)).Methods("POST")
+	api.Routes.Root.Handle("/api/displays/{id}", api.ApiHandlerRequester(createDisplays)).Methods("POST")
 }
 
-//see https://stackoverflow.com/a/21375405
+// see https://stackoverflow.com/a/21375405
 var bom = []byte{0xef, 0xbb, 0xbf}
 
 func trimBOM(data []byte) []byte {
@@ -28,59 +29,76 @@ func trimBOM(data []byte) []byte {
 }
 
 func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	session := &c.Session
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
+	if !permission.CanRead() {
+		c.Err = c.App.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 		return
 	}
 
+	if !permission.CanUpdate() {
+		c.Err = c.App.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		return
+	}
+
+	resourceId, err := parseResourceID(r)
+	if err != nil {
+		c.Err = model.NewBadRequestError("api.displays.valid.resourceId", "Invalid resource ID: "+err.Error())
+		return
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+		if perm, appErr := c.App.OutboundResourceCheckAccess(r.Context(), session.Domain(0), resourceId, session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); appErr != nil {
+			c.Err = appErr
+			return
+		} else if !perm {
+			c.Err = c.App.MakeResourcePermissionError(session, resourceId, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+			return
+		}
+	}
+
 	if err := r.ParseMultipartForm(10 << 20); err != nil { // 10MB limit
-		http.Error(w, "Error parsing form data", http.StatusBadRequest)
+		c.Err = model.NewBadRequestError("api.displays.valid.file", "Error parsing form data: "+err.Error())
 		return
 	}
 
 	file, _, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, "Error retrieving file", http.StatusBadRequest)
+		c.Err = model.NewBadRequestError("api.displays.valid.file", "Error retrieving file: "+err.Error())
 		return
 	}
 	defer file.Close()
 
-	
 	delimiter := getDelimiter(r.FormValue("delimiter"))
 	mapCol := r.FormValue("map")
 
-	resourceId, err := parseResourceID(r)
-	if err != nil {
-		http.Error(w, "Invalid resource ID", http.StatusBadRequest)
-		return
-	}
-
 	records, err := readCSV(file, delimiter)
 	if err != nil {
-		http.Error(w, "Error reading CSV file", http.StatusInternalServerError)
+		c.Err = model.NewBadRequestError("api.displays.valid.file", "Error reading CSV file: "+err.Error())
 		return
 	}
 
 	if len(records) == 0 {
-		http.Error(w, "CSV file is empty", http.StatusBadRequest)
+		c.Err = model.NewBadRequestError("api.displays.valid.file", "CSV file is empty")
 		return
 	}
 
 	columnIndex, err := findColumnIndex(records[0], mapCol)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		c.Err = model.NewBadRequestError("api.displays.valid.file", err.Error())
 		return
 	}
 
 	mappedData, err := mapData(records, columnIndex, resourceId)
 	if err != nil {
-		http.Error(w, "Error mapping data", http.StatusInternalServerError)
+		c.Err = model.NewBadRequestError("api.displays.valid.map", "Error mapping data: "+err.Error())
 		return
 	}
 
-	displays, err := c.App.CreateOutboundResourceDisplays(r.Context(), resourceId, mappedData)
-	if err != nil {
-		http.Error(w, "Failed to create outbound resource displays", http.StatusInternalServerError)
+	displays, appErr := c.App.CreateOutboundResourceDisplays(r.Context(), resourceId, mappedData)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -93,7 +111,6 @@ func getDelimiter(delimiter string) string {
 	}
 	return delimiter
 }
-
 
 func parseResourceID(r *http.Request) (int64, error) {
 	idStr := mux.Vars(r)["id"]
@@ -108,7 +125,7 @@ func readCSV(file io.Reader, delimiter string) ([][]string, error) {
 
 func findColumnIndex(headers []string, columnName string) (int, error) {
 	for i, header := range headers {
-		trimHeader := trimBOM([]byte(header)) 
+		trimHeader := trimBOM([]byte(header))
 		if string(trimHeader) == columnName {
 			return i, nil
 		}
@@ -130,7 +147,6 @@ func mapData(records [][]string, mapColIndex int, resourceId int64) ([]*model.Re
 }
 
 func writeJSONResponse(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
