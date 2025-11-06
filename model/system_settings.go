@@ -39,6 +39,7 @@ const (
 	SysNamePasswordCategories          = "password_categories"
 	SysNamePasswordContainsUsername    = "password_contains_username"
 	SysNamePasswordWarningDays         = "password_warning_days"
+	SysNameDefaultPassword             = "default_password"
 )
 
 type SysValue json.RawMessage
@@ -96,7 +97,8 @@ func (s *SystemSetting) IsValid() AppError {
 		}
 	case SysNameChatAiConnection,
 		SysNamePasswordRegExp,
-		SysNamePasswordValidationText:
+		SysNamePasswordValidationText,
+		SysNameDefaultPassword:
 		value := SysValue(s.Value)
 		str := value.Str()
 		if str == nil || *str == "" {
