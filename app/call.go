@@ -211,7 +211,7 @@ func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, p
 				"origination_caller_id_number": usr.Endpoint,
 				"effective_caller_id_number":   usr.Endpoint,
 				"origination_caller_id_name":   usr.Name,
-				"effective_caller_id_namer":    usr.Name,
+				"effective_caller_id_name":     usr.Name,
 
 				"wbt_from_id":     fmt.Sprintf("%v", usr.Id),
 				"wbt_from_number": usr.Endpoint,
