@@ -2,17 +2,32 @@ package app
 
 import (
 	"context"
+	"strings"
 
 	"github.com/webitel/engine/model"
 )
 
-func (a *App) GetQuickReplyPage(ctx context.Context, domainId int64, search *model.SearchQuickReply) ([]*model.QuickReply, bool, model.AppError) {
-	_, session, _ := a.getSessionFromCtx(ctx)
-	list, err := a.Store.QuickReply().GetAllPage(ctx, domainId, search, session.UserId)
+const (
+	AGENT_PRIORITY_SORT string = "agent_priority"
+)
+
+func (a *App) GetQuickReplyPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int) ([]*model.QuickReply, bool, model.AppError) {
+	var (
+		list []*model.QuickReply
+		err model.AppError
+	)
+	
+	if strings.Contains(search.Sort, AGENT_PRIORITY_SORT) {
+		list, err = a.Store.QuickReply().GetAllPageByAgentPriority(ctx, domainId, int64(userId), search)
+	} else {
+		list, err = a.Store.QuickReply().GetAllPage(ctx, domainId, search, int64(userId))
+	}
+
 	if err != nil {
 		return nil, false, err
-	}
+	} 
 	search.RemoveLastElemIfNeed(&list)
+	
 	return list, search.EndOfList(), nil
 }
 

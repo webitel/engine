@@ -13,7 +13,7 @@ func (c *Controller) SearchQuickReply(ctx context.Context, session *auth_manager
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetQuickReplyPage(ctx, session.Domain(search.DomainId), search)
+	return c.app.GetQuickReplyPage(ctx, session.Domain(search.DomainId), search, int(session.GetUserId()))
 }
 
 func (c *Controller) CreateQuickReply(ctx context.Context, session *auth_manager.Session, cause *model.QuickReply) (*model.QuickReply, model.AppError) {

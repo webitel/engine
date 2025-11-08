@@ -2,8 +2,9 @@ package logger
 
 import (
 	"context"
-	"github.com/webitel/engine/model"
 	"testing"
+
+	"github.com/webitel/engine/model"
 )
 
 type sender struct {
@@ -59,7 +60,7 @@ func BenchmarkLogger(t *testing.B) {
 func testLogger(logger *Audit, t testing.TB) {
 	ctx := context.TODO()
 
-	err := logger.Update(ctx, &session{}, model.PERMISSION_SCOPE_SCHEMA, 1, &o)
+	err := logger.Update(ctx, &session{}, model.PERMISSION_SCOPE_SCHEMA, "1", &o)
 	if err != nil {
 		t.Fatal(err.Error())
 	}
