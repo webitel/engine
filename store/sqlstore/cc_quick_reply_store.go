@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/lib/pq"
 
@@ -22,7 +23,7 @@ func NewSqlQuickReplyStore(sqlStore SqlStore) store.QuickReplyStore {
 func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
 	var resp *model.QuickReply
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"DomainId":  domainId,
 		"CreatedAt": reply.CreatedAt,
 		"UpdatedAt": reply.UpdatedAt,
@@ -67,72 +68,15 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
 	return resp, nil
 }
 
-func toInt64Slice(a any) []int64 {
-	switch v := a.(type) {
-	case nil:
-		return []int64{}
-	case []int64:
-		return v
-	case []int:
-		out := make([]int64, len(v))
-		for i, x := range v { out[i] = int64(x) }
-		return out
-	case int64:
-		return []int64{v}
-	case int:
-		return []int64{int64(v)}
-	default:
-		return []int64{}
-	}
-}
-
-func toInt32Slice(a any) []int32 {
-	switch v := a.(type) {
-	case nil:
-		return []int32{}
-	case []int32:
-		return v
-	case []int:
-		out := make([]int32, len(v))
-		for i, x := range v { out[i] = int32(x) }
-		return out
-	case []int64:
-		out := make([]int32, len(v))
-		for i, x := range v { out[i] = int32(x) }
-		return out
-	case int32:
-		return []int32{v}
-	case int64:
-		return []int32{int32(v)}
-	case int:
-		return []int32{int32(v)}
-	default:
-		return []int32{}
-	}
-}
-
-
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError) {
-	args := map[string]interface{}{
+	args := map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
-		"Ids":      pq.Array(toInt64Slice(search.Ids)),   // -> :Ids::bigint[]
+		"Ids":      pq.Array(search.Ids),
 		"Name":     search.Name,
 		"UserId":   userId,
-		"Queue":    pq.Array(toInt32Slice(search.Queue)), // -> :Queue::int4[]
+		"Queue":    pq.Array(search.Queue),
 		"RestrictToAgent": search.RestrictToAgent,
-	}
-
-	if len(search.Ids) > 0 {
-    args["Ids"] = pq.Array(search.Ids) // []int64
-	} else {
-		args["Ids"] = nil                  // => NULL у SQL
-	}
-
-	if len(search.Queue) > 0 {
-		args["Queue"] = pq.Array(search.Queue) // []int32
-	} else {
-		args["Queue"] = nil                    // теж можна NULL
 	}
 
 	where := `
@@ -142,25 +86,19 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		and (
 			:RestrictToAgent = false 
     		or (
-        		(
-        		    t.team_ids is null or (
-        		        select ca.team_id
-        		        from call_center.cc_agent ca
-        		        where ca.user_id = :UserId and ca.domain_id = :DomainId
-        		        limit 1
-        		    ) = any (t.team_ids)
-        		)
+				(t.team_ids is null and t.queue_ids is null)
         		or (
-        		    t.queue_ids is null
-        		    or call_center.cc_get_agent_queues(:DomainId, :UserId) && t.queue_ids
+        		    select ca.team_id
+        		    from call_center.cc_agent ca
+        		    where ca.user_id = :UserId and ca.domain_id = :DomainId
+        		    limit 1
+        		) = any (t.team_ids)
+        		or (
+        		    call_center.cc_get_agent_queues(:DomainId, :UserId) && t.queue_ids
         		)
     		)
 		)
 	`
-
-	if search.ListRequest.Sort == "" {
-		search.ListRequest.Sort = "+sort_priority"
-	} 
 	
 	var replies []*model.QuickReply
 	if err := s.ListQuery(ctx, &replies, search.ListRequest, where, model.QuickReply{}, args); err != nil {
@@ -169,10 +107,73 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 	return replies, nil
 }
 
+func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domainId, userId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError) {
+	args := map[string]any {
+			"DomainId": domainId,
+			"UserId": userId,
+			"Q": search.GetQ(),
+			"Ids": pq.Array(search.Ids),
+			"Name": search.Name,
+			"Queue": pq.Array(search.Queue),
+			"RestrictToAgent": search.RestrictToAgent,
+	}
+	fields := GetFields(search.Fields, &model.QuickReply{})
+	parsedFields := strings.Join(fields, ", ")
+	
+	query := fmt.Sprintf(`
+		with agent_info_cte as (
+			select (
+				select ca.team_id
+				from call_center.cc_agent ca
+				where ca.user_id = :UserId
+				and ca.domain_id = :DomainId
+				limit 1
+			) as team_id,
+			call_center.cc_get_agent_queues(:DomainId, :UserId) as queues_ids
+		),
+		filtered_quick_replies_cte as (
+			select
+				%s,
+				case 
+					when t.queue_ids && agent_info.queues_ids
+					then 1
+					when agent_info.team_id = any(t.team_ids)
+					then 2
+					else 3
+				end as agent_priority
+			from call_center.cc_quick_reply_list t, agent_info_cte agent_info
+			where t.domain_id = :DomainId
+				and (:Q::varchar is null or t.name ilike :Q::varchar)
+				and (:Ids::int8[] is null or t.id = any(:Ids::bigint[]))
+				and (
+					:RestrictToAgent = false
+					or (
+						(t.team_ids is null and t.queue_ids is null)
+						or agent_info.team_id = any (t.team_ids)
+						or agent_info.queues_ids && t.queue_ids
+					)
+				)
+		)
+		select
+			%s
+		from filtered_quick_replies_cte t
+		%s
+		offset %d
+		limit %d
+	`, parsedFields, parsedFields, GetOrderBy(model.QuickReply{}.EntityName(), search.Sort), search.ListRequest.GetOffset(), search.ListRequest.GetLimit())
+
+	var quickRepliesList []*model.QuickReply
+	if _, err := s.GetReplica().WithContext(ctx).Select(&quickRepliesList, query, args); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_quick_reply.get_all_by_agent_priority.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return quickRepliesList, nil
+}
+
 func (s SqlQuickReplyStore) Get(ctx context.Context, domainId int64, id uint32) (*model.QuickReply, model.AppError) {
 	var reply *model.QuickReply
 
-	args := map[string]interface{}{
+	args := map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 	}
@@ -185,7 +186,7 @@ func (s SqlQuickReplyStore) Get(ctx context.Context, domainId int64, id uint32) 
 }
 
 func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
-	args := map[string]interface{}{
+	args := map[string]any{
 		"DomainId":  domainId,
 		"Id":        reply.Id,
 		"Name":      reply.Name,
@@ -236,7 +237,7 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
 
 func (s SqlQuickReplyStore) Delete(ctx context.Context, domainId int64, id uint32) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_quick_reply c where c.id=:Id and c.domain_id = :DomainId`,
-		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+		map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_quick_reply.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 
