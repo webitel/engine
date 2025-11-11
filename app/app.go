@@ -152,6 +152,13 @@ func New(options ...string) (outApp *App, outErr error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
+	if config.RTCConfiguration != "" {
+		err = InitRTCConfiguration([]byte(config.RTCConfiguration))
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	app.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings))
 
 	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)

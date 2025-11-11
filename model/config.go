@@ -56,6 +56,7 @@ type Config struct {
 	Push                    PushConfig
 	Log                     LogSettings      `json:"log"`
 	TriggersSettings        TriggersSettings `json:"triggers_settings"`
+	RTCConfiguration        string           `json:"rtc_configuration" flag:"rtc_configuration||RTCConfiguration" default:"" env:"RTC_CONFIGURATION"`
 }
 
 type PushConfig struct {
