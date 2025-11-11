@@ -232,6 +232,7 @@ func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, p
 		if info.AgentExtension != nil {
 			number = *info.AgentExtension
 		}
+		invite.AddVariable("sip_to_display", name)
 	} else {
 		// TODO
 		return "", nil
