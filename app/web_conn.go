@@ -28,7 +28,8 @@ const (
 )
 
 var (
-	spamMessage = []byte{0x0, 0x0, 0x0, 0x0}
+	spamMessage      = []byte{0x0, 0x0, 0x0, 0x0}
+	RTCConfiguration map[string]any
 )
 
 type WebConn struct {
@@ -63,6 +64,10 @@ type WebConn struct {
 	Span               trace.Span
 
 	//Sip *SipProxy
+}
+
+func InitRTCConfiguration(cfg []byte) error {
+	return json.Unmarshal(cfg, &RTCConfiguration)
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session auth_manager.Session, appName string, appVer string, ua string, ip string) *WebConn {
@@ -323,6 +328,9 @@ func (webCon *WebConn) SendHello() {
 	}
 	msg.Add("use_cc", sess.HasCallCenterLicense())
 	msg.Add("use_chat", sess.HasChatLicense())
+	if RTCConfiguration != nil {
+		msg.Add("rtc_configuration", RTCConfiguration)
+	}
 
 	webCon.Send <- msg
 }
