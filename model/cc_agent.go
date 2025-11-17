@@ -368,6 +368,7 @@ type AgentState struct {
 	Agent    *Lookup    `json:"agent" db:"agent"`
 	Queue    *Lookup    `json:"queue" db:"queue"`
 	JoinedAt *time.Time `json:"joined_at" db:"joined_at"`
+	LeavedAt *time.Time `json:"leaved_at" db:"leaved_at"`
 	Duration int64      `json:"duration" db:"duration"`
 	State    string     `json:"state" db:"state"`
 	Payload  *string    `json:"payload" db:"payload"`
