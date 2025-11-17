@@ -587,37 +587,43 @@ group by q.id`, map[string]interface{}{
 }
 
 func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, model.AppError) {
-	var res []*model.AgentState
-
-	//fixme
 	order := GetOrderBy("cc_agent_state_history", search.Sort)
 	if order == "" {
 		order = "order by joined_at desc"
 	}
 
-	_, err := s.GetReplica().WithContext(ctx).Select(&res, `with ags as (
- select distinct a.id, call_center.cc_get_lookup(a.id, coalesce(u.name, u.username)) agent
- from call_center.cc_agent a
-    inner join directory.wbt_user u on u.id = a.user_id
- where a.domain_id = :DomainId
-
-)
-select
-    h.id,
-    h.channel,
-    ags.agent,
-    h.joined_at,
-    extract(epoch  from duration)::int8 duration,
-    h.state,
-    h.payload
-from call_center.cc_agent_state_history h
-    inner join ags on ags.id = h.agent_id
-where (:From::timestamp isnull or h.joined_at between :From and :To) 
-  and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds))
-  and (:FromId::int8 isnull or h.id > :FromId::int8)
-`+order+`
-limit :Limit
-offset :Offset`, map[string]interface{}{
+	query := `
+		with ags as (
+			select distinct
+				a.id,
+				call_center.cc_get_lookup(a.id, coalesce(u.name, u.username)) agent
+				from call_center.cc_agent a
+				inner join directory.wbt_user u on u.id = a.user_id
+				where a.domain_id = :DomainId
+		),
+		history_leaved_at as (
+			select
+				h.id,
+				h.channel,
+				ags.agent,
+				h.joined_at,
+				extract(epoch from duration)::int8 duration,
+				h.state,
+				h.payload,
+				(h.joined_at + h.duration) as leaved_at
+			from call_center.cc_agent_state_history h
+			inner join ags on ags.id = h.agent_id
+			where (:From::timestamp isnull or h.joined_at between :From and :To) 
+  			and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds))
+  			and (:FromId::int8 isnull or h.id > :FromId::int8)
+		)
+		select *
+		from history_leaved_at
+	` + order + `
+		limit :Limit
+		offset :Offset
+	`
+	args := map[string]any{
 		"DomainId": domainId,
 		"From":     model.GetBetweenFromTime(&search.JoinedAt),
 		"To":       model.GetBetweenToTime(&search.JoinedAt),
@@ -625,12 +631,12 @@ offset :Offset`, map[string]interface{}{
 		"FromId":   search.FromId,
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
-	})
-
-	if err != nil {
+	}
+	
+	var res []*model.AgentState
+	if _, err := s.GetReplica().WithContext(ctx).Select(&res, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_state_history.app_error", err.Error(), extractCodeFromErr(err))
 	}
-
 	return res, nil
 }
 

@@ -1066,6 +1066,7 @@ func toEngineAgentState(src *model.AgentState) *engine.AgentState {
 		JoinedAt: model.TimeToInt64(src.JoinedAt),
 		State:    src.State,
 		Duration: src.Duration,
+		LeavedAt: model.TimeToInt64(src.LeavedAt),
 	}
 
 	if src.Channel != nil {
