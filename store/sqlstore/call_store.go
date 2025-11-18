@@ -118,7 +118,7 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId int64, use
 	and (:UserIds::int8[] isnull or user_id = any(:UserIds))
 	and (:QueueIds::int[] isnull or queue_id = any(:QueueIds) )
 	and (:SupervisorIds::int[] isnull or supervisor_ids && :SupervisorIds )
-	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )  
+	and (:TeamIds::int[] isnull or team_id = any(:TeamIds) )
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or gateway_id = any(:GatewayIds) )
@@ -301,7 +301,7 @@ func (s SqlCallStore) Get(ctx context.Context, domainId int64, id string) (*mode
 select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.parent_id, c.created_at,
    json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) "from",
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
-   (extract(epoch from now() -  c.created_at))::int8 duration, c.bridged_id	
+   (extract(epoch from now() -  c.created_at))::int8 duration, c.bridged_id
 from call_center.cc_calls c
 where c.domain_id = :Domain and c.id = :Id::uuid`, map[string]interface{}{
 		"Domain": domainId,
@@ -332,7 +332,7 @@ where c.id = :Id::uuid and c.domain_id = :Domain`, map[string]interface{}{
 
 func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError) {
 	whereQuery := `
-		domain_id = :Domain::int8 
+		domain_id = :Domain::int8
 		and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
 		and (:Number::text isnull or coalesce(search_number, call_center.cc_array_to_string(array[destination, from_number, to_number], '|')) ~ :Number::text)
 		and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
@@ -348,7 +348,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
 		and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
 		and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
-		and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
+		and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 		and (:AgentIds::int[] isnull or (agent_id = any(:AgentIds) or agent_ids && :AgentIds::int[]) )
 		and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 		and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
@@ -394,11 +394,11 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
     	        where not a.id = any(:DependencyIds::uuid[]))
 		))
 		and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
-					and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
+					and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or
 				case when not :Rated::bool then not exists(
 						select 1
 						from call_center.cc_audit_rate ar
-						where ar.call_id = t.id::text) 
+						where ar.call_id = t.id::text)
  					else exists(
 						select 1
 						from call_center.cc_audit_rate ar
@@ -546,7 +546,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
-		`domain_id = :Domain::int8 
+		`domain_id = :Domain::int8
 	and (:Q::text isnull or destination ilike :Q::text  or  from_number ilike :Q::text or  to_number ilike :Q::text or id::text = :Q::text)
 	and (:Number::text isnull or coalesce(search_number, call_center.cc_array_to_string(array[destination, from_number, to_number], '|')) ~ :Number::text)
 	and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
@@ -562,7 +562,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
 	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
 	and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
 	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
-	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )  
+	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 	and (:AgentIds::int[] isnull or (agent_id = any(:AgentIds) or agent_ids && :AgentIds::int[]) )
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:GatewayIds::int8[] isnull or (gateway_id = any(:GatewayIds) or gateway_ids::int[] && :GatewayIds::int4[]) )
@@ -608,11 +608,11 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
             where not a.id = any(:DependencyIds::uuid[]))
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
-				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or 
+				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or
 			case when not :Rated::bool then not exists(
 					select 1
 					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id::text) 
+					where ar.call_id = t.id::text)
  				else exists(
 					select 1
 					from call_center.cc_audit_rate ar
@@ -947,13 +947,13 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 			from (
           		select ` + strings.Join(fields, ", ") + `
           		from ` + table + `
-				` + GroupWhere(table, agg.Group) + `	
+				` + GroupWhere(table, agg.Group) + `
 		  		` + GroupData(agg.Group) + `
 			) l
 			` + TimeHistogram(histogramRange, histogramField) + `
 		) t
 		` + GetOrderArrayBy(agg.Sort) + `
-        limit %d 
+        limit %d
     ) t`
 
 	return fmt.Sprintf(sql, model.GetLimit(agg.Limit))
@@ -1011,7 +1011,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		   h.sip_code,
 		   h.queue_id,
 		   q.name as queue,
-		   h.tags	
+		   h.tags
 	from call_center.cc_calls_history h
 		left join call_center.cc_agent ca on h.agent_id = ca.id
 		left join directory.wbt_user ua on ua.id = ca.user_id
@@ -1019,7 +1019,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		left join directory.sip_gateway g on g.id = h.gateway_id
 		left join call_center.cc_queue q on q.id = h.queue_id
 		left join call_center.cc_team t on t.id = h.team_id
-	where h.domain_id = :Domain 
+	where h.domain_id = :Domain
 		and (:Q::text isnull or h.destination ilike :Q::text  or  h.from_number ilike :Q::text or  h.to_number ilike :Q::text or h.id::text = :Q::text)
 		and (:Number::text isnull or h.from_number ~ :Number::text or h.to_number ~ :Number::text or h.destination ~ :Number::text)
 		and ( (:From::timestamptz isnull or :To::timestamptz isnull) or h.created_at between :From and :To )
@@ -1030,7 +1030,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and (:TransferToIds::uuid[] isnull or h.transfer_to = any(:TransferToIds))
 		and (:QueueIds::int[] isnull or h.queue_id = any(:QueueIds) )
 		and (:ContactIds::int8[] isnull or h.contact_id = any(:ContactIds::int8[]))
-		and (:TeamIds::int[] isnull or h.team_id = any(:TeamIds) )  
+		and (:TeamIds::int[] isnull or h.team_id = any(:TeamIds) )
 		and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds) )
 		and (:MemberIds::int8[] isnull or h.member_id = any(:MemberIds) )
 		and (:GatewayIds::int8[] isnull or h.gateway_id = any(:GatewayIds) )
@@ -1050,7 +1050,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id::text )
 				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
 				end
-		
+
 			))
 		and (:DependencyIds::uuid[] isnull or h.id in (
 			with recursive a as (
@@ -1133,7 +1133,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 
 func (s SqlCallStore) BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, model.AppError) {
 	var res *model.BridgeCall
-	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id, 
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.id) from_id, coalesce(c2.bridged_id, c2.id) to_id,
        c.app_id, c.contact_id
 from call_center.cc_calls c,
      call_center.cc_calls c2
@@ -1185,7 +1185,7 @@ where id = :Id::uuid`, map[string]string{
 
 func (s SqlCallStore) BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError) {
 	var res *model.BlindTransferInfo
-	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id, c.contact_id,  
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id, c.contact_id,
        	 (c.answered_at isnull and c.queue_id notnull ) queue_unanswered
 from call_center.cc_calls c
 where id = :Id::uuid`, map[string]string{
@@ -1201,7 +1201,7 @@ where id = :Id::uuid`, map[string]string{
 
 func (s SqlCallStore) TransferInfo(ctx context.Context, id string, domainId int64, queueId *int, agentId *int) (*model.TransferInfo, model.AppError) {
 	var res *model.TransferInfo
-	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as  id,
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.parent_id, c.id) as  id,
        c.contact_id,
        (c.answered_at isnull and c.queue_id notnull) queue_unanswered,
        c.app_id,
