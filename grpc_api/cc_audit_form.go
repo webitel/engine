@@ -67,9 +67,10 @@ func (api *auditForm) SearchAuditForm(ctx context.Context, in *engine.SearchAudi
 		req.Enabled = &in.Enabled
 	}
 
-	if in.TeamFilter{
-		req.TeamUserID = &session.UserId
+	if in.TeamFilter != 0 {
+		req.TeamUserID = &in.TeamFilter
 	}
+
 	//if in.Archive {
 	//	req.Archive = &in.Archive
 	//}
