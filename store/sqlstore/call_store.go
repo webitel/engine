@@ -1185,7 +1185,7 @@ where id = :Id::uuid`, map[string]string{
 
 func (s SqlCallStore) BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError) {
 	var res *model.BlindTransferInfo
-	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id, c.contact_id,
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.parent_id, c.id) as id, c.contact_id,
        	 (c.answered_at isnull and c.queue_id notnull ) queue_unanswered
 from call_center.cc_calls c
 where id = :Id::uuid`, map[string]string{
