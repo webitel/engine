@@ -384,7 +384,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
     	            select d.id::uuid
     	            from call_center.cc_calls_history d
     	            where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
-    	            union all
+    	            union distinct
     	            select d.id::uuid
     	            from call_center.cc_calls_history d, a
     	            where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
@@ -598,7 +598,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, us
                 select d.id::uuid
                 from call_center.cc_calls_history d
                 where d.id::uuid = any(:DependencyIds::uuid[]) and d.domain_id = :Domain
-                union all
+                union distinct
                 select d.id::uuid
                 from call_center.cc_calls_history d, a
                 where (d.parent_id::uuid = a.id::uuid or d.transfer_from::uuid = a.id::uuid)
@@ -1057,7 +1057,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 				select t.id
 				from call_center.cc_calls_history t
 				where t.id = any(:DependencyIds::uuid[])
-				union all
+				union distinct
 				select t.id
 				from call_center.cc_calls_history t, a
 				where t.parent_id = a.id or t.transfer_from = a.id
