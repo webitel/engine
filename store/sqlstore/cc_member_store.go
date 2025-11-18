@@ -406,15 +406,18 @@ from m
 	return member, nil
 }
 
-// TODO add force
-func (s SqlMemberStore) Delete(ctx context.Context, queueId, id int64) model.AppError {
+func (s SqlMemberStore) Delete(ctx context.Context, queueId, id int64, force bool) model.AppError {
 	var cnt int64
 	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
 from call_center.cc_member c
 where c.id = :Id
   and c.queue_id = :QueueId
-  and not exists(select 1 from call_center.cc_member_attempt a where a.member_id = c.id and a.state != 'leaving' for update)`,
-		map[string]interface{}{"Id": id, "QueueId": queueId})
+  and not exists(select 1 from call_center.cc_member_attempt a where not :Force::bool and a.member_id = c.id and a.state != 'leaving' for update)`,
+		map[string]interface{}{
+			"Id":      id,
+			"QueueId": queueId,
+			"Force":   force,
+		})
 
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_member.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
