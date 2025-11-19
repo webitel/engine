@@ -900,6 +900,7 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supe
 	var (
 		list           []*model.AgentStatusStatistics
 		searchOperator string
+        sort           string
 	)
 
 	q, found := model.ParseRegexp(search.Q)
@@ -908,7 +909,41 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supe
 	} else {
 		searchOperator = ILikeComparisonOperator
 	}
-	_, err := s.GetMaster().WithContext(ctx).Select(&list, fmt.Sprintf(`select agent_id,
+
+    sort = GetOrderBy("t", search.Sort)
+
+    if sort == "" {
+        sort = `order by case t.status
+             when 'break_out' then 0
+             when 'pause' then 1
+             when 'online' then 2
+             else 3 end, t.name`
+    }
+
+    f := map[string]interface{}{
+       	"DomainId":         domainId,
+		"UserSupervisorId": supervisorUserId,
+		//"Groups":     pq.Array(groups),
+		//"Access":     access.Value(),
+		"Q":             q,
+		"Limit":         search.GetLimit(),
+		"Offset":        search.GetOffset(),
+		"From":          model.GetBetweenFromTime(&search.Time),
+		"To":            model.GetBetweenToTime(&search.Time),
+		"UFrom":         model.GetBetweenFrom(search.Utilization),
+		"UTo":           model.GetBetweenTo(search.Utilization),
+		"AgentIds":      pq.Array(search.AgentIds),
+		"Status":        pq.Array(search.Status),
+		"QueueIds":      pq.Array(search.QueueIds),
+		"TeamIds":       pq.Array(search.TeamIds),
+		"SkillIds":      pq.Array(search.SkillIds),
+		"RegionIds":     pq.Array(search.RegionIds),
+		"AuditorIds":    pq.Array(search.AuditorIds),
+		"SupervisorIds": pq.Array(search.SupervisorIds),
+		"HasCall":       search.HasCall,
+    }
+
+	query := fmt.Sprintf(`select agent_id,
        name,
        status,
        status_duration,
@@ -1118,33 +1153,10 @@ where t.domain_id = :DomainId
   and (:RegionIds::int[] isnull or (t.region_id notnull and t.region_id = any (:RegionIds::int[])))
   and (:AuditorIds::int[] isnull or (t.auditor_ids notnull and t.auditor_ids && :AuditorIds::int8[]))
   and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull))
-order by case t.status
-             when 'break_out' then 0
-             when 'pause' then 1
-             when 'online' then 2
-             else 3 end, t.name
-limit :Limit offset :Offset`, searchOperator), map[string]interface{}{
-		"DomainId":         domainId,
-		"UserSupervisorId": supervisorUserId,
-		//"Groups":     pq.Array(groups),
-		//"Access":     access.Value(),
-		"Q":             q,
-		"Limit":         search.GetLimit(),
-		"Offset":        search.GetOffset(),
-		"From":          model.GetBetweenFromTime(&search.Time),
-		"To":            model.GetBetweenToTime(&search.Time),
-		"UFrom":         model.GetBetweenFrom(search.Utilization),
-		"UTo":           model.GetBetweenTo(search.Utilization),
-		"AgentIds":      pq.Array(search.AgentIds),
-		"Status":        pq.Array(search.Status),
-		"QueueIds":      pq.Array(search.QueueIds),
-		"TeamIds":       pq.Array(search.TeamIds),
-		"SkillIds":      pq.Array(search.SkillIds),
-		"RegionIds":     pq.Array(search.RegionIds),
-		"AuditorIds":    pq.Array(search.AuditorIds),
-		"SupervisorIds": pq.Array(search.SupervisorIds),
-		"HasCall":       search.HasCall,
-	})
+%s
+limit :Limit offset :Offset`, searchOperator, sort)
+
+	_, err := s.GetMaster().WithContext(ctx).Select(&list, query, f)
 
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats.app_error", err.Error(), extractCodeFromErr(err))
