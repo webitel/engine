@@ -146,21 +146,38 @@ func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, sear
 	}
 }
 
-func (s SqlAgentSkillStore) HasDisabledSkill(ctx context.Context, domainId int64, skillId int64) (bool, model.AppError) {
-	var exists bool
-	err := s.GetReplica().WithContext(ctx).SelectOne(&exists, `select exists(select 1
-from call_center.cc_skill_in_agent_view s
-where s.domain_id = :DomainId::int8
-    and s.skill_id = :SkillId::int
-    and not s.enabled) as has_disabled`, map[string]interface{}{
+func (s SqlAgentSkillStore) HasDisabledSkill(ctx context.Context, domainId int64, skillId int64, q *string) (bool, uint32, model.AppError) {
+	query := `
+		with filtered_cte as (
+			select s.enabled
+			from call_center.cc_skill_in_agent_view s
+			where s.domain_id = :DomainId::int8
+			and s.skill_id = :SkillId::int
+			and (:Q::varchar is null or s.agent_name ilike :Q::varchar)
+		)
+		select 
+			bool_or(f.enabled = false) exists_disabled,
+			case when bool_and(f.enabled) then count(*) filter (where f.enabled = true)
+				else count(*) filter (where f.enabled = false)
+			end as potential_rows
+		from filtered_cte f
+	`
+
+	response := struct {
+		ExistsDisabled   bool   `json:"exists_disabled" db:"exists_disabled"`
+		PotentialRows uint32 `json:"potential_rows" db:"potential_rows"`
+	}{}
+
+	err := s.GetReplica().WithContext(ctx).SelectOne(&response, query, map[string]any{
 		"DomainId": domainId,
 		"SkillId":  skillId,
+		"Q": q,
 	})
 	if err != nil {
-		return false, model.NewCustomCodeError("store.sql_skill_in_agent.has_disabled.app_error", err.Error(), extractCodeFromErr(err))
+		return false, 0, model.NewCustomCodeError("store.sql_skill_in_agent.has_disabled.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return exists, nil
+	return response.ExistsDisabled, response.PotentialRows, nil
 }
 
 func (s SqlAgentSkillStore) GetById(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, model.AppError) {
@@ -231,10 +248,13 @@ func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, sear
             select sa.id
             from call_center.cc_skill_in_agent sa
                 inner join call_center.cc_skill s on s.id = sa.skill_id
+				inner join call_center.cc_agent ca on ca.id = sa.agent_id
+				inner join directory.wbt_user wu on wu.id = ca.user_id
             where s.domain_id = :DomainId
                             and (:AgentIds::int[] isnull or agent_id = any(:AgentIds))
                             and (:Ids::int[] isnull or sa.id = any(:Ids))
                             and (:SkillIds::int[] isnull or sa.skill_id = any(:SkillIds))
+							and (:Q::varchar is null or coalesce(wu.name, wu.username) ilike :Q::varchar)
     )
    returning *
 )
@@ -255,6 +275,7 @@ from tmp
 		"UpdatedBy": path.UpdatedBy.GetSafeId(),
 		"UpdatedAt": path.UpdatedAt,
 		"SkillId":   path.Skill.GetSafeId(),
+		"Q": path.GetQ(),
 	})
 
 	if err != nil {

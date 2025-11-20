@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
@@ -167,24 +168,28 @@ func (api *skill) SearchSkillAgent(ctx context.Context, in *engine.SearchSkillAg
 		return nil, err
 	}
 
-	var list []*model.AgentSkill
-	var endList bool
-	var existsDisabled bool
-	req := &model.SearchAgentSkillList{
-		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
-		},
-		SearchAgentSkill: model.SearchAgentSkill{
-			Ids:      in.Id,
-			SkillIds: nil,
-			AgentIds: in.AgentId,
-		},
-	}
-	list, endList, existsDisabled, err = api.ctrl.GetAgentsSkillBySkill(ctx, session, in.SkillId, req)
+	var (
+		list []*model.AgentSkill
+		endList bool
+		existsDisabled bool
+		potentialRows uint32
+		req = &model.SearchAgentSkillList{
+			ListRequest: model.ListRequest{
+				Q:       in.GetQ(),
+				Page:    int(in.GetPage()),
+				PerPage: int(in.GetSize()),
+				Fields:  in.Fields,
+				Sort:    in.Sort,
+			},
+			SearchAgentSkill: model.SearchAgentSkill{
+				Ids:      in.Id,
+				SkillIds: nil,
+				AgentIds: in.AgentId,
+			},
+		}
+	)
+	
+	list, endList, existsDisabled, potentialRows, err = api.ctrl.GetAgentsSkillBySkill(ctx, session, in.SkillId, req)
 	if err != nil {
 		return nil, err
 	}
@@ -194,6 +199,7 @@ func (api *skill) SearchSkillAgent(ctx context.Context, in *engine.SearchSkillAg
 		Items: make([]*engine.SkillAgentItem, 0, len(list)),
 		Aggs: &engine.ListSkillAgent_ListSkillAgg{
 			Enabled: !existsDisabled,
+			PotentialRows: potentialRows,
 		},
 	}
 
@@ -212,6 +218,7 @@ func (api *skill) PatchSkillAgent(ctx context.Context, in *engine.PatchSkillAgen
 
 	var list []*model.AgentSkill
 	patch := model.AgentSkillPatch{
+		ListRequest: model.ListRequest{Q: in.GetQ()},
 		UpdatedAt: model.GetMillis(),
 		UpdatedBy: model.Lookup{
 			Id: int(session.UserId),

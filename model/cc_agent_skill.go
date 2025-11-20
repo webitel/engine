@@ -22,6 +22,7 @@ type AgentsSkills struct {
 }
 
 type AgentSkillPatch struct {
+	ListRequest
 	UpdatedAt int64
 	UpdatedBy Lookup
 

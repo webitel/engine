@@ -36,25 +36,28 @@ func (c *Controller) CreateAgentsSkills(ctx context.Context, session *auth_manag
 	return c.app.CreateAgentsSkills(ctx, items.DomainId, items)
 }
 
-func (c *Controller) GetAgentsSkillBySkill(ctx context.Context, session *auth_manager.Session, skillId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, bool, model.AppError) {
+func (c *Controller) GetAgentsSkillBySkill(ctx context.Context, session *auth_manager.Session, skillId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, bool, bool, uint32, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
-		return nil, false, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+		return nil, false, false, 0, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 	// TODO RBAC AGENTS
 
 	list, next, err := c.app.GetAgentsSkillBySkill(ctx, session.Domain(0), skillId, search)
 	if err != nil {
-		return nil, false, false, err
+		return nil, false, false, 0, err
 	}
 
-	var existsDisabled bool
-	existsDisabled, err = c.app.HasDisabledSkill(ctx, session.Domain(0), skillId)
+	var (
+		existsDisabled bool
+		potentialRows uint32
+	)
+	existsDisabled, potentialRows, err = c.app.HasDisabledSkill(ctx, session.Domain(0), skillId, search.GetQ())
 	if err != nil {
-		return nil, false, false, err
+		return nil, false, false, 0, err
 	}
 
-	return list, next, existsDisabled, nil
+	return list, next, existsDisabled, potentialRows, nil
 
 }
 

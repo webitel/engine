@@ -197,7 +197,7 @@ type AgentSkillStore interface {
 	Delete(ctx context.Context, domainId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, model.AppError)
 
 	CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, model.AppError)
-	HasDisabledSkill(ctx context.Context, domainId int64, skillId int64) (bool, model.AppError)
+	HasDisabledSkill(ctx context.Context, domainId int64, skillId int64, q *string) (bool, uint32, model.AppError)
 }
 
 type OutboundResourceStore interface {
