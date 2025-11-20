@@ -156,16 +156,16 @@ func (c *Controller) PatchQueue(ctx context.Context, session *auth_manager.Sessi
 	return queue, nil
 }
 
-func (c *Controller) GetQueuesGlobalState(ctx context.Context, session *auth_manager.Session) (bool, model.AppError) {
+func (c *Controller) GetQueuesGlobalState(ctx context.Context, session *auth_manager.Session, search *model.SearchQueue) (*model.QueueGlobalStateResponse, model.AppError) {
 	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_READ) {
 		perm := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
-		return false, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_READ)
+		return nil, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.GetQueuesGlobalState(ctx, session.Domain(0))
+	return c.app.GetQueuesGlobalState(ctx, session.Domain(0), search)
 }
 
-func (c *Controller) SetQueuesGlobalState(ctx context.Context, session *auth_manager.Session, newState bool) (int32, model.AppError) {
+func (c *Controller) SetQueuesGlobalState(ctx context.Context, session *auth_manager.Session, newState bool, search *model.SearchQueue) (int32, model.AppError) {
 	if !session.HasAdminPermission(auth_manager.PERMISSION_ACCESS_UPDATE) {
 		perm := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 		return -1, c.app.MakePermissionError(session, perm, auth_manager.PERMISSION_ACCESS_UPDATE)
@@ -175,7 +175,7 @@ func (c *Controller) SetQueuesGlobalState(ctx context.Context, session *auth_man
 		Id: int(session.UserId),
 	}
 
-	return c.app.SetQueuesGlobalState(ctx, session.Domain(0), newState, updatedBy)
+	return c.app.SetQueuesGlobalState(ctx, session.Domain(0), newState, updatedBy, search)
 }
 
 func (c *Controller) DeleteQueue(ctx context.Context, session *auth_manager.Session, id int64) (*model.Queue, model.AppError) {
