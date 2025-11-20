@@ -754,47 +754,65 @@ offset :Offset`
 	return res, nil
 }
 
-func (s SqlQueueStore) GetGlobalState(ctx context.Context, domainId int64) (bool, model.AppError) {
+func (s SqlQueueStore) GetGlobalState(ctx context.Context, domainId int64, search *model.SearchQueue) (*model.QueueGlobalStateResponse, model.AppError) {
 	query := `
-		select not exists (
-			select 
-				1
-			from 
-				call_center.cc_queue q
-			where
-				q.domain_id = :DomainId
-				and q.enabled <> true
-		) as is_all_enabled
+		with filtered_cte as (
+			select q.enabled
+			from call_center.cc_queue q
+			where q.domain_id = :DomainId
+				and (:Types::int[] is null or q.type = any(:Types))
+				and (:TeamIds::int[] is null or q.team_id = any(:TeamIds))
+				and (:Tags::varchar[] is null or q.tags && :Tags::varchar[])
+				and (:Q::varchar is null or (q.name ilike :Q::varchar or q.description ilike :Q::varchar))
+		)
+		select
+			bool_and(f.enabled) is_all_enabled,
+			case when bool_and(f.enabled) then count(*) filter (where f.enabled = true)
+				else count(*) filter (where f.enabled = false)
+			end as potential_rows
+		from filtered_cte f
 	`
+
 	params := map[string]any{
 		"DomainId": domainId,
+		"Q":        search.GetQ(),
+		"Types":    pq.Array(search.Types),
+		"TeamIds":  pq.Array(search.TeamIds),
+		"Tags":     pq.Array(search.Tags),
 	}
 
-	var isAllEnabled bool
-	if err := s.GetReplica().WithContext(ctx).SelectOne(&isAllEnabled, query, params); err != nil {
-		return false, model.NewCustomCodeError("sqlstore.sql_queue.get_global_state.app_error", err.Error(), extractCodeFromErr(err))
+	var queueGlobalStateResponse model.QueueGlobalStateResponse
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&queueGlobalStateResponse, query, params); err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.sql_queue.get_global_state.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return isAllEnabled, nil
+	return &queueGlobalStateResponse, nil
 }
 
-func (s SqlQueueStore) SetGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup) (int32, model.AppError) {
+func (s SqlQueueStore) SetGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup, search *model.SearchQueue) (int32, model.AppError) {
 	query := `
-		update
-			call_center.cc_queue q
-		set
-			updated_by = :UpdatedBy,
+		update call_center.cc_queue q
+		set updated_by = :UpdatedBy,
 			updated_at = :UpdatedAt,
 			enabled = :Enabled
-		where
-			q.domain_id = :DomainId
+		where q.domain_id = :DomainId
 			and q.enabled <> :Enabled
+			and (:Ids::int[] is null or q.id = any(:Ids))
+			and (:Types::int[] is null or q.type = any(:Types))
+			and (:TeamIds::int[] is null or q.team_id = any(:TeamIds))
+			and (:Tags::varchar[] is null or q.tags && :Tags::varchar[])
+			and (:Q::varchar is null or (q.name ilike :Q::varchar or q.description ilike :Q::varchar))
 	`
 	params := map[string]any{
 		"UpdatedBy": updatedBy.GetSafeId(),
 		"UpdatedAt": model.GetMillis(),
 		"Enabled":   newState,
 		"DomainId":  domainId,
+		"Ids": 		pq.Array(search.Ids),
+		"Q":        search.GetQ(),
+		"Types":    pq.Array(search.Types),
+		"TeamIds":  pq.Array(search.TeamIds),
+		"Tags":     pq.Array(search.Tags),
 	}
 
 	res, err := s.GetMaster().WithContext(ctx).Exec(query, params)

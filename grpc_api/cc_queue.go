@@ -474,7 +474,15 @@ func (api *queue) SetQueuesGlobalState(ctx context.Context, in *engine.SetQueues
 		return nil, err
 	}
 
-	rowsAffected, err := api.ctrl.SetQueuesGlobalState(ctx, session, in.Enabled)
+	searchRequest := &model.SearchQueue{
+		ListRequest: model.ListRequest{ Q: in.GetQ() },
+		Ids:         in.GetId(),
+		Types:       in.GetType(),
+		TeamIds:     in.GetTeamId(),
+		Tags:        in.GetTags(),
+	}
+
+	rowsAffected, err := api.ctrl.SetQueuesGlobalState(ctx, session, in.Enabled, searchRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -490,12 +498,35 @@ func (api *queue) GetQueuesGlobalState(ctx context.Context, in *engine.GetQueues
 		return nil, err
 	}
 
-	res, err := api.ctrl.GetQueuesGlobalState(ctx, session)
+	searchRequest := &model.SearchQueue{
+		ListRequest: model.ListRequest{Q: in.GetQ()},
+		Types:       in.GetType(),
+		TeamIds:     in.GetTeamId(),
+		Tags:        in.GetTags(),
+	}
+
+	res, err := api.ctrl.GetQueuesGlobalState(ctx, session, searchRequest)
 	if err != nil {
 		return nil, err
 	}
+	mappedResponse := modelToGetQueuesGlobalStateResponse(res)
+
+	return mappedResponse, nil
+}
+
+func modelToGetQueuesGlobalStateResponse(in *model.QueueGlobalStateResponse) *engine.GetQueuesGlobalStateResponse {
+	var (
+		isAllEnabled bool 
+		potentialRows uint32
+	)
+
+	if in.IsAllEnabled != nil && in.PotentialRows != nil {
+		isAllEnabled = *in.IsAllEnabled
+		potentialRows = *in.PotentialRows
+	}
 
 	return &engine.GetQueuesGlobalStateResponse{
-		IsAllEnabled: res,
-	}, nil
+		IsAllEnabled: isAllEnabled,
+		PotentialRows: potentialRows,
+	}
 }

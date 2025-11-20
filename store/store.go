@@ -277,8 +277,8 @@ type QueueStore interface {
 	ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError)
 	RbacUniqueQueues(ctx context.Context, domainId int64, queueIds []int64, groups []int) ([]int32, model.AppError)
 
-	GetGlobalState(ctx context.Context, domainId int64) (bool, model.AppError)
-	SetGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup) (int32, model.AppError)
+	GetGlobalState(ctx context.Context, domainId int64, search *model.SearchQueue) (*model.QueueGlobalStateResponse, model.AppError)
+	SetGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup, search *model.SearchQueue) (int32, model.AppError)
 }
 
 type QueueResourceStore interface {

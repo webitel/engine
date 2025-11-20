@@ -179,6 +179,11 @@ type QueuePatch struct {
 	IsTimeoutRetry      *bool   `json:"prolongation_is_timeout_retry" db:"prolongation_is_timeout_retry"`
 }
 
+type QueueGlobalStateResponse struct {
+	IsAllEnabled  *bool   `json:"is_all_enabled" db:"is_all_enabled"`
+	PotentialRows *uint32 `json:"potential_rows" db:"potential_rows"`
+}
+
 func (q *Queue) Patch(p *QueuePatch) {
 	// TODO
 	q.UpdatedAt = GetMillis()
