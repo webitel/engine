@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/gorilla/mux"
 	"github.com/webitel/engine/app/cc"
 	"github.com/webitel/engine/app/flow"
@@ -59,6 +60,8 @@ type App struct {
 	tracer           *Tracer
 	otelShutdownFunc otelsdk.ShutdownFunc
 	eventTrigger     EventTrigger
+
+	MeetingHandler *MeetingHandler
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -201,6 +204,10 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	if app.audit, err = logger.New(app.MessageQueue); err != nil {
+		return nil, err
+	}
+
+	if app.MeetingHandler, err = NewMeetingHandler(nil, nil); err != nil {
 		return nil, err
 	}
 
