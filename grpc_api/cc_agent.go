@@ -991,6 +991,7 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		Occupancy:      src.Occupancy,
 		DescTrack:      src.DescTrack,
 		ScreenControl:  src.ScreenControl,
+		ChatTime:       src.ChatTime,
 	}
 
 	if src.ActiveCallId != nil {
