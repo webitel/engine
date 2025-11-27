@@ -38,7 +38,12 @@ type CallClient interface {
 
 	GetServerVersion() (string, model.AppError)
 	SetConnectionSps(sps int) (int, model.AppError)
+	InitStorageEndpoint() model.AppError
 	GetRemoteSps() (int, model.AppError)
+	GlobalVar(varName string) (string, model.AppError)
+	Screenshot(domainId int64, callId string, name string) model.AppError
+	StartRecord(domainId int64, callId string, name string, video bool) model.AppError
+	StopRecord(domainId int64, callId string, name string, video bool) model.AppError
 
 	MakeOutboundCall(req *model.CallRequest) (string, model.AppError)
 
@@ -201,6 +206,12 @@ func (c *callManager) registerConnection(v *discovery.ServiceConnection) {
 		return
 	}
 	client.SetConnectionSps(sps)
+
+	err = client.InitStorageEndpoint()
+	if err != nil {
+		wlog.Error(fmt.Sprintf("connection %s init storage error: %s", v.Id, err.Error()))
+		return
+	}
 
 	c.poolConnections.Append(client)
 	wlog.Debug(fmt.Sprintf("register connection %s [%s] [sps=%d]", client.Name(), version, sps))

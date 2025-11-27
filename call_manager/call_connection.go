@@ -23,22 +23,25 @@ var patternSps = regexp.MustCompile(`\D+`)
 var patternVersion = regexp.MustCompile(`^.*?\s(\d+[\.\S]+[^\s]).*`)
 
 type CallConnection struct {
-	proxy       string
-	name        string
-	host        string
-	port        int
-	rateLimiter ratelimit.Limiter
-	client      *grpc.ClientConn
-	api         fs.ApiClient
+	proxy             string
+	name              string
+	host              string
+	port              int
+	storageEndpoint   string
+	generateThumbnail string
+	rateLimiter       ratelimit.Limiter
+	client            *grpc.ClientConn
+	api               fs.ApiClient
 }
 
 func NewCallConnection(name, host, proxy string, port int) (CallClient, model.AppError) {
 	var err error
 	c := &CallConnection{
-		proxy: proxy,
-		name:  name,
-		host:  host,
-		port:  port,
+		proxy:             proxy,
+		name:              name,
+		host:              host,
+		port:              port,
+		generateThumbnail: "true",
 	}
 
 	c.client, err = grpc.Dial(fmt.Sprintf("%s:%d", c.host, c.port), grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(FS_CONNECTION_TIMEOUT))
@@ -105,6 +108,74 @@ func (c *CallConnection) GetServerVersion() (string, model.AppError) {
 	}
 
 	return patternVersion.ReplaceAllString(strings.TrimSpace(res.Data), "$1"), nil
+}
+
+func (c *CallConnection) GlobalVar(varName string) (string, model.AppError) {
+	res, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
+		Command: "global_getvar",
+		Args:    varName,
+	})
+
+	if err != nil {
+		return "", model.NewInternalError("external.global_getvar.app_error", err.Error())
+	}
+
+	return strings.TrimSpace(res.Data), nil
+}
+
+func (c *CallConnection) InitStorageEndpoint() model.AppError {
+	var err model.AppError
+	c.storageEndpoint, err = c.GlobalVar("cdr_url")
+	return err
+}
+
+func (c *CallConnection) Screenshot(domainId int64, callId string, name string) model.AppError {
+	args := fmt.Sprintf("%s http://%s/sys/recordings?domain=%d&id=%s&name=%s&.%s",
+		callId, c.storageEndpoint, domainId, callId, name, "png")
+
+	_, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
+		Command: "uuid_wbt_screenshot",
+		Args:    args,
+	})
+
+	if err != nil {
+		return model.NewInternalError("external.screenshot.app_error", err.Error())
+	}
+
+	return nil
+}
+
+func (c *CallConnection) record(action string, domainId int64, callId string, name string, video bool) model.AppError {
+	var format, generateThumbnail string
+	if video {
+		format = "mp4"
+		generateThumbnail = c.generateThumbnail
+	} else {
+		format = "mp3"
+		generateThumbnail = "false"
+	}
+
+	args := fmt.Sprintf("%s %s http_cache://http://%s/sys/recordings?thumbnail=%s&domain=%d&id=%s&name=%s&.%s",
+		callId, action, c.storageEndpoint, generateThumbnail, domainId, callId, name, format)
+
+	_, err := c.api.Execute(context.Background(), &fs.ExecuteRequest{
+		Command: "uuid_record",
+		Args:    args,
+	})
+
+	if err != nil {
+		return model.NewInternalError("external.record.app_error", err.Error())
+	}
+
+	return nil
+}
+
+func (c *CallConnection) StopRecord(domainId int64, callId string, name string, video bool) model.AppError {
+	return c.record("stop", domainId, callId, name, video)
+}
+
+func (c *CallConnection) StartRecord(domainId int64, callId string, name string, video bool) model.AppError {
+	return c.record("start", domainId, callId, name, video)
 }
 
 func (c *CallConnection) SetConnectionSps(sps int) (int, model.AppError) {
@@ -373,7 +444,7 @@ func (c *CallConnection) Execute(app string, args string) model.AppError {
 	})
 
 	if err != nil {
-		return model.NewInternalError("external.blind_transfer.app_error", err.Error())
+		return model.NewInternalError("external.execute.app_error", err.Error())
 	}
 	return nil
 }

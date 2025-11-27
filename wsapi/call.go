@@ -32,6 +32,9 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_recordings", api.ApiWebSocketHandler(api.callRecording))
 	api.Router.Handle("call_set_params", api.ApiWebSocketHandler(api.callSetParams))
 	api.Router.Handle("call_set_contact", api.ApiWebSocketHandler(api.callSetContact))
+	api.Router.Handle("call_screenshot", api.ApiWebSocketHandler(api.callScreenshot))
+	api.Router.Handle("call_start_rec", api.ApiWebSocketHandler(api.callStartRecord))
+	api.Router.Handle("call_stop_rec", api.ApiWebSocketHandler(api.callStopRecord))
 
 	api.Router.Handle("call_by_user", api.ApiAsyncWebSocketHandler(api.callByUser))
 
@@ -585,26 +588,59 @@ func (api *API) callSetContact(ctx context.Context, conn *app.WebConn, req *mode
 	return res, err
 }
 
-func (api *API) callSendVideo(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) callScreenshot(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
-	var id, nodeId, id2, nodeId2 string
+	var id, name string
 
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
-	if nodeId, ok = req.Data["app_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
-	}
-	if id2, ok = req.Data["parent_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "parent_id")
-	}
-	if nodeId2, ok = req.Data["parent_app_id"].(string); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "parent_app_id")
+
+	if name, ok = req.Data["name"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "name")
 	}
 
-	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
+	res := make(map[string]interface{})
+	err := api.ctrl.ScreenshotCall(ctx, conn.GetSession(), id, name)
+	return res, err
+}
 
-	return nil, nil
+func (api *API) callStartRecord(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id, name string
+	var video bool
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	if name, ok = req.Data["name"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "name")
+	}
+	video, _ = req.Data["video"].(bool)
+
+	res := make(map[string]interface{})
+	err := api.ctrl.StartRecord(ctx, conn.GetSession(), id, name, video)
+	return res, err
+}
+
+func (api *API) callStopRecord(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id, name string
+	var video bool
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	if name, ok = req.Data["name"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "name")
+	}
+	video, _ = req.Data["video"].(bool)
+
+	res := make(map[string]interface{})
+	err := api.ctrl.StopRecord(ctx, conn.GetSession(), id, name, video)
+	return res, err
 }
 
 func variablesFromMap(m map[string]interface{}, name string) map[string]string {

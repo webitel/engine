@@ -808,6 +808,33 @@ func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string
 	return list[0], nil
 }
 
+func (app *App) ScreenshotCall(ctx context.Context, domainId int64, callId string, name string) model.AppError {
+	cli, err := app.getCallCli(ctx, domainId, callId, nil)
+	if err != nil {
+		return err
+	}
+
+	return cli.Screenshot(domainId, callId, name)
+}
+
+func (app *App) StartRecord(ctx context.Context, domainId int64, callId string, name string, video bool) model.AppError {
+	cli, err := app.getCallCli(ctx, domainId, callId, nil)
+	if err != nil {
+		return err
+	}
+
+	return cli.StartRecord(domainId, callId, name, video)
+}
+
+func (app *App) StopRecord(ctx context.Context, domainId int64, callId string, name string, video bool) model.AppError {
+	cli, err := app.getCallCli(ctx, domainId, callId, nil)
+	if err != nil {
+		return err
+	}
+
+	return cli.StopRecord(domainId, callId, name, video)
+}
+
 /*
 
 func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, model.AppError) {

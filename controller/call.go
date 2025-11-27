@@ -269,3 +269,33 @@ func (c *Controller) SetContactCall(ctx context.Context, session *auth_manager.S
 
 	return c.app.SetCallContactId(ctx, session.Domain(0), session.UserId, id, contactId)
 }
+
+func (c *Controller) ScreenshotCall(ctx context.Context, session *auth_manager.Session, callId string, name string) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	// TODO RBAC ?
+
+	return c.app.ScreenshotCall(ctx, session.Domain(0), callId, name)
+}
+
+func (c *Controller) StartRecord(ctx context.Context, session *auth_manager.Session, callId string, name string, video bool) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	// TODO RBAC ?
+
+	return c.app.StartRecord(ctx, session.Domain(0), callId, name, video)
+}
+
+func (c *Controller) StopRecord(ctx context.Context, session *auth_manager.Session, callId string, name string, video bool) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+	// TODO RBAC ?
+
+	return c.app.StopRecord(ctx, session.Domain(0), callId, name, video)
+}
