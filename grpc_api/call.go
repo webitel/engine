@@ -1136,7 +1136,16 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	}
 
 	if accessFile {
-		item.Files = toCallFile(src.Files)
+		for _, v := range src.Files {
+			switch v.Channel {
+			case "screenshot":
+				item.Screenshot = append(item.Screenshot, toCallFileItem(v))
+			case "screensharing":
+				item.Screensharing = append(item.Screensharing, toCallFileItem(v))
+			default:
+				item.Files = append(item.Files, toCallFileItem(v))
+			}
+		}
 		item.FilesJob = toCallFilesJob(src.FilesJob)
 	}
 
@@ -1276,26 +1285,17 @@ func toFileJobAction(n string) engine.HistoryFileJob_HistoryFileJobAction {
 	}
 }
 
-func toCallFile(src []*model.CallFile) []*engine.CallFile {
-	if src == nil {
-		return nil
+func toCallFileItem(v *model.CallFile) *engine.CallFile {
+	return &engine.CallFile{
+		Id:          v.Id,
+		Name:        v.Name,
+		Size:        v.Size,
+		MimeType:    v.MimeType,
+		StartAt:     v.StartAt,
+		StopAt:      v.StopAt,
+		StartRecord: v.StartRecord,
+		Channel:     v.Channel,
 	}
-
-	res := make([]*engine.CallFile, 0, len(src))
-	for _, v := range src {
-		res = append(res, &engine.CallFile{
-			Id:          v.Id,
-			Name:        v.Name,
-			Size:        v.Size,
-			MimeType:    v.MimeType,
-			StartAt:     v.StartAt,
-			StopAt:      v.StopAt,
-			StartRecord: v.StartRecord,
-			Channel:     v.Channel,
-		})
-	}
-
-	return res
 }
 
 func toCallAnnotation(src []*model.CallAnnotation) []*engine.CallAnnotation {
