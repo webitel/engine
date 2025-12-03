@@ -156,10 +156,10 @@ func (s SqlAgentSkillStore) HasDisabledSkill(ctx context.Context, domainId int64
 			and (:Q::varchar is null or s.agent_name ilike :Q::varchar)
 		)
 		select 
-			bool_or(f.enabled = false) exists_disabled,
-			case when bool_and(f.enabled) then count(*) filter (where f.enabled = true)
+			coalesce(bool_or(f.enabled = false), false) exists_disabled,
+			coalesce(case when bool_and(f.enabled) then count(*) filter (where f.enabled = true)
 				else count(*) filter (where f.enabled = false)
-			end as potential_rows
+			end, 0) as potential_rows
 		from filtered_cte f
 	`
 
