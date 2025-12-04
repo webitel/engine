@@ -1137,14 +1137,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 
 	if accessFile {
 		for _, v := range src.Files {
-			switch v.Channel {
-			case "screenshot":
-				item.Screenshot = append(item.Screenshot, toCallFileItem(v))
-			case "screensharing":
-				item.Screensharing = append(item.Screensharing, toCallFileItem(v))
-			default:
-				item.Files = append(item.Files, toCallFileItem(v))
-			}
+			item.Files = append(item.Files, toCallFileItem(v))
 		}
 		item.FilesJob = toCallFilesJob(src.FilesJob)
 	}
@@ -1295,6 +1288,23 @@ func toCallFileItem(v *model.CallFile) *engine.CallFile {
 		StopAt:      v.StopAt,
 		StartRecord: v.StartRecord,
 		Channel:     v.Channel,
+		Type:        mimeToProto(v.Channel, v.MimeType),
+	}
+}
+
+func mimeToProto(channel string, mime string) engine.CallFileType {
+	if channel == "screen" {
+		return engine.CallFileType_file_type_screensharing
+	} else if strings.HasPrefix(mime, "audio/") {
+		return engine.CallFileType_file_type_audio
+	} else if strings.HasPrefix(mime, "video/") {
+		return engine.CallFileType_file_type_video
+	} else if strings.HasPrefix(mime, "image/") {
+		return engine.CallFileType_file_type_screenshot
+	} else if strings.HasPrefix(mime, "application/pdf") {
+		return engine.CallFileType_file_type_pdf
+	} else {
+		return engine.CallFileType_file_type_empty
 	}
 }
 
