@@ -900,6 +900,15 @@ func (api *call) SetVariablesCall(ctx context.Context, in *engine.SetVariablesCa
 	return &engine.SetVariablesCallResponse{}, nil
 }
 
+func (api *call) SetVariablesCallNA(ctx context.Context, in *engine.SetVariablesCallRequestNA) (*engine.SetVariablesCallResponse, error) {
+	err := api.app.SetCallVariables(ctx, in.DomainId, in.Id, in.Variables)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.SetVariablesCallResponse{}, nil
+}
+
 func (api *call) RedialCall(ctx context.Context, in *engine.RedialCallRequest) (*engine.CreateCallResponse, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
