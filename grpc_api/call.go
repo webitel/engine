@@ -1165,6 +1165,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		item.AttemptId = *src.AttemptId
 	}
 
+	if src.ConversationId != nil {
+		item.ConversationId = *src.ConversationId
+	}
+
 	item.FormFields = UnmarshalJsonpb(prettyStringMap(src.FormFields))
 
 	if src.BridgedId != nil {
