@@ -1183,6 +1183,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		})
 	}
 
+	if src.MeetingId != nil {
+		item.MeetingId = *src.MeetingId
+	}
+
 	return item
 }
 
