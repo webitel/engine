@@ -42,8 +42,8 @@ type Queue struct {
 	Grantee        *Lookup              `json:"grantee" db:"grantee"`
 	Tags           StringArray          `json:"tags" db:"tags"`
 
-	ResourceGroups StringArray `json:"resource_groups" db:"resource_groups"`
-	Resources      StringArray `json:"resources" db:"resources"`
+	ResourceGroups []*Lookup `json:"resource_groups" db:"resource_groups"`
+	Resources      []*Lookup `json:"resources" db:"resources"`
 }
 
 type QueueTaskProcessing struct {
