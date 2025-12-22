@@ -136,7 +136,7 @@ func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, sear
 				and (:AgentIds::int[] isnull or agent_id = any(:AgentIds))
 				and (:Ids::int[] isnull or id = any(:Ids))
 				and (:SkillIds::int[] isnull or skill_id = any(:SkillIds))
-				and (:Q::varchar isnull or (skill_name ilike :Q::varchar or agent_name ilike :Q::varchar ))`,
+				and (:Q::varchar isnull or agent_name ilike :Q::varchar )`,
 		model.AgentSkill{}, f)
 
 	if err != nil {
