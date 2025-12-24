@@ -1310,7 +1310,7 @@ func toCallFileItem(v *model.CallFile) *engine.CallFile {
 }
 
 func mimeToProto(channel string, mime string) engine.CallFileType {
-	if channel == "screen" {
+	if channel == "screenrecording" {
 		return engine.CallFileType_file_type_screensharing
 	} else if strings.HasPrefix(mime, "audio/") {
 		return engine.CallFileType_file_type_audio
