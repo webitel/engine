@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 
 	"github.com/webitel/engine/call_manager"
@@ -15,6 +16,10 @@ import (
 
 const (
 	refreshMissedNotification = "refresh_missed"
+)
+
+var (
+	regPhoneNumber = regexp.MustCompile(`[^0-9+]`)
 )
 
 func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, model.AppError) {
@@ -409,11 +414,16 @@ func (app *App) EavesdropCallState(ctx context.Context, domainId, userId int64, 
 	return nil
 }
 
+func cleanPhoneNumber(input string) string {
+	return regPhoneNumber.ReplaceAllString(input, "")
+}
+
 func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.UserCallInfo) *model.CallRequest {
+	destination := cleanPhoneNumber(req.Destination)
 	return &model.CallRequest{
 		Endpoints:   usr.GetCallEndpoints(),
 		Timeout:     uint16(req.Params.Timeout),
-		Destination: req.Destination,
+		Destination: destination,
 		Variables: model.UnionStringMaps(
 			usr.GetVariables(),
 			map[string]string{
@@ -425,7 +435,7 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 
 				"sip_h_X-Webitel-Origin": "request",
 				"wbt_created_by":         fmt.Sprintf("%v", usr.Id),
-				"wbt_destination":        req.Destination,
+				"wbt_destination":        destination,
 				"wbt_from_id":            fmt.Sprintf("%v", usr.Id),
 				"wbt_from_number":        usr.Endpoint,
 				"wbt_from_name":          usr.Name,
@@ -438,10 +448,10 @@ func inviteFromUser(domainId int64, req *model.OutboundCallRequest, usr *model.U
 				"effective_caller_id_number": usr.Extension,
 				"effective_caller_id_name":   usr.Name,
 				"effective_callee_id_name":   req.Destination,
-				"effective_callee_id_number": req.Destination,
+				"effective_callee_id_number": destination,
 
 				"origination_caller_id_name":   req.Destination,
-				"origination_caller_id_number": req.Destination,
+				"origination_caller_id_number": destination,
 				"origination_callee_id_name":   usr.Name,
 				"origination_callee_id_number": usr.Extension,
 			},
