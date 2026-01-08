@@ -121,7 +121,7 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 
 	return &model.EmailProfileLogin{
 		AuthType:    profile.AuthType,
-		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.ApprovalForce),
+		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline),
 		Cookie: map[string]string{
 			"oauthstate": oauthState,
 		},
