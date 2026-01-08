@@ -1296,6 +1296,10 @@ func toFileJobAction(n string) engine.HistoryFileJob_HistoryFileJobAction {
 }
 
 func toCallFileItem(v *model.CallFile) *engine.CallFile {
+	mime := v.MimeType
+	if mime == "audio/mpeg" {
+		mime = "audio/mp3" // todo https://webitel.atlassian.net/browse/WTEL-8384
+	}
 	return &engine.CallFile{
 		Id:          v.Id,
 		Name:        v.Name,
