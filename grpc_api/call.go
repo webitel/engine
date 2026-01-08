@@ -1304,7 +1304,7 @@ func toCallFileItem(v *model.CallFile) *engine.CallFile {
 		Id:          v.Id,
 		Name:        v.Name,
 		Size:        v.Size,
-		MimeType:    v.MimeType,
+		MimeType:    mime,
 		StartAt:     v.StartAt,
 		StopAt:      v.StopAt,
 		StartRecord: v.StartRecord,
