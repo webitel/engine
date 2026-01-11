@@ -37,7 +37,7 @@ const (
 	SysNamePasswordExpiryDays          = "password_expiry_days"
 	SysNamePasswordMinLength           = "password_min_length"
 	SysNamePasswordCategories          = "password_categories"
-	SysNamePasswordContainsUsername    = "password_contains_username"
+	SysNamePasswordContainsLogin       = "password_contains_login"
 	SysNamePasswordWarningDays         = "password_warning_days"
 	SysNameDefaultPassword             = "default_password"
 )
@@ -118,7 +118,7 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameTaskEndPushNotification,
 		SysNameNewMessageSoundNotification,
 		SysNameNewChatSoundNotification,
-		SysNamePasswordContainsUsername:
+		SysNamePasswordContainsLogin:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
