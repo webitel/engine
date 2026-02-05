@@ -88,9 +88,8 @@ func (c *consul) RegisterService(name, pubHost string, pubPort int, ttl, critica
 			CheckID:                        c.id,
 		},
 	}
-	c.agent.ServiceRegister(c.as)
-	return nil
-	// return c.register(c.as)
+
+	return c.register(c.as)
 }
 
 func (c *consul) register(as *api.AgentServiceRegistration) error {
