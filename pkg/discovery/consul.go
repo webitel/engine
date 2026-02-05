@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/api"
+
 	"github.com/webitel/wlog"
 )
 
@@ -30,7 +31,6 @@ func NewConsul(id, addr string, check CheckFunction) (*consul, error) {
 	conf.Address = addr
 
 	cli, err := api.NewClient(conf)
-
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (c *consul) GetByName(serviceName string) (ListConnections, error) {
 }
 
 // RegisterService TODO
-func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, criticalTtl time.Duration) error {
+func (c *consul) RegisterService(name, pubHost string, pubPort int, ttl, criticalTtl time.Duration) error {
 	if !c.registerService {
 		return nil
 	}
@@ -79,7 +79,7 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 	c.as = &api.AgentServiceRegistration{
 		Name:    name,
 		ID:      c.id,
-		Tags:    []string{c.id, "10040"},
+		Tags:    []string{c.id},
 		Address: pubHost,
 		Port:    pubPort,
 		Check: &api.AgentServiceCheck{
@@ -90,7 +90,7 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 	}
 	c.agent.ServiceRegister(c.as)
 	return nil
-	//return c.register(c.as)
+	// return c.register(c.as)
 }
 
 func (c *consul) register(as *api.AgentServiceRegistration) error {

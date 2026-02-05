@@ -50,7 +50,7 @@ type Config struct {
 	MinimumNumberMaskLen  int                  `json:"minimum_number_mask_len" flag:"min_mask_number_len|0|Minimum mask length number" env:"MIN_NUMBER_MASK_LEN"`
 	PrefixNumberMaskLen   int                  `json:"prefix_number_mask_len" flag:"prefix_number_mask_len|5|Prefix mask length number" env:"PREFIX_NUMBER_MASK_LEN"`
 	SuffixNumberMaskLen   int                  `json:"suffix_number_mask_len" flag:"suffix_number_mask_len|5|Suffix mask length number" env:"SUFFIX_NUMBER_MASK_LEN"`
-	//EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
+	// EmailOAuth              map[string]oauth2.Config `json:"email_oauth2,omitempty"`
 	MaxMemberCommunications int     `json:"max_member_communications" flag:"max_member_communications|20|Maximum member communications" env:"MAX_MEMBER_COMMUNICATIONS"`
 	PublicHostName          *string `json:"public_host" flag:"public_host||Public hostname" default:"" env:"PUBLIC_HOST"`
 	Push                    PushConfig
@@ -104,7 +104,7 @@ type SqlSettings struct {
 
 type TriggersSettings struct {
 	Enabled   bool   `json:"enabled" flag:"trigger_enabled|true|Enable trigger" env:"TRIGGER_ENABLED"`
-	BrokerUrl string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers"  defa	ult:"" env:"TRIGGER_BROKER_URL"`
+	BrokerUrl string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers"  default:"" env:"TRIGGER_BROKER_URL"`
 	Exchange  string `json:"exchange" flag:"triggers_exchange|cases|Exchange name for triggers cases" env:"TRIGGERS_EXCHANGE"`
 	Queue     string `json:"queue" flag:"triggers_queue|engine.trigger|Queue name for triggers" env:"TRIGGERS_QUEUE"`
 }
