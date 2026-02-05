@@ -104,7 +104,7 @@ type SqlSettings struct {
 
 type TriggersSettings struct {
 	Enabled   bool   `json:"enabled" flag:"trigger_enabled|true|Enable trigger" env:"TRIGGER_ENABLED"`
-	BrokerUrl string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers"  default:"" env:"TRIGGER_BROKER_URL"`
+	BrokerUrl string `json:"broker_url" flag:"broker_url||Broker for CaseTriggers"  defa	ult:"" env:"TRIGGER_BROKER_URL"`
 	Exchange  string `json:"exchange" flag:"triggers_exchange|cases|Exchange name for triggers cases" env:"TRIGGERS_EXCHANGE"`
 	Queue     string `json:"queue" flag:"triggers_queue|engine.trigger|Queue name for triggers" env:"TRIGGERS_QUEUE"`
 }

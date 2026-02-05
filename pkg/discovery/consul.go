@@ -79,7 +79,7 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 	c.as = &api.AgentServiceRegistration{
 		Name:    name,
 		ID:      c.id,
-		Tags:    []string{c.id},
+		Tags:    []string{c.id, "10040"},
 		Address: pubHost,
 		Port:    pubPort,
 		Check: &api.AgentServiceCheck{
@@ -88,8 +88,9 @@ func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, 
 			CheckID:                        c.id,
 		},
 	}
-
-	return c.register(c.as)
+	c.agent.ServiceRegister(c.as)
+	return nil
+	//return c.register(c.as)
 }
 
 func (c *consul) register(as *api.AgentServiceRegistration) error {
