@@ -340,6 +340,7 @@ func (api *queue) SearchQueueReportGeneral(ctx context.Context, in *engine.Searc
 			Offline: report.Aggs.Offline,
 			Free:    report.Aggs.Free,
 			Total:   report.Aggs.Total,
+			Busy:    report.Aggs.Busy,
 		},
 	}, nil
 }
@@ -388,6 +389,7 @@ func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueRepo
 			Offline: src.AgentStatus.Offline,
 			Free:    src.AgentStatus.Free,
 			Total:   src.AgentStatus.Total,
+			Busy: src.AgentStatus.Busy,
 		},
 		Team:        GetProtoLookup(src.Team),
 		Missed:      src.Missed,
