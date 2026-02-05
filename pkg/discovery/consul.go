@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/consul/api"
+
 	"github.com/webitel/wlog"
 )
 
@@ -30,7 +31,6 @@ func NewConsul(id, addr string, check CheckFunction) (*consul, error) {
 	conf.Address = addr
 
 	cli, err := api.NewClient(conf)
-
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (c *consul) GetByName(serviceName string) (ListConnections, error) {
 }
 
 // RegisterService TODO
-func (c *consul) RegisterService(name string, pubHost string, pubPort int, ttl, criticalTtl time.Duration) error {
+func (c *consul) RegisterService(name, pubHost string, pubPort int, ttl, criticalTtl time.Duration) error {
 	if !c.registerService {
 		return nil
 	}
