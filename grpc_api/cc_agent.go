@@ -465,6 +465,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 				Offline: v.Agents.Offline,
 				Free:    v.Agents.Free,
 				Total:   v.Agents.Total,
+				Busy: v.Agents.Busy,
 			},
 		}
 
