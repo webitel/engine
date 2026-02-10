@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
@@ -112,6 +113,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 		SearchAgentSkill: model.SearchAgentSkill{
 			Ids:      in.Id,
 			SkillIds: in.SkillId,
+			QScopes: []model.SearchAgentSkillQScope{model.SKILL},
 		},
 	}
 

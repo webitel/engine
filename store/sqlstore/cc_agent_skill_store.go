@@ -121,29 +121,38 @@ _error:
 }
 
 func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentSkillList) ([]*model.AgentSkill, model.AppError) {
-	var agentSkill []*model.AgentSkill
+	var (
+		filters = map[string]any{
+			"DomainID": domainId,
+			"AgentIDs": pq.Array(search.AgentIds),
+			"IDs":      pq.Array(search.Ids),
+			"SkillIDs": pq.Array(search.SkillIds),
+			"Q":        search.GetQ(),
+			"AgentScope": model.AGENT,
+			"SkillScope": model.SKILL,
+			"QScopes": pq.Array(search.QScopes),
+		}
 
-	f := map[string]interface{}{
-		"DomainId": domainId,
-		"AgentIds": pq.Array(search.AgentIds),
-		"Ids":      pq.Array(search.Ids),
-		"SkillIds": pq.Array(search.SkillIds),
-		"Q":        search.GetQ(),
-	}
-
-	err := s.ListQuery(ctx, &agentSkill, search.ListRequest,
-		`domain_id = :DomainId
-				and (:AgentIds::int[] isnull or agent_id = any(:AgentIds))
-				and (:Ids::int[] isnull or id = any(:Ids))
-				and (:SkillIds::int[] isnull or skill_id = any(:SkillIds))
-				and (:Q::varchar isnull or agent_name ilike :Q::varchar )`,
-		model.AgentSkill{}, f)
-
-	if err != nil {
+		query = `
+			domain_id = :DomainID
+			and (:AgentIDs::int[] isnull or agent_id = any(:AgentIDs))
+			and (:IDs::int[] isnull or id = any(:IDs))
+			and (:SkillIDs::int[] isnull or skill_id = any(:SkillIDs))
+			and (
+				:Q::varchar isnull 
+				or (:AgentScope::int = any(:QScopes::int[]) and agent_name ilike :Q::varchar)
+				or (:SkillScope::int = any(:QScopes::int[]) and skill_name ilike :Q::varchar)
+			)
+		`
+		
+		agentSkill []*model.AgentSkill
+	)
+	
+	if err := s.ListQuery(ctx, &agentSkill, search.ListRequest, query, new(model.AgentSkill), filters); err != nil {
 		return nil, model.NewInternalError("store.sql_skill_in_agent.get_all.app_error", err.Error())
-	} else {
-		return agentSkill, nil
 	}
+
+	return agentSkill, nil
 }
 
 func (s SqlAgentSkillStore) HasDisabledSkill(ctx context.Context, domainId int64, skillId int64, q *string) (bool, uint32, model.AppError) {

@@ -185,6 +185,7 @@ func (api *skill) SearchSkillAgent(ctx context.Context, in *engine.SearchSkillAg
 				Ids:      in.Id,
 				SkillIds: nil,
 				AgentIds: in.AgentId,
+				QScopes: []model.SearchAgentSkillQScope{model.AGENT},
 			},
 		}
 	)
