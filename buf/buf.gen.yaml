@@ -14,5 +14,5 @@ plugins:
 inputs:
 #  - directory: "../protos/engine"
   - git_repo: "https://github.com/webitel/protos"
-    branch: "v25.12"
+    branch: "main"
     subdir: engine

@@ -2593,21 +2593,33 @@ func (x *ListAgentStateHistory) GetItems() []*AgentState {
 	return nil
 }
 
+// AgentInQueue represents agent assignment
+// and configuration within a specific queue.
 type AgentInQueue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Queue          *Lookup                     `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
-	Priority       int32                       `protobuf:"varint,2,opt,name=priority,proto3" json:"priority,omitempty"`
-	Type           int32                       `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
-	Strategy       string                      `protobuf:"bytes,4,opt,name=strategy,proto3" json:"strategy,omitempty"`
-	Enabled        bool                        `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
-	CountMembers   int32                       `protobuf:"varint,6,opt,name=count_members,json=countMembers,proto3" json:"count_members,omitempty"`
-	WaitingMembers int32                       `protobuf:"varint,7,opt,name=waiting_members,json=waitingMembers,proto3" json:"waiting_members,omitempty"`
-	ActiveMembers  int32                       `protobuf:"varint,8,opt,name=active_members,json=activeMembers,proto3" json:"active_members,omitempty"`
-	Agents         *AgentInQueue_AgentsInQueue `protobuf:"bytes,9,opt,name=agents,proto3" json:"agents,omitempty"`
-	MaxMemberLimit int32                       `protobuf:"varint,10,opt,name=max_member_limit,json=maxMemberLimit,proto3" json:"max_member_limit,omitempty"`
+	// Queue reference.
+	Queue *Lookup `protobuf:"bytes,1,opt,name=queue,proto3" json:"queue,omitempty"`
+	// Agent priority within the queue.
+	Priority int32 `protobuf:"varint,2,opt,name=priority,proto3" json:"priority,omitempty"`
+	// Queue type.
+	Type int32 `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
+	// Call distribution strategy used by the queue.
+	Strategy string `protobuf:"bytes,4,opt,name=strategy,proto3" json:"strategy,omitempty"`
+	// Indicates whether the queue is enabled.
+	Enabled bool `protobuf:"varint,5,opt,name=enabled,proto3" json:"enabled,omitempty"`
+	// Total number of members assigned to the queue.
+	CountMembers int32 `protobuf:"varint,6,opt,name=count_members,json=countMembers,proto3" json:"count_members,omitempty"`
+	// Number of members currently waiting in the queue.
+	WaitingMembers int32 `protobuf:"varint,7,opt,name=waiting_members,json=waitingMembers,proto3" json:"waiting_members,omitempty"`
+	// Number of members currently active in the queue.
+	ActiveMembers int32 `protobuf:"varint,8,opt,name=active_members,json=activeMembers,proto3" json:"active_members,omitempty"`
+	// Aggregated agent statistics for the queue.
+	Agents *AgentInQueue_AgentsInQueue `protobuf:"bytes,9,opt,name=agents,proto3" json:"agents,omitempty"`
+	// Maximum number of members allowed in the queue.
+	MaxMemberLimit int32 `protobuf:"varint,10,opt,name=max_member_limit,json=maxMemberLimit,proto3" json:"max_member_limit,omitempty"`
 }
 
 func (x *AgentInQueue) Reset() {
@@ -2712,12 +2724,16 @@ func (x *AgentInQueue) GetMaxMemberLimit() int32 {
 	return 0
 }
 
+// ListAgentInQueue contains search results
+// and pagination metadata.
 type ListAgentInQueue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Next  bool            `protobuf:"varint,1,opt,name=next,proto3" json:"next,omitempty"`
+	// Indicates weather more records are available.
+	Next bool `protobuf:"varint,1,opt,name=next,proto3" json:"next,omitempty"`
+	// List of agent-to-queue assignments.
 	Items []*AgentInQueue `protobuf:"bytes,2,rep,name=items,proto3" json:"items,omitempty"`
 }
 
@@ -2767,16 +2783,26 @@ func (x *ListAgentInQueue) GetItems() []*AgentInQueue {
 	return nil
 }
 
+// SearchAgentInQueueRequest defines parameters
+// for searching queues associated with an agent.
 type SearchAgentInQueueRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id     int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Page   int32    `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
-	Size   int32    `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
-	Q      string   `protobuf:"bytes,4,opt,name=q,proto3" json:"q,omitempty"`
-	Sort   string   `protobuf:"bytes,5,opt,name=sort,proto3" json:"sort,omitempty"`
+	// Unique identifier of the agent.
+	Id int64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Page number (1-based).
+	Page int32 `protobuf:"varint,2,opt,name=page,proto3" json:"page,omitempty"`
+	// Maximum number of records per page.
+	Size int32 `protobuf:"varint,3,opt,name=size,proto3" json:"size,omitempty"`
+	// Free-text search query.
+	// Typically applied to queue name.
+	Q string `protobuf:"bytes,4,opt,name=q,proto3" json:"q,omitempty"`
+	// Sorting expression.
+	Sort string `protobuf:"bytes,5,opt,name=sort,proto3" json:"sort,omitempty"`
+	// List of fields to be returned in the response.
+	// Used for response projection and payload optimization.
 	Fields []string `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
 }
 
@@ -4438,18 +4464,28 @@ func (x *AgentInQueueStatistics_AgentInQueueStatisticsItem) GetMemberWaiting() i
 	return 0
 }
 
+// AgentsInQueue contains aggregated statistics
+// about agents assigned to queue.
 type AgentInQueue_AgentsInQueue struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Online     uint32                 `protobuf:"varint,1,opt,name=online,proto3" json:"online,omitempty"`
-	Pause      uint32                 `protobuf:"varint,2,opt,name=pause,proto3" json:"pause,omitempty"`
-	Offline    uint32                 `protobuf:"varint,3,opt,name=offline,proto3" json:"offline,omitempty"`
-	Free       uint32                 `protobuf:"varint,4,opt,name=free,proto3" json:"free,omitempty"`
-	Total      uint32                 `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	// Number of agents currently online.
+	Online uint32 `protobuf:"varint,1,opt,name=online,proto3" json:"online,omitempty"`
+	// Number of agents currently in pause state.
+	Pause uint32 `protobuf:"varint,2,opt,name=pause,proto3" json:"pause,omitempty"`
+	// Number of agents currently offline.
+	Offline uint32 `protobuf:"varint,3,opt,name=offline,proto3" json:"offline,omitempty"`
+	// Number of agents that are online and in 'waiting' (idle) state.
+	Free uint32 `protobuf:"varint,4,opt,name=free,proto3" json:"free,omitempty"`
+	// Total number of agents assigned to the queue.
+	Total uint32 `protobuf:"varint,5,opt,name=total,proto3" json:"total,omitempty"`
+	// Indicates whether pause is allowed for agents.
+	// If unset, pause availability is not defined.
 	AllowPause *wrapperspb.Int32Value `protobuf:"bytes,6,opt,name=allow_pause,json=allowPause,proto3" json:"allow_pause,omitempty"`
-	Busy       uint32                 `protobuf:"varint,7,opt,name=busy,proto3" json:"busy,omitempty"`
+	// Number of agents currently on call.
+	Busy uint32 `protobuf:"varint,7,opt,name=busy,proto3" json:"busy,omitempty"`
 }
 
 func (x *AgentInQueue_AgentsInQueue) Reset() {

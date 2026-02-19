@@ -256,8 +256,8 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 		return nil, model.NewBadRequestError("grpc.call.search_history", "filter created_at or stored_at is required")
 	}
 
-	//var list []*model.HistoryCall
-	//var endList bool
+	// var list []*model.HistoryCall
+	// var endList bool
 	req := &model.CallAggregate{
 		SearchHistoryCall: model.SearchHistoryCall{
 			ListRequest: model.ListRequest{
@@ -361,7 +361,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			for _, j := range v.Group {
 				a.Group = append(a.Group, model.AggregateGroup{
 					Id:       j.Id,
-					Interval: getInterval(j.Interval), //TODO
+					Interval: getInterval(j.Interval), // TODO
 
 					Aggregate: j.Aggregate,
 					Field:     j.Field,
@@ -412,7 +412,6 @@ func (api *call) PatchHistoryCall(ctx context.Context, in *engine.PatchHistoryCa
 	}
 
 	c, err = api.ctrl.UpdateCallHistory(ctx, session, in.Id, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +448,6 @@ func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*eng
 	}
 	var call *model.Call
 	call, err = api.ctrl.GetCall(ctx, session, in.DomainId, in.Id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -519,7 +517,6 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 	}
 
 	list, endList, err = api.ctrl.SearchCall(ctx, session, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -540,14 +537,10 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 		return nil, err
 	}
 
-	var req = &model.OutboundCallRequest{
+	req := &model.OutboundCallRequest{
 		Destination: in.GetDestination(),
 		Params: model.CallParameters{
 			Timeout:           int(in.GetParams().GetTimeout()),
-			Audio:             in.GetParams().GetAudio(),
-			Video:             in.GetParams().GetVideo(),
-			Screen:            in.GetParams().GetScreen(),
-			Record:            in.GetParams().GetRecord(),
 			Variables:         in.GetParams().GetVariables(),
 			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
 			Display:           in.GetParams().GetDisplay(),
@@ -614,15 +607,11 @@ func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest)
 		from.AppId = model.NewString(in.From.AppId)
 	}
 
-	var req = &model.OutboundCallRequest{
+	req := &model.OutboundCallRequest{
 		From:        from,
 		Destination: in.GetDestination(),
 		Params: model.CallParameters{
 			Timeout:           int(in.GetParams().GetTimeout()),
-			Audio:             in.GetParams().GetAudio(),
-			Video:             in.GetParams().GetVideo(),
-			Screen:            in.GetParams().GetScreen(),
-			Record:            in.GetParams().GetRecord(),
 			Variables:         in.GetParams().GetVariables(),
 			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
 			Display:           in.GetParams().GetDisplay(),
@@ -1012,7 +1001,7 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	}
 }
 
-func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, hideNumbers bool, accessFile bool) *engine.HistoryCall {
+func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, hideNumbers, accessFile bool) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
 		AppId:            src.AppId,
@@ -1223,7 +1212,7 @@ func prettyVariables(src *model.Variables) map[string]string {
 			switch r := v.(type) {
 			case string:
 				res[k] = r
-			case []interface{}:
+			case []any:
 				t := make([]string, 0, len(r))
 				for _, l := range r {
 					t = append(t, fmt.Sprintf("%v", l))
@@ -1313,7 +1302,7 @@ func toCallFileItem(v *model.CallFile) *engine.CallFile {
 	}
 }
 
-func mimeToProto(channel string, mime string) engine.CallFileType {
+func mimeToProto(channel, mime string) engine.CallFileType {
 	if channel == "screenrecording" {
 		return engine.CallFileType_file_type_screensharing
 	} else if strings.HasPrefix(mime, "audio/") {
@@ -1371,7 +1360,6 @@ func toCallHold(src []*model.CallHold) []*engine.CallHold {
 
 func defaultInt(i *int) int32 {
 	if i != nil {
-
 		return int32(*i)
 	}
 	return 0
@@ -1379,7 +1367,6 @@ func defaultInt(i *int) int32 {
 
 func defaultBigInt(i *int64) int64 {
 	if i != nil {
-
 		return *i
 	}
 	return 0
