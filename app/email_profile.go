@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
+
+	"golang.org/x/oauth2"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"golang.org/x/oauth2"
 )
 
 func (app *App) CountActiveEmailProfile(ctx context.Context, domainId int64) (int, model.AppError) {
@@ -121,7 +123,7 @@ func (a *App) loginEmailProfileOAuth2(profile *model.EmailProfile) (*model.Email
 
 	return &model.EmailProfileLogin{
 		AuthType:    profile.AuthType,
-		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.ApprovalForce),
+		RedirectUrl: oauthConf.AuthCodeURL(oauthState, oauth2.AccessTypeOffline),
 		Cookie: map[string]string{
 			"oauthstate": oauthState,
 		},
@@ -158,7 +160,6 @@ func (a *App) LogoutEmailProfile(ctx context.Context, domainId int64, id int) mo
 
 func (app *App) RemoveEmailProfile(ctx context.Context, domainId int64, id int) (*model.EmailProfile, model.AppError) {
 	profile, err := app.Store.EmailProfile().Get(ctx, domainId, id)
-
 	if err != nil {
 		return nil, err
 	}
