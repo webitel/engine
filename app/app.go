@@ -2,7 +2,11 @@ package app
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/webitel/engine/app/cc"
 	"github.com/webitel/engine/app/flow"
@@ -21,6 +25,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 	"go.uber.org/atomic"
+
 	// -------------------- plugin(s) -------------------- //
 	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/otlp"
 	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/stdout"
@@ -264,6 +269,7 @@ func (app *App) Ready() (bool, model.AppError) {
 	return true, nil
 }
 
+// DEPRECATED use SendDomainEvent instead
 func (a *App) PublishEventContext(ctx context.Context, body []byte, object string, keys ...string) model.AppError {
 	routingKey := object
 	for _, key := range keys {
@@ -274,4 +280,66 @@ func (a *App) PublishEventContext(ctx context.Context, body []byte, object strin
 		return model.NewInternalError("app.app.publish_event_context.send.error", err.Error())
 	}
 	return nil
+}
+
+type DomainEventType string
+
+const (
+	CreateType DomainEventType  = "create"
+	DeleteType DomainEventType = "delete"
+	UpdateType DomainEventType = "update"
+)
+
+type DomainEvent struct {
+	DomainID int64
+	Object string
+	EventType DomainEventType
+	User int64
+	Time time.Time
+	Body any
+}
+
+func (d *DomainEvent) Validate() error {
+	if d == nil {
+		return errors.New("domain event is nil")
+	}
+	if d.DomainID <= 0 {
+		return errors.New("domain id required for the domain event")
+	}
+	if d.Object == "" {
+		return errors.New("object required for the domain event")
+	}
+	if d.EventType == "" {
+		return errors.New("event type is required for the domain event")
+	}
+	return nil
+}
+
+func formatDomainEventKey(event *DomainEvent) (string, error) {
+	if event.Object == "" {
+		return "", errors.New("object required")
+	}
+	if event.EventType== "" {
+		return "", errors.New("event type required")
+	}
+	return fmt.Sprintf("%s.%s.%d", event.Object, event.EventType, event.DomainID), nil
+	
+}
+
+func (a *App) SendDomainEvent(ctx context.Context, event *DomainEvent) error {
+	err := event.Validate()
+	if err != nil {
+		return err
+	}
+	routingKey, err := formatDomainEventKey(event)
+	if err != nil {
+		return err
+	}
+
+	body, err := json.Marshal(event.Body)
+	if err != nil {
+		return err
+	}
+		
+	return a.MessageQueue.Send(ctx, EventExchangeName, routingKey, body)
 }

@@ -2,8 +2,14 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/webitel/engine/model"
+)
+
+
+const (
+	FlowSchemaObject = "flow_schema"
 )
 
 func (a *App) CreateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
@@ -48,6 +54,8 @@ func (a *App) UpdateRoutingSchema(ctx context.Context, scheme *model.RoutingSche
 	return oldScheme, nil
 }
 
+
+
 func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*model.RoutingSchema, model.AppError) {
 	scheme, err := a.Store.RoutingSchema().Get(ctx, domainId, id)
 
@@ -59,8 +67,22 @@ func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*mod
 	if err != nil {
 		return nil, err
 	}
+
+	defErr := a.SendDomainEvent(ctx, &DomainEvent{
+		DomainID:  domainId,
+		Object: 	FlowSchemaObject,
+		EventType: DeleteType,
+		Time:      time.Now(),
+		Body:      nil,
+	})
+	if defErr != nil {
+		a.Log.Error(defErr.Error()) 
+	}
+	
 	return scheme, nil
 }
+
+
 
 func (a *App) PatchRoutingSchema(ctx context.Context, domainId, id int64, patch *model.RoutingSchemaPath) (*model.RoutingSchema, model.AppError) {
 	old, err := a.GetRoutingSchemaById(ctx, domainId, id)
