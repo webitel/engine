@@ -93,6 +93,7 @@ type AgentStatusStatistics struct {
 	Auditor     []*Lookup `json:"auditor" db:"auditor"`
 	PauseCause  string    `json:"pause_cause" db:"pause_cause"`
 	ChatCount   int32     `json:"chat_count" db:"chat_count"`
+	ChatTime    int64     `json:"chat_time" db:"chat_time"`
 
 	Occupancy     float32 `json:"occupancy" db:"occupancy"`
 	DescTrack     bool    `json:"desc_track" db:"desc_track"`

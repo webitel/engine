@@ -465,6 +465,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 				Offline: v.Agents.Offline,
 				Free:    v.Agents.Free,
 				Total:   v.Agents.Total,
+				Busy: v.Agents.Busy,
 			},
 		}
 
@@ -991,6 +992,7 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 		Occupancy:      src.Occupancy,
 		DescTrack:      src.DescTrack,
 		ScreenControl:  src.ScreenControl,
+		ChatTime:       src.ChatTime,
 	}
 
 	if src.ActiveCallId != nil {

@@ -32,10 +32,20 @@ type AgentSkillPatch struct {
 	Enabled  *bool
 }
 
+type SearchAgentSkillQScope int
+
+const (
+	UNKNOWN SearchAgentSkillQScope = iota
+	AGENT
+	SKILL
+)
+
 type SearchAgentSkill struct {
 	Ids      []int64
 	SkillIds []int64
 	AgentIds []int64
+
+	QScopes []SearchAgentSkillQScope
 }
 
 type SearchAgentSkillList struct {

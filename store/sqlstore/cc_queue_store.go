@@ -616,11 +616,17 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
                array_agg(distinct a.id) filter ( where status = 'online' and ac.state = 'waiting' ) free,
+			   array_agg(distinct a.id) filter (
+                	where a.status::text = 'online'::text 
+                	and ac_call.channel::text = 'call' 
+                	and ac_call.state::text = any (array['offering'::text, 'bridged'::text, 'processing'::text])
+            	) agent_b_ids,
                array_agg(distinct a.id) total
         from queues q
             inner join call_center.cc_agent a on a.domain_id = q.domain_id
             inner join call_center.cc_agent_channel ac on ac.agent_id = a.id and ac.channel = case when q.type in (0,1,2,3,4,5) then  'call'
                                                                                 when q.type in (6) then 'chat' else 'task' end
+			inner join call_center.cc_agent_channel ac_call on ac_call.agent_id = a.id and ac_call.channel::text = 'call'
             inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
         where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
@@ -633,9 +639,9 @@ items as materialized (
                                   'pause', coalesce(array_length(queue_ag.agent_p_ids, 1), 0),
                                   'offline', coalesce(array_length(queue_ag.agent_off_ids, 1), 0),
                                   'free', coalesce(array_length(queue_ag.free, 1), 0),
-                                  'total', coalesce(array_length(queue_ag.total, 1), 0)
+                                  'total', coalesce(array_length(queue_ag.total, 1), 0),
+								  'busy', coalesce(array_length(queue_ag.agent_b_ids, 1), 0) 
                ) agent_status,
-
            coalesce(ag.abandoned::int, 0) missed,
            (select count(*) from call_center.cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
            coalesce(case when q.type in (1, 6) then (select count(*) from call_center.cc_member_attempt a1 where a1.queue_id = q.id and a1.bridged_at isnull)
@@ -694,7 +700,8 @@ select
             'pause', coalesce(array_length(agent_p_ids, 1), 0),
             'offline', coalesce(array_length(agent_off_ids, 1), 0),
             'free', coalesce(array_length(free, 1), 0),
-            'total', coalesce(array_length(total, 1), 0)
+            'total', coalesce(array_length(total, 1), 0),
+			'busy', coalesce(array_length(agent_b_ids, 1), 0)
                             ) from queue_ag where queue_ag.queue_id isnull ) aggs
 `, map[string]interface{}{
 		"DomainId":         domainId,

@@ -64,6 +64,8 @@ type AgentServiceClient interface {
 	SearchAgentStateHistory(ctx context.Context, in *SearchAgentStateHistoryRequest, opts ...grpc.CallOption) (*ListAgentStateHistory, error)
 	// todo deprecated ?
 	SearchAgentInTeam(ctx context.Context, in *SearchAgentInTeamRequest, opts ...grpc.CallOption) (*ListAgentInTeam, error)
+	// Searches queues where the specified agent is assigned.
+	// Supports pagination, sorting and free-text search.
 	SearchAgentInQueue(ctx context.Context, in *SearchAgentInQueueRequest, opts ...grpc.CallOption) (*ListAgentInQueue, error)
 	SearchPauseCauseForAgent(ctx context.Context, in *SearchPauseCauseForAgentRequest, opts ...grpc.CallOption) (*ForAgentPauseCauseList, error)
 	SearchAgentInQueueStatistics(ctx context.Context, in *SearchAgentInQueueStatisticsRequest, opts ...grpc.CallOption) (*AgentInQueueStatisticsList, error)
@@ -288,6 +290,8 @@ type AgentServiceServer interface {
 	SearchAgentStateHistory(context.Context, *SearchAgentStateHistoryRequest) (*ListAgentStateHistory, error)
 	// todo deprecated ?
 	SearchAgentInTeam(context.Context, *SearchAgentInTeamRequest) (*ListAgentInTeam, error)
+	// Searches queues where the specified agent is assigned.
+	// Supports pagination, sorting and free-text search.
 	SearchAgentInQueue(context.Context, *SearchAgentInQueueRequest) (*ListAgentInQueue, error)
 	SearchPauseCauseForAgent(context.Context, *SearchPauseCauseForAgentRequest) (*ForAgentPauseCauseList, error)
 	SearchAgentInQueueStatistics(context.Context, *SearchAgentInQueueStatisticsRequest) (*AgentInQueueStatisticsList, error)

@@ -256,8 +256,8 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 		return nil, model.NewBadRequestError("grpc.call.search_history", "filter created_at or stored_at is required")
 	}
 
-	//var list []*model.HistoryCall
-	//var endList bool
+	// var list []*model.HistoryCall
+	// var endList bool
 	req := &model.CallAggregate{
 		SearchHistoryCall: model.SearchHistoryCall{
 			ListRequest: model.ListRequest{
@@ -361,7 +361,7 @@ func (api *call) AggregateHistoryCall(ctx context.Context, in *engine.AggregateH
 			for _, j := range v.Group {
 				a.Group = append(a.Group, model.AggregateGroup{
 					Id:       j.Id,
-					Interval: getInterval(j.Interval), //TODO
+					Interval: getInterval(j.Interval), // TODO
 
 					Aggregate: j.Aggregate,
 					Field:     j.Field,
@@ -412,7 +412,6 @@ func (api *call) PatchHistoryCall(ctx context.Context, in *engine.PatchHistoryCa
 	}
 
 	c, err = api.ctrl.UpdateCallHistory(ctx, session, in.Id, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -449,7 +448,6 @@ func (api *call) ReadCall(ctx context.Context, in *engine.ReadCallRequest) (*eng
 	}
 	var call *model.Call
 	call, err = api.ctrl.GetCall(ctx, session, in.DomainId, in.Id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -519,7 +517,6 @@ func (api *call) SearchActiveCall(ctx context.Context, in *engine.SearchCallRequ
 	}
 
 	list, endList, err = api.ctrl.SearchCall(ctx, session, req)
-
 	if err != nil {
 		return nil, err
 	}
@@ -540,14 +537,10 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 		return nil, err
 	}
 
-	var req = &model.OutboundCallRequest{
+	req := &model.OutboundCallRequest{
 		Destination: in.GetDestination(),
 		Params: model.CallParameters{
 			Timeout:           int(in.GetParams().GetTimeout()),
-			Audio:             in.GetParams().GetAudio(),
-			Video:             in.GetParams().GetVideo(),
-			Screen:            in.GetParams().GetScreen(),
-			Record:            in.GetParams().GetRecord(),
 			Variables:         in.GetParams().GetVariables(),
 			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
 			Display:           in.GetParams().GetDisplay(),
@@ -614,15 +607,11 @@ func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest)
 		from.AppId = model.NewString(in.From.AppId)
 	}
 
-	var req = &model.OutboundCallRequest{
+	req := &model.OutboundCallRequest{
 		From:        from,
 		Destination: in.GetDestination(),
 		Params: model.CallParameters{
 			Timeout:           int(in.GetParams().GetTimeout()),
-			Audio:             in.GetParams().GetAudio(),
-			Video:             in.GetParams().GetVideo(),
-			Screen:            in.GetParams().GetScreen(),
-			Record:            in.GetParams().GetRecord(),
 			Variables:         in.GetParams().GetVariables(),
 			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
 			Display:           in.GetParams().GetDisplay(),
@@ -900,6 +889,15 @@ func (api *call) SetVariablesCall(ctx context.Context, in *engine.SetVariablesCa
 	return &engine.SetVariablesCallResponse{}, nil
 }
 
+func (api *call) SetVariablesCallNA(ctx context.Context, in *engine.SetVariablesCallRequestNA) (*engine.SetVariablesCallResponse, error) {
+	err := api.app.SetCallVariables(ctx, in.DomainId, in.Id, in.Variables)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.SetVariablesCallResponse{}, nil
+}
+
 func (api *call) RedialCall(ctx context.Context, in *engine.RedialCallRequest) (*engine.CreateCallResponse, error) {
 	session, err := api.ctrl.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -1003,7 +1001,7 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 	}
 }
 
-func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, hideNumbers bool, accessFile bool) *engine.HistoryCall {
+func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, hideNumbers, accessFile bool) *engine.HistoryCall {
 	item := &engine.HistoryCall{
 		Id:               src.Id,
 		AppId:            src.AppId,
@@ -1136,7 +1134,9 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	}
 
 	if accessFile {
-		item.Files = toCallFile(src.Files)
+		for _, v := range src.Files {
+			item.Files = append(item.Files, toCallFileItem(v))
+		}
 		item.FilesJob = toCallFilesJob(src.FilesJob)
 	}
 
@@ -1154,6 +1154,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		item.AttemptId = *src.AttemptId
 	}
 
+	if src.ConversationId != nil {
+		item.ConversationId = *src.ConversationId
+	}
+
 	item.FormFields = UnmarshalJsonpb(prettyStringMap(src.FormFields))
 
 	if src.BridgedId != nil {
@@ -1166,6 +1170,10 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 			FormFields:  UnmarshalJsonpb(prettyStringMap(v.FormFields)),
 			ReportingAt: v.ReportingAt,
 		})
+	}
+
+	if src.MeetingId != nil {
+		item.MeetingId = *src.MeetingId
 	}
 
 	return item
@@ -1204,7 +1212,7 @@ func prettyVariables(src *model.Variables) map[string]string {
 			switch r := v.(type) {
 			case string:
 				res[k] = r
-			case []interface{}:
+			case []any:
 				t := make([]string, 0, len(r))
 				for _, l := range r {
 					t = append(t, fmt.Sprintf("%v", l))
@@ -1276,26 +1284,38 @@ func toFileJobAction(n string) engine.HistoryFileJob_HistoryFileJobAction {
 	}
 }
 
-func toCallFile(src []*model.CallFile) []*engine.CallFile {
-	if src == nil {
-		return nil
+func toCallFileItem(v *model.CallFile) *engine.CallFile {
+	mime := v.MimeType
+	if mime == "audio/mpeg" {
+		mime = "audio/mp3" // todo https://webitel.atlassian.net/browse/WTEL-8384
 	}
-
-	res := make([]*engine.CallFile, 0, len(src))
-	for _, v := range src {
-		res = append(res, &engine.CallFile{
-			Id:          v.Id,
-			Name:        v.Name,
-			Size:        v.Size,
-			MimeType:    v.MimeType,
-			StartAt:     v.StartAt,
-			StopAt:      v.StopAt,
-			StartRecord: v.StartRecord,
-			Channel:     v.Channel,
-		})
+	return &engine.CallFile{
+		Id:          v.Id,
+		Name:        v.Name,
+		Size:        v.Size,
+		MimeType:    mime,
+		StartAt:     v.StartAt,
+		StopAt:      v.StopAt,
+		StartRecord: v.StartRecord,
+		Channel:     v.Channel,
+		Type:        mimeToProto(v.Channel, v.MimeType),
 	}
+}
 
-	return res
+func mimeToProto(channel, mime string) engine.CallFileType {
+	if channel == "screenrecording" {
+		return engine.CallFileType_file_type_screensharing
+	} else if strings.HasPrefix(mime, "audio/") {
+		return engine.CallFileType_file_type_audio
+	} else if strings.HasPrefix(mime, "video/") {
+		return engine.CallFileType_file_type_video
+	} else if strings.HasPrefix(mime, "image/") {
+		return engine.CallFileType_file_type_screenshot
+	} else if strings.HasPrefix(mime, "application/pdf") {
+		return engine.CallFileType_file_type_pdf
+	} else {
+		return engine.CallFileType_file_type_empty
+	}
 }
 
 func toCallAnnotation(src []*model.CallAnnotation) []*engine.CallAnnotation {
@@ -1340,7 +1360,6 @@ func toCallHold(src []*model.CallHold) []*engine.CallHold {
 
 func defaultInt(i *int) int32 {
 	if i != nil {
-
 		return int32(*i)
 	}
 	return 0
@@ -1348,7 +1367,6 @@ func defaultInt(i *int) int32 {
 
 func defaultBigInt(i *int64) int64 {
 	if i != nil {
-
 		return *i
 	}
 	return 0

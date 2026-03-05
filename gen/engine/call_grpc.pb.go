@@ -45,29 +45,48 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CallServiceClient interface {
-	// List of call
+	// SearchHistoryCall retrieves a list of completed calls using filters (GET).
+	// Supports advanced filtering by participants, duration, causes, and custom variables.
 	SearchHistoryCall(ctx context.Context, in *SearchHistoryCallRequest, opts ...grpc.CallOption) (*ListHistoryCall, error)
-	// List of call
+	// SearchHistoryCallPost retrieves a list of completed calls using a complex filter body (POST).
+	// Ideal for large filter sets that exceed URL length limits.
 	SearchHistoryCallPost(ctx context.Context, in *SearchHistoryCallRequest, opts ...grpc.CallOption) (*ListHistoryCall, error)
+	// PatchHistoryCall updates metadata for a completed call (e.g., variables or visibility).
 	PatchHistoryCall(ctx context.Context, in *PatchHistoryCallRequest, opts ...grpc.CallOption) (*HistoryCall, error)
+	// AggregateHistoryCall performs statistical analysis on historical data.
+	// Group and aggregate metrics like average duration, call counts, or peak hours.
 	AggregateHistoryCall(ctx context.Context, in *AggregateHistoryCallRequest, opts ...grpc.CallOption) (*ListAggregate, error)
+	// SearchActiveCall returns a list of all calls currently in progress.
 	SearchActiveCall(ctx context.Context, in *SearchCallRequest, opts ...grpc.CallOption) (*ListCall, error)
-	// Call item
+	// ReadCall returns detailed real-time information for a specific active call.
 	ReadCall(ctx context.Context, in *ReadCallRequest, opts ...grpc.CallOption) (*ActiveCall, error)
+	// CreateCall initiates a new outbound call with specified parameters.
 	CreateCall(ctx context.Context, in *CreateCallRequest, opts ...grpc.CallOption) (*CreateCallResponse, error)
+	// CreateCallNA is an internal version of CreateCall without API annotation.
 	CreateCallNA(ctx context.Context, in *CreateCallRequest, opts ...grpc.CallOption) (*CreateCallResponse, error)
+	// HangupCall terminates an active call session.
 	HangupCall(ctx context.Context, in *HangupCallRequest, opts ...grpc.CallOption) (*HangupCallResponse, error)
+	// HoldCall puts an active call on hold.
 	HoldCall(ctx context.Context, in *UserCallRequest, opts ...grpc.CallOption) (*HoldCallResponse, error)
+	// UnHoldCall resumes a call from hold state.
 	UnHoldCall(ctx context.Context, in *UserCallRequest, opts ...grpc.CallOption) (*HoldCallResponse, error)
+	// DtmfCall sends DTMF digits to an active call.
 	DtmfCall(ctx context.Context, in *DtmfCallRequest, opts ...grpc.CallOption) (*DtmfCallResponse, error)
+	// BlindTransferCall redirects an active call to another destination.
 	BlindTransferCall(ctx context.Context, in *BlindTransferCallRequest, opts ...grpc.CallOption) (*BlindTransferCallResponse, error)
+	// EavesdropCall allows a supervisor to listen, whisper, or join an active call.
 	EavesdropCall(ctx context.Context, in *EavesdropCallRequest, opts ...grpc.CallOption) (*CreateCallResponse, error)
-	// Call item
+	// ConfirmPush confirms receipt of a push notification for synchronization.
 	ConfirmPush(ctx context.Context, in *ConfirmPushRequest, opts ...grpc.CallOption) (*ConfirmPushResponse, error)
+	// SetVariablesCall updates call channel variables in real-time.
 	SetVariablesCall(ctx context.Context, in *SetVariablesCallRequest, opts ...grpc.CallOption) (*SetVariablesCallResponse, error)
+	// CreateCallAnnotation adds a text note to a specific timeframe of a historical call.
 	CreateCallAnnotation(ctx context.Context, in *CreateCallAnnotationRequest, opts ...grpc.CallOption) (*CallAnnotation, error)
+	// UpdateCallAnnotation modifies an existing call note.
 	UpdateCallAnnotation(ctx context.Context, in *UpdateCallAnnotationRequest, opts ...grpc.CallOption) (*CallAnnotation, error)
+	// DeleteCallAnnotation removes an annotation from a historical call.
 	DeleteCallAnnotation(ctx context.Context, in *DeleteCallAnnotationRequest, opts ...grpc.CallOption) (*CallAnnotation, error)
+	// RedialCall quickly initiates a new call using data from a previous history record.
 	RedialCall(ctx context.Context, in *RedialCallRequest, opts ...grpc.CallOption) (*CreateCallResponse, error)
 }
 
@@ -263,29 +282,48 @@ func (c *callServiceClient) RedialCall(ctx context.Context, in *RedialCallReques
 // All implementations must embed UnimplementedCallServiceServer
 // for forward compatibility
 type CallServiceServer interface {
-	// List of call
+	// SearchHistoryCall retrieves a list of completed calls using filters (GET).
+	// Supports advanced filtering by participants, duration, causes, and custom variables.
 	SearchHistoryCall(context.Context, *SearchHistoryCallRequest) (*ListHistoryCall, error)
-	// List of call
+	// SearchHistoryCallPost retrieves a list of completed calls using a complex filter body (POST).
+	// Ideal for large filter sets that exceed URL length limits.
 	SearchHistoryCallPost(context.Context, *SearchHistoryCallRequest) (*ListHistoryCall, error)
+	// PatchHistoryCall updates metadata for a completed call (e.g., variables or visibility).
 	PatchHistoryCall(context.Context, *PatchHistoryCallRequest) (*HistoryCall, error)
+	// AggregateHistoryCall performs statistical analysis on historical data.
+	// Group and aggregate metrics like average duration, call counts, or peak hours.
 	AggregateHistoryCall(context.Context, *AggregateHistoryCallRequest) (*ListAggregate, error)
+	// SearchActiveCall returns a list of all calls currently in progress.
 	SearchActiveCall(context.Context, *SearchCallRequest) (*ListCall, error)
-	// Call item
+	// ReadCall returns detailed real-time information for a specific active call.
 	ReadCall(context.Context, *ReadCallRequest) (*ActiveCall, error)
+	// CreateCall initiates a new outbound call with specified parameters.
 	CreateCall(context.Context, *CreateCallRequest) (*CreateCallResponse, error)
+	// CreateCallNA is an internal version of CreateCall without API annotation.
 	CreateCallNA(context.Context, *CreateCallRequest) (*CreateCallResponse, error)
+	// HangupCall terminates an active call session.
 	HangupCall(context.Context, *HangupCallRequest) (*HangupCallResponse, error)
+	// HoldCall puts an active call on hold.
 	HoldCall(context.Context, *UserCallRequest) (*HoldCallResponse, error)
+	// UnHoldCall resumes a call from hold state.
 	UnHoldCall(context.Context, *UserCallRequest) (*HoldCallResponse, error)
+	// DtmfCall sends DTMF digits to an active call.
 	DtmfCall(context.Context, *DtmfCallRequest) (*DtmfCallResponse, error)
+	// BlindTransferCall redirects an active call to another destination.
 	BlindTransferCall(context.Context, *BlindTransferCallRequest) (*BlindTransferCallResponse, error)
+	// EavesdropCall allows a supervisor to listen, whisper, or join an active call.
 	EavesdropCall(context.Context, *EavesdropCallRequest) (*CreateCallResponse, error)
-	// Call item
+	// ConfirmPush confirms receipt of a push notification for synchronization.
 	ConfirmPush(context.Context, *ConfirmPushRequest) (*ConfirmPushResponse, error)
+	// SetVariablesCall updates call channel variables in real-time.
 	SetVariablesCall(context.Context, *SetVariablesCallRequest) (*SetVariablesCallResponse, error)
+	// CreateCallAnnotation adds a text note to a specific timeframe of a historical call.
 	CreateCallAnnotation(context.Context, *CreateCallAnnotationRequest) (*CallAnnotation, error)
+	// UpdateCallAnnotation modifies an existing call note.
 	UpdateCallAnnotation(context.Context, *UpdateCallAnnotationRequest) (*CallAnnotation, error)
+	// DeleteCallAnnotation removes an annotation from a historical call.
 	DeleteCallAnnotation(context.Context, *DeleteCallAnnotationRequest) (*CallAnnotation, error)
+	// RedialCall quickly initiates a new call using data from a previous history record.
 	RedialCall(context.Context, *RedialCallRequest) (*CreateCallResponse, error)
 	mustEmbedUnimplementedCallServiceServer()
 }

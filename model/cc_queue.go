@@ -42,8 +42,8 @@ type Queue struct {
 	Grantee        *Lookup              `json:"grantee" db:"grantee"`
 	Tags           StringArray          `json:"tags" db:"tags"`
 
-	ResourceGroups StringArray `json:"resource_groups" db:"resource_groups"`
-	Resources      StringArray `json:"resources" db:"resources"`
+	ResourceGroups []*Lookup `json:"resource_groups" db:"resource_groups"`
+	Resources      []*Lookup `json:"resources" db:"resources"`
 }
 
 type QueueTaskProcessing struct {
@@ -116,6 +116,7 @@ type QueueAgentAgg struct {
 	Offline    uint32 `json:"offline" db:"offline"`
 	Free       uint32 `json:"free" db:"free"`
 	Total      uint32 `json:"total" db:"total"`
+	Busy       uint32 `json:"busy" db:"busy"`
 	AllowPause *int32 `json:"allow_pause" db:"allow_pause"`
 }
 

@@ -200,7 +200,7 @@ func stringsToTags(tags []string) []*engine.Tag {
 	return res
 }
 
-func stringsToResourceGroups(resourceGroups []string) []*engine.ResourceGroup {
+func LookupsToResourceGroups(resourceGroups []*model.Lookup) []*engine.ResourceGroup {
 	length := len(resourceGroups)
 	if length == 0 {
 		return nil
@@ -209,23 +209,25 @@ func stringsToResourceGroups(resourceGroups []string) []*engine.ResourceGroup {
 	resGroupList := make([]*engine.ResourceGroup, 0, length)
 	for _, v := range resourceGroups {
 		resGroupList = append(resGroupList, &engine.ResourceGroup{
-			Name: v,
+			Id:   int64(v.Id),
+			Name: v.Name,
 		})
 	}
 	return resGroupList
 }
 
-func stringsToResources(resources []string) []*engine.Resource {
+func LookupsToResources(resources []*model.Lookup) []*engine.Resource {
 	length := len(resources)
 	if length == 0 {
 		return nil
 	}
 
-	resGroupList := make([]*engine.Resource, 0, length)
+	resList := make([]*engine.Resource, 0, length)
 	for _, v := range resources {
-		resGroupList = append(resGroupList, &engine.Resource{
-			Name: v,
+		resList = append(resList, &engine.Resource{
+			Id:   int64(v.Id),
+			Name: v.Name,
 		})
 	}
-	return resGroupList
+	return resList
 }

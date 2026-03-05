@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/webitel/wlog"
 	"testing"
+	"time"
 )
 
 const (
 	TOKEN = "IHOR"
 )
 
-var TEST_CONSUL = "10.9.8.111:8500"
+var TEST_CONSUL = "172.22.22.22:8500"
 
 func TestAuthManager(t *testing.T) {
 	t.Log("AuthManager")
@@ -28,12 +29,15 @@ func TestAuthManager(t *testing.T) {
 	am.Start()
 	defer am.Stop()
 
-	for i := 0; i < 1; i++ {
-		testGetSession(t, TOKEN, am)
+	for i := 0; i < 1000; i++ {
+		go testGetSession(t, TOKEN, am.(*authManager))
+		println(i)
 	}
+
+	time.Sleep(120 * time.Second)
 }
 
-func testGetSession(t *testing.T, token string, am AuthManager) {
+func testGetSession(t *testing.T, token string, am *authManager) {
 
 	session, err := am.GetSession(context.Background(), token)
 	if err != nil {
