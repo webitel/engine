@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/webitel/engine/model"
@@ -73,7 +74,9 @@ func (a *App) RemoveRoutingSchema(ctx context.Context, domainId, id int64) (*mod
 		Object: 	FlowSchemaObject,
 		EventType: DeleteType,
 		Time:      time.Now(),
-		Body:      nil,
+		Body:      map[string]string{
+			"flow_id": strconv.FormatInt(id, 10),
+		},
 	})
 	if defErr != nil {
 		a.Log.Error(defErr.Error()) 
