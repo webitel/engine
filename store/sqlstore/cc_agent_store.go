@@ -880,7 +880,7 @@ where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_i
          or (fa.id = a.id and c.allow_agent)
          or (fa.team_id = a.team_id and ft.admin_ids && array[fa.id] and c.allow_admin)
         )
-order by c.name;`, map[string]interface{}{
+order by c.name;`, map[string]any{
 		"DomainId":    domainId,
 		"FromUserId":  fromUserId,
 		"ToAgentId":   toAgentId,
@@ -982,11 +982,9 @@ from (
 				a.status_comment,
                 extract(epoch from x.t)::int                                                          status_duration,
                 coalesce(a.status_payload, '')                                                        pause_cause,
-                call_center.cc_get_lookup(u.id, coalesce(u.name, u.username)) as                                  user,
-
-                call_center.cc_get_lookup(team.id, team.name)                                                     team,
+                call_center.cc_get_lookup(u.id, coalesce(u.name, u.username)) as                      user,
+                call_center.cc_get_lookup(team.id, team.name)                                         team,
                 q.queues                                                                              queues,
-
                 onl_all::int                                                                          online,
                 extract(epoch from coalesce(
                         case
@@ -1007,7 +1005,7 @@ from (
                 coalesce(stat.chat_count, 0)                                                          chat_count,
                 coalesce(extract(epoch from stat.chat_time)::int8, 0)                                 chat_time,
                 coalesce(missed, 0)                                                                   missed,
-                0::int                                                                                transferred,
+                ts.call_consult_transferred::int                                                      transferred,
                 max_bridged_at,
                 max_offering_at,
                 active_call.id                                    as                                  active_call_id,
