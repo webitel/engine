@@ -537,47 +537,7 @@ func (api *call) CreateCall(ctx context.Context, in *engine.CreateCallRequest) (
 		return nil, err
 	}
 
-	req := &model.OutboundCallRequest{
-		Destination: in.GetDestination(),
-		Params: model.CallParameters{
-			Timeout:           int(in.GetParams().GetTimeout()),
-			Variables:         in.GetParams().GetVariables(),
-			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
-			Display:           in.GetParams().GetDisplay(),
-			DisableStun:       in.GetParams().GetDisableStun(),
-			CancelDistribute:  in.GetParams().GetCancelDistribute(),
-			IsOnline:          in.GetParams().GetIsOnline(),
-			HideNumber:        in.GetParams().GetHideNumber(),
-			ContactId:         int(in.GetParams().GetContactId()),
-		},
-	}
-
-	if in.To != nil {
-		req.To = &model.EndpointRequest{}
-		if in.To.AppId != "" {
-			req.To.AppId = model.NewString(in.To.AppId)
-		}
-
-		if in.To.Id != 0 {
-			req.To.UserId = model.NewInt64(in.To.Id)
-		}
-
-	}
-
-	if in.From != nil {
-		req.From = &model.EndpointRequest{}
-		if in.From.AppId != "" {
-			req.From.AppId = model.NewString(in.From.AppId)
-		}
-
-		if in.From.Id != 0 {
-			req.From.UserId = model.NewInt64(in.From.Id)
-		}
-
-		if in.From.Extension != "" {
-			req.From.Extension = model.NewString(in.From.Extension)
-		}
-	}
+	req := callRequestFromProto(in)
 
 	var id string
 	id, err = api.ctrl.CreateCall(ctx, session, req, in.GetParams().GetVariables())
@@ -595,47 +555,8 @@ func (api *call) CreateCallNA(ctx context.Context, in *engine.CreateCallRequest)
 		return nil, model.NewBadRequestError("grpc_api.call.create_call_na.check_params.from.required", "from required")
 	}
 
-	from := &model.EndpointRequest{}
+	req := callRequestFromProto(in)
 
-	if in.From.Id != 0 {
-		from.UserId = &in.From.Id
-	} else if in.From.Extension != "" {
-		from.Extension = model.NewString(in.From.Extension)
-	}
-
-	if in.From.AppId != "" {
-		from.AppId = model.NewString(in.From.AppId)
-	}
-
-	req := &model.OutboundCallRequest{
-		From:        from,
-		Destination: in.GetDestination(),
-		Params: model.CallParameters{
-			Timeout:           int(in.GetParams().GetTimeout()),
-			Variables:         in.GetParams().GetVariables(),
-			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
-			Display:           in.GetParams().GetDisplay(),
-			DisableStun:       in.GetParams().GetDisableStun(),
-			CancelDistribute:  in.GetParams().GetCancelDistribute(),
-			IsOnline:          in.GetParams().GetIsOnline(),
-			HideNumber:        in.GetParams().GetHideNumber(),
-		},
-		CreatedAt:   model.GetMillis(),
-		CreatedById: in.From.Id,
-	}
-
-	if in.To != nil {
-		req.To = &model.EndpointRequest{}
-		if in.To.AppId != "" {
-			req.To.AppId = model.NewString(in.To.AppId)
-		}
-
-		if in.To.Id != 0 {
-			req.To.UserId = model.NewInt64(in.To.Id)
-		}
-
-	}
-	var id string
 	id, err := api.app.CreateOutboundCall(ctx, in.GetDomainId(), req, in.GetParams().GetVariables())
 	if err != nil {
 		return nil, err
@@ -1300,6 +1221,51 @@ func toCallFileItem(v *model.CallFile) *engine.CallFile {
 		Channel:     v.Channel,
 		Type:        mimeToProto(v.Channel, v.MimeType),
 	}
+}
+
+func callRequestFromProto(in *engine.CreateCallRequest) *model.OutboundCallRequest {
+	req := &model.OutboundCallRequest{
+		Destination: in.GetDestination(),
+		Params: model.CallParameters{
+			Timeout:           int(in.GetParams().GetTimeout()),
+			Variables:         in.GetParams().GetVariables(),
+			DisableAutoAnswer: in.GetParams().GetDisableAutoAnswer(),
+			Display:           in.GetParams().GetDisplay(),
+			DisableStun:       in.GetParams().GetDisableStun(),
+			CancelDistribute:  in.GetParams().GetCancelDistribute(),
+			IsOnline:          in.GetParams().GetIsOnline(),
+			HideNumber:        in.GetParams().GetHideNumber(),
+			ContactId:         int(in.GetParams().GetContactId()),
+		},
+	}
+
+	if in.To != nil {
+		req.To = &model.EndpointRequest{}
+		if in.To.AppId != "" {
+			req.To.AppId = model.NewString(in.To.AppId)
+		}
+
+		if in.To.Id != 0 {
+			req.To.UserId = model.NewInt64(in.To.Id)
+		}
+
+	}
+
+	if in.From != nil {
+		req.From = &model.EndpointRequest{}
+		if in.From.AppId != "" {
+			req.From.AppId = model.NewString(in.From.AppId)
+		}
+
+		if in.From.Id != 0 {
+			req.From.UserId = model.NewInt64(in.From.Id)
+		}
+
+		if in.From.Extension != "" {
+			req.From.Extension = model.NewString(in.From.Extension)
+		}
+	}
+	return req
 }
 
 func mimeToProto(channel, mime string) engine.CallFileType {
