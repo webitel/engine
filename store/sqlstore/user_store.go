@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
@@ -20,7 +21,6 @@ func NewSqlUserStore(sqlStore SqlStore) store.UserStore {
 }
 
 func (s SqlUserStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
-
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
@@ -29,8 +29,7 @@ func (s SqlUserStore) CheckAccess(ctx context.Context, domainId, id int64, group
             and a.object = :Id
             and a.subject = any (:Groups::int[])
             and a.access & :Access = :Access
-        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
-
+        )`, map[string]any{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
 	if err != nil {
 		return false, nil
 	}
@@ -40,16 +39,15 @@ func (s SqlUserStore) CheckAccess(ctx context.Context, domainId, id int64, group
 
 func (s SqlUserStore) GetCallInfo(ctx context.Context, userId, domainId int64) (*model.UserCallInfo, model.AppError) {
 	var info *model.UserCallInfo
-	err := s.GetReplica().WithContext(ctx).SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name, 
+	err := s.GetReplica().WithContext(ctx).SelectOne(&info, `select u.id, coalesce( (u.name)::varchar, u.username) as name,
 u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{}'::jsonb) as variables, false as has_push
 from directory.wbt_user u
     inner join directory.wbt_domain d on d.dc = u.dc
 where u.id = :UserId
-  and u.dc = :DomainId`, map[string]interface{}{
+  and u.dc = :DomainId`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_user.get_call_info.app_error", fmt.Sprintf("UserId=%v, %s", userId, err.Error()), extractCodeFromErr(err))
 	}
@@ -68,13 +66,16 @@ func (s SqlUserStore) GetCallInfoEndpoint(ctx context.Context, domainId int64, e
               from call_center.cc_agent a
                        left join call_center.cc_member_attempt aa on a.id = aa.agent_id
               where a.user_id = u.id::int8
+                and aa.channel = 'call'
                 and (
                       (:IsOnline::bool is true and a.status != 'online')
                       or
                       (aa.leaving_at isnull
                           and now() - aa.last_state_change < interval '2m'
-                          and aa.state in ('waiting_agent', 'idle', 'offering')
-                          )
+                          and case when aa.queue_type = 4
+                                            then aa.answered_at notnull and aa.state = 'offering'
+                                            else aa.state = any('{waiting_agent,wait_agent,idle,offering}'::varchar[]) end
+                      )
                   )
            )                                                                as is_busy,
 		  push.config notnull as has_push
@@ -97,13 +98,12 @@ from directory.wbt_user u
 			  and val notnull) push(config) ON true
 where case when :UserId::int8 notnull then u.id = :UserId else u.extension = :Extension::varchar end
   and u.dc = :DomainId
-limit 1`, map[string]interface{}{
+limit 1`, map[string]any{
 		"UserId":    e.UserId,
 		"Extension": e.Extension,
 		"DomainId":  domainId,
 		"IsOnline":  isOnline,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_user.get_call_info.app_error", fmt.Sprintf("UserId=%v, Extension=%v %s", e.UserId, e.Extension, err.Error()), extractCodeFromErr(err))
 	}
@@ -123,11 +123,10 @@ func (s SqlUserStore) DefaultWebRTCDeviceConfig(ctx context.Context, userId, dom
 from directory.wbt_user u
     inner join directory.wbt_device d on d.id = u.device_id
     inner join directory.wbt_domain dom on dom.dc = u.dc
-where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]interface{}{
+where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_user.get_default_device.app_error", fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
@@ -145,11 +144,10 @@ func (s SqlUserStore) DefaultSipDeviceConfig(ctx context.Context, userId, domain
 from directory.wbt_user u
     inner join directory.wbt_device d on d.id = u.device_id
     inner join directory.wbt_domain dom on dom.dc = u.dc
-where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]interface{}{
+where u.id = :UserId and u.dc = :DomainId and u.extension notnull`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_user.get_default_sip_device.app_error", fmt.Sprintf("UserId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
