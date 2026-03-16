@@ -34,6 +34,7 @@ const (
 	CallService_BlindTransferCall_FullMethodName     = "/engine.CallService/BlindTransferCall"
 	CallService_EavesdropCall_FullMethodName         = "/engine.CallService/EavesdropCall"
 	CallService_ConfirmPush_FullMethodName           = "/engine.CallService/ConfirmPush"
+	CallService_SetVariablesCallNA_FullMethodName    = "/engine.CallService/SetVariablesCallNA"
 	CallService_SetVariablesCall_FullMethodName      = "/engine.CallService/SetVariablesCall"
 	CallService_CreateCallAnnotation_FullMethodName  = "/engine.CallService/CreateCallAnnotation"
 	CallService_UpdateCallAnnotation_FullMethodName  = "/engine.CallService/UpdateCallAnnotation"
@@ -78,6 +79,7 @@ type CallServiceClient interface {
 	EavesdropCall(ctx context.Context, in *EavesdropCallRequest, opts ...grpc.CallOption) (*CreateCallResponse, error)
 	// ConfirmPush confirms receipt of a push notification for synchronization.
 	ConfirmPush(ctx context.Context, in *ConfirmPushRequest, opts ...grpc.CallOption) (*ConfirmPushResponse, error)
+	SetVariablesCallNA(ctx context.Context, in *SetVariablesCallRequestNA, opts ...grpc.CallOption) (*SetVariablesCallResponse, error)
 	// SetVariablesCall updates call channel variables in real-time.
 	SetVariablesCall(ctx context.Context, in *SetVariablesCallRequest, opts ...grpc.CallOption) (*SetVariablesCallResponse, error)
 	// CreateCallAnnotation adds a text note to a specific timeframe of a historical call.
@@ -233,6 +235,15 @@ func (c *callServiceClient) ConfirmPush(ctx context.Context, in *ConfirmPushRequ
 	return out, nil
 }
 
+func (c *callServiceClient) SetVariablesCallNA(ctx context.Context, in *SetVariablesCallRequestNA, opts ...grpc.CallOption) (*SetVariablesCallResponse, error) {
+	out := new(SetVariablesCallResponse)
+	err := c.cc.Invoke(ctx, CallService_SetVariablesCallNA_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *callServiceClient) SetVariablesCall(ctx context.Context, in *SetVariablesCallRequest, opts ...grpc.CallOption) (*SetVariablesCallResponse, error) {
 	out := new(SetVariablesCallResponse)
 	err := c.cc.Invoke(ctx, CallService_SetVariablesCall_FullMethodName, in, out, opts...)
@@ -315,6 +326,7 @@ type CallServiceServer interface {
 	EavesdropCall(context.Context, *EavesdropCallRequest) (*CreateCallResponse, error)
 	// ConfirmPush confirms receipt of a push notification for synchronization.
 	ConfirmPush(context.Context, *ConfirmPushRequest) (*ConfirmPushResponse, error)
+	SetVariablesCallNA(context.Context, *SetVariablesCallRequestNA) (*SetVariablesCallResponse, error)
 	// SetVariablesCall updates call channel variables in real-time.
 	SetVariablesCall(context.Context, *SetVariablesCallRequest) (*SetVariablesCallResponse, error)
 	// CreateCallAnnotation adds a text note to a specific timeframe of a historical call.
@@ -376,6 +388,9 @@ func (UnimplementedCallServiceServer) EavesdropCall(context.Context, *EavesdropC
 }
 func (UnimplementedCallServiceServer) ConfirmPush(context.Context, *ConfirmPushRequest) (*ConfirmPushResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfirmPush not implemented")
+}
+func (UnimplementedCallServiceServer) SetVariablesCallNA(context.Context, *SetVariablesCallRequestNA) (*SetVariablesCallResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetVariablesCallNA not implemented")
 }
 func (UnimplementedCallServiceServer) SetVariablesCall(context.Context, *SetVariablesCallRequest) (*SetVariablesCallResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetVariablesCall not implemented")
@@ -675,6 +690,24 @@ func _CallService_ConfirmPush_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CallService_SetVariablesCallNA_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetVariablesCallRequestNA)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CallServiceServer).SetVariablesCallNA(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CallService_SetVariablesCallNA_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CallServiceServer).SetVariablesCallNA(ctx, req.(*SetVariablesCallRequestNA))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CallService_SetVariablesCall_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SetVariablesCallRequest)
 	if err := dec(in); err != nil {
@@ -831,6 +864,10 @@ var CallService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ConfirmPush",
 			Handler:    _CallService_ConfirmPush_Handler,
+		},
+		{
+			MethodName: "SetVariablesCallNA",
+			Handler:    _CallService_SetVariablesCallNA_Handler,
 		},
 		{
 			MethodName: "SetVariablesCall",
