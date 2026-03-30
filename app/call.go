@@ -7,20 +7,19 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/webitel/wlog"
+
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
 	sqloptions "github.com/webitel/engine/store/sql_options"
-	"github.com/webitel/wlog"
 )
 
 const (
 	refreshMissedNotification = "refresh_missed"
 )
 
-var (
-	regPhoneNumber = regexp.MustCompile(`[^0-9+]`)
-)
+var regPhoneNumber = regexp.MustCompile(`[^0-9+]`)
 
 func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *model.OutboundCallRequest, variables map[string]string) (string, model.AppError) {
 	var callCli call_manager.CallClient
@@ -63,7 +62,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 		invite.AddVariable(k, v)
 	}
 
-	//invite.AddVariable("media_webrtc", "true")
+	// invite.AddVariable("media_webrtc", "true")
 
 	if req.Params.Video {
 		invite.AddVariable(model.CALL_VARIABLE_USE_VIDEO, "true")
@@ -75,7 +74,7 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 	if !req.Params.DisableAutoAnswer {
 		invite.AddVariable(model.CALL_VARIABLE_SIP_AUTO_ANSWER, "true")
-		//FIXME
+		// FIXME
 		invite.AddVariable("wbt_auto_answer", "true")
 	}
 
@@ -118,17 +117,32 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 		invite.AddVariable("wbt_contact_id", strconv.Itoa(int(req.Params.ContactId)))
 	}
 
+	if from.Id > 0 {
+		uuid := model.NewUuid()
+		invite.AddVariable("origination_uuid", uuid)
+
+		err = app.Store.Call().Prepare(ctx, uuid, domainId, from.Id, callCli.Name())
+		if err != nil {
+			wlog.Error(err.Error())
+			return "", err
+		}
+
+		defer func() {
+			if err != nil {
+				app.Store.Call().DeleteIdle(ctx, uuid)
+			}
+		}()
+	}
+
 	id, err = callCli.MakeOutboundCall(invite)
 	if err != nil {
 		return "", err
 	}
 
 	return id, nil
-
 }
 
-func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, callId string) (string, model.AppError) {
-
+func (app *App) RedialCall(ctx context.Context, domainId, userId int64, callId string) (string, model.AppError) {
 	from, err := app.Store.Call().FromNumberWithUserIds(ctx, domainId, userId, callId)
 	if err != nil {
 		return "", err
@@ -168,7 +182,7 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 			Action:    refreshMissedNotification,
 			CreatedAt: model.GetMillis(),
 			ForUsers:  from.UniqueUsers(),
-			Body: map[string]interface{}{
+			Body: map[string]any{
 				"id": callId,
 			},
 		})
@@ -177,7 +191,7 @@ func (app *App) RedialCall(ctx context.Context, domainId int64, userId int64, ca
 	return dest, nil
 }
 
-func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, parentId string, cp model.CallParameters, queueId *int, agentId *int) (string, model.AppError) {
+func (app *App) CallToQueue(ctx context.Context, domainId, userId int64, parentId string, cp model.CallParameters, queueId, agentId *int) (string, model.AppError) {
 	var info *model.TransferInfo
 	var cli call_manager.CallClient
 	var name, number string
@@ -254,7 +268,6 @@ func (app *App) CallToQueue(ctx context.Context, domainId int64, userId int64, p
 	}
 
 	return id, nil
-
 }
 
 func (app *App) GetCall(ctx context.Context, domainId int64, callId string) (*model.Call, model.AppError) {
@@ -379,7 +392,7 @@ func (app *App) EavesdropCall(ctx context.Context, domainId, userId int64, req *
 		invite.AddVariable("eavesdrop_whisper_bleg", "false")
 	}
 
-	//if req.Notify {
+	// if req.Notify {
 	invite.AddVariable("wbt_eavesdrop_type", "notify")
 	//} else {
 	//	invite.AddVariable("wbt_eavesdrop_type", "hide")
@@ -470,7 +483,7 @@ func (app *App) GetActiveCallPage(ctx context.Context, domainId int64, search *m
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetActiveCallPageByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, model.AppError) {
+func (app *App) GetActiveCallPageByGroups(ctx context.Context, domainId, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, bool, model.AppError) {
 	list, err := app.Store.Call().GetActiveByGroups(ctx, domainId, userSupervisorId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -483,7 +496,7 @@ func (app *App) GetUserActiveCalls(ctx context.Context, domainId, userId int64) 
 	return app.Store.Call().GetUserActiveCall(ctx, domainId, userId)
 }
 
-func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, userId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
+func (app *App) GetHistoryCallPage(ctx context.Context, domainId, userId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
 	userGlobalGrantOption := sqloptions.WithUserGrantFilterOption(uint(userId), model.GLOBAL_SELECT_GRANT)
 
 	list, err := app.Store.Call().GetHistory(ctx, domainId, search, userGlobalGrantOption)
@@ -494,7 +507,7 @@ func (app *App) GetHistoryCallPage(ctx context.Context, domainId int64, userId i
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetHistoryCallPageByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
+func (app *App) GetHistoryCallPageByGroups(ctx context.Context, domainId, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
 	list, err := app.Store.Call().GetHistoryByGroups(ctx, domainId, userSupervisorId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -508,7 +521,6 @@ func (app *App) GetAggregateHistoryCallPage(ctx context.Context, domainId int64,
 }
 
 func (app *App) getCallCli(ctx context.Context, domainId int64, id string, appId *string) (cli call_manager.CallClient, err model.AppError) {
-
 	if appId != nil {
 		cli, err = app.CallManager().CallClientById(*appId)
 	} else {
@@ -519,13 +531,13 @@ func (app *App) getCallCli(ctx context.Context, domainId int64, id string, appId
 		}
 		cli, err = app.CallManager().CallClientById(*info.AppId)
 	}
-	return
+	return cli, err
 }
 
 func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.HangupCall) model.AppError {
 	var cli call_manager.CallClient
 	var err model.AppError
-	var cause = ""
+	cause := ""
 
 	cli, err = app.getCallCli(ctx, domainId, req.Id, req.AppId)
 	if err != nil {
@@ -540,7 +552,7 @@ func (app *App) HangupCall(ctx context.Context, domainId int64, req *model.Hangu
 	if err == call_manager.NotFoundCall {
 		var e *model.CallServiceHangup
 		if e, err = app.Store.Call().SetEmptySeverCall(ctx, domainId, req.Id); err == nil {
-			//fixme rollback
+			// fixme rollback
 			err = app.MessageQueue.SendStickingCall(e)
 		} else if err.GetStatusCode() == http.StatusNotFound {
 			err = nil
@@ -554,8 +566,8 @@ func (app *App) ConfirmPushCall(domainId int64, callId string) model.AppError {
 	var cli call_manager.CallClient
 	var err model.AppError
 
-	//todo get from store
-	cli, err = app.CallManager().CallClient() //app.getCallCli(domainId, callId, nil)
+	// todo get from store
+	cli, err = app.CallManager().CallClient() // app.getCallCli(domainId, callId, nil)
 	if err != nil {
 		return err
 	}
@@ -806,7 +818,6 @@ func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string
 			PerPage: 1,
 		},
 	})
-
 	if err != nil {
 		return nil, err
 	}
