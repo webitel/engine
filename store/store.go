@@ -13,7 +13,7 @@ import (
 )
 
 type StoreResult struct {
-	Data interface{}
+	Data any
 	Err  model.AppError
 }
 
@@ -85,7 +85,7 @@ type Store interface {
 // todo deprecated
 type ChatStore interface {
 	OpenedConversations(ctx context.Context, domainId, userId int64, hasContact bool) ([]*model.Conversation, model.AppError)
-	ValidDomain(ctx context.Context, domainId int64, profileId int64) model.AppError
+	ValidDomain(ctx context.Context, domainId, profileId int64) model.AppError
 }
 
 type UserStore interface {
@@ -100,7 +100,7 @@ type CalendarStore interface {
 	Create(ctx context.Context, calendar *model.Calendar) (*model.Calendar, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchCalendar) ([]*model.Calendar, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchCalendar) ([]*model.Calendar, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.Calendar, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.Calendar, model.AppError)
 	Update(ctx context.Context, calendar *model.Calendar) (*model.Calendar, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
@@ -112,7 +112,7 @@ type CalendarStore interface {
 type SkillStore interface {
 	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Create(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.Skill, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.Skill, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchSkill) ([]*model.Skill, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchSkill) ([]*model.Skill, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
@@ -125,13 +125,13 @@ type AgentTeamStore interface {
 	Create(ctx context.Context, team *model.AgentTeam) (*model.AgentTeam, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgentTeam) ([]*model.AgentTeam, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentTeam) ([]*model.AgentTeam, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.AgentTeam, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.AgentTeam, model.AppError)
 	Update(ctx context.Context, domainId int64, team *model.AgentTeam) (*model.AgentTeam, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
 
 type AgentStore interface {
-	AgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError)
+	AgentCC(ctx context.Context, domainId, userId int64) (*model.AgentCC, model.AppError)
 	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	AccessAgents(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, model.AppError)
 
@@ -139,18 +139,18 @@ type AgentStore interface {
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, model.AppError)
 	GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.Agent, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.Agent, model.AppError)
 	Update(ctx context.Context, agent *model.Agent) (*model.Agent, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
-	SetStatus(ctx context.Context, domainId, agentId int64, status string, payload interface{}) (bool, model.AppError)
+	SetStatus(ctx context.Context, domainId, agentId int64, status string, payload any) (bool, model.AppError)
 
 	GetSession(ctx context.Context, domainId, userId int64) (*model.AgentSession, model.AppError)
 
-	PauseCause(ctx context.Context, domainId int64, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, model.AppError)
+	PauseCause(ctx context.Context, domainId, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, model.AppError)
 
 	/* stats */
 	CallStatistics(ctx context.Context, domainId int64, search *model.SearchAgentCallStatistics) ([]*model.AgentCallStatistics, model.AppError)
-	TodayStatistics(ctx context.Context, domainId int64, agentId *int64, userId *int64) (*model.AgentStatistics, model.AppError)
+	TodayStatistics(ctx context.Context, domainId int64, agentId, userId *int64) (*model.AgentStatistics, model.AppError)
 
 	/* view */
 	InQueue(ctx context.Context, domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, model.AppError)
@@ -161,8 +161,8 @@ type AgentStore interface {
 	LookupNotExistsUsers(ctx context.Context, domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, model.AppError)
 	LookupNotExistsUsersByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, model.AppError)
 
-	StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError)
-	SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError)
+	StatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError)
+	SupervisorAgentItem(ctx context.Context, domainId, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError)
 	DistributeInfoByUserId(ctx context.Context, domainId, userId int64, channel string) (*model.DistributeAgentInfo, model.AppError)
 
 	UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
@@ -170,20 +170,20 @@ type AgentStore interface {
 }
 
 type TeamHookStore interface {
-	Create(ctx context.Context, domainId int64, teamId int64, in *model.TeamHook) (*model.TeamHook, model.AppError)
-	Get(ctx context.Context, domainId int64, teamId int64, id uint32) (*model.TeamHook, model.AppError)
-	GetAllPage(ctx context.Context, domainId int64, teamId int64, search *model.SearchTeamHook) ([]*model.TeamHook, model.AppError)
-	Update(ctx context.Context, domainId int64, teamId int64, qh *model.TeamHook) (*model.TeamHook, model.AppError)
-	Delete(ctx context.Context, domainId int64, teamId int64, id uint32) model.AppError
+	Create(ctx context.Context, domainId, teamId int64, in *model.TeamHook) (*model.TeamHook, model.AppError)
+	Get(ctx context.Context, domainId, teamId int64, id uint32) (*model.TeamHook, model.AppError)
+	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamHook) ([]*model.TeamHook, model.AppError)
+	Update(ctx context.Context, domainId, teamId int64, qh *model.TeamHook) (*model.TeamHook, model.AppError)
+	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
 }
 
 type TeamTriggerStore interface {
-	Create(ctx context.Context, domainId int64, teamId int64, in *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
-	Get(ctx context.Context, domainId int64, teamId int64, id uint32) (*model.TeamTrigger, model.AppError)
-	GetAllPage(ctx context.Context, domainId int64, teamId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
-	GetAllPageByUser(ctx context.Context, domainId int64, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
-	Update(ctx context.Context, domainId int64, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
-	Delete(ctx context.Context, domainId int64, teamId int64, id uint32) model.AppError
+	Create(ctx context.Context, domainId, teamId int64, in *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
+	Get(ctx context.Context, domainId, teamId int64, id uint32) (*model.TeamTrigger, model.AppError)
+	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
+	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
+	Update(ctx context.Context, domainId, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
+	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
 }
 
 type AgentSkillStore interface {
@@ -197,7 +197,7 @@ type AgentSkillStore interface {
 	Delete(ctx context.Context, domainId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, model.AppError)
 
 	CreateMany(ctx context.Context, domainId int64, in *model.AgentsSkills) ([]*model.AgentSkill, model.AppError)
-	HasDisabledSkill(ctx context.Context, domainId int64, skillId int64, q *string) (bool, uint32, model.AppError)
+	HasDisabledSkill(ctx context.Context, domainId, skillId int64, q *string) (bool, uint32, model.AppError)
 }
 
 type OutboundResourceStore interface {
@@ -205,7 +205,7 @@ type OutboundResourceStore interface {
 	Create(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundCallResource) ([]*model.OutboundCallResource, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.OutboundCallResource, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.OutboundCallResource, model.AppError)
 	Update(ctx context.Context, resource *model.OutboundCallResource) (*model.OutboundCallResource, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
@@ -223,7 +223,7 @@ type OutboundResourceGroupStore interface {
 	Create(ctx context.Context, group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchOutboundResourceGroup) ([]*model.OutboundResourceGroup, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.OutboundResourceGroup, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.OutboundResourceGroup, model.AppError)
 	Update(ctx context.Context, group *model.OutboundResourceGroup) (*model.OutboundResourceGroup, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
@@ -239,7 +239,7 @@ type OutboundResourceInGroupStore interface {
 type RoutingSchemaStore interface {
 	Create(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.RoutingSchema, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.RoutingSchema, model.AppError)
 	Update(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
@@ -258,8 +258,8 @@ type RoutingOutboundCallStore interface {
 
 type RoutingVariableStore interface {
 	Create(ctx context.Context, variable *model.RoutingVariable) (*model.RoutingVariable, model.AppError)
-	GetAllPage(ctx context.Context, domainId int64, offset, limit int) ([]*model.RoutingVariable, model.AppError) //FIXME
-	Get(ctx context.Context, domainId int64, id int64) (*model.RoutingVariable, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, offset, limit int) ([]*model.RoutingVariable, model.AppError) // FIXME
+	Get(ctx context.Context, domainId, id int64) (*model.RoutingVariable, model.AppError)
 	Update(ctx context.Context, variable *model.RoutingVariable) (*model.RoutingVariable, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
@@ -269,11 +269,11 @@ type QueueStore interface {
 	Create(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.Queue, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.Queue, model.AppError)
 	Update(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
-	QueueReportGeneral(ctx context.Context, domainId int64, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError)
+	QueueReportGeneral(ctx context.Context, domainId, supervisorId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchQueueReportGeneral) (*model.QueueReportGeneralAgg, model.AppError)
 	ListTags(ctx context.Context, domainId int64, search *model.ListRequest) ([]*model.Tag, model.AppError)
 	RbacUniqueQueues(ctx context.Context, domainId int64, queueIds []int64, groups []int) ([]int32, model.AppError)
 
@@ -308,9 +308,9 @@ type QueueHookStore interface {
 type CommunicationTypeStore interface {
 	Create(ctx context.Context, domainId int64, comm *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.CommunicationType, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.CommunicationType, model.AppError)
 	Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError)
-	Delete(ctx context.Context, domainId int64, id int64) model.AppError
+	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
 
 type MemberStore interface {
@@ -324,7 +324,7 @@ type MemberStore interface {
 	ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError)
 
 	// Move to new store
-	AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) //FIXME
+	AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) // FIXME
 	SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, model.AppError)
 	SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, model.AppError)
 	ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError)
@@ -342,9 +342,9 @@ type BucketStore interface {
 	Create(ctx context.Context, bucket *model.Bucket) (*model.Bucket, model.AppError)
 	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchBucket) ([]*model.Bucket, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.Bucket, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.Bucket, model.AppError)
 	Update(ctx context.Context, bucket *model.Bucket) (*model.Bucket, model.AppError)
-	Delete(ctx context.Context, domainId int64, id int64) model.AppError
+	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
 
 type BucketInQueueStore interface {
@@ -360,24 +360,24 @@ type ListStore interface {
 	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchList) ([]*model.List, model.AppError)
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchList) ([]*model.List, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.List, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.List, model.AppError)
 	Update(ctx context.Context, list *model.List) (*model.List, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
-	//Communications
+	// Communications
 	CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError)
 	GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError)
-	GetCommunication(ctx context.Context, domainId, listId int64, id int64) (*model.ListCommunication, model.AppError)
+	GetCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError)
 	UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError)
 	DeleteCommunication(ctx context.Context, domainId, listId, id int64) model.AppError
 }
 
 type CallStore interface {
 	GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError)
-	GetHistoryByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError)
+	GetHistoryByGroups(ctx context.Context, domainId, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError)
 	Aggregate(ctx context.Context, domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError)
 	GetActive(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, model.AppError)
-	GetActiveByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, model.AppError)
+	GetActiveByGroups(ctx context.Context, domainId, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, model.AppError)
 	Get(ctx context.Context, domainId int64, id string) (*model.Call, model.AppError)
 	GetInstance(ctx context.Context, domainId int64, id string) (*model.CallInstance, model.AppError)
 	BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, model.AppError)
@@ -386,9 +386,9 @@ type CallStore interface {
 	GetUserActiveCall(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError)
 	SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError)
 	SetVariables(ctx context.Context, domainId int64, id string, vars model.StringMap) (*model.CallDomain, model.AppError)
-	GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
+	GetSipId(ctx context.Context, domainId, userId int64, id string) (string, model.AppError)
 	BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError)
-	TransferInfo(ctx context.Context, id string, domainId int64, queueId *int, agentId *int) (*model.TransferInfo, model.AppError)
+	TransferInfo(ctx context.Context, id string, domainId int64, queueId, agentId *int) (*model.TransferInfo, model.AppError)
 
 	CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError)
 	GetAnnotation(ctx context.Context, id int64) (*model.CallAnnotation, model.AppError)
@@ -400,10 +400,13 @@ type CallStore interface {
 	UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError
 	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError
 
-	FromNumber(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError)
-	SetHideMissedLeg(ctx context.Context, domainId int64, userId int64, id string) model.AppError
-	SetHideMissedAllParent(ctx context.Context, domainId int64, userId int64, id string) model.AppError
-	FromNumberWithUserIds(ctx context.Context, domainId int64, userId int64, id string) (model.RedialFrom, model.AppError)
+	FromNumber(ctx context.Context, domainId, userId int64, id string) (string, model.AppError)
+	SetHideMissedLeg(ctx context.Context, domainId, userId int64, id string) model.AppError
+	SetHideMissedAllParent(ctx context.Context, domainId, userId int64, id string) model.AppError
+	FromNumberWithUserIds(ctx context.Context, domainId, userId int64, id string) (model.RedialFrom, model.AppError)
+
+	Prepare(ctx context.Context, id string, domainId, userId int64, appId string) model.AppError
+	DeleteIdle(ctx context.Context, id string) model.AppError
 }
 
 type EmailProfileStore interface {
@@ -420,9 +423,9 @@ type EmailProfileStore interface {
 type RegionStore interface {
 	Create(ctx context.Context, domainId int64, region *model.Region) (*model.Region, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchRegion) ([]*model.Region, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.Region, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.Region, model.AppError)
 	Update(ctx context.Context, domainId int64, region *model.Region) (*model.Region, model.AppError)
-	Delete(ctx context.Context, domainId int64, id int64) model.AppError
+	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
 
 type PauseCauseStore interface {
@@ -485,7 +488,7 @@ type AuditFormStore interface {
 type AuditRateStore interface {
 	Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditRate) ([]*model.AuditRate, model.AppError)
-	Get(ctx context.Context, domainId int64, id int64) (*model.AuditRate, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.AuditRate, model.AppError)
 	FormId(ctx context.Context, domainId, id int64) (int32, model.AppError)
 	CheckAccess(ctx context.Context, domainId, rateUserId int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Update(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
@@ -25,7 +26,7 @@ func NewSqlCallStore(sqlStore SqlStore) store.CallStore {
 func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, model.AppError) {
 	var out []*model.Call
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"Domain":        domainId,
 		"Limit":         search.GetLimit(),
 		"Offset":        search.GetOffset(),
@@ -80,10 +81,10 @@ func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *mod
 	return out, nil
 }
 
-func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, model.AppError) {
+func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId, userSupervisorId int64, groups []int, search *model.SearchCall) ([]*model.Call, model.AppError) {
 	var out []*model.Call
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"Domain":           domainId,
 		"Limit":            search.GetLimit(),
 		"Offset":           search.GetOffset(),
@@ -282,11 +283,10 @@ from call_center.cc_calls c
     ) at on true
 where c.user_id = :UserId
   and c.domain_id = :DomainId
-  and ((at.state != 'leaving') or c.hangup_at isnull)`, map[string]interface{}{
+  and ((at.state != 'leaving') or c.hangup_at isnull)`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.get_user_active.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -303,11 +303,10 @@ select c.id, c.app_id, c.state, c."timestamp", c.direction, c.destination, c.par
    json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) "to",
    (extract(epoch from now() -  c.created_at))::int8 duration, c.bridged_id
 from call_center.cc_calls c
-where c.domain_id = :Domain and c.id = :Id::uuid`, map[string]interface{}{
+where c.domain_id = :Domain and c.id = :Id::uuid`, map[string]any{
 		"Domain": domainId,
 		"Id":     id,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -319,7 +318,7 @@ func (s SqlCallStore) GetInstance(ctx context.Context, domainId int64, id string
 	var inst *model.CallInstance
 	err := s.GetMaster().WithContext(ctx).SelectOne(&inst, `select c.id, c.app_id, c.state
 from call_center.cc_calls c
-where c.id = :Id::uuid and c.domain_id = :Domain`, map[string]interface{}{
+where c.id = :Id::uuid and c.domain_id = :Domain`, map[string]any{
 		"Id":     id,
 		"Domain": domainId,
 	})
@@ -481,10 +480,10 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 	return out, nil
 }
 
-func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId int64, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError) {
+func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupervisorId int64, groups []int, search *model.SearchHistoryCall) ([]*model.HistoryCall, model.AppError) {
 	var out []*model.HistoryCall
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"Domain":           domainId,
 		"Limit":            search.GetLimit(),
 		"Offset":           search.GetOffset(),
@@ -664,12 +663,11 @@ from (
     select id,  null
     from h
  ) as t
-limit 1`, map[string]interface{}{
+limit 1`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 		"Vars":     vars.ToJson(),
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.set_vars.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -697,7 +695,7 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.Ca
 		from a
 			left join directory.wbt_user cc on cc.id = a.created_by
 			left join directory.wbt_user uc on uc.id = a.updated_by;
-`, map[string]interface{}{
+`, map[string]any{
 		"CallId":    annotation.CallId,
 		"CreatedBy": annotation.CreatedBy.GetSafeId(),
 		"CreatedAt": annotation.CreatedAt,
@@ -707,7 +705,6 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.Ca
 		"UpdatedBy": annotation.UpdatedBy.GetSafeId(),
 		"UpdatedAt": annotation.UpdatedAt,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.create.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -731,10 +728,9 @@ select
 from call_center.cc_calls_annotation a
     left join directory.wbt_user cc on cc.id = a.created_by
     left join directory.wbt_user uc on uc.id = a.updated_by
-where a.id = :Id`, map[string]interface{}{
+where a.id = :Id`, map[string]any{
 		"Id": id,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.get.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -767,7 +763,7 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 		from a
 			left join directory.wbt_user cc on cc.id = a.created_by
 			left join directory.wbt_user uc on uc.id = a.updated_by
-`, map[string]interface{}{
+`, map[string]any{
 		"Id":        annotation.Id,
 		"UpdatedAt": annotation.UpdatedAt,
 		"UpdatedBy": annotation.UpdatedBy.GetSafeId(),
@@ -775,7 +771,6 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 		"StartSec":  annotation.StartSec,
 		"EndSec":    annotation.EndSec,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -784,10 +779,9 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 }
 
 func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id int64) model.AppError {
-	_, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_calls_annotation where id = :Id`, map[string]interface{}{
+	_, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_calls_annotation where id = :Id`, map[string]any{
 		"Id": id,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_call.annotation.delete.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -936,7 +930,7 @@ func (s SqlCallStore) ParseAgg(histogramRange *model.FilterBetween, table string
 	}
 
 	if len(fields) < 1 {
-		//todo error
+		// todo error
 	}
 
 	sql = `select json_agg(row_to_json(t)) as data
@@ -981,7 +975,6 @@ func GetOrderArrayBy(s []string) string {
 }
 
 func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError) {
-
 	/*
 		todo materialized ??
 	*/
@@ -1073,7 +1066,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		sql += `, ` + QuoteIdentifier(v.Name) + ` as (` + s.ParseAgg(aggs.CreatedAt, "calls", &v) + `) `
 	}
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"Domain":          domainId,
 		"Limit":           aggs.GetLimit(),
 		"Offset":          aggs.GetOffset(),
@@ -1137,7 +1130,7 @@ func (s SqlCallStore) BridgeInfo(ctx context.Context, domainId int64, fromId, to
        c.app_id, c.contact_id
 from call_center.cc_calls c,
      call_center.cc_calls c2
-where c.id = :FromId::uuid and c2.id = :ToId::uuid and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]interface{}{
+where c.id = :FromId::uuid and c2.id = :ToId::uuid and c.domain_id = :DomainId and c2.domain_id = :DomainId`, map[string]any{
 		"DomainId": domainId,
 		"FromId":   fromId,
 		"ToId":     toId,
@@ -1157,11 +1150,10 @@ where f.domain_id = :DomainId and f.uuid = (
     from call_center.cc_calls_history c
     where c.id = :Id::uuid and c.domain_id = :DomainId
     limit 1
-)`, map[string]interface{}{
+)`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 	})
-
 	if err != nil {
 		return 0, model.NewCustomCodeError("store.sql_call.get_last_file.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1199,7 +1191,7 @@ where id = :Id::uuid`, map[string]string{
 	}
 }
 
-func (s SqlCallStore) TransferInfo(ctx context.Context, id string, domainId int64, queueId *int, agentId *int) (*model.TransferInfo, model.AppError) {
+func (s SqlCallStore) TransferInfo(ctx context.Context, id string, domainId int64, queueId, agentId *int) (*model.TransferInfo, model.AppError) {
 	var res *model.TransferInfo
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.parent_id, c.id) as  id,
        c.contact_id,
@@ -1248,7 +1240,7 @@ update call_center.cc_calls c1
 set hangup_by = 'service'
 from c
 where c.id = c1.id
-returning c.*;`, map[string]interface{}{
+returning c.*;`, map[string]any{
 		"Id":       id,
 		"DomainId": domainId,
 	})
@@ -1274,11 +1266,10 @@ from call_center.cc_calls c
     left join lateral (select not(c.bridged_id notnull and c.user_id isnull) v) owner_agent on true
     left join lateral (select json_build_object('type', coalesce(c.from_type, ''), 'number', coalesce(c.from_number, ''), 'id', coalesce(c.from_id, ''), 'name', coalesce(c.from_name, '')) f) as f on true
     left join lateral (select json_build_object('type', coalesce(c.to_type, ''), 'number', coalesce(c.to_number, ''), 'id', coalesce(c.to_id, ''), 'name', coalesce(c.to_name, '')) t) as t on true
-where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'bridge', 'eavesdrop')`, map[string]interface{}{
+where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'bridge', 'eavesdrop')`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.get.eavesdrop_info.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1314,13 +1305,12 @@ func (s SqlCallStore) UpdateHistoryCall(ctx context.Context, domainId int64, id 
 	res, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history c
 set payload = coalesce(payload, '{}') || :Vars::jsonb,
 	hide_missed = coalesce(:HideMissed::bool, hide_missed)
-where id = :Id::uuid and domain_id = :DomainId`, map[string]interface{}{
+where id = :Id::uuid and domain_id = :DomainId`, map[string]any{
 		"Vars":       upd.Variables.ToJson(),
 		"Id":         id,
 		"HideMissed": upd.HideMissed,
 		"DomainId":   domainId,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_call.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1370,12 +1360,11 @@ select ua.id as id
 from ua
 union all
 select uh.id as id
-from uh`, map[string]interface{}{
+from uh`, map[string]any{
 		"DomainId":  domainId,
 		"ContactId": contactId,
 		"Id":        id,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_call.set_contact.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1387,17 +1376,16 @@ from uh`, map[string]interface{}{
 	return nil
 }
 
-func (s SqlCallStore) GetSipId(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError) {
+func (s SqlCallStore) GetSipId(ctx context.Context, domainId, userId int64, id string) (string, model.AppError) {
 	sipId, err := s.GetMaster().WithContext(ctx).SelectStr(`select coalesce((params ->> 'sip_id')::varchar, case when c.parent_id notnull then c.id::varchar end) sip_id
 from call_center.cc_calls c
 where c.id = :Id
   and c.domain_id = :Domain
-  and c.user_id = :UserId`, map[string]interface{}{
+  and c.user_id = :UserId`, map[string]any{
 		"Id":     id,
 		"Domain": domainId,
 		"UserId": userId,
 	})
-
 	if err != nil {
 		return "", model.NewCustomCodeError("store.sql_call.get_sip_id.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1405,15 +1393,14 @@ where c.id = :Id
 	return sipId, nil
 }
 
-func (s SqlCallStore) SetHideMissedLeg(ctx context.Context, domainId int64, userId int64, id string) model.AppError {
+func (s SqlCallStore) SetHideMissedLeg(ctx context.Context, domainId, userId int64, id string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history
 set hide_missed = true
-where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]interface{}{
+where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 		"UserId":   userId,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_call.set_hide_missed.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1421,19 +1408,18 @@ where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[strin
 	return nil
 }
 
-func (s SqlCallStore) SetHideMissedAllParent(ctx context.Context, domainId int64, userId int64, id string) model.AppError {
+func (s SqlCallStore) SetHideMissedAllParent(ctx context.Context, domainId, userId int64, id string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_calls_history
     set hide_missed = true
 where domain_id = :DomainId
     and not hide_missed is true
     and parent_id = (select parent_id
 from call_center.cc_calls_history
-where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId)`, map[string]interface{}{
+where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId)`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 		"UserId":   userId,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_call.set_hide_missed_all.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1441,15 +1427,14 @@ where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId)`, map[stri
 	return nil
 }
 
-func (s SqlCallStore) FromNumber(ctx context.Context, domainId int64, userId int64, id string) (string, model.AppError) {
+func (s SqlCallStore) FromNumber(ctx context.Context, domainId, userId int64, id string) (string, model.AppError) {
 	from, err := s.GetReplica().WithContext(ctx).SelectNullStr(`select from_number
 from call_center.cc_calls_history
-where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]interface{}{
+where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 		"UserId":   userId,
 	})
-
 	if err != nil {
 		return "", model.NewCustomCodeError("store.sql_call.from_number.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1461,20 +1446,51 @@ where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[strin
 	return from.String, nil
 }
 
-func (s SqlCallStore) FromNumberWithUserIds(ctx context.Context, domainId int64, userId int64, id string) (model.RedialFrom, model.AppError) {
+func (s SqlCallStore) FromNumberWithUserIds(ctx context.Context, domainId, userId int64, id string) (model.RedialFrom, model.AppError) {
 	var f model.RedialFrom
 	err := s.GetReplica().WithContext(ctx).SelectOne(&f, `select c.from_number as number, c2.user_ids
 from call_center.cc_calls_history c
     left join call_center.cc_calls_history c2 on c2.id = c.parent_id
-where c.domain_id = :DomainId and c.id = :Id::uuid and c.user_id = :UserId`, map[string]interface{}{
+where c.domain_id = :DomainId and c.id = :Id::uuid and c.user_id = :UserId`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 		"UserId":   userId,
 	})
-
 	if err != nil {
 		return f, model.NewCustomCodeError("store.sql_call.from_number_users.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return f, nil
+}
+
+func (s SqlCallStore) Prepare(ctx context.Context, id string, domainId, userId int64, appId string) model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`
+insert into call_center.cc_calls(id, domain_id, direction, user_id, app_id, state)
+values (:Id, :DomainId, 'outbound', :UserId, :AppId, 'idle')
+`, map[string]any{
+		"DomainId": domainId,
+		"Id":       id,
+		"UserId":   userId,
+		"AppId":    appId,
+	})
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_call.prepare.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
+}
+
+func (s SqlCallStore) DeleteIdle(ctx context.Context, id string) model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`
+	delete
+	from call_center.cc_calls
+	where id = :Id and state = 'idle'
+`, map[string]any{
+		"Id": id,
+	})
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_call.delete.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
 }
