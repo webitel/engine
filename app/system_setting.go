@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/utils"
 	"golang.org/x/sync/singleflight"
-	"strconv"
 )
 
 const (
@@ -164,7 +165,11 @@ func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.Syst
 			return model.NewInternalError("app.system_setting.setting_event_context.args_check.bad_arg", fmt.Sprintf("[%s] action requires old and new setting copies", action))
 		}
 		switch new.Name {
-		case model.SysNameTwoFactorAuthorization:
+		case model.SysNameTwoFactorAuthorization, model.SysNameCallEndSoundNotification,
+			model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification, model.SysNameChatEndPushNotification,
+			model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification, model.SysNamePushNotificationTimeout,
+			model.SysNameNewMessageSoundNotification, model.SysNameNewChatSoundNotification:
+
 			oldParsed, newParsed := model.SysValue(old.Value), model.SysValue(new.Value)
 			oldValue, newValue := oldParsed.Bool(), newParsed.Bool()
 			if *oldValue == *newValue { // value didn't changed -- ignore
