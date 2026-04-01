@@ -254,7 +254,8 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
        call_center.cc_get_lookup(
                case when at.attempt_id::bigint notnull then coalesce(at.queue_id::bigint, 0) end, at.queue_name)   AS queue,
        c.contact_id,
-       to_timestamp(at.leaving_at::double precision / 1000)           as leaving_at --todo
+       to_timestamp(at.leaving_at::double precision / 1000)           as leaving_at, --todo
+	   c.params->>'hide_number' = 'true' as hide_number
 from call_center.cc_calls c
          left join lateral (
     select a.id                                                       as attempt_id,
