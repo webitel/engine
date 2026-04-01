@@ -58,6 +58,14 @@ func (app *App) UpdateSkill(ctx context.Context, skill *model.Skill) (*model.Ski
 		return nil, err
 	}
 
+	if oldSkill.Name != skill.Name {
+		if exists, appErr := app.Store.Skill().NameExists(ctx, skill.DomainId, skill.Name, skill.Id); appErr != nil {
+			return nil, appErr
+		} else if exists {
+			return nil, model.NewBadRequestError("app.skill.save.valid.name", "Skill with this name already exists.")
+		}
+	}
+
 	oldSkill.Name = skill.Name
 	oldSkill.Description = skill.Description
 	oldSkill.UpdatedBy = skill.UpdatedBy

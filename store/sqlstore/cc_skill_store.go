@@ -43,7 +43,32 @@ func (s *SqlSkillStore) CheckAccess(ctx context.Context, domainId, id int64, gro
 	return (res.Valid && res.Int64 == 1), nil
 }
 
+func (s *SqlSkillStore) NameExists(ctx context.Context, domainId int64, name string, excludeId int64) (bool, model.AppError) {
+	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
+		where exists(
+		  select 1
+		  from call_center.cc_skill s
+		  where s.domain_id = :DomainId
+		    and lower(s.name) = lower(:Name)
+		    and s.id != :ExcludeId
+		)`, map[string]interface{}{
+		"DomainId":  domainId,
+		"Name":      name,
+		"ExcludeId": excludeId,
+	})
+	if err != nil {
+		return false, model.NewInternalError("store.sql_skill.name_exists.app_error", err.Error())
+	}
+	return res.Valid && res.Int64 == 1, nil
+}
+
 func (s *SqlSkillStore) Create(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError) {
+	if exists, appErr := s.NameExists(ctx, skill.DomainId, skill.Name, 0); appErr != nil {
+		return nil, appErr
+	} else if exists {
+		return nil, model.NewBadRequestError("store.sql_skill.save.valid.name", "Skill with this name already exists.")
+	}
+
 	var out *model.Skill
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into call_center.cc_skill (name, domain_id, description,
