@@ -23,6 +23,7 @@ const (
 	CALL_VARIABLE_USE_SCREEN        = "wbt_screen"
 	CALL_VARIABLE_SIP_AUTO_ANSWER   = "sip_auto_answer"
 )
+
 const (
 	CALL_STRATEGY_DEFAULT = iota
 	CALL_STRATEGY_FAILOVER
@@ -142,8 +143,8 @@ const (
 type EavesdropCall struct {
 	UserCallRequest
 	From *EndpointRequest
-	//Group       string //TODO https://freeswitch.org/confluence/display/FREESWITCH/mod_dptools%3A+eavesdrop
-	State       string //todo
+	// Group       string //TODO https://freeswitch.org/confluence/display/FREESWITCH/mod_dptools%3A+eavesdrop
+	State       string // todo
 	Dtmf        bool
 	ALeg        bool
 	BLeg        bool
@@ -256,6 +257,7 @@ type Call struct {
 	BlindTransfer *string     `json:"blind_transfer" db:"blind_transfer"`
 	BridgedId     *string     `json:"bridged_id" db:"bridged_id"`
 	ContactId     *int64      `json:"contact_id" db:"contact_id"`
+	HideNumber    *bool       `json:"hide_number" db:"hide_number"`
 }
 
 type CCTask struct {
@@ -338,7 +340,8 @@ func (c Call) DefaultOrder() string {
 }
 
 func (c Call) DefaultFields() []string {
-	return []string{"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
+	return []string{
+		"id", "app_id", "state", "timestamp", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "reporting_sec", "display", "supervisor", "blind_transfer", "bridged_id",
@@ -389,7 +392,7 @@ func Int64ToTime(i int64) *time.Time {
 	return &t
 }
 
-type Variables map[string]interface{}
+type Variables map[string]any
 
 type HistoryFileJob struct {
 	Id        int64   `json:"id"`
@@ -509,7 +512,8 @@ func (c HistoryCall) DefaultOrder() string {
 }
 
 func (c HistoryCall) AllowFields() []string {
-	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
+	return []string{
+		"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "transfer_from", "transfer_to", "has_children",
@@ -521,7 +525,8 @@ func (c HistoryCall) AllowFields() []string {
 }
 
 func (c HistoryCall) DefaultFields() []string {
-	return []string{"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
+	return []string{
+		"id", "app_id", "parent_id", "user", "extension", "gateway", "direction", "destination", "from", "to", "variables",
 		"created_at", "answered_at", "bridged_at", "hangup_at", "stored_at", "hangup_by", "cause", "duration", "hold_sec", "wait_sec", "bill_sec",
 		"sip_code", "files", "queue", "member", "team", "agent", "joined_at", "leaving_at", "reporting_at", "queue_bridged_at",
 		"queue_wait_sec", "queue_duration_sec", "result", "reporting_sec", "tags", "display", "agent_description", "amd_result", "rate_id", "allow_evaluation",
@@ -572,7 +577,7 @@ type SearchHistoryCall struct {
 	Cause            *string
 	CauseArr         []string // fixme
 	Direction        *string
-	Directions       []string //fixme
+	Directions       []string // fixme
 	Missed           *bool
 	SkipParent       bool
 	UserIds          []int64
@@ -618,7 +623,7 @@ type CallEventInfo struct {
 
 type CallEvent struct {
 	CallEventInfo
-	//CCAppId   string      `json:"cc_app_id,omitempty"`
+	// CCAppId   string      `json:"cc_app_id,omitempty"`
 	Body CallPayload `json:"data,string,omitempty" db:"-"`
 }
 
@@ -668,10 +673,10 @@ type AggregateResult struct {
 	Data []byte `json:"data" db:"data"`
 }
 
-type CallPayload map[string]interface{}
+type CallPayload map[string]any
 
 func (cp CallPayload) MarshalJSON() ([]byte, error) {
-	return json.Marshal((*map[string]interface{})(&cp))
+	return json.Marshal((*map[string]any)(&cp))
 }
 
 func (e *CallServiceHangup) MarshalJSON() []byte {
@@ -680,7 +685,7 @@ func (e *CallServiceHangup) MarshalJSON() []byte {
 }
 
 func (cp *CallPayload) UnmarshalText(b []byte) error {
-	return json.Unmarshal(b, (*map[string]interface{})(cp))
+	return json.Unmarshal(b, (*map[string]any)(cp))
 }
 
 func (cr *CallRequest) AddUserVariable(name, value string) {
@@ -698,7 +703,7 @@ func NewWebSocketCallEvent(call *CallEvent) *WebSocketEvent {
 	e := NewWebSocketEvent(WEBSOCKET_EVENT_CALL)
 
 	if call.Event == "ringing" || call.Event == "bridge" {
-		if call.Body.Has("hideNumber") && call.Body.StringValue("hideNumber") == "true" {
+		if call.Body.Has("hide_number") && call.Body.StringValue("hide_number") == "true" {
 
 			if call.Body.Has("destination") {
 				call.Body["destination"] = HideString(call.Body.StringValue("destination"), 5, 0, 2)
@@ -731,19 +736,20 @@ func (v *Variables) ToJson() []byte {
 	data, _ := json.Marshal(v)
 	return data
 }
+
 func (m *CallPayload) Has(name string) bool {
 	_, ok := (*m)[name]
 	return ok
 }
 
 func (m *CallPayload) StringValue(s ...string) string {
-	var mm interface{} = m
+	var mm any = m
 
 	for i := 0; i < len(s); i++ {
 		switch vv := mm.(type) {
 		case string:
 			return vv
-		case map[string]interface{}:
+		case map[string]any:
 			mm = vv[s[i]]
 		case *CallPayload:
 			mm = (*vv)[s[i]]
