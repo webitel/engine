@@ -117,6 +117,7 @@ type SkillStore interface {
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchSkill) ([]*model.Skill, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 	Update(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError)
+	NameExists(ctx context.Context, domainId int64, name string, excludeId int64) (bool, model.AppError)
 }
 
 type AgentTeamStore interface {
