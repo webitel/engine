@@ -492,8 +492,41 @@ func (app *App) GetActiveCallPageByGroups(ctx context.Context, domainId, userSup
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) GetUserActiveCalls(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError) {
-	return app.Store.Call().GetUserActiveCall(ctx, domainId, userId)
+func (app *App) GetUserActiveCalls(ctx context.Context, domainID, userID int64) ([]*model.Call, model.AppError) {
+	calls, err := app.Store.Call().GetUserActiveCall(ctx, domainID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, call := range calls {
+		if call.HideNumber == nil || !*call.HideNumber {
+			continue
+		}
+
+		call.Destination = model.HideString(call.Destination,
+			app.config.MinimumNumberMaskLen,
+			app.config.PrefixNumberMaskLen,
+			app.config.SuffixNumberMaskLen,
+		)
+
+		if call.From != nil {
+			call.From.Number = model.HideString(call.From.Number,
+				app.config.MinimumNumberMaskLen,
+				app.config.PrefixNumberMaskLen,
+				app.config.SuffixNumberMaskLen,
+			)
+		}
+
+		if call.To != nil {
+			call.To.Number = model.HideString(call.To.Number,
+				app.config.MinimumNumberMaskLen,
+				app.config.PrefixNumberMaskLen,
+				app.config.SuffixNumberMaskLen,
+			)
+		}
+	}
+
+	return calls, nil
 }
 
 func (app *App) GetHistoryCallPage(ctx context.Context, domainId, userId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
