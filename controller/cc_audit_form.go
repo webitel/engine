@@ -203,6 +203,10 @@ func (c *Controller) SearchAuditRate(ctx context.Context, session *auth_manager.
 		search.RolesIds = session.GetAclRoles()
 	}
 
+	if formId > 0 {
+		search.FormIds = []int32{formId}
+	}
+
 	return c.app.GetAuditRatePage(ctx, session.Domain(0), search)
 }
 
