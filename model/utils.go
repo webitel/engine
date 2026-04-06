@@ -20,18 +20,19 @@ type Tag struct {
 	Name string `json:"name" db:"name"`
 }
 
-type StringInterface map[string]interface{}
-type StringMap map[string]string
-type StringArray []string
-type Int64Array []int64
-type Lookup struct {
-	Id   int    `json:"id" db:"id"`
-	Name string `json:"name,omitempty" db:"name"`
-}
+type (
+	StringInterface map[string]any
+	StringMap       map[string]string
+	StringArray     []string
+	Int64Array      []int64
+	Lookup          struct {
+		Id   int    `json:"id" db:"id"`
+		Name string `json:"name,omitempty" db:"name"`
+	}
+)
 
 func (l *Lookup) GetSafeId() *int {
 	if l == nil || l.Id == 0 {
-
 		return nil
 	}
 
@@ -43,7 +44,7 @@ func LookupIds(l []*Lookup) []int {
 		return nil
 	}
 
-	var res = make([]int, 0, len(l))
+	res := make([]int, 0, len(l))
 	for _, v := range l {
 		res = append(res, v.Id)
 	}
@@ -106,13 +107,11 @@ func (s StringInterface) ToSafeJson() *string {
 }
 
 func (sa StringArray) Equals(input StringArray) bool {
-
 	if len(sa) != len(input) {
 		return false
 	}
 
 	for index := range sa {
-
 		if sa[index] != input[index] {
 			return false
 		}
@@ -251,10 +250,10 @@ func ArrayFromJson(data io.Reader) []string {
 	}
 }
 
-func ArrayFromInterface(data interface{}) []string {
+func ArrayFromInterface(data any) []string {
 	stringArray := []string{}
 
-	dataArray, ok := data.([]interface{})
+	dataArray, ok := data.([]any)
 	if !ok {
 		return stringArray
 	}
@@ -268,17 +267,17 @@ func ArrayFromInterface(data interface{}) []string {
 	return stringArray
 }
 
-func StringInterfaceToJson(objmap map[string]interface{}) string {
+func StringInterfaceToJson(objmap map[string]any) string {
 	b, _ := json.Marshal(objmap)
 	return string(b)
 }
 
-func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
+func StringInterfaceFromJson(data io.Reader) map[string]any {
 	decoder := json.NewDecoder(data)
 
-	var objmap map[string]interface{}
+	var objmap map[string]any
 	if err := decoder.Decode(&objmap); err != nil {
-		return make(map[string]interface{})
+		return make(map[string]any)
 	} else {
 		return objmap
 	}
@@ -331,10 +330,12 @@ var reservedName = []string{
 	"help",
 }
 
-var validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
-var puncStart = regexp.MustCompile(`^[^\pL\d\s#]+`)
-var hashtagStart = regexp.MustCompile(`^#{2,}`)
-var puncEnd = regexp.MustCompile(`[^\pL\d\s]+$`)
+var (
+	validHashtag = regexp.MustCompile(`^(#\pL[\pL\d\-_.]*[\pL\d])$`)
+	puncStart    = regexp.MustCompile(`^[^\pL\d\s#]+`)
+	hashtagStart = regexp.MustCompile(`^#{2,}`)
+	puncEnd      = regexp.MustCompile(`[^\pL\d\s]+$`)
+)
 
 func ParseHashtags(text string) (string, string) {
 	words := strings.Fields(text)
@@ -395,8 +396,8 @@ func IsValidId(value string) bool {
 	return true
 }
 
-func InterfaceToMapString(val interface{}) map[string]interface{} {
-	var res map[string]interface{}
+func InterfaceToMapString(val any) map[string]any {
+	var res map[string]any
 	data, _ := json.Marshal(val)
 	json.Unmarshal(data, &res)
 
@@ -433,4 +434,14 @@ func UniqueSliceElements[T comparable](inputSlice []T) []T {
 		}
 	}
 	return uniqueSlice
+}
+
+func FilterSliceElements[T any](s []T, predicate func(T) bool) []T {
+	result := make([]T, 0, len(s)) // Pre-allocate for efficiency
+	for _, v := range s {
+		if predicate(v) {
+			result = append(result, v)
+		}
+	}
+	return result
 }
