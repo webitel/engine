@@ -34,6 +34,8 @@ const (
 	CallEventNameHeartbeat = "heartbeat"
 )
 
+const FileChannelScreenRecordings = "screenrecording"
+
 type CallRequestApplication struct {
 	AppName string
 	Args    string

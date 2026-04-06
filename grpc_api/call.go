@@ -1269,7 +1269,7 @@ func callRequestFromProto(in *engine.CreateCallRequest) *model.OutboundCallReque
 }
 
 func mimeToProto(channel, mime string) engine.CallFileType {
-	if channel == "screenrecording" {
+	if channel == model.FileChannelScreenRecordings {
 		return engine.CallFileType_file_type_screensharing
 	} else if strings.HasPrefix(mime, "audio/") {
 		return engine.CallFileType_file_type_audio

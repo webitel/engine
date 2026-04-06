@@ -67,7 +67,21 @@ func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manage
 		return c.app.GetHistoryCallPageByGroups(ctx, session.DomainId, session.UserId, session.RoleIds, search)
 	}
 
-	return c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), session.UserId, search)
+	calls, next, err := c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), session.UserId, search)
+	if err != nil {
+		return nil, false, err
+	}
+
+	permissionScreen := session.GetPermission(model.PermissionScreenRecordings)
+	if !permissionScreen.CanRead() {
+		for _, call := range calls {
+			call.Files = model.FilterSliceElements(call.Files, func(file *model.CallFile) bool {
+				return file.Channel != model.FileChannelScreenRecordings
+			})
+		}
+	}
+
+	return calls, next, nil
 }
 
 func (c *Controller) AggregateHistoryCall(ctx context.Context, session *auth_manager.Session, aggs *model.CallAggregate) ([]*model.AggregateResult, model.AppError) {
@@ -143,7 +157,7 @@ func (c *Controller) BlindTransferCallToQueue(ctx context.Context, session *auth
 	return c.app.BlindTransferCallToQueue(ctx, session.Domain(domainId), req)
 }
 
-func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Session, userId int64, parentId string, cp model.CallParameters, queueId *int, agentId *int) (string, model.AppError) {
+func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Session, userId int64, parentId string, cp model.CallParameters, queueId, agentId *int) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {
 		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
@@ -257,7 +271,19 @@ func (c *Controller) UpdateCallHistory(ctx context.Context, session *auth_manage
 	}
 	// TODO RBAC ?
 
-	return c.app.UpdateHistoryCall(ctx, session.Domain(0), id, upd)
+	call, err := c.app.UpdateHistoryCall(ctx, session.Domain(0), id, upd)
+	if err != nil {
+		return nil, err
+	}
+
+	permissionScreen := session.GetPermission(model.PermissionScreenRecordings)
+	if !permissionScreen.CanRead() {
+		call.Files = model.FilterSliceElements(call.Files, func(file *model.CallFile) bool {
+			return file.Channel != model.FileChannelScreenRecordings
+		})
+	}
+
+	return call, nil
 }
 
 func (c *Controller) SetContactCall(ctx context.Context, session *auth_manager.Session, id string, contactId int64) model.AppError {
