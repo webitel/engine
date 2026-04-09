@@ -40,6 +40,7 @@ const (
 	SysNamePasswordContainsLogin       = "password_contains_login"
 	SysNamePasswordWarningDays         = "password_warning_days"
 	SysNameDefaultPassword             = "default_password"
+	SysNameExpandContactTabs           = "expand_contact_tabs"
 )
 
 type SysValue json.RawMessage
@@ -118,7 +119,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameTaskEndPushNotification,
 		SysNameNewMessageSoundNotification,
 		SysNameNewChatSoundNotification,
-		SysNamePasswordContainsLogin:
+		SysNamePasswordContainsLogin,
+		SysNameExpandContactTabs:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
