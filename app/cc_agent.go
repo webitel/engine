@@ -5,12 +5,12 @@ import (
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"google.golang.org/grpc/status"
 )
 
 func (app *App) AgentCheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
 	return app.Store.Agent().CheckAccess(ctx, domainId, id, groups, access)
 }
+
 func (app *App) AccessAgentsIds(ctx context.Context, domainId int64, agentIds []int64, groups []int, access auth_manager.PermissionAccess) ([]int64, model.AppError) {
 	return app.Store.Agent().AccessAgents(ctx, domainId, agentIds, groups, access)
 }
@@ -112,7 +112,6 @@ func (a *App) PatchAgent(ctx context.Context, domainId, id int64, patch *model.A
 
 func (a *App) RemoveAgent(ctx context.Context, domainId, id int64) (*model.Agent, model.AppError) {
 	agent, err := a.GetAgentById(ctx, domainId, id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +158,7 @@ func (a *App) GetAgentSession(ctx context.Context, domainId, id int64) (*model.A
 	return a.Store.Agent().GetSession(ctx, domainId, id)
 }
 
-func (a *App) AgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError) {
+func (a *App) AgentCC(ctx context.Context, domainId, userId int64) (*model.AgentCC, model.AppError) {
 	return a.Store.Agent().AgentCC(ctx, domainId, userId)
 }
 
@@ -181,7 +180,7 @@ func (a *App) LogoutAgent(domainId, agentId int64) model.AppError {
 	return nil
 }
 
-func (a *App) WaitingAgentChannel(domainId int64, agentId int64, channel string) (int64, model.AppError) {
+func (a *App) WaitingAgentChannel(domainId, agentId int64, channel string) (int64, model.AppError) {
 	timestamp, err := a.cc.Agent().WaitingChannel(int(agentId), channel)
 	if err != nil {
 		return 0, model.NewBadRequestError("app.agent.waiting.app_err", err.Error())
@@ -193,14 +192,14 @@ func (a *App) WaitingAgentChannel(domainId int64, agentId int64, channel string)
 func (a *App) PauseAgent(domainId, agentId int64, payload, statusComment string, timeout int) model.AppError {
 	err := a.cc.Agent().Pause(domainId, agentId, payload, statusComment, timeout)
 	if err != nil {
-		st, ok := status.FromError(err)
-		if ok {
-			appErr := model.AppErrorFromJson(st.Message())
-			if appErr != nil {
-				//appErr.SetStatusCode(http.StatusBadRequest) // TODO
-				return appErr
-			}
-		}
+		//st, ok := status.FromError(err)
+		//if ok {
+		//	appErr := model.AppErrorFromJson(st.Message())
+		//	if appErr != nil {
+		//appErr.SetStatusCode(http.StatusBadRequest) // TODO
+		//		return appErr
+		//	}
+		//}
 
 		return model.NewBadRequestError("app.agent.pause.app_err", err.Error())
 	}
@@ -225,7 +224,7 @@ func (a *App) GetUserTodayStatistics(ctx context.Context, domainId, userId int64
 	return a.Store.Agent().TodayStatistics(ctx, domainId, nil, &userId)
 }
 
-func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, model.AppError) {
+func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, bool, model.AppError) {
 	list, err := a.Store.Agent().StatusStatistic(ctx, domainId, supervisorUserId, groups, access, search)
 	if err != nil {
 		return nil, false, err
@@ -235,7 +234,7 @@ func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId int64, super
 }
 
 // agent_id check
-func (a *App) AcceptTask(appId string, domainId int64, attemptId int64) model.AppError {
+func (a *App) AcceptTask(appId string, domainId, attemptId int64) model.AppError {
 	err := a.cc.Agent().AcceptTask(appId, domainId, attemptId)
 	if err != nil {
 		return model.NewInternalError("app.cc.accept_task", err.Error())
@@ -243,7 +242,7 @@ func (a *App) AcceptTask(appId string, domainId int64, attemptId int64) model.Ap
 	return nil
 }
 
-func (a *App) CloseTask(appId string, domainId int64, attemptId int64) model.AppError {
+func (a *App) CloseTask(appId string, domainId, attemptId int64) model.AppError {
 	err := a.cc.Agent().CloseTask(appId, domainId, attemptId)
 	if err != nil {
 		return model.NewInternalError("app.cc.close_task", err.Error())
@@ -255,7 +254,7 @@ func (a *App) GetAgentPauseCause(ctx context.Context, domainId, fromUserId, toAg
 	return a.Store.Agent().PauseCause(ctx, domainId, fromUserId, toAgentId, allowChange)
 }
 
-func (a *App) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
+func (a *App) SupervisorAgentItem(ctx context.Context, domainId, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
 	return a.Store.Agent().SupervisorAgentItem(ctx, domainId, agentId, t)
 }
 
@@ -277,7 +276,7 @@ func (app *App) GetUsersStatusPageByGroups(ctx context.Context, domainId int64, 
 	return list, search.EndOfList(), nil
 }
 
-func (a *App) RunAgentTrigger(ctx context.Context, domainId int64, userId int64, triggerId int32, vars map[string]string) (string, model.AppError) {
+func (a *App) RunAgentTrigger(ctx context.Context, domainId, userId int64, triggerId int32, vars map[string]string) (string, model.AppError) {
 	jobId, err := a.cc.Agent().RunTrigger(ctx, domainId, userId, triggerId, vars)
 	if err != nil {
 		return "", model.NewBadRequestError("app.agent.run_trigger.app_err", err.Error())
