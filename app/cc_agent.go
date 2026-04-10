@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"net/http"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -198,7 +197,7 @@ func (a *App) PauseAgent(domainId, agentId int64, payload, statusComment string,
 		if ok {
 			appErr := model.AppErrorFromJson(st.Message())
 			if appErr != nil {
-				appErr.SetStatusCode(http.StatusBadRequest)
+				//appErr.SetStatusCode(http.StatusBadRequest) // TODO
 				return appErr
 			}
 		}
