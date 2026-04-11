@@ -31,7 +31,7 @@ type ApplicationError struct {
 	DetailedError string `json:"detail"`               // Internal error string to help the developer
 	RequestId     string `json:"request_id,omitempty"` // The RequestId that's also set in the header
 	StatusCode    int    `json:"code,omitempty"`       // The http status code
-	params        map[string]interface{}
+	params        map[string]any
 }
 
 func (er *ApplicationError) SetTranslationParams(params map[string]any) AppError {
@@ -60,6 +60,7 @@ func (er *ApplicationError) Error() string {
 	}
 	return fmt.Sprintf("%s%s, %s", where, er.Status, er.DetailedError)
 }
+
 func (er *ApplicationError) SetDetailedError(details string) {
 	er.DetailedError = details
 }
@@ -94,48 +95,48 @@ func (er *ApplicationError) String() string {
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
-func NewInternalError(id string, details string) AppError {
+func NewInternalError(id, details string) AppError {
 	return newAppError(id, details).SetStatusCode(http.StatusInternalServerError)
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
-func NewNotFoundError(id string, details string) AppError {
+func NewNotFoundError(id, details string) AppError {
 	return newAppError(id, details).SetStatusCode(http.StatusNotFound)
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
-func NewBadRequestError(id string, details string) AppError {
+func NewBadRequestError(id, details string) AppError {
 	return newAppError(id, details).SetStatusCode(http.StatusBadRequest)
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
-func NewForbiddenError(id string, details string) AppError {
+func NewForbiddenError(id, details string) AppError {
 	return newAppError(id, details).SetStatusCode(http.StatusForbidden)
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
-func NewUnauthorizedError(id string, details string) AppError {
+func NewUnauthorizedError(id, details string) AppError {
 	return newAppError(id, details).SetStatusCode(http.StatusUnauthorized)
 }
 
 // ! Id should be built like this written in the snake case --  *package*.*file*.*function*.*in what stage of function error occured*.*what happened*
 // * NewAutomaticError accepts an code determines in the runtime the status code
-func NewCustomCodeError(id string, details string, code int) AppError {
+func NewCustomCodeError(id, details string, code int) AppError {
 	if code > 511 || code < 100 {
 		code = http.StatusInternalServerError
 	}
 	return newAppError(id, details).SetStatusCode(code)
 }
 
-func newAppError(id string, details string) AppError {
+func newAppError(id, details string) AppError {
 	return &ApplicationError{Id: id, Status: id, DetailedError: details}
 }
 
-func AppErrorFromJson(js string) *ApplicationError {
+func AppErrorFromJson(js string) AppError {
 	var err ApplicationError
-	json.Unmarshal([]byte(js), &err)
+	_ = json.Unmarshal([]byte(js), &err)
 	if err.Id == "" {
-		return nil
+		return NewInternalError("model.app_error.json_parse.app_error", js)
 	}
 
 	return &err

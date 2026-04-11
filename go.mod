@@ -2,6 +2,10 @@ module github.com/webitel/engine
 
 go 1.24.1
 
+replace (
+	github.com/webitel/engine/pkg/werror => ./pkg/werror
+)
+
 require (
 	firebase.google.com/go/v4 v4.14.1
 	github.com/BoRuDar/configuration/v5 v5.0.1
@@ -21,7 +25,7 @@ require (
 	github.com/webitel/engine/pkg/discovery v0.0.0-20250925090335-284caa978daa
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
 	github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a
-	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
+	github.com/webitel/engine/pkg/werror v0.0.0-20260410115828-69855ccb15f4
 	github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
 	go.opentelemetry.io/otel v1.36.0

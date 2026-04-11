@@ -337,6 +337,8 @@ github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27 h1:DeL3
 github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27/go.mod h1:C5rpf4XfdQ6a5+MpL0Ix0SsH/RNcrerpzqSomDH3VQY=
 github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8 h1:3++AqBWhwSUuhOSNcrSOpW8UdFaUn/CsXm++zzichCI=
 github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8/go.mod h1:xLS6bkOYzvYv0dYXUkd5yvYOtujUrXf9lS0gd4qAGO4=
+github.com/webitel/engine/pkg/werror v0.0.0-20260410115828-69855ccb15f4 h1:BUiUzo8e4E/LeJcdtS4oAvhARSydNLpv3FLSWhTq7Jo=
+github.com/webitel/engine/pkg/werror v0.0.0-20260410115828-69855ccb15f4/go.mod h1:xLS6bkOYzvYv0dYXUkd5yvYOtujUrXf9lS0gd4qAGO4=
 github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41 h1:vj6qE8RtTyz8B4syfUDCkZqULLJ/4I+LS0Rw5W7mao0=
 github.com/webitel/webitel-go-kit v0.0.13-0.20240908192731-3abe573c0e41/go.mod h1:MT93dkScj2kDwVudSdXr0MJdGZ+JvvHbYEsSSb2n+Aw=
 github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7 h1:Qi/ustGBfh13I6aZ/ljul679SPJmHbZzFn9h43eloLg=
