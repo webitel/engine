@@ -173,7 +173,7 @@ func getMemberSortClause(sort string) string {
     
     // we don't have agent field in cc_member table
     if field == "agent" {
-        return fmt.Sprintf("order by coalesce((select agn.name from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
+        return fmt.Sprintf("order by coalesce((select coalesce(agn.name, agn.username) from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
     }
 
     return GetOrderBy("cc_member", sort)
