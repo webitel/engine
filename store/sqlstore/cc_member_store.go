@@ -176,6 +176,10 @@ func getMemberSortClause(sort string) string {
         return fmt.Sprintf("order by coalesce((select agn.name from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
     }
 
+    if field == "communications" {
+        return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
+    }
+
     return GetOrderBy("cc_member", sort)
 }
 
