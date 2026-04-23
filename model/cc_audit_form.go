@@ -68,7 +68,7 @@ func (q *AuditForm) Patch(p *AuditFormPatch) {
 }
 
 func (AuditForm) DefaultOrder() string {
-	return "name"
+	return "-created_at"
 }
 
 func (AuditForm) AllowFields() []string {

@@ -36,7 +36,7 @@ func (p QuickReply) AllowFields() []string {
 }
 
 func (QuickReply) DefaultOrder() string {
-	return "-name"
+	return "-created_at"
 }
 
 func (QuickReply) DefaultFields() []string {
