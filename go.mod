@@ -3,6 +3,7 @@ module github.com/webitel/engine
 go 1.25.5
 
 replace github.com/webitel/engine/pkg/discovery => ./pkg/discovery
+replace github.com/webitel/engine/pkg/wbt/auth_manager => ./pkg/auth_manager
 
 require (
 	firebase.google.com/go/v4 v4.14.1

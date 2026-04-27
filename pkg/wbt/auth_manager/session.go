@@ -5,14 +5,13 @@ import (
 	"slices"
 	"time"
 
-	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
+
+	"github.com/webitel/wlog"
 )
 
-var (
-	sessionGroupRequest singleflight.Group
-)
+var sessionGroupRequest singleflight.Group
 
 const tokenRequestTimeout = time.Second * 15
 
@@ -95,6 +94,10 @@ func (self *Session) CountLicenses() int {
 }
 
 func (self *Session) GetPermission(name string) SessionPermission {
+	if self == nil {
+		return NotAllowPermission(name) // TODO
+	}
+
 	for _, v := range self.Scopes {
 		if v.Name == name {
 			return v
@@ -122,15 +125,14 @@ func (self *Session) IsExpired() bool {
 	if self.Expire > 0 {
 		return self.Expire*1000 < GetMillis()
 	}
-	return false //never expire
+	return false // never expire
 }
 
-func (self *Session) Trace() map[string]interface{} {
-	return map[string]interface{}{"id": self.Id, "domain_id": self.DomainId}
+func (self *Session) Trace() map[string]any {
+	return map[string]any{"id": self.Id, "domain_id": self.DomainId}
 }
 
 func (self *Session) IsValid() error {
-
 	if len(self.Id) < 1 {
 		return ErrValidId
 	}
@@ -163,12 +165,11 @@ func (self *Session) HasAction(name string) bool {
 }
 
 func (am *authManager) getSession(c context.Context, token string) (Session, error) {
-
 	if v, ok := am.session.Get(token); ok {
 		return *v, nil
 	}
 
-	result, err, shared := sessionGroupRequest.Do(token, func() (interface{}, error) {
+	result, err, shared := sessionGroupRequest.Do(token, func() (any, error) {
 		ctx, cancel := context.WithTimeout(c, tokenRequestTimeout)
 		defer cancel()
 
