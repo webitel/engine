@@ -1329,8 +1329,8 @@ where id = :Id::uuid and domain_id = :DomainId`, map[string]any{
 	return nil
 }
 
-func (s SqlCallStore) SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError {
-	var info *string
+func (s SqlCallStore) SetContactId(ctx context.Context, domainId int64, id string, contactId int64) (*string, model.AppError) {
+	var info model.UserCallRequest
 	err := s.GetMaster().WithContext(ctx).SelectOne(&info, `with master as (
     select x.master_id
     from (select coalesce(c.parent_id, c.id) master_id
@@ -1348,7 +1348,7 @@ func (s SqlCallStore) SetContactId(ctx context.Context, domainId int64, id strin
         set contact_id  = :ContactId
     from master
     where id = master.master_id
-    returning id
+    returning id, app_id
 ), uh as (
     update call_center.cc_calls_history
         set contact_id  = :ContactId
@@ -1357,24 +1357,24 @@ func (s SqlCallStore) SetContactId(ctx context.Context, domainId int64, id strin
         and not exists(select 1 from ua)
     returning id
 )
-select ua.id as id
+select ua.id as id, ua.app_id as app_id
 from ua
 union all
-select uh.id as id
+select uh.id as id, null as app_id
 from uh`, map[string]any{
 		"DomainId":  domainId,
 		"ContactId": contactId,
 		"Id":        id,
 	})
 	if err != nil {
-		return model.NewCustomCodeError("store.sql_call.set_contact.app_error", err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("store.sql_call.set_contact.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	if info == nil {
-		return model.NewNotFoundError("store.sql_call.set_contact.not_found", "Not found")
+	if info.Id == "" {
+		return nil, model.NewNotFoundError("store.sql_call.set_contact.not_found", "Not found")
 	}
 
-	return nil
+	return info.AppId, nil
 }
 
 func (s SqlCallStore) GetSipId(ctx context.Context, domainId, userId int64, id string) (string, model.AppError) {

@@ -89,8 +89,8 @@ type RedialFrom struct {
 }
 
 type UserCallRequest struct {
-	Id    string  `json:"id"`
-	AppId *string `json:"app_id"`
+	Id    string  `json:"id" db:"id"`
+	AppId *string `json:"app_id" db:"app_id"`
 }
 
 type HangupCall struct {

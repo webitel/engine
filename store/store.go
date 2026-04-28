@@ -399,7 +399,7 @@ type CallStore interface {
 
 	GetOwnerUserCall(ctx context.Context, id string) (*int64, time.Time, model.AppError)
 	UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError
-	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) model.AppError
+	SetContactId(ctx context.Context, domainId int64, id string, contactId int64) (*string, model.AppError)
 
 	FromNumber(ctx context.Context, domainId, userId int64, id string) (string, model.AppError)
 	SetHideMissedLeg(ctx context.Context, domainId, userId int64, id string) model.AppError
