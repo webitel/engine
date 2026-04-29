@@ -35,7 +35,7 @@ type SearchRoutingSchemaTag struct {
 }
 
 func (RoutingSchema) DefaultOrder() string {
-	return "id"
+	return "-created_at"
 }
 
 func (a RoutingSchema) AllowFields() []string {
