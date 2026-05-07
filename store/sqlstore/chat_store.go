@@ -97,12 +97,13 @@ from (select 1                    pri,
           limit 250) t
     ) m on true
          left join lateral (
-    select json_agg(t) members
+    select json_agg(t order by t.created_at) members
     from (select ch2.id,
                  ch2.type,
                  ch2.user_id,
                  ch2.name,
                  ch2.props ->> 'user'                                                           as external_id,
+                 ch2.created_at,
                  case
                      when ch2.internal then null
                      else json_build_object('id', b.id, 'name', b.name, 'type', b.provider) end AS via
@@ -110,6 +111,7 @@ from (select 1                    pri,
                    left join chat.bot b on connection = b.id::text
           where ch2.conversation_id = c.id::uuid
             and (not ch2.id::uuid = ch.id or ch.id isnull)
+          order by ch2.created_at
           limit 10) t
     ) mem on true
          left join lateral (
