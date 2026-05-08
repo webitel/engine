@@ -128,6 +128,26 @@ func (wh *Hub) start() {
 
 			wlog.Debug("deregister", wlog.Int("count", len(connections.ForUser(webCon.UserId))))
 
+			if agentId := webCon.GetAgentId(); agentId != 0 {
+				stillOnline := false
+				for _, other := range connections.ForUser(webCon.UserId) {
+					if other.GetAgentId() == agentId {
+						stillOnline = true
+						break
+					}
+				}
+				if !stillOnline {
+					domainId := webCon.DomainId
+					log := webCon.Log()
+					go func() {
+						if err := wh.app.LogoutAgent(domainId, agentId); err != nil {
+							log.Warn("auto logout agent on disconnect failed",
+								wlog.Int64("agent_id", agentId), wlog.Err(err))
+						}
+					}()
+				}
+			}
+
 		case msg := <-wh.domainQueue.Events():
 			candidates := connections.ForUser(msg.UserId)
 			for _, webCon := range candidates {

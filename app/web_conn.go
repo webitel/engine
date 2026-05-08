@@ -58,6 +58,7 @@ type WebConn struct {
 	mx                 sync.RWMutex
 	ip                 string
 	lastLatencyTime    atomic.Int64
+	agentId            atomic.Int64
 	log                *wlog.Logger
 	logMx              sync.RWMutex
 	Ctx                context.Context
@@ -161,6 +162,14 @@ func (wc *WebConn) SetLastLatencyTime(new int64) int64 {
 	t := wc.lastLatencyTime.Load()
 	wc.lastLatencyTime.Store(new)
 	return t
+}
+
+func (wc *WebConn) GetAgentId() int64 {
+	return wc.agentId.Load()
+}
+
+func (wc *WebConn) SetAgentId(id int64) {
+	wc.agentId.Store(id)
 }
 
 func (wc *WebConn) Close() {

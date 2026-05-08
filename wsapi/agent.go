@@ -75,6 +75,8 @@ func (api *API) onlineAgent(ctx context.Context, conn *app.WebConn, req *model.W
 		return nil, err
 	}
 
+	conn.SetAgentId(int64(agentId))
+
 	res := make(map[string]interface{})
 	return res, nil
 }
@@ -96,6 +98,8 @@ func (api *API) offlineAgent(ctx context.Context, conn *app.WebConn, req *model.
 	if err != nil {
 		return nil, err
 	}
+
+	conn.SetAgentId(0)
 
 	res := make(map[string]interface{})
 	return res, nil
