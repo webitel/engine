@@ -412,6 +412,39 @@ type CallForm struct {
 	ReportingAt int64      `json:"reporting_at"`
 }
 
+// QualityMetrics описує технічні показники якості SIP-з'єднання.
+type QualityMetrics struct {
+	SipID string `json:"sip_id"`
+
+	// Mean Opinion Score (MOS)
+	MosAvg   float64 `json:"mos_avg"`
+	MosMin   float64 `json:"mos_min"`
+	MosMax   float64 `json:"mos_max"`
+	MosMinAt int     `json:"mos_min_at"`
+	MosMaxAt int     `json:"mos_max_at"`
+
+	// Jitter
+	JitterAvg   float64 `json:"jitter_avg"`
+	JitterMin   float64 `json:"jitter_min"`
+	JitterMax   float64 `json:"jitter_max"`
+	JitterMinAt int     `json:"jitter_min_at"`
+	JitterMaxAt int     `json:"jitter_max_at"`
+
+	// Packet Loss
+	PacketlossAvg   float64 `json:"packetloss_avg"`
+	PacketlossMin   float64 `json:"packetloss_min"`
+	PacketlossMax   float64 `json:"packetloss_max"`
+	PacketlossMinAt int     `json:"packetloss_min_at"`
+	PacketlossMaxAt int     `json:"packetloss_max_at"`
+
+	// Round Trip Time (RTT)
+	RoundtripAvg   float64 `json:"roundtrip_avg"`
+	RoundtripMin   float64 `json:"roundtrip_min"`
+	RoundtripMax   float64 `json:"roundtrip_max"`
+	RoundtripMinAt int     `json:"roundtrip_min_at"`
+	RoundtripMaxAt int     `json:"roundtrip_max_at"`
+}
+
 type HistoryCall struct {
 	Id          string     `json:"id" db:"id"`
 	AppId       string     `json:"app_id" db:"app_id"`
@@ -496,6 +529,7 @@ type HistoryCall struct {
 	Forms           []*CallForm      `json:"forms" db:"forms"`
 	ConversationId  *string          `json:"conversation_id" db:"conversation_id"`
 	MeetingId       *string          `json:"meeting_id" db:"meeting_id"`
+	QualityMetrics  *QualityMetrics  `json:"quality_metrics" db:"quality_metrics"`
 }
 
 type BlindTransfer struct {
@@ -522,7 +556,7 @@ func (c HistoryCall) AllowFields() []string {
 		"agent_description", "hold", "annotations", "amd_result", "amd_duration", "hangup_disposition", "blind_transfer", "files_job",
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
-		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms", "conversation_id", "meeting_id",
+		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms", "conversation_id", "meeting_id", "quality_metrics",
 	}
 }
 

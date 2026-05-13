@@ -972,6 +972,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		AllowEvaluation:  src.AllowEvaluation != nil && *src.AllowEvaluation,
 		Contact:          GetProtoLookup(src.Contact),
 		Schemas:          GetProtoLookups(src.Schemas),
+		QualityMetrics:   marshaProtoCallQualityMetrics(src.QualityMetrics),
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -1098,6 +1099,44 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	}
 
 	return item
+}
+
+func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_QualityMetrics {
+	if m == nil {
+		return nil
+	}
+
+	return &engine.HistoryCall_QualityMetrics{
+		SipId: m.SipID,
+
+		// MOS метрики
+		MosAvg:   float32(m.MosAvg),
+		MosMin:   float32(m.MosMin),
+		MosMax:   float32(m.MosMax),
+		MosMinAt: int32(m.MosMinAt),
+		MosMaxAt: int32(m.MosMaxAt),
+
+		// Jitter метрики
+		JitterAvg:   float32(m.JitterAvg),
+		JitterMin:   float32(m.JitterMin),
+		JitterMax:   float32(m.JitterMax),
+		JitterMinAt: int32(m.JitterMinAt),
+		JitterMaxAt: int32(m.JitterMaxAt),
+
+		// Packet Loss метрики
+		PacketlossAvg:   float32(m.PacketlossAvg),
+		PacketlossMin:   float32(m.PacketlossMin),
+		PacketlossMax:   float32(m.PacketlossMax),
+		PacketlossMinAt: int32(m.PacketlossMinAt),
+		PacketlossMaxAt: int32(m.PacketlossMaxAt),
+
+		// RTT метрики
+		RoundtripAvg:   float32(m.RoundtripAvg),
+		RoundtripMin:   float32(m.RoundtripMin),
+		RoundtripMax:   float32(m.RoundtripMax),
+		RoundtripMinAt: int32(m.RoundtripMinAt),
+		RoundtripMaxAt: int32(m.RoundtripMaxAt),
+	}
 }
 
 func prettyStringMap(ff *model.StringMap) []byte {

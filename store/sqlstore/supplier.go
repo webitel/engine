@@ -12,10 +12,10 @@ import (
 	"time"
 
 	"github.com/XSAM/otelsql"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+
 	wlog "github.com/webitel/wlog"
 
 	"github.com/webitel/engine/model"
@@ -175,7 +175,7 @@ func (ss *SqlSupplier) GetAllConns() []*gorp.DbMap {
 	return all
 }
 
-func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
+func setupConnection(con_type, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
 	var db *dbsql.DB
 	var err error
 	if settings.Trace {
@@ -455,8 +455,7 @@ func (ss *SqlSupplier) Feedback() store.FeedbackStore {
 
 type typeConverter struct{}
 
-func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
-
+func (me typeConverter) ToDb(val any) (any, error) {
 	switch t := val.(type) {
 	case model.StringMap:
 		return model.MapToJson(t), nil
@@ -466,14 +465,14 @@ func (me typeConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.ArrayToJson(t), nil
 	case model.StringInterface:
 		return model.StringInterfaceToJson(t), nil
-	case map[string]interface{}:
+	case map[string]any:
 		return model.StringInterfaceToJson(model.StringInterface(t)), nil
 	}
 
 	return val, nil
 }
 
-func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
+func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 	switch target.(type) {
 	case *[]model.MemberCommunication,
 		*model.MemberCommunication,
@@ -501,7 +500,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		*model.QueueAgentAgg,
 		*model.AgentChannel,
 		**model.Variables,
-		**map[string]interface{},
+		**map[string]any,
 		*[]*model.HistoryFileJob,
 		*[]*model.CallFileTranscriptLookup,
 		*[]*model.CalendarExceptDate,
@@ -516,8 +515,9 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		**model.MailProfileParams,
 		*[]*model.BlindTransfer,
 		*model.MailProfileParams,
-		*[]*model.CallForm:
-		binder := func(holder, target interface{}) error {
+		*[]*model.CallForm,
+		**model.QualityMetrics:
+		binder := func(holder, target any) error {
 			s, ok := holder.(*[]byte)
 			if !ok {
 				return errors.New("store.sql.convert_member_communication") // fixme json
@@ -530,7 +530,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		return gorp.CustomScanner{Holder: &[]byte{}, Target: target, Binder: binder}, true
 
 	case *model.Lookup:
-		binder := func(holder, target interface{}) error {
+		binder := func(holder, target any) error {
 			s, ok := holder.(*string)
 			if !ok {
 				return errors.New("store.sql.convert_lookup")
@@ -541,7 +541,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 
 	case **model.Lookup:
-		binder := func(holder, target interface{}) error {
+		binder := func(holder, target any) error {
 			s, ok := holder.(*[]byte)
 			if !ok {
 				return errors.New("store.sql.convert_lookup")
@@ -553,7 +553,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		}
 		return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: binder}, true
 	case *model.StringMap:
-		binder := func(holder, target interface{}) error {
+		binder := func(holder, target any) error {
 			s, ok := holder.(*string)
 			if !ok {
 				return errors.New("store.sql.convert_string_map")
@@ -563,7 +563,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		}
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *map[string]string:
-		binder := func(holder, target interface{}) error {
+		binder := func(holder, target any) error {
 			s, ok := holder.(*string)
 			if !ok {
 				return errors.New("store.sql.convert_string_map")
@@ -574,7 +574,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 	case *model.StringArray,
 		**model.StringArray:
-		binder := func(holder, target interface{}) error {
+		binder := func(holder, target any) error {
 			s, ok := holder.(*[]byte)
 			if !ok {
 				return errors.New("store.sql.convert_string_array")
@@ -604,8 +604,8 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	//		return json.Unmarshal(b, target)
 	//	}
 	//	return gorp.CustomScanner{Holder: model.StringInterface{}, Target: target, Binder: binder}, true
-	case *map[string]interface{}:
-		binder := func(holder, target interface{}) error {
+	case *map[string]any:
+		binder := func(holder, target any) error {
 			s, ok := holder.(*string)
 			if !ok {
 				return errors.New("store.sql.convert_string_interface")
@@ -616,7 +616,7 @@ func (me typeConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
 
 	case *model.Int64Array:
-		binder := func(holder, target interface{}) error {
+		binder := func(holder, target any) error {
 			s, ok := holder.(*[]byte)
 			if !ok {
 				return errors.New("store.sql.convert_int64_array")
