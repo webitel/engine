@@ -23,6 +23,34 @@ func NewSqlCallStore(sqlStore SqlStore) store.CallStore {
 	return us
 }
 
+// rewriteCallSort translates user-facing sort fields that map to JSON columns
+// (`from`, `to`) in the cc_call_active_list view into raw SQL expressions that
+// extract the `name`/`number` keys from the JSON. PostgreSQL's `json` type has
+// no ordering operator, so a plain ORDER BY "from" raises
+// `could not identify an ordering operator for type json`.
+// Other fields pass through unchanged.
+func rewriteCallSort(sort string) string {
+	s := strings.TrimSpace(sort)
+	if s == "" {
+		return s
+	}
+	dir, field := orderBy(s)
+	if dir == "" {
+		return sort
+	}
+	nulls := "NULLS LAST"
+	if strings.EqualFold(dir, "desc") {
+		nulls = "NULLS FIRST"
+	}
+	switch field {
+	case "from":
+		return fmt.Sprintf(`coalesce(nullif(("from"::text)::json->>'number', ''), ("from"::text)::json->>'name') %s %s`, dir, nulls)
+	case "to":
+		return fmt.Sprintf(`coalesce(nullif(("to"::text)::json->>'number', ''), ("to"::text)::json->>'name') %s %s`, dir, nulls)
+	}
+	return sort
+}
+
 func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, model.AppError) {
 	var out []*model.Call
 
@@ -51,6 +79,8 @@ func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *mod
 		"SupervisorIds": pq.Array(search.SupervisorIds),
 		"State":         pq.Array(search.State),
 	}
+
+	search.ListRequest.Sort = rewriteCallSort(search.ListRequest.Sort)
 
 	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
@@ -111,6 +141,8 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId, userSuper
 		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"UserSupervisorId": userSupervisorId,
 	}
+
+	search.ListRequest.Sort = rewriteCallSort(search.ListRequest.Sort)
 
 	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
