@@ -300,6 +300,7 @@ type CallAnnotation struct {
 	Note      string    `json:"note" db:"note"`
 	StartSec  int32     `json:"start_sec" db:"start_sec"`
 	EndSec    int32     `json:"end_sec" db:"end_sec"`
+	FileId    *int64    `json:"file_id" db:"file_id"`
 }
 
 func (f *RedialFrom) UniqueUsers() []int64 {
