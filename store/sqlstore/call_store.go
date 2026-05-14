@@ -711,8 +711,8 @@ limit 1`, map[string]any{
 func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&annotation, `
 		with a as (
-			insert into call_center.cc_calls_annotation (call_id, created_by, created_at, note, start_sec, end_sec, updated_by, updated_at)
-			values (:CallId, :CreatedBy, :CreatedAt, :Note, :StartSec, :EndSec, :UpdatedBy, :UpdatedAt)
+			insert into call_center.cc_calls_annotation (call_id, created_by, created_at, note, start_sec, end_sec, updated_by, updated_at, file_id)
+			values (:CallId, :CreatedBy, :CreatedAt, :Note, :StartSec, :EndSec, :UpdatedBy, :UpdatedAt, :FileId)
 			returning *
 		)
 		select
@@ -724,7 +724,8 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.Ca
 			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
 			a.note,
 			a.start_sec,
-			a.end_sec
+			a.end_sec,
+			a.file_id
 		from a
 			left join directory.wbt_user cc on cc.id = a.created_by
 			left join directory.wbt_user uc on uc.id = a.updated_by;
@@ -737,6 +738,7 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.Ca
 		"EndSec":    annotation.EndSec,
 		"UpdatedBy": annotation.UpdatedBy.GetSafeId(),
 		"UpdatedAt": annotation.UpdatedAt,
+		"FileId":    annotation.FileId,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.create.app_error", err.Error(), extractCodeFromErr(err))
@@ -757,7 +759,8 @@ select
     call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
     a.note,
     a.start_sec,
-    a.end_sec
+    a.end_sec,
+    a.file_id
 from call_center.cc_calls_annotation a
     left join directory.wbt_user cc on cc.id = a.created_by
     left join directory.wbt_user uc on uc.id = a.updated_by
@@ -792,7 +795,8 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
 			a.note,
 			a.start_sec,
-			a.end_sec
+			a.end_sec,
+			a.file_id
 		from a
 			left join directory.wbt_user cc on cc.id = a.created_by
 			left join directory.wbt_user uc on uc.id = a.updated_by

@@ -737,6 +737,10 @@ func (api *call) CreateCallAnnotation(ctx context.Context, in *engine.CreateCall
 		EndSec:   in.GetEndSec(),
 	}
 
+	if in.GetFileId() > 0 {
+		annotation.FileId = model.NewInt64(in.GetFileId())
+	}
+
 	annotation, err = api.ctrl.CreateCallAnnotation(ctx, session, annotation)
 	if err != nil {
 		return nil, err
@@ -909,7 +913,7 @@ func toEngineCall(src *model.Call) *engine.ActiveCall {
 }
 
 func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
-	return &engine.CallAnnotation{
+	a := &engine.CallAnnotation{
 		Id:        src.Id,
 		CallId:    src.CallId,
 		CreatedBy: GetProtoLookup(src.CreatedBy),
@@ -920,6 +924,12 @@ func toEngineAnnotation(src *model.CallAnnotation) *engine.CallAnnotation {
 		StartSec:  src.StartSec,
 		EndSec:    src.EndSec,
 	}
+
+	if src.FileId != nil {
+		a.FileId = *src.FileId
+	}
+
+	return a
 }
 
 func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, hideNumbers, accessFile bool) *engine.HistoryCall {
@@ -1330,17 +1340,7 @@ func toCallAnnotation(src []*model.CallAnnotation) []*engine.CallAnnotation {
 
 	res := make([]*engine.CallAnnotation, 0, len(src))
 	for _, v := range src {
-		res = append(res, &engine.CallAnnotation{
-			Id:        v.Id,
-			CallId:    v.CallId,
-			CreatedBy: GetProtoLookup(v.CreatedBy),
-			CreatedAt: model.TimeToInt64(&v.CreatedAt),
-			UpdatedBy: GetProtoLookup(v.UpdatedBy),
-			UpdatedAt: model.TimeToInt64(&v.UpdatedAt),
-			Note:      v.Note,
-			StartSec:  v.StartSec,
-			EndSec:    v.EndSec,
-		})
+		res = append(res, toEngineAnnotation(v))
 	}
 
 	return res
