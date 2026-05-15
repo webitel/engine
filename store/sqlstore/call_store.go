@@ -36,7 +36,7 @@ func rewriteCallSort(sort string) string {
 	}
 	dir, field := orderBy(s)
 	if dir == "" {
-		return sort
+		field = s
 	}
 	nulls := "NULLS LAST"
 	if strings.EqualFold(dir, "desc") {
