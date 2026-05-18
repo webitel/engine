@@ -4,17 +4,17 @@ type ChatEvent struct {
 	Event    string `json:"event"`
 	UserId   int64  `json:"user_id"`
 	DomainId int64  `json:"domain_id"`
-	Data     map[string]interface{}
+	Data     map[string]any
 }
 
 type ChatMessage struct {
-	Id        int64                  `json:"id"`
-	ChannelId string                 `json:"channel_id"`
-	CreatedAt int64                  `json:"created_at"`
-	UpdatedAt int64                  `json:"updated_at"`
-	Type      string                 `json:"type"`
-	Text      *string                `json:"text,omitempty"`
-	File      map[string]interface{} `json:"file,omitempty"`
+	Id        int64          `json:"id"`
+	ChannelId string         `json:"channel_id"`
+	CreatedAt int64          `json:"created_at"`
+	UpdatedAt int64          `json:"updated_at"`
+	Type      string         `json:"type"`
+	Text      *string        `json:"text,omitempty"`
+	File      map[string]any `json:"file,omitempty"`
 }
 
 type ChatMember struct {
@@ -46,6 +46,7 @@ type Conversation struct {
 	Messages  []*ChatMessage `json:"messages" db:"messages"`
 	LeavingAt *int64         `json:"leaving_at" db:"leaving_at"`
 	Task      *CCTask        `json:"task"`
+	Member    *ChatMember    `json:"member"`
 }
 
 func NewWebSocketChatEvent(event *ChatEvent) *WebSocketEvent {
