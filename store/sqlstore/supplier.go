@@ -490,6 +490,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 		*[]*model.CallAnnotation,
 		*[]*model.CallHold,
 		*[]*model.ChatMember,
+		**model.ChatMember,
 		*[]*model.ChatMessage,
 		*[]*model.CCTask,
 		*[]model.OutboundResourceGroupTime,

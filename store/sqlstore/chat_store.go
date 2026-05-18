@@ -34,7 +34,10 @@ func (s SqlChatStore) OpenedConversations(ctx context.Context, domainId, userId 
            when cont.contact_id notnull then jsonb_build_object('wbt_contact_id', cont.contact_id::text)
            else '{}' end || coalesce(ch.props, '{}')::jsonb as              variables,
        row_to_json(at)                                                      task,
-       at.leaving_at                                        as              leaving_at
+       at.leaving_at                                        as              leaving_at,
+       jsonb_build_object('type', 'webitel', 'user_id', usr.id,
+                          'name', coalesce(usr.chat_name::text, usr.name::text, usr.username::text),
+                        'internal', true) member
 from (select 1                    pri,
              inv.created_at,
              null::uuid           id,
@@ -148,6 +151,7 @@ from (select 1                    pri,
     from call_center.cc_member_attempt a
     where a.agent_call_id = ch.id::varchar
     ) at on true
+         left join directory.wbt_user usr on usr.id = :UserId::int8
 order by ch.pri, ch.updated_at desc;`, map[string]interface{}{
 		"UserId":     userId,
 		"DomainId":   domainId,
