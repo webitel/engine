@@ -2,7 +2,7 @@
 
 set -e
 
-SERVICE_NAME="engine"
+SERVICE_NAME="webitel-engine"
 
 USER_NAME="webitel"
 GROUP_NAME="webitel"
