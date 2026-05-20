@@ -2,7 +2,7 @@
 
 set -e
 
-SERVICE_NAME="engine"
+SERVICE_NAME="webitel-engine"
 
 stop_service() {
     if [ -x "/bin/systemctl" ]; then
