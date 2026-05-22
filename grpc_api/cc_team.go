@@ -3,6 +3,7 @@ package grpc_api
 import (
 	"context"
 	"fmt"
+	"math"
 	"strconv"
 
 	"github.com/webitel/engine/gen/engine"
@@ -21,6 +22,40 @@ func NewAgentTeamApi(app *app.App) *agentTeam {
 	return &agentTeam{app: app}
 }
 
+type agentTeamTimeoutFields interface {
+	GetMaxNoAnswer() int32
+	GetWrapUpTime() int32
+	GetNoAnswerDelayTime() int32
+	GetCallTimeout() int32
+	GetInviteChatTimeout() int32
+	GetTaskAcceptTimeout() int32
+}
+
+func validateAgentTeamTimeouts(in agentTeamTimeoutFields) model.AppError {
+	fields := []struct {
+		name  string
+		value int32
+	}{
+		{"max_no_answer", in.GetMaxNoAnswer()},
+		{"wrap_up_time", in.GetWrapUpTime()},
+		{"no_answer_delay_time", in.GetNoAnswerDelayTime()},
+		{"call_timeout", in.GetCallTimeout()},
+		{"invite_chat_timeout", in.GetInviteChatTimeout()},
+		{"task_accept_timeout", in.GetTaskAcceptTimeout()},
+	}
+
+	for _, f := range fields {
+		if f.value > math.MaxInt16 {
+			return model.NewBadRequestError(
+				"grpc_api.cc_team.validate_timeouts."+f.name,
+				fmt.Sprintf("%s must not be greater than %d", f.name, math.MaxInt16),
+			)
+		}
+	}
+
+	return nil
+}
+
 func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgentTeamRequest) (*engine.AgentTeam, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -30,6 +65,10 @@ func (api *agentTeam) CreateAgentTeam(ctx context.Context, in *engine.CreateAgen
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_TEAM)
 	if !permission.CanCreate() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
+	if err = validateAgentTeamTimeouts(in); err != nil {
+		return nil, err
 	}
 
 	team := &model.AgentTeam{
@@ -183,6 +222,10 @@ func (api *agentTeam) UpdateAgentTeam(ctx context.Context, in *engine.UpdateAgen
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
+	}
+
+	if err = validateAgentTeamTimeouts(in); err != nil {
+		return nil, err
 	}
 
 	team := &model.AgentTeam{
