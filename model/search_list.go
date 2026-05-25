@@ -145,6 +145,43 @@ func ReplaceWebSearch(s string) *string {
 	return nil
 }
 
+var amdResultAliases = map[string][]string{
+	"NOTSURE":   {"NOTSURE"},
+	"HUMAN":     {"HUMAN", "human"},
+	"MACHINE":   {"MACHINE"},
+	"CANCEL":    {"CANCEL", "cancelled"},
+	"SILENCE":   {"SILENCE", "silence"},
+	"VOICEMAIL": {"VOICEMAIL", "voicemail"},
+	"RINGING":   {"RINGING", "ringback"},
+	"TIMEOUT":   {"TIMEOUT", "timeout"},
+}
+
+func ExpandAmdResult(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(values)*2)
+	seen := make(map[string]struct{})
+	add := func(v string) {
+		if _, ok := seen[v]; ok {
+			return
+		}
+		seen[v] = struct{}{}
+		out = append(out, v)
+	}
+	for _, v := range values {
+		if aliases, ok := amdResultAliases[strings.ToUpper(v)]; ok {
+			for _, a := range aliases {
+				add(a)
+			}
+			continue
+		}
+		add(strings.ToUpper(v))
+		add(strings.ToLower(v))
+	}
+	return out
+}
+
 func (l *ListRequest) GetRegExpQ() *string {
 	return GetRegExpQ(l.Q)
 }

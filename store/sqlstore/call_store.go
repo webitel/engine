@@ -378,7 +378,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		and (:Ids::uuid[] isnull or id = any(:Ids))
 		and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 		and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-		and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
+		and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult::varchar[]) or amd_ai_result = any(:AmdResult::varchar[]))
 		and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 		and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 		and (:AgentIds::int[] isnull or ( agent_ids && :AgentIds::int[]) )
@@ -477,7 +477,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"TransferToIds":    pq.Array(search.TransferToIds),
 		"DependencyIds":    pq.Array(search.DependencyIds),
 		"Tags":             pq.Array(search.Tags),
-		"AmdResult":        pq.Array(search.AmdResult),
+		"AmdResult":        pq.Array(model.ExpandAmdResult(search.AmdResult)),
 		"Variables":        search.Variables.ToSafeJson(),
 		"HasTranscript":    search.HasTranscript,
 		"Fts":              search.Fts,
@@ -547,7 +547,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 		"TransferToIds":    pq.Array(search.TransferToIds),
 		"DependencyIds":    pq.Array(search.DependencyIds),
 		"Tags":             pq.Array(search.Tags),
-		"AmdResult":        pq.Array(search.AmdResult),
+		"AmdResult":        pq.Array(model.ExpandAmdResult(search.AmdResult)),
 		"Groups":           pq.Array(groups),
 		"Access":           auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"UserSupervisorId": userSupervisorId,
@@ -592,7 +592,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and (:Ids::uuid[] isnull or id = any(:Ids))
 	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-	and (:AmdResult::varchar[] isnull or amd_result = any(upper(:AmdResult::text)::varchar[]) or amd_ai_result = any(lower(:AmdResult::text)::varchar[]))
+	and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult::varchar[]) or amd_ai_result = any(:AmdResult::varchar[]))
 	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 	and (:AgentIds::int[] isnull or ( agent_ids && :AgentIds::int[]) )
