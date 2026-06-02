@@ -4,6 +4,8 @@ go 1.25.5
 
 replace github.com/webitel/engine/pkg/discovery => ./pkg/discovery
 
+replace github.com/webitel/engine/pkg/wbt/auth_manager => ./pkg/wbt/auth_manager
+
 require (
 	firebase.google.com/go/v4 v4.14.1
 	github.com/BoRuDar/configuration/v5 v5.0.1
