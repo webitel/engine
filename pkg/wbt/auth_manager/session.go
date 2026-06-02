@@ -48,14 +48,26 @@ func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool 
 }
 
 func (s *Session) HasAdminPermission(permAccess PermissionAccess) bool {
+	if s == nil {
+		return false
+	}
+
 	return slices.Contains(s.adminPermissions, permAccess)
 }
 
 func (self *Session) GetAclRoles() []int {
+	if self == nil {
+		return nil
+	}
+
 	return self.RoleIds
 }
 
 func (self *Session) HasLicense(name string) bool {
+	if self == nil {
+		return false
+	}
+
 	for _, v := range self.validLicense {
 		if v == name {
 			return true
@@ -66,10 +78,18 @@ func (self *Session) HasLicense(name string) bool {
 }
 
 func (self *Session) GetUserId() int64 {
+	if self == nil {
+		return 0
+	}
+
 	return self.UserId
 }
 
 func (self *Session) GetDomainId() int64 {
+	if self == nil {
+		return 0
+	}
+
 	return self.DomainId
 }
 
@@ -82,10 +102,18 @@ func (self *Session) GetUserIp() string {
 }
 
 func (self *Session) HasCallCenterLicense() bool {
+	if self == nil {
+		return false
+	}
+
 	return self.HasLicense(LicenseCallCenter)
 }
 
 func (self *Session) HasChatLicense() bool {
+	if self == nil {
+		return false
+	}
+
 	return self.HasLicense(LicenseChat)
 }
 
@@ -155,6 +183,10 @@ func (self *Session) IsValid() error {
 }
 
 func (self *Session) HasAction(name string) bool {
+	if self == nil {
+		return false
+	}
+
 	for _, v := range self.actions {
 		if v == name {
 			return true
