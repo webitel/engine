@@ -25,6 +25,7 @@ var (
 		model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
 		model.SysNameNewMessageSoundNotification, model.SysNameScreenshotInterval, model.SysNamePasswordExpiryDays,
 		model.SysNamePasswordMinLength, model.SysNamePasswordCategories, model.SysNamePasswordContainsLogin, model.SysNamePasswordWarningDays, model.SysNameDefaultPassword, model.SysNameExpandContactTabs,
+		model.SysNameDefaultWorkspaceTab,
 	}
 )
 
