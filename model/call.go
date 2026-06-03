@@ -254,12 +254,13 @@ type Call struct {
 	Display          *string    `json:"display" db:"display"`
 	Supervisor       []*Lookup  `json:"supervisor" db:"supervisor"`
 
-	Task          *CCTask     `json:"task"`
-	Hold          []*CallHold `json:"hold" db:"hold"`
-	BlindTransfer *string     `json:"blind_transfer" db:"blind_transfer"`
-	BridgedId     *string     `json:"bridged_id" db:"bridged_id"`
-	ContactId     *int64      `json:"contact_id" db:"contact_id"`
-	HideNumber    *bool       `json:"hide_number" db:"hide_number"`
+	Task             *CCTask     `json:"task"`
+	Hold             []*CallHold `json:"hold" db:"hold"`
+	BlindTransfer    *string     `json:"blind_transfer" db:"blind_transfer"`
+	BridgedId        *string     `json:"bridged_id" db:"bridged_id"`
+	ContactId        *int64      `json:"contact_id" db:"contact_id"`
+	HideNumber       *bool       `json:"hide_number" db:"hide_number"`
+	IsConsultToQueue *bool       `json:"is_consult_to_queue,omitempty" db:"is_consult_to_queue"`
 }
 
 type CCTask struct {
