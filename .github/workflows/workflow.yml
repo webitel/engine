@@ -47,7 +47,7 @@ jobs:
     uses: webitel/reusable-workflows/.github/workflows/golang-build.yml@v2
     with:
       arch: ${{ matrix.arch }}
-      binary-name: engine
+      binary-name: webitel-engine
       ldflags: >
         -s -w
         -X github.com/webitel/engine/model.BuildNumber=${{ github.run_number }}
