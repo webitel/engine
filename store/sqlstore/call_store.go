@@ -287,7 +287,8 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
                case when at.attempt_id::bigint notnull then coalesce(at.queue_id::bigint, 0) end, at.queue_name)   AS queue,
        c.contact_id,
        to_timestamp(at.leaving_at::double precision / 1000)           as leaving_at, --todo
-	   c.params->>'hide_number' = 'true' as hide_number
+	   c.params->>'hide_number' = 'true' as hide_number,
+	   (c.params->>'is_consult_to_queue')::bool as is_consult_to_queue
 from call_center.cc_calls c
          left join lateral (
     select a.id                                                       as attempt_id,
@@ -316,7 +317,8 @@ from call_center.cc_calls c
     ) at on true
 where c.user_id = :UserId
   and c.domain_id = :DomainId
-  and ((at.state != 'leaving') or c.hangup_at isnull)`, map[string]any{
+  and ((at.state != 'leaving') or c.hangup_at isnull)
+order by c.created_at`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
