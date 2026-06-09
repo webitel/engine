@@ -42,6 +42,7 @@ const (
 	SysNameDefaultPassword             = "default_password"
 	SysNameExpandContactTabs           = "expand_contact_tabs"
 	SysNameDefaultWorkspaceTab         = "default_workspace_tab"
+	SysNameBlockAllMemberNumbers       = "block_all_member_numbers_from_list"
 )
 
 type SysValue json.RawMessage
@@ -122,7 +123,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameNewMessageSoundNotification,
 		SysNameNewChatSoundNotification,
 		SysNamePasswordContainsLogin,
-		SysNameExpandContactTabs:
+		SysNameExpandContactTabs,
+		SysNameBlockAllMemberNumbers:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
