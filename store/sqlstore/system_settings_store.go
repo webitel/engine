@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 )
@@ -14,20 +15,19 @@ type SqlSystemSettingsStore struct {
 	SqlStore
 }
 
-var (
-	allSystemSettings = []string{model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
-		model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
-		model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
-		model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,
-		model.SysNameIsFulltextSearchEnabled, model.SysNameHideContact, model.SysNameShowFullContact,
-		model.SysNameCallEndSoundNotification, model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification,
-		model.SysNameChatEndPushNotification, model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification,
-		model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
-		model.SysNameNewMessageSoundNotification, model.SysNameScreenshotInterval, model.SysNamePasswordExpiryDays,
-		model.SysNamePasswordMinLength, model.SysNamePasswordCategories, model.SysNamePasswordContainsLogin, model.SysNamePasswordWarningDays, model.SysNameDefaultPassword, model.SysNameExpandContactTabs,
-		model.SysNameDefaultWorkspaceTab,
-	}
-)
+var allSystemSettings = []string{
+	model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
+	model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
+	model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
+	model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,
+	model.SysNameIsFulltextSearchEnabled, model.SysNameHideContact, model.SysNameShowFullContact,
+	model.SysNameCallEndSoundNotification, model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification,
+	model.SysNameChatEndPushNotification, model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification,
+	model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
+	model.SysNameNewMessageSoundNotification, model.SysNameScreenshotInterval, model.SysNamePasswordExpiryDays,
+	model.SysNamePasswordMinLength, model.SysNamePasswordCategories, model.SysNamePasswordContainsLogin, model.SysNamePasswordWarningDays, model.SysNameDefaultPassword, model.SysNameExpandContactTabs,
+	model.SysNameDefaultWorkspaceTab, model.SysNameBlockAllMemberNumbers,
+}
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
 	us := &SqlSystemSettingsStore{sqlStore}
@@ -42,12 +42,11 @@ func (s SqlSystemSettingsStore) Create(ctx context.Context, domainId int64, sett
     returning *
 )
 select s.id, s.name, s.value
-from s;`, map[string]interface{}{
+from s;`, map[string]any{
 		"DomainId": domainId,
 		"Name":     setting.Name,
 		"Value":    setting.Value,
 	})
-
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_sys_settings.save.app_error", fmt.Sprintf("name=%v, %v", setting.Name, err.Error()))
 	}
@@ -58,7 +57,7 @@ from s;`, map[string]interface{}{
 func (s SqlSystemSettingsStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchSystemSetting) ([]*model.SystemSetting, model.AppError) {
 	var list []*model.SystemSetting
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 	}
@@ -84,11 +83,10 @@ func (s SqlSystemSettingsStore) Get(ctx context.Context, domainId int64, id int3
 	var ss *model.SystemSetting
 	err := s.GetReplica().WithContext(ctx).SelectOne(&ss, `select s.id, s.name, s.value
 from call_center.system_settings s
-where domain_id = :DomainId::int8 and id = :Id::int4`, map[string]interface{}{
+where domain_id = :DomainId::int8 and id = :Id::int4`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_sys_settings.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
@@ -105,12 +103,11 @@ func (s SqlSystemSettingsStore) Update(ctx context.Context, domainId int64, sett
     returning *
 )
 select s.id, s.name, s.value
-from s;`, map[string]interface{}{
+from s;`, map[string]any{
 		"DomainId": domainId,
 		"Id":       setting.Id,
 		"Value":    setting.Value,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_sys_settings.update.app_error", fmt.Sprintf("Id=%v, %s", setting.Id, err.Error()), extractCodeFromErr(err))
 	}
@@ -121,11 +118,10 @@ from s;`, map[string]interface{}{
 func (s SqlSystemSettingsStore) Delete(ctx context.Context, domainId int64, id int32) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`delete
 from call_center.system_settings s
-where domain_id = :DomainId::int8 and id = :Id::int4`, map[string]interface{}{
+where domain_id = :DomainId::int8 and id = :Id::int4`, map[string]any{
 		"DomainId": domainId,
 		"Id":       id,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_sys_settings.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
@@ -137,7 +133,7 @@ func (s SqlSystemSettingsStore) ValueByName(ctx context.Context, domainId int64,
 	var outValue model.SysValue
 	err := s.GetReplica().WithContext(ctx).SelectOne(&outValue, `select s.value
 from call_center.system_settings s
-where domain_id = :DomainId::int8 and name = :Name::varchar`, map[string]interface{}{
+where domain_id = :DomainId::int8 and name = :Name::varchar`, map[string]any{
 		"DomainId": domainId,
 		"Name":     name,
 	})
@@ -154,12 +150,11 @@ func (s SqlSystemSettingsStore) Available(ctx context.Context, domainId int64, s
 	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select t
 from unnest(:All::varchar[]) t
 where not exists(select 1 from call_center.system_settings ss where ss.domain_id = :DomainId and ss.name = t)
-	and (:Q::text isnull or ( t ilike :Q::varchar))`, map[string]interface{}{
+	and (:Q::text isnull or ( t ilike :Q::varchar))`, map[string]any{
 		"All":      pq.Array(allSystemSettings),
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 	})
-
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_sys_settings.get_available.app_error", err.Error())
 	}
