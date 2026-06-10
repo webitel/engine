@@ -59,14 +59,14 @@ jobs:
       package-name: webitel-engine
       package-description: ${{ github.event.repository.description }}
       package-contents: |
-        src=deploy/systemd/${{ vars.SERVICE_NAME }}.service dst=/etc/systemd/system/${{ vars.SERVICE_NAME }}.service type=config
+        src=deploy/systemd/webitel-engine.service dst=/etc/systemd/system/webitel-engine.service type=config
         
 
       package-depends: 
       scripts: |
-        preinstall: deploy/debian/preinst.sh
         postinstall: deploy/debian/postinst.sh
         preremove: deploy/debian/prerm.sh
+        postremove: deploy/debian/postrm.sh
         
 
   deploy:
