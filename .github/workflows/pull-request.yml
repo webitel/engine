@@ -52,6 +52,7 @@ jobs:
       package-description: ${{ github.event.repository.description }}
       package-contents: |
         src=deploy/systemd/webitel-engine.service dst=/etc/systemd/system/webitel-engine.service type=config
+        src=.env.example dst=/etc/default/webitel-engine type=config
         
 
       scripts: |
