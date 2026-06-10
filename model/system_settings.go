@@ -43,6 +43,7 @@ const (
 	SysNameExpandContactTabs           = "expand_contact_tabs"
 	SysNameDefaultWorkspaceTab         = "default_workspace_tab"
 	SysNameBlockAllMemberNumbers       = "block_all_member_numbers_from_list"
+	SysNameLoginOptions    			   = "login_options"
 )
 
 type SysValue json.RawMessage
@@ -102,7 +103,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNamePasswordRegExp,
 		SysNamePasswordValidationText,
 		SysNameDefaultPassword,
-		SysNameDefaultWorkspaceTab:
+		SysNameDefaultWorkspaceTab,
+		SysNameLoginOptions:
 		value := SysValue(s.Value)
 		str := value.Str()
 		if str == nil || *str == "" {

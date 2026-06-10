@@ -26,7 +26,7 @@ var allSystemSettings = []string{
 	model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
 	model.SysNameNewMessageSoundNotification, model.SysNameScreenshotInterval, model.SysNamePasswordExpiryDays,
 	model.SysNamePasswordMinLength, model.SysNamePasswordCategories, model.SysNamePasswordContainsLogin, model.SysNamePasswordWarningDays, model.SysNameDefaultPassword, model.SysNameExpandContactTabs,
-	model.SysNameDefaultWorkspaceTab, model.SysNameBlockAllMemberNumbers,
+	model.SysNameDefaultWorkspaceTab, model.SysNameBlockAllMemberNumbers, model.SysNameLoginOptions,
 }
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {
