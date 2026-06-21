@@ -8,6 +8,7 @@ StartLimitBurst=3
 Type=simple
 User=webitel
 Group=webitel
+LogsDirectory=webitel
 SupplementaryGroups=freeswitch
 
 EnvironmentFile=/etc/default/webitel-engine
