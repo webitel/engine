@@ -1,35 +1,70 @@
 [Unit]
-Description=Engine Startup process
-After=network.target
+Description=Webitel Engine
+After=network.target consul.service rabbitmq-server.service postgresql.service
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
 Type=simple
-Restart=always
+User=webitel
+Group=webitel
+SupplementaryGroups=freeswitch
+
+EnvironmentFile=/etc/default/webitel-engine
+EnvironmentFile=-/etc/default/webitel-otel
+EnvironmentFile=-/etc/default/webitel
+ExecStart=/usr/local/bin/webitel-engine
+
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+KillSignal=SIGTERM
 TimeoutStartSec=0
-
+TimeoutStopSec=30
 LimitNOFILE=64000
+LimitNPROC=4096
 
-ExecStart=/usr/local/bin/engine -id 1 \
-  -translations_directory /usr/share/webitel/engine/i18n \
-  -consul 127.0.0.1:8500 \
-  -grpc_addr 127.0.0.1 \
-  -grpc_port 10040 \
-  -grpc_max_message_size 16MB \
-  -websocket 127.0.0.1:10022 \
-  -sip_proxy_addr sip:1.1.1.1 \
-  -open_sip_addr 1.1.1.1 \
-  -ws_sip_addr 1.1.1.1 \
-  -min_mask_number_len 0 \
-  -prefix_number_mask_len 0 \
-  -suffix_number_mask_len 0 \
-  -sql_query_timeout 10 \
-  -ping_client_interval 60000 \
-  -presigned_cert /opt/storage/key.pem \
-  -amqp amqp://admin:admin@127.0.0.1:5672?heartbeat=10 \
-  -data_source postgres://postgres:postgres@127.0.0.1:5432/webitel?fallback_application_name=engine&sslmode=disable&connect_timeout=10 \
-  -push_firebase "" \
-  -push_apn_cert_file "" \
-  -push_apn_key_file  ""
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=webitel-engine
+
+# Filesystem isolation
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+NoExecPaths=/
+ExecPaths=/usr/local/bin/webitel-engine
+
+# Process isolation
+PrivateDevices=yes
+PrivateUsers=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+ProcSubset=pid
+NoNewPrivileges=yes
+PrivateMounts=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+ProtectClock=yes
+ProtectHostname=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+UMask=0077
+
+# Capabilities & syscalls
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+SystemCallFilter=~@resources
+SystemCallFilter=~@obsolete
+SystemCallErrorNumber=EPERM
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
