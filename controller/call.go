@@ -63,11 +63,16 @@ func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manage
 		return nil, false, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
+	var (
+		calls []*model.HistoryCall
+		next  bool
+		err   model.AppError
+	)
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		return c.app.GetHistoryCallPageByGroups(ctx, session.DomainId, session.UserId, session.RoleIds, search)
+		calls, next, err = c.app.GetHistoryCallPageByGroups(ctx, session.DomainId, session.UserId, session.RoleIds, search)
+	} else {
+		calls, next, err = c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), session.UserId, search)
 	}
-
-	calls, next, err := c.app.GetHistoryCallPage(ctx, session.Domain(search.DomainId), session.UserId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -77,6 +82,15 @@ func (c *Controller) SearchHistoryCall(ctx context.Context, session *auth_manage
 		for _, call := range calls {
 			call.Files = model.FilterSliceElements(call.Files, func(file *model.CallFile) bool {
 				return file.Channel != model.FileChannelScreenRecordings
+			})
+		}
+	}
+
+	permissionVideocall := session.GetPermission(model.PermissionVideocallFiles)
+	if !permissionVideocall.CanRead() {
+		for _, call := range calls {
+			call.Files = model.FilterSliceElements(call.Files, func(file *model.CallFile) bool {
+				return !file.IsVideocallFile()
 			})
 		}
 	}
@@ -280,6 +294,13 @@ func (c *Controller) UpdateCallHistory(ctx context.Context, session *auth_manage
 	if !permissionScreen.CanRead() {
 		call.Files = model.FilterSliceElements(call.Files, func(file *model.CallFile) bool {
 			return file.Channel != model.FileChannelScreenRecordings
+		})
+	}
+
+	permissionVideocall := session.GetPermission(model.PermissionVideocallFiles)
+	if !permissionVideocall.CanRead() {
+		call.Files = model.FilterSliceElements(call.Files, func(file *model.CallFile) bool {
+			return !file.IsVideocallFile()
 		})
 	}
 

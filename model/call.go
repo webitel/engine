@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -35,6 +36,8 @@ const (
 )
 
 const FileChannelScreenRecordings = "screenrecording"
+
+const FileChannelCall = "call"
 
 type CallRequestApplication struct {
 	AppName string
@@ -377,6 +380,11 @@ type CallFile struct {
 	StopAt      int64  `json:"stop_at"`
 	StartRecord string `json:"start_record"`
 	Channel     string `json:"channel"`
+}
+
+func (f *CallFile) IsVideocallFile() bool {
+	return f.Channel == FileChannelCall &&
+		(strings.HasPrefix(f.MimeType, "image/") || strings.HasPrefix(f.MimeType, "application/pdf"))
 }
 
 func TimeToInt64(t *time.Time) int64 {
