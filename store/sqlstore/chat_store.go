@@ -91,6 +91,7 @@ from (select 1                    pri,
                                             m.file_name, 'url', m.file_url)::jsonb ||
                           (case when (f.malware -> 'found')::bool then '{"malware":true}' else '{}' end)::jsonb
                      end) as                                 "file",
+                 case when m.variables->>'template' notnull  then m.variables else null end as variables,
                  m.type,
                  m.channel_id
           from chat.message m
@@ -152,12 +153,11 @@ from (select 1                    pri,
     where a.agent_call_id = ch.id::varchar
     ) at on true
          left join directory.wbt_user usr on usr.id = :UserId::int8
-order by ch.pri, ch.updated_at desc;`, map[string]interface{}{
+order by ch.pri, ch.updated_at desc;`, map[string]any{
 		"UserId":     userId,
 		"DomainId":   domainId,
 		"HasContact": hasContact,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_chat.list_opened.app_error", fmt.Sprintf("userId=%v, %v", userId, err.Error()), extractCodeFromErr(err))
 	}
@@ -165,14 +165,13 @@ order by ch.pri, ch.updated_at desc;`, map[string]interface{}{
 	return res, nil
 }
 
-func (s SqlChatStore) ValidDomain(ctx context.Context, domainId int64, profileId int64) model.AppError {
+func (s SqlChatStore) ValidDomain(ctx context.Context, domainId, profileId int64) model.AppError {
 	res, err := s.GetReplica().WithContext(ctx).SelectInt(`select 1
 from chat.bot p
-where p.dc = :DomainId and p.id = :Id`, map[string]interface{}{
+where p.dc = :DomainId and p.id = :Id`, map[string]any{
 		"DomainId": domainId,
 		"Id":       profileId,
 	})
-
 	if err != nil {
 		return model.NewCustomCodeError("store.sql_chat.valid_domain.app_error", fmt.Sprintf("domainId=%v, %v", domainId, err.Error()), extractCodeFromErr(err))
 	}
