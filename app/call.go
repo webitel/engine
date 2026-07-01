@@ -12,7 +12,6 @@ import (
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
-	sqloptions "github.com/webitel/engine/store/sql_options"
 )
 
 const (
@@ -530,9 +529,7 @@ func (app *App) GetUserActiveCalls(ctx context.Context, domainID, userID int64) 
 }
 
 func (app *App) GetHistoryCallPage(ctx context.Context, domainId, userId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
-	userGlobalGrantOption := sqloptions.WithUserGrantFilterOption(uint(userId), model.GLOBAL_SELECT_GRANT)
-
-	list, err := app.Store.Call().GetHistory(ctx, domainId, search, userGlobalGrantOption)
+	list, err := app.Store.Call().GetHistory(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
