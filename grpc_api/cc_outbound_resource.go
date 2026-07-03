@@ -5,18 +5,21 @@ import (
 	"strconv"
 
 	"github.com/webitel/engine/app"
+	"github.com/webitel/engine/controller"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
 type outboundResource struct {
-	app *app.App
 	engine.UnsafeOutboundResourceServiceServer
+
+	app  *app.App
+	ctrl *controller.Controller
 }
 
-func NewOutboundResourceApi(app *app.App) *outboundResource {
-	return &outboundResource{app: app}
+func NewOutboundResourceApi(app *app.App, ctrl *controller.Controller) *outboundResource {
+	return &outboundResource{app: app, ctrl: ctrl}
 }
 
 func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *engine.CreateOutboundResourceRequest) (*engine.OutboundResource, error) {
@@ -81,7 +84,6 @@ func (api *outboundResource) CreateOutboundResource(ctx context.Context, in *eng
 }
 
 func (api *outboundResource) SearchOutboundResource(ctx context.Context, in *engine.SearchOutboundResourceRequest) (*engine.ListOutboundResource, error) {
-
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -338,11 +340,12 @@ func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, 
 	}
 
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
-		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		perm, err := api.app.OutboundResourceCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE)
+		if err != nil {
 			return nil, err
-		} else if !perm {
+		}
+
+		if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
@@ -352,12 +355,11 @@ func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, 
 		ResourceId: in.GetResourceId(),
 	}
 
-	if err = display.IsValid(); err != nil {
+	if err = display.Parse(); err != nil {
 		return nil, err
 	}
 
 	display, err = api.app.CreateOutboundResourceDisplay(ctx, display)
-
 	if err != nil {
 		return nil, err
 	}
@@ -366,49 +368,28 @@ func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, 
 }
 
 func (api *outboundResource) CreateOutboundResourceDisplayBulk(ctx context.Context, in *engine.CreateOutboundResourceDisplayBulkRequest) (*engine.ListResourceDisplay, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
+	displays := make([]*model.ResourceDisplay, 0, len(in.GetItems()))
 
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_OUTBOUND_RESOURCE)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
+	for _, disp := range in.GetItems() {
+		display := model.NewResourceDisplay(disp.GetDisplay(), disp.GetResourceId())
 
-	if !permission.CanUpdate() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
-
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
-		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(ctx, session.DomainId, in.GetResourceId(), session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-		}
-	}
-
-	var displays []*model.ResourceDisplay
-	for _, disp := range in.Items {
-		display := &model.ResourceDisplay{Display: disp.Display, ResourceId: in.ResourceId}
-		if err = display.IsValid(); err != nil {
+		if err := display.Parse(); err != nil {
 			return nil, err
 		}
+
 		displays = append(displays, display)
 	}
 
-	ids, err := api.app.CreateOutboundResourceDisplays(ctx, in.ResourceId, displays)
-
+	ids, err := api.ctrl.CreateOutboundResourceDisplays(ctx, in.GetResourceId(), displays)
 	if err != nil {
 		return nil, err
 	}
 
-	var idList []int64
+	idList := make([]int64, 0, len(ids))
 	for _, display := range ids {
 		idList = append(idList, int64(display.Id))
 	}
+
 	return &engine.ListResourceDisplay{Id: idList}, nil
 }
 
@@ -433,8 +414,6 @@ func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, 
 		}
 	}
 
-	var list []*model.ResourceDisplay
-	var endList bool
 	req := &model.SearchResourceDisplay{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
@@ -446,7 +425,10 @@ func (api *outboundResource) SearchOutboundResourceDisplay(ctx context.Context, 
 		Ids: in.Id,
 	}
 
-	list, endList, err = api.app.GetOutboundResourceDisplayPage(ctx, session.Domain(0), in.GetResourceId(), req)
+	list, endList, err := api.app.GetOutboundResourceDisplayPage(ctx, session.Domain(0), in.GetResourceId(), req)
+	if err != nil {
+		return nil, err
+	}
 
 	items := make([]*engine.ResourceDisplay, 0, len(list))
 	for _, v := range list {
@@ -520,7 +502,7 @@ func (api *outboundResource) UpdateOutboundResourceDisplay(ctx context.Context, 
 		ResourceId: in.GetResourceId(),
 	}
 
-	if err = display.IsValid(); err != nil {
+	if err = display.Parse(); err != nil {
 		return nil, err
 	}
 

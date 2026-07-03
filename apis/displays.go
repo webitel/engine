@@ -5,10 +5,12 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
-	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 
 	"github.com/gorilla/mux"
 	"github.com/webitel/engine/model"
@@ -90,9 +92,8 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mappedData, err := mapData(records, columnIndex, resourceId)
-	if err != nil {
-		c.Err = model.NewBadRequestError("api.displays.valid.map", "Error mapping data: "+err.Error())
+	mappedData, werr := mapData(records, columnIndex, resourceId)
+	if c.Err = werr; c.Err != nil {
 		return
 	}
 
@@ -133,20 +134,26 @@ func findColumnIndex(headers []string, columnName string) (int, error) {
 	return -1, errors.New("specified column not found in CSV headers")
 }
 
-func mapData(records [][]string, mapColIndex int, resourceId int64) ([]*model.ResourceDisplay, error) {
+func mapData(records [][]string, mapColIndex int, resourceId int64) ([]*model.ResourceDisplay, model.AppError) {
 	var mappedData []*model.ResourceDisplay
 
-	for _, row := range records[1:] {
-		mappedData = append(mappedData, &model.ResourceDisplay{
-			ResourceId: resourceId,
-			Display:    row[mapColIndex],
-		})
+	for i, row := range records[1:] {
+		resouce := model.NewResourceDisplay(row[mapColIndex], resourceId)
+
+		if err := resouce.Parse(); err != nil {
+			return nil, model.NewBadRequestError(
+				fmt.Sprintf("cc_outbound_resource.validatePhoneNumber.%d", i),
+				"number must contain letters (a-z, A-Z), numbers (0-9), and special characters: +,-, _, ., !, ~, *, ', (,)",
+			)
+		}
+
+		mappedData = append(mappedData, resouce)
 	}
 
 	return mappedData, nil
 }
 
-func writeJSONResponse(w http.ResponseWriter, data interface{}) {
+func writeJSONResponse(w http.ResponseWriter, data any) {
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
