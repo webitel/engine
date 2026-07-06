@@ -156,6 +156,7 @@ type MemberView struct {
 
 type SearchMemberRequest struct {
 	ListRequest
+
 	Ids         []int64
 	QueueIds    []int32
 	BucketIds   []int32
@@ -169,6 +170,10 @@ type SearchMemberRequest struct {
 	AgentIds    []int32
 	QueueId     *int32
 	Variables   StringMap
+}
+
+func (r *SearchMemberRequest) IsWithCreatedAtFilter() bool {
+	return r.CreatedAt != nil && r.CreatedAt.From > 0 && r.CreatedAt.To > 0
 }
 
 type OfflineMember struct {

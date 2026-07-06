@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -236,4 +237,32 @@ func (v *SysValue) Bool() *bool {
 	}
 
 	return &i
+}
+
+func PrepareDefaultMembersFilter(filterValue SysValue) *FilterBetween {
+	str := filterValue.Str()
+	now := time.Now().UTC()
+	from := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.UTC)
+
+	if str != nil {
+		switch strings.ToLower(*str) {
+		case "this day":
+			from = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+		case "this week":
+			weekday := int(now.Weekday())
+			if weekday == 0 {
+				weekday = 7
+			}
+
+			monday := now.AddDate(0, 0, -(weekday - 1))
+			from = time.Date(monday.Year(), monday.Month(), monday.Day(), 0, 0, 0, 0, time.UTC)
+		case "this month":
+			from = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+		}
+	}
+
+	return &FilterBetween{
+		From: from.UnixMilli(),
+		To:   now.UnixMilli(),
+	}
 }

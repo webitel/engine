@@ -7,6 +7,7 @@ import (
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
+	"github.com/webitel/wlog"
 )
 
 type member struct {
@@ -235,7 +236,18 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 		}
 	}
 
-	if list, endList, err = api.app.SearchMembers(ctx, session.Domain(0), req); err != nil {
+	domainID := session.Domain(0)
+
+	if !req.IsWithCreatedAtFilter() {
+		filter, err := api.prepareDefaulMembersFilter(ctx, domainID)
+		if err != nil {
+			api.app.Log.Error("preparing default members filter", wlog.Err(err))
+		} else {
+			req.CreatedAt = filter
+		}
+	}
+
+	if list, endList, err = api.app.SearchMembers(ctx, domainID, req); err != nil {
 		return nil, err
 	}
 
@@ -305,6 +317,17 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 	} else {
 		return toEngineMember(m), nil
 	}
+}
+
+func (api *member) prepareDefaulMembersFilter(ctx context.Context, domainID int64) (*model.FilterBetween, model.AppError) {
+	defaultFilterValue, err := api.app.GetCachedSystemSetting(ctx, domainID, model.SysNameDefaultMembersFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := model.PrepareDefaultMembersFilter(defaultFilterValue)
+
+	return filter, nil
 }
 
 func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberRequest) (*engine.MemberInQueue, error) {
