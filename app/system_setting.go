@@ -21,7 +21,6 @@ var (
 )
 
 func (a *App) CreateSystemSetting(ctx context.Context, userId, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError) {
-
 	setting, err := a.Store.SystemSettings().Create(ctx, domainId, setting)
 	if err != nil {
 		return nil, err
@@ -55,7 +54,7 @@ func (a *App) GetCachedSystemSetting(ctx context.Context, domainId int64, name s
 		return c.(model.SysValue), nil
 	}
 
-	v, err, share := systemGroup.Do(fmt.Sprintf("%d-%s", domainId, name), func() (interface{}, error) {
+	v, err, share := systemGroup.Do(fmt.Sprintf("%d-%s", domainId, name), func() (any, error) {
 		res, err := a.Store.SystemSettings().ValueByName(ctx, domainId, name)
 		if err != nil {
 			return model.SysValue{}, err
@@ -64,9 +63,9 @@ func (a *App) GetCachedSystemSetting(ctx context.Context, domainId int64, name s
 	})
 
 	if err != nil {
-		switch err.(type) {
+		switch err := err.(type) {
 		case model.AppError:
-			return model.SysValue{}, err.(model.AppError)
+			return model.SysValue{}, err
 		default:
 			return model.SysValue{}, model.NewInternalError("app.sys_settings.get", err.Error())
 		}

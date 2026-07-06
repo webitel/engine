@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -43,7 +44,8 @@ const (
 	SysNameExpandContactTabs           = "expand_contact_tabs"
 	SysNameDefaultWorkspaceTab         = "default_workspace_tab"
 	SysNameBlockAllMemberNumbers       = "block_all_member_numbers_from_list"
-	SysNameLoginOptions    			   = "login_options"
+	SysNameLoginOptions                = "login_options"
+	SysNameDefaultMembersFilter        = "default_members_filter"
 )
 
 type SysValue json.RawMessage
@@ -52,6 +54,12 @@ type SystemSetting struct {
 	Id    int32           `json:"id" db:"id"`
 	Name  string          `json:"name" db:"name"`
 	Value json.RawMessage `json:"value" db:"value"`
+}
+
+var availableDefaultMembersFilterOptions = map[string]struct{}{
+	"this day":   {},
+	"this week":  {},
+	"this month": {},
 }
 
 type AvailableSystemSetting struct {
@@ -87,12 +95,24 @@ func (SystemSetting) EntityName() string {
 	return "system_settings"
 }
 
+func validateDefaultMembersFilter(filter string) AppError {
+	if _, exists := availableDefaultMembersFilterOptions[filter]; !exists {
+		return NewBadRequestError(
+			"model.system_settings.validate_default_members_filter",
+			`default_members_filter can be only one of next values: "this day", "this week", "this month"`,
+		)
+	}
+
+	return nil
+}
+
 func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
-		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
+		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
+		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
 		value := SysValue(s.Value)
 		i := value.Int()
 
@@ -104,11 +124,19 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNamePasswordValidationText,
 		SysNameDefaultPassword,
 		SysNameDefaultWorkspaceTab,
-		SysNameLoginOptions:
+		SysNameLoginOptions,
+		SysNameDefaultMembersFilter:
 		value := SysValue(s.Value)
 		str := value.Str()
-		if str == nil || *str == "" {
+
+		if str == nil || strings.TrimSpace(*str) == "" {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
+
+		if s.Name == SysNameDefaultMembersFilter {
+			if werr := validateDefaultMembersFilter(*str); werr != nil {
+				return werr
+			}
 		}
 	case SysNameTwoFactorAuthorization,
 		SysNameAutolinkCallToContact,
