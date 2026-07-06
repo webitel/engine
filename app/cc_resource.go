@@ -49,8 +49,7 @@ func (a *App) PatchOutboundResource(ctx context.Context, domainId, id int64, pat
 		return nil, err
 	}
 
-	oldResource, err = a.Store.OutboundResource().Update(ctx, oldResource)
-	if err != nil {
+	if oldResource, err = a.Store.OutboundResource().Update(ctx, oldResource); err != nil {
 		return nil, err
 	}
 

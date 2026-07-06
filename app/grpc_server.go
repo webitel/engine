@@ -3,15 +3,16 @@ package app
 import (
 	"context"
 	"fmt"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	otelCodes "go.opentelemetry.io/otel/codes"
-	"go.opentelemetry.io/otel/propagation"
 	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	otelCodes "go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -150,9 +151,9 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 			log.Error(err.Error(), wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
 			span.SetStatus(otelCodes.Error, err.Error())
 
-			switch err.(type) {
+			switch err := err.(type) {
 			case model.AppError:
-				e := err.(model.AppError)
+				e := err
 				return h, status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
 			default:
 				return h, err
