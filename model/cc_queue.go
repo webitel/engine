@@ -1,12 +1,23 @@
 package model
 
-const (
-	QueueTypeInboundCall = 1
-	QueueTypeInboundChat = 6
+import (
+	"fmt"
+	"maps"
+	"strconv"
 )
+
+const (
+	QueueTypeInboundCall     int8 = 1
+	QueueTypeProgressiveCall int8 = 4
+	QueueTypePredictCall     int8 = 5
+	QueueTypeInboundChat     int8 = 6
+)
+
+const QueuePayloadProgressiveCountKey string = "progressive_count"
 
 type Queue struct {
 	DomainRecord
+
 	Strategy             string          `json:"strategy" db:"strategy"`
 	Enabled              bool            `json:"enabled" db:"enabled"`
 	Payload              StringInterface `json:"payload" db:"payload"`
@@ -202,9 +213,8 @@ func (q *Queue) Patch(p *QueuePatch) {
 		if q.Payload == nil {
 			q.Payload = StringInterface{}
 		}
-		for k, v := range p.Payload {
-			q.Payload[k] = v
-		}
+
+		maps.Copy(q.Payload, p.Payload)
 	}
 
 	if p.Calendar != nil {
@@ -300,7 +310,35 @@ func (q *Queue) IsValid() AppError {
 	if q.Calendar == nil && !(q.Type == QueueTypeInboundCall || q.Type == QueueTypeInboundChat) {
 		return NewBadRequestError("model.queue.valid.calendar", "Calendar is required")
 	}
-	//FIXME
+
+	if q.Type == QueueTypePredictCall || q.Type == QueueTypeProgressiveCall {
+		progressiveCountValue, exists := q.Payload[QueuePayloadProgressiveCountKey]
+		if !exists {
+			return NewBadRequestError("model.queue.valid.progressive_count_not_exist", "Progressive count is required for progressive and predictive queues")
+		}
+
+		var progessiveCount int
+		switch r := progressiveCountValue.(type) {
+		case int:
+			progessiveCount = r
+		case string:
+			parsed, err := strconv.Atoi(r)
+			if err != nil {
+				return NewBadRequestError("model.queue.valid.progressive_count_unconvertable_from_string", err.Error())
+			}
+
+			progessiveCount = parsed
+		default:
+			return NewBadRequestError("model.queue.valid.unsupported_type", fmt.Sprintf("Received unsupported type for progressive count: %T", r))
+		}
+
+		if progessiveCount <= 0 {
+			return NewBadRequestError("model.queue.valid.progressive_count_must_be_gt_zero", "Progressive count must be greater than zero")
+		}
+
+		q.Payload[QueuePayloadProgressiveCountKey] = progessiveCount
+	}
+
 	return nil
 }
 

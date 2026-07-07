@@ -25,13 +25,14 @@ type AgentChannel struct {
 
 type Agent struct {
 	DomainRecord
+
 	User                  Lookup         `json:"user" db:"user"`
 	Name                  string         `json:"name" db:"name"`
 	Status                string         `json:"status" db:"status"`
 	LastStatusChange      int64          `json:"last_status_change" db:"last_status_change"`
 	StatusDuration        int64          `json:"status_duration" db:"status_duration"`
 	Description           string         `json:"description" db:"description"`
-	ProgressiveCount      int            `json:"progressive_count" db:"progressive_count"`
+	ProgressiveCount      *int           `json:"progressive_count" db:"progressive_count"`
 	Channel               []AgentChannel `json:"channel" db:"channel"`
 	GreetingMedia         *Lookup        `json:"greeting_media" db:"greeting_media"`
 	AllowChannels         StringArray    `json:"allow_channels" db:"allow_channels"`
@@ -112,7 +113,7 @@ type SupervisorAgentItem struct {
 	Supervisor       []*Lookup `json:"supervisor" dlb:"supervisor"`
 	Auditor          []*Lookup `json:"auditor" db:"auditor"`
 	Region           *Lookup   `json:"region" db:"region"`
-	ProgressiveCount uint32    `json:"progressive_count" db:"progressive_count"`
+	ProgressiveCount *uint32   `json:"progressive_count" db:"progressive_count"`
 	ChatCount        uint32    `json:"chat_count" db:"chat_count"`
 
 	PauseCause    string `json:"pause_cause" db:"pause_cause"`
@@ -170,7 +171,7 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	}
 
 	if patch.ProgressiveCount != nil {
-		a.ProgressiveCount = *patch.ProgressiveCount
+		a.ProgressiveCount = patch.ProgressiveCount
 	}
 
 	if patch.GreetingMedia != nil {
@@ -393,9 +394,11 @@ func (a *Agent) IsValid() AppError {
 	if a.ChatCount < 1 {
 		return NewBadRequestError("model.Agent.valid.ChatCount", "The chat count should be more or equal 1")
 	}
-	if a.ProgressiveCount < 1 {
+
+	if a.ProgressiveCount != nil && *a.ProgressiveCount < 1 {
 		return NewBadRequestError("model.Agent.valid.ProgressiveCount", "The call count should be more or equal 1")
 	}
+
 	return nil //TODO
 }
 
