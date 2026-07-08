@@ -71,6 +71,7 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Age
 
 	oldAgent.AllowChannels = agent.AllowChannels
 	oldAgent.ChatCount = agent.ChatCount
+	oldAgent.ExtraChatCount = agent.ExtraChatCount
 	oldAgent.Supervisor = agent.Supervisor
 	oldAgent.Team = agent.Team
 	oldAgent.Region = agent.Region

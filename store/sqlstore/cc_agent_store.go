@@ -82,9 +82,9 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
 	var out *model.Agent
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with a as (
 			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
-				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control)
+				allow_channels, chat_count, extra_chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
-					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl)
+					:AllowChannels, :ChatCount, :ExtraChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl)
 			returning *
 		)
 	SELECT a.domain_id,
@@ -101,6 +101,7 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
        call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 	   a.allow_channels,
        a.chat_count,
+       a.extra_chat_count,
 	   a.task_count,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
@@ -135,6 +136,7 @@ FROM a
 			"GreetingMedia":    agent.GreetingMediaId(),
 			"AllowChannels":    pq.Array(agent.AllowChannels),
 			"ChatCount":        agent.ChatCount,
+			"ExtraChatCount":   agent.ExtraChatCount,
 			"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
 			"TeamId":           agent.Team.GetSafeId(),
 			"RegionId":         agent.Region.GetSafeId(),
@@ -348,6 +350,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId, id int64) (*model.Agen
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
+			   a.extra_chat_count,
 			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
@@ -394,6 +397,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			    greeting_media_id = :GreetingMediaId,
 				allow_channels = :AllowChannels,
 				chat_count = :ChatCount,
+				extra_chat_count = :ExtraChatCount,
 				supervisor_ids = :SupervisorIds,
 				team_id = :TeamId,
 				region_id = :RegionId,
@@ -418,6 +422,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
+			   a.extra_chat_count,
 			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
@@ -450,6 +455,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 		"GreetingMediaId":  agent.GreetingMediaId(),
 		"AllowChannels":    pq.Array(agent.AllowChannels),
 		"ChatCount":        agent.ChatCount,
+		"ExtraChatCount":   agent.ExtraChatCount,
 		"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
 		"TeamId":           agent.Team.GetSafeId(),
 		"RegionId":         agent.Region.GetSafeId(),
