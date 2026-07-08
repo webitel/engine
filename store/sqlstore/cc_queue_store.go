@@ -29,7 +29,7 @@ func (s SqlQueueStore) CheckAccess(ctx context.Context, domainId, id int64, grou
             and a.object = :Id
             and a.subject = any (:Groups::int[])
             and a.access & :Access = :Access
-        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
+        )`, map[string]any{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
 
 	if err != nil {
 		return false, nil
@@ -71,8 +71,8 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 				ringtone_id, schema_id, do_schema_id, after_schema_id,
 				sticky_agent, processing, processing_sec, processing_renewal_sec,
 				form_schema_id, grantee_id, tags, prolongation_enabled,
-				prolongation_repeats_number, prolongation_time_sec, 
-				prolongation_is_timeout_retry
+				prolongation_repeats_number, prolongation_time_sec,
+				prolongation_is_timeout_retry, processing_autosave
 			)
 			values (
 				:Strategy, :Enabled, :Payload, :CalendarId,
@@ -82,7 +82,8 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 				:RingtoneId, :SchemaId, :DoSchemaId, :AfterSchemaId,
 				:StickyAgent, :Processing, :ProcessingSec, :ProcessingRenewalSec,
 				:FormSchemaId, :GranteeId, :Tags, :ProlongationEnabled,
-				:ProlongationRepeatsNumber, :ProlongationTimeSec, :ProlongationIsTimeoutRetry
+				:ProlongationRepeatsNumber, :ProlongationTimeSec, :ProlongationIsTimeoutRetry,
+				:ProcessingAutosave
 			)
 			returning *
 		)
@@ -107,6 +108,7 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 			q.prolongation_repeats_number,
 			q.prolongation_time_sec,
 			q.prolongation_is_timeout_retry,
+			q.processing_autosave,
 			q.tags,
 			call_center.cc_get_lookup(uc.id, uc.name) 			as created_by,
 			call_center.cc_get_lookup(u.id, u.name) 			as updated_by,
@@ -124,6 +126,7 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 				'form_schema', call_center.cc_get_lookup(fs.id, fs.name),
 				'sec', q.processing_sec,
 				'renewal_sec', q.processing_renewal_sec,
+				'processing_autosave', q.processing_autosave,
 				'prolongation_options',
 					case
 						when q.prolongation_enabled then jsonb_build_object (
@@ -135,30 +138,18 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 						else null
 					end
 			) as task_processing
-		from
-			q
-		left join
-			flow.calendar c on q.calendar_id = c.id
-		left join
-			directory.wbt_auth au on au.id = q.grantee_id
-		left join
-			directory.wbt_user uc on uc.id = q.created_by
-		left join
-			directory.wbt_user u on u.id = q.updated_by
-		left join
-			call_center.cc_list cl on q.dnc_list_id = cl.id
-		left join
-			flow.acr_routing_scheme s on q.schema_id = s.id
-		left join
-			flow.acr_routing_scheme ds on q.do_schema_id = ds.id
-		left join
-			flow.acr_routing_scheme afs on q.after_schema_id = afs.id
-		left join
-			flow.acr_routing_scheme fs on q.form_schema_id = fs.id
-		left join
-			call_center.cc_team ct on q.team_id = ct.id
-		left join
-			storage.media_files mf on mf.id = q.ringtone_id
+		from q
+		left join flow.calendar c on q.calendar_id = c.id
+		left join directory.wbt_auth au on au.id = q.grantee_id
+		left join directory.wbt_user uc on uc.id = q.created_by
+		left join directory.wbt_user u on u.id = q.updated_by
+		left join call_center.cc_list cl on q.dnc_list_id = cl.id
+		left join flow.acr_routing_scheme s on q.schema_id = s.id
+		left join flow.acr_routing_scheme ds on q.do_schema_id = ds.id
+		left join flow.acr_routing_scheme afs on q.after_schema_id = afs.id
+		left join flow.acr_routing_scheme fs on q.form_schema_id = fs.id
+		left join call_center.cc_team ct on q.team_id = ct.id
+		left join storage.media_files mf on mf.id = q.ringtone_id
 	`
 
 	args := map[string]any{
@@ -193,6 +184,7 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 		"ProlongationRepeatsNumber":  queue.TaskProcessing.ProlongationOptions.RepeatsNumber,
 		"ProlongationTimeSec":        queue.TaskProcessing.ProlongationOptions.ProlongationTimeSec,
 		"ProlongationIsTimeoutRetry": queue.TaskProcessing.ProlongationOptions.IsTimeoutRetry,
+		"ProcessingAutosave":         queue.ProcessingAutosave,
 	}
 
 	var out *model.Queue
@@ -206,7 +198,7 @@ func (s SqlQueueStore) Create(ctx context.Context, queue *model.Queue) (*model.Q
 func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, model.AppError) {
 	var queues []*model.Queue
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId": domainId,
 		"Ids":      pq.Array(search.Ids),
 		"Q":        search.GetQ(),
@@ -217,10 +209,10 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 	}
 
 	err := s.ListQueryMaster(ctx, &queues, search.ListRequest,
-		`domain_id = :DomainId 
-			and ( (:Ids::int[] isnull or id = any(:Ids) )  
-			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
-			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) ) 
+		`domain_id = :DomainId
+			and ( (:Ids::int[] isnull or id = any(:Ids) )
+			and ( (:Types::int[] isnull or "type" = any(:Types) ) )
+			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) )
 			and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
 			and (:Enabled::bool isnull or enabled)
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
@@ -235,7 +227,7 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, model.AppError) {
 	var queues []*model.Queue
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"Groups":   pq.Array(groups),
 		"Access":   auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"DomainId": domainId,
@@ -252,10 +244,10 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 					exists(select 1
 					  from call_center.cc_queue_acl acl
 					  where acl.dc = t.domain_id and acl.object = t.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
-		  	) 
-			and ( (:Ids::int[] isnull or id = any(:Ids) )  
-			and ( (:Types::int[] isnull or "type" = any(:Types) ) ) 
-			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) ) 
+		  	)
+			and ( (:Ids::int[] isnull or id = any(:Ids) )
+			and ( (:Types::int[] isnull or "type" = any(:Types) ) )
+			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) )
 			and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
 			and (:Enabled::bool isnull or enabled)
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
@@ -285,6 +277,7 @@ func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			q.sticky_agent,
 			q.processing,
 			q.processing_sec,
+			q.processing_autosave,
 			q.processing_renewal_sec,
 			q.prolongation_enabled,
 			q.prolongation_repeats_number,
@@ -307,6 +300,7 @@ func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 				'form_schema', call_center.cc_get_lookup(fs.id, fs.name),
 				'sec', q.processing_sec,
 				'renewal_sec', q.processing_renewal_sec,
+				'processing_autosave', q.processing_autosave,
 				'prolongation_options',
 					case
 						when q.prolongation_enabled then jsonb_build_object (
@@ -318,33 +312,19 @@ func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 						else null
 					end
 			) as task_processing
-			from
-				call_center.cc_queue q
-			left join
-				flow.calendar c on q.calendar_id = c.id
-			left join
-				directory.wbt_auth au on au.id = q.grantee_id
-			left join
-				directory.wbt_user uc on uc.id = q.created_by
-			left join
-				directory.wbt_user u on u.id = q.updated_by
-			left join
-				call_center.cc_list cl on q.dnc_list_id = cl.id
-			left join
-				flow.acr_routing_scheme s on q.schema_id = s.id
-			left join
-				flow.acr_routing_scheme ds on q.do_schema_id = ds.id
-			left join
-				flow.acr_routing_scheme afs on q.after_schema_id = afs.id
-			left join
-				flow.acr_routing_scheme fs on q.form_schema_id = fs.id
-			left join
-				call_center.cc_team ct on q.team_id = ct.id
-			left join
-				storage.media_files mf on mf.id = q.ringtone_id
-			where
-				q.domain_id = :DomainId 
-				and q.id = :Id
+			from call_center.cc_queue q
+			left join flow.calendar c on q.calendar_id = c.id
+			left join directory.wbt_auth au on au.id = q.grantee_id
+			left join directory.wbt_user uc on uc.id = q.created_by
+			left join directory.wbt_user u on u.id = q.updated_by
+			left join call_center.cc_list cl on q.dnc_list_id = cl.id
+			left join flow.acr_routing_scheme s on q.schema_id = s.id
+			left join flow.acr_routing_scheme ds on q.do_schema_id = ds.id
+			left join flow.acr_routing_scheme afs on q.after_schema_id = afs.id
+			left join flow.acr_routing_scheme fs on q.form_schema_id = fs.id
+			left join call_center.cc_team ct on q.team_id = ct.id
+			left join storage.media_files mf on mf.id = q.ringtone_id
+			where (q.domain_id, q.id) = (:DomainId, :Id)
 	`
 	args := map[string]any{
 		"Id":       id,
@@ -362,7 +342,7 @@ func (s SqlQueueStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Queue, model.AppError) {
 	query := `
 		with q as (
-			update 
+			update
 				call_center.cc_queue q
 			set
 				updated_at 	= :UpdatedAt,
@@ -392,10 +372,9 @@ func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Q
 				prolongation_enabled 			= :ProlongationEnabled,
 				prolongation_repeats_number 	= :ProlongationRepeatsNumber,
 				prolongation_time_sec 			= :ProlongationTimeSec,
-				prolongation_is_timeout_retry 	= :ProlongationIsTimeoutRetry
-			where
-				q.id = :Id
-				and q.domain_id = :DomainId
+				prolongation_is_timeout_retry 	= :ProlongationIsTimeoutRetry,
+				processing_autosave = :ProcessingAutosave
+			where (q.id, q.domain_id) = (:Id, :DomainId)
 			returning *
 		)
 		select
@@ -419,6 +398,7 @@ func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Q
 			q.prolongation_repeats_number,
 			q.prolongation_time_sec,
 			q.prolongation_is_timeout_retry,
+			q.processing_autosave,
 			q.tags,
 			call_center.cc_get_lookup(uc.id, uc.name) 			as created_by,
 			call_center.cc_get_lookup(u.id, u.name) 			as updated_by,
@@ -436,6 +416,7 @@ func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Q
 				'form_schema', call_center.cc_get_lookup(fs.id, fs.name),
 				'sec', q.processing_sec,
 				'renewal_sec', q.processing_renewal_sec,
+				'processing_autosave', q.processing_autosave,
 				'prolongation_options',
 					case
 						when q.prolongation_enabled then jsonb_build_object (
@@ -447,30 +428,18 @@ func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Q
 						else null
 					end
 			) as task_processing
-		from
-			q
-		left join
-			flow.calendar c on q.calendar_id = c.id
-		left join
-			directory.wbt_auth au on au.id = q.grantee_id
-		left join
-			directory.wbt_user uc on uc.id = q.created_by
-		left join
-			directory.wbt_user u on u.id = q.updated_by
-		left join
-			call_center.cc_list cl on q.dnc_list_id = cl.id
-		left join
-			flow.acr_routing_scheme s on q.schema_id = s.id
-		left join
-			flow.acr_routing_scheme ds on q.do_schema_id = ds.id
-		left join
-			flow.acr_routing_scheme afs on q.after_schema_id = afs.id
-		left join
-			flow.acr_routing_scheme fs on q.form_schema_id = fs.id
-		left join
-			call_center.cc_team ct on q.team_id = ct.id
-		left join
-			storage.media_files mf on mf.id = q.ringtone_id
+		from q
+		left join flow.calendar c on q.calendar_id = c.id
+		left join directory.wbt_auth au on au.id = q.grantee_id
+		left join directory.wbt_user uc on uc.id = q.created_by
+		left join directory.wbt_user u on u.id = q.updated_by
+		left join call_center.cc_list cl on q.dnc_list_id = cl.id
+		left join flow.acr_routing_scheme s on q.schema_id = s.id
+		left join flow.acr_routing_scheme ds on q.do_schema_id = ds.id
+		left join flow.acr_routing_scheme afs on q.after_schema_id = afs.id
+		left join flow.acr_routing_scheme fs on q.form_schema_id = fs.id
+		left join call_center.cc_team ct on q.team_id = ct.id
+		left join storage.media_files mf on mf.id = q.ringtone_id
 	`
 	args := map[string]any{
 		"UpdatedAt":                  queue.UpdatedAt,
@@ -503,6 +472,7 @@ func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Q
 		"ProlongationRepeatsNumber":  queue.TaskProcessing.ProlongationOptions.RepeatsNumber,
 		"ProlongationTimeSec":        queue.TaskProcessing.ProlongationOptions.ProlongationTimeSec,
 		"ProlongationIsTimeoutRetry": queue.TaskProcessing.ProlongationOptions.IsTimeoutRetry,
+		"ProcessingAutosave":         queue.ProcessingAutosave,
 	}
 
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&queue, query, args); err != nil {
@@ -514,7 +484,7 @@ func (s SqlQueueStore) Update(ctx context.Context, queue *model.Queue) (*model.Q
 
 func (s SqlQueueStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_queue c where c.id=:Id and c.domain_id = :DomainId`,
-		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+		map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewInternalError("store.sql_queue.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
@@ -617,8 +587,8 @@ with queues  as  (
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
                array_agg(distinct a.id) filter ( where status = 'online' and ac.state = 'waiting' ) free,
 			   array_agg(distinct a.id) filter (
-                	where a.status::text = 'online'::text 
-                	and ac_call.channel::text = 'call' 
+                	where a.status::text = 'online'::text
+                	and ac_call.channel::text = 'call'
                 	and ac_call.state::text = any (array['offering'::text, 'bridged'::text, 'processing'::text])
             	) agent_b_ids,
                array_agg(distinct a.id) total
@@ -640,7 +610,7 @@ items as materialized (
                                   'offline', coalesce(array_length(queue_ag.agent_off_ids, 1), 0),
                                   'free', coalesce(array_length(queue_ag.free, 1), 0),
                                   'total', coalesce(array_length(queue_ag.total, 1), 0),
-								  'busy', coalesce(array_length(queue_ag.agent_b_ids, 1), 0) 
+								  'busy', coalesce(array_length(queue_ag.agent_b_ids, 1), 0)
                ) agent_status,
            coalesce(ag.abandoned::int, 0) missed,
            (select count(*) from call_center.cc_member_attempt a where a.queue_id = q.id and a.bridged_at notnull) processed,
@@ -703,7 +673,7 @@ select
             'total', coalesce(array_length(total, 1), 0),
 			'busy', coalesce(array_length(agent_b_ids, 1), 0)
                             ) from queue_ag where queue_ag.queue_id isnull ) aggs
-`, map[string]interface{}{
+`, map[string]any{
 		"DomainId":         domainId,
 		"UserSupervisorId": supervisorId,
 		"Groups":           pq.Array(groups),
@@ -747,7 +717,7 @@ from tags
 limit :Limit
 offset :Offset`
 
-	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]interface{}{
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 		"Limit":    search.GetLimit(),
@@ -815,11 +785,11 @@ func (s SqlQueueStore) SetGlobalState(ctx context.Context, domainId int64, newSt
 		"UpdatedAt": model.GetMillis(),
 		"Enabled":   newState,
 		"DomainId":  domainId,
-		"Ids": 		pq.Array(search.Ids),
-		"Q":        search.GetQ(),
-		"Types":    pq.Array(search.Types),
-		"TeamIds":  pq.Array(search.TeamIds),
-		"Tags":     pq.Array(search.Tags),
+		"Ids":       pq.Array(search.Ids),
+		"Q":         search.GetQ(),
+		"Types":     pq.Array(search.Types),
+		"TeamIds":   pq.Array(search.TeamIds),
+		"Tags":      pq.Array(search.Tags),
 	}
 
 	res, err := s.GetMaster().WithContext(ctx).Exec(query, params)

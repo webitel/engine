@@ -105,6 +105,7 @@ func (a *App) UpdateQueue(ctx context.Context, queue *model.Queue) (*model.Queue
 	oldQueue.StickyAgent = queue.StickyAgent
 	oldQueue.Processing = queue.Processing
 	oldQueue.ProcessingSec = queue.ProcessingSec
+	oldQueue.ProcessingAutosave = queue.ProcessingAutosave
 	oldQueue.ProcessingRenewalSec = queue.ProcessingRenewalSec
 	oldQueue.FormSchema = queue.FormSchema
 	oldQueue.Grantee = queue.Grantee
