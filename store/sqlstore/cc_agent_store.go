@@ -1258,6 +1258,20 @@ where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::
 	return res, nil
 }
 
+func (s SqlAgentStore) IsAgentChannelOnline(ctx context.Context, agentId int64, channel string) (bool, model.AppError) {
+	res, err := s.GetMaster().WithContext(ctx).SelectInt(`select 1
+from call_center.cc_agent_channel c
+where c.agent_id = :AgentId and c.channel = :Channel::varchar and c.online`, map[string]interface{}{
+		"AgentId": agentId,
+		"Channel": channel,
+	})
+	if err != nil {
+		return false, model.NewCustomCodeError("store.sql_agent.is_channel_online.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return res == 1, nil
+}
+
 func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId int64, agentId *int64, userId *int64) (*model.AgentStatistics, model.AppError) {
 	params := map[string]interface{}{
 		"DomainId": domainId,
