@@ -39,6 +39,7 @@ const (
 	MemberService_AttemptResult_FullMethodName         = "/engine.MemberService/AttemptResult"
 	MemberService_AttemptCallback_FullMethodName       = "/engine.MemberService/AttemptCallback"
 	MemberService_CreateAttempt_FullMethodName         = "/engine.MemberService/CreateAttempt"
+	MemberService_AssignAttempt_FullMethodName         = "/engine.MemberService/AssignAttempt"
 )
 
 // MemberServiceClient is the client API for MemberService service.
@@ -80,6 +81,7 @@ type MemberServiceClient interface {
 	AttemptCallback(ctx context.Context, in *AttemptCallbackRequest, opts ...grpc.CallOption) (*AttemptResultResponse, error)
 	// Offline queue
 	CreateAttempt(ctx context.Context, in *CreateAttemptRequest, opts ...grpc.CallOption) (*CreateAttemptResponse, error)
+	AssignAttempt(ctx context.Context, in *AssignAttemptRequest, opts ...grpc.CallOption) (*AssignAttemptResponse, error)
 }
 
 type memberServiceClient struct {
@@ -270,6 +272,15 @@ func (c *memberServiceClient) CreateAttempt(ctx context.Context, in *CreateAttem
 	return out, nil
 }
 
+func (c *memberServiceClient) AssignAttempt(ctx context.Context, in *AssignAttemptRequest, opts ...grpc.CallOption) (*AssignAttemptResponse, error) {
+	out := new(AssignAttemptResponse)
+	err := c.cc.Invoke(ctx, MemberService_AssignAttempt_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MemberServiceServer is the server API for MemberService service.
 // All implementations must embed UnimplementedMemberServiceServer
 // for forward compatibility
@@ -309,6 +320,7 @@ type MemberServiceServer interface {
 	AttemptCallback(context.Context, *AttemptCallbackRequest) (*AttemptResultResponse, error)
 	// Offline queue
 	CreateAttempt(context.Context, *CreateAttemptRequest) (*CreateAttemptResponse, error)
+	AssignAttempt(context.Context, *AssignAttemptRequest) (*AssignAttemptResponse, error)
 	mustEmbedUnimplementedMemberServiceServer()
 }
 
@@ -375,6 +387,9 @@ func (UnimplementedMemberServiceServer) AttemptCallback(context.Context, *Attemp
 }
 func (UnimplementedMemberServiceServer) CreateAttempt(context.Context, *CreateAttemptRequest) (*CreateAttemptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAttempt not implemented")
+}
+func (UnimplementedMemberServiceServer) AssignAttempt(context.Context, *AssignAttemptRequest) (*AssignAttemptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignAttempt not implemented")
 }
 func (UnimplementedMemberServiceServer) mustEmbedUnimplementedMemberServiceServer() {}
 
@@ -749,6 +764,24 @@ func _MemberService_CreateAttempt_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MemberService_AssignAttempt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignAttemptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServiceServer).AssignAttempt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MemberService_AssignAttempt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServiceServer).AssignAttempt(ctx, req.(*AssignAttemptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MemberService_ServiceDesc is the grpc.ServiceDesc for MemberService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -835,6 +868,10 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateAttempt",
 			Handler:    _MemberService_CreateAttempt_Handler,
+		},
+		{
+			MethodName: "AssignAttempt",
+			Handler:    _MemberService_AssignAttempt_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

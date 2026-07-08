@@ -89,3 +89,27 @@ func (c *Controller) InterceptAttempt(session *auth_manager.Session, attemptId i
 
 	return c.app.InterceptAttempt(session.DomainId, attemptId, agentId)
 }
+
+// TODO(WTEL-9876): permission checks (self-assign vs. force-assign-to-anyone)
+func (c *Controller) AssignAttempt(ctx context.Context, session *auth_manager.Session, attemptId int64, agentId *int64) model.AppError {
+	var targetAgentId int32
+	if agentId == nil {
+		ownAgentId, err := c.app.GetOwnAgentId(ctx, session.DomainId, session.UserId)
+		if err != nil {
+			return err
+		}
+		targetAgentId = ownAgentId
+	} else {
+		targetAgentId = int32(*agentId)
+	}
+
+	online, err := c.app.IsAgentChatChannelOnline(ctx, targetAgentId)
+	if err != nil {
+		return err
+	}
+	if !online {
+		return model.NewBadRequestError("controller.cc_member.assign_attempt.agent_offline", "agent's chat channel is not online")
+	}
+
+	return c.app.InterceptAttempt(session.DomainId, attemptId, targetAgentId)
+}
