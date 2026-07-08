@@ -326,6 +326,20 @@ func (app *App) InterceptAttempt(domainId, attemptId int64, agentId int32) model
 	return nil
 }
 
+// GetOwnAgentId resolves the agent_id linked to the given user
+func (app *App) GetOwnAgentId(ctx context.Context, domainId, userId int64) (int32, model.AppError) {
+	info, err := app.Store.Agent().DistributeInfoByUserId(ctx, domainId, userId, "chat")
+	if err != nil {
+		return 0, err
+	}
+
+	return info.AgentId, nil
+}
+
+func (app *App) IsAgentChatChannelOnline(ctx context.Context, agentId int32) (bool, model.AppError) {
+	return app.Store.Agent().IsAgentChannelOnline(ctx, int64(agentId), "chat")
+}
+
 func (app *App) MemberQueueId(ctx context.Context, domainId int64, memberId int64) (int64, model.AppError) {
 	return app.Store.Member().QueueId(ctx, domainId, memberId)
 }

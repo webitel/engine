@@ -1163,6 +1163,24 @@ func (api *member) CreateAttempt(ctx context.Context, in *engine.CreateAttemptRe
 	return nil, nil
 }
 
+func (api *member) AssignAttempt(ctx context.Context, in *engine.AssignAttemptRequest) (*engine.AssignAttemptResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var agentId *int64
+	if in.AgentId != 0 {
+		agentId = &in.AgentId
+	}
+
+	if err = api.ctrl.AssignAttempt(ctx, session, in.AttemptId, agentId); err != nil {
+		return nil, err
+	}
+
+	return &engine.AssignAttemptResponse{}, nil
+}
+
 func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRequest) (*engine.AttemptResultResponse, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
