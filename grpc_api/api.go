@@ -65,7 +65,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.teamTrigger = NewTeamTriggerApi(api)
 	api.agent = NewAgentApi(api)
 	api.agentSkill = NewAgentSkillApi(api)
-	api.outboundResource = NewOutboundResourceApi(a)
+	api.outboundResource = NewOutboundResourceApi(a, api.ctrl)
 	api.outboundResourceGroup = NewOutboundResourceGroupApi(a)
 	api.queue = NewQueueApi(a, api)
 	api.queueResource = NewQueueResourceApi(a)

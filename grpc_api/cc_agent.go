@@ -37,6 +37,12 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
+	var progressiveCount *int
+	if in.GetProgressiveCount() > 0 {
+		reference := int(in.GetProgressiveCount())
+		progressiveCount = &reference
+	}
+
 	agent := &model.Agent{
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -53,7 +59,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 			Id: int(in.GetUser().GetId()),
 		},
 		Description:      in.Description,
-		ProgressiveCount: int(in.ProgressiveCount),
+		ProgressiveCount: progressiveCount,
 		GreetingMedia:    GetLookup(in.GreetingMedia),
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
@@ -206,6 +212,12 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 
 	var agent *model.Agent
 
+	var progressiveCallCount *int
+	if in.GetProgressiveCount() > 0 {
+		reference := int(in.GetProgressiveCount())
+		progressiveCallCount = &reference
+	}
+
 	agent, err = api.app.UpdateAgent(ctx, &model.Agent{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
@@ -219,7 +231,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 			Id: int(in.GetUser().GetId()),
 		},
 		Description:      in.Description,
-		ProgressiveCount: int(in.ProgressiveCount),
+		ProgressiveCount: progressiveCallCount,
 		GreetingMedia:    GetLookup(in.GreetingMedia),
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
@@ -465,7 +477,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 				Offline: v.Agents.Offline,
 				Free:    v.Agents.Free,
 				Total:   v.Agents.Total,
-				Busy: v.Agents.Busy,
+				Busy:    v.Agents.Busy,
 			},
 		}
 
@@ -877,6 +889,11 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		return nil, err
 	}
 
+	var progressiveCount uint32
+	if item.ProgressiveCount != nil {
+		progressiveCount = *item.ProgressiveCount
+	}
+
 	return &engine.AgentStatusStatisticItem{
 		AgentId:          item.AgentId,
 		Name:             item.Name,
@@ -888,7 +905,7 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		Supervisor:       GetProtoLookups(item.Supervisor),
 		Auditor:          GetProtoLookups(item.Auditor),
 		Region:           GetProtoLookup(item.Region),
-		ProgressiveCount: item.ProgressiveCount,
+		ProgressiveCount: progressiveCount,
 		ChatCount:        item.ChatCount,
 		PauseCause:       item.PauseCause,
 		Online:           item.Online,
@@ -1016,7 +1033,6 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		Status:                src.Status,
 		Description:           src.Description,
 		LastStatusChange:      src.LastStatusChange,
-		ProgressiveCount:      int32(src.ProgressiveCount),
 		Name:                  src.Name,
 		StatusDuration:        src.StatusDuration,
 		GreetingMedia:         GetProtoLookup(src.GreetingMedia),
@@ -1032,6 +1048,11 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		ScreenControl:         src.ScreenControl,
 		AllowSetScreenControl: src.AllowSetScreenControl,
 	}
+
+	if src.ProgressiveCount != nil {
+		agent.ProgressiveCount = int32(*src.ProgressiveCount)
+	}
+
 	agent.Channel = make([]*engine.AgentChannel, 0, len(src.Channel))
 
 	for _, v := range src.Channel {

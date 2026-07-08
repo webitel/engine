@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"regexp"
 	"time"
 )
 
@@ -65,6 +66,10 @@ type ResourceDisplay struct {
 	ResourceId int64  `json:"resource_id" db:"resource_id"`
 }
 
+func NewResourceDisplay(display string, resourceID int64) *ResourceDisplay {
+	return &ResourceDisplay{Display: display, ResourceId: resourceID}
+}
+
 type SearchResourceDisplay struct {
 	ListRequest
 	Ids []uint32
@@ -106,8 +111,39 @@ func (r *OutboundCallResource) GetGatewayId() *int {
 	return nil
 }
 
+var (
+	rxPhoneClean             = regexp.MustCompile(`[^\+0-9a-zA-Z\-__._!~*'()]`)
+	rxPhoneValid             = regexp.MustCompile(`^\+?[0-9a-zA-Z\-__._!~*'()]+$`)
+	rxHasAlphanumeric        = regexp.MustCompile(`[0-9a-zA-Z]`)
+	ValidatePhoneNumberError = NewBadRequestError(
+		"cc_outbound_resource.validatePhoneNumber",
+		"number must contain letters (a-z, A-Z), numbers (0-9), and special characters: +,-, _, ., !, ~, *, ', (,)",
+	)
+)
+
+func validatePhoneNumber(number string) AppError {
+	if !rxPhoneValid.MatchString(number) || !rxHasAlphanumeric.MatchString(number) {
+		return ValidatePhoneNumberError
+	}
+
+	return nil
+}
+
+func (d *ResourceDisplay) Parse() AppError {
+	d.Prepare()
+
+	return d.IsValid()
+}
+
+func (d *ResourceDisplay) Prepare() {
+	d.Display = rxPhoneClean.ReplaceAllString(d.Display, "")
+}
+
 func (d *ResourceDisplay) IsValid() AppError {
-	//FIXME
+	if err := validatePhoneNumber(d.Display); err != nil {
+		return err
+	}
+
 	return nil
 }
 
