@@ -1116,7 +1116,7 @@ func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_
 		return nil
 	}
 
-	return &engine.HistoryCall_QualityMetrics{
+	v := &engine.HistoryCall_QualityMetrics{
 		SipId: m.SipID,
 
 		// MOS метрики
@@ -1133,13 +1133,6 @@ func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_
 		JitterMinAt: int32(m.JitterMinAt),
 		JitterMaxAt: int32(m.JitterMaxAt),
 
-		// Packet Loss метрики
-		PacketlossAvg:   float32(m.PacketlossAvg),
-		PacketlossMin:   float32(m.PacketlossMin),
-		PacketlossMax:   float32(m.PacketlossMax),
-		PacketlossMinAt: int32(m.PacketlossMinAt),
-		PacketlossMaxAt: int32(m.PacketlossMaxAt),
-
 		// RTT метрики
 		RoundtripAvg:   float32(m.RoundtripAvg),
 		RoundtripMin:   float32(m.RoundtripMin),
@@ -1147,6 +1140,24 @@ func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_
 		RoundtripMinAt: int32(m.RoundtripMinAt),
 		RoundtripMaxAt: int32(m.RoundtripMaxAt),
 	}
+
+	// WTEL-9835
+	// Packet loss metrics.
+	// Since 0 <= PacketlossMin <= PacketlossAvg <= PacketlossMax, checking
+	// only PacketlossMax is enough to detect whether any loss occurred at all.
+	// If PacketlossMax == 0, avg/min are guaranteed to be 0 too, so we skip
+	// setting everything, including PacketlossMinAt/PacketlossMaxAt — there's
+	// no real loss event to timestamp, so we leave them at zero-value defaults
+	// instead of writing a timestamp next to a zero loss value.
+	if m.PacketlossMax > 0 {
+		v.PacketlossAvg = float32(m.PacketlossAvg)
+		v.PacketlossMin = float32(m.PacketlossMin)
+		v.PacketlossMax = float32(m.PacketlossMax)
+		v.PacketlossMinAt = int32(m.PacketlossMinAt)
+		v.PacketlossMaxAt = int32(m.PacketlossMaxAt)
+	}
+
+	return v
 }
 
 func prettyStringMap(ff *model.StringMap) []byte {
