@@ -365,6 +365,22 @@ func (a *MemberAttempt) IsValid() AppError {
 	return nil
 }
 
+type IMThreadMember struct {
+	ID   string `json:"id"`
+	Iss  string `json:"iss"`
+	Sub  string `json:"sub"`
+	Name string `json:"name"`
+	Role int    `json:"role"`
+	Type string `json:"type"`
+}
+
+type IMThread struct {
+	ID          string            `json:"id"`
+	Members     []*IMThreadMember `json:"members"`
+	Subject     string            `json:"subject"`
+	LastMessage string            `json:"last_msg"`
+}
+
 type MemberCommunication struct {
 	Id             int64   `json:"id"`
 	Destination    string  `json:"destination"`
@@ -379,6 +395,11 @@ type MemberCommunication struct {
 	Resource       *Lookup `json:"resource"`
 	Display        string  `json:"display"`
 	Dtmf           *string `json:"dtmf"`
+
+	Thread    *IMThread `json:"thread,omitempty"`
+	ApiSub    string    `json:"api_sub"`
+	MemberID  string    `json:"member_id"`
+	MemberSub string    `json:"member_sub"`
 }
 
 func (m *Member) ToJsonCommunications() string {

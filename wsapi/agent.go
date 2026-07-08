@@ -157,24 +157,23 @@ func (api *API) waitingAgent(ctx context.Context, conn *app.WebConn, req *model.
 	return res, nil
 }
 
-func (api *API) agentTasks(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId, domainId float64
-	var ok bool
-
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+func (api *API) agentTasks(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	agentId, ok := req.Data["agent_id"].(float64)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
 	}
 
-	if domainId, ok = req.Data["domain_id"].(float64); !ok {
-		domainId = float64(conn.DomainId)
+	domainID, ok := req.Data["domain_id"].(float64)
+	if !ok {
+		domainID = float64(conn.DomainId)
 	}
 
-	list, err := api.ctrl.ActiveAgentTasks(ctx, conn.GetSession(), int64(domainId), int64(agentId))
+	list, err := api.ctrl.ActiveAgentTasks(ctx, conn.GetSession(), int64(domainID), int64(agentId))
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
+	res := make(map[string]any)
 	res["items"] = list
 	return res, nil
 }
