@@ -171,7 +171,11 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	}
 
 	if patch.ProgressiveCount != nil {
-		a.ProgressiveCount = patch.ProgressiveCount
+		if *patch.ProgressiveCount == 0 {
+			a.ProgressiveCount = nil
+		} else {
+			a.ProgressiveCount = patch.ProgressiveCount
+		}
 	}
 
 	if patch.GreetingMedia != nil {

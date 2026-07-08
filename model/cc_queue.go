@@ -321,6 +321,10 @@ func (q *Queue) IsValid() AppError {
 		switch r := progressiveCountValue.(type) {
 		case int:
 			progessiveCount = r
+		case float64:
+			progessiveCount = int(r)
+		case float32:
+			progessiveCount = int(r)
 		case string:
 			parsed, err := strconv.Atoi(r)
 			if err != nil {

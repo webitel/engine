@@ -296,7 +296,8 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		case "progressive_count":
-			patch.ProgressiveCount = model.NewInt(int(in.ProgressiveCount))
+			parsedInt := int(in.GetProgressiveCount())
+			patch.ProgressiveCount = &parsedInt
 		case "greeting_media.id", "greeting_media":
 			patch.GreetingMedia = &model.Lookup{
 				Id: int(in.GetGreetingMedia().GetId()),
@@ -306,7 +307,7 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
 			if patch.Supervisor == nil {
-				patch.Supervisor = make([]*model.Lookup, 0, 0)
+				patch.Supervisor = make([]*model.Lookup, 0)
 			}
 
 		case "team.id", "team":
