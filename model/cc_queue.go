@@ -41,6 +41,7 @@ type Queue struct {
 	StickyAgent          bool            `json:"sticky_agent" db:"sticky_agent"`
 	Processing           bool            `json:"processing" db:"processing"`
 	ProcessingSec        uint32          `json:"processing_sec" db:"processing_sec"`
+	ProcessingAutosave   bool            `json:"processing_autosave" db:"processing_autosave"`
 	ProcessingRenewalSec uint32          `json:"processing_renewal_sec" db:"processing_renewal_sec"`
 	FormSchema           *Lookup         `json:"form_schema" db:"form_schema"`
 
@@ -58,10 +59,11 @@ type Queue struct {
 }
 
 type QueueTaskProcessing struct {
-	Enabled    bool    `json:"enabled"`
-	Sec        uint32  `json:"sec"`
-	RenewalSec uint32  `json:"renewal_sec"`
-	FormSchema *Lookup `json:"form_schema"`
+	Enabled            bool    `json:"enabled"`
+	Sec                uint32  `json:"sec"`
+	RenewalSec         uint32  `json:"renewal_sec"`
+	FormSchema         *Lookup `json:"form_schema"`
+	ProcessingAutosave bool    `json:"processing_autosave"`
 
 	ProlongationOptions *QueueTaskProcessingProlongationOptions `json:"prolongation_options" db:"prolongation_options"`
 }
@@ -181,6 +183,7 @@ type QueuePatch struct {
 	Processing           *bool           `json:"processing" db:"processing"`
 	ProcessingSec        *uint32         `json:"processing_sec" db:"processing_sec"`
 	ProcessingRenewalSec *uint32         `json:"processing_renewal_sec" db:"processing_renewal_sec"`
+	ProcessingAutosave   *bool           `json:"processing_autosave" db:"processing_autosave"`
 	FormSchema           *Lookup         `json:"form_schema" db:"form_schema"`
 	Grantee              *Lookup         `json:"grantee" db:"grantee"`
 	Tags                 StringArray     `json:"tags" db:"tags"`
@@ -275,6 +278,10 @@ func (q *Queue) Patch(p *QueuePatch) {
 
 	if p.ProcessingRenewalSec != nil {
 		q.ProcessingRenewalSec = *p.ProcessingRenewalSec
+	}
+
+	if p.ProcessingAutosave != nil {
+		q.ProcessingAutosave = *p.ProcessingAutosave
 	}
 
 	if p.FormSchema != nil {
