@@ -380,7 +380,15 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		and (:Ids::uuid[] isnull or id = any(:Ids))
 		and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 		and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-		and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult::varchar[]) or amd_ai_result = any(:AmdResult::varchar[]))
+		and (
+			:AmdResult::varchar[] isnull
+			or amd_result = any(:AmdResult::varchar[])
+			or amd_ai_result = any(:AmdResult::varchar[])
+			or (
+				''=any(:AmdResult::varchar[])
+				and (amd_result is null or amd_ai_result is null)
+			)
+		)
 		and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 		and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 		and (:AgentIds::int[] isnull or ( agent_ids && :AgentIds::int[]) )
@@ -594,7 +602,15 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and (:Ids::uuid[] isnull or id = any(:Ids))
 	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-	and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult::varchar[]) or amd_ai_result = any(:AmdResult::varchar[]))
+	and (
+		:AmdResult::varchar[] isnull
+		or amd_result = any(:AmdResult::varchar[])
+		or amd_ai_result = any(:AmdResult::varchar[])
+		or (
+			''=any(:AmdResult::varchar[])
+			and (amd_result is null or amd_ai_result is null)
+		)
+	)
 	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 	and (:AgentIds::int[] isnull or ( agent_ids && :AgentIds::int[]) )

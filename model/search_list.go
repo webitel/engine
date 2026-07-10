@@ -61,9 +61,9 @@ func GetBetweenTo(src *FilterBetween) *int64 {
 	return nil
 }
 
-func (l *ListRequest) RemoveLastElemIfNeed(slicePtr interface{}) {
+func (l *ListRequest) RemoveLastElemIfNeed(slicePtr any) {
 	s := reflect.ValueOf(slicePtr)
-	if s.Kind() != reflect.Ptr || s.Type().Elem().Kind() != reflect.Slice {
+	if s.Kind() != reflect.Pointer || s.Type().Elem().Kind() != reflect.Slice {
 		panic(fmt.Errorf("first argument to Remove must be pointer to slice, not %T", slicePtr))
 	}
 	if s.IsNil() {
@@ -89,7 +89,6 @@ func (l *ListRequest) EndOfList() bool {
 }
 
 func (l *ListRequest) GetQ() *string {
-
 	return ReplaceWebSearch(l.Q)
 }
 
@@ -117,7 +116,7 @@ func ExtractSearchOptions(t Searcher) ListRequest {
 		res.Page = int(t.GetPage())
 	}
 	if t.GetQ() != "" {
-		res.Q = strings.Replace(t.GetQ(), "*", "%", -1)
+		res.Q = strings.ReplaceAll(t.GetQ(), "*", "%")
 
 	}
 	if s := t.GetFields(); len(s) != 0 {
@@ -154,6 +153,9 @@ var amdResultAliases = map[string][]string{
 	"VOICEMAIL": {"VOICEMAIL", "voicemail"},
 	"RINGING":   {"RINGING", "ringback"},
 	"TIMEOUT":   {"TIMEOUT", "timeout"},
+	"UNDEFINED": {"undefined"},
+	"NO ANSWER": {"no_answer"},
+	"EMPTY":     {""},
 }
 
 func ExpandAmdResult(values []string) []string {
@@ -182,9 +184,7 @@ func ExpandAmdResult(values []string) []string {
 	return out
 }
 
-func (l *ListRequest) GetRegExpQ() *string {
-	return GetRegExpQ(l.Q)
-}
+func (l *ListRequest) GetRegExpQ() *string { return GetRegExpQ(l.Q) }
 
 func GetRegExpQ(q string) *string {
 	if q != "" {
