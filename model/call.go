@@ -791,7 +791,7 @@ func (m *CallPayload) Has(name string) bool {
 func (m *CallPayload) StringValue(s ...string) string {
 	var mm any = m
 
-	for i := 0; i < len(s); i++ {
+	for i := range s {
 		switch vv := mm.(type) {
 		case string:
 			return vv
