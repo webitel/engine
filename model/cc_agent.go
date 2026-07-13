@@ -37,6 +37,7 @@ type Agent struct {
 	GreetingMedia         *Lookup        `json:"greeting_media" db:"greeting_media"`
 	AllowChannels         StringArray    `json:"allow_channels" db:"allow_channels"`
 	ChatCount             uint32         `json:"chat_count" db:"chat_count"`
+	ExtraChatCount        uint32         `json:"extra_chat_count" db:"extra_chat_count"`
 	Supervisor            []*Lookup      `json:"supervisor" db:"supervisor"`
 	Team                  *Lookup        `json:"team" db:"team"`
 	Region                *Lookup        `json:"region" db:"region"`
@@ -59,6 +60,7 @@ type AgentPatch struct {
 	ProgressiveCount *int
 	GreetingMedia    *Lookup
 	ChatCount        *uint32
+	ExtraChatCount   *uint32
 	Supervisor       []*Lookup
 	Team             *Lookup
 	Region           *Lookup
@@ -186,6 +188,10 @@ func (a *Agent) Patch(patch *AgentPatch) {
 		a.ChatCount = *patch.ChatCount
 	}
 
+	if patch.ExtraChatCount != nil {
+		a.ExtraChatCount = *patch.ExtraChatCount
+	}
+
 	if patch.Supervisor != nil {
 		a.Supervisor = patch.Supervisor
 	}
@@ -217,13 +223,13 @@ func (a Agent) DefaultOrder() string {
 
 func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
 		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status"}
 }
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
 		"auditor", "is_supervisor", "extension"}
 }
 
