@@ -209,6 +209,10 @@ func (api *auditForm) CreateAuditFormRate(ctx context.Context, in *engine.Create
 	if in.CallId != "" {
 		rate.CallId = &in.CallId
 	}
+	if in.GetConversationId() != "" {
+		conversationId := in.GetConversationId()
+		rate.ConversationId = &conversationId
+	}
 
 	auditRate, err = api.ctrl.RateAuditForm(ctx, session, rate)
 	if err != nil {
@@ -238,11 +242,12 @@ func (api *auditForm) SearchAuditRate(ctx context.Context, in *engine.SearchAudi
 			Fields:  in.Fields,
 			Sort:    in.Sort,
 		},
-		Ids:          in.Id,
-		CallIds:      in.CallId,
-		CreatedAt:    nil,
-		FormIds:      nil,
-		RatedUserIds: in.RatedUser,
+		Ids:             in.Id,
+		CallIds:         in.CallId,
+		ConversationIds: in.GetConversationId(),
+		CreatedAt:       nil,
+		FormIds:         nil,
+		RatedUserIds:    in.RatedUser,
 	}
 
 	if in.GetCreatedAt() != nil {
@@ -351,6 +356,10 @@ func modelToProtobufAuditFrom(src *model.AuditForm) *engine.AuditForm {
 }
 
 func modelToProtobufAuditRate(src *model.AuditRate) *engine.AuditRate {
+	var conversationId string
+	if src.ConversationId != nil {
+		conversationId = *src.ConversationId
+	}
 	return &engine.AuditRate{
 		Id:        src.Id,
 		CreatedAt: model.TimeToInt64(src.CreatedAt),
@@ -370,6 +379,7 @@ func modelToProtobufAuditRate(src *model.AuditRate) *engine.AuditRate {
 		RatedUser:      GetProtoLookup(src.RatedUser),
 		SelectYesCount: int64(src.SelectYesCount),
 		CriticalCount:  int64(src.CriticalCount),
+		ConversationId: conversationId,
 	}
 }
 

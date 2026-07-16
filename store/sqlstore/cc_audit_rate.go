@@ -2,6 +2,10 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"time"
+
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"net/http"
 
@@ -48,10 +52,10 @@ func (s *SqlAuditRateStore) CheckAccess(ctx context.Context, domainId, rateId in
 
 func (s *SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&rate, `with r as (
-    insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional, 
-		comment, call_id, call_created_at, rated_user_id, select_yes_count, critical_count)
-    values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional, 
-		:Comment, :CallId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
+    insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional,
+		comment, call_id, conversation_id, call_created_at, rated_user_id, select_yes_count, critical_count)
+    values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional,
+		:Comment, :CallId, :ConversationId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
     returning *
 )
 select r.id,
@@ -66,6 +70,7 @@ select r.id,
        r.score_optional,
        r.comment,
        r.call_id,
+       r.conversation_id,
        f.questions,
        r.select_yes_count,
        r.critical_count
@@ -85,6 +90,7 @@ from  r
 		"ScoreOptional":  rate.ScoreOptional,
 		"Comment":        rate.Comment,
 		"CallId":         rate.CallId,
+		"ConversationId": rate.ConversationId,
 		"CallCreatedAt":  rate.CallCreatedAt,
 		"RatedUserId":    rate.RatedUser.GetSafeId(),
 		"SelectYesCount": rate.SelectYesCount,
@@ -102,23 +108,25 @@ func (s *SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, sear
 	var list []*model.AuditRate
 
 	f := map[string]interface{}{
-		"DomainId":     domainId,
-		"Ids":          pq.Array(search.Ids),
-		"Q":            search.GetQ(),
-		"CallIds":      pq.Array(search.CallIds),
-		"FormIds":      pq.Array(search.FormIds),
-		"RatedUserIds": pq.Array(search.RatedUserIds),
-		"RolesIds":     pq.Array(search.RolesIds),
-		"ClassName":    model.PermissionAuditRate,
-		"Access":       auth_manager.PERMISSION_ACCESS_READ.Value(),
-		"From":         model.GetBetweenFromTime(search.CreatedAt),
-		"To":           model.GetBetweenToTime(search.CreatedAt),
+		"DomainId":        domainId,
+		"Ids":             pq.Array(search.Ids),
+		"Q":               search.GetQ(),
+		"CallIds":         pq.Array(search.CallIds),
+		"ConversationIds": pq.Array(search.ConversationIds),
+		"FormIds":         pq.Array(search.FormIds),
+		"RatedUserIds":    pq.Array(search.RatedUserIds),
+		"RolesIds":        pq.Array(search.RolesIds),
+		"ClassName":       model.PermissionAuditRate,
+		"Access":          auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"From":            model.GetBetweenFromTime(search.CreatedAt),
+		"To":              model.GetBetweenToTime(search.CreatedAt),
 	}
 
 	err := s.ListQuery(ctx, &list, search.ListRequest,
 		`domain_id = :DomainId
     and (:Ids::int[] isnull or id = any(:Ids))
     and (:CallIds::varchar[] isnull or call_id = any(:CallIds))
+    and (:ConversationIds::varchar[] isnull or conversation_id = any(:ConversationIds::uuid[]))
     and (:FormIds::int[] isnull or form_id = any(:FormIds))
     and (:RatedUserIds::int8[] isnull or rated_user_id = any(:RatedUserIds))
 	and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
@@ -204,6 +212,7 @@ select r.id,
        r.score_optional,
        r.comment,
        r.call_id,
+       r.conversation_id,
        f.questions,
 	   r.select_yes_count,
 	   r.critical_count
@@ -263,4 +272,44 @@ where domain_id = :DomainId and id = :Id;`, map[string]any{
 	}
 
 	return nil
+}
+
+// ValidateChatRate returns operator's user id
+func (s *SqlAuditRateStore) ValidateChatRate(ctx context.Context, domainId int64, conversationId string) (*int64, time.Time, model.AppError) {
+	var (
+		userId        *int64
+		createdAt     time.Time
+		userCount     int64
+		transferCount int64
+	)
+
+	row := s.GetReplica().WithContext(ctx).QueryRow(`select c.created_at,
+       count(distinct ch.user_id)                                    as user_count,
+       count(*) filter (where ch.closed_cause = 'transfer')          as transfer_count,
+       min(ch.user_id)                                               as rate_user
+from chat.conversation c
+    left join chat.channel ch on ch.conversation_id = c.id and ch.internal
+where c.id = $1::uuid and c.domain_id = $2::int8
+group by c.created_at`, conversationId, domainId)
+
+	err := row.Scan(&createdAt, &userCount, &transferCount, &userId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_chat.not_found", "conversation not found", http.StatusNotFound)
+		}
+		return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_chat.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if transferCount > 0 {
+		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_chat.transferred", "chat has been transferred, cannot be rated")
+	}
+
+	if userCount != 1 {
+		if userCount == 0 {
+			return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_chat.no_operator", "chat has no operator, cannot be rated")
+		}
+		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_chat.multiple_operators", "chat handled by multiple operators, cannot be rated")
+	}
+
+	return userId, createdAt, nil
 }
