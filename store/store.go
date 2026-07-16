@@ -495,6 +495,7 @@ type AuditRateStore interface {
 	CheckAccess(ctx context.Context, domainId, rateUserId int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Update(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
+	ValidateChatRate(ctx context.Context, domainId int64, conversationId string) (*int64, time.Time, model.AppError)
 }
 
 type PresetQueryStore interface {
