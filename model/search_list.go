@@ -24,6 +24,11 @@ type ListRequest struct {
 	Sort   string
 }
 
+type FilterBetweenProvider interface {
+	GetFrom() int64
+	GetTo() int64
+}
+
 type FilterBetween struct {
 	From int64
 	To   int64

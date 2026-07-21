@@ -113,3 +113,28 @@ func (c *Controller) AssignAttempt(ctx context.Context, session *auth_manager.Se
 
 	return c.app.InterceptAttempt(session.DomainId, attemptId, targetAgentId)
 }
+
+func (c *Controller) ResetMembersCount(ctx context.Context, query *model.ResetMembersCountQuery) (int64, model.AppError) {
+	session, err := c.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return 0, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		canRead, err := c.app.QueueCheckAccess(ctx, session.Domain(0), query.QueueId, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ)
+		if err != nil {
+			return 0, err
+		}
+
+		if !canRead {
+			return 0, c.app.MakeResourcePermissionError(session, query.QueueId, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.ResetMembersCount(ctx, session.Domain(0), query)
+}

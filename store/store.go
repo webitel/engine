@@ -324,6 +324,7 @@ type MemberStore interface {
 	Delete(ctx context.Context, queueId, id int64) model.AppError
 	MultiDelete(ctx context.Context, domainId int64, del *model.MultiDeleteMembers, withoutMembers bool) ([]*model.Member, model.AppError)
 	ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError)
+	ResetMembersCount(ctx context.Context, domainID int64, query *model.ResetMembersCountQuery) (int64, model.AppError)
 
 	// Move to new store
 	AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) // FIXME

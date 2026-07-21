@@ -755,6 +755,7 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 		AgentIds:  in.GetAgentId(),
 		Numbers:   in.GetNumbers(),
 		Variables: in.GetVariables(),
+		Q:         in.GetQ(),
 	}
 
 	if len(search.Ids) == 0 {
@@ -776,7 +777,6 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 	}
 
 	cnt, err = api.app.ResetMembers(ctx, session.Domain(0), search)
-
 	if err != nil {
 		return nil, err
 	}
@@ -784,6 +784,31 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 	return &engine.ResetMembersResponse{
 		Count: cnt,
 	}, nil
+}
+
+func (api *member) ResetMembersCount(ctx context.Context, in *engine.ResetMembersCountRequest) (*engine.ResetMembersCountResponse, error) {
+	countQuery := &model.ResetMembersCountQuery{
+		ResetMembers: model.ResetMembers{
+			QueueId:   in.GetQueueId(),
+			Buckets:   in.GetBucketId(),
+			Causes:    in.GetStopCause(),
+			AgentIds:  in.GetAgentId(),
+			Numbers:   in.GetNumbers(),
+			Variables: in.GetVariables(),
+			Q:         in.GetQ(),
+		},
+	}
+
+	countQuery.SetIDs(in.GetIds(), in.GetId()).
+		SetPriority(in.GetPriority()).
+		SetCreatedAt(in.GetCreatedAt())
+
+	count, err := api.ctrl.ResetMembersCount(ctx, countQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ResetMembersCountResponse{Count: count}, nil
 }
 
 func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMemberAttemptsRequest) (*engine.ListMemberAttempt, error) {

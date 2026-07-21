@@ -3,6 +3,7 @@ package wsapi
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -114,10 +115,10 @@ func (api *API) processingActionComponentAttempt(ctx context.Context, conn *app.
 	return res, nil
 }
 
-func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
 	var attemptId float64
 	var ok bool
-	var fields map[string]interface{}
+	var fields map[string]any
 	var form []byte
 
 	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
@@ -129,7 +130,7 @@ func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn
 		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
 	}
 
-	fields, _ = req.Data["fields"].(map[string]interface{})
+	fields, _ = req.Data["fields"].(map[string]any)
 	if v, ok := req.Data["form"]; ok {
 		form, _ = json.Marshal(v)
 	}
@@ -138,7 +139,7 @@ func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
+	res := make(map[string]any)
 	return res, nil
 }
 
