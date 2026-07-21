@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
@@ -157,6 +158,10 @@ func (app *App) RemoveMultiMembers(ctx context.Context, domainId int64, del *mod
 
 func (app *App) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError) {
 	return app.Store.Member().ResetMembers(ctx, domainId, req)
+}
+
+func (app *App) ResetMembersCount(ctx context.Context, domainID int64, query *model.ResetMembersCountQuery) (int64, model.AppError) {
+	return app.Store.Member().ResetMembersCount(ctx, domainID, query)
 }
 
 func (app *App) GetMemberAttempts(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) {

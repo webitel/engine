@@ -67,6 +67,43 @@ type ResetMembers struct {
 	Variables StringMap      `json:"variables" db:"variables"`
 	Priority  *FilterBetween `json:"priority" db:"priority"`
 	CreatedAt *FilterBetween `json:"created_at" db:"created_at"`
+	Q         string
+}
+
+type ResetMembersCountQuery struct {
+	ResetMembers
+}
+
+func (q *ResetMembersCountQuery) SetIDs(first, second []int64) *ResetMembersCountQuery {
+	if len(first) > 0 {
+		q.Ids = first
+	} else {
+		q.Ids = second
+	}
+
+	return q
+}
+
+func (q *ResetMembersCountQuery) SetPriority(prio FilterBetweenProvider) *ResetMembersCountQuery {
+	if prio != nil {
+		q.Priority = &FilterBetween{
+			From: prio.GetFrom(),
+			To:   prio.GetTo(),
+		}
+	}
+
+	return q
+}
+
+func (q *ResetMembersCountQuery) SetCreatedAt(createdAt FilterBetweenProvider) *ResetMembersCountQuery {
+	if createdAt != nil {
+		q.CreatedAt = &FilterBetween{
+			From: createdAt.GetFrom(),
+			To:   createdAt.GetTo(),
+		}
+	}
+
+	return q
 }
 
 func (m *Member) Patch(p *MemberPatch) {
