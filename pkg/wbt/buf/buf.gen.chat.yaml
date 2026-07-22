@@ -26,7 +26,7 @@ plugins:
 inputs:
 #  - directory: "../../../protos/chat"
   - git_repo: "https://github.com/webitel/protos"
-    branch: "main"
+    branch: "v26.06"
     subdir: chat
     types:
       - webitel.chat.server.ChatService
