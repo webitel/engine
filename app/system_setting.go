@@ -167,7 +167,8 @@ func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.Syst
 		case model.SysNameTwoFactorAuthorization, model.SysNameCallEndSoundNotification,
 			model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification, model.SysNameChatEndPushNotification,
 			model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification, model.SysNamePushNotificationTimeout,
-			model.SysNameNewMessageSoundNotification, model.SysNameNewChatSoundNotification:
+			model.SysNameNewMessageSoundNotification, model.SysNameNewChatSoundNotification,
+			model.SysNameSelfAssignedCallSoundNotification:
 
 			oldParsed, newParsed := model.SysValue(old.Value), model.SysValue(new.Value)
 			oldValue, newValue := oldParsed.Bool(), newParsed.Bool()
