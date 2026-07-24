@@ -279,25 +279,31 @@ func (s *SqlAuditRateStore) ValidateChatRate(ctx context.Context, domainId int64
 	var (
 		userId        *int64
 		createdAt     time.Time
+		closedAt      sql.NullTime
 		userCount     int64
 		transferCount int64
 	)
 
 	row := s.GetReplica().WithContext(ctx).QueryRow(`select c.created_at,
+       c.closed_at,
        count(distinct ch.user_id)                                    as user_count,
        count(*) filter (where ch.closed_cause = 'transfer')          as transfer_count,
        min(ch.user_id)                                               as rate_user
 from chat.conversation c
     left join chat.channel ch on ch.conversation_id = c.id and ch.internal
 where c.id = $1::uuid and c.domain_id = $2::int8
-group by c.created_at`, conversationId, domainId)
+group by c.created_at, c.closed_at`, conversationId, domainId)
 
-	err := row.Scan(&createdAt, &userCount, &transferCount, &userId)
+	err := row.Scan(&createdAt, &closedAt, &userCount, &transferCount, &userId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_chat.not_found", "conversation not found", http.StatusNotFound)
 		}
 		return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_chat.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if !closedAt.Valid {
+		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_chat.active", "chat is still active, cannot be rated")
 	}
 
 	if transferCount > 0 {
