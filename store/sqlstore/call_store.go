@@ -417,7 +417,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
     	and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
     	    case :HasTranscript::bool when false
     	     then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
-    	     else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+    	     else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ plainto_tsquery(:Fts::varchar)))
     	    end
 
     	))
@@ -639,7 +639,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
     and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
         case :HasTranscript::bool when false
          then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
-         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ plainto_tsquery(:Fts::varchar)))
         end
 
     ))
@@ -1097,7 +1097,7 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
 				case :HasTranscript::bool when false
 				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id::text )
-				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ plainto_tsquery(:Fts::varchar)))
 				end
 
 			))
