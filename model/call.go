@@ -64,6 +64,60 @@ type EndpointRequest struct {
 	Destination *string
 }
 
+func NewCallInfoNotFoundError(id string, e *EndpointRequest) AppError {
+	if e == nil {
+		return NewNotFoundError(id, "User not found")
+	}
+
+	var criteria []string
+
+	if e.UserId != nil {
+		criteria = append(criteria, fmt.Sprintf("ID (%d)", *e.UserId))
+	}
+	if e.Extension != nil {
+		criteria = append(criteria, fmt.Sprintf("extension ('%s')", *e.Extension))
+	}
+
+	var detail string
+	if len(criteria) > 0 {
+		detail = fmt.Sprintf("User with provided %s not found", strings.Join(criteria, " and "))
+	} else {
+		detail = "User not found"
+	}
+
+	return NewNotFoundError(id, detail)
+}
+
+func (e *EndpointRequest) String() string {
+	if e == nil {
+		return "<nil request>"
+	}
+
+	var parts []string
+
+	if e.AppId != nil {
+		parts = append(parts, fmt.Sprintf("app_id=%s", *e.AppId))
+	}
+	if e.UserId != nil {
+		parts = append(parts, fmt.Sprintf("user_id=%d", *e.UserId))
+	}
+	if e.Extension != nil {
+		parts = append(parts, fmt.Sprintf("extension=%s", *e.Extension))
+	}
+	if e.SchemaId != nil {
+		parts = append(parts, fmt.Sprintf("schema_id=%d", *e.SchemaId))
+	}
+	if e.Destination != nil {
+		parts = append(parts, fmt.Sprintf("destination=%s", *e.Destination))
+	}
+
+	if len(parts) == 0 {
+		return "empty request"
+	}
+
+	return strings.Join(parts, ", ")
+}
+
 type CallRequest struct {
 	Endpoints    []string
 	Strategy     uint8

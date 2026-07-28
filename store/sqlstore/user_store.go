@@ -104,9 +104,19 @@ limit 1`, map[string]any{
 		"DomainId":  domainId,
 		"IsOnline":  isOnline,
 	})
+
 	if err != nil {
-		return nil, model.NewCustomCodeError("store.sql_user.get_call_info.app_error", fmt.Sprintf("UserId=%v, Extension=%v %s", e.UserId, e.Extension, err.Error()), extractCodeFromErr(err))
+		if isNoRowsError(err) {
+			return nil, model.NewCallInfoNotFoundError("store.sql_user.get_call_info.user_not_found", e)
+		}
+
+		return nil, model.NewCustomCodeError(
+			"store.sql_user.get_call_info.app_error",
+			fmt.Sprintf("Executing get call info request: (%s); error: %v", e, err),
+			extractCodeFromErr(err),
+		)
 	}
+
 	return info, nil
 }
 
