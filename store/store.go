@@ -80,6 +80,7 @@ type Store interface {
 	SchemeVariable() SchemeVariablesStore
 	SocketSession() SocketSessionStore
 	Feedback() FeedbackStore
+	SkillPreset() SkillPresetStore
 }
 
 // todo deprecated
@@ -549,6 +550,15 @@ type SocketSessionStore interface {
 type FeedbackStore interface {
 	Get(ctx context.Context, key model.FeedbackKey) (model.Feedback, model.AppError)
 	Create(ctx context.Context, key model.FeedbackKey, rating float32, description string) (model.Feedback, model.AppError)
+}
+
+type SkillPresetStore interface {
+	Create(ctx context.Context, preset *model.SkillPreset) (*model.SkillPreset, model.AppError)
+	Update(ctx context.Context, preset *model.SkillPreset) (*model.SkillPreset, model.AppError)
+	Patch(ctx context.Context, patchCmd *model.PatchSkillPresetCmd) (*model.SkillPreset, model.AppError)
+	Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) ([]*model.SkillPreset, model.AppError)
+	Search(ctx context.Context, search *model.SearchSkillPresetQuery) ([]*model.SkillPreset, model.AppError)
+	Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.SkillPreset, model.AppError)
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.
