@@ -55,28 +55,14 @@ func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *mod
 	return sess.ToMap(), nil
 }
 
-func (api *API) onlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId float64
-	var domainId float64
-	var onDemand bool
-	var ok bool
+func (api *API) onlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	r := model.NewAgentLoginRequestFromSocketRequest(req, conn.DomainId)
 
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
-	}
-
-	if domainId, ok = req.Data["domain_id"].(float64); !ok {
-		domainId = float64(conn.DomainId)
-	}
-
-	onDemand, _ = req.Data["on_demand"].(bool)
-	err := api.ctrl.LoginAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), onDemand)
-	if err != nil {
+	if err := api.ctrl.LoginAgentFromRequest(ctx, conn.GetSession(), r); err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	return res, nil
+	return make(map[string]any), nil
 }
 
 func (api *API) offlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {

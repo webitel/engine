@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -512,4 +513,62 @@ func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, AppError
 	e.SetData(ev.Body)
 
 	return e, nil
+}
+
+type AgentLoginRequest struct {
+	AgentID      int64   `json:"agent_id"`
+	DomainID     int64   `json:"domain_id"`
+	OnDemand     bool    `json:"on_demand"`
+	OnlineStatus *Lookup `json:"online_status"`
+}
+
+func (r *AgentLoginRequest) Validate() AppError {
+	if r == nil {
+		return NewBadRequestError("model.cc_agent.validate.nil_pointer", "Empty agent login request")
+	}
+
+	if r.AgentID <= 0 {
+		return NewBadRequestError("model.cc_agent.validate.invalid_agent_login_id", "Agent login require agent id")
+	}
+
+	if r.DomainID <= 0 {
+		return NewBadRequestError("model.cc_agent.validate.invalid_agent_domain", "Agent login require domain id")
+	}
+
+	return nil
+}
+
+func NewAgentLoginRequestFromSocketRequest(r *WebSocketRequest, sessionDomainID int64) *AgentLoginRequest {
+	req := new(AgentLoginRequest)
+
+	if val, ok := r.Get("agent_id").(float64); ok {
+		req.AgentID = int64(val)
+	}
+
+	if val, ok := r.Get("domain_id").(float64); ok {
+		req.DomainID = int64(val)
+	}
+
+	req.DomainID = cmp.Or(req.DomainID, sessionDomainID)
+
+	if val, ok := r.Get("on_demand").(bool); ok {
+		req.OnDemand = val
+	}
+
+	if statusVal := r.Get("status_preset"); statusVal != nil {
+		if status, ok := statusVal.(*Lookup); ok {
+			req.OnlineStatus = status
+		} else if rawMap, ok := statusVal.(map[string]any); ok {
+			status := new(Lookup)
+			if id, ok := rawMap["id"].(float64); ok {
+				status.Id = int(id)
+			}
+			if name, ok := rawMap["name"].(string); ok {
+				status.Name = name
+			}
+			req.OnlineStatus = status
+		}
+	}
+
+	return req
 }
