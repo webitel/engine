@@ -410,7 +410,16 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 
 	switch in.Status {
 	case model.AgentStatusOnline:
-		err = api.ctrl.LoginAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.OnDemand)
+		var onlineStatus *model.Lookup
+		if p := in.GetStatusPreset(); p != nil {
+			onlineStatus = &model.Lookup{Id: int(p.GetId()), Name: p.GetName()}
+		}
+
+		err = api.ctrl.LoginAgentFromRequest(ctx, session, &model.AgentLoginRequest{
+			AgentID:      agentId,
+			OnDemand:     in.GetOnDemand(),
+			OnlineStatus: onlineStatus,
+		})
 	case model.AgentStatusPause:
 		err = api.ctrl.PauseAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), in.GetStatusComment(), 0)
 	case model.AgentStatusOffline:

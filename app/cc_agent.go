@@ -165,6 +165,14 @@ func (a *App) AgentCC(ctx context.Context, domainId int64, userId int64) (*model
 	return a.Store.Agent().AgentCC(ctx, domainId, userId)
 }
 
+func (a *App) LoginAgentFromRequest(ctx context.Context, r *model.AgentLoginRequest) model.AppError {
+	if err := a.cc.Agent().OnlineWithStatus(ctx, r); err != nil {
+		return model.NewBadRequestError("app.agent.login.app_err", err.Error())
+	}
+
+	return nil
+}
+
 func (a *App) LoginAgent(domainId, agentId int64, onDemand bool) model.AppError {
 	err := a.cc.Agent().Online(domainId, agentId, onDemand)
 	if err != nil {
