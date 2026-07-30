@@ -397,7 +397,21 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 		and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
 		and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
-		and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
+		and (:HasFile::bool isnull or (case :HasFile::bool when true then
+			exists(select 1 from storage.files f
+				where f.domain_id = :Domain::int8
+					and not f.removed is true
+					and (f.uuid = t.id::text or (t.parent_id notnull and f.uuid = t.parent_id::text))
+					and (f.channel isnull or f.channel = 'call')
+					and (f.mime_type ilike 'audio/%' or f.mime_type ilike 'video/%'))
+		else
+			not exists(select 1 from storage.files f
+				where f.domain_id = :Domain::int8
+					and not f.removed is true
+					and (f.uuid = t.id::text or (t.parent_id notnull and f.uuid = t.parent_id::text))
+					and (f.channel isnull or f.channel = 'call')
+					and (f.mime_type ilike 'audio/%' or f.mime_type ilike 'video/%'))
+		end))
 		and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 		and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -619,7 +633,21 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
 	and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
-	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
+	and (:HasFile::bool isnull or (case :HasFile::bool when true then
+		exists(select 1 from storage.files f
+			where f.domain_id = :Domain::int8
+				and not f.removed is true
+				and (f.uuid = t.id::text or (t.parent_id notnull and f.uuid = t.parent_id::text))
+				and (f.channel isnull or f.channel = 'call')
+				and (f.mime_type ilike 'audio/%' or f.mime_type ilike 'video/%'))
+	else
+		not exists(select 1 from storage.files f
+			where f.domain_id = :Domain::int8
+				and not f.removed is true
+				and (f.uuid = t.id::text or (t.parent_id notnull and f.uuid = t.parent_id::text))
+				and (f.channel isnull or f.channel = 'call')
+				and (f.mime_type ilike 'audio/%' or f.mime_type ilike 'video/%'))
+	end))
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -1093,7 +1121,21 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and (:Tags::varchar[] isnull or (h.tags && :Tags))
 		and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
 		and (:AmdResult::varchar[] isnull or h.amd_result = any(:AmdResult))
-		and (:HasFile::bool isnull or (case :HasFile::bool when true then exists(select 1 from storage.files ft where ft.uuid = h.id::text ) else not exists(select 1 from storage.files ft where ft.uuid = h.id::text ) end))
+		and (:HasFile::bool isnull or (case :HasFile::bool when true then
+				exists(select 1 from storage.files f
+					where f.domain_id = :Domain::int8
+						and not f.removed is true
+						and (f.uuid = h.id::text or (h.parent_id notnull and f.uuid = h.parent_id::text))
+						and (f.channel isnull or f.channel = 'call')
+						and (f.mime_type ilike 'audio/%' or f.mime_type ilike 'video/%'))
+			else
+				not exists(select 1 from storage.files f
+					where f.domain_id = :Domain::int8
+						and not f.removed is true
+						and (f.uuid = h.id::text or (h.parent_id notnull and f.uuid = h.parent_id::text))
+						and (f.channel isnull or f.channel = 'call')
+						and (f.mime_type ilike 'audio/%' or f.mime_type ilike 'video/%'))
+			end))
 		and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
 				case :HasTranscript::bool when false
 				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id::text )
