@@ -712,6 +712,16 @@ type SearchHistoryCall struct {
 	Timeline         *bool
 }
 
+func (s *SearchHistoryCall) UseCreatedAtFilter(filter FilterBetweenProvider) *SearchHistoryCall {
+	if filter == nil {
+		return s
+	}
+
+	s.CreatedAt = NewFilterBetweenFromProvider(filter)
+
+	return s
+}
+
 type CallEventInfo struct {
 	Id        string  `json:"id" db:"id"`
 	Event     string  `json:"event" db:"-"`
