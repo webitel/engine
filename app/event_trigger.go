@@ -4,16 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"sync/atomic"
+	"time"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/webitel/engine/app/flow"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/utils"
 	"github.com/webitel/wlog"
-	"strconv"
-	"strings"
-	"sync/atomic"
-	"time"
 )
 
 const (
@@ -236,10 +237,10 @@ func (ct *TriggerEventMQ) processedMessages(messages <-chan amqp.Delivery) {
 				rs.variables["action"] = event
 				job, err := ct.store.Trigger().CreateJob(ctx, rs.domainId, rs.triggerId, rs.variables)
 				if err != nil {
-					ct.log.Error(fmt.Sprintf("could not create job: %v: %s", rs, err.Error()))
+					ct.log.Error("creating trigger job", wlog.Any("request", rs), wlog.Err(err))
 					return
 				}
-				ct.log.Info(fmt.Sprintf("started trigger \"%s\" job_id : %d", rs.name, job.Id))
+				ct.log.Info("started trigger", wlog.String("name", rs.name), wlog.Int64("job_id", job.Id))
 			}
 		}
 	}
@@ -317,7 +318,8 @@ func (ct *TriggerEventMQ) initQueue() error {
 		true,
 		false,
 		false,
-		false, amqp.Table{"x-queue-type": "quorum"},
+		false,
+		amqp.Table{"x-queue-type": "quorum"},
 	)
 	if err != nil {
 		return fmt.Errorf("could not create queue %s: %w", ct.config.Queue, err)
