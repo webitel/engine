@@ -51,7 +51,7 @@ type API struct {
 	schemaVariable *schemaVariable
 	push           *push
 	feedback       *feedback
-	skillPreset    *skillPreset
+	skillPreset    *onlineSkills
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -99,7 +99,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.webHook = NewWebHookApi(api)
 	api.push = NewPushApi(api, a.Config().MinimumNumberMaskLen, a.Config().PrefixNumberMaskLen, a.Config().SuffixNumberMaskLen)
 	api.feedback = NewFeedbackApi(api)
-	api.skillPreset = NewSkillPresetApi(api)
+	api.skillPreset = NewOnlineSkillsApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -142,5 +142,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterSchemaVariablesServiceServer(server, api.schemaVariable)
 	engine.RegisterPushServiceServer(server, api.push)
 	engine.RegisterFeedbackServiceServer(server, api.feedback)
-	engine.RegisterSkillPresetServiceServer(server, api.skillPreset)
+	engine.RegisterOnlineSkillsServiceServer(server, api.skillPreset)
 }

@@ -7,18 +7,16 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-type SqlSkillPresetStore struct {
-	SqlStore
+type SqlOnlineSkillsStore struct{ SqlStore }
+
+func NewSqlOnlineSkillsStore(sqlStore SqlStore) *SqlOnlineSkillsStore {
+	return &SqlOnlineSkillsStore{SqlStore: sqlStore}
 }
 
-func NewSqlSkillPresetStore(sqlStore SqlStore) *SqlSkillPresetStore {
-	return &SqlSkillPresetStore{SqlStore: sqlStore}
-}
-
-func (s *SqlSkillPresetStore) Create(ctx context.Context, preset *model.SkillPreset) (*model.SkillPreset, model.AppError) {
+func (s *SqlOnlineSkillsStore) Create(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError) {
 	query := `
 		with preset_ins as (
-			insert into "call_center"."skill_preset" (
+			insert into "call_center"."cc_online_skills" (
 				"domain_id", "created_by", "created_at", "updated_by", "updated_at", "name", "description"
 			)
 			values (
@@ -27,8 +25,8 @@ func (s *SqlSkillPresetStore) Create(ctx context.Context, preset *model.SkillPre
 			returning "id","domain_id", "name", "created_by", "created_at", "updated_by", "updated_at", "description"
 		),
 		skills_in_preset_ins as (
-			insert into "call_center"."skills_in_skill_preset" (
-				"domain_id", "skill_preset_id", "skill_id"
+			insert into "call_center"."cc_skills_in_online_skills" (
+				"domain_id", "online_skill_id", "skill_id"
 			)
 			select
 				:DomainID,
@@ -36,14 +34,14 @@ func (s *SqlSkillPresetStore) Create(ctx context.Context, preset *model.SkillPre
 				s.id
 			from unnest(:Skills::int8[]) s(id)
 			cross join preset_ins p
-			returning "skill_preset_id", "skill_id"
+			returning "online_skill_id", "skill_id"
 		)
 		select
 			p.id as id,
 			p.domain_id as domain_id,
-			call_center.cc_get_lookup(uc.id, uc.name) as created_by,
+			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by,
 			p.created_at as created_at,
-			call_center.cc_get_lookup(ua.id, ua.name) as updated_by,
+			call_center.cc_get_lookup(ua.id, coalesce(ua.name, ua.username)) as updated_by,
 			p.updated_at as updated_at,
 			p.name as "name",
 			p.description as "description",
@@ -69,24 +67,24 @@ func (s *SqlSkillPresetStore) Create(ctx context.Context, preset *model.SkillPre
 		"Skills":      pq.Int64Array(preset.ReduceSkillsIDs()),
 	}
 
-	var result *model.SkillPreset
+	var result *model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
 		if e, ok := err.(*pq.Error); ok {
 			if e.Code == DuplicationViolationErrorCode {
-				return nil, model.NewBadRequestError("sqlstore.skill_preset_store.create_already_exists", " Skill preset with this name already exists.")
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.create_already_exists", "Online skills with this name already exists.")
 			}
 		}
 
-		return nil, model.NewCustomCodeError("sqlstore.skill_preset_store.create", err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.create", err.Error(), extractCodeFromErr(err))
 	}
 
 	return result, nil
 }
 
-func (s *SqlSkillPresetStore) Update(ctx context.Context, preset *model.SkillPreset) (*model.SkillPreset, model.AppError) {
+func (s *SqlOnlineSkillsStore) Update(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError) {
 	query := `
 		with preset_upd as (
-			update "call_center"."skill_preset"
+			update "call_center"."cc_online_skills"
 			set "updated_by"  = :UpdatedBy,
 				"updated_at"  = now(),
 				"name"        = :Name,
@@ -95,13 +93,13 @@ func (s *SqlSkillPresetStore) Update(ctx context.Context, preset *model.SkillPre
 			returning "id", "domain_id", "created_by", "created_at", "updated_by", "updated_at", "name", "description"
 		),
 		binded_skills_del as (
-			delete from "call_center"."skills_in_skill_preset"
-			where "skill_preset_id" = :ID
+			delete from "call_center"."cc_skills_in_online_skills"
+			where "online_skill_id" = :ID
 			  and "skill_id" <> all(:Skills::int8[])
 		),
 		new_skills_ins as (
-			insert into "call_center"."skills_in_skill_preset" (
-				"domain_id", "skill_preset_id", "skill_id"
+			insert into "call_center"."cc_skills_in_online_skills" (
+				"domain_id", "online_skill_id", "skill_id"
 			)
 			select
 				p.domain_id,
@@ -109,7 +107,7 @@ func (s *SqlSkillPresetStore) Update(ctx context.Context, preset *model.SkillPre
 				s.id
 			from unnest(:Skills::int8[]) as s(id)
 			cross join preset_upd p
-			on conflict ("skill_preset_id", "skill_id") do nothing
+			on conflict ("online_skill_id", "skill_id") do nothing
 			returning "skill_id"
 		),
 		actual_skills as (
@@ -117,16 +115,16 @@ func (s *SqlSkillPresetStore) Update(ctx context.Context, preset *model.SkillPre
 			from new_skills_ins
 			union
 			select skill_id
-			from "call_center"."skills_in_skill_preset"
-			where skill_preset_id = :ID
+			from "call_center"."cc_skills_in_online_skills"
+			where online_skill_id = :ID
 			  and skill_id = any(:Skills::int8[])
 		)
 		select
 			p.id as id,
 			p.domain_id as domain_id,
-			call_center.cc_get_lookup(uc.id, uc.name) as created_by,
+			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by,
 			p.created_at as created_at,
-			call_center.cc_get_lookup(ua.id, ua.name) as updated_by,
+			call_center.cc_get_lookup(ua.id, coalesce(ua.name, ua.username)) as updated_by,
 			p.updated_at as updated_at,
 			p.name as "name",
 			p.description as "description",
@@ -151,17 +149,17 @@ func (s *SqlSkillPresetStore) Update(ctx context.Context, preset *model.SkillPre
 		"Skills":      pq.Int64Array(preset.ReduceSkillsIDs()),
 	}
 
-	var result *model.SkillPreset
+	var result *model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
-		return nil, model.NewCustomCodeError("sqlstore.skill_preset_store.update", err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.update", err.Error(), extractCodeFromErr(err))
 	}
 
 	return result, nil
 }
 
-func (s *SqlSkillPresetStore) Patch(ctx context.Context, patchCmd *model.PatchSkillPresetCmd) (*model.SkillPreset, model.AppError) {
+func (s *SqlOnlineSkillsStore) Patch(ctx context.Context, patchCmd *model.PatchOnlineSkillsCmd) (*model.OnlineSkills, model.AppError) {
 	query := `
-		select * from call_center.cc_patch_skill_preset(
+		select * from call_center.cc_patch_online_skills(
 			:ID,
 			:DomainID,
 			:UpdatedBy,
@@ -170,7 +168,7 @@ func (s *SqlSkillPresetStore) Patch(ctx context.Context, patchCmd *model.PatchSk
 			:PatchDescription,
 			:Skills::int8[],
 			:PatchSkills
-		)
+		);
 	`
 
 	args := map[string]any{
@@ -197,63 +195,30 @@ func (s *SqlSkillPresetStore) Patch(ctx context.Context, patchCmd *model.PatchSk
 		}
 	}
 
-	var result model.SkillPreset
+	var result model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
-		return nil, model.NewCustomCodeError("sqlstore.skill_preset_store.patch", err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.patch", err.Error(), extractCodeFromErr(err))
 	}
 
 	return &result, nil
 }
 
-func (s *SqlSkillPresetStore) Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) ([]*model.SkillPreset, model.AppError) {
-	query := `
-		with preset_del as (
-			delete from "call_center"."skill_preset"
-			where "domain_id" = :DomainID and "id" = any(:IDs)
-			returning "id", "domain_id", "created_by", "created_at", "updated_by", "updated_at", "name", "description"
-		),
-		skills_del as (
-			delete from "call_center"."skills_in_skill_preset"
-			where "skill_preset_id" in (select id from preset_del)
-			returning "skill_preset_id", "skill_id"
-		)
-		select
-			p.id as id,
-			p.domain_id as domain_id,
-			call_center.cc_get_lookup(uc.id, uc.name) as created_by,
-			p.created_at as created_at,
-			call_center.cc_get_lookup(ua.id, ua.name) as updated_by,
-			p.updated_at as updated_at,
-			p.name as "name",
-			p.description as "description",
-			s.skills as "skills"
-		from preset_del p
-		left join lateral (
-			select jsonb_agg(
-				call_center.cc_get_lookup(s.id, s.name)
-			) as skills
-			from skills_del sd
-			inner join "call_center"."cc_skill" s on s.id = sd.skill_id
-			where sd.skill_preset_id = p.id
-		) s on true
-		left join directory.wbt_user uc on uc.id = p.created_by
-		left join directory.wbt_user ua on ua.id = p.updated_by
-	`
+func (s *SqlOnlineSkillsStore) Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) model.AppError {
+	query := `delete from "call_center"."cc_online_skills" where "id" = :ID and "domain_id" = :DomainID;`
 
 	args := map[string]any{
 		"DomainID": deleteCmd.DomainID,
-		"IDs":      pq.Int64Array(deleteCmd.IDs),
+		"ID":       deleteCmd.ID,
 	}
 
-	var result []*model.SkillPreset
-	if _, err := s.GetMaster().WithContext(ctx).Select(&result, query, args); err != nil {
-		return nil, model.NewCustomCodeError("sqlstore.skill_preset_store.delete", err.Error(), extractCodeFromErr(err))
+	if _, err := s.GetMaster().WithContext(ctx).Exec(query, args); err != nil {
+		return model.NewCustomCodeError("sqlstore.online_skills_store.delete", err.Error(), extractCodeFromErr(err))
 	}
 
-	return result, nil
+	return nil
 }
 
-func (s *SqlSkillPresetStore) Search(ctx context.Context, search *model.SearchSkillPresetQuery) ([]*model.SkillPreset, model.AppError) {
+func (s *SqlOnlineSkillsStore) Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError) {
 	query := `
 		"domain_id" = :DomainID
 		and (:IDs::int[] is null or "id" = any(:IDs::int[]))
@@ -261,8 +226,8 @@ func (s *SqlSkillPresetStore) Search(ctx context.Context, search *model.SearchSk
 			cardinality(:SkillIDs::int8[]) = 0 or :SkillIDs::int8[] is null
 			or exists (
 					select 1
-					from "call_center"."skills_in_skill_preset" si
-					where si.skill_preset_id = id
+					from "call_center"."cc_skills_in_online_skills" si
+					where si.online_skill_id = id
 						and si.skill_id = any(:SkillIDs::int8[])
 			)
 		)
@@ -277,17 +242,15 @@ func (s *SqlSkillPresetStore) Search(ctx context.Context, search *model.SearchSk
 		"SkipDefault": search.SkipDefault,
 	}
 
-	search.Sort = search.OrderBy()
-
-	var result []*model.SkillPreset
-	if err := s.ListQuery(ctx, &result, search.ListRequest, query, model.SkillPreset{}, args); err != nil {
-		return nil, model.NewCustomCodeError("sqlstore.skill_preset_store.search", err.Error(), extractCodeFromErr(err))
+	var result []*model.OnlineSkills
+	if err := s.ListQuery(ctx, &result, search.ListRequest, query, model.OnlineSkills{}, args); err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.search", err.Error(), extractCodeFromErr(err))
 	}
 
 	return result, nil
 }
 
-func (s *SqlSkillPresetStore) Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.SkillPreset, model.AppError) {
+func (s *SqlOnlineSkillsStore) Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.OnlineSkills, model.AppError) {
 	query := `
 			select
 				id,
@@ -299,7 +262,7 @@ func (s *SqlSkillPresetStore) Get(ctx context.Context, search *model.GetSkillPre
 				name,
 				description,
 				skills
-			from "call_center"."cc_skill_preset_view"
+			from "call_center"."cc_online_skills_list"
 			where "domain_id" = :DomainID and "id" = :ID
 		`
 
@@ -308,9 +271,9 @@ func (s *SqlSkillPresetStore) Get(ctx context.Context, search *model.GetSkillPre
 		"ID":       search.ID,
 	}
 
-	var result *model.SkillPreset
+	var result *model.OnlineSkills
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&result, query, args); err != nil {
-		return nil, model.NewCustomCodeError("sqlstore.skill_preset_store.get", err.Error(), extractCodeFromErr(err))
+		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.get", err.Error(), extractCodeFromErr(err))
 	}
 
 	return result, nil

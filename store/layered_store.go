@@ -121,7 +121,7 @@ func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
 	return s.DatabaseLayer.CommunicationType()
 }
 
-func (s *LayeredStore) SkillPreset() SkillPresetStore { return s.DatabaseLayer.SkillPreset() }
+func (s *LayeredStore) OnlineSkills() OnlineSkillsStore { return s.DatabaseLayer.OnlineSkills() }
 
 func (s *LayeredStore) Member() MemberStore {
 	return s.DatabaseLayer.Member()
