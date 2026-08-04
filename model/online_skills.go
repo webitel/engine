@@ -202,5 +202,7 @@ func (p *PatchOnlineSkillsCmd) Validate() AppError {
 }
 
 func (p *PatchOnlineSkillsCmd) PrePatch() {
-	*p.Name = strings.TrimSpace(*p.Name)
+	if name := p.Name; name != nil {
+		*p.Name = strings.TrimSpace(*name)
+	}
 }
