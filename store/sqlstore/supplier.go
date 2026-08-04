@@ -76,7 +76,7 @@ type SqlSupplierOldStores struct {
 	schemeVariable          store.SchemeVariablesStore
 	socketSession           store.SocketSessionStore
 	feedback                store.FeedbackStore
-	skillPreset             store.SkillPresetStore
+	onlineSkills            store.OnlineSkillsStore
 }
 
 type SqlSupplier struct {
@@ -146,7 +146,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.chat = NewSqlChatStore(supplier)
 	supplier.oldStores.chatPlan = NewSqlChatPlanStore(supplier)
 	supplier.oldStores.feedback = NewSqlFeedbackStore(supplier)
-	supplier.oldStores.skillPreset = NewSqlSkillPresetStore(supplier)
+	supplier.oldStores.onlineSkills = NewSqlOnlineSkillsStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -455,7 +455,7 @@ func (ss *SqlSupplier) Feedback() store.FeedbackStore {
 	return ss.oldStores.feedback
 }
 
-func (ss *SqlSupplier) SkillPreset() store.SkillPresetStore { return ss.oldStores.skillPreset }
+func (ss *SqlSupplier) OnlineSkills() store.OnlineSkillsStore { return ss.oldStores.onlineSkills }
 
 type typeConverter struct{}
 

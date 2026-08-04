@@ -80,7 +80,7 @@ type Store interface {
 	SchemeVariable() SchemeVariablesStore
 	SocketSession() SocketSessionStore
 	Feedback() FeedbackStore
-	SkillPreset() SkillPresetStore
+	OnlineSkills() OnlineSkillsStore
 }
 
 // todo deprecated
@@ -552,13 +552,13 @@ type FeedbackStore interface {
 	Create(ctx context.Context, key model.FeedbackKey, rating float32, description string) (model.Feedback, model.AppError)
 }
 
-type SkillPresetStore interface {
-	Create(ctx context.Context, preset *model.SkillPreset) (*model.SkillPreset, model.AppError)
-	Update(ctx context.Context, preset *model.SkillPreset) (*model.SkillPreset, model.AppError)
-	Patch(ctx context.Context, patchCmd *model.PatchSkillPresetCmd) (*model.SkillPreset, model.AppError)
-	Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) ([]*model.SkillPreset, model.AppError)
-	Search(ctx context.Context, search *model.SearchSkillPresetQuery) ([]*model.SkillPreset, model.AppError)
-	Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.SkillPreset, model.AppError)
+type OnlineSkillsStore interface {
+	Create(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError)
+	Update(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError)
+	Patch(ctx context.Context, patchCmd *model.PatchOnlineSkillsCmd) (*model.OnlineSkills, model.AppError)
+	Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) model.AppError
+	Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError)
+	Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.OnlineSkills, model.AppError)
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.
