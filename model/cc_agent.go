@@ -251,6 +251,7 @@ type AgentSession struct {
 	Status           string         `json:"status" db:"status"`
 	StatusPayload    *string        `json:"status_payload" db:"status_payload"`
 	StatusComment    *string        `json:"status_comment" db:"status_comment"`
+	OnlineStatus     *Lookup        `json:"online_status" db:"online_status"`
 	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
 	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
 	OnDemand         bool           `json:"on_demand" db:"on_demand"`
@@ -282,8 +283,8 @@ func (a *AgentCC) Valid() AppError {
 	return nil
 }
 
-func (a AgentSession) ToMap() map[string]interface{} {
-	out := make(map[string]interface{})
+func (a AgentSession) ToMap() map[string]any {
+	out := make(map[string]any)
 	data, _ := json.Marshal(a)
 	_ = json.Unmarshal(data, &out)
 	return out

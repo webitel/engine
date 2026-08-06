@@ -8,7 +8,6 @@ import (
 )
 
 func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.Session, domainId, userId int64) (*model.AgentSession, model.AppError) {
-
 	v, err := c.app.AgentCC(ctx, session.Domain(domainId), userId)
 	if err != nil {
 		return nil, err
