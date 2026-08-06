@@ -411,7 +411,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 	switch in.Status {
 	case model.AgentStatusOnline:
 		var onlineStatus *model.Lookup
-		if p := in.GetStatusPreset(); p != nil {
+		if p := in.GetOnlineSkill(); p != nil {
 			onlineStatus = &model.Lookup{Id: int(p.GetId()), Name: p.GetName()}
 		}
 

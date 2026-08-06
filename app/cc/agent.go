@@ -40,10 +40,10 @@ func (api *agentApi) OnlineWithStatus(ctx context.Context, r *model.AgentLoginRe
 	if _, err := api.Api.Online(
 		ctx,
 		&cc.OnlineRequest{
-			AgentId:  r.AgentID,
-			OnDemand: r.OnDemand,
-			DomainId: r.DomainID,
-			Status:   onlineStatus,
+			AgentId:     r.AgentID,
+			OnDemand:    r.OnDemand,
+			DomainId:    r.DomainID,
+			OnlineSkill: onlineStatus,
 		},
 	); err != nil {
 		return err
