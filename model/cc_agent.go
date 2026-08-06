@@ -555,7 +555,7 @@ func NewAgentLoginRequestFromSocketRequest(r *WebSocketRequest, sessionDomainID 
 		req.OnDemand = val
 	}
 
-	if statusVal := r.Get("status_preset"); statusVal != nil {
+	if statusVal := r.Get("online_skill"); statusVal != nil {
 		if status, ok := statusVal.(*Lookup); ok {
 			req.OnlineStatus = status
 		} else if rawMap, ok := statusVal.(map[string]any); ok {
