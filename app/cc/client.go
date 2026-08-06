@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/webitel/engine/gen/cc"
+	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt"
 	"github.com/webitel/wlog"
 )
@@ -13,6 +14,7 @@ const ServiceName = "call_center"
 
 type AgentApi interface {
 	Online(domainId, agentId int64, onDemand bool) error
+	OnlineWithStatus(ctx context.Context, r *model.AgentLoginRequest) error
 	Offline(domainId, agentId int64) error
 	Pause(domainId, agentId int64, payload, statusComment string, timeout int) error
 

@@ -39,6 +39,28 @@ func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.
 	return c.app.GetAgentSession(ctx, session.Domain(domainId), userId)
 }
 
+func (c *Controller) LoginAgentFromRequest(ctx context.Context, session *auth_manager.Session, r *model.AgentLoginRequest) model.AppError {
+	if err := r.Validate(); err != nil {
+		return err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		if perm, err := c.app.AgentCheckAccess(ctx, session.Domain(r.DomainID), r.AgentID, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return err
+		} else if !perm {
+			return c.app.MakeResourcePermissionError(session, r.AgentID, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.LoginAgentFromRequest(ctx, r)
+}
+
+// DEPRECATED
 func (c *Controller) LoginAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, onDemand bool) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
