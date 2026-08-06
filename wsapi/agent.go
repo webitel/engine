@@ -35,19 +35,18 @@ func (api *API) subscribeAgentsStatus(ctx context.Context, conn *app.WebConn, re
 	return nil, h.SubscribeSessionAgentStatus(conn, int(agentId))
 }
 
-func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var userId int64
-	var domainId int64
-	var ok bool
-	if userId, ok = req.Data["user_id"].(int64); !ok {
-		userId = conn.UserId
+func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	userID, ok := req.Get("user_id").(int64)
+	if !ok {
+		userID = conn.UserId
 	}
 
-	if domainId, ok = req.Data["domain_id"].(int64); !ok {
-		domainId = conn.DomainId
+	domainID, ok := req.Get("domain_id").(int64)
+	if !ok {
+		domainID = conn.DomainId
 	}
 
-	sess, err := api.ctrl.GetAgentSession(ctx, conn.GetSession(), domainId, userId)
+	sess, err := api.ctrl.GetAgentSession(ctx, conn.GetSession(), domainID, userID)
 	if err != nil {
 		return nil, err
 	}

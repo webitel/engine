@@ -711,7 +711,8 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) auditor,
     	a.screen_control,
-    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track
+    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+     	call_center.cc_get_lookup(os.id, os.name) as online_status
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT jsonb_agg(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
@@ -724,6 +725,7 @@ from call_center.cc_agent a
                                             'timeout', call_center.cc_view_timestamp(c.timeout))) AS x
                      FROM call_center.cc_agent_channel c
                      WHERE c.agent_id = a.id) ch ON true
+    left join call_center.cc_online_skills os on os.id = a.status_id
 where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
