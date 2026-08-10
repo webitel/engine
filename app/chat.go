@@ -2,15 +2,19 @@ package app
 
 import (
 	"context"
+	"regexp"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/chat_manager"
-	"regexp"
+	"github.com/webitel/engine/utils"
 
 	"net/url"
 )
 
-var publicStorage *url.URL
-var reErrDetail = regexp.MustCompile(`"detail":"(.*?)"`)
+var (
+	publicStorage *url.URL
+	reErrDetail   = regexp.MustCompile(`"detail":"(.*?)"`)
+)
 
 func (a *App) DeclineChat(authUserId int64, inviteId string, cause string) model.AppError {
 	chat, err := a.chatManager.Client()
@@ -63,6 +67,10 @@ func (a *App) SendTextMessage(authUserId int64, channelId, conversationId, text 
 
 	err = chat.SendText(authUserId, channelId, conversationId, text)
 	if err != nil {
+		if weer := utils.DomainErorrFromGRPC(err); weer != nil {
+			return weer
+		}
+
 		return model.NewInternalError("chat.send.text.app_err", extractErrDetail(err))
 	}
 
@@ -103,6 +111,10 @@ func (a *App) SendFileMessage(authUserId int64, channelId, conversationId string
 
 	err = chat.SendFile(authUserId, channelId, conversationId, file)
 	if err != nil {
+		if weer := utils.DomainErorrFromGRPC(err); weer != nil {
+			return weer
+		}
+
 		return model.NewInternalError("chat.send.file.app_err", extractErrDetail(err))
 	}
 
