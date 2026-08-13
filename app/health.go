@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/webitel-go-kit/infra/health"
+
+	"github.com/webitel/engine/call_manager"
 )
 
 // freeswitchCheck reports whether this node's FreeSWITCH is usable.

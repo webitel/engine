@@ -30,6 +30,7 @@ func newTestLogger(t *testing.T) (*wlog.Logger, func() string) {
 		if err != nil {
 			t.Fatalf("read log: %v", err)
 		}
+
 		return string(b)
 	}
 }
@@ -55,6 +56,7 @@ func TestWlogHandlerWritesThroughToWlog(t *testing.T) {
 	if !strings.Contains(out, "registry started") {
 		t.Errorf("message missing from wlog output: %s", out)
 	}
+
 	if !strings.Contains(out, "checks") {
 		t.Errorf("attribute missing from wlog output: %s", out)
 	}
@@ -80,13 +82,16 @@ func TestWlogHandlerLevelMapping(t *testing.T) {
 			var rec struct {
 				Level string `json:"level"`
 			}
+
 			line := strings.TrimSpace(read())
 			if line == "" {
 				t.Fatal("nothing logged")
 			}
+
 			if err := json.Unmarshal([]byte(line), &rec); err != nil {
 				t.Fatalf("log line is not JSON: %q", line)
 			}
+
 			if rec.Level != tt.want {
 				t.Errorf("level = %q, want %q", rec.Level, tt.want)
 			}
@@ -106,9 +111,11 @@ func TestWlogHandlerWithAttrsDoesNotLeak(t *testing.T) {
 	if got := len(base.(*handler).fields); got != 0 {
 		t.Errorf("base handler mutated: has %d fields, want 0", got)
 	}
+
 	if got := len(a.(*handler).fields); got != 1 {
 		t.Errorf("branch a: %d fields, want 1", got)
 	}
+
 	if got := len(b.(*handler).fields); got != 1 {
 		t.Errorf("branch b: %d fields, want 1", got)
 	}
@@ -118,6 +125,7 @@ func TestWlogHandlerWithAttrsDoesNotLeak(t *testing.T) {
 	if got := len(a.(*handler).fields); got != 1 {
 		t.Errorf("parent grew to %d fields after deriving a child", got)
 	}
+
 	if got := len(a2.(*handler).fields); got != 2 {
 		t.Errorf("child: %d fields, want 2", got)
 	}
@@ -130,10 +138,98 @@ func TestWlogHandlerWithGroupAndEmptyCases(t *testing.T) {
 	if got := base.WithAttrs(nil); got != base {
 		t.Error("WithAttrs(nil) should return the receiver unchanged")
 	}
+
 	if got := base.WithGroup(""); got != base {
 		t.Error(`WithGroup("") should return the receiver unchanged`)
 	}
-	if got := len(base.WithGroup("sub").(*handler).fields); got != 1 {
-		t.Errorf("WithGroup: %d fields, want 1", got)
+
+	// WithGroup qualifies later keys via a prefix; it emits no field of its own.
+	sub := base.WithGroup("sub").(*handler)
+	if sub.prefix != "sub." {
+		t.Errorf("prefix = %q, want %q", sub.prefix, "sub.")
+	}
+
+	if got := len(sub.fields); got != 0 {
+		t.Errorf("WithGroup should add no field, got %d", got)
+	}
+}
+
+// decode the single JSON line the logger wrote
+func logLine(t *testing.T, read func() string) map[string]any {
+	t.Helper()
+
+	line := strings.TrimSpace(read())
+	if line == "" {
+		t.Fatal("nothing logged")
+	}
+
+	var m map[string]any
+	if err := json.Unmarshal([]byte(line), &m); err != nil {
+		t.Fatalf("not JSON: %q", line)
+	}
+
+	return m
+}
+
+type resolvable struct{ v string }
+
+func (r resolvable) LogValue() slog.Value { return slog.StringValue(r.v) }
+
+func TestAttrLogValuerIsResolved(t *testing.T) {
+	log, read := newTestLogger(t)
+	slog.New(NewHandler(log)).Info("m", "k", resolvable{v: "resolved"})
+
+	if got := logLine(t, read)["k"]; got != "resolved" {
+		t.Errorf("k = %#v, want \"resolved\" — LogValuer was not resolved", got)
+	}
+}
+
+func TestAttrEmptyAndEmptyGroupAreDropped(t *testing.T) {
+	log, read := newTestLogger(t)
+	slog.New(NewHandler(log)).Info("m",
+		slog.Attr{},
+		slog.Group("empty"),
+		slog.String("kept", "yes"),
+	)
+
+	m := logLine(t, read)
+	if _, ok := m["empty"]; ok {
+		t.Error("an empty group was emitted")
+	}
+
+	if m["kept"] != "yes" {
+		t.Errorf("real attr lost: %#v", m)
+	}
+}
+
+func TestAttrNamedGroupIsQualified(t *testing.T) {
+	log, read := newTestLogger(t)
+	slog.New(NewHandler(log)).Info("m", slog.Group("db", slog.String("host", "h")))
+
+	if got := logLine(t, read)["db.host"]; got != "h" {
+		t.Errorf("want db.host=h, got %#v", got)
+	}
+}
+
+// A group with an empty key contributes no qualifier.
+func TestAttrEmptyKeyGroupIsInlined(t *testing.T) {
+	log, read := newTestLogger(t)
+	slog.New(NewHandler(log)).Info("m", slog.Group("", slog.String("host", "h")))
+
+	m := logLine(t, read)
+	if got := m["host"]; got != "h" {
+		t.Errorf("want host=h inlined, got %#v", m)
+	}
+}
+
+// Sibling groups must sit beside each other, not nest.
+func TestWithGroupSiblingsDoNotNest(t *testing.T) {
+	log, read := newTestLogger(t)
+	base := slog.New(NewHandler(log))
+	base.WithGroup("a").With("x", 1).WithGroup("b").Info("m", "y", 2)
+
+	m := logLine(t, read)
+	if m["a.x"] == nil || m["a.b.y"] == nil {
+		t.Errorf("want a.x and a.b.y, got %#v", m)
 	}
 }

@@ -9,6 +9,16 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.uber.org/atomic"
+
+	"github.com/webitel/webitel-go-kit/infra/health"
+	healthhttp "github.com/webitel/webitel-go-kit/infra/health/http"
+	"github.com/webitel/webitel-go-kit/infra/health/sdnotify"
+	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
+	"github.com/webitel/wlog"
+
 	"github.com/webitel/engine/app/cc"
 	"github.com/webitel/engine/app/flow"
 	"github.com/webitel/engine/call_manager"
@@ -22,14 +32,6 @@ import (
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
 	"github.com/webitel/engine/wlogslog"
-	"github.com/webitel/webitel-go-kit/infra/health"
-	healthhttp "github.com/webitel/webitel-go-kit/infra/health/http"
-	"github.com/webitel/webitel-go-kit/infra/health/sdnotify"
-	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
-	"github.com/webitel/wlog"
-	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"go.uber.org/atomic"
 
 	// -------------------- plugin(s) -------------------- //
 	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/otlp"
@@ -74,7 +76,6 @@ type App struct {
 }
 
 func New(options ...string) (outApp *App, outErr error) {
-
 	config, err := loadConfig()
 	if err != nil {
 		return nil, err
@@ -133,6 +134,36 @@ func New(options ...string) (outApp *App, outErr error) {
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
+	// Health starts here, before anything slow. systemd counts
+	// TimeoutStartSec from ExecStart, so WithStartTimeout has to be measured
+	// from about the same moment — start the notifier after the managers and
+	// its fallback READY=1 can land after systemd has already given up. The
+	// registry reports not-ready until checks are registered further down,
+	// which is what a booting node should say.
+	healthLog := slog.New(wlogslog.NewHandler(app.Log))
+	app.health = health.New(health.DefaultConfig(), healthLog)
+
+	// app.ctx: Start's context is the scheduler's lifetime, so a short-lived
+	// one would silently stop every check.
+	if err := app.health.Start(app.ctx); err != nil {
+		return nil, fmt.Errorf("unable to start health registry: %w", err)
+	}
+
+	// 60s leaves 30s of margin under the unit's TimeoutStartSec=90.
+	// nil when NOTIFY_SOCKET is unset; Start and Stop are both nil-safe.
+	app.sdNotify = sdnotify.New(app.health,
+		sdnotify.WithLogger(healthLog),
+		sdnotify.WithStartTimeout(60*time.Second),
+	)
+	if err := app.sdNotify.Start(app.ctx); err != nil {
+		return nil, fmt.Errorf("unable to start sd_notify: %w", err)
+	}
+
+	// RootRouter, not the API subrouter: probes answer without a token.
+	app.Srv.RootRouter.Handle("/livez", healthhttp.LivenessHandler(app.health, healthhttp.WithLogger(healthLog)))
+	app.Srv.RootRouter.Handle("/readyz", healthhttp.ReadinessHandler(app.health, healthhttp.WithLogger(healthLog)))
+	app.Srv.RootRouter.Handle("/healthz", healthhttp.HealthHandler(app.health, healthhttp.WithLogger(healthLog)))
+
 	if err := app.setupCipher(); err != nil {
 		return nil, err
 	}
@@ -184,16 +215,6 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.GrpcServer = NewGrpcServer(app, app.Config().ServerSettings)
 
-	// Must exist before cluster.Start, which hands the verdict to Consul.
-	// Checks are registered at the end of New, once every manager exists.
-	healthLog := slog.New(wlogslog.NewHandler(app.Log))
-	app.health = health.New(health.DefaultConfig(), healthLog)
-
-	// RootRouter, not the API subrouter: probes answer without a token.
-	app.Srv.RootRouter.Handle("/livez", healthhttp.LivenessHandler(app.health, healthhttp.WithLogger(healthLog)))
-	app.Srv.RootRouter.Handle("/readyz", healthhttp.ReadinessHandler(app.health, healthhttp.WithLogger(healthLog)))
-	app.Srv.RootRouter.Handle("/healthz", healthhttp.HealthHandler(app.health, healthhttp.WithLogger(healthLog)))
-
 	if outErr = app.cluster.Start(); outErr != nil {
 		return nil, outErr
 	}
@@ -244,25 +265,11 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.health.Informational("postgres", func(ctx context.Context) error {
 		return sqlSupplier.GetMaster().Db.PingContext(ctx)
 	})
+
 	if p, ok := app.MessageQueue.(interface {
 		Ping(context.Context) error
 	}); ok {
 		app.health.Informational("rabbitmq", p.Ping)
-	}
-
-	// app.ctx: Start's context is the scheduler's lifetime, so a short-lived
-	// one would silently stop every check.
-	if err := app.health.Start(app.ctx); err != nil {
-		return nil, fmt.Errorf("unable to start health registry: %w", err)
-	}
-
-	// nil when NOTIFY_SOCKET is unset; Start and Stop are both nil-safe.
-	app.sdNotify = sdnotify.New(app.health,
-		sdnotify.WithLogger(healthLog),
-		sdnotify.WithStartTimeout(90*time.Second),
-	)
-	if err := app.sdNotify.Start(app.ctx); err != nil {
-		return nil, fmt.Errorf("unable to start sd_notify: %w", err)
 	}
 
 	return app, outErr
@@ -329,7 +336,7 @@ func (app *App) CallManager() call_manager.CallManager {
 // Ready reports whether this node can take traffic, per the health registry.
 func (app *App) Ready() (bool, model.AppError) {
 	if app.health == nil {
-		return false, model.NewInternalError("app.ready.no_registry", "health registry is not initialised")
+		return false, model.NewInternalError("app.ready.no_registry", "health registry is not initialized")
 	}
 
 	ok, err := app.health.ReadyFunc()()
@@ -395,11 +402,11 @@ func formatDomainEventKey(event *DomainEvent) (string, error) {
 	if event.Object == "" {
 		return "", errors.New("object required")
 	}
+
 	if event.EventType == "" {
 		return "", errors.New("event type required")
 	}
 	return fmt.Sprintf("%s.%s.%d", event.Object, event.EventType, event.DomainID), nil
-
 }
 
 func (a *App) SendDomainEvent(ctx context.Context, event *DomainEvent) error {

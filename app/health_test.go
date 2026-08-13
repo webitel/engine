@@ -10,6 +10,7 @@ import (
 
 type fakeCallClient struct {
 	call_manager.CallClient
+
 	ready bool
 }
 
@@ -17,6 +18,7 @@ func (f *fakeCallClient) Ready() bool { return f.ready }
 
 type fakeCallManager struct {
 	call_manager.CallManager
+
 	cli call_manager.CallClient
 	err model.AppError
 }
@@ -61,6 +63,7 @@ func TestFreeswitchCheck(t *testing.T) {
 // TTL updater treats a non-nil error as safe to call .Error() on.
 func TestFreeswitchCheckNoTypedNilError(t *testing.T) {
 	var nilAppErr model.AppError // nil interface value of a concrete-free type
+
 	cm := &fakeCallManager{cli: &fakeCallClient{ready: true}, err: nilAppErr}
 
 	if err := freeswitchCheck(cm)(context.Background()); err != nil {
