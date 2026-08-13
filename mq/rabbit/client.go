@@ -3,6 +3,7 @@ package rabbit
 import (
 	"context"
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"os"
 	"sync"
@@ -30,6 +31,13 @@ const (
 
 const (
 	callServiceHangupData = `{"hangup_by":"service","cause":"SYSTEM_SHUTDOWN","sip":501}`
+)
+
+// Stdlib errors: this file's `errors` is github.com/pkg/errors, whose New
+// attaches a stack trace — too noisy for a check that runs every few seconds.
+var (
+	errConnectionClosed = stderrors.New("amqp: connection is closed")
+	errChannelClosed    = stderrors.New("amqp: channel is closed")
 )
 
 var errMaxRegisterQueueSize = model.NewInternalError("amqp.register_domain.max_queue_size", "")
@@ -86,6 +94,24 @@ func (a *AMQP) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (mq
 func (a *AMQP) Start() {
 	a.initConnection()
 	go a.Listen()
+}
+
+// Ping reports whether the broker connection is usable, read off the cached
+// connection rather than dialing. Reached by an anonymous interface assertion
+// so mq.MQ need not grow a method.
+func (a *AMQP) Ping(context.Context) error {
+	a.mx.Lock()
+	defer a.mx.Unlock()
+
+	if a.connection == nil || a.connection.IsClosed() {
+		return errConnectionClosed
+	}
+
+	if a.channel == nil || a.channel.IsClosed() {
+		return errChannelClosed
+	}
+
+	return nil
 }
 
 func (a *AMQP) addDomainQueue(id int64, q mq.DomainQueue) {

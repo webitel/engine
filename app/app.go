@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -20,6 +21,10 @@ import (
 	"github.com/webitel/engine/pkg/wbt/chat_manager"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
+	"github.com/webitel/engine/wlogslog"
+	"github.com/webitel/webitel-go-kit/infra/health"
+	healthhttp "github.com/webitel/webitel-go-kit/infra/health/http"
+	"github.com/webitel/webitel-go-kit/infra/health/sdnotify"
 	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
 	"github.com/webitel/wlog"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -64,6 +69,8 @@ type App struct {
 	tracer           *Tracer
 	otelShutdownFunc otelsdk.ShutdownFunc
 	eventTrigger     EventTrigger
+	health           *health.Registry
+	sdNotify         *sdnotify.Notifier
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -164,7 +171,9 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
-	app.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings))
+	// Concrete handle: store.Store does not expose GetMaster.
+	sqlSupplier := sqlstore.NewSqlSupplier(app.Config().SqlSettings)
+	app.Store = store.NewLayeredStore(sqlSupplier)
 
 	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)
 	app.MessageQueue.Start()
@@ -174,6 +183,16 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.Hubs.Clean()
 
 	app.GrpcServer = NewGrpcServer(app, app.Config().ServerSettings)
+
+	// Must exist before cluster.Start, which hands the verdict to Consul.
+	// Checks are registered at the end of New, once every manager exists.
+	healthLog := slog.New(wlogslog.NewHandler(app.Log))
+	app.health = health.New(health.DefaultConfig(), healthLog)
+
+	// RootRouter, not the API subrouter: probes answer without a token.
+	app.Srv.RootRouter.Handle("/livez", healthhttp.LivenessHandler(app.health, healthhttp.WithLogger(healthLog)))
+	app.Srv.RootRouter.Handle("/readyz", healthhttp.ReadinessHandler(app.health, healthhttp.WithLogger(healthLog)))
+	app.Srv.RootRouter.Handle("/healthz", healthhttp.HealthHandler(app.health, healthhttp.WithLogger(healthLog)))
 
 	if outErr = app.cluster.Start(); outErr != nil {
 		return nil, outErr
@@ -217,11 +236,54 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
+	// Critical is for node-local faults only: a shared dependency marked
+	// critical would take the whole fleet out of rotation at once. Consul is
+	// deliberately unchecked — the verdict travels through it.
+	app.health.Critical("grpc", health.ListenerCheck(app.GrpcServer.Listener()))
+	app.health.Critical("freeswitch", freeswitchCheck(app.callManager))
+	app.health.Informational("postgres", func(ctx context.Context) error {
+		return sqlSupplier.GetMaster().Db.PingContext(ctx)
+	})
+	if p, ok := app.MessageQueue.(interface {
+		Ping(context.Context) error
+	}); ok {
+		app.health.Informational("rabbitmq", p.Ping)
+	}
+
+	// app.ctx: Start's context is the scheduler's lifetime, so a short-lived
+	// one would silently stop every check.
+	if err := app.health.Start(app.ctx); err != nil {
+		return nil, fmt.Errorf("unable to start health registry: %w", err)
+	}
+
+	// nil when NOTIFY_SOCKET is unset; Start and Stop are both nil-safe.
+	app.sdNotify = sdnotify.New(app.health,
+		sdnotify.WithLogger(healthLog),
+		sdnotify.WithStartTimeout(90*time.Second),
+	)
+	if err := app.sdNotify.Start(app.ctx); err != nil {
+		return nil, fmt.Errorf("unable to start sd_notify: %w", err)
+	}
+
 	return app, outErr
 }
 
 func (app *App) Shutdown() {
 	wlog.Info("stopping Server...")
+
+	// Drain before anything is torn down, so the node stops advertising
+	// readiness while its dependencies are still up. The DrainHold wait happens
+	// inside Stop: 12s clears the 10s hold and fits TimeoutStopSec=30. Stop also
+	// halts the scheduler before MessageQueue.Close, so the rabbitmq check
+	// cannot race a closing connection.
+	if app.health != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+		if err := health.Shutdown(ctx, app.health, app.sdNotify); err != nil {
+			wlog.Error(fmt.Sprintf("health shutdown: %s", err.Error()))
+		}
+
+		cancel()
+	}
 
 	if app.Hubs != nil {
 		app.Hubs.Clean()
@@ -264,9 +326,23 @@ func (app *App) CallManager() call_manager.CallManager {
 	return app.callManager
 }
 
+// Ready reports whether this node can take traffic, per the health registry.
 func (app *App) Ready() (bool, model.AppError) {
-	//TODO
-	return true, nil
+	if app.health == nil {
+		return false, model.NewInternalError("app.ready.no_registry", "health registry is not initialised")
+	}
+
+	ok, err := app.health.ReadyFunc()()
+	if ok {
+		return true, nil
+	}
+
+	reason := "not ready"
+	if err != nil {
+		reason = err.Error()
+	}
+
+	return false, model.NewInternalError("app.ready.not_ready", reason)
 }
 
 // DEPRECATED use SendDomainEvent instead
@@ -285,18 +361,18 @@ func (a *App) PublishEventContext(ctx context.Context, body []byte, object strin
 type DomainEventType string
 
 const (
-	CreateType DomainEventType  = "create"
+	CreateType DomainEventType = "create"
 	DeleteType DomainEventType = "delete"
 	UpdateType DomainEventType = "update"
 )
 
 type DomainEvent struct {
-	DomainID int64
-	Object string
+	DomainID  int64
+	Object    string
 	EventType DomainEventType
-	User int64
-	Time time.Time
-	Body any
+	User      int64
+	Time      time.Time
+	Body      any
 }
 
 func (d *DomainEvent) Validate() error {
@@ -319,11 +395,11 @@ func formatDomainEventKey(event *DomainEvent) (string, error) {
 	if event.Object == "" {
 		return "", errors.New("object required")
 	}
-	if event.EventType== "" {
+	if event.EventType == "" {
 		return "", errors.New("event type required")
 	}
 	return fmt.Sprintf("%s.%s.%d", event.Object, event.EventType, event.DomainID), nil
-	
+
 }
 
 func (a *App) SendDomainEvent(ctx context.Context, event *DomainEvent) error {
@@ -340,6 +416,6 @@ func (a *App) SendDomainEvent(ctx context.Context, event *DomainEvent) error {
 	if err != nil {
 		return err
 	}
-		
+
 	return a.MessageQueue.Send(ctx, EventExchangeName, routingKey, body)
 }

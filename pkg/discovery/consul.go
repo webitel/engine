@@ -123,16 +123,34 @@ func (c *consul) register(as *api.AgentServiceRegistration) error {
 	return nil
 }
 
+// ttlVerdict maps a health verdict to a Consul TTL status and output.
+// (false, nil) should not occur, but it is engine that crashes if it does —
+// this branch previously called err.Error() unconditionally.
+func ttlVerdict(ok bool, err error) (pass bool, output string) {
+	if ok {
+		return true, "ready..."
+	}
+
+	if err == nil {
+		return false, "not ready"
+	}
+
+	return false, err.Error()
+}
+
 func (c *consul) update(as *api.AgentServiceRegistration) {
-	ok, err := c.check()
-	if !ok {
-		if agentErr := c.agent.FailTTL(c.checkId, err.Error()); agentErr != nil {
+	pass, output := ttlVerdict(c.check())
+
+	if pass {
+		if agentErr := c.agent.PassTTL(c.checkId, output); agentErr != nil {
 			c.handlePassTTLError(agentErr, as)
 		}
-	} else {
-		if agentErr := c.agent.PassTTL(c.checkId, "ready..."); agentErr != nil {
-			c.handlePassTTLError(agentErr, as)
-		}
+
+		return
+	}
+
+	if agentErr := c.agent.FailTTL(c.checkId, output); agentErr != nil {
+		c.handlePassTTLError(agentErr, as)
 	}
 }
 
