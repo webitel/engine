@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"golang.org/x/oauth2"
 
 	"github.com/webitel/engine/model"
@@ -68,12 +69,12 @@ FROM t
 		"Imap":          p.ImapPort,
 		"Smtp":          p.SmtpPort,
 		"Login":         p.Login,
-		"Pass":          p.Password,
+		"Pass":          encryptText(p.Password, schemaTableEmailAccount, "password"),
 		"CreatedBy":     p.CreatedBy.GetSafeId(),
 		"UpdatedBy":     p.UpdatedBy.GetSafeId(),
 		"AuthType":      p.AuthType,
 		"Listen":        p.Listen,
-		"Params":        p.Params.Json(),
+		"Params":        encryptJSONSchema(json.RawMessage(p.Params.Json()), schemaTableEmailAccount, "params"),
 	})
 
 	if err != nil {
@@ -125,7 +126,7 @@ func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (
 		   t.description,
 		   t.enabled,
 		   t.password,
-           t.auth_type,
+       t.auth_type,
 		   t.listen,
 		   t.params,
 		   t.token->>'expiry' notnull and t.token->>'access_token' notnull as logged
@@ -148,26 +149,26 @@ func (s SqlEmailProfileStore) Get(ctx context.Context, domainId int64, id int) (
 func (s SqlEmailProfileStore) Update(ctx context.Context, domainId int64, p *model.EmailProfile) (*model.EmailProfile, model.AppError) {
 	var profile *model.EmailProfile
 	err := s.GetMaster().WithContext(ctx).SelectOne(&profile, `with t as (
-    update call_center.cc_email_profile
-        set name = :Name,
+    update call_center.cc_email_profile set
+			name = :Name,
 			description= :Description,
 			flow_id = :FlowId,
-            imap_host = :ImapHost,
-            login = :Login,
-            password = :Pass,
-            mailbox = :Mailbox,
-            smtp_port = :Smtp,
-            imap_port = :Imap,
-		    enabled = :Enabled,
-            updated_by = :UpdatedBy,
-            updated_at = now(),
+      imap_host = :ImapHost,
+      login = :Login,
+      password = :Pass,
+      mailbox = :Mailbox,
+      smtp_port = :Smtp,
+      imap_port = :Imap,
+		  enabled = :Enabled,
+      updated_by = :UpdatedBy,
+      updated_at = now(),
 			smtp_host = :SmtpHost,
 			fetch_interval = :FetchInterval,
-            auth_type = :AuthType,
+      auth_type = :AuthType,
 			"listen" = :Listen,
-            params = case when not :Params::jsonb isnull then :Params::jsonb end 
-        where id = :Id and domain_id = :DomainId
-        returning *
+      params = case when not :Params::jsonb isnull then :Params::jsonb end 
+    where id = :Id and domain_id = :DomainId
+    returning *
 )
 SELECT t.id,
        t.domain_id,
@@ -204,7 +205,7 @@ FROM t
 		"FlowId":        p.Schema.Id,
 		"ImapHost":      p.ImapHost,
 		"Login":         p.Login,
-		"Pass":          p.Password,
+		"Pass":          encryptText(p.Password, schemaTableEmailAccount, "password"),
 		"Mailbox":       p.Mailbox,
 		"Smtp":          p.SmtpPort,
 		"Imap":          p.ImapPort,
@@ -215,7 +216,7 @@ FROM t
 		"FetchInterval": p.FetchInterval,
 		"AuthType":      p.AuthType,
 		"Listen":        p.Listen,
-		"Params":        p.Params.Json(),
+		"Params":        encryptJSONSchema(json.RawMessage(p.Params.Json()), schemaTableEmailAccount, "params"),
 	})
 
 	if err != nil {
@@ -226,7 +227,7 @@ FROM t
 }
 
 func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int) model.AppError {
-	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_email_profile_rc c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_email_profile.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
@@ -235,9 +236,14 @@ func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int
 
 func (s SqlEmailProfileStore) SetupOAuth2(ctx context.Context, id int, token *oauth2.Token) model.AppError {
 
-	data, _ := json.Marshal(token)
+	// data, _ := json.Marshal(token)
+	data, err := encryptJSONSchema(token, schemaTableEmailAccount, "token").Value()
+	if err != nil {
+		// failed to encrypt sensitive data
+		return model.NewCustomCodeError("store.sql_email_profile.oauth.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
+	}
 
-	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_email_profile
+	_, err = s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_email_profile
 set token = :Token
 where id = :Id;`, map[string]interface{}{
 		"Id":    id,
