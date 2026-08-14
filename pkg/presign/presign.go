@@ -40,7 +40,7 @@ func hash(msg []byte) []byte {
 	return hash
 }
 
-func NewPreSigned(pemLocation string) (PreSign, error) {
+func NewPrivateKey(pemLocation string) (PreSign, error) {
 	var pkey *rsa.PrivateKey
 	cert, err := ioutil.ReadFile(pemLocation)
 	if err != nil {
@@ -63,7 +63,7 @@ func NewPreSigned(pemLocation string) (PreSign, error) {
 	case "RSA PRIVATE KEY":
 		pkey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
 	default:
-		return nil, errors.New(fmt.Sprintf("Unknown block type \"%s\"", block.Type))
+		return nil, fmt.Errorf("Unknown block type \"%s\"", block.Type)
 	}
 
 	if err != nil {
