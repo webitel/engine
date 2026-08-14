@@ -134,26 +134,19 @@ func New(options ...string) (outApp *App, outErr error) {
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
 
-	// Health starts here, before anything slow. systemd counts
-	// TimeoutStartSec from ExecStart, so WithStartTimeout has to be measured
-	// from about the same moment — start the notifier after the managers and
-	// its fallback READY=1 can land after systemd has already given up. The
-	// registry reports not-ready until checks are registered further down,
-	// which is what a booting node should say.
+	// Before anything slow: systemd counts TimeoutStartSec from ExecStart.
 	healthLog := slog.New(wlogslog.NewHandler(app.Log))
 	app.health = health.New(health.DefaultConfig(), healthLog)
 
-	// app.ctx: Start's context is the scheduler's lifetime, so a short-lived
-	// one would silently stop every check.
+	// app.ctx: a short-lived context would stop every check.
 	if err := app.health.Start(app.ctx); err != nil {
 		return nil, fmt.Errorf("unable to start health registry: %w", err)
 	}
 
-	// 60s leaves 30s of margin under the unit's TimeoutStartSec=90.
 	// nil when NOTIFY_SOCKET is unset; Start and Stop are both nil-safe.
 	app.sdNotify = sdnotify.New(app.health,
 		sdnotify.WithLogger(healthLog),
-		sdnotify.WithStartTimeout(60*time.Second),
+		sdnotify.WithStartTimeout(time.Duration(config.Health.StartTimeout)*time.Second),
 	)
 	if err := app.sdNotify.Start(app.ctx); err != nil {
 		return nil, fmt.Errorf("unable to start sd_notify: %w", err)
@@ -202,7 +195,7 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
-	// Concrete handle: store.Store does not expose GetMaster.
+	// Concrete handle: store.Store does not expose Ping.
 	sqlSupplier := sqlstore.NewSqlSupplier(app.Config().SqlSettings)
 	app.Store = store.NewLayeredStore(sqlSupplier)
 
@@ -257,20 +250,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
-	// Critical is for node-local faults only: a shared dependency marked
-	// critical would take the whole fleet out of rotation at once. Consul is
-	// deliberately unchecked — the verdict travels through it.
+	// Critical is node-local only: a shared one drops the whole fleet at once.
 	app.health.Critical("grpc", health.ListenerCheck(app.GrpcServer.Listener()))
-	app.health.Critical("freeswitch", freeswitchCheck(app.callManager))
-	app.health.Informational("postgres", func(ctx context.Context) error {
-		return sqlSupplier.GetMaster().Db.PingContext(ctx)
-	})
-
-	if p, ok := app.MessageQueue.(interface {
-		Ping(context.Context) error
-	}); ok {
-		app.health.Informational("rabbitmq", p.Ping)
-	}
+	app.health.Critical("freeswitch", app.callManager.Ready)
+	app.health.Informational("postgres", sqlSupplier.Ping)
+	app.health.Informational("rabbitmq", app.MessageQueue.Ping)
 
 	return app, outErr
 }
@@ -278,13 +262,10 @@ func New(options ...string) (outApp *App, outErr error) {
 func (app *App) Shutdown() {
 	wlog.Info("stopping Server...")
 
-	// Drain before anything is torn down, so the node stops advertising
-	// readiness while its dependencies are still up. The DrainHold wait happens
-	// inside Stop: 12s clears the 10s hold and fits TimeoutStopSec=30. Stop also
-	// halts the scheduler before MessageQueue.Close, so the rabbitmq check
-	// cannot race a closing connection.
+	// First: stop advertising readiness before anything is torn down.
 	if app.health != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(),
+			time.Duration(app.config.Health.StopTimeout)*time.Second)
 		if err := health.Shutdown(ctx, app.health, app.sdNotify); err != nil {
 			wlog.Error(fmt.Sprintf("health shutdown: %s", err.Error()))
 		}

@@ -12,8 +12,7 @@ import (
 	"github.com/webitel/wlog"
 )
 
-// newTestLogger returns a wlog logger writing JSON to a temp file, plus a
-// reader for whatever it wrote.
+// newTestLogger returns a wlog logger writing JSON to a temp file, plus a reader.
 func newTestLogger(t *testing.T) (*wlog.Logger, func() string) {
 	t.Helper()
 
@@ -36,8 +35,7 @@ func newTestLogger(t *testing.T) (*wlog.Logger, func() string) {
 }
 
 func TestWlogHandlerEnabledAlwaysTrue(t *testing.T) {
-	// wlog exposes no level query, so the handler must not filter — otherwise
-	// it would silently drop records wlog would have kept.
+	// wlog exposes no level query, so the handler must not filter.
 	log, _ := newTestLogger(t)
 	h := NewHandler(log)
 
@@ -99,8 +97,7 @@ func TestWlogHandlerLevelMapping(t *testing.T) {
 	}
 }
 
-// slog's contract says a handler must be safe to share, so WithAttrs must copy.
-// Mutating in place would leak attributes between unrelated loggers.
+// Handlers must be safe to share, so WithAttrs must copy rather than mutate.
 func TestWlogHandlerWithAttrsDoesNotLeak(t *testing.T) {
 	log, _ := newTestLogger(t)
 	base := NewHandler(log)
@@ -208,6 +205,16 @@ func TestAttrNamedGroupIsQualified(t *testing.T) {
 
 	if got := logLine(t, read)["db.host"]; got != "h" {
 		t.Errorf("want db.host=h, got %#v", got)
+	}
+}
+
+// Only a wholly empty Attr is dropped; an empty key carrying a value is not.
+func TestAttrEmptyKeyWithValueIsKept(t *testing.T) {
+	log, read := newTestLogger(t)
+	slog.New(NewHandler(log)).Info("m", slog.String("", "v"))
+
+	if got := logLine(t, read)[""]; got != "v" {
+		t.Errorf(`want ""="v", got %#v`, got)
 	}
 }
 

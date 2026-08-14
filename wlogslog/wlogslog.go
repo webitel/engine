@@ -1,5 +1,4 @@
-// Package wlogslog bridges log/slog to wlog, for libraries that take a
-// *slog.Logger. It has no engine dependencies.
+// Package wlogslog bridges log/slog to wlog, for libraries that take a *slog.Logger.
 package wlogslog
 
 import (
@@ -12,10 +11,8 @@ import (
 type handler struct {
 	log    *wlog.Logger
 	fields []wlog.Field
-	// prefix is the accumulated group path, "" or "a.b." with a trailing dot.
-	// Groups are flattened into dotted keys rather than wlog.Namespace: a zap
-	// namespace stays open, so a later sibling group would nest inside the
-	// earlier one instead of beside it.
+	// prefix is the accumulated group path, "" or "a.b.". Dotted keys rather
+	// than wlog.Namespace: a zap namespace stays open, so siblings would nest.
 	prefix string
 }
 
@@ -80,9 +77,8 @@ func (h *handler) WithGroup(name string) slog.Handler {
 	return &handler{log: h.log, fields: fields, prefix: h.prefix + name + "."}
 }
 
-// appendAttr converts one slog.Attr, following the slog contract: resolve
-// LogValuer, drop empty attrs, drop empty groups, and inline a group with an
-// empty key rather than qualifying its children.
+// appendAttr follows the slog contract: resolve LogValuer, drop wholly empty
+// attrs and empty groups, inline a group whose key is empty.
 func appendAttr(fields []wlog.Field, a slog.Attr, prefix string) []wlog.Field {
 	a.Value = a.Value.Resolve()
 
@@ -104,10 +100,6 @@ func appendAttr(fields []wlog.Field, a slog.Attr, prefix string) []wlog.Field {
 			fields = appendAttr(fields, ga, prefix)
 		}
 
-		return fields
-	}
-
-	if a.Key == "" {
 		return fields
 	}
 

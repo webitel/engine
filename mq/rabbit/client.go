@@ -33,8 +33,7 @@ const (
 	callServiceHangupData = `{"hangup_by":"service","cause":"SYSTEM_SHUTDOWN","sip":501}`
 )
 
-// Stdlib errors: this file's `errors` is github.com/pkg/errors, whose New
-// attaches a stack trace — too noisy for a check that runs every few seconds.
+// Stdlib errors: this file's `errors` is pkg/errors, which attaches stack traces.
 var (
 	errConnectionClosed = stderrors.New("amqp: connection is closed")
 	errChannelClosed    = stderrors.New("amqp: channel is closed")
@@ -96,9 +95,7 @@ func (a *AMQP) Start() {
 	go a.Listen()
 }
 
-// Ping reports whether the broker connection is usable, read off the cached
-// connection rather than dialing. Reached by an anonymous interface assertion
-// so mq.MQ need not grow a method.
+// Ping reads the cached connection's state; it does not dial.
 func (a *AMQP) Ping(context.Context) error {
 	a.mx.Lock()
 	defer a.mx.Unlock()

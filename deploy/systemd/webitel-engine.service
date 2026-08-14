@@ -5,10 +5,6 @@ StartLimitIntervalSec=60
 StartLimitBurst=3
 
 [Service]
-# Type=notify: the health registry reports READY=1 once every critical check is
-# green. WatchdogSec is deliberately absent — it stays off until it can be
-# turned on together with the restart policy, or a wedged node either loops on
-# restarts or parks in failed.
 Type=notify
 User=webitel
 Group=webitel
@@ -24,9 +20,7 @@ Restart=on-failure
 RestartSec=5
 KillMode=mixed
 KillSignal=SIGTERM
-# Finite, because under Type=notify a node whose critical check never goes
-# green would otherwise sit in activating forever. sdnotify.WithStartTimeout
-# matches this and sends READY=1 with STATUS=starting degraded instead.
+# Must exceed HEALTH_START_TIMEOUT, or the fallback READY=1 lands too late.
 TimeoutStartSec=90
 TimeoutStopSec=30
 LimitNOFILE=64000

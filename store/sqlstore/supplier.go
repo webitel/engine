@@ -278,6 +278,11 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 	return ss.master
 }
 
+// Ping reports whether the master connection is usable.
+func (s *SqlSupplier) Ping(ctx context.Context) error {
+	return s.master.Db.PingContext(ctx)
+}
+
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
 		return ss.GetMaster()
