@@ -71,7 +71,7 @@ func (s *SqlOnlineSkillsStore) Create(ctx context.Context, preset *model.OnlineS
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
 		if e, ok := err.(*pq.Error); ok {
 			if e.Code == DuplicationViolationErrorCode {
-				return nil, model.NewBadRequestError("sqlstore.online_skills_store.create_already_exists", "Online skills with this name already exists.")
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.create.already_exists", "Online skills with this name already exists.")
 			}
 		}
 
@@ -151,6 +151,12 @@ func (s *SqlOnlineSkillsStore) Update(ctx context.Context, preset *model.OnlineS
 
 	var result *model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
+		if e, ok := err.(*pq.Error); ok {
+			if e.Code == DuplicationViolationErrorCode {
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.update.already_exists", "Online skills with this name already exists.")
+			}
+		}
+
 		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.update", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -197,6 +203,12 @@ func (s *SqlOnlineSkillsStore) Patch(ctx context.Context, patchCmd *model.PatchO
 
 	var result model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
+		if e, ok := err.(*pq.Error); ok {
+			if e.Code == DuplicationViolationErrorCode {
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.patch.already_exists", "Online skills with this name already exists.")
+			}
+		}
+
 		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.patch", err.Error(), extractCodeFromErr(err))
 	}
 
