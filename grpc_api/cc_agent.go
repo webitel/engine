@@ -417,7 +417,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 		}
 
 		err = api.ctrl.LoginAgentFromRequest(ctx, session, &model.AgentLoginRequest{
-			AgentID:      agentId,
+			AgentID:      in.GetId(),
 			OnDemand:     in.GetOnDemand(),
 			OnlineStatus: onlineStatus,
 			DomainID:     cmp.Or(in.GetDomainId(), session.Domain(0)),
