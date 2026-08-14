@@ -231,6 +231,11 @@ func (s *SqlOnlineSkillsStore) Delete(ctx context.Context, deleteCmd *model.Dele
 }
 
 func (s *SqlOnlineSkillsStore) Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError) {
+	q := search.GetQ()
+	if q != nil && *q != "" {
+		*q = "%" + *q
+	}
+
 	query := `
 		"domain_id" = :DomainID
 		and (:IDs::int[] is null or "id" = any(:IDs::int[]))
@@ -250,7 +255,7 @@ func (s *SqlOnlineSkillsStore) Search(ctx context.Context, search *model.SearchO
 		"DomainID":    search.DomainId,
 		"IDs":         pq.Int64Array(search.IDs),
 		"SkillIDs":    pq.Int64Array(search.SkillIDs),
-		"Q":           search.GetQ(),
+		"Q":           q,
 		"SkipDefault": search.SkipDefault,
 	}
 
