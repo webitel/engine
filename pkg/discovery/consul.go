@@ -124,8 +124,7 @@ func (c *consul) register(as *api.AgentServiceRegistration) error {
 }
 
 // ttlVerdict maps a health verdict to a Consul TTL status and output.
-// (false, nil) should not occur, but it is engine that crashes if it does —
-// this branch previously called err.Error() unconditionally.
+// (false, nil) should not occur, but it is engine that crashes if it does.
 func ttlVerdict(ok bool, err error) (pass bool, output string) {
 	if ok {
 		return true, "ready..."
@@ -154,18 +153,31 @@ func (c *consul) update(as *api.AgentServiceRegistration) {
 	}
 }
 
+// shouldReregister reports whether a TTL update failure means the agent no
+// longer holds our registration. 404 is the one that matters now that
+// readiness can be false: Consul drops the service after
+// DeregisterCriticalServiceAfter, and without this the node stays healthy but
+// invisible to discovery forever.
+func shouldReregister(err error) bool {
+	var status api.StatusError
+	if !errors.As(err, &status) {
+		return false
+	}
+
+	return status.Code == http.StatusInternalServerError || status.Code == http.StatusNotFound
+}
+
 func (c *consul) handlePassTTLError(err error, as *api.AgentServiceRegistration) {
-	switch wrapErr := err.(type) {
-	case api.StatusError:
-		if wrapErr.Code == http.StatusInternalServerError {
-			// reconnect ?
-			wlog.Info(fmt.Sprintf("reconnect consul service id: %s", c.id))
-			if e := c.register(as); e != nil {
-				wlog.Error(fmt.Sprintf("reconnect consul service %s error: %s", c.id, e.Error()))
-			}
-		}
-	default:
+	if !shouldReregister(err) {
 		wlog.Error(err.Error())
+
+		return
+	}
+
+	wlog.Info(fmt.Sprintf("reconnect consul service id: %s", c.id))
+
+	if e := c.register(as); e != nil {
+		wlog.Error(fmt.Sprintf("reconnect consul service %s error: %s", c.id, e.Error()))
 	}
 }
 

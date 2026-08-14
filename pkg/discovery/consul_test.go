@@ -2,17 +2,14 @@ package discovery
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 	"testing"
+
+	"github.com/hashicorp/consul/api"
 )
 
-// TestTTLVerdict covers the three shapes a health verdict can take on its way
-// to Consul's TTL check.
-//
-// The case that matters is (false, nil). The health package promises a false
-// verdict always carries a non-nil error, but engine is what panics if that
-// promise is ever broken — update() used to call err.Error() unconditionally on
-// the not-ok branch. This test fails against that code, and it is hermetic: no
-// Consul agent, no network.
+// (false, nil) is the case that matters: update() used to panic on that branch.
 func TestTTLVerdict(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -61,6 +58,30 @@ func TestTTLVerdict(t *testing.T) {
 
 			if output != tt.wantOutput {
 				t.Errorf("output = %q, want %q", output, tt.wantOutput)
+			}
+		})
+	}
+}
+
+// Consul answers 404 once DeregisterCriticalServiceAfter has dropped the
+// service. Treating that as fatal leaves a recovered node out of discovery.
+func TestShouldReregister(t *testing.T) {
+	tests := []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{"service was deregistered", api.StatusError{Code: http.StatusNotFound}, true},
+		{"agent internal error", api.StatusError{Code: http.StatusInternalServerError}, true},
+		{"bad request", api.StatusError{Code: http.StatusBadRequest}, false},
+		{"wrapped 404", fmt.Errorf("update ttl: %w", api.StatusError{Code: http.StatusNotFound}), true},
+		{"network error", errors.New("connection refused"), false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := shouldReregister(tt.err); got != tt.want {
+				t.Errorf("shouldReregister(%v) = %v, want %v", tt.err, got, tt.want)
 			}
 		})
 	}
