@@ -517,9 +517,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 		*model.EavesdropInfo,
 		*model.Questions,
 		*model.QuestionAnswers,
-		**model.MailProfileParams,
 		*[]*model.BlindTransfer,
-		*model.MailProfileParams,
 		*[]*model.CallForm,
 		**model.QualityMetrics:
 		binder := func(holder, target any) error {
@@ -636,6 +634,26 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 			}
 		}
 		return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: binder}, true
+	// ----- ENCRYPTED ----- //
+	case *model.UserPassword:
+		{
+			cast := func(src, dst any) (err error) {
+				data := src.(*[]byte)
+				into := dst.(*model.UserPassword)
+				return decryptText(into).Scan(*data)
+			}
+			return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: cast}, true
+		}
+	case *model.MailProfileParams,
+			**model.MailProfileParams:
+		{
+			cast := func(src, dst any) (err error) {
+				data := src.(*[]byte)
+				into := dst // .(*model.MailProfileParams)
+				return decryptJSON(into).Scan(*data)
+			}
+			return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: cast}, true
+		}
 	}
 
 	return gorp.CustomScanner{}, false
