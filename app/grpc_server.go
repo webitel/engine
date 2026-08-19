@@ -167,6 +167,84 @@ func GetUnaryInterceptor(app *App) grpc.UnaryServerInterceptor {
 	}
 }
 
+// wrappedServerStream lets a StreamServerInterceptor hand a modified context
+// (session, tracing span) down to the actual streaming handler, since
+// grpc.ServerStream.Context() is otherwise read-only.
+type wrappedServerStream struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (w *wrappedServerStream) Context() context.Context {
+	return w.ctx
+}
+
+func GetStreamInterceptor(app *App) grpc.StreamServerInterceptor {
+	tc := app.Tracer()
+	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		var err error
+		var sess *auth_manager.Session
+		var md metadata.MD
+
+		start := time.Now()
+		ctx := ss.Context()
+
+		md, sess, err = app.getSessionFromCtx(ctx)
+		if err != nil {
+			app.Log.Error(err.Error(), wlog.Err(err))
+			sess = &auth_manager.Session{}
+		}
+
+		if md == nil {
+			md = metadata.MD{}
+		}
+
+		propagators := otel.GetTextMapPropagator()
+		ctx = propagators.Extract(
+			ctx, GrpcHeaderCarrier(md),
+		)
+
+		spanCtx, span := tc.Start(ctx, info.FullMethod)
+		defer func() {
+			span.End()
+		}()
+
+		span.SetAttributes(
+			attribute.Int64("domain_id", sess.DomainId),
+			attribute.Int64("user_id", sess.UserId),
+			attribute.String("ip_address", sess.GetUserIp()),
+			attribute.String("method", info.FullMethod),
+		)
+
+		reqCtx := context.WithValue(spanCtx, RequestContextSession, sess)
+		log := app.Log.With(wlog.Namespace("context"),
+			wlog.Int64("domain_id", sess.DomainId),
+			wlog.Int64("user_id", sess.UserId),
+			wlog.String("ip_address", sess.GetUserIp()),
+			wlog.String("method", info.FullMethod),
+		)
+
+		err = handler(srv, &wrappedServerStream{ServerStream: ss, ctx: reqCtx})
+
+		if err != nil {
+			log.Error(err.Error(), wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
+			span.SetStatus(otelCodes.Error, err.Error())
+
+			switch e := err.(type) {
+			case model.AppError:
+				return status.Error(httpCodeToGrpc(e.GetStatusCode()), e.ToJson())
+			default:
+				return err
+			}
+		}
+
+		span.SetStatus(otelCodes.Ok, "success")
+		log.Debug("200", wlog.Float64("duration_ms", float64(time.Since(start).Microseconds())/float64(1000)))
+
+		return nil
+	}
+}
+
 func httpCodeToGrpc(c int) codes.Code {
 	switch c {
 	case http.StatusBadRequest:
@@ -193,6 +271,7 @@ func NewGrpcServer(app *App, settings model.ServerSettings) *GrpcServer {
 		lis: lis,
 		srv: grpc.NewServer(
 			grpc.UnaryInterceptor(GetUnaryInterceptor(app)),
+			grpc.StreamInterceptor(GetStreamInterceptor(app)),
 			grpc.MaxRecvMsgSize(int(settings.MaxMessageSize)),
 			grpc.MaxSendMsgSize(int(settings.MaxMessageSize)),
 		),
