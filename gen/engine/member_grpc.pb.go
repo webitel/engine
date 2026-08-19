@@ -24,6 +24,7 @@ const (
 	MemberService_SearchMembers_FullMethodName         = "/engine.MemberService/SearchMembers"
 	MemberService_PatchMemberOne_FullMethodName        = "/engine.MemberService/PatchMemberOne"
 	MemberService_SearchMemberInQueue_FullMethodName   = "/engine.MemberService/SearchMemberInQueue"
+	MemberService_ExportMembers_FullMethodName         = "/engine.MemberService/ExportMembers"
 	MemberService_ReadMember_FullMethodName            = "/engine.MemberService/ReadMember"
 	MemberService_UpdateMember_FullMethodName          = "/engine.MemberService/UpdateMember"
 	MemberService_PatchMember_FullMethodName           = "/engine.MemberService/PatchMember"
@@ -56,6 +57,8 @@ type MemberServiceClient interface {
 	PatchMemberOne(ctx context.Context, in *PatchMemberOneRequest, opts ...grpc.CallOption) (*MemberInQueue, error)
 	// List of Member
 	SearchMemberInQueue(ctx context.Context, in *SearchMemberInQueueRequest, opts ...grpc.CallOption) (*ListMember, error)
+	// Export Members of a queue as CSV or XLSX, streamed in chunks
+	ExportMembers(ctx context.Context, in *ExportMembersRequest, opts ...grpc.CallOption) (MemberService_ExportMembersClient, error)
 	// ReadQueueRouting
 	ReadMember(ctx context.Context, in *ReadMemberRequest, opts ...grpc.CallOption) (*MemberInQueue, error)
 	// UpdateMember
@@ -140,6 +143,38 @@ func (c *memberServiceClient) SearchMemberInQueue(ctx context.Context, in *Searc
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *memberServiceClient) ExportMembers(ctx context.Context, in *ExportMembersRequest, opts ...grpc.CallOption) (MemberService_ExportMembersClient, error) {
+	stream, err := c.cc.NewStream(ctx, &MemberService_ServiceDesc.Streams[0], MemberService_ExportMembers_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &memberServiceExportMembersClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type MemberService_ExportMembersClient interface {
+	Recv() (*ExportMembersResponse, error)
+	grpc.ClientStream
+}
+
+type memberServiceExportMembersClient struct {
+	grpc.ClientStream
+}
+
+func (x *memberServiceExportMembersClient) Recv() (*ExportMembersResponse, error) {
+	m := new(ExportMembersResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *memberServiceClient) ReadMember(ctx context.Context, in *ReadMemberRequest, opts ...grpc.CallOption) (*MemberInQueue, error) {
@@ -308,6 +343,8 @@ type MemberServiceServer interface {
 	PatchMemberOne(context.Context, *PatchMemberOneRequest) (*MemberInQueue, error)
 	// List of Member
 	SearchMemberInQueue(context.Context, *SearchMemberInQueueRequest) (*ListMember, error)
+	// Export Members of a queue as CSV or XLSX, streamed in chunks
+	ExportMembers(*ExportMembersRequest, MemberService_ExportMembersServer) error
 	// ReadQueueRouting
 	ReadMember(context.Context, *ReadMemberRequest) (*MemberInQueue, error)
 	// UpdateMember
@@ -360,6 +397,9 @@ func (UnimplementedMemberServiceServer) PatchMemberOne(context.Context, *PatchMe
 }
 func (UnimplementedMemberServiceServer) SearchMemberInQueue(context.Context, *SearchMemberInQueueRequest) (*ListMember, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchMemberInQueue not implemented")
+}
+func (UnimplementedMemberServiceServer) ExportMembers(*ExportMembersRequest, MemberService_ExportMembersServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportMembers not implemented")
 }
 func (UnimplementedMemberServiceServer) ReadMember(context.Context, *ReadMemberRequest) (*MemberInQueue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadMember not implemented")
@@ -513,6 +553,27 @@ func _MemberService_SearchMemberInQueue_Handler(srv interface{}, ctx context.Con
 		return srv.(MemberServiceServer).SearchMemberInQueue(ctx, req.(*SearchMemberInQueueRequest))
 	}
 	return interceptor(ctx, in, info, handler)
+}
+
+func _MemberService_ExportMembers_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportMembersRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MemberServiceServer).ExportMembers(m, &memberServiceExportMembersServer{stream})
+}
+
+type MemberService_ExportMembersServer interface {
+	Send(*ExportMembersResponse) error
+	grpc.ServerStream
+}
+
+type memberServiceExportMembersServer struct {
+	grpc.ServerStream
+}
+
+func (x *memberServiceExportMembersServer) Send(m *ExportMembersResponse) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _MemberService_ReadMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -917,6 +978,12 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MemberService_AssignAttempt_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ExportMembers",
+			Handler:       _MemberService_ExportMembers_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "member.proto",
 }
