@@ -4,13 +4,14 @@ import "time"
 
 type PauseCause struct {
 	AclRecord
-	Id              int    `json:"id" db:"id"`
-	Name            string `json:"name" db:"name"`
-	Description     string `json:"description" db:"description"`
-	LimitMin        uint32 `json:"limit_min" db:"limit_min"`
-	AllowSupervisor bool   `json:"allow_supervisor" db:"allow_supervisor"`
-	AllowAdmin      bool   `json:"allow_admin" db:"allow_admin"`
-	AllowAgent      bool   `json:"allow_agent" db:"allow_agent"`
+	Id              int       `json:"id" db:"id"`
+	Name            string    `json:"name" db:"name"`
+	Description     string    `json:"description" db:"description"`
+	LimitMin        uint32    `json:"limit_min" db:"limit_min"`
+	AllowSupervisor bool      `json:"allow_supervisor" db:"allow_supervisor"`
+	AllowAdmin      bool      `json:"allow_admin" db:"allow_admin"`
+	AllowAgent      bool      `json:"allow_agent" db:"allow_agent"`
+	Teams           []*Lookup `json:"teams" db:"teams"`
 }
 
 type SearchPauseCause struct {
@@ -28,10 +29,11 @@ type PauseCausePatch struct {
 	AllowSupervisor *bool      `json:"allow_supervisor"`
 	AllowAgent      *bool      `json:"allow_agent"`
 	AllowAdmin      *bool      `json:"allow_admin"`
+	Teams           []*Lookup  `json:"teams"`
 }
 
 func (p PauseCause) AllowFields() []string {
-	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
+	return []string{"id", "created_by", "created_at", "updated_by", "updated_at", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin", "teams"}
 }
 
 func (PauseCause) DefaultOrder() string {
@@ -39,7 +41,7 @@ func (PauseCause) DefaultOrder() string {
 }
 
 func (PauseCause) DefaultFields() []string {
-	return []string{"id", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin"}
+	return []string{"id", "name", "description", "limit_min", "allow_agent", "allow_supervisor", "allow_admin", "teams"}
 }
 
 func (PauseCause) EntityName() string {
@@ -72,6 +74,10 @@ func (p *PauseCause) Patch(patch *PauseCausePatch) {
 
 	if patch.LimitMin != nil {
 		p.LimitMin = *patch.LimitMin
+	}
+
+	if patch.Teams != nil {
+		p.Teams = patch.Teams
 	}
 }
 

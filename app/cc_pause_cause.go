@@ -38,6 +38,7 @@ func (a *App) UpdatePauseCause(ctx context.Context, domainId int64, cause *model
 	oldCause.AllowSupervisor = cause.AllowSupervisor
 	oldCause.AllowAdmin = cause.AllowAdmin
 	oldCause.LimitMin = cause.LimitMin
+	oldCause.Teams = cause.Teams
 
 	oldCause, err = a.Store.PauseCause().Update(ctx, domainId, oldCause)
 	if err != nil {
