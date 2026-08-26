@@ -34,6 +34,10 @@ func (l *LayeredMQ) Close() {
 	l.MQLayer.Close()
 }
 
+func (l *LayeredMQ) Ping(ctx context.Context) error {
+	return l.MQLayer.Ping(ctx)
+}
+
 func (l *LayeredMQ) BindCallEvents(domainId, userId int64) error {
 	return l.MQLayer.BindCallEvents(domainId, userId)
 }

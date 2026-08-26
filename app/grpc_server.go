@@ -41,6 +41,11 @@ type GrpcServer struct {
 	lis net.Listener
 }
 
+// Listener is the socket actually bound, not the address advertised to Consul.
+func (grpc *GrpcServer) Listener() net.Listener {
+	return grpc.lis
+}
+
 func (grpc *GrpcServer) GetPublicInterface() (string, int) {
 	h, p, _ := net.SplitHostPort(grpc.lis.Addr().String())
 	if h == "::" {

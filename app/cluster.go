@@ -17,9 +17,8 @@ func NewCluster(app *App) *cluster {
 }
 
 func (c *cluster) Start() error {
-	sd, err := discovery.NewServiceDiscovery(c.app.nodeId, c.app.Config().DiscoverySettings.Url, func() (b bool, appError error) {
-		return true, nil
-	})
+	sd, err := discovery.NewServiceDiscovery(c.app.nodeId, c.app.Config().DiscoverySettings.Url,
+		c.app.health.ReadyFunc())
 	if err != nil {
 		return err
 	}

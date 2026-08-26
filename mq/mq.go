@@ -12,6 +12,8 @@ type MQ interface {
 
 	Start()
 	Close()
+	// Ping reports whether the broker connection is usable.
+	Ping(ctx context.Context) error
 	NewDomainQueue(domainId int64, bindings model.GetAllBindings) (DomainQueue, model.AppError)
 
 	RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError
