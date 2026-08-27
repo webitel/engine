@@ -433,6 +433,9 @@ func (m *Member) IsValid(maxCommunication int) AppError {
 	}
 
 	for _, v := range m.Communications {
+		if v == nil {
+			continue
+		}
 		if v.Type.Id < 1 {
 			return NewBadRequestError("model.member.is_valid.communications.type.app_error", "name="+m.Name)
 		}
