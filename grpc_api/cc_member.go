@@ -4,10 +4,11 @@ import (
 	"context"
 	"strings"
 
+	"github.com/webitel/wlog"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"github.com/webitel/wlog"
 )
 
 type member struct {
@@ -358,7 +359,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 	var m *model.Member
 	patch := &model.MemberPatch{}
 
-	//TODO FIXME
+	// TODO FIXME
 	for _, v := range in.Fields {
 		switch v {
 		case "priority":
@@ -372,7 +373,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
 		case "bucket.id":
-			//todo
+			// todo
 			if in.Bucket != nil && in.Bucket.Id == 0 {
 				patch.Bucket = &model.Lookup{
 					Id: 0,
@@ -387,7 +388,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "attempts":
 			patch.Attempts = model.NewInt(int(in.Attempts))
 		case "agent.id":
-			//todo
+			// todo
 			if in.Agent != nil && in.Agent.Id == 0 {
 				patch.Agent = &model.Lookup{
 					Id: 0,
@@ -396,7 +397,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 				patch.Agent = GetLookup(in.Agent)
 			}
 		case "skill.id":
-			//todo
+			// todo
 			if in.Skill != nil && in.Skill.Id == 0 {
 				patch.Skill = &model.Lookup{
 					Id: 0,
@@ -412,13 +413,11 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 	}
 
 	m, err = api.app.PatchMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
-
 	if err != nil {
 		return nil, err
 	}
 
 	return toEngineMember(m), nil
-
 }
 
 func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOneRequest) (*engine.MemberInQueue, error) {
@@ -455,7 +454,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 	var m *model.Member
 	patch := &model.MemberPatch{}
 
-	//TODO FIXME
+	// TODO FIXME
 	for _, v := range in.Fields {
 		switch v {
 		case "priority":
@@ -469,7 +468,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
 		case "bucket.id":
-			//todo
+			// todo
 			if in.Bucket != nil && in.Bucket.Id == 0 {
 				patch.Bucket = &model.Lookup{
 					Id: 0,
@@ -484,7 +483,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 		case "attempts":
 			patch.Attempts = model.NewInt(int(in.Attempts))
 		case "agent.id":
-			//todo
+			// todo
 			if in.Agent != nil && in.Agent.Id == 0 {
 				patch.Agent = &model.Lookup{
 					Id: 0,
@@ -493,7 +492,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 				patch.Agent = GetLookup(in.Agent)
 			}
 		case "skill.id":
-			//todo
+			// todo
 			if in.Skill != nil && in.Skill.Id == 0 {
 				patch.Skill = &model.Lookup{
 					Id: 0,
@@ -510,7 +509,6 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 	}
 
 	m, err = api.app.PatchMember(ctx, session.Domain(in.GetDomainId()), queueId, in.GetId(), patch)
-
 	if err != nil {
 		return nil, err
 	}
@@ -596,7 +594,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 		Variables: in.GetVariables(),
 	}
 
-	//todo deprecated
+	// todo deprecated
 	if in.GetIds() != nil {
 		req.Ids = in.GetIds()
 	}
@@ -637,7 +635,6 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 	}
 
 	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
-
 	if err != nil {
 		return nil, err
 	}
@@ -707,7 +704,6 @@ func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMem
 	}
 
 	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
-
 	if err != nil {
 		return nil, err
 	}
@@ -776,7 +772,6 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 	}
 
 	cnt, err = api.app.ResetMembers(ctx, session.Domain(0), search)
-
 	if err != nil {
 		return nil, err
 	}
@@ -833,7 +828,7 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	//FIXME check queue PERMISSION
+	// FIXME check queue PERMISSION
 
 	var list []*model.Attempt
 	var endList bool
@@ -939,7 +934,7 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	//FIXME check queue PERMISSION
+	// FIXME check queue PERMISSION
 
 	if in.GetJoinedAt() == nil && len(in.GetMemberId()) == 0 {
 		return nil, model.NewBadRequestError("grpc.member.search_attempt", "filter joined_at is required")
@@ -1017,7 +1012,7 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
-	//FIXME check queue PERMISSION
+	// FIXME check queue PERMISSION
 
 	var list []*model.Member
 	var endList bool
@@ -1182,7 +1177,7 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 }
 
 func (api *member) CreateAttempt(ctx context.Context, in *engine.CreateAttemptRequest) (*engine.CreateAttemptResponse, error) {
-	//TODO validate && proxy cc
+	// TODO validate && proxy cc
 	return nil, nil
 }
 
@@ -1284,7 +1279,7 @@ func (api *member) AttemptsRenewalResult(ctx context.Context, in *engine.Attempt
 	return &engine.AttemptRenewalResultResponse{}, nil
 }
 
-func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.MemberCommunication {
+func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.MemberCommunication {
 	res := make([]*engine.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
@@ -1294,7 +1289,7 @@ func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.Mem
 	return res
 }
 
-func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunication {
+func toEngineDestination(v *model.MemberCommunication) *engine.MemberCommunication {
 	c := &engine.MemberCommunication{
 		Id:             v.Id,
 		Priority:       int32(v.Priority),
@@ -1320,8 +1315,8 @@ func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunicatio
 	return c
 }
 
-func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest) []model.MemberCommunication {
-	res := make([]model.MemberCommunication, 0, len(src))
+func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest) []*model.MemberCommunication {
+	res := make([]*model.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
 		c := model.MemberCommunication{
@@ -1342,7 +1337,7 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 		if v.GetStopAt() != 0 {
 			c.StopAt = model.NewInt64(v.GetStopAt())
 		}
-		res = append(res, c)
+		res = append(res, &c)
 	}
 
 	return res
@@ -1371,7 +1366,7 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 		Bucket:          GetProtoLookup(src.Bucket),
 		List:            GetProtoLookup(src.List),
 		Display:         src.Display,
-		Destination:     toEngineDestination(src.Destination),
+		Destination:     toEngineDestination(&src.Destination),
 		Result:          "",
 	}
 
@@ -1415,7 +1410,7 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 		Bucket:        GetProtoLookup(src.Bucket),
 		List:          GetProtoLookup(src.List),
 		Display:       src.Display,
-		Destination:   toEngineDestination(src.Destination),
+		Destination:   toEngineDestination(&src.Destination),
 		Result:        src.Result,
 		AmdResult:     defaultString(src.AmdResult),
 	}
