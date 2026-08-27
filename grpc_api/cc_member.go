@@ -1289,8 +1289,7 @@ func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.Me
 	return res
 }
 
-	if v == nil {
-		return nil
+func toEngineDestination(v *model.MemberCommunication) *engine.MemberCommunication {
 	}
 	}
 	c := &engine.MemberCommunication{
