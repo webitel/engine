@@ -51,6 +51,7 @@ type Agent struct {
 	AllowSetScreenControl bool           `json:"allow_set_screen_control" db:"allow_set_screen_control"`
 
 	UserPresenceStatus StringArray `json:"user_presence_status" db:"user_presence_status"`
+	ActivityType       string      `json:"activity_type" db:"activity_type"`
 }
 
 type AgentPatch struct {
@@ -223,7 +224,7 @@ func (a Agent) DefaultOrder() string {
 }
 
 func (a Agent) AllowFields() []string {
-	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
+	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change", "activity_type",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
 		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status"}
 }
@@ -231,7 +232,7 @@ func (a Agent) AllowFields() []string {
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "extension"}
+		"auditor", "is_supervisor", "extension", "activity_type"}
 }
 
 func (a Agent) EntityName() string {
