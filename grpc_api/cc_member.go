@@ -1332,7 +1332,7 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 
 		c := model.MemberCommunication{
 			Priority:    int(v.GetPriority()),
-			Destination: strings.Trim(v.GetDestination(), " "),
+			Destination: strings.TrimSpace(v.GetDestination()),
 			Description: v.GetDescription(),
 			Type: model.Lookup{
 				Id: int(v.GetType().GetId()),
