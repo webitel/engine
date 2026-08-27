@@ -1290,6 +1290,10 @@ func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.Me
 }
 
 func toEngineDestination(v *model.MemberCommunication) *engine.MemberCommunication {
+	if v == nil {
+		return nil
+	}
+
 	c := &engine.MemberCommunication{
 		Id:             v.Id,
 		Priority:       int32(v.Priority),
@@ -1319,6 +1323,10 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 	res := make([]*model.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
+		if v == nil {
+			continue
+		}
+
 		c := model.MemberCommunication{
 			Priority:    int(v.GetPriority()),
 			Destination: strings.Trim(v.GetDestination(), " "),
