@@ -11,7 +11,7 @@ type Member struct {
 	Id              int64                 `json:"id" db:"id"`
 	Queue           Lookup                `json:"queue" db:"queue"`
 	CreatedAt       time.Time             `json:"created_at" db:"created_at"`
-	QueueId         int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
+	QueueId         int64                 `json:"queue_id" db:"queue_id"` // FIXME delete attr
 	Priority        int                   `json:"priority" db:"priority"`
 	ExpireAt        *time.Time            `json:"expire_at" db:"expire_at"`
 	MinOfferingAt   *time.Time            `json:"min_offering_at" db:"ready_at"`
@@ -51,8 +51,8 @@ type MultiDeleteMembers struct {
 	QueueId int64 `json:"queue_id" db:"queue_id"`
 	SearchMemberRequest
 
-	//Buckets   []int64   `json:"buckets" db:"buckets"` // deprecated
-	//Causes    []string  `json:"causes" db:"causes"`   // deprecated
+	// Buckets   []int64   `json:"buckets" db:"buckets"` // deprecated
+	// Causes    []string  `json:"causes" db:"causes"`   // deprecated
 	Numbers   []string  `json:"numbers" db:"numbers"`
 	Variables StringMap `json:"variables" db:"variables"`
 }
@@ -119,7 +119,7 @@ func (m *Member) Patch(p *MemberPatch) {
 	}
 
 	if p.Agent != nil {
-		//todo
+		// todo
 		if p.Agent.Id == 0 {
 			m.Agent = nil
 		} else {
@@ -128,7 +128,7 @@ func (m *Member) Patch(p *MemberPatch) {
 	}
 
 	if p.Skill != nil {
-		//todo
+		// todo
 		if p.Skill.Id == 0 {
 			m.Skill = nil
 		} else {
@@ -151,8 +151,7 @@ func (m *Member) ResetAttempts() {
 	}
 }
 
-type MemberView struct {
-}
+type MemberView struct{}
 
 type SearchMemberRequest struct {
 	ListRequest
@@ -331,10 +330,10 @@ type SearchAttempts struct {
 	JoinedAt  *FilterBetween `json:"joined_at" db:"joined_at"`
 	Ids       []int64        `json:"ids" db:"ids"`
 	MemberIds []int64        `json:"member_ids" db:"member_ids"`
-	//ResourceId  *int32        `json:"resource_id" db:"resource_id" `
+	// ResourceId  *int32        `json:"resource_id" db:"resource_id" `
 	QueueIds  []int64 `json:"queue_ids" db:"queue_ids"`
 	BucketIds []int64 `json:"bucket_ids" db:"bucket_ids"`
-	//Destination *string       `json:"destination" db:"destination"`
+	// Destination *string       `json:"destination" db:"destination"`
 	AgentIds        []int64        `json:"agent_ids" db:"agent_ids"`
 	Result          []string       `json:"result" db:"result"`
 	LeavingAt       *FilterBetween `json:"leaving_at" db:"leaving_at"`
@@ -361,7 +360,7 @@ type MembersAttempt struct {
 }
 
 func (a *MemberAttempt) IsValid() AppError {
-	//FIXME
+	// FIXME
 	return nil
 }
 
@@ -427,7 +426,7 @@ func (m *Member) GetAgentId() *int {
 }
 
 func (m *Member) IsValid(maxCommunication int) AppError {
-	//FIXME
+	// FIXME
 
 	if len(m.Communications) > maxCommunication {
 		return NewBadRequestError("model.member.is_valid.communications.app_error", "name="+m.Name)
@@ -436,6 +435,11 @@ func (m *Member) IsValid(maxCommunication int) AppError {
 	for _, v := range m.Communications {
 		if v.Type.Id < 1 {
 			return NewBadRequestError("model.member.is_valid.communications.type.app_error", "name="+m.Name)
+		}
+		v.Destination = strings.TrimSpace(v.Destination)
+
+		if v.Destination == "" {
+			return NewBadRequestError("model.member.is_valid.communications.destination.app_error", "name="+m.Name)
 		}
 	}
 
