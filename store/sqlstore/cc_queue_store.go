@@ -582,12 +582,20 @@ with queues  as  (
      queue_ag as (
         select distinct
                q.id queue_id,
-               array_agg(distinct a.id) filter ( where status = 'online' ) agent_on_ids,
+               array_agg(distinct a.id) filter (
+                    where status = 'online'
+                    and (a.status_id is null or sp.is_system is true or spp.skill_id is not null)
+               ) agent_on_ids,
                array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
                array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
-               array_agg(distinct a.id) filter ( where status = 'online' and ac.state = 'waiting' ) free,
+               array_agg(distinct a.id) filter (
+                    where status = 'online'
+                    and (a.status_id is null or sp.is_system is true or spp.skill_id is not null)
+                    and ac.state = 'waiting'
+               ) free,
 			   array_agg(distinct a.id) filter (
                 	where a.status::text = 'online'::text
+                	and (a.status_id is null or sp.is_system is true or spp.skill_id is not null)
                 	and ac_call.channel::text = 'call'
                 	and ac_call.state::text = any (array['offering'::text, 'bridged'::text, 'processing'::text])
             	) agent_b_ids,
@@ -599,6 +607,8 @@ with queues  as  (
 			inner join call_center.cc_agent_channel ac_call on ac_call.agent_id = a.id and ac_call.channel::text = 'call'
             inner join call_center.cc_queue_skill qs on qs.queue_id = q.id and qs.enabled
             inner join call_center.cc_skill_in_agent sia on sia.agent_id = a.id and sia.enabled
+            left join call_center.cc_online_skills sp on sp.id = a.status_id and a.status::text = 'online'::text
+            left join call_center.cc_skills_in_online_skills spp on spp.online_skill_id = a.status_id and spp.skill_id = sia.skill_id and a.status::text = 'online'::text
         where (q.team_id isnull or a.team_id = q.team_id) and qs.skill_id = sia.skill_id and sia.capacity between qs.min_capacity and qs.max_capacity
         group by rollup (q.id)
      ),
@@ -677,15 +687,14 @@ select
 		"DomainId":         domainId,
 		"UserSupervisorId": supervisorId,
 		"Groups":           pq.Array(groups),
-		//"Access":   access.Value(),
-		"From":     model.GetBetweenFromTime(&search.JoinedAt),
-		"To":       model.GetBetweenToTime(&search.JoinedAt),
-		"Q":        search.GetQ(),
-		"QueueIds": pq.Array(search.QueueIds),
-		"TeamIds":  pq.Array(search.TeamIds),
-		"Types":    pq.Array(search.Types),
-		"Limit":    search.GetLimit(),
-		"Offset":   search.GetOffset(),
+		"From":             model.GetBetweenFromTime(&search.JoinedAt),
+		"To":               model.GetBetweenToTime(&search.JoinedAt),
+		"Q":                search.GetQ(),
+		"QueueIds":         pq.Array(search.QueueIds),
+		"TeamIds":          pq.Array(search.TeamIds),
+		"Types":            pq.Array(search.Types),
+		"Limit":            search.GetLimit(),
+		"Offset":           search.GetOffset(),
 	})
 
 	if err != nil {
