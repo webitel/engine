@@ -1283,6 +1283,9 @@ func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.Me
 	res := make([]*engine.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
+		if v == nil {
+			continue
+		}
 		res = append(res, toEngineDestination(v))
 	}
 
