@@ -154,6 +154,9 @@ dump.rdb
 .claude/settings.local.json
 .cursorignore
 .aider*
+CLAUDE.md
+.graphifyignore
+graphify-out/
 
 # direnv (often holds local secrets)
 .envrc
