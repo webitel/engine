@@ -1290,8 +1290,6 @@ func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.Me
 }
 
 func toEngineDestination(v *model.MemberCommunication) *engine.MemberCommunication {
-	}
-	}
 	c := &engine.MemberCommunication{
 		Id:             v.Id,
 		Priority:       int32(v.Priority),
