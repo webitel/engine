@@ -486,6 +486,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 	case *[]model.MemberCommunication,
 		*model.MemberCommunication,
 		**model.MemberCommunication,
+		*[]*model.MemberCommunication,
 		**model.CCTask,
 		*model.Endpoint,
 		**model.Endpoint,
