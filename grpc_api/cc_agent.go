@@ -1064,7 +1064,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		TaskCount:             src.TaskCount,
 		ScreenControl:         src.ScreenControl,
 		AllowSetScreenControl: src.AllowSetScreenControl,
-		StatusType:            src.ActivityType,
+		StatusType:            src.StatusType,
 	}
 
 	if src.ProgressiveCount != nil {
