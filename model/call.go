@@ -172,6 +172,12 @@ type BlindTransferCallToQueue struct {
 	Variables map[string]string
 }
 
+type BlindTransferCallToDialplan struct {
+	UserCallRequest
+	SchemaId  int
+	Variables map[string]string
+}
+
 type BridgeCall struct {
 	FromId    string `json:"from_id" db:"from_id"`
 	ToId      string `json:"to_id" db:"to_id"`
