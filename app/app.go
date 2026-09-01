@@ -16,7 +16,7 @@ import (
 	"github.com/webitel/webitel-go-kit/infra/health"
 	healthhttp "github.com/webitel/webitel-go-kit/infra/health/http"
 	"github.com/webitel/webitel-go-kit/infra/health/sdnotify"
-	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
+	otelsdk "github.com/webitel/webitel-go-kit/infra/otel/sdk"
 	"github.com/webitel/wlog"
 
 	"github.com/webitel/engine/app/cc"
@@ -34,12 +34,13 @@ import (
 	"github.com/webitel/engine/wlogslog"
 
 	// -------------------- plugin(s) -------------------- //
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/otlp"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/stdout"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/metric/otlp"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/metric/stdout"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/trace/otlp"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/trace/stdout"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/log/otlp"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/log/stdout"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/metric/otlp"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/metric/prometheus"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/metric/stdout"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/trace/otlp"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/trace/stdout"
 )
 
 const (
@@ -111,21 +112,20 @@ func New(options ...string) (outApp *App, outErr error) {
 		logConfig.FileLevel = config.Log.Lvl
 	}
 
-	if config.Log.Otel {
-		// TODO
-		logConfig.EnableExport = true
-		app.otelShutdownFunc, err = otelsdk.Configure(
-			app.ctx,
-			otelsdk.WithResource(resource.NewSchemaless(
-				semconv.ServiceName(model.APP_SERVICE_NAME),
-				semconv.ServiceVersion(model.CurrentVersion),
-				semconv.ServiceInstanceID(app.nodeId),
-				semconv.ServiceNamespace("webitel"),
-			)),
-		)
-		if err != nil {
-			return nil, err
-		}
+	logConfig.EnableExport = config.Log.Otel
+
+	app.otelShutdownFunc, err = otelsdk.Configure(
+		app.ctx,
+		otelsdk.WithResource(resource.NewSchemaless(
+			semconv.ServiceName(model.APP_SERVICE_NAME),
+			semconv.ServiceVersion(model.CurrentVersion),
+			semconv.ServiceInstanceID(app.nodeId),
+			semconv.ServiceNamespace("webitel"),
+		)),
+		otelsdk.WithRuntimeMetrics(true),
+	)
+	if err != nil {
+		return nil, err
 	}
 	app.tracer = NewTrace()
 
