@@ -15,6 +15,7 @@ type API struct {
 	agentTeam             *agentTeam
 	teamHook              *teamHook
 	teamTrigger           *teamTrigger
+	teamChatTag           *teamChatTag
 	agent                 *agent
 	agentSkill            *agentSkill
 	outboundResource      *outboundResource
@@ -52,6 +53,7 @@ type API struct {
 	push           *push
 	feedback       *feedback
 	skillPreset    *onlineSkills
+	agentChatTag   *agentChatTag
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -64,6 +66,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.agentTeam = NewAgentTeamApi(a)
 	api.teamHook = NewTeamHookApi(api)
 	api.teamTrigger = NewTeamTriggerApi(api)
+	api.teamChatTag = NewTeamChatTagApi(api)
 	api.agent = NewAgentApi(api)
 	api.agentSkill = NewAgentSkillApi(api)
 	api.outboundResource = NewOutboundResourceApi(a, api.ctrl)
@@ -100,12 +103,14 @@ func Init(a *app.App, server *grpc.Server) {
 	api.push = NewPushApi(api, a.Config().MinimumNumberMaskLen, a.Config().PrefixNumberMaskLen, a.Config().SuffixNumberMaskLen)
 	api.feedback = NewFeedbackApi(api)
 	api.skillPreset = NewOnlineSkillsApi(api)
+	api.agentChatTag = NewAgentChatTagApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
 	engine.RegisterAgentTeamServiceServer(server, api.agentTeam)
 	engine.RegisterTeamHookServiceServer(server, api.teamHook)
 	engine.RegisterTeamTriggerServiceServer(server, api.teamTrigger)
+	engine.RegisterTeamChatTagServiceServer(server, api.teamChatTag)
 	engine.RegisterAgentServiceServer(server, api.agent)
 	engine.RegisterAgentSkillServiceServer(server, api.agentSkill)
 	engine.RegisterOutboundResourceServiceServer(server, api.outboundResource)
@@ -143,4 +148,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterPushServiceServer(server, api.push)
 	engine.RegisterFeedbackServiceServer(server, api.feedback)
 	engine.RegisterOnlineSkillsServiceServer(server, api.skillPreset)
+	engine.RegisterAgentChatTagServiceServer(server, api.agentChatTag)
 }
