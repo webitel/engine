@@ -179,3 +179,5 @@ pids
 .data
 data/.idea
 drafts/
+docs
+migrations

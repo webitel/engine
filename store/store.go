@@ -37,6 +37,7 @@ type Store interface {
 	AgentTeam() AgentTeamStore
 	TeamHook() TeamHookStore
 	TeamTrigger() TeamTriggerStore
+	TeamChatTag() TeamChatTagStore
 	Agent() AgentStore
 	AgentSkill() AgentSkillStore
 	Queue() QueueStore
@@ -186,6 +187,15 @@ type TeamTriggerStore interface {
 	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	Update(ctx context.Context, domainId, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
+	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
+}
+
+type TeamChatTagStore interface {
+	Create(ctx context.Context, domainId, teamId int64, in *model.TeamChatTag) (*model.TeamChatTag, model.AppError)
+	Get(ctx context.Context, domainId, teamId int64, id uint32) (*model.TeamChatTag, model.AppError)
+	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamChatTag) ([]*model.TeamChatTag, model.AppError)
+	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamChatTag) ([]*model.TeamChatTag, model.AppError)
+	Update(ctx context.Context, domainId, teamId int64, in *model.TeamChatTag) (*model.TeamChatTag, model.AppError)
 	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
 }
 
