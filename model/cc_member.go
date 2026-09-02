@@ -48,11 +48,9 @@ type MemberPatch struct {
 }
 
 type MultiDeleteMembers struct {
-	QueueId int64 `json:"queue_id" db:"queue_id"`
 	SearchMemberRequest
 
-	// Buckets   []int64   `json:"buckets" db:"buckets"` // deprecated
-	// Causes    []string  `json:"causes" db:"causes"`   // deprecated
+	QueueId   int64     `json:"queue_id" db:"queue_id"`
 	Numbers   []string  `json:"numbers" db:"numbers"`
 	Variables StringMap `json:"variables" db:"variables"`
 }
@@ -518,7 +516,48 @@ func MemberDeprecatedFields(f []string) []string {
 }
 
 func MemberDeprecatedField(s string) string {
-	s = strings.Replace(s, "min_offering_at", "ready_at", -1)
-	s = strings.Replace(s, "last_activity_at", "last_hangup_at", -1)
+	s = strings.ReplaceAll(s, "min_offering_at", "ready_at")
+	s = strings.ReplaceAll(s, "last_activity_at", "last_hangup_at")
 	return s
+}
+
+type MutateHistoryAttempt struct {
+	ID           int64
+	DomainID     int64
+	MemberCallID string
+	AgentCallID  string
+	Description  string
+	Variables    map[string]string
+	Fields       []string
+}
+
+func NewMutateHistoryAttempt(ID int64, memberCallID, agentCallID, description string, variables map[string]string, fields ...string) *MutateHistoryAttempt {
+	return &MutateHistoryAttempt{
+		ID:           ID,
+		MemberCallID: memberCallID,
+		AgentCallID:  agentCallID,
+		Description:  description,
+		Variables:    variables,
+		Fields:       fields,
+	}
+}
+
+func (m *MutateHistoryAttempt) Validate() AppError {
+	if m == nil {
+		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty", "received empty mutate request")
+	}
+
+	if m.ID <= 0 && m.MemberCallID == "" && m.AgentCallID == "" {
+		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty_filter", "attempt ID or member call ID or agent call ID is required")
+	}
+
+	if len(m.Fields) == 0 {
+		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty_fields", "fields list to be updated is required")
+	}
+
+	if m.DomainID <= 0 {
+		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty_domain", "domain is required")
+	}
+
+	return nil
 }

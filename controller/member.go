@@ -138,3 +138,23 @@ func (c *Controller) ResetMembersCount(ctx context.Context, query *model.ResetMe
 
 	return c.app.ResetMembersCount(ctx, session.Domain(0), query)
 }
+
+func (c *Controller) MutateHistoryAttemptResult(ctx context.Context, mutation *model.MutateHistoryAttempt) (*model.AttemptHistory, model.AppError) {
+	session, err := c.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	mutation.DomainID = session.Domain(0)
+
+	if err := mutation.Validate(); err != nil {
+		return nil, err
+	}
+
+	return c.app.MutateHistoryAttemptResult(ctx, mutation)
+}

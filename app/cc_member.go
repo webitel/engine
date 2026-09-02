@@ -348,3 +348,7 @@ func (app *App) IsAgentChatChannelOnline(ctx context.Context, agentId int32) (bo
 func (app *App) MemberQueueId(ctx context.Context, domainId int64, memberId int64) (int64, model.AppError) {
 	return app.Store.Member().QueueId(ctx, domainId, memberId)
 }
+
+func (app *App) MutateHistoryAttemptResult(ctx context.Context, mutation *model.MutateHistoryAttempt) (*model.AttemptHistory, model.AppError) {
+	return app.Store.Member().MutateHistoryAttemptResult(ctx, mutation)
+}
