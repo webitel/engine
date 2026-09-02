@@ -19,29 +19,30 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MemberService_CreateMember_FullMethodName          = "/engine.MemberService/CreateMember"
-	MemberService_CreateMemberBulk_FullMethodName      = "/engine.MemberService/CreateMemberBulk"
-	MemberService_SearchMembers_FullMethodName         = "/engine.MemberService/SearchMembers"
-	MemberService_PatchMemberOne_FullMethodName        = "/engine.MemberService/PatchMemberOne"
-	MemberService_SearchMemberInQueue_FullMethodName   = "/engine.MemberService/SearchMemberInQueue"
-	MemberService_ExportMembers_FullMethodName         = "/engine.MemberService/ExportMembers"
-	MemberService_ReadMember_FullMethodName            = "/engine.MemberService/ReadMember"
-	MemberService_UpdateMember_FullMethodName          = "/engine.MemberService/UpdateMember"
-	MemberService_PatchMember_FullMethodName           = "/engine.MemberService/PatchMember"
-	MemberService_DeleteMember_FullMethodName          = "/engine.MemberService/DeleteMember"
-	MemberService_DeleteMembers_FullMethodName         = "/engine.MemberService/DeleteMembers"
-	MemberService_DeleteAllMembers_FullMethodName      = "/engine.MemberService/DeleteAllMembers"
-	MemberService_ResetMembers_FullMethodName          = "/engine.MemberService/ResetMembers"
-	MemberService_ResetMembersCount_FullMethodName     = "/engine.MemberService/ResetMembersCount"
-	MemberService_SearchMemberAttempts_FullMethodName  = "/engine.MemberService/SearchMemberAttempts"
-	MemberService_SearchAttempts_FullMethodName        = "/engine.MemberService/SearchAttempts"
-	MemberService_ResetActiveAttempts_FullMethodName   = "/engine.MemberService/ResetActiveAttempts"
-	MemberService_SearchAttemptsHistory_FullMethodName = "/engine.MemberService/SearchAttemptsHistory"
-	MemberService_AttemptsRenewalResult_FullMethodName = "/engine.MemberService/AttemptsRenewalResult"
-	MemberService_AttemptResult_FullMethodName         = "/engine.MemberService/AttemptResult"
-	MemberService_AttemptCallback_FullMethodName       = "/engine.MemberService/AttemptCallback"
-	MemberService_CreateAttempt_FullMethodName         = "/engine.MemberService/CreateAttempt"
-	MemberService_AssignAttempt_FullMethodName         = "/engine.MemberService/AssignAttempt"
+	MemberService_CreateMember_FullMethodName               = "/engine.MemberService/CreateMember"
+	MemberService_CreateMemberBulk_FullMethodName           = "/engine.MemberService/CreateMemberBulk"
+	MemberService_SearchMembers_FullMethodName              = "/engine.MemberService/SearchMembers"
+	MemberService_PatchMemberOne_FullMethodName             = "/engine.MemberService/PatchMemberOne"
+	MemberService_SearchMemberInQueue_FullMethodName        = "/engine.MemberService/SearchMemberInQueue"
+	MemberService_ExportMembers_FullMethodName              = "/engine.MemberService/ExportMembers"
+	MemberService_ReadMember_FullMethodName                 = "/engine.MemberService/ReadMember"
+	MemberService_UpdateMember_FullMethodName               = "/engine.MemberService/UpdateMember"
+	MemberService_PatchMember_FullMethodName                = "/engine.MemberService/PatchMember"
+	MemberService_DeleteMember_FullMethodName               = "/engine.MemberService/DeleteMember"
+	MemberService_DeleteMembers_FullMethodName              = "/engine.MemberService/DeleteMembers"
+	MemberService_DeleteAllMembers_FullMethodName           = "/engine.MemberService/DeleteAllMembers"
+	MemberService_ResetMembers_FullMethodName               = "/engine.MemberService/ResetMembers"
+	MemberService_ResetMembersCount_FullMethodName          = "/engine.MemberService/ResetMembersCount"
+	MemberService_SearchMemberAttempts_FullMethodName       = "/engine.MemberService/SearchMemberAttempts"
+	MemberService_SearchAttempts_FullMethodName             = "/engine.MemberService/SearchAttempts"
+	MemberService_ResetActiveAttempts_FullMethodName        = "/engine.MemberService/ResetActiveAttempts"
+	MemberService_SearchAttemptsHistory_FullMethodName      = "/engine.MemberService/SearchAttemptsHistory"
+	MemberService_AttemptsRenewalResult_FullMethodName      = "/engine.MemberService/AttemptsRenewalResult"
+	MemberService_AttemptResult_FullMethodName              = "/engine.MemberService/AttemptResult"
+	MemberService_AttemptCallback_FullMethodName            = "/engine.MemberService/AttemptCallback"
+	MemberService_CreateAttempt_FullMethodName              = "/engine.MemberService/CreateAttempt"
+	MemberService_AssignAttempt_FullMethodName              = "/engine.MemberService/AssignAttempt"
+	MemberService_MutateHistoryAttemptResult_FullMethodName = "/engine.MemberService/MutateHistoryAttemptResult"
 )
 
 // MemberServiceClient is the client API for MemberService service.
@@ -90,6 +91,7 @@ type MemberServiceClient interface {
 	// Offline queue
 	CreateAttempt(ctx context.Context, in *CreateAttemptRequest, opts ...grpc.CallOption) (*CreateAttemptResponse, error)
 	AssignAttempt(ctx context.Context, in *AssignAttemptRequest, opts ...grpc.CallOption) (*AssignAttemptResponse, error)
+	MutateHistoryAttemptResult(ctx context.Context, in *MutateHistoryAttemptResultRequest, opts ...grpc.CallOption) (*MutateHistoryAttemptResultResponse, error)
 }
 
 type memberServiceClient struct {
@@ -330,6 +332,15 @@ func (c *memberServiceClient) AssignAttempt(ctx context.Context, in *AssignAttem
 	return out, nil
 }
 
+func (c *memberServiceClient) MutateHistoryAttemptResult(ctx context.Context, in *MutateHistoryAttemptResultRequest, opts ...grpc.CallOption) (*MutateHistoryAttemptResultResponse, error) {
+	out := new(MutateHistoryAttemptResultResponse)
+	err := c.cc.Invoke(ctx, MemberService_MutateHistoryAttemptResult_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MemberServiceServer is the server API for MemberService service.
 // All implementations must embed UnimplementedMemberServiceServer
 // for forward compatibility
@@ -376,6 +387,7 @@ type MemberServiceServer interface {
 	// Offline queue
 	CreateAttempt(context.Context, *CreateAttemptRequest) (*CreateAttemptResponse, error)
 	AssignAttempt(context.Context, *AssignAttemptRequest) (*AssignAttemptResponse, error)
+	MutateHistoryAttemptResult(context.Context, *MutateHistoryAttemptResultRequest) (*MutateHistoryAttemptResultResponse, error)
 	mustEmbedUnimplementedMemberServiceServer()
 }
 
@@ -451,6 +463,9 @@ func (UnimplementedMemberServiceServer) CreateAttempt(context.Context, *CreateAt
 }
 func (UnimplementedMemberServiceServer) AssignAttempt(context.Context, *AssignAttemptRequest) (*AssignAttemptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AssignAttempt not implemented")
+}
+func (UnimplementedMemberServiceServer) MutateHistoryAttemptResult(context.Context, *MutateHistoryAttemptResultRequest) (*MutateHistoryAttemptResultResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MutateHistoryAttemptResult not implemented")
 }
 func (UnimplementedMemberServiceServer) mustEmbedUnimplementedMemberServiceServer() {}
 
@@ -882,6 +897,24 @@ func _MemberService_AssignAttempt_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MemberService_MutateHistoryAttemptResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MutateHistoryAttemptResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServiceServer).MutateHistoryAttemptResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MemberService_MutateHistoryAttemptResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServiceServer).MutateHistoryAttemptResult(ctx, req.(*MutateHistoryAttemptResultRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MemberService_ServiceDesc is the grpc.ServiceDesc for MemberService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -976,6 +1009,10 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AssignAttempt",
 			Handler:    _MemberService_AssignAttempt_Handler,
+		},
+		{
+			MethodName: "MutateHistoryAttemptResult",
+			Handler:    _MemberService_MutateHistoryAttemptResult_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

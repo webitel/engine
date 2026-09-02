@@ -3,11 +3,13 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -1067,6 +1069,65 @@ where id = :Id`, map[string]interface{}{
 	}
 
 	return nil
+}
+
+func (s SqlMemberStore) MutateHistoryAttemptResult(ctx context.Context, mutation *model.MutateHistoryAttempt) (*model.AttemptHistory, model.AppError) {
+	ub := sq.Update("call_center.cc_member_attempt_history").
+		PlaceholderFormat(sq.Dollar)
+
+	for _, f := range mutation.Fields {
+		switch f {
+		case "description":
+			ub = ub.Set("description", mutation.Description).Where("description is null")
+		case "variables":
+			if mutation.Variables != nil {
+				vBytes, err := json.Marshal(mutation.Variables)
+				if err != nil {
+					return nil, model.NewInternalError("store.sql_member.history.mutation.marshal_variables", err.Error())
+				}
+				ub = ub.Set("variables", sq.Expr("coalesce(variables, '{}'::jsonb) || ?::jsonb", string(vBytes)))
+			}
+		}
+	}
+
+	ub = ub.Where(sq.Eq{"domain_id": mutation.DomainID})
+
+	if mutation.ID > 0 {
+		ub = ub.Where(sq.Eq{"id": mutation.ID})
+	}
+	if mutation.MemberCallID != "" {
+		ub = ub.Where(sq.Eq{"member_call_id": mutation.MemberCallID})
+	}
+	if mutation.AgentCallID != "" {
+		ub = ub.Where(sq.Eq{"agent_call_id": mutation.AgentCallID})
+	}
+
+	ub = ub.Suffix("returning id as updated_id")
+
+	updateSql, updateArgs, err := ub.ToSql()
+	if err != nil {
+		return nil, model.NewInternalError("store.sql_member.history.mutation.build_update", err.Error())
+	}
+
+	var attempt model.AttemptHistory
+
+	sb := sq.Select(attempt.DefaultFields()...).
+		From(attempt.EntityName()).
+		Prefix("with updated as ("+updateSql+")", updateArgs...).
+		Join("updated on " + attempt.EntityName() + ".id = updated.updated_id").
+		Limit(1).
+		PlaceholderFormat(sq.Dollar)
+
+	fullSql, fullArgs, err := sb.ToSql()
+	if err != nil {
+		return nil, model.NewInternalError("store.sql_member.history.mutation.build_full_sql", err.Error())
+	}
+
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&attempt, fullSql, fullArgs...); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_member.history.mutation.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return &attempt, nil
 }
 
 func (s SqlMemberStore) QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError) {

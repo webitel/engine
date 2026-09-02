@@ -1305,6 +1305,28 @@ func (api *member) AttemptsRenewalResult(ctx context.Context, in *engine.Attempt
 	return &engine.AttemptRenewalResultResponse{}, nil
 }
 
+func (api *member) MutateHistoryAttemptResult(ctx context.Context, in *engine.MutateHistoryAttemptResultRequest) (*engine.MutateHistoryAttemptResultResponse, error) {
+	mutation := model.NewMutateHistoryAttempt(
+		in.GetId(),
+		in.GetMemberCallId(),
+		in.GetAgentCallId(),
+		in.GetDescription(),
+		in.GetVariables(),
+		in.GetFields()...,
+	)
+
+	mutationResult, err := api.ctrl.MutateHistoryAttemptResult(ctx, mutation)
+	if err != nil {
+		return nil, err
+	}
+
+	engineAttemptHistory := toEngineAttemptHistory(mutationResult)
+
+	return &engine.MutateHistoryAttemptResultResponse{
+		Item: engineAttemptHistory,
+	}, nil
+}
+
 func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.MemberCommunication {
 	res := make([]*engine.MemberCommunication, 0, len(src))
 
