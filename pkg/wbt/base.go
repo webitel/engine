@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/webitel/engine/pkg/wbt/consul"
 	_ "github.com/webitel/engine/pkg/wbt/consul"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace/noop"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -66,6 +69,10 @@ func NewClient[T any](consulTarget, service string, api func(grpc.ClientConnInte
 
 	dialOpts := append(cfg.dialOptions,
 		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingPolicy": "%s"}`, cfg.lbPolicy)),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler(
+			otelgrpc.WithTracerProvider(noop.NewTracerProvider()),
+			otelgrpc.WithPropagators(propagation.NewCompositeTextMapPropagator()),
+		)),
 	)
 
 	actual, _ := conns.LoadOrStore(dsn, func() interface{} {
