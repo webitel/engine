@@ -228,9 +228,19 @@ func (app *App) ListOfflineQueueForAgent(ctx context.Context, domainId int64, se
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) ReportingAttempt(attemptId int64, status, description string, nextOffering *int64, expireAt *int64, vars map[string]string,
-	stickyDisplay bool, agentId int32, excludeDes bool, waitBetweenRetries *int32, onlyComm bool) model.AppError {
-
+func (app *App) ReportingAttempt(
+	attemptId int64,
+	status, description string,
+	nextOffering *int64,
+	expireAt *int64,
+	vars map[string]string,
+	stickyDisplay bool,
+	agentId int32,
+	excludeDes bool,
+	waitBetweenRetries *int32,
+	onlyComm bool,
+	draft bool,
+) model.AppError {
 	res := &cc.AttemptResultRequest{
 		AttemptId:                   attemptId,
 		Status:                      status,
@@ -243,6 +253,7 @@ func (app *App) ReportingAttempt(attemptId int64, status, description string, ne
 		AgentId:                     agentId,
 		ExcludeCurrentCommunication: excludeDes,
 		OnlyCurrentCommunication:    onlyComm,
+		Draft:                       draft,
 	}
 
 	if expireAt != nil {
@@ -257,9 +268,7 @@ func (app *App) ReportingAttempt(attemptId int64, status, description string, ne
 		res.WaitBetweenRetries = *waitBetweenRetries
 	}
 
-	err := app.cc.Member().AttemptResult(res)
-
-	if err != nil {
+	if err := app.cc.Member().AttemptResult(res); err != nil {
 		return model.NewBadRequestError("app.cc_member.reporting.app_err", err.Error())
 	}
 
