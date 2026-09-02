@@ -1075,17 +1075,23 @@ func (s SqlMemberStore) MutateHistoryAttemptResult(ctx context.Context, mutation
 	ub := sq.Update("call_center.cc_member_attempt_history").
 		PlaceholderFormat(sq.Dollar)
 
+	isVariablesUnsetted := true
+
 	for _, f := range mutation.Fields {
 		switch f {
 		case "description":
 			ub = ub.Set("description", mutation.Description).Where("description is null")
-		case "variables":
-			if mutation.Variables != nil {
-				vBytes, err := json.Marshal(mutation.Variables)
-				if err != nil {
-					return nil, model.NewInternalError("store.sql_member.history.mutation.marshal_variables", err.Error())
+		default:
+			if strings.HasPrefix(f, "variables") && isVariablesUnsetted {
+				if mutation.Variables != nil {
+					vBytes, err := json.Marshal(mutation.Variables)
+					if err != nil {
+						return nil, model.NewInternalError("store.sql_member.history.mutation.marshal_variables", err.Error())
+					}
+					ub = ub.Set("variables", sq.Expr("coalesce(variables, '{}'::jsonb) || ?::jsonb", string(vBytes)))
 				}
-				ub = ub.Set("variables", sq.Expr("coalesce(variables, '{}'::jsonb) || ?::jsonb", string(vBytes)))
+
+				isVariablesUnsetted = false
 			}
 		}
 	}
