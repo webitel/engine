@@ -13,7 +13,10 @@ const (
 	QueueTypeInboundChat     int8 = 6
 )
 
-const QueuePayloadProgressiveCountKey string = "progressive_count"
+const (
+	QueuePayloadProgressiveCountKey   string = "progressive_count"
+	QueueDefaultProgressiveCountValue int    = 1
+)
 
 type Queue struct {
 	DomainRecord
@@ -319,9 +322,13 @@ func (q *Queue) IsValid() AppError {
 	}
 
 	if q.Type == QueueTypePredictCall || q.Type == QueueTypeProgressiveCall {
+		if q.Payload == nil {
+			q.Payload = make(StringInterface)
+		}
+
 		progressiveCountValue, exists := q.Payload[QueuePayloadProgressiveCountKey]
 		if !exists {
-			return NewBadRequestError("model.queue.valid.progressive_count_not_exist", "Progressive count is required for progressive and predictive queues")
+			progressiveCountValue = QueueDefaultProgressiveCountValue
 		}
 
 		var progessiveCount int
@@ -344,7 +351,7 @@ func (q *Queue) IsValid() AppError {
 		}
 
 		if progessiveCount <= 0 {
-			return NewBadRequestError("model.queue.valid.progressive_count_must_be_gt_zero", "Progressive count must be greater than zero")
+			progessiveCount = QueueDefaultProgressiveCountValue
 		}
 
 		q.Payload[QueuePayloadProgressiveCountKey] = progessiveCount
