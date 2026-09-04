@@ -9,10 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace/noop"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -279,6 +281,10 @@ func NewGrpcServer(app *App, settings model.ServerSettings) *GrpcServer {
 			grpc.StreamInterceptor(GetStreamInterceptor(app)),
 			grpc.MaxRecvMsgSize(int(settings.MaxMessageSize)),
 			grpc.MaxSendMsgSize(int(settings.MaxMessageSize)),
+			grpc.StatsHandler(otelgrpc.NewServerHandler(
+				otelgrpc.WithTracerProvider(noop.NewTracerProvider()),
+				otelgrpc.WithPropagators(propagation.NewCompositeTextMapPropagator()),
+			)),
 		),
 	}
 }

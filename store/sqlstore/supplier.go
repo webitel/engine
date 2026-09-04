@@ -14,6 +14,7 @@ import (
 	"github.com/XSAM/otelsql"
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
+	"go.opentelemetry.io/otel"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	wlog "github.com/webitel/wlog"
@@ -185,6 +186,7 @@ func setupConnection(con_type, dataSource string, settings *model.SqlSettings) *
 	if settings.Trace {
 		db, err = otelsql.Open(*settings.DriverName, dataSource, otelsql.WithAttributes(
 			semconv.DBSystemPostgreSQL,
+			semconv.DBClientConnectionsPoolName(con_type),
 		))
 	} else {
 		db, err = dbsql.Open(*settings.DriverName, dataSource)
@@ -215,16 +217,13 @@ func setupConnection(con_type, dataSource string, settings *model.SqlSettings) *
 		}
 	}
 
-	if settings.Trace {
-		// Register DB stats to meter
-		err = otelsql.RegisterDBStatsMetrics(db, otelsql.WithAttributes(
-			semconv.DBSystemPostgreSQL,
-		))
-		if err != nil {
-			wlog.Critical(fmt.Sprintf("failed to trace SQL connection to err:%v", err.Error()))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_DB_OPEN)
-		}
+	err = otelsql.RegisterDBStatsMetrics(db, otelsql.WithAttributes(
+		semconv.DBSystemPostgreSQL,
+		semconv.DBClientConnectionsPoolName(con_type),
+	))
+	if err != nil {
+		otel.Handle(err)
+		wlog.Error(fmt.Sprintf("failed to register SQL pool metrics for %v connection err:%v", con_type, err.Error()))
 	}
 
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
