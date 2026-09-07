@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cmp"
 	"fmt"
 	"reflect"
 	"strings"
@@ -32,6 +33,30 @@ type FilterBetweenProvider interface {
 type FilterBetween struct {
 	From int64
 	To   int64
+}
+
+func NewFilterBetweenFromProvider(provider FilterBetweenProvider) *FilterBetween {
+	return NewFilterBetween(provider.GetFrom(), provider.GetTo())
+}
+
+// if provided from value equals zero - then used value equals
+// to now - 7 days
+// if provided to value equals zero - then used value equals now
+func NewFilterBetween(from, to int64) *FilterBetween {
+	now := time.Now().UTC()
+
+	toVal := cmp.Or(to, now.UnixMilli())
+	toTime := time.UnixMilli(toVal)
+
+	fromTime := time.UnixMilli(cmp.Or(from, toTime.AddDate(0, 0, -7).UnixMilli()))
+	if fromTime.After(toTime) {
+		fromTime = toTime.AddDate(0, 0, -7)
+	}
+
+	return &FilterBetween{
+		From: fromTime.UnixMilli(),
+		To:   toTime.UnixMilli(),
+	}
 }
 
 func GetBetweenFromTime(src *FilterBetween) *time.Time {

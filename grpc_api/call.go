@@ -146,12 +146,7 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		}
 	}
 
-	if in.GetCreatedAt() != nil {
-		req.CreatedAt = &model.FilterBetween{
-			From: in.GetCreatedAt().GetFrom(),
-			To:   in.GetCreatedAt().GetTo(),
-		}
-	}
+	req.UseCreatedAtFilter(in.GetCreatedAt())
 
 	if in.GetStoredAt() != nil {
 		req.StoredAt = &model.FilterBetween{
