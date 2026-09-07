@@ -316,3 +316,25 @@ func (c *Controller) SetContactCall(ctx context.Context, session *auth_manager.S
 
 	return c.app.SetCallContactId(ctx, session.Domain(0), session.UserId, id, contactId)
 }
+
+func (c *Controller) PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError) {
+	session, err := c.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := patch.TryUseDomain(session); err != nil {
+		return nil, err
+	}
+
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+
+	return c.app.PatchHistoryCallAttempt(ctx, patch)
+}

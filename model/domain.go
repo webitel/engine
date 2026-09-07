@@ -2,6 +2,10 @@ package model
 
 import "time"
 
+type DomainProvider interface {
+	Domain(int64) int64
+}
+
 // todo deprecated
 type DomainRecord struct {
 	Id        int64   `json:"id" db:"id"`

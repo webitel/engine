@@ -3,8 +3,11 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
+
+	"github.com/pborman/uuid"
 )
 
 const (
@@ -863,4 +866,70 @@ func (m *CallPayload) StringValue(s ...string) string {
 	}
 
 	return fmt.Sprintf("%v", mm)
+}
+
+type PatchHistoryCallAttempt struct {
+	ID          string
+	Variables   map[string]string
+	Description string
+	Fields      []string
+	DomainID    int64
+}
+
+func NewPatchHistoryCallAttempt(id string, description string, variables map[string]string, fields ...string) *PatchHistoryCallAttempt {
+	vars := variables
+	if len(variables) == 0 {
+		vars = make(map[string]string)
+	}
+
+	return &PatchHistoryCallAttempt{
+		ID:          id,
+		Variables:   vars,
+		Description: description,
+		Fields:      fields,
+	}
+}
+
+func (p *PatchHistoryCallAttempt) TryUseDomain(provider DomainProvider) AppError {
+	d := provider.Domain(0)
+	if d <= 0 {
+		return NewBadRequestError("model.call.patch_history_call_attempt.try_use_domain", "impossible domain identifier")
+	}
+
+	p.DomainID = d
+
+	return nil
+}
+
+func (p *PatchHistoryCallAttempt) SerializeVariables() []byte {
+	serialized, _ := json.Marshal(p.Variables)
+	return serialized
+}
+
+func (p *PatchHistoryCallAttempt) Validate() AppError {
+	if p == nil {
+		return NewBadRequestError("model.call.patch_history_call_attempt.validate", "received empty call for patch structure")
+	}
+
+	if uuid.Parse(p.ID) == nil {
+		return NewBadRequestError("model.call.patch_history_call_attempt.invalid_id_format", "id must be a valid UUID format")
+	}
+
+	if len(p.Fields) == 0 {
+		return NewBadRequestError("model.call.patch_history_call_attempt.validate", "patch fields is required")
+	}
+
+	return nil
+}
+
+func (p *PatchHistoryCallAttempt) HasVariablesUpdate() bool {
+	return slices.ContainsFunc(p.Fields, func(s string) bool {
+		return strings.HasPrefix(s, "variables.")
+	})
+}
+
+type PatchHistoryAttemptResult struct {
+	ID          int64             `json:"id" db:"id"`
+	Description string            `json:"description" db:"description"`
+	Variables   map[string]string `json:"variables" db:"variables"`
 }

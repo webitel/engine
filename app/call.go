@@ -859,6 +859,10 @@ func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string
 	return list[0], nil
 }
 
+func (app *App) PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError) {
+	return app.Store.Call().PatchHistoryCallAttempt(ctx, patch)
+}
+
 /*
 
 func (app *App) createOutboundCallToUser(domainId int64, req *model.OutboundCallRequest, from, to *model.UserCallInfo) (*model.CallRequest, model.AppError) {
