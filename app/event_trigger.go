@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -132,7 +133,16 @@ func (ct *TriggerEventMQ) Stop() {
 }
 
 func (ct *TriggerEventMQ) listen() error {
-	messages, err := ct.channel.Consume(ct.Queue.Name, "", true, false, false, false, nil)
+	messages, err := ct.channel.Consume(
+		ct.Queue.Name,
+		"",
+		false,
+		false,
+		false,
+		false,
+		nil,
+	)
+
 	if err != nil {
 		return fmt.Errorf("could not consume messages from %s: %w", ct.Queue.Name, err)
 	}
@@ -184,14 +194,13 @@ func (ct *TriggerEventMQ) processedMessages(messages <-chan amqp.Delivery) {
 
 		err := ct.initConnection()
 		if err != nil {
-			// TODO fatal
-			ct.log.Error(fmt.Sprintf("could not reconnect ro amqp: %s", err.Error()))
+			ct.log.Error("reconnecting to amqp", wlog.Err(err))
 			return
 		}
 
 		err = ct.listen()
 		if err != nil {
-			ct.log.Error(fmt.Sprintf("could not start listen messages: %s", err.Error()))
+			ct.log.Error("starting listening messages", wlog.Err(err))
 		}
 	}()
 
@@ -205,43 +214,61 @@ func (ct *TriggerEventMQ) processedMessages(messages <-chan amqp.Delivery) {
 				ct.log.Info("closed rabbit error channel")
 				return
 			}
-			ct.log.Error(fmt.Sprintf("amqp connection error: %s", amqpErr.Error()))
+			ct.log.Error("amqp connection", wlog.Err(amqpErr))
 			reconnect = true
 
+			return
 		case msg, ok := <-messages:
 			if !ok {
 				return
 			}
 
-			object, event, domainId := ct.getExpressionByRoutingKey(msg.RoutingKey)
+			go func(m amqp.Delivery) {
+				defer func() {
+					if r := recover(); r != nil {
+						ct.log.Error("recovered from panic in trigger event processor", wlog.Any("panic", r))
+					}
+				}()
 
-			// TODO
-			requests := ct.getFlowRequests(domainId, triggerHash(object, event))
+				object, event, domainId := ct.getExpressionByRoutingKey(m.RoutingKey)
+				requests := ct.getFlowRequests(domainId, triggerHash(object, event))
 
-			if len(requests) == 0 {
-				ct.log.Debug(fmt.Sprintf("no trigger found for key %s and expression %s", msg.RoutingKey, event))
-				continue
-			}
-
-			message := EventMessage{}
-			err := json.Unmarshal(msg.Body, &message)
-			if err != nil {
-				ct.log.Error(fmt.Sprintf("could not unmarshal message  %s: %s", string(msg.Body), err.Error()))
-				continue
-			}
-
-			for _, rs := range requests {
-				for k, v := range message {
-					rs.variables[k] = string(v)
-				}
-				rs.variables["action"] = event
-				job, err := ct.store.Trigger().CreateJob(ctx, rs.domainId, rs.triggerId, rs.variables)
-				if err != nil {
-					ct.log.Error("creating trigger job", wlog.Any("request", rs), wlog.Err(err))
+				if len(requests) == 0 {
+					ct.log.Debug("no trigger found", wlog.String("rk", m.RoutingKey), wlog.String("event", event))
+					m.Ack(false)
 					return
 				}
-				ct.log.Info("started trigger", wlog.String("name", rs.name), wlog.Int64("job_id", job.Id))
-			}
+
+				var message EventMessage
+				if err := json.Unmarshal(m.Body, &message); err != nil {
+					ct.log.Error("unmarshaling event message", wlog.String("body", string(m.Body)), wlog.Err(err))
+					m.Nack(false, false)
+					return
+				}
+
+				for _, rs := range requests {
+					vars := make(map[string]string, len(rs.variables)+len(message)+1)
+
+					maps.Copy(vars, rs.variables)
+
+					for k, v := range message {
+						vars[k] = string(v)
+					}
+
+					vars["action"] = event
+
+					job, err := ct.store.Trigger().CreateJob(ctx, rs.domainId, rs.triggerId, vars)
+					if err != nil {
+						ct.log.Error("creating trigger job", wlog.Any("request", rs), wlog.Err(err))
+						continue
+					}
+					ct.log.Info("started trigger", wlog.String("name", rs.name), wlog.Int64("job_id", job.Id))
+				}
+
+				if err := m.Ack(false); err != nil {
+					ct.log.Error("ack processed message", wlog.Err(err))
+				}
+			}(msg)
 		}
 	}
 }
