@@ -81,7 +81,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 
 	where := `
 		domain_id = :DomainId
-		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar)
+		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar OR t.text ILIKE :Q::varchar)
 		AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
 		and (
 			:RestrictToAgent = false 
@@ -143,7 +143,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 				end as agent_priority
 			from call_center.cc_quick_reply_list t, agent_info_cte agent_info
 			where t.domain_id = :DomainId
-				and (:Q::varchar is null or t.name ilike :Q::varchar)
+				and (:Q::varchar is null or t.name ilike :Q::varchar or t.text ilike :Q::varchar)
 				and (:Ids::int8[] is null or t.id = any(:Ids::bigint[]))
 				and (
 					:RestrictToAgent = false
