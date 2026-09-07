@@ -3,9 +3,12 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"slices"
 	"strings"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
 	"github.com/webitel/engine/model"
@@ -630,7 +633,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
 	and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
-	` + hasFileFilterSQL("t") + `
+	`+hasFileFilterSQL("t")+`
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -1560,4 +1563,36 @@ func (s SqlCallStore) DeleteIdle(ctx context.Context, id string) model.AppError 
 	}
 
 	return nil
+}
+
+func (s SqlCallStore) PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError) {
+	ub := sq.Update("call_center.cc_member_attempt_history").PlaceholderFormat(sq.Dollar)
+
+	if patch.HasVariablesUpdate() {
+		ub = ub.Set("variables", sq.Expr("coalesce(cc_member_attempt_history.variables, '{}'::jsonb) || coalesce(?, '{}'::jsonb)", patch.SerializeVariables()))
+	}
+
+	if slices.Contains(patch.Fields, "description") {
+		ub = ub.Set("description", sq.Expr("coalesce(cc_member_attempt_history.description, ?)", patch.Description))
+	}
+
+	ub = ub.From("call_center.cc_calls_history").
+		Where("cc_member_attempt_history.id = cc_calls_history.attempt_id").
+		Where(sq.Eq{
+			"cc_calls_history.id":        patch.ID,
+			"cc_calls_history.domain_id": patch.DomainID,
+		}).
+		Suffix("returning cc_member_attempt_history.description, cc_member_attempt_history.variables, cc_member_attempt_history.id")
+
+	query, args, err := ub.ToSql()
+	if err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.call_store.patch_history_call_attempt.build_sql", fmt.Sprintf("while preparing query: %+v", err), http.StatusPreconditionFailed)
+	}
+
+	var attempt model.PatchHistoryAttemptResult
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&attempt, query, args...); err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.call_store.patch_history_call_attempt.exec_query", fmt.Sprintf("while executing query request: %+v", err), extractCodeFromErr(err))
+	}
+
+	return &attempt, nil
 }

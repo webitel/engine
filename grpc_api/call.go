@@ -14,10 +14,11 @@ import (
 
 type call struct {
 	*API
+	engine.UnsafeCallServiceServer
+
 	minimumNumberMaskLen int
 	prefixNumberMaskLen  int
 	suffixNumberMaskLen  int
-	engine.UnsafeCallServiceServer
 }
 
 func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *call {
@@ -838,6 +839,29 @@ func (api *call) RedialCall(ctx context.Context, in *engine.RedialCallRequest) (
 	return &engine.CreateCallResponse{
 		Id: id,
 	}, nil
+}
+
+func (api *call) PatchHistoryCallAttempt(ctx context.Context, in *engine.PatchHistoryCallAttemptRequest) (*engine.PatchHistoryCallAttemptResponse, error) {
+	patch := model.NewPatchHistoryCallAttempt(in.GetId(), in.GetDescription(), in.GetVariables(), in.GetFields()...)
+
+	a, err := api.ctrl.PatchHistoryCallAttempt(ctx, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	return toEnginePatchHistoryCallAttemptResponse(a), nil
+}
+
+func toEnginePatchHistoryCallAttemptResponse(in *model.PatchHistoryAttemptResult) *engine.PatchHistoryCallAttemptResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &engine.PatchHistoryCallAttemptResponse{
+		Id:          in.ID,
+		Description: in.Description,
+		Variables:   in.Variables,
+	}
 }
 
 func toEngineCall(src *model.Call) *engine.ActiveCall {
