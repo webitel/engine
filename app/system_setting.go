@@ -31,6 +31,10 @@ func (a *App) CreateSystemSetting(ctx context.Context, userId, domainId int64, s
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", err.Error())
 	}
+
+	if err = a.MessageQueue.SendSystemSettingsChange(domainId, &model.SystemSettingsChange{Names: []string{setting.Name}}); err != nil {
+		return nil, model.NewInternalError("app.system_settings.create.notify_change.error", err.Error())
+	}
 	return setting, nil
 }
 
@@ -101,6 +105,12 @@ func (a *App) UpdateSystemSetting(ctx context.Context, userId, domainId int64, s
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", appErr.Error())
 	}
+
+	if !oldSetting.ValueEquals(&oldSettingCopy) {
+		if appErr = a.MessageQueue.SendSystemSettingsChange(domainId, &model.SystemSettingsChange{Names: []string{oldSetting.Name}}); appErr != nil {
+			return nil, model.NewInternalError("app.system_settings.update.notify_change.error", appErr.Error())
+		}
+	}
 	return oldSetting, nil
 }
 
@@ -126,6 +136,12 @@ func (a *App) PatchSystemSetting(ctx context.Context, userId, domainId int64, id
 	if err != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", err.Error())
+	}
+
+	if !oldSetting.ValueEquals(&oldSettingCopy) {
+		if err = a.MessageQueue.SendSystemSettingsChange(domainId, &model.SystemSettingsChange{Names: []string{oldSetting.Name}}); err != nil {
+			return nil, model.NewInternalError("app.system_settings.patch.notify_change.error", err.Error())
+		}
 	}
 	return oldSetting, nil
 }
@@ -163,20 +179,8 @@ func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.Syst
 		if old == nil || new == nil {
 			return model.NewInternalError("app.system_setting.setting_event_context.args_check.bad_arg", fmt.Sprintf("[%s] action requires old and new setting copies", action))
 		}
-		switch new.Name {
-		case model.SysNameTwoFactorAuthorization, model.SysNameCallEndSoundNotification,
-			model.SysNameCallEndPushNotification, model.SysNameChatEndSoundNotification, model.SysNameChatEndPushNotification,
-			model.SysNameTaskEndSoundNotification, model.SysNameTaskEndPushNotification, model.SysNamePushNotificationTimeout,
-			model.SysNameNewMessageSoundNotification, model.SysNameNewChatSoundNotification,
-			model.SysNameSelfAssignedCallSoundNotification:
 
-			oldParsed, newParsed := model.SysValue(old.Value), model.SysValue(new.Value)
-			oldValue, newValue := oldParsed.Bool(), newParsed.Bool()
-			if *oldValue == *newValue { // value didn't changed -- ignore
-				return nil
-			}
-		default:
-			// system setting change doesn't need an event -- ignore
+		if new.ValueEquals(old) {
 			return nil
 		}
 	case EventCreateAction, EventDeleteAction:
