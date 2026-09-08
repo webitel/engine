@@ -1,8 +1,10 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -193,6 +195,36 @@ func (s *SystemSetting) IsValid() AppError {
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
 	}
 	return nil
+}
+
+type SystemSettingsChange struct {
+	Names []string `json:"names"`
+}
+
+func (c *SystemSettingsChange) ToJSON() string {
+	b, _ := json.Marshal(c)
+
+	return string(b)
+}
+
+func NewWebSocketSystemSettingsEvent(names []string) *WebSocketEvent {
+	e := NewWebSocketEvent(WebsocketSystemSettingsEvent)
+	e.Add("names", names)
+
+	return e
+}
+
+func (s *SystemSetting) ValueEquals(other *SystemSetting) bool {
+	if s == nil || other == nil {
+		return s == other
+	}
+
+	var a, b any
+	if json.Unmarshal(s.Value, &a) != nil || json.Unmarshal(other.Value, &b) != nil {
+		return bytes.Equal(s.Value, other.Value)
+	}
+
+	return reflect.DeepEqual(a, b)
 }
 
 func (s *SystemSetting) Patch(p *SystemSettingPath) {
