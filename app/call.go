@@ -663,6 +663,22 @@ func (app *App) BlindTransferCallToQueue(ctx context.Context, domainId int64, re
 	})
 }
 
+func (app *App) BlindTransferCallToDialplan(ctx context.Context, domainId int64, req *model.BlindTransferCallToDialplan) model.AppError {
+	if req.Variables == nil {
+		req.Variables = make(map[string]string)
+	}
+
+	s := strconv.Itoa(req.SchemaId)
+
+	req.Variables["transfer_to_schema_id"] = s
+
+	return app.BlindTransferCallExt(ctx, domainId, &model.BlindTransferCall{
+		UserCallRequest: req.UserCallRequest,
+		Destination:     s,
+		Variables:       req.Variables,
+	})
+}
+
 func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
 	var cli call_manager.CallClient
 	var err model.AppError

@@ -33,6 +33,7 @@ func (app *App) UpdateRoutingOutboundCall(ctx context.Context, routing *model.Ro
 	oldRouting.Description = routing.Description
 	oldRouting.Pattern = routing.Pattern
 	oldRouting.Disabled = routing.Disabled
+	oldRouting.AllowTransfer = routing.AllowTransfer
 	oldRouting.UpdatedAt = routing.UpdatedAt
 
 	if routing.GetSchemaId() != nil {

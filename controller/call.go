@@ -171,6 +171,15 @@ func (c *Controller) BlindTransferCallToQueue(ctx context.Context, session *auth
 	return c.app.BlindTransferCallToQueue(ctx, session.Domain(domainId), req)
 }
 
+func (c *Controller) BlindTransferCallToDialplan(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCallToDialplan) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.BlindTransferCallToDialplan(ctx, session.Domain(domainId), req)
+}
+
 func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Session, userId int64, parentId string, cp model.CallParameters, queueId, agentId *int) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {
