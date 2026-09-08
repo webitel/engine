@@ -1582,7 +1582,9 @@ func (s SqlCallStore) PatchHistoryCallAttempt(ctx context.Context, patch *model.
 			"cc_calls_history.id":        patch.ID,
 			"cc_calls_history.domain_id": patch.DomainID,
 		}).
-		Suffix("returning cc_member_attempt_history.description, cc_member_attempt_history.variables, cc_member_attempt_history.id")
+		Suffix(
+			"returning coalesce(cc_member_attempt_history.description, '') as description, coalesce(cc_member_attempt_history.variables, '{}'::jsonb) as variables, cc_member_attempt_history.id",
+		)
 
 	query, args, err := ub.ToSql()
 	if err != nil {
