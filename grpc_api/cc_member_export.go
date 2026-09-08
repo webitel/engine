@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/webitel/wlog"
 	"github.com/xuri/excelize/v2"
 	"google.golang.org/grpc/metadata"
 
@@ -59,17 +60,28 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 
 	domainId := session.Domain(0)
 
-	if format == "csv" {
-		return api.exportMembersCSV(ctx, domainId, in, fields, stream)
+	req := buildExportMembersSearchRequest(in)
+
+	if !req.IsWithCreatedAtFilter() {
+		filter, filterErr := api.prepareDefaulMembersFilter(ctx, domainId)
+		if filterErr != nil {
+			api.app.Log.Error("preparing default members filter", wlog.Err(filterErr))
+		} else {
+			req.CreatedAt = filter
+		}
 	}
-	return api.exportMembersXLSX(ctx, domainId, in, fields, stream)
+
+	if format == "csv" {
+		return api.exportMembersCSV(ctx, domainId, in, fields, req, stream)
+	}
+	return api.exportMembersXLSX(ctx, domainId, fields, req, stream)
 }
 
-func buildExportMembersSearchRequest(in *engine.ExportMembersRequest, page int) *model.SearchMemberRequest {
+func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.SearchMemberRequest {
 	req := &model.SearchMemberRequest{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
-			Page:    page,
+			Page:    1,
 			PerPage: exportMembersPageSize,
 			Fields:  in.GetFields(),
 		},
@@ -104,13 +116,14 @@ func buildExportMembersSearchRequest(in *engine.ExportMembersRequest, page int) 
 }
 
 func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *engine.ExportMembersRequest, fields []string,
-	stream engine.MemberService_ExportMembersServer) error {
-
+	req *model.SearchMemberRequest, stream engine.MemberService_ExportMembersServer) error {
 	page := 1
 	sentAnyChunk := false
 
 	for {
-		list, endList, err := api.app.SearchMembers(ctx, domainId, buildExportMembersSearchRequest(in, page))
+		req.Page = page
+
+		list, endList, err := api.app.SearchMembers(ctx, domainId, req)
 		if err != nil {
 			return err
 		}
@@ -148,14 +161,15 @@ func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *eng
 	return nil
 }
 
-func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, in *engine.ExportMembersRequest, fields []string,
-	stream engine.MemberService_ExportMembersServer) error {
-
+func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields []string,
+	req *model.SearchMemberRequest, stream engine.MemberService_ExportMembersServer) error {
 	var allRows [][]string
 	page := 1
 
 	for {
-		list, endList, err := api.app.SearchMembers(ctx, domainId, buildExportMembersSearchRequest(in, page))
+		req.Page = page
+
+		list, endList, err := api.app.SearchMembers(ctx, domainId, req)
 		if err != nil {
 			return err
 		}
