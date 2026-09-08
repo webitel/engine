@@ -1573,7 +1573,7 @@ func (s SqlCallStore) PatchHistoryCallAttempt(ctx context.Context, patch *model.
 	}
 
 	if slices.Contains(patch.Fields, "description") {
-		ub = ub.Set("description", sq.Expr("coalesce(cc_member_attempt_history.description, ?)", patch.Description))
+		ub = ub.Set("description", sq.Expr("coalesce(nullif(cc_member_attempt_history.description, ''), ?)", patch.Description))
 	}
 
 	ub = ub.From("call_center.cc_calls_history").
