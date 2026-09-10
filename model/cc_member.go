@@ -436,6 +436,54 @@ type MemberCommunication struct {
 	MemberSub string    `json:"member_sub"`
 }
 
+func (m *Member) SortCommunications(order string) {
+	order = strings.TrimSpace(order)
+	if order == "" || len(m.Communications) < 2 {
+		return
+	}
+
+	desc := false
+
+	switch order[0] {
+	case '-':
+		desc, order = true, order[1:]
+	case '+', ' ':
+		order = order[1:]
+	}
+
+	var less func(a, b *MemberCommunication) bool
+
+	switch order {
+	case "name", "destination":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Destination) < strings.ToLower(b.Destination)
+		}
+	case "type":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Type.Name) < strings.ToLower(b.Type.Name)
+		}
+	case "priority":
+		less = func(a, b *MemberCommunication) bool { return a.Priority < b.Priority }
+	default:
+		return
+	}
+
+	sort.SliceStable(m.Communications, func(i, j int) bool {
+		a, b := m.Communications[i], m.Communications[j]
+
+		switch {
+		case a == nil:
+			return false
+		case b == nil:
+			return true
+		case desc:
+			return less(b, a)
+		default:
+			return less(a, b)
+		}
+	})
+}
+
 func (m *Member) ToJsonCommunications() string {
 	// TODO: fix in lib
 	sort.Slice(m.Communications[:], func(i, j int) bool {
