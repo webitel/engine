@@ -163,6 +163,63 @@ func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest)
 	return toEngineMember(out), nil
 }
 
+func (api *member) SearchMemberCommunication(ctx context.Context, in *engine.SearchMemberCommunicationRequest) (*engine.ListOfMemberCommunication, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	out, err := api.app.GetMember(ctx, session.Domain(0), in.GetQueueId(), in.GetMemberId())
+	if err != nil {
+		return nil, err
+	}
+
+	out.SortCommunications(in.GetSort())
+
+	req := model.ListRequest{Page: int(in.GetPage()), PerPage: int(in.GetSize())}
+	offset := req.GetOffset()
+	perPage := req.PerPage
+
+	items := make([]*engine.MemberCommunication, 0, perPage)
+	next := false
+
+	if offset < len(out.Communications) {
+		end := offset + perPage
+		if end >= len(out.Communications) {
+			end = len(out.Communications)
+		} else {
+			next = true
+		}
+
+		for _, c := range out.Communications[offset:end] {
+			if c == nil {
+				continue
+			}
+			items = append(items, toEngineDestination(c))
+		}
+	}
+
+	return &engine.ListOfMemberCommunication{
+		Next:  next,
+		Items: items,
+	}, nil
+}
+
 func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMemberInQueueRequest) (*engine.ListMember, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
