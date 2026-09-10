@@ -200,6 +200,7 @@ func New(options ...string) (outApp *App, outErr error) {
 	app.Store = store.NewLayeredStore(sqlSupplier)
 
 	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)
+	app.initDomainEventListener()
 	app.MessageQueue.Start()
 
 	app.Hubs = NewHubs(app)
