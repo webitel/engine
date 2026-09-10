@@ -295,3 +295,32 @@ func (s *SqlOnlineSkillsStore) Get(ctx context.Context, search *model.GetSkillPr
 
 	return result, nil
 }
+
+func (s *SqlOnlineSkillsStore) CreateSystem(ctx context.Context, domainID int64) model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(
+		`insert into call_center.cc_online_skills (
+				domain_id, created_at, updated_at, name, is_system
+			)
+			select
+				:DomainID,
+				now(),
+				now(),
+				:StandartSkill,
+				true
+			where not exists (
+				select 1
+				from call_center.cc_online_skills
+				where domain_id = :DomainID
+					and is_system is true
+			);
+		`,
+		map[string]any{
+			"DomainID":      domainID,
+			"StandartSkill": model.StandartOnlineSkill,
+		},
+	); err != nil {
+		return model.NewCustomCodeError("sqlstore.online_skills.create_system", err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
+}
