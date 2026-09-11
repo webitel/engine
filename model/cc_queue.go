@@ -357,7 +357,7 @@ func (q *Queue) prepareProgressiveCount() AppError {
 
 	progessiveCount, err := q.tryRetrieveNumberConfigurationParameter(QueuePayloadProgressiveCountKey, progressiveCountValue)
 	if err != nil {
-		return err
+		progessiveCount = QueueDefaultProgressiveCountValue
 	}
 
 	q.Payload[QueuePayloadProgressiveCountKey] = max(progessiveCount, QueueDefaultProgressiveCountValue)
@@ -419,7 +419,8 @@ func (q *Queue) validateMaxAgentLines() AppError {
 
 	maxAgentLines, err := q.tryRetrieveNumberConfigurationParameter(QueuePayloadMaxAgentLineKey, maxAgentLinesValue)
 	if err != nil {
-		return err
+		q.Payload[QueuePayloadMaxAgentLineKey] = QueueDefaultMaxAgentLine
+		return nil
 	}
 
 	q.Payload[QueuePayloadMaxAgentLineKey] = max(maxAgentLines, QueueDefaultMaxAgentLine)
