@@ -25,6 +25,7 @@ const (
 	PermissionAuditRate  = "rating"
 	PermissionRecordFile = "record_file"
 	PermissionSkill      = "cc_skill"
+	PermissionSkillGroup = "cc_skill_group"
 	PermissionWebHook    = "email_profile" // todo
 	PermissionContacts   = "contacts"
 
