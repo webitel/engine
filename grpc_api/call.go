@@ -1007,6 +1007,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Contact:          GetProtoLookup(src.Contact),
 		Schemas:          GetProtoLookups(src.Schemas),
 		QualityMetrics:   marshaProtoCallQualityMetrics(src.QualityMetrics),
+		UserAgent:        src.UserAgent,
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
