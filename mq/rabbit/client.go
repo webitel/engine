@@ -171,6 +171,18 @@ func (a *AMQP) SendNotification(domainId int64, event *model.Notification) model
 	return nil
 }
 
+func (a *AMQP) SendSystemSettingsChange(domainID int64, event *model.SystemSettingsChange) model.AppError {
+	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("system_settings.%d", domainID), false, false, amqp.Publishing{
+		ContentType: "text/json",
+		Body:        []byte(event.ToJSON()),
+	})
+	if err != nil {
+		return model.NewInternalError("amqp.system_settings.publish.app_error", err.Error())
+	}
+
+	return nil
+}
+
 func (a *AMQP) RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError {
 	err := a.channel.Publish(model.AppExchange, fmt.Sprintf("event.open_socket.%d.%d", domainId, event.UserId), false, false, amqp.Publishing{
 		ContentType: "text/json",

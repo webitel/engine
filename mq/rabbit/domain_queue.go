@@ -28,6 +28,7 @@ type DomainQueue struct {
 	userStateEvents   chan *model.UserState
 	chatEvents        chan *model.ChatEvent
 	notificationEvent chan *model.Notification
+	sysSettingsEvent  chan *model.SystemSettingsChange
 
 	bindChan chan *model.BindQueueEvent
 
@@ -63,6 +64,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		userStateEvents:   make(chan *model.UserState),
 		chatEvents:        make(chan *model.ChatEvent),
 		notificationEvent: make(chan *model.Notification),
+		sysSettingsEvent:  make(chan *model.SystemSettingsChange),
 		fnGetAllBindings:  bindings,
 
 		bindChan: make(chan *model.BindQueueEvent, 1000), //TODO
@@ -282,6 +284,15 @@ func parseNotification(data []byte) (*model.Notification, error) {
 	return &n, nil
 }
 
+func parseSystemSettingsChange(data []byte) (*model.SystemSettingsChange, error) {
+	e := &model.SystemSettingsChange{}
+	if err := json.Unmarshal(data, e); err != nil {
+		return nil, err
+	}
+
+	return e, nil
+}
+
 func (dq *DomainQueue) readAppMessage(data []byte, rk string) {
 	log := dq.log.With(
 		wlog.String("routing", rk),
@@ -300,6 +311,18 @@ func (dq *DomainQueue) readAppMessage(data []byte, rk string) {
 		}
 		log.Debug("receive notification event", wlog.Int64("notification_id", e.Id))
 		dq.notificationEvent <- e
+
+	case "system_settings":
+		e, err := parseSystemSettingsChange(data)
+		if err != nil {
+			log.Warn("failed parse json system_settings event, skip", wlog.String("message", string(data)))
+
+			return
+		}
+
+		log.Debug("receive system_settings event", wlog.String("names", strings.Join(e.Names, ",")))
+
+		dq.sysSettingsEvent <- e
 
 	default:
 		log.Error("read app message, error: no handler")
@@ -501,6 +524,14 @@ func (dq *DomainQueue) connect() error {
 		return err
 	}
 
+	err = ch.QueueBind(dq.queue.Name,
+		fmt.Sprintf("system_settings.%d", dq.id), model.AppExchange, true, nil)
+	if err != nil {
+		dq.log.Error("bind error", wlog.Err(err))
+
+		return err
+	}
+
 	dq.delivery, err = ch.Consume(
 		dq.queue.Name,
 		model.NewId(),
@@ -597,6 +628,10 @@ func (dq *DomainQueue) UserStateEvents() <-chan *model.UserState {
 
 func (dq *DomainQueue) NotificationEvents() <-chan *model.Notification {
 	return dq.notificationEvent
+}
+
+func (dq *DomainQueue) SysSettingsEvents() <-chan *model.SystemSettingsChange {
+	return dq.sysSettingsEvent
 }
 
 func (dq *DomainQueue) Stop() {

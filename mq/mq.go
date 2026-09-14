@@ -19,6 +19,7 @@ type MQ interface {
 	RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError
 	UnRegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError
 	SendNotification(domainId int64, event *model.Notification) model.AppError
+	SendSystemSettingsChange(domainID int64, event *model.SystemSettingsChange) model.AppError
 
 	SendStickingCall(e *model.CallServiceHangup) model.AppError
 
@@ -35,6 +36,7 @@ type DomainQueue interface {
 	UserStateEvents() <-chan *model.UserState
 	ChatEvents() <-chan *model.ChatEvent
 	NotificationEvents() <-chan *model.Notification
+	SysSettingsEvents() <-chan *model.SystemSettingsChange
 
 	BindUserCall(id string, userId int64) *model.BindQueueEvent
 	BindUserChat(id string, userId int64) *model.BindQueueEvent
