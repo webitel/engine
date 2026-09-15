@@ -11,6 +11,7 @@ const (
 	QueueTypeProgressiveCall int8 = 4
 	QueueTypePredictCall     int8 = 5
 	QueueTypeInboundChat     int8 = 6
+	QueueTypeInboundIM       int8 = 9
 )
 
 const (
@@ -491,5 +492,10 @@ func (q *Queue) IsProgressiveOrPredictive() bool {
 }
 
 func (q *Queue) RequireCalendar() bool {
-	return !(q.Type == QueueTypeInboundCall || q.Type == QueueTypeInboundChat)
+	switch q.Type {
+	case QueueTypeInboundCall, QueueTypeInboundChat, QueueTypeInboundIM:
+		return false
+	default:
+		return true
+	}
 }
