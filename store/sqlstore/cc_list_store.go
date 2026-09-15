@@ -196,16 +196,24 @@ func (s SqlListStore) Delete(ctx context.Context, domainId, id int64) model.AppE
 // Communications
 func (s SqlListStore) CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	var out *model.ListCommunication
-	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description, expire_at)
-values (:ListId, :Number, :Description, :ExpireAt)
-returning id, list_id, number, description, expire_at`,
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with ins as (
+    insert into call_center.cc_list_communications (list_id, number, description, expire_at)
+    values (:ListId, :Number, :Description, :ExpireAt)
+    on conflict (list_id, number) do nothing
+    returning id, list_id, number, description, expire_at
+)
+select id, list_id, number, description, expire_at from ins
+union all
+select id, list_id, number, description, expire_at
+from call_center.cc_list_communications
+where list_id = :ListId and number = :Number and not exists(select 1 from ins)`,
 		map[string]interface{}{
 			"ListId":      comm.ListId,
 			"Number":      comm.Number,
 			"Description": comm.Description,
 			"ExpireAt":    comm.ExpireAt,
 		}); err != nil {
-		return nil, model.NewInternalError("store.sql_list.save_communication.app_error", fmt.Sprintf("number=%v, %v", comm.Number, err.Error()))
+		return nil, model.NewCustomCodeError("store.sql_list.save_communication.app_error", fmt.Sprintf("number=%v, %v", comm.Number, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
