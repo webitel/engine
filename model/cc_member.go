@@ -413,6 +413,12 @@ type IMThread struct {
 	Members     []*IMThreadMember `json:"members"`
 	Subject     string            `json:"subject"`
 	LastMessage string            `json:"last_msg"`
+	Channel     *IMChannel        `json:"channel,omitempty"`
+}
+
+type IMChannel struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type MemberCommunication struct {
