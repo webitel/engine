@@ -49,6 +49,10 @@ func (s *LayeredStore) Skill() SkillStore {
 	return s.DatabaseLayer.Skill()
 }
 
+func (s *LayeredStore) SkillGroup() SkillGroupStore {
+	return s.DatabaseLayer.SkillGroup()
+}
+
 func (s *LayeredStore) AgentTeam() AgentTeamStore {
 	return s.DatabaseLayer.AgentTeam()
 }

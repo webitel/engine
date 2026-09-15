@@ -39,6 +39,7 @@ type SqlSupplierOldStores struct {
 	user                    store.UserStore
 	calendar                store.CalendarStore
 	skill                   store.SkillStore
+	skillGroup              store.SkillGroupStore
 	agentTeam               store.AgentTeamStore
 	agent                   store.AgentStore
 	teamHook                store.TeamHookStore
@@ -105,6 +106,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.user = NewSqlUserStore(supplier)
 	supplier.oldStores.calendar = NewSqlCalendarStore(supplier)
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
+	supplier.oldStores.skillGroup = NewSqlSkillGroupStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
 	supplier.oldStores.agent = NewSqlAgentStore(supplier)
 	supplier.oldStores.teamHook = NewSqlTeamHookStore(supplier)
@@ -307,6 +309,10 @@ func (ss *SqlSupplier) Calendar() store.CalendarStore {
 
 func (ss *SqlSupplier) Skill() store.SkillStore {
 	return ss.oldStores.skill
+}
+
+func (ss *SqlSupplier) SkillGroup() store.SkillGroupStore {
+	return ss.oldStores.skillGroup
 }
 
 func (ss *SqlSupplier) AgentTeam() store.AgentTeamStore {
@@ -605,7 +611,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 			if err := a.Scan(*s); err != nil {
 				return err
 			} else {
-				*(target).(*model.StringArray) = model.StringArray(a)
+				*target.(*model.StringArray) = model.StringArray(a)
 				return nil
 			}
 		}
@@ -642,7 +648,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 			if err := a.Scan(*s); err != nil {
 				return err
 			} else {
-				*(target).(*model.Int64Array) = model.Int64Array(a)
+				*target.(*model.Int64Array) = model.Int64Array(a)
 				return nil
 			}
 		}
