@@ -266,6 +266,62 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 	return toEngineListCommunication(communication), nil
 }
 
+func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.CreateListCommunicationBulkRequest) (*engine.ListCommunicationBulkResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanCreate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
+		var perm bool
+		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(0), in.GetListId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	communications := make([]*model.ListCommunication, 0, len(in.GetItems()))
+	for _, v := range in.GetItems() {
+		comm := &model.ListCommunication{
+			ListId:      in.GetListId(),
+			Number:      v.GetNumber(),
+			Description: v.GetDescription(),
+			ExpireAt:    model.Int64ToTime(v.GetExpireAt()),
+		}
+
+		if err = comm.IsValid(); err != nil {
+			return nil, err
+		}
+
+		communications = append(communications, comm)
+	}
+
+	var ids []int64
+	ids, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), communications)
+	if err != nil {
+		return nil, err
+	}
+
+	imported := int64(len(ids))
+
+	return &engine.ListCommunicationBulkResponse{
+		Ids:      ids,
+		Imported: imported,
+		Skipped:  int64(len(communications)) - imported,
+	}, nil
+}
+
 func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchListCommunicationRequest) (*engine.ListOfListCommunication, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

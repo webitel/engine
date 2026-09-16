@@ -19,16 +19,17 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ListService_CreateList_FullMethodName              = "/engine.ListService/CreateList"
-	ListService_SearchList_FullMethodName              = "/engine.ListService/SearchList"
-	ListService_ReadList_FullMethodName                = "/engine.ListService/ReadList"
-	ListService_UpdateList_FullMethodName              = "/engine.ListService/UpdateList"
-	ListService_DeleteList_FullMethodName              = "/engine.ListService/DeleteList"
-	ListService_CreateListCommunication_FullMethodName = "/engine.ListService/CreateListCommunication"
-	ListService_SearchListCommunication_FullMethodName = "/engine.ListService/SearchListCommunication"
-	ListService_ReadListCommunication_FullMethodName   = "/engine.ListService/ReadListCommunication"
-	ListService_UpdateListCommunication_FullMethodName = "/engine.ListService/UpdateListCommunication"
-	ListService_DeleteListCommunication_FullMethodName = "/engine.ListService/DeleteListCommunication"
+	ListService_CreateList_FullMethodName                  = "/engine.ListService/CreateList"
+	ListService_SearchList_FullMethodName                  = "/engine.ListService/SearchList"
+	ListService_ReadList_FullMethodName                    = "/engine.ListService/ReadList"
+	ListService_UpdateList_FullMethodName                  = "/engine.ListService/UpdateList"
+	ListService_DeleteList_FullMethodName                  = "/engine.ListService/DeleteList"
+	ListService_CreateListCommunication_FullMethodName     = "/engine.ListService/CreateListCommunication"
+	ListService_SearchListCommunication_FullMethodName     = "/engine.ListService/SearchListCommunication"
+	ListService_ReadListCommunication_FullMethodName       = "/engine.ListService/ReadListCommunication"
+	ListService_UpdateListCommunication_FullMethodName     = "/engine.ListService/UpdateListCommunication"
+	ListService_DeleteListCommunication_FullMethodName     = "/engine.ListService/DeleteListCommunication"
+	ListService_CreateListCommunicationBulk_FullMethodName = "/engine.ListService/CreateListCommunicationBulk"
 )
 
 // ListServiceClient is the client API for ListService service.
@@ -55,6 +56,8 @@ type ListServiceClient interface {
 	UpdateListCommunication(ctx context.Context, in *UpdateListCommunicationRequest, opts ...grpc.CallOption) (*ListCommunication, error)
 	// Remove ListCommunication
 	DeleteListCommunication(ctx context.Context, in *DeleteListCommunicationRequest, opts ...grpc.CallOption) (*ListCommunication, error)
+	// Bulk create ListCommunication (CSV import); existing numbers are skipped
+	CreateListCommunicationBulk(ctx context.Context, in *CreateListCommunicationBulkRequest, opts ...grpc.CallOption) (*ListCommunicationBulkResponse, error)
 }
 
 type listServiceClient struct {
@@ -155,6 +158,15 @@ func (c *listServiceClient) DeleteListCommunication(ctx context.Context, in *Del
 	return out, nil
 }
 
+func (c *listServiceClient) CreateListCommunicationBulk(ctx context.Context, in *CreateListCommunicationBulkRequest, opts ...grpc.CallOption) (*ListCommunicationBulkResponse, error) {
+	out := new(ListCommunicationBulkResponse)
+	err := c.cc.Invoke(ctx, ListService_CreateListCommunicationBulk_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ListServiceServer is the server API for ListService service.
 // All implementations must embed UnimplementedListServiceServer
 // for forward compatibility
@@ -179,6 +191,8 @@ type ListServiceServer interface {
 	UpdateListCommunication(context.Context, *UpdateListCommunicationRequest) (*ListCommunication, error)
 	// Remove ListCommunication
 	DeleteListCommunication(context.Context, *DeleteListCommunicationRequest) (*ListCommunication, error)
+	// Bulk create ListCommunication (CSV import); existing numbers are skipped
+	CreateListCommunicationBulk(context.Context, *CreateListCommunicationBulkRequest) (*ListCommunicationBulkResponse, error)
 	mustEmbedUnimplementedListServiceServer()
 }
 
@@ -215,6 +229,9 @@ func (UnimplementedListServiceServer) UpdateListCommunication(context.Context, *
 }
 func (UnimplementedListServiceServer) DeleteListCommunication(context.Context, *DeleteListCommunicationRequest) (*ListCommunication, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteListCommunication not implemented")
+}
+func (UnimplementedListServiceServer) CreateListCommunicationBulk(context.Context, *CreateListCommunicationBulkRequest) (*ListCommunicationBulkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateListCommunicationBulk not implemented")
 }
 func (UnimplementedListServiceServer) mustEmbedUnimplementedListServiceServer() {}
 
@@ -409,6 +426,24 @@ func _ListService_DeleteListCommunication_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ListService_CreateListCommunicationBulk_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateListCommunicationBulkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ListServiceServer).CreateListCommunicationBulk(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ListService_CreateListCommunicationBulk_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ListServiceServer).CreateListCommunicationBulk(ctx, req.(*CreateListCommunicationBulkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ListService_ServiceDesc is the grpc.ServiceDesc for ListService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -455,6 +490,10 @@ var ListService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteListCommunication",
 			Handler:    _ListService_DeleteListCommunication_Handler,
+		},
+		{
+			MethodName: "CreateListCommunicationBulk",
+			Handler:    _ListService_CreateListCommunicationBulk_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

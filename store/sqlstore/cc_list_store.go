@@ -196,17 +196,9 @@ func (s SqlListStore) Delete(ctx context.Context, domainId, id int64) model.AppE
 // Communications
 func (s SqlListStore) CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError) {
 	var out *model.ListCommunication
-	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with ins as (
-    insert into call_center.cc_list_communications (list_id, number, description, expire_at)
-    values (:ListId, :Number, :Description, :ExpireAt)
-    on conflict (list_id, number) do nothing
-    returning id, list_id, number, description, expire_at
-)
-select id, list_id, number, description, expire_at from ins
-union all
-select id, list_id, number, description, expire_at
-from call_center.cc_list_communications
-where list_id = :ListId and number = :Number and not exists(select 1 from ins)`,
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_list_communications (list_id, number, description, expire_at)
+values (:ListId, :Number, :Description, :ExpireAt)
+returning id, list_id, number, description, expire_at`,
 		map[string]interface{}{
 			"ListId":      comm.ListId,
 			"Number":      comm.Number,
@@ -217,6 +209,35 @@ where list_id = :ListId and number = :Number and not exists(select 1 from ins)`,
 	} else {
 		return out, nil
 	}
+}
+
+func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listId int64, communications []*model.ListCommunication) ([]int64, model.AppError) {
+	numbers := make([]string, len(communications))
+	descriptions := make([]string, len(communications))
+	expireAt := make([]int64, len(communications))
+
+	for i, c := range communications {
+		numbers[i] = c.Number
+		descriptions[i] = c.Description
+		expireAt[i] = model.TimeToInt64(c.ExpireAt)
+	}
+
+	var ids []int64
+	if _, err := s.GetMaster().WithContext(ctx).Select(&ids, `insert into call_center.cc_list_communications (list_id, number, description, expire_at)
+select :ListId, x.number, x.description, case when x.expire_at > 0 then to_timestamp(x.expire_at / 1000.0) end
+from unnest(:Numbers::varchar[], :Descriptions::varchar[], :ExpireAt::int8[]) as x(number, description, expire_at)
+on conflict (list_id, number) do nothing
+returning id`,
+		map[string]interface{}{
+			"ListId":       listId,
+			"Numbers":      pq.Array(numbers),
+			"Descriptions": pq.Array(descriptions),
+			"ExpireAt":     pq.Array(expireAt),
+		}); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_list.bulk_save_communication.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return ids, nil
 }
 
 func (s SqlListStore) GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError) {
