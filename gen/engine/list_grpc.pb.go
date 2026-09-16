@@ -56,7 +56,7 @@ type ListServiceClient interface {
 	UpdateListCommunication(ctx context.Context, in *UpdateListCommunicationRequest, opts ...grpc.CallOption) (*ListCommunication, error)
 	// Remove ListCommunication
 	DeleteListCommunication(ctx context.Context, in *DeleteListCommunicationRequest, opts ...grpc.CallOption) (*ListCommunication, error)
-	// Bulk create ListCommunication (CSV import); existing numbers are skipped
+	// Bulk create ListCommunication
 	CreateListCommunicationBulk(ctx context.Context, in *CreateListCommunicationBulkRequest, opts ...grpc.CallOption) (*ListCommunicationBulkResponse, error)
 }
 
@@ -191,7 +191,7 @@ type ListServiceServer interface {
 	UpdateListCommunication(context.Context, *UpdateListCommunicationRequest) (*ListCommunication, error)
 	// Remove ListCommunication
 	DeleteListCommunication(context.Context, *DeleteListCommunicationRequest) (*ListCommunication, error)
-	// Bulk create ListCommunication (CSV import); existing numbers are skipped
+	// Bulk create ListCommunication
 	CreateListCommunicationBulk(context.Context, *CreateListCommunicationBulkRequest) (*ListCommunicationBulkResponse, error)
 	mustEmbedUnimplementedListServiceServer()
 }
