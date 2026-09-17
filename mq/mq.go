@@ -2,8 +2,11 @@ package mq
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
+
+type DomainEventHandler func(ctx context.Context, e *model.DomainEvent) error
 
 type MQ interface {
 	SendJSON(name string, data []byte) model.AppError
@@ -25,6 +28,7 @@ type MQ interface {
 	Send(ctx context.Context, exchange string, rk string, body []byte) error
 
 	SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError
+	SetDomainsEventHandler(h DomainEventHandler)
 }
 
 type DomainQueue interface {

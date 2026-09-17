@@ -570,6 +570,7 @@ type OnlineSkillsStore interface {
 	Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) model.AppError
 	Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError)
 	Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.OnlineSkills, model.AppError)
+	CreateSystem(ctx context.Context, domainID int64) model.AppError
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.
