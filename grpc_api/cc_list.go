@@ -321,9 +321,11 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 	}
 
 	var inserted []*model.ListCommunication
-	inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), valid)
-	if err != nil {
-		return nil, err
+	if len(valid) > 0 {
+		inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), valid)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	insertedByNumber := make(map[string]*model.ListCommunication, len(inserted))
