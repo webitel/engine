@@ -143,7 +143,7 @@ func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn
 	return res, nil
 }
 
-func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
 	var attemptId, agentId float64
 	var ok bool
 	var nextDistributeAt *int64
@@ -184,14 +184,29 @@ func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.Web
 
 	agentId, _ = req.Data["agent_id"].(float64)
 
-	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire,
-		nil, display, int32(agentId), exclDes, waitBetweenRetries, onlyComm)
+	draft, _ := req.Get("draft").(bool)
+
+	err := api.ctrl.ReportingAttempt(
+		conn.GetSession(),
+		int64(attemptId),
+		status,
+		description,
+		nextDistributeAt,
+		expire,
+		nil,
+		display,
+		int32(agentId),
+		exclDes,
+		waitBetweenRetries,
+		onlyComm,
+		draft,
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	return res, nil
+	return make(map[string]any), nil
 }
 
 func (api *API) memberDirect(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
