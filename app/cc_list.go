@@ -74,7 +74,7 @@ func (a *App) CreateListCommunication(ctx context.Context, comm *model.ListCommu
 	return a.Store.List().CreateCommunication(ctx, comm)
 }
 
-func (a *App) BulkCreateListCommunication(ctx context.Context, listId int64, communications []*model.ListCommunication) ([]int64, model.AppError) {
+func (a *App) BulkCreateListCommunication(ctx context.Context, listId int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
 	return a.Store.List().BulkCreateCommunication(ctx, listId, communications)
 }
 

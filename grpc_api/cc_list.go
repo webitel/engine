@@ -2,11 +2,14 @@ package grpc_api
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"strconv"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type list struct {
@@ -291,8 +294,11 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 		}
 	}
 
-	communications := make([]*model.ListCommunication, 0, len(in.GetItems()))
-	for _, v := range in.GetItems() {
+	failures := make([]*engine.ListCommunicationBulkError, 0)
+	valid := make([]*model.ListCommunication, 0, len(in.GetItems()))
+	validIndex := make([]int32, 0, len(in.GetItems()))
+
+	for i, v := range in.GetItems() {
 		comm := &model.ListCommunication{
 			ListId:      in.GetListId(),
 			Number:      v.GetNumber(),
@@ -300,25 +306,48 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 			ExpireAt:    model.Int64ToTime(v.GetExpireAt()),
 		}
 
-		if err = comm.IsValid(); err != nil {
-			return nil, err
+		if appErr := comm.IsValid(); appErr != nil {
+			failures = append(failures, &engine.ListCommunicationBulkError{
+				Index: int32(i),
+				Item:  toEngineListCommunication(comm),
+				Error: status.New(codes.InvalidArgument, appErr.Error()).Proto(),
+			})
+
+			continue
 		}
 
-		communications = append(communications, comm)
+		valid = append(valid, comm)
+		validIndex = append(validIndex, int32(i))
 	}
 
-	var ids []int64
-	ids, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), communications)
+	var inserted []*model.ListCommunication
+	inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), valid)
 	if err != nil {
 		return nil, err
 	}
 
-	imported := int64(len(ids))
+	insertedByNumber := make(map[string]*model.ListCommunication, len(inserted))
+	for _, row := range inserted {
+		insertedByNumber[row.Number] = row
+	}
+
+	data := make([]*engine.ListCommunication, 0, len(inserted))
+	for i, comm := range valid {
+		if row, ok := insertedByNumber[comm.Number]; ok {
+			data = append(data, toEngineListCommunication(row))
+			delete(insertedByNumber, comm.Number)
+		} else {
+			failures = append(failures, &engine.ListCommunicationBulkError{
+				Index: validIndex[i],
+				Item:  toEngineListCommunication(comm),
+				Error: status.New(codes.AlreadyExists, "number already exists").Proto(),
+			})
+		}
+	}
 
 	return &engine.ListCommunicationBulkResponse{
-		Ids:      ids,
-		Imported: imported,
-		Skipped:  int64(len(communications)) - imported,
+		Data:     data,
+		Failures: failures,
 	}, nil
 }
 
