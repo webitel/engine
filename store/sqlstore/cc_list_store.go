@@ -211,7 +211,7 @@ returning id, list_id, number, description, expire_at`,
 	}
 }
 
-func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listId int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
+func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
 	numbers := make([]string, len(communications))
 	descriptions := make([]string, len(communications))
 	expireAt := make([]int64, len(communications))
@@ -228,8 +228,8 @@ select :ListId, x.number, x.description, case when x.expire_at > 0 then to_times
 from unnest(:Numbers::varchar[], :Descriptions::varchar[], :ExpireAt::int8[]) as x(number, description, expire_at)
 on conflict (list_id, number) do nothing
 returning id, list_id, number, description, expire_at`,
-		map[string]interface{}{
-			"ListId":       listId,
+		map[string]any{
+			"ListId":       listID,
 			"Numbers":      pq.Array(numbers),
 			"Descriptions": pq.Array(descriptions),
 			"ExpireAt":     pq.Array(expireAt),

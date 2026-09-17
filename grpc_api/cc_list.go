@@ -333,10 +333,11 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 		insertedByNumber[row.Number] = row
 	}
 
-	data := make([]*engine.ListCommunication, 0, len(inserted))
+	data := make([]*engine.ListCommunication, 0, len(valid))
 	for i, comm := range valid {
 		if row, ok := insertedByNumber[comm.Number]; ok {
 			data = append(data, toEngineListCommunication(row))
+
 			delete(insertedByNumber, comm.Number)
 		} else {
 			failures = append(failures, &engine.ListCommunicationBulkError{

@@ -74,8 +74,8 @@ func (a *App) CreateListCommunication(ctx context.Context, comm *model.ListCommu
 	return a.Store.List().CreateCommunication(ctx, comm)
 }
 
-func (a *App) BulkCreateListCommunication(ctx context.Context, listId int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
-	return a.Store.List().BulkCreateCommunication(ctx, listId, communications)
+func (a *App) BulkCreateListCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
+	return a.Store.List().BulkCreateCommunication(ctx, listID, communications)
 }
 
 func (a *App) GetListCommunicationPage(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, bool, model.AppError) {
