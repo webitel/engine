@@ -380,6 +380,7 @@ type ListStore interface {
 
 	// Communications
 	CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError)
+	BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError)
 	UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError)
