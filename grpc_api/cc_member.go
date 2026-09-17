@@ -1225,6 +1225,28 @@ func (api *member) AssignAttempt(ctx context.Context, in *engine.AssignAttemptRe
 	return &engine.AssignAttemptResponse{}, nil
 }
 
+func (api *member) TransferAttempt(ctx context.Context, in *engine.TransferAttemptRequest) (*engine.TransferAttemptResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var agentId, queueId *int64
+
+	if in.AgentId != 0 {
+		agentId = &in.AgentId
+	}
+	if in.QueueId != 0 {
+		queueId = &in.QueueId
+	}
+
+	if err = api.ctrl.TransferAttempt(ctx, session, in.AttemptId, agentId, queueId); err != nil {
+		return nil, err
+	}
+
+	return &engine.TransferAttemptResponse{}, nil
+}
+
 func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRequest) (*engine.AttemptResultResponse, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {

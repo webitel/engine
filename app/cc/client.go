@@ -41,6 +41,7 @@ type MemberApi interface {
 	SaveFormFields(domainId, attemptId int64, fields map[string]string, form []byte) error
 	CancelAttempt(ctx context.Context, attemptId int64, result, appId string) error
 	InterceptAttempt(ctx context.Context, domainId int64, attemptId int64, agentId int32) error
+	TransferAttempt(ctx context.Context, domainId int64, attemptId int64, agentId, queueId int32) error
 	ResumeAttempt(ctx context.Context, attemptId int64, domainId int64) error
 }
 
