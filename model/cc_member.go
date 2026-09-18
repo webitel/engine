@@ -485,6 +485,10 @@ func (m *Member) IsValid(maxCommunication int) AppError {
 		if v.Destination == "" {
 			return NewBadRequestError("model.member.is_valid.communications.destination.app_error", "name="+m.Name)
 		}
+
+		if err := validatePhoneNumber(v.Destination); err != nil {
+			return NewBadRequestError("model.member.is_valid.communications.destination.format.app_error", "name="+m.Name)
+		}
 	}
 
 	return nil
