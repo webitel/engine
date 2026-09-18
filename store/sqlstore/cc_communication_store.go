@@ -2,6 +2,8 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/lib/pq"
@@ -77,6 +79,19 @@ func (s SqlCommunicationTypeStore) Get(ctx context.Context, domainId int64, id i
 	} else {
 		return out, nil
 	}
+}
+
+func (s SqlCommunicationTypeStore) GetDefault(ctx context.Context, domainId int64, channel string) (*model.CommunicationType, model.AppError) {
+	var out *model.CommunicationType
+	if err := s.One(ctx, &out, `domain_id = :DomainId and channel = :Channel and "default"`,
+		model.CommunicationType{},
+		map[string]interface{}{"DomainId": domainId, "Channel": channel}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, model.NewInternalError("store.sql_communication_type.get_default.app_error", fmt.Sprintf("channel=%v, %s", channel, err.Error()))
+	}
+	return out, nil
 }
 
 func (s SqlCommunicationTypeStore) Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError) {

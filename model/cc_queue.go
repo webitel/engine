@@ -11,6 +11,7 @@ const (
 	QueueTypeProgressiveCall int8 = 4
 	QueueTypePredictCall     int8 = 5
 	QueueTypeInboundChat     int8 = 6
+	QueueTypeOfflineTask     int8 = 7
 	QueueTypeInboundIM       int8 = 9
 )
 
@@ -489,6 +490,13 @@ func (q *Queue) AfterSchemaId() *int64 {
 
 func (q *Queue) IsProgressiveOrPredictive() bool {
 	return q.Type == QueueTypePredictCall || q.Type == QueueTypeProgressiveCall
+}
+
+func (q *Queue) MemberCommunicationChannel() string {
+	if q.Type == QueueTypeOfflineTask {
+		return CommunicationChannelTask
+	}
+	return CommunicationChannelCall
 }
 
 func (q *Queue) RequireCalendar() bool {

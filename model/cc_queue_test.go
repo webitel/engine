@@ -199,3 +199,32 @@ func TestQueue_IsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestQueue_MemberCommunicationChannel(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		qType int8
+		want  string
+	}{
+		{name: "offline task queue", qType: model.QueueTypeOfflineTask, want: model.CommunicationChannelTask},
+		{name: "inbound call queue", qType: model.QueueTypeInboundCall, want: model.CommunicationChannelCall},
+		{name: "progressive call queue", qType: model.QueueTypeProgressiveCall, want: model.CommunicationChannelCall},
+		{name: "predict call queue", qType: model.QueueTypePredictCall, want: model.CommunicationChannelCall},
+		{name: "inbound chat queue", qType: model.QueueTypeInboundChat, want: model.CommunicationChannelCall},
+		{name: "inbound im queue", qType: model.QueueTypeInboundIM, want: model.CommunicationChannelCall},
+		{name: "zero type", qType: 0, want: model.CommunicationChannelCall},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			q := &model.Queue{Type: tt.qType}
+			if got := q.MemberCommunicationChannel(); got != tt.want {
+				t.Errorf("MemberCommunicationChannel() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

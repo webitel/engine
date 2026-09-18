@@ -16,6 +16,15 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	if q.Type == 1 || q.Type == 6 {
 		return nil, model.NewBadRequestError("app.member.valid.queue", "Mismatch queue type")
 	}
+
+	if err = app.fillDefaultCommunications(ctx, domainId, q, member); err != nil {
+		return nil, err
+	}
+
+	if err = member.IsValid(app.MaxMemberCommunications()); err != nil {
+		return nil, err
+	}
+
 	member, err = app.Store.Member().Create(ctx, domainId, member)
 	if err != nil {
 		return nil, err
@@ -30,6 +39,30 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	}
 
 	return member, nil
+}
+
+func (app *App) fillDefaultCommunications(ctx context.Context, domainId int64, q *model.Queue, members ...*model.Member) model.AppError {
+	channel := q.MemberCommunicationChannel()
+	var def *model.CommunicationType
+	for _, m := range members {
+		for _, c := range m.Communications {
+			if c == nil || c.Type.Id > 0 {
+				continue
+			}
+			if def == nil {
+				var err model.AppError
+				if def, err = app.Store.CommunicationType().GetDefault(ctx, domainId, channel); err != nil {
+					return err
+				}
+				if def == nil {
+					return model.NewBadRequestError("app.member.communications.default_type.not_found", "channel="+channel)
+				}
+			}
+			c.Type = model.Lookup{Id: int(def.Id), Name: def.Name}
+		}
+	}
+
+	return nil
 }
 
 func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, model.AppError) {
@@ -56,6 +89,17 @@ func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, f
 
 	if len(fileName) > 120 {
 		return nil, model.NewBadRequestError("app.member.valid.file_name", "The filename can not be more than 120 symbols")
+	}
+
+	if err = app.fillDefaultCommunications(ctx, domainId, q, members...); err != nil {
+		return nil, err
+	}
+
+	maxComm := app.MaxMemberCommunications()
+	for _, m := range members {
+		if err = m.IsValid(maxComm); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(members) == 1 {
