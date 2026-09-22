@@ -24,6 +24,7 @@ func (api *API) InitCall() {
 	api.Router.Handle("call_mute", api.ApiWebSocketHandler(api.callMute))
 
 	api.Router.Handle("call_bt_queue", api.ApiWebSocketHandler(api.callBTQueue))
+	api.Router.Handle("call_bt_dialplan", api.ApiWebSocketHandler(api.callBTDialplan))
 	api.Router.Handle("call_to_queue", api.ApiWebSocketHandler(api.callToQueue))
 
 	api.Router.Handle("call_blind_transfer", api.ApiWebSocketHandler(api.callBlindTransfer))
@@ -194,6 +195,34 @@ func (api *API) callBTQueue(ctx context.Context, conn *app.WebConn, req *model.W
 		},
 		Variables: variablesFromMap(req.Data, "variables"),
 		QueueId:   int(queueId),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (api *API) callBTDialplan(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	var ok bool
+	var id string
+	var schemaId float64
+
+	if id, ok = req.Data["id"].(string); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "id")
+	}
+
+	if schemaId, ok = req.Data["schema_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "schema_id")
+	}
+
+	err := api.ctrl.BlindTransferCallToDialplan(ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCallToDialplan{
+		UserCallRequest: model.UserCallRequest{
+			Id: id,
+		},
+		Variables: variablesFromMap(req.Data, "variables"),
+		SchemaId:  int(schemaId),
 	})
 
 	if err != nil {
