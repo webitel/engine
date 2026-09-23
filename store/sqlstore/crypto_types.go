@@ -133,7 +133,9 @@ func encryptJSONSchema(src any, table, column string) drv.Valuer {
 			return nil, fmt.Errorf("cryptostore: encrypt %s.%s ; %w", table, column, err)
 		}
 		data = record[column].([]byte)
-		return json.RawMessage(data), nil
+		return data, nil // []byte
+		// NOTE: [gorp] does NOT accept [json.RawMessage] type for [SQL] value
+		// return json.RawMessage(data), nil
 	})
 }
 
