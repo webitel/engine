@@ -207,22 +207,22 @@ func (api *API) callBTQueue(ctx context.Context, conn *app.WebConn, req *model.W
 func (api *API) callBTDialplan(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok bool
 	var id string
-	var schemaId float64
+	var dialplanId float64
 
 	if id, ok = req.Data["id"].(string); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
 
-	if schemaId, ok = req.Data["schema_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "schema_id")
+	if dialplanId, ok = req.Data["dialplan_id"].(float64); !ok {
+		return nil, NewInvalidWebSocketParamError(req.Action, "dialplan_id")
 	}
 
 	err := api.ctrl.BlindTransferCallToDialplan(ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCallToDialplan{
 		UserCallRequest: model.UserCallRequest{
 			Id: id,
 		},
-		Variables: variablesFromMap(req.Data, "variables"),
-		SchemaId:  int(schemaId),
+		Variables:  variablesFromMap(req.Data, "variables"),
+		DialplanId: int(dialplanId),
 	})
 
 	if err != nil {

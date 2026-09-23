@@ -177,8 +177,8 @@ type BlindTransferCallToQueue struct {
 
 type BlindTransferCallToDialplan struct {
 	UserCallRequest
-	SchemaId  int
-	Variables map[string]string
+	DialplanId int
+	Variables  map[string]string
 }
 
 type BridgeCall struct {

@@ -664,11 +664,16 @@ func (app *App) BlindTransferCallToQueue(ctx context.Context, domainId int64, re
 }
 
 func (app *App) BlindTransferCallToDialplan(ctx context.Context, domainId int64, req *model.BlindTransferCallToDialplan) model.AppError {
+	routing, err := app.GetRoutingOutboundCallById(ctx, domainId, int64(req.DialplanId))
+	if err != nil {
+		return err
+	}
+
 	if req.Variables == nil {
 		req.Variables = make(map[string]string)
 	}
 
-	s := strconv.Itoa(req.SchemaId)
+	s := strconv.Itoa(routing.Schema.Id)
 
 	req.Variables["transfer_to_schema_id"] = s
 
