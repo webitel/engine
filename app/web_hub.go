@@ -211,7 +211,7 @@ func (wh *Hub) start() {
 			}
 
 		case ev := <-wh.domainQueue.SysSettingsEvents():
-			msg := model.NewWebSocketSystemSettingsEvent(ev.Names)
+			msg := model.NewWebSocketSystemSettingsEvent(ev)
 			msg.PrecomputeJSON()
 
 			for webCon := range connections.All() {

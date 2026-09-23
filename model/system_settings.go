@@ -198,7 +198,29 @@ func (s *SystemSetting) IsValid() AppError {
 }
 
 type SystemSettingsChange struct {
-	Names []string `json:"names"`
+	Name  string          `json:"name"`
+	Value json.RawMessage `json:"value,omitempty"`
+}
+
+var sensitiveSystemSettings = map[string]struct{}{
+	SysNameDefaultPassword:  {},
+	SysNameChatAiConnection: {},
+}
+
+func IsSensitiveSystemSetting(name string) bool {
+	_, ok := sensitiveSystemSettings[name]
+
+	return ok
+}
+
+func NewSystemSettingsChange(s *SystemSetting) *SystemSettingsChange {
+	c := &SystemSettingsChange{Name: s.Name}
+
+	if !IsSensitiveSystemSetting(s.Name) {
+		c.Value = s.Value
+	}
+
+	return c
 }
 
 func (c *SystemSettingsChange) ToJSON() string {
@@ -207,9 +229,13 @@ func (c *SystemSettingsChange) ToJSON() string {
 	return string(b)
 }
 
-func NewWebSocketSystemSettingsEvent(names []string) *WebSocketEvent {
+func NewWebSocketSystemSettingsEvent(c *SystemSettingsChange) *WebSocketEvent {
 	e := NewWebSocketEvent(WebsocketSystemSettingsEvent)
-	e.Add("names", names)
+	e.Add("name", c.Name)
+
+	if c.Value != nil {
+		e.Add("value", c.Value)
+	}
 
 	return e
 }

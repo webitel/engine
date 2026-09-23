@@ -26,14 +26,10 @@ func (a *App) CreateSystemSetting(ctx context.Context, userId, domainId int64, s
 		return nil, err
 	}
 	// publish event
-	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventCreateAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventCreateAction, domainId, userId)
 	if err != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", err.Error())
-	}
-
-	if err = a.MessageQueue.SendSystemSettingsChange(domainId, &model.SystemSettingsChange{Names: []string{setting.Name}}); err != nil {
-		return nil, model.NewInternalError("app.system_settings.create.notify_change.error", err.Error())
 	}
 	return setting, nil
 }
@@ -100,16 +96,10 @@ func (a *App) UpdateSystemSetting(ctx context.Context, userId, domainId int64, s
 		return nil, appErr
 	}
 	// publish event
-	appErr = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	appErr = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, domainId, userId)
 	if appErr != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", appErr.Error())
-	}
-
-	if !oldSetting.ValueEquals(&oldSettingCopy) {
-		if appErr = a.MessageQueue.SendSystemSettingsChange(domainId, &model.SystemSettingsChange{Names: []string{oldSetting.Name}}); appErr != nil {
-			return nil, model.NewInternalError("app.system_settings.update.notify_change.error", appErr.Error())
-		}
 	}
 	return oldSetting, nil
 }
@@ -132,23 +122,16 @@ func (a *App) PatchSystemSetting(ctx context.Context, userId, domainId int64, id
 		return nil, err
 	}
 	// publish event
-	err = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	err = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, domainId, userId)
 	if err != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", err.Error())
-	}
-
-	if !oldSetting.ValueEquals(&oldSettingCopy) {
-		if err = a.MessageQueue.SendSystemSettingsChange(domainId, &model.SystemSettingsChange{Names: []string{oldSetting.Name}}); err != nil {
-			return nil, model.NewInternalError("app.system_settings.patch.notify_change.error", err.Error())
-		}
 	}
 	return oldSetting, nil
 }
 
 func (a *App) RemoveSystemSetting(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError) {
 	setting, err := a.GetSystemSetting(ctx, domainId, id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -169,10 +152,7 @@ func (a *App) GetAvailableSystemSetting(ctx context.Context, domainId int64, sea
 }
 
 // PublishSysSettingEventContext handles the publishing system setting change/create/delete event to the broker, pass old setting as nil for a creation action and old = nil and new = nil for deletion.
-//
-// keys parameter sets the additional nodes to the message's routing key
-func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.SystemSetting, old *model.SystemSetting, action string, keys ...string) model.AppError {
-
+func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.SystemSetting, old *model.SystemSetting, action string, domainID, userID int64) model.AppError {
 	// validation
 	switch action {
 	case EventUpdateAction:
@@ -190,17 +170,16 @@ func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.Syst
 	default:
 		return model.NewInternalError("app.system_setting.publish_setting_event_context.args_check.unknown_action", fmt.Sprintf("[%s] unknown action", action))
 	}
-	var newKeys []string
-	// construct
-	newKeys = append(newKeys, new.Name, action)
-	newKeys = append(newKeys, keys...)
+
+	newKeys := []string{new.Name, action, strconv.FormatInt(domainID, 10), strconv.FormatInt(userID, 10)}
 	body, err := json.Marshal(new)
 	if err != nil {
 		return model.NewInternalError("app.system_setting.publish_setting_event_context.update_marshal.error", err.Error())
 	}
-	appErr := a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...)
-	if appErr != nil {
+
+	if appErr := a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...); appErr != nil {
 		return appErr
 	}
-	return nil
+
+	return a.MessageQueue.SendSystemSettingsChange(domainID, model.NewSystemSettingsChange(new))
 }

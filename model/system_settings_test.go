@@ -10,34 +10,71 @@ import (
 )
 
 func TestNewWebSocketSystemSettingsEvent(t *testing.T) {
-	names := []string{"enable_omnichannel", "password_min_length"}
+	c := &model.SystemSettingsChange{Name: "enable_omnichannel", Value: json.RawMessage(`true`)}
 
-	ev := model.NewWebSocketSystemSettingsEvent(names)
+	ev := model.NewWebSocketSystemSettingsEvent(c)
 
 	if ev.EventType() != model.WebsocketSystemSettingsEvent {
 		t.Fatalf("expected event type %q, got %q", model.WebsocketSystemSettingsEvent, ev.EventType())
 	}
 
-	got, ok := ev.Data["names"].([]string)
-	if !ok {
-		t.Fatalf("expected data[names] to be []string, got %T", ev.Data["names"])
+	if got, _ := ev.Data["name"].(string); got != c.Name {
+		t.Fatalf("expected name %q, got %v", c.Name, ev.Data["name"])
 	}
 
-	if !reflect.DeepEqual(got, names) {
-		t.Fatalf("expected names %v, got %v", names, got)
+	if _, ok := ev.Data["value"]; !ok {
+		t.Fatalf("expected value in event data")
+	}
+}
+
+func TestNewWebSocketSystemSettingsEvent_NoValue(t *testing.T) {
+	ev := model.NewWebSocketSystemSettingsEvent(&model.SystemSettingsChange{Name: model.SysNameDefaultPassword})
+
+	if _, ok := ev.Data["value"]; ok {
+		t.Fatalf("expected no value in event data for a name-only change")
+	}
+}
+
+func TestNewSystemSettingsChange_Sanitizes(t *testing.T) {
+	cases := []struct {
+		name      string
+		setting   string
+		wantValue bool
+	}{
+		{"regular carries value", model.SysNameOmnichannel, true},
+		{"default_password omits value", model.SysNameDefaultPassword, false},
+		{"chat_ai_connection omits value", model.SysNameChatAiConnection, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			c := model.NewSystemSettingsChange(&model.SystemSetting{Name: tc.setting, Value: json.RawMessage(`"x"`)})
+
+			if tc.wantValue && c.Value == nil {
+				t.Fatalf("expected value present for %s", tc.setting)
+			}
+
+			if !tc.wantValue && c.Value != nil {
+				t.Fatalf("expected value omitted for sensitive %s", tc.setting)
+			}
+		})
 	}
 }
 
 func TestSystemSettingsChange_JsonRoundTrip(t *testing.T) {
-	in := &model.SystemSettingsChange{Names: []string{"enable_2fa", "default_workspace_tab"}}
+	in := &model.SystemSettingsChange{Name: "enable_2fa", Value: json.RawMessage(`true`)}
 
 	var out model.SystemSettingsChange
 	if err := json.Unmarshal([]byte(in.ToJSON()), &out); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if !reflect.DeepEqual(in.Names, out.Names) {
-		t.Fatalf("expected names %v, got %v", in.Names, out.Names)
+	if out.Name != in.Name {
+		t.Fatalf("expected name %q, got %q", in.Name, out.Name)
+	}
+
+	if !reflect.DeepEqual([]byte(in.Value), []byte(out.Value)) {
+		t.Fatalf("expected value %s, got %s", in.Value, out.Value)
 	}
 }
 

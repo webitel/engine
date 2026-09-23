@@ -320,7 +320,7 @@ func (dq *DomainQueue) readAppMessage(data []byte, rk string) {
 			return
 		}
 
-		log.Debug("receive system_settings event", wlog.String("names", strings.Join(e.Names, ",")))
+		log.Debug("receive system_settings event", wlog.String("name", e.Name))
 
 		dq.sysSettingsEvent <- e
 
