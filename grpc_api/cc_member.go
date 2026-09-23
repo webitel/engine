@@ -1464,5 +1464,9 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 		item.Attempts = *src.Attempts
 	}
 
+	if src.Duration != nil {
+		item.Duration = *src.Duration
+	}
+
 	return item
 }
