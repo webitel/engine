@@ -250,6 +250,7 @@ type AttemptHistory struct {
 	Result        string              `json:"result" db:"result"`
 	AmdResult     *string             `json:"amd_result" db:"amd_result"`
 	Attempts      *int32              `json:"attempts" db:"attempts"`
+	Duration      *int64              `json:"duration" db:"duration"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -283,6 +284,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"result",
 		"amd_result",
 		"attempts",
+		"duration",
 	}
 }
 
