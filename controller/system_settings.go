@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
@@ -21,7 +22,6 @@ func (c *Controller) CreateSystemSetting(ctx context.Context, session *auth_mana
 }
 
 func (c *Controller) SearchSystemSetting(ctx context.Context, session *auth_manager.Session, search *model.SearchSystemSetting) ([]*model.SystemSetting, bool, model.AppError) {
-
 	return c.app.GetSystemSettingPage(ctx, session.Domain(0), search)
 }
 
@@ -61,5 +61,5 @@ func (c *Controller) DeleteSystemSetting(ctx context.Context, session *auth_mana
 	if !session.HasAction(auth_manager.PermissionSystemSetting) {
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
-	return c.app.RemoveSystemSetting(ctx, session.Domain(0), id)
+	return c.app.RemoveSystemSetting(ctx, session.UserId, session.Domain(0), id)
 }
