@@ -12,6 +12,7 @@ import (
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 )
 
 const (
@@ -106,6 +107,10 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 				wlog.Error(err.Error())
 			}
 		}
+	}
+
+	if ua, ok := utils.UserAgentFromContext(ctx); ok {
+		invite.AddVariable("sip_h_User-Agent", ua)
 	}
 
 	if req.Params.HideNumber {

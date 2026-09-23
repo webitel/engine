@@ -603,6 +603,7 @@ type HistoryCall struct {
 	ConversationId  *string          `json:"conversation_id" db:"conversation_id"`
 	MeetingId       *string          `json:"meeting_id" db:"meeting_id"`
 	QualityMetrics  *QualityMetrics  `json:"quality_metrics" db:"quality_metrics"`
+	UserAgent       string           `json:"user_agent" db:"user_agent"`
 }
 
 type BlindTransfer struct {
@@ -630,6 +631,7 @@ func (c HistoryCall) AllowFields() []string {
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
 		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms", "conversation_id", "meeting_id", "quality_metrics",
+		"user_agent",
 	}
 }
 
