@@ -468,6 +468,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 					)
 				 end
 		)
+		and (:ExcludedQueueTypes::int[] is null or queue_type is null or queue_type <> all(:ExcludedQueueTypes::int[]))
 	`
 
 	filters := map[string]any{
@@ -514,16 +515,17 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"TalkFrom": model.GetBetweenFrom(search.Talk),
 		"TalkTo":   model.GetBetweenTo(search.Talk),
 
-		"RatedUserIds":      pq.Array(search.RatedUserIds),
-		"RatedByIds":        pq.Array(search.RatedByIds),
-		"ScoreOptionalFrom": model.GetBetweenFrom(search.ScoreOptional),
-		"ScoreOptionalTo":   model.GetBetweenTo(search.ScoreOptional),
-		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
-		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
-		"Rated":             search.Rated,
-		"SchemaIds":         pq.Array(search.SchemaIds),
-		"HasTransfer":       search.HasTransfer,
-		"Timeline":          search.Timeline,
+		"RatedUserIds":       pq.Array(search.RatedUserIds),
+		"RatedByIds":         pq.Array(search.RatedByIds),
+		"ScoreOptionalFrom":  model.GetBetweenFrom(search.ScoreOptional),
+		"ScoreOptionalTo":    model.GetBetweenTo(search.ScoreOptional),
+		"ScoreRequiredFrom":  model.GetBetweenFrom(search.ScoreRequired),
+		"ScoreRequiredTo":    model.GetBetweenTo(search.ScoreRequired),
+		"Rated":              search.Rated,
+		"SchemaIds":          pq.Array(search.SchemaIds),
+		"HasTransfer":        search.HasTransfer,
+		"Timeline":           search.Timeline,
+		"ExcludedQueueTypes": pq.Array(search.ExcludedQueueTypes),
 	}
 
 	for _, filterOption := range filterOptions {
@@ -598,7 +600,8 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 		"HasTransfer":       search.HasTransfer,
 		"Timeline":          search.Timeline,
 
-		"ClassName": model.PERMISSION_SCOPE_CALL,
+		"ClassName":          model.PERMISSION_SCOPE_CALL,
+		"ExcludedQueueTypes": pq.Array(search.ExcludedQueueTypes),
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -699,6 +702,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 			or (t.grantee_id = any(:Groups::int[]))
 		)
 	)
+	and (:ExcludedQueueTypes::int[] is null or queue_type is null or queue_type <> all(:ExcludedQueueTypes::int[]))
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
