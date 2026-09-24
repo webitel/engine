@@ -205,10 +205,39 @@ returning id, list_id, number, description, expire_at`,
 			"Description": comm.Description,
 			"ExpireAt":    comm.ExpireAt,
 		}); err != nil {
-		return nil, model.NewInternalError("store.sql_list.save_communication.app_error", fmt.Sprintf("number=%v, %v", comm.Number, err.Error()))
+		return nil, model.NewCustomCodeError("store.sql_list.save_communication.app_error", fmt.Sprintf("number=%v, %v", comm.Number, err.Error()), extractCodeFromErr(err))
 	} else {
 		return out, nil
 	}
+}
+
+func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
+	numbers := make([]string, len(communications))
+	descriptions := make([]string, len(communications))
+	expireAt := make([]int64, len(communications))
+
+	for i, c := range communications {
+		numbers[i] = c.Number
+		descriptions[i] = c.Description
+		expireAt[i] = model.TimeToInt64(c.ExpireAt)
+	}
+
+	var inserted []*model.ListCommunication
+	if _, err := s.GetMaster().WithContext(ctx).Select(&inserted, `insert into call_center.cc_list_communications (list_id, number, description, expire_at)
+select :ListId, x.number, x.description, case when x.expire_at > 0 then to_timestamp(x.expire_at / 1000.0) end
+from unnest(:Numbers::varchar[], :Descriptions::varchar[], :ExpireAt::int8[]) as x(number, description, expire_at)
+on conflict (list_id, number) do nothing
+returning id, list_id, number, description, expire_at`,
+		map[string]any{
+			"ListId":       listID,
+			"Numbers":      pq.Array(numbers),
+			"Descriptions": pq.Array(descriptions),
+			"ExpireAt":     pq.Array(expireAt),
+		}); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_list.bulk_save_communication.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return inserted, nil
 }
 
 func (s SqlListStore) GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError) {
