@@ -48,6 +48,7 @@ const (
 	SysNameLoginOptions                      = "login_options"
 	SysNameDefaultMembersFilter              = "default_members_filter"
 	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
+	SysNameRecordAllCalls                    = "record_all_calls"
 )
 
 type SysValue json.RawMessage
@@ -157,7 +158,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNamePasswordContainsLogin,
 		SysNameExpandContactTabs,
 		SysNameBlockAllMemberNumbers,
-		SysNameSelfAssignedCallSoundNotification:
+		SysNameSelfAssignedCallSoundNotification,
+		SysNameRecordAllCalls:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
