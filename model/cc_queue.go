@@ -7,11 +7,17 @@ import (
 )
 
 const (
-	QueueTypeInboundCall     int8 = 1
-	QueueTypeProgressiveCall int8 = 4
-	QueueTypePredictCall     int8 = 5
-	QueueTypeInboundChat     int8 = 6
-	QueueTypeInboundIM       int8 = 9
+	QueueTypeOfflineCall int8 = iota
+	QueueTypeInboundCall
+	QueueTypeIVRCall
+	QueueTypePreviewCall
+	QueueTypeProgressiveCall
+	QueueTypePredictCall
+	QueueTypeInboundChat
+	QueueTypeAgentTask
+	QueueTypeOutboundTask
+	QueueTypeInboundIM
+	QueueTypeOutboundCall
 )
 
 const (
