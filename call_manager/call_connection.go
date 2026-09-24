@@ -339,6 +339,26 @@ func (c *CallConnection) BlindTransferExt(id, destination string, vars map[strin
 	return nil
 }
 
+func (c *CallConnection) BlindTransferSchema(id, destination string, vars map[string]string) model.AppError {
+	res, err := c.api.BlindTransfer(context.Background(), &fs.BlindTransferRequest{
+		Id:          id,
+		Destination: destination,
+		Variables:   vars,
+		Dialplan:    "XML",
+		Context:     "default",
+	})
+
+	if err != nil {
+		return model.NewInternalError("external.blind_transfer_schema.app_error", err.Error())
+	}
+
+	if res != nil && res.Error != nil {
+		return model.NewBadRequestError("external.blind_transfer_schema.valid", res.Error.Message)
+	}
+
+	return nil
+}
+
 // uuid_audio 8e345bfc-47b9-46c1-bdf0-3b874a8539c8 start read mute -1
 // add eavesdrop mute other channel write
 func (c *CallConnection) Mute(id string, val bool) model.AppError {

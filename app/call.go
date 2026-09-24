@@ -682,11 +682,17 @@ func (app *App) BlindTransferCallToDialplan(ctx context.Context, domainId int64,
 
 	req.Variables["transfer_to_schema_id"] = s
 
-	return app.BlindTransferCallExt(ctx, domainId, &model.BlindTransferCall{
-		UserCallRequest: req.UserCallRequest,
-		Destination:     s,
-		Variables:       req.Variables,
-	})
+	cli, err := app.getCallCli(ctx, domainId, req.Id, req.AppId)
+	if err != nil {
+		return err
+	}
+
+	id, err := app.Store.Call().BridgedId(ctx, req.Id)
+	if err != nil {
+		return err
+	}
+
+	return cli.BlindTransferSchema(id, s, req.Variables)
 }
 
 func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
