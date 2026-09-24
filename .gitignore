@@ -66,6 +66,7 @@ go.work.sum
 # Build output
 build
 dist/
+/pkg/
 artifacts/
 work/
 out/
@@ -154,9 +155,6 @@ dump.rdb
 .claude/settings.local.json
 .cursorignore
 .aider*
-CLAUDE.md
-.graphifyignore
-graphify-out/
 
 # direnv (often holds local secrets)
 .envrc
@@ -179,5 +177,3 @@ pids
 .data
 data/.idea
 drafts/
-docs
-migrations
