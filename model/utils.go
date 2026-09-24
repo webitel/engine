@@ -31,6 +31,18 @@ type (
 	}
 )
 
+func (l *Lookup) IsEmpty() bool {
+	if l == nil {
+		return true
+	}
+
+	if l.Id <= 0 && l.Name == "" {
+		return true
+	}
+
+	return false
+}
+
 func (l *Lookup) GetSafeId() *int {
 	if l == nil || l.Id == 0 {
 		return nil

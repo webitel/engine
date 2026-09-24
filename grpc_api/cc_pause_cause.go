@@ -28,6 +28,7 @@ func (api *pauseCause) CreateAgentPauseCause(ctx context.Context, in *engine.Cre
 		AllowSupervisor: in.AllowSupervisor,
 		AllowAdmin:      in.AllowAdmin,
 		AllowAgent:      in.AllowAgent,
+		Teams:           GetLookups(in.GetTeams()),
 	}
 
 	cause, err = api.ctrl.CreatePauseCause(ctx, session, cause)
@@ -112,7 +113,8 @@ func (api *pauseCause) PatchAgentPauseCause(ctx context.Context, in *engine.Patc
 			patch.AllowAdmin = &in.AllowAdmin
 		case "allow_agent":
 			patch.AllowAgent = &in.AllowAgent
-
+		case "teams":
+			patch.Teams = GetLookups(in.GetTeams())
 		}
 	}
 
@@ -138,6 +140,7 @@ func (api *pauseCause) UpdateAgentPauseCause(ctx context.Context, in *engine.Upd
 		AllowSupervisor: in.AllowSupervisor,
 		AllowAgent:      in.AllowAgent,
 		AllowAdmin:      in.AllowAdmin,
+		Teams:           GetLookups(in.GetTeams()),
 	}
 
 	cause, err = api.ctrl.UpdatePauseCause(ctx, session, cause)
@@ -177,5 +180,6 @@ func toEnginePauseCause(src *model.PauseCause) *engine.AgentPauseCause {
 		AllowAdmin:      src.AllowAdmin,
 		AllowAgent:      src.AllowAgent,
 		Description:     src.Description,
+		Teams:           GetProtoLookups(src.Teams),
 	}
 }

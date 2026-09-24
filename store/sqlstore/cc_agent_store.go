@@ -873,6 +873,7 @@ from call_center.cc_pause_cause c
          left join call_center.cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
 where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
     and fa.user_id = :FromUserId
+    and (c.team_ids is null or c.team_ids && array[a.team_id])
     and (not :AllowChange::bool
 		 or case when fa.supervisor or fa.id = any(a.supervisor_ids) then c.allow_supervisor else false end
          or (fa.id = a.id and c.allow_agent)

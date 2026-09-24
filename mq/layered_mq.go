@@ -34,6 +34,10 @@ func (l *LayeredMQ) Close() {
 	l.MQLayer.Close()
 }
 
+func (l *LayeredMQ) Ping(ctx context.Context) error {
+	return l.MQLayer.Ping(ctx)
+}
+
 func (l *LayeredMQ) BindCallEvents(domainId, userId int64) error {
 	return l.MQLayer.BindCallEvents(domainId, userId)
 }
@@ -66,6 +70,10 @@ func (l *LayeredMQ) Send(ctx context.Context, exchange string, rk string, body [
 	return l.MQLayer.Send(ctx, exchange, rk, body)
 }
 
-func (l *LayeredMQ) SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError {
+func (l *LayeredMQ) SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in any) model.AppError {
 	return l.MQLayer.SendStartFlow(ctx, domainId, schemaId, in)
+}
+
+func (l *LayeredMQ) SetDomainsEventHandler(h DomainEventHandler) {
+	l.MQLayer.SetDomainsEventHandler(h)
 }

@@ -7,13 +7,28 @@ import (
 )
 
 const (
-	QueueTypeInboundCall     int8 = 1
-	QueueTypeProgressiveCall int8 = 4
-	QueueTypePredictCall     int8 = 5
-	QueueTypeInboundChat     int8 = 6
+	QueueTypeOfflineCall int8 = iota
+	QueueTypeInboundCall
+	QueueTypeIVRCall
+	QueueTypePreviewCall
+	QueueTypeProgressiveCall
+	QueueTypePredictCall
+	QueueTypeInboundChat
+	QueueTypeAgentTask
+	QueueTypeOutboundTask
+	QueueTypeInboundIM
+	QueueTypeOutboundCall
 )
 
-const QueuePayloadProgressiveCountKey string = "progressive_count"
+const (
+	QueuePayloadProgressiveCountKey string = "progressive_count"
+	QueuePayloadMaxAgentLineKey     string = "max_agent_line"
+)
+
+const (
+	QueueDefaultProgressiveCountValue int = 1
+	QueueDefaultMaxAgentLine          int = 5
+)
 
 type Queue struct {
 	DomainRecord
@@ -314,40 +329,122 @@ func (q *Queue) Patch(p *QueuePatch) {
 }
 
 func (q *Queue) IsValid() AppError {
-	if q.Calendar == nil && !(q.Type == QueueTypeInboundCall || q.Type == QueueTypeInboundChat) {
-		return NewBadRequestError("model.queue.valid.calendar", "Calendar is required")
+	if q == nil {
+		return NewBadRequestError("model.cc_queue.validate.empty", "Queue configuration cannot be empty")
 	}
 
-	if q.Type == QueueTypePredictCall || q.Type == QueueTypeProgressiveCall {
-		progressiveCountValue, exists := q.Payload[QueuePayloadProgressiveCountKey]
-		if !exists {
-			return NewBadRequestError("model.queue.valid.progressive_count_not_exist", "Progressive count is required for progressive and predictive queues")
+	if q.Payload == nil {
+		return NewBadRequestError("model.cc_queue.validate.payload.empty", "Queue payload is required and cannot be empty")
+	}
+
+	if err := q.prepareProgressiveCount(); err != nil {
+		return err
+	}
+
+	if err := q.validateMaxAgentLines(); err != nil {
+		return err
+	}
+
+	if err := q.validateCalendar(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (q *Queue) prepareProgressiveCount() AppError {
+	if !q.IsProgressiveOrPredictive() {
+		return nil
+	}
+
+	progressiveCountValue, exists := q.Payload[QueuePayloadProgressiveCountKey]
+	if !exists {
+		progressiveCountValue = QueueDefaultProgressiveCountValue
+	}
+
+	progessiveCount, err := q.tryRetrieveNumberConfigurationParameter(QueuePayloadProgressiveCountKey, progressiveCountValue)
+	if err != nil {
+		progessiveCount = QueueDefaultProgressiveCountValue
+	}
+
+	q.Payload[QueuePayloadProgressiveCountKey] = max(progessiveCount, QueueDefaultProgressiveCountValue)
+
+	return nil
+}
+
+func (q *Queue) tryRetrieveNumberConfigurationParameter(paramName string, value any) (int, AppError) {
+	var result int
+
+	switch r := value.(type) {
+	case int:
+		result = r
+	case float64:
+		if r != float64(int(r)) {
+			return 0, NewBadRequestError(
+				"model.cc_queue.validate.config.decimal_not_allowed",
+				fmt.Sprintf("Parameter '%s' must be a whole integer number, got float '%v'", paramName, r),
+			)
 		}
-
-		var progessiveCount int
-		switch r := progressiveCountValue.(type) {
-		case int:
-			progessiveCount = r
-		case float64:
-			progessiveCount = int(r)
-		case float32:
-			progessiveCount = int(r)
-		case string:
-			parsed, err := strconv.Atoi(r)
-			if err != nil {
-				return NewBadRequestError("model.queue.valid.progressive_count_unconvertable_from_string", err.Error())
-			}
-
-			progessiveCount = parsed
-		default:
-			return NewBadRequestError("model.queue.valid.unsupported_type", fmt.Sprintf("Received unsupported type for progressive count: %T", r))
+		result = int(r)
+	case float32:
+		if r != float32(int(r)) {
+			return 0, NewBadRequestError(
+				"model.cc_queue.validate.config.decimal_not_allowed",
+				fmt.Sprintf("Parameter '%s' must be a whole integer number, got float '%v'", paramName, r),
+			)
 		}
-
-		if progessiveCount <= 0 {
-			return NewBadRequestError("model.queue.valid.progressive_count_must_be_gt_zero", "Progressive count must be greater than zero")
+		result = int(r)
+	case string:
+		parsed, err := strconv.Atoi(r)
+		if err != nil {
+			return 0, NewBadRequestError(
+				"model.cc_queue.validate.config.invalid_string_number",
+				fmt.Sprintf("Parameter '%s' value '%s' cannot be parsed as an integer", paramName, r),
+			)
 		}
+		result = parsed
+	default:
+		return 0, NewBadRequestError(
+			"model.cc_queue.validate.config.unsupported_type",
+			fmt.Sprintf("Parameter '%s' received unsupported data type '%T'. Expected number or numeric string", paramName, r),
+		)
+	}
 
-		q.Payload[QueuePayloadProgressiveCountKey] = progessiveCount
+	return result, nil
+}
+
+func (q *Queue) validateMaxAgentLines() AppError {
+	if !q.IsProgressiveOrPredictive() {
+		return nil
+	}
+
+	maxAgentLinesValue, exists := q.Payload[QueuePayloadMaxAgentLineKey]
+	if !exists {
+		q.Payload[QueuePayloadMaxAgentLineKey] = QueueDefaultMaxAgentLine
+		return nil
+	}
+
+	maxAgentLines, err := q.tryRetrieveNumberConfigurationParameter(QueuePayloadMaxAgentLineKey, maxAgentLinesValue)
+	if err != nil {
+		q.Payload[QueuePayloadMaxAgentLineKey] = QueueDefaultMaxAgentLine
+		return nil
+	}
+
+	q.Payload[QueuePayloadMaxAgentLineKey] = max(maxAgentLines, QueueDefaultMaxAgentLine)
+
+	return nil
+}
+
+func (q *Queue) validateCalendar() AppError {
+	if !q.RequireCalendar() {
+		return nil
+	}
+
+	if q.Calendar.IsEmpty() {
+		return NewBadRequestError(
+			"model.cc_queue.validate.calendar.required",
+			"A calendar is required for outbound or non-inbound queue types",
+		)
 	}
 
 	return nil
@@ -394,4 +491,17 @@ func (q *Queue) AfterSchemaId() *int64 {
 		return NewInt64(int64(q.AfterSchema.Id))
 	}
 	return nil
+}
+
+func (q *Queue) IsProgressiveOrPredictive() bool {
+	return q.Type == QueueTypePredictCall || q.Type == QueueTypeProgressiveCall
+}
+
+func (q *Queue) RequireCalendar() bool {
+	switch q.Type {
+	case QueueTypeInboundCall, QueueTypeInboundChat, QueueTypeInboundIM:
+		return false
+	default:
+		return true
+	}
 }

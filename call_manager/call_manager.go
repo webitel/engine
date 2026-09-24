@@ -2,6 +2,7 @@ package call_manager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -16,6 +17,12 @@ const (
 	WATCHER_INTERVAL          = 1000 * 5
 )
 
+// Plain errors: these travel to a health probe, not a client response.
+var (
+	ErrNoConnection = errors.New("no freeswitch connection registered")
+	ErrNotReady     = errors.New("no freeswitch connection is ready")
+)
+
 type CallManager interface {
 	Start() error
 	Stop()
@@ -23,6 +30,7 @@ type CallManager interface {
 	Bridge(legA, legANode, legB, legBNode string) model.AppError
 	CallClient() (CallClient, model.AppError)
 	CallClientById(id string) (CallClient, model.AppError)
+	Ready(ctx context.Context) error
 
 	SipWsAddress() string
 	SipRouteUri() string
@@ -109,6 +117,23 @@ func (c *callManager) CallClient() (CallClient, model.AppError) {
 		return nil, model.NewNotFoundError("call.get_client.not_found", err.Error())
 	}
 	return cli.(CallClient), nil
+}
+
+// Ready reports whether any FreeSWITCH connection is usable. All, not
+// CallClient: CallClient advances the round-robin marker used by real calls.
+func (cm *callManager) Ready(context.Context) error {
+	conns := cm.poolConnections.All()
+	if len(conns) == 0 {
+		return ErrNoConnection
+	}
+
+	for _, conn := range conns {
+		if conn != nil && conn.Ready() {
+			return nil
+		}
+	}
+
+	return ErrNotReady
 }
 
 func (c *callManager) CallClientById(id string) (CallClient, model.AppError) {

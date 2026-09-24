@@ -14,6 +14,7 @@ import (
 	"github.com/XSAM/otelsql"
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
+	"go.opentelemetry.io/otel"
 	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
 
 	wlog "github.com/webitel/wlog"
@@ -42,6 +43,7 @@ type SqlSupplierOldStores struct {
 	agent                   store.AgentStore
 	teamHook                store.TeamHookStore
 	teamTrigger             store.TeamTriggerStore
+	teamChatTag             store.TeamChatTagStore
 	agentSkill              store.AgentSkillStore
 	outboundResource        store.OutboundResourceStore
 	outboundResourceGroup   store.OutboundResourceGroupStore
@@ -107,6 +109,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.agent = NewSqlAgentStore(supplier)
 	supplier.oldStores.teamHook = NewSqlTeamHookStore(supplier)
 	supplier.oldStores.teamTrigger = NewSqlTeamTriggerStore(supplier)
+	supplier.oldStores.teamChatTag = NewSqlTeamChatTagStore(supplier)
 	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
 	supplier.oldStores.outboundResource = NewSqlOutboundResourceStore(supplier)
 	supplier.oldStores.outboundResourceGroup = NewSqlOutboundResourceGroupStore(supplier)
@@ -183,6 +186,7 @@ func setupConnection(con_type, dataSource string, settings *model.SqlSettings) *
 	if settings.Trace {
 		db, err = otelsql.Open(*settings.DriverName, dataSource, otelsql.WithAttributes(
 			semconv.DBSystemPostgreSQL,
+			semconv.DBClientConnectionsPoolName(con_type),
 		))
 	} else {
 		db, err = dbsql.Open(*settings.DriverName, dataSource)
@@ -213,16 +217,13 @@ func setupConnection(con_type, dataSource string, settings *model.SqlSettings) *
 		}
 	}
 
-	if settings.Trace {
-		// Register DB stats to meter
-		err = otelsql.RegisterDBStatsMetrics(db, otelsql.WithAttributes(
-			semconv.DBSystemPostgreSQL,
-		))
-		if err != nil {
-			wlog.Critical(fmt.Sprintf("failed to trace SQL connection to err:%v", err.Error()))
-			time.Sleep(time.Second)
-			os.Exit(EXIT_DB_OPEN)
-		}
+	err = otelsql.RegisterDBStatsMetrics(db, otelsql.WithAttributes(
+		semconv.DBSystemPostgreSQL,
+		semconv.DBClientConnectionsPoolName(con_type),
+	))
+	if err != nil {
+		otel.Handle(err)
+		wlog.Error(fmt.Sprintf("failed to register SQL pool metrics for %v connection err:%v", con_type, err.Error()))
 	}
 
 	db.SetMaxIdleConns(*settings.MaxIdleConns)
@@ -278,6 +279,11 @@ func (ss *SqlSupplier) GetMaster() *gorp.DbMap {
 	return ss.master
 }
 
+// Ping reports whether the master connection is usable.
+func (s *SqlSupplier) Ping(ctx context.Context) error {
+	return s.master.Db.PingContext(ctx)
+}
+
 func (ss *SqlSupplier) GetReplica() *gorp.DbMap {
 	if len(ss.settings.DataSourceReplicas) == 0 || ss.lockedToMaster {
 		return ss.GetMaster()
@@ -317,6 +323,10 @@ func (ss *SqlSupplier) TeamHook() store.TeamHookStore {
 
 func (ss *SqlSupplier) TeamTrigger() store.TeamTriggerStore {
 	return ss.oldStores.teamTrigger
+}
+
+func (ss *SqlSupplier) TeamChatTag() store.TeamChatTagStore {
+	return ss.oldStores.teamChatTag
 }
 
 func (ss *SqlSupplier) AgentSkill() store.AgentSkillStore {
@@ -481,6 +491,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 	case *[]model.MemberCommunication,
 		*model.MemberCommunication,
 		**model.MemberCommunication,
+		*[]*model.MemberCommunication,
 		**model.CCTask,
 		*model.Endpoint,
 		**model.Endpoint,

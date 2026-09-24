@@ -20,6 +20,14 @@ func NewSqlQuickReplyStore(sqlStore SqlStore) store.QuickReplyStore {
 	return us
 }
 
+func quickReplySearchPattern(q *string) *string {
+	if q == nil {
+		return nil
+	}
+
+	return model.NewString("%" + *q + "%")
+}
+
 func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *model.QuickReply) (*model.QuickReply, model.AppError) {
 	var resp *model.QuickReply
 
@@ -71,7 +79,7 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError) {
 	args := map[string]any{
 		"DomainId": domainId,
-		"Q":        search.GetQ(),
+		"Q":        quickReplySearchPattern(search.GetQ()),
 		"Ids":      pq.Array(search.Ids),
 		"Name":     search.Name,
 		"UserId":   userId,
@@ -81,7 +89,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 
 	where := `
 		domain_id = :DomainId
-		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar)
+		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar OR t.text ILIKE :Q::varchar)
 		AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
 		and (
 			:RestrictToAgent = false 
@@ -111,7 +119,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 	args := map[string]any {
 			"DomainId": domainId,
 			"UserId": userId,
-			"Q": search.GetQ(),
+			"Q": quickReplySearchPattern(search.GetQ()),
 			"Ids": pq.Array(search.Ids),
 			"Name": search.Name,
 			"Queue": pq.Array(search.Queue),
@@ -143,7 +151,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 				end as agent_priority
 			from call_center.cc_quick_reply_list t, agent_info_cte agent_info
 			where t.domain_id = :DomainId
-				and (:Q::varchar is null or t.name ilike :Q::varchar)
+				and (:Q::varchar is null or t.name ilike :Q::varchar or t.text ilike :Q::varchar)
 				and (:Ids::int8[] is null or t.id = any(:Ids::bigint[]))
 				and (
 					:RestrictToAgent = false

@@ -37,6 +37,7 @@ type Store interface {
 	AgentTeam() AgentTeamStore
 	TeamHook() TeamHookStore
 	TeamTrigger() TeamTriggerStore
+	TeamChatTag() TeamChatTagStore
 	Agent() AgentStore
 	AgentSkill() AgentSkillStore
 	Queue() QueueStore
@@ -186,6 +187,15 @@ type TeamTriggerStore interface {
 	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	Update(ctx context.Context, domainId, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
+	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
+}
+
+type TeamChatTagStore interface {
+	Create(ctx context.Context, domainId, teamId int64, in *model.TeamChatTag) (*model.TeamChatTag, model.AppError)
+	Get(ctx context.Context, domainId, teamId int64, id uint32) (*model.TeamChatTag, model.AppError)
+	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamChatTag) ([]*model.TeamChatTag, model.AppError)
+	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamChatTag) ([]*model.TeamChatTag, model.AppError)
+	Update(ctx context.Context, domainId, teamId int64, in *model.TeamChatTag) (*model.TeamChatTag, model.AppError)
 	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
 }
 
@@ -411,6 +421,7 @@ type CallStore interface {
 
 	Prepare(ctx context.Context, id string, domainId, userId int64, appId string) model.AppError
 	DeleteIdle(ctx context.Context, id string) model.AppError
+	PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError)
 }
 
 type EmailProfileStore interface {
@@ -559,6 +570,7 @@ type OnlineSkillsStore interface {
 	Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) model.AppError
 	Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError)
 	Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.OnlineSkills, model.AppError)
+	CreateSystem(ctx context.Context, domainID int64) model.AppError
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.

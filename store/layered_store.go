@@ -199,6 +199,10 @@ func (s *LayeredStore) SocketSession() SocketSessionStore {
 	return s.DatabaseLayer.SocketSession()
 }
 
+func (s *LayeredStore) TeamChatTag() TeamChatTagStore {
+	return s.DatabaseLayer.TeamChatTag()
+}
+
 func (s *LayeredStore) Feedback() FeedbackStore {
 	return s.DatabaseLayer.Feedback()
 }

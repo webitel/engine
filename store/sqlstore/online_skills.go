@@ -71,7 +71,7 @@ func (s *SqlOnlineSkillsStore) Create(ctx context.Context, preset *model.OnlineS
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
 		if e, ok := err.(*pq.Error); ok {
 			if e.Code == DuplicationViolationErrorCode {
-				return nil, model.NewBadRequestError("sqlstore.online_skills_store.create_already_exists", "Online skills with this name already exists.")
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.create.already_exists", "Online skills with this name already exists.")
 			}
 		}
 
@@ -151,6 +151,12 @@ func (s *SqlOnlineSkillsStore) Update(ctx context.Context, preset *model.OnlineS
 
 	var result *model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
+		if e, ok := err.(*pq.Error); ok {
+			if e.Code == DuplicationViolationErrorCode {
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.update.already_exists", "Online skills with this name already exists.")
+			}
+		}
+
 		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.update", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -197,6 +203,12 @@ func (s *SqlOnlineSkillsStore) Patch(ctx context.Context, patchCmd *model.PatchO
 
 	var result model.OnlineSkills
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
+		if e, ok := err.(*pq.Error); ok {
+			if e.Code == DuplicationViolationErrorCode {
+				return nil, model.NewBadRequestError("sqlstore.online_skills_store.patch.already_exists", "Online skills with this name already exists.")
+			}
+		}
+
 		return nil, model.NewCustomCodeError("sqlstore.online_skills_store.patch", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -219,6 +231,11 @@ func (s *SqlOnlineSkillsStore) Delete(ctx context.Context, deleteCmd *model.Dele
 }
 
 func (s *SqlOnlineSkillsStore) Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError) {
+	q := search.GetQ()
+	if q != nil && *q != "" {
+		*q = "%" + *q
+	}
+
 	query := `
 		"domain_id" = :DomainID
 		and (:IDs::int[] is null or "id" = any(:IDs::int[]))
@@ -238,7 +255,7 @@ func (s *SqlOnlineSkillsStore) Search(ctx context.Context, search *model.SearchO
 		"DomainID":    search.DomainId,
 		"IDs":         pq.Int64Array(search.IDs),
 		"SkillIDs":    pq.Int64Array(search.SkillIDs),
-		"Q":           search.GetQ(),
+		"Q":           q,
 		"SkipDefault": search.SkipDefault,
 	}
 
@@ -277,4 +294,33 @@ func (s *SqlOnlineSkillsStore) Get(ctx context.Context, search *model.GetSkillPr
 	}
 
 	return result, nil
+}
+
+func (s *SqlOnlineSkillsStore) CreateSystem(ctx context.Context, domainID int64) model.AppError {
+	if _, err := s.GetMaster().WithContext(ctx).Exec(
+		`insert into call_center.cc_online_skills (
+				domain_id, created_at, updated_at, name, is_system
+			)
+			select
+				:DomainID,
+				now(),
+				now(),
+				:StandartSkill,
+				true
+			where not exists (
+				select 1
+				from call_center.cc_online_skills
+				where domain_id = :DomainID
+					and is_system is true
+			);
+		`,
+		map[string]any{
+			"DomainID":      domainID,
+			"StandartSkill": model.StandartOnlineSkill,
+		},
+	); err != nil {
+		return model.NewCustomCodeError("sqlstore.online_skills.create_system", err.Error(), extractCodeFromErr(err))
+	}
+
+	return nil
 }

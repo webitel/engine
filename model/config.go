@@ -55,6 +55,7 @@ type Config struct {
 	PublicHostName          *string `json:"public_host" flag:"public_host||Public hostname" default:"" env:"PUBLIC_HOST"`
 	Push                    PushConfig
 	Log                     LogSettings      `json:"log"`
+	Health                  HealthSettings   `json:"health"`
 	TriggersSettings        TriggersSettings `json:"triggers_settings"`
 	RTCConfiguration        string           `json:"rtc_configuration" flag:"rtc_configuration||RTCConfiguration" default:"" env:"RTC_CONFIGURATION"`
 }
@@ -100,6 +101,13 @@ type SqlSettings struct {
 	Trace                       bool    `json:"trace" flag:"sql_trace|false|Trace SQL" env:"SQL_TRACE"`
 	Log                         bool    `json:"log" flag:"sql_log|false|Log SQL" env:"SQL_LOG"`
 	QueryTimeout                *int    `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds" env:"QUERY_TIMEOUT"`
+}
+
+type HealthSettings struct {
+	// Must stay under the unit's TimeoutStartSec.
+	StartTimeout int `json:"start_timeout" flag:"health_start_timeout|60|Seconds before sd_notify reports READY=1 regardless of check state" env:"HEALTH_START_TIMEOUT"`
+	// Must exceed the package's DrainHold and fit inside TimeoutStopSec.
+	StopTimeout int `json:"stop_timeout" flag:"health_stop_timeout|12|Seconds budget for the readiness drain on shutdown" env:"HEALTH_STOP_TIMEOUT"`
 }
 
 type TriggersSettings struct {

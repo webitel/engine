@@ -3,6 +3,7 @@ package rabbit
 import (
 	"context"
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"os"
 	"sync"
@@ -32,6 +33,12 @@ const (
 	callServiceHangupData = `{"hangup_by":"service","cause":"SYSTEM_SHUTDOWN","sip":501}`
 )
 
+// Stdlib errors: this file's `errors` is pkg/errors, which attaches stack traces.
+var (
+	errConnectionClosed = stderrors.New("amqp: connection is closed")
+	errChannelClosed    = stderrors.New("amqp: channel is closed")
+)
+
 var errMaxRegisterQueueSize = model.NewInternalError("amqp.register_domain.max_queue_size", "")
 var errMaxUnRegisterQueueSize = model.NewInternalError("amqp.un_register_domain.max_queue_size", "")
 
@@ -50,6 +57,7 @@ type AMQP struct {
 	registerDomainQueue   chan mq.DomainQueue
 	unRegisterDomainQueue chan mq.DomainQueue
 	log                   *wlog.Logger
+	domainEventHandler    mq.DomainEventHandler
 
 	mx sync.Mutex
 }
@@ -85,7 +93,47 @@ func (a *AMQP) NewDomainQueue(domainId int64, bindings model.GetAllBindings) (mq
 
 func (a *AMQP) Start() {
 	a.initConnection()
+
+	if err := a.initDomains(context.Background()); err != nil {
+		a.log.Critical("initializing domains consumer", wlog.Err(err))
+		panic(err)
+	}
+
 	go a.Listen()
+}
+
+// Ping reads the cached connection's state; it does not dial.
+func (a *AMQP) Ping(context.Context) error {
+	a.mx.Lock()
+	defer a.mx.Unlock()
+
+	if a.connection == nil || a.connection.IsClosed() {
+		return errConnectionClosed
+	}
+
+	if a.channel == nil || a.channel.IsClosed() {
+		return errChannelClosed
+	}
+
+	return nil
+}
+
+func (a *AMQP) BrokerChannelProvider() ChannelProvider {
+	return func() (*amqp.Channel, error) {
+		a.mx.Lock()
+		conn := a.connection
+		a.mx.Unlock()
+
+		if conn == nil || conn.IsClosed() {
+			return nil, model.NewCustomCodeError(
+				"rabbit.client.broker_channel_provider",
+				"connection closed",
+				412,
+			)
+		}
+
+		return conn.Channel()
+	}
 }
 
 func (a *AMQP) addDomainQueue(id int64, q mq.DomainQueue) {
@@ -284,4 +332,67 @@ func (a *AMQP) SendStartFlow(ctx context.Context, domainId int64, schemaId int32
 	}
 
 	return nil
+}
+
+func (a *AMQP) initDomains(ctx context.Context) error {
+	queueCfg := NewQueueConfig(
+		"engine.domains.consumer",
+		WithQueueDurable(true),
+		WithQueueArg("x-queue-type", "quorum"),
+	)
+
+	bq := NewBrokerQueue(
+		queueCfg,
+		a.BrokerChannelProvider(),
+		a.processDomainDeliveries,
+		WithConsumerTag(
+			fmt.Sprintf("engine-%s-domains", a.nodeName),
+		),
+		WithConcurrency(2),
+	)
+
+	bq.Bind(NewQueueBindConfig(
+		queueCfg.Name,
+		"domains.create.*",
+		"webitel",
+		WithQueueBindNoWait(false),
+	))
+
+	go func() {
+		if err := bq.Run(ctx); err != nil {
+			a.log.Error("broker queue stopped", wlog.Err(err))
+		}
+	}()
+
+	go func() {
+		<-a.stopped
+
+		bq.Close()
+	}()
+
+	return nil
+}
+
+func (a *AMQP) processDomainDeliveries(ctx context.Context, d amqp.Delivery) error {
+	de, err := model.NewDomainEventFromRoutingKey(d.RoutingKey)
+	if err != nil {
+		return err
+	}
+
+	a.mx.Lock()
+	h := a.domainEventHandler
+	a.mx.Unlock()
+
+	if h == nil {
+		a.log.Warn("no domain event handler set, dropping event")
+		return nil
+	}
+
+	return h(ctx, de)
+}
+
+func (a *AMQP) SetDomainsEventHandler(h mq.DomainEventHandler) {
+	a.mx.Lock()
+	a.domainEventHandler = h
+	a.mx.Unlock()
 }
