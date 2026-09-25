@@ -227,7 +227,7 @@ FROM t
 }
 
 func (s SqlEmailProfileStore) Delete(ctx context.Context, domainId int64, id int) model.AppError {
-	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_email_profile_rc c where c.id=:Id and c.domain_id = :DomainId`,
+	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_email_profile c where c.id=:Id and c.domain_id = :DomainId`,
 		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_email_profile.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
