@@ -195,6 +195,11 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
+	// failfast: load sqlstore/cryptostore.Codec from environment
+	if err = sqlstore.CryptoInit(); err != nil {
+		return nil, err
+	}
+
 	// Concrete handle: store.Store does not expose Ping.
 	sqlSupplier := sqlstore.NewSqlSupplier(app.Config().SqlSettings)
 	app.Store = store.NewLayeredStore(sqlSupplier)
