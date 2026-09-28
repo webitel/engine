@@ -201,6 +201,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)
 	app.initDomainEventListener()
+	app.MessageQueue.SetSystemSettingsEventHandler(app.handleSystemSettingEvent)
 	app.MessageQueue.Start()
 
 	app.Hubs = NewHubs(app)

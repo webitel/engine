@@ -8,6 +8,8 @@ import (
 
 type DomainEventHandler func(ctx context.Context, e *model.DomainEvent) error
 
+type SystemSettingsEventHandler func(ctx context.Context, e *model.SystemSettingEvent) error
+
 type MQ interface {
 	SendJSON(name string, data []byte) model.AppError
 	BindCallEvents(domainId, userId int64) error
@@ -29,6 +31,7 @@ type MQ interface {
 
 	SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError
 	SetDomainsEventHandler(h DomainEventHandler)
+	SetSystemSettingsEventHandler(h SystemSettingsEventHandler)
 }
 
 type DomainQueue interface {
