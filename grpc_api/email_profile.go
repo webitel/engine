@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
@@ -299,7 +300,7 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		profile.Params = &engine.EmailProfileParams{
 			Oauth2: &engine.EmailProfileParams_OAuth2{
 				ClientId:     src.Params.OAuth2.ClientId,
-				ClientSecret: src.Params.OAuth2.ClientSecret,
+				ClientSecret: model.SecretView.Suppress(src.Params.OAuth2.ClientSecret),
 				RedirectUrl:  src.Params.OAuth2.RedirectURL,
 			},
 		}
