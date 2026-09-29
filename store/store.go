@@ -396,6 +396,7 @@ type CallStore interface {
 	GetInstance(ctx context.Context, domainId int64, id string) (*model.CallInstance, model.AppError)
 	BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, model.AppError)
 	BridgedId(ctx context.Context, id string) (string, model.AppError)
+	BridgedCall(ctx context.Context, id string) (*model.BridgedCall, model.AppError)
 	LastFile(ctx context.Context, domainId int64, id string) (int64, model.AppError)
 	GetUserActiveCall(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError)
 	SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError)
