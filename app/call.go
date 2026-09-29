@@ -674,6 +674,10 @@ func (app *App) BlindTransferCallToDialplan(ctx context.Context, domainId int64,
 		return err
 	}
 
+	if !routing.AllowTransfer {
+		return model.NewBadRequestError("app.call.transfer_dialplan.valid.allow_transfer", "Transfer on this dialplan is not allowed")
+	}
+
 	if req.Variables == nil {
 		req.Variables = make(map[string]string)
 	}
