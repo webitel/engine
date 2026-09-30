@@ -250,6 +250,7 @@ type AttemptHistory struct {
 	Result        string              `json:"result" db:"result"`
 	AmdResult     *string             `json:"amd_result" db:"amd_result"`
 	Attempts      *int32              `json:"attempts" db:"attempts"`
+	Duration      *int64              `json:"duration" db:"duration"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -283,6 +284,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"result",
 		"amd_result",
 		"attempts",
+		"duration",
 	}
 }
 
@@ -413,6 +415,12 @@ type IMThread struct {
 	Members     []*IMThreadMember `json:"members"`
 	Subject     string            `json:"subject"`
 	LastMessage string            `json:"last_msg"`
+	Channel     *IMChannel        `json:"channel,omitempty"`
+}
+
+type IMChannel struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type MemberCommunication struct {

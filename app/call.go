@@ -12,6 +12,7 @@ import (
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/utils"
 )
 
 const (
@@ -106,6 +107,10 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 				wlog.Error(err.Error())
 			}
 		}
+	}
+
+	if ua, ok := utils.UserAgentFromContext(ctx); ok {
+		invite.AddVariable("sip_h_User-Agent", ua)
 	}
 
 	if req.Params.HideNumber {
@@ -661,6 +666,33 @@ func (app *App) BlindTransferCallToQueue(ctx context.Context, domainId int64, re
 		Destination:     q,
 		Variables:       req.Variables,
 	})
+}
+
+func (app *App) BlindTransferCallToDialplan(ctx context.Context, domainId int64, req *model.BlindTransferCallToDialplan) model.AppError {
+	routing, err := app.GetRoutingOutboundCallById(ctx, domainId, int64(req.DialplanId))
+	if err != nil {
+		return err
+	}
+
+	if req.Variables == nil {
+		req.Variables = make(map[string]string)
+	}
+
+	s := strconv.Itoa(routing.Schema.Id)
+
+	req.Variables["transfer_to_schema_id"] = s
+
+	cli, err := app.getCallCli(ctx, domainId, req.Id, req.AppId)
+	if err != nil {
+		return err
+	}
+
+	id, err := app.Store.Call().BridgedId(ctx, req.Id)
+	if err != nil {
+		return err
+	}
+
+	return cli.BlindTransferSchema(id, s, req.Variables)
 }
 
 func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {

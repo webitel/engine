@@ -6,117 +6,178 @@ import (
 	"github.com/webitel/engine/model"
 )
 
-func TestQueue_IsValid_ProgressiveCountValidation(t *testing.T) {
+func TestQueue_IsValid(t *testing.T) {
 	t.Parallel()
-
-	validCalendar := &model.Lookup{Id: 1}
 
 	tests := []struct {
 		name    string
-		queue   model.Queue
+		queue   *model.Queue
 		wantErr bool
-		errID   string
+		errCode string
 	}{
 		{
-			name: "predictive queue valid progressive count int",
-			queue: model.Queue{
-				Type:     model.QueueTypePredictCall,
-				Calendar: validCalendar,
-				Payload: model.StringInterface{
-					model.QueuePayloadProgressiveCountKey: 5,
-				},
+			name:    "nil queue",
+			queue:   nil,
+			wantErr: true,
+			errCode: "model.cc_queue.validate.empty",
+		},
+		{
+			name: "nil payload",
+			queue: &model.Queue{
+				Payload: nil,
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.payload.empty",
+		},
+		{
+			name: "valid inbound queue without calendar",
+			queue: &model.Queue{
+				Type:    model.QueueTypeInboundCall,
+				Payload: model.StringInterface{},
 			},
 			wantErr: false,
 		},
 		{
-			name: "progressive queue valid progressive count string",
-			queue: model.Queue{
-				Type:     model.QueueTypeProgressiveCall,
-				Calendar: validCalendar,
+			name: "valid progressive queue with valid payload and calendar",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
 				Payload: model.StringInterface{
-					model.QueuePayloadProgressiveCountKey: "10",
+					model.QueuePayloadProgressiveCountKey: 2,
+					model.QueuePayloadMaxAgentLineKey:     5,
 				},
+				Calendar: &model.Lookup{Id: 1, Name: "Default"},
 			},
 			wantErr: false,
 		},
 		{
-			name: "progressive count does not exist",
-			queue: model.Queue{
-				Type:     model.QueueTypePredictCall,
-				Calendar: validCalendar,
-				Payload:  model.StringInterface{},
-			},
-			wantErr: true,
-			errID:   "model.queue.valid.progressive_count_not_exist",
-		},
-		{
-			name: "progressive count invalid string",
-			queue: model.Queue{
-				Type:     model.QueueTypeProgressiveCall,
-				Calendar: validCalendar,
+			name: "progressive queue sets default progressive count when missing",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
 				Payload: model.StringInterface{
-					model.QueuePayloadProgressiveCountKey: "abc",
+					model.QueuePayloadMaxAgentLineKey: 3,
 				},
+				Calendar: &model.Lookup{Id: 1},
 			},
-			wantErr: true,
-			errID:   "model.queue.valid.progressive_count_unconvertable_from_string",
+			wantErr: false,
 		},
 		{
-			name: "progressive count unsupported type",
-			queue: model.Queue{
-				Type:     model.QueueTypePredictCall,
-				Calendar: validCalendar,
-				Payload: model.StringInterface{
-					model.QueuePayloadProgressiveCountKey: true,
-				},
-			},
-			wantErr: true,
-			errID:   "model.queue.valid.unsupported_type",
-		},
-		{
-			name: "progressive count zero",
-			queue: model.Queue{
-				Type:     model.QueueTypeProgressiveCall,
-				Calendar: validCalendar,
+			name: "progressive queue sets default progressive count when non-positive",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
 				Payload: model.StringInterface{
 					model.QueuePayloadProgressiveCountKey: 0,
+					model.QueuePayloadMaxAgentLineKey:     3,
 				},
-			},
-			wantErr: true,
-			errID:   "model.queue.valid.progressive_count_must_be_gt_zero",
-		},
-		{
-			name: "progressive count negative",
-			queue: model.Queue{
-				Type:     model.QueueTypePredictCall,
-				Calendar: validCalendar,
-				Payload: model.StringInterface{
-					model.QueuePayloadProgressiveCountKey: -5,
-				},
-			},
-			wantErr: true,
-			errID:   "model.queue.valid.progressive_count_must_be_gt_zero",
-		},
-		{
-			name: "non progressive queue skips validation",
-			queue: model.Queue{
-				Type:     model.QueueTypeInboundCall,
-				Calendar: nil,
-				Payload: model.StringInterface{
-					model.QueuePayloadProgressiveCountKey: "invalid",
-				},
+				Calendar: &model.Lookup{Id: 1},
 			},
 			wantErr: false,
 		},
 		{
-			name: "nil payload for predictive queue",
-			queue: model.Queue{
-				Type:     model.QueueTypePredictCall,
-				Calendar: validCalendar,
-				Payload:  nil,
+			name: "progressive queue float decimal rejected in progressive count",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadProgressiveCountKey: 2.5,
+					model.QueuePayloadMaxAgentLineKey:     3,
+				},
+				Calendar: &model.Lookup{Id: 1},
 			},
 			wantErr: true,
-			errID:   "model.queue.valid.progressive_count_not_exist",
+			errCode: "model.cc_queue.validate.config.decimal_not_allowed",
+		},
+		{
+			name: "progressive queue float integer accepted in progressive count",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadProgressiveCountKey: float64(2),
+					model.QueuePayloadMaxAgentLineKey:     3,
+				},
+				Calendar: &model.Lookup{Id: 1},
+			},
+			wantErr: false,
+		},
+		{
+			name: "progressive queue string number accepted in progressive count",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadProgressiveCountKey: "3",
+					model.QueuePayloadMaxAgentLineKey:     3,
+				},
+				Calendar: &model.Lookup{Id: 1},
+			},
+			wantErr: false,
+		},
+		{
+			name: "progressive queue invalid string rejected in progressive count",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadProgressiveCountKey: "invalid",
+					model.QueuePayloadMaxAgentLineKey:     3,
+				},
+				Calendar: &model.Lookup{Id: 1},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.config.invalid_string_number",
+		},
+		{
+			name: "progressive queue unsupported type rejected in progressive count",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadProgressiveCountKey: true,
+					model.QueuePayloadMaxAgentLineKey:     3,
+				},
+				Calendar: &model.Lookup{Id: 1},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.config.unsupported_type",
+		},
+		{
+			name: "progressive queue missing max agent line",
+			queue: &model.Queue{
+				Type:     model.QueueTypeProgressiveCall,
+				Payload:  model.StringInterface{},
+				Calendar: &model.Lookup{Id: 1},
+			},
+			wantErr: false,
+		},
+		{
+			name: "progressive queue non-positive max agent line",
+			queue: &model.Queue{
+				Type: model.QueueTypeProgressiveCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadMaxAgentLineKey: 0,
+				},
+				Calendar: &model.Lookup{Id: 1},
+			},
+			wantErr: false,
+		},
+		{
+			name: "predictive queue requires calendar",
+			queue: &model.Queue{
+				Type: model.QueueTypePredictCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadMaxAgentLineKey: 1,
+				},
+				Calendar: nil,
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.calendar.required",
+		},
+		{
+			name: "predictive queue empty calendar struct",
+			queue: &model.Queue{
+				Type: model.QueueTypePredictCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadMaxAgentLineKey: 1,
+				},
+				Calendar: &model.Lookup{Id: 0, Name: ""},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.calendar.required",
 		},
 	}
 
@@ -124,22 +185,16 @@ func TestQueue_IsValid_ProgressiveCountValidation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := tt.queue.IsValid()
+			err := tt.queue.IsValid()
 
-			if tt.wantErr {
-				if got == nil {
-					t.Fatalf("expected error, got nil")
-				}
-
-				if got.GetId() != tt.errID {
-					t.Fatalf("unexpected error id: got %s, want %s", got.GetId(), tt.errID)
-				}
-
-				return
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("IsValid() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if got != nil {
-				t.Fatalf("expected nil error, got %v", got)
+			if tt.wantErr && err != nil && tt.errCode != "" {
+				if err.GetId() != tt.errCode {
+					t.Errorf("IsValid() err.Id = %v, want %v", err.GetId(), tt.errCode)
+				}
 			}
 		})
 	}
