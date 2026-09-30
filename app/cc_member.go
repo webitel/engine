@@ -41,6 +41,10 @@ func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.S
 	return list, search.EndOfList(), nil
 }
 
+func (a *App) GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError) {
+	return a.Store.Member().GetUserTimezone(ctx, userId)
+}
+
 func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError) {
 	if len(members) == 0 {
 		return nil, nil

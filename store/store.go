@@ -350,6 +350,7 @@ type MemberStore interface {
 	CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError)
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
 	QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError)
+	GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError)
 }
 
 type BucketStore interface {

@@ -1086,3 +1086,20 @@ where id = :Id::int8 and domain_id = :DomainId::int8`, map[string]interface{}{
 
 	return queueId, nil
 }
+
+func (s SqlMemberStore) GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError) {
+	tz, err := s.GetReplica().WithContext(ctx).SelectStr(`select coalesce((select case jsonb_typeof(value)
+			when 'object' then value ->> 'timezone'
+			when 'string' then value #>> '{}'
+			else null
+		end
+from directory.wbt_user_setting
+where user_id = :UserId and name = 'timezone'), '')`, map[string]interface{}{
+		"UserId": userId,
+	})
+	if err != nil {
+		return "", model.NewCustomCodeError("store.sql_member.get_user_timezone.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return tz, nil
+}
