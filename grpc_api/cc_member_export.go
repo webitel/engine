@@ -53,35 +53,50 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 		fields = model.Member{}.DefaultFields()
 	}
 
-	filename := "members_" + time.Now().Format("2006-01-02_15-04-05") + "." + format
+	loc := api.exportTimezone(ctx, session.UserId)
+
+	filename := "members_" + time.Now().In(loc).Format("2006-01-02_15-04-05") + "." + format
 	if sendErr := stream.SendHeader(metadata.Pairs("filename", filename, "format", format)); sendErr != nil {
 		return sendErr
 	}
 
 	domainId := session.Domain(0)
 
-	req := buildExportMembersSearchRequest(in)
-
-	if !req.IsWithCreatedAtFilter() {
+	var defaultCreatedAt *model.FilterBetween
+	if !buildExportMembersSearchRequest(in, 1, nil).IsWithCreatedAtFilter() {
 		filter, filterErr := api.prepareDefaulMembersFilter(ctx, domainId)
 		if filterErr != nil {
 			api.app.Log.Error("preparing default members filter", wlog.Err(filterErr))
 		} else {
-			req.CreatedAt = filter
+			defaultCreatedAt = filter
 		}
 	}
 
 	if format == "csv" {
-		return api.exportMembersCSV(ctx, domainId, in, fields, req, stream)
+		return api.exportMembersCSV(ctx, domainId, in, fields, defaultCreatedAt, loc, stream)
 	}
-	return api.exportMembersXLSX(ctx, domainId, fields, req, stream)
+	return api.exportMembersXLSX(ctx, domainId, in, fields, defaultCreatedAt, loc, stream)
 }
 
-func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.SearchMemberRequest {
+func (api *member) exportTimezone(ctx context.Context, userId int64) *time.Location {
+	tz, err := api.app.GetUserTimezone(ctx, userId)
+	if err != nil || tz == "" {
+		return time.UTC
+	}
+
+	loc, locErr := time.LoadLocation(tz)
+	if locErr != nil {
+		return time.UTC
+	}
+
+	return loc
+}
+
+func buildExportMembersSearchRequest(in *engine.ExportMembersRequest, page int, defaultCreatedAt *model.FilterBetween) *model.SearchMemberRequest {
 	req := &model.SearchMemberRequest{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
-			Page:    1,
+			Page:    page,
 			PerPage: exportMembersPageSize,
 			Fields:  in.GetFields(),
 		},
@@ -111,19 +126,21 @@ func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.Sea
 	if in.GetOfferingAt() != nil {
 		req.OfferingAt = &model.FilterBetween{From: in.GetOfferingAt().GetFrom(), To: in.GetOfferingAt().GetTo()}
 	}
+	if defaultCreatedAt != nil && !req.IsWithCreatedAtFilter() {
+		req.CreatedAt = defaultCreatedAt
+	}
 
 	return req
 }
 
 func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *engine.ExportMembersRequest, fields []string,
-	req *model.SearchMemberRequest, stream engine.MemberService_ExportMembersServer) error {
+	defaultCreatedAt *model.FilterBetween, loc *time.Location, stream engine.MemberService_ExportMembersServer) error {
+
 	page := 1
 	sentAnyChunk := false
 
 	for {
-		req.Page = page
-
-		list, endList, err := api.app.SearchMembers(ctx, domainId, req)
+		list, endList, err := api.app.SearchMembers(ctx, domainId, buildExportMembersSearchRequest(in, page, defaultCreatedAt))
 		if err != nil {
 			return err
 		}
@@ -132,7 +149,7 @@ func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *eng
 			break
 		}
 
-		chunk, genErr := generateMembersCSVChunk(fields, membersToExportRows(list, fields), page, in.GetSeparator())
+		chunk, genErr := generateMembersCSVChunk(fields, membersToExportRows(list, fields, loc), page, in.GetSeparator())
 		if genErr != nil {
 			return model.NewInternalError("grpc.member.export_members.csv", genErr.Error())
 		}
@@ -161,15 +178,14 @@ func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *eng
 	return nil
 }
 
-func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields []string,
-	req *model.SearchMemberRequest, stream engine.MemberService_ExportMembersServer) error {
+func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, in *engine.ExportMembersRequest, fields []string,
+	defaultCreatedAt *model.FilterBetween, loc *time.Location, stream engine.MemberService_ExportMembersServer) error {
+
 	var allRows [][]string
 	page := 1
 
 	for {
-		req.Page = page
-
-		list, endList, err := api.app.SearchMembers(ctx, domainId, req)
+		list, endList, err := api.app.SearchMembers(ctx, domainId, buildExportMembersSearchRequest(in, page, defaultCreatedAt))
 		if err != nil {
 			return err
 		}
@@ -178,7 +194,7 @@ func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields
 			break
 		}
 
-		allRows = append(allRows, membersToExportRows(list, fields)...)
+		allRows = append(allRows, membersToExportRows(list, fields, loc)...)
 
 		if endList {
 			break
@@ -202,19 +218,19 @@ func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields
 	return nil
 }
 
-func membersToExportRows(list []*model.Member, fields []string) [][]string {
+func membersToExportRows(list []*model.Member, fields []string, loc *time.Location) [][]string {
 	rows := make([][]string, 0, len(list))
 	for _, m := range list {
 		row := make([]string, len(fields))
 		for i, f := range fields {
-			row[i] = memberExportFieldValue(m, f)
+			row[i] = memberExportFieldValue(m, f, loc)
 		}
 		rows = append(rows, row)
 	}
 	return rows
 }
 
-func memberExportFieldValue(m *model.Member, field string) string {
+func memberExportFieldValue(m *model.Member, field string, loc *time.Location) string {
 	switch field {
 	case "id":
 		return strconv.FormatInt(m.Id, 10)
@@ -251,18 +267,18 @@ func memberExportFieldValue(m *model.Member, field string) string {
 		}
 		return ""
 	case "stop_at":
-		return formatMemberTimeExport(m.StopAt)
+		return formatMemberTimeExport(m.StopAt, loc)
 	case "created_at":
-		return m.CreatedAt.Format("2006-01-02 15:04:05")
+		return m.CreatedAt.In(loc).Format("2006-01-02 15:04:05")
 	case "expire_at":
-		return formatMemberTimeExport(m.ExpireAt)
+		return formatMemberTimeExport(m.ExpireAt, loc)
 	case "ready_at", "min_offering_at":
-		return formatMemberTimeExport(m.MinOfferingAt)
+		return formatMemberTimeExport(m.MinOfferingAt, loc)
 	case "last_hangup_at", "last_activity_at":
 		if m.LastActivityAt == 0 {
 			return ""
 		}
-		return time.UnixMilli(m.LastActivityAt).Format("2006-01-02 15:04:05")
+		return time.UnixMilli(m.LastActivityAt).In(loc).Format("2006-01-02 15:04:05")
 	case "communications", "destination":
 		destinations := make([]string, 0, len(m.Communications))
 		for _, c := range m.Communications {
@@ -280,11 +296,11 @@ func memberExportFieldValue(m *model.Member, field string) string {
 	}
 }
 
-func formatMemberTimeExport(t *time.Time) string {
+func formatMemberTimeExport(t *time.Time, loc *time.Location) string {
 	if t == nil || t.IsZero() {
 		return ""
 	}
-	return t.Format("2006-01-02 15:04:05")
+	return t.In(loc).Format("2006-01-02 15:04:05")
 }
 
 func generateMembersCSVChunk(headers []string, rows [][]string, page int, separator string) ([]byte, error) {
