@@ -1,5 +1,11 @@
 package model
 
+const (
+	CommunicationChannelPhone     = "Phone"
+	CommunicationChannelEmail     = "Email"
+	CommunicationChannelMessaging = "Messaging"
+)
+
 type CommunicationType struct {
 	Id          int64  `json:"id" db:"id"`
 	Name        string `json:"name" db:"name"`

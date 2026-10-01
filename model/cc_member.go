@@ -516,6 +516,23 @@ func (m *Member) GetAgentId() *int {
 	return nil
 }
 
+func IsPhoneCommunicationChannel(channel string) bool {
+	return channel != CommunicationChannelEmail && channel != CommunicationChannelMessaging
+}
+
+func ValidateMemberCommunicationDestinations(communications []*MemberCommunication, channelById map[int]string, memberName string) AppError {
+	for _, c := range communications {
+		if c == nil || !IsPhoneCommunicationChannel(channelById[c.Type.Id]) {
+			continue
+		}
+		if err := validatePhoneNumber(c.Destination); err != nil {
+			return NewBadRequestError("model.member.is_valid.communications.destination.format.app_error", "name="+memberName)
+		}
+	}
+
+	return nil
+}
+
 func (m *Member) IsValid(maxCommunication int) AppError {
 	// FIXME
 
