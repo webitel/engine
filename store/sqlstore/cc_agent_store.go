@@ -23,7 +23,7 @@ func NewSqlAgentStore(sqlStore SqlStore, descTrackTimeoutSec *int) store.AgentSt
 	var descTrackTimeoutSecValue int
 
 	if descTrackTimeoutSec == nil || *descTrackTimeoutSec <= 0 {
-		descTrackTimeoutSecValue = 65
+		descTrackTimeoutSecValue = 75
 	} else {
 		descTrackTimeoutSecValue = *descTrackTimeoutSec
 	}
