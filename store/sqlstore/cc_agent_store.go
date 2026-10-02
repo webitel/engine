@@ -28,7 +28,10 @@ func NewSqlAgentStore(sqlStore SqlStore, descTrackTimeoutSec *int) store.AgentSt
 		descTrackTimeoutSecValue = *descTrackTimeoutSec
 	}
 
-	us := &SqlAgentStore{sqlStore, descTrackTimeoutSecValue}
+	us := &SqlAgentStore{
+		SqlStore:            sqlStore,
+		descTrackTimeoutSec: descTrackTimeoutSecValue,
+	}
 	return us
 }
 
