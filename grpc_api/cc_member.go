@@ -1304,8 +1304,22 @@ func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRe
 		waitBetweenRetries = &in.WaitBetweenRetries
 	}
 
-	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
-		in.Display, in.AgentId, in.ExcludeCurrentCommunication, waitBetweenRetries, in.OnlyCurrentCommunication)
+	err = api.ctrl.ReportingAttempt(
+		session,
+		in.AttemptId,
+		in.Status,
+		in.Description,
+		nextOffering,
+		expire,
+		in.Variables,
+		in.Display,
+		in.AgentId,
+		in.ExcludeCurrentCommunication,
+		waitBetweenRetries,
+		in.OnlyCurrentCommunication,
+		false,
+	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -1337,8 +1351,21 @@ func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallba
 		waitBetweenRetries = &in.WaitBetweenRetries
 	}
 
-	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
-		in.Display, in.AgentId, in.ExcludeCurrentCommunication, waitBetweenRetries, in.OnlyCurrentCommunication)
+	err = api.ctrl.ReportingAttempt(
+		session,
+		in.AttemptId,
+		in.Status,
+		in.Description,
+		nextOffering,
+		expire,
+		in.Variables,
+		in.Display,
+		in.AgentId,
+		in.ExcludeCurrentCommunication,
+		waitBetweenRetries,
+		in.OnlyCurrentCommunication,
+		false,
+	)
 	if err != nil {
 		return nil, err
 	}
