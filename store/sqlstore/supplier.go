@@ -103,7 +103,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.calendar = NewSqlCalendarStore(supplier)
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
-	supplier.oldStores.agent = NewSqlAgentStore(supplier)
+	supplier.oldStores.agent = NewSqlAgentStore(supplier, settings.DescTrackTimeoutSec)
 	supplier.oldStores.teamHook = NewSqlTeamHookStore(supplier)
 	supplier.oldStores.teamTrigger = NewSqlTeamTriggerStore(supplier)
 	supplier.oldStores.agentSkill = NewSqlAgentSkillStore(supplier)
