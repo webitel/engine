@@ -1249,6 +1249,23 @@ where id = :Id::uuid`, map[string]string{
 	}
 }
 
+func (s SqlCallStore) BridgedCall(ctx context.Context, id string) (*model.BridgedCall, model.AppError) {
+	var res *model.BridgedCall
+
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id,
+       coalesce(b.destination, '') as destination
+from call_center.cc_calls c
+    left join call_center.cc_calls b on b.id = coalesce(c.bridged_id, c.parent_id, c.id)
+where c.id = :Id::uuid`, map[string]string{
+		"Id": id,
+	})
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.get_bridged_call.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
+}
+
 func (s SqlCallStore) BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError) {
 	var res *model.BlindTransferInfo
 	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id, c.contact_id,

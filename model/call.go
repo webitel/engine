@@ -188,6 +188,11 @@ type BridgeCall struct {
 	AppId     string `json:"app_id" db:"app_id"`
 }
 
+type BridgedCall struct {
+	ID          string `json:"id" db:"id"`
+	Destination string `json:"destination" db:"destination"`
+}
+
 type BlindTransferInfo struct {
 	Id              string `json:"id" db:"id"`
 	ContactId       *int64 `json:"contact_id" db:"contact_id"`
