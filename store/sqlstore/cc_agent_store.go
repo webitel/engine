@@ -16,10 +16,22 @@ import (
 
 type SqlAgentStore struct {
 	SqlStore
+	descTrackTimeoutSec int
 }
 
-func NewSqlAgentStore(sqlStore SqlStore) store.AgentStore {
-	us := &SqlAgentStore{sqlStore}
+func NewSqlAgentStore(sqlStore SqlStore, descTrackTimeoutSec *int) store.AgentStore {
+	var descTrackTimeoutSecValue int
+
+	if descTrackTimeoutSec == nil || *descTrackTimeoutSec <= 0 {
+		descTrackTimeoutSecValue = 75
+	} else {
+		descTrackTimeoutSecValue = *descTrackTimeoutSec
+	}
+
+	us := &SqlAgentStore{
+		SqlStore:            sqlStore,
+		descTrackTimeoutSec: descTrackTimeoutSecValue,
+	}
 	return us
 }
 
@@ -711,7 +723,7 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) auditor,
     	a.screen_control,
-    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
      	call_center.cc_get_lookup(os.id, os.name) as online_status
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
@@ -727,8 +739,9 @@ from call_center.cc_agent a
                      WHERE c.agent_id = a.id) ch ON true
     left join call_center.cc_online_skills os on os.id = a.status_id
 where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]any{
-		"UserId":   userId,
-		"DomainId": domainId,
+		"UserId":              userId,
+		"DomainId":            domainId,
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_session.app_error", err.Error(), extractCodeFromErr(err))
@@ -923,22 +936,23 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 		"UserSupervisorId": supervisorUserId,
 		//"Groups":     pq.Array(groups),
 		//"Access":     access.Value(),
-		"Q":             q,
-		"Limit":         search.GetLimit(),
-		"Offset":        search.GetOffset(),
-		"From":          model.GetBetweenFromTime(&search.Time),
-		"To":            model.GetBetweenToTime(&search.Time),
-		"UFrom":         model.GetBetweenFrom(search.Utilization),
-		"UTo":           model.GetBetweenTo(search.Utilization),
-		"AgentIds":      pq.Array(search.AgentIds),
-		"Status":        pq.Array(search.Status),
-		"QueueIds":      pq.Array(search.QueueIds),
-		"TeamIds":       pq.Array(search.TeamIds),
-		"SkillIds":      pq.Array(search.SkillIds),
-		"RegionIds":     pq.Array(search.RegionIds),
-		"AuditorIds":    pq.Array(search.AuditorIds),
-		"SupervisorIds": pq.Array(search.SupervisorIds),
-		"HasCall":       search.HasCall,
+		"Q":                   q,
+		"Limit":               search.GetLimit(),
+		"Offset":              search.GetOffset(),
+		"From":                model.GetBetweenFromTime(&search.Time),
+		"To":                  model.GetBetweenToTime(&search.Time),
+		"UFrom":               model.GetBetweenFrom(search.Utilization),
+		"UTo":                 model.GetBetweenTo(search.Utilization),
+		"AgentIds":            pq.Array(search.AgentIds),
+		"Status":              pq.Array(search.Status),
+		"QueueIds":            pq.Array(search.QueueIds),
+		"TeamIds":             pq.Array(search.TeamIds),
+		"SkillIds":            pq.Array(search.SkillIds),
+		"RegionIds":           pq.Array(search.RegionIds),
+		"AuditorIds":          pq.Array(search.AuditorIds),
+		"SupervisorIds":       pq.Array(search.SupervisorIds),
+		"HasCall":             search.HasCall,
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	}
 
 	query := fmt.Sprintf(`select agent_id,
@@ -975,7 +989,7 @@ from (
                 a.domain_id,
                 coalesce(u.name, u.username)::varchar COLLATE "default"                      as                                  name,
                 coalesce(u.extension, '')                         as                                  extension,
-                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
                 a.status,
 				a.status_comment,
                 extract(epoch from x.t)::int                                                          status_duration,
@@ -1196,7 +1210,7 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId, agentI
        coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
        coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
        coalesce(ts.score_count, 0)                                                as      score_count,
-       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
        a.screen_control
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
@@ -1221,10 +1235,11 @@ from call_center.cc_agent a
          left join call_center.cc_agent_today_stats ts on ts.agent_id = a.id
 where a.id = :AgentId
   and a.domain_id = :DomainId`, map[string]any{
-		"DomainId": domainId,
-		"AgentId":  agentId,
-		"From":     model.GetBetweenFromTime(t),
-		"To":       model.GetBetweenToTime(t),
+		"DomainId":            domainId,
+		"AgentId":             agentId,
+		"From":                model.GetBetweenFromTime(t),
+		"To":                  model.GetBetweenToTime(t),
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats_item.app_error", err.Error(), extractCodeFromErr(err))
@@ -1256,7 +1271,7 @@ where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::
 func (s SqlAgentStore) IsAgentChannelOnline(ctx context.Context, agentId int64, channel string) (bool, model.AppError) {
 	res, err := s.GetMaster().WithContext(ctx).SelectInt(`select 1
 from call_center.cc_agent_channel c
-where c.agent_id = :AgentId and c.channel = :Channel::varchar and c.online`, map[string]interface{}{
+where c.agent_id = :AgentId and c.channel = :Channel::varchar and c.online`, map[string]any{
 		"AgentId": agentId,
 		"Channel": channel,
 	})
