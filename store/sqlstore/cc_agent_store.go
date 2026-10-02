@@ -16,10 +16,19 @@ import (
 
 type SqlAgentStore struct {
 	SqlStore
+	descTrackTimeoutSec int
 }
 
-func NewSqlAgentStore(sqlStore SqlStore) store.AgentStore {
-	us := &SqlAgentStore{sqlStore}
+func NewSqlAgentStore(sqlStore SqlStore, descTrackTimeoutSec *int) store.AgentStore {
+	var descTrackTimeoutSecValue int
+
+	if descTrackTimeoutSec == nil || *descTrackTimeoutSec <= 0 {
+		descTrackTimeoutSecValue = 65
+	} else {
+		descTrackTimeoutSecValue = *descTrackTimeoutSec
+	}
+
+	us := &SqlAgentStore{sqlStore, descTrackTimeoutSecValue}
 	return us
 }
 
@@ -711,7 +720,7 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) auditor,
     	a.screen_control,
-    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
      	call_center.cc_get_lookup(os.id, os.name) as online_status
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
@@ -727,8 +736,9 @@ from call_center.cc_agent a
                      WHERE c.agent_id = a.id) ch ON true
     left join call_center.cc_online_skills os on os.id = a.status_id
 where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]any{
-		"UserId":   userId,
-		"DomainId": domainId,
+		"UserId":              userId,
+		"DomainId":            domainId,
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_session.app_error", err.Error(), extractCodeFromErr(err))
@@ -975,7 +985,7 @@ from (
                 a.domain_id,
                 coalesce(u.name, u.username)::varchar COLLATE "default"                      as                                  name,
                 coalesce(u.extension, '')                         as                                  extension,
-                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
                 a.status,
 				a.status_comment,
                 extract(epoch from x.t)::int                                                          status_duration,
@@ -1196,7 +1206,7 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId, agentI
        coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
        coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
        coalesce(ts.score_count, 0)                                                as      score_count,
-       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
        a.screen_control
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
@@ -1256,7 +1266,7 @@ where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::
 func (s SqlAgentStore) IsAgentChannelOnline(ctx context.Context, agentId int64, channel string) (bool, model.AppError) {
 	res, err := s.GetMaster().WithContext(ctx).SelectInt(`select 1
 from call_center.cc_agent_channel c
-where c.agent_id = :AgentId and c.channel = :Channel::varchar and c.online`, map[string]interface{}{
+where c.agent_id = :AgentId and c.channel = :Channel::varchar and c.online`, map[string]any{
 		"AgentId": agentId,
 		"Channel": channel,
 	})
