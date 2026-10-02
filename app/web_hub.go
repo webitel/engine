@@ -350,14 +350,21 @@ func (h *Hub) Unregister(webConn *WebConn) {
 }
 
 func (h *Hub) Pong(webConn *WebConn) {
-	h.app.Hubs.storePool.Exec(&taskHubPong{
+	// This runs on the connection read goroutine. Blocking here on a saturated pool
+	// would stop that connection from reading, its own read deadline would expire and
+	// every other reader would pile up on the same queue. The socket session timestamp
+	// is refreshed again on the next pong, so dropping one is harmless.
+	ok := h.app.Hubs.storePool.TryExec(&taskHubPong{
 		taskHub: taskHub{
 			a:   h.app,
-			log: webConn.log,
+			log: webConn.Log(),
 		},
 		id: webConn.id,
 		t:  time.Now(),
 	})
+	if !ok {
+		webConn.Log().Debug("websocket.pong: store pool is full, skip socket session touch")
+	}
 }
 
 // hubConnectionIndex provides fast addition, removal, and iteration of web connections.
