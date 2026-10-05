@@ -4,14 +4,14 @@ version: 1
 source:
   repository: webitel/reusable-configs
   config: golang/sync.yml
-  sha: e60d3f57de9d5324ea2c026fb1e00c281d6ab1e9
+  sha: 39954ade6c8a95ac3e9fc9d349819ae45763157d
 files:
   .editorconfig:
     source: golang/configs/.editorconfig
     sha256: cfc30383f84320e80f5319ff0b09d874c2d4708eb0b81638f5c4969a7de38593
   .env.otel.example:
     source: golang/configs/.env.otel.example
-    sha256: 551054348fe93f7015d4598093579fe0d4cf1a98bebeafecf45820e0b7950ab7
+    sha256: 229313ecbed8a20f8c857bd3e0f46e20230df76585d2405d4fe35435d1e9be9b
   .github/dependabot.yml:
     source: golang/configs/dependabot.yml
     sha256: 0ba6b62b68e3445013a787ebdff07c1ef2d01de8939cb6d30b10bf6b67150001
@@ -29,16 +29,16 @@ files:
     sha256: 3f9a2526900d4505d509e45ee406c6cccfaaca7e1661f7919863019e74fdcdc2
   .github/workflows/pull-request-deliver.yml:
     source: common/workflows/pull-request-deliver.yml.njk
-    sha256: a06816ca57fa935efe73aadd464bb3912e0f0236e0d5994d1fca286449dd870b
+    sha256: c829ec4ced90eabe8b17dd3b1726e6e6713c453f2b16baea118eed75d0be2b06
   .github/workflows/pull-request.yml:
     source: golang/workflows/pull-request.yml.njk
-    sha256: 5e8439df8a0ea779fc7d82c70cb4dc138b07d8b5147367b7749425aaf4d3a841
+    sha256: c73254f5b5ff3b84ad0948c538195cb2528d947fba96d5251477da24a301e25a
   .github/workflows/release-branch.yml:
     source: common/workflows/release-branch.yml
     sha256: 72dcf66a77e60068d4b98441f1ed44fbb2b9e03879c856544345e14a7ad495d2
   .github/workflows/workflow.yml:
     source: golang/workflows/workflow.yml.njk
-    sha256: 5b76c47cb601a1a57f76c54e9416618e89ff10cdd6b6ac866e02eb0bf8cd3725
+    sha256: 38fc2076c3389b339cbe03629e3cc87bc53efcb04aa66f16a675574d0ff99718
   .gitignore:
     source: golang/configs/.gitignore
     sha256: 064a01c7caec063d75ca8558125a61d495f1572428bcce7eba210149be668c75
