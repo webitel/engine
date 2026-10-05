@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/webitel/wlog"
 	"github.com/xuri/excelize/v2"
@@ -19,6 +20,19 @@ import (
 )
 
 const exportMembersPageSize = 5000
+
+const (
+	exportFieldCommunications          = "communications"
+	exportFieldCommunicationTypes      = "communication_types"
+	exportFieldCommunicationPriorities = "communication_priorities"
+)
+
+var exportCommunicationValues = map[string]func(c *model.MemberCommunication) string{
+	exportFieldCommunications:          func(c *model.MemberCommunication) string { return c.Destination },
+	exportFieldCommunicationTypes:      func(c *model.MemberCommunication) string { return c.Type.Name },
+	exportFieldCommunicationPriorities: func(c *model.MemberCommunication) string { return strconv.Itoa(c.Priority) },
+	"destination":                      func(c *model.MemberCommunication) string { return c.Destination },
+}
 
 func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.MemberService_ExportMembersServer) error {
 	ctx := stream.Context()
@@ -52,6 +66,7 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 	if len(fields) == 0 {
 		fields = model.Member{}.DefaultFields()
 	}
+	fields = expandExportCommunicationFields(fields)
 
 	loc := api.exportTimezone(ctx, session.UserId)
 
@@ -92,13 +107,58 @@ func (api *member) exportTimezone(ctx context.Context, userId int64) *time.Locat
 	return loc
 }
 
+func expandExportCommunicationFields(fields []string) []string {
+	requested := make(map[string]bool, len(fields))
+	for _, f := range fields {
+		requested[f] = true
+	}
+
+	res := make([]string, 0, len(fields)+2)
+	for _, f := range fields {
+		res = append(res, f)
+		if f != exportFieldCommunications {
+			continue
+		}
+
+		for _, extra := range []string{exportFieldCommunicationTypes, exportFieldCommunicationPriorities} {
+			if !requested[extra] {
+				res = append(res, extra)
+			}
+		}
+	}
+
+	return res
+}
+
+func exportSearchFields(fields []string) []string {
+	if len(fields) == 0 {
+		return fields
+	}
+
+	res := make([]string, 0, len(fields))
+	hasCommunications := false
+	for _, f := range fields {
+		switch f {
+		case exportFieldCommunicationTypes, exportFieldCommunicationPriorities, exportFieldCommunications:
+			if hasCommunications {
+				continue
+			}
+			hasCommunications = true
+			f = exportFieldCommunications
+		}
+		res = append(res, f)
+	}
+
+	return res
+}
+
 func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.SearchMemberRequest {
 	req := &model.SearchMemberRequest{
 		ListRequest: model.ListRequest{
 			Q:       in.GetQ(),
 			Page:    1,
 			PerPage: exportMembersPageSize,
-			Fields:  in.GetFields(),
+			Fields:  exportSearchFields(in.GetFields()),
 		},
 		Ids:        in.GetId(),
 		QueueId:    &in.QueueId,
@@ -280,12 +340,13 @@ func memberExportFieldValue(m *model.Member, field string, loc *time.Location) s
 			return ""
 		}
 		return time.UnixMilli(m.LastActivityAt).In(loc).Format("2006-01-02 15:04:05")
-	case "communications", "destination":
-		destinations := make([]string, 0, len(m.Communications))
+	case exportFieldCommunications, exportFieldCommunicationTypes, exportFieldCommunicationPriorities, "destination":
+		value := exportCommunicationValues[field]
+		values := make([]string, 0, len(m.Communications))
 		for _, c := range m.Communications {
-			destinations = append(destinations, c.Destination)
+			values = append(values, value(c))
 		}
-		return strings.Join(destinations, ", ")
+		return strings.Join(values, "; ")
 	case "variables":
 		pairs := make([]string, 0, len(m.Variables))
 		for k, v := range m.Variables {
@@ -304,6 +365,19 @@ func formatMemberTimeExport(t *time.Time, loc *time.Location) string {
 	return t.In(loc).Format("2006-01-02 15:04:05")
 }
 
+func csvSeparatorRune(separator string) (rune, bool) {
+	if utf8.RuneCountInString(separator) != 1 {
+		return 0, false
+	}
+
+	r, _ := utf8.DecodeRuneInString(separator)
+	if r == utf8.RuneError || r == '"' || r == '\r' || r == '\n' {
+		return 0, false
+	}
+
+	return r, true
+}
+
 func generateMembersCSVChunk(headers []string, rows [][]string, page int, separator string) ([]byte, error) {
 	buf := &bytes.Buffer{}
 
@@ -311,7 +385,9 @@ func generateMembersCSVChunk(headers []string, rows [][]string, page int, separa
 		buf.Write([]byte{0xEF, 0xBB, 0xBF})
 	}
 
-	if separator != "" {
+	comma, escapable := csvSeparatorRune(separator)
+
+	if separator != "" && !escapable {
 		if page == 1 {
 			buf.WriteString(strings.Join(headers, separator))
 			buf.WriteByte('\n')
@@ -324,6 +400,9 @@ func generateMembersCSVChunk(headers []string, rows [][]string, page int, separa
 	}
 
 	writer := csv.NewWriter(buf)
+	if escapable {
+		writer.Comma = comma
+	}
 
 	if page == 1 {
 		if err := writer.Write(headers); err != nil {
