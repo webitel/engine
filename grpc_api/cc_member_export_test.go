@@ -98,9 +98,9 @@ func TestMemberExportFieldValueCommunications(t *testing.T) {
 	}}
 
 	tests := map[string]string{
-		"communications":           "380501234567; 380507654321; 380509999999",
-		"communication_types":      "Mobile; ; Work",
-		"communication_priorities": "0; 1; 2",
+		"communications":           "380501234567, 380507654321, 380509999999",
+		"communication_types":      "Mobile, , Work",
+		"communication_priorities": "0, 1, 2",
 	}
 	for field, want := range tests {
 		if got := memberExportFieldValue(m, field, nil); got != want {
