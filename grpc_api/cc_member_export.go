@@ -346,7 +346,7 @@ func memberExportFieldValue(m *model.Member, field string, loc *time.Location) s
 		for _, c := range m.Communications {
 			values = append(values, value(c))
 		}
-		return strings.Join(values, "; ")
+		return strings.Join(values, ", ")
 	case "variables":
 		pairs := make([]string, 0, len(m.Variables))
 		for k, v := range m.Variables {
