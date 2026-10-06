@@ -48,6 +48,7 @@ const (
 	SysNameLoginOptions                      = "login_options"
 	SysNameDefaultMembersFilter              = "default_members_filter"
 	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
+	SysNameMessageTtl                        = "message_ttl"
 )
 
 type SysValue json.RawMessage
@@ -114,7 +115,7 @@ func (s *SystemSetting) IsValid() AppError {
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
 		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
-		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
+		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays, SysNameMessageTtl:
 		value := SysValue(s.Value)
 		i := value.Int()
 

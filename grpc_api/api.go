@@ -42,18 +42,19 @@ type API struct {
 	userHelper   *userHelper
 	quickReply   *quickReply
 
-	chatPlan       *chatPlanApi
-	trigger        *trigger
-	auditForm      *auditForm
-	presetQuery    *presetQuery
-	systemSettings *systemSettings
-	webHook        *webHook
-	schemaVersion  *schemaVersion
-	schemaVariable *schemaVariable
-	push           *push
-	feedback       *feedback
-	skillPreset    *onlineSkills
-	agentChatTag   *agentChatTag
+	chatPlan         *chatPlanApi
+	trigger          *trigger
+	auditForm        *auditForm
+	presetQuery      *presetQuery
+	systemSettings   *systemSettings
+	webHook          *webHook
+	schemaVersion    *schemaVersion
+	schemaVariable   *schemaVariable
+	push             *push
+	feedback         *feedback
+	skillPreset      *onlineSkills
+	agentChatTag     *agentChatTag
+	userNotification *userNotification
 }
 
 func Init(a *app.App, server *grpc.Server) {
@@ -104,6 +105,7 @@ func Init(a *app.App, server *grpc.Server) {
 	api.feedback = NewFeedbackApi(api)
 	api.skillPreset = NewOnlineSkillsApi(api)
 	api.agentChatTag = NewAgentChatTagApi(api)
+	api.userNotification = NewUserNotificationApi(api)
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
@@ -149,4 +151,5 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterFeedbackServiceServer(server, api.feedback)
 	engine.RegisterOnlineSkillsServiceServer(server, api.skillPreset)
 	engine.RegisterAgentChatTagServiceServer(server, api.agentChatTag)
+	engine.RegisterUserNotificationServiceServer(server, api.userNotification)
 }
