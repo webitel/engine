@@ -141,3 +141,28 @@ func TestPrepareDefaultMembersFilter_ThisMonth(t *testing.T) {
 		)
 	}
 }
+
+func TestSystemSetting_IsValid_MessageTtl(t *testing.T) {
+	tests := []struct {
+		name    string
+		value   string
+		wantErr bool
+	}{
+		{name: "default", value: `30`, wantErr: false},
+		{name: "one day", value: `1`, wantErr: false},
+		{name: "zero", value: `0`, wantErr: true},
+		{name: "negative", value: `-5`, wantErr: true},
+		{name: "string", value: `"30"`, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &model.SystemSetting{Name: model.SysNameMessageTtl, Value: []byte(tt.value)}
+
+			err := s.IsValid()
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("IsValid() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
