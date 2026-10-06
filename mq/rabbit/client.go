@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/pkg/errors"
@@ -37,6 +38,7 @@ const (
 var (
 	errConnectionClosed = stderrors.New("amqp: connection is closed")
 	errChannelClosed    = stderrors.New("amqp: channel is closed")
+	errDomainQueueDown  = stderrors.New("amqp: domain queue consumer is down")
 )
 
 var errMaxRegisterQueueSize = model.NewInternalError("amqp.register_domain.max_queue_size", "")
@@ -53,6 +55,7 @@ type AMQP struct {
 	stop               chan struct{}
 	stopped            chan struct{}
 	domainQueues       map[int64]mq.DomainQueue
+	domainQueuesDown   atomic.Int32
 
 	registerDomainQueue   chan mq.DomainQueue
 	unRegisterDomainQueue chan mq.DomainQueue
@@ -113,6 +116,10 @@ func (a *AMQP) Ping(context.Context) error {
 
 	if a.channel == nil || a.channel.IsClosed() {
 		return errChannelClosed
+	}
+
+	if a.domainQueuesDown.Load() > 0 {
+		return errDomainQueueDown
 	}
 
 	return nil
