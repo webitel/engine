@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	WebsocketNotificationEvent = "notification"
-	WebsocketError             = "error"
+	WebsocketNotificationEvent   = "notification"
+	WebsocketSystemSettingsEvent = "system_settings"
+	WebsocketError               = "error"
 
 	WEBSOCKET_EVENT_HELLO = "hello"
 

@@ -1,8 +1,10 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -193,6 +195,62 @@ func (s *SystemSetting) IsValid() AppError {
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
 	}
 	return nil
+}
+
+type SystemSettingsChange struct {
+	Name  string          `json:"name"`
+	Value json.RawMessage `json:"value,omitempty"`
+}
+
+var sensitiveSystemSettings = map[string]struct{}{
+	SysNameDefaultPassword:  {},
+	SysNameChatAiConnection: {},
+}
+
+func IsSensitiveSystemSetting(name string) bool {
+	_, ok := sensitiveSystemSettings[name]
+
+	return ok
+}
+
+func NewSystemSettingsChange(s *SystemSetting) *SystemSettingsChange {
+	c := &SystemSettingsChange{Name: s.Name}
+
+	if !IsSensitiveSystemSetting(s.Name) {
+		c.Value = s.Value
+	}
+
+	return c
+}
+
+func (c *SystemSettingsChange) ToJSON() string {
+	b, _ := json.Marshal(c)
+
+	return string(b)
+}
+
+func NewWebSocketSystemSettingsEvent(c *SystemSettingsChange) *WebSocketEvent {
+	e := NewWebSocketEvent(WebsocketSystemSettingsEvent)
+	e.Add("name", c.Name)
+
+	if c.Value != nil {
+		e.Add("value", c.Value)
+	}
+
+	return e
+}
+
+func (s *SystemSetting) ValueEquals(other *SystemSetting) bool {
+	if s == nil || other == nil {
+		return s == other
+	}
+
+	var a, b any
+	if json.Unmarshal(s.Value, &a) != nil || json.Unmarshal(other.Value, &b) != nil {
+		return bytes.Equal(s.Value, other.Value)
+	}
+
+	return reflect.DeepEqual(a, b)
 }
 
 func (s *SystemSetting) Patch(p *SystemSettingPath) {

@@ -66,6 +66,10 @@ func (l *LayeredMQ) SendNotification(domainId int64, event *model.Notification) 
 	return l.MQLayer.SendNotification(domainId, event)
 }
 
+func (l *LayeredMQ) SendSystemSettingsChange(domainID int64, event *model.SystemSettingsChange) model.AppError {
+	return l.MQLayer.SendSystemSettingsChange(domainID, event)
+}
+
 func (l *LayeredMQ) Send(ctx context.Context, exchange string, rk string, body []byte) error {
 	return l.MQLayer.Send(ctx, exchange, rk, body)
 }
