@@ -9,7 +9,6 @@ Type=simple
 User=webitel-svc
 Group=webitel-svc
 LogsDirectory=webitel
-SupplementaryGroups=freeswitch
 
 EnvironmentFile=/etc/default/webitel-engine
 EnvironmentFile=-/etc/default/webitel-otel
