@@ -6,4 +6,4 @@
 # unit is started. Sourced under `set -e`, so a failure aborts the install.
 
 I18N_DIR=/usr/share/webitel/engine/i18n
-[ -d "$I18N_DIR" ] || install -d -o webitel -g webitel -m 0755 "$I18N_DIR"
+[ -d "$I18N_DIR" ] || install -d -o "$USER_NAME" -g "$GROUP_NAME" -m 0755 "$I18N_DIR"
