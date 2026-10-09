@@ -1,11 +1,38 @@
 package model_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/webitel/engine/model"
 )
+
+func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
+	cases := []struct {
+		name    string
+		value   json.RawMessage
+		wantErr bool
+	}{
+		{name: "true", value: json.RawMessage(`true`), wantErr: false},
+		{name: "false", value: json.RawMessage(`false`), wantErr: false},
+		{name: "string", value: json.RawMessage(`"x"`), wantErr: true},
+		{name: "number", value: json.RawMessage(`5`), wantErr: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &model.SystemSetting{Name: model.SysNameRecordAllCalls, Value: tc.value}
+			err := s.IsValid()
+			if tc.wantErr && err == nil {
+				t.Fatalf("expected error for value %s, got nil", tc.value)
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("expected no error for value %s, got %v", tc.value, err)
+			}
+		})
+	}
+}
 
 func TestPrepareDefaultMembersFilter_Default(t *testing.T) {
 	before := time.Now().UTC()
