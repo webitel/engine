@@ -65,6 +65,7 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
 		ExtraChatCount:   in.ExtraChatCount,
+		EmailCount:       in.EmailCount,
 		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
@@ -238,6 +239,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
 		ExtraChatCount:   in.ExtraChatCount,
+		EmailCount:       in.EmailCount,
 		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
@@ -309,6 +311,8 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			patch.ChatCount = &in.ChatCount
 		case "extra_chat_count":
 			patch.ExtraChatCount = &in.ExtraChatCount
+		case "email_count":
+			patch.EmailCount = &in.EmailCount
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
 			if patch.Supervisor == nil {
@@ -1055,6 +1059,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		AllowChannels:         src.AllowChannels,
 		ChatCount:             src.ChatCount,
 		ExtraChatCount:        &src.ExtraChatCount,
+		EmailCount:            src.EmailCount,
 		Supervisor:            GetProtoLookups(src.Supervisor),
 		Team:                  GetProtoLookup(src.Team),
 		Region:                GetProtoLookup(src.Region),
