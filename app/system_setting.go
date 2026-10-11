@@ -152,34 +152,31 @@ func (a *App) GetAvailableSystemSetting(ctx context.Context, domainId int64, sea
 }
 
 // PublishSysSettingEventContext handles the publishing system setting change/create/delete event to the broker, pass old setting as nil for a creation action and old = nil and new = nil for deletion.
-func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.SystemSetting, old *model.SystemSetting, action string, domainID, userID int64) model.AppError {
+func (a *App) PublishSysSettingEventContext(ctx context.Context, newSetting, old *model.SystemSetting, action string, domainID, userID int64) model.AppError {
 	// validation
 	switch action {
 	case EventUpdateAction:
-		if old == nil || new == nil {
+		if old == nil || newSetting == nil {
 			return model.NewInternalError("app.system_setting.setting_event_context.args_check.bad_arg", fmt.Sprintf("[%s] action requires old and new setting copies", action))
 		}
 
-		if new.ValueEquals(old) {
+		if newSetting.ValueEquals(old) {
 			return nil
 		}
 	case EventCreateAction, EventDeleteAction:
-		if new == nil {
+		if newSetting == nil {
 			return model.NewInternalError("app.system_setting.setting_event_context.args_check.bad_arg", fmt.Sprintf("[%s] action requires new value", action))
 		}
 	default:
 		return model.NewInternalError("app.system_setting.publish_setting_event_context.args_check.unknown_action", fmt.Sprintf("[%s] unknown action", action))
 	}
 
-	newKeys := []string{new.Name, action, strconv.FormatInt(domainID, 10), strconv.FormatInt(userID, 10)}
-	body, err := json.Marshal(new)
+	newKeys := []string{newSetting.Name, action, strconv.FormatInt(domainID, 10), strconv.FormatInt(userID, 10)}
+
+	body, err := json.Marshal(newSetting.Sanitized())
 	if err != nil {
 		return model.NewInternalError("app.system_setting.publish_setting_event_context.update_marshal.error", err.Error())
 	}
 
-	if appErr := a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...); appErr != nil {
-		return appErr
-	}
-
-	return a.MessageQueue.SendSystemSettingsChange(domainID, model.NewSystemSettingsChange(new))
+	return a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...)
 }

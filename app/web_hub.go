@@ -210,29 +210,25 @@ func (wh *Hub) start() {
 				}
 			}
 
-		case ev := <-wh.domainQueue.SysSettingsEvents():
-			msg := model.NewWebSocketSystemSettingsEvent(ev)
-			msg.PrecomputeJSON()
-
-			for webCon := range connections.All() {
-				if !webCon.ShouldSendEvent(msg) {
-					continue
-				}
-
-				select {
-				case webCon.Send <- msg:
-				default:
-					webCon.Log().Error("webhub.broadcast.system_settings: cannot send, closing websocket", wlog.String("event_type", "system_settings"))
-					close(webCon.Send)
-					connections.Remove(webCon)
-				}
-			}
-
 		case ev := <-wh.domainQueue.NotificationEvents():
 			msg := model.NewWebSocketNotificationEvent(ev)
 			msg.PrecomputeJSON()
 
-			if len(ev.ForUsers) != 0 {
+			if ev.Broadcast {
+				for webCon := range connections.All() {
+					if !webCon.ShouldSendEvent(msg) {
+						continue
+					}
+
+					select {
+					case webCon.Send <- msg:
+					default:
+						webCon.Log().Error("webhub.broadcast.notification: cannot send, closing websocket", wlog.String("event_type", "notification"))
+						close(webCon.Send)
+						connections.Remove(webCon)
+					}
+				}
+			} else if len(ev.ForUsers) != 0 {
 				for _, u := range ev.ForUsers {
 					candidates := connections.ForUser(u)
 					for _, webCon := range candidates {

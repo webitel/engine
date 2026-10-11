@@ -197,14 +197,26 @@ func (s *SystemSetting) IsValid() AppError {
 	return nil
 }
 
-type SystemSettingsChange struct {
-	Name  string          `json:"name"`
-	Value json.RawMessage `json:"value,omitempty"`
-}
-
 var sensitiveSystemSettings = map[string]struct{}{
 	SysNameDefaultPassword:  {},
 	SysNameChatAiConnection: {},
+}
+
+var liveSystemSettings = map[string]struct{}{
+	SysNameCallEndSoundNotification:          {},
+	SysNameCallEndPushNotification:           {},
+	SysNameChatEndSoundNotification:          {},
+	SysNameChatEndPushNotification:           {},
+	SysNameTaskEndSoundNotification:          {},
+	SysNameTaskEndPushNotification:           {},
+	SysNamePushNotificationTimeout:           {},
+	SysNameNewMessageSoundNotification:       {},
+	SysNameNewChatSoundNotification:          {},
+	SysNameSelfAssignedCallSoundNotification: {},
+	SysNameHideContact:                       {},
+	SysNameShowFullContact:                   {},
+	SysNameExpandContactTabs:                 {},
+	SysNameDefaultWorkspaceTab:               {},
 }
 
 func IsSensitiveSystemSetting(name string) bool {
@@ -213,31 +225,38 @@ func IsSensitiveSystemSetting(name string) bool {
 	return ok
 }
 
-func NewSystemSettingsChange(s *SystemSetting) *SystemSettingsChange {
-	c := &SystemSettingsChange{Name: s.Name}
+func IsLiveSystemSetting(name string) bool {
+	_, ok := liveSystemSettings[name]
 
-	if !IsSensitiveSystemSetting(s.Name) {
-		c.Value = s.Value
-	}
-
-	return c
+	return ok
 }
 
-func (c *SystemSettingsChange) ToJSON() string {
-	b, _ := json.Marshal(c)
-
-	return string(b)
-}
-
-func NewWebSocketSystemSettingsEvent(c *SystemSettingsChange) *WebSocketEvent {
-	e := NewWebSocketEvent(WebsocketSystemSettingsEvent)
-	e.Add("name", c.Name)
-
-	if c.Value != nil {
-		e.Add("value", c.Value)
+func (s *SystemSetting) Sanitized() *SystemSetting {
+	c := *s
+	if IsSensitiveSystemSetting(s.Name) {
+		c.Value = nil
 	}
 
-	return e
+	return &c
+}
+
+func NewSystemSettingsNotification(domainID int64, s *SystemSetting) *Notification {
+	if s == nil || !IsLiveSystemSetting(s.Name) {
+		return nil
+	}
+
+	body := map[string]any{"name": s.Name}
+	if !IsSensitiveSystemSetting(s.Name) && len(s.Value) != 0 {
+		body["value"] = s.Value
+	}
+
+	return &Notification{
+		DomainId:  domainID,
+		Action:    NotificationSystemSettings,
+		CreatedAt: GetMillis(),
+		Body:      body,
+		Broadcast: true,
+	}
 }
 
 func (s *SystemSetting) ValueEquals(other *SystemSetting) bool {

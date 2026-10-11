@@ -2,79 +2,134 @@ package model_test
 
 import (
 	"encoding/json"
-	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/webitel/engine/model"
 )
 
-func TestNewWebSocketSystemSettingsEvent(t *testing.T) {
-	c := &model.SystemSettingsChange{Name: "enable_omnichannel", Value: json.RawMessage(`true`)}
-
-	ev := model.NewWebSocketSystemSettingsEvent(c)
-
-	if ev.EventType() != model.WebsocketSystemSettingsEvent {
-		t.Fatalf("expected event type %q, got %q", model.WebsocketSystemSettingsEvent, ev.EventType())
-	}
-
-	if got, _ := ev.Data["name"].(string); got != c.Name {
-		t.Fatalf("expected name %q, got %v", c.Name, ev.Data["name"])
-	}
-
-	if _, ok := ev.Data["value"]; !ok {
-		t.Fatalf("expected value in event data")
-	}
-}
-
-func TestNewWebSocketSystemSettingsEvent_NoValue(t *testing.T) {
-	ev := model.NewWebSocketSystemSettingsEvent(&model.SystemSettingsChange{Name: model.SysNameDefaultPassword})
-
-	if _, ok := ev.Data["value"]; ok {
-		t.Fatalf("expected no value in event data for a name-only change")
-	}
-}
-
-func TestNewSystemSettingsChange_Sanitizes(t *testing.T) {
+func TestSystemSetting_Sanitized(t *testing.T) {
 	cases := []struct {
 		name      string
 		setting   string
 		wantValue bool
 	}{
-		{"regular carries value", model.SysNameOmnichannel, true},
-		{"default_password omits value", model.SysNameDefaultPassword, false},
-		{"chat_ai_connection omits value", model.SysNameChatAiConnection, false},
+		{"regular keeps value", model.SysNameOmnichannel, true},
+		{"default_password drops value", model.SysNameDefaultPassword, false},
+		{"chat_ai_connection drops value", model.SysNameChatAiConnection, false},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			c := model.NewSystemSettingsChange(&model.SystemSetting{Name: tc.setting, Value: json.RawMessage(`"x"`)})
+			in := &model.SystemSetting{Id: 3, Name: tc.setting, Value: json.RawMessage(`"x"`)}
 
-			if tc.wantValue && c.Value == nil {
-				t.Fatalf("expected value present for %s", tc.setting)
+			out := in.Sanitized()
+
+			if out.Id != in.Id || out.Name != in.Name {
+				t.Fatalf("expected id/name preserved, got %+v", out)
 			}
 
-			if !tc.wantValue && c.Value != nil {
-				t.Fatalf("expected value omitted for sensitive %s", tc.setting)
+			if tc.wantValue != (out.Value != nil) {
+				t.Fatalf("value present = %v, want %v", out.Value != nil, tc.wantValue)
+			}
+
+			if string(in.Value) != `"x"` {
+				t.Fatalf("original setting mutated: %s", in.Value)
 			}
 		})
 	}
 }
 
-func TestSystemSettingsChange_JsonRoundTrip(t *testing.T) {
-	in := &model.SystemSettingsChange{Name: "enable_2fa", Value: json.RawMessage(`true`)}
+func TestSystemSetting_Sanitized_JSONHasNoSecret(t *testing.T) {
+	s := &model.SystemSetting{Name: model.SysNameDefaultPassword, Value: json.RawMessage(`"s3cret"`)}
 
-	var out model.SystemSettingsChange
-	if err := json.Unmarshal([]byte(in.ToJSON()), &out); err != nil {
+	b, err := json.Marshal(s.Sanitized())
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	if strings.Contains(string(b), "s3cret") {
+		t.Fatalf("sanitized body leaks the value: %s", b)
+	}
+}
+
+func TestNewSystemSettingsNotification(t *testing.T) {
+	cases := []struct {
+		name      string
+		setting   *model.SystemSetting
+		wantNil   bool
+		wantValue bool
+	}{
+		{"live setting carries value", &model.SystemSetting{Name: model.SysNameCallEndSoundNotification, Value: json.RawMessage(`true`)}, false, true},
+		{"live setting without value is name-only", &model.SystemSetting{Name: model.SysNameDefaultWorkspaceTab}, false, false},
+		{"login_options is not pushed", &model.SystemSetting{Name: model.SysNameLoginOptions, Value: json.RawMessage(`{}`)}, true, false},
+		{"amd_cancel_not_human is not pushed", &model.SystemSetting{Name: model.SysNameAmdCancelNotHuman, Value: json.RawMessage(`true`)}, true, false},
+		{"scheme_version_limit is not pushed", &model.SystemSetting{Name: model.SysNameSchemeVersionLimit, Value: json.RawMessage(`10`)}, true, false},
+		{"sensitive setting is not pushed", &model.SystemSetting{Name: model.SysNameDefaultPassword, Value: json.RawMessage(`"x"`)}, true, false},
+		{"unknown setting is not pushed", &model.SystemSetting{Name: "brand_new_setting", Value: json.RawMessage(`1`)}, true, false},
+		{"nil setting", nil, true, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			n := model.NewSystemSettingsNotification(7, tc.setting)
+
+			if tc.wantNil {
+				if n != nil {
+					t.Fatalf("expected no notification, got %+v", n)
+				}
+
+				return
+			}
+
+			if n == nil {
+				t.Fatal("expected notification, got nil")
+			}
+
+			if n.Action != model.NotificationSystemSettings || !n.Broadcast || n.DomainId != 7 || len(n.ForUsers) != 0 {
+				t.Fatalf("unexpected notification: %+v", n)
+			}
+
+			body, _ := n.Body.(map[string]any)
+			if body["name"] != tc.setting.Name {
+				t.Fatalf("expected name %q in body, got %v", tc.setting.Name, body)
+			}
+
+			if _, ok := body["value"]; ok != tc.wantValue {
+				t.Fatalf("value present = %v, want %v", ok, tc.wantValue)
+			}
+		})
+	}
+}
+
+func TestNewSystemSettingsNotification_WireShape(t *testing.T) {
+	n := model.NewSystemSettingsNotification(7, &model.SystemSetting{Name: model.SysNameShowFullContact, Value: json.RawMessage(`true`)})
+
+	var got struct {
+		Event string `json:"event"`
+		Data  struct {
+			Notification map[string]json.RawMessage `json:"notification"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal([]byte(model.NewWebSocketNotificationEvent(n).ToJson()), &got); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if out.Name != in.Name {
-		t.Fatalf("expected name %q, got %q", in.Name, out.Name)
+	if got.Event != model.WebsocketNotificationEvent {
+		t.Fatalf("expected event %q, got %q", model.WebsocketNotificationEvent, got.Event)
 	}
 
-	if !reflect.DeepEqual([]byte(in.Value), []byte(out.Value)) {
-		t.Fatalf("expected value %s, got %s", in.Value, out.Value)
+	if string(got.Data.Notification["action"]) != `"system_settings"` {
+		t.Fatalf("expected action system_settings, got %s", got.Data.Notification["action"])
+	}
+
+	if string(got.Data.Notification["body"]) != `{"name":"show_full_contact","value":true}` {
+		t.Fatalf("unexpected body: %s", got.Data.Notification["body"])
+	}
+
+	if _, ok := got.Data.Notification["broadcast"]; ok {
+		t.Fatal("broadcast flag must not be serialized")
 	}
 }
 
