@@ -250,6 +250,7 @@ type AttemptHistory struct {
 	Result        string              `json:"result" db:"result"`
 	AmdResult     *string             `json:"amd_result" db:"amd_result"`
 	Attempts      *int32              `json:"attempts" db:"attempts"`
+	Duration      *int64              `json:"duration" db:"duration"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -283,6 +284,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"result",
 		"amd_result",
 		"attempts",
+		"duration",
 	}
 }
 
@@ -413,6 +415,12 @@ type IMThread struct {
 	Members     []*IMThreadMember `json:"members"`
 	Subject     string            `json:"subject"`
 	LastMessage string            `json:"last_msg"`
+	Channel     *IMChannel        `json:"channel,omitempty"`
+}
+
+type IMChannel struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type MemberCommunication struct {
@@ -436,6 +444,54 @@ type MemberCommunication struct {
 	MemberSub string    `json:"member_sub"`
 }
 
+func (m *Member) SortCommunications(order string) {
+	order = strings.TrimSpace(order)
+	if order == "" || len(m.Communications) < 2 {
+		return
+	}
+
+	desc := false
+
+	switch order[0] {
+	case '-':
+		desc, order = true, order[1:]
+	case '+', ' ':
+		order = order[1:]
+	}
+
+	var less func(a, b *MemberCommunication) bool
+
+	switch order {
+	case "name", "destination":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Destination) < strings.ToLower(b.Destination)
+		}
+	case "type":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Type.Name) < strings.ToLower(b.Type.Name)
+		}
+	case "priority":
+		less = func(a, b *MemberCommunication) bool { return a.Priority < b.Priority }
+	default:
+		return
+	}
+
+	sort.SliceStable(m.Communications, func(i, j int) bool {
+		a, b := m.Communications[i], m.Communications[j]
+
+		switch {
+		case a == nil:
+			return false
+		case b == nil:
+			return true
+		case desc:
+			return less(b, a)
+		default:
+			return less(a, b)
+		}
+	})
+}
+
 func (m *Member) ToJsonCommunications() string {
 	// TODO: fix in lib
 	sort.Slice(m.Communications[:], func(i, j int) bool {
@@ -455,6 +511,23 @@ func (m *Member) GetBucketId() *int64 {
 func (m *Member) GetAgentId() *int {
 	if m.Agent != nil {
 		return &m.Agent.Id
+	}
+
+	return nil
+}
+
+func IsPhoneCommunicationChannel(channel string) bool {
+	return channel != CommunicationChannelEmail && channel != CommunicationChannelMessaging
+}
+
+func ValidateMemberCommunicationDestinations(communications []*MemberCommunication, channelById map[int]string, memberName string) AppError {
+	for _, c := range communications {
+		if c == nil || !IsPhoneCommunicationChannel(channelById[c.Type.Id]) {
+			continue
+		}
+		if err := validatePhoneNumber(c.Destination); err != nil {
+			return NewBadRequestError("model.member.is_valid.communications.destination.format.app_error", "name="+memberName)
+		}
 	}
 
 	return nil
@@ -519,45 +592,4 @@ func MemberDeprecatedField(s string) string {
 	s = strings.ReplaceAll(s, "min_offering_at", "ready_at")
 	s = strings.ReplaceAll(s, "last_activity_at", "last_hangup_at")
 	return s
-}
-
-type MutateHistoryAttempt struct {
-	ID           int64
-	DomainID     int64
-	MemberCallID string
-	AgentCallID  string
-	Description  string
-	Variables    map[string]string
-	Fields       []string
-}
-
-func NewMutateHistoryAttempt(ID int64, memberCallID, agentCallID, description string, variables map[string]string, fields ...string) *MutateHistoryAttempt {
-	return &MutateHistoryAttempt{
-		ID:           ID,
-		MemberCallID: memberCallID,
-		AgentCallID:  agentCallID,
-		Description:  description,
-		Variables:    variables,
-		Fields:       fields,
-	}
-}
-
-func (m *MutateHistoryAttempt) Validate() AppError {
-	if m == nil {
-		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty", "received empty mutate request")
-	}
-
-	if m.ID <= 0 && m.MemberCallID == "" && m.AgentCallID == "" {
-		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty_filter", "attempt ID or member call ID or agent call ID is required")
-	}
-
-	if len(m.Fields) == 0 {
-		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty_fields", "fields list to be updated is required")
-	}
-
-	if m.DomainID <= 0 {
-		return NewBadRequestError("model.cc_member.mutate_history_attempt.validate.empty_domain", "domain is required")
-	}
-
-	return nil
 }

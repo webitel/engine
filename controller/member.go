@@ -33,15 +33,39 @@ func (c *Controller) ListOfflineQueueForAgent(ctx context.Context, session *auth
 	return c.app.ListOfflineQueueForAgent(ctx, session.DomainId, search)
 }
 
-func (c *Controller) ReportingAttempt(session *auth_manager.Session, attemptId int64, status, description string, nextOffering *int64,
-	expireAt *int64, vars map[string]string, stickyDisplay bool, agentId int32, exclDes bool, waitBetweenRetries *int32, onlyComm bool) model.AppError {
+func (c *Controller) ReportingAttempt(
+	session *auth_manager.Session,
+	attemptId int64,
+	status, description string,
+	nextOffering *int64,
+	expireAt *int64,
+	vars map[string]string,
+	stickyDisplay bool,
+	agentId int32,
+	exclDes bool,
+	waitBetweenRetries *int32,
+	onlyComm bool,
+	draft bool,
+) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.ReportingAttempt(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay, agentId, exclDes,
-		waitBetweenRetries, onlyComm)
+	return c.app.ReportingAttempt(
+		attemptId,
+		status,
+		description,
+		nextOffering,
+		expireAt,
+		vars,
+		stickyDisplay,
+		agentId,
+		exclDes,
+		waitBetweenRetries,
+		onlyComm,
+		draft,
+	)
 }
 
 func (c *Controller) RenewalAttempt(session *auth_manager.Session, attemptId int64, renewal uint32) model.AppError {
@@ -137,24 +161,4 @@ func (c *Controller) ResetMembersCount(ctx context.Context, query *model.ResetMe
 	}
 
 	return c.app.ResetMembersCount(ctx, session.Domain(0), query)
-}
-
-func (c *Controller) MutateHistoryAttemptResult(ctx context.Context, mutation *model.MutateHistoryAttempt) (*model.AttemptHistory, model.AppError) {
-	session, err := c.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
-	if !permission.CanUpdate() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
-	}
-
-	mutation.DomainID = session.Domain(0)
-
-	if err := mutation.Validate(); err != nil {
-		return nil, err
-	}
-
-	return c.app.MutateHistoryAttemptResult(ctx, mutation)
 }

@@ -121,21 +121,23 @@ func (r *RoutingVariable) IsValid() AppError {
 
 type RoutingOutboundCall struct {
 	DomainRecord
-	Name        string `json:"name" db:"name"`
-	Description string `json:"description" db:"description"`
-	Schema      Lookup `json:"schema" db:"schema"`
-	Position    int    `json:"position" db:"position"`
-	Pattern     string `json:"pattern" db:"pattern"`
-	Disabled    bool   `json:"disabled" db:"disabled"`
+	Name          string `json:"name" db:"name"`
+	Description   string `json:"description" db:"description"`
+	Schema        Lookup `json:"schema" db:"schema"`
+	Position      int    `json:"position" db:"position"`
+	Pattern       string `json:"pattern" db:"pattern"`
+	Disabled      bool   `json:"disabled" db:"disabled"`
+	AllowTransfer bool   `json:"allow_transfer" db:"allow_transfer"`
 }
 
 type SearchRoutingOutboundCall struct {
 	ListRequest
-	Ids         []uint32
-	Name        *string
-	SchemaIds   []uint32
-	Pattern     *string
-	Description *string
+	Ids           []uint32
+	Name          *string
+	SchemaIds     []uint32
+	Pattern       *string
+	Description   *string
+	AllowTransfer *bool
 }
 
 func (RoutingOutboundCall) DefaultOrder() string {
@@ -144,12 +146,12 @@ func (RoutingOutboundCall) DefaultOrder() string {
 
 func (a RoutingOutboundCall) AllowFields() []string {
 	return []string{"id", "domain_id", "name", "description", "created_at", "created_by", "updated_at", "updated_by",
-		"pattern", "disabled", "schema", "position"}
+		"pattern", "disabled", "allow_transfer", "schema", "position"}
 }
 
 func (a RoutingOutboundCall) DefaultFields() []string {
 	return []string{"id", "name", "description",
-		"pattern", "disabled", "schema", "position"}
+		"pattern", "disabled", "allow_transfer", "schema", "position"}
 }
 
 func (a RoutingOutboundCall) EntityName() string {
@@ -157,12 +159,13 @@ func (a RoutingOutboundCall) EntityName() string {
 }
 
 type RoutingOutboundCallPatch struct {
-	UpdatedById int
-	Name        *string `json:"name" db:"name"`
-	Description *string `json:"description" db:"description"`
-	Schema      *Lookup `json:"schema" db:"scheme"`
-	Pattern     *string `json:"pattern" db:"pattern"`
-	Disabled    *bool   `json:"disabled" db:"disabled"`
+	UpdatedById   int
+	Name          *string `json:"name" db:"name"`
+	Description   *string `json:"description" db:"description"`
+	Schema        *Lookup `json:"schema" db:"scheme"`
+	Pattern       *string `json:"pattern" db:"pattern"`
+	Disabled      *bool   `json:"disabled" db:"disabled"`
+	AllowTransfer *bool   `json:"allow_transfer" db:"allow_transfer"`
 }
 
 func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
@@ -184,6 +187,10 @@ func (r *RoutingOutboundCall) Patch(patch *RoutingOutboundCallPatch) {
 
 	if patch.Disabled != nil {
 		r.Disabled = *patch.Disabled
+	}
+
+	if patch.AllowTransfer != nil {
+		r.AllowTransfer = *patch.AllowTransfer
 	}
 }
 

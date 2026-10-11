@@ -171,6 +171,15 @@ func (c *Controller) BlindTransferCallToQueue(ctx context.Context, session *auth
 	return c.app.BlindTransferCallToQueue(ctx, session.Domain(domainId), req)
 }
 
+func (c *Controller) BlindTransferCallToDialplan(ctx context.Context, session *auth_manager.Session, domainId int64, req *model.BlindTransferCallToDialplan) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	return c.app.BlindTransferCallToDialplan(ctx, session.Domain(domainId), req)
+}
+
 func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Session, userId int64, parentId string, cp model.CallParameters, queueId, agentId *int) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {
@@ -315,4 +324,26 @@ func (c *Controller) SetContactCall(ctx context.Context, session *auth_manager.S
 	// TODO RBAC ?
 
 	return c.app.SetCallContactId(ctx, session.Domain(0), session.UserId, id, contactId)
+}
+
+func (c *Controller) PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError) {
+	session, err := c.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := patch.TryUseDomain(session); err != nil {
+		return nil, err
+	}
+
+	if err := patch.Validate(); err != nil {
+		return nil, err
+	}
+
+	return c.app.PatchHistoryCallAttempt(ctx, patch)
 }

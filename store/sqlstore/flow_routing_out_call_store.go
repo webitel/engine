@@ -24,28 +24,29 @@ func (s SqlRoutingOutboundCallStore) Create(ctx context.Context, routing *model.
 	var out *model.RoutingOutboundCall
 	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with tmp as (
     insert into flow.acr_routing_outbound_call (domain_id, name, description, created_at, created_by, updated_at, updated_by,
-                                      scheme_id, pattern, disabled)
-	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Disabled)
+                                      scheme_id, pattern, disabled, allow_transfer)
+	values (:DomainId, :Name, :Description, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :SchemeId, :Pattern, :Disabled, :AllowTransfer)
 	returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id,c.name) as created_by,
        tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, call_center.cc_get_lookup(arst.id, arst.name) as schema,
-	   tmp.pattern, disabled
+	   tmp.pattern, disabled, allow_transfer
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
     inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id`,
 		map[string]interface{}{
-			"DomainId":    routing.DomainId,
-			"Name":        routing.Name,
-			"Description": routing.Description,
-			"CreatedAt":   routing.CreatedAt,
-			"CreatedBy":   routing.CreatedBy.GetSafeId(),
-			"UpdatedAt":   routing.UpdatedAt,
-			"UpdatedBy":   routing.UpdatedBy.GetSafeId(),
-			"SchemeId":    routing.Schema.Id,
-			"Pattern":     routing.Pattern,
-			"Disabled":    routing.Disabled,
+			"DomainId":      routing.DomainId,
+			"Name":          routing.Name,
+			"Description":   routing.Description,
+			"CreatedAt":     routing.CreatedAt,
+			"CreatedBy":     routing.CreatedBy.GetSafeId(),
+			"UpdatedAt":     routing.UpdatedAt,
+			"UpdatedBy":     routing.UpdatedBy.GetSafeId(),
+			"SchemeId":      routing.Schema.Id,
+			"Pattern":       routing.Pattern,
+			"Disabled":      routing.Disabled,
+			"AllowTransfer": routing.AllowTransfer,
 		})
 
 	if err != nil {
@@ -65,13 +66,14 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(ctx context.Context, domainId in
 	var routing []*model.RoutingOutboundCall
 
 	f := map[string]interface{}{
-		"DomainId":    domainId,
-		"Q":           search.GetQ(),
-		"Ids":         pq.Array(search.Ids),
-		"Name":        search.Name,
-		"Description": search.Description,
-		"SchemaIds":   pq.Array(search.SchemaIds),
-		"Pattern":     search.Pattern,
+		"DomainId":      domainId,
+		"Q":             search.GetQ(),
+		"Ids":           pq.Array(search.Ids),
+		"Name":          search.Name,
+		"Description":   search.Description,
+		"SchemaIds":     pq.Array(search.SchemaIds),
+		"Pattern":       search.Pattern,
+		"AllowTransfer": search.AllowTransfer,
 	}
 
 	err := s.ListQueryFromSchema(ctx, &routing, "flow", search.ListRequest,
@@ -82,6 +84,7 @@ func (s SqlRoutingOutboundCallStore) GetAllPage(ctx context.Context, domainId in
 				and (:Name::text isnull or name = :Name)
 				and (:Description::text isnull or description = :Description)
 				and (:Pattern::text isnull or pattern = :Pattern)
+				and (:AllowTransfer::bool isnull or allow_transfer = :AllowTransfer)
 			`,
 		model.RoutingOutboundCall{}, f)
 	if err != nil {
@@ -96,8 +99,8 @@ func (s SqlRoutingOutboundCallStore) Get(ctx context.Context, domainId, id int64
 
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&routing,
 		`select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
-       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, call_center.cc_get_lookup(arst.id, arst.name) as schema, 
-		tmp.pattern, disabled
+       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, call_center.cc_get_lookup(arst.id, arst.name) as schema,
+		tmp.pattern, disabled, allow_transfer
 from flow.acr_routing_outbound_call tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
@@ -123,27 +126,29 @@ func (s SqlRoutingOutboundCallStore) Update(ctx context.Context, routing *model.
         updated_by = :UpdatedBy,
         scheme_id = :SchemeId,
         pattern = :Pattern,
-        disabled = :Disabled
+        disabled = :Disabled,
+        allow_transfer = :AllowTransfer
     where r.id = :Id and r.domain_id = :Domain
     returning *
 )
 select tmp.id, tmp.domain_id, tmp.name, tmp.description, tmp.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
-       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, call_center.cc_get_lookup(arst.id, arst.name) as schema, 
-		tmp.pattern, disabled
+       tmp.created_at,  call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.updated_at, call_center.cc_get_lookup(arst.id, arst.name) as schema,
+		tmp.pattern, disabled, allow_transfer
 from tmp
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
     inner join flow.acr_routing_scheme arst on tmp.scheme_id = arst.id`,
 		map[string]interface{}{
-			"Id":          routing.Id,
-			"Domain":      routing.DomainId,
-			"Name":        routing.Name,
-			"Description": routing.Description,
-			"UpdatedAt":   routing.UpdatedAt,
-			"UpdatedBy":   routing.UpdatedBy.GetSafeId(),
-			"SchemeId":    routing.Schema.Id,
-			"Pattern":     routing.Pattern,
-			"Disabled":    routing.Disabled,
+			"Id":            routing.Id,
+			"Domain":        routing.DomainId,
+			"Name":          routing.Name,
+			"Description":   routing.Description,
+			"UpdatedAt":     routing.UpdatedAt,
+			"UpdatedBy":     routing.UpdatedBy.GetSafeId(),
+			"SchemeId":      routing.Schema.Id,
+			"Pattern":       routing.Pattern,
+			"Disabled":      routing.Disabled,
+			"AllowTransfer": routing.AllowTransfer,
 		})
 
 	if err != nil {

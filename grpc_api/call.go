@@ -14,10 +14,11 @@ import (
 
 type call struct {
 	*API
+	engine.UnsafeCallServiceServer
+
 	minimumNumberMaskLen int
 	prefixNumberMaskLen  int
 	suffixNumberMaskLen  int
-	engine.UnsafeCallServiceServer
 }
 
 func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *call {
@@ -106,6 +107,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		RatedUserIds:     in.GetRatedUser(),
 		ContactIds:       in.GetContactId(),
 		SchemaIds:        in.GetSchemaId(),
+	}
+
+	if excludedQueueTypes := toQueueTypes(in.GetExcludedQueueTypes()); len(excludedQueueTypes) > 0 {
+		req.ExcludedQueueTypes = excludedQueueTypes
 	}
 
 	if in.HasFile != nil {
@@ -840,6 +845,29 @@ func (api *call) RedialCall(ctx context.Context, in *engine.RedialCallRequest) (
 	}, nil
 }
 
+func (api *call) PatchHistoryCallAttempt(ctx context.Context, in *engine.PatchHistoryCallAttemptRequest) (*engine.PatchHistoryCallAttemptResponse, error) {
+	patch := model.NewPatchHistoryCallAttempt(in.GetId(), in.GetDescription(), in.GetVariables(), in.GetFields()...)
+
+	a, err := api.ctrl.PatchHistoryCallAttempt(ctx, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	return toEnginePatchHistoryCallAttemptResponse(a), nil
+}
+
+func toEnginePatchHistoryCallAttemptResponse(in *model.PatchHistoryAttemptResult) *engine.PatchHistoryCallAttemptResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &engine.PatchHistoryCallAttemptResponse{
+		Id:          in.ID,
+		Description: in.Description,
+		Variables:   in.Variables,
+	}
+}
+
 func toEngineCall(src *model.Call) *engine.ActiveCall {
 	item := &engine.ActiveCall{
 		Id:               src.Id,
@@ -983,6 +1011,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Contact:          GetProtoLookup(src.Contact),
 		Schemas:          GetProtoLookups(src.Schemas),
 		QualityMetrics:   marshaProtoCallQualityMetrics(src.QualityMetrics),
+		UserAgent:        src.UserAgent,
 	}
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
@@ -1402,4 +1431,50 @@ func setAccessString(str string, min, p, s int, h bool) string {
 	}
 
 	return model.HideString(str, min, p, s)
+}
+
+func toQueueTypes(types []engine.QueueType) []int8 {
+	l := len(types)
+	if l == 0 {
+		return nil
+	}
+
+	qt := make([]int8, 0, l)
+
+	for _, t := range types {
+		if parsed := toQueueType(t); t >= 0 {
+			qt = append(qt, parsed)
+		}
+	}
+
+	return qt
+}
+
+func toQueueType(t engine.QueueType) int8 {
+	switch t {
+	case engine.QueueType_QUEUE_TYPE_AGENT_TASK:
+		return model.QueueTypeAgentTask
+	case engine.QueueType_QUEUE_TYPE_INBOUND_CALL:
+		return model.QueueTypeInboundCall
+	case engine.QueueType_QUEUE_TYPE_INBOUND_CHAT:
+		return model.QueueTypeInboundChat
+	case engine.QueueType_QUEUE_TYPE_INBOUND_IM:
+		return model.QueueTypeInboundIM
+	case engine.QueueType_QUEUE_TYPE_IVR_CALL:
+		return model.QueueTypeIVRCall
+	case engine.QueueType_QUEUE_TYPE_OFFLINE:
+		return model.QueueTypeOfflineCall
+	case engine.QueueType_QUEUE_TYPE_OUTBOUND_CALL:
+		return model.QueueTypeOutboundCall
+	case engine.QueueType_QUEUE_TYPE_OUTBOUND_TASK:
+		return model.QueueTypeOutboundTask
+	case engine.QueueType_QUEUE_TYPE_PREDICTIVE_CALL:
+		return model.QueueTypePredictCall
+	case engine.QueueType_QUEUE_TYPE_PREVIEW_CALL:
+		return model.QueueTypePreviewCall
+	case engine.QueueType_QUEUE_TYPE_PROGRESSIVE_CALL:
+		return model.QueueTypeProgressiveCall
+	default:
+		return -1
+	}
 }
