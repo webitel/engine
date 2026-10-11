@@ -79,6 +79,7 @@ type SqlSupplierOldStores struct {
 	socketSession           store.SocketSessionStore
 	feedback                store.FeedbackStore
 	onlineSkills            store.OnlineSkillsStore
+	userNotification        store.UserNotificationStore
 }
 
 type SqlSupplier struct {
@@ -150,6 +151,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.chatPlan = NewSqlChatPlanStore(supplier)
 	supplier.oldStores.feedback = NewSqlFeedbackStore(supplier)
 	supplier.oldStores.onlineSkills = NewSqlOnlineSkillsStore(supplier)
+	supplier.oldStores.userNotification = NewSqlUserNotificationStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -466,6 +468,10 @@ func (ss *SqlSupplier) Feedback() store.FeedbackStore {
 }
 
 func (ss *SqlSupplier) OnlineSkills() store.OnlineSkillsStore { return ss.oldStores.onlineSkills }
+
+func (ss *SqlSupplier) UserNotification() store.UserNotificationStore {
+	return ss.oldStores.userNotification
+}
 
 type typeConverter struct{}
 

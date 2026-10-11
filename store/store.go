@@ -82,6 +82,7 @@ type Store interface {
 	SocketSession() SocketSessionStore
 	Feedback() FeedbackStore
 	OnlineSkills() OnlineSkillsStore
+	UserNotification() UserNotificationStore
 }
 
 // todo deprecated
@@ -681,4 +682,10 @@ func applyFilter(filter *model.Filter, columnsAlias map[string]string) squirrel.
 		result = squirrel.Eq{columnName: filter.Value}
 	}
 	return result
+}
+
+type UserNotificationStore interface {
+	GetAllPage(ctx context.Context, domainId, userId int64, search *model.SearchUserNotification) ([]*model.UserNotification, model.AppError)
+	Count(ctx context.Context, domainId, userId int64, search *model.SearchUserNotification) (int64, model.AppError)
+	MarkRead(ctx context.Context, domainId, userId int64, ids []int64, all bool) (int64, model.AppError)
 }
