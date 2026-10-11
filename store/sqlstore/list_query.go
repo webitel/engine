@@ -71,7 +71,7 @@ func isRawOrder(s string) bool {
 		strings.Contains(s, ",")
 }
 
-func GetOrderBy(t, s string) string {
+func GetOrderBy(t, s string, sortOrder ...string) string {
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return ""
@@ -88,6 +88,18 @@ func GetOrderBy(t, s string) string {
 	nulls := "NULLS LAST"
 	if strings.EqualFold(sort, "desc") {
 		nulls = "NULLS FIRST"
+	}
+
+	if len(sortOrder) != 0 {
+		values := make([]string, 0, len(sortOrder))
+		for _, v := range sortOrder {
+			values = append(values, pq.QuoteLiteral(v))
+		}
+
+		return fmt.Sprintf(
+			`order by array_position(array[%s]::text[], %s::text) %s NULLS LAST, %s %s %s`,
+			strings.Join(values, ","), fld, sort, fld, sort, nulls,
+		)
 	}
 
 	return fmt.Sprintf(
@@ -120,10 +132,14 @@ func orderBy(s string) (sort string, field string) {
 // TODO filter
 func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]interface{}) string {
 	s := GetFields(req.Fields, e)
+
+	var sortOrder []string
+
 	sort := ""
 
 	if req.Sort != "" {
 		sort = req.Sort
+		sortOrder = req.SortOrder
 	} else if e.DefaultOrder() != "" {
 		sort = e.DefaultOrder()
 	}
@@ -142,7 +158,7 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(e.EntityName(), sort))
+	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(e.EntityName(), sort, sortOrder...))
 
 	return query
 }

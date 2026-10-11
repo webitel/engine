@@ -20,8 +20,9 @@ type ListRequest struct {
 	DomainId int64
 	endList  bool
 
-	Fields []string
-	Sort   string
+	Fields    []string
+	Sort      string
+	SortOrder []string
 }
 
 type FilterBetweenProvider interface {
@@ -139,6 +140,18 @@ func ConvertSort(in string) string {
 	} else {
 		return fmt.Sprintf("%s:%s", "DESC", in[1:])
 	}
+}
+
+func ParseSortOrder(s string) []string {
+	var res []string
+
+	for _, v := range strings.Split(s, ",") {
+		if v = strings.TrimSpace(v); v != "" {
+			res = append(res, v)
+		}
+	}
+
+	return res
 }
 
 func ReplaceWebSearch(s string) *string {

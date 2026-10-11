@@ -105,11 +105,12 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 	var endList bool
 	req := &model.SearchAgent{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:           in.Id,
 		AllowChannels: in.GetAllowChannels(),
@@ -462,11 +463,12 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 	var endList bool
 	req := &model.SearchAgentInQueue{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 	}
 	list, endList, err = api.app.GetAgentInQueuePage(ctx, session.Domain(0), in.GetId(), req)
@@ -595,10 +597,11 @@ func (api *agent) SearchAgentStateHistory(ctx context.Context, in *engine.Search
 	var endList bool
 	req := &model.SearchAgentState{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Sort:     in.Sort,
+			DomainId:  in.GetDomainId(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		JoinedAt: model.FilterBetween{
 			From: in.GetJoinedAt().GetFrom(),
@@ -813,12 +816,13 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 	var endList bool
 	req := &model.SearchAgentStatusStatistic{
 		ListRequest: model.ListRequest{
-			DomainId: session.Domain(0),
-			Q:        in.GetQ(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Sort:     in.Sort,
-			Fields:   in.Fields,
+			DomainId:  session.Domain(0),
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
+			Fields:    in.GetFields(),
 		},
 		Time: model.FilterBetween{
 			From: in.GetTime().GetFrom(),

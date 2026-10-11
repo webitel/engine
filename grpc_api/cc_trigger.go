@@ -2,9 +2,11 @@ package grpc_api
 
 import (
 	"context"
+	"strconv"
+	"strings"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
-	"strings"
 )
 
 type trigger struct {
@@ -207,11 +209,12 @@ func (api *trigger) SearchTriggerJob(ctx context.Context, in *engine.SearchTrigg
 	var endList bool
 	req := &model.SearchTriggerJob{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: triggerJobStateSortOrder(in.GetSortOrder()),
 		},
 	}
 
@@ -300,4 +303,15 @@ func toEngineTriggerJob(src *model.TriggerJob) *engine.TriggerJob {
 	}
 
 	return j
+}
+
+func triggerJobStateSortOrder(s string) []string {
+	res := model.ParseSortOrder(s)
+	for i, v := range res {
+		if state, ok := engine.TriggerJobState_value[v]; ok {
+			res[i] = strconv.Itoa(int(state))
+		}
+	}
+
+	return res
 }
