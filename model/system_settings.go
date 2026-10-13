@@ -217,6 +217,7 @@ var liveSystemSettings = map[string]struct{}{
 	SysNameShowFullContact:                   {},
 	SysNameExpandContactTabs:                 {},
 	SysNameDefaultWorkspaceTab:               {},
+	SysNameScreenshotInterval:                {},
 }
 
 func IsSensitiveSystemSetting(name string) bool {

@@ -63,6 +63,7 @@ func TestNewSystemSettingsNotification(t *testing.T) {
 	}{
 		{"live setting carries value", &model.SystemSetting{Name: model.SysNameCallEndSoundNotification, Value: json.RawMessage(`true`)}, false, true},
 		{"live setting without value is name-only", &model.SystemSetting{Name: model.SysNameDefaultWorkspaceTab}, false, false},
+		{"screenshot_interval is pushed", &model.SystemSetting{Name: model.SysNameScreenshotInterval, Value: json.RawMessage(`30`)}, false, true},
 		{"login_options is not pushed", &model.SystemSetting{Name: model.SysNameLoginOptions, Value: json.RawMessage(`{}`)}, true, false},
 		{"amd_cancel_not_human is not pushed", &model.SystemSetting{Name: model.SysNameAmdCancelNotHuman, Value: json.RawMessage(`true`)}, true, false},
 		{"scheme_version_limit is not pushed", &model.SystemSetting{Name: model.SysNameSchemeVersionLimit, Value: json.RawMessage(`10`)}, true, false},
