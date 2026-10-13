@@ -214,7 +214,21 @@ func (wh *Hub) start() {
 			msg := model.NewWebSocketNotificationEvent(ev)
 			msg.PrecomputeJSON()
 
-			if len(ev.ForUsers) != 0 {
+			if ev.Broadcast {
+				for webCon := range connections.All() {
+					if !webCon.ShouldSendEvent(msg) {
+						continue
+					}
+
+					select {
+					case webCon.Send <- msg:
+					default:
+						webCon.Log().Error("webhub.broadcast.notification: cannot send, closing websocket", wlog.String("event_type", "notification"))
+						close(webCon.Send)
+						connections.Remove(webCon)
+					}
+				}
+			} else if len(ev.ForUsers) != 0 {
 				for _, u := range ev.ForUsers {
 					candidates := connections.ForUser(u)
 					for _, webCon := range candidates {
