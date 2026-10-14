@@ -1087,6 +1087,25 @@ where id = :Id::int8 and domain_id = :DomainId::int8`, map[string]interface{}{
 	return queueId, nil
 }
 
+func (s SqlMemberStore) AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError) {
+	userId, err := s.GetMaster().WithContext(ctx).SelectNullInt(`select ag.user_id
+from call_center.cc_member_attempt a
+    inner join call_center.cc_agent ag on ag.id = a.agent_id
+where a.id = :Id::int8 and a.domain_id = :DomainId::int8`, map[string]interface{}{
+		"Id":       attemptId,
+		"DomainId": domainId,
+	})
+	if err != nil {
+		return 0, model.NewCustomCodeError("store.sql_member.get_attempt_agent.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if !userId.Valid {
+		return 0, model.NewNotFoundError("store.sql_member.get_attempt_agent.not_found", "Not found attempt or agent")
+	}
+
+	return userId.Int64, nil
+}
+
 func (s SqlMemberStore) GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError) {
 	tz, err := s.GetReplica().WithContext(ctx).SelectStr(`select coalesce((select case jsonb_typeof(value)
 			when 'object' then value ->> 'timezone'

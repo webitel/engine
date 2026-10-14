@@ -418,6 +418,15 @@ func (app *App) InterceptAttempt(domainId, attemptId int64, agentId int32) model
 	return nil
 }
 
+func (app *App) TransferAttempt(ctx context.Context, domainId, attemptId int64, agentId, queueId int32) model.AppError {
+	err := app.cc.Member().TransferAttempt(ctx, domainId, attemptId, agentId, queueId)
+	if err != nil {
+		return model.NewBadRequestError("app.cc_member.transfer.app_err", err.Error())
+	}
+
+	return nil
+}
+
 // GetOwnAgentId resolves the agent_id linked to the given user
 func (app *App) GetOwnAgentId(ctx context.Context, domainId, userId int64) (int32, model.AppError) {
 	info, err := app.Store.Agent().DistributeInfoByUserId(ctx, domainId, userId, "chat")
@@ -430,6 +439,10 @@ func (app *App) GetOwnAgentId(ctx context.Context, domainId, userId int64) (int3
 
 func (app *App) IsAgentChatChannelOnline(ctx context.Context, agentId int32) (bool, model.AppError) {
 	return app.Store.Agent().IsAgentChannelOnline(ctx, int64(agentId), "chat")
+}
+
+func (app *App) AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError) {
+	return app.Store.Member().AttemptAgentUserId(ctx, domainId, attemptId)
 }
 
 func (app *App) MemberQueueId(ctx context.Context, domainId int64, memberId int64) (int64, model.AppError) {
