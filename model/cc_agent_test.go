@@ -135,3 +135,27 @@ func TestAgent_EmailLimitsRejectNegativeJSON(t *testing.T) {
 		}
 	}
 }
+
+func TestAgent_EmailPostponedCount(t *testing.T) {
+	t.Parallel()
+
+	a := model.Agent{ChatCount: 1, TaskCount: 1, EmailPostponedCount: math.MaxInt16}
+	if err := a.IsValid(); err != nil {
+		t.Fatalf("smallint maximum: %v", err)
+	}
+	a.EmailPostponedCount++
+	if err := a.IsValid(); err == nil || err.GetId() != "model.Agent.valid.EmailPostponedCount" {
+		t.Fatalf("smallint overflow: %v", err)
+	}
+
+	b := model.Agent{EmailCount: 2, EmailPostponedCount: 1}
+	three := uint32(3)
+	b.Patch(&model.AgentPatch{EmailPostponedCount: &three})
+	if b.EmailPostponedCount != 3 || b.EmailCount != 2 {
+		t.Fatalf("got email_postponed_count %d, email_count %d", b.EmailPostponedCount, b.EmailCount)
+	}
+
+	if !slices.Contains(b.DefaultFields(), "email_postponed_count") || !slices.Contains(b.AllowFields(), "email_postponed_count") {
+		t.Fatal("email_postponed_count is not a default and allowed search field")
+	}
+}

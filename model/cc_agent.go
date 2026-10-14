@@ -42,6 +42,7 @@ type Agent struct {
 	ExtraChatCount        uint32         `json:"extra_chat_count" db:"extra_chat_count"`
 	EmailCount            uint32         `json:"email_count" db:"email_count"`
 	ExtraEmailCount       uint32         `json:"extra_email_count" db:"extra_email_count"`
+	EmailPostponedCount   uint32         `json:"email_postponed_count" db:"email_postponed_count"`
 	Supervisor            []*Lookup      `json:"supervisor" db:"supervisor"`
 	Team                  *Lookup        `json:"team" db:"team"`
 	Region                *Lookup        `json:"region" db:"region"`
@@ -59,27 +60,29 @@ type Agent struct {
 
 // Nil fields preserve the current database limits during an update.
 type AgentEmailLimits struct {
-	Base  *uint32
-	Extra *uint32
+	Base      *uint32
+	Extra     *uint32
+	Postponed *uint32
 }
 
 type AgentPatch struct {
-	UpdatedBy        Lookup
-	UpdatedAt        int64
-	User             *Lookup
-	Description      *string
-	ProgressiveCount *int
-	GreetingMedia    *Lookup
-	ChatCount        *uint32
-	ExtraChatCount   *uint32
-	EmailCount       *uint32
-	ExtraEmailCount  *uint32
-	Supervisor       []*Lookup
-	Team             *Lookup
-	Region           *Lookup
-	Auditor          []*Lookup
-	IsSupervisor     *bool
-	ScreenControl    *bool
+	UpdatedBy           Lookup
+	UpdatedAt           int64
+	User                *Lookup
+	Description         *string
+	ProgressiveCount    *int
+	GreetingMedia       *Lookup
+	ChatCount           *uint32
+	ExtraChatCount      *uint32
+	EmailCount          *uint32
+	ExtraEmailCount     *uint32
+	EmailPostponedCount *uint32
+	Supervisor          []*Lookup
+	Team                *Lookup
+	Region              *Lookup
+	Auditor             []*Lookup
+	IsSupervisor        *bool
+	ScreenControl       *bool
 }
 
 type AgentStatusStatistics struct {
@@ -211,6 +214,9 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	if patch.ExtraEmailCount != nil {
 		a.ExtraEmailCount = *patch.ExtraEmailCount
 	}
+	if patch.EmailPostponedCount != nil {
+		a.EmailPostponedCount = *patch.EmailPostponedCount
+	}
 
 	if patch.Supervisor != nil {
 		a.Supervisor = patch.Supervisor
@@ -245,13 +251,13 @@ func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change", "status_type",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
 		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status",
-		"email_count", "extra_email_count"}
+		"email_count", "extra_email_count", "email_postponed_count"}
 }
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "extension", "status_type", "email_count", "extra_email_count"}
+		"auditor", "is_supervisor", "extension", "status_type", "email_count", "extra_email_count", "email_postponed_count"}
 }
 
 func (a Agent) EntityName() string {
@@ -433,6 +439,10 @@ func (a *Agent) IsValid() AppError {
 	}
 	if a.ExtraEmailCount > math.MaxInt16 {
 		return NewBadRequestError("model.Agent.valid.ExtraEmailCount", fmt.Sprintf("The extra email count should be less or equal %d", math.MaxInt16))
+	}
+	// cc_agent.email_postponed_count is smallint; 0 disables postponing.
+	if a.EmailPostponedCount > math.MaxInt16 {
+		return NewBadRequestError("model.Agent.valid.EmailPostponedCount", fmt.Sprintf("The email postponed count should be less or equal %d", math.MaxInt16))
 	}
 
 	if a.ProgressiveCount != nil && *a.ProgressiveCount < 1 {
