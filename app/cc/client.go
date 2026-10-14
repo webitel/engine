@@ -20,7 +20,7 @@ type AgentApi interface {
 
 	WaitingChannel(agentId int, channel string) (int64, error)
 
-	AcceptTask(appId string, domainId, attemptId int64) error
+	AcceptTask(ctx context.Context, request *model.AcceptAttemptRequest) error
 	CloseTask(appId string, domainId, attemptId int64) error
 	RunTrigger(ctx context.Context, domainId int64, userId int64, triggerId int32, vars map[string]string) (string, error)
 }

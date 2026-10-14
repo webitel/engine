@@ -101,6 +101,7 @@ type SqlSettings struct {
 	Trace                       bool    `json:"trace" flag:"sql_trace|false|Trace SQL" env:"SQL_TRACE"`
 	Log                         bool    `json:"log" flag:"sql_log|false|Log SQL" env:"SQL_LOG"`
 	QueryTimeout                *int    `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds" env:"QUERY_TIMEOUT"`
+	DescTrackTimeoutSec         *int    `json:"desc_track_timeout_sec" flag:"desc_track_timeout_sec|75|Desc track timeout seconds" env:"DESC_TRACK_TIMEOUT_SEC"`
 }
 
 type HealthSettings struct {
