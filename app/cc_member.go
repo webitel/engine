@@ -354,6 +354,10 @@ func (app *App) IsAgentChatChannelOnline(ctx context.Context, agentId int32) (bo
 	return app.Store.Agent().IsAgentChannelOnline(ctx, int64(agentId), "chat")
 }
 
+func (app *App) AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError) {
+	return app.Store.Member().AttemptAgentUserId(ctx, domainId, attemptId)
+}
+
 func (app *App) MemberQueueId(ctx context.Context, domainId int64, memberId int64) (int64, model.AppError) {
 	return app.Store.Member().QueueId(ctx, domainId, memberId)
 }

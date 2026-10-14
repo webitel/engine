@@ -120,6 +120,16 @@ func (c *Controller) TransferAttempt(ctx context.Context, session *auth_manager.
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
+	if !permission.CanUpdate() {
+		ownerId, err := c.app.AttemptAgentUserId(ctx, session.DomainId, attemptId)
+		if err != nil {
+			return err
+		}
+		if ownerId != session.UserId {
+			return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
 	if (agentId == nil) == (queueId == nil) {
 		return model.NewBadRequestError("controller.cc_member.transfer_attempt.destination",
 			"exactly one of agent_id or queue_id is required")
