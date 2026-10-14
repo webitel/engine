@@ -330,6 +330,7 @@ type MemberStore interface {
 	Create(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
 	BulkCreate(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError)
 	SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError)
+	GetMaxCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError)
 	Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError)
 	Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
 	Delete(ctx context.Context, queueId, id int64) model.AppError

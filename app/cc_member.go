@@ -82,6 +82,10 @@ func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.S
 	return list, search.EndOfList(), nil
 }
 
+func (a *App) GetMaxMemberCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError) {
+	return a.Store.Member().GetMaxCommunicationsCount(ctx, domainId, search)
+}
+
 func (a *App) GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError) {
 	return a.Store.Member().GetUserTimezone(ctx, userId)
 }
