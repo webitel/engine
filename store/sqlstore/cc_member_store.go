@@ -183,21 +183,8 @@ func getMemberSortClause(sort string) string {
 	return GetOrderBy("cc_member", sort)
 }
 
-// todo fix deprecated fields
-
-func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
-	var members []*model.Member
-
-	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
-	if order == "" {
-		order = "order by created_at desc"
-	}
-
-	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
-
-	query := `with result as materialized (select m.id, row_number() over ( ` + order + ` ) rn
-                from call_center.cc_member m
-                where m.domain_id = :Domain::int8
+// memberSearchFilters is the shared WHERE of SearchMembers and GetMaxCommunicationsCount, so both see the same rows.
+const memberSearchFilters = `m.domain_id = :Domain::int8
                   and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
 				  and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
                   and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
@@ -223,7 +210,23 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                   and (:Name::varchar isnull or m.name ilike :Name::varchar)
                   and (:Q::varchar isnull or
                        (m.name ~~ :Q::varchar or
-                        m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]))
+                        m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]))`
+
+// todo fix deprecated fields
+
+func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
+	var members []*model.Member
+
+	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
+	if order == "" {
+		order = "order by created_at desc"
+	}
+
+	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
+
+	query := `with result as materialized (select m.id, row_number() over ( ` + order + ` ) rn
+                from call_center.cc_member m
+                where ` + memberSearchFilters + `
                 ` + order + `
                 limit :Limit offset :Offset )
    , comm as materialized(select c.id, json_build_object('id', c.id, 'name', c.name)::jsonb j
@@ -276,10 +279,20 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                            order by result.rn)
 	select ` + strings.Join(fields, " ,") + ` from list`
 
-	if _, err := s.GetMaster().WithContext(ctx).Select(&members, query, map[string]interface{}{
+	params := memberSearchParams(domainId, search)
+	params["Limit"] = search.GetLimit()
+	params["Offset"] = search.GetOffset()
+
+	if _, err := s.GetMaster().WithContext(ctx).Select(&members, query, params); err != nil {
+		return nil, model.NewInternalError("store.sql_member.get_all.app_error", err.Error())
+	} else {
+		return members, nil
+	}
+}
+
+func memberSearchParams(domainId int64, search *model.SearchMemberRequest) map[string]interface{} {
+	return map[string]interface{}{
 		"Domain":    domainId,
-		"Limit":     search.GetLimit(),
-		"Offset":    search.GetOffset(),
 		"Q":         search.GetQ(),
 		"Variables": search.Variables.ToSafeJson(),
 
@@ -302,11 +315,20 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 
 		"StopCauses": pq.Array(search.StopCauses),
 		"Name":       search.Name,
-	}); err != nil {
-		return nil, model.NewInternalError("store.sql_member.get_all.app_error", err.Error())
-	} else {
-		return members, nil
 	}
+}
+
+// GetMaxCommunicationsCount returns the biggest number of communications among members matching the search filters.
+func (s SqlMemberStore) GetMaxCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError) {
+	count, err := s.GetMaster().WithContext(ctx).SelectInt(`select coalesce(max(case when jsonb_typeof(m.communications) = 'array'
+                                      then jsonb_array_length(m.communications) end), 0)
+from call_center.cc_member m
+where `+memberSearchFilters, memberSearchParams(domainId, search))
+	if err != nil {
+		return 0, model.NewInternalError("store.sql_member.get_max_communications.app_error", err.Error())
+	}
+
+	return int(count), nil
 }
 
 func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError) {
