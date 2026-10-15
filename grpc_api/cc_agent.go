@@ -1058,7 +1058,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		GreetingMedia:         GetProtoLookup(src.GreetingMedia),
 		AllowChannels:         src.AllowChannels,
 		ChatCount:             src.ChatCount,
-		ExtraChatCount:        src.ExtraChatCount,
+		ExtraChatCount:        &src.ExtraChatCount,
 		Supervisor:            GetProtoLookups(src.Supervisor),
 		Team:                  GetProtoLookup(src.Team),
 		Region:                GetProtoLookup(src.Region),

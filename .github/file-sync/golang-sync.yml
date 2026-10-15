@@ -4,7 +4,7 @@ version: 1
 source:
   repository: webitel/reusable-configs
   config: golang/sync.yml
-  sha: c6b7f6611fd2df35b7671c0e14a56d77355110d7
+  sha: 31637e56b4e04217b50b74362c7ed9ff266119b6
 files:
   .editorconfig:
     source: golang/configs/.editorconfig
@@ -41,7 +41,7 @@ files:
     sha256: 38fc2076c3389b339cbe03629e3cc87bc53efcb04aa66f16a675574d0ff99718
   .gitignore:
     source: golang/configs/.gitignore
-    sha256: 064a01c7caec063d75ca8558125a61d495f1572428bcce7eba210149be668c75
+    sha256: db559b5c84e2e1f216a6b21743be1c1033fb40f7254becc0e1b313189ca0b55c
   .golangci.yaml:
     source: golang/configs/.golangci.yaml
     sha256: d863b792ae9ae9fcbb6151ce9f1fc20eec8aa41e7a9c651a35bf9c0b42cc00f9
@@ -60,9 +60,12 @@ files:
   .idea/watcherTasks.xml:
     source: golang/.idea/watcherTasks.xml
     sha256: fe63dddaaa6ab1654f3f9212050e5777483051123cd60caae0765cbefd40c1f4
+  .vscode/launch.json:
+    source: golang/.vscode/launch.json.njk
+    sha256: 274358e3c6e2d4f47e1c088872f894ec6b76df8bdc20679fc175cade71492f70
   .vscode/settings.json:
     source: golang/.vscode/settings.json
-    sha256: 2209d8ad37806d64d691f5b3363c3009f07a3050f52bebd31090896f3d23c8ff
+    sha256: 35c323eede9889ebf4edcc9dac3af8649f818f376128258c0a88b9b2c90f5c39
   deploy/debian/postinst.sh:
     source: common/deploy/debian/postinst.sh
     sha256: 64d78b2c2285ea52a26e63445854f2ae6bee585aa3ab9fb246537bddfb5b353f

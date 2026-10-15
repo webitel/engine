@@ -22,16 +22,17 @@ import (
 const exportMembersPageSize = 5000
 
 const (
-	exportFieldCommunications          = "communications"
-	exportFieldCommunicationTypes      = "communication_types"
-	exportFieldCommunicationPriorities = "communication_priorities"
+	exportFieldCommunications = "communications"
+	exportFieldDestination    = "destination"
 )
 
-var exportCommunicationValues = map[string]func(c *model.MemberCommunication) string{
-	exportFieldCommunications:          func(c *model.MemberCommunication) string { return c.Destination },
-	exportFieldCommunicationTypes:      func(c *model.MemberCommunication) string { return c.Type.Name },
-	exportFieldCommunicationPriorities: func(c *model.MemberCommunication) string { return strconv.Itoa(c.Priority) },
-	"destination":                      func(c *model.MemberCommunication) string { return c.Destination },
+var exportCommunicationColumns = []struct {
+	prefix string
+	value  func(c *model.MemberCommunication) string
+}{
+	{"destination_", func(c *model.MemberCommunication) string { return c.Destination }},
+	{"type_", func(c *model.MemberCommunication) string { return c.Type.Name }},
+	{"priority_", func(c *model.MemberCommunication) string { return strconv.Itoa(c.Priority) }},
 }
 
 func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.MemberService_ExportMembersServer) error {
@@ -66,7 +67,6 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 	if len(fields) == 0 {
 		fields = model.Member{}.DefaultFields()
 	}
-	fields = expandExportCommunicationFields(fields)
 
 	loc := api.exportTimezone(ctx, session.UserId)
 
@@ -85,6 +85,14 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 		} else {
 			req.CreatedAt = filter
 		}
+	}
+
+	if hasExportCommunicationsField(fields) {
+		count, countErr := api.app.GetMaxMemberCommunicationsCount(ctx, domainId, req)
+		if countErr != nil {
+			return countErr
+		}
+		fields = expandExportCommunicationFields(fields, count)
 	}
 
 	if format == "csv" {
@@ -107,27 +115,63 @@ func (api *member) exportTimezone(ctx context.Context, userId int64) *time.Locat
 	return loc
 }
 
-func expandExportCommunicationFields(fields []string) []string {
-	requested := make(map[string]bool, len(fields))
+func isExportCommunicationsField(field string) bool {
+	return field == exportFieldCommunications || field == exportFieldDestination
+}
+
+func hasExportCommunicationsField(fields []string) bool {
 	for _, f := range fields {
-		requested[f] = true
+		if isExportCommunicationsField(f) {
+			return true
+		}
 	}
 
-	res := make([]string, 0, len(fields)+2)
+	return false
+}
+
+func expandExportCommunicationFields(fields []string, count int) []string {
+	count = max(count, 1)
+
+	res := make([]string, 0, len(fields)+count*len(exportCommunicationColumns))
+	expanded := false
 	for _, f := range fields {
-		res = append(res, f)
-		if f != exportFieldCommunications {
+		if !isExportCommunicationsField(f) {
+			res = append(res, f)
 			continue
 		}
 
-		for _, extra := range []string{exportFieldCommunicationTypes, exportFieldCommunicationPriorities} {
-			if !requested[extra] {
-				res = append(res, extra)
+		if expanded {
+			continue
+		}
+		expanded = true
+
+		for i := 1; i <= count; i++ {
+			for _, col := range exportCommunicationColumns {
+				res = append(res, col.prefix+strconv.Itoa(i))
 			}
 		}
 	}
 
 	return res
+}
+
+// exportCommunicationColumn finds the column description and the 1-based communication number of a column such as type_2.
+func exportCommunicationColumn(field string) (func(c *model.MemberCommunication) string, int, bool) {
+	for _, col := range exportCommunicationColumns {
+		suffix, ok := strings.CutPrefix(field, col.prefix)
+		if !ok {
+			continue
+		}
+
+		n, err := strconv.Atoi(suffix)
+		if err != nil || n < 1 {
+			return nil, 0, false
+		}
+
+		return col.value, n, true
+	}
+
+	return nil, 0, false
 }
 
 func exportSearchFields(fields []string) []string {
@@ -138,8 +182,7 @@ func exportSearchFields(fields []string) []string {
 	res := make([]string, 0, len(fields))
 	hasCommunications := false
 	for _, f := range fields {
-		switch f {
-		case exportFieldCommunicationTypes, exportFieldCommunicationPriorities, exportFieldCommunications:
+		if _, _, ok := exportCommunicationColumn(f); ok || isExportCommunicationsField(f) {
 			if hasCommunications {
 				continue
 			}
@@ -340,13 +383,6 @@ func memberExportFieldValue(m *model.Member, field string, loc *time.Location) s
 			return ""
 		}
 		return time.UnixMilli(m.LastActivityAt).In(loc).Format("2006-01-02 15:04:05")
-	case exportFieldCommunications, exportFieldCommunicationTypes, exportFieldCommunicationPriorities, "destination":
-		value := exportCommunicationValues[field]
-		values := make([]string, 0, len(m.Communications))
-		for _, c := range m.Communications {
-			values = append(values, value(c))
-		}
-		return strings.Join(values, ", ")
 	case "variables":
 		pairs := make([]string, 0, len(m.Variables))
 		for k, v := range m.Variables {
@@ -354,8 +390,17 @@ func memberExportFieldValue(m *model.Member, field string, loc *time.Location) s
 		}
 		return strings.Join(pairs, ", ")
 	default:
+		return memberExportCommunicationValue(m, field)
+	}
+}
+
+func memberExportCommunicationValue(m *model.Member, field string) string {
+	value, n, ok := exportCommunicationColumn(field)
+	if !ok || n > len(m.Communications) || m.Communications[n-1] == nil {
 		return ""
 	}
+
+	return value(m.Communications[n-1])
 }
 
 func formatMemberTimeExport(t *time.Time, loc *time.Location) string {

@@ -330,6 +330,7 @@ type MemberStore interface {
 	Create(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
 	BulkCreate(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError)
 	SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError)
+	GetMaxCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError)
 	Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError)
 	Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
 	Delete(ctx context.Context, queueId, id int64) model.AppError
@@ -350,6 +351,7 @@ type MemberStore interface {
 	CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError)
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
 	QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError)
+	AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError)
 	GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError)
 }
 
@@ -381,6 +383,7 @@ type ListStore interface {
 
 	// Communications
 	CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError)
+	BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError)
 	UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError)
