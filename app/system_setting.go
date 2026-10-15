@@ -130,16 +130,22 @@ func (a *App) PatchSystemSetting(ctx context.Context, userId, domainId int64, id
 	return oldSetting, nil
 }
 
-func (a *App) RemoveSystemSetting(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError) {
-	setting, err := a.GetSystemSetting(ctx, domainId, id)
+func (a *App) RemoveSystemSetting(ctx context.Context, userID, domainID int64, id int32) (*model.SystemSetting, model.AppError) {
+	setting, err := a.GetSystemSetting(ctx, domainID, id)
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.SystemSettings().Delete(ctx, domainId, id)
+	err = a.Store.SystemSettings().Delete(ctx, domainID, id)
 	if err != nil {
 		return nil, err
 	}
+
+	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventDeleteAction, domainID, userID)
+	if err != nil {
+		return nil, model.NewInternalError("app.system_settings.remove_system_setting.generate_regeneration_event.error", err.Error())
+	}
+
 	return setting, nil
 }
 
