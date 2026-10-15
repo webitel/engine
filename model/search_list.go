@@ -23,6 +23,7 @@ type ListRequest struct {
 	Fields    []string
 	Sort      string
 	SortOrder []string
+	RawSort   bool
 }
 
 type FilterBetweenProvider interface {

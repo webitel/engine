@@ -32,10 +32,10 @@ func NewSqlCallStore(sqlStore SqlStore) store.CallStore {
 // no ordering operator, so a plain ORDER BY "from" raises
 // `could not identify an ordering operator for type json`.
 // Other fields pass through unchanged.
-func rewriteCallSort(sort string) string {
+func rewriteCallSort(sort string) (string, bool) {
 	s := strings.TrimSpace(sort)
 	if s == "" {
-		return s
+		return s, false
 	}
 	dir, field := orderBy(s)
 	if dir == "" {
@@ -47,11 +47,11 @@ func rewriteCallSort(sort string) string {
 	}
 	switch field {
 	case "from":
-		return fmt.Sprintf(`coalesce(nullif(("from"::text)::json->>'number', ''), ("from"::text)::json->>'name') %s %s`, dir, nulls)
+		return fmt.Sprintf(`coalesce(nullif(("from"::text)::json->>'number', ''), ("from"::text)::json->>'name') %s %s`, dir, nulls), true
 	case "to":
-		return fmt.Sprintf(`coalesce(nullif(("to"::text)::json->>'number', ''), ("to"::text)::json->>'name') %s %s`, dir, nulls)
+		return fmt.Sprintf(`coalesce(nullif(("to"::text)::json->>'number', ''), ("to"::text)::json->>'name') %s %s`, dir, nulls), true
 	}
-	return sort
+	return sort, false
 }
 
 func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *model.SearchCall) ([]*model.Call, model.AppError) {
@@ -83,7 +83,7 @@ func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *mod
 		"State":         pq.Array(search.State),
 	}
 
-	search.ListRequest.Sort = rewriteCallSort(search.ListRequest.Sort)
+	search.ListRequest.Sort, search.ListRequest.RawSort = rewriteCallSort(search.ListRequest.Sort)
 
 	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
@@ -145,7 +145,7 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId, userSuper
 		"UserSupervisorId": userSupervisorId,
 	}
 
-	search.ListRequest.Sort = rewriteCallSort(search.ListRequest.Sort)
+	search.ListRequest.Sort, search.ListRequest.RawSort = rewriteCallSort(search.ListRequest.Sort)
 
 	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull

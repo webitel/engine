@@ -77,10 +77,6 @@ func GetOrderBy(t, s string, sortOrder ...string) string {
 		return ""
 	}
 
-	if isRawOrder(s) {
-		return "order by " + s
-	}
-
 	sort, field := orderBy(s)
 
 	fld := pq.QuoteIdentifier(field)
@@ -133,15 +129,20 @@ func orderBy(s string) (sort string, field string) {
 func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]interface{}) string {
 	s := GetFields(req.Fields, e)
 
-	var sortOrder []string
-
-	sort := ""
+	order := ""
 
 	if req.Sort != "" {
-		sort = req.Sort
-		sortOrder = req.SortOrder
-	} else if e.DefaultOrder() != "" {
-		sort = e.DefaultOrder()
+		if req.RawSort {
+			order = "order by " + req.Sort
+		} else {
+			order = GetOrderBy(e.EntityName(), req.Sort, req.SortOrder...)
+		}
+	} else if def := e.DefaultOrder(); def != "" {
+		if isRawOrder(def) {
+			order = "order by " + def
+		} else {
+			order = GetOrderBy(e.EntityName(), def)
+		}
 	}
 
 	args["Offset"] = req.GetOffset()
@@ -158,7 +159,7 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(e.EntityName(), sort, sortOrder...))
+	limit :Limit`, strings.Join(s, ", "), t, where, order)
 
 	return query
 }
