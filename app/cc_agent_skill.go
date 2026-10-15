@@ -81,6 +81,11 @@ func (a *App) RemoveAgentSkill(ctx context.Context, domainId, agentId, id int64)
 		return nil, err
 	}
 
+	if agentSkill.SkillGroup != nil {
+		return nil, model.NewBadRequestError("app.agent_skill.remove.skill_group",
+			"skill is assigned by a skill group; remove the agent from the skill group instead")
+	}
+
 	err = a.Store.AgentSkill().DeleteById(ctx, agentId, id)
 	if err != nil {
 		return nil, err

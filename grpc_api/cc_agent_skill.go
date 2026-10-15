@@ -129,6 +129,7 @@ func (api *agentSkill) SearchAgentSkill(ctx context.Context, in *engine.SearchAg
 			Skill:   GetProtoLookup(v.Skill),
 			Enabled: v.Enabled,
 		}
+		item.SkillGroup = GetProtoLookup(v.SkillGroup)
 
 		if v.Capacity != nil {
 			item.Capacity = &wrappers.Int32Value{
@@ -336,6 +337,7 @@ func (api *agentSkill) PatchAgentSkills(ctx context.Context, in *engine.PatchAge
 			Skill:   GetProtoLookup(v.Skill),
 			Enabled: v.Enabled,
 		}
+		item.SkillGroup = GetProtoLookup(v.SkillGroup)
 
 		if v.Capacity != nil {
 			item.Capacity = &wrappers.Int32Value{
@@ -420,6 +422,7 @@ func (api *agentSkill) DeleteAgentSkills(ctx context.Context, in *engine.DeleteA
 			Skill:   GetProtoLookup(v.Skill),
 			Enabled: v.Enabled,
 		}
+		item.SkillGroup = GetProtoLookup(v.SkillGroup)
 
 		if v.Capacity != nil {
 			item.Capacity = &wrappers.Int32Value{
@@ -569,6 +572,8 @@ func transformAgentSkill(src *model.AgentSkill) *engine.AgentSkill {
 			Value: int32(*src.Capacity),
 		}
 	}
+
+	s.SkillGroup = GetProtoLookup(src.SkillGroup)
 
 	return s
 }
