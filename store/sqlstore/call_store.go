@@ -51,6 +51,7 @@ func rewriteCallSort(sort string) (string, bool) {
 	case "to":
 		return fmt.Sprintf(`coalesce(nullif(("to"::text)::json->>'number', ''), ("to"::text)::json->>'name') %s %s`, dir, nulls), true
 	}
+
 	return sort, false
 }
 
@@ -83,7 +84,7 @@ func (s SqlCallStore) GetActive(ctx context.Context, domainId int64, search *mod
 		"State":         pq.Array(search.State),
 	}
 
-	search.ListRequest.Sort, search.ListRequest.RawSort = rewriteCallSort(search.ListRequest.Sort)
+	search.Sort, search.RawSort = rewriteCallSort(search.Sort)
 
 	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
@@ -145,7 +146,7 @@ func (s SqlCallStore) GetActiveByGroups(ctx context.Context, domainId, userSuper
 		"UserSupervisorId": userSupervisorId,
 	}
 
-	search.ListRequest.Sort, search.ListRequest.RawSort = rewriteCallSort(search.ListRequest.Sort)
+	search.Sort, search.RawSort = rewriteCallSort(search.Sort)
 
 	err := s.ListQueryMaster(ctx, &out, search.ListRequest,
 		`domain_id = :Domain and direction notnull
