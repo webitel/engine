@@ -135,11 +135,12 @@ func (api *agentTeam) SearchAgentTeam(ctx context.Context, in *engine.SearchAgen
 	var endList bool
 	req := &model.SearchAgentTeam{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Sort:    in.Sort,
-			Fields:  in.Fields,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
+			Fields:    in.GetFields(),
 		},
 		Ids:      in.Id,
 		Strategy: in.Strategy,

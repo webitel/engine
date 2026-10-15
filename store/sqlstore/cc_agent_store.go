@@ -597,7 +597,7 @@ group by q.id`, map[string]any{
 }
 
 func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, model.AppError) {
-	order := GetOrderBy("cc_agent_state_history", search.Sort)
+	order := GetOrderBy("cc_agent_state_history", search.Sort, search.SortOrder...)
 	if order == "" {
 		order = "order by joined_at desc"
 	}
@@ -921,7 +921,7 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 		searchOperator = ILikeComparisonOperator
 	}
 
-	sort = GetOrderBy("t", search.Sort)
+	sort = GetOrderBy("t", search.Sort, search.SortOrder...)
 
 	if sort == "" {
 		sort = `order by case t.status

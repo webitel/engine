@@ -101,3 +101,24 @@ func TestParseRegexp(t *testing.T) {
 		})
 	}
 }
+
+func TestParseSortOrder(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want []string
+	}{
+		{name: "empty", in: "", want: nil},
+		{name: "only separators", in: " , ,", want: nil},
+		{name: "single", in: "voice", want: []string{"voice"}},
+		{name: "list", in: "voice,default,processing", want: []string{"voice", "default", "processing"}},
+		{name: "spaces and trailing comma", in: " false , true ,", want: []string{"false", "true"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ParseSortOrder(tt.in); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ParseSortOrder(%q) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}

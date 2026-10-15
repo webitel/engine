@@ -164,7 +164,7 @@ _error:
 	return nil, model.NewCustomCodeError("store.sql_member.bulk_save.app_error", err.Error(), extractCodeFromErr(err))
 }
 
-func getMemberSortClause(sort string) string {
+func getMemberSortClause(sort string, sortOrder []string) string {
 	if sort == "" {
 		return "order by created_at desc"
 	}
@@ -180,7 +180,7 @@ func getMemberSortClause(sort string) string {
 		return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
 	}
 
-	return GetOrderBy("cc_member", sort)
+	return GetOrderBy("cc_member", sort, sortOrder...)
 }
 
 // memberSearchFilters is the shared WHERE of SearchMembers and GetMaxCommunicationsCount, so both see the same rows.
@@ -217,7 +217,7 @@ const memberSearchFilters = `m.domain_id = :Domain::int8
 func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
 	var members []*model.Member
 
-	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
+	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort), search.SortOrder)
 	if order == "" {
 		order = "order by created_at desc"
 	}

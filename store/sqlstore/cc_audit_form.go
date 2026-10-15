@@ -100,6 +100,7 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 	originalSort := search.Sort
 	if search.TeamUserID != nil && search.Sort == "" {
 		search.Sort = "case when team_ids && array(select a.team_id from call_center.cc_agent a where a.user_id = :TeamUserID::int8 and a.team_id notnull) then 0 else 1 end asc,name asc"
+		search.RawSort = true
 		f["TeamUserID"] = *search.TeamUserID
 	}
 
@@ -126,6 +127,7 @@ func (s SqlAuditFormStore) GetAllPage(ctx context.Context, domainId int64, searc
 	}
 
 	search.Sort = originalSort
+	search.RawSort = false
 
 	return list, nil
 }
@@ -149,6 +151,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 	originalSort := search.Sort
 	if search.TeamUserID != nil && search.Sort == "" {
 		search.Sort = "case when team_ids && array(select a.team_id from call_center.cc_agent a where a.user_id = :TeamUserID::int8 and a.team_id notnull) then 0 else 1 end asc,name asc"
+		search.RawSort = true
 		f["TeamUserID"] = *search.TeamUserID
 	}
 
@@ -179,6 +182,7 @@ func (s SqlAuditFormStore) GetAllPageByGroup(ctx context.Context, domainId int64
 	}
 
 	search.Sort = originalSort
+	search.RawSort = false
 
 	return list, nil
 }

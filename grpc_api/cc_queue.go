@@ -89,11 +89,12 @@ func (api *queue) SearchQueue(ctx context.Context, in *engine.SearchQueueRequest
 	var endList bool
 	req := &model.SearchQueue{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:     in.Id,
 		Types:   in.Type,

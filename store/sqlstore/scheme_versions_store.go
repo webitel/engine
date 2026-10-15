@@ -76,8 +76,6 @@ func (c *SqlSchemeVersionsStore) GetQueryBaseFromSearchOptions(opt *model.ListRe
 	for _, v := range opt.Fields {
 		if columnName, ok := schemeVersionsSelectFieldsMap[v]; ok {
 			fields = append(fields, columnName)
-		} else {
-			fields = append(fields, v)
 		}
 	}
 	if len(fields) == 0 {
