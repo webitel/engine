@@ -194,13 +194,15 @@ func (s SqlAgentSkillStore) GetById(ctx context.Context, domainId, agentId, id i
 
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&agentSkill,
 		`select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled,
+	call_center.cc_get_lookup(sg.id, sg.name) as skill_group
 from call_center.cc_skill_in_agent tmp
     inner join call_center.cc_skill s on s.id = tmp.skill_id
     inner join call_center.cc_agent a on a.id = tmp.agent_id
     inner join directory.wbt_user wu on a.user_id = wu.id
     left join directory.wbt_user c on c.id = tmp.created_by
     left join directory.wbt_user u on u.id = tmp.updated_by
+    left join call_center.cc_skill_group sg on sg.id = tmp.skill_group_id
 where tmp.id = :Id and tmp.agent_id = :AgentId and a.domain_id = :DomainId
 `, map[string]interface{}{"DomainId": domainId, "Id": id, "AgentId": agentId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_skill_in_agent.get_all.app_error", err.Error(), extractCodeFromErr(err))
@@ -217,18 +219,23 @@ func (s SqlAgentSkillStore) Update(ctx context.Context, agentSkill *model.AgentS
             updated_by = :UpdatedBy,
             skill_id = :SkillId,
             capacity = :Capacity,
-			enabled = :Enabled
+			enabled = :Enabled,
+            skill_group_id = case
+                when s.capacity is distinct from :Capacity or s.skill_id is distinct from :SkillId then null
+                else s.skill_group_id end
     where s.id = :Id and s.agent_id = :AgentId
     returning *
 )
 select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled,
+	call_center.cc_get_lookup(sg.id, sg.name) as skill_group
 from tmp
     inner join call_center.cc_skill s on s.id = tmp.skill_id
     inner join call_center.cc_agent a on a.id = tmp.agent_id
     inner join directory.wbt_user wu on a.user_id = wu.id
     left join directory.wbt_user c on c.id = tmp.created_by
-    left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
+    left join directory.wbt_user u on u.id = tmp.updated_by
+    left join call_center.cc_skill_group sg on sg.id = tmp.skill_group_id`, map[string]any{
 		"UpdatedAt": agentSkill.UpdatedAt,
 		"UpdatedBy": agentSkill.UpdatedBy.GetSafeId(),
 		"SkillId":   agentSkill.Skill.Id,
@@ -252,7 +259,11 @@ func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, sear
             enabled = coalesce(:Enabled, enabled),
 			skill_id = coalesce(:SkillId, skill_id),
             updated_by = :UpdatedBy,
-            updated_at = :UpdatedAt
+            updated_at = :UpdatedAt,
+            skill_group_id = case
+                when coalesce(:Capacity, capacity) is distinct from capacity
+                    or coalesce(:SkillId, skill_id) is distinct from skill_id then null
+                else skill_group_id end
     where id in (
             select sa.id
             from call_center.cc_skill_in_agent sa
@@ -268,13 +279,15 @@ func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, sear
    returning *
 )
 select tmp.id, call_center.cc_get_lookup(s.id, s.name) as skill, call_center.cc_get_lookup(a.id, wu.name) as agent, tmp.capacity, tmp.created_at,
-	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled
+	call_center.cc_get_lookup(c.id, c.name) as created_by, tmp.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, tmp.enabled,
+	call_center.cc_get_lookup(sg.id, sg.name) as skill_group
 from tmp
     inner join call_center.cc_skill s on s.id = tmp.skill_id
     inner join call_center.cc_agent a on a.id = tmp.agent_id
     inner join directory.wbt_user wu on a.user_id = wu.id
     left join directory.wbt_user c on c.id = tmp.created_by
-    left join directory.wbt_user u on u.id = tmp.updated_by`, map[string]interface{}{
+    left join directory.wbt_user u on u.id = tmp.updated_by
+    left join call_center.cc_skill_group sg on sg.id = tmp.skill_group_id`, map[string]any{
 		"DomainId":  domainId,
 		"AgentIds":  pq.Array(search.AgentIds),
 		"Ids":       pq.Array(search.Ids),
@@ -296,7 +309,7 @@ from tmp
 
 func (s SqlAgentSkillStore) DeleteById(ctx context.Context, agentId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_skill_in_agent a
-where a.id = :Id and a.agent_id = :AgentId`,
+where a.id = :Id and a.agent_id = :AgentId and a.skill_group_id is null`,
 		map[string]interface{}{"Id": id, "AgentId": agentId}); err != nil {
 		return model.NewCustomCodeError("store.sql_skill_in_agent.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
@@ -312,6 +325,7 @@ func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId int64, search m
             from call_center.cc_skill_in_agent sa
                 inner join call_center.cc_skill s on s.id = sa.skill_id
             where s.domain_id = :DomainId
+                            and sa.skill_group_id is null
                             and (:AgentIds::int[] isnull or sa.agent_id = any(:AgentIds))
                             and (:Ids::int[] isnull or sa.id = any(:Ids))
                             and (:SkillIds::int[] isnull or sa.skill_id = any(:SkillIds))

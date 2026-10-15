@@ -12,6 +12,7 @@ type API struct {
 	ctrl                  *controller.Controller
 	calendar              *calendar
 	skill                 *skill
+	skillGroup            *skillGroup
 	agentTeam             *agentTeam
 	teamHook              *teamHook
 	teamTrigger           *teamTrigger
@@ -63,6 +64,7 @@ func Init(a *app.App, server *grpc.Server) {
 	}
 	api.calendar = NewCalendarApi(api)
 	api.skill = NewSkillApi(api)
+	api.skillGroup = NewSkillGroupApi(api)
 	api.agentTeam = NewAgentTeamApi(a)
 	api.teamHook = NewTeamHookApi(api)
 	api.teamTrigger = NewTeamTriggerApi(api)
@@ -107,6 +109,7 @@ func Init(a *app.App, server *grpc.Server) {
 
 	engine.RegisterCalendarServiceServer(server, api.calendar)
 	engine.RegisterSkillServiceServer(server, api.skill)
+	engine.RegisterSkillGroupServiceServer(server, api.skillGroup)
 	engine.RegisterAgentTeamServiceServer(server, api.agentTeam)
 	engine.RegisterTeamHookServiceServer(server, api.teamHook)
 	engine.RegisterTeamTriggerServiceServer(server, api.teamTrigger)

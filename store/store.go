@@ -34,6 +34,7 @@ type Store interface {
 	User() UserStore
 	Calendar() CalendarStore
 	Skill() SkillStore
+	SkillGroup() SkillGroupStore
 	AgentTeam() AgentTeamStore
 	TeamHook() TeamHookStore
 	TeamTrigger() TeamTriggerStore
@@ -120,6 +121,32 @@ type SkillStore interface {
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 	Update(ctx context.Context, skill *model.Skill) (*model.Skill, model.AppError)
 	NameExists(ctx context.Context, domainId int64, name string, excludeId int64) (bool, model.AppError)
+}
+
+type SkillGroupStore interface {
+	CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
+	Create(ctx context.Context, group *model.SkillGroup) (*model.SkillGroup, model.AppError)
+	Get(ctx context.Context, domainId, id int64) (*model.SkillGroup, model.AppError)
+	GetAllPage(ctx context.Context, domainId int64, search *model.SearchSkillGroup) ([]*model.SkillGroup, model.AppError)
+	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchSkillGroup) ([]*model.SkillGroup, model.AppError)
+	Delete(ctx context.Context, domainId, id int64) model.AppError
+	Update(ctx context.Context, group *model.SkillGroup) (*model.SkillGroup, model.AppError)
+	NameExists(ctx context.Context, domainId int64, name string, excludeId int64) (bool, model.AppError)
+
+	// Skills that belong to a group (Skills tab)
+	SkillsSearch(ctx context.Context, domainId int64, search *model.SearchSkillGroupSkill) ([]*model.SkillGroupSkill, model.AppError)
+	SkillsCreate(ctx context.Context, domainId int64, userId int64, groupId int64, skills []*model.SkillGroupSkill) ([]*model.SkillGroupSkill, model.AppError)
+	SkillUpdate(ctx context.Context, domainId int64, userId int64, groupId int64, skill *model.SkillGroupSkill) (*model.SkillGroupSkill, model.AppError)
+	SkillsDelete(ctx context.Context, domainId int64, groupId int64, ids []int64, skillIds []int64) ([]*model.SkillGroupSkill, model.AppError)
+
+	// Agents a group is assigned to (Agents tab)
+	AgentsSearch(ctx context.Context, domainId int64, search *model.SearchSkillGroupAgent) ([]*model.SkillGroupAgent, model.AppError)
+	AgentsCreate(ctx context.Context, domainId int64, userId int64, groupIds []int64, agentIds []int64) ([]*model.SkillGroupAgent, model.AppError)
+	AgentsDelete(ctx context.Context, domainId int64, groupId int64, ids []int64, agentIds []int64) ([]*model.SkillGroupAgent, model.AppError)
+
+	// Agent-centric assignment (US_02)
+	AgentGroupsSearch(ctx context.Context, domainId int64, search *model.SearchAgentSkillGroup) ([]*model.AgentSkillGroup, model.AppError)
+	AgentGroupsDelete(ctx context.Context, domainId int64, agentId int64, ids []int64, groupIds []int64) ([]*model.AgentSkillGroup, model.AppError)
 }
 
 type AgentTeamStore interface {
