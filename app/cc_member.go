@@ -306,7 +306,15 @@ func (app *App) ListOfflineQueueForAgent(ctx context.Context, domainId int64, se
 	if err != nil {
 		return nil, false, err
 	}
+
 	search.RemoveLastElemIfNeed(&list)
+
+	for _, m := range list {
+		if m.ShouldMaskNumbers() {
+			m.MaskNumbers()
+		}
+	}
+
 	return list, search.EndOfList(), nil
 }
 

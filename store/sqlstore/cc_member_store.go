@@ -901,43 +901,58 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 
 func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError) {
 	var att []*model.OfflineMember
-	_, err := s.GetMaster().WithContext(ctx).Select(&att, `with comm as (
-    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
-    from call_center.cc_communication c
-    where c.domain_id = :Domain
-)
-
-,resources as (
-    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
-    from call_center.cc_outbound_resource r
-    where r.domain_id = :Domain
-)
-, result as (
-	select x as id
-	from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :Limit::int) x
-)
-select m.id, call_center.cc_member_destination_views_to_json(array(select ( xid::int2, x ->> 'destination',
-								resources.j,
-                                comm.j,
-                                (x -> 'priority')::int ,
-                                (x -> 'state')::int  ,
-                                x -> 'description'  ,
-                                (x -> 'last_activity_at')::int8,
-                                (x -> 'attempts')::int,
-                                x ->> 'last_cause',
-                                x ->> 'display'    )::call_center.cc_member_destination_view
-                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
-                            left join comm on comm.id = (x -> 'type' -> 'id')::int
-                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
-       call_center.cc_get_lookup(cq.id, cq.name::varchar) queue, call_center.cc_view_timestamp(m.expire_at) expire_at, call_center.cc_view_timestamp(m.created_at) created_at,
-			m.variables, m.name
-from call_center.cc_member m
+	_, err := s.GetMaster().WithContext(ctx).Select(
+		&att,
+		`with comm as (
+    	select c.id, c.channel, json_build_object('id', c.id, 'name', c.name)::jsonb j
+     	from call_center.cc_communication c
+      	where c.domain_id = :Domain
+       ),
+       resources as (
+       	select r.id, json_build_object('id', r.id, 'name', r.name)::jsonb j
+        from call_center.cc_outbound_resource r
+        where r.domain_id = :Domain
+       ),
+	result as (
+    	select x as id
+     	from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :Limit::int) x
+	)
+	select m.id,
+       (
+           select jsonb_agg(to_jsonb(t.d) || jsonb_build_object('channel', t.channel) order by t.xid)
+           from (
+               select xid,
+                      comm.channel,
+                      (xid::int2, x ->> 'destination',
+                       resources.j,
+                       comm.j,
+                       (x -> 'priority')::int,
+                       (x -> 'state')::int,
+                       x -> 'description',
+                       (x -> 'last_activity_at')::int8,
+                       (x -> 'attempts')::int,
+                       x ->> 'last_cause',
+                       x ->> 'display')::call_center.cc_member_destination_view as d
+               from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
+                   left join comm on comm.id = (x -> 'type' -> 'id')::int
+                   left join resources on resources.id = (x -> 'resource' -> 'id')::int
+           ) t
+       ) as communications,
+       call_center.cc_get_lookup(cq.id, cq.name::varchar) queue,
+       call_center.cc_view_timestamp(m.expire_at) expire_at,
+       call_center.cc_view_timestamp(m.created_at) created_at,
+       m.variables,
+       m.name,
+       coalesce((cq.variables->>'wbt_hide_number'), 'false') as hide_number
+	from call_center.cc_member m
     inner join result on m.id = result.id
-    inner join call_center.cc_queue cq on m.queue_id = cq.id`, map[string]interface{}{
-		"Domain":  domainId,
-		"Limit":   search.GetLimit(),
-		"AgentId": search.AgentId,
-	})
+    inner join call_center.cc_queue cq on m.queue_id = cq.id`,
+		map[string]any{
+			"Domain":  domainId,
+			"Limit":   search.GetLimit(),
+			"AgentId": search.AgentId,
+		},
+	)
 
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_member.list_offline_queue.app_error", err.Error(), extractCodeFromErr(err))
