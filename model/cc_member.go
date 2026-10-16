@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -218,6 +219,32 @@ type OfflineMember struct {
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
 	CreatedAt      int64                 `json:"created_at" db:"created_at"`
 	Variables      StringMap             `json:"variables" db:"variables"`
+	HideNumber     string                `json:"hide_number" db:"hide_number"`
+}
+
+func (m *OfflineMember) ShouldMaskNumbers() bool {
+	should, err := strconv.ParseBool(m.HideNumber)
+	if err != nil {
+		return false
+	}
+
+	return should
+}
+
+func (m *OfflineMember) MaskNumbers() {
+	for i := range m.Communications {
+		comm := &m.Communications[i]
+
+		if !comm.IsPhone() {
+			continue
+		}
+
+		if strings.EqualFold(m.Name, comm.Destination) {
+			m.Name = HideString(m.Name, 5, 0, 2)
+		}
+
+		comm.Mask()
+	}
 }
 
 /*
@@ -427,6 +454,7 @@ type MemberCommunication struct {
 	Id             int64   `json:"id"`
 	Destination    string  `json:"destination"`
 	Type           Lookup  `json:"type"`
+	Channel        string  `json:"channel"`
 	Priority       int     `json:"priority"`
 	State          int     `json:"state"`
 	Description    string  `json:"description"`
@@ -442,6 +470,14 @@ type MemberCommunication struct {
 	ApiSub    string    `json:"api_sub"`
 	MemberID  string    `json:"member_id"`
 	MemberSub string    `json:"member_sub"`
+}
+
+func (c *MemberCommunication) IsPhone() bool {
+	return IsPhoneCommunicationChannel(c.Channel)
+}
+
+func (c *MemberCommunication) Mask() {
+	c.Destination = HideString(c.Destination, 5, 0, 2)
 }
 
 func (m *Member) SortCommunications(order string) {
