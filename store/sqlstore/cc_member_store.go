@@ -899,25 +899,56 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 	return att, nil
 }
 
+func offlineMembersOrderBy(sort string) string {
+	desc := strings.HasPrefix(sort, "-")
+	field := strings.TrimPrefix(strings.TrimPrefix(sort, "-"), "+")
+
+	dir := "asc"
+	if desc {
+		dir = "desc"
+	}
+
+	switch field {
+	case "name":
+		return "m.name " + dir + ", m.id"
+	case "queue":
+		return "cq.name " + dir + ", m.name, m.id"
+	default:
+		return "result.n"
+	}
+}
+
+const offlineMembersMaxScan = 1000
+
+func offlineMembersScanLimit(search *model.SearchOfflineQueueMembers) int {
+	if strings.TrimSpace(search.Q) == "" && search.Sort == "" {
+		n := search.GetOffset() + search.GetLimit()
+
+		return min(n, offlineMembersMaxScan)
+	}
+
+	return offlineMembersMaxScan
+}
+
 func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError) {
 	var att []*model.OfflineMember
-	_, err := s.GetMaster().WithContext(ctx).Select(
-		&att,
-		`with comm as (
-    	select c.id, c.channel, json_build_object('id', c.id, 'name', c.name)::jsonb j
-     	from call_center.cc_communication c
-      	where c.domain_id = :Domain
-       ),
-       resources as (
-       	select r.id, json_build_object('id', r.id, 'name', r.name)::jsonb j
-        from call_center.cc_outbound_resource r
-        where r.domain_id = :Domain
-       ),
-	result as (
-    	select x as id
-     	from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :Limit::int) x
-	)
-	select m.id,
+
+	query := `with comm as (
+    select c.id, c.channel, json_build_object('id', c.id, 'name', c.name)::jsonb j
+    from call_center.cc_communication c
+    where c.domain_id = :Domain
+),
+resources as (
+    select r.id, json_build_object('id', r.id, 'name', r.name)::jsonb j
+    from call_center.cc_outbound_resource r
+    where r.domain_id = :Domain
+),
+result as (
+    select t.x as id, t.n
+    from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :MaxScan::int)
+         with ordinality as t(x, n)
+)
+select m.id,
        (
            select jsonb_agg(to_jsonb(t.d) || jsonb_build_object('channel', t.channel) order by t.xid)
            from (
@@ -944,15 +975,21 @@ func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId i
        m.variables,
        m.name,
        coalesce((cq.variables->>'wbt_hide_number'), 'false') as hide_number
-	from call_center.cc_member m
+from call_center.cc_member m
     inner join result on m.id = result.id
-    inner join call_center.cc_queue cq on m.queue_id = cq.id`,
-		map[string]any{
-			"Domain":  domainId,
-			"Limit":   search.GetLimit(),
-			"AgentId": search.AgentId,
-		},
-	)
+    inner join call_center.cc_queue cq on m.queue_id = cq.id
+where (:Q::text is null or m.name ilike :Q::text)
+order by ` + offlineMembersOrderBy(search.Sort) + `
+limit :Limit::int offset :Offset::int`
+
+	_, err := s.GetMaster().WithContext(ctx).Select(&att, query, map[string]any{
+		"Domain":  domainId,
+		"AgentId": search.AgentId,
+		"MaxScan": offlineMembersScanLimit(search),
+		"Q":       search.GetQ(),
+		"Limit":   search.GetLimit(),
+		"Offset":  search.GetOffset(),
+	})
 
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_member.list_offline_queue.app_error", err.Error(), extractCodeFromErr(err))
