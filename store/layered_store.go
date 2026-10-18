@@ -206,3 +206,7 @@ func (s *LayeredStore) TeamChatTag() TeamChatTagStore {
 func (s *LayeredStore) Feedback() FeedbackStore {
 	return s.DatabaseLayer.Feedback()
 }
+
+func (s *LayeredStore) UserNotification() UserNotificationStore {
+	return s.DatabaseLayer.UserNotification()
+}
