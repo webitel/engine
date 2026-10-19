@@ -162,13 +162,13 @@ func (c *Controller) GetAgentInQueueStatistics(ctx context.Context, session *aut
 	return c.app.GetAgentInQueueStatistics(ctx, session.Domain(domainId), agentId)
 }
 
-func (c *Controller) AcceptAgentTask(session *auth_manager.Session, appId string, attemptId int64) model.AppError {
+func (c *Controller) AcceptAgentTask(ctx context.Context, session *auth_manager.Session, req *model.AcceptAttemptRequest) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.AcceptTask(appId, session.DomainId, attemptId)
+	return c.app.AcceptTask(ctx, req)
 }
 
 func (c *Controller) CloseAgentTask(session *auth_manager.Session, appId string, attemptId int64) model.AppError {
