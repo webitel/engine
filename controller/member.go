@@ -33,15 +33,39 @@ func (c *Controller) ListOfflineQueueForAgent(ctx context.Context, session *auth
 	return c.app.ListOfflineQueueForAgent(ctx, session.DomainId, search)
 }
 
-func (c *Controller) ReportingAttempt(session *auth_manager.Session, attemptId int64, status, description string, nextOffering *int64,
-	expireAt *int64, vars map[string]string, stickyDisplay bool, agentId int32, exclDes bool, waitBetweenRetries *int32, onlyComm bool) model.AppError {
+func (c *Controller) ReportingAttempt(
+	session *auth_manager.Session,
+	attemptId int64,
+	status, description string,
+	nextOffering *int64,
+	expireAt *int64,
+	vars map[string]string,
+	stickyDisplay bool,
+	agentId int32,
+	exclDes bool,
+	waitBetweenRetries *int32,
+	onlyComm bool,
+	draft bool,
+) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.ReportingAttempt(attemptId, status, description, nextOffering, expireAt, vars, stickyDisplay, agentId, exclDes,
-		waitBetweenRetries, onlyComm)
+	return c.app.ReportingAttempt(
+		attemptId,
+		status,
+		description,
+		nextOffering,
+		expireAt,
+		vars,
+		stickyDisplay,
+		agentId,
+		exclDes,
+		waitBetweenRetries,
+		onlyComm,
+		draft,
+	)
 }
 
 func (c *Controller) RenewalAttempt(session *auth_manager.Session, attemptId int64, renewal uint32) model.AppError {
@@ -112,6 +136,46 @@ func (c *Controller) AssignAttempt(ctx context.Context, session *auth_manager.Se
 	}
 
 	return c.app.InterceptAttempt(session.DomainId, attemptId, targetAgentId)
+}
+
+func (c *Controller) TransferAttempt(ctx context.Context, session *auth_manager.Session, attemptId int64, agentId, queueId *int64) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanUpdate() {
+		ownerId, err := c.app.AttemptAgentUserId(ctx, session.DomainId, attemptId)
+		if err != nil {
+			return err
+		}
+		if ownerId != session.UserId {
+			return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	if (agentId == nil) == (queueId == nil) {
+		return model.NewBadRequestError("controller.cc_member.transfer_attempt.destination",
+			"exactly one of agent_id or queue_id is required")
+	}
+
+	var targetAgentId, targetQueueId int32
+
+	if agentId != nil {
+		targetAgentId = int32(*agentId)
+
+		online, err := c.app.IsAgentChatChannelOnline(ctx, targetAgentId)
+		if err != nil {
+			return err
+		}
+		if !online {
+			return model.NewBadRequestError("controller.cc_member.transfer_attempt.agent_offline", "agent's chat channel is not online")
+		}
+	} else {
+		targetQueueId = int32(*queueId)
+	}
+
+	return c.app.TransferAttempt(ctx, session.DomainId, attemptId, targetAgentId, targetQueueId)
 }
 
 func (c *Controller) ResetMembersCount(ctx context.Context, query *model.ResetMembersCountQuery) (int64, model.AppError) {

@@ -164,27 +164,15 @@ func (api *API) agentTasks(ctx context.Context, conn *app.WebConn, req *model.We
 }
 
 func (api *API) acceptAgentTask(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId, attemptId float64
-	var ok bool
+	sess := conn.GetSession()
 
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	r := model.NewAcceptAttemptRequestFromSocket(req, sess.Domain(0), sess.GetUserId())
+	if invalid := r.FindInvalidAgrument(); invalid != "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, invalid)
 	}
 
-	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
-	}
+	err := api.ctrl.AcceptAgentTask(ctx, conn.GetSession(), r)
 
-	appId, _ := req.Data["app_id"].(string)
-	if appId == "" {
-		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
-	}
-
-	if agentId == 0 {
-		//todo
-	}
-
-	err := api.ctrl.AcceptAgentTask(conn.GetSession(), appId, int64(attemptId))
 	return nil, err
 }
 

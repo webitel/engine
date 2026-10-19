@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/webitel/wlog"
 	"github.com/xuri/excelize/v2"
@@ -19,6 +20,20 @@ import (
 )
 
 const exportMembersPageSize = 5000
+
+const (
+	exportFieldCommunications = "communications"
+	exportFieldDestination    = "destination"
+)
+
+var exportCommunicationColumns = []struct {
+	prefix string
+	value  func(c *model.MemberCommunication) string
+}{
+	{"destination_", func(c *model.MemberCommunication) string { return c.Destination }},
+	{"type_", func(c *model.MemberCommunication) string { return c.Type.Name }},
+	{"priority_", func(c *model.MemberCommunication) string { return strconv.Itoa(c.Priority) }},
+}
 
 func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.MemberService_ExportMembersServer) error {
 	ctx := stream.Context()
@@ -53,7 +68,9 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 		fields = model.Member{}.DefaultFields()
 	}
 
-	filename := "members_" + time.Now().Format("2006-01-02_15-04-05") + "." + format
+	loc := api.exportTimezone(ctx, session.UserId)
+
+	filename := "members_" + time.Now().In(loc).Format("2006-01-02_15-04-05") + "." + format
 	if sendErr := stream.SendHeader(metadata.Pairs("filename", filename, "format", format)); sendErr != nil {
 		return sendErr
 	}
@@ -61,7 +78,6 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 	domainId := session.Domain(0)
 
 	req := buildExportMembersSearchRequest(in)
-
 	if !req.IsWithCreatedAtFilter() {
 		filter, filterErr := api.prepareDefaulMembersFilter(ctx, domainId)
 		if filterErr != nil {
@@ -71,10 +87,112 @@ func (api *member) ExportMembers(in *engine.ExportMembersRequest, stream engine.
 		}
 	}
 
-	if format == "csv" {
-		return api.exportMembersCSV(ctx, domainId, in, fields, req, stream)
+	if hasExportCommunicationsField(fields) {
+		count, countErr := api.app.GetMaxMemberCommunicationsCount(ctx, domainId, req)
+		if countErr != nil {
+			return countErr
+		}
+		fields = expandExportCommunicationFields(fields, count)
 	}
-	return api.exportMembersXLSX(ctx, domainId, fields, req, stream)
+
+	if format == "csv" {
+		return api.exportMembersCSV(ctx, domainId, in, fields, req, loc, stream)
+	}
+	return api.exportMembersXLSX(ctx, domainId, fields, req, loc, stream)
+}
+
+func (api *member) exportTimezone(ctx context.Context, userId int64) *time.Location {
+	tz, err := api.app.GetUserTimezone(ctx, userId)
+	if err != nil || tz == "" {
+		return time.UTC
+	}
+
+	loc, locErr := time.LoadLocation(tz)
+	if locErr != nil {
+		return time.UTC
+	}
+
+	return loc
+}
+
+func isExportCommunicationsField(field string) bool {
+	return field == exportFieldCommunications || field == exportFieldDestination
+}
+
+func hasExportCommunicationsField(fields []string) bool {
+	for _, f := range fields {
+		if isExportCommunicationsField(f) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func expandExportCommunicationFields(fields []string, count int) []string {
+	count = max(count, 1)
+
+	res := make([]string, 0, len(fields)+count*len(exportCommunicationColumns))
+	expanded := false
+	for _, f := range fields {
+		if !isExportCommunicationsField(f) {
+			res = append(res, f)
+			continue
+		}
+
+		if expanded {
+			continue
+		}
+		expanded = true
+
+		for i := 1; i <= count; i++ {
+			for _, col := range exportCommunicationColumns {
+				res = append(res, col.prefix+strconv.Itoa(i))
+			}
+		}
+	}
+
+	return res
+}
+
+// exportCommunicationColumn finds the column description and the 1-based communication number of a column such as type_2.
+func exportCommunicationColumn(field string) (func(c *model.MemberCommunication) string, int, bool) {
+	for _, col := range exportCommunicationColumns {
+		suffix, ok := strings.CutPrefix(field, col.prefix)
+		if !ok {
+			continue
+		}
+
+		n, err := strconv.Atoi(suffix)
+		if err != nil || n < 1 {
+			return nil, 0, false
+		}
+
+		return col.value, n, true
+	}
+
+	return nil, 0, false
+}
+
+func exportSearchFields(fields []string) []string {
+	if len(fields) == 0 {
+		return fields
+	}
+
+	res := make([]string, 0, len(fields))
+	hasCommunications := false
+	for _, f := range fields {
+		if _, _, ok := exportCommunicationColumn(f); ok || isExportCommunicationsField(f) {
+			if hasCommunications {
+				continue
+			}
+			hasCommunications = true
+			f = exportFieldCommunications
+		}
+		res = append(res, f)
+	}
+
+	return res
 }
 
 func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.SearchMemberRequest {
@@ -83,7 +201,7 @@ func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.Sea
 			Q:       in.GetQ(),
 			Page:    1,
 			PerPage: exportMembersPageSize,
-			Fields:  in.GetFields(),
+			Fields:  exportSearchFields(in.GetFields()),
 		},
 		Ids:        in.GetId(),
 		QueueId:    &in.QueueId,
@@ -116,7 +234,8 @@ func buildExportMembersSearchRequest(in *engine.ExportMembersRequest) *model.Sea
 }
 
 func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *engine.ExportMembersRequest, fields []string,
-	req *model.SearchMemberRequest, stream engine.MemberService_ExportMembersServer) error {
+	req *model.SearchMemberRequest, loc *time.Location, stream engine.MemberService_ExportMembersServer) error {
+
 	page := 1
 	sentAnyChunk := false
 
@@ -132,7 +251,7 @@ func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *eng
 			break
 		}
 
-		chunk, genErr := generateMembersCSVChunk(fields, membersToExportRows(list, fields), page, in.GetSeparator())
+		chunk, genErr := generateMembersCSVChunk(fields, membersToExportRows(list, fields, loc), page, in.GetSeparator())
 		if genErr != nil {
 			return model.NewInternalError("grpc.member.export_members.csv", genErr.Error())
 		}
@@ -162,7 +281,8 @@ func (api *member) exportMembersCSV(ctx context.Context, domainId int64, in *eng
 }
 
 func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields []string,
-	req *model.SearchMemberRequest, stream engine.MemberService_ExportMembersServer) error {
+	req *model.SearchMemberRequest, loc *time.Location, stream engine.MemberService_ExportMembersServer) error {
+
 	var allRows [][]string
 	page := 1
 
@@ -178,7 +298,7 @@ func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields
 			break
 		}
 
-		allRows = append(allRows, membersToExportRows(list, fields)...)
+		allRows = append(allRows, membersToExportRows(list, fields, loc)...)
 
 		if endList {
 			break
@@ -202,19 +322,19 @@ func (api *member) exportMembersXLSX(ctx context.Context, domainId int64, fields
 	return nil
 }
 
-func membersToExportRows(list []*model.Member, fields []string) [][]string {
+func membersToExportRows(list []*model.Member, fields []string, loc *time.Location) [][]string {
 	rows := make([][]string, 0, len(list))
 	for _, m := range list {
 		row := make([]string, len(fields))
 		for i, f := range fields {
-			row[i] = memberExportFieldValue(m, f)
+			row[i] = memberExportFieldValue(m, f, loc)
 		}
 		rows = append(rows, row)
 	}
 	return rows
 }
 
-func memberExportFieldValue(m *model.Member, field string) string {
+func memberExportFieldValue(m *model.Member, field string, loc *time.Location) string {
 	switch field {
 	case "id":
 		return strconv.FormatInt(m.Id, 10)
@@ -251,24 +371,18 @@ func memberExportFieldValue(m *model.Member, field string) string {
 		}
 		return ""
 	case "stop_at":
-		return formatMemberTimeExport(m.StopAt)
+		return formatMemberTimeExport(m.StopAt, loc)
 	case "created_at":
-		return m.CreatedAt.Format("2006-01-02 15:04:05")
+		return m.CreatedAt.In(loc).Format("2006-01-02 15:04:05")
 	case "expire_at":
-		return formatMemberTimeExport(m.ExpireAt)
+		return formatMemberTimeExport(m.ExpireAt, loc)
 	case "ready_at", "min_offering_at":
-		return formatMemberTimeExport(m.MinOfferingAt)
+		return formatMemberTimeExport(m.MinOfferingAt, loc)
 	case "last_hangup_at", "last_activity_at":
 		if m.LastActivityAt == 0 {
 			return ""
 		}
-		return time.UnixMilli(m.LastActivityAt).Format("2006-01-02 15:04:05")
-	case "communications", "destination":
-		destinations := make([]string, 0, len(m.Communications))
-		for _, c := range m.Communications {
-			destinations = append(destinations, c.Destination)
-		}
-		return strings.Join(destinations, ", ")
+		return time.UnixMilli(m.LastActivityAt).In(loc).Format("2006-01-02 15:04:05")
 	case "variables":
 		pairs := make([]string, 0, len(m.Variables))
 		for k, v := range m.Variables {
@@ -276,15 +390,37 @@ func memberExportFieldValue(m *model.Member, field string) string {
 		}
 		return strings.Join(pairs, ", ")
 	default:
-		return ""
+		return memberExportCommunicationValue(m, field)
 	}
 }
 
-func formatMemberTimeExport(t *time.Time) string {
+func memberExportCommunicationValue(m *model.Member, field string) string {
+	value, n, ok := exportCommunicationColumn(field)
+	if !ok || n > len(m.Communications) || m.Communications[n-1] == nil {
+		return ""
+	}
+
+	return value(m.Communications[n-1])
+}
+
+func formatMemberTimeExport(t *time.Time, loc *time.Location) string {
 	if t == nil || t.IsZero() {
 		return ""
 	}
-	return t.Format("2006-01-02 15:04:05")
+	return t.In(loc).Format("2006-01-02 15:04:05")
+}
+
+func csvSeparatorRune(separator string) (rune, bool) {
+	if utf8.RuneCountInString(separator) != 1 {
+		return 0, false
+	}
+
+	r, _ := utf8.DecodeRuneInString(separator)
+	if r == utf8.RuneError || r == '"' || r == '\r' || r == '\n' {
+		return 0, false
+	}
+
+	return r, true
 }
 
 func generateMembersCSVChunk(headers []string, rows [][]string, page int, separator string) ([]byte, error) {
@@ -294,7 +430,9 @@ func generateMembersCSVChunk(headers []string, rows [][]string, page int, separa
 		buf.Write([]byte{0xEF, 0xBB, 0xBF})
 	}
 
-	if separator != "" {
+	comma, escapable := csvSeparatorRune(separator)
+
+	if separator != "" && !escapable {
 		if page == 1 {
 			buf.WriteString(strings.Join(headers, separator))
 			buf.WriteByte('\n')
@@ -307,6 +445,9 @@ func generateMembersCSVChunk(headers []string, rows [][]string, page int, separa
 	}
 
 	writer := csv.NewWriter(buf)
+	if escapable {
+		writer.Comma = comma
+	}
 
 	if page == 1 {
 		if err := writer.Write(headers); err != nil {

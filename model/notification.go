@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 )
 
+const NotificationSystemSettings = "system_settings"
+
 type Notification struct {
 	Id        int64  `json:"id" db:"id"`
 	DomainId  int64  `json:"-" db:"domain_id"`
@@ -20,6 +22,7 @@ type Notification struct {
 	Description string      `json:"description,omitempty" db:"description"`
 	Body        interface{} `json:"body,omitempty" db:"-"`
 	SockId      *string     `json:"sock_id,omitempty" db:"-"`
+	Broadcast   bool        `json:"-" db:"-"`
 }
 
 func (n *Notification) ToJson() string {

@@ -61,5 +61,6 @@ func (c *Controller) DeleteSystemSetting(ctx context.Context, session *auth_mana
 	if !session.HasAction(auth_manager.PermissionSystemSetting) {
 		return nil, c.app.MakeActionPermissionError(session, auth_manager.PermissionSystemSetting, auth_manager.PERMISSION_ACCESS_DELETE)
 	}
+
 	return c.app.RemoveSystemSetting(ctx, session.UserId, session.Domain(0), id)
 }

@@ -63,6 +63,7 @@ type CallClient interface {
 	Mute(id string, val bool) model.AppError
 	BlindTransfer(id, destination string) model.AppError
 	BlindTransferExt(id, destination string, vars map[string]string) model.AppError
+	BlindTransferSchema(id, destination string, vars map[string]string) model.AppError
 	ConfirmPushCall(id string) model.AppError
 
 	Close() error

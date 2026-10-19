@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -218,6 +219,32 @@ type OfflineMember struct {
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
 	CreatedAt      int64                 `json:"created_at" db:"created_at"`
 	Variables      StringMap             `json:"variables" db:"variables"`
+	HideNumber     string                `json:"hide_number" db:"hide_number"`
+}
+
+func (m *OfflineMember) ShouldMaskNumbers() bool {
+	should, err := strconv.ParseBool(m.HideNumber)
+	if err != nil {
+		return false
+	}
+
+	return should
+}
+
+func (m *OfflineMember) MaskNumbers() {
+	for i := range m.Communications {
+		comm := &m.Communications[i]
+
+		if !comm.IsPhone() {
+			continue
+		}
+
+		if strings.EqualFold(m.Name, comm.Destination) {
+			m.Name = HideString(m.Name, 5, 0, 2)
+		}
+
+		comm.Mask()
+	}
 }
 
 /*
@@ -427,6 +454,7 @@ type MemberCommunication struct {
 	Id             int64   `json:"id"`
 	Destination    string  `json:"destination"`
 	Type           Lookup  `json:"type"`
+	Channel        string  `json:"channel"`
 	Priority       int     `json:"priority"`
 	State          int     `json:"state"`
 	Description    string  `json:"description"`
@@ -442,6 +470,62 @@ type MemberCommunication struct {
 	ApiSub    string    `json:"api_sub"`
 	MemberID  string    `json:"member_id"`
 	MemberSub string    `json:"member_sub"`
+}
+
+func (c *MemberCommunication) IsPhone() bool {
+	return IsPhoneCommunicationChannel(c.Channel)
+}
+
+func (c *MemberCommunication) Mask() {
+	c.Destination = HideString(c.Destination, 5, 0, 2)
+}
+
+func (m *Member) SortCommunications(order string) {
+	order = strings.TrimSpace(order)
+	if order == "" || len(m.Communications) < 2 {
+		return
+	}
+
+	desc := false
+
+	switch order[0] {
+	case '-':
+		desc, order = true, order[1:]
+	case '+', ' ':
+		order = order[1:]
+	}
+
+	var less func(a, b *MemberCommunication) bool
+
+	switch order {
+	case "name", "destination":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Destination) < strings.ToLower(b.Destination)
+		}
+	case "type":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Type.Name) < strings.ToLower(b.Type.Name)
+		}
+	case "priority":
+		less = func(a, b *MemberCommunication) bool { return a.Priority < b.Priority }
+	default:
+		return
+	}
+
+	sort.SliceStable(m.Communications, func(i, j int) bool {
+		a, b := m.Communications[i], m.Communications[j]
+
+		switch {
+		case a == nil:
+			return false
+		case b == nil:
+			return true
+		case desc:
+			return less(b, a)
+		default:
+			return less(a, b)
+		}
+	})
 }
 
 func (m *Member) ToJsonCommunications() string {
@@ -463,6 +547,23 @@ func (m *Member) GetBucketId() *int64 {
 func (m *Member) GetAgentId() *int {
 	if m.Agent != nil {
 		return &m.Agent.Id
+	}
+
+	return nil
+}
+
+func IsPhoneCommunicationChannel(channel string) bool {
+	return channel != CommunicationChannelEmail && channel != CommunicationChannelMessaging
+}
+
+func ValidateMemberCommunicationDestinations(communications []*MemberCommunication, channelById map[int]string, memberName string) AppError {
+	for _, c := range communications {
+		if c == nil || !IsPhoneCommunicationChannel(channelById[c.Type.Id]) {
+			continue
+		}
+		if err := validatePhoneNumber(c.Destination); err != nil {
+			return NewBadRequestError("model.member.is_valid.communications.destination.format.app_error", "name="+memberName)
+		}
 	}
 
 	return nil

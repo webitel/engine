@@ -8,6 +8,38 @@ import (
 	"github.com/webitel/wlog"
 )
 
+func (app *App) resolveCommunicationTypeChannels(ctx context.Context, domainId int64, communications []*model.MemberCommunication) (map[int]string, model.AppError) {
+	ids := make([]uint32, 0, len(communications))
+	seen := make(map[int]bool, len(communications))
+
+	for _, c := range communications {
+		if c == nil || c.Type.Id < 1 || seen[c.Type.Id] {
+			continue
+		}
+		seen[c.Type.Id] = true
+		ids = append(ids, uint32(c.Type.Id))
+	}
+
+	if len(ids) == 0 {
+		return map[int]string{}, nil
+	}
+
+	types, _, err := app.GetCommunicationTypePage(ctx, domainId, &model.SearchCommunicationType{
+		ListRequest: model.ListRequest{PerPage: model.PER_PAGE_MAXIMUM},
+		Ids:         ids,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	channelById := make(map[int]string, len(types))
+	for _, t := range types {
+		channelById[int(t.Id)] = t.Channel
+	}
+
+	return channelById, nil
+}
+
 func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError) {
 	q, err := app.GetQueueById(ctx, domainId, member.QueueId)
 	if err != nil {
@@ -16,6 +48,15 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	if q.Type == 1 || q.Type == 6 {
 		return nil, model.NewBadRequestError("app.member.valid.queue", "Mismatch queue type")
 	}
+
+	channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, member.Communications)
+	if err != nil {
+		return nil, err
+	}
+	if err = model.ValidateMemberCommunicationDestinations(member.Communications, channelById, member.Name); err != nil {
+		return nil, err
+	}
+
 	member, err = app.Store.Member().Create(ctx, domainId, member)
 	if err != nil {
 		return nil, err
@@ -41,6 +82,14 @@ func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.S
 	return list, search.EndOfList(), nil
 }
 
+func (a *App) GetMaxMemberCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError) {
+	return a.Store.Member().GetMaxCommunicationsCount(ctx, domainId, search)
+}
+
+func (a *App) GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError) {
+	return a.Store.Member().GetUserTimezone(ctx, userId)
+}
+
 func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError) {
 	if len(members) == 0 {
 		return nil, nil
@@ -56,6 +105,21 @@ func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, f
 
 	if len(fileName) > 120 {
 		return nil, model.NewBadRequestError("app.member.valid.file_name", "The filename can not be more than 120 symbols")
+	}
+
+	allCommunications := make([]*model.MemberCommunication, 0, len(members))
+	for _, m := range members {
+		allCommunications = append(allCommunications, m.Communications...)
+	}
+	channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, allCommunications)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, m := range members {
+		if err = model.ValidateMemberCommunicationDestinations(m.Communications, channelById, m.Name); err != nil {
+			return nil, err
+		}
 	}
 
 	if len(members) == 1 {
@@ -102,6 +166,14 @@ func (app *App) UpdateMember(ctx context.Context, domainId int64, member *model.
 	oldMember.Agent = member.Agent
 	oldMember.Skill = member.Skill
 
+	channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, oldMember.Communications)
+	if err != nil {
+		return nil, err
+	}
+	if err = model.ValidateMemberCommunicationDestinations(oldMember.Communications, channelById, oldMember.Name); err != nil {
+		return nil, err
+	}
+
 	oldMember, err = app.Store.Member().Update(ctx, domainId, oldMember)
 	if err != nil {
 		return nil, err
@@ -124,6 +196,16 @@ func (app *App) PatchMember(ctx context.Context, domainId, queueId, id int64, pa
 
 	if err = oldMember.IsValid(app.MaxMemberCommunications()); err != nil {
 		return nil, err
+	}
+
+	if patch.Communications != nil {
+		channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, oldMember.Communications)
+		if err != nil {
+			return nil, err
+		}
+		if err = model.ValidateMemberCommunicationDestinations(oldMember.Communications, channelById, oldMember.Name); err != nil {
+			return nil, err
+		}
 	}
 
 	oldMember, err = app.Store.Member().Update(ctx, domainId, oldMember)
@@ -224,13 +306,31 @@ func (app *App) ListOfflineQueueForAgent(ctx context.Context, domainId int64, se
 	if err != nil {
 		return nil, false, err
 	}
+
 	search.RemoveLastElemIfNeed(&list)
+
+	for _, m := range list {
+		if m.ShouldMaskNumbers() {
+			m.MaskNumbers()
+		}
+	}
+
 	return list, search.EndOfList(), nil
 }
 
-func (app *App) ReportingAttempt(attemptId int64, status, description string, nextOffering *int64, expireAt *int64, vars map[string]string,
-	stickyDisplay bool, agentId int32, excludeDes bool, waitBetweenRetries *int32, onlyComm bool) model.AppError {
-
+func (app *App) ReportingAttempt(
+	attemptId int64,
+	status, description string,
+	nextOffering *int64,
+	expireAt *int64,
+	vars map[string]string,
+	stickyDisplay bool,
+	agentId int32,
+	excludeDes bool,
+	waitBetweenRetries *int32,
+	onlyComm bool,
+	draft bool,
+) model.AppError {
 	res := &cc.AttemptResultRequest{
 		AttemptId:                   attemptId,
 		Status:                      status,
@@ -243,6 +343,7 @@ func (app *App) ReportingAttempt(attemptId int64, status, description string, ne
 		AgentId:                     agentId,
 		ExcludeCurrentCommunication: excludeDes,
 		OnlyCurrentCommunication:    onlyComm,
+		Draft:                       draft,
 	}
 
 	if expireAt != nil {
@@ -257,9 +358,7 @@ func (app *App) ReportingAttempt(attemptId int64, status, description string, ne
 		res.WaitBetweenRetries = *waitBetweenRetries
 	}
 
-	err := app.cc.Member().AttemptResult(res)
-
-	if err != nil {
+	if err := app.cc.Member().AttemptResult(res); err != nil {
 		return model.NewBadRequestError("app.cc_member.reporting.app_err", err.Error())
 	}
 
@@ -331,6 +430,15 @@ func (app *App) InterceptAttempt(domainId, attemptId int64, agentId int32) model
 	return nil
 }
 
+func (app *App) TransferAttempt(ctx context.Context, domainId, attemptId int64, agentId, queueId int32) model.AppError {
+	err := app.cc.Member().TransferAttempt(ctx, domainId, attemptId, agentId, queueId)
+	if err != nil {
+		return model.NewBadRequestError("app.cc_member.transfer.app_err", err.Error())
+	}
+
+	return nil
+}
+
 // GetOwnAgentId resolves the agent_id linked to the given user
 func (app *App) GetOwnAgentId(ctx context.Context, domainId, userId int64) (int32, model.AppError) {
 	info, err := app.Store.Agent().DistributeInfoByUserId(ctx, domainId, userId, "chat")
@@ -343,6 +451,10 @@ func (app *App) GetOwnAgentId(ctx context.Context, domainId, userId int64) (int3
 
 func (app *App) IsAgentChatChannelOnline(ctx context.Context, agentId int32) (bool, model.AppError) {
 	return app.Store.Agent().IsAgentChannelOnline(ctx, int64(agentId), "chat")
+}
+
+func (app *App) AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError) {
+	return app.Store.Member().AttemptAgentUserId(ctx, domainId, attemptId)
 }
 
 func (app *App) MemberQueueId(ctx context.Context, domainId int64, memberId int64) (int64, model.AppError) {

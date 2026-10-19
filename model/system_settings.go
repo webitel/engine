@@ -50,6 +50,7 @@ const (
 	SysNameLoginOptions                      = "login_options"
 	SysNameDefaultMembersFilter              = "default_members_filter"
 	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
+	SysNameRecordAllCalls                    = "record_all_calls"
 )
 
 type SysValue json.RawMessage
@@ -159,7 +160,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNamePasswordContainsLogin,
 		SysNameExpandContactTabs,
 		SysNameBlockAllMemberNumbers,
-		SysNameSelfAssignedCallSoundNotification:
+		SysNameSelfAssignedCallSoundNotification,
+		SysNameRecordAllCalls:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
@@ -195,6 +197,69 @@ func (s *SystemSetting) IsValid() AppError {
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
 	}
 	return nil
+}
+
+var sensitiveSystemSettings = map[string]struct{}{
+	SysNameDefaultPassword:  {},
+	SysNameChatAiConnection: {},
+}
+
+var liveSystemSettings = map[string]struct{}{
+	SysNameCallEndSoundNotification:          {},
+	SysNameCallEndPushNotification:           {},
+	SysNameChatEndSoundNotification:          {},
+	SysNameChatEndPushNotification:           {},
+	SysNameTaskEndSoundNotification:          {},
+	SysNameTaskEndPushNotification:           {},
+	SysNamePushNotificationTimeout:           {},
+	SysNameNewMessageSoundNotification:       {},
+	SysNameNewChatSoundNotification:          {},
+	SysNameSelfAssignedCallSoundNotification: {},
+	SysNameHideContact:                       {},
+	SysNameShowFullContact:                   {},
+	SysNameExpandContactTabs:                 {},
+	SysNameDefaultWorkspaceTab:               {},
+	SysNameScreenshotInterval:                {},
+}
+
+func IsSensitiveSystemSetting(name string) bool {
+	_, ok := sensitiveSystemSettings[name]
+
+	return ok
+}
+
+func IsLiveSystemSetting(name string) bool {
+	_, ok := liveSystemSettings[name]
+
+	return ok
+}
+
+func (s *SystemSetting) Sanitized() *SystemSetting {
+	c := *s
+	if IsSensitiveSystemSetting(s.Name) {
+		c.Value = nil
+	}
+
+	return &c
+}
+
+func NewSystemSettingsNotification(domainID int64, s *SystemSetting) *Notification {
+	if s == nil || !IsLiveSystemSetting(s.Name) {
+		return nil
+	}
+
+	body := map[string]any{"name": s.Name}
+	if !IsSensitiveSystemSetting(s.Name) && len(s.Value) != 0 {
+		body["value"] = s.Value
+	}
+
+	return &Notification{
+		DomainId:  domainID,
+		Action:    NotificationSystemSettings,
+		CreatedAt: GetMillis(),
+		Body:      body,
+		Broadcast: true,
+	}
 }
 
 func (s *SystemSetting) ValueEquals(other *SystemSetting) bool {

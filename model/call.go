@@ -188,6 +188,11 @@ type BridgeCall struct {
 	AppId     string `json:"app_id" db:"app_id"`
 }
 
+type BridgedCall struct {
+	ID          string `json:"id" db:"id"`
+	Destination string `json:"destination" db:"destination"`
+}
+
 type BlindTransferInfo struct {
 	Id              string `json:"id" db:"id"`
 	ContactId       *int64 `json:"contact_id" db:"contact_id"`
@@ -679,48 +684,50 @@ type SearchCall struct {
 
 type SearchHistoryCall struct {
 	ListRequest
-	CreatedAt        *FilterBetween
-	Duration         *FilterBetween
-	AnsweredAt       *FilterBetween
-	StoredAt         *FilterBetween
-	Number           string
-	ParentId         *string
-	Cause            *string
-	CauseArr         []string // fixme
-	Direction        *string
-	Directions       []string // fixme
-	Missed           *bool
-	SkipParent       bool
-	UserIds          []int64
-	QueueIds         []int64
-	TeamIds          []int64
-	AgentIds         []int64
-	MemberIds        []int64
-	GatewayIds       []int64
-	Ids              []string
-	TransferFromIds  []string
-	TransferToIds    []string
-	DependencyIds    []string
-	Tags             []string
-	Variables        StringMap
-	AmdResult        []string
-	HasFile          *bool
-	HasTranscript    *bool
-	Fts              *string
-	AgentDescription string
-	OwnerIds         []int64
-	GranteeIds       []int64
-	AmdAiResult      []string
-	RatedUserIds     []int64
-	RatedByIds       []int64
-	ScoreOptional    *FilterBetween
-	ScoreRequired    *FilterBetween
-	Rated            *bool `json:"rated" db:"rated"`
-	Talk             *FilterBetween
-	ContactIds       []int64
-	SchemaIds        []int32
-	HasTransfer      *bool
-	Timeline         *bool
+
+	CreatedAt          *FilterBetween
+	Duration           *FilterBetween
+	AnsweredAt         *FilterBetween
+	StoredAt           *FilterBetween
+	Number             string
+	ParentId           *string
+	Cause              *string
+	CauseArr           []string // fixme
+	Direction          *string
+	Directions         []string // fixme
+	Missed             *bool
+	SkipParent         bool
+	UserIds            []int64
+	QueueIds           []int64
+	TeamIds            []int64
+	AgentIds           []int64
+	MemberIds          []int64
+	GatewayIds         []int64
+	Ids                []string
+	TransferFromIds    []string
+	TransferToIds      []string
+	DependencyIds      []string
+	Tags               []string
+	Variables          StringMap
+	AmdResult          []string
+	HasFile            *bool
+	HasTranscript      *bool
+	Fts                *string
+	AgentDescription   string
+	OwnerIds           []int64
+	GranteeIds         []int64
+	AmdAiResult        []string
+	RatedUserIds       []int64
+	RatedByIds         []int64
+	ScoreOptional      *FilterBetween
+	ScoreRequired      *FilterBetween
+	Rated              *bool `json:"rated" db:"rated"`
+	Talk               *FilterBetween
+	ContactIds         []int64
+	SchemaIds          []int32
+	HasTransfer        *bool
+	Timeline           *bool
+	ExcludedQueueTypes []int8
 }
 
 type CallEventInfo struct {

@@ -109,6 +109,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		SchemaIds:        in.GetSchemaId(),
 	}
 
+	if excludedQueueTypes := toQueueTypes(in.GetExcludedQueueTypes()); len(excludedQueueTypes) > 0 {
+		req.ExcludedQueueTypes = excludedQueueTypes
+	}
+
 	if in.HasFile != nil {
 		req.HasFile = model.NewBool(in.GetHasFile().GetValue())
 	}
@@ -1427,4 +1431,50 @@ func setAccessString(str string, min, p, s int, h bool) string {
 	}
 
 	return model.HideString(str, min, p, s)
+}
+
+func toQueueTypes(types []engine.QueueType) []int8 {
+	l := len(types)
+	if l == 0 {
+		return nil
+	}
+
+	qt := make([]int8, 0, l)
+
+	for _, t := range types {
+		if parsed := toQueueType(t); t >= 0 {
+			qt = append(qt, parsed)
+		}
+	}
+
+	return qt
+}
+
+func toQueueType(t engine.QueueType) int8 {
+	switch t {
+	case engine.QueueType_QUEUE_TYPE_AGENT_TASK:
+		return model.QueueTypeAgentTask
+	case engine.QueueType_QUEUE_TYPE_INBOUND_CALL:
+		return model.QueueTypeInboundCall
+	case engine.QueueType_QUEUE_TYPE_INBOUND_CHAT:
+		return model.QueueTypeInboundChat
+	case engine.QueueType_QUEUE_TYPE_INBOUND_IM:
+		return model.QueueTypeInboundIM
+	case engine.QueueType_QUEUE_TYPE_IVR_CALL:
+		return model.QueueTypeIVRCall
+	case engine.QueueType_QUEUE_TYPE_OFFLINE:
+		return model.QueueTypeOfflineCall
+	case engine.QueueType_QUEUE_TYPE_OUTBOUND_CALL:
+		return model.QueueTypeOutboundCall
+	case engine.QueueType_QUEUE_TYPE_OUTBOUND_TASK:
+		return model.QueueTypeOutboundTask
+	case engine.QueueType_QUEUE_TYPE_PREDICTIVE_CALL:
+		return model.QueueTypePredictCall
+	case engine.QueueType_QUEUE_TYPE_PREVIEW_CALL:
+		return model.QueueTypePreviewCall
+	case engine.QueueType_QUEUE_TYPE_PROGRESSIVE_CALL:
+		return model.QueueTypeProgressiveCall
+	default:
+		return -1
+	}
 }

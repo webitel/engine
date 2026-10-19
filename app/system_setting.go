@@ -27,7 +27,7 @@ func (a *App) CreateSystemSetting(ctx context.Context, userId, domainId int64, s
 	}
 	invalidateCachedSystemSetting(domainId, setting.Name)
 	// publish event
-	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventCreateAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventCreateAction, domainId, userId)
 	if err != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", err.Error())
@@ -98,7 +98,7 @@ func (a *App) UpdateSystemSetting(ctx context.Context, userId, domainId int64, s
 	}
 	invalidateCachedSystemSetting(domainId, oldSetting.Name)
 	// publish event
-	appErr = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	appErr = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, domainId, userId)
 	if appErr != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", appErr.Error())
@@ -125,7 +125,7 @@ func (a *App) PatchSystemSetting(ctx context.Context, userId, domainId int64, id
 	}
 	invalidateCachedSystemSetting(domainId, oldSetting.Name)
 	// publish event
-	err = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	err = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, domainId, userId)
 	if err != nil {
 		// event generation error
 		return nil, model.NewInternalError("app.system_settings.patch_system_setting.generate_regeneration_event.error", err.Error())
@@ -133,22 +133,23 @@ func (a *App) PatchSystemSetting(ctx context.Context, userId, domainId int64, id
 	return oldSetting, nil
 }
 
-func (a *App) RemoveSystemSetting(ctx context.Context, userId, domainId int64, id int32) (*model.SystemSetting, model.AppError) {
-	setting, err := a.GetSystemSetting(ctx, domainId, id)
+func (a *App) RemoveSystemSetting(ctx context.Context, userID, domainID int64, id int32) (*model.SystemSetting, model.AppError) {
+	setting, err := a.GetSystemSetting(ctx, domainID, id)
 	if err != nil {
 		return nil, err
 	}
 
-	err = a.Store.SystemSettings().Delete(ctx, domainId, id)
+	err = a.Store.SystemSettings().Delete(ctx, domainID, id)
 	if err != nil {
 		return nil, err
 	}
-	invalidateCachedSystemSetting(domainId, setting.Name)
+	invalidateCachedSystemSetting(domainID, setting.Name)
 
-	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventDeleteAction, strconv.FormatInt(domainId, 10), strconv.FormatInt(userId, 10))
+	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventDeleteAction, domainID, userID)
 	if err != nil {
 		return nil, model.NewInternalError("app.system_settings.remove_system_setting.generate_regeneration_event.error", err.Error())
 	}
+
 	return setting, nil
 }
 
@@ -173,36 +174,31 @@ func (a *App) GetAvailableSystemSetting(ctx context.Context, domainId int64, sea
 }
 
 // PublishSysSettingEventContext handles the publishing system setting change/create/delete event to the broker, pass old setting as nil for a creation action and old = nil and new = nil for deletion.
-//
-// keys parameter sets the additional nodes to the message's routing key
-func (a *App) PublishSysSettingEventContext(ctx context.Context, new *model.SystemSetting, old *model.SystemSetting, action string, keys ...string) model.AppError {
+func (a *App) PublishSysSettingEventContext(ctx context.Context, newSetting, old *model.SystemSetting, action string, domainID, userID int64) model.AppError {
 	// validation
 	switch action {
 	case EventUpdateAction:
-		if old == nil || new == nil {
+		if old == nil || newSetting == nil {
 			return model.NewInternalError("app.system_setting.setting_event_context.args_check.bad_arg", fmt.Sprintf("[%s] action requires old and new setting copies", action))
 		}
-		if new.ValueEquals(old) {
+
+		if newSetting.ValueEquals(old) {
 			return nil
 		}
 	case EventCreateAction, EventDeleteAction:
-		if new == nil {
+		if newSetting == nil {
 			return model.NewInternalError("app.system_setting.setting_event_context.args_check.bad_arg", fmt.Sprintf("[%s] action requires new value", action))
 		}
 	default:
 		return model.NewInternalError("app.system_setting.publish_setting_event_context.args_check.unknown_action", fmt.Sprintf("[%s] unknown action", action))
 	}
-	var newKeys []string
-	// construct
-	newKeys = append(newKeys, new.Name, action)
-	newKeys = append(newKeys, keys...)
-	body, err := json.Marshal(new)
+
+	newKeys := []string{newSetting.Name, action, strconv.FormatInt(domainID, 10), strconv.FormatInt(userID, 10)}
+
+	body, err := json.Marshal(newSetting.Sanitized())
 	if err != nil {
 		return model.NewInternalError("app.system_setting.publish_setting_event_context.update_marshal.error", err.Error())
 	}
-	appErr := a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...)
-	if appErr != nil {
-		return appErr
-	}
-	return nil
+
+	return a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...)
 }
