@@ -412,9 +412,10 @@ func (a *AMQP) SetDomainsEventHandler(h mq.DomainEventHandler) {
 func (a *AMQP) initSystemSettings(ctx context.Context) error {
 	queueCfg := NewQueueConfig(
 		fmt.Sprintf("engine.system_settings.%s", model.NewId()[0:10]),
-		WithQueueDurable(true),
-		WithQueueArg("x-queue-type", "quorum"),
-		WithQueueArg("x-expires", 10000),
+		WithQueueDurable(false),
+		WithQueueAutoDelete(true),
+		WithQueueExclusive(true),
+		WithQueueNoWait(false),
 	)
 
 	bq := NewBrokerQueue(
