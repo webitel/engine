@@ -25,9 +25,11 @@ func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &model.SystemSetting{Name: model.SysNameRecordAllCalls, Value: tc.value}
 			err := s.IsValid()
+
 			if tc.wantErr && err == nil {
 				t.Fatalf("expected error for value %s, got nil", tc.value)
 			}
+
 			if !tc.wantErr && err != nil {
 				t.Fatalf("expected no error for value %s, got %v", tc.value, err)
 			}
