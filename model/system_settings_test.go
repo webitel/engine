@@ -37,6 +37,41 @@ func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
 	}
 }
 
+func TestSystemSetting_IsValid_KnowledgeBase(t *testing.T) {
+	cases := []struct {
+		name    string
+		setting string
+		value   json.RawMessage
+		wantErr bool
+	}{
+		{name: "version limit one", setting: model.SysNameKnowledgeBaseVersionLimit, value: json.RawMessage(`1`), wantErr: false},
+		{name: "version limit ten", setting: model.SysNameKnowledgeBaseVersionLimit, value: json.RawMessage(`10`), wantErr: false},
+		{name: "version limit zero", setting: model.SysNameKnowledgeBaseVersionLimit, value: json.RawMessage(`0`), wantErr: true},
+		{name: "version limit negative", setting: model.SysNameKnowledgeBaseVersionLimit, value: json.RawMessage(`-1`), wantErr: true},
+		{name: "version limit string", setting: model.SysNameKnowledgeBaseVersionLimit, value: json.RawMessage(`"x"`), wantErr: true},
+		{name: "tags mode and", setting: model.SysNameTagsFiltrationMode, value: json.RawMessage(`"AND"`), wantErr: false},
+		{name: "tags mode or", setting: model.SysNameTagsFiltrationMode, value: json.RawMessage(`"OR"`), wantErr: false},
+		{name: "tags mode lower case", setting: model.SysNameTagsFiltrationMode, value: json.RawMessage(`"and"`), wantErr: true},
+		{name: "tags mode empty", setting: model.SysNameTagsFiltrationMode, value: json.RawMessage(`""`), wantErr: true},
+		{name: "tags mode number", setting: model.SysNameTagsFiltrationMode, value: json.RawMessage(`1`), wantErr: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &model.SystemSetting{Name: tc.setting, Value: tc.value}
+			err := s.IsValid()
+
+			if tc.wantErr && err == nil {
+				t.Fatalf("expected error for value %s, got nil", tc.value)
+			}
+
+			if !tc.wantErr && err != nil {
+				t.Fatalf("expected no error for value %s, got %v", tc.value, err)
+			}
+		})
+	}
+}
+
 func TestSystemSetting_Sanitized(t *testing.T) {
 	cases := []struct {
 		name      string
