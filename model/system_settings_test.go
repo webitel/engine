@@ -37,6 +37,36 @@ func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
 	}
 }
 
+func TestSystemSetting_IsValid_AutoGenerateExtensionNumber(t *testing.T) {
+	cases := []struct {
+		name    string
+		value   json.RawMessage
+		wantErr bool
+	}{
+		{name: "positive", value: json.RawMessage(`205`), wantErr: false},
+		{name: "one", value: json.RawMessage(`1`), wantErr: false},
+		{name: "zero", value: json.RawMessage(`0`), wantErr: true},
+		{name: "negative", value: json.RawMessage(`-5`), wantErr: true},
+		{name: "string", value: json.RawMessage(`"205"`), wantErr: true},
+		{name: "bool", value: json.RawMessage(`true`), wantErr: true},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &model.SystemSetting{Name: model.SysNameAutoGenerateExtensionNumber, Value: tc.value}
+			err := s.IsValid()
+
+			if tc.wantErr && err == nil {
+				t.Fatalf("expected error for value %s, got nil", tc.value)
+			}
+
+			if !tc.wantErr && err != nil {
+				t.Fatalf("expected no error for value %s, got %v", tc.value, err)
+			}
+		})
+	}
+}
+
 func TestSystemSetting_Sanitized(t *testing.T) {
 	cases := []struct {
 		name      string
