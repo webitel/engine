@@ -42,12 +42,12 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 		checkFilled func(t *testing.T, members []*model.Member)
 	}{
 		{
-			name:        "type-less comm filled with call default",
+			name:        "type-less comm filled with phone default",
 			queueType:   model.QueueTypeProgressiveCall,
 			def:         &model.CommunicationType{Id: 42, Name: "Mobile"},
 			members:     []*model.Member{{Communications: []*model.MemberCommunication{{Destination: "380000", Type: model.Lookup{Id: 0}}}}},
 			wantCalls:   1,
-			wantChannel: model.CommunicationChannelCall,
+			wantChannel: model.CommunicationChannelPhone,
 			checkFilled: func(t *testing.T, members []*model.Member) {
 				got := members[0].Communications[0].Type
 				if got.Id != 42 || got.Name != "Mobile" {
@@ -56,12 +56,12 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 			},
 		},
 		{
-			name:        "task queue resolves task channel",
-			queueType:   model.QueueTypeOfflineTask,
-			def:         &model.CommunicationType{Id: 7, Name: "Job"},
+			name:        "im queue resolves messaging channel",
+			queueType:   model.QueueTypeInboundIM,
+			def:         &model.CommunicationType{Id: 7, Name: "Telegram"},
 			members:     []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}}}},
 			wantCalls:   1,
-			wantChannel: model.CommunicationChannelTask,
+			wantChannel: model.CommunicationChannelMessaging,
 		},
 		{
 			name:      "already-typed comm left unchanged, store not queried",

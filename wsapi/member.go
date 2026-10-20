@@ -143,7 +143,7 @@ func (api *API) processingSaveFormAttempt(ctx context.Context, conn *app.WebConn
 	return res, nil
 }
 
-func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
 	var attemptId, agentId float64
 	var ok bool
 	var nextDistributeAt *int64
@@ -184,14 +184,29 @@ func (api *API) reporting(ctx context.Context, conn *app.WebConn, req *model.Web
 
 	agentId, _ = req.Data["agent_id"].(float64)
 
-	err := api.ctrl.ReportingAttempt(conn.GetSession(), int64(attemptId), status, description, nextDistributeAt, expire,
-		nil, display, int32(agentId), exclDes, waitBetweenRetries, onlyComm)
+	draft, _ := req.Get("draft").(bool)
+
+	err := api.ctrl.ReportingAttempt(
+		conn.GetSession(),
+		int64(attemptId),
+		status,
+		description,
+		nextDistributeAt,
+		expire,
+		nil,
+		display,
+		int32(agentId),
+		exclDes,
+		waitBetweenRetries,
+		onlyComm,
+		draft,
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	return res, nil
+	return make(map[string]any), nil
 }
 
 func (api *API) memberDirect(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -229,42 +244,36 @@ func (api *API) memberDirect(ctx context.Context, conn *app.WebConn, req *model.
 }
 
 func (api *API) offlineMembers(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId float64
-	var domainId float64
-	var page float64
-	var size float64
-	var q string
-	var ok bool
-
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+	agentID, ok := req.Get("agent_id").(float64)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
 	}
 
-	if domainId, ok = req.Data["domain_id"].(float64); !ok {
-		domainId = float64(conn.DomainId)
-	}
-
-	page, _ = req.Data["page"].(float64)
-	size, _ = req.Data["size"].(float64)
-	q, _ = req.Data["q"].(string)
+	page, _ := req.Get("page").(float64)
+	size, _ := req.Get("per_page").(float64)
+	q, _ := req.Get("q").(string)
+	sort, _ := req.Get("sort").(string)
 
 	list, end, err := api.ctrl.ListOfflineQueueForAgent(ctx, conn.GetSession(), &model.SearchOfflineQueueMembers{
 		ListRequest: model.ListRequest{
 			Q:        q,
 			Page:     int(page),
 			PerPage:  int(size),
-			DomainId: int64(domainId),
+			DomainId: conn.DomainId,
+			Sort:     sort,
 		},
-		AgentId: int(agentId),
+		AgentId: int(agentID),
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	res["items"] = list
-	res["next"] = !end
+	res := map[string]any{
+		"items": list,
+		"next":  !end,
+	}
+
 	return res, nil
 }
 

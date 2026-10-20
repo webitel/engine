@@ -70,6 +70,10 @@ func (l *LayeredMQ) Send(ctx context.Context, exchange string, rk string, body [
 	return l.MQLayer.Send(ctx, exchange, rk, body)
 }
 
-func (l *LayeredMQ) SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError {
+func (l *LayeredMQ) SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in any) model.AppError {
 	return l.MQLayer.SendStartFlow(ctx, domainId, schemaId, in)
+}
+
+func (l *LayeredMQ) SetDomainsEventHandler(h DomainEventHandler) {
+	l.MQLayer.SetDomainsEventHandler(h)
 }

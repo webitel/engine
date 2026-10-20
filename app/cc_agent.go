@@ -244,12 +244,11 @@ func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId int64, super
 	return list, search.EndOfList(), nil
 }
 
-// agent_id check
-func (a *App) AcceptTask(appId string, domainId int64, attemptId int64) model.AppError {
-	err := a.cc.Agent().AcceptTask(appId, domainId, attemptId)
-	if err != nil {
+func (a *App) AcceptTask(ctx context.Context, req *model.AcceptAttemptRequest) model.AppError {
+	if err := a.cc.Agent().AcceptTask(ctx, req); err != nil {
 		return model.NewInternalError("app.cc.accept_task", err.Error())
 	}
+
 	return nil
 }
 

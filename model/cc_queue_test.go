@@ -208,13 +208,14 @@ func TestQueue_MemberCommunicationChannel(t *testing.T) {
 		qType int8
 		want  string
 	}{
-		{name: "offline task queue", qType: model.QueueTypeOfflineTask, want: model.CommunicationChannelTask},
-		{name: "inbound call queue", qType: model.QueueTypeInboundCall, want: model.CommunicationChannelCall},
-		{name: "progressive call queue", qType: model.QueueTypeProgressiveCall, want: model.CommunicationChannelCall},
-		{name: "predict call queue", qType: model.QueueTypePredictCall, want: model.CommunicationChannelCall},
-		{name: "inbound chat queue", qType: model.QueueTypeInboundChat, want: model.CommunicationChannelCall},
-		{name: "inbound im queue", qType: model.QueueTypeInboundIM, want: model.CommunicationChannelCall},
-		{name: "zero type", qType: 0, want: model.CommunicationChannelCall},
+		{name: "inbound im queue", qType: model.QueueTypeInboundIM, want: model.CommunicationChannelMessaging},
+		{name: "offline call queue", qType: model.QueueTypeOfflineCall, want: model.CommunicationChannelPhone},
+		{name: "preview call queue", qType: model.QueueTypePreviewCall, want: model.CommunicationChannelPhone},
+		{name: "progressive call queue", qType: model.QueueTypeProgressiveCall, want: model.CommunicationChannelPhone},
+		{name: "predict call queue", qType: model.QueueTypePredictCall, want: model.CommunicationChannelPhone},
+		{name: "outbound call queue", qType: model.QueueTypeOutboundCall, want: model.CommunicationChannelPhone},
+		{name: "agent task queue", qType: model.QueueTypeAgentTask, want: model.CommunicationChannelPhone},
+		{name: "outbound task queue", qType: model.QueueTypeOutboundTask, want: model.CommunicationChannelPhone},
 	}
 
 	for _, tt := range tests {

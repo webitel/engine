@@ -84,13 +84,15 @@ func (api *agentApi) WaitingChannel(agentId int, channel string) (int64, error) 
 
 }
 
-func (api *agentApi) AcceptTask(appId string, domainId, attemptId int64) error {
-	ctx := api.StaticHost(context.Background(), appId)
+func (api *agentApi) AcceptTask(ctx context.Context, request *model.AcceptAttemptRequest) error {
+	outCtx := api.StaticHost(ctx, request.AppID)
 
-	_, err := api.Api.AcceptTask(ctx, &cc.AcceptTaskRequest{
-		Id:       attemptId,
-		AppId:    appId,
-		DomainId: domainId,
+	_, err := api.Api.AcceptTask(outCtx, &cc.AcceptTaskRequest{
+		Id:       request.AttemptID,
+		AppId:    request.AppID,
+		DomainId: request.DomainID,
+		UserId:   request.UserID,
+		AgentId:  request.AgentID,
 	})
 
 	return err

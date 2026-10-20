@@ -1,8 +1,9 @@
 package model
 
 const (
-	CommunicationChannelCall = "call"
-	CommunicationChannelTask = "task"
+	CommunicationChannelPhone     = "Phone"
+	CommunicationChannelEmail     = "Email"
+	CommunicationChannelMessaging = "Messaging"
 )
 
 type CommunicationType struct {

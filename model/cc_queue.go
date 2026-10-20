@@ -7,12 +7,17 @@ import (
 )
 
 const (
-	QueueTypeInboundCall     int8 = 1
-	QueueTypeProgressiveCall int8 = 4
-	QueueTypePredictCall     int8 = 5
-	QueueTypeInboundChat     int8 = 6
-	QueueTypeOfflineTask     int8 = 7
-	QueueTypeInboundIM       int8 = 9
+	QueueTypeOfflineCall int8 = iota
+	QueueTypeInboundCall
+	QueueTypeIVRCall
+	QueueTypePreviewCall
+	QueueTypeProgressiveCall
+	QueueTypePredictCall
+	QueueTypeInboundChat
+	QueueTypeAgentTask
+	QueueTypeOutboundTask
+	QueueTypeInboundIM
+	QueueTypeOutboundCall
 )
 
 const (
@@ -493,10 +498,10 @@ func (q *Queue) IsProgressiveOrPredictive() bool {
 }
 
 func (q *Queue) MemberCommunicationChannel() string {
-	if q.Type == QueueTypeOfflineTask {
-		return CommunicationChannelTask
+	if q.Type == QueueTypeInboundIM {
+		return CommunicationChannelMessaging
 	}
-	return CommunicationChannelCall
+	return CommunicationChannelPhone
 }
 
 func (q *Queue) RequireCalendar() bool {
