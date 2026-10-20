@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
@@ -81,23 +82,30 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	return member, nil
 }
 
-func (app *App) fillDefaultCommunications(ctx context.Context, domainId int64, q *model.Queue, members ...*model.Member) model.AppError {
+func (app *App) fillDefaultCommunications(ctx context.Context, domainID int64, q *model.Queue, members ...*model.Member) model.AppError {
 	channel := q.MemberCommunicationChannel()
+
 	var def *model.CommunicationType
+
 	for _, m := range members {
 		for _, c := range m.Communications {
 			if c == nil || c.Type.Id > 0 {
 				continue
 			}
+
 			if def == nil {
 				var err model.AppError
-				if def, err = app.Store.CommunicationType().GetDefault(ctx, domainId, channel); err != nil {
+
+				def, err = app.Store.CommunicationType().GetDefault(ctx, domainID, channel)
+				if err != nil {
+					if err.GetStatusCode() == http.StatusNotFound {
+						return model.NewBadRequestError("app.member.communications.default_type.not_found", "channel="+channel)
+					}
+
 					return err
 				}
-				if def == nil {
-					return model.NewBadRequestError("app.member.communications.default_type.not_found", "channel="+channel)
-				}
 			}
+
 			c.Type = model.Lookup{Id: int(def.Id), Name: def.Name}
 		}
 	}

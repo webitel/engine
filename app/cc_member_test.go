@@ -10,6 +10,7 @@ import (
 
 type fakeCommTypeStore struct {
 	store.CommunicationTypeStore
+
 	def         *model.CommunicationType
 	err         model.AppError
 	calls       int
@@ -19,11 +20,13 @@ type fakeCommTypeStore struct {
 func (f *fakeCommTypeStore) GetDefault(_ context.Context, _ int64, channel string) (*model.CommunicationType, model.AppError) {
 	f.calls++
 	f.lastChannel = channel
+
 	return f.def, f.err
 }
 
 type fakeStore struct {
 	store.Store
+
 	comm store.CommunicationTypeStore
 }
 
@@ -34,6 +37,7 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 		name        string
 		queueType   int8
 		def         *model.CommunicationType
+		storeErr    model.AppError
 		members     []*model.Member
 		wantErr     bool
 		wantErrID   string
@@ -49,6 +53,8 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 			wantCalls:   1,
 			wantChannel: model.CommunicationChannelPhone,
 			checkFilled: func(t *testing.T, members []*model.Member) {
+				t.Helper()
+
 				got := members[0].Communications[0].Type
 				if got.Id != 42 || got.Name != "Mobile" {
 					t.Errorf("type not filled: got %+v, want {42 Mobile}", got)
@@ -70,6 +76,8 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 			members:   []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 5, Name: "Work"}}}}},
 			wantCalls: 0,
 			checkFilled: func(t *testing.T, members []*model.Member) {
+				t.Helper()
+
 				if got := members[0].Communications[0].Type; got.Id != 5 {
 					t.Errorf("typed comm mutated: got %+v", got)
 				}
@@ -78,10 +86,19 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 		{
 			name:      "no default configured -> not_found error",
 			queueType: model.QueueTypeProgressiveCall,
-			def:       nil,
+			storeErr:  model.NewNotFoundError("store.sql_communication_type.get_default.app_error", "no rows"),
 			members:   []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}}}},
 			wantErr:   true,
 			wantErrID: "app.member.communications.default_type.not_found",
+			wantCalls: 1,
+		},
+		{
+			name:      "store failure is returned as is",
+			queueType: model.QueueTypeProgressiveCall,
+			storeErr:  model.NewInternalError("store.sql_communication_type.get_default.app_error", "conn refused"),
+			members:   []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}}}},
+			wantErr:   true,
+			wantErrID: "store.sql_communication_type.get_default.app_error",
 			wantCalls: 1,
 		},
 		{
@@ -94,6 +111,8 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 			},
 			wantCalls: 1,
 			checkFilled: func(t *testing.T, members []*model.Member) {
+				t.Helper()
+
 				for _, m := range members {
 					for _, c := range m.Communications {
 						if c != nil && c.Type.Id == 0 {
@@ -107,24 +126,27 @@ func TestApp_fillDefaultCommunications(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fake := &fakeCommTypeStore{def: tt.def}
+			fake := &fakeCommTypeStore{def: tt.def, err: tt.storeErr}
 			app := &App{Store: &fakeStore{comm: fake}}
 			q := &model.Queue{Type: tt.queueType}
 
 			err := app.fillDefaultCommunications(context.Background(), 1, q, tt.members...)
-
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("fillDefaultCommunications() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			if tt.wantErr && tt.wantErrID != "" && err.GetId() != tt.wantErrID {
 				t.Errorf("err.Id = %v, want %v", err.GetId(), tt.wantErrID)
 			}
+
 			if fake.calls != tt.wantCalls {
 				t.Errorf("GetDefault calls = %d, want %d", fake.calls, tt.wantCalls)
 			}
+
 			if tt.wantChannel != "" && fake.lastChannel != tt.wantChannel {
 				t.Errorf("resolved channel = %q, want %q", fake.lastChannel, tt.wantChannel)
 			}
+
 			if tt.checkFilled != nil {
 				tt.checkFilled(t, tt.members)
 			}

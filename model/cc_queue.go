@@ -501,6 +501,7 @@ func (q *Queue) MemberCommunicationChannel() string {
 	if q.Type == QueueTypeInboundIM {
 		return CommunicationChannelMessaging
 	}
+
 	return CommunicationChannelPhone
 }
 
