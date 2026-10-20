@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
@@ -21,7 +22,6 @@ func (c *Controller) CreateSystemSetting(ctx context.Context, session *auth_mana
 }
 
 func (c *Controller) SearchSystemSetting(ctx context.Context, session *auth_manager.Session, search *model.SearchSystemSetting) ([]*model.SystemSetting, bool, model.AppError) {
-
 	return c.app.GetSystemSettingPage(ctx, session.Domain(0), search)
 }
 
