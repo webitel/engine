@@ -9,23 +9,48 @@ import (
 	"github.com/webitel/wlog"
 )
 
-func (app *App) resolveCommunicationTypeChannels(ctx context.Context, domainId int64, communications []*model.MemberCommunication) (map[int]string, model.AppError) {
+func (app *App) resolveCommunicationTypeChannels(ctx context.Context, domainID int64, communications []*model.MemberCommunication,
+	fillDefaults bool,
+) (map[int]string, model.AppError) {
 	ids := make([]uint32, 0, len(communications))
 	seen := make(map[int]bool, len(communications))
+	channelByID := make(map[int]string, len(communications))
+
+	var def *model.CommunicationType
 
 	for _, c := range communications {
-		if c == nil || c.Type.Id < 1 || seen[c.Type.Id] {
+		if c == nil {
 			continue
 		}
+
+		if c.Type.Id < 1 && fillDefaults {
+			if def == nil {
+				var err model.AppError
+				if def, err = app.defaultCommunicationType(ctx, domainID); err != nil {
+					return nil, err
+				}
+			}
+
+			c.Type = model.Lookup{Id: int(def.Id), Name: def.Name}
+			channelByID[c.Type.Id] = def.Channel
+			seen[c.Type.Id] = true
+
+			continue
+		}
+
+		if c.Type.Id < 1 || seen[c.Type.Id] {
+			continue
+		}
+
 		seen[c.Type.Id] = true
 		ids = append(ids, uint32(c.Type.Id))
 	}
 
 	if len(ids) == 0 {
-		return map[int]string{}, nil
+		return channelByID, nil
 	}
 
-	types, _, err := app.GetCommunicationTypePage(ctx, domainId, &model.SearchCommunicationType{
+	types, _, err := app.GetCommunicationTypePage(ctx, domainID, &model.SearchCommunicationType{
 		ListRequest: model.ListRequest{PerPage: model.PER_PAGE_MAXIMUM},
 		Ids:         ids,
 	})
@@ -33,12 +58,25 @@ func (app *App) resolveCommunicationTypeChannels(ctx context.Context, domainId i
 		return nil, err
 	}
 
-	channelById := make(map[int]string, len(types))
 	for _, t := range types {
-		channelById[int(t.Id)] = t.Channel
+		channelByID[int(t.Id)] = t.Channel
 	}
 
-	return channelById, nil
+	return channelByID, nil
+}
+
+func (app *App) defaultCommunicationType(ctx context.Context, domainID int64) (*model.CommunicationType, model.AppError) {
+	def, err := app.Store.CommunicationType().GetDefault(ctx, domainID, model.CommunicationChannelPhone)
+	if err != nil {
+		if err.GetStatusCode() == http.StatusNotFound {
+			return nil, model.NewBadRequestError("app.member.communications.default_type.not_found",
+				"channel="+model.CommunicationChannelPhone)
+		}
+
+		return nil, err
+	}
+
+	return def, nil
 }
 
 func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError) {
@@ -46,11 +84,13 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	if err != nil {
 		return nil, err
 	}
-	if q.Type == 1 || q.Type == 6 {
+
+	if q.IsInbound() {
 		return nil, model.NewBadRequestError("app.member.valid.queue", "Mismatch queue type")
 	}
 
-	if err = app.fillDefaultCommunications(ctx, domainId, q, member); err != nil {
+	channelByID, err := app.resolveCommunicationTypeChannels(ctx, domainId, member.Communications, true)
+	if err != nil {
 		return nil, err
 	}
 
@@ -58,11 +98,7 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 		return nil, err
 	}
 
-	channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, member.Communications)
-	if err != nil {
-		return nil, err
-	}
-	if err = model.ValidateMemberCommunicationDestinations(member.Communications, channelById, member.Name); err != nil {
+	if err = model.ValidateMemberCommunicationDestinations(member.Communications, channelByID, member.Name); err != nil {
 		return nil, err
 	}
 
@@ -80,37 +116,6 @@ func (app *App) CreateMember(ctx context.Context, domainId int64, member *model.
 	}
 
 	return member, nil
-}
-
-func (app *App) fillDefaultCommunications(ctx context.Context, domainID int64, q *model.Queue, members ...*model.Member) model.AppError {
-	channel := q.MemberCommunicationChannel()
-
-	var def *model.CommunicationType
-
-	for _, m := range members {
-		for _, c := range m.Communications {
-			if c == nil || c.Type.Id > 0 {
-				continue
-			}
-
-			if def == nil {
-				var err model.AppError
-
-				def, err = app.Store.CommunicationType().GetDefault(ctx, domainID, channel)
-				if err != nil {
-					if err.GetStatusCode() == http.StatusNotFound {
-						return model.NewBadRequestError("app.member.communications.default_type.not_found", "channel="+channel)
-					}
-
-					return err
-				}
-			}
-
-			c.Type = model.Lookup{Id: int(def.Id), Name: def.Name}
-		}
-	}
-
-	return nil
 }
 
 func (a *App) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, bool, model.AppError) {
@@ -139,7 +144,8 @@ func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, f
 	if err != nil {
 		return nil, err
 	}
-	if q.Type == 1 || q.Type == 6 {
+
+	if q.IsInbound() {
 		return nil, model.NewBadRequestError("app.member.valid.queue", "Mismatch queue type")
 	}
 
@@ -147,7 +153,13 @@ func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, f
 		return nil, model.NewBadRequestError("app.member.valid.file_name", "The filename can not be more than 120 symbols")
 	}
 
-	if err = app.fillDefaultCommunications(ctx, domainId, q, members...); err != nil {
+	allCommunications := make([]*model.MemberCommunication, 0, len(members))
+	for _, m := range members {
+		allCommunications = append(allCommunications, m.Communications...)
+	}
+
+	channelByID, err := app.resolveCommunicationTypeChannels(ctx, domainId, allCommunications, true)
+	if err != nil {
 		return nil, err
 	}
 
@@ -158,17 +170,8 @@ func (app *App) BulkCreateMember(ctx context.Context, domainId, queueId int64, f
 		}
 	}
 
-	allCommunications := make([]*model.MemberCommunication, 0, len(members))
 	for _, m := range members {
-		allCommunications = append(allCommunications, m.Communications...)
-	}
-	channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, allCommunications)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, m := range members {
-		if err = model.ValidateMemberCommunicationDestinations(m.Communications, channelById, m.Name); err != nil {
+		if err = model.ValidateMemberCommunicationDestinations(m.Communications, channelByID, m.Name); err != nil {
 			return nil, err
 		}
 	}
@@ -217,11 +220,12 @@ func (app *App) UpdateMember(ctx context.Context, domainId int64, member *model.
 	oldMember.Agent = member.Agent
 	oldMember.Skill = member.Skill
 
-	channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, oldMember.Communications)
+	channelByID, err := app.resolveCommunicationTypeChannels(ctx, domainId, oldMember.Communications, false)
 	if err != nil {
 		return nil, err
 	}
-	if err = model.ValidateMemberCommunicationDestinations(oldMember.Communications, channelById, oldMember.Name); err != nil {
+
+	if err = model.ValidateMemberCommunicationDestinations(oldMember.Communications, channelByID, oldMember.Name); err != nil {
 		return nil, err
 	}
 
@@ -250,11 +254,12 @@ func (app *App) PatchMember(ctx context.Context, domainId, queueId, id int64, pa
 	}
 
 	if patch.Communications != nil {
-		channelById, err := app.resolveCommunicationTypeChannels(ctx, domainId, oldMember.Communications)
+		channelByID, err := app.resolveCommunicationTypeChannels(ctx, domainId, oldMember.Communications, false)
 		if err != nil {
 			return nil, err
 		}
-		if err = model.ValidateMemberCommunicationDestinations(oldMember.Communications, channelById, oldMember.Name); err != nil {
+
+		if err = model.ValidateMemberCommunicationDestinations(oldMember.Communications, channelByID, oldMember.Name); err != nil {
 			return nil, err
 		}
 	}

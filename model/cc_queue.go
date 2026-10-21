@@ -497,19 +497,15 @@ func (q *Queue) IsProgressiveOrPredictive() bool {
 	return q.Type == QueueTypePredictCall || q.Type == QueueTypeProgressiveCall
 }
 
-func (q *Queue) MemberCommunicationChannel() string {
-	if q.Type == QueueTypeInboundIM {
-		return CommunicationChannelMessaging
+func (q *Queue) IsInbound() bool {
+	switch q.Type {
+	case QueueTypeInboundCall, QueueTypeInboundChat, QueueTypeInboundIM:
+		return true
+	default:
+		return false
 	}
-
-	return CommunicationChannelPhone
 }
 
 func (q *Queue) RequireCalendar() bool {
-	switch q.Type {
-	case QueueTypeInboundCall, QueueTypeInboundChat, QueueTypeInboundIM:
-		return false
-	default:
-		return true
-	}
+	return !q.IsInbound()
 }

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"slices"
 	"testing"
 
 	"github.com/webitel/engine/model"
@@ -11,17 +12,32 @@ import (
 type fakeCommTypeStore struct {
 	store.CommunicationTypeStore
 
-	def         *model.CommunicationType
-	err         model.AppError
-	calls       int
-	lastChannel string
+	def          *model.CommunicationType
+	defErr       model.AppError
+	types        map[uint32]*model.CommunicationType
+	defaultCalls int
+	lastChannel  string
+	fetchedIDs   []uint32
 }
 
 func (f *fakeCommTypeStore) GetDefault(_ context.Context, _ int64, channel string) (*model.CommunicationType, model.AppError) {
-	f.calls++
+	f.defaultCalls++
 	f.lastChannel = channel
 
-	return f.def, f.err
+	return f.def, f.defErr
+}
+
+func (f *fakeCommTypeStore) GetAllPage(_ context.Context, _ int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, model.AppError) {
+	f.fetchedIDs = append(f.fetchedIDs, search.Ids...)
+
+	out := make([]*model.CommunicationType, 0, len(search.Ids))
+	for _, id := range search.Ids {
+		if t, ok := f.types[id]; ok {
+			out = append(out, t)
+		}
+	}
+
+	return out, nil
 }
 
 type fakeStore struct {
@@ -32,123 +48,148 @@ type fakeStore struct {
 
 func (f *fakeStore) CommunicationType() store.CommunicationTypeStore { return f.comm }
 
-func TestApp_fillDefaultCommunications(t *testing.T) {
+func comms(types ...int) []*model.MemberCommunication {
+	out := make([]*model.MemberCommunication, 0, len(types))
+	for _, id := range types {
+		if id < 0 {
+			out = append(out, nil)
+
+			continue
+		}
+
+		out = append(out, &model.MemberCommunication{Destination: "380000", Type: model.Lookup{Id: id}})
+	}
+
+	return out
+}
+
+func TestApp_resolveCommunicationTypeChannels(t *testing.T) {
+	mobile := &model.CommunicationType{Id: 42, Name: "Mobile", Channel: model.CommunicationChannelPhone}
+	mail := &model.CommunicationType{Id: 5, Name: "Mail", Channel: model.CommunicationChannelEmail}
+
 	tests := []struct {
-		name        string
-		queueType   int8
-		def         *model.CommunicationType
-		storeErr    model.AppError
-		members     []*model.Member
-		wantErr     bool
-		wantErrID   string
-		wantCalls   int
-		wantChannel string
-		checkFilled func(t *testing.T, members []*model.Member)
+		name             string
+		fillDefaults     bool
+		def              *model.CommunicationType
+		defErr           model.AppError
+		communications   []*model.MemberCommunication
+		wantErrID        string
+		wantDefaultCalls int
+		wantFetchedIDs   []uint32
+		wantChannels     map[int]string
+		wantTypeIDs      []int
 	}{
 		{
-			name:        "type-less comm filled with phone default",
-			queueType:   model.QueueTypeProgressiveCall,
-			def:         &model.CommunicationType{Id: 42, Name: "Mobile"},
-			members:     []*model.Member{{Communications: []*model.MemberCommunication{{Destination: "380000", Type: model.Lookup{Id: 0}}}}},
-			wantCalls:   1,
-			wantChannel: model.CommunicationChannelPhone,
-			checkFilled: func(t *testing.T, members []*model.Member) {
-				t.Helper()
-
-				got := members[0].Communications[0].Type
-				if got.Id != 42 || got.Name != "Mobile" {
-					t.Errorf("type not filled: got %+v, want {42 Mobile}", got)
-				}
-			},
+			name:             "type-less comm filled with phone default, default not refetched",
+			fillDefaults:     true,
+			def:              mobile,
+			communications:   comms(0),
+			wantDefaultCalls: 1,
+			wantFetchedIDs:   nil,
+			wantChannels:     map[int]string{42: model.CommunicationChannelPhone},
+			wantTypeIDs:      []int{42},
 		},
 		{
-			name:        "im queue resolves messaging channel",
-			queueType:   model.QueueTypeInboundIM,
-			def:         &model.CommunicationType{Id: 7, Name: "Telegram"},
-			members:     []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}}}},
-			wantCalls:   1,
-			wantChannel: model.CommunicationChannelMessaging,
+			name:             "typed and type-less mixed, only typed ids fetched",
+			fillDefaults:     true,
+			def:              mobile,
+			communications:   comms(5, 0, -1, 0, 5),
+			wantDefaultCalls: 1,
+			wantFetchedIDs:   []uint32{5},
+			wantChannels:     map[int]string{42: model.CommunicationChannelPhone, 5: model.CommunicationChannelEmail},
+			wantTypeIDs:      []int{5, 42, -1, 42, 5},
 		},
 		{
-			name:      "already-typed comm left unchanged, store not queried",
-			queueType: model.QueueTypeProgressiveCall,
-			def:       &model.CommunicationType{Id: 42, Name: "Mobile"},
-			members:   []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 5, Name: "Work"}}}}},
-			wantCalls: 0,
-			checkFilled: func(t *testing.T, members []*model.Member) {
-				t.Helper()
-
-				if got := members[0].Communications[0].Type; got.Id != 5 {
-					t.Errorf("typed comm mutated: got %+v", got)
-				}
-			},
+			name:             "explicit default id not refetched after fill",
+			fillDefaults:     true,
+			def:              mobile,
+			communications:   comms(0, 42),
+			wantDefaultCalls: 1,
+			wantFetchedIDs:   nil,
+			wantChannels:     map[int]string{42: model.CommunicationChannelPhone},
+			wantTypeIDs:      []int{42, 42},
 		},
 		{
-			name:      "no default configured -> not_found error",
-			queueType: model.QueueTypeProgressiveCall,
-			storeErr:  model.NewNotFoundError("store.sql_communication_type.get_default.app_error", "no rows"),
-			members:   []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}}}},
-			wantErr:   true,
-			wantErrID: "app.member.communications.default_type.not_found",
-			wantCalls: 1,
+			name:             "fill disabled leaves type-less comm untouched",
+			fillDefaults:     false,
+			def:              mobile,
+			communications:   comms(0, 5),
+			wantDefaultCalls: 0,
+			wantFetchedIDs:   []uint32{5},
+			wantChannels:     map[int]string{5: model.CommunicationChannelEmail},
+			wantTypeIDs:      []int{0, 5},
 		},
 		{
-			name:      "store failure is returned as is",
-			queueType: model.QueueTypeProgressiveCall,
-			storeErr:  model.NewInternalError("store.sql_communication_type.get_default.app_error", "conn refused"),
-			members:   []*model.Member{{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}}}},
-			wantErr:   true,
-			wantErrID: "store.sql_communication_type.get_default.app_error",
-			wantCalls: 1,
+			name:             "no default configured -> not_found",
+			fillDefaults:     true,
+			defErr:           model.NewNotFoundError("store.sql_communication_type.get_default.app_error", "no rows"),
+			communications:   comms(0),
+			wantErrID:        "app.member.communications.default_type.not_found",
+			wantDefaultCalls: 1,
 		},
 		{
-			name:      "default resolved once across many members/comms",
-			queueType: model.QueueTypeProgressiveCall,
-			def:       &model.CommunicationType{Id: 42, Name: "Mobile"},
-			members: []*model.Member{
-				{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 0}}, nil, {Type: model.Lookup{Id: 0}}}},
-				{Communications: []*model.MemberCommunication{{Type: model.Lookup{Id: 3}}, {Type: model.Lookup{Id: 0}}}},
-			},
-			wantCalls: 1,
-			checkFilled: func(t *testing.T, members []*model.Member) {
-				t.Helper()
-
-				for _, m := range members {
-					for _, c := range m.Communications {
-						if c != nil && c.Type.Id == 0 {
-							t.Error("a type-less comm was left unfilled")
-						}
-					}
-				}
-			},
+			name:             "store failure is returned as is",
+			fillDefaults:     true,
+			defErr:           model.NewInternalError("store.sql_communication_type.get_default.app_error", "conn refused"),
+			communications:   comms(0),
+			wantErrID:        "store.sql_communication_type.get_default.app_error",
+			wantDefaultCalls: 1,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fake := &fakeCommTypeStore{def: tt.def, err: tt.storeErr}
+			fake := &fakeCommTypeStore{def: tt.def, defErr: tt.defErr, types: map[uint32]*model.CommunicationType{5: mail, 42: mobile}}
 			app := &App{Store: &fakeStore{comm: fake}}
-			q := &model.Queue{Type: tt.queueType}
 
-			err := app.fillDefaultCommunications(context.Background(), 1, q, tt.members...)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("fillDefaultCommunications() error = %v, wantErr %v", err, tt.wantErr)
+			got, err := app.resolveCommunicationTypeChannels(context.Background(), 1, tt.communications, tt.fillDefaults)
+			if tt.wantErrID != "" {
+				if err == nil || err.GetId() != tt.wantErrID {
+					t.Fatalf("err = %v, want id %v", err, tt.wantErrID)
+				}
+			} else if err != nil {
+				t.Fatalf("unexpected err: %v", err)
 			}
 
-			if tt.wantErr && tt.wantErrID != "" && err.GetId() != tt.wantErrID {
-				t.Errorf("err.Id = %v, want %v", err.GetId(), tt.wantErrID)
+			if fake.defaultCalls != tt.wantDefaultCalls {
+				t.Errorf("GetDefault calls = %d, want %d", fake.defaultCalls, tt.wantDefaultCalls)
 			}
 
-			if fake.calls != tt.wantCalls {
-				t.Errorf("GetDefault calls = %d, want %d", fake.calls, tt.wantCalls)
+			if tt.wantDefaultCalls > 0 && fake.lastChannel != model.CommunicationChannelPhone {
+				t.Errorf("default channel = %q, want %q", fake.lastChannel, model.CommunicationChannelPhone)
 			}
 
-			if tt.wantChannel != "" && fake.lastChannel != tt.wantChannel {
-				t.Errorf("resolved channel = %q, want %q", fake.lastChannel, tt.wantChannel)
+			if !slices.Equal(fake.fetchedIDs, tt.wantFetchedIDs) {
+				t.Errorf("fetched ids = %v, want %v", fake.fetchedIDs, tt.wantFetchedIDs)
 			}
 
-			if tt.checkFilled != nil {
-				tt.checkFilled(t, tt.members)
+			if tt.wantErrID != "" {
+				return
+			}
+
+			if len(got) != len(tt.wantChannels) {
+				t.Errorf("channels = %v, want %v", got, tt.wantChannels)
+			}
+
+			for id, ch := range tt.wantChannels {
+				if got[id] != ch {
+					t.Errorf("channel[%d] = %q, want %q", id, got[id], ch)
+				}
+			}
+
+			for i, c := range tt.communications {
+				want := tt.wantTypeIDs[i]
+				if c == nil {
+					if want != -1 {
+						t.Errorf("comm %d is nil, want type %d", i, want)
+					}
+
+					continue
+				}
+
+				if c.Type.Id != want {
+					t.Errorf("comm %d type = %d, want %d", i, c.Type.Id, want)
+				}
 			}
 		})
 	}
