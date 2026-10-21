@@ -20,6 +20,11 @@ func (app *App) RbacUniqueQueues(ctx context.Context, domainId int64, queueIds [
 }
 
 func (a *App) GetQueuePage(ctx context.Context, domainId int64, search *model.SearchQueue) ([]*model.Queue, bool, model.AppError) {
+	var err model.AppError
+	if search.TagsAll, err = a.tagsFiltrationAll(ctx, domainId, search.Tags); err != nil {
+		return nil, false, err
+	}
+
 	list, err := a.Store.Queue().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
@@ -29,6 +34,11 @@ func (a *App) GetQueuePage(ctx context.Context, domainId int64, search *model.Se
 }
 
 func (a *App) GetQueuePageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchQueue) ([]*model.Queue, bool, model.AppError) {
+	var err model.AppError
+	if search.TagsAll, err = a.tagsFiltrationAll(ctx, domainId, search.Tags); err != nil {
+		return nil, false, err
+	}
+
 	list, err := a.Store.Queue().GetAllPageByGroups(ctx, domainId, groups, search)
 	if err != nil {
 		return nil, false, err
@@ -70,10 +80,20 @@ func (a *App) PatchQueue(ctx context.Context, domainId, id int64, patch *model.Q
 }
 
 func (a *App) GetQueuesGlobalState(ctx context.Context, domainId int64, search *model.SearchQueue) (*model.QueueGlobalStateResponse, model.AppError) {
+	var err model.AppError
+	if search.TagsAll, err = a.tagsFiltrationAll(ctx, domainId, search.Tags); err != nil {
+		return nil, err
+	}
+
 	return a.Store.Queue().GetGlobalState(ctx, domainId, search)
 }
 
 func (a *App) SetQueuesGlobalState(ctx context.Context, domainId int64, newState bool, updatedBy *model.Lookup, search *model.SearchQueue) (int32, model.AppError) {
+	var err model.AppError
+	if search.TagsAll, err = a.tagsFiltrationAll(ctx, domainId, search.Tags); err != nil {
+		return -1, err
+	}
+
 	return a.Store.Queue().SetGlobalState(ctx, domainId, newState, updatedBy, search)
 }
 

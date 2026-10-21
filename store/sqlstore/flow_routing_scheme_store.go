@@ -63,6 +63,7 @@ func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, s
 		"Types":    pq.Array(search.Type),
 		"Editor":   search.Editor,
 		"Tags":     pq.Array(search.Tags),
+		"TagsAll":  search.TagsAll,
 	}
 
 	err := s.ListQueryFromSchema(ctx, &schemes, "flow", search.ListRequest,
@@ -72,7 +73,7 @@ func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, s
 				and (:Types::varchar[] isnull or "type" = any(:Types::varchar[]))
 				and (not :Editor::bool is true or editor = true)
 				and (:Name::text isnull or name = :Name)
-				and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
+				and (:Tags::varchar[] isnull or (case when :TagsAll::bool then tags @> :Tags::varchar[] else tags && :Tags::varchar[] end))
 			`,
 		model.RoutingSchema{}, f)
 

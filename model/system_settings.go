@@ -369,3 +369,10 @@ func PrepareDefaultMembersFilter(filterValue SysValue) *FilterBetween {
 		To:   now.UnixMilli(),
 	}
 }
+
+// TagsFiltrationAll reports whether a tag filter needs every tag; any value but "AND" keeps any tag.
+func TagsFiltrationAll(mode SysValue) bool {
+	str := mode.Str()
+
+	return str != nil && *str == "AND"
+}

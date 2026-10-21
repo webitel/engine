@@ -186,3 +186,17 @@ func (a *App) PublishSysSettingEventContext(ctx context.Context, newSetting, old
 
 	return a.PublishEventContext(ctx, body, MqSysSettingObjectName, newKeys...)
 }
+
+// tagsFiltrationAll reports whether a filter by these tags needs every one of them in the domain.
+func (a *App) tagsFiltrationAll(ctx context.Context, domainID int64, tags []string) (bool, model.AppError) {
+	if len(tags) < 2 {
+		return false, nil
+	}
+
+	mode, err := a.GetCachedSystemSetting(ctx, domainID, model.SysNameTagsFiltrationMode)
+	if err != nil {
+		return false, err
+	}
+
+	return model.TagsFiltrationAll(mode), nil
+}

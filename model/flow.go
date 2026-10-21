@@ -22,6 +22,8 @@ type SearchRoutingSchema struct {
 	Editor bool
 	Type   []string
 	Tags   StringArray
+
+	TagsAll bool
 }
 
 type RoutingSchemaTag struct {

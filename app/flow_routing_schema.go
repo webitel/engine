@@ -18,6 +18,11 @@ func (a *App) CreateRoutingSchema(ctx context.Context, scheme *model.RoutingSche
 }
 
 func (a *App) GetRoutingSchemaPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, bool, model.AppError) {
+	var err model.AppError
+	if search.TagsAll, err = a.tagsFiltrationAll(ctx, domainId, search.Tags); err != nil {
+		return nil, false, err
+	}
+
 	list, err := a.Store.RoutingSchema().GetAllPage(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
