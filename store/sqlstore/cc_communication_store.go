@@ -79,6 +79,19 @@ func (s SqlCommunicationTypeStore) Get(ctx context.Context, domainId int64, id i
 	}
 }
 
+func (s SqlCommunicationTypeStore) GetDefault(ctx context.Context, domainID int64, channel string) (*model.CommunicationType, model.AppError) {
+	var out *model.CommunicationType
+
+	if err := s.One(ctx, &out, `domain_id = :DomainId and channel = :Channel and "default"`,
+		model.CommunicationType{},
+		map[string]any{"DomainId": domainID, "Channel": channel}); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_communication_type.get_default.app_error",
+			fmt.Sprintf("channel=%v, %s", channel, err.Error()), extractCodeFromErr(err))
+	}
+
+	return out, nil
+}
+
 func (s SqlCommunicationTypeStore) Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cType, `update call_center.cc_communication
 set name = :Name,
