@@ -205,6 +205,7 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		"Types":    pq.Array(search.Types),
 		"TeamIds":  pq.Array(search.TeamIds),
 		"Tags":     pq.Array(search.Tags),
+		"TagsAll":  search.TagsAll,
 		"Enabled":  search.Enabled,
 	}
 
@@ -213,7 +214,7 @@ func (s SqlQueueStore) GetAllPage(ctx context.Context, domainId int64, search *m
 			and ( (:Ids::int[] isnull or id = any(:Ids) )
 			and ( (:Types::int[] isnull or "type" = any(:Types) ) )
 			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) )
-			and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
+			and (:Tags::varchar[] isnull or (case when :TagsAll::bool then tags @> :Tags::varchar[] else tags && :Tags::varchar[] end))
 			and (:Enabled::bool isnull or enabled)
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
@@ -236,6 +237,7 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 		"Types":    pq.Array(search.Types),
 		"TeamIds":  pq.Array(search.TeamIds),
 		"Tags":     pq.Array(search.Tags),
+		"TagsAll":  search.TagsAll,
 		"Enabled":  search.Enabled,
 	}
 
@@ -248,7 +250,7 @@ func (s SqlQueueStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 			and ( (:Ids::int[] isnull or id = any(:Ids) )
 			and ( (:Types::int[] isnull or "type" = any(:Types) ) )
 			and ( :TeamIds::int[] isnull or "team_id" = any(:TeamIds) )
-			and (:Tags::varchar[] isnull or tags && :Tags::varchar[])
+			and (:Tags::varchar[] isnull or (case when :TagsAll::bool then tags @> :Tags::varchar[] else tags && :Tags::varchar[] end))
 			and (:Enabled::bool isnull or enabled)
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Queue{}, f)
@@ -748,7 +750,7 @@ func (s SqlQueueStore) GetGlobalState(ctx context.Context, domainId int64, searc
 			where q.domain_id = :DomainId
 				and (:Types::int[] is null or q.type = any(:Types))
 				and (:TeamIds::int[] is null or q.team_id = any(:TeamIds))
-				and (:Tags::varchar[] is null or q.tags && :Tags::varchar[])
+				and (:Tags::varchar[] is null or (case when :TagsAll::bool then q.tags @> :Tags::varchar[] else q.tags && :Tags::varchar[] end))
 				and (:Q::varchar is null or (q.name ilike :Q::varchar or q.description ilike :Q::varchar))
 		)
 		select
@@ -765,6 +767,7 @@ func (s SqlQueueStore) GetGlobalState(ctx context.Context, domainId int64, searc
 		"Types":    pq.Array(search.Types),
 		"TeamIds":  pq.Array(search.TeamIds),
 		"Tags":     pq.Array(search.Tags),
+		"TagsAll":  search.TagsAll,
 	}
 
 	var queueGlobalStateResponse model.QueueGlobalStateResponse
@@ -786,7 +789,7 @@ func (s SqlQueueStore) SetGlobalState(ctx context.Context, domainId int64, newSt
 			and (:Ids::int[] is null or q.id = any(:Ids))
 			and (:Types::int[] is null or q.type = any(:Types))
 			and (:TeamIds::int[] is null or q.team_id = any(:TeamIds))
-			and (:Tags::varchar[] is null or q.tags && :Tags::varchar[])
+			and (:Tags::varchar[] is null or (case when :TagsAll::bool then q.tags @> :Tags::varchar[] else q.tags && :Tags::varchar[] end))
 			and (:Q::varchar is null or (q.name ilike :Q::varchar or q.description ilike :Q::varchar))
 	`
 	params := map[string]any{
@@ -799,6 +802,7 @@ func (s SqlQueueStore) SetGlobalState(ctx context.Context, domainId int64, newSt
 		"Types":     pq.Array(search.Types),
 		"TeamIds":   pq.Array(search.TeamIds),
 		"Tags":      pq.Array(search.Tags),
+		"TagsAll":   search.TagsAll,
 	}
 
 	res, err := s.GetMaster().WithContext(ctx).Exec(query, params)

@@ -51,6 +51,8 @@ const (
 	SysNameDefaultMembersFilter              = "default_members_filter"
 	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
 	SysNameRecordAllCalls                    = "record_all_calls"
+	SysNameKnowledgeBaseVersionLimit         = "knowledge_base_version_limit"
+	SysNameTagsFiltrationMode                = "tags_filtration_mode"
 )
 
 type SysValue json.RawMessage
@@ -65,6 +67,11 @@ var availableDefaultMembersFilterOptions = map[string]struct{}{
 	"this day":   {},
 	"this week":  {},
 	"this month": {},
+}
+
+var availableTagsFiltrationModes = map[string]struct{}{
+	"AND": {},
+	"OR":  {},
 }
 
 type AvailableSystemSetting struct {
@@ -111,13 +118,25 @@ func validateDefaultMembersFilter(filter string) AppError {
 	return nil
 }
 
+func validateTagsFiltrationMode(mode string) AppError {
+	if _, exists := availableTagsFiltrationModes[mode]; !exists {
+		return NewBadRequestError(
+			"model.system_settings.validate_tags_filtration_mode",
+			`tags_filtration_mode can be only one of next values: "AND", "OR"`,
+		)
+	}
+
+	return nil
+}
+
 func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
 		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
-		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
+		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays,
+		SysNameKnowledgeBaseVersionLimit:
 		value := SysValue(s.Value)
 		i := value.Int()
 
@@ -130,7 +149,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameDefaultPassword,
 		SysNameDefaultWorkspaceTab,
 		SysNameLoginOptions,
-		SysNameDefaultMembersFilter:
+		SysNameDefaultMembersFilter,
+		SysNameTagsFiltrationMode:
 		value := SysValue(s.Value)
 		str := value.Str()
 
@@ -138,10 +158,11 @@ func (s *SystemSetting) IsValid() AppError {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
 		}
 
-		if s.Name == SysNameDefaultMembersFilter {
-			if werr := validateDefaultMembersFilter(*str); werr != nil {
-				return werr
-			}
+		switch s.Name {
+		case SysNameDefaultMembersFilter:
+			return validateDefaultMembersFilter(*str)
+		case SysNameTagsFiltrationMode:
+			return validateTagsFiltrationMode(*str)
 		}
 	case SysNameTwoFactorAuthorization,
 		SysNameAutolinkCallToContact,
@@ -383,4 +404,11 @@ func PrepareDefaultMembersFilter(filterValue SysValue) *FilterBetween {
 		From: from.UnixMilli(),
 		To:   now.UnixMilli(),
 	}
+}
+
+// TagsFiltrationAll reports whether a tag filter needs every tag; any value but "AND" keeps any tag.
+func TagsFiltrationAll(mode SysValue) bool {
+	str := mode.Str()
+
+	return str != nil && *str == "AND"
 }

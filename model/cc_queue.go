@@ -127,6 +127,7 @@ type SearchQueue struct {
 	Types   []uint32
 	TeamIds []int32
 	Tags    []string
+	TagsAll bool
 	Enabled *bool
 }
 
