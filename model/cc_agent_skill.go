@@ -4,8 +4,9 @@ type AgentSkill struct {
 	DomainRecord
 	//Id       int64  `json:"id" db:"id"`
 	Agent *Lookup `json:"agent" db:"agent"`
-	Skill *Lookup `json:"skill" db:"skill"`
-	Team  *Lookup `json:"team" db:"team"`
+	Skill      *Lookup `json:"skill" db:"skill"`
+	Team       *Lookup `json:"team" db:"team"`
+	SkillGroup *Lookup `json:"skill_group" db:"skill_group"`
 	AgentSkillProps
 }
 
@@ -60,11 +61,11 @@ func (AgentSkill) DefaultOrder() string {
 func (a AgentSkill) AllowFields() []string {
 	return []string{"id", "skill", "capacity", "enabled",
 		"created_at", "created_by", "updated_at", "updated_by",
-		"agent", "domain_id", "skill_id", "skill_name", "agent_id", "agent_name", "team"}
+		"agent", "domain_id", "skill_id", "skill_name", "agent_id", "agent_name", "team", "skill_group"}
 }
 
 func (a AgentSkill) DefaultFields() []string {
-	return []string{"id", "skill", "capacity", "enabled", "team", "agent"}
+	return []string{"id", "skill", "capacity", "enabled", "team", "agent", "skill_group"}
 }
 
 func (a AgentSkill) EntityName() string {

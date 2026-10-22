@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"context"
+
 	"github.com/go-gorp/gorp"
 	_ "github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -29,6 +30,7 @@ type SqlStore interface {
 	User() store.UserStore
 	Calendar() store.CalendarStore
 	Skill() store.SkillStore
+	SkillGroup() store.SkillGroupStore
 	AgentTeam() store.AgentTeamStore
 	TeamHook() store.TeamHookStore
 	Agent() store.AgentStore
@@ -67,5 +69,5 @@ type SqlStore interface {
 	WebHook() store.WebHookStore
 	SocketSession() store.SocketSessionStore
 	Feedback() store.FeedbackStore
-	//SchemeVersion() store.SystemSettingsStore
+	// SchemeVersion() store.SystemSettingsStore
 }
