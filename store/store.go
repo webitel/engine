@@ -77,7 +77,6 @@ type Store interface {
 	PresetQuery() PresetQueryStore
 	SystemSettings() SystemSettingsStore
 	WebHook() WebHookStore
-	SchemeVersion() SchemeVersionsStore
 	SchemeVariable() SchemeVariablesStore
 	SocketSession() SocketSessionStore
 	Feedback() FeedbackStore
@@ -541,10 +540,6 @@ type WebHookStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.WebHook, model.AppError)
 	Update(ctx context.Context, domainId int64, hook *model.WebHook) (*model.WebHook, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
-}
-
-type SchemeVersionsStore interface {
-	Search(ctx context.Context, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVersion, model.AppError)
 }
 
 type SchemeVariablesStore interface {

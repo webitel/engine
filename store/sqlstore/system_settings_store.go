@@ -16,7 +16,7 @@ type SqlSystemSettingsStore struct {
 }
 
 var allSystemSettings = []string{
-	model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
+	model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize,
 	model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
 	model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
 	model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,

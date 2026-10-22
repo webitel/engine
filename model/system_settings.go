@@ -13,7 +13,6 @@ import (
 const (
 	SysNameOmnichannel                       = "enable_omnichannel"
 	SysNameMemberInsertChunkSize             = "member_chunk_size"
-	SysNameSchemeVersionLimit                = "scheme_version_limit"
 	SysNameAmdCancelNotHuman                 = "amd_cancel_not_human"
 	SysNameTwoFactorAuthorization            = "enable_2fa"
 	SysNameExportSettings                    = "export_settings"
@@ -115,7 +114,7 @@ func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
+	case SysNameMemberInsertChunkSize, SysNameSearchNumberLength,
 		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
 		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
 		value := SysValue(s.Value)

@@ -48,7 +48,6 @@ type API struct {
 	presetQuery    *presetQuery
 	systemSettings *systemSettings
 	webHook        *webHook
-	schemaVersion  *schemaVersion
 	schemaVariable *schemaVariable
 	push           *push
 	feedback       *feedback
@@ -97,7 +96,6 @@ func Init(a *app.App, server *grpc.Server) {
 	api.auditForm = NewAuditFormApi(api)
 	api.presetQuery = NewPresetQueryApi(api)
 	api.systemSettings = NewSystemSettingsApi(api)
-	api.schemaVersion = NewSchemeVersionApi(api)
 	api.schemaVariable = NewSchemeVariableApi(api)
 	api.webHook = NewWebHookApi(api)
 	api.push = NewPushApi(api, a.Config().MinimumNumberMaskLen, a.Config().PrefixNumberMaskLen, a.Config().SuffixNumberMaskLen)
@@ -143,7 +141,6 @@ func Init(a *app.App, server *grpc.Server) {
 	engine.RegisterPresetQueryServiceServer(server, api.presetQuery)
 	engine.RegisterSystemSettingServiceServer(server, api.systemSettings)
 	engine.RegisterWebHookServiceServer(server, api.webHook)
-	engine.RegisterSchemaVersionServiceServer(server, api.schemaVersion)
 	engine.RegisterSchemaVariablesServiceServer(server, api.schemaVariable)
 	engine.RegisterPushServiceServer(server, api.push)
 	engine.RegisterFeedbackServiceServer(server, api.feedback)

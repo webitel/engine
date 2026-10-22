@@ -94,7 +94,6 @@ func TestNewSystemSettingsNotification(t *testing.T) {
 		{"screenshot_interval is pushed", &model.SystemSetting{Name: model.SysNameScreenshotInterval, Value: json.RawMessage(`30`)}, false, true},
 		{"login_options is not pushed", &model.SystemSetting{Name: model.SysNameLoginOptions, Value: json.RawMessage(`{}`)}, true, false},
 		{"amd_cancel_not_human is not pushed", &model.SystemSetting{Name: model.SysNameAmdCancelNotHuman, Value: json.RawMessage(`true`)}, true, false},
-		{"scheme_version_limit is not pushed", &model.SystemSetting{Name: model.SysNameSchemeVersionLimit, Value: json.RawMessage(`10`)}, true, false},
 		{"sensitive setting is not pushed", &model.SystemSetting{Name: model.SysNameDefaultPassword, Value: json.RawMessage(`"x"`)}, true, false},
 		{"unknown setting is not pushed", &model.SystemSetting{Name: "brand_new_setting", Value: json.RawMessage(`1`)}, true, false},
 		{"nil setting", nil, true, false},
