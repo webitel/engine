@@ -169,8 +169,6 @@ func (c *SqlSchemeVariablesStore) GetQueryBaseFromSearchOptions(domainId int64, 
 	for _, v := range opt.Fields {
 		if columnName, ok := schemeVariablesSelectFieldsMap[v]; ok {
 			fields = append(fields, columnName)
-		} else {
-			fields = append(fields, v)
 		}
 	}
 	if len(fields) == 0 {

@@ -51,11 +51,12 @@ func (api *routingSchema) SearchRoutingSchema(ctx context.Context, in *engine.Se
 
 	req := &model.SearchRoutingSchema{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:    in.Id,
 		Name:   GetStringPointer(in.Name),

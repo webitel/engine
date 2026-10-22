@@ -77,12 +77,13 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 	var endList bool
 	req := &model.SearchHistoryCall{
 		ListRequest: model.ListRequest{
-			DomainId: in.GetDomainId(),
-			Page:     int(in.GetPage()),
-			PerPage:  int(in.GetSize()),
-			Q:        in.GetQ(),
-			Sort:     in.Sort,
-			Fields:   in.Fields,
+			DomainId:  in.GetDomainId(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Q:         in.GetQ(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
+			Fields:    in.GetFields(),
 		},
 		SkipParent:       in.GetSkipParent(),
 		UserIds:          in.GetUserId(),

@@ -47,11 +47,12 @@ func (api *queueHook) SearchQueueHook(ctx context.Context, in *engine.SearchQueu
 	var endList bool
 	req := &model.SearchQueueHook{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.Fields,
-			Sort:    in.Sort,
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:       in.GetId(),
 		SchemaIds: in.SchemaId,

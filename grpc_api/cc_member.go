@@ -237,11 +237,12 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 	var endList bool
 	req := &model.SearchMemberRequest{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.GetFields(),
-			Sort:    in.GetSort(),
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:        in.GetId(),
 		QueueId:    &in.QueueId,
@@ -909,11 +910,12 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 	var endList bool
 	req := &model.SearchAttempts{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.GetFields(),
-			Sort:    in.GetSort(),
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:       in.GetId(),
 		MemberIds: in.GetMemberId(),
@@ -1019,11 +1021,12 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 	var endList bool
 	req := &model.SearchAttempts{
 		ListRequest: model.ListRequest{
-			Q:       in.GetQ(),
-			Page:    int(in.GetPage()),
-			PerPage: int(in.GetSize()),
-			Fields:  in.GetFields(),
-			Sort:    in.GetSort(),
+			Q:         in.GetQ(),
+			Page:      int(in.GetPage()),
+			PerPage:   int(in.GetSize()),
+			Fields:    in.GetFields(),
+			Sort:      in.GetSort(),
+			SortOrder: model.ParseSortOrder(in.GetSortOrder()),
 		},
 		Ids:             in.GetId(),
 		MemberIds:       in.GetMemberId(),
