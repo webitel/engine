@@ -65,7 +65,8 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
 		ExtraChatCount:   in.ExtraChatCount,
-		EmailCount:       in.EmailCount,
+		EmailCount:       createAgentEmailCount(in.EmailCount),
+		ExtraEmailCount:  in.GetExtraEmailCount(),
 		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
@@ -239,7 +240,6 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
 		ExtraChatCount:   in.ExtraChatCount,
-		EmailCount:       in.EmailCount,
 		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
@@ -247,7 +247,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		IsSupervisor:     in.GetIsSupervisor(),
 		TaskCount:        in.TaskCount,
 		ScreenControl:    in.ScreenControl,
-	})
+	}, model.AgentEmailLimits{Base: in.EmailCount, Extra: in.ExtraEmailCount})
 
 	if err != nil {
 		return nil, err
@@ -313,6 +313,8 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			patch.ExtraChatCount = &in.ExtraChatCount
 		case "email_count":
 			patch.EmailCount = &in.EmailCount
+		case "extra_email_count":
+			patch.ExtraEmailCount = &in.ExtraEmailCount
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
 			if patch.Supervisor == nil {
@@ -1043,6 +1045,13 @@ func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.Age
 	return item
 }
 
+func createAgentEmailCount(count *uint32) uint32 {
+	if count == nil {
+		return 1
+	}
+	return *count
+}
+
 func transformAgent(src *model.Agent) *engine.Agent {
 	agent := &engine.Agent{
 		Id: src.Id,
@@ -1060,6 +1069,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		ChatCount:             src.ChatCount,
 		ExtraChatCount:        &src.ExtraChatCount,
 		EmailCount:            src.EmailCount,
+		ExtraEmailCount:       src.ExtraEmailCount,
 		Supervisor:            GetProtoLookups(src.Supervisor),
 		Team:                  GetProtoLookup(src.Team),
 		Region:                GetProtoLookup(src.Region),

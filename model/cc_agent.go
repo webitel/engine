@@ -41,6 +41,7 @@ type Agent struct {
 	ChatCount             uint32         `json:"chat_count" db:"chat_count"`
 	ExtraChatCount        uint32         `json:"extra_chat_count" db:"extra_chat_count"`
 	EmailCount            uint32         `json:"email_count" db:"email_count"`
+	ExtraEmailCount       uint32         `json:"extra_email_count" db:"extra_email_count"`
 	Supervisor            []*Lookup      `json:"supervisor" db:"supervisor"`
 	Team                  *Lookup        `json:"team" db:"team"`
 	Region                *Lookup        `json:"region" db:"region"`
@@ -56,6 +57,12 @@ type Agent struct {
 	StatusType         string      `json:"status_type" db:"status_type"`
 }
 
+// Nil fields preserve the current database limits during an update.
+type AgentEmailLimits struct {
+	Base  *uint32
+	Extra *uint32
+}
+
 type AgentPatch struct {
 	UpdatedBy        Lookup
 	UpdatedAt        int64
@@ -66,6 +73,7 @@ type AgentPatch struct {
 	ChatCount        *uint32
 	ExtraChatCount   *uint32
 	EmailCount       *uint32
+	ExtraEmailCount  *uint32
 	Supervisor       []*Lookup
 	Team             *Lookup
 	Region           *Lookup
@@ -200,6 +208,9 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	if patch.EmailCount != nil {
 		a.EmailCount = *patch.EmailCount
 	}
+	if patch.ExtraEmailCount != nil {
+		a.ExtraEmailCount = *patch.ExtraEmailCount
+	}
 
 	if patch.Supervisor != nil {
 		a.Supervisor = patch.Supervisor
@@ -234,13 +245,13 @@ func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change", "status_type",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
 		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status",
-		"email_count"}
+		"email_count", "extra_email_count"}
 }
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "extension", "status_type", "email_count"}
+		"auditor", "is_supervisor", "extension", "status_type", "email_count", "extra_email_count"}
 }
 
 func (a Agent) EntityName() string {
@@ -416,9 +427,12 @@ func (a *Agent) IsValid() AppError {
 	if a.ChatCount < 1 {
 		return NewBadRequestError("model.Agent.valid.ChatCount", "The chat count should be more or equal 1")
 	}
-	// cc_agent.email_count is smallint; 0 disables Email distribution.
+	// Email limits are smallint; 0 disables only that slot type.
 	if a.EmailCount > math.MaxInt16 {
 		return NewBadRequestError("model.Agent.valid.EmailCount", fmt.Sprintf("The email count should be less or equal %d", math.MaxInt16))
+	}
+	if a.ExtraEmailCount > math.MaxInt16 {
+		return NewBadRequestError("model.Agent.valid.ExtraEmailCount", fmt.Sprintf("The extra email count should be less or equal %d", math.MaxInt16))
 	}
 
 	if a.ProgressiveCount != nil && *a.ProgressiveCount < 1 {

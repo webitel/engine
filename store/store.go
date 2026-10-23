@@ -143,7 +143,8 @@ type AgentStore interface {
 	GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, model.AppError)
 	GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError)
 	Get(ctx context.Context, domainId, id int64) (*model.Agent, model.AppError)
-	Update(ctx context.Context, agent *model.Agent) (*model.Agent, model.AppError)
+	// A nil Email limit keeps its current database value.
+	Update(ctx context.Context, agent *model.Agent, limits model.AgentEmailLimits) (*model.Agent, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 	SetStatus(ctx context.Context, domainId, agentId int64, status string, payload any) (bool, model.AppError)
 
