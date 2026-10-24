@@ -105,6 +105,7 @@ type SqlSettings struct {
 }
 
 type HealthSettings struct {
+	Address string `json:"address" flag:"health_address||Health probe server address (/livez, /readyz, /healthz); empty disables it" env:"HEALTH_ADDRESS"`
 	// Must stay under the unit's TimeoutStartSec.
 	StartTimeout int `json:"start_timeout" flag:"health_start_timeout|60|Seconds before sd_notify reports READY=1 regardless of check state" env:"HEALTH_START_TIMEOUT"`
 	// Must exceed the package's DrainHold and fit inside TimeoutStopSec.
