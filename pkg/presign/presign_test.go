@@ -12,7 +12,7 @@ func TestMain(test *testing.M) {
 
 	// export := os.Setenv
 
-	// export("WBTL_CRYPTO_DIR", "") // modern
+	// export("CRYPTO_DIR", "") // modern
 	// export(testEnvPrivateKey, "") // legacy
 
 	test.Run()

@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/webitel/crypto/cryptostore/schema"
+	wcrypto "github.com/webitel/webitel-cryptoctl/schema"
 )
 
 // CryptoInit configures cryptostore/schema.Codec plugin from environment
@@ -16,14 +17,14 @@ func CryptoInit() error {
 // guard: crypto.init.(sync.Once)
 func cryptoInit() {
 	// cryptostore/schema.(BASELINE)
-	schema.Register(&crypto.schema)
+	schema.Register(wcrypto.CallCenter) // shared call_center schema (webitel-cryptoctl)
 	// plugin: module environment configuration
 	crypto.codec, crypto.err = schema.NewCodec(
 		schema.DefaultOptions(),
 	)
 	if crypto.err == nil {
 		// schema MAY define field(s) with the "search" option enabled
-		// this require WBTL_CRYPTO_SEARCH_{KERING|KEYFILE} to be specified
+		// this require CRYPTO_SEARCH_{KEYRING|KEYFILE} to be specified
 		crypto.err = crypto.codec.RequireIndex()
 	}
 	if crypto.err != nil {
@@ -46,30 +47,8 @@ const (
 )
 
 // module: cryptostore/schema
-var crypto = struct {
-	// baseline (mandatory) schema
-	schema schema.Config
+var crypto struct {
 	codec *schema.Codec
-	init sync.Once
-	err error
-} {
-
-	schema: schema.Config{
-		Version: 1,
-		Units: map[string]*schema.Unit{
-			schemaTableEmailAccount: {
-				Fields: map[string]*schema.FieldPolicy{
-					"password": {},
-					"params": {Nested: []schema.FieldNested{
-						{Path: []string{"$.oauth2.client_secret"}},
-					}},
-					"token": {Nested: []schema.FieldNested{
-						{Path: []string{"access_token"}},
-						{Path: []string{"refresh_token"}},
-					}},
-				},
-			},
-		},
-	},
-
+	init  sync.Once
+	err   error
 }
