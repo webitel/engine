@@ -140,7 +140,7 @@ func populateEndpoints(ctx context.Context, clientConn resolver.ClientConn, inpu
 		case cc := <-input:
 			conns := make([]resolver.Address, 0, len(cc))
 			for _, v := range cc {
-				conns = append(conns, resolver.Address{Addr: v.addr, ServerName: v.id})
+				conns = append(conns, withNodeID(resolver.Address{Addr: v.addr}, v.id))
 			}
 			sort.Sort(byAddressString(conns)) // Don't replace the same address list in the balancer
 			err := clientConn.UpdateState(resolver.State{Addresses: conns})
@@ -153,6 +153,25 @@ func populateEndpoints(ctx context.Context, clientConn resolver.ClientConn, inpu
 			return
 		}
 	}
+}
+
+// nodeIDKey is the resolver.Address attribute key holding the Consul service ID.
+// The ID must not be stored in Address.ServerName: gRPC uses ServerName as the
+// authority for the TLS handshake, so the server certificate would be verified
+// against the service ID instead of the service name.
+type nodeIDKey struct{}
+
+// withNodeID stores the Consul service ID in the address attributes. Attributes take
+// part in address equality, so an ID change on the same host:port creates a new SubConn.
+func withNodeID(addr resolver.Address, id string) resolver.Address {
+	addr.Attributes = addr.Attributes.WithValue(nodeIDKey{}, id)
+	return addr
+}
+
+// nodeID returns the Consul service ID stored by withNodeID, or "" if absent.
+func nodeID(addr resolver.Address) string {
+	id, _ := addr.Attributes.Value(nodeIDKey{}).(string)
+	return id
 }
 
 // byAddressString sorts resolver.Address by Address Field  sorting in increasing order.
