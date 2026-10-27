@@ -56,8 +56,8 @@ func (*rrPickerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 	subIdIndex := make(map[string]balancer.SubConn)
 	for sc, inf := range info.ReadySCs {
 		scs = append(scs, sc)
-		if inf.Address.ServerName != "" {
-			subIdIndex[inf.Address.ServerName] = sc
+		if id := nodeID(inf.Address); id != "" {
+			subIdIndex[id] = sc
 		}
 	}
 	return &rrPicker{
