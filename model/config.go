@@ -101,9 +101,11 @@ type SqlSettings struct {
 	Trace                       bool    `json:"trace" flag:"sql_trace|false|Trace SQL" env:"SQL_TRACE"`
 	Log                         bool    `json:"log" flag:"sql_log|false|Log SQL" env:"SQL_LOG"`
 	QueryTimeout                *int    `json:"query_timeout" flag:"sql_query_timeout|10|Sql query timeout seconds" env:"QUERY_TIMEOUT"`
+	DescTrackTimeoutSec         *int    `json:"desc_track_timeout_sec" flag:"desc_track_timeout_sec|75|Desc track timeout seconds" env:"DESC_TRACK_TIMEOUT_SEC"`
 }
 
 type HealthSettings struct {
+	Address string `json:"address" flag:"health_address||Health probe server address (/livez, /readyz, /healthz); empty disables it" default:"" env:"HEALTH_ADDRESS"`
 	// Must stay under the unit's TimeoutStartSec.
 	StartTimeout int `json:"start_timeout" flag:"health_start_timeout|60|Seconds before sd_notify reports READY=1 regardless of check state" env:"HEALTH_START_TIMEOUT"`
 	// Must exceed the package's DrainHold and fit inside TimeoutStopSec.

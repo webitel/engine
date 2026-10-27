@@ -1,8 +1,10 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -11,7 +13,6 @@ import (
 const (
 	SysNameOmnichannel                       = "enable_omnichannel"
 	SysNameMemberInsertChunkSize             = "member_chunk_size"
-	SysNameSchemeVersionLimit                = "scheme_version_limit"
 	SysNameAmdCancelNotHuman                 = "amd_cancel_not_human"
 	SysNameTwoFactorAuthorization            = "enable_2fa"
 	SysNameExportSettings                    = "export_settings"
@@ -48,6 +49,7 @@ const (
 	SysNameLoginOptions                      = "login_options"
 	SysNameDefaultMembersFilter              = "default_members_filter"
 	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
+	SysNameRecordAllCalls                    = "record_all_calls"
 )
 
 type SysValue json.RawMessage
@@ -112,7 +114,7 @@ func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
+	case SysNameMemberInsertChunkSize, SysNameSearchNumberLength,
 		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
 		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
 		value := SysValue(s.Value)
@@ -157,7 +159,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNamePasswordContainsLogin,
 		SysNameExpandContactTabs,
 		SysNameBlockAllMemberNumbers,
-		SysNameSelfAssignedCallSoundNotification:
+		SysNameSelfAssignedCallSoundNotification,
+		SysNameRecordAllCalls:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
@@ -193,6 +196,118 @@ func (s *SystemSetting) IsValid() AppError {
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
 	}
 	return nil
+}
+
+var sensitiveSystemSettings = map[string]struct{}{
+	SysNameDefaultPassword:  {},
+	SysNameChatAiConnection: {},
+}
+
+var liveSystemSettings = map[string]struct{}{
+	SysNameCallEndSoundNotification:          {},
+	SysNameCallEndPushNotification:           {},
+	SysNameChatEndSoundNotification:          {},
+	SysNameChatEndPushNotification:           {},
+	SysNameTaskEndSoundNotification:          {},
+	SysNameTaskEndPushNotification:           {},
+	SysNamePushNotificationTimeout:           {},
+	SysNameNewMessageSoundNotification:       {},
+	SysNameNewChatSoundNotification:          {},
+	SysNameSelfAssignedCallSoundNotification: {},
+	SysNameHideContact:                       {},
+	SysNameShowFullContact:                   {},
+	SysNameExpandContactTabs:                 {},
+	SysNameDefaultWorkspaceTab:               {},
+	SysNameScreenshotInterval:                {},
+}
+
+func IsSensitiveSystemSetting(name string) bool {
+	_, ok := sensitiveSystemSettings[name]
+
+	return ok
+}
+
+func IsLiveSystemSetting(name string) bool {
+	_, ok := liveSystemSettings[name]
+
+	return ok
+}
+
+func (s *SystemSetting) Sanitized() *SystemSetting {
+	c := *s
+	if IsSensitiveSystemSetting(s.Name) {
+		c.Value = nil
+	}
+
+	return &c
+}
+
+func NewSystemSettingsNotification(domainID int64, s *SystemSetting) *Notification {
+	if s == nil || !IsLiveSystemSetting(s.Name) {
+		return nil
+	}
+
+	body := map[string]any{"name": s.Name}
+	if !IsSensitiveSystemSetting(s.Name) && len(s.Value) != 0 {
+		body["value"] = s.Value
+	}
+
+	return &Notification{
+		DomainId:  domainID,
+		Action:    NotificationSystemSettings,
+		CreatedAt: GetMillis(),
+		Body:      body,
+		Broadcast: true,
+	}
+}
+
+func (s *SystemSetting) ValueEquals(other *SystemSetting) bool {
+	if s == nil || other == nil {
+		return s == other
+	}
+
+	var a, b any
+	if json.Unmarshal(s.Value, &a) != nil || json.Unmarshal(other.Value, &b) != nil {
+		return bytes.Equal(s.Value, other.Value)
+	}
+
+	return reflect.DeepEqual(a, b)
+}
+
+type SystemSettingEvent struct {
+	Name     string
+	DomainID int64
+}
+
+func NewSystemSettingEventFromRoutingKey(rk string) (*SystemSettingEvent, AppError) {
+	parts := strings.Split(rk, ".")
+	if len(parts) < 4 {
+		return nil, NewBadRequestError(
+			"model.system_settings.new_system_setting_event.invalid_rk_len",
+			fmt.Sprintf("received routing key %q with len less than 4", rk),
+		)
+	}
+
+	if parts[0] != (SystemSetting{}).EntityName() || parts[1] == "" {
+		return nil, NewBadRequestError(
+			"model.system_settings.new_system_setting_event.invalid_rk",
+			fmt.Sprintf("received unexpected routing key %q", rk),
+		)
+	}
+
+	domainID, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil || domainID <= 0 {
+		return nil, NewBadRequestError(
+			"model.system_settings.new_system_setting_event.invalid_domain_id",
+			fmt.Sprintf("received invalid domain id in routing key %q", rk),
+		)
+	}
+
+	return &SystemSettingEvent{Name: parts[1], DomainID: domainID}, nil
+}
+
+func SystemSettingCacheKey(domainID int64, name string) string {
+	return fmt.Sprintf("%d-%s", domainID, name)
 }
 
 func (s *SystemSetting) Patch(p *SystemSettingPath) {

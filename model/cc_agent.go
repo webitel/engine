@@ -575,3 +575,50 @@ func NewAgentLoginRequestFromSocketRequest(r *WebSocketRequest, sessionDomainID 
 
 	return req
 }
+
+type AcceptAttemptRequest struct {
+	AttemptID int64
+	AppID     string
+	AgentID   int64
+	UserID    int64
+	DomainID  int64
+}
+
+func NewAcceptAttemptRequestFromSocket(r *WebSocketRequest, sesssionDomainID, sessionUserId int64) *AcceptAttemptRequest {
+	req := new(AcceptAttemptRequest)
+
+	attemptID, ok := r.Get("attempt_id").(float64)
+	if ok {
+		req.AttemptID = int64(attemptID)
+	}
+
+	appID, ok := r.Get("app_id").(string)
+	if ok && appID != "" {
+		req.AppID = appID
+	}
+
+	agentID, ok := r.Get("agent_id").(float64)
+	if ok {
+		req.AgentID = int64(agentID)
+	}
+
+	req.DomainID, req.UserID = sesssionDomainID, sessionUserId
+
+	return req
+}
+
+func (r *AcceptAttemptRequest) FindInvalidAgrument() string {
+	if r.AttemptID <= 0 {
+		return "attempt_id"
+	}
+
+	if r.AppID == "" {
+		return "app_id"
+	}
+
+	if r.AgentID <= 0 {
+		return "agent_id"
+	}
+
+	return ""
+}

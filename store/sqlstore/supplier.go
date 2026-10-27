@@ -74,7 +74,6 @@ type SqlSupplierOldStores struct {
 	presetQuery             store.PresetQueryStore
 	systemSetting           store.SystemSettingsStore
 	webHook                 store.WebHookStore
-	schemeVersion           store.SchemeVersionsStore
 	schemeVariable          store.SchemeVariablesStore
 	socketSession           store.SocketSessionStore
 	feedback                store.FeedbackStore
@@ -106,7 +105,7 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.calendar = NewSqlCalendarStore(supplier)
 	supplier.oldStores.skill = NewSqlSkillStore(supplier)
 	supplier.oldStores.agentTeam = NewSqlAgentTeamStore(supplier)
-	supplier.oldStores.agent = NewSqlAgentStore(supplier)
+	supplier.oldStores.agent = NewSqlAgentStore(supplier, settings.DescTrackTimeoutSec)
 	supplier.oldStores.teamHook = NewSqlTeamHookStore(supplier)
 	supplier.oldStores.teamTrigger = NewSqlTeamTriggerStore(supplier)
 	supplier.oldStores.teamChatTag = NewSqlTeamChatTagStore(supplier)
@@ -141,7 +140,6 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.presetQuery = NewSqlPresetQueryStore(supplier)
 	supplier.oldStores.systemSetting = NewSqlSystemSettingsStore(supplier)
 	supplier.oldStores.webHook = NewSqlSqlWebHookStore(supplier)
-	supplier.oldStores.schemeVersion = NewSqlSchemeVersionsStore(supplier)
 	supplier.oldStores.schemeVariable = NewSqlSqlSchemeVariablesStore(supplier)
 	supplier.oldStores.socketSession = NewSqlSocketSessionStore(supplier)
 
@@ -447,10 +445,6 @@ func (ss *SqlSupplier) SystemSettings() store.SystemSettingsStore {
 
 func (ss *SqlSupplier) WebHook() store.WebHookStore {
 	return ss.oldStores.webHook
-}
-
-func (ss *SqlSupplier) SchemeVersion() store.SchemeVersionsStore {
-	return ss.oldStores.schemeVersion
 }
 
 func (ss *SqlSupplier) SchemeVariable() store.SchemeVariablesStore {

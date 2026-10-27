@@ -16,7 +16,7 @@ type SqlSystemSettingsStore struct {
 }
 
 var allSystemSettings = []string{
-	model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize, model.SysNameSchemeVersionLimit,
+	model.SysNameOmnichannel, model.SysNameMemberInsertChunkSize,
 	model.SysNameAmdCancelNotHuman, model.SysNameTwoFactorAuthorization, model.SysNameExportSettings,
 	model.SysNameSearchNumberLength, model.SysNameChatAiConnection, model.SysNamePasswordRegExp,
 	model.SysNamePasswordValidationText, model.SysNameAutolinkCallToContact, model.SysNamePeriodToPlaybackRecord,
@@ -26,7 +26,8 @@ var allSystemSettings = []string{
 	model.SysNamePushNotificationTimeout, model.SysNameLabelsToLimitContacts, model.SysNameAutolinkMailToContact, model.SysNameNewChatSoundNotification,
 	model.SysNameNewMessageSoundNotification, model.SysNameScreenshotInterval, model.SysNamePasswordExpiryDays,
 	model.SysNamePasswordMinLength, model.SysNamePasswordCategories, model.SysNamePasswordContainsLogin, model.SysNamePasswordWarningDays, model.SysNameDefaultPassword, model.SysNameExpandContactTabs,
-	model.SysNameDefaultWorkspaceTab, model.SysNameBlockAllMemberNumbers, model.SysNameLoginOptions, model.SysNameDefaultMembersFilter,model.SysNameSelfAssignedCallSoundNotification,
+	model.SysNameDefaultWorkspaceTab, model.SysNameBlockAllMemberNumbers, model.SysNameLoginOptions, model.SysNameDefaultMembersFilter, model.SysNameSelfAssignedCallSoundNotification,
+	model.SysNameRecordAllCalls,
 }
 
 func NewSqlSystemSettingsStore(sqlStore SqlStore) store.SystemSettingsStore {

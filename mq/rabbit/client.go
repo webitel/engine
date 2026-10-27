@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/pkg/errors"
@@ -37,10 +38,13 @@ const (
 var (
 	errConnectionClosed = stderrors.New("amqp: connection is closed")
 	errChannelClosed    = stderrors.New("amqp: channel is closed")
+	errDomainQueueDown  = stderrors.New("amqp: domain queue consumer is down")
 )
 
-var errMaxRegisterQueueSize = model.NewInternalError("amqp.register_domain.max_queue_size", "")
-var errMaxUnRegisterQueueSize = model.NewInternalError("amqp.un_register_domain.max_queue_size", "")
+var (
+	errMaxRegisterQueueSize   = model.NewInternalError("amqp.register_domain.max_queue_size", "")
+	errMaxUnRegisterQueueSize = model.NewInternalError("amqp.un_register_domain.max_queue_size", "")
+)
 
 type AMQP struct {
 	connection         *amqp.Connection
@@ -53,11 +57,13 @@ type AMQP struct {
 	stop               chan struct{}
 	stopped            chan struct{}
 	domainQueues       map[int64]mq.DomainQueue
+	domainQueuesDown   atomic.Int32
 
 	registerDomainQueue   chan mq.DomainQueue
 	unRegisterDomainQueue chan mq.DomainQueue
 	log                   *wlog.Logger
 	domainEventHandler    mq.DomainEventHandler
+	sysSettingsHandler    mq.SystemSettingsEventHandler
 
 	mx sync.Mutex
 }
@@ -99,6 +105,11 @@ func (a *AMQP) Start() {
 		panic(err)
 	}
 
+	if err := a.initSystemSettings(context.Background()); err != nil {
+		a.log.Critical("initializing system settings consumer", wlog.Err(err))
+		panic(err)
+	}
+
 	go a.Listen()
 }
 
@@ -113,6 +124,10 @@ func (a *AMQP) Ping(context.Context) error {
 
 	if a.channel == nil || a.channel.IsClosed() {
 		return errChannelClosed
+	}
+
+	if a.domainQueuesDown.Load() > 0 {
+		return errDomainQueueDown
 	}
 
 	return nil
@@ -217,7 +232,6 @@ func (a *AMQP) SendStickingCall(e *model.CallServiceHangup) model.AppError {
 		ContentType: "text/json",
 		Body:        e.MarshalJSON(),
 	})
-
 	if err != nil {
 		return model.NewInternalError("amqp.publish.sticking_call.app_error", err.Error())
 	}
@@ -306,7 +320,6 @@ func (a *AMQP) Close() {
 }
 
 func (a *AMQP) SendJSON(key string, data []byte) model.AppError {
-
 	return nil
 }
 
@@ -326,7 +339,6 @@ func (a *AMQP) SendStartFlow(ctx context.Context, domainId int64, schemaId int32
 		ContentType: "text/json",
 		Body:        body,
 	})
-
 	if err != nil {
 		return model.NewInternalError("amqp.start_flow.publish", err.Error())
 	}
@@ -394,5 +406,70 @@ func (a *AMQP) processDomainDeliveries(ctx context.Context, d amqp.Delivery) err
 func (a *AMQP) SetDomainsEventHandler(h mq.DomainEventHandler) {
 	a.mx.Lock()
 	a.domainEventHandler = h
+	a.mx.Unlock()
+}
+
+func (a *AMQP) initSystemSettings(ctx context.Context) error {
+	queueCfg := NewQueueConfig(
+		fmt.Sprintf("engine.system_settings.%s", model.NewId()[0:10]),
+		WithQueueDurable(false),
+		WithQueueAutoDelete(true),
+		WithQueueExclusive(true),
+		WithQueueNoWait(false),
+	)
+
+	bq := NewBrokerQueue(
+		queueCfg,
+		a.BrokerChannelProvider(),
+		a.processSystemSettingsDeliveries,
+		WithConsumerTag(
+			fmt.Sprintf("engine-%s-system-settings", a.nodeName),
+		),
+	)
+
+	bq.Bind(NewQueueBindConfig(
+		queueCfg.Name,
+		"system_settings.#",
+		model.EventExchange,
+		WithQueueBindNoWait(false),
+	))
+
+	go func() {
+		if err := bq.Run(ctx); err != nil {
+			a.log.Error("broker queue stopped", wlog.Err(err))
+		}
+	}()
+
+	go func() {
+		<-a.stopped
+
+		bq.Close()
+	}()
+
+	return nil
+}
+
+func (a *AMQP) processSystemSettingsDeliveries(ctx context.Context, d amqp.Delivery) error {
+	e, err := model.NewSystemSettingEventFromRoutingKey(d.RoutingKey)
+	if err != nil {
+		a.log.Warn("invalid system settings event", wlog.Err(err))
+		return nil
+	}
+
+	a.mx.Lock()
+	h := a.sysSettingsHandler
+	a.mx.Unlock()
+
+	if h == nil {
+		a.log.Warn("no system settings event handler set, dropping event")
+		return nil
+	}
+
+	return h(ctx, e)
+}
+
+func (a *AMQP) SetSystemSettingsEventHandler(h mq.SystemSettingsEventHandler) {
+	a.mx.Lock()
+	a.sysSettingsHandler = h
 	a.mx.Unlock()
 }

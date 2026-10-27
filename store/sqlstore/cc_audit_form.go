@@ -73,6 +73,9 @@ FROM ins i
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
 	if err != nil {
+		if e, ok := err.(*pq.Error); ok && e.Constraint == "cc_audit_form_domain_id_name_uindex" {
+			return nil, model.NewBadRequestError("store.sql_audit_form.save.valid.name", "Scorecard with this name already exists.")
+		}
 		return nil, model.NewCustomCodeError("store.sql_audit_form.save.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -255,6 +258,9 @@ FROM ins i
 		"TeamIds":     pq.Array(model.LookupIds(form.Teams)),
 	})
 	if err != nil {
+		if e, ok := err.(*pq.Error); ok && e.Constraint == "cc_audit_form_domain_id_name_uindex" {
+			return nil, model.NewBadRequestError("store.sql_audit_form.update.valid.name", "Scorecard with this name already exists.")
+		}
 		return nil, model.NewCustomCodeError("store.sql_audit_form.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
 

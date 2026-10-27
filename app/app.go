@@ -16,6 +16,7 @@ import (
 	"github.com/webitel/webitel-go-kit/infra/health"
 	healthhttp "github.com/webitel/webitel-go-kit/infra/health/http"
 	"github.com/webitel/webitel-go-kit/infra/health/sdnotify"
+	otelhealth "github.com/webitel/webitel-go-kit/infra/otel/instrumentation/health"
 	otelsdk "github.com/webitel/webitel-go-kit/infra/otel/sdk"
 	"github.com/webitel/wlog"
 
@@ -73,7 +74,6 @@ type App struct {
 	otelShutdownFunc otelsdk.ShutdownFunc
 	eventTrigger     EventTrigger
 	health           *health.Registry
-	sdNotify         *sdnotify.Notifier
 }
 
 func New(options ...string) (outApp *App, outErr error) {
@@ -136,26 +136,21 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	// Before anything slow: systemd counts TimeoutStartSec from ExecStart.
 	healthLog := slog.New(wlogslog.NewHandler(app.Log))
-	app.health = health.New(health.DefaultConfig(), healthLog)
+
+	// nil when NOTIFY_SOCKET is unset or HEALTH_ADDRESS is empty; WithTransport skips nil.
+	app.health = health.New(health.DefaultConfig(), healthLog,
+		health.WithTransport(sdnotify.New(
+			sdnotify.WithLogger(healthLog),
+			sdnotify.WithStartTimeout(time.Duration(config.Health.StartTimeout)*time.Second),
+		)),
+		health.WithTransport(healthhttp.NewServer(config.Health.Address, healthhttp.WithLogger(healthLog))),
+		health.WithTransport(otelhealth.NewTransport()),
+	)
 
 	// app.ctx: a short-lived context would stop every check.
 	if err := app.health.Start(app.ctx); err != nil {
 		return nil, fmt.Errorf("unable to start health registry: %w", err)
 	}
-
-	// nil when NOTIFY_SOCKET is unset; Start and Stop are both nil-safe.
-	app.sdNotify = sdnotify.New(app.health,
-		sdnotify.WithLogger(healthLog),
-		sdnotify.WithStartTimeout(time.Duration(config.Health.StartTimeout)*time.Second),
-	)
-	if err := app.sdNotify.Start(app.ctx); err != nil {
-		return nil, fmt.Errorf("unable to start sd_notify: %w", err)
-	}
-
-	// RootRouter, not the API subrouter: probes answer without a token.
-	app.Srv.RootRouter.Handle("/livez", healthhttp.LivenessHandler(app.health, healthhttp.WithLogger(healthLog)))
-	app.Srv.RootRouter.Handle("/readyz", healthhttp.ReadinessHandler(app.health, healthhttp.WithLogger(healthLog)))
-	app.Srv.RootRouter.Handle("/healthz", healthhttp.HealthHandler(app.health, healthhttp.WithLogger(healthLog)))
 
 	if err := app.setupCipher(); err != nil {
 		return nil, err
@@ -206,6 +201,7 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)
 	app.initDomainEventListener()
+	app.MessageQueue.SetSystemSettingsEventHandler(app.handleSystemSettingEvent)
 	app.MessageQueue.Start()
 
 	app.Hubs = NewHubs(app)
@@ -257,10 +253,10 @@ func New(options ...string) (outApp *App, outErr error) {
 	}
 
 	// Critical is node-local only: a shared one drops the whole fleet at once.
-	app.health.Critical("grpc", health.ListenerCheck(app.GrpcServer.Listener()))
-	app.health.Critical("freeswitch", app.callManager.Ready)
-	app.health.Informational("postgres", sqlSupplier.Ping)
-	app.health.Informational("rabbitmq", app.MessageQueue.Ping)
+	app.health.Critical(health.SystemGRPC, health.ListenerCheck(app.GrpcServer.Listener()))
+	app.health.Informational("freeswitch", app.callManager.Ready)
+	app.health.Informational(health.SystemPostgreSQL, sqlSupplier.Ping)
+	app.health.Informational(health.SystemRabbitMQ, app.MessageQueue.Ping)
 
 	return app, outErr
 }
@@ -272,7 +268,7 @@ func (app *App) Shutdown() {
 	if app.health != nil {
 		ctx, cancel := context.WithTimeout(context.Background(),
 			time.Duration(app.config.Health.StopTimeout)*time.Second)
-		if err := health.Shutdown(ctx, app.health, app.sdNotify); err != nil {
+		if err := app.health.Shutdown(ctx); err != nil {
 			wlog.Error(fmt.Sprintf("health shutdown: %s", err.Error()))
 		}
 
