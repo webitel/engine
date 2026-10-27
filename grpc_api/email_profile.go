@@ -111,12 +111,6 @@ func (api *emailProfile) ReadEmailProfile(ctx context.Context, in *engine.ReadEm
 	return toEngineEmailProfile(profile), nil
 }
 
-func (api *emailProfile) TestEmailProfile(ctx context.Context, in *engine.TestEmailProfileRequest) (*engine.TestEmailProfileResponse, error) {
-	return &engine.TestEmailProfileResponse{
-		Error: "TODO",
-	}, nil
-}
-
 func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.LoginEmailProfileRequest) (*engine.LoginEmailProfileResponse, error) {
 	var login *model.EmailProfileLogin
 	session, err := api.app.GetSessionFromCtx(ctx)
