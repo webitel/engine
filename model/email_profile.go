@@ -2,8 +2,9 @@ package model
 
 import (
 	"encoding/json"
-	"golang.org/x/oauth2"
 	"strings"
+
+	"golang.org/x/oauth2"
 )
 
 const (
@@ -33,7 +34,7 @@ type EmailProfile struct {
 	Schema        Lookup             `json:"schema" db:"schema"`
 	Enabled       bool               `json:"enabled" db:"enabled"`
 	Login         string             `json:"login" db:"login"`
-	Password      string             `json:"password" db:"password"`
+	Password      UserPassword       `json:"password" db:"password"`
 	Mailbox       string             `json:"mailbox" db:"mailbox"`
 	SmtpHost      string             `json:"smtp_host" db:"smtp_host"`
 	SmtpPort      int                `json:"smtp_port" db:"smtp_port"`
@@ -98,6 +99,9 @@ func (p *EmailProfile) Oauth() (oauth2.Config, AppError) {
 
 	return oauth2.Config{}, NewBadRequestError("email.profile.valid.oauth", "Not found oauth config")
 }
+
+// Email account password
+type UserPassword = string
 
 type EmailProfileLogin struct {
 	AuthType    string `json:"auth_type" db:"auth_type"`
