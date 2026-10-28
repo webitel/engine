@@ -144,8 +144,9 @@ type OutboundCallRequest struct {
 }
 
 type RedialFrom struct {
-	Number  string     `json:"number" db:"number"`
-	UserIds Int64Array `json:"user_ids" db:"user_ids"`
+	Number     string     `json:"number" db:"number"`
+	UserIds    Int64Array `json:"user_ids" db:"user_ids"`
+	HideNumber bool       `json:"hide_number" db:"hide_number"`
 }
 
 type UserCallRequest struct {
