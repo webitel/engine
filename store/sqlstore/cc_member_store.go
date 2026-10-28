@@ -180,7 +180,12 @@ func getMemberSortClause(sort string) string {
 		return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
 	}
 
-	return GetOrderBy("cc_member", sort)
+	order, err := GetOrderBy("cc_member", sort)
+	if err != nil {
+		return "order by created_at desc"
+	}
+
+	return order
 }
 
 // memberSearchFilters is the shared WHERE of SearchMembers and GetMaxCommunicationsCount, so both see the same rows.
@@ -562,7 +567,9 @@ func (s SqlMemberStore) MultiDelete(ctx context.Context, domainId int64, search 
 	}
 
 	if search.Sort != "" {
-		sort = GetOrderBy(model.Member{}.EntityName(), search.Sort)
+		if sort, err = GetOrderBy(model.Member{}.EntityName(), search.Sort); err != nil {
+			return nil, model.NewBadRequestError("store.sql_member.multi_delete.sort", err.Error())
+		}
 	}
 
 	filters := map[string]any{

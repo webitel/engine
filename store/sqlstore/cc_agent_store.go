@@ -597,7 +597,11 @@ group by q.id`, map[string]any{
 }
 
 func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search *model.SearchAgentState) ([]*model.AgentState, model.AppError) {
-	order := GetOrderBy("cc_agent_state_history", search.Sort)
+	order, err := GetOrderBy("cc_agent_state_history", search.Sort)
+	if err != nil {
+		return nil, model.NewBadRequestError("store.sql_agent.get_state_history.sort", err.Error())
+	}
+
 	if order == "" {
 		order = "order by joined_at desc"
 	}
@@ -911,7 +915,6 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 	var (
 		list           []*model.AgentStatusStatistics
 		searchOperator string
-		sort           string
 	)
 
 	q, found := model.ParseRegexp(search.Q)
@@ -921,7 +924,10 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 		searchOperator = ILikeComparisonOperator
 	}
 
-	sort = GetOrderBy("t", search.Sort)
+	sort, err := GetOrderBy("t", search.Sort)
+	if err != nil {
+		return nil, model.NewBadRequestError("store.sql_agent.get_status_stats.sort", err.Error())
+	}
 
 	if sort == "" {
 		sort = `order by case t.status
@@ -932,10 +938,8 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 	}
 
 	f := map[string]any{
-		"DomainId":         domainId,
-		"UserSupervisorId": supervisorUserId,
-		//"Groups":     pq.Array(groups),
-		//"Access":     access.Value(),
+		"DomainId":            domainId,
+		"UserSupervisorId":    supervisorUserId,
 		"Q":                   q,
 		"Limit":               search.GetLimit(),
 		"Offset":              search.GetOffset(),
@@ -1170,8 +1174,7 @@ where t.domain_id = :DomainId
 %s
 limit :Limit offset :Offset`, searchOperator, sort)
 
-	_, err := s.GetMaster().WithContext(ctx).Select(&list, query, f)
-	if err != nil {
+	if _, err = s.GetMaster().WithContext(ctx).Select(&list, query, f); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
