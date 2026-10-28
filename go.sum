@@ -374,8 +374,8 @@ github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8 h1:3++Aq
 github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8/go.mod h1:xLS6bkOYzvYv0dYXUkd5yvYOtujUrXf9lS0gd4qAGO4=
 github.com/webitel/webitel-cryptoctl/schema v0.1.0 h1:gtOsNQhDMFCHwOqonrwRVarLrqkimHmCCd1vtVwpUgI=
 github.com/webitel/webitel-cryptoctl/schema v0.1.0/go.mod h1:Wcfj77Gbg1kMNYDVIQFY6wxB3XEVBBXNb5III7RUo6U=
-github.com/webitel/webitel-go-kit/infra/health v0.3.0 h1:CkmPHLHAFjWYgMtsjPY2Yig8SsWTtW3EX0BeFpVWUBA=
-github.com/webitel/webitel-go-kit/infra/health v0.3.0/go.mod h1:qumOZfpiFfBSIxGd3CMiEyiNKY4xNaVpUh6nlnTgoPk=
+github.com/webitel/webitel-go-kit/infra/health v0.4.0 h1:X8t4UDUjZg7HC8jqqB5lF3UGDA7RAAqebcF+Xd4hKXg=
+github.com/webitel/webitel-go-kit/infra/health v0.4.0/go.mod h1:qumOZfpiFfBSIxGd3CMiEyiNKY4xNaVpUh6nlnTgoPk=
 github.com/webitel/webitel-go-kit/infra/otel v0.6.0 h1:FK5Nq22MAYxS8To06oLccNAZLd7R2Lr0SU+wazk5QOM=
 github.com/webitel/webitel-go-kit/infra/otel v0.6.0/go.mod h1:STmo9n9XkIe5m39Djb3rtfek9fp+KeK/zVBkVVcJX9E=
 github.com/webitel/webitel-go-kit/pkg/logging v0.1.0 h1:v4jTtz4rMBNP0apjeJcunvLFweLEW+g71/QPO5Qm3xc=
