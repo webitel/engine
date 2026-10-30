@@ -28,7 +28,7 @@ require (
 	github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a
 	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
 	github.com/webitel/webitel-cryptoctl/schema v0.1.0
-	github.com/webitel/webitel-go-kit/infra/health v0.3.0
+	github.com/webitel/webitel-go-kit/infra/health v0.4.0
 	github.com/webitel/webitel-go-kit/infra/otel v0.6.0
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
 	github.com/xuri/excelize/v2 v2.10.1
