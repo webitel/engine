@@ -47,7 +47,10 @@ func extractCodeFromErr(err error) int {
 		case ForeignKeyViolationErrorCode, DuplicationViolationErrorCode, FromTriggerValidationErrorCode:
 			code = http.StatusBadRequest
 		}
+	} else if errors.Is(err, ErrInvalidSortField) {
+		code = 400
 	}
+
 	return code
 }
 
