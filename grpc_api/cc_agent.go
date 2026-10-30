@@ -59,21 +59,22 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		User: model.Lookup{
 			Id: int(in.GetUser().GetId()),
 		},
-		Description:      in.Description,
-		ProgressiveCount: progressiveCount,
-		GreetingMedia:    GetLookup(in.GreetingMedia),
-		AllowChannels:    in.AllowChannels,
-		ChatCount:        in.ChatCount,
-		ExtraChatCount:   in.ExtraChatCount,
-		EmailCount:       createAgentEmailCount(in.EmailCount),
-		ExtraEmailCount:  in.GetExtraEmailCount(),
-		Supervisor:       GetLookups(in.Supervisor),
-		Team:             GetLookup(in.Team),
-		Region:           GetLookup(in.Region),
-		Auditor:          GetLookups(in.Auditor),
-		IsSupervisor:     in.GetIsSupervisor(),
-		TaskCount:        in.TaskCount,
-		ScreenControl:    in.ScreenControl,
+		Description:         in.Description,
+		ProgressiveCount:    progressiveCount,
+		GreetingMedia:       GetLookup(in.GreetingMedia),
+		AllowChannels:       in.AllowChannels,
+		ChatCount:           in.ChatCount,
+		ExtraChatCount:      in.ExtraChatCount,
+		EmailCount:          createAgentEmailCount(in.EmailCount),
+		ExtraEmailCount:     in.GetExtraEmailCount(),
+		EmailPostponedCount: in.EmailPostponedCount,
+		Supervisor:          GetLookups(in.Supervisor),
+		Team:                GetLookup(in.Team),
+		Region:              GetLookup(in.Region),
+		Auditor:             GetLookups(in.Auditor),
+		IsSupervisor:        in.GetIsSupervisor(),
+		TaskCount:           in.TaskCount,
+		ScreenControl:       in.ScreenControl,
 	}
 
 	err = agent.IsValid()
@@ -247,7 +248,7 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 		IsSupervisor:     in.GetIsSupervisor(),
 		TaskCount:        in.TaskCount,
 		ScreenControl:    in.ScreenControl,
-	}, model.AgentEmailLimits{Base: in.EmailCount, Extra: in.ExtraEmailCount})
+	}, model.AgentEmailLimits{Base: in.EmailCount, Extra: in.ExtraEmailCount, Postponed: in.EmailPostponedCount})
 
 	if err != nil {
 		return nil, err
@@ -315,6 +316,13 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 			patch.EmailCount = &in.EmailCount
 		case "extra_email_count":
 			patch.ExtraEmailCount = &in.ExtraEmailCount
+		case "email_postponed_count":
+			// Without a value the field in fields removes the limit.
+			if in.EmailPostponedCount != nil {
+				patch.EmailPostponedCount = in.EmailPostponedCount
+			} else {
+				patch.NoPostponedLimit = true
+			}
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
 			if patch.Supervisor == nil {
@@ -1070,6 +1078,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		ExtraChatCount:        &src.ExtraChatCount,
 		EmailCount:            src.EmailCount,
 		ExtraEmailCount:       src.ExtraEmailCount,
+		EmailPostponedCount:   src.EmailPostponedCount,
 		Supervisor:            GetProtoLookups(src.Supervisor),
 		Team:                  GetProtoLookup(src.Team),
 		Region:                GetProtoLookup(src.Region),
