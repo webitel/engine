@@ -1016,6 +1016,7 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Schemas:          GetProtoLookups(src.Schemas),
 		QualityMetrics:   marshaProtoCallQualityMetrics(src.QualityMetrics),
 		UserAgent:        src.UserAgent,
+		HideNumber:       src.HideNumber,
 	}
 
 	if src.HideNumber {
