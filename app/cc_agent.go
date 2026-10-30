@@ -55,7 +55,7 @@ func (app *App) GetAgentById(ctx context.Context, domainId, id int64) (*model.Ag
 	return app.Store.Agent().Get(ctx, domainId, id)
 }
 
-func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, model.AppError) {
+func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent, limits model.AgentEmailLimits) (*model.Agent, model.AppError) {
 	oldAgent, err := app.GetAgentById(ctx, agent.DomainId, agent.Id)
 	if err != nil {
 		return nil, err
@@ -72,6 +72,12 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Age
 	oldAgent.AllowChannels = agent.AllowChannels
 	oldAgent.ChatCount = agent.ChatCount
 	oldAgent.ExtraChatCount = agent.ExtraChatCount
+	if limits.Base != nil {
+		oldAgent.EmailCount = *limits.Base
+	}
+	if limits.Extra != nil {
+		oldAgent.ExtraEmailCount = *limits.Extra
+	}
 	oldAgent.Supervisor = agent.Supervisor
 	oldAgent.Team = agent.Team
 	oldAgent.Region = agent.Region
@@ -84,7 +90,7 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Age
 		return nil, err
 	}
 
-	oldAgent, err = app.Store.Agent().Update(ctx, oldAgent)
+	oldAgent, err = app.Store.Agent().Update(ctx, oldAgent, limits)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +110,9 @@ func (a *App) PatchAgent(ctx context.Context, domainId, id int64, patch *model.A
 		return nil, err
 	}
 
-	oldAgent, err = a.Store.Agent().Update(ctx, oldAgent)
+	oldAgent, err = a.Store.Agent().Update(ctx, oldAgent, model.AgentEmailLimits{
+		Base: patch.EmailCount, Extra: patch.ExtraEmailCount,
+	})
 	if err != nil {
 		return nil, err
 	}
