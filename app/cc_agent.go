@@ -78,8 +78,11 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent, limits mode
 	if limits.Extra != nil {
 		oldAgent.ExtraEmailCount = *limits.Extra
 	}
-	if limits.Postponed != nil {
-		oldAgent.EmailPostponedCount = *limits.Postponed
+	if limits.NoPostponedLimit {
+		oldAgent.EmailPostponedCount = nil
+	} else if limits.Postponed != nil {
+		v := *limits.Postponed
+		oldAgent.EmailPostponedCount = &v
 	}
 	oldAgent.Supervisor = agent.Supervisor
 	oldAgent.Team = agent.Team
@@ -115,6 +118,7 @@ func (a *App) PatchAgent(ctx context.Context, domainId, id int64, patch *model.A
 
 	oldAgent, err = a.Store.Agent().Update(ctx, oldAgent, model.AgentEmailLimits{
 		Base: patch.EmailCount, Extra: patch.ExtraEmailCount, Postponed: patch.EmailPostponedCount,
+		NoPostponedLimit: patch.NoPostponedLimit,
 	})
 	if err != nil {
 		return nil, err

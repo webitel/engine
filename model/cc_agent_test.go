@@ -139,20 +139,35 @@ func TestAgent_EmailLimitsRejectNegativeJSON(t *testing.T) {
 func TestAgent_EmailPostponedCount(t *testing.T) {
 	t.Parallel()
 
-	a := model.Agent{ChatCount: 1, TaskCount: 1, EmailPostponedCount: math.MaxInt16}
+	limit := uint32(math.MaxInt16)
+	a := model.Agent{ChatCount: 1, TaskCount: 1, EmailPostponedCount: &limit}
 	if err := a.IsValid(); err != nil {
 		t.Fatalf("smallint maximum: %v", err)
 	}
-	a.EmailPostponedCount++
+	over := limit + 1
+	a.EmailPostponedCount = &over
 	if err := a.IsValid(); err == nil || err.GetId() != "model.Agent.valid.EmailPostponedCount" {
 		t.Fatalf("smallint overflow: %v", err)
 	}
+	a.EmailPostponedCount = nil
+	if err := a.IsValid(); err != nil {
+		t.Fatalf("no limit: %v", err)
+	}
 
-	b := model.Agent{EmailCount: 2, EmailPostponedCount: 1}
-	three := uint32(3)
+	one, three := uint32(1), uint32(3)
+	b := model.Agent{EmailCount: 2, EmailPostponedCount: &one}
 	b.Patch(&model.AgentPatch{EmailPostponedCount: &three})
-	if b.EmailPostponedCount != 3 || b.EmailCount != 2 {
-		t.Fatalf("got email_postponed_count %d, email_count %d", b.EmailPostponedCount, b.EmailCount)
+	three = 4
+	if b.EmailPostponedCount == nil || *b.EmailPostponedCount != 3 || b.EmailCount != 2 {
+		t.Fatalf("got email_postponed_count %v, email_count %d", b.EmailPostponedCount, b.EmailCount)
+	}
+	b.Patch(&model.AgentPatch{EmailCount: &one})
+	if b.EmailPostponedCount == nil || *b.EmailPostponedCount != 3 {
+		t.Fatal("patch without the postponed limit changed it")
+	}
+	b.Patch(&model.AgentPatch{NoPostponedLimit: true})
+	if b.EmailPostponedCount != nil {
+		t.Fatalf("limit not removed: %d", *b.EmailPostponedCount)
 	}
 
 	if !slices.Contains(b.DefaultFields(), "email_postponed_count") || !slices.Contains(b.AllowFields(), "email_postponed_count") {

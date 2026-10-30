@@ -317,7 +317,12 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 		case "extra_email_count":
 			patch.ExtraEmailCount = &in.ExtraEmailCount
 		case "email_postponed_count":
-			patch.EmailPostponedCount = &in.EmailPostponedCount
+			// Without a value the field in fields removes the limit.
+			if in.EmailPostponedCount != nil {
+				patch.EmailPostponedCount = in.EmailPostponedCount
+			} else {
+				patch.NoPostponedLimit = true
+			}
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
 			if patch.Supervisor == nil {

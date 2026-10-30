@@ -42,7 +42,7 @@ type Agent struct {
 	ExtraChatCount        uint32         `json:"extra_chat_count" db:"extra_chat_count"`
 	EmailCount            uint32         `json:"email_count" db:"email_count"`
 	ExtraEmailCount       uint32         `json:"extra_email_count" db:"extra_email_count"`
-	EmailPostponedCount   uint32         `json:"email_postponed_count" db:"email_postponed_count"`
+	EmailPostponedCount   *uint32        `json:"email_postponed_count" db:"email_postponed_count"` // nil: no limit
 	Supervisor            []*Lookup      `json:"supervisor" db:"supervisor"`
 	Team                  *Lookup        `json:"team" db:"team"`
 	Region                *Lookup        `json:"region" db:"region"`
@@ -63,6 +63,8 @@ type AgentEmailLimits struct {
 	Base      *uint32
 	Extra     *uint32
 	Postponed *uint32
+	// NoPostponedLimit removes the postponed limit; Postponed is ignored then.
+	NoPostponedLimit bool
 }
 
 type AgentPatch struct {
@@ -77,6 +79,7 @@ type AgentPatch struct {
 	EmailCount          *uint32
 	ExtraEmailCount     *uint32
 	EmailPostponedCount *uint32
+	NoPostponedLimit    bool // removes the postponed limit
 	Supervisor          []*Lookup
 	Team                *Lookup
 	Region              *Lookup
@@ -214,8 +217,11 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	if patch.ExtraEmailCount != nil {
 		a.ExtraEmailCount = *patch.ExtraEmailCount
 	}
-	if patch.EmailPostponedCount != nil {
-		a.EmailPostponedCount = *patch.EmailPostponedCount
+	if patch.NoPostponedLimit {
+		a.EmailPostponedCount = nil
+	} else if patch.EmailPostponedCount != nil {
+		v := *patch.EmailPostponedCount
+		a.EmailPostponedCount = &v
 	}
 
 	if patch.Supervisor != nil {
@@ -440,8 +446,8 @@ func (a *Agent) IsValid() AppError {
 	if a.ExtraEmailCount > math.MaxInt16 {
 		return NewBadRequestError("model.Agent.valid.ExtraEmailCount", fmt.Sprintf("The extra email count should be less or equal %d", math.MaxInt16))
 	}
-	// cc_agent.email_postponed_count is smallint; 0 disables postponing.
-	if a.EmailPostponedCount > math.MaxInt16 {
+	// cc_agent.email_postponed_count is smallint; nil means no limit, 0 disables postponing.
+	if a.EmailPostponedCount != nil && *a.EmailPostponedCount > math.MaxInt16 {
 		return NewBadRequestError("model.Agent.valid.EmailPostponedCount", fmt.Sprintf("The email postponed count should be less or equal %d", math.MaxInt16))
 	}
 
