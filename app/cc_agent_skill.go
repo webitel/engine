@@ -7,10 +7,16 @@ import (
 )
 
 func (app *App) CreateAgentSkill(ctx context.Context, as *model.AgentSkill) (*model.AgentSkill, model.AppError) {
+	if err := app.CheckAgentNotDeactivated(ctx, as.DomainId, int64(as.Agent.Id)); err != nil {
+		return nil, err
+	}
 	return app.Store.AgentSkill().Create(ctx, as)
 }
 
 func (app *App) CreateAgentSkills(ctx context.Context, domainId, agentId int64, skills []*model.AgentSkill) ([]int64, model.AppError) {
+	if err := app.CheckAgentNotDeactivated(ctx, domainId, agentId); err != nil {
+		return nil, err
+	}
 	return app.Store.AgentSkill().BulkCreate(ctx, domainId, agentId, skills)
 }
 
@@ -29,6 +35,9 @@ func (app *App) GetAgentsSkillById(ctx context.Context, domainId, agentId, id in
 }
 
 func (app *App) UpdateAgentsSkill(ctx context.Context, agentSkill *model.AgentSkill) (*model.AgentSkill, model.AppError) {
+	if err := app.CheckAgentNotDeactivated(ctx, agentSkill.DomainId, int64(agentSkill.Agent.Id)); err != nil {
+		return nil, err
+	}
 	oldAgentSkill, err := app.GetAgentsSkillById(ctx, agentSkill.DomainId, int64(agentSkill.Agent.Id), agentSkill.Id)
 	if err != nil {
 		return nil, err
@@ -50,11 +59,17 @@ func (app *App) UpdateAgentsSkill(ctx context.Context, agentSkill *model.AgentSk
 }
 
 func (app *App) UpdateAgentsSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill, path model.AgentSkillPatch) ([]*model.AgentSkill, model.AppError) {
+	if err := app.CheckAgentNotDeactivated(ctx, domainId, agentId); err != nil {
+		return nil, err
+	}
 	search.AgentIds = []int64{agentId}
 	return app.Store.AgentSkill().UpdateMany(ctx, domainId, search, path)
 }
 
 func (a *App) PatchAgentSkill(ctx context.Context, domainId int64, agentId, id int64, patch *model.AgentSkillPatch) (*model.AgentSkill, model.AppError) {
+	if err := a.CheckAgentNotDeactivated(ctx, domainId, agentId); err != nil {
+		return nil, err
+	}
 	oldAs, err := a.GetAgentsSkillById(ctx, domainId, agentId, id)
 	if err != nil {
 		return nil, err
@@ -75,6 +90,9 @@ func (a *App) PatchAgentSkill(ctx context.Context, domainId int64, agentId, id i
 }
 
 func (a *App) RemoveAgentSkill(ctx context.Context, domainId, agentId, id int64) (*model.AgentSkill, model.AppError) {
+	if err := a.CheckAgentNotDeactivated(ctx, domainId, agentId); err != nil {
+		return nil, err
+	}
 	agentSkill, err := a.Store.AgentSkill().GetById(ctx, domainId, agentId, id)
 
 	if err != nil {
@@ -89,6 +107,9 @@ func (a *App) RemoveAgentSkill(ctx context.Context, domainId, agentId, id int64)
 }
 
 func (a *App) RemoveAgentSkills(ctx context.Context, domainId, agentId int64, search model.SearchAgentSkill) ([]*model.AgentSkill, model.AppError) {
+	if err := a.CheckAgentNotDeactivated(ctx, domainId, agentId); err != nil {
+		return nil, err
+	}
 	search.AgentIds = []int64{agentId}
 	res, err := a.Store.AgentSkill().Delete(ctx, domainId, search)
 	if err != nil {
@@ -98,6 +119,9 @@ func (a *App) RemoveAgentSkills(ctx context.Context, domainId, agentId int64, se
 }
 
 func (app *App) CreateAgentsSkills(ctx context.Context, domainId int64, items *model.AgentsSkills) ([]*model.AgentSkill, model.AppError) {
+	if err := app.CheckAgentNotDeactivated(ctx, domainId, items.AgentIds...); err != nil {
+		return nil, err
+	}
 	return app.Store.AgentSkill().CreateMany(ctx, domainId, items)
 }
 

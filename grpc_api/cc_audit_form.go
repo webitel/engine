@@ -380,6 +380,8 @@ func modelToProtobufAuditRate(src *model.AuditRate) *engine.AuditRate {
 		SelectYesCount: int64(src.SelectYesCount),
 		CriticalCount:  int64(src.CriticalCount),
 		ConversationId: conversationId,
+
+		RatedUserDeactivated: src.RatedUserDeactivated,
 	}
 }
 

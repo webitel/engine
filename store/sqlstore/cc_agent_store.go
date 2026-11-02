@@ -175,23 +175,24 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 		searchOperator = ILikeComparisonOperator
 	}
 	f := map[string]any{
-		"DomainId":      domainId,
-		"Ids":           pq.Array(search.Ids),
-		"Q":             q,
-		"TeamIds":       pq.Array(search.TeamIds),
-		"AllowChannels": pq.Array(search.AllowChannels),
-		"SupervisorIds": pq.Array(search.SupervisorIds),
-		"RegionIds":     pq.Array(search.RegionIds),
-		"AuditorIds":    pq.Array(search.AuditorIds),
-		"SkillIds":      pq.Array(search.SkillIds),
-		"QueueIds":      pq.Array(search.QueueIds),
-		"IsSupervisor":  search.IsSupervisor,
-		"NotSupervisor": search.NotSupervisor,
-		"Extensions":    pq.Array(search.Extensions),
-		"UserIds":       pq.Array(search.UserIds),
-		"NotTeamIds":    pq.Array(search.NotTeamIds),
-		"NotSkillIds":   pq.Array(search.NotSkillIds),
-		"NotUserIds":    pq.Array(search.NotUserIds),
+		"DomainId":        domainId,
+		"Ids":             pq.Array(search.Ids),
+		"Q":               q,
+		"TeamIds":         pq.Array(search.TeamIds),
+		"AllowChannels":   pq.Array(search.AllowChannels),
+		"SupervisorIds":   pq.Array(search.SupervisorIds),
+		"RegionIds":       pq.Array(search.RegionIds),
+		"AuditorIds":      pq.Array(search.AuditorIds),
+		"SkillIds":        pq.Array(search.SkillIds),
+		"QueueIds":        pq.Array(search.QueueIds),
+		"IsSupervisor":    search.IsSupervisor,
+		"NotSupervisor":   search.NotSupervisor,
+		"Extensions":      pq.Array(search.Extensions),
+		"UserIds":         pq.Array(search.UserIds),
+		"NotTeamIds":      pq.Array(search.NotTeamIds),
+		"NotSkillIds":     pq.Array(search.NotSkillIds),
+		"UserDeactivated": search.UserDeactivated,
+		"NotUserIds":      pq.Array(search.NotUserIds),
 	}
 	err := s.ListQuery(ctx, &agents, search.ListRequest,
 		fmt.Sprintf(`domain_id = :DomainId
@@ -218,6 +219,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 				and (:NotSupervisor::bool isnull or not is_supervisor = :NotSupervisor)
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
+				and (:UserDeactivated::bool isnull or user_deactivated = :UserDeactivated)
 				and (:NotUserIds::int8[] isnull or not user_id = any(:NotUserIds))
 				and (:Q::varchar isnull or (name %s :Q::varchar or description %[1]s :Q::varchar or status %[1]s :Q::varchar or extension %[1]s :Q::varchar))`, searchOperator),
 		model.Agent{}, f)
@@ -232,24 +234,25 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 	var agents []*model.Agent
 
 	f := map[string]any{
-		"Groups":        pq.Array(groups),
-		"Access":        auth_manager.PERMISSION_ACCESS_READ.Value(),
-		"DomainId":      domainId,
-		"Ids":           pq.Array(search.Ids),
-		"Q":             search.GetRegExpQ(),
-		"TeamIds":       pq.Array(search.TeamIds),
-		"AllowChannels": pq.Array(search.AllowChannels),
-		"SupervisorIds": pq.Array(search.SupervisorIds),
-		"RegionIds":     pq.Array(search.RegionIds),
-		"AuditorIds":    pq.Array(search.AuditorIds),
-		"SkillIds":      pq.Array(search.SkillIds),
-		"QueueIds":      pq.Array(search.QueueIds),
-		"IsSupervisor":  search.IsSupervisor,
-		"NotSupervisor": search.NotSupervisor,
-		"Extensions":    pq.Array(search.Extensions),
-		"UserIds":       pq.Array(search.UserIds),
-		"NotTeamIds":    pq.Array(search.NotTeamIds),
-		"NotSkillIds":   pq.Array(search.NotSkillIds),
+		"Groups":          pq.Array(groups),
+		"Access":          auth_manager.PERMISSION_ACCESS_READ.Value(),
+		"DomainId":        domainId,
+		"Ids":             pq.Array(search.Ids),
+		"Q":               search.GetRegExpQ(),
+		"TeamIds":         pq.Array(search.TeamIds),
+		"AllowChannels":   pq.Array(search.AllowChannels),
+		"SupervisorIds":   pq.Array(search.SupervisorIds),
+		"RegionIds":       pq.Array(search.RegionIds),
+		"AuditorIds":      pq.Array(search.AuditorIds),
+		"SkillIds":        pq.Array(search.SkillIds),
+		"QueueIds":        pq.Array(search.QueueIds),
+		"IsSupervisor":    search.IsSupervisor,
+		"NotSupervisor":   search.NotSupervisor,
+		"Extensions":      pq.Array(search.Extensions),
+		"UserIds":         pq.Array(search.UserIds),
+		"NotTeamIds":      pq.Array(search.NotTeamIds),
+		"NotSkillIds":     pq.Array(search.NotSkillIds),
+		"UserDeactivated": search.UserDeactivated,
 	}
 
 	err := s.ListQuery(ctx, &agents, search.ListRequest,
@@ -277,6 +280,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 				))
 				and (:SkillIds::int[] isnull or exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:SkillIds)))
 				and (:NotSkillIds::int[] isnull or not exists(select 1 from call_center.cc_skill_in_agent sia where sia.agent_id = t.id and sia.skill_id = any(:NotSkillIds)))
+				and (:UserDeactivated::bool isnull or user_deactivated = :UserDeactivated)
 				and (:Q::varchar isnull or (name ~ :Q::varchar or description ~ :Q::varchar or status ~ :Q::varchar or extension ~ :Q::varchar))
 				and (
 					exists(select 1
@@ -375,7 +379,8 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId, id int64) (*model.Agen
 			   a.supervisor as is_supervisor,
 			   a.screen_control,
 			   t.screen_control is false allow_set_screen_control,
-			   ct.extension
+			   ct.extension,
+			   ct.deleted_at notnull as user_deactivated
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -446,7 +451,8 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			   call_center.cc_get_lookup(r.id, r.name) as region,
 			   a.supervisor as is_supervisor,
 			   a.screen_control,
-			   t.screen_control is false allow_set_screen_control
+			   t.screen_control is false allow_set_screen_control,
+			   ct.deleted_at notnull as user_deactivated
 		FROM  a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -657,6 +663,7 @@ func (s SqlAgentStore) LookupNotExistsUsers(ctx context.Context, domainId int64,
 		`select u.id, COALESCE(u.name::text, u.username) COLLATE "default" as name
 from directory.wbt_user u
 where u.dc = :DomainId
+  and u.deleted_at isnull
   and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
   and   ( (:Q::varchar isnull or (COALESCE(u.name::text, u.username) COLLATE "default" ilike :Q::varchar ) ))
 order by COALESCE(u.name::text, u.username) COLLATE "default"
@@ -680,6 +687,7 @@ func (s SqlAgentStore) LookupNotExistsUsersByGroups(ctx context.Context, domainI
 		`select u.id, COALESCE(u.name::text, u.username) COLLATE "default" as name
 from directory.wbt_user u
 where u.dc = :DomainId
+  and u.deleted_at isnull
   and not exists(select 1 from call_center.cc_agent a where a.domain_id = :DomainId and a.user_id = u.id)
   and (
 	exists(select 1
@@ -701,6 +709,40 @@ offset :Offset`, map[string]any{
 	} else {
 		return users, nil
 	}
+}
+
+func (s SqlAgentStore) IsUserDeactivated(ctx context.Context, domainId, userId int64) (bool, model.AppError) {
+	deactivated, err := s.GetMaster().WithContext(ctx).SelectInt(`select count(*)
+from directory.wbt_user u
+where u.id = :UserId
+  and u.dc = :DomainId
+  and u.deleted_at notnull`, map[string]any{
+		"UserId":   userId,
+		"DomainId": domainId,
+	})
+	if err != nil {
+		return false, model.NewCustomCodeError("store.sql_agent.user_deactivated.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return deactivated > 0, nil
+}
+
+func (s SqlAgentStore) DeactivatedAgents(ctx context.Context, domainId int64, agentIds []int64) ([]int64, model.AppError) {
+	var ids []int64
+	_, err := s.GetMaster().WithContext(ctx).Select(&ids, `select a.id
+from call_center.cc_agent a
+    inner join directory.wbt_user u on u.id = a.user_id
+where a.domain_id = :DomainId
+  and a.id = any(:AgentIds::int8[])
+  and u.deleted_at notnull`, map[string]any{
+		"DomainId": domainId,
+		"AgentIds": pq.Array(agentIds),
+	})
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_agent.deactivated_agents.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return ids, nil
 }
 
 func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (*model.AgentSession, model.AppError) {
@@ -952,6 +994,7 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
 		"AuditorIds":          pq.Array(search.AuditorIds),
 		"SupervisorIds":       pq.Array(search.SupervisorIds),
 		"HasCall":             search.HasCall,
+		"UserDeactivated":     search.UserDeactivated,
 		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	}
 
@@ -983,10 +1026,12 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisor
        chat_time,
        coalesce(occupancy, 0) as occupancy,
        desc_track,
-       screen_control
+       screen_control,
+       user_deactivated
 from (
          select a.id                                                                                  agent_id,
                 a.domain_id,
+                u.deleted_at notnull                                                                  user_deactivated,
                 coalesce(u.name, u.username)::varchar COLLATE "default"                      as                                  name,
                 coalesce(u.extension, '')                         as                                  extension,
                 exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
@@ -1167,6 +1212,7 @@ where t.domain_id = :DomainId
   and (:RegionIds::int[] isnull or (t.region_id notnull and t.region_id = any (:RegionIds::int[])))
   and (:AuditorIds::int[] isnull or (t.auditor_ids notnull and t.auditor_ids && :AuditorIds::int8[]))
   and (:HasCall::bool isnull or (not :HasCall or active_call_id notnull))
+  and (:UserDeactivated::bool isnull or t.user_deactivated = :UserDeactivated)
 %s
 limit :Limit offset :Offset`, searchOperator, sort)
 
@@ -1211,7 +1257,8 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId, agentI
        coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
        coalesce(ts.score_count, 0)                                                as      score_count,
        exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
-       a.screen_control
+       a.screen_control,
+       cawu.deleted_at notnull                                                        as      user_deactivated
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
          left join flow.region r on r.id = a.region_id

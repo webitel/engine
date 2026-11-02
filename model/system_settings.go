@@ -50,6 +50,8 @@ const (
 	SysNameDefaultMembersFilter              = "default_members_filter"
 	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
 	SysNameRecordAllCalls                    = "record_all_calls"
+	SysNameAutoDeactivationPeriod            = "auto_deactivation_period"
+	SysNameAutoDeletionPeriod                = "auto_deletion_period"
 )
 
 type SysValue json.RawMessage
@@ -122,6 +124,13 @@ func (s *SystemSetting) IsValid() AppError {
 
 		if i == nil || *i < 1 {
 			return NewBadRequestError("model.SystemSetting.invalid.int.value", "The value should be more than 1")
+		}
+	case SysNameAutoDeactivationPeriod, SysNameAutoDeletionPeriod:
+		value := SysValue(s.Value)
+		i := value.Int()
+
+		if i == nil || *i < 0 {
+			return NewBadRequestError("model.SystemSetting.invalid.int.value", "The value should be a non-negative integer")
 		}
 	case SysNameChatAiConnection,
 		SysNamePasswordRegExp,

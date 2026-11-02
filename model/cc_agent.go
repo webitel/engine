@@ -52,6 +52,7 @@ type Agent struct {
 
 	UserPresenceStatus StringArray `json:"user_presence_status" db:"user_presence_status"`
 	StatusType         string      `json:"status_type" db:"status_type"`
+	UserDeactivated    bool        `json:"user_deactivated" db:"user_deactivated"`
 }
 
 type AgentPatch struct {
@@ -100,9 +101,10 @@ type AgentStatusStatistics struct {
 	ChatCount   int32     `json:"chat_count" db:"chat_count"`
 	ChatTime    int64     `json:"chat_time" db:"chat_time"`
 
-	Occupancy     float32 `json:"occupancy" db:"occupancy"`
-	DescTrack     bool    `json:"desc_track" db:"desc_track"`
-	ScreenControl bool    `json:"screen_control" db:"screen_control"`
+	Occupancy       float32 `json:"occupancy" db:"occupancy"`
+	DescTrack       bool    `json:"desc_track" db:"desc_track"`
+	ScreenControl   bool    `json:"screen_control" db:"screen_control"`
+	UserDeactivated bool    `json:"user_deactivated" db:"user_deactivated"`
 }
 
 type SupervisorAgentItem struct {
@@ -131,6 +133,7 @@ type SupervisorAgentItem struct {
 	ScoreCount       int64   `json:"score_count" db:"score_count"`
 	DescTrack        bool    `json:"desc_track" db:"desc_track"`
 	ScreenControl    bool    `json:"screen_control" db:"screen_control"`
+	UserDeactivated  bool    `json:"user_deactivated" db:"user_deactivated"`
 }
 
 type SearchAgentStatusStatistic struct {
@@ -146,7 +149,8 @@ type SearchAgentStatusStatistic struct {
 	SupervisorIds []uint32
 	AuditorIds    []int64
 
-	HasCall bool
+	HasCall         bool
+	UserDeactivated *bool
 }
 
 type AgentPauseCause struct {
@@ -226,13 +230,13 @@ func (a Agent) DefaultOrder() string {
 func (a Agent) AllowFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change", "status_type",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status"}
+		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status", "user_deactivated"}
 }
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
 		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "extension", "status_type"}
+		"auditor", "is_supervisor", "extension", "status_type", "user_deactivated"}
 }
 
 func (a Agent) EntityName() string {
@@ -293,21 +297,22 @@ func (a AgentSession) ToMap() map[string]any {
 
 type SearchAgent struct {
 	ListRequest
-	Ids           []string
-	AllowChannels []string
-	SupervisorIds []uint32
-	TeamIds       []uint32
-	RegionIds     []uint32
-	AuditorIds    []uint32
-	SkillIds      []uint32
-	QueueIds      []uint32
-	IsSupervisor  *bool
-	NotSupervisor *bool `json:"not_supervisor"`
-	Extensions    []string
-	UserIds       []int64
-	NotTeamIds    []uint32
-	NotSkillIds   []uint32
-	NotUserIds    []int64
+	Ids             []string
+	AllowChannels   []string
+	SupervisorIds   []uint32
+	TeamIds         []uint32
+	RegionIds       []uint32
+	AuditorIds      []uint32
+	SkillIds        []uint32
+	QueueIds        []uint32
+	IsSupervisor    *bool
+	NotSupervisor   *bool `json:"not_supervisor"`
+	Extensions      []string
+	UserIds         []int64
+	NotTeamIds      []uint32
+	NotSkillIds     []uint32
+	NotUserIds      []int64
+	UserDeactivated *bool
 }
 
 type AgentUser struct {

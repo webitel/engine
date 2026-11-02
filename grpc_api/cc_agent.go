@@ -126,6 +126,12 @@ func (api *agent) SearchAgent(ctx context.Context, in *engine.SearchAgentRequest
 		NotUserIds:    in.GetNotUserId(),
 	}
 
+	if in.UserDeactivated != nil {
+		req.UserDeactivated = in.UserDeactivated
+	} else if !in.GetAny() && len(req.Ids) == 0 && len(req.UserIds) == 0 && len(req.Extensions) == 0 {
+		req.UserDeactivated = model.NewBool(false)
+	}
+
 	if in.IsSupervisor {
 		req.IsSupervisor = &in.IsSupervisor
 	}
@@ -406,6 +412,12 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 			} else if !perm {
 				return nil, api.app.MakeResourcePermissionError(session, in.GetId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 			}
+		}
+	}
+
+	if in.Status != model.AgentStatusOffline {
+		if err = api.app.CheckAgentNotDeactivated(ctx, session.Domain(in.GetDomainId()), in.GetId()); err != nil {
+			return nil, err
 		}
 	}
 
@@ -836,6 +848,12 @@ func (api *agent) SearchAgentStatusStatistic(ctx context.Context, in *engine.Sea
 		HasCall:       in.HasCall,
 	}
 
+	if in.UserDeactivated != nil {
+		req.UserDeactivated = in.UserDeactivated
+	} else if !in.GetAny() && len(req.AgentIds) == 0 {
+		req.UserDeactivated = model.NewBool(false)
+	}
+
 	if in.Utilization != nil {
 		req.Utilization = &model.FilterBetween{
 			From: in.GetUtilization().GetFrom(),
@@ -933,6 +951,7 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		DescTrack:        item.DescTrack,
 		StatusComment:    item.StatusComment,
 		ScreenControl:    item.ScreenControl,
+		UserDeactivated:  item.UserDeactivated,
 	}, nil
 }
 
@@ -999,33 +1018,34 @@ func toEngineAgentCallStatistics(src *model.AgentCallStatistics) *engine.AgentCa
 
 func toEngineAgentStatusStatistics(src *model.AgentStatusStatistics) *engine.AgentStatsStatistic {
 	item := &engine.AgentStatsStatistic{
-		AgentId:        src.AgentId,
-		Name:           src.Name,
-		Status:         src.Status,
-		StatusDuration: src.StatusDuration,
-		User:           GetProtoLookup(&src.User),
-		Extension:      src.Extension,
-		Team:           GetProtoLookup(src.Team),
-		Queues:         GetProtoLookups(src.Queues),
-		Online:         src.Online,
-		Offline:        src.Offline,
-		Pause:          src.Pause,
-		Utilization:    src.Utilization,
-		CallTime:       src.CallTime,
-		Handles:        src.Handles,
-		Missed:         src.Missed,
-		MaxBridgedAt:   model.TimeToInt64(src.MaxBridgedAt),
-		MaxOfferingAt:  model.TimeToInt64(src.MaxOfferingAt),
-		Transferred:    src.Transferred,
-		Skills:         GetProtoLookups(src.Skills),
-		Supervisor:     GetProtoLookups(src.Supervisor),
-		Auditor:        GetProtoLookups(src.Auditor),
-		PauseCause:     src.PauseCause,
-		ChatCount:      src.ChatCount,
-		Occupancy:      src.Occupancy,
-		DescTrack:      src.DescTrack,
-		ScreenControl:  src.ScreenControl,
-		ChatTime:       src.ChatTime,
+		AgentId:         src.AgentId,
+		Name:            src.Name,
+		Status:          src.Status,
+		StatusDuration:  src.StatusDuration,
+		User:            GetProtoLookup(&src.User),
+		Extension:       src.Extension,
+		Team:            GetProtoLookup(src.Team),
+		Queues:          GetProtoLookups(src.Queues),
+		Online:          src.Online,
+		Offline:         src.Offline,
+		Pause:           src.Pause,
+		Utilization:     src.Utilization,
+		CallTime:        src.CallTime,
+		Handles:         src.Handles,
+		Missed:          src.Missed,
+		MaxBridgedAt:    model.TimeToInt64(src.MaxBridgedAt),
+		MaxOfferingAt:   model.TimeToInt64(src.MaxOfferingAt),
+		Transferred:     src.Transferred,
+		Skills:          GetProtoLookups(src.Skills),
+		Supervisor:      GetProtoLookups(src.Supervisor),
+		Auditor:         GetProtoLookups(src.Auditor),
+		PauseCause:      src.PauseCause,
+		ChatCount:       src.ChatCount,
+		Occupancy:       src.Occupancy,
+		DescTrack:       src.DescTrack,
+		ScreenControl:   src.ScreenControl,
+		ChatTime:        src.ChatTime,
+		UserDeactivated: src.UserDeactivated,
 	}
 
 	if src.ActiveCallId != nil {
@@ -1065,6 +1085,7 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		ScreenControl:         src.ScreenControl,
 		AllowSetScreenControl: src.AllowSetScreenControl,
 		StatusType:            src.StatusType,
+		UserDeactivated:       src.UserDeactivated,
 	}
 
 	if src.ProgressiveCount != nil {

@@ -91,7 +91,10 @@ FROM s
          LEFT JOIN LATERAL ( SELECT count(DISTINCT sa.agent_id) FILTER (WHERE sa.enabled) AS active_agents,
                                     count(DISTINCT sa.agent_id)                           AS total_agents
                              FROM call_center.cc_skill_in_agent sa
-                             WHERE sa.skill_id = s.id) agents ON true`,
+                                      INNER JOIN call_center.cc_agent a ON a.id = sa.agent_id
+                                      INNER JOIN directory.wbt_user au ON au.id = a.user_id
+                             WHERE sa.skill_id = s.id
+                               AND au.deleted_at IS NULL) agents ON true`,
 		map[string]interface{}{
 			"Name":        skill.Name,
 			"DomainId":    skill.DomainId,
@@ -126,7 +129,10 @@ FROM call_center.cc_skill s
          LEFT JOIN LATERAL ( SELECT count(DISTINCT sa.agent_id) FILTER (WHERE sa.enabled) AS active_agents,
                                     count(DISTINCT sa.agent_id)                           AS total_agents
                              FROM call_center.cc_skill_in_agent sa
-                             WHERE sa.skill_id = s.id) agents ON true
+                                      INNER JOIN call_center.cc_agent a ON a.id = sa.agent_id
+                                      INNER JOIN directory.wbt_user au ON au.id = a.user_id
+                             WHERE sa.skill_id = s.id
+                               AND au.deleted_at IS NULL) agents ON true
 		where s.id = :Id and s.domain_id = :DomainId`, map[string]interface{}{
 		"Id":       id,
 		"DomainId": domainId,
@@ -227,7 +233,10 @@ FROM s
          LEFT JOIN LATERAL ( SELECT count(DISTINCT sa.agent_id) FILTER (WHERE sa.enabled) AS active_agents,
                                     count(DISTINCT sa.agent_id)                           AS total_agents
                              FROM call_center.cc_skill_in_agent sa
-                             WHERE sa.skill_id = s.id) agents ON true`, map[string]interface{}{
+                                      INNER JOIN call_center.cc_agent a ON a.id = sa.agent_id
+                                      INNER JOIN directory.wbt_user au ON au.id = a.user_id
+                             WHERE sa.skill_id = s.id
+                               AND au.deleted_at IS NULL) agents ON true`, map[string]interface{}{
 		"Id":          skill.Id,
 		"Name":        skill.Name,
 		"Description": skill.Description,

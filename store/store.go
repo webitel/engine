@@ -162,6 +162,8 @@ type AgentStore interface {
 	/*Lookups*/
 	LookupNotExistsUsers(ctx context.Context, domainId int64, search *model.SearchAgentUser) ([]*model.AgentUser, model.AppError)
 	LookupNotExistsUsersByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgentUser) ([]*model.AgentUser, model.AppError)
+	IsUserDeactivated(ctx context.Context, domainId, userId int64) (bool, model.AppError)
+	DeactivatedAgents(ctx context.Context, domainId int64, agentIds []int64) ([]int64, model.AppError)
 
 	StatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError)
 	SupervisorAgentItem(ctx context.Context, domainId, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError)

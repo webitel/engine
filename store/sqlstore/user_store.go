@@ -44,7 +44,8 @@ u.extension, u.extension endpoint, d.name as domain_name, coalesce(u.profile, '{
 from directory.wbt_user u
     inner join directory.wbt_domain d on d.dc = u.dc
 where u.id = :UserId
-  and u.dc = :DomainId`, map[string]any{
+  and u.dc = :DomainId
+  and u.deleted_at isnull`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
@@ -98,6 +99,7 @@ from directory.wbt_user u
 			  and val notnull) push(config) ON true
 where case when :UserId::int8 notnull then u.id = :UserId else u.extension = :Extension::varchar end
   and u.dc = :DomainId
+  and u.deleted_at isnull
 limit 1`, map[string]any{
 		"UserId":    e.UserId,
 		"Extension": e.Extension,

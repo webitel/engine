@@ -602,6 +602,7 @@ with queues  as  (
                array_agg(distinct a.id) total
         from queues q
             inner join call_center.cc_agent a on a.domain_id = q.domain_id
+            inner join directory.wbt_user au on au.id = a.user_id and au.deleted_at isnull
             inner join call_center.cc_agent_channel ac on ac.agent_id = a.id and ac.channel = case when q.type in (0,1,2,3,4,5) then  'call'
                                                                                 when q.type in (6) then 'chat' else 'task' end
 			inner join call_center.cc_agent_channel ac_call on ac_call.agent_id = a.id and ac_call.channel::text = 'call'
