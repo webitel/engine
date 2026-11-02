@@ -16,12 +16,13 @@ type QuestionAnswer struct {
 }
 
 type Rate struct {
-	CallId        *string         `json:"call_id" db:"call_id"`
-	CallCreatedAt *time.Time      `json:"call_created_at" db:"call_created_at"`
-	RatedUser     *Lookup         `json:"rated_user" db:"rated_user"`
-	Form          *Lookup         `json:"form" db:"form"`
-	Answers       QuestionAnswers `json:"answers" db:"answers"`
-	Comment       string          `json:"comment" db:"comment"`
+	CallId         *string         `json:"call_id" db:"call_id"`
+	ConversationId *string         `json:"conversation_id" db:"conversation_id"`
+	CallCreatedAt  *time.Time      `json:"call_created_at" db:"call_created_at"`
+	RatedUser      *Lookup         `json:"rated_user" db:"rated_user"`
+	Form           *Lookup         `json:"form" db:"form"`
+	Answers        QuestionAnswers `json:"answers" db:"answers"`
+	Comment        string          `json:"comment" db:"comment"`
 }
 
 type AuditRate struct {
@@ -37,12 +38,13 @@ type AuditRate struct {
 
 type SearchAuditRate struct {
 	ListRequest
-	Ids          []int32
-	CallIds      []string `json:"call_ids" db:"call_ids"`
-	CreatedAt    *FilterBetween
-	FormIds      []int32
-	RatedUserIds []int64
-	RolesIds     []int
+	Ids             []int32
+	CallIds         []string `json:"call_ids" db:"call_ids"`
+	ConversationIds []string `json:"conversation_ids" db:"conversation_ids"`
+	CreatedAt       *FilterBetween
+	FormIds         []int32
+	RatedUserIds    []int64
+	RolesIds        []int
 }
 
 func (a QuestionAnswers) ToJson() []byte {
@@ -56,7 +58,7 @@ func (AuditRate) DefaultOrder() string {
 
 func (AuditRate) AllowFields() []string {
 	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "rated_user",
-		"form", "answers", "score_required", "score_optional", "comment", "call_id", "questions", "select_yes_count", "critical_count"}
+		"form", "answers", "score_required", "score_optional", "comment", "call_id", "conversation_id", "questions", "select_yes_count", "critical_count"}
 }
 
 func (AuditRate) DefaultFields() []string {
@@ -75,6 +77,10 @@ func (r *AuditRate) IsValid() AppError {
 // TODO call_id
 
 func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
+	if (rate.CallId == nil) == (rate.ConversationId == nil) {
+		return NewBadRequestError("audit.rate.valid.source", "exactly one of call_id or conversation_id must be set")
+	}
+
 	if len(form.Questions) != len(rate.Answers) {
 		return NewBadRequestError("audit.rate.valid.answers", "Answers not equals questions")
 	}
@@ -84,6 +90,7 @@ func (r *AuditRate) SetRate(form *AuditForm, rate Rate) AppError {
 	r.Form = &Lookup{Id: int(form.Id)}
 	r.RatedUser = rate.RatedUser
 	r.CallId = rate.CallId
+	r.ConversationId = rate.ConversationId
 	r.CallCreatedAt = rate.CallCreatedAt
 	r.Comment = rate.Comment
 

@@ -104,6 +104,17 @@ func (api *memberApi) InterceptAttempt(ctx context.Context, domainId int64, atte
 	return err
 }
 
+func (api *memberApi) TransferAttempt(ctx context.Context, domainId int64, attemptId int64, agentId, queueId int32) error {
+	_, err := api.Api.Transfer(ctx, &cc.TransferRequest{
+		DomainId:  domainId,
+		AttemptId: attemptId,
+		AgentId:   agentId,
+		QueueId:   queueId,
+	})
+
+	return err
+}
+
 func (api *memberApi) ResumeAttempt(ctx context.Context, attemptId int64, domainId int64) error {
 	_, err := api.Api.ResumeAttempt(ctx, &cc.ResumeAttemptRequest{
 		DomainId:  domainId,

@@ -21,9 +21,9 @@ func NewSqlPauseCauseStore(sqlStore SqlStore) store.PauseCauseStore {
 func (s SqlPauseCauseStore) Create(ctx context.Context, domainId int64, cause *model.PauseCause) (*model.PauseCause, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&cause, `with s as (
     insert into call_center.cc_pause_cause (domain_id, created_at, updated_at, created_by, updated_by,
-                                      name, limit_min, allow_supervisor, allow_agent, allow_admin, description)
+                                      name, limit_min, allow_supervisor, allow_agent, allow_admin, description, team_ids)
     values (:DomainId, :CreatedAt, :UpdatedAt, :CreatedBy, :UpdatedBy,
-            :Name, :LimitMin, :AllowSupervisor, :AllowAgent, :AllowAdmin, :Description)
+            :Name, :LimitMin, :AllowSupervisor, :AllowAgent, :AllowAdmin, :Description, :TeamIds::int[])
     returning *
 )
 select s.id,
@@ -36,7 +36,10 @@ select s.id,
        s.limit_min,
        s.allow_agent,
        s.allow_supervisor,
-	   s.allow_admin
+	   s.allow_admin,
+       (select jsonb_agg(call_center.cc_get_lookup(t.id, t.name::character varying))
+          from call_center.cc_team t
+         where t.id = any (s.team_ids) and t.domain_id = s.domain_id) as teams
 from s
          left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by`, map[string]interface{}{
@@ -51,6 +54,7 @@ from s
 		"AllowAgent":      cause.AllowAgent,
 		"AllowAdmin":      cause.AllowAdmin,
 		"Description":     cause.Description,
+		"TeamIds":         pq.Array(model.LookupIds(cause.Teams)),
 	})
 
 	if err != nil {
@@ -85,7 +89,7 @@ func (s SqlPauseCauseStore) GetAllPage(ctx context.Context, domainId int64, sear
 
 func (s SqlPauseCauseStore) Get(ctx context.Context, domainId int64, id uint32) (*model.PauseCause, model.AppError) {
 	var cause *model.PauseCause
-	err := s.GetReplica().WithContext(ctx).SelectOne(&cause, `select id, 
+	err := s.GetReplica().WithContext(ctx).SelectOne(&cause, `select id,
        created_at,
        created_by,
        updated_at,
@@ -95,7 +99,8 @@ func (s SqlPauseCauseStore) Get(ctx context.Context, domainId int64, id uint32) 
        allow_agent,
        allow_supervisor,
 	   allow_admin,
-       limit_min
+       limit_min,
+       teams
 from call_center.cc_pause_cause_list
 where id = :Id and domain_id = :DomainId`, map[string]interface{}{
 		"DomainId": domainId,
@@ -119,7 +124,8 @@ func (s SqlPauseCauseStore) Update(ctx context.Context, domainId int64, cause *m
             limit_min = :LimitMin,
             allow_supervisor = :AllowSupervisor,
             allow_agent = :AllowAgent,
-			allow_admin = :AllowAdmin
+			allow_admin = :AllowAdmin,
+			team_ids = :TeamIds::int[]
         where id = :Id and domain_id = :DomainId
     returning *
 )
@@ -133,7 +139,10 @@ select s.id,
        s.limit_min,
        s.allow_agent,
        s.allow_supervisor,
-	   s.allow_admin	
+	   s.allow_admin,
+       (select jsonb_agg(call_center.cc_get_lookup(t.id, t.name::character varying))
+          from call_center.cc_team t
+         where t.id = any (s.team_ids) and t.domain_id = s.domain_id) as teams
 from s
          left join directory.wbt_user uc on uc.id = s.created_by
          left join directory.wbt_user uu on uu.id = s.updated_by;`, map[string]interface{}{
@@ -147,6 +156,7 @@ from s
 		"AllowAdmin":      cause.AllowAdmin,
 		"UpdatedAt":       cause.UpdatedAt,
 		"UpdatedBy":       cause.UpdatedBy.GetSafeId(),
+		"TeamIds":         pq.Array(model.LookupIds(cause.Teams)),
 	})
 
 	if err != nil {

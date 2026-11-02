@@ -1,6 +1,7 @@
 package grpc_api
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"strconv"
@@ -37,6 +38,12 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
+	var progressiveCount *int
+	if in.GetProgressiveCount() > 0 {
+		reference := int(in.GetProgressiveCount())
+		progressiveCount = &reference
+	}
+
 	agent := &model.Agent{
 		DomainRecord: model.DomainRecord{
 			DomainId:  session.Domain(in.GetDomainId()),
@@ -53,10 +60,11 @@ func (api *agent) CreateAgent(ctx context.Context, in *engine.CreateAgentRequest
 			Id: int(in.GetUser().GetId()),
 		},
 		Description:      in.Description,
-		ProgressiveCount: int(in.ProgressiveCount),
+		ProgressiveCount: progressiveCount,
 		GreetingMedia:    GetLookup(in.GreetingMedia),
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
+		ExtraChatCount:   in.ExtraChatCount,
 		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
@@ -206,6 +214,12 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 
 	var agent *model.Agent
 
+	var progressiveCallCount *int
+	if in.GetProgressiveCount() > 0 {
+		reference := int(in.GetProgressiveCount())
+		progressiveCallCount = &reference
+	}
+
 	agent, err = api.app.UpdateAgent(ctx, &model.Agent{
 		DomainRecord: model.DomainRecord{
 			Id:        in.Id,
@@ -219,10 +233,11 @@ func (api *agent) UpdateAgent(ctx context.Context, in *engine.UpdateAgentRequest
 			Id: int(in.GetUser().GetId()),
 		},
 		Description:      in.Description,
-		ProgressiveCount: int(in.ProgressiveCount),
+		ProgressiveCount: progressiveCallCount,
 		GreetingMedia:    GetLookup(in.GreetingMedia),
 		AllowChannels:    in.AllowChannels,
 		ChatCount:        in.ChatCount,
+		ExtraChatCount:   in.ExtraChatCount,
 		Supervisor:       GetLookups(in.Supervisor),
 		Team:             GetLookup(in.Team),
 		Region:           GetLookup(in.Region),
@@ -284,17 +299,20 @@ func (api *agent) PatchAgent(ctx context.Context, in *engine.PatchAgentRequest) 
 		case "description":
 			patch.Description = model.NewString(in.Description)
 		case "progressive_count":
-			patch.ProgressiveCount = model.NewInt(int(in.ProgressiveCount))
+			parsedInt := int(in.GetProgressiveCount())
+			patch.ProgressiveCount = &parsedInt
 		case "greeting_media.id", "greeting_media":
 			patch.GreetingMedia = &model.Lookup{
 				Id: int(in.GetGreetingMedia().GetId()),
 			}
 		case "chat_count":
 			patch.ChatCount = &in.ChatCount
+		case "extra_chat_count":
+			patch.ExtraChatCount = &in.ExtraChatCount
 		case "supervisor.id", "supervisor":
 			patch.Supervisor = GetLookups(in.GetSupervisor())
 			if patch.Supervisor == nil {
-				patch.Supervisor = make([]*model.Lookup, 0, 0)
+				patch.Supervisor = make([]*model.Lookup, 0)
 			}
 
 		case "team.id", "team":
@@ -393,7 +411,17 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 
 	switch in.Status {
 	case model.AgentStatusOnline:
-		err = api.ctrl.LoginAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.OnDemand)
+		var onlineStatus *model.Lookup
+		if p := in.GetOnlineSkill(); p != nil {
+			onlineStatus = &model.Lookup{Id: int(p.GetId()), Name: p.GetName()}
+		}
+
+		err = api.ctrl.LoginAgentFromRequest(ctx, session, &model.AgentLoginRequest{
+			AgentID:      in.GetId(),
+			OnDemand:     in.GetOnDemand(),
+			OnlineStatus: onlineStatus,
+			DomainID:     cmp.Or(in.GetDomainId(), session.Domain(0)),
+		})
 	case model.AgentStatusPause:
 		err = api.ctrl.PauseAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), in.GetStatusComment(), 0)
 	case model.AgentStatusOffline:
@@ -465,7 +493,7 @@ func (api *agent) SearchAgentInQueue(ctx context.Context, in *engine.SearchAgent
 				Offline: v.Agents.Offline,
 				Free:    v.Agents.Free,
 				Total:   v.Agents.Total,
-				Busy: v.Agents.Busy,
+				Busy:    v.Agents.Busy,
 			},
 		}
 
@@ -877,6 +905,11 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		return nil, err
 	}
 
+	var progressiveCount uint32
+	if item.ProgressiveCount != nil {
+		progressiveCount = *item.ProgressiveCount
+	}
+
 	return &engine.AgentStatusStatisticItem{
 		AgentId:          item.AgentId,
 		Name:             item.Name,
@@ -888,7 +921,7 @@ func (api *agent) SearchAgentStatusStatisticItem(ctx context.Context, in *engine
 		Supervisor:       GetProtoLookups(item.Supervisor),
 		Auditor:          GetProtoLookups(item.Auditor),
 		Region:           GetProtoLookup(item.Region),
-		ProgressiveCount: item.ProgressiveCount,
+		ProgressiveCount: progressiveCount,
 		ChatCount:        item.ChatCount,
 		PauseCause:       item.PauseCause,
 		Online:           item.Online,
@@ -1016,12 +1049,12 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		Status:                src.Status,
 		Description:           src.Description,
 		LastStatusChange:      src.LastStatusChange,
-		ProgressiveCount:      int32(src.ProgressiveCount),
 		Name:                  src.Name,
 		StatusDuration:        src.StatusDuration,
 		GreetingMedia:         GetProtoLookup(src.GreetingMedia),
 		AllowChannels:         src.AllowChannels,
 		ChatCount:             src.ChatCount,
+		ExtraChatCount:        &src.ExtraChatCount,
 		Supervisor:            GetProtoLookups(src.Supervisor),
 		Team:                  GetProtoLookup(src.Team),
 		Region:                GetProtoLookup(src.Region),
@@ -1031,7 +1064,13 @@ func transformAgent(src *model.Agent) *engine.Agent {
 		TaskCount:             src.TaskCount,
 		ScreenControl:         src.ScreenControl,
 		AllowSetScreenControl: src.AllowSetScreenControl,
+		StatusType:            src.StatusType,
 	}
+
+	if src.ProgressiveCount != nil {
+		agent.ProgressiveCount = int32(*src.ProgressiveCount)
+	}
+
 	agent.Channel = make([]*engine.AgentChannel, 0, len(src.Channel))
 
 	for _, v := range src.Channel {

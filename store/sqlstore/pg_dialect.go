@@ -2,11 +2,13 @@ package sqlstore
 
 import (
 	"database/sql"
+	"errors"
+	"net/http"
+	"reflect"
+
 	"github.com/go-gorp/gorp"
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
-	"net/http"
-	"reflect"
 )
 
 const ForeignKeyViolationErrorCode = pq.ErrorCode("23503")
@@ -32,6 +34,8 @@ func messageFromErr(err error) string {
 		return e.Error()
 	}
 }
+
+func isNoRowsError(err error) bool { return errors.Is(err, sql.ErrNoRows) }
 
 func extractCodeFromErr(err error) int {
 	code := http.StatusInternalServerError

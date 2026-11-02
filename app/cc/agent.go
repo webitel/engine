@@ -4,6 +4,8 @@ import (
 	"context"
 
 	"github.com/webitel/engine/gen/cc"
+	"github.com/webitel/engine/gen/engine"
+	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt"
 )
 
@@ -24,6 +26,30 @@ func (api *agentApi) Online(domainId, agentId int64, onDemand bool) error {
 		DomainId: domainId,
 	})
 	return err
+}
+
+func (api *agentApi) OnlineWithStatus(ctx context.Context, r *model.AgentLoginRequest) error {
+	var onlineStatus *engine.Lookup
+	if r.OnlineStatus != nil {
+		onlineStatus = &engine.Lookup{
+			Id:   int64(r.OnlineStatus.Id),
+			Name: r.OnlineStatus.Name,
+		}
+	}
+
+	if _, err := api.Api.Online(
+		ctx,
+		&cc.OnlineRequest{
+			AgentId:     r.AgentID,
+			OnDemand:    r.OnDemand,
+			DomainId:    r.DomainID,
+			OnlineSkill: onlineStatus,
+		},
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (api *agentApi) Offline(domainId, agentId int64) error {
@@ -58,13 +84,15 @@ func (api *agentApi) WaitingChannel(agentId int, channel string) (int64, error) 
 
 }
 
-func (api *agentApi) AcceptTask(appId string, domainId, attemptId int64) error {
-	ctx := api.StaticHost(context.Background(), appId)
+func (api *agentApi) AcceptTask(ctx context.Context, request *model.AcceptAttemptRequest) error {
+	outCtx := api.StaticHost(ctx, request.AppID)
 
-	_, err := api.Api.AcceptTask(ctx, &cc.AcceptTaskRequest{
-		Id:       attemptId,
-		AppId:    appId,
-		DomainId: domainId,
+	_, err := api.Api.AcceptTask(outCtx, &cc.AcceptTaskRequest{
+		Id:       request.AttemptID,
+		AppId:    request.AppID,
+		DomainId: request.DomainID,
+		UserId:   request.UserID,
+		AgentId:  request.AgentID,
 	})
 
 	return err

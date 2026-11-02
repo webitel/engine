@@ -15,6 +15,7 @@ type ChatMessage struct {
 	Type      string         `json:"type"`
 	Text      *string        `json:"text,omitempty"`
 	File      map[string]any `json:"file,omitempty"`
+	Variables map[string]any `json:"variables,omitempty"`
 }
 
 type ChatMember struct {

@@ -2,8 +2,13 @@ package mq
 
 import (
 	"context"
+
 	"github.com/webitel/engine/model"
 )
+
+type DomainEventHandler func(ctx context.Context, e *model.DomainEvent) error
+
+type SystemSettingsEventHandler func(ctx context.Context, e *model.SystemSettingEvent) error
 
 type MQ interface {
 	SendJSON(name string, data []byte) model.AppError
@@ -12,6 +17,8 @@ type MQ interface {
 
 	Start()
 	Close()
+	// Ping reports whether the broker connection is usable.
+	Ping(ctx context.Context) error
 	NewDomainQueue(domainId int64, bindings model.GetAllBindings) (DomainQueue, model.AppError)
 
 	RegisterWebsocket(domainId int64, event *model.RegisterToWebsocketEvent) model.AppError
@@ -23,6 +30,8 @@ type MQ interface {
 	Send(ctx context.Context, exchange string, rk string, body []byte) error
 
 	SendStartFlow(ctx context.Context, domainId int64, schemaId int32, in interface{}) model.AppError
+	SetDomainsEventHandler(h DomainEventHandler)
+	SetSystemSettingsEventHandler(h SystemSettingsEventHandler)
 }
 
 type DomainQueue interface {

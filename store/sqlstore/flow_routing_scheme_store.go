@@ -25,7 +25,7 @@ func (s SqlRoutingSchemaStore) Create(ctx context.Context, scheme *model.Routing
     returning *
 )
 select s.id, s.domain_id, s.name, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
-    s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, debug, s.type
+    s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, debug, s.type, s.editor
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by`,
@@ -128,7 +128,7 @@ func (s SqlRoutingSchemaStore) Update(ctx context.Context, scheme *model.Routing
     returning *
 )
 select s.id, s.domain_id, s.description, s.name, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by,
-    s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, s.debug, s.type, s.tags
+    s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, s.debug, s.type, s.tags, s.editor
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by`, map[string]interface{}{

@@ -37,6 +37,7 @@ type Store interface {
 	AgentTeam() AgentTeamStore
 	TeamHook() TeamHookStore
 	TeamTrigger() TeamTriggerStore
+	TeamChatTag() TeamChatTagStore
 	Agent() AgentStore
 	AgentSkill() AgentSkillStore
 	Queue() QueueStore
@@ -76,10 +77,10 @@ type Store interface {
 	PresetQuery() PresetQueryStore
 	SystemSettings() SystemSettingsStore
 	WebHook() WebHookStore
-	SchemeVersion() SchemeVersionsStore
 	SchemeVariable() SchemeVariablesStore
 	SocketSession() SocketSessionStore
 	Feedback() FeedbackStore
+	OnlineSkills() OnlineSkillsStore
 }
 
 // todo deprecated
@@ -165,6 +166,7 @@ type AgentStore interface {
 	StatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError)
 	SupervisorAgentItem(ctx context.Context, domainId, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError)
 	DistributeInfoByUserId(ctx context.Context, domainId, userId int64, channel string) (*model.DistributeAgentInfo, model.AppError)
+	IsAgentChannelOnline(ctx context.Context, agentId int64, channel string) (bool, model.AppError)
 
 	UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
 	UsersStatusByGroup(ctx context.Context, domainId int64, groups []int, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
@@ -184,6 +186,15 @@ type TeamTriggerStore interface {
 	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamTrigger) ([]*model.TeamTrigger, model.AppError)
 	Update(ctx context.Context, domainId, teamId int64, qt *model.TeamTrigger) (*model.TeamTrigger, model.AppError)
+	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
+}
+
+type TeamChatTagStore interface {
+	Create(ctx context.Context, domainId, teamId int64, in *model.TeamChatTag) (*model.TeamChatTag, model.AppError)
+	Get(ctx context.Context, domainId, teamId int64, id uint32) (*model.TeamChatTag, model.AppError)
+	GetAllPage(ctx context.Context, domainId, teamId int64, search *model.SearchTeamChatTag) ([]*model.TeamChatTag, model.AppError)
+	GetAllPageByUser(ctx context.Context, domainId, userId int64, search *model.SearchTeamChatTag) ([]*model.TeamChatTag, model.AppError)
+	Update(ctx context.Context, domainId, teamId int64, in *model.TeamChatTag) (*model.TeamChatTag, model.AppError)
 	Delete(ctx context.Context, domainId, teamId int64, id uint32) model.AppError
 }
 
@@ -310,6 +321,7 @@ type CommunicationTypeStore interface {
 	Create(ctx context.Context, domainId int64, comm *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, model.AppError)
 	Get(ctx context.Context, domainId, id int64) (*model.CommunicationType, model.AppError)
+	GetDefault(ctx context.Context, domainID int64, channel string) (*model.CommunicationType, model.AppError)
 	Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
@@ -318,11 +330,13 @@ type MemberStore interface {
 	Create(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
 	BulkCreate(ctx context.Context, domainId, queueId int64, fileName string, members []*model.Member) ([]int64, model.AppError)
 	SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError)
+	GetMaxCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError)
 	Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError)
 	Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
 	Delete(ctx context.Context, queueId, id int64) model.AppError
 	MultiDelete(ctx context.Context, domainId int64, del *model.MultiDeleteMembers, withoutMembers bool) ([]*model.Member, model.AppError)
 	ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError)
+	ResetMembersCount(ctx context.Context, domainID int64, query *model.ResetMembersCountQuery) (int64, model.AppError)
 
 	// Move to new store
 	AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) // FIXME
@@ -337,6 +351,8 @@ type MemberStore interface {
 	CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError)
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
 	QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError)
+	AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError)
+	GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError)
 }
 
 type BucketStore interface {
@@ -367,6 +383,7 @@ type ListStore interface {
 
 	// Communications
 	CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError)
+	BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError)
 	UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError)
@@ -383,6 +400,7 @@ type CallStore interface {
 	GetInstance(ctx context.Context, domainId int64, id string) (*model.CallInstance, model.AppError)
 	BridgeInfo(ctx context.Context, domainId int64, fromId, toId string) (*model.BridgeCall, model.AppError)
 	BridgedId(ctx context.Context, id string) (string, model.AppError)
+	BridgedCall(ctx context.Context, id string) (*model.BridgedCall, model.AppError)
 	LastFile(ctx context.Context, domainId int64, id string) (int64, model.AppError)
 	GetUserActiveCall(ctx context.Context, domainId, userId int64) ([]*model.Call, model.AppError)
 	SetEmptySeverCall(ctx context.Context, domainId int64, id string) (*model.CallServiceHangup, model.AppError)
@@ -408,6 +426,7 @@ type CallStore interface {
 
 	Prepare(ctx context.Context, id string, domainId, userId int64, appId string) model.AppError
 	DeleteIdle(ctx context.Context, id string) model.AppError
+	PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError)
 }
 
 type EmailProfileStore interface {
@@ -494,6 +513,7 @@ type AuditRateStore interface {
 	CheckAccess(ctx context.Context, domainId, rateUserId int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError)
 	Update(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
+	ValidateChatRate(ctx context.Context, domainId int64, conversationId string) (*int64, time.Time, model.AppError)
 }
 
 type PresetQueryStore interface {
@@ -522,10 +542,6 @@ type WebHookStore interface {
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
 }
 
-type SchemeVersionsStore interface {
-	Search(ctx context.Context, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVersion, model.AppError)
-}
-
 type SchemeVariablesStore interface {
 	Create(ctx context.Context, domainId int64, variable *model.SchemeVariable) (*model.SchemeVariable, model.AppError)
 	Search(ctx context.Context, domainId int64, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVariable, model.AppError)
@@ -546,6 +562,16 @@ type SocketSessionStore interface {
 type FeedbackStore interface {
 	Get(ctx context.Context, key model.FeedbackKey) (model.Feedback, model.AppError)
 	Create(ctx context.Context, key model.FeedbackKey, rating float32, description string) (model.Feedback, model.AppError)
+}
+
+type OnlineSkillsStore interface {
+	Create(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError)
+	Update(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError)
+	Patch(ctx context.Context, patchCmd *model.PatchOnlineSkillsCmd) (*model.OnlineSkills, model.AppError)
+	Delete(ctx context.Context, deleteCmd *model.DeleteSkillPresetCmd) model.AppError
+	Search(ctx context.Context, search *model.SearchOnlineSkillsQuery) ([]*model.OnlineSkills, model.AppError)
+	Get(ctx context.Context, search *model.GetSkillPresetQuery) (*model.OnlineSkills, model.AppError)
+	CreateSystem(ctx context.Context, domainID int64) model.AppError
 }
 
 // ApplyFiltersToBuilder determines type of {filters} parameter and applies {filters} to the {base} according to the determined type.

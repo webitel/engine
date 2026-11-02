@@ -2,6 +2,7 @@ package grpc_api
 
 import (
 	"context"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 )
@@ -108,12 +109,6 @@ func (api *emailProfile) ReadEmailProfile(ctx context.Context, in *engine.ReadEm
 	}
 
 	return toEngineEmailProfile(profile), nil
-}
-
-func (api *emailProfile) TestEmailProfile(ctx context.Context, in *engine.TestEmailProfileRequest) (*engine.TestEmailProfileResponse, error) {
-	return &engine.TestEmailProfileResponse{
-		Error: "TODO",
-	}, nil
 }
 
 func (api *emailProfile) LoginEmailProfile(ctx context.Context, in *engine.LoginEmailProfileRequest) (*engine.LoginEmailProfileResponse, error) {
@@ -299,7 +294,7 @@ func toEngineEmailProfile(src *model.EmailProfile) *engine.EmailProfile {
 		profile.Params = &engine.EmailProfileParams{
 			Oauth2: &engine.EmailProfileParams_OAuth2{
 				ClientId:     src.Params.OAuth2.ClientId,
-				ClientSecret: src.Params.OAuth2.ClientSecret,
+				ClientSecret: model.SecretView.Suppress(src.Params.OAuth2.ClientSecret),
 				RedirectUrl:  src.Params.OAuth2.RedirectURL,
 			},
 		}

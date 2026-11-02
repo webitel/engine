@@ -40,5 +40,9 @@ func NewCustomCodeError(id string, details string, code int) AppError {
 }
 
 func AppErrorFromJson(js string) AppError {
-	return werror.AppErrorFromJson(js)
+	appErr := werror.AppErrorFromJson(js)
+	if appErr == nil {
+		return nil
+	}
+	return appErr
 }

@@ -127,8 +127,8 @@ func (s SqlMemberStore) BulkCreate(ctx context.Context, domainId, queueId int64,
 			select queue_id, priority, expire_at, variables, name, timezone_id, communications, bucket_id, ready_at, :DomainId, agent_id, skill_id, import_id
 			from `+tableName+`
 			order by `+tableName+`.id
-            limit `+strconv.Itoa(bulkCount)+` 
-            offset `+strconv.Itoa(i)+` 
+            limit `+strconv.Itoa(bulkCount)+`
+            offset `+strconv.Itoa(i)+`
 			returning id
 		)
 		select id from i`, map[string]interface{}{
@@ -165,39 +165,26 @@ _error:
 }
 
 func getMemberSortClause(sort string) string {
-    if sort == "" {
-        return "order by created_at desc"
-    }
-    
-    direction, field := orderBy(sort)
-    
-    // we don't have agent field in cc_member table
-    if field == "agent" {
-        return fmt.Sprintf("order by coalesce((select coalesce(agn.name, agn.username) from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
-    }
-
-    if field == "communications" {
-        return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
-    }
-
-    return GetOrderBy("cc_member", sort)
-}
-
-// todo fix deprecated fields
-
-func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
-	var members []*model.Member
-
-    order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
-	if order == "" {
-		order = "order by created_at desc"
+	if sort == "" {
+		return "order by created_at desc"
 	}
 
-	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
+	direction, field := orderBy(sort)
 
-	query := `with result as materialized (select m.id, row_number() over ( ` + order + ` ) rn
-                from call_center.cc_member m
-                where m.domain_id = :Domain::int8
+	// we don't have agent field in cc_member table
+	if field == "agent" {
+		return fmt.Sprintf("order by coalesce((select coalesce(agn.name, agn.username) from call_center.cc_agent a left join directory.wbt_user agn on agn.id = a.user_id where a.id = m.agent_id), '') %s", direction)
+	}
+
+	if field == "communications" {
+		return fmt.Sprintf("order by (m.communications->0->>'destination') %s", direction)
+	}
+
+	return GetOrderBy("cc_member", sort)
+}
+
+// memberSearchFilters is the shared WHERE of SearchMembers and GetMaxCommunicationsCount, so both see the same rows.
+const memberSearchFilters = `m.domain_id = :Domain::int8
                   and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
 				  and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
                   and (:QueueIds::int4[] isnull or m.queue_id = any (:QueueIds::int4[]))
@@ -223,7 +210,23 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                   and (:Name::varchar isnull or m.name ilike :Name::varchar)
                   and (:Q::varchar isnull or
                        (m.name ~~ :Q::varchar or
-                        m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]))
+                        m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]))`
+
+// todo fix deprecated fields
+
+func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, search *model.SearchMemberRequest) ([]*model.Member, model.AppError) {
+	var members []*model.Member
+
+	order := getMemberSortClause(model.MemberDeprecatedField(search.Sort))
+	if order == "" {
+		order = "order by created_at desc"
+	}
+
+	fields := GetFields(model.MemberDeprecatedFields(search.Fields), model.Member{})
+
+	query := `with result as materialized (select m.id, row_number() over ( ` + order + ` ) rn
+                from call_center.cc_member m
+                where ` + memberSearchFilters + `
                 ` + order + `
                 limit :Limit offset :Offset )
    , comm as materialized(select c.id, json_build_object('id', c.id, 'name', c.name)::jsonb j
@@ -265,7 +268,7 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                                   call_center.cc_get_lookup(a.id, coalesce(agn.name::varchar, agn.username::varchar)::varchar) agent,
                                   call_center.cc_get_lookup(cs.id, cs.name::varchar)                                                                                    skill,
                                   exists(select 1 from call_center.cc_member_attempt a where a.member_id = m.id for update of a skip locked ) as                                                     reserved
-                           from result 
+                           from result
 									inner join call_center.cc_member m on result.id = m.id
                                     left join call_center.cc_queue cq on cq.id = m.queue_id
                                     left join flow.calendar_timezones ct on ct.id = m.timezone_id
@@ -276,10 +279,20 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
                            order by result.rn)
 	select ` + strings.Join(fields, " ,") + ` from list`
 
-	if _, err := s.GetMaster().WithContext(ctx).Select(&members, query, map[string]interface{}{
+	params := memberSearchParams(domainId, search)
+	params["Limit"] = search.GetLimit()
+	params["Offset"] = search.GetOffset()
+
+	if _, err := s.GetMaster().WithContext(ctx).Select(&members, query, params); err != nil {
+		return nil, model.NewInternalError("store.sql_member.get_all.app_error", err.Error())
+	} else {
+		return members, nil
+	}
+}
+
+func memberSearchParams(domainId int64, search *model.SearchMemberRequest) map[string]interface{} {
+	return map[string]interface{}{
 		"Domain":    domainId,
-		"Limit":     search.GetLimit(),
-		"Offset":    search.GetOffset(),
 		"Q":         search.GetQ(),
 		"Variables": search.Variables.ToSafeJson(),
 
@@ -302,11 +315,20 @@ func (s SqlMemberStore) SearchMembers(ctx context.Context, domainId int64, searc
 
 		"StopCauses": pq.Array(search.StopCauses),
 		"Name":       search.Name,
-	}); err != nil {
-		return nil, model.NewInternalError("store.sql_member.get_all.app_error", err.Error())
-	} else {
-		return members, nil
 	}
+}
+
+// GetMaxCommunicationsCount returns the biggest number of communications among members matching the search filters.
+func (s SqlMemberStore) GetMaxCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError) {
+	count, err := s.GetMaster().WithContext(ctx).SelectInt(`select coalesce(max(case when jsonb_typeof(m.communications) = 'array'
+                                      then jsonb_array_length(m.communications) end), 0)
+from call_center.cc_member m
+where `+memberSearchFilters, memberSearchParams(domainId, search))
+	if err != nil {
+		return 0, model.NewInternalError("store.sql_member.get_max_communications.app_error", err.Error())
+	}
+
+	return int(count), nil
 }
 
 func (s SqlMemberStore) Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError) {
@@ -379,8 +401,8 @@ from m
          left join directory.wbt_user agn on agn.id = a.user_id
          left join lateral (
               select a.id, a.node_id
-              from call_center.cc_member_attempt a 
-              where a.member_id = m.id and a.leaving_at isnull 
+              from call_center.cc_member_attempt a
+              where a.member_id = m.id and a.leaving_at isnull
               limit 1
     ) ac on true`, map[string]interface{}{
 		"Priority":       member.Priority,
@@ -450,23 +472,23 @@ func (s SqlMemberStore) multiDelete(ctx context.Context, sort, limit string, fil
 				  and (:BucketIds::int4[] isnull or m.bucket_id = any (:BucketIds::int4[]))
 				  and (:Destination::varchar isnull or
 					   m.search_destinations && array [:Destination::varchar]::varchar[])
-		
+
 				  and (:CreatedFrom::timestamptz isnull or m.created_at >= :CreatedFrom::timestamptz)
 				  and (:CreatedTo::timestamptz isnull or created_at <= :CreatedTo::timestamptz)
-		
+
 				  and (:OfferingFrom::timestamptz isnull or m.ready_at >= :OfferingFrom::timestamptz)
 				  and (:OfferingTo::timestamptz isnull or m.ready_at <= :OfferingTo::timestamptz)
-		
+
 				  and (:PriorityFrom::int isnull or m.priority >= :PriorityFrom::int)
 				  and (:PriorityTo::int isnull or m.priority <= :PriorityTo::int)
 				  and (:AttemptsFrom::int isnull or m.attempts >= :AttemptsFrom::int)
 				  and (:AttemptsTo::int isnull or m.attempts <= :AttemptsTo::int)
-		
+
 				  and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
 				  and (:Name::varchar isnull or m.name ilike :Name::varchar)
 				  and (:Q::varchar isnull or
 					   (m.name ~~ :Q::varchar or m.search_destinations && array [rtrim(:Q::varchar, '%')]::varchar[]))
-		
+
 				and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])
 				and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 				and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
@@ -500,23 +522,23 @@ delete from call_center.cc_member m
 				  and (:BucketIds::int4[] isnull or m.bucket_id = any (:BucketIds::int4[]))
 				  and (:Destination::varchar isnull or
 					   m.search_destinations && array [:Destination::varchar]::varchar[])
-		
+
 				  and (:CreatedFrom::timestamptz isnull or m.created_at >= :CreatedFrom::timestamptz)
 				  and (:CreatedTo::timestamptz isnull or created_at <= :CreatedTo::timestamptz)
-		
+
 				  and (:OfferingFrom::timestamptz isnull or m.ready_at >= :OfferingFrom::timestamptz)
 				  and (:OfferingTo::timestamptz isnull or m.ready_at <= :OfferingTo::timestamptz)
-		
+
 				  and (:PriorityFrom::int isnull or m.priority >= :PriorityFrom::int)
 				  and (:PriorityTo::int isnull or m.priority <= :PriorityTo::int)
 				  and (:AttemptsFrom::int isnull or m.attempts >= :AttemptsFrom::int)
 				  and (:AttemptsTo::int isnull or m.attempts <= :AttemptsTo::int)
-		
+
 				  and (:StopCauses::varchar[] isnull or m.stop_cause = any (:StopCauses::varchar[]))
 				  and (:Name::varchar isnull or m.name ilike :Name::varchar)
 				  and (:Q::varchar isnull or
 					   (m.name ~~ :Q::varchar or m.search_destinations && array [rtrim(:Q::varchar, '%')]::varchar[]))
-		
+
 				and (:Numbers::varchar[] isnull or search_destinations && :Numbers::varchar[])
 				and (:Variables::jsonb isnull or variables @> :Variables::jsonb)
 				and (:AgentIds::int4[] isnull or m.agent_id = any(:AgentIds::int4[]))
@@ -543,7 +565,7 @@ func (s SqlMemberStore) MultiDelete(ctx context.Context, domainId int64, search 
 		sort = GetOrderBy(model.Member{}.EntityName(), search.Sort)
 	}
 
-	filters := map[string]interface{}{
+	filters := map[string]any{
 		"DomainId":    domainId,
 		"Q":           search.GetQ(),
 		"QueueIds":    pq.Array(search.QueueIds),
@@ -582,6 +604,57 @@ func (s SqlMemberStore) MultiDelete(ctx context.Context, domainId int64, search 
 	return res, nil
 }
 
+func (s SqlMemberStore) ResetMembersCount(ctx context.Context, domainID int64, countQuery *model.ResetMembersCountQuery) (int64, model.AppError) {
+	query := `
+		select count(*) as reset_count
+	 	from "call_center"."cc_member" "m"
+		where "m"."domain_id" = :DomainID
+			and "m"."queue_id" = :QueueID
+			and "m"."stop_at" is not null
+			and (stop_cause)::text <> ALL ('{success,expired,cancel,terminate,no_communications}'::text[])
+			and (:Ids::int8[] isnull or m.id = any (:Ids::int8[]))
+      		and (:Numbers::varchar[] isnull or m.search_destinations && :Numbers::varchar[])
+       		and (:Variables::jsonb isnull or m.variables @> :Variables::jsonb)
+         	and (:Buckets::int8[] isnull or m.bucket_id = any (:Buckets::int8[]))
+          	and (:AgentIds::int4[] isnull or m.agent_id = any (:AgentIds::int4[]))
+           	and (:Cause::text[] isnull or m.stop_cause = any (:Cause::text[]))
+            and ( (:PriorityFrom::smallint isnull or :PriorityFrom::smallint = 0 or priority >= :PriorityFrom ))
+            and ( (:PriorityTo::smallint isnull or :PriorityTo::smallint = 0 or priority <= :PriorityTo ))
+            and ( :CreatedAtFrom::timestamptz isnull or created_at >= :CreatedAtFrom::timestamptz )
+            and ( :CreatedAtTo::timestamptz isnull or created_at <= :CreatedAtTo::timestamptz )
+            and (
+            	:Q::varchar is null
+             	or (
+              		"m"."name" ~~ :Q::varchar
+                	or m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]
+                 )
+            )
+	`
+
+	args := map[string]any{
+		"DomainID":      domainID,
+		"QueueID":       countQuery.QueueId,
+		"Ids":           pq.Int64Array(countQuery.Ids),
+		"Numbers":       pq.StringArray(countQuery.Numbers),
+		"Variables":     countQuery.Variables.ToSafeJson(),
+		"Buckets":       pq.Int64Array(countQuery.Buckets),
+		"AgentIds":      pq.Int32Array(countQuery.AgentIds),
+		"Cause":         pq.StringArray(countQuery.Causes),
+		"PriorityFrom":  model.GetBetweenFrom(countQuery.Priority),
+		"PriorityTo":    model.GetBetweenTo(countQuery.Priority),
+		"CreatedAtFrom": model.GetBetweenFromTime(countQuery.CreatedAt),
+		"CreatedAtTo":   model.GetBetweenToTime(countQuery.CreatedAt),
+		"Q":             model.ReplaceWebSearch(countQuery.Q),
+	}
+
+	count, err := s.GetReplica().WithContext(ctx).SelectInt(query, args)
+	if err != nil {
+		return 0, model.NewCustomCodeError("store.sql_member.reset_members_count", err.Error(), extractCodeFromErr(err))
+	}
+
+	return count, nil
+}
+
 func (s SqlMemberStore) ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError) {
 	res, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member m2
     set stop_cause = null,
@@ -606,8 +679,15 @@ from (
 	  and ( (:PriorityTo::smallint isnull or :PriorityTo::smallint = 0 or priority <= :PriorityTo ))
 	  and ( :CreatedAtFrom::timestamptz isnull or created_at >= :CreatedAtFrom::timestamptz )
 	  and ( :CreatedAtTo::timestamptz isnull or created_at <= :CreatedAtTo::timestamptz )
+	  and (
+            :Q::varchar is null
+            or (
+            	"m"."name" ~~ :Q::varchar
+                or m.search_destinations && array [replace(rtrim(:Q::varchar, '%'), '\', '')]::varchar[]
+            )
+        )
  ) x
-where m2.id = x.id`, map[string]interface{}{
+where m2.id = x.id`, map[string]any{
 		"DomainId":      domainId,
 		"Ids":           pq.Array(req.Ids),
 		"Buckets":       pq.Array(req.Buckets),
@@ -620,6 +700,7 @@ where m2.id = x.id`, map[string]interface{}{
 		"PriorityTo":    model.GetBetweenTo(req.Priority),
 		"CreatedAtFrom": model.GetBetweenFromTime(req.CreatedAt),
 		"CreatedAtTo":   model.GetBetweenToTime(req.CreatedAt),
+		"Q":             model.ReplaceWebSearch(req.Q),
 	})
 
 	if err != nil {
@@ -737,16 +818,16 @@ func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int6
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
 	and (:OfferedAgentIds::int[] isnull or offered_agent_ids && :OfferedAgentIds::int[] )
-	
+
 	and ( :OfferingFrom::timestamptz isnull or offering_at >= :OfferingFrom::timestamptz )
 	and ( :OfferingTo::timestamptz isnull or offering_at <= :OfferingTo::timestamptz )
- 
+
 	and ( :LeavingFrom::timestamptz isnull or leaving_at >= :LeavingFrom::timestamptz )
 	and ( :LeavingTo::timestamptz isnull or leaving_at <= :LeavingTo::timestamptz )
- 
+
 	and ( :LeavingFrom::timestamptz isnull or leaving_at >= :LeavingFrom::timestamptz )
 	and ( :LeavingTo::timestamptz isnull or leaving_at <= :LeavingTo::timestamptz )
- 
+
 	and ( :DurationFrom::int8 isnull or extract(epoch from coalesce(reporting_at, leaving_at) - joined_at)::int8 >= :DurationFrom::int8 )
 	and ( :DurationTo::int8 isnull or extract(epoch from coalesce(reporting_at, leaving_at) - joined_at)::int8 <= :DurationTo::int8 )
 
@@ -795,16 +876,16 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 	and (:BucketIds::int8[] isnull or bucket_id = any(:Ids))
 	and (:MemberIds::int8[] isnull or member_id = any(:MemberIds) )
 	and (:AgentIds::int[] isnull or agent_id = any(:AgentIds) )
- 
+
 	and ( :OfferingFrom::int8 isnull or offering_at >= :OfferingFrom::int8 )
 	and ( :OfferingTo::int8 isnull or offering_at <= :OfferingTo::int8 )
- 
+
 	and ( :LeavingFrom::int8 isnull or leaving_at >= :LeavingFrom::int8 )
 	and ( :LeavingTo::int8 isnull or leaving_at <= :LeavingTo::int8 )
- 
+
 	and ( :LeavingFrom::int8 isnull or leaving_at >= :LeavingFrom::int8 )
 	and ( :LeavingTo::int8 isnull or leaving_at <= :LeavingTo::int8 )
- 
+
 	and ( :DurationFrom::int8 isnull or (extract(epoch from now()) - (joined_at/1000))::int8 >= :DurationFrom::int8 )
 	and ( :DurationTo::int8 isnull or (extract(epoch from now()) - (joined_at/1000))::int8 <= :DurationTo::int8 )
 
@@ -818,44 +899,96 @@ func (s SqlMemberStore) SearchAttempts(ctx context.Context, domainId int64, sear
 	return att, nil
 }
 
+func offlineMembersOrderBy(sort string) string {
+	desc := strings.HasPrefix(sort, "-")
+	field := strings.TrimPrefix(strings.TrimPrefix(sort, "-"), "+")
+
+	dir := "asc"
+	if desc {
+		dir = "desc"
+	}
+
+	switch field {
+	case "name":
+		return "m.name " + dir + ", m.id"
+	case "queue":
+		return "cq.name " + dir + ", m.name, m.id"
+	default:
+		return "result.n"
+	}
+}
+
+const offlineMembersMaxScan = 1000
+
+func offlineMembersScanLimit(search *model.SearchOfflineQueueMembers) int {
+	if strings.TrimSpace(search.Q) == "" && search.Sort == "" {
+		n := search.GetOffset() + search.GetLimit()
+
+		return min(n, offlineMembersMaxScan)
+	}
+
+	return offlineMembersMaxScan
+}
+
 func (s SqlMemberStore) ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError) {
 	var att []*model.OfflineMember
-	_, err := s.GetMaster().WithContext(ctx).Select(&att, `with comm as (
-    select c.id, json_build_object('id', c.id, 'name',  c.name)::jsonb j
+
+	query := `with comm as (
+    select c.id, c.channel, json_build_object('id', c.id, 'name', c.name)::jsonb j
     from call_center.cc_communication c
     where c.domain_id = :Domain
-)
-
-,resources as (
-    select r.id, json_build_object('id', r.id, 'name',  r.name)::jsonb j
+),
+resources as (
+    select r.id, json_build_object('id', r.id, 'name', r.name)::jsonb j
     from call_center.cc_outbound_resource r
     where r.domain_id = :Domain
+),
+result as (
+    select t.x as id, t.n
+    from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :MaxScan::int)
+         with ordinality as t(x, n)
 )
-, result as (
-	select x as id
-	from call_center.cc_offline_members_ids(:Domain::int8, :AgentId::int, :Limit::int) x
-)
-select m.id, call_center.cc_member_destination_views_to_json(array(select ( xid::int2, x ->> 'destination',
-								resources.j,
-                                comm.j,
-                                (x -> 'priority')::int ,
-                                (x -> 'state')::int  ,
-                                x -> 'description'  ,
-                                (x -> 'last_activity_at')::int8,
-                                (x -> 'attempts')::int,
-                                x ->> 'last_cause',
-                                x ->> 'display'    )::call_center.cc_member_destination_view
-                         from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
-                            left join comm on comm.id = (x -> 'type' -> 'id')::int
-                            left join resources on resources.id = (x -> 'resource' -> 'id')::int)) communications,
-       call_center.cc_get_lookup(cq.id, cq.name::varchar) queue, call_center.cc_view_timestamp(m.expire_at) expire_at, call_center.cc_view_timestamp(m.created_at) created_at,
-			m.variables, m.name
+select m.id,
+       (
+           select jsonb_agg(to_jsonb(t.d) || jsonb_build_object('channel', t.channel) order by t.xid)
+           from (
+               select xid,
+                      comm.channel,
+                      (xid::int2, x ->> 'destination',
+                       resources.j,
+                       comm.j,
+                       (x -> 'priority')::int,
+                       (x -> 'state')::int,
+                       x -> 'description',
+                       (x -> 'last_activity_at')::int8,
+                       (x -> 'attempts')::int,
+                       x ->> 'last_cause',
+                       x ->> 'display')::call_center.cc_member_destination_view as d
+               from jsonb_array_elements(m.communications) with ordinality as x (x, xid)
+                   left join comm on comm.id = (x -> 'type' -> 'id')::int
+                   left join resources on resources.id = (x -> 'resource' -> 'id')::int
+           ) t
+       ) as communications,
+       call_center.cc_get_lookup(cq.id, cq.name::varchar) queue,
+       call_center.cc_view_timestamp(m.expire_at) expire_at,
+       call_center.cc_view_timestamp(m.created_at) created_at,
+       m.variables,
+       m.name,
+       coalesce((cq.variables->>'wbt_hide_number'), 'false') as hide_number
 from call_center.cc_member m
     inner join result on m.id = result.id
-    inner join call_center.cc_queue cq on m.queue_id = cq.id`, map[string]interface{}{
+    inner join call_center.cc_queue cq on m.queue_id = cq.id
+where (:Q::text is null or m.name ilike :Q::text)
+order by ` + offlineMembersOrderBy(search.Sort) + `
+limit :Limit::int offset :Offset::int`
+
+	_, err := s.GetMaster().WithContext(ctx).Select(&att, query, map[string]any{
 		"Domain":  domainId,
-		"Limit":   search.GetLimit(),
 		"AgentId": search.AgentId,
+		"MaxScan": offlineMembersScanLimit(search),
+		"Q":       search.GetQ(),
+		"Limit":   search.GetLimit(),
+		"Offset":  search.GetOffset(),
 	})
 
 	if err != nil {
@@ -957,11 +1090,11 @@ select :QueueId,
        ),
        :TimezoneId,
        :DomainId,
-	   :Vars,	
+	   :Vars,
        (:Date || ' ' || :Time)::timestamp at time zone :TzName,
        ((:Date || ' ' || :Time)::timestamp at time zone :TzName)::date + interval '1d' - interval '1s',
 	   :Name,
-	   :Ip	
+	   :Ip
 where not exists(select 1 from call_center.cc_member m
           where m.queue_id = :QueueId
             and search_destinations && array[:Destination::varchar]
@@ -995,7 +1128,7 @@ returning call_center.cc_member.id,
 }
 
 func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError {
-	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member 
+	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member
 set stop_at = now(),
     stop_cause = :Result
 where id = :Id`, map[string]interface{}{
@@ -1026,4 +1159,40 @@ where id = :Id::int8 and domain_id = :DomainId::int8`, map[string]interface{}{
 	}
 
 	return queueId, nil
+}
+
+func (s SqlMemberStore) AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError) {
+	userId, err := s.GetMaster().WithContext(ctx).SelectNullInt(`select ag.user_id
+from call_center.cc_member_attempt a
+    inner join call_center.cc_agent ag on ag.id = a.agent_id
+where a.id = :Id::int8 and a.domain_id = :DomainId::int8`, map[string]interface{}{
+		"Id":       attemptId,
+		"DomainId": domainId,
+	})
+	if err != nil {
+		return 0, model.NewCustomCodeError("store.sql_member.get_attempt_agent.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if !userId.Valid {
+		return 0, model.NewNotFoundError("store.sql_member.get_attempt_agent.not_found", "Not found attempt or agent")
+	}
+
+	return userId.Int64, nil
+}
+
+func (s SqlMemberStore) GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError) {
+	tz, err := s.GetReplica().WithContext(ctx).SelectStr(`select coalesce((select case jsonb_typeof(value)
+			when 'object' then value ->> 'timezone'
+			when 'string' then value #>> '{}'
+			else null
+		end
+from directory.wbt_user_setting
+where user_id = :UserId and name = 'timezone'), '')`, map[string]interface{}{
+		"UserId": userId,
+	})
+	if err != nil {
+		return "", model.NewCustomCodeError("store.sql_member.get_user_timezone.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return tz, nil
 }

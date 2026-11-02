@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"github.com/webitel/engine/store"
@@ -15,24 +16,35 @@ import (
 
 type SqlAgentStore struct {
 	SqlStore
+	descTrackTimeoutSec int
 }
 
-func NewSqlAgentStore(sqlStore SqlStore) store.AgentStore {
-	us := &SqlAgentStore{sqlStore}
+func NewSqlAgentStore(sqlStore SqlStore, descTrackTimeoutSec *int) store.AgentStore {
+	var descTrackTimeoutSecValue int
+
+	if descTrackTimeoutSec == nil || *descTrackTimeoutSec <= 0 {
+		descTrackTimeoutSecValue = 75
+	} else {
+		descTrackTimeoutSecValue = *descTrackTimeoutSec
+	}
+
+	us := &SqlAgentStore{
+		SqlStore:            sqlStore,
+		descTrackTimeoutSec: descTrackTimeoutSecValue,
+	}
 	return us
 }
 
-func (s SqlAgentStore) AgentCC(ctx context.Context, domainId int64, userId int64) (*model.AgentCC, model.AppError) {
+func (s SqlAgentStore) AgentCC(ctx context.Context, domainId, userId int64) (*model.AgentCC, model.AppError) {
 	var res *model.AgentCC
 	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select length(coalesce(u.extension, '')) > 0 as has_extension,
        a.id notnull as has_agent, a.id as agent_id
 from directory.wbt_user u
     left join call_center.cc_agent a on u.id = a.user_id
-where u.id = :UserId and u.dc = :DomainId`, map[string]interface{}{
+where u.id = :UserId and u.dc = :DomainId`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.has_agent.app_error", fmt.Sprintf("Id=%v, %s", userId, err.Error()), extractCodeFromErr(err))
 	}
@@ -41,7 +53,6 @@ where u.id = :UserId and u.dc = :DomainId`, map[string]interface{}{
 }
 
 func (s SqlAgentStore) CheckAccess(ctx context.Context, domainId, id int64, groups []int, access auth_manager.PermissionAccess) (bool, model.AppError) {
-
 	res, err := s.GetReplica().WithContext(ctx).SelectNullInt(`select 1
 		where exists(
           select 1
@@ -50,8 +61,7 @@ func (s SqlAgentStore) CheckAccess(ctx context.Context, domainId, id int64, grou
             and a.object = :Id
             and a.subject = any (:Groups::int[])
             and a.access & :Access = :Access
-        )`, map[string]interface{}{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
-
+        )`, map[string]any{"DomainId": domainId, "Id": id, "Groups": pq.Array(groups), "Access": access.Value()})
 	if err != nil {
 		return false, nil
 	}
@@ -66,13 +76,12 @@ func (s SqlAgentStore) AccessAgents(ctx context.Context, domainId int64, agentId
           where a.dc = :DomainId
             and a.object = any(:Ids::int[])
             and a.subject = any (:Groups::int[])
-            and a.access & :Access = :Access`, map[string]interface{}{
+            and a.access & :Access = :Access`, map[string]any{
 		"DomainId": domainId,
 		"Ids":      pq.Array(agentIds),
 		"Groups":   pq.Array(groups),
 		"Access":   access.Value(),
 	})
-
 	if err != nil {
 		return nil, model.NewInternalError("store.sql_agent.access.app_error", fmt.Sprintf("record=%v, %v", agentIds, err.Error()))
 	}
@@ -85,9 +94,9 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
 	var out *model.Agent
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with a as (
 			insert into call_center.cc_agent ( user_id, description, domain_id, created_at, created_by, updated_at, updated_by, progressive_count, greeting_media_id,
-				allow_channels, chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control)
+				allow_channels, chat_count, extra_chat_count, supervisor_ids, team_id, region_id, supervisor, auditor_ids, task_count, screen_control)
 			values (:UserId, :Description, :DomainId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :ProgressiveCount, :GreetingMedia,
-					:AllowChannels, :ChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl)
+					:AllowChannels, :ChatCount, :ExtraChatCount, :SupervisorIds, :TeamId, :RegionId, :Supervisor, :AuditorIds, :TaskCount, :ScreenControl)
 			returning *
 		)
 	SELECT a.domain_id,
@@ -104,6 +113,7 @@ func (s SqlAgentStore) Create(ctx context.Context, agent *model.Agent) (*model.A
        call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 	   a.allow_channels,
        a.chat_count,
+       a.extra_chat_count,
 	   a.task_count,
        (SELECT jsonb_agg(sag."user") AS jsonb_agg
         FROM call_center.cc_agent_with_user sag
@@ -115,7 +125,7 @@ WHERE aud.id = any(a.auditor_ids)) as auditor,
 	   call_center.cc_get_lookup(r.id, r.name) as region,
        a.supervisor as is_supervisor,
 	   a.screen_control,
-	   t.screen_control is false allow_set_screen_control	
+	   t.screen_control is false allow_set_screen_control
 FROM a
          LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
          LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -126,7 +136,7 @@ FROM a
                                                       (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true`,
-		map[string]interface{}{
+		map[string]any{
 			"UserId":           agent.User.Id,
 			"Description":      agent.Description,
 			"DomainId":         agent.DomainId,
@@ -138,6 +148,7 @@ FROM a
 			"GreetingMedia":    agent.GreetingMediaId(),
 			"AllowChannels":    pq.Array(agent.AllowChannels),
 			"ChatCount":        agent.ChatCount,
+			"ExtraChatCount":   agent.ExtraChatCount,
 			"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
 			"TeamId":           agent.Team.GetSafeId(),
 			"RegionId":         agent.Region.GetSafeId(),
@@ -163,7 +174,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 	} else {
 		searchOperator = ILikeComparisonOperator
 	}
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId":      domainId,
 		"Ids":           pq.Array(search.Ids),
 		"Q":             q,
@@ -220,7 +231,7 @@ func (s SqlAgentStore) GetAllPage(ctx context.Context, domainId int64, search *m
 func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, groups []int, search *model.SearchAgent) ([]*model.Agent, model.AppError) {
 	var agents []*model.Agent
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"Groups":        pq.Array(groups),
 		"Access":        auth_manager.PERMISSION_ACCESS_READ.Value(),
 		"DomainId":      domainId,
@@ -270,7 +281,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 				and (
 					exists(select 1
 					  from call_center.cc_agent_acl
-					  where call_center.cc_agent_acl.dc = t.domain_id and call_center.cc_agent_acl.object = t.id 
+					  where call_center.cc_agent_acl.dc = t.domain_id and call_center.cc_agent_acl.object = t.id
 						and call_center.cc_agent_acl.subject = any(:Groups::int[]) and call_center.cc_agent_acl.access&:Access = :Access)
 		  		)`,
 		model.Agent{}, f)
@@ -283,7 +294,7 @@ func (s SqlAgentStore) GetAllPageByGroups(ctx context.Context, domainId int64, g
 
 func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([]*model.CCTask, model.AppError) {
 	query := `
-		select 
+		select
 		    a.id as attempt_id,
 		    a.channel,
 		    a.node_id as app_id,
@@ -308,13 +319,10 @@ func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([
 		    m.name as member_name,
 		    call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
 		    a.agent_id
-		from 
-			call_center.cc_member_attempt a
-		inner join 
-			call_center.cc_agent a2 on a2.id = a.agent_id
-		left join 
-			call_center.cc_member m on a.member_id = m.id
-		where 
+		from call_center.cc_member_attempt a
+		inner join call_center.cc_agent a2 on a2.id = a.agent_id
+		left join call_center.cc_member m on a.member_id = m.id
+		where
 			a.agent_id = :AgentId
 		    and a2.domain_id = :DomainId
 		    and a.state != 'leaving'
@@ -337,7 +345,7 @@ func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([
 	return res, nil
 }
 
-func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*model.Agent, model.AppError) {
+func (s SqlAgentStore) Get(ctx context.Context, domainId, id int64) (*model.Agent, model.AppError) {
 	var agent *model.Agent
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&agent, `
 		SELECT a.domain_id,
@@ -354,6 +362,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
+			   a.extra_chat_count,
 			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
@@ -366,7 +375,7 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
 			   a.supervisor as is_supervisor,
 			   a.screen_control,
 			   t.screen_control is false allow_set_screen_control,
-			   ct.extension	
+			   ct.extension
 		FROM call_center.cc_agent a
 				 LEFT JOIN directory.wbt_user ct ON ct.id = a.user_id
 				 LEFT JOIN storage.media_files g ON g.id = a.greeting_media_id
@@ -377,8 +386,8 @@ func (s SqlAgentStore) Get(ctx context.Context, domainId int64, id int64) (*mode
                                                       (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
                              FROM call_center.cc_agent_channel c
                              WHERE c.agent_id = a.id) ch ON true
-				where a.domain_id = :DomainId and a.id = :Id 	
-		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+				where a.domain_id = :DomainId and a.id = :Id
+		`, map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewNotFoundError("store.sql_agent.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 		} else {
@@ -400,6 +409,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			    greeting_media_id = :GreetingMediaId,
 				allow_channels = :AllowChannels,
 				chat_count = :ChatCount,
+				extra_chat_count = :ExtraChatCount,
 				supervisor_ids = :SupervisorIds,
 				team_id = :TeamId,
 				region_id = :RegionId,
@@ -424,6 +434,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 			   call_center.cc_get_lookup(a.greeting_media_id::bigint, g.name)                                         AS greeting_media,
 			   a.allow_channels,
 			   a.chat_count,
+			   a.extra_chat_count,
 			   a.task_count,
 			   (SELECT jsonb_agg(sag."user") AS jsonb_agg
 				FROM call_center.cc_agent_with_user sag
@@ -445,7 +456,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
                                                       'joined_at',
                                                       (date_part('epoch'::text, c.joined_at) * 1000::double precision)::bigint)) AS x
                              FROM call_center.cc_agent_channel c
-                             WHERE c.agent_id = a.id) ch ON true`, map[string]interface{}{
+                             WHERE c.agent_id = a.id) ch ON true`, map[string]any{
 		"UserId":           agent.User.Id,
 		"Description":      agent.Description,
 		"ProgressiveCount": agent.ProgressiveCount,
@@ -456,6 +467,7 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 		"GreetingMediaId":  agent.GreetingMediaId(),
 		"AllowChannels":    pq.Array(agent.AllowChannels),
 		"ChatCount":        agent.ChatCount,
+		"ExtraChatCount":   agent.ExtraChatCount,
 		"SupervisorIds":    pq.Array(model.LookupIds(agent.Supervisor)),
 		"TeamId":           agent.Team.GetSafeId(),
 		"RegionId":         agent.Region.GetSafeId(),
@@ -472,17 +484,17 @@ func (s SqlAgentStore) Update(ctx context.Context, agent *model.Agent) (*model.A
 
 func (s SqlAgentStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_agent c where c.id=:Id and c.domain_id = :DomainId`,
-		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+		map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewCustomCodeError("store.sql_agent.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
 	return nil
 }
 
-func (s SqlAgentStore) SetStatus(ctx context.Context, domainId, agentId int64, status string, payload interface{}) (bool, model.AppError) {
+func (s SqlAgentStore) SetStatus(ctx context.Context, domainId, agentId int64, status string, payload any) (bool, model.AppError) {
 	if r, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_agent
 			set status = :Status
   			,status_payload = :Payload
-			where id = :AgentId and domain_id = :DomainId and (status <> :Status or status_payload <> :Payload)`, map[string]interface{}{"AgentId": agentId, "Status": status, "Payload": payload, "DomainId": domainId}); err != nil {
+			where id = :AgentId and domain_id = :DomainId and (status <> :Status or status_payload <> :Payload)`, map[string]any{"AgentId": agentId, "Status": status, "Payload": payload, "DomainId": domainId}); err != nil {
 		return false, model.NewInternalError("store.sql_agent.set_status.app_error", fmt.Sprintf("AgenetId=%v, %s", agentId, err.Error()))
 	} else {
 		var cnt int64
@@ -496,7 +508,7 @@ func (s SqlAgentStore) SetStatus(ctx context.Context, domainId, agentId int64, s
 func (s SqlAgentStore) InQueue(ctx context.Context, domainId, id int64, search *model.SearchAgentInQueue) ([]*model.AgentInQueue, model.AppError) {
 	var res []*model.AgentInQueue
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId": domainId,
 		"AgentId":  id,
 		"Q":        search.GetQ(),
@@ -508,7 +520,6 @@ func (s SqlAgentStore) InQueue(ctx context.Context, domainId, id int64, search *
 				and agent_id = :AgentId
 				and (:Q::varchar isnull or (queue_name ilike :Q::varchar ))`,
 		model.AgentInQueue{}, f)
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_queue.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	}
@@ -574,11 +585,10 @@ from (
     left join call_center.cc_bucket b on b.id = m.bucket_id
     left join call_center.cc_skill s on s.id = m.skill_id
 where q.domain_id = :DomainId
-group by q.id`, map[string]interface{}{
+group by q.id`, map[string]any{
 		"AgentId":  agentId,
 		"DomainId": domainId,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_queue_stats.app_error", fmt.Sprintf("AgentId=%v, %s", agentId, err.Error()), extractCodeFromErr(err))
 	}
@@ -613,7 +623,7 @@ func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search 
 				(h.joined_at + h.duration) as leaved_at
 			from call_center.cc_agent_state_history h
 			inner join ags on ags.id = h.agent_id
-			where (:From::timestamp isnull or h.joined_at between :From and :To) 
+			where (:From::timestamp isnull or h.joined_at between :From and :To)
   			and (:AgentIds::int[] isnull or h.agent_id = any(:AgentIds))
   			and (:FromId::int8 isnull or h.id > :FromId::int8)
 		)
@@ -632,7 +642,7 @@ func (s SqlAgentStore) HistoryState(ctx context.Context, domainId int64, search 
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
 	}
-	
+
 	var res []*model.AgentState
 	if _, err := s.GetReplica().WithContext(ctx).Select(&res, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_state_history.app_error", err.Error(), extractCodeFromErr(err))
@@ -651,7 +661,7 @@ where u.dc = :DomainId
   and   ( (:Q::varchar isnull or (COALESCE(u.name::text, u.username) COLLATE "default" ilike :Q::varchar ) ))
 order by COALESCE(u.name::text, u.username) COLLATE "default"
 limit :Limit
-offset :Offset`, map[string]interface{}{
+offset :Offset`, map[string]any{
 			"DomainId": domainId,
 			"Limit":    search.GetLimit(),
 			"Offset":   search.GetOffset(),
@@ -675,11 +685,11 @@ where u.dc = :DomainId
 	exists(select 1
 	  from directory.wbt_auth_acl acl
 	  where acl.dc = u.dc and acl.object = u.id and acl.subject = any(:Groups::int[]) and acl.access&:Access = :Access)
-  ) 
+  )
   and   ( (:Q::varchar isnull or (COALESCE(u.name::text, u.username) COLLATE "default" ilike :Q::varchar ) ))
 order by COALESCE(u.name::text, u.username) COLLATE "default"
 limit :Limit
-offset :Offset`, map[string]interface{}{
+offset :Offset`, map[string]any{
 			"DomainId": domainId,
 			"Limit":    search.GetLimit(),
 			"Offset":   search.GetOffset(),
@@ -698,7 +708,7 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
 	err := s.GetMaster().WithContext(ctx).SelectOne(&agent, `select a.id as agent_id,
        a.status,
        coalesce(a.status_payload, '') status_payload,
-	   coalesce(a.status_comment, '') status_comment, 
+	   coalesce(a.status_comment, '') status_comment,
        (extract(EPOCH from last_state_change) * 1000)::int8 last_status_change,
        (extract(EPOCH from now() - last_state_change) )::int8 status_duration,
        ch.x as channels,
@@ -713,7 +723,8 @@ func (s SqlAgentStore) GetSession(ctx context.Context, domainId, userId int64) (
         FROM directory.wbt_user aud
         WHERE aud.id = any(a.auditor_ids)) auditor,
     	a.screen_control,
-    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track
+    	exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
+     	call_center.cc_get_lookup(os.id, os.name) as online_status
 from call_center.cc_agent a
 	 left join call_center.cc_team t on t.id = a.team_id
      LEFT JOIN LATERAL ( SELECT jsonb_agg(json_build_object('channel', c.channel, 'state', c.state, 'open', 0, 'max_open', c.max_opened,
@@ -726,11 +737,12 @@ from call_center.cc_agent a
                                             'timeout', call_center.cc_view_timestamp(c.timeout))) AS x
                      FROM call_center.cc_agent_channel c
                      WHERE c.agent_id = a.id) ch ON true
-where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]interface{}{
-		"UserId":   userId,
-		"DomainId": domainId,
+    left join call_center.cc_online_skills os on os.id = a.status_id
+where a.user_id = :UserId and a.domain_id = :DomainId`, map[string]any{
+		"UserId":              userId,
+		"DomainId":            domainId,
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_session.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -843,7 +855,7 @@ from (
     where a.domain_id = :DomainId
 ) agg
 limit :Limit
-offset :Offset`, map[string]interface{}{
+offset :Offset`, map[string]any{
 		"DomainId": domainId,
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
@@ -851,7 +863,6 @@ offset :Offset`, map[string]interface{}{
 		"To":       model.GetBetweenToTime(&search.Time),
 		"AgentIds": pq.Array(search.AgentIds),
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_call_stats.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -859,7 +870,7 @@ offset :Offset`, map[string]interface{}{
 	return stats, nil
 }
 
-func (s SqlAgentStore) PauseCause(ctx context.Context, domainId int64, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, model.AppError) {
+func (s SqlAgentStore) PauseCause(ctx context.Context, domainId, fromUserId, toAgentId int64, allowChange bool) ([]*model.AgentPauseCause, model.AppError) {
 	var res []*model.AgentPauseCause
 	_, err := s.GetReplica().WithContext(ctx).Select(&res, `select c.id,
        c.name,
@@ -875,7 +886,8 @@ from call_center.cc_pause_cause c
          left join call_center.cc_agent_today_pause_cause tp on tp.cause = c.name and tp.id = a.id
 where a.id = :ToAgentId and c.domain_id = :DomainId and a.domain_id = c.domain_id
     and fa.user_id = :FromUserId
-    and (not :AllowChange::bool   
+    and (c.team_ids is null or c.team_ids && array[a.team_id])
+    and (not :AllowChange::bool
 		 or case when fa.supervisor or fa.id = any(a.supervisor_ids) then c.allow_supervisor else false end
          or (fa.id = a.id and c.allow_agent)
          or (fa.team_id = a.team_id and ft.admin_ids && array[fa.id] and c.allow_admin)
@@ -886,7 +898,6 @@ order by c.name;`, map[string]any{
 		"ToAgentId":   toAgentId,
 		"AllowChange": allowChange,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.list_pause_causes.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -896,11 +907,11 @@ order by c.name;`, map[string]any{
 
 // FIXME sort, columns
 // allow_change
-func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError) {
+func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError) {
 	var (
 		list           []*model.AgentStatusStatistics
 		searchOperator string
-        sort           string
+		sort           string
 	)
 
 	q, found := model.ParseRegexp(search.Q)
@@ -910,38 +921,39 @@ func (s SqlAgentStore) StatusStatistic(ctx context.Context, domainId int64, supe
 		searchOperator = ILikeComparisonOperator
 	}
 
-    sort = GetOrderBy("t", search.Sort)
+	sort = GetOrderBy("t", search.Sort)
 
-    if sort == "" {
-        sort = `order by case t.status
+	if sort == "" {
+		sort = `order by case t.status
              when 'break_out' then 0
              when 'pause' then 1
              when 'online' then 2
              else 3 end, t.name`
-    }
+	}
 
-    f := map[string]interface{}{
-       	"DomainId":         domainId,
+	f := map[string]any{
+		"DomainId":         domainId,
 		"UserSupervisorId": supervisorUserId,
 		//"Groups":     pq.Array(groups),
 		//"Access":     access.Value(),
-		"Q":             q,
-		"Limit":         search.GetLimit(),
-		"Offset":        search.GetOffset(),
-		"From":          model.GetBetweenFromTime(&search.Time),
-		"To":            model.GetBetweenToTime(&search.Time),
-		"UFrom":         model.GetBetweenFrom(search.Utilization),
-		"UTo":           model.GetBetweenTo(search.Utilization),
-		"AgentIds":      pq.Array(search.AgentIds),
-		"Status":        pq.Array(search.Status),
-		"QueueIds":      pq.Array(search.QueueIds),
-		"TeamIds":       pq.Array(search.TeamIds),
-		"SkillIds":      pq.Array(search.SkillIds),
-		"RegionIds":     pq.Array(search.RegionIds),
-		"AuditorIds":    pq.Array(search.AuditorIds),
-		"SupervisorIds": pq.Array(search.SupervisorIds),
-		"HasCall":       search.HasCall,
-    }
+		"Q":                   q,
+		"Limit":               search.GetLimit(),
+		"Offset":              search.GetOffset(),
+		"From":                model.GetBetweenFromTime(&search.Time),
+		"To":                  model.GetBetweenToTime(&search.Time),
+		"UFrom":               model.GetBetweenFrom(search.Utilization),
+		"UTo":                 model.GetBetweenTo(search.Utilization),
+		"AgentIds":            pq.Array(search.AgentIds),
+		"Status":              pq.Array(search.Status),
+		"QueueIds":            pq.Array(search.QueueIds),
+		"TeamIds":             pq.Array(search.TeamIds),
+		"SkillIds":            pq.Array(search.SkillIds),
+		"RegionIds":           pq.Array(search.RegionIds),
+		"AuditorIds":          pq.Array(search.AuditorIds),
+		"SupervisorIds":       pq.Array(search.SupervisorIds),
+		"HasCall":             search.HasCall,
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
+	}
 
 	query := fmt.Sprintf(`select agent_id,
        name,
@@ -977,7 +989,7 @@ from (
                 a.domain_id,
                 coalesce(u.name, u.username)::varchar COLLATE "default"                      as                                  name,
                 coalesce(u.extension, '')                         as                                  extension,
-                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+                exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
                 a.status,
 				a.status_comment,
                 extract(epoch from x.t)::int                                                          status_duration,
@@ -1093,7 +1105,7 @@ from (
                  ) l on true
              ) stat on stat.agent_id = a.id
                   left join lateral (
-             select c.id
+             select coalesce(c.parent_id, c.id) as id
              from call_center.cc_calls c
              where c.agent_id = a.id
                and c.hangup_at isnull
@@ -1159,7 +1171,6 @@ where t.domain_id = :DomainId
 limit :Limit offset :Offset`, searchOperator, sort)
 
 	_, err := s.GetMaster().WithContext(ctx).Select(&list, query, f)
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1167,7 +1178,7 @@ limit :Limit offset :Offset`, searchOperator, sort)
 	return list, nil
 }
 
-func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
+func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError) {
 	var item *model.SupervisorAgentItem
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&item, `select a.id                                                                           agent_id,
@@ -1199,7 +1210,7 @@ func (s SqlAgentStore) SupervisorAgentItem(ctx context.Context, domainId int64, 
        coalesce(ts.score_optional_avg, 0.0)                                     as      score_optional_avg,
        coalesce(ts.score_required_avg, 0.0)                                     as      score_required_avg,
        coalesce(ts.score_count, 0)                                                as      score_count,
-       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < 65 and application_name = 'desc_track') as desc_track,
+       exists(select 1 from call_center.socket_session_view ss where ss.user_id = a.user_id and ss.pong < :DescTrackTimeoutSec and application_name = 'desc_track') as desc_track,
        a.screen_control
 from call_center.cc_agent a
          left join call_center.cc_team t on t.id = a.team_id
@@ -1223,13 +1234,13 @@ from call_center.cc_agent a
          left join directory.wbt_user cawu on a.user_id = cawu.id
          left join call_center.cc_agent_today_stats ts on ts.agent_id = a.id
 where a.id = :AgentId
-  and a.domain_id = :DomainId`, map[string]interface{}{
-		"DomainId": domainId,
-		"AgentId":  agentId,
-		"From":     model.GetBetweenFromTime(t),
-		"To":       model.GetBetweenToTime(t),
+  and a.domain_id = :DomainId`, map[string]any{
+		"DomainId":            domainId,
+		"AgentId":             agentId,
+		"From":                model.GetBetweenFromTime(t),
+		"To":                  model.GetBetweenToTime(t),
+		"DescTrackTimeoutSec": s.descTrackTimeoutSec,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_status_stats_item.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1245,12 +1256,11 @@ func (s SqlAgentStore) DistributeInfoByUserId(ctx context.Context, domainId, use
    c.state = any(array ['offering', 'bridged']) busy
 from call_center.cc_agent a
     inner join call_center.cc_agent_channel c on c.agent_id = a.id
-where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::varchar`, map[string]interface{}{
+where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::varchar`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 		"Channel":  channel,
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.get_dis_stats_item.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1258,21 +1268,35 @@ where a.user_id = :UserId and a.domain_id = :DomainId and c.channel = :Channel::
 	return res, nil
 }
 
-func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId int64, agentId *int64, userId *int64) (*model.AgentStatistics, model.AppError) {
-	params := map[string]interface{}{
+func (s SqlAgentStore) IsAgentChannelOnline(ctx context.Context, agentId int64, channel string) (bool, model.AppError) {
+	res, err := s.GetMaster().WithContext(ctx).SelectInt(`select 1
+from call_center.cc_agent_channel c
+where c.agent_id = :AgentId and c.channel = :Channel::varchar and c.online`, map[string]any{
+		"AgentId": agentId,
+		"Channel": channel,
+	})
+	if err != nil {
+		return false, model.NewCustomCodeError("store.sql_agent.is_channel_online.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return res == 1, nil
+}
+
+func (s SqlAgentStore) TodayStatistics(ctx context.Context, domainId int64, agentId, userId *int64) (*model.AgentStatistics, model.AppError) {
+	params := map[string]any{
 		"DomainId": domainId,
 	}
 
 	q := `select
-	s.utilization, 
-	s.occupancy, 
-	s.call_abandoned, 
-	s.call_handled, 
-	s.call_missed, 
-	s.call_inbound, 
-	s.avg_talk_sec, 
-	s.avg_hold_sec, 
-	s.chat_accepts, 
+	s.utilization,
+	s.occupancy,
+	s.call_abandoned,
+	s.call_handled,
+	s.call_missed,
+	s.call_inbound,
+	s.avg_talk_sec,
+	s.avg_hold_sec,
+	s.chat_accepts,
 	s.chat_aht,
 	s.score_count,
 	s.score_optional_avg,
@@ -1303,13 +1327,11 @@ where s.domain_id = :DomainId and `
 
 	var stat *model.AgentStatistics
 	err := s.GetReplica().WithContext(ctx).SelectOne(&stat, q, params)
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_agent.statistic.today", err.Error(), extractCodeFromErr(err))
 	}
 
 	return stat, nil
-
 }
 
 func (s SqlAgentStore) UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError) {
@@ -1323,7 +1345,7 @@ func (s SqlAgentStore) UsersStatus(ctx context.Context, domainId int64, search *
 	} else {
 		searchOperator = ILikeComparisonOperator
 	}
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId":   domainId,
 		"Q":          q,
 		"NotUserIds": pq.Array(search.NotUserIds),
@@ -1352,7 +1374,7 @@ func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, g
 	} else {
 		searchOperator = ILikeComparisonOperator
 	}
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId":   domainId,
 		"Q":          q,
 		"Groups":     pq.Array(groups),
@@ -1367,7 +1389,7 @@ func (s SqlAgentStore) UsersStatusByGroup(ctx context.Context, domainId int64, g
 				and (
 					exists(select 1
 					  from directory.wbt_auth_acl
-					  where directory.wbt_auth_acl.dc = t.domain_id and directory.wbt_auth_acl.object = t.id 
+					  where directory.wbt_auth_acl.dc = t.domain_id and directory.wbt_auth_acl.object = t.id
 						and directory.wbt_auth_acl.subject = any(:Groups::int[]) and directory.wbt_auth_acl.access&:Access = :Access)
 		  		)`, searchOperator),
 		model.UserStatus{}, f)

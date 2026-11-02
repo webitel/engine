@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -126,11 +127,22 @@ func (app *App) RemoveAuditForm(ctx context.Context, domainId int64, id int32) (
 }
 
 func (app *App) RateAuditForm(ctx context.Context, domainId int64, userId int64, rate model.Rate) (*model.AuditRate, model.AppError) {
-	if rate.CallId == nil {
-		return nil, model.NewBadRequestError("app.audit.rate.valid.call_id", "call_id is required")
-	}
+	var (
+		rateUserId    *int64
+		rateCreatedAt time.Time
+		err           model.AppError
+	)
 
-	rateUserId, callCreatedAt, err := app.Store.Call().GetOwnerUserCall(ctx, *rate.CallId)
+	switch {
+	case rate.CallId != nil && rate.ConversationId != nil:
+		return nil, model.NewBadRequestError("app.audit.rate.valid.source", "only one of call_id or conversation_id may be set")
+	case rate.CallId != nil:
+		rateUserId, rateCreatedAt, err = app.Store.Call().GetOwnerUserCall(ctx, *rate.CallId)
+	case rate.ConversationId != nil:
+		rateUserId, rateCreatedAt, err = app.Store.AuditRate().ValidateChatRate(ctx, domainId, *rate.ConversationId)
+	default:
+		return nil, model.NewBadRequestError("app.audit.rate.valid.source", "call_id or conversation_id is required")
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +165,7 @@ func (app *App) RateAuditForm(ctx context.Context, domainId int64, userId int64,
 		rate.RatedUser = &model.Lookup{Id: int(*rateUserId)}
 	}
 
-	rate.CallCreatedAt = &callCreatedAt
+	rate.CallCreatedAt = &rateCreatedAt
 
 	auditRate := &model.AuditRate{
 		AclRecord: model.AclRecord{

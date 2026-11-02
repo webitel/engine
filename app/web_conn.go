@@ -23,8 +23,10 @@ const (
 	SEND_DEADLOCK_WARN = (SEND_QUEUE_SIZE * 95) / 100
 	WRITE_WAIT         = 10 * time.Second
 	PONG_WAIT          = 60 * time.Second
-	PING_PERIOD        = (PONG_WAIT * 9) / 10
-	AUTH_TIMEOUT       = 20 * time.Second
+	// PING_PERIOD must leave room for more than one WRITE_WAIT: a single stalled
+	// write may not push the next ping past the peer's PONG_WAIT deadline.
+	PING_PERIOD  = PONG_WAIT / 3
+	AUTH_TIMEOUT = 20 * time.Second
 )
 
 var (
@@ -214,6 +216,11 @@ func (c *WebConn) readPump() {
 			return
 		}
 
+		// Any inbound frame proves the peer is alive, so application level pings
+		// (see config.PingClientInterval) hold the connection open as well, not
+		// only the protocol pong that clients may never send on their own.
+		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
+
 		var decoder interface {
 			Decode(v any) error
 		}
@@ -296,11 +303,17 @@ func (c *WebConn) writePump() {
 			}
 
 		case <-ticker.C:
-			if err := c.writeMessageBuf(websocket.PingMessage, []byte{}); err != nil {
+			if err := c.writeMessageBuf(websocket.PingMessage, nil); err != nil {
 				c.Log().Error("ping message", wlog.Err(err))
 				return
-			} else if c.App.config.Cloudflare {
-				c.WebSocket.WriteMessage(websocket.TextMessage, spamMessage)
+			}
+
+			if c.App.config.Cloudflare {
+				// Cloudflare drops an idle tunnel that has seen only control frames.
+				if err := c.writeMessageBuf(websocket.TextMessage, spamMessage); err != nil {
+					c.Log().Error("cloudflare ping message", wlog.Err(err))
+					return
+				}
 			}
 		case <-c.endWritePump:
 			return

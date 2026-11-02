@@ -5,14 +5,13 @@ import (
 	"slices"
 	"time"
 
-	"github.com/webitel/wlog"
 	"go.uber.org/atomic"
 	"golang.org/x/sync/singleflight"
+
+	"github.com/webitel/wlog"
 )
 
-var (
-	sessionGroupRequest singleflight.Group
-)
+var sessionGroupRequest singleflight.Group
 
 const tokenRequestTimeout = time.Second * 15
 
@@ -49,14 +48,26 @@ func (self *Session) UseRBAC(acc PermissionAccess, perm SessionPermission) bool 
 }
 
 func (s *Session) HasAdminPermission(permAccess PermissionAccess) bool {
+	if s == nil {
+		return false
+	}
+
 	return slices.Contains(s.adminPermissions, permAccess)
 }
 
 func (self *Session) GetAclRoles() []int {
+	if self == nil {
+		return nil
+	}
+
 	return self.RoleIds
 }
 
 func (self *Session) HasLicense(name string) bool {
+	if self == nil {
+		return false
+	}
+
 	for _, v := range self.validLicense {
 		if v == name {
 			return true
@@ -67,10 +78,18 @@ func (self *Session) HasLicense(name string) bool {
 }
 
 func (self *Session) GetUserId() int64 {
+	if self == nil {
+		return 0
+	}
+
 	return self.UserId
 }
 
 func (self *Session) GetDomainId() int64 {
+	if self == nil {
+		return 0
+	}
+
 	return self.DomainId
 }
 
@@ -83,10 +102,18 @@ func (self *Session) GetUserIp() string {
 }
 
 func (self *Session) HasCallCenterLicense() bool {
+	if self == nil {
+		return false
+	}
+
 	return self.HasLicense(LicenseCallCenter)
 }
 
 func (self *Session) HasChatLicense() bool {
+	if self == nil {
+		return false
+	}
+
 	return self.HasLicense(LicenseChat)
 }
 
@@ -95,6 +122,10 @@ func (self *Session) CountLicenses() int {
 }
 
 func (self *Session) GetPermission(name string) SessionPermission {
+	if self == nil {
+		return NotAllowPermission(name)
+	}
+
 	for _, v := range self.Scopes {
 		if v.Name == name {
 			return v
@@ -122,15 +153,14 @@ func (self *Session) IsExpired() bool {
 	if self.Expire > 0 {
 		return self.Expire*1000 < GetMillis()
 	}
-	return false //never expire
+	return false // never expire
 }
 
-func (self *Session) Trace() map[string]interface{} {
-	return map[string]interface{}{"id": self.Id, "domain_id": self.DomainId}
+func (self *Session) Trace() map[string]any {
+	return map[string]any{"id": self.Id, "domain_id": self.DomainId}
 }
 
 func (self *Session) IsValid() error {
-
 	if len(self.Id) < 1 {
 		return ErrValidId
 	}
@@ -153,6 +183,10 @@ func (self *Session) IsValid() error {
 }
 
 func (self *Session) HasAction(name string) bool {
+	if self == nil {
+		return false
+	}
+
 	for _, v := range self.actions {
 		if v == name {
 			return true
@@ -163,12 +197,11 @@ func (self *Session) HasAction(name string) bool {
 }
 
 func (am *authManager) getSession(c context.Context, token string) (Session, error) {
-
 	if v, ok := am.session.Get(token); ok {
 		return *v, nil
 	}
 
-	result, err, shared := sessionGroupRequest.Do(token, func() (interface{}, error) {
+	result, err, shared := sessionGroupRequest.Do(token, func() (any, error) {
 		ctx, cancel := context.WithTimeout(c, tokenRequestTimeout)
 		defer cancel()
 

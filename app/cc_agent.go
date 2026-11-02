@@ -71,6 +71,7 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Age
 
 	oldAgent.AllowChannels = agent.AllowChannels
 	oldAgent.ChatCount = agent.ChatCount
+	oldAgent.ExtraChatCount = agent.ExtraChatCount
 	oldAgent.Supervisor = agent.Supervisor
 	oldAgent.Team = agent.Team
 	oldAgent.Region = agent.Region
@@ -164,6 +165,14 @@ func (a *App) AgentCC(ctx context.Context, domainId int64, userId int64) (*model
 	return a.Store.Agent().AgentCC(ctx, domainId, userId)
 }
 
+func (a *App) LoginAgentFromRequest(ctx context.Context, r *model.AgentLoginRequest) model.AppError {
+	if err := a.cc.Agent().OnlineWithStatus(ctx, r); err != nil {
+		return model.NewBadRequestError("app.agent.login.app_err", err.Error())
+	}
+
+	return nil
+}
+
 func (a *App) LoginAgent(domainId, agentId int64, onDemand bool) model.AppError {
 	err := a.cc.Agent().Online(domainId, agentId, onDemand)
 	if err != nil {
@@ -235,12 +244,11 @@ func (a *App) GetAgentStatusStatistic(ctx context.Context, domainId int64, super
 	return list, search.EndOfList(), nil
 }
 
-// agent_id check
-func (a *App) AcceptTask(appId string, domainId int64, attemptId int64) model.AppError {
-	err := a.cc.Agent().AcceptTask(appId, domainId, attemptId)
-	if err != nil {
+func (a *App) AcceptTask(ctx context.Context, req *model.AcceptAttemptRequest) model.AppError {
+	if err := a.cc.Agent().AcceptTask(ctx, req); err != nil {
 		return model.NewInternalError("app.cc.accept_task", err.Error())
 	}
+
 	return nil
 }
 

@@ -30,4 +30,5 @@ const (
 
 	PermissionControlAgentScreen = "control_agent_screen"
 	PermissionScreenRecordings   = "screen_recordings"
+	PermissionVideocallFiles     = "videocall_files"
 )

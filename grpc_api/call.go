@@ -14,10 +14,11 @@ import (
 
 type call struct {
 	*API
+	engine.UnsafeCallServiceServer
+
 	minimumNumberMaskLen int
 	prefixNumberMaskLen  int
 	suffixNumberMaskLen  int
-	engine.UnsafeCallServiceServer
 }
 
 func NewCallApi(api *API, minimumNumberMaskLen, prefixNumberMaskLen, suffixNumberMaskLen int) *call {
@@ -106,6 +107,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		RatedUserIds:     in.GetRatedUser(),
 		ContactIds:       in.GetContactId(),
 		SchemaIds:        in.GetSchemaId(),
+	}
+
+	if excludedQueueTypes := toQueueTypes(in.GetExcludedQueueTypes()); len(excludedQueueTypes) > 0 {
+		req.ExcludedQueueTypes = excludedQueueTypes
 	}
 
 	if in.HasFile != nil {
@@ -210,6 +215,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		if req.CreatedAt.From < model.TimeToInt64(showFileFromDate) {
 			req.CreatedAt.From = model.TimeToInt64(showFileFromDate)
 		}
+	}
+
+	if in.GetHideNumber() {
+		req.Fields = append(req.Fields, "hide_number")
 	}
 
 	if list, endList, err = api.ctrl.SearchHistoryCall(ctx, session, req); err != nil {
@@ -840,6 +849,29 @@ func (api *call) RedialCall(ctx context.Context, in *engine.RedialCallRequest) (
 	}, nil
 }
 
+func (api *call) PatchHistoryCallAttempt(ctx context.Context, in *engine.PatchHistoryCallAttemptRequest) (*engine.PatchHistoryCallAttemptResponse, error) {
+	patch := model.NewPatchHistoryCallAttempt(in.GetId(), in.GetDescription(), in.GetVariables(), in.GetFields()...)
+
+	a, err := api.ctrl.PatchHistoryCallAttempt(ctx, patch)
+	if err != nil {
+		return nil, err
+	}
+
+	return toEnginePatchHistoryCallAttemptResponse(a), nil
+}
+
+func toEnginePatchHistoryCallAttemptResponse(in *model.PatchHistoryAttemptResult) *engine.PatchHistoryCallAttemptResponse {
+	if in == nil {
+		return nil
+	}
+
+	return &engine.PatchHistoryCallAttemptResponse{
+		Id:          in.ID,
+		Description: in.Description,
+		Variables:   in.Variables,
+	}
+}
+
 func toEngineCall(src *model.Call) *engine.ActiveCall {
 	item := &engine.ActiveCall{
 		Id:               src.Id,
@@ -983,7 +1015,14 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Contact:          GetProtoLookup(src.Contact),
 		Schemas:          GetProtoLookups(src.Schemas),
 		QualityMetrics:   marshaProtoCallQualityMetrics(src.QualityMetrics),
+		UserAgent:        src.UserAgent,
+		HideNumber:       src.HideNumber,
 	}
+
+	if src.HideNumber {
+		item.Destination = model.HideString(item.Destination, 5, 0, 2)
+	}
+
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
 	}
@@ -1018,6 +1057,14 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 			Id:     src.From.Id,
 			Name:   src.From.Name,
 		}
+
+		if src.HideNumber {
+			if src.From.Name == src.From.Number {
+				item.From.Name = model.HideString(item.From.Name, 5, 0, 2)
+			}
+
+			item.From.Number = model.HideString(item.From.Number, 5, 0, 2)
+		}
 	}
 
 	if src.To != nil {
@@ -1026,6 +1073,14 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 			Number: setAccessString(src.To.Number, minHideString, pref, suff, hideNumbers),
 			Id:     src.To.Id,
 			Name:   src.To.Name,
+		}
+
+		if src.HideNumber {
+			if src.To.Name == src.To.Number {
+				item.To.Name = model.HideString(item.To.Name, 5, 0, 2)
+			}
+
+			item.To.Number = model.HideString(item.To.Number, 5, 0, 2)
 		}
 	}
 
@@ -1116,7 +1171,7 @@ func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_
 		return nil
 	}
 
-	return &engine.HistoryCall_QualityMetrics{
+	v := &engine.HistoryCall_QualityMetrics{
 		SipId: m.SipID,
 
 		// MOS метрики
@@ -1133,13 +1188,6 @@ func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_
 		JitterMinAt: int32(m.JitterMinAt),
 		JitterMaxAt: int32(m.JitterMaxAt),
 
-		// Packet Loss метрики
-		PacketlossAvg:   float32(m.PacketlossAvg),
-		PacketlossMin:   float32(m.PacketlossMin),
-		PacketlossMax:   float32(m.PacketlossMax),
-		PacketlossMinAt: int32(m.PacketlossMinAt),
-		PacketlossMaxAt: int32(m.PacketlossMaxAt),
-
 		// RTT метрики
 		RoundtripAvg:   float32(m.RoundtripAvg),
 		RoundtripMin:   float32(m.RoundtripMin),
@@ -1147,6 +1195,24 @@ func marshaProtoCallQualityMetrics(m *model.QualityMetrics) *engine.HistoryCall_
 		RoundtripMinAt: int32(m.RoundtripMinAt),
 		RoundtripMaxAt: int32(m.RoundtripMaxAt),
 	}
+
+	// WTEL-9835
+	// Packet loss metrics.
+	// Since 0 <= PacketlossMin <= PacketlossAvg <= PacketlossMax, checking
+	// only PacketlossMax is enough to detect whether any loss occurred at all.
+	// If PacketlossMax == 0, avg/min are guaranteed to be 0 too, so we skip
+	// setting everything, including PacketlossMinAt/PacketlossMaxAt — there's
+	// no real loss event to timestamp, so we leave them at zero-value defaults
+	// instead of writing a timestamp next to a zero loss value.
+	if m.PacketlossMax > 0 {
+		v.PacketlossAvg = float32(m.PacketlossAvg)
+		v.PacketlossMin = float32(m.PacketlossMin)
+		v.PacketlossMax = float32(m.PacketlossMax)
+		v.PacketlossMinAt = int32(m.PacketlossMinAt)
+		v.PacketlossMaxAt = int32(m.PacketlossMaxAt)
+	}
+
+	return v
 }
 
 func prettyStringMap(ff *model.StringMap) []byte {
@@ -1391,4 +1457,50 @@ func setAccessString(str string, min, p, s int, h bool) string {
 	}
 
 	return model.HideString(str, min, p, s)
+}
+
+func toQueueTypes(types []engine.QueueType) []int8 {
+	l := len(types)
+	if l == 0 {
+		return nil
+	}
+
+	qt := make([]int8, 0, l)
+
+	for _, t := range types {
+		if parsed := toQueueType(t); t >= 0 {
+			qt = append(qt, parsed)
+		}
+	}
+
+	return qt
+}
+
+func toQueueType(t engine.QueueType) int8 {
+	switch t {
+	case engine.QueueType_QUEUE_TYPE_AGENT_TASK:
+		return model.QueueTypeAgentTask
+	case engine.QueueType_QUEUE_TYPE_INBOUND_CALL:
+		return model.QueueTypeInboundCall
+	case engine.QueueType_QUEUE_TYPE_INBOUND_CHAT:
+		return model.QueueTypeInboundChat
+	case engine.QueueType_QUEUE_TYPE_INBOUND_IM:
+		return model.QueueTypeInboundIM
+	case engine.QueueType_QUEUE_TYPE_IVR_CALL:
+		return model.QueueTypeIVRCall
+	case engine.QueueType_QUEUE_TYPE_OFFLINE:
+		return model.QueueTypeOfflineCall
+	case engine.QueueType_QUEUE_TYPE_OUTBOUND_CALL:
+		return model.QueueTypeOutboundCall
+	case engine.QueueType_QUEUE_TYPE_OUTBOUND_TASK:
+		return model.QueueTypeOutboundTask
+	case engine.QueueType_QUEUE_TYPE_PREDICTIVE_CALL:
+		return model.QueueTypePredictCall
+	case engine.QueueType_QUEUE_TYPE_PREVIEW_CALL:
+		return model.QueueTypePreviewCall
+	case engine.QueueType_QUEUE_TYPE_PROGRESSIVE_CALL:
+		return model.QueueTypeProgressiveCall
+	default:
+		return -1
+	}
 }

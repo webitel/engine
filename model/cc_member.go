@@ -3,56 +3,55 @@ package model
 import (
 	"encoding/json"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type Member struct {
-	Id              int64                 `json:"id" db:"id"`
-	Queue           Lookup                `json:"queue" db:"queue"`
-	CreatedAt       time.Time             `json:"created_at" db:"created_at"`
-	QueueId         int64                 `json:"queue_id" db:"queue_id"` //FIXME delete attr
-	Priority        int                   `json:"priority" db:"priority"`
-	ExpireAt        *time.Time            `json:"expire_at" db:"expire_at"`
-	MinOfferingAt   *time.Time            `json:"min_offering_at" db:"ready_at"`
-	Name            string                `json:"name" db:"name"`
-	Variables       StringMap             `json:"variables" db:"variables"`
-	LastActivityAt  int64                 `json:"last_hangup_at" db:"last_hangup_at"`
-	Attempts        int                   `json:"attempts" db:"attempts"`
-	Timezone        Lookup                `json:"timezone" db:"timezone"`
-	Bucket          *Lookup               `json:"bucket" db:"bucket"`
-	Communications  []MemberCommunication `json:"communications" db:"communications"`
-	StopAt          *time.Time            `json:"stop_at" db:"stop_at"`
-	StopCause       *string               `json:"stop_cause" db:"stop_cause"`
-	Reserved        bool                  `json:"reserved" db:"reserved"`
-	Agent           *Lookup               `json:"agent" db:"agent"`
-	Skill           *Lookup               `json:"skill" db:"skill"`
-	HookCreated     *int32                `json:"-" db:"hook_created"`
-	ActiveAttemptId *int64                `json:"active_attempt_id" db:"active_attempt_id"`
-	ActiveAppId     *string               `json:"active_app_id" db:"active_app_id"`
+	Id              int64                  `json:"id" db:"id"`
+	Queue           Lookup                 `json:"queue" db:"queue"`
+	CreatedAt       time.Time              `json:"created_at" db:"created_at"`
+	QueueId         int64                  `json:"queue_id" db:"queue_id"` // FIXME delete attr
+	Priority        int                    `json:"priority" db:"priority"`
+	ExpireAt        *time.Time             `json:"expire_at" db:"expire_at"`
+	MinOfferingAt   *time.Time             `json:"min_offering_at" db:"ready_at"`
+	Name            string                 `json:"name" db:"name"`
+	Variables       StringMap              `json:"variables" db:"variables"`
+	LastActivityAt  int64                  `json:"last_hangup_at" db:"last_hangup_at"`
+	Attempts        int                    `json:"attempts" db:"attempts"`
+	Timezone        Lookup                 `json:"timezone" db:"timezone"`
+	Bucket          *Lookup                `json:"bucket" db:"bucket"`
+	Communications  []*MemberCommunication `json:"communications" db:"communications"`
+	StopAt          *time.Time             `json:"stop_at" db:"stop_at"`
+	StopCause       *string                `json:"stop_cause" db:"stop_cause"`
+	Reserved        bool                   `json:"reserved" db:"reserved"`
+	Agent           *Lookup                `json:"agent" db:"agent"`
+	Skill           *Lookup                `json:"skill" db:"skill"`
+	HookCreated     *int32                 `json:"-" db:"hook_created"`
+	ActiveAttemptId *int64                 `json:"active_attempt_id" db:"active_attempt_id"`
+	ActiveAppId     *string                `json:"active_app_id" db:"active_app_id"`
 }
 
 type MemberPatch struct {
-	Priority       *int                  `json:"priority" db:"priority"`
-	ExpireAt       *time.Time            `json:"expire_at" db:"expire_at"`
-	MinOfferingAt  *time.Time            `json:"min_offering_at" db:"ready_at"`
-	Name           *string               `json:"name" db:"name"`
-	Variables      StringMap             `json:"variables" db:"variables"`
-	Timezone       *Lookup               `json:"timezone" db:"timezone"`
-	Bucket         *Lookup               `json:"bucket" db:"bucket"`
-	Communications []MemberCommunication `json:"communications" db:"communications"`
-	StopCause      *string               `json:"stop_cause" db:"stop_cause"`
-	Agent          *Lookup               `json:"agent" db:"agent"`
-	Skill          *Lookup               `json:"skill" db:"skill"`
+	Priority       *int                   `json:"priority" db:"priority"`
+	ExpireAt       *time.Time             `json:"expire_at" db:"expire_at"`
+	MinOfferingAt  *time.Time             `json:"min_offering_at" db:"ready_at"`
+	Name           *string                `json:"name" db:"name"`
+	Variables      StringMap              `json:"variables" db:"variables"`
+	Timezone       *Lookup                `json:"timezone" db:"timezone"`
+	Bucket         *Lookup                `json:"bucket" db:"bucket"`
+	Communications []*MemberCommunication `json:"communications" db:"communications"`
+	StopCause      *string                `json:"stop_cause" db:"stop_cause"`
+	Agent          *Lookup                `json:"agent" db:"agent"`
+	Skill          *Lookup                `json:"skill" db:"skill"`
 	Attempts       *int
 }
 
 type MultiDeleteMembers struct {
-	QueueId int64 `json:"queue_id" db:"queue_id"`
 	SearchMemberRequest
 
-	//Buckets   []int64   `json:"buckets" db:"buckets"` // deprecated
-	//Causes    []string  `json:"causes" db:"causes"`   // deprecated
+	QueueId   int64     `json:"queue_id" db:"queue_id"`
 	Numbers   []string  `json:"numbers" db:"numbers"`
 	Variables StringMap `json:"variables" db:"variables"`
 }
@@ -67,6 +66,43 @@ type ResetMembers struct {
 	Variables StringMap      `json:"variables" db:"variables"`
 	Priority  *FilterBetween `json:"priority" db:"priority"`
 	CreatedAt *FilterBetween `json:"created_at" db:"created_at"`
+	Q         string
+}
+
+type ResetMembersCountQuery struct {
+	ResetMembers
+}
+
+func (q *ResetMembersCountQuery) SetIDs(first, second []int64) *ResetMembersCountQuery {
+	if len(first) > 0 {
+		q.Ids = first
+	} else {
+		q.Ids = second
+	}
+
+	return q
+}
+
+func (q *ResetMembersCountQuery) SetPriority(prio FilterBetweenProvider) *ResetMembersCountQuery {
+	if prio != nil {
+		q.Priority = &FilterBetween{
+			From: prio.GetFrom(),
+			To:   prio.GetTo(),
+		}
+	}
+
+	return q
+}
+
+func (q *ResetMembersCountQuery) SetCreatedAt(createdAt FilterBetweenProvider) *ResetMembersCountQuery {
+	if createdAt != nil {
+		q.CreatedAt = &FilterBetween{
+			From: createdAt.GetFrom(),
+			To:   createdAt.GetTo(),
+		}
+	}
+
+	return q
 }
 
 func (m *Member) Patch(p *MemberPatch) {
@@ -119,7 +155,7 @@ func (m *Member) Patch(p *MemberPatch) {
 	}
 
 	if p.Agent != nil {
-		//todo
+		// todo
 		if p.Agent.Id == 0 {
 			m.Agent = nil
 		} else {
@@ -128,7 +164,7 @@ func (m *Member) Patch(p *MemberPatch) {
 	}
 
 	if p.Skill != nil {
-		//todo
+		// todo
 		if p.Skill.Id == 0 {
 			m.Skill = nil
 		} else {
@@ -151,11 +187,11 @@ func (m *Member) ResetAttempts() {
 	}
 }
 
-type MemberView struct {
-}
+type MemberView struct{}
 
 type SearchMemberRequest struct {
 	ListRequest
+
 	Ids         []int64
 	QueueIds    []int32
 	BucketIds   []int32
@@ -171,6 +207,10 @@ type SearchMemberRequest struct {
 	Variables   StringMap
 }
 
+func (r *SearchMemberRequest) IsWithCreatedAtFilter() bool {
+	return r.CreatedAt != nil && r.CreatedAt.From > 0 && r.CreatedAt.To > 0
+}
+
 type OfflineMember struct {
 	Id             int64                 `json:"id" db:"id"`
 	Name           string                `json:"name" db:"name"`
@@ -179,6 +219,32 @@ type OfflineMember struct {
 	ExpireAt       *int64                `json:"expire_at" db:"expire_at"`
 	CreatedAt      int64                 `json:"created_at" db:"created_at"`
 	Variables      StringMap             `json:"variables" db:"variables"`
+	HideNumber     string                `json:"hide_number" db:"hide_number"`
+}
+
+func (m *OfflineMember) ShouldMaskNumbers() bool {
+	should, err := strconv.ParseBool(m.HideNumber)
+	if err != nil {
+		return false
+	}
+
+	return should
+}
+
+func (m *OfflineMember) MaskNumbers() {
+	for i := range m.Communications {
+		comm := &m.Communications[i]
+
+		if !comm.IsPhone() {
+			continue
+		}
+
+		if strings.EqualFold(m.Name, comm.Destination) {
+			m.Name = HideString(m.Name, 5, 0, 2)
+		}
+
+		comm.Mask()
+	}
 }
 
 /*
@@ -211,6 +277,7 @@ type AttemptHistory struct {
 	Result        string              `json:"result" db:"result"`
 	AmdResult     *string             `json:"amd_result" db:"amd_result"`
 	Attempts      *int32              `json:"attempts" db:"attempts"`
+	Duration      *int64              `json:"duration" db:"duration"`
 }
 
 func (c AttemptHistory) DefaultOrder() string {
@@ -244,6 +311,7 @@ func (c AttemptHistory) DefaultFields() []string {
 		"result",
 		"amd_result",
 		"attempts",
+		"duration",
 	}
 }
 
@@ -326,10 +394,10 @@ type SearchAttempts struct {
 	JoinedAt  *FilterBetween `json:"joined_at" db:"joined_at"`
 	Ids       []int64        `json:"ids" db:"ids"`
 	MemberIds []int64        `json:"member_ids" db:"member_ids"`
-	//ResourceId  *int32        `json:"resource_id" db:"resource_id" `
+	// ResourceId  *int32        `json:"resource_id" db:"resource_id" `
 	QueueIds  []int64 `json:"queue_ids" db:"queue_ids"`
 	BucketIds []int64 `json:"bucket_ids" db:"bucket_ids"`
-	//Destination *string       `json:"destination" db:"destination"`
+	// Destination *string       `json:"destination" db:"destination"`
 	AgentIds        []int64        `json:"agent_ids" db:"agent_ids"`
 	Result          []string       `json:"result" db:"result"`
 	LeavingAt       *FilterBetween `json:"leaving_at" db:"leaving_at"`
@@ -356,14 +424,37 @@ type MembersAttempt struct {
 }
 
 func (a *MemberAttempt) IsValid() AppError {
-	//FIXME
+	// FIXME
 	return nil
+}
+
+type IMThreadMember struct {
+	ID   string `json:"id"`
+	Iss  string `json:"iss"`
+	Sub  string `json:"sub"`
+	Name string `json:"name"`
+	Role int    `json:"role"`
+	Type string `json:"type"`
+}
+
+type IMThread struct {
+	ID          string            `json:"id"`
+	Members     []*IMThreadMember `json:"members"`
+	Subject     string            `json:"subject"`
+	LastMessage string            `json:"last_msg"`
+	Channel     *IMChannel        `json:"channel,omitempty"`
+}
+
+type IMChannel struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
 
 type MemberCommunication struct {
 	Id             int64   `json:"id"`
 	Destination    string  `json:"destination"`
 	Type           Lookup  `json:"type"`
+	Channel        string  `json:"channel"`
 	Priority       int     `json:"priority"`
 	State          int     `json:"state"`
 	Description    string  `json:"description"`
@@ -374,6 +465,67 @@ type MemberCommunication struct {
 	Resource       *Lookup `json:"resource"`
 	Display        string  `json:"display"`
 	Dtmf           *string `json:"dtmf"`
+
+	Thread    *IMThread `json:"thread,omitempty"`
+	ApiSub    string    `json:"api_sub"`
+	MemberID  string    `json:"member_id"`
+	MemberSub string    `json:"member_sub"`
+}
+
+func (c *MemberCommunication) IsPhone() bool {
+	return IsPhoneCommunicationChannel(c.Channel)
+}
+
+func (c *MemberCommunication) Mask() {
+	c.Destination = HideString(c.Destination, 5, 0, 2)
+}
+
+func (m *Member) SortCommunications(order string) {
+	order = strings.TrimSpace(order)
+	if order == "" || len(m.Communications) < 2 {
+		return
+	}
+
+	desc := false
+
+	switch order[0] {
+	case '-':
+		desc, order = true, order[1:]
+	case '+', ' ':
+		order = order[1:]
+	}
+
+	var less func(a, b *MemberCommunication) bool
+
+	switch order {
+	case "name", "destination":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Destination) < strings.ToLower(b.Destination)
+		}
+	case "type":
+		less = func(a, b *MemberCommunication) bool {
+			return strings.ToLower(a.Type.Name) < strings.ToLower(b.Type.Name)
+		}
+	case "priority":
+		less = func(a, b *MemberCommunication) bool { return a.Priority < b.Priority }
+	default:
+		return
+	}
+
+	sort.SliceStable(m.Communications, func(i, j int) bool {
+		a, b := m.Communications[i], m.Communications[j]
+
+		switch {
+		case a == nil:
+			return false
+		case b == nil:
+			return true
+		case desc:
+			return less(b, a)
+		default:
+			return less(a, b)
+		}
+	})
 }
 
 func (m *Member) ToJsonCommunications() string {
@@ -400,16 +552,41 @@ func (m *Member) GetAgentId() *int {
 	return nil
 }
 
+func IsPhoneCommunicationChannel(channel string) bool {
+	return channel != CommunicationChannelEmail && channel != CommunicationChannelMessaging
+}
+
+func ValidateMemberCommunicationDestinations(communications []*MemberCommunication, channelById map[int]string, memberName string) AppError {
+	for _, c := range communications {
+		if c == nil || !IsPhoneCommunicationChannel(channelById[c.Type.Id]) {
+			continue
+		}
+		if err := validatePhoneNumber(c.Destination); err != nil {
+			return NewBadRequestError("model.member.is_valid.communications.destination.format.app_error", "name="+memberName)
+		}
+	}
+
+	return nil
+}
+
 func (m *Member) IsValid(maxCommunication int) AppError {
-	//FIXME
+	// FIXME
 
 	if len(m.Communications) > maxCommunication {
 		return NewBadRequestError("model.member.is_valid.communications.app_error", "name="+m.Name)
 	}
 
 	for _, v := range m.Communications {
+		if v == nil {
+			continue
+		}
 		if v.Type.Id < 1 {
 			return NewBadRequestError("model.member.is_valid.communications.type.app_error", "name="+m.Name)
+		}
+		v.Destination = strings.TrimSpace(v.Destination)
+
+		if v.Destination == "" {
+			return NewBadRequestError("model.member.is_valid.communications.destination.app_error", "name="+m.Name)
 		}
 	}
 
@@ -448,7 +625,7 @@ func MemberDeprecatedFields(f []string) []string {
 }
 
 func MemberDeprecatedField(s string) string {
-	s = strings.Replace(s, "min_offering_at", "ready_at", -1)
-	s = strings.Replace(s, "last_activity_at", "last_hangup_at", -1)
+	s = strings.ReplaceAll(s, "min_offering_at", "ready_at")
+	s = strings.ReplaceAll(s, "last_activity_at", "last_hangup_at")
 	return s
 }

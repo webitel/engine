@@ -11,8 +11,9 @@ import (
 
 type queue struct {
 	*API
-	app *app.App
 	engine.UnsafeQueueServiceServer
+
+	app *app.App
 }
 
 func NewQueueApi(app *app.App, api *API) *queue {
@@ -46,6 +47,7 @@ func (api *queue) CreateQueue(ctx context.Context, in *engine.CreateQueueRequest
 		StickyAgent:          in.StickyAgent,
 		Processing:           in.Processing,
 		ProcessingSec:        in.ProcessingSec,
+		ProcessingAutosave:   in.GetTaskProcessing().GetAutosave(),
 		ProcessingRenewalSec: in.ProcessingRenewalSec,
 		FormSchema:           GetLookup(in.GetFormSchema()),
 		Grantee:              GetLookup(in.GetGrantee()),
@@ -198,6 +200,8 @@ func (api *queue) PatchQueue(ctx context.Context, in *engine.PatchQueueRequest) 
 			patch.ProlongationTimeSec = &in.GetTaskProcessing().GetProlongationOptions().ProlongationTimeSec
 		case "task_processing.prolongation_options.is_timeout_retry":
 			patch.IsTimeoutRetry = &in.GetTaskProcessing().GetProlongationOptions().IsTimeoutRetry
+		case "task_processing.autosave":
+			patch.ProcessingAutosave = &in.GetTaskProcessing().Autosave
 		default:
 			if patch.Variables == nil && strings.HasPrefix(v, "variables.") {
 				patch.Variables = in.Variables
@@ -256,6 +260,7 @@ func (api *queue) UpdateQueue(ctx context.Context, in *engine.UpdateQueueRequest
 
 	if in.TaskProcessing != nil {
 		queue.Processing = in.TaskProcessing.Enabled
+		queue.ProcessingAutosave = in.GetTaskProcessing().GetAutosave()
 		queue.ProcessingSec = in.TaskProcessing.Sec
 		queue.ProcessingRenewalSec = in.TaskProcessing.RenewalSec
 		queue.FormSchema = GetLookup(in.TaskProcessing.GetFormSchema())
@@ -389,7 +394,7 @@ func toEngineQueueReportGeneral(src *model.QueueReportGeneral) *engine.QueueRepo
 			Offline: src.AgentStatus.Offline,
 			Free:    src.AgentStatus.Free,
 			Total:   src.AgentStatus.Total,
-			Busy: src.AgentStatus.Busy,
+			Busy:    src.AgentStatus.Busy,
 		},
 		Team:        GetProtoLookup(src.Team),
 		Missed:      src.Missed,
@@ -455,6 +460,7 @@ func transformQueue(src *model.Queue) *engine.Queue {
 			FormSchema: GetProtoLookup(src.TaskProcessing.FormSchema),
 			Sec:        src.TaskProcessing.Sec,
 			RenewalSec: src.TaskProcessing.RenewalSec,
+			Autosave:   src.TaskProcessing.ProcessingAutosave,
 		}
 
 		if src.TaskProcessing.ProlongationOptions != nil {
@@ -477,7 +483,7 @@ func (api *queue) SetQueuesGlobalState(ctx context.Context, in *engine.SetQueues
 	}
 
 	searchRequest := &model.SearchQueue{
-		ListRequest: model.ListRequest{ Q: in.GetQ() },
+		ListRequest: model.ListRequest{Q: in.GetQ()},
 		Ids:         in.GetId(),
 		Types:       in.GetType(),
 		TeamIds:     in.GetTeamId(),
@@ -518,7 +524,7 @@ func (api *queue) GetQueuesGlobalState(ctx context.Context, in *engine.GetQueues
 
 func modelToGetQueuesGlobalStateResponse(in *model.QueueGlobalStateResponse) *engine.GetQueuesGlobalStateResponse {
 	var (
-		isAllEnabled bool 
+		isAllEnabled  bool
 		potentialRows uint32
 	)
 
@@ -528,7 +534,7 @@ func modelToGetQueuesGlobalStateResponse(in *model.QueueGlobalStateResponse) *en
 	}
 
 	return &engine.GetQueuesGlobalStateResponse{
-		IsAllEnabled: isAllEnabled,
+		IsAllEnabled:  isAllEnabled,
 		PotentialRows: potentialRows,
 	}
 }

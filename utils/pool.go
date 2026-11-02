@@ -64,6 +64,18 @@ func (p *Pool) Exec(task PoolTask) {
 	p.tasks <- task
 }
 
+// TryExec queues the task only if the pool has room and reports whether it did.
+// Use it on hot paths where dropping a task is cheaper than blocking the caller
+// behind every other queued job.
+func (p *Pool) TryExec(task PoolTask) bool {
+	select {
+	case p.tasks <- task:
+		return true
+	default:
+		return false
+	}
+}
+
 func (p *Pool) Jobs() chan PoolTask {
 	return p.tasks
 }

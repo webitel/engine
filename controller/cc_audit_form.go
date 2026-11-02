@@ -157,6 +157,11 @@ func (c *Controller) DeleteAuditForm(ctx context.Context, session *auth_manager.
 }
 
 func (c *Controller) RateAuditForm(ctx context.Context, session *auth_manager.Session, rate model.Rate) (*model.AuditRate, model.AppError) {
+	// Chat-conversation ratings are open to any authenticated user (WTEL-9850): no RBAC gate.
+	if rate.ConversationId != nil {
+		return c.app.RateAuditForm(ctx, session.Domain(0), session.UserId, rate)
+	}
+
 	var err model.AppError
 	permission := session.GetPermission(model.PermissionAuditFrom)
 	if !permission.CanRead() {
@@ -212,6 +217,16 @@ func (c *Controller) SearchAuditRate(ctx context.Context, session *auth_manager.
 
 // WTEL-3870
 func (c *Controller) ReadAuditRate(ctx context.Context, session *auth_manager.Session, id int64) (*model.AuditRate, model.AppError) {
+	rate, err := c.app.GetAuditRate(ctx, session.Domain(0), id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Chat-conversation ratings are open to any authenticated user (WTEL-9850): no RBAC gate.
+	if rate.ConversationId != nil {
+		return rate, nil
+	}
+
 	permission := session.GetPermission(model.PermissionAuditRate)
 	if !permission.CanRead() {
 		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
@@ -226,21 +241,29 @@ func (c *Controller) ReadAuditRate(ctx context.Context, session *auth_manager.Se
 		}
 	}
 
-	return c.app.GetAuditRate(ctx, session.Domain(0), id)
+	return rate, nil
 }
 
 func (c *Controller) UpdateAuditRate(ctx context.Context, session *auth_manager.Session, id int64,
 	rate *model.Rate) (*model.AuditRate, model.AppError) {
-	permission := session.GetPermission(model.PermissionAuditRate)
-	if !permission.CanRead() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	oldRate, err := c.app.GetAuditRate(ctx, session.Domain(0), id)
+	if err != nil {
+		return nil, err
 	}
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
-		if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+
+	// Chat-conversation ratings are open to any authenticated user (WTEL-9850): no RBAC gate.
+	if oldRate.ConversationId == nil {
+		permission := session.GetPermission(model.PermissionAuditRate)
+		if !permission.CanRead() {
+			return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+		if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
+			if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
+				auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+				return nil, err
+			} else if !perm {
+				return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+			}
 		}
 	}
 
@@ -249,17 +272,25 @@ func (c *Controller) UpdateAuditRate(ctx context.Context, session *auth_manager.
 }
 
 func (c *Controller) DeleteAuditRate(ctx context.Context, session *auth_manager.Session, id int64) (*model.AuditRate, model.AppError) {
-	permission := session.GetPermission(model.PermissionAuditRate)
-	if !permission.CanDelete() {
-		return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+	rate, err := c.app.GetAuditRate(ctx, session.Domain(0), id)
+	if err != nil {
+		return nil, err
 	}
 
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
-		if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+	// Chat-conversation ratings are open to any authenticated user (WTEL-9850): no RBAC gate.
+	if rate.ConversationId == nil {
+		permission := session.GetPermission(model.PermissionAuditRate)
+		if !permission.CanDelete() {
+			return nil, c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+		}
+
+		if session.UseRBAC(auth_manager.PERMISSION_ACCESS_DELETE, permission) {
+			if perm, err := c.app.AuditRateCheckAccess(ctx, session.Domain(0), id, session.GetAclRoles(),
+				auth_manager.PERMISSION_ACCESS_DELETE); err != nil {
+				return nil, err
+			} else if !perm {
+				return nil, c.app.MakeResourcePermissionError(session, id, permission, auth_manager.PERMISSION_ACCESS_DELETE)
+			}
 		}
 	}
 

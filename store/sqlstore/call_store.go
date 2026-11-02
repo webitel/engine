@@ -3,9 +3,12 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"slices"
 	"strings"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
 
 	"github.com/webitel/engine/model"
@@ -287,7 +290,8 @@ func (s SqlCallStore) GetUserActiveCall(ctx context.Context, domainId, userId in
                case when at.attempt_id::bigint notnull then coalesce(at.queue_id::bigint, 0) end, at.queue_name)   AS queue,
        c.contact_id,
        to_timestamp(at.leaving_at::double precision / 1000)           as leaving_at, --todo
-	   c.params->>'hide_number' = 'true' as hide_number
+	   c.params->>'hide_number' = 'true' as hide_number,
+	   (c.params->>'is_consult_to_queue')::bool as is_consult_to_queue
 from call_center.cc_calls c
          left join lateral (
     select a.id                                                       as attempt_id,
@@ -316,7 +320,8 @@ from call_center.cc_calls c
     ) at on true
 where c.user_id = :UserId
   and c.domain_id = :DomainId
-  and ((at.state != 'leaving') or c.hangup_at isnull)`, map[string]any{
+  and ((at.state != 'leaving') or c.hangup_at isnull)
+order by c.created_at`, map[string]any{
 		"UserId":   userId,
 		"DomainId": domainId,
 	})
@@ -362,6 +367,17 @@ where c.id = :Id::uuid and c.domain_id = :Domain`, map[string]any{
 	return inst, nil
 }
 
+func hasFileFilterSQL(alias string) string {
+	recordingExists := fmt.Sprintf(`exists(select 1 from storage.files f
+		where f.domain_id = :Domain::int8
+			and not f.removed is true
+			and (f.uuid = %[1]s.id::text or (%[1]s.parent_id notnull and f.uuid = %[1]s.parent_id::text))
+			and (f.channel isnull or f.channel = 'call')
+			and (f.mime_type ilike 'audio/%%' or f.mime_type ilike 'video/%%'))`, alias)
+
+	return fmt.Sprintf(`and (:HasFile::bool isnull or (case :HasFile::bool when true then %[1]s else not %[1]s end))`, recordingExists)
+}
+
 func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError) {
 	whereQuery := `
 		domain_id = :Domain::int8
@@ -378,7 +394,15 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		and (:Ids::uuid[] isnull or id = any(:Ids))
 		and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 		and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-		and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult::varchar[]) or amd_ai_result = any(:AmdResult::varchar[]))
+		and (
+			:AmdResult::varchar[] isnull
+			or amd_result = any(:AmdResult::varchar[])
+			or amd_ai_result = any(:AmdResult::varchar[])
+			or (
+				''=any(:AmdResult::varchar[])
+				and (amd_result is null or amd_ai_result is null)
+			)
+		)
 		and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 		and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 		and (:AgentIds::int[] isnull or ( agent_ids && :AgentIds::int[]) )
@@ -387,7 +411,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 		and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
 		and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
-		and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
+		` + hasFileFilterSQL("t") + `
 		and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 		and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 		and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -407,7 +431,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
     	and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
     	    case :HasTranscript::bool when false
     	     then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
-    	     else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+    	     else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ plainto_tsquery(:Fts::varchar)))
     	    end
 
     	))
@@ -444,6 +468,7 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 					)
 				 end
 		)
+		and (:ExcludedQueueTypes::int[] is null or queue_type is null or queue_type <> all(:ExcludedQueueTypes::int[]))
 	`
 
 	filters := map[string]any{
@@ -490,16 +515,17 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		"TalkFrom": model.GetBetweenFrom(search.Talk),
 		"TalkTo":   model.GetBetweenTo(search.Talk),
 
-		"RatedUserIds":      pq.Array(search.RatedUserIds),
-		"RatedByIds":        pq.Array(search.RatedByIds),
-		"ScoreOptionalFrom": model.GetBetweenFrom(search.ScoreOptional),
-		"ScoreOptionalTo":   model.GetBetweenTo(search.ScoreOptional),
-		"ScoreRequiredFrom": model.GetBetweenFrom(search.ScoreRequired),
-		"ScoreRequiredTo":   model.GetBetweenTo(search.ScoreRequired),
-		"Rated":             search.Rated,
-		"SchemaIds":         pq.Array(search.SchemaIds),
-		"HasTransfer":       search.HasTransfer,
-		"Timeline":          search.Timeline,
+		"RatedUserIds":       pq.Array(search.RatedUserIds),
+		"RatedByIds":         pq.Array(search.RatedByIds),
+		"ScoreOptionalFrom":  model.GetBetweenFrom(search.ScoreOptional),
+		"ScoreOptionalTo":    model.GetBetweenTo(search.ScoreOptional),
+		"ScoreRequiredFrom":  model.GetBetweenFrom(search.ScoreRequired),
+		"ScoreRequiredTo":    model.GetBetweenTo(search.ScoreRequired),
+		"Rated":              search.Rated,
+		"SchemaIds":          pq.Array(search.SchemaIds),
+		"HasTransfer":        search.HasTransfer,
+		"Timeline":           search.Timeline,
+		"ExcludedQueueTypes": pq.Array(search.ExcludedQueueTypes),
 	}
 
 	for _, filterOption := range filterOptions {
@@ -574,7 +600,8 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 		"HasTransfer":       search.HasTransfer,
 		"Timeline":          search.Timeline,
 
-		"ClassName": model.PERMISSION_SCOPE_CALL,
+		"ClassName":          model.PERMISSION_SCOPE_CALL,
+		"ExcludedQueueTypes": pq.Array(search.ExcludedQueueTypes),
 	}
 
 	err := s.ListQueryTimeout(ctx, &out, search.ListRequest,
@@ -592,7 +619,15 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and (:Ids::uuid[] isnull or id = any(:Ids))
 	and (:TransferFromIds::uuid[] isnull or transfer_from = any(:TransferFromIds))
 	and (:TransferToIds::uuid[] isnull or transfer_to = any(:TransferToIds))
-	and (:AmdResult::varchar[] isnull or amd_result = any(:AmdResult::varchar[]) or amd_ai_result = any(:AmdResult::varchar[]))
+	and (
+		:AmdResult::varchar[] isnull
+		or amd_result = any(:AmdResult::varchar[])
+		or amd_ai_result = any(:AmdResult::varchar[])
+		or (
+			''=any(:AmdResult::varchar[])
+			and (amd_result is null or amd_ai_result is null)
+		)
+	)
 	and (:QueueIds::int[] isnull or (queue_id = any(:QueueIds) or queue_ids && :QueueIds::int[]) )
 	and (:TeamIds::int[] isnull or (team_id = any(:TeamIds) or team_ids && :TeamIds::int[]) )
 	and (:AgentIds::int[] isnull or ( agent_ids && :AgentIds::int[]) )
@@ -601,7 +636,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and ( (:SkipParent::bool isnull or not :SkipParent::bool is true ) or parent_id isnull)
 	and (:ParentId::uuid isnull or parent_id = :ParentId::uuid )
 	and ( (:Timeline::bool isnull or (:Timeline::bool and :DependencyIds::uuid[] notnull and parent_id notnull and ((transfer_from notnull and user_id notnull) or blind_transfer notnull  or parent_id != (:DependencyIds::uuid[])[1]))))
-	and (:HasFile::bool isnull or (case :HasFile::bool when true then files notnull else files isnull end))
+	`+hasFileFilterSQL("t")+`
 	and (:CauseArr::varchar[] isnull or cause = any(:CauseArr) )
 	and ( (:AnsweredFrom::timestamptz isnull or :AnsweredTo::timestamptz isnull) or answered_at between :AnsweredFrom and :AnsweredTo )
 	and ( (:DurationFrom::int8 isnull or :DurationFrom::int8 = 0 or duration >= :DurationFrom ))
@@ -621,7 +656,7 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
     and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
         case :HasTranscript::bool when false
          then not exists(select 1 from storage.file_transcript ft where ft.uuid = t.id::text )
-         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+         else exists(select  1 from storage.file_transcript ft where ft.uuid = t.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ plainto_tsquery(:Fts::varchar)))
         end
 
     ))
@@ -661,11 +696,13 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
 			or :UserSupervisorId = any (t.user_ids)
+			or (t.user_ids notnull and t.user_ids::int[] && (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[]))
 			or t.queue_id = any (call_center.cc_calls_rbac_queues(:Domain::int8, :UserSupervisorId::int8, :Groups::int[]))
 			or (t.user_ids notnull and t.user_ids::int[] && call_center.rbac_users_from_group(:ClassName::varchar, :Domain::int8, :Access::int2, :Groups::int[]))
 			or (t.grantee_id = any(:Groups::int[]))
 		)
 	)
+	and (:ExcludedQueueTypes::int[] is null or queue_type is null or queue_type <> all(:ExcludedQueueTypes::int[]))
 `,
 		model.HistoryCall{}, f)
 	if err != nil {
@@ -1074,11 +1111,11 @@ func (s SqlCallStore) Aggregate(ctx context.Context, domainId int64, aggs *model
 		and (:Tags::varchar[] isnull or (h.tags && :Tags))
 		and (:AgentDescription::varchar isnull or (attempt_id notnull and exists(select 1 from call_center.cc_member_attempt_history cma where cma.id = attempt_id and cma.description ilike :AgentDescription::varchar)))
 		and (:AmdResult::varchar[] isnull or h.amd_result = any(:AmdResult))
-		and (:HasFile::bool isnull or (case :HasFile::bool when true then exists(select 1 from storage.files ft where ft.uuid = h.id::text ) else not exists(select 1 from storage.files ft where ft.uuid = h.id::text ) end))
+		` + hasFileFilterSQL("h") + `
 		and ((:HasTranscript::bool isnull and :Fts::varchar isnull) or (
 				case :HasTranscript::bool when false
 				 then not exists(select 1 from storage.file_transcript ft where ft.uuid = h.id::text )
-				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ to_tsquery(:Fts::varchar)))
+				 else exists(select  1 from storage.file_transcript ft where ft.uuid = h.id::text and (:Fts::varchar isnull or to_tsvector(ft.transcript) @@ plainto_tsquery(:Fts::varchar)))
 				end
 
 			))
@@ -1210,6 +1247,23 @@ where id = :Id::uuid`, map[string]string{
 	} else {
 		return res, nil
 	}
+}
+
+func (s SqlCallStore) BridgedCall(ctx context.Context, id string) (*model.BridgedCall, model.AppError) {
+	var res *model.BridgedCall
+
+	err := s.GetMaster().WithContext(ctx).SelectOne(&res, `select coalesce(c.bridged_id, c.parent_id, c.id) as id,
+       coalesce(b.destination, '') as destination
+from call_center.cc_calls c
+    left join call_center.cc_calls b on b.id = coalesce(c.bridged_id, c.parent_id, c.id)
+where c.id = :Id::uuid`, map[string]string{
+		"Id": id,
+	})
+	if err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.get_bridged_call.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return res, nil
 }
 
 func (s SqlCallStore) BlindTransferInfo(ctx context.Context, id string) (*model.BlindTransferInfo, model.AppError) {
@@ -1485,14 +1539,28 @@ where domain_id = :DomainId and id = :Id::uuid and user_id = :UserId`, map[strin
 
 func (s SqlCallStore) FromNumberWithUserIds(ctx context.Context, domainId, userId int64, id string) (model.RedialFrom, model.AppError) {
 	var f model.RedialFrom
-	err := s.GetReplica().WithContext(ctx).SelectOne(&f, `select c.from_number as number, c2.user_ids
-from call_center.cc_calls_history c
-    left join call_center.cc_calls_history c2 on c2.id = c.parent_id
-where c.domain_id = :DomainId and c.id = :Id::uuid and c.user_id = :UserId`, map[string]any{
-		"DomainId": domainId,
-		"Id":       id,
-		"UserId":   userId,
-	})
+	err := s.GetReplica().WithContext(ctx).SelectOne(
+		&f,
+		`
+		select
+			case
+				when c.direction = 'outbound' then coalesce(nullif(c.destination, ''), c.to_number)
+				else c.from_number
+			end as number,
+			coalesce(c2.user_ids::int8[], '{}') as user_ids,
+			coalesce(c.params->>'hide_number', c2.params->>'hide_number', 'false') = 'true' as hide_number
+			from call_center.cc_calls_history c
+			left join call_center.cc_calls_history c2 on c2.id = c.parent_id and c2.domain_id = c.domain_id
+			where c.domain_id = :DomainId
+				and c.id = :Id::uuid
+				and c.user_id = :UserId`,
+		map[string]any{
+			"DomainId": domainId,
+			"Id":       id,
+			"UserId":   userId,
+		},
+	)
+
 	if err != nil {
 		return f, model.NewCustomCodeError("store.sql_call.from_number_users.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -1530,4 +1598,38 @@ func (s SqlCallStore) DeleteIdle(ctx context.Context, id string) model.AppError 
 	}
 
 	return nil
+}
+
+func (s SqlCallStore) PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError) {
+	ub := sq.Update("call_center.cc_member_attempt_history").PlaceholderFormat(sq.Dollar)
+
+	if patch.HasVariablesUpdate() {
+		ub = ub.Set("variables", sq.Expr("coalesce(cc_member_attempt_history.variables, '{}'::jsonb) || coalesce(?, '{}'::jsonb)", patch.SerializeVariables()))
+	}
+
+	if slices.Contains(patch.Fields, "description") {
+		ub = ub.Set("description", sq.Expr("coalesce(nullif(cc_member_attempt_history.description, ''), ?)", patch.Description))
+	}
+
+	ub = ub.From("call_center.cc_calls_history").
+		Where("cc_member_attempt_history.id = cc_calls_history.attempt_id").
+		Where(sq.Eq{
+			"cc_calls_history.id":        patch.ID,
+			"cc_calls_history.domain_id": patch.DomainID,
+		}).
+		Suffix(
+			"returning coalesce(cc_member_attempt_history.description, '') as description, coalesce(cc_member_attempt_history.variables, '{}'::jsonb) as variables, cc_member_attempt_history.id",
+		)
+
+	query, args, err := ub.ToSql()
+	if err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.call_store.patch_history_call_attempt.build_sql", fmt.Sprintf("while preparing query: %+v", err), http.StatusPreconditionFailed)
+	}
+
+	var attempt model.PatchHistoryAttemptResult
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&attempt, query, args...); err != nil {
+		return nil, model.NewCustomCodeError("sqlstore.call_store.patch_history_call_attempt.exec_query", fmt.Sprintf("while executing query request: %+v", err), extractCodeFromErr(err))
+	}
+
+	return &attempt, nil
 }

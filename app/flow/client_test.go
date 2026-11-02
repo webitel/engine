@@ -1,14 +1,18 @@
-package flow
+//go:build integration
+
+package flow_test
 
 import (
-	"github.com/webitel/engine/gen/workflow"
 	"testing"
+
+	"github.com/webitel/engine/app/flow"
+	"github.com/webitel/engine/gen/workflow"
 )
 
 var consulAddr = "10.9.8.111:8500"
 
 func TestFlow(t *testing.T) {
-	f := NewFlowManager(consulAddr)
+	f := flow.NewFlowManager(consulAddr)
 	err := f.Start()
 	if err != nil {
 		panic(err.Error())

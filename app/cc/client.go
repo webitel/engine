@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/webitel/engine/gen/cc"
+	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt"
 	"github.com/webitel/wlog"
 )
@@ -13,12 +14,13 @@ const ServiceName = "call_center"
 
 type AgentApi interface {
 	Online(domainId, agentId int64, onDemand bool) error
+	OnlineWithStatus(ctx context.Context, r *model.AgentLoginRequest) error
 	Offline(domainId, agentId int64) error
 	Pause(domainId, agentId int64, payload, statusComment string, timeout int) error
 
 	WaitingChannel(agentId int, channel string) (int64, error)
 
-	AcceptTask(appId string, domainId, attemptId int64) error
+	AcceptTask(ctx context.Context, request *model.AcceptAttemptRequest) error
 	CloseTask(appId string, domainId, attemptId int64) error
 	RunTrigger(ctx context.Context, domainId int64, userId int64, triggerId int32, vars map[string]string) (string, error)
 }
@@ -39,6 +41,7 @@ type MemberApi interface {
 	SaveFormFields(domainId, attemptId int64, fields map[string]string, form []byte) error
 	CancelAttempt(ctx context.Context, attemptId int64, result, appId string) error
 	InterceptAttempt(ctx context.Context, domainId int64, attemptId int64, agentId int32) error
+	TransferAttempt(ctx context.Context, domainId int64, attemptId int64, agentId, queueId int32) error
 	ResumeAttempt(ctx context.Context, attemptId int64, domainId int64) error
 }
 

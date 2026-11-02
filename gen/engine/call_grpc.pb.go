@@ -19,27 +19,28 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	CallService_SearchHistoryCall_FullMethodName     = "/engine.CallService/SearchHistoryCall"
-	CallService_SearchHistoryCallPost_FullMethodName = "/engine.CallService/SearchHistoryCallPost"
-	CallService_PatchHistoryCall_FullMethodName      = "/engine.CallService/PatchHistoryCall"
-	CallService_AggregateHistoryCall_FullMethodName  = "/engine.CallService/AggregateHistoryCall"
-	CallService_SearchActiveCall_FullMethodName      = "/engine.CallService/SearchActiveCall"
-	CallService_ReadCall_FullMethodName              = "/engine.CallService/ReadCall"
-	CallService_CreateCall_FullMethodName            = "/engine.CallService/CreateCall"
-	CallService_CreateCallNA_FullMethodName          = "/engine.CallService/CreateCallNA"
-	CallService_HangupCall_FullMethodName            = "/engine.CallService/HangupCall"
-	CallService_HoldCall_FullMethodName              = "/engine.CallService/HoldCall"
-	CallService_UnHoldCall_FullMethodName            = "/engine.CallService/UnHoldCall"
-	CallService_DtmfCall_FullMethodName              = "/engine.CallService/DtmfCall"
-	CallService_BlindTransferCall_FullMethodName     = "/engine.CallService/BlindTransferCall"
-	CallService_EavesdropCall_FullMethodName         = "/engine.CallService/EavesdropCall"
-	CallService_ConfirmPush_FullMethodName           = "/engine.CallService/ConfirmPush"
-	CallService_SetVariablesCallNA_FullMethodName    = "/engine.CallService/SetVariablesCallNA"
-	CallService_SetVariablesCall_FullMethodName      = "/engine.CallService/SetVariablesCall"
-	CallService_CreateCallAnnotation_FullMethodName  = "/engine.CallService/CreateCallAnnotation"
-	CallService_UpdateCallAnnotation_FullMethodName  = "/engine.CallService/UpdateCallAnnotation"
-	CallService_DeleteCallAnnotation_FullMethodName  = "/engine.CallService/DeleteCallAnnotation"
-	CallService_RedialCall_FullMethodName            = "/engine.CallService/RedialCall"
+	CallService_SearchHistoryCall_FullMethodName       = "/engine.CallService/SearchHistoryCall"
+	CallService_SearchHistoryCallPost_FullMethodName   = "/engine.CallService/SearchHistoryCallPost"
+	CallService_PatchHistoryCall_FullMethodName        = "/engine.CallService/PatchHistoryCall"
+	CallService_AggregateHistoryCall_FullMethodName    = "/engine.CallService/AggregateHistoryCall"
+	CallService_PatchHistoryCallAttempt_FullMethodName = "/engine.CallService/PatchHistoryCallAttempt"
+	CallService_SearchActiveCall_FullMethodName        = "/engine.CallService/SearchActiveCall"
+	CallService_ReadCall_FullMethodName                = "/engine.CallService/ReadCall"
+	CallService_CreateCall_FullMethodName              = "/engine.CallService/CreateCall"
+	CallService_CreateCallNA_FullMethodName            = "/engine.CallService/CreateCallNA"
+	CallService_HangupCall_FullMethodName              = "/engine.CallService/HangupCall"
+	CallService_HoldCall_FullMethodName                = "/engine.CallService/HoldCall"
+	CallService_UnHoldCall_FullMethodName              = "/engine.CallService/UnHoldCall"
+	CallService_DtmfCall_FullMethodName                = "/engine.CallService/DtmfCall"
+	CallService_BlindTransferCall_FullMethodName       = "/engine.CallService/BlindTransferCall"
+	CallService_EavesdropCall_FullMethodName           = "/engine.CallService/EavesdropCall"
+	CallService_ConfirmPush_FullMethodName             = "/engine.CallService/ConfirmPush"
+	CallService_SetVariablesCallNA_FullMethodName      = "/engine.CallService/SetVariablesCallNA"
+	CallService_SetVariablesCall_FullMethodName        = "/engine.CallService/SetVariablesCall"
+	CallService_CreateCallAnnotation_FullMethodName    = "/engine.CallService/CreateCallAnnotation"
+	CallService_UpdateCallAnnotation_FullMethodName    = "/engine.CallService/UpdateCallAnnotation"
+	CallService_DeleteCallAnnotation_FullMethodName    = "/engine.CallService/DeleteCallAnnotation"
+	CallService_RedialCall_FullMethodName              = "/engine.CallService/RedialCall"
 )
 
 // CallServiceClient is the client API for CallService service.
@@ -57,6 +58,8 @@ type CallServiceClient interface {
 	// AggregateHistoryCall performs statistical analysis on historical data.
 	// Group and aggregate metrics like average duration, call counts, or peak hours.
 	AggregateHistoryCall(ctx context.Context, in *AggregateHistoryCallRequest, opts ...grpc.CallOption) (*ListAggregate, error)
+	// PatchHistoryCallAttempt performs update of history attempt binded to call.
+	PatchHistoryCallAttempt(ctx context.Context, in *PatchHistoryCallAttemptRequest, opts ...grpc.CallOption) (*PatchHistoryCallAttemptResponse, error)
 	// SearchActiveCall returns a list of all calls currently in progress.
 	SearchActiveCall(ctx context.Context, in *SearchCallRequest, opts ...grpc.CallOption) (*ListCall, error)
 	// ReadCall returns detailed real-time information for a specific active call.
@@ -130,6 +133,15 @@ func (c *callServiceClient) PatchHistoryCall(ctx context.Context, in *PatchHisto
 func (c *callServiceClient) AggregateHistoryCall(ctx context.Context, in *AggregateHistoryCallRequest, opts ...grpc.CallOption) (*ListAggregate, error) {
 	out := new(ListAggregate)
 	err := c.cc.Invoke(ctx, CallService_AggregateHistoryCall_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *callServiceClient) PatchHistoryCallAttempt(ctx context.Context, in *PatchHistoryCallAttemptRequest, opts ...grpc.CallOption) (*PatchHistoryCallAttemptResponse, error) {
+	out := new(PatchHistoryCallAttemptResponse)
+	err := c.cc.Invoke(ctx, CallService_PatchHistoryCallAttempt_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -304,6 +316,8 @@ type CallServiceServer interface {
 	// AggregateHistoryCall performs statistical analysis on historical data.
 	// Group and aggregate metrics like average duration, call counts, or peak hours.
 	AggregateHistoryCall(context.Context, *AggregateHistoryCallRequest) (*ListAggregate, error)
+	// PatchHistoryCallAttempt performs update of history attempt binded to call.
+	PatchHistoryCallAttempt(context.Context, *PatchHistoryCallAttemptRequest) (*PatchHistoryCallAttemptResponse, error)
 	// SearchActiveCall returns a list of all calls currently in progress.
 	SearchActiveCall(context.Context, *SearchCallRequest) (*ListCall, error)
 	// ReadCall returns detailed real-time information for a specific active call.
@@ -355,6 +369,9 @@ func (UnimplementedCallServiceServer) PatchHistoryCall(context.Context, *PatchHi
 }
 func (UnimplementedCallServiceServer) AggregateHistoryCall(context.Context, *AggregateHistoryCallRequest) (*ListAggregate, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AggregateHistoryCall not implemented")
+}
+func (UnimplementedCallServiceServer) PatchHistoryCallAttempt(context.Context, *PatchHistoryCallAttemptRequest) (*PatchHistoryCallAttemptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PatchHistoryCallAttempt not implemented")
 }
 func (UnimplementedCallServiceServer) SearchActiveCall(context.Context, *SearchCallRequest) (*ListCall, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchActiveCall not implemented")
@@ -488,6 +505,24 @@ func _CallService_AggregateHistoryCall_Handler(srv interface{}, ctx context.Cont
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CallServiceServer).AggregateHistoryCall(ctx, req.(*AggregateHistoryCallRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CallService_PatchHistoryCallAttempt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PatchHistoryCallAttemptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CallServiceServer).PatchHistoryCallAttempt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CallService_PatchHistoryCallAttempt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CallServiceServer).PatchHistoryCallAttempt(ctx, req.(*PatchHistoryCallAttemptRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -820,6 +855,10 @@ var CallService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AggregateHistoryCall",
 			Handler:    _CallService_AggregateHistoryCall_Handler,
+		},
+		{
+			MethodName: "PatchHistoryCallAttempt",
+			Handler:    _CallService_PatchHistoryCallAttempt_Handler,
 		},
 		{
 			MethodName: "SearchActiveCall",

@@ -1,46 +1,57 @@
 package model
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
+	"strings"
+	"time"
 )
 
 const (
-	SysNameOmnichannel                 = "enable_omnichannel"
-	SysNameMemberInsertChunkSize       = "member_chunk_size"
-	SysNameSchemeVersionLimit          = "scheme_version_limit"
-	SysNameAmdCancelNotHuman           = "amd_cancel_not_human"
-	SysNameTwoFactorAuthorization      = "enable_2fa"
-	SysNameExportSettings              = "export_settings"
-	SysNameSearchNumberLength          = "search_number_length"
-	SysNameChatAiConnection            = "chat_ai_connection"
-	SysNamePasswordRegExp              = "password_reg_exp"
-	SysNamePasswordValidationText      = "password_validation_text"
-	SysNameAutolinkCallToContact       = "autolink_call_to_contact"
-	SysNamePeriodToPlaybackRecord      = "period_to_playback_records"
-	SysNameIsFulltextSearchEnabled     = "is_fulltext_search_enabled"
-	SysNameHideContact                 = "wbt_hide_contact"
-	SysNameShowFullContact             = "show_full_contact"
-	SysNameCallEndSoundNotification    = "call_end_sound_notification"
-	SysNameCallEndPushNotification     = "call_end_push_notification"
-	SysNameChatEndSoundNotification    = "chat_end_sound_notification"
-	SysNameChatEndPushNotification     = "chat_end_push_notification"
-	SysNameTaskEndSoundNotification    = "task_end_sound_notification"
-	SysNameTaskEndPushNotification     = "task_end_push_notification"
-	SysNamePushNotificationTimeout     = "push_notification_timeout"
-	SysNameLabelsToLimitContacts       = "labels_to_limit_contacts"
-	SysNameAutolinkMailToContact       = "autolink_mail_to_contact"
-	SysNameNewMessageSoundNotification = "new_message_sound_notification"
-	SysNameNewChatSoundNotification    = "new_chat_sound_notification"
-	SysNameScreenshotInterval          = "screenshot_interval"
-	SysNamePasswordExpiryDays          = "password_expiry_days"
-	SysNamePasswordMinLength           = "password_min_length"
-	SysNamePasswordCategories          = "password_categories"
-	SysNamePasswordContainsLogin       = "password_contains_login"
-	SysNamePasswordWarningDays         = "password_warning_days"
-	SysNameDefaultPassword             = "default_password"
-	SysNameExpandContactTabs           = "expand_contact_tabs"
+	SysNameOmnichannel                       = "enable_omnichannel"
+	SysNameMemberInsertChunkSize             = "member_chunk_size"
+	SysNameAmdCancelNotHuman                 = "amd_cancel_not_human"
+	SysNameTwoFactorAuthorization            = "enable_2fa"
+	SysNameExportSettings                    = "export_settings"
+	SysNameSearchNumberLength                = "search_number_length"
+	SysNameChatAiConnection                  = "chat_ai_connection"
+	SysNamePasswordRegExp                    = "password_reg_exp"
+	SysNamePasswordValidationText            = "password_validation_text"
+	SysNameAutolinkCallToContact             = "autolink_call_to_contact"
+	SysNamePeriodToPlaybackRecord            = "period_to_playback_records"
+	SysNameIsFulltextSearchEnabled           = "is_fulltext_search_enabled"
+	SysNameHideContact                       = "wbt_hide_contact"
+	SysNameShowFullContact                   = "show_full_contact"
+	SysNameCallEndSoundNotification          = "call_end_sound_notification"
+	SysNameCallEndPushNotification           = "call_end_push_notification"
+	SysNameChatEndSoundNotification          = "chat_end_sound_notification"
+	SysNameChatEndPushNotification           = "chat_end_push_notification"
+	SysNameTaskEndSoundNotification          = "task_end_sound_notification"
+	SysNameTaskEndPushNotification           = "task_end_push_notification"
+	SysNamePushNotificationTimeout           = "push_notification_timeout"
+	SysNameLabelsToLimitContacts             = "labels_to_limit_contacts"
+	SysNameAutolinkMailToContact             = "autolink_mail_to_contact"
+	SysNameNewMessageSoundNotification       = "new_message_sound_notification"
+	SysNameNewChatSoundNotification          = "new_chat_sound_notification"
+	SysNameScreenshotInterval                = "screenshot_interval"
+	SysNamePasswordExpiryDays                = "password_expiry_days"
+	SysNamePasswordMinLength                 = "password_min_length"
+	SysNamePasswordCategories                = "password_categories"
+	SysNamePasswordContainsLogin             = "password_contains_login"
+	SysNamePasswordWarningDays               = "password_warning_days"
+	SysNameDefaultPassword                   = "default_password"
+	SysNameExpandContactTabs                 = "expand_contact_tabs"
+	SysNameDefaultWorkspaceTab               = "default_workspace_tab"
+	SysNameBlockAllMemberNumbers             = "block_all_member_numbers_from_list"
+	SysNameLoginOptions                      = "login_options"
+	SysNameDefaultMembersFilter              = "default_members_filter"
+	SysNameSelfAssignedCallSoundNotification = "self_assigned_call_sound_notification"
+	SysNameRecordAllCalls                    = "record_all_calls"
+	SysNameMaxLoginAttempts                  = "max_login_attempts"
+	SysNameBlockLoginTime                    = "block_login_time"
 )
 
 type SysValue json.RawMessage
@@ -49,6 +60,12 @@ type SystemSetting struct {
 	Id    int32           `json:"id" db:"id"`
 	Name  string          `json:"name" db:"name"`
 	Value json.RawMessage `json:"value" db:"value"`
+}
+
+var availableDefaultMembersFilterOptions = map[string]struct{}{
+	"this day":   {},
+	"this week":  {},
+	"this month": {},
 }
 
 type AvailableSystemSetting struct {
@@ -84,12 +101,25 @@ func (SystemSetting) EntityName() string {
 	return "system_settings"
 }
 
+func validateDefaultMembersFilter(filter string) AppError {
+	if _, exists := availableDefaultMembersFilterOptions[filter]; !exists {
+		return NewBadRequestError(
+			"model.system_settings.validate_default_members_filter",
+			`default_members_filter can be only one of next values: "this day", "this week", "this month"`,
+		)
+	}
+
+	return nil
+}
+
 func (s *SystemSetting) IsValid() AppError {
 	switch s.Name {
 	case SysNameOmnichannel, SysNameAmdCancelNotHuman:
 		return nil
-	case SysNameMemberInsertChunkSize, SysNameSchemeVersionLimit, SysNameSearchNumberLength,
-		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval, SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
+	case SysNameMemberInsertChunkSize, SysNameSearchNumberLength,
+		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
+		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays,
+		SysNameMaxLoginAttempts, SysNameBlockLoginTime:
 		value := SysValue(s.Value)
 		i := value.Int()
 
@@ -99,11 +129,21 @@ func (s *SystemSetting) IsValid() AppError {
 	case SysNameChatAiConnection,
 		SysNamePasswordRegExp,
 		SysNamePasswordValidationText,
-		SysNameDefaultPassword:
+		SysNameDefaultPassword,
+		SysNameDefaultWorkspaceTab,
+		SysNameLoginOptions,
+		SysNameDefaultMembersFilter:
 		value := SysValue(s.Value)
 		str := value.Str()
-		if str == nil || *str == "" {
+
+		if str == nil || strings.TrimSpace(*str) == "" {
 			return NewBadRequestError("model.SystemSetting.invalid.str.value", "The value invalid string value")
+		}
+
+		if s.Name == SysNameDefaultMembersFilter {
+			if werr := validateDefaultMembersFilter(*str); werr != nil {
+				return werr
+			}
 		}
 	case SysNameTwoFactorAuthorization,
 		SysNameAutolinkCallToContact,
@@ -120,7 +160,10 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameNewMessageSoundNotification,
 		SysNameNewChatSoundNotification,
 		SysNamePasswordContainsLogin,
-		SysNameExpandContactTabs:
+		SysNameExpandContactTabs,
+		SysNameBlockAllMemberNumbers,
+		SysNameSelfAssignedCallSoundNotification,
+		SysNameRecordAllCalls:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
@@ -156,6 +199,118 @@ func (s *SystemSetting) IsValid() AppError {
 		return NewBadRequestError("model.SystemSetting.invalid_value", fmt.Sprintf("%s is not allowed", s.Name))
 	}
 	return nil
+}
+
+var sensitiveSystemSettings = map[string]struct{}{
+	SysNameDefaultPassword:  {},
+	SysNameChatAiConnection: {},
+}
+
+var liveSystemSettings = map[string]struct{}{
+	SysNameCallEndSoundNotification:          {},
+	SysNameCallEndPushNotification:           {},
+	SysNameChatEndSoundNotification:          {},
+	SysNameChatEndPushNotification:           {},
+	SysNameTaskEndSoundNotification:          {},
+	SysNameTaskEndPushNotification:           {},
+	SysNamePushNotificationTimeout:           {},
+	SysNameNewMessageSoundNotification:       {},
+	SysNameNewChatSoundNotification:          {},
+	SysNameSelfAssignedCallSoundNotification: {},
+	SysNameHideContact:                       {},
+	SysNameShowFullContact:                   {},
+	SysNameExpandContactTabs:                 {},
+	SysNameDefaultWorkspaceTab:               {},
+	SysNameScreenshotInterval:                {},
+}
+
+func IsSensitiveSystemSetting(name string) bool {
+	_, ok := sensitiveSystemSettings[name]
+
+	return ok
+}
+
+func IsLiveSystemSetting(name string) bool {
+	_, ok := liveSystemSettings[name]
+
+	return ok
+}
+
+func (s *SystemSetting) Sanitized() *SystemSetting {
+	c := *s
+	if IsSensitiveSystemSetting(s.Name) {
+		c.Value = nil
+	}
+
+	return &c
+}
+
+func NewSystemSettingsNotification(domainID int64, s *SystemSetting) *Notification {
+	if s == nil || !IsLiveSystemSetting(s.Name) {
+		return nil
+	}
+
+	body := map[string]any{"name": s.Name}
+	if !IsSensitiveSystemSetting(s.Name) && len(s.Value) != 0 {
+		body["value"] = s.Value
+	}
+
+	return &Notification{
+		DomainId:  domainID,
+		Action:    NotificationSystemSettings,
+		CreatedAt: GetMillis(),
+		Body:      body,
+		Broadcast: true,
+	}
+}
+
+func (s *SystemSetting) ValueEquals(other *SystemSetting) bool {
+	if s == nil || other == nil {
+		return s == other
+	}
+
+	var a, b any
+	if json.Unmarshal(s.Value, &a) != nil || json.Unmarshal(other.Value, &b) != nil {
+		return bytes.Equal(s.Value, other.Value)
+	}
+
+	return reflect.DeepEqual(a, b)
+}
+
+type SystemSettingEvent struct {
+	Name     string
+	DomainID int64
+}
+
+func NewSystemSettingEventFromRoutingKey(rk string) (*SystemSettingEvent, AppError) {
+	parts := strings.Split(rk, ".")
+	if len(parts) < 4 {
+		return nil, NewBadRequestError(
+			"model.system_settings.new_system_setting_event.invalid_rk_len",
+			fmt.Sprintf("received routing key %q with len less than 4", rk),
+		)
+	}
+
+	if parts[0] != (SystemSetting{}).EntityName() || parts[1] == "" {
+		return nil, NewBadRequestError(
+			"model.system_settings.new_system_setting_event.invalid_rk",
+			fmt.Sprintf("received unexpected routing key %q", rk),
+		)
+	}
+
+	domainID, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil || domainID <= 0 {
+		return nil, NewBadRequestError(
+			"model.system_settings.new_system_setting_event.invalid_domain_id",
+			fmt.Sprintf("received invalid domain id in routing key %q", rk),
+		)
+	}
+
+	return &SystemSettingEvent{Name: parts[1], DomainID: domainID}, nil
+}
+
+func SystemSettingCacheKey(domainID int64, name string) string {
+	return fmt.Sprintf("%d-%s", domainID, name)
 }
 
 func (s *SystemSetting) Patch(p *SystemSettingPath) {
@@ -202,4 +357,32 @@ func (v *SysValue) Bool() *bool {
 	}
 
 	return &i
+}
+
+func PrepareDefaultMembersFilter(filterValue SysValue) *FilterBetween {
+	str := filterValue.Str()
+	now := time.Now().UTC()
+	from := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.UTC)
+
+	if str != nil {
+		switch strings.ToLower(*str) {
+		case "this day":
+			from = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+		case "this week":
+			weekday := int(now.Weekday())
+			if weekday == 0 {
+				weekday = 7
+			}
+
+			monday := now.AddDate(0, 0, -(weekday - 1))
+			from = time.Date(monday.Year(), monday.Month(), monday.Day(), 0, 0, 0, 0, time.UTC)
+		case "this month":
+			from = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+		}
+	}
+
+	return &FilterBetween{
+		From: from.UnixMilli(),
+		To:   now.UnixMilli(),
+	}
 }

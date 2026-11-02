@@ -19,26 +19,31 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	MemberService_CreateMember_FullMethodName          = "/engine.MemberService/CreateMember"
-	MemberService_CreateMemberBulk_FullMethodName      = "/engine.MemberService/CreateMemberBulk"
-	MemberService_SearchMembers_FullMethodName         = "/engine.MemberService/SearchMembers"
-	MemberService_PatchMemberOne_FullMethodName        = "/engine.MemberService/PatchMemberOne"
-	MemberService_SearchMemberInQueue_FullMethodName   = "/engine.MemberService/SearchMemberInQueue"
-	MemberService_ReadMember_FullMethodName            = "/engine.MemberService/ReadMember"
-	MemberService_UpdateMember_FullMethodName          = "/engine.MemberService/UpdateMember"
-	MemberService_PatchMember_FullMethodName           = "/engine.MemberService/PatchMember"
-	MemberService_DeleteMember_FullMethodName          = "/engine.MemberService/DeleteMember"
-	MemberService_DeleteMembers_FullMethodName         = "/engine.MemberService/DeleteMembers"
-	MemberService_DeleteAllMembers_FullMethodName      = "/engine.MemberService/DeleteAllMembers"
-	MemberService_ResetMembers_FullMethodName          = "/engine.MemberService/ResetMembers"
-	MemberService_SearchMemberAttempts_FullMethodName  = "/engine.MemberService/SearchMemberAttempts"
-	MemberService_SearchAttempts_FullMethodName        = "/engine.MemberService/SearchAttempts"
-	MemberService_ResetActiveAttempts_FullMethodName   = "/engine.MemberService/ResetActiveAttempts"
-	MemberService_SearchAttemptsHistory_FullMethodName = "/engine.MemberService/SearchAttemptsHistory"
-	MemberService_AttemptsRenewalResult_FullMethodName = "/engine.MemberService/AttemptsRenewalResult"
-	MemberService_AttemptResult_FullMethodName         = "/engine.MemberService/AttemptResult"
-	MemberService_AttemptCallback_FullMethodName       = "/engine.MemberService/AttemptCallback"
-	MemberService_CreateAttempt_FullMethodName         = "/engine.MemberService/CreateAttempt"
+	MemberService_CreateMember_FullMethodName              = "/engine.MemberService/CreateMember"
+	MemberService_CreateMemberBulk_FullMethodName          = "/engine.MemberService/CreateMemberBulk"
+	MemberService_SearchMembers_FullMethodName             = "/engine.MemberService/SearchMembers"
+	MemberService_PatchMemberOne_FullMethodName            = "/engine.MemberService/PatchMemberOne"
+	MemberService_SearchMemberInQueue_FullMethodName       = "/engine.MemberService/SearchMemberInQueue"
+	MemberService_ExportMembers_FullMethodName             = "/engine.MemberService/ExportMembers"
+	MemberService_ReadMember_FullMethodName                = "/engine.MemberService/ReadMember"
+	MemberService_SearchMemberCommunication_FullMethodName = "/engine.MemberService/SearchMemberCommunication"
+	MemberService_UpdateMember_FullMethodName              = "/engine.MemberService/UpdateMember"
+	MemberService_PatchMember_FullMethodName               = "/engine.MemberService/PatchMember"
+	MemberService_DeleteMember_FullMethodName              = "/engine.MemberService/DeleteMember"
+	MemberService_DeleteMembers_FullMethodName             = "/engine.MemberService/DeleteMembers"
+	MemberService_DeleteAllMembers_FullMethodName          = "/engine.MemberService/DeleteAllMembers"
+	MemberService_ResetMembers_FullMethodName              = "/engine.MemberService/ResetMembers"
+	MemberService_ResetMembersCount_FullMethodName         = "/engine.MemberService/ResetMembersCount"
+	MemberService_SearchMemberAttempts_FullMethodName      = "/engine.MemberService/SearchMemberAttempts"
+	MemberService_SearchAttempts_FullMethodName            = "/engine.MemberService/SearchAttempts"
+	MemberService_ResetActiveAttempts_FullMethodName       = "/engine.MemberService/ResetActiveAttempts"
+	MemberService_SearchAttemptsHistory_FullMethodName     = "/engine.MemberService/SearchAttemptsHistory"
+	MemberService_AttemptsRenewalResult_FullMethodName     = "/engine.MemberService/AttemptsRenewalResult"
+	MemberService_AttemptResult_FullMethodName             = "/engine.MemberService/AttemptResult"
+	MemberService_AttemptCallback_FullMethodName           = "/engine.MemberService/AttemptCallback"
+	MemberService_CreateAttempt_FullMethodName             = "/engine.MemberService/CreateAttempt"
+	MemberService_AssignAttempt_FullMethodName             = "/engine.MemberService/AssignAttempt"
+	MemberService_TransferAttempt_FullMethodName           = "/engine.MemberService/TransferAttempt"
 )
 
 // MemberServiceClient is the client API for MemberService service.
@@ -54,8 +59,12 @@ type MemberServiceClient interface {
 	PatchMemberOne(ctx context.Context, in *PatchMemberOneRequest, opts ...grpc.CallOption) (*MemberInQueue, error)
 	// List of Member
 	SearchMemberInQueue(ctx context.Context, in *SearchMemberInQueueRequest, opts ...grpc.CallOption) (*ListMember, error)
+	// Export Members of a queue as CSV or XLSX, streamed in chunks
+	ExportMembers(ctx context.Context, in *ExportMembersRequest, opts ...grpc.CallOption) (MemberService_ExportMembersClient, error)
 	// ReadQueueRouting
 	ReadMember(ctx context.Context, in *ReadMemberRequest, opts ...grpc.CallOption) (*MemberInQueue, error)
+	// List of a member's communications
+	SearchMemberCommunication(ctx context.Context, in *SearchMemberCommunicationRequest, opts ...grpc.CallOption) (*ListOfMemberCommunication, error)
 	// UpdateMember
 	UpdateMember(ctx context.Context, in *UpdateMemberRequest, opts ...grpc.CallOption) (*MemberInQueue, error)
 	// Patch Member
@@ -68,6 +77,10 @@ type MemberServiceClient interface {
 	DeleteAllMembers(ctx context.Context, in *DeleteAllMembersRequest, opts ...grpc.CallOption) (*ListMember, error)
 	// ResetMembers
 	ResetMembers(ctx context.Context, in *ResetMembersRequest, opts ...grpc.CallOption) (*ResetMembersResponse, error)
+	// Returns the number of queue members that match the specified
+	// reset criteria without performing the reset operation.
+	// Can be used to preview the impact of a reset request.
+	ResetMembersCount(ctx context.Context, in *ResetMembersCountRequest, opts ...grpc.CallOption) (*ResetMembersCountResponse, error)
 	// SearchMemberAttempts
 	SearchMemberAttempts(ctx context.Context, in *SearchMemberAttemptsRequest, opts ...grpc.CallOption) (*ListMemberAttempt, error)
 	// SearchAttempts
@@ -80,6 +93,8 @@ type MemberServiceClient interface {
 	AttemptCallback(ctx context.Context, in *AttemptCallbackRequest, opts ...grpc.CallOption) (*AttemptResultResponse, error)
 	// Offline queue
 	CreateAttempt(ctx context.Context, in *CreateAttemptRequest, opts ...grpc.CallOption) (*CreateAttemptResponse, error)
+	AssignAttempt(ctx context.Context, in *AssignAttemptRequest, opts ...grpc.CallOption) (*AssignAttemptResponse, error)
+	TransferAttempt(ctx context.Context, in *TransferAttemptRequest, opts ...grpc.CallOption) (*TransferAttemptResponse, error)
 }
 
 type memberServiceClient struct {
@@ -135,9 +150,50 @@ func (c *memberServiceClient) SearchMemberInQueue(ctx context.Context, in *Searc
 	return out, nil
 }
 
+func (c *memberServiceClient) ExportMembers(ctx context.Context, in *ExportMembersRequest, opts ...grpc.CallOption) (MemberService_ExportMembersClient, error) {
+	stream, err := c.cc.NewStream(ctx, &MemberService_ServiceDesc.Streams[0], MemberService_ExportMembers_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &memberServiceExportMembersClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type MemberService_ExportMembersClient interface {
+	Recv() (*ExportMembersResponse, error)
+	grpc.ClientStream
+}
+
+type memberServiceExportMembersClient struct {
+	grpc.ClientStream
+}
+
+func (x *memberServiceExportMembersClient) Recv() (*ExportMembersResponse, error) {
+	m := new(ExportMembersResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 func (c *memberServiceClient) ReadMember(ctx context.Context, in *ReadMemberRequest, opts ...grpc.CallOption) (*MemberInQueue, error) {
 	out := new(MemberInQueue)
 	err := c.cc.Invoke(ctx, MemberService_ReadMember_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *memberServiceClient) SearchMemberCommunication(ctx context.Context, in *SearchMemberCommunicationRequest, opts ...grpc.CallOption) (*ListOfMemberCommunication, error) {
+	out := new(ListOfMemberCommunication)
+	err := c.cc.Invoke(ctx, MemberService_SearchMemberCommunication_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +248,15 @@ func (c *memberServiceClient) DeleteAllMembers(ctx context.Context, in *DeleteAl
 func (c *memberServiceClient) ResetMembers(ctx context.Context, in *ResetMembersRequest, opts ...grpc.CallOption) (*ResetMembersResponse, error) {
 	out := new(ResetMembersResponse)
 	err := c.cc.Invoke(ctx, MemberService_ResetMembers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *memberServiceClient) ResetMembersCount(ctx context.Context, in *ResetMembersCountRequest, opts ...grpc.CallOption) (*ResetMembersCountResponse, error) {
+	out := new(ResetMembersCountResponse)
+	err := c.cc.Invoke(ctx, MemberService_ResetMembersCount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -270,6 +335,24 @@ func (c *memberServiceClient) CreateAttempt(ctx context.Context, in *CreateAttem
 	return out, nil
 }
 
+func (c *memberServiceClient) AssignAttempt(ctx context.Context, in *AssignAttemptRequest, opts ...grpc.CallOption) (*AssignAttemptResponse, error) {
+	out := new(AssignAttemptResponse)
+	err := c.cc.Invoke(ctx, MemberService_AssignAttempt_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *memberServiceClient) TransferAttempt(ctx context.Context, in *TransferAttemptRequest, opts ...grpc.CallOption) (*TransferAttemptResponse, error) {
+	out := new(TransferAttemptResponse)
+	err := c.cc.Invoke(ctx, MemberService_TransferAttempt_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MemberServiceServer is the server API for MemberService service.
 // All implementations must embed UnimplementedMemberServiceServer
 // for forward compatibility
@@ -283,8 +366,12 @@ type MemberServiceServer interface {
 	PatchMemberOne(context.Context, *PatchMemberOneRequest) (*MemberInQueue, error)
 	// List of Member
 	SearchMemberInQueue(context.Context, *SearchMemberInQueueRequest) (*ListMember, error)
+	// Export Members of a queue as CSV or XLSX, streamed in chunks
+	ExportMembers(*ExportMembersRequest, MemberService_ExportMembersServer) error
 	// ReadQueueRouting
 	ReadMember(context.Context, *ReadMemberRequest) (*MemberInQueue, error)
+	// List of a member's communications
+	SearchMemberCommunication(context.Context, *SearchMemberCommunicationRequest) (*ListOfMemberCommunication, error)
 	// UpdateMember
 	UpdateMember(context.Context, *UpdateMemberRequest) (*MemberInQueue, error)
 	// Patch Member
@@ -297,6 +384,10 @@ type MemberServiceServer interface {
 	DeleteAllMembers(context.Context, *DeleteAllMembersRequest) (*ListMember, error)
 	// ResetMembers
 	ResetMembers(context.Context, *ResetMembersRequest) (*ResetMembersResponse, error)
+	// Returns the number of queue members that match the specified
+	// reset criteria without performing the reset operation.
+	// Can be used to preview the impact of a reset request.
+	ResetMembersCount(context.Context, *ResetMembersCountRequest) (*ResetMembersCountResponse, error)
 	// SearchMemberAttempts
 	SearchMemberAttempts(context.Context, *SearchMemberAttemptsRequest) (*ListMemberAttempt, error)
 	// SearchAttempts
@@ -309,6 +400,8 @@ type MemberServiceServer interface {
 	AttemptCallback(context.Context, *AttemptCallbackRequest) (*AttemptResultResponse, error)
 	// Offline queue
 	CreateAttempt(context.Context, *CreateAttemptRequest) (*CreateAttemptResponse, error)
+	AssignAttempt(context.Context, *AssignAttemptRequest) (*AssignAttemptResponse, error)
+	TransferAttempt(context.Context, *TransferAttemptRequest) (*TransferAttemptResponse, error)
 	mustEmbedUnimplementedMemberServiceServer()
 }
 
@@ -331,8 +424,14 @@ func (UnimplementedMemberServiceServer) PatchMemberOne(context.Context, *PatchMe
 func (UnimplementedMemberServiceServer) SearchMemberInQueue(context.Context, *SearchMemberInQueueRequest) (*ListMember, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchMemberInQueue not implemented")
 }
+func (UnimplementedMemberServiceServer) ExportMembers(*ExportMembersRequest, MemberService_ExportMembersServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportMembers not implemented")
+}
 func (UnimplementedMemberServiceServer) ReadMember(context.Context, *ReadMemberRequest) (*MemberInQueue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReadMember not implemented")
+}
+func (UnimplementedMemberServiceServer) SearchMemberCommunication(context.Context, *SearchMemberCommunicationRequest) (*ListOfMemberCommunication, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchMemberCommunication not implemented")
 }
 func (UnimplementedMemberServiceServer) UpdateMember(context.Context, *UpdateMemberRequest) (*MemberInQueue, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateMember not implemented")
@@ -351,6 +450,9 @@ func (UnimplementedMemberServiceServer) DeleteAllMembers(context.Context, *Delet
 }
 func (UnimplementedMemberServiceServer) ResetMembers(context.Context, *ResetMembersRequest) (*ResetMembersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ResetMembers not implemented")
+}
+func (UnimplementedMemberServiceServer) ResetMembersCount(context.Context, *ResetMembersCountRequest) (*ResetMembersCountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ResetMembersCount not implemented")
 }
 func (UnimplementedMemberServiceServer) SearchMemberAttempts(context.Context, *SearchMemberAttemptsRequest) (*ListMemberAttempt, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchMemberAttempts not implemented")
@@ -375,6 +477,12 @@ func (UnimplementedMemberServiceServer) AttemptCallback(context.Context, *Attemp
 }
 func (UnimplementedMemberServiceServer) CreateAttempt(context.Context, *CreateAttemptRequest) (*CreateAttemptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAttempt not implemented")
+}
+func (UnimplementedMemberServiceServer) AssignAttempt(context.Context, *AssignAttemptRequest) (*AssignAttemptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AssignAttempt not implemented")
+}
+func (UnimplementedMemberServiceServer) TransferAttempt(context.Context, *TransferAttemptRequest) (*TransferAttemptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TransferAttempt not implemented")
 }
 func (UnimplementedMemberServiceServer) mustEmbedUnimplementedMemberServiceServer() {}
 
@@ -479,6 +587,27 @@ func _MemberService_SearchMemberInQueue_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MemberService_ExportMembers_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportMembersRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(MemberServiceServer).ExportMembers(m, &memberServiceExportMembersServer{stream})
+}
+
+type MemberService_ExportMembersServer interface {
+	Send(*ExportMembersResponse) error
+	grpc.ServerStream
+}
+
+type memberServiceExportMembersServer struct {
+	grpc.ServerStream
+}
+
+func (x *memberServiceExportMembersServer) Send(m *ExportMembersResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 func _MemberService_ReadMember_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ReadMemberRequest)
 	if err := dec(in); err != nil {
@@ -493,6 +622,24 @@ func _MemberService_ReadMember_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MemberServiceServer).ReadMember(ctx, req.(*ReadMemberRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MemberService_SearchMemberCommunication_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchMemberCommunicationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServiceServer).SearchMemberCommunication(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MemberService_SearchMemberCommunication_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServiceServer).SearchMemberCommunication(ctx, req.(*SearchMemberCommunicationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -601,6 +748,24 @@ func _MemberService_ResetMembers_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MemberServiceServer).ResetMembers(ctx, req.(*ResetMembersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MemberService_ResetMembersCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetMembersCountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServiceServer).ResetMembersCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MemberService_ResetMembersCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServiceServer).ResetMembersCount(ctx, req.(*ResetMembersCountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -749,6 +914,42 @@ func _MemberService_CreateAttempt_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MemberService_AssignAttempt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AssignAttemptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServiceServer).AssignAttempt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MemberService_AssignAttempt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServiceServer).AssignAttempt(ctx, req.(*AssignAttemptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MemberService_TransferAttempt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferAttemptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MemberServiceServer).TransferAttempt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MemberService_TransferAttempt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MemberServiceServer).TransferAttempt(ctx, req.(*TransferAttemptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MemberService_ServiceDesc is the grpc.ServiceDesc for MemberService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -781,6 +982,10 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MemberService_ReadMember_Handler,
 		},
 		{
+			MethodName: "SearchMemberCommunication",
+			Handler:    _MemberService_SearchMemberCommunication_Handler,
+		},
+		{
 			MethodName: "UpdateMember",
 			Handler:    _MemberService_UpdateMember_Handler,
 		},
@@ -803,6 +1008,10 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ResetMembers",
 			Handler:    _MemberService_ResetMembers_Handler,
+		},
+		{
+			MethodName: "ResetMembersCount",
+			Handler:    _MemberService_ResetMembersCount_Handler,
 		},
 		{
 			MethodName: "SearchMemberAttempts",
@@ -836,7 +1045,21 @@ var MemberService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "CreateAttempt",
 			Handler:    _MemberService_CreateAttempt_Handler,
 		},
+		{
+			MethodName: "AssignAttempt",
+			Handler:    _MemberService_AssignAttempt_Handler,
+		},
+		{
+			MethodName: "TransferAttempt",
+			Handler:    _MemberService_TransferAttempt_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ExportMembers",
+			Handler:       _MemberService_ExportMembers_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "member.proto",
 }

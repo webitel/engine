@@ -3,7 +3,11 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"slices"
+	"strings"
 	"time"
+
+	"github.com/pborman/uuid"
 )
 
 const (
@@ -36,6 +40,8 @@ const (
 
 const FileChannelScreenRecordings = "screenrecording"
 
+const FileChannelCall = "call"
+
 type CallRequestApplication struct {
 	AppName string
 	Args    string
@@ -61,6 +67,60 @@ type EndpointRequest struct {
 	Destination *string
 }
 
+func NewCallInfoNotFoundError(id string, e *EndpointRequest) AppError {
+	if e == nil {
+		return NewNotFoundError(id, "User not found")
+	}
+
+	var criteria []string
+
+	if e.UserId != nil {
+		criteria = append(criteria, fmt.Sprintf("ID (%d)", *e.UserId))
+	}
+	if e.Extension != nil {
+		criteria = append(criteria, fmt.Sprintf("extension ('%s')", *e.Extension))
+	}
+
+	var detail string
+	if len(criteria) > 0 {
+		detail = fmt.Sprintf("User with provided %s not found", strings.Join(criteria, " and "))
+	} else {
+		detail = "User not found"
+	}
+
+	return NewNotFoundError(id, detail)
+}
+
+func (e *EndpointRequest) String() string {
+	if e == nil {
+		return "<nil request>"
+	}
+
+	var parts []string
+
+	if e.AppId != nil {
+		parts = append(parts, fmt.Sprintf("app_id=%s", *e.AppId))
+	}
+	if e.UserId != nil {
+		parts = append(parts, fmt.Sprintf("user_id=%d", *e.UserId))
+	}
+	if e.Extension != nil {
+		parts = append(parts, fmt.Sprintf("extension=%s", *e.Extension))
+	}
+	if e.SchemaId != nil {
+		parts = append(parts, fmt.Sprintf("schema_id=%d", *e.SchemaId))
+	}
+	if e.Destination != nil {
+		parts = append(parts, fmt.Sprintf("destination=%s", *e.Destination))
+	}
+
+	if len(parts) == 0 {
+		return "empty request"
+	}
+
+	return strings.Join(parts, ", ")
+}
+
 type CallRequest struct {
 	Endpoints    []string
 	Strategy     uint8
@@ -84,8 +144,9 @@ type OutboundCallRequest struct {
 }
 
 type RedialFrom struct {
-	Number  string     `json:"number" db:"number"`
-	UserIds Int64Array `json:"user_ids" db:"user_ids"`
+	Number     string     `json:"number" db:"number"`
+	UserIds    Int64Array `json:"user_ids" db:"user_ids"`
+	HideNumber bool       `json:"hide_number" db:"hide_number"`
 }
 
 type UserCallRequest struct {
@@ -115,11 +176,22 @@ type BlindTransferCallToQueue struct {
 	Variables map[string]string
 }
 
+type BlindTransferCallToDialplan struct {
+	UserCallRequest
+	DialplanId int
+	Variables  map[string]string
+}
+
 type BridgeCall struct {
 	FromId    string `json:"from_id" db:"from_id"`
 	ToId      string `json:"to_id" db:"to_id"`
 	ContactId *int64 `json:"contact_id" db:"contact_id"`
 	AppId     string `json:"app_id" db:"app_id"`
+}
+
+type BridgedCall struct {
+	ID          string `json:"id" db:"id"`
+	Destination string `json:"destination" db:"destination"`
 }
 
 type BlindTransferInfo struct {
@@ -254,12 +326,13 @@ type Call struct {
 	Display          *string    `json:"display" db:"display"`
 	Supervisor       []*Lookup  `json:"supervisor" db:"supervisor"`
 
-	Task          *CCTask     `json:"task"`
-	Hold          []*CallHold `json:"hold" db:"hold"`
-	BlindTransfer *string     `json:"blind_transfer" db:"blind_transfer"`
-	BridgedId     *string     `json:"bridged_id" db:"bridged_id"`
-	ContactId     *int64      `json:"contact_id" db:"contact_id"`
-	HideNumber    *bool       `json:"hide_number" db:"hide_number"`
+	Task             *CCTask     `json:"task"`
+	Hold             []*CallHold `json:"hold" db:"hold"`
+	BlindTransfer    *string     `json:"blind_transfer" db:"blind_transfer"`
+	BridgedId        *string     `json:"bridged_id" db:"bridged_id"`
+	ContactId        *int64      `json:"contact_id" db:"contact_id"`
+	HideNumber       *bool       `json:"hide_number" db:"hide_number"`
+	IsConsultToQueue *bool       `json:"is_consult_to_queue,omitempty" db:"is_consult_to_queue"`
 }
 
 type CCTask struct {
@@ -376,6 +449,11 @@ type CallFile struct {
 	StopAt      int64  `json:"stop_at"`
 	StartRecord string `json:"start_record"`
 	Channel     string `json:"channel"`
+}
+
+func (f *CallFile) IsVideocallFile() bool {
+	return f.Channel == FileChannelCall &&
+		(strings.HasPrefix(f.MimeType, "image/") || strings.HasPrefix(f.MimeType, "application/pdf"))
 }
 
 func TimeToInt64(t *time.Time) int64 {
@@ -531,6 +609,8 @@ type HistoryCall struct {
 	ConversationId  *string          `json:"conversation_id" db:"conversation_id"`
 	MeetingId       *string          `json:"meeting_id" db:"meeting_id"`
 	QualityMetrics  *QualityMetrics  `json:"quality_metrics" db:"quality_metrics"`
+	UserAgent       string           `json:"user_agent" db:"user_agent"`
+	HideNumber      bool             `json:"hide_numer" db:"hide_number"`
 }
 
 type BlindTransfer struct {
@@ -558,6 +638,7 @@ func (c HistoryCall) AllowFields() []string {
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
 		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms", "conversation_id", "meeting_id", "quality_metrics",
+		"user_agent", "hide_number",
 	}
 }
 
@@ -605,48 +686,50 @@ type SearchCall struct {
 
 type SearchHistoryCall struct {
 	ListRequest
-	CreatedAt        *FilterBetween
-	Duration         *FilterBetween
-	AnsweredAt       *FilterBetween
-	StoredAt         *FilterBetween
-	Number           string
-	ParentId         *string
-	Cause            *string
-	CauseArr         []string // fixme
-	Direction        *string
-	Directions       []string // fixme
-	Missed           *bool
-	SkipParent       bool
-	UserIds          []int64
-	QueueIds         []int64
-	TeamIds          []int64
-	AgentIds         []int64
-	MemberIds        []int64
-	GatewayIds       []int64
-	Ids              []string
-	TransferFromIds  []string
-	TransferToIds    []string
-	DependencyIds    []string
-	Tags             []string
-	Variables        StringMap
-	AmdResult        []string
-	HasFile          *bool
-	HasTranscript    *bool
-	Fts              *string
-	AgentDescription string
-	OwnerIds         []int64
-	GranteeIds       []int64
-	AmdAiResult      []string
-	RatedUserIds     []int64
-	RatedByIds       []int64
-	ScoreOptional    *FilterBetween
-	ScoreRequired    *FilterBetween
-	Rated            *bool `json:"rated" db:"rated"`
-	Talk             *FilterBetween
-	ContactIds       []int64
-	SchemaIds        []int32
-	HasTransfer      *bool
-	Timeline         *bool
+
+	CreatedAt          *FilterBetween
+	Duration           *FilterBetween
+	AnsweredAt         *FilterBetween
+	StoredAt           *FilterBetween
+	Number             string
+	ParentId           *string
+	Cause              *string
+	CauseArr           []string // fixme
+	Direction          *string
+	Directions         []string // fixme
+	Missed             *bool
+	SkipParent         bool
+	UserIds            []int64
+	QueueIds           []int64
+	TeamIds            []int64
+	AgentIds           []int64
+	MemberIds          []int64
+	GatewayIds         []int64
+	Ids                []string
+	TransferFromIds    []string
+	TransferToIds      []string
+	DependencyIds      []string
+	Tags               []string
+	Variables          StringMap
+	AmdResult          []string
+	HasFile            *bool
+	HasTranscript      *bool
+	Fts                *string
+	AgentDescription   string
+	OwnerIds           []int64
+	GranteeIds         []int64
+	AmdAiResult        []string
+	RatedUserIds       []int64
+	RatedByIds         []int64
+	ScoreOptional      *FilterBetween
+	ScoreRequired      *FilterBetween
+	Rated              *bool `json:"rated" db:"rated"`
+	Talk               *FilterBetween
+	ContactIds         []int64
+	SchemaIds          []int32
+	HasTransfer        *bool
+	Timeline           *bool
+	ExcludedQueueTypes []int8
 }
 
 type CallEventInfo struct {
@@ -782,7 +865,7 @@ func (m *CallPayload) Has(name string) bool {
 func (m *CallPayload) StringValue(s ...string) string {
 	var mm any = m
 
-	for i := 0; i < len(s); i++ {
+	for i := range s {
 		switch vv := mm.(type) {
 		case string:
 			return vv
@@ -800,4 +883,70 @@ func (m *CallPayload) StringValue(s ...string) string {
 	}
 
 	return fmt.Sprintf("%v", mm)
+}
+
+type PatchHistoryCallAttempt struct {
+	ID          string
+	Variables   map[string]string
+	Description string
+	Fields      []string
+	DomainID    int64
+}
+
+func NewPatchHistoryCallAttempt(id string, description string, variables map[string]string, fields ...string) *PatchHistoryCallAttempt {
+	vars := variables
+	if len(variables) == 0 {
+		vars = make(map[string]string)
+	}
+
+	return &PatchHistoryCallAttempt{
+		ID:          id,
+		Variables:   vars,
+		Description: description,
+		Fields:      fields,
+	}
+}
+
+func (p *PatchHistoryCallAttempt) TryUseDomain(provider DomainProvider) AppError {
+	d := provider.Domain(0)
+	if d <= 0 {
+		return NewBadRequestError("model.call.patch_history_call_attempt.try_use_domain", "impossible domain identifier")
+	}
+
+	p.DomainID = d
+
+	return nil
+}
+
+func (p *PatchHistoryCallAttempt) SerializeVariables() []byte {
+	serialized, _ := json.Marshal(p.Variables)
+	return serialized
+}
+
+func (p *PatchHistoryCallAttempt) Validate() AppError {
+	if p == nil {
+		return NewBadRequestError("model.call.patch_history_call_attempt.validate", "received empty call for patch structure")
+	}
+
+	if uuid.Parse(p.ID) == nil {
+		return NewBadRequestError("model.call.patch_history_call_attempt.invalid_id_format", "id must be a valid UUID format")
+	}
+
+	if len(p.Fields) == 0 {
+		return NewBadRequestError("model.call.patch_history_call_attempt.validate", "patch fields is required")
+	}
+
+	return nil
+}
+
+func (p *PatchHistoryCallAttempt) HasVariablesUpdate() bool {
+	return slices.ContainsFunc(p.Fields, func(s string) bool {
+		return strings.HasPrefix(s, "variables.")
+	})
+}
+
+type PatchHistoryAttemptResult struct {
+	ID          int64             `json:"id" db:"id"`
+	Description string            `json:"description" db:"description"`
+	Variables   map[string]string `json:"variables" db:"variables"`
 }

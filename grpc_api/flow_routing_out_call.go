@@ -42,7 +42,8 @@ func (api *routingOutboundCall) CreateRoutingOutboundCall(ctx context.Context, i
 		Schema: model.Lookup{
 			Id: int(in.GetSchema().GetId()),
 		},
-		Disabled: in.Disabled,
+		Disabled:      in.Disabled,
+		AllowTransfer: in.AllowTransfer,
 	}
 
 	if routing, err = api.ctrl.CreateRoutingOutboundCall(ctx, session, routing); err != nil {
@@ -73,6 +74,10 @@ func (api *routingOutboundCall) SearchRoutingOutboundCall(ctx context.Context, i
 		SchemaIds:   in.SchemaId,
 		Pattern:     GetStringPointer(in.Pattern),
 		Description: GetStringPointer(in.Description),
+	}
+
+	if in.AllowTransfer != nil {
+		req.AllowTransfer = model.NewBool(in.GetAllowTransfer().GetValue())
 	}
 
 	list, isEndList, err = api.ctrl.SearchRoutingOutboundCall(ctx, session, req)
@@ -130,8 +135,9 @@ func (api *routingOutboundCall) UpdateRoutingOutboundCall(ctx context.Context, i
 		Schema: model.Lookup{
 			Id: int(in.GetSchema().GetId()),
 		},
-		Pattern:  in.Pattern,
-		Disabled: in.Disabled,
+		Pattern:       in.Pattern,
+		Disabled:      in.Disabled,
+		AllowTransfer: in.AllowTransfer,
 	}
 
 	routing, err = api.ctrl.UpdateRoutingOutboundCall(ctx, session, routing)
@@ -165,6 +171,8 @@ func (api *routingOutboundCall) PatchRoutingOutboundCall(ctx context.Context, in
 			patch.Pattern = model.NewString(in.GetPattern())
 		case "disabled":
 			patch.Disabled = model.NewBool(in.GetDisabled())
+		case "allow_transfer":
+			patch.AllowTransfer = model.NewBool(in.GetAllowTransfer())
 		}
 	}
 
@@ -211,16 +219,17 @@ func (api *routingOutboundCall) DeleteRoutingOutboundCall(ctx context.Context, i
 
 func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.RoutingOutboundCall {
 	dst := &engine.RoutingOutboundCall{
-		Id:          src.Id,
-		DomainId:    src.DomainId,
-		CreatedAt:   src.CreatedAt,
-		CreatedBy:   GetProtoLookup(src.CreatedBy),
-		UpdatedAt:   src.UpdatedAt,
-		UpdatedBy:   GetProtoLookup(src.UpdatedBy),
-		Description: src.Description,
-		Name:        src.Name,
-		Pattern:     src.Pattern,
-		Disabled:    src.Disabled,
+		Id:            src.Id,
+		DomainId:      src.DomainId,
+		CreatedAt:     src.CreatedAt,
+		CreatedBy:     GetProtoLookup(src.CreatedBy),
+		UpdatedAt:     src.UpdatedAt,
+		UpdatedBy:     GetProtoLookup(src.UpdatedBy),
+		Description:   src.Description,
+		Name:          src.Name,
+		Pattern:       src.Pattern,
+		Disabled:      src.Disabled,
+		AllowTransfer: src.AllowTransfer,
 	}
 
 	if src.GetSchemaId() != nil {
@@ -235,13 +244,14 @@ func transformRoutingOutboundCall(src *model.RoutingOutboundCall) *engine.Routin
 
 func toRoutingOutboundCallCompact(src *model.RoutingOutboundCall) *engine.RoutingOutboundCallCompact {
 	dst := &engine.RoutingOutboundCallCompact{
-		Id:          src.Id,
-		DomainId:    src.DomainId,
-		Description: src.Description,
-		Name:        src.Name,
-		Pattern:     src.Pattern,
-		Disabled:    src.Disabled,
-		Position:    int32(src.Position),
+		Id:            src.Id,
+		DomainId:      src.DomainId,
+		Description:   src.Description,
+		Name:          src.Name,
+		Pattern:       src.Pattern,
+		Disabled:      src.Disabled,
+		AllowTransfer: src.AllowTransfer,
+		Position:      int32(src.Position),
 	}
 
 	if src.GetSchemaId() != nil {

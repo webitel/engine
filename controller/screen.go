@@ -11,6 +11,10 @@ func (c *Controller) Screenshot(ctx context.Context, session *auth_manager.Sessi
 		return c.app.MakeActionPermissionError(session, model.PermissionControlAgentScreen, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
+	if permission := session.GetPermission(model.PermissionScreenRecordings); !permission.CanCreate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
 	return c.app.Screenshot(ctx, session.Domain(0), toUserId, fromSockId, ackId)
 }
 
@@ -39,6 +43,10 @@ func (c *Controller) AcceptScreenShare(_ context.Context, session *auth_manager.
 func (c *Controller) ScreenShareRecordStart(ctx context.Context, session *auth_manager.Session, toUserId int64, rootSessionId string, ackId string) model.AppError {
 	if !session.HasAction(model.PermissionControlAgentScreen) {
 		return c.app.MakeActionPermissionError(session, model.PermissionControlAgentScreen, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if permission := session.GetPermission(model.PermissionScreenRecordings); !permission.CanCreate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
 	}
 
 	return c.app.ScreenShareRecordStart(ctx, session.Domain(0), session.UserId, toUserId, rootSessionId, ackId)

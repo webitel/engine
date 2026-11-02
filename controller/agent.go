@@ -8,7 +8,6 @@ import (
 )
 
 func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.Session, domainId, userId int64) (*model.AgentSession, model.AppError) {
-
 	v, err := c.app.AgentCC(ctx, session.Domain(domainId), userId)
 	if err != nil {
 		return nil, err
@@ -39,6 +38,28 @@ func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.
 	return c.app.GetAgentSession(ctx, session.Domain(domainId), userId)
 }
 
+func (c *Controller) LoginAgentFromRequest(ctx context.Context, session *auth_manager.Session, r *model.AgentLoginRequest) model.AppError {
+	if err := r.Validate(); err != nil {
+		return err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
+	if !permission.CanRead() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		if perm, err := c.app.AgentCheckAccess(ctx, session.Domain(r.DomainID), r.AgentID, session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return err
+		} else if !perm {
+			return c.app.MakeResourcePermissionError(session, r.AgentID, permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	return c.app.LoginAgentFromRequest(ctx, r)
+}
+
+// DEPRECATED
 func (c *Controller) LoginAgent(ctx context.Context, session *auth_manager.Session, domainId, agentId int64, onDemand bool) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
@@ -141,13 +162,13 @@ func (c *Controller) GetAgentInQueueStatistics(ctx context.Context, session *aut
 	return c.app.GetAgentInQueueStatistics(ctx, session.Domain(domainId), agentId)
 }
 
-func (c *Controller) AcceptAgentTask(session *auth_manager.Session, appId string, attemptId int64) model.AppError {
+func (c *Controller) AcceptAgentTask(ctx context.Context, session *auth_manager.Session, req *model.AcceptAttemptRequest) model.AppError {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	return c.app.AcceptTask(appId, session.DomainId, attemptId)
+	return c.app.AcceptTask(ctx, req)
 }
 
 func (c *Controller) CloseAgentTask(session *auth_manager.Session, appId string, attemptId int64) model.AppError {

@@ -121,6 +121,8 @@ func (s *LayeredStore) CommunicationType() CommunicationTypeStore {
 	return s.DatabaseLayer.CommunicationType()
 }
 
+func (s *LayeredStore) OnlineSkills() OnlineSkillsStore { return s.DatabaseLayer.OnlineSkills() }
+
 func (s *LayeredStore) Member() MemberStore {
 	return s.DatabaseLayer.Member()
 }
@@ -181,10 +183,6 @@ func (s *LayeredStore) WebHook() WebHookStore {
 	return s.DatabaseLayer.WebHook()
 }
 
-func (s *LayeredStore) SchemeVersion() SchemeVersionsStore {
-	return s.DatabaseLayer.SchemeVersion()
-}
-
 func (s *LayeredStore) SchemeVariable() SchemeVariablesStore {
 	return s.DatabaseLayer.SchemeVariable()
 }
@@ -195,6 +193,10 @@ func (s *LayeredStore) QuickReply() QuickReplyStore {
 
 func (s *LayeredStore) SocketSession() SocketSessionStore {
 	return s.DatabaseLayer.SocketSession()
+}
+
+func (s *LayeredStore) TeamChatTag() TeamChatTagStore {
+	return s.DatabaseLayer.TeamChatTag()
 }
 
 func (s *LayeredStore) Feedback() FeedbackStore {

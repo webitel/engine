@@ -2,13 +2,14 @@ package app
 
 import (
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/webitel/wlog"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/webitel/wlog"
 )
 
 type Server struct {
@@ -59,9 +60,9 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	cw.router.ServeHTTP(w, r)
 }
 
-func (rl *RecoveryLogger) Println(i ...interface{}) {
+func (rl *RecoveryLogger) Println(i ...any) {
 	wlog.Error("Please check the std error output for the stack trace")
-	wlog.Error(fmt.Sprint(i))
+	wlog.Error(fmt.Sprint(i...))
 }
 
 func (a *App) StartServer() error {

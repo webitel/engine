@@ -2,11 +2,14 @@ package grpc_api
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
-	"strconv"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type list struct {
@@ -264,6 +267,91 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 	api.app.AuditCreate(ctx, session, model.PERMISSION_SCOPE_CC_LIST_NUMBER, strconv.FormatInt(communication.Id, 10), communication)
 
 	return toEngineListCommunication(communication), nil
+}
+
+func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.CreateListCommunicationBulkRequest) (*engine.ListCommunicationBulkResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_LIST_NUMBER)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if !permission.CanCreate() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, session.GetPermission(model.PERMISSION_SCOPE_CC_LIST)) {
+		var perm bool
+		if perm, err = api.app.ListCheckAccess(ctx, session.Domain(0), in.GetListId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+		}
+	}
+
+	failures := make([]*engine.ListCommunicationBulkError, 0)
+	valid := make([]*model.ListCommunication, 0, len(in.GetItems()))
+	validIndex := make([]int32, 0, len(in.GetItems()))
+
+	for i, v := range in.GetItems() {
+		comm := &model.ListCommunication{
+			ListId:      in.GetListId(),
+			Number:      v.GetNumber(),
+			Description: v.GetDescription(),
+			ExpireAt:    model.Int64ToTime(v.GetExpireAt()),
+		}
+
+		if appErr := comm.IsValid(); appErr != nil {
+			failures = append(failures, &engine.ListCommunicationBulkError{
+				Index: int32(i),
+				Item:  toEngineListCommunication(comm),
+				Error: status.New(codes.InvalidArgument, appErr.Error()).Proto(),
+			})
+
+			continue
+		}
+
+		valid = append(valid, comm)
+		validIndex = append(validIndex, int32(i))
+	}
+
+	var inserted []*model.ListCommunication
+	if len(valid) > 0 {
+		inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), valid)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	insertedByNumber := make(map[string]*model.ListCommunication, len(inserted))
+	for _, row := range inserted {
+		insertedByNumber[row.Number] = row
+	}
+
+	data := make([]*engine.ListCommunication, 0, len(valid))
+	for i, comm := range valid {
+		if row, ok := insertedByNumber[comm.Number]; ok {
+			data = append(data, toEngineListCommunication(row))
+
+			delete(insertedByNumber, comm.Number)
+		} else {
+			failures = append(failures, &engine.ListCommunicationBulkError{
+				Index: validIndex[i],
+				Item:  toEngineListCommunication(comm),
+				Error: status.New(codes.AlreadyExists, "number already exists").Proto(),
+			})
+		}
+	}
+
+	return &engine.ListCommunicationBulkResponse{
+		Data:     data,
+		Failures: failures,
+	}, nil
 }
 
 func (api *list) SearchListCommunication(ctx context.Context, in *engine.SearchListCommunicationRequest) (*engine.ListOfListCommunication, error) {

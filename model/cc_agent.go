@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -25,17 +26,19 @@ type AgentChannel struct {
 
 type Agent struct {
 	DomainRecord
+
 	User                  Lookup         `json:"user" db:"user"`
 	Name                  string         `json:"name" db:"name"`
 	Status                string         `json:"status" db:"status"`
 	LastStatusChange      int64          `json:"last_status_change" db:"last_status_change"`
 	StatusDuration        int64          `json:"status_duration" db:"status_duration"`
 	Description           string         `json:"description" db:"description"`
-	ProgressiveCount      int            `json:"progressive_count" db:"progressive_count"`
+	ProgressiveCount      *int           `json:"progressive_count" db:"progressive_count"`
 	Channel               []AgentChannel `json:"channel" db:"channel"`
 	GreetingMedia         *Lookup        `json:"greeting_media" db:"greeting_media"`
 	AllowChannels         StringArray    `json:"allow_channels" db:"allow_channels"`
 	ChatCount             uint32         `json:"chat_count" db:"chat_count"`
+	ExtraChatCount        uint32         `json:"extra_chat_count" db:"extra_chat_count"`
 	Supervisor            []*Lookup      `json:"supervisor" db:"supervisor"`
 	Team                  *Lookup        `json:"team" db:"team"`
 	Region                *Lookup        `json:"region" db:"region"`
@@ -48,6 +51,7 @@ type Agent struct {
 	AllowSetScreenControl bool           `json:"allow_set_screen_control" db:"allow_set_screen_control"`
 
 	UserPresenceStatus StringArray `json:"user_presence_status" db:"user_presence_status"`
+	StatusType         string      `json:"status_type" db:"status_type"`
 }
 
 type AgentPatch struct {
@@ -58,6 +62,7 @@ type AgentPatch struct {
 	ProgressiveCount *int
 	GreetingMedia    *Lookup
 	ChatCount        *uint32
+	ExtraChatCount   *uint32
 	Supervisor       []*Lookup
 	Team             *Lookup
 	Region           *Lookup
@@ -112,7 +117,7 @@ type SupervisorAgentItem struct {
 	Supervisor       []*Lookup `json:"supervisor" dlb:"supervisor"`
 	Auditor          []*Lookup `json:"auditor" db:"auditor"`
 	Region           *Lookup   `json:"region" db:"region"`
-	ProgressiveCount uint32    `json:"progressive_count" db:"progressive_count"`
+	ProgressiveCount *uint32   `json:"progressive_count" db:"progressive_count"`
 	ChatCount        uint32    `json:"chat_count" db:"chat_count"`
 
 	PauseCause    string `json:"pause_cause" db:"pause_cause"`
@@ -170,7 +175,11 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	}
 
 	if patch.ProgressiveCount != nil {
-		a.ProgressiveCount = *patch.ProgressiveCount
+		if *patch.ProgressiveCount == 0 {
+			a.ProgressiveCount = nil
+		} else {
+			a.ProgressiveCount = patch.ProgressiveCount
+		}
 	}
 
 	if patch.GreetingMedia != nil {
@@ -179,6 +188,10 @@ func (a *Agent) Patch(patch *AgentPatch) {
 
 	if patch.ChatCount != nil {
 		a.ChatCount = *patch.ChatCount
+	}
+
+	if patch.ExtraChatCount != nil {
+		a.ExtraChatCount = *patch.ExtraChatCount
 	}
 
 	if patch.Supervisor != nil {
@@ -211,15 +224,15 @@ func (a Agent) DefaultOrder() string {
 }
 
 func (a Agent) AllowFields() []string {
-	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
+	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change", "status_type",
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
 		"auditor", "is_supervisor", "skills", "extension", "task_count", "screen_control", "allow_set_screen_control", "user_presence_status"}
 }
 
 func (a Agent) DefaultFields() []string {
 	return []string{"id", "status", "name", "channel", "description", "status_duration", "last_status_change",
-		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "supervisor", "team", "region",
-		"auditor", "is_supervisor", "extension"}
+		"progressive_count", "user", "greeting_media", "allow_channels", "chat_count", "extra_chat_count", "supervisor", "team", "region",
+		"auditor", "is_supervisor", "extension", "status_type"}
 }
 
 func (a Agent) EntityName() string {
@@ -239,6 +252,7 @@ type AgentSession struct {
 	Status           string         `json:"status" db:"status"`
 	StatusPayload    *string        `json:"status_payload" db:"status_payload"`
 	StatusComment    *string        `json:"status_comment" db:"status_comment"`
+	OnlineStatus     *Lookup        `json:"online_status" db:"online_status"`
 	LastStatusChange int64          `json:"last_status_change" db:"last_status_change"`
 	StatusDuration   int64          `json:"status_duration" db:"status_duration"`
 	OnDemand         bool           `json:"on_demand" db:"on_demand"`
@@ -270,8 +284,8 @@ func (a *AgentCC) Valid() AppError {
 	return nil
 }
 
-func (a AgentSession) ToMap() map[string]interface{} {
-	out := make(map[string]interface{})
+func (a AgentSession) ToMap() map[string]any {
+	out := make(map[string]any)
 	data, _ := json.Marshal(a)
 	_ = json.Unmarshal(data, &out)
 	return out
@@ -360,6 +374,7 @@ type UserStatus struct {
 
 type SearchUserStatus struct {
 	ListRequest
+
 	NotUserIds []int64
 }
 
@@ -393,12 +408,15 @@ func (a *Agent) IsValid() AppError {
 	if a.ChatCount < 1 {
 		return NewBadRequestError("model.Agent.valid.ChatCount", "The chat count should be more or equal 1")
 	}
-	if a.ProgressiveCount < 1 {
+
+	if a.ProgressiveCount != nil && *a.ProgressiveCount < 1 {
 		return NewBadRequestError("model.Agent.valid.ProgressiveCount", "The call count should be more or equal 1")
 	}
+
 	if a.Team == nil || a.Team.Id == 0 {
 		return NewBadRequestError("model.Agent.valid.Team", "Team is required")
 	}
+
 	return nil //TODO
 }
 
@@ -502,4 +520,109 @@ func NewWebSocketCallCenterEvent(ev *CallCenterEvent) (*WebSocketEvent, AppError
 	e.SetData(ev.Body)
 
 	return e, nil
+}
+
+type AgentLoginRequest struct {
+	AgentID      int64   `json:"agent_id"`
+	DomainID     int64   `json:"domain_id"`
+	OnDemand     bool    `json:"on_demand"`
+	OnlineStatus *Lookup `json:"online_status"`
+}
+
+func (r *AgentLoginRequest) Validate() AppError {
+	if r == nil {
+		return NewBadRequestError("model.cc_agent.validate.nil_pointer", "Empty agent login request")
+	}
+
+	if r.AgentID <= 0 {
+		return NewBadRequestError("model.cc_agent.validate.invalid_agent_login_id", "Agent login require agent id")
+	}
+
+	if r.DomainID <= 0 {
+		return NewBadRequestError("model.cc_agent.validate.invalid_agent_domain", "Agent login require domain id")
+	}
+
+	return nil
+}
+
+func NewAgentLoginRequestFromSocketRequest(r *WebSocketRequest, sessionDomainID int64) *AgentLoginRequest {
+	req := new(AgentLoginRequest)
+
+	if val, ok := r.Get("agent_id").(float64); ok {
+		req.AgentID = int64(val)
+	}
+
+	if val, ok := r.Get("domain_id").(float64); ok {
+		req.DomainID = int64(val)
+	}
+
+	req.DomainID = cmp.Or(req.DomainID, sessionDomainID)
+
+	if val, ok := r.Get("on_demand").(bool); ok {
+		req.OnDemand = val
+	}
+
+	if statusVal := r.Get("online_skill"); statusVal != nil {
+		if status, ok := statusVal.(*Lookup); ok {
+			req.OnlineStatus = status
+		} else if rawMap, ok := statusVal.(map[string]any); ok {
+			status := new(Lookup)
+			if id, ok := rawMap["id"].(float64); ok {
+				status.Id = int(id)
+			}
+			if name, ok := rawMap["name"].(string); ok {
+				status.Name = name
+			}
+			req.OnlineStatus = status
+		}
+	}
+
+	return req
+}
+
+type AcceptAttemptRequest struct {
+	AttemptID int64
+	AppID     string
+	AgentID   int64
+	UserID    int64
+	DomainID  int64
+}
+
+func NewAcceptAttemptRequestFromSocket(r *WebSocketRequest, sesssionDomainID, sessionUserId int64) *AcceptAttemptRequest {
+	req := new(AcceptAttemptRequest)
+
+	attemptID, ok := r.Get("attempt_id").(float64)
+	if ok {
+		req.AttemptID = int64(attemptID)
+	}
+
+	appID, ok := r.Get("app_id").(string)
+	if ok && appID != "" {
+		req.AppID = appID
+	}
+
+	agentID, ok := r.Get("agent_id").(float64)
+	if ok {
+		req.AgentID = int64(agentID)
+	}
+
+	req.DomainID, req.UserID = sesssionDomainID, sessionUserId
+
+	return req
+}
+
+func (r *AcceptAttemptRequest) FindInvalidAgrument() string {
+	if r.AttemptID <= 0 {
+		return "attempt_id"
+	}
+
+	if r.AppID == "" {
+		return "app_id"
+	}
+
+	if r.AgentID <= 0 {
+		return "agent_id"
+	}
+
+	return ""
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/webitel/wlog"
+
 	"github.com/webitel/engine/gen/engine"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -60,10 +62,6 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		Skill:  GetLookup(in.Skill),
 	}
 
-	if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
-		return nil, err
-	}
-
 	if m, err = api.app.CreateMember(ctx, session.DomainId, m); err != nil {
 		return nil, err
 	}
@@ -114,10 +112,6 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			Skill:          GetLookup(v.Skill),
 		}
 
-		if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
-			return nil, err
-		}
-
 		members = append(members, m)
 	}
 	var inserted []int64
@@ -159,6 +153,63 @@ func (api *member) ReadMember(ctx context.Context, in *engine.ReadMemberRequest)
 		return nil, err
 	}
 	return toEngineMember(out), nil
+}
+
+func (api *member) SearchMemberCommunication(ctx context.Context, in *engine.SearchMemberCommunicationRequest) (*engine.ListOfMemberCommunication, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
+	if !permission.CanRead() {
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
+	}
+
+	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
+		var perm bool
+		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(0), in.GetQueueId(), session.GetAclRoles(),
+			auth_manager.PERMISSION_ACCESS_READ); err != nil {
+			return nil, err
+		} else if !perm {
+			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
+		}
+	}
+
+	out, err := api.app.GetMember(ctx, session.Domain(0), in.GetQueueId(), in.GetMemberId())
+	if err != nil {
+		return nil, err
+	}
+
+	out.SortCommunications(in.GetSort())
+
+	req := model.ListRequest{Page: int(in.GetPage()), PerPage: int(in.GetSize())}
+	offset := req.GetOffset()
+	perPage := req.PerPage
+
+	items := make([]*engine.MemberCommunication, 0, perPage)
+	next := false
+
+	if offset < len(out.Communications) {
+		end := offset + perPage
+		if end >= len(out.Communications) {
+			end = len(out.Communications)
+		} else {
+			next = true
+		}
+
+		for _, c := range out.Communications[offset:end] {
+			if c == nil {
+				continue
+			}
+			items = append(items, toEngineDestination(c))
+		}
+	}
+
+	return &engine.ListOfMemberCommunication{
+		Next:  next,
+		Items: items,
+	}, nil
 }
 
 func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMemberInQueueRequest) (*engine.ListMember, error) {
@@ -235,7 +286,18 @@ func (api *member) SearchMemberInQueue(ctx context.Context, in *engine.SearchMem
 		}
 	}
 
-	if list, endList, err = api.app.SearchMembers(ctx, session.Domain(0), req); err != nil {
+	domainID := session.Domain(0)
+
+	if !req.IsWithCreatedAtFilter() {
+		filter, err := api.prepareDefaulMembersFilter(ctx, domainID)
+		if err != nil {
+			api.app.Log.Error("preparing default members filter", wlog.Err(err))
+		} else {
+			req.CreatedAt = filter
+		}
+	}
+
+	if list, endList, err = api.app.SearchMembers(ctx, domainID, req); err != nil {
 		return nil, err
 	}
 
@@ -307,6 +369,17 @@ func (api *member) UpdateMember(ctx context.Context, in *engine.UpdateMemberRequ
 	}
 }
 
+func (api *member) prepareDefaulMembersFilter(ctx context.Context, domainID int64) (*model.FilterBetween, model.AppError) {
+	defaultFilterValue, err := api.app.GetCachedSystemSetting(ctx, domainID, model.SysNameDefaultMembersFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := model.PrepareDefaultMembersFilter(defaultFilterValue)
+
+	return filter, nil
+}
+
 func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberRequest) (*engine.MemberInQueue, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -335,7 +408,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 	var m *model.Member
 	patch := &model.MemberPatch{}
 
-	//TODO FIXME
+	// TODO FIXME
 	for _, v := range in.Fields {
 		switch v {
 		case "priority":
@@ -349,7 +422,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
 		case "bucket.id":
-			//todo
+			// todo
 			if in.Bucket != nil && in.Bucket.Id == 0 {
 				patch.Bucket = &model.Lookup{
 					Id: 0,
@@ -364,7 +437,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 		case "attempts":
 			patch.Attempts = model.NewInt(int(in.Attempts))
 		case "agent.id":
-			//todo
+			// todo
 			if in.Agent != nil && in.Agent.Id == 0 {
 				patch.Agent = &model.Lookup{
 					Id: 0,
@@ -373,7 +446,7 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 				patch.Agent = GetLookup(in.Agent)
 			}
 		case "skill.id":
-			//todo
+			// todo
 			if in.Skill != nil && in.Skill.Id == 0 {
 				patch.Skill = &model.Lookup{
 					Id: 0,
@@ -389,13 +462,11 @@ func (api *member) PatchMember(ctx context.Context, in *engine.PatchMemberReques
 	}
 
 	m, err = api.app.PatchMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), patch)
-
 	if err != nil {
 		return nil, err
 	}
 
 	return toEngineMember(m), nil
-
 }
 
 func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOneRequest) (*engine.MemberInQueue, error) {
@@ -432,7 +503,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 	var m *model.Member
 	patch := &model.MemberPatch{}
 
-	//TODO FIXME
+	// TODO FIXME
 	for _, v := range in.Fields {
 		switch v {
 		case "priority":
@@ -446,7 +517,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 		case "timezone.id":
 			patch.Timezone = GetLookup(in.Timezone)
 		case "bucket.id":
-			//todo
+			// todo
 			if in.Bucket != nil && in.Bucket.Id == 0 {
 				patch.Bucket = &model.Lookup{
 					Id: 0,
@@ -461,7 +532,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 		case "attempts":
 			patch.Attempts = model.NewInt(int(in.Attempts))
 		case "agent.id":
-			//todo
+			// todo
 			if in.Agent != nil && in.Agent.Id == 0 {
 				patch.Agent = &model.Lookup{
 					Id: 0,
@@ -470,7 +541,7 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 				patch.Agent = GetLookup(in.Agent)
 			}
 		case "skill.id":
-			//todo
+			// todo
 			if in.Skill != nil && in.Skill.Id == 0 {
 				patch.Skill = &model.Lookup{
 					Id: 0,
@@ -487,7 +558,6 @@ func (api *member) PatchMemberOne(ctx context.Context, in *engine.PatchMemberOne
 	}
 
 	m, err = api.app.PatchMember(ctx, session.Domain(in.GetDomainId()), queueId, in.GetId(), patch)
-
 	if err != nil {
 		return nil, err
 	}
@@ -573,7 +643,7 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 		Variables: in.GetVariables(),
 	}
 
-	//todo deprecated
+	// todo deprecated
 	if in.GetIds() != nil {
 		req.Ids = in.GetIds()
 	}
@@ -614,7 +684,6 @@ func (api *member) DeleteMembers(ctx context.Context, in *engine.DeleteMembersRe
 	}
 
 	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
-
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +753,6 @@ func (api *member) DeleteAllMembers(ctx context.Context, in *engine.DeleteAllMem
 	}
 
 	list, err = api.app.RemoveMultiMembers(ctx, session.Domain(0), req, in.GetWithoutMembers())
-
 	if err != nil {
 		return nil, err
 	}
@@ -732,6 +800,7 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 		AgentIds:  in.GetAgentId(),
 		Numbers:   in.GetNumbers(),
 		Variables: in.GetVariables(),
+		Q:         in.GetQ(),
 	}
 
 	if len(search.Ids) == 0 {
@@ -753,7 +822,6 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 	}
 
 	cnt, err = api.app.ResetMembers(ctx, session.Domain(0), search)
-
 	if err != nil {
 		return nil, err
 	}
@@ -761,6 +829,31 @@ func (api *member) ResetMembers(ctx context.Context, in *engine.ResetMembersRequ
 	return &engine.ResetMembersResponse{
 		Count: cnt,
 	}, nil
+}
+
+func (api *member) ResetMembersCount(ctx context.Context, in *engine.ResetMembersCountRequest) (*engine.ResetMembersCountResponse, error) {
+	countQuery := &model.ResetMembersCountQuery{
+		ResetMembers: model.ResetMembers{
+			QueueId:   in.GetQueueId(),
+			Buckets:   in.GetBucketId(),
+			Causes:    in.GetStopCause(),
+			AgentIds:  in.GetAgentId(),
+			Numbers:   in.GetNumbers(),
+			Variables: in.GetVariables(),
+			Q:         in.GetQ(),
+		},
+	}
+
+	countQuery.SetIDs(in.GetIds(), in.GetId()).
+		SetPriority(in.GetPriority()).
+		SetCreatedAt(in.GetCreatedAt())
+
+	count, err := api.ctrl.ResetMembersCount(ctx, countQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	return &engine.ResetMembersCountResponse{Count: count}, nil
 }
 
 func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMemberAttemptsRequest) (*engine.ListMemberAttempt, error) {
@@ -810,7 +903,7 @@ func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttempts
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	//FIXME check queue PERMISSION
+	// FIXME check queue PERMISSION
 
 	var list []*model.Attempt
 	var endList bool
@@ -916,7 +1009,7 @@ func (api *member) SearchAttemptsHistory(ctx context.Context, in *engine.SearchA
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
 
-	//FIXME check queue PERMISSION
+	// FIXME check queue PERMISSION
 
 	if in.GetJoinedAt() == nil && len(in.GetMemberId()) == 0 {
 		return nil, model.NewBadRequestError("grpc.member.search_attempt", "filter joined_at is required")
@@ -994,7 +1087,7 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 	if !permission.CanRead() {
 		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
 	}
-	//FIXME check queue PERMISSION
+	// FIXME check queue PERMISSION
 
 	var list []*model.Member
 	var endList bool
@@ -1159,8 +1252,48 @@ func toEngineMember(src *model.Member) *engine.MemberInQueue {
 }
 
 func (api *member) CreateAttempt(ctx context.Context, in *engine.CreateAttemptRequest) (*engine.CreateAttemptResponse, error) {
-	//TODO validate && proxy cc
+	// TODO validate && proxy cc
 	return nil, nil
+}
+
+func (api *member) AssignAttempt(ctx context.Context, in *engine.AssignAttemptRequest) (*engine.AssignAttemptResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var agentId *int64
+	if in.AgentId != 0 {
+		agentId = &in.AgentId
+	}
+
+	if err = api.ctrl.AssignAttempt(ctx, session, in.AttemptId, agentId); err != nil {
+		return nil, err
+	}
+
+	return &engine.AssignAttemptResponse{}, nil
+}
+
+func (api *member) TransferAttempt(ctx context.Context, in *engine.TransferAttemptRequest) (*engine.TransferAttemptResponse, error) {
+	session, err := api.app.GetSessionFromCtx(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var agentId, queueId *int64
+
+	if in.AgentId != 0 {
+		agentId = &in.AgentId
+	}
+	if in.QueueId != 0 {
+		queueId = &in.QueueId
+	}
+
+	if err = api.ctrl.TransferAttempt(ctx, session, in.AttemptId, agentId, queueId); err != nil {
+		return nil, err
+	}
+
+	return &engine.TransferAttemptResponse{}, nil
 }
 
 func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRequest) (*engine.AttemptResultResponse, error) {
@@ -1185,8 +1318,22 @@ func (api *member) AttemptResult(ctx context.Context, in *engine.AttemptResultRe
 		waitBetweenRetries = &in.WaitBetweenRetries
 	}
 
-	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
-		in.Display, in.AgentId, in.ExcludeCurrentCommunication, waitBetweenRetries, in.OnlyCurrentCommunication)
+	err = api.ctrl.ReportingAttempt(
+		session,
+		in.AttemptId,
+		in.Status,
+		in.Description,
+		nextOffering,
+		expire,
+		in.Variables,
+		in.Display,
+		in.AgentId,
+		in.ExcludeCurrentCommunication,
+		waitBetweenRetries,
+		in.OnlyCurrentCommunication,
+		false,
+	)
+
 	if err != nil {
 		return nil, err
 	}
@@ -1218,8 +1365,21 @@ func (api *member) AttemptCallback(ctx context.Context, in *engine.AttemptCallba
 		waitBetweenRetries = &in.WaitBetweenRetries
 	}
 
-	err = api.ctrl.ReportingAttempt(session, in.AttemptId, in.Status, in.Description, nextOffering, expire, in.Variables,
-		in.Display, in.AgentId, in.ExcludeCurrentCommunication, waitBetweenRetries, in.OnlyCurrentCommunication)
+	err = api.ctrl.ReportingAttempt(
+		session,
+		in.AttemptId,
+		in.Status,
+		in.Description,
+		nextOffering,
+		expire,
+		in.Variables,
+		in.Display,
+		in.AgentId,
+		in.ExcludeCurrentCommunication,
+		waitBetweenRetries,
+		in.OnlyCurrentCommunication,
+		false,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -1243,17 +1403,24 @@ func (api *member) AttemptsRenewalResult(ctx context.Context, in *engine.Attempt
 	return &engine.AttemptRenewalResultResponse{}, nil
 }
 
-func toEngineMemberCommunications(src []model.MemberCommunication) []*engine.MemberCommunication {
+func toEngineMemberCommunications(src []*model.MemberCommunication) []*engine.MemberCommunication {
 	res := make([]*engine.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
+		if v == nil {
+			continue
+		}
 		res = append(res, toEngineDestination(v))
 	}
 
 	return res
 }
 
-func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunication {
+func toEngineDestination(v *model.MemberCommunication) *engine.MemberCommunication {
+	if v == nil {
+		return nil
+	}
+
 	c := &engine.MemberCommunication{
 		Id:             v.Id,
 		Priority:       int32(v.Priority),
@@ -1279,13 +1446,17 @@ func toEngineDestination(v model.MemberCommunication) *engine.MemberCommunicatio
 	return c
 }
 
-func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest) []model.MemberCommunication {
-	res := make([]model.MemberCommunication, 0, len(src))
+func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest) []*model.MemberCommunication {
+	res := make([]*model.MemberCommunication, 0, len(src))
 
 	for _, v := range src {
+		if v == nil {
+			continue
+		}
+
 		c := model.MemberCommunication{
 			Priority:    int(v.GetPriority()),
-			Destination: strings.Trim(v.GetDestination(), " "),
+			Destination: strings.TrimSpace(v.GetDestination()),
 			Description: v.GetDescription(),
 			Type: model.Lookup{
 				Id: int(v.GetType().GetId()),
@@ -1301,7 +1472,7 @@ func toModelMemberCommunications(src []*engine.MemberCommunicationCreateRequest)
 		if v.GetStopAt() != 0 {
 			c.StopAt = model.NewInt64(v.GetStopAt())
 		}
-		res = append(res, c)
+		res = append(res, &c)
 	}
 
 	return res
@@ -1330,7 +1501,7 @@ func toEngineAttempt(src *model.Attempt) *engine.Attempt {
 		Bucket:          GetProtoLookup(src.Bucket),
 		List:            GetProtoLookup(src.List),
 		Display:         src.Display,
-		Destination:     toEngineDestination(src.Destination),
+		Destination:     toEngineDestination(&src.Destination),
 		Result:          "",
 	}
 
@@ -1374,7 +1545,7 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 		Bucket:        GetProtoLookup(src.Bucket),
 		List:          GetProtoLookup(src.List),
 		Display:       src.Display,
-		Destination:   toEngineDestination(src.Destination),
+		Destination:   toEngineDestination(&src.Destination),
 		Result:        src.Result,
 		AmdResult:     defaultString(src.AmdResult),
 	}
@@ -1389,6 +1560,10 @@ func toEngineAttemptHistory(src *model.AttemptHistory) *engine.AttemptHistory {
 
 	if src.Attempts != nil {
 		item.Attempts = *src.Attempts
+	}
+
+	if src.Duration != nil {
+		item.Duration = *src.Duration
 	}
 
 	return item

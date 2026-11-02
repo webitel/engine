@@ -83,7 +83,6 @@ func (t Trigger) EntityName() string {
 }
 
 func (t *Trigger) IsValid() AppError {
-
 	if t.Name == "" {
 		return NewBadRequestError("trigger.validation.name", "name is required")
 	}

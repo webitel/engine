@@ -5,9 +5,21 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.uber.org/atomic"
+
+	"github.com/webitel/webitel-go-kit/infra/health"
+	healthhttp "github.com/webitel/webitel-go-kit/infra/health/http"
+	"github.com/webitel/webitel-go-kit/infra/health/sdnotify"
+	otelhealth "github.com/webitel/webitel-go-kit/infra/otel/instrumentation/health"
+	otelsdk "github.com/webitel/webitel-go-kit/infra/otel/sdk"
+	"github.com/webitel/wlog"
+
 	"github.com/webitel/engine/app/cc"
 	"github.com/webitel/engine/app/flow"
 	"github.com/webitel/engine/call_manager"
@@ -20,19 +32,16 @@ import (
 	"github.com/webitel/engine/pkg/wbt/chat_manager"
 	"github.com/webitel/engine/store"
 	"github.com/webitel/engine/store/sqlstore"
-	otelsdk "github.com/webitel/webitel-go-kit/otel/sdk"
-	"github.com/webitel/wlog"
-	"go.opentelemetry.io/otel/sdk/resource"
-	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
-	"go.uber.org/atomic"
+	"github.com/webitel/engine/wlogslog"
 
 	// -------------------- plugin(s) -------------------- //
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/otlp"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/log/stdout"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/metric/otlp"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/metric/stdout"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/trace/otlp"
-	_ "github.com/webitel/webitel-go-kit/otel/sdk/trace/stdout"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/log/otlp"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/log/stdout"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/metric/otlp"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/metric/prometheus"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/metric/stdout"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/trace/otlp"
+	_ "github.com/webitel/webitel-go-kit/infra/otel/sdk/trace/stdout"
 )
 
 const (
@@ -64,10 +73,10 @@ type App struct {
 	tracer           *Tracer
 	otelShutdownFunc otelsdk.ShutdownFunc
 	eventTrigger     EventTrigger
+	health           *health.Registry
 }
 
 func New(options ...string) (outApp *App, outErr error) {
-
 	config, err := loadConfig()
 	if err != nil {
 		return nil, err
@@ -103,21 +112,20 @@ func New(options ...string) (outApp *App, outErr error) {
 		logConfig.FileLevel = config.Log.Lvl
 	}
 
-	if config.Log.Otel {
-		// TODO
-		logConfig.EnableExport = true
-		app.otelShutdownFunc, err = otelsdk.Configure(
-			app.ctx,
-			otelsdk.WithResource(resource.NewSchemaless(
-				semconv.ServiceName(model.APP_SERVICE_NAME),
-				semconv.ServiceVersion(model.CurrentVersion),
-				semconv.ServiceInstanceID(app.nodeId),
-				semconv.ServiceNamespace("webitel"),
-			)),
-		)
-		if err != nil {
-			return nil, err
-		}
+	logConfig.EnableExport = config.Log.Otel
+
+	app.otelShutdownFunc, err = otelsdk.Configure(
+		app.ctx,
+		otelsdk.WithResource(resource.NewSchemaless(
+			semconv.ServiceName(model.APP_SERVICE_NAME),
+			semconv.ServiceVersion(model.CurrentVersion),
+			semconv.ServiceInstanceID(app.nodeId),
+			semconv.ServiceNamespace("webitel"),
+		)),
+		otelsdk.WithRuntimeMetrics(true),
+	)
+	if err != nil {
+		return nil, err
 	}
 	app.tracer = NewTrace()
 
@@ -125,6 +133,24 @@ func New(options ...string) (outApp *App, outErr error) {
 
 	wlog.RedirectStdLog(app.Log)
 	wlog.InitGlobalLogger(app.Log)
+
+	// Before anything slow: systemd counts TimeoutStartSec from ExecStart.
+	healthLog := slog.New(wlogslog.NewHandler(app.Log))
+
+	// nil when NOTIFY_SOCKET is unset or HEALTH_ADDRESS is empty; WithTransport skips nil.
+	app.health = health.New(health.DefaultConfig(), healthLog,
+		health.WithTransport(sdnotify.New(
+			sdnotify.WithLogger(healthLog),
+			sdnotify.WithStartTimeout(time.Duration(config.Health.StartTimeout)*time.Second),
+		)),
+		health.WithTransport(healthhttp.NewServer(config.Health.Address, healthhttp.WithLogger(healthLog))),
+		health.WithTransport(otelhealth.NewTransport()),
+	)
+
+	// app.ctx: a short-lived context would stop every check.
+	if err := app.health.Start(app.ctx); err != nil {
+		return nil, fmt.Errorf("unable to start health registry: %w", err)
+	}
 
 	if err := app.setupCipher(); err != nil {
 		return nil, err
@@ -164,9 +190,18 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
-	app.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings))
+	// failfast: load sqlstore/cryptostore.Codec from environment
+	if err = sqlstore.CryptoInit(); err != nil {
+		return nil, err
+	}
+
+	// Concrete handle: store.Store does not expose Ping.
+	sqlSupplier := sqlstore.NewSqlSupplier(app.Config().SqlSettings)
+	app.Store = store.NewLayeredStore(sqlSupplier)
 
 	app.MessageQueue = rabbit.NewRabbitMQ(app.Config().NodeName, &app.Config().MessageQueueSettings)
+	app.initDomainEventListener()
+	app.MessageQueue.SetSystemSettingsEventHandler(app.handleSystemSettingEvent)
 	app.MessageQueue.Start()
 
 	app.Hubs = NewHubs(app)
@@ -217,11 +252,28 @@ func New(options ...string) (outApp *App, outErr error) {
 		}
 	}
 
+	// Critical is node-local only: a shared one drops the whole fleet at once.
+	app.health.Critical(health.SystemGRPC, health.ListenerCheck(app.GrpcServer.Listener()))
+	app.health.Informational("freeswitch", app.callManager.Ready)
+	app.health.Informational(health.SystemPostgreSQL, sqlSupplier.Ping)
+	app.health.Informational(health.SystemRabbitMQ, app.MessageQueue.Ping)
+
 	return app, outErr
 }
 
 func (app *App) Shutdown() {
 	wlog.Info("stopping Server...")
+
+	// First: stop advertising readiness before anything is torn down.
+	if app.health != nil {
+		ctx, cancel := context.WithTimeout(context.Background(),
+			time.Duration(app.config.Health.StopTimeout)*time.Second)
+		if err := app.health.Shutdown(ctx); err != nil {
+			wlog.Error(fmt.Sprintf("health shutdown: %s", err.Error()))
+		}
+
+		cancel()
+	}
 
 	if app.Hubs != nil {
 		app.Hubs.Clean()
@@ -264,9 +316,23 @@ func (app *App) CallManager() call_manager.CallManager {
 	return app.callManager
 }
 
+// Ready reports whether this node can take traffic, per the health registry.
 func (app *App) Ready() (bool, model.AppError) {
-	//TODO
-	return true, nil
+	if app.health == nil {
+		return false, model.NewInternalError("app.ready.no_registry", "health registry is not initialized")
+	}
+
+	ok, err := app.health.ReadyFunc()()
+	if ok {
+		return true, nil
+	}
+
+	reason := "not ready"
+	if err != nil {
+		reason = err.Error()
+	}
+
+	return false, model.NewInternalError("app.ready.not_ready", reason)
 }
 
 // DEPRECATED use SendDomainEvent instead
@@ -285,18 +351,18 @@ func (a *App) PublishEventContext(ctx context.Context, body []byte, object strin
 type DomainEventType string
 
 const (
-	CreateType DomainEventType  = "create"
+	CreateType DomainEventType = "create"
 	DeleteType DomainEventType = "delete"
 	UpdateType DomainEventType = "update"
 )
 
 type DomainEvent struct {
-	DomainID int64
-	Object string
+	DomainID  int64
+	Object    string
 	EventType DomainEventType
-	User int64
-	Time time.Time
-	Body any
+	User      int64
+	Time      time.Time
+	Body      any
 }
 
 func (d *DomainEvent) Validate() error {
@@ -319,11 +385,11 @@ func formatDomainEventKey(event *DomainEvent) (string, error) {
 	if event.Object == "" {
 		return "", errors.New("object required")
 	}
-	if event.EventType== "" {
+
+	if event.EventType == "" {
 		return "", errors.New("event type required")
 	}
 	return fmt.Sprintf("%s.%s.%d", event.Object, event.EventType, event.DomainID), nil
-	
 }
 
 func (a *App) SendDomainEvent(ctx context.Context, event *DomainEvent) error {
@@ -340,6 +406,6 @@ func (a *App) SendDomainEvent(ctx context.Context, event *DomainEvent) error {
 	if err != nil {
 		return err
 	}
-		
+
 	return a.MessageQueue.Send(ctx, EventExchangeName, routingKey, body)
 }

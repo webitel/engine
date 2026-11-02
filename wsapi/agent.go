@@ -35,19 +35,18 @@ func (api *API) subscribeAgentsStatus(ctx context.Context, conn *app.WebConn, re
 	return nil, h.SubscribeSessionAgentStatus(conn, int(agentId))
 }
 
-func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var userId int64
-	var domainId int64
-	var ok bool
-	if userId, ok = req.Data["user_id"].(int64); !ok {
-		userId = conn.UserId
+func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	userID, ok := req.Get("user_id").(int64)
+	if !ok {
+		userID = conn.UserId
 	}
 
-	if domainId, ok = req.Data["domain_id"].(int64); !ok {
-		domainId = conn.DomainId
+	domainID, ok := req.Get("domain_id").(int64)
+	if !ok {
+		domainID = conn.DomainId
 	}
 
-	sess, err := api.ctrl.GetAgentSession(ctx, conn.GetSession(), domainId, userId)
+	sess, err := api.ctrl.GetAgentSession(ctx, conn.GetSession(), domainID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,28 +54,14 @@ func (api *API) getAgentSession(ctx context.Context, conn *app.WebConn, req *mod
 	return sess.ToMap(), nil
 }
 
-func (api *API) onlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId float64
-	var domainId float64
-	var onDemand bool
-	var ok bool
+func (api *API) onlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	r := model.NewAgentLoginRequestFromSocketRequest(req, conn.DomainId)
 
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
-	}
-
-	if domainId, ok = req.Data["domain_id"].(float64); !ok {
-		domainId = float64(conn.DomainId)
-	}
-
-	onDemand, _ = req.Data["on_demand"].(bool)
-	err := api.ctrl.LoginAgent(ctx, conn.GetSession(), int64(domainId), int64(agentId), onDemand)
-	if err != nil {
+	if err := api.ctrl.LoginAgentFromRequest(ctx, conn.GetSession(), r); err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	return res, nil
+	return make(map[string]any), nil
 }
 
 func (api *API) offlineAgent(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -157,50 +142,37 @@ func (api *API) waitingAgent(ctx context.Context, conn *app.WebConn, req *model.
 	return res, nil
 }
 
-func (api *API) agentTasks(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId, domainId float64
-	var ok bool
-
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
+func (api *API) agentTasks(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	agentId, ok := req.Data["agent_id"].(float64)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
 	}
 
-	if domainId, ok = req.Data["domain_id"].(float64); !ok {
-		domainId = float64(conn.DomainId)
+	domainID, ok := req.Data["domain_id"].(float64)
+	if !ok {
+		domainID = float64(conn.DomainId)
 	}
 
-	list, err := api.ctrl.ActiveAgentTasks(ctx, conn.GetSession(), int64(domainId), int64(agentId))
+	list, err := api.ctrl.ActiveAgentTasks(ctx, conn.GetSession(), int64(domainID), int64(agentId))
 	if err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
+	res := make(map[string]any)
 	res["items"] = list
 	return res, nil
 }
 
 func (api *API) acceptAgentTask(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var agentId, attemptId float64
-	var ok bool
+	sess := conn.GetSession()
 
-	if agentId, ok = req.Data["agent_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "agent_id")
+	r := model.NewAcceptAttemptRequestFromSocket(req, sess.Domain(0), sess.GetUserId())
+	if invalid := r.FindInvalidAgrument(); invalid != "" {
+		return nil, NewInvalidWebSocketParamError(req.Action, invalid)
 	}
 
-	if attemptId, ok = req.Data["attempt_id"].(float64); !ok {
-		return nil, NewInvalidWebSocketParamError(req.Action, "attempt_id")
-	}
+	err := api.ctrl.AcceptAgentTask(ctx, conn.GetSession(), r)
 
-	appId, _ := req.Data["app_id"].(string)
-	if appId == "" {
-		return nil, NewInvalidWebSocketParamError(req.Action, "app_id")
-	}
-
-	if agentId == 0 {
-		//todo
-	}
-
-	err := api.ctrl.AcceptAgentTask(conn.GetSession(), appId, int64(attemptId))
 	return nil, err
 }
 

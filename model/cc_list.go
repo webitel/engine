@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type List struct {
 	DomainRecord
@@ -66,9 +69,13 @@ func (a ListCommunication) EntityName() string {
 }
 
 func (l *ListCommunication) IsValid() AppError {
+	if strings.TrimSpace(l.Number) == "" {
+		return NewBadRequestError("list_communication.valid.number", "Number is required")
+	}
+
 	if l.ExpireAt != nil && l.ExpireAt.Unix() < time.Now().Unix() {
 		return NewBadRequestError("list_communication.valid.expire_at", "The date for the expiry has passed ")
 	}
-	//FIXME
+
 	return nil
 }

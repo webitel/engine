@@ -67,5 +67,4 @@ type SqlStore interface {
 	WebHook() store.WebHookStore
 	SocketSession() store.SocketSessionStore
 	Feedback() store.FeedbackStore
-	//SchemeVersion() store.SystemSettingsStore
 }

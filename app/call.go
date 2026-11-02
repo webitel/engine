@@ -12,7 +12,7 @@ import (
 	"github.com/webitel/engine/call_manager"
 	"github.com/webitel/engine/gen/cc"
 	"github.com/webitel/engine/model"
-	sqloptions "github.com/webitel/engine/store/sql_options"
+	"github.com/webitel/engine/utils"
 )
 
 const (
@@ -109,6 +109,10 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 		}
 	}
 
+	if ua, ok := utils.UserAgentFromContext(ctx); ok {
+		invite.AddVariable("sip_h_User-Agent", ua)
+	}
+
 	if req.Params.HideNumber {
 		invite.AddVariable("wbt_hide_number", "true")
 	}
@@ -151,41 +155,40 @@ func (app *App) RedialCall(ctx context.Context, domainId, userId int64, callId s
 	req := &model.OutboundCallRequest{
 		CreatedAt:   model.GetMillis(),
 		CreatedById: userId,
-		From: &model.EndpointRequest{
-			UserId: &userId,
-		},
-		To:          nil,
+		From:        &model.EndpointRequest{UserId: &userId},
 		Destination: from.Number,
 		Params: model.CallParameters{
 			DisableStun: false,
-			HideNumber:  false,
-			Variables: map[string]string{
-				"wbt_redial": callId,
-			},
+			HideNumber:  from.HideNumber,
+			Variables:   map[string]string{"wbt_redial": callId},
 		},
 	}
 
-	var dest string
-	dest, err = app.CreateOutboundCall(ctx, domainId, req, nil)
+	dest, err := app.CreateOutboundCall(ctx, domainId, req, nil)
 	if err != nil {
 		return "", err
 	}
 
-	err = app.Store.Call().SetHideMissedAllParent(ctx, domainId, userId, callId)
-	if err != nil {
+	if err = app.Store.Call().SetHideMissedAllParent(ctx, domainId, userId, callId); err != nil {
 		return "", err
 	}
 
-	if len(from.UserIds) != 0 {
-		err = app.MessageQueue.SendNotification(domainId, &model.Notification{
-			DomainId:  domainId,
-			Action:    refreshMissedNotification,
-			CreatedAt: model.GetMillis(),
-			ForUsers:  from.UniqueUsers(),
-			Body: map[string]any{
-				"id": callId,
-			},
-		})
+	if len(from.UserIds) == 0 {
+		return dest, nil
+	}
+
+	err = app.MessageQueue.SendNotification(domainId, &model.Notification{
+		DomainId:  domainId,
+		Action:    refreshMissedNotification,
+		CreatedAt: model.GetMillis(),
+		ForUsers:  from.UniqueUsers(),
+		Body: map[string]any{
+			"id": callId,
+		},
+	})
+
+	if err != nil {
+		app.Log.Error("sending refresh missed notification", wlog.Err(err), wlog.String("call_id", callId))
 	}
 
 	return dest, nil
@@ -530,9 +533,7 @@ func (app *App) GetUserActiveCalls(ctx context.Context, domainID, userID int64) 
 }
 
 func (app *App) GetHistoryCallPage(ctx context.Context, domainId, userId int64, search *model.SearchHistoryCall) ([]*model.HistoryCall, bool, model.AppError) {
-	userGlobalGrantOption := sqloptions.WithUserGrantFilterOption(uint(userId), model.GLOBAL_SELECT_GRANT)
-
-	list, err := app.Store.Call().GetHistory(ctx, domainId, search, userGlobalGrantOption)
+	list, err := app.Store.Call().GetHistory(ctx, domainId, search)
 	if err != nil {
 		return nil, false, err
 	}
@@ -664,6 +665,42 @@ func (app *App) BlindTransferCallToQueue(ctx context.Context, domainId int64, re
 		Destination:     q,
 		Variables:       req.Variables,
 	})
+}
+
+func (app *App) BlindTransferCallToDialplan(ctx context.Context, domainId int64, req *model.BlindTransferCallToDialplan) model.AppError {
+	routing, err := app.GetRoutingOutboundCallById(ctx, domainId, int64(req.DialplanId))
+	if err != nil {
+		return err
+	}
+
+	if !routing.AllowTransfer {
+		return model.NewBadRequestError("app.call.transfer_dialplan.valid.allow_transfer", "Transfer on this dialplan is not allowed")
+	}
+
+	if req.Variables == nil {
+		req.Variables = make(map[string]string)
+	}
+
+	s := strconv.Itoa(routing.Schema.Id)
+
+	req.Variables["transfer_to_schema_id"] = s
+
+	cli, err := app.getCallCli(ctx, domainId, req.Id, req.AppId)
+	if err != nil {
+		return err
+	}
+
+	leg, err := app.Store.Call().BridgedCall(ctx, req.Id)
+	if err != nil {
+		return err
+	}
+
+	destination := leg.Destination
+	if destination == "" {
+		destination = s
+	}
+
+	return cli.BlindTransferSchema(leg.ID, destination, req.Variables)
 }
 
 func (app *App) BlindTransferCall(ctx context.Context, domainId int64, req *model.BlindTransferCall) model.AppError {
@@ -860,6 +897,10 @@ func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string
 	}
 
 	return list[0], nil
+}
+
+func (app *App) PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError) {
+	return app.Store.Call().PatchHistoryCallAttempt(ctx, patch)
 }
 
 /*
