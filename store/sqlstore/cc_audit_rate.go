@@ -6,8 +6,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"net/http"
+
+	"github.com/webitel/engine/pkg/wbt/auth_manager"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -98,6 +99,9 @@ from  r
 	})
 
 	if err != nil {
+		if isDuplicationViolationErrorCode(err) {
+			return nil, model.NewBadRequestError("store.sql_audit_rate.save.already_rated", "already rated")
+		}
 		return nil, model.NewInternalError("store.sql_audit_rate.save.app_error", err.Error())
 	}
 
@@ -315,6 +319,49 @@ group by c.created_at, c.closed_at`, conversationId, domainId)
 			return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_chat.no_operator", "chat has no operator, cannot be rated")
 		}
 		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_chat.multiple_operators", "chat handled by multiple operators, cannot be rated")
+	}
+
+	return userId, createdAt, nil
+}
+
+func (s *SqlAuditRateStore) ValidateCallRate(ctx context.Context, domainId int64, callId string) (*int64, time.Time, model.AppError) {
+	var (
+		userId    *int64
+		createdAt time.Time
+		allowed   bool
+		rated     bool
+	)
+
+	row := s.GetReplica().WithContext(ctx).QueryRow(`select a.user_id,
+       case when c.user_id notnull or q.type = 2 then c.created_at else p.created_at end as created_at,
+       a.call_id notnull                                                              as allowed,
+       exists (select 1
+               from call_center.cc_audit_rate ar
+               where ar.call_id = any (array(select f.id::text
+                                             from call_center.cc_call_family(call_center.cc_call_root_id(c.id)) f))
+                 and (ar.call_id = c.id::text or ar.rated_user_id = a.user_id))        as rated
+from call_center.cc_calls_history c
+    left join call_center.cc_queue q on q.id = c.queue_id
+    left join call_center.cc_calls_history p on p.id = c.bridged_id
+    left join lateral (select e.call_id, e.user_id
+                       from call_center.cc_call_evaluation_agents(call_center.cc_call_root_id(c.id)) e
+                       where e.call_id = c.id) a on true
+where c.id = $1::uuid and c.domain_id = $2::int8`, callId, domainId)
+
+	err := row.Scan(&userId, &createdAt, &allowed, &rated)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_call.not_found", "call not found", http.StatusNotFound)
+		}
+		return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_call.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if !allowed {
+		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_call.not_allowed", "call leg is not evaluable")
+	}
+
+	if rated {
+		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.save.already_rated", "already rated")
 	}
 
 	return userId, createdAt, nil

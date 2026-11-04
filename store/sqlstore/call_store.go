@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/lib/pq"
@@ -451,22 +450,47 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		))
 		and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 					and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or
-				case when not :Rated::bool then not exists(
-						select 1
-						from call_center.cc_audit_rate ar
-						where ar.call_id = t.id::text)
- 					else exists(
-						select 1
-						from call_center.cc_audit_rate ar
-						where ar.call_id = t.id::text
-							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-							and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
-							and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
-							and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
-							and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
-					)
-				 end
+				case when not :Rated::bool then
+					case when t.parent_id isnull
+						then t.id not in (
+							select x.root_id
+							from (select call_center.cc_call_root_id(ar.call_id::uuid) root_id
+								from call_center.cc_audit_rate ar
+								where ar.domain_id = :Domain::int8
+									and ar.call_id notnull
+									and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)) x
+							where x.root_id notnull)
+						else t.id::text not in (
+							select ar.call_id
+							from call_center.cc_audit_rate ar
+							where ar.domain_id = :Domain::int8 and ar.call_id notnull)
+					end
+				else
+					case when t.parent_id isnull
+						then t.id in (
+							select call_center.cc_call_root_id(ar.call_id::uuid)
+							from call_center.cc_audit_rate ar
+							where ar.domain_id = :Domain::int8
+								and ar.call_id notnull
+								and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)
+								and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+								and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+								and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
+								and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
+								and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
+								and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
+						else exists(
+							select 1
+							from call_center.cc_audit_rate ar
+							where ar.call_id = t.id::text
+								and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+								and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+								and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
+								and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
+								and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
+								and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
+					end
+				end
 		)
 		and (:ExcludedQueueTypes::int[] is null or queue_type is null or queue_type <> all(:ExcludedQueueTypes::int[]))
 	`
@@ -676,22 +700,47 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or
-			case when not :Rated::bool then not exists(
-					select 1
-					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id::text)
- 				else exists(
-					select 1
-					from call_center.cc_audit_rate ar
-					where ar.call_id = t.id::text
-						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-						and ( :ScoreOptionalFrom::numeric isnull or score_optional >= :ScoreOptionalFrom::numeric )
-						and ( :ScoreOptionalTo::numeric isnull or score_optional <= :ScoreOptionalTo::numeric )
-						and ( :ScoreRequiredFrom::numeric isnull or score_required >= :ScoreRequiredFrom::numeric )
-						and ( :ScoreRequiredTo::numeric isnull or score_required <= :ScoreRequiredTo::numeric )
-				)
-			 end
+			case when not :Rated::bool then
+				case when t.parent_id isnull
+					then t.id not in (
+						select x.root_id
+						from (select call_center.cc_call_root_id(ar.call_id::uuid) root_id
+							from call_center.cc_audit_rate ar
+							where ar.domain_id = :Domain::int8
+								and ar.call_id notnull
+								and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)) x
+						where x.root_id notnull)
+					else t.id::text not in (
+						select ar.call_id
+						from call_center.cc_audit_rate ar
+						where ar.domain_id = :Domain::int8 and ar.call_id notnull)
+				end
+			else
+				case when t.parent_id isnull
+					then t.id in (
+						select call_center.cc_call_root_id(ar.call_id::uuid)
+						from call_center.cc_audit_rate ar
+						where ar.domain_id = :Domain::int8
+							and ar.call_id notnull
+							and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)
+							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+							and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
+							and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
+							and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
+							and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
+					else exists(
+						select 1
+						from call_center.cc_audit_rate ar
+						where ar.call_id = t.id::text
+							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+							and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
+							and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
+							and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
+							and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
+				end
+			end
 		)
 	and (
 		(t.user_id = any (call_center.cc_calls_rbac_users(:Domain::int8, :UserSupervisorId::int8) || :Groups::int[])
@@ -1366,30 +1415,6 @@ where c.domain_id = :DomainId and c.id = :Id::uuid and c.state in ('active', 'br
 	}
 
 	return res, nil
-}
-
-func (s SqlCallStore) GetOwnerUserCall(ctx context.Context, id string) (*int64, time.Time, model.AppError) {
-	var userId *int64
-	var createdAt time.Time
-
-	row := s.GetReplica().WithContext(ctx).QueryRow(`select coalesce(c.user_id, p.user_id) as rate_user,
-       case when c.user_id notnull or q.type = 2  then c.created_at else p.created_at end as created_at
-from call_center.cc_calls_history c
-    left join call_center.cc_queue q on q.id = c.queue_id
-    left join call_center.cc_calls_history p on p.id = c.bridged_id
-where c.id = $1::uuid`, id)
-
-	err := row.Err()
-	if err != nil {
-		return userId, createdAt, model.NewCustomCodeError("store.sql_call.get.owner.app_error", err.Error(), extractCodeFromErr(err))
-	}
-
-	err = row.Scan(&userId, &createdAt)
-	if err != nil {
-		return userId, createdAt, model.NewCustomCodeError("store.sql_call.get.owner.app_error", err.Error(), extractCodeFromErr(err))
-	}
-
-	return userId, createdAt, nil
 }
 
 func (s SqlCallStore) UpdateHistoryCall(ctx context.Context, domainId int64, id string, upd *model.HistoryCallPatch) model.AppError {
