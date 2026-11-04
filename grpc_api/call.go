@@ -1136,6 +1136,8 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 	if src.ScoreRequired != nil {
 		item.ScoreRequired = *src.ScoreRequired
 	}
+	item.Rates = toCallRates(src.Rates)
+	item.EvaluationAgents = toEvaluationAgents(src.EvaluationAgents)
 
 	if src.AttemptId != nil {
 		item.AttemptId = *src.AttemptId
@@ -1281,6 +1283,55 @@ func toCallFileTranscriptLookups(src []*model.CallFileTranscriptLookup) []*engin
 			FileId: v.FileId,
 			File:   GetProtoLookup(v.File),
 		})
+	}
+
+	return res
+}
+
+func toCallRates(src []*model.CallRate) []*engine.HistoryCall_CallRate {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.HistoryCall_CallRate, 0, len(src))
+	for _, v := range src {
+		r := &engine.HistoryCall_CallRate{
+			Id:        v.Id,
+			CallId:    v.CallId,
+			RatedUser: GetProtoLookup(v.RatedUser),
+			RatedBy:   GetProtoLookup(v.RatedBy),
+			CreatedAt: v.CreatedAt,
+		}
+		if v.ScoreRequired != nil {
+			r.ScoreRequired = *v.ScoreRequired
+		}
+		if v.ScoreOptional != nil {
+			r.ScoreOptional = *v.ScoreOptional
+		}
+		res = append(res, r)
+	}
+
+	return res
+}
+
+func toEvaluationAgents(src []*model.EvaluationAgent) []*engine.HistoryCall_EvaluationAgent {
+	if src == nil {
+		return nil
+	}
+
+	res := make([]*engine.HistoryCall_EvaluationAgent, 0, len(src))
+	for _, v := range src {
+		r := &engine.HistoryCall_EvaluationAgent{
+			CallId: v.CallId,
+			User:   GetProtoLookup(v.User),
+		}
+		if v.BridgedAt != nil {
+			r.BridgedAt = *v.BridgedAt
+		}
+		if v.RateId != nil {
+			r.RateId = *v.RateId
+		}
+		res = append(res, r)
 	}
 
 	return res

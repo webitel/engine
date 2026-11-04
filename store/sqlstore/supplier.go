@@ -524,6 +524,8 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 		*model.QuestionAnswers,
 		*[]*model.BlindTransfer,
 		*[]*model.CallForm,
+		*[]*model.CallRate,
+		*[]*model.EvaluationAgent,
 		**model.QualityMetrics:
 		binder := func(holder, target any) error {
 			s, ok := holder.(*[]byte)
