@@ -52,6 +52,8 @@ const (
 	SysNameRecordAllCalls                    = "record_all_calls"
 	SysNameAutoDeactivationPeriod            = "auto_deactivation_period"
 	SysNameAutoDeletionPeriod                = "auto_deletion_period"
+	SysNameMaxLoginAttempts                  = "max_login_attempts"
+	SysNameBlockLoginTime                    = "block_login_time"
 )
 
 type SysValue json.RawMessage
@@ -118,7 +120,8 @@ func (s *SystemSetting) IsValid() AppError {
 		return nil
 	case SysNameMemberInsertChunkSize, SysNameSearchNumberLength,
 		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
-		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays:
+		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays,
+		SysNameMaxLoginAttempts, SysNameBlockLoginTime:
 		value := SysValue(s.Value)
 		i := value.Int()
 

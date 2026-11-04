@@ -155,41 +155,40 @@ func (app *App) RedialCall(ctx context.Context, domainId, userId int64, callId s
 	req := &model.OutboundCallRequest{
 		CreatedAt:   model.GetMillis(),
 		CreatedById: userId,
-		From: &model.EndpointRequest{
-			UserId: &userId,
-		},
-		To:          nil,
+		From:        &model.EndpointRequest{UserId: &userId},
 		Destination: from.Number,
 		Params: model.CallParameters{
 			DisableStun: false,
-			HideNumber:  false,
-			Variables: map[string]string{
-				"wbt_redial": callId,
-			},
+			HideNumber:  from.HideNumber,
+			Variables:   map[string]string{"wbt_redial": callId},
 		},
 	}
 
-	var dest string
-	dest, err = app.CreateOutboundCall(ctx, domainId, req, nil)
+	dest, err := app.CreateOutboundCall(ctx, domainId, req, nil)
 	if err != nil {
 		return "", err
 	}
 
-	err = app.Store.Call().SetHideMissedAllParent(ctx, domainId, userId, callId)
-	if err != nil {
+	if err = app.Store.Call().SetHideMissedAllParent(ctx, domainId, userId, callId); err != nil {
 		return "", err
 	}
 
-	if len(from.UserIds) != 0 {
-		err = app.MessageQueue.SendNotification(domainId, &model.Notification{
-			DomainId:  domainId,
-			Action:    refreshMissedNotification,
-			CreatedAt: model.GetMillis(),
-			ForUsers:  from.UniqueUsers(),
-			Body: map[string]any{
-				"id": callId,
-			},
-		})
+	if len(from.UserIds) == 0 {
+		return dest, nil
+	}
+
+	err = app.MessageQueue.SendNotification(domainId, &model.Notification{
+		DomainId:  domainId,
+		Action:    refreshMissedNotification,
+		CreatedAt: model.GetMillis(),
+		ForUsers:  from.UniqueUsers(),
+		Body: map[string]any{
+			"id": callId,
+		},
+	})
+
+	if err != nil {
+		app.Log.Error("sending refresh missed notification", wlog.Err(err), wlog.String("call_id", callId))
 	}
 
 	return dest, nil

@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 	"golang.org/x/oauth2"
@@ -68,9 +69,21 @@ func (a *App) UpdateEmailProfile(ctx context.Context, domainId int64, p *model.E
 	oldProfile.SmtpPort = p.SmtpPort
 	oldProfile.SmtpHost = p.SmtpHost
 	oldProfile.FetchInterval = p.FetchInterval
-	oldProfile.Params = p.Params
 	oldProfile.Listen = p.Listen
 	oldProfile.AuthType = p.AuthType
+	// populate last known client_secret phrase
+	// if we got suppressed valued from GET request
+	if p.Params != nil && p.Params.OAuth2 != nil {
+		var vs, v2 string // OLD, NEW
+		v2 = p.Params.OAuth2.ClientSecret
+		if oldProfile.Params != nil && oldProfile.Params.OAuth2 != nil {
+			vs = oldProfile.Params.OAuth2.ClientSecret
+		}
+		if vs != "" && v2 == model.SecretView.Suppress(vs) {
+			p.Params.OAuth2.ClientSecret = vs
+		}
+	}
+	oldProfile.Params = p.Params
 
 	oldProfile, err = a.Store.EmailProfile().Update(ctx, domainId, oldProfile)
 	if err != nil {

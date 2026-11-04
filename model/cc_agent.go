@@ -418,6 +418,10 @@ func (a *Agent) IsValid() AppError {
 		return NewBadRequestError("model.Agent.valid.ProgressiveCount", "The call count should be more or equal 1")
 	}
 
+	if a.Team == nil || a.Team.Id == 0 {
+		return NewBadRequestError("model.Agent.valid.Team", "Team is required")
+	}
+
 	return nil //TODO
 }
 

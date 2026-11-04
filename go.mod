@@ -22,10 +22,12 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/pkg/errors v0.9.1
 	github.com/rabbitmq/amqp091-go v1.10.0
+	github.com/webitel/crypto/cryptostore v0.3.0
 	github.com/webitel/engine/pkg/discovery v0.0.0-20250925090335-284caa978daa
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
 	github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a
 	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
+	github.com/webitel/webitel-cryptoctl/schema v0.1.0
 	github.com/webitel/webitel-go-kit/infra/health v0.3.0
 	github.com/webitel/webitel-go-kit/infra/otel v0.6.0
 	github.com/webitel/wlog v0.0.0-20250325101442-de4f125c1ec7
@@ -111,6 +113,9 @@ require (
 	github.com/spiffe/go-spiffe/v2 v2.8.1 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tiendc/go-deepcopy v1.7.2 // indirect
+	github.com/webitel/crypto/cryptobox v0.3.0 // indirect
+	github.com/webitel/crypto/encoding/jsonc v0.1.0 // indirect
+	github.com/webitel/crypto/env v0.2.0 // indirect
 	github.com/webitel/webitel-go-kit/pkg/logging v0.1.0 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
@@ -150,3 +155,5 @@ require (
 )
 
 replace github.com/webitel/engine/pkg/wbt => ./pkg/wbt
+
+replace github.com/webitel/engine/pkg/presign => ./pkg/presign
