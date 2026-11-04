@@ -134,3 +134,31 @@ func (api *memberApi) SaveFormFields(domainId, attemptId int64, fields map[strin
 
 	return err
 }
+
+func (api *memberApi) EmailAttemptTake(ctx context.Context, in *cc.EmailAttemptTakeRequest) (*cc.EmailAttemptResponse, error) {
+	return api.Api.EmailAttemptTake(ctx, in)
+}
+
+func (api *memberApi) EmailAttemptPostpone(ctx context.Context, in *cc.EmailAttemptPostponeRequest) (*cc.EmailAttemptResponse, error) {
+	return api.Api.EmailAttemptPostpone(ctx, in)
+}
+
+func (api *memberApi) EmailAttemptReturn(ctx context.Context, in *cc.EmailAttemptReturnRequest) (*cc.EmailAttemptResponse, error) {
+	return api.Api.EmailAttemptReturn(ctx, in)
+}
+
+func (api *memberApi) EmailAttemptComplete(ctx context.Context, in *cc.EmailAttemptCompleteRequest) (*cc.EmailAttemptResponse, error) {
+	return api.Api.EmailAttemptComplete(ctx, in)
+}
+
+func (api *memberApi) EmailAttemptResume(ctx context.Context, in *cc.ResumeAttemptRequest) (*cc.ResumeAttemptResponse, error) {
+	return api.Api.ResumeAttempt(ctx, in)
+}
+
+func (api *memberApi) EmailAttemptRenew(ctx context.Context, in *cc.AttemptRenewalResultRequest) (*cc.AttemptRenewalResultResponse, error) {
+	return api.Api.AttemptRenewalResult(ctx, in)
+}
+
+func (api *memberApi) EmailAttemptTransfer(ctx context.Context, in *cc.TransferRequest) (*cc.TransferResponse, error) {
+	return api.Api.Transfer(ctx, in)
+}

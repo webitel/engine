@@ -58,6 +58,7 @@ type Config struct {
 	Health                  HealthSettings   `json:"health"`
 	TriggersSettings        TriggersSettings `json:"triggers_settings"`
 	RTCConfiguration        string           `json:"rtc_configuration" flag:"rtc_configuration||RTCConfiguration" default:"" env:"RTC_CONFIGURATION"`
+	EmailCommandTimeout     int              `json:"email_command_timeout" flag:"email_command_timeout|10|Seconds an Email command waits for call_center" env:"EMAIL_COMMAND_TIMEOUT"`
 }
 
 type PushConfig struct {

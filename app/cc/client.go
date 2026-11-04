@@ -43,6 +43,15 @@ type MemberApi interface {
 	InterceptAttempt(ctx context.Context, domainId int64, attemptId int64, agentId int32) error
 	TransferAttempt(ctx context.Context, domainId int64, attemptId int64, agentId, queueId int32) error
 	ResumeAttempt(ctx context.Context, attemptId int64, domainId int64) error
+
+	// Email commands of an operator; errors are the gRPC status of call_center.
+	EmailAttemptTake(ctx context.Context, in *cc.EmailAttemptTakeRequest) (*cc.EmailAttemptResponse, error)
+	EmailAttemptPostpone(ctx context.Context, in *cc.EmailAttemptPostponeRequest) (*cc.EmailAttemptResponse, error)
+	EmailAttemptReturn(ctx context.Context, in *cc.EmailAttemptReturnRequest) (*cc.EmailAttemptResponse, error)
+	EmailAttemptComplete(ctx context.Context, in *cc.EmailAttemptCompleteRequest) (*cc.EmailAttemptResponse, error)
+	EmailAttemptResume(ctx context.Context, in *cc.ResumeAttemptRequest) (*cc.ResumeAttemptResponse, error)
+	EmailAttemptRenew(ctx context.Context, in *cc.AttemptRenewalResultRequest) (*cc.AttemptRenewalResultResponse, error)
+	EmailAttemptTransfer(ctx context.Context, in *cc.TransferRequest) (*cc.TransferResponse, error)
 }
 
 type CCManager interface {
