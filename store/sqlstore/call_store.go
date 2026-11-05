@@ -450,46 +450,20 @@ func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *mo
 		))
 		and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 					and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or
-				case when not :Rated::bool then
-					case when t.parent_id isnull
-						then t.id not in (
-							select x.root_id
-							from (select call_center.cc_call_root_id(ar.call_id::uuid) root_id
-								from call_center.cc_audit_rate ar
-								where ar.domain_id = :Domain::int8
-									and ar.call_id notnull
-									and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)) x
-							where x.root_id notnull)
-						else t.id::text not in (
-							select ar.call_id
-							from call_center.cc_audit_rate ar
-							where ar.domain_id = :Domain::int8 and ar.call_id notnull)
-					end
-				else
-					case when t.parent_id isnull
-						then t.id in (
-							select call_center.cc_call_root_id(ar.call_id::uuid)
-							from call_center.cc_audit_rate ar
-							where ar.domain_id = :Domain::int8
-								and ar.call_id notnull
-								and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)
-								and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-								and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-								and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
-								and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
-								and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
-								and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
-						else exists(
-							select 1
-							from call_center.cc_audit_rate ar
-							where ar.call_id = t.id::text
-								and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-								and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-								and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
-								and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
-								and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
-								and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
-					end
+				case when not :Rated::bool then not exists(
+						select 1
+						from call_center.cc_audit_rate ar
+						where ar.call_root_id = t.id or ar.call_id = t.id::text)
+					else exists(
+						select 1
+						from call_center.cc_audit_rate ar
+						where (ar.call_root_id = t.id or ar.call_id = t.id::text)
+							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+							and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
+							and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
+							and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
+							and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
 				end
 		)
 		and (:ExcludedQueueTypes::int[] is null or queue_type is null or queue_type <> all(:ExcludedQueueTypes::int[]))
@@ -700,46 +674,20 @@ func (s SqlCallStore) GetHistoryByGroups(ctx context.Context, domainId, userSupe
 	))
 	and ( (:Rated::bool isnull and :RatedUserIds::int8[] isnull and :RatedByIds::int8[] isnull and :ScoreOptionalFrom::numeric isnull
 				and :ScoreOptionalTo::numeric isnull and :ScoreRequiredFrom::numeric isnull and :ScoreRequiredTo::numeric isnull ) or
-			case when not :Rated::bool then
-				case when t.parent_id isnull
-					then t.id not in (
-						select x.root_id
-						from (select call_center.cc_call_root_id(ar.call_id::uuid) root_id
-							from call_center.cc_audit_rate ar
-							where ar.domain_id = :Domain::int8
-								and ar.call_id notnull
-								and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)) x
-						where x.root_id notnull)
-					else t.id::text not in (
-						select ar.call_id
-						from call_center.cc_audit_rate ar
-						where ar.domain_id = :Domain::int8 and ar.call_id notnull)
-				end
-			else
-				case when t.parent_id isnull
-					then t.id in (
-						select call_center.cc_call_root_id(ar.call_id::uuid)
-						from call_center.cc_audit_rate ar
-						where ar.domain_id = :Domain::int8
-							and ar.call_id notnull
-							and (:From::timestamptz isnull or ar.call_created_at isnull or ar.call_created_at >= :From::timestamptz)
-							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-							and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
-							and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
-							and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
-							and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
-					else exists(
-						select 1
-						from call_center.cc_audit_rate ar
-						where ar.call_id = t.id::text
-							and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
-							and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
-							and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
-							and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
-							and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
-							and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
-				end
+			case when not :Rated::bool then not exists(
+					select 1
+					from call_center.cc_audit_rate ar
+					where ar.call_root_id = t.id or ar.call_id = t.id::text)
+				else exists(
+					select 1
+					from call_center.cc_audit_rate ar
+					where (ar.call_root_id = t.id or ar.call_id = t.id::text)
+						and (:RatedUserIds::int8[] isnull or ar.rated_user_id = any(:RatedUserIds::int8[]))
+						and (:RatedByIds::int8[] isnull or ar.created_by = any(:RatedByIds::int8[]))
+						and ( :ScoreOptionalFrom::numeric isnull or ar.score_optional >= :ScoreOptionalFrom::numeric )
+						and ( :ScoreOptionalTo::numeric isnull or ar.score_optional <= :ScoreOptionalTo::numeric )
+						and ( :ScoreRequiredFrom::numeric isnull or ar.score_required >= :ScoreRequiredFrom::numeric )
+						and ( :ScoreRequiredTo::numeric isnull or ar.score_required <= :ScoreRequiredTo::numeric ))
 			end
 		)
 	and (
