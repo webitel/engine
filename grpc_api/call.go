@@ -1288,14 +1288,14 @@ func toCallFileTranscriptLookups(src []*model.CallFileTranscriptLookup) []*engin
 	return res
 }
 
-func toCallRates(src []*model.CallRate) []*engine.HistoryCall_CallRate {
+func toCallRates(src []*model.CallRate) []*engine.HistoryCallRate {
 	if src == nil {
 		return nil
 	}
 
-	res := make([]*engine.HistoryCall_CallRate, 0, len(src))
+	res := make([]*engine.HistoryCallRate, 0, len(src))
 	for _, v := range src {
-		r := &engine.HistoryCall_CallRate{
+		r := &engine.HistoryCallRate{
 			Id:        v.Id,
 			CallId:    v.CallId,
 			RatedUser: GetProtoLookup(v.RatedUser),
@@ -1314,14 +1314,14 @@ func toCallRates(src []*model.CallRate) []*engine.HistoryCall_CallRate {
 	return res
 }
 
-func toEvaluationAgents(src []*model.EvaluationAgent) []*engine.HistoryCall_EvaluationAgent {
+func toEvaluationAgents(src []*model.EvaluationAgent) []*engine.HistoryCallEvaluationAgent {
 	if src == nil {
 		return nil
 	}
 
-	res := make([]*engine.HistoryCall_EvaluationAgent, 0, len(src))
+	res := make([]*engine.HistoryCallEvaluationAgent, 0, len(src))
 	for _, v := range src {
-		r := &engine.HistoryCall_EvaluationAgent{
+		r := &engine.HistoryCallEvaluationAgent{
 			CallId: v.CallId,
 			User:   GetProtoLookup(v.User),
 		}

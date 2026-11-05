@@ -54,9 +54,9 @@ func (s *SqlAuditRateStore) CheckAccess(ctx context.Context, domainId, rateId in
 func (s *SqlAuditRateStore) Create(ctx context.Context, domainId int64, rate *model.AuditRate) (*model.AuditRate, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&rate, `with r as (
     insert into call_center.cc_audit_rate (domain_id, form_id, created_at, created_by, updated_at, updated_by, answers, score_required, score_optional,
-		comment, call_id, conversation_id, call_created_at, rated_user_id, select_yes_count, critical_count)
+		comment, call_id, call_root_id, conversation_id, call_created_at, rated_user_id, select_yes_count, critical_count)
     values (:DomainId, :FormId, :CreatedAt, :CreatedBy, :UpdatedAt, :UpdatedBy, :Answers, :ScoreRequired, :ScoreOptional,
-		:Comment, :CallId, :ConversationId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
+		:Comment, :CallId, call_center.cc_call_root_id(:CallId::uuid), :ConversationId, :CallCreatedAt, :RatedUserId, :SelectYesCount, :CriticalCount)
     returning *
 )
 select r.id,
@@ -99,13 +99,17 @@ from  r
 	})
 
 	if err != nil {
-		if isDuplicationViolationErrorCode(err) {
-			return nil, model.NewBadRequestError("store.sql_audit_rate.save.already_rated", "already rated")
+		if e, ok := err.(*pq.Error); ok && (e.Constraint == "cc_audit_rate_call_id_uindex" || e.Constraint == "cc_audit_rate_conversation_id_uindex") {
+			return nil, errAlreadyRated()
 		}
-		return nil, model.NewInternalError("store.sql_audit_rate.save.app_error", err.Error())
+		return nil, model.NewCustomCodeError("store.sql_audit_rate.save.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
 	return rate, nil
+}
+
+func errAlreadyRated() model.AppError {
+	return model.NewBadRequestError("store.sql_audit_rate.save.already_rated", "already rated")
 }
 
 func (s *SqlAuditRateStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchAuditRate) ([]*model.AuditRate, model.AppError) {
@@ -325,44 +329,43 @@ group by c.created_at, c.closed_at`, conversationId, domainId)
 }
 
 func (s *SqlAuditRateStore) ValidateCallRate(ctx context.Context, domainId int64, callId string) (*int64, time.Time, model.AppError) {
-	var (
-		userId    *int64
-		createdAt time.Time
-		allowed   bool
-		rated     bool
-	)
+	var res struct {
+		UserId    *int64    `db:"user_id"`
+		CreatedAt time.Time `db:"created_at"`
+		Allowed   bool      `db:"allowed"`
+		Rated     bool      `db:"rated"`
+	}
 
-	row := s.GetReplica().WithContext(ctx).QueryRow(`select a.user_id,
+	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select a.user_id,
        case when c.user_id notnull or q.type = 2 then c.created_at else p.created_at end as created_at,
        a.call_id notnull                                                              as allowed,
        exists (select 1
                from call_center.cc_audit_rate ar
-               where ar.call_id = any (array(select f.id::text
-                                             from call_center.cc_call_family(call_center.cc_call_root_id(c.id)) f))
+               where (ar.call_root_id = r.root_id or ar.call_id = c.id::text)
                  and (ar.call_id = c.id::text or ar.rated_user_id = a.user_id))        as rated
 from call_center.cc_calls_history c
     left join call_center.cc_queue q on q.id = c.queue_id
     left join call_center.cc_calls_history p on p.id = c.bridged_id
+    cross join lateral (select call_center.cc_call_root_id(c.id) as root_id) r
     left join lateral (select e.call_id, e.user_id
-                       from call_center.cc_call_evaluation_agents(call_center.cc_call_root_id(c.id)) e
+                       from call_center.cc_call_evaluation_agents(r.root_id) e
                        where e.call_id = c.id) a on true
-where c.id = $1::uuid and c.domain_id = $2::int8`, callId, domainId)
+where c.id = :CallId::uuid and c.domain_id = :DomainId::int8`, map[string]any{
+		"CallId":   callId,
+		"DomainId": domainId,
+	})
 
-	err := row.Scan(&userId, &createdAt, &allowed, &rated)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_call.not_found", "call not found", http.StatusNotFound)
-		}
-		return nil, createdAt, model.NewCustomCodeError("store.sql_audit_rate.validate_call.app_error", err.Error(), extractCodeFromErr(err))
+		return nil, res.CreatedAt, model.NewCustomCodeError("store.sql_audit_rate.validate_call.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	if !allowed {
-		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.validate_call.not_allowed", "call leg is not evaluable")
+	if !res.Allowed {
+		return nil, res.CreatedAt, model.NewBadRequestError("store.sql_audit_rate.validate_call.not_allowed", "call leg is not evaluable")
 	}
 
-	if rated {
-		return nil, createdAt, model.NewBadRequestError("store.sql_audit_rate.save.already_rated", "already rated")
+	if res.Rated {
+		return nil, res.CreatedAt, errAlreadyRated()
 	}
 
-	return userId, createdAt, nil
+	return res.UserId, res.CreatedAt, nil
 }
