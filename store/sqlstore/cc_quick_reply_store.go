@@ -2,6 +2,7 @@ package sqlstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -78,12 +79,12 @@ func (s SqlQuickReplyStore) Create(ctx context.Context, domainId int64, reply *m
 
 func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchQuickReply, userId int64) ([]*model.QuickReply, model.AppError) {
 	args := map[string]any{
-		"DomainId": domainId,
-		"Q":        quickReplySearchPattern(search.GetQ()),
-		"Ids":      pq.Array(search.Ids),
-		"Name":     search.Name,
-		"UserId":   userId,
-		"Queue":    pq.Array(search.Queue),
+		"DomainId":        domainId,
+		"Q":               quickReplySearchPattern(search.GetQ()),
+		"Ids":             pq.Array(search.Ids),
+		"Name":            search.Name,
+		"UserId":          userId,
+		"Queue":           pq.Array(search.Queue),
 		"RestrictToAgent": search.RestrictToAgent,
 	}
 
@@ -92,7 +93,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 		AND (:Q::varchar isnull OR t.name ILIKE :Q::varchar OR t.text ILIKE :Q::varchar)
 		AND (:Ids::int8[] isnull OR t.id = ANY(:Ids::bigint[]))
 		and (
-			:RestrictToAgent = false 
+			:RestrictToAgent = false
     		or (
 				(t.team_ids is null and t.queue_ids is null)
         		or (
@@ -107,7 +108,7 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
     		)
 		)
 	`
-	
+
 	var replies []*model.QuickReply
 	if err := s.ListQuery(ctx, &replies, search.ListRequest, where, model.QuickReply{}, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_quick_reply.get_all.app_error", err.Error(), extractCodeFromErr(err))
@@ -116,18 +117,27 @@ func (s SqlQuickReplyStore) GetAllPage(ctx context.Context, domainId int64, sear
 }
 
 func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domainId, userId int64, search *model.SearchQuickReply) ([]*model.QuickReply, model.AppError) {
-	args := map[string]any {
-			"DomainId": domainId,
-			"UserId": userId,
-			"Q": quickReplySearchPattern(search.GetQ()),
-			"Ids": pq.Array(search.Ids),
-			"Name": search.Name,
-			"Queue": pq.Array(search.Queue),
-			"RestrictToAgent": search.RestrictToAgent,
+	args := map[string]any{
+		"DomainId":        domainId,
+		"UserId":          userId,
+		"Q":               quickReplySearchPattern(search.GetQ()),
+		"Ids":             pq.Array(search.Ids),
+		"Name":            search.Name,
+		"Queue":           pq.Array(search.Queue),
+		"RestrictToAgent": search.RestrictToAgent,
 	}
 	fields := GetFields(search.Fields, &model.QuickReply{})
 	parsedFields := strings.Join(fields, ", ")
-	
+
+	order, err := GetOrderBy(model.QuickReply{}.EntityName(), search.Sort)
+	if err != nil {
+		if errors.Is(err, ErrInvalidSortField) {
+			return nil, model.NewBadRequestError("store.sql_quick_reply.get_all_by_agent_priority.sort", err.Error())
+		}
+
+		return nil, model.NewCustomCodeError("store.sql_quick_reply.get_all_by_agent_priority.sort", err.Error(), 412)
+	}
+
 	query := fmt.Sprintf(`
 		with agent_info_cte as (
 			select (
@@ -142,7 +152,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 		filtered_quick_replies_cte as (
 			select
 				%s,
-				case 
+				case
 					when t.queue_ids && agent_info.queues_ids
 					then 1
 					when agent_info.team_id = any(t.team_ids)
@@ -168,7 +178,7 @@ func (s SqlQuickReplyStore) GetAllPageByAgentPriority(ctx context.Context, domai
 		%s
 		offset %d
 		limit %d
-	`, parsedFields, parsedFields, GetOrderBy(model.QuickReply{}.EntityName(), search.Sort), search.ListRequest.GetOffset(), search.ListRequest.GetLimit())
+	`, parsedFields, parsedFields, order, search.ListRequest.GetOffset(), search.ListRequest.GetLimit())
 
 	var quickRepliesList []*model.QuickReply
 	if _, err := s.GetReplica().WithContext(ctx).Select(&quickRepliesList, query, args); err != nil {
@@ -218,7 +228,7 @@ func (s SqlQuickReplyStore) Update(ctx context.Context, domainId int64, reply *m
 			where id = :Id and domain_id = :DomainId
 		returning *
 	)
-	
+
 	select s.id
        	, s.created_at
        	, call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) as created_by

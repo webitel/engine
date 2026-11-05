@@ -84,6 +84,12 @@ func (AuditForm) EntityName() string {
 	return "cc_audit_form_view"
 }
 
+func (AuditForm) CustomSorts() []string {
+	return []string{
+		"case when team_ids && array(select a.team_id from call_center.cc_agent a where a.user_id = :TeamUserID::int8 and a.team_id notnull) then 0 else 1 end asc,name asc",
+	}
+}
+
 func (af *AuditForm) IsValid() AppError {
 	if len(af.Name) < 3 || len(af.Name) > 256 {
 		return NewBadRequestError("app.audit_form.is_valid.name", "Name should not be less than 3 characters or greater than 256 characters")
