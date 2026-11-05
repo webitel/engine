@@ -138,8 +138,14 @@ func (s SqlAgentSkillStore) GetAllPage(ctx context.Context, domainId int64, sear
 			and (:AgentIDs::int[] isnull or agent_id = any(:AgentIDs))
 			and (:IDs::int[] isnull or id = any(:IDs))
 			and (:SkillIDs::int[] isnull or skill_id = any(:SkillIDs))
+			and (:SkillIDs::int[] isnull or not exists(
+				select 1
+				from call_center.cc_agent a
+					inner join directory.wbt_user u on u.id = a.user_id
+				where a.id = t.agent_id and u.deleted_at notnull
+			))
 			and (
-				:Q::varchar isnull 
+				:Q::varchar isnull
 				or (:AgentScope::int = any(:QScopes::int[]) and agent_name ilike :Q::varchar)
 				or (:SkillScope::int = any(:QScopes::int[]) and skill_name ilike :Q::varchar)
 			)
@@ -264,6 +270,7 @@ func (s SqlAgentSkillStore) UpdateMany(ctx context.Context, domainId int64, sear
                             and (:Ids::int[] isnull or sa.id = any(:Ids))
                             and (:SkillIds::int[] isnull or sa.skill_id = any(:SkillIds))
 							and (:Q::varchar is null or coalesce(wu.name, wu.username) ilike :Q::varchar)
+							and wu.deleted_at isnull
     )
    returning *
 )
@@ -311,10 +318,13 @@ func (s SqlAgentSkillStore) Delete(ctx context.Context, domainId int64, search m
             select sa.id
             from call_center.cc_skill_in_agent sa
                 inner join call_center.cc_skill s on s.id = sa.skill_id
+				inner join call_center.cc_agent ca on ca.id = sa.agent_id
+				inner join directory.wbt_user wu on wu.id = ca.user_id
             where s.domain_id = :DomainId
                             and (:AgentIds::int[] isnull or sa.agent_id = any(:AgentIds))
                             and (:Ids::int[] isnull or sa.id = any(:Ids))
                             and (:SkillIds::int[] isnull or sa.skill_id = any(:SkillIds))
+							and wu.deleted_at isnull
     )
    returning *
 )

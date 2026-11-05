@@ -73,7 +73,8 @@ select r.id,
        r.conversation_id,
        f.questions,
        r.select_yes_count,
-       r.critical_count
+       r.critical_count,
+       ur.deleted_at notnull as rated_user_deactivated
 from  r
     left join call_center.cc_audit_form f on f.id = r.form_id
     LEFT JOIN directory.wbt_user uc ON uc.id = r.created_by
@@ -215,7 +216,8 @@ select r.id,
        r.conversation_id,
        f.questions,
 	   r.select_yes_count,
-	   r.critical_count
+	   r.critical_count,
+	   ur.deleted_at notnull as rated_user_deactivated
 from  r
     LEFT JOIN LATERAL ( SELECT jsonb_agg(
                                             CASE

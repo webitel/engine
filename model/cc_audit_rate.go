@@ -34,6 +34,8 @@ type AuditRate struct {
 	Questions      Questions `json:"questions" db:"questions"`
 	SelectYesCount int64     `json:"select_yes_count" db:"select_yes_count"`
 	CriticalCount  int64     `json:"critical_count" db:"critical_count"`
+
+	RatedUserDeactivated bool `json:"rated_user_deactivated" db:"rated_user_deactivated"`
 }
 
 type SearchAuditRate struct {
@@ -58,11 +60,11 @@ func (AuditRate) DefaultOrder() string {
 
 func (AuditRate) AllowFields() []string {
 	return []string{"id", "created_at", "created_by", "updated_at", "updated_by", "rated_user",
-		"form", "answers", "score_required", "score_optional", "comment", "call_id", "conversation_id", "questions", "select_yes_count", "critical_count"}
+		"form", "answers", "score_required", "score_optional", "comment", "call_id", "conversation_id", "questions", "select_yes_count", "critical_count", "rated_user_deactivated"}
 }
 
 func (AuditRate) DefaultFields() []string {
-	return []string{"id", "created_at", "created_by", "rated_user", "form", "score_required", "score_optional", "select_yes_count", "critical_count"}
+	return []string{"id", "created_at", "created_by", "rated_user", "form", "score_required", "score_optional", "select_yes_count", "critical_count", "rated_user_deactivated"}
 }
 
 func (AuditRate) EntityName() string {

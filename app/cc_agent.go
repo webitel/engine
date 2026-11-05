@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/webitel/engine/model"
@@ -17,7 +18,35 @@ func (app *App) AccessAgentsIds(ctx context.Context, domainId int64, agentIds []
 }
 
 func (app *App) CreateAgent(ctx context.Context, agent *model.Agent) (*model.Agent, model.AppError) {
+	if err := app.checkAgentUserActive(ctx, agent.DomainId, int64(agent.User.Id)); err != nil {
+		return nil, err
+	}
 	return app.Store.Agent().Create(ctx, agent)
+}
+
+func (app *App) checkAgentUserActive(ctx context.Context, domainId, userId int64) model.AppError {
+	deactivated, err := app.Store.Agent().IsUserDeactivated(ctx, domainId, userId)
+	if err != nil {
+		return err
+	}
+	if deactivated {
+		return model.NewBadRequestError("app.agent.user_deactivated.app_err", fmt.Sprintf("user %d is deactivated", userId))
+	}
+	return nil
+}
+
+func (app *App) CheckAgentNotDeactivated(ctx context.Context, domainId int64, agentIds ...int64) model.AppError {
+	if len(agentIds) == 0 {
+		return nil
+	}
+	deactivated, err := app.Store.Agent().DeactivatedAgents(ctx, domainId, agentIds)
+	if err != nil {
+		return err
+	}
+	if len(deactivated) != 0 {
+		return model.NewBadRequestError("app.agent.user_deactivated.app_err", fmt.Sprintf("agents %v belong to a deactivated user", deactivated))
+	}
+	return nil
 }
 
 func (app *App) GetAgentsPage(ctx context.Context, domainId int64, search *model.SearchAgent) ([]*model.Agent, bool, model.AppError) {
@@ -61,6 +90,16 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent) (*model.Age
 		return nil, err
 	}
 
+	if oldAgent.UserDeactivated {
+		return nil, model.NewBadRequestError("app.agent.user_deactivated.app_err", fmt.Sprintf("agent %d belongs to a deactivated user", oldAgent.Id))
+	}
+
+	if oldAgent.User.Id != agent.User.Id {
+		if err = app.checkAgentUserActive(ctx, agent.DomainId, int64(agent.User.Id)); err != nil {
+			return nil, err
+		}
+	}
+
 	oldAgent.Description = agent.Description
 	oldAgent.ProgressiveCount = agent.ProgressiveCount
 	oldAgent.GreetingMedia = agent.GreetingMedia
@@ -96,6 +135,16 @@ func (a *App) PatchAgent(ctx context.Context, domainId, id int64, patch *model.A
 	oldAgent, err := a.GetAgentById(ctx, domainId, id)
 	if err != nil {
 		return nil, err
+	}
+
+	if oldAgent.UserDeactivated {
+		return nil, model.NewBadRequestError("app.agent.user_deactivated.app_err", fmt.Sprintf("agent %d belongs to a deactivated user", oldAgent.Id))
+	}
+
+	if patch.User != nil && patch.User.Id != oldAgent.User.Id {
+		if err = a.checkAgentUserActive(ctx, domainId, int64(patch.User.Id)); err != nil {
+			return nil, err
+		}
 	}
 
 	oldAgent.Patch(patch)

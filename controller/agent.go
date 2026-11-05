@@ -108,6 +108,10 @@ func (c *Controller) PauseAgent(ctx context.Context, session *auth_manager.Sessi
 		}
 	}
 
+	if err := c.app.CheckAgentNotDeactivated(ctx, session.Domain(domainId), agentId); err != nil {
+		return err
+	}
+
 	return c.app.PauseAgent(session.Domain(domainId), agentId, payload, statusComment, timeout)
 }
 
