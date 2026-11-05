@@ -318,10 +318,13 @@ func (s SqlAgentStore) GetActiveTask(ctx context.Context, domainId, id int64) ([
 		    m.variables,
 		    m.name as member_name,
 		    call_center.cc_view_timestamp(a.bridged_at) as bridged_at,
-		    a.agent_id
+		    a.agent_id,
+		    call_center.cc_view_timestamp(a.offering_at) as offering_at,
+		    case when a.channel = 'task' then t.task_accept_timeout end as team_accept_timeout
 		from call_center.cc_member_attempt a
 		inner join call_center.cc_agent a2 on a2.id = a.agent_id
 		left join call_center.cc_member m on a.member_id = m.id
+		left join call_center.cc_team t on t.id = a.team_id
 		where
 			a.agent_id = :AgentId
 		    and a2.domain_id = :DomainId

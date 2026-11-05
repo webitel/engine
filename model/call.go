@@ -361,6 +361,12 @@ type CCTask struct {
 	HasProlongation        bool    `json:"has_prolongation" db:"has_prolongation"`
 	RemainingProlongations *uint32 `json:"remaining_prolongations" db:"remaining_prolongations"`
 	ProlongationSec        *uint32 `json:"prolongation_sec" db:"prolongation_sec"`
+
+	// The agent must accept a task within TeamAcceptTimeout seconds (team
+	// task_accept_timeout, task channel only) counted from OfferingAt (epoch ms).
+	// Named like team_accept_timeout in the call_center distribute event.
+	OfferingAt        *int64 `json:"offering_at,omitempty" db:"offering_at"`
+	TeamAcceptTimeout *int   `json:"team_accept_timeout,omitempty" db:"team_accept_timeout"`
 }
 
 type CallAnnotation struct {
