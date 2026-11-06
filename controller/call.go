@@ -2,9 +2,12 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/pborman/uuid"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/pkg/fsvar"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
 )
 
@@ -12,6 +15,10 @@ func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Sessi
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {
 		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_CREATE)
+	}
+
+	if err := req.IsValid(); err != nil {
+		return "", model.NewBadRequestError("controller.call.create.valid.variables", err.Error())
 	}
 
 	req.CreatedAt = model.GetMillis()
@@ -162,6 +169,13 @@ func (c *Controller) DtmfCall(ctx context.Context, session *auth_manager.Session
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
+	if uuid.Parse(req.Id) == nil {
+		return model.NewBadRequestError(
+			"controller.call.dtmf.id",
+			fmt.Sprintf("unsupported call id format %q", req.Id),
+		)
+	}
+
 	return c.app.DtmfCall(ctx, session.Domain(domainId), req)
 }
 
@@ -170,6 +184,10 @@ func (c *Controller) BlindTransferCall(ctx context.Context, session *auth_manage
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := req.Validate(); err != nil {
+		return err
 	}
 
 	return c.app.BlindTransferCall(ctx, session.Domain(domainId), req)
@@ -181,6 +199,10 @@ func (c *Controller) BlindTransferCallToQueue(ctx context.Context, session *auth
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
+	if err := fsvar.ValidateVariables(req.Variables); err != nil {
+		return model.NewBadRequestError("controller.call.blind_transfer_call_to_queue.valid.variables", err.Error())
+	}
+
 	return c.app.BlindTransferCallToQueue(ctx, session.Domain(domainId), req)
 }
 
@@ -190,7 +212,32 @@ func (c *Controller) BlindTransferCallToDialplan(ctx context.Context, session *a
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
 
+	if err := req.Validate(); err != nil {
+		return err
+	}
+
 	return c.app.BlindTransferCallToDialplan(ctx, session.Domain(domainId), req)
+}
+
+func (c *Controller) BridgeCall(ctx context.Context, session *auth_manager.Session, fromId, toId string, vars map[string]string) (string, model.AppError) {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return "", c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := fsvar.ValidateVariables(vars); err != nil {
+		return "", model.NewBadRequestError("controller.call.bridge.variables", err.Error())
+	}
+
+	if uuid.Parse(fromId) == nil {
+		return "", model.NewBadRequestError("conttoller.call.bridge.from_id", fmt.Sprintf("from %q is not valid uuid format", fromId))
+	}
+
+	if uuid.Parse(toId) == nil {
+		return "", model.NewBadRequestError("conttoller.call.bridge.to_id", fmt.Sprintf("to %q is not valid uuid format", toId))
+	}
+
+	return c.app.BridgeCall(ctx, session.Domain(0), fromId, toId, vars)
 }
 
 func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Session, userId int64, parentId string, cp model.CallParameters, queueId, agentId *int) (string, model.AppError) {
@@ -203,6 +250,10 @@ func (c *Controller) CallToQueue(ctx context.Context, session *auth_manager.Sess
 		return "", model.NewBadRequestError("call.queue.valid", "invalid agent id or queue id")
 	}
 
+	if err := cp.Validate(); err != nil {
+		return "", model.NewBadRequestError("call.queue.valid.variables", err.Error())
+	}
+
 	return c.app.CallToQueue(ctx, session.Domain(0), userId, parentId, cp, queueId, agentId)
 }
 
@@ -210,6 +261,10 @@ func (c *Controller) BlindTransferCallExt(ctx context.Context, session *auth_man
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := req.Validate(); err != nil {
+		return err
 	}
 
 	return c.app.BlindTransferCallExt(ctx, session.Domain(domainId), req)
@@ -295,6 +350,10 @@ func (c *Controller) SetCallVariables(ctx context.Context, session *auth_manager
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanUpdate() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := fsvar.ValidateVariables(vars); err != nil {
+		return model.NewBadRequestError("controller.call.set_variables.variables", err.Error())
 	}
 
 	return c.app.SetCallVariables(ctx, session.Domain(0), callId, vars)

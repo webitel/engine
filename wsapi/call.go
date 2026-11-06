@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pborman/uuid"
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
@@ -206,25 +207,28 @@ func (api *API) callBTQueue(ctx context.Context, conn *app.WebConn, req *model.W
 }
 
 func (api *API) callBTDialplan(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var ok bool
-	var id string
-	var dialplanId float64
-
-	if id, ok = req.Data["id"].(string); !ok {
+	id, ok := req.Get("id").(string)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
 
-	if dialplanId, ok = req.Data["dialplan_id"].(float64); !ok {
+	dialplanID, ok := req.Get("dialplan_id").(float64)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "dialplan_id")
 	}
 
-	err := api.ctrl.BlindTransferCallToDialplan(ctx, conn.GetSession(), conn.DomainId, &model.BlindTransferCallToDialplan{
-		UserCallRequest: model.UserCallRequest{
-			Id: id,
+	err := api.ctrl.BlindTransferCallToDialplan(
+		ctx,
+		conn.GetSession(),
+		conn.DomainId,
+		&model.BlindTransferCallToDialplan{
+			UserCallRequest: model.UserCallRequest{
+				Id: id,
+			},
+			Variables:  variablesFromMap(req.Data, "variables"),
+			DialplanId: int(dialplanID),
 		},
-		Variables:  variablesFromMap(req.Data, "variables"),
-		DialplanId: int(dialplanId),
-	})
+	)
 
 	if err != nil {
 		return nil, err
@@ -385,43 +389,48 @@ func (api *API) callUnHold(ctx context.Context, conn *app.WebConn, req *model.We
 }
 
 func (api *API) callInvite(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var callReq = &model.OutboundCallRequest{}
-	var ok bool
-	var props map[string]interface{}
-	if callReq.Destination, ok = req.Data["destination"].(string); !ok {
+	destination, ok := req.Get("destination").(string)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "destination")
 	}
 
-	if props, ok = req.Data["params"].(map[string]interface{}); ok {
+	callReq := &model.OutboundCallRequest{
+		Destination: destination,
+	}
+
+	props, ok := req.Get("params").(map[string]any)
+	if ok {
 		callReq.Params = callParams(props)
 	}
 
-	vars := make(map[string]string)
-	vars[model.CALL_VARIABLE_SOCK_ID] = conn.Id()
+	vars := map[string]string{model.CALL_VARIABLE_SOCK_ID: conn.Id()}
 
-	if id, err := api.ctrl.CreateCall(ctx, conn.GetSession(), callReq, vars); err != nil {
+	id, err := api.ctrl.CreateCall(ctx, conn.GetSession(), callReq, vars)
+	if err != nil {
 		return nil, err
-	} else {
-		data := make(map[string]interface{})
-		data["id"] = id
-		return data, nil
 	}
+
+	return map[string]any{"id": id}, nil
 }
 
 func (api *API) callToUser(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
 	var ok, useVideo, useScreen bool
-	var callId, callToId, parentCallId, sendToCallId string
+	var callId, callToId, parentCallId string
 	var toUserId float64
 	var variables map[string]interface{}
 
 	if toUserId, ok = req.Data["toUserId"].(float64); !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "toUserId")
 	}
-	sendToCallId, _ = req.Data["sendToCallId"].(string)
+	sendToCallId, ok := req.Data["sendToCallId"].(string)
+	if ok && uuid.Parse(sendToCallId) == nil {
+		return nil, NewInvalidWebSocketParamError(req.Action, "sendToCallId")
+	}
 
 	callId = model.NewUuid()
 	callToId = model.NewUuid()
 
+	//TODO: use paraller requests
 	info, err := api.App.GetUserCallInfo(ctx, conn.UserId, conn.DomainId)
 	if err != nil {
 		return nil, err
@@ -474,12 +483,13 @@ func (api *API) callToUser(ctx context.Context, conn *app.WebConn, req *model.We
 
 	if variables, ok = req.Data["variables"].(map[string]interface{}); ok {
 		for k, v := range variables {
-			switch v.(type) {
-			case string:
-				invite.AddUserVariable(k, v.(string))
-			case interface{}:
-				invite.AddUserVariable(k, fmt.Sprintf("%v", v))
+			if r, ok := v.(string); ok {
+				invite.AddUserVariable(k, r)
+
+				continue
 			}
+
+			invite.AddUserVariable(k, fmt.Sprintf("%v", v))
 		}
 	}
 
@@ -520,33 +530,35 @@ func (api *API) callMute(ctx context.Context, conn *app.WebConn, req *model.WebS
 		return nil, NewInvalidWebSocketParamError(req.Action, "mute")
 	}
 
-	if cli, err := api.App.CallManager().CallClientById(nodeId); err != nil {
+	cli, err := api.App.CallManager().CallClientById(nodeId)
+	if err != nil {
 		return nil, err
-	} else {
-		err = cli.Mute(id, mute)
-		if err != nil {
-			return nil, err
-		}
+	}
+
+	if err = cli.Mute(id, mute); err != nil {
+		return nil, err
 	}
 
 	return nil, nil
 }
 
-func (api *API) callBridge(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var ok bool
-	var fromId, toId string
-
-	if fromId, ok = req.Data["from_id"].(string); !ok {
+func (api *API) callBridge(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	fromID, ok := req.Get("from_id").(string)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "from_id")
 	}
 
-	if toId, ok = req.Data["to_id"].(string); !ok {
+	toID, ok := req.Get("to_id").(string)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "to_id")
 	}
-	res := make(map[string]interface{})
-	err := api.App.BridgeCall(ctx, conn.DomainId, fromId, toId, variablesFromMap(req.Data, "variables"))
-	//FIXME set result
-	return res, err
+
+	bridgeID, err := api.ctrl.BridgeCall(ctx, conn.GetSession(), fromID, toID, variablesFromMap(req.Data, "variables"))
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]any{"bridge_id": bridgeID}, nil
 }
 
 func (api *API) callRecording(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
@@ -634,8 +646,8 @@ func (api *API) callSendVideo(ctx context.Context, conn *app.WebConn, req *model
 	return nil, nil
 }
 
-func variablesFromMap(m map[string]interface{}, name string) map[string]string {
-	vi, ok := m[name].(map[string]interface{})
+func variablesFromMap(m map[string]any, name string) map[string]string {
+	vi, ok := m[name].(map[string]any)
 	if !ok {
 		return nil
 	}
@@ -666,15 +678,16 @@ func callParams(props map[string]any) model.CallParameters {
 	params.Display, _ = props["display"].(string)
 	params.HideNumber, _ = props["hide_number"].(bool)
 
-	if variables, ok := props["variables"].(map[string]interface{}); ok {
+	if variables, ok := props["variables"].(map[string]any); ok {
 		params.Variables = make(map[string]string)
 		for k, v := range variables {
-			switch v.(type) {
-			case string:
-				params.Variables[k] = v.(string)
-			case interface{}:
-				params.Variables[k] = fmt.Sprintf("%v", v)
+			if r, ok := v.(string); ok {
+				params.Variables[k] = r
+
+				continue
 			}
+
+			params.Variables[k] = fmt.Sprintf("%v", v)
 		}
 	}
 

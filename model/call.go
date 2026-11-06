@@ -167,8 +167,29 @@ type DtmfCall struct {
 
 type BlindTransferCall struct {
 	UserCallRequest
+
 	Destination string
 	Variables   map[string]string
+}
+
+func (bt *BlindTransferCall) Validate() AppError {
+	formatErr := func(idSuffix, detail string) AppError {
+		return NewBadRequestError("model.call.blind_transfer.validate."+idSuffix, detail)
+	}
+
+	if bt == nil {
+		return formatErr("nil", "received nil pointer call")
+	}
+
+	if err := fsvar.ValidateVariables(bt.Variables); err != nil {
+		return formatErr("variables", err.Error())
+	}
+
+	if err := fsvar.ValidateNumber(bt.Destination); err != nil {
+		return formatErr("destination", fmt.Sprintf("unsupported destination format %q", bt.Destination))
+	}
+
+	return nil
 }
 
 type BlindTransferCallToQueue struct {
@@ -179,8 +200,25 @@ type BlindTransferCallToQueue struct {
 
 type BlindTransferCallToDialplan struct {
 	UserCallRequest
+
 	DialplanId int
 	Variables  map[string]string
+}
+
+func (bt *BlindTransferCallToDialplan) Validate() AppError {
+	formatErr := func(idSuffix, details string) AppError {
+		return NewBadRequestError("model.call.blind_transfer_call_to_dialplan.validate."+idSuffix, details)
+	}
+
+	if bt == nil {
+		return formatErr("nil", "received nil pointer request call")
+	}
+
+	if err := fsvar.ValidateVariables(bt.Variables); err != nil {
+		return formatErr("variables", err.Error())
+	}
+
+	return nil
 }
 
 type BridgeCall struct {
@@ -255,14 +293,8 @@ type CallParameters struct {
 }
 
 func (p *CallParameters) Validate() AppError {
-	for k, v := range p.Variables {
-		if err := fsvar.ValidateUserVariableName(k); err != nil {
-			return NewBadRequestError("model.call.call_parameters.validate.variables_name", fmt.Sprintf("%v unsupported variable name %q", err, k))
-		}
-
-		if err := fsvar.ValidateValue(v); err != nil {
-			return NewBadRequestError("model.call.call_parameters.validate.variables_value", fmt.Sprintf("%v unsupported variable %q value %v", err, k, v))
-		}
+	if err := fsvar.ValidateVariables(p.Variables); err != nil {
+		return NewBadRequestError("model.call.parameters.validate.variables", err.Error())
 	}
 
 	return nil
@@ -280,6 +312,21 @@ func (e *EavesdropCall) StateName() string {
 }
 
 func (r *OutboundCallRequest) IsValid() AppError {
+	if r == nil {
+		return NewBadRequestError("model.call.outbound_call_request.valid.nil", "received nil pointer request call")
+	}
+
+	if err := r.Params.Validate(); err != nil {
+		return err
+	}
+
+	if err := fsvar.ValidateNumber(r.Destination); err != nil {
+		return NewBadRequestError(
+			"model.call.outbound_call_request.valid.destination",
+			fmt.Sprintf("received unsupported destination format %q", r.Destination),
+		)
+	}
+
 	return nil
 }
 

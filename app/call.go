@@ -756,29 +756,19 @@ func (app *App) BlindTransferCallExt(ctx context.Context, domainId int64, req *m
 	return cli.BlindTransferExt(id, req.Destination, req.Variables)
 }
 
-func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string, vars map[string]string) model.AppError {
-	var cli call_manager.CallClient
+// TODO https://webitel.atlassian.net/browse/WTEL-5591
+func (app *App) BridgeCall(ctx context.Context, domainId int64, fromId, toId string, vars map[string]string) (string, model.AppError) {
 	info, err := app.Store.Call().BridgeInfo(ctx, domainId, fromId, toId)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	cli, err = app.getCallCli(ctx, domainId, info.FromId, &info.AppId)
+	cli, err := app.getCallCli(ctx, domainId, info.FromId, &info.AppId)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	/* TODO https://webitel.atlassian.net/browse/WTEL-5591
-	if info.ContactId != nil {
-		if vars == nil {
-			vars = make(map[string]string)
-		}
-		vars["wbt_contact_id"] = fmt.Sprintf("%d", *info.ContactId)
-	}
-	*/
-
-	_, err = cli.BridgeCall(info.FromId, info.ToId, vars)
-	return err
+	return cli.BridgeCall(info.FromId, info.ToId, vars)
 }
 
 func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string, vars map[string]string) model.AppError {

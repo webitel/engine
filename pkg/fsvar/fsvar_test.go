@@ -216,3 +216,101 @@ func TestQuote(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateVariables(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		wantErr   error
+		vars      map[string]string
+		isWrapped bool
+	}{
+		{
+			name:    "Empty map should return success",
+			vars:    map[string]string{},
+			wantErr: nil,
+		},
+		{
+			name: "Single valid key-value pair should return success",
+			vars: map[string]string{
+				"user_id": "12345",
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Multiple valid pairs should return success",
+			vars: map[string]string{
+				"timeout": "30",
+				"target":  "sip_h_x-custom_header",
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Invalid key format should return error",
+			vars: map[string]string{
+				"bad key!": "valid_value",
+			},
+			wantErr:   fsvar.ErrBadName,
+			isWrapped: true,
+		},
+		{
+			name: "Denied key should return error",
+			vars: map[string]string{
+				"hangup_after_bridge": "valid_value",
+			},
+			wantErr:   fsvar.ErrDenied,
+			isWrapped: true,
+		},
+		{
+			name: "Invalid value with control character should return error",
+			vars: map[string]string{
+				"valid_key": "line1\nline2",
+			},
+			wantErr:   fsvar.ErrBadValue,
+			isWrapped: true,
+		},
+		{
+			name: "Invalid value with template injection should return error",
+			vars: map[string]string{
+				"valid_key": "value_${ENV}",
+			},
+			wantErr:   fsvar.ErrBadValue,
+			isWrapped: true,
+		},
+		{
+			name: "Invalid value with backslash should return error",
+			vars: map[string]string{
+				"valid_key": "C:\\path",
+			},
+			wantErr:   fsvar.ErrBadValue,
+			isWrapped: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := fsvar.ValidateVariables(tt.vars)
+
+			if tt.wantErr == nil {
+				if err != nil {
+					t.Errorf("expected nil error, got %+v", err)
+				}
+				return
+			}
+
+			if err == nil {
+				t.Fatalf("expected error %v, got nil", tt.wantErr)
+			}
+
+			if tt.isWrapped {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("expected error to unwrap to %v, got %v", tt.wantErr, err)
+				}
+			}
+
+		})
+	}
+}

@@ -2,6 +2,7 @@ package fsvar
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -33,6 +34,20 @@ var (
 		"playback_delimiter": {},
 	}
 )
+
+func ValidateVariables(vars map[string]string) error {
+	for k, v := range vars {
+		if err := ValidateUserVariableName(k); err != nil {
+			return fmt.Errorf("%q %w", k, err)
+		}
+
+		if err := ValidateValue(v); err != nil {
+			return fmt.Errorf("%q %w", v, err)
+		}
+	}
+
+	return nil
+}
 
 func ValidateUserVariableName(name string) error {
 	if !nameRegx.MatchString(name) {
