@@ -430,13 +430,7 @@ func (api *API) callToUser(ctx context.Context, conn *app.WebConn, req *model.We
 	callId = model.NewUuid()
 	callToId = model.NewUuid()
 
-	//TODO: use paraller requests
-	info, err := api.App.GetUserCallInfo(ctx, conn.UserId, conn.DomainId)
-	if err != nil {
-		return nil, err
-	}
-
-	infoTo, err := api.App.GetUserCallInfo(ctx, int64(toUserId), conn.DomainId)
+	info, infoTo, err := api.App.GetUsersCallsInfo(ctx, conn.UserId, int64(toUserId), conn.DomainId)
 	if err != nil {
 		return nil, err
 	}
@@ -481,15 +475,11 @@ func (api *API) callToUser(ctx context.Context, conn *app.WebConn, req *model.We
 		},
 	}
 
-	if variables, ok = req.Data["variables"].(map[string]interface{}); ok {
+	if variables, ok = req.Data["variables"].(map[string]any); ok {
 		for k, v := range variables {
-			if r, ok := v.(string); ok {
-				invite.AddUserVariable(k, r)
-
-				continue
+			if err := invite.AddUserVariable(k, parseWSInputVariable(v)); err != nil {
+				return nil, model.NewBadRequestError("wsapi.call.call_to_user.user_variable", err.Error())
 			}
-
-			invite.AddUserVariable(k, fmt.Sprintf("%v", v))
 		}
 	}
 
@@ -644,21 +634,6 @@ func (api *API) callSendVideo(ctx context.Context, conn *app.WebConn, req *model
 	api.App.CallManager().Bridge(id, nodeId, id2, nodeId2)
 
 	return nil, nil
-}
-
-func variablesFromMap(m map[string]any, name string) map[string]string {
-	vi, ok := m[name].(map[string]any)
-	if !ok {
-		return nil
-	}
-
-	vars := make(map[string]string, len(vi))
-	for k, v := range vi {
-		vars[k] = fmt.Sprintf("%v", v)
-	}
-
-	return vars
-
 }
 
 func callParams(props map[string]any) model.CallParameters {
