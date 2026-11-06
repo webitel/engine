@@ -48,10 +48,16 @@ func (grpc *GrpcServer) Listener() net.Listener {
 	return grpc.lis
 }
 
-func (grpc *GrpcServer) GetPublicInterface() (string, int) {
+func (grpc *GrpcServer) GetListeningInterface() (string, int) {
 	h, p, _ := net.SplitHostPort(grpc.lis.Addr().String())
-	if h == "::" {
-		h = utils.GetPublicAddr()
+
+	ip := net.ParseIP(h)
+	if ip != nil && ip.IsUnspecified() {
+		if addr, err := utils.GetPrivateAddr(); err == nil {
+			h = addr
+		} else {
+			h = utils.GetPublicAddr()
+		}
 	}
 	port, _ := strconv.Atoi(p)
 	return h, port
@@ -267,11 +273,18 @@ func httpCodeToGrpc(c int) codes.Code {
 	}
 }
 
-func NewGrpcServer(app *App, settings model.ServerSettings) *GrpcServer {
-	address := fmt.Sprintf("%s:%d", settings.Address, settings.Port)
-	lis, err := net.Listen(settings.Network, address)
+func NewGrpcServer(app *App, settings model.ServerSettings) (*GrpcServer, error) {
+	host := strings.Trim(settings.Address, "[]")
+	if host == "" {
+		var err error
+		if host, err = utils.GetPrivateAddr(); err != nil {
+			return nil, fmt.Errorf("resolve default grpc address: %w; set GRPC_ADDR explicitly", err)
+		}
+	}
+
+	lis, err := net.Listen(settings.Network, net.JoinHostPort(host, strconv.Itoa(settings.Port)))
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	return &GrpcServer{
@@ -286,7 +299,7 @@ func NewGrpcServer(app *App, settings model.ServerSettings) *GrpcServer {
 				otelgrpc.WithPropagators(propagation.NewCompositeTextMapPropagator()),
 			)),
 		),
-	}
+	}, nil
 }
 
 func (s *GrpcServer) Server() *grpc.Server {

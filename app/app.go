@@ -208,7 +208,9 @@ func New(options ...string) (outApp *App, outErr error) {
 	// remove all session by app id
 	app.Hubs.Clean()
 
-	app.GrpcServer = NewGrpcServer(app, app.Config().ServerSettings)
+	if app.GrpcServer, outErr = NewGrpcServer(app, app.Config().ServerSettings); outErr != nil {
+		return nil, fmt.Errorf("unable to initialize grpc server: %w", outErr)
+	}
 
 	if outErr = app.cluster.Start(); outErr != nil {
 		return nil, outErr
