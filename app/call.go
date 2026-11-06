@@ -56,8 +56,14 @@ func (app *App) CreateOutboundCall(ctx context.Context, domainId int64, req *mod
 
 	invite := inviteFromUser(domainId, req, from)
 	for k, v := range req.Params.Variables {
-		invite.AddUserVariable(k, v)
+		if err := invite.AddUserVariable(k, v); err != nil {
+			return "", model.NewBadRequestError(
+				"app.call.created_outbound.usr_variable",
+				fmt.Sprintf("provided unsupported variable %q: %v", k, err),
+			)
+		}
 	}
+
 	for k, v := range variables {
 		invite.AddVariable(k, v)
 	}
@@ -793,19 +799,16 @@ func (app *App) SetCallVariables(ctx context.Context, domainId int64, id string,
 }
 
 func (app *App) SetCallParams(ctx context.Context, domainId int64, id string, params model.CallParameters) model.AppError {
-	var cli call_manager.CallClient
-	var err model.AppError
+	if len(params.Variables) == 0 {
+		return nil
+	}
 
-	cli, err = app.getCallCli(ctx, domainId, id, nil)
+	cli, err := app.getCallCli(ctx, domainId, id, nil)
 	if err != nil {
 		return err
 	}
 
-	if len(params.Variables) != 0 {
-		err = cli.SetCallVariables(id, params.Variables)
-	}
-
-	if err != nil {
+	if err = cli.SetCallVariablesContext(ctx, id, params.Variables); err != nil {
 		return err
 	}
 

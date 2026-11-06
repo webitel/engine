@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pborman/uuid"
+	"github.com/webitel/engine/pkg/fsvar"
 )
 
 const (
@@ -251,6 +252,20 @@ type CallParameters struct {
 	IsOnline          bool
 	HideNumber        bool
 	ContactId         int
+}
+
+func (p *CallParameters) Validate() AppError {
+	for k, v := range p.Variables {
+		if err := fsvar.ValidateUserVariableName(k); err != nil {
+			return NewBadRequestError("model.call.call_parameters.validate.variables_name", fmt.Sprintf("%v unsupported variable name %q", err, k))
+		}
+
+		if err := fsvar.ValidateValue(v); err != nil {
+			return NewBadRequestError("model.call.call_parameters.validate.variables_value", fmt.Sprintf("%v unsupported variable %q value %v", err, k, v))
+		}
+	}
+
+	return nil
 }
 
 // todo
@@ -814,8 +829,18 @@ func (cp *CallPayload) UnmarshalText(b []byte) error {
 	return json.Unmarshal(b, (*map[string]any)(cp))
 }
 
-func (cr *CallRequest) AddUserVariable(name, value string) {
-	cr.AddVariable(fmt.Sprintf("usr_%s", name), value)
+func (cr *CallRequest) AddUserVariable(name, value string) error {
+	if err := fsvar.ValidateUserVariableName(name); err != nil {
+		return err
+	}
+
+	if err := fsvar.ValidateValue(value); err != nil {
+		return err
+	}
+
+	cr.AddVariable("usr_"+name, value)
+
+	return nil
 }
 
 func (cr *CallRequest) AddVariable(name, value string) {

@@ -26,6 +26,19 @@ func (c *Controller) CreateCall(ctx context.Context, session *auth_manager.Sessi
 	return c.app.CreateOutboundCall(ctx, session.DomainId, req, variables)
 }
 
+func (c *Controller) SetCallParams(ctx context.Context, session *auth_manager.Session, id string, params model.CallParameters) model.AppError {
+	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
+	if !permission.CanUpdate() {
+		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
+	}
+
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	return c.app.SetCallParams(ctx, session.Domain(0), id, params)
+}
+
 func (c *Controller) RedialCall(ctx context.Context, session *auth_manager.Session, callId string) (string, model.AppError) {
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CALL)
 	if !permission.CanCreate() {

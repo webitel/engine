@@ -3,10 +3,11 @@ package wsapi
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/webitel/engine/app"
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
-	"strings"
 )
 
 func (api *API) InitCall() {
@@ -566,34 +567,31 @@ func (api *API) callRecording(ctx context.Context, conn *app.WebConn, req *model
 	return res, nil
 }
 
-func (api *API) callSetParams(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
-	var id string
-	var ok bool
-	var params model.CallParameters
-	params.Variables = make(map[string]string)
-
-	if id, ok = req.Data["id"].(string); !ok {
+func (api *API) callSetParams(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]any, model.AppError) {
+	id, ok := req.Get("id").(string)
+	if !ok {
 		return nil, NewInvalidWebSocketParamError(req.Action, "id")
 	}
 
-	if variables, ok := req.Data["variables"].(map[string]interface{}); ok {
+	params := model.CallParameters{Variables: make(map[string]string)}
+
+	if variables, ok := req.Get("variables").(map[string]any); ok {
 		for k, v := range variables {
-			switch v.(type) {
-			case string:
-				params.Variables[k] = v.(string)
-			case interface{}:
-				params.Variables[k] = fmt.Sprintf("%v", v)
+			if r, ok := v.(string); ok {
+				params.Variables[k] = r
+
+				continue
 			}
+
+			params.Variables[k] = fmt.Sprintf("%v", v)
 		}
 	}
 
-	err := api.App.SetCallParams(ctx, conn.DomainId, id, params)
-	if err != nil {
+	if err := api.ctrl.SetCallParams(ctx, conn.GetSession(), id, params); err != nil {
 		return nil, err
 	}
 
-	res := make(map[string]interface{})
-	return res, nil
+	return make(map[string]any), nil
 }
 
 func (api *API) callSetContact(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
