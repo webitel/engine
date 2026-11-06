@@ -24,7 +24,7 @@ func (c *cluster) Start() error {
 	}
 	c.discovery = sd
 
-	host, port := c.app.GrpcServer.GetPublicInterface()
+	host, port := c.app.GrpcServer.GetListeningInterface()
 	err = sd.RegisterService(model.APP_SERVICE_NAME, host, port, model.APP_SERVICE_TTL, model.APP_DEREGESTER_CRITICAL_TTL)
 	if err != nil {
 		return err
