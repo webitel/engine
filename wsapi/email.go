@@ -25,6 +25,21 @@ func (api *API) InitEmail() {
 		}))
 	}
 	api.Router.Handle("cc_email_transfer_agents", api.ApiWebSocketHandler(api.emailTransferAgents))
+	api.Router.Handle("subscribe_email", api.ApiWebSocketHandler(api.subscribeEmail))
+	api.Router.Handle("unsubscribe_email", api.ApiWebSocketHandler(api.unsubscribeEmail))
+}
+
+// subscribeEmail answers after the broker binding; user and domain come from req.Session.
+func (api *API) subscribeEmail(ctx context.Context, conn *app.WebConn, req *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	if err := api.App.SubscribeEmail(ctx, conn, &req.Session); err != nil {
+		return nil, err
+	}
+
+	return map[string]interface{}{"schema_version": model.EmailSchema}, nil
+}
+
+func (api *API) unsubscribeEmail(_ context.Context, conn *app.WebConn, _ *model.WebSocketRequest) (map[string]interface{}, model.AppError) {
+	return nil, api.App.UnsubscribeEmail(conn)
 }
 
 // The handlers check req.Session, read for this request, never the session cached in the connection.

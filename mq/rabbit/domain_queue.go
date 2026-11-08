@@ -17,6 +17,7 @@ import (
 // amqpChannel is the part of *amqp.Channel a domain queue uses. Tests put a
 // fake behind it to take the channel away.
 type amqpChannel interface {
+	ExchangeDeclare(name, kind string, durable, autoDelete, internal, noWait bool, args amqp.Table) error
 	QueueDeclare(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) (amqp.Queue, error)
 	QueueBind(name, key, exchange string, noWait bool, args amqp.Table) error
 	QueueUnbind(name, key, exchange string, args amqp.Table) error
@@ -42,10 +43,20 @@ type DomainQueue struct {
 	userStateEvents   chan *model.UserState
 	chatEvents        chan *model.ChatEvent
 	notificationEvent chan *model.Notification
+	emailEvents       chan *model.EmailEvent
 
 	bindChan chan *model.BindQueueEvent
 	bindings map[string]*model.BindQueueEvent
 	down     bool
+	rebound  chan struct{}
+
+	// The Email bindings go over a channel of their own, never through Listen.
+	emailOps        chan emailOp
+	emailOnce       sync.Once
+	emailUnbinds    map[string]emailUnbind
+	emailQueues     map[string]string // the queue each confirmed Email binding is on
+	emailKick       chan struct{}
+	newEmailChannel func() (amqpChannel, error)
 
 	fnGetAllBindings model.GetAllBindings
 
@@ -79,10 +90,16 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 		userStateEvents:   make(chan *model.UserState),
 		chatEvents:        make(chan *model.ChatEvent),
 		notificationEvent: make(chan *model.Notification),
+		emailEvents:       make(chan *model.EmailEvent),
 		fnGetAllBindings:  bindings,
 
-		bindChan: make(chan *model.BindQueueEvent, 1000), //TODO
-		bindings: make(map[string]*model.BindQueueEvent),
+		bindChan:     make(chan *model.BindQueueEvent, 1000), //TODO
+		emailOps:     make(chan emailOp, emailOpsSize),
+		emailUnbinds: make(map[string]emailUnbind),
+		emailQueues:  make(map[string]string),
+		emailKick:    make(chan struct{}, 1),
+		bindings:     make(map[string]*model.BindQueueEvent),
+		rebound:      make(chan struct{}, 1),
 
 		closeChannel: make(chan *amqp.Error, 1),
 		reconnect:    make(chan error, 1),
@@ -93,6 +110,7 @@ func newDomainQueue(client *AMQP, id int64, bindings model.GetAllBindings) mq.Do
 			wlog.Int64("domain_id", id),
 		),
 	}
+	q.newEmailChannel = func() (amqpChannel, error) { return q.newChannel() }
 	q.newChannel = func() (amqpChannel, error) {
 		ch, err := client.NewChannel()
 		if err != nil {
@@ -136,6 +154,7 @@ func (dq *DomainQueue) enqueue(b *model.BindQueueEvent) {
 func (dq *DomainQueue) forget(b *model.BindQueueEvent) {
 	dq.Lock()
 	delete(dq.bindings, bindKey(b))
+	delete(dq.emailQueues, bindKey(b))
 	dq.Unlock()
 }
 
@@ -188,6 +207,21 @@ func (dq *DomainQueue) BindUserChat(id string, userId int64) *model.BindQueueEve
 
 	dq.enqueue(b)
 	return b
+}
+
+// HasBinding reports whether the binding is still kept; a refused one is forgotten.
+func (dq *DomainQueue) HasBinding(b *model.BindQueueEvent) bool {
+	dq.RLock()
+	defer dq.RUnlock()
+	_, ok := dq.bindings[bindKey(b)]
+
+	return ok
+}
+
+// Rebound tells that the queue came back after a loss and restored its bindings; the
+// events in between are lost.
+func (dq *DomainQueue) Rebound() <-chan struct{} {
+	return dq.rebound
 }
 
 func (dq *DomainQueue) BindAgentStatusEvents(id string, userId int64, agentId int) *model.BindQueueEvent {
@@ -316,6 +350,13 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 		wlog.String("exchange", m.Exchange),
 		wlog.String("routing", m.RoutingKey),
 	)
+	// Email events are JSON of their own contract; other exchanges keep their checks.
+	if m.Exchange == model.EmailServiceExchange {
+		dq.readEmailEvent(m)
+
+		return
+	}
+
 	if m.ContentType != "text/json" && m.Exchange != model.ChatExchange {
 		log.Warn("failed receive event content type")
 		return
@@ -343,6 +384,21 @@ func (dq *DomainQueue) readMessage(m amqp.Delivery) {
 	default:
 		log.Error("not implement parser")
 	}
+}
+
+// readEmailEvent delivers only a valid event for a user of this domain.
+func (dq *DomainQueue) readEmailEvent(m amqp.Delivery) {
+	e, err := model.ParseEmailEvent(m.RoutingKey, m.ContentType, m.Body)
+	if err == nil && e.DomainId != dq.id {
+		err = fmt.Errorf("domain %d", e.DomainId)
+	}
+	if err != nil {
+		dq.log.Warn("drop email event", wlog.String("routing", m.RoutingKey), wlog.Err(err))
+
+		return
+	}
+
+	dq.emailEvents <- e
 }
 
 func parseNotification(data []byte) (*model.Notification, error) {
@@ -589,7 +645,8 @@ func (dq *DomainQueue) connect() error {
 	dq.closeChannel = make(chan *amqp.Error, 1)
 	ch.NotifyClose(dq.closeChannel)
 
-	dq.queue, err = ch.QueueDeclare(
+	var q amqp.Queue
+	q, err = ch.QueueDeclare(
 		fmt.Sprintf("engine.ws.%s.%d", model.NewId()[0:10], dq.id),
 		true,
 		false,
@@ -605,6 +662,10 @@ func (dq *DomainQueue) connect() error {
 		dq.log.Error("declare error", wlog.Err(err))
 		return err
 	}
+	// The Email binder reads the name from its own goroutine.
+	dq.Lock()
+	dq.queue = q
+	dq.Unlock()
 
 	err = ch.QueueBind(dq.queue.Name,
 		fmt.Sprintf("notification.%d", dq.id), model.AppExchange, false, nil)
@@ -638,12 +699,19 @@ func (dq *DomainQueue) connect() error {
 
 	dq.log.Debug("connected")
 
+	reconnected := dq.down
 	if dq.down {
 		dq.down = false
 		dq.client.domainQueuesDown.Add(-1)
 	}
 
 	dq.rebindingUsers()
+	if reconnected {
+		select {
+		case dq.rebound <- struct{}{}:
+		default:
+		}
+	}
 
 	go func() {
 		if err := dq.Listen(); err != nil {
@@ -655,14 +723,23 @@ func (dq *DomainQueue) connect() error {
 }
 
 func (dq *DomainQueue) rebindingUsers() {
-	dq.RLock()
+	dq.Lock()
 
 	bindings := make([]*model.BindQueueEvent, 0, len(dq.bindings))
-	for _, v := range dq.bindings {
+	for k, v := range dq.bindings {
+		// An Email binding goes through the Email binder, never here. One on an older
+		// queue went with it; one already on this queue stays, so its cleanup finds it.
+		if v.Exchange == model.EmailServiceExchange {
+			if q, ok := dq.emailQueues[k]; ok && q != dq.queue.Name {
+				delete(dq.bindings, k)
+				delete(dq.emailQueues, k)
+			}
+			continue
+		}
 		bindings = append(bindings, v)
 	}
 
-	dq.RUnlock()
+	dq.Unlock()
 
 	for _, v := range bindings {
 		if dq.getChannel().IsClosed() {
@@ -726,6 +803,10 @@ func (dq *DomainQueue) ChatEvents() <-chan *model.ChatEvent {
 
 func (dq *DomainQueue) UserStateEvents() <-chan *model.UserState {
 	return dq.userStateEvents
+}
+
+func (dq *DomainQueue) EmailEvents() <-chan *model.EmailEvent {
+	return dq.emailEvents
 }
 
 func (dq *DomainQueue) NotificationEvents() <-chan *model.Notification {

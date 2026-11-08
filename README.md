@@ -1,5 +1,15 @@
 # engine
 
+## Email events — EM-26
+
+Stage 17 delivers the Workspace events of `email-service` to the operator over
+WebSocket (`subscribe_email`, event `email`): as for calls and chats, the queue
+of a node with the operator's sockets is bound to the key of the user.
+Workspace reads the changed Thread through the read API. Contract, client
+synchronization and the flag `EMAIL_WORKSPACE` (off by default):
+[docs/email-events.md](docs/email-events.md).
+The WebSocket part waits for confirmation by Workspace.
+
 ## Email commands — EM-25
 
 Workspace sends the Email attempt commands of an operator over WebSocket:
