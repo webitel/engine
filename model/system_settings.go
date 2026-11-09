@@ -54,6 +54,11 @@ const (
 	SysNameBlockLoginTime                    = "block_login_time"
 )
 
+const (
+	DefaultMaxLoginAttempts = 5
+	DefaultBlockLoginTime   = 60
+)
+
 type SysValue json.RawMessage
 
 type SystemSetting struct {

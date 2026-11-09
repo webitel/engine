@@ -526,6 +526,7 @@ type PresetQueryStore interface {
 
 type SystemSettingsStore interface {
 	Create(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
+	CreateDefaults(ctx context.Context, domainID int64) model.AppError
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchSystemSetting) ([]*model.SystemSetting, model.AppError)
 	Get(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError)
 	Update(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
