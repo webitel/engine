@@ -1,5 +1,36 @@
 # engine
 
+## Email commands — EM-25
+
+Workspace sends the Email attempt commands of an operator over WebSocket:
+`cc_email_take`, `cc_email_postpone`, `cc_email_resume`, `cc_email_return`,
+`cc_email_complete`, `cc_email_renew` and `cc_email_transfer`, each with
+`thread_id`, `attempt_id`, `expected_version` and a UUID `command_id` (the same
+id for a repeat of the same intent). Postpone adds `postponed_until` (Unix ms) or
+`postpone_for_sec`, Renew `renewal_sec`, Return a `reason` (1–500 characters),
+Transfer exactly one of `queue_id` and `agent_id` and an optional `comment`.
+`cc_email_transfer_agents` with `attempt_id` lists the agents a direct transfer
+may offer the email to, from `call_center.cc_email_transfer_candidates`.
+
+The domain, the user and the agent come from the session, never from the
+client. Every command needs `email_thread` update and an agent of the user
+(`engine.email_attempt.agent_not_found` otherwise); a transfer to a queue also
+needs `cc_queue` read and, with RBAC, read access to that queue. `call_center`
+checks the owner, the version and a repeat, so a repeat after a lost reply gets
+the first result even when the sender is no longer the owner.
+
+A reply carries the attempt (`attempt_id`, `thread_id`, `state`,
+`attempt_version`, `projection_version`, `result`, `queue_id`,
+`postponed_until`, `replayed`); a transfer carries `email` and `transferred_to`.
+An error keeps the stable id of `call_center` and maps its gRPC code to HTTP:
+`InvalidArgument`/`FailedPrecondition` 400, `Unauthenticated` 401,
+`PermissionDenied` 403, `NotFound` 404, `Aborted`/`AlreadyExists` 409,
+`ResourceExhausted` 429, `Canceled` 499, `Internal` 500, `Unavailable` 503,
+`DeadlineExceeded` 504. A status without a stable id gets
+`engine.email_attempt.<code>`. `email_command_timeout` (`EMAIL_COMMAND_TIMEOUT`,
+10 seconds) bounds a call to `call_center`. This is the WebSocket contract; an
+HTTP entry and the Gateway answer are not part of it.
+
 ## Email Agent API — EM-21
 
 Substeps 5.1–5.4 are prepared on `feature/EM-21-email-distribution`.

@@ -168,6 +168,8 @@ type AgentStore interface {
 	StatusStatistic(ctx context.Context, domainId, supervisorUserId int64, groups []int, access auth_manager.PermissionAccess, search *model.SearchAgentStatusStatistic) ([]*model.AgentStatusStatistics, model.AppError)
 	SupervisorAgentItem(ctx context.Context, domainId, agentId int64, t *model.FilterBetween) (*model.SupervisorAgentItem, model.AppError)
 	DistributeInfoByUserId(ctx context.Context, domainId, userId int64, channel string) (*model.DistributeAgentInfo, model.AppError)
+	// EmailAgentIdByUser returns the agent of the user in the domain, nil without one.
+	EmailAgentIdByUser(ctx context.Context, domainId, userId int64) (*int32, model.AppError)
 	IsAgentChannelOnline(ctx context.Context, agentId int64, channel string) (bool, model.AppError)
 
 	UsersStatus(ctx context.Context, domainId int64, search *model.SearchUserStatus) ([]*model.UserStatus, model.AppError)
@@ -353,6 +355,8 @@ type MemberStore interface {
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
 	QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError)
 	AttemptAgentUserId(ctx context.Context, domainId, attemptId int64) (int64, model.AppError)
+	// EmailTransferCandidates lists the agents a direct transfer of the attempt of agentId may offer it to.
+	EmailTransferCandidates(ctx context.Context, domainId, attemptId int64, agentId int32) ([]*model.EmailTransferCandidate, model.AppError)
 	GetUserTimezone(ctx context.Context, userId int64) (string, model.AppError)
 }
 

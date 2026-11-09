@@ -258,6 +258,8 @@ func httpCodeToGrpc(c int) codes.Code {
 		return codes.InvalidArgument
 	case http.StatusAccepted:
 		return codes.ResourceExhausted
+	case http.StatusTooManyRequests:
+		return codes.ResourceExhausted
 	case http.StatusUnauthorized:
 		return codes.Unauthenticated
 	case http.StatusForbidden:

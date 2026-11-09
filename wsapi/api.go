@@ -24,6 +24,7 @@ func Init(a *app.App, router *app.WebSocketRouter) {
 	api.InitCall()
 	api.InitAgent()
 	api.InitMember()
+	api.InitEmail()
 	api.InitChat()
 	api.InitNotification()
 	api.InitScreenShare()
