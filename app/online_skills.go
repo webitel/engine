@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/wlog"
@@ -42,7 +43,11 @@ func (app *App) DeleteOnlineSkills(ctx context.Context, cmd *model.DeleteSkillPr
 }
 
 func (app *App) handleDomainEventCreated(ctx context.Context, e *model.DomainEvent) error {
-	if err := app.Store.OnlineSkills().CreateSystem(ctx, e.ID); err != nil {
+	err := errors.Join(
+		app.Store.OnlineSkills().CreateSystem(ctx, e.ID),
+		app.Store.SystemSettings().CreateDefaults(ctx, e.ID),
+	)
+	if err != nil {
 		app.Log.Error("processing domain created event", wlog.Err(err))
 
 		return err
