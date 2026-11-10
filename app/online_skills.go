@@ -2,15 +2,9 @@ package app
 
 import (
 	"context"
-	"errors"
 
 	"github.com/webitel/engine/model"
-	"github.com/webitel/wlog"
 )
-
-func (app *App) initDomainEventListener() {
-	app.MessageQueue.SetDomainsEventHandler(app.handleDomainEventCreated)
-}
 
 func (app *App) CreateOnlineSkills(ctx context.Context, preset *model.OnlineSkills) (*model.OnlineSkills, model.AppError) {
 	preset.PreSave()
@@ -40,18 +34,4 @@ func (app *App) PatchOnlineSkills(ctx context.Context, cmd *model.PatchOnlineSki
 
 func (app *App) DeleteOnlineSkills(ctx context.Context, cmd *model.DeleteSkillPresetCmd) model.AppError {
 	return app.Store.OnlineSkills().Delete(ctx, cmd)
-}
-
-func (app *App) handleDomainEventCreated(ctx context.Context, e *model.DomainEvent) error {
-	err := errors.Join(
-		app.Store.OnlineSkills().CreateSystem(ctx, e.ID),
-		app.Store.SystemSettings().CreateDefaults(ctx, e.ID),
-	)
-	if err != nil {
-		app.Log.Error("processing domain created event", wlog.Err(err))
-
-		return err
-	}
-
-	return nil
 }
