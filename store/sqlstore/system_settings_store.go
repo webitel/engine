@@ -55,6 +55,25 @@ from s;`, map[string]any{
 	return st, nil
 }
 
+func (s SqlSystemSettingsStore) CreateDefaults(ctx context.Context, domainID int64) model.AppError {
+	_, err := s.GetMaster().WithContext(ctx).Exec(`insert into call_center.system_settings (domain_id, name, value)
+select :DomainId::int8, d.name, to_jsonb(d.value)
+from (values (:MaxLoginAttemptsName::varchar, :MaxLoginAttempts::int),
+             (:BlockLoginTimeName::varchar, :BlockLoginTime::int)) d(name, value)
+on conflict (domain_id, name) do nothing`, map[string]any{
+		"DomainId":             domainID,
+		"MaxLoginAttemptsName": model.SysNameMaxLoginAttempts,
+		"MaxLoginAttempts":     model.DefaultMaxLoginAttempts,
+		"BlockLoginTimeName":   model.SysNameBlockLoginTime,
+		"BlockLoginTime":       model.DefaultBlockLoginTime,
+	})
+	if err != nil {
+		return model.NewInternalError("store.sql_sys_settings.create_defaults.app_error", fmt.Sprintf("domain_id=%v, %v", domainID, err.Error()))
+	}
+
+	return nil
+}
+
 func (s SqlSystemSettingsStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchSystemSetting) ([]*model.SystemSetting, model.AppError) {
 	var list []*model.SystemSetting
 
