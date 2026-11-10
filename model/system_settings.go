@@ -52,6 +52,7 @@ const (
 	SysNameRecordAllCalls                    = "record_all_calls"
 	SysNameMaxLoginAttempts                  = "max_login_attempts"
 	SysNameBlockLoginTime                    = "block_login_time"
+	SysNameAutoGenerateExtensionNumber       = "auto_generate_extension_number"
 )
 
 const (
@@ -124,7 +125,8 @@ func (s *SystemSetting) IsValid() AppError {
 	case SysNameMemberInsertChunkSize, SysNameSearchNumberLength,
 		SysNamePeriodToPlaybackRecord, SysNamePushNotificationTimeout, SysNameScreenshotInterval,
 		SysNamePasswordExpiryDays, SysNamePasswordMinLength, SysNamePasswordWarningDays,
-		SysNameMaxLoginAttempts, SysNameBlockLoginTime:
+		SysNameMaxLoginAttempts, SysNameBlockLoginTime,
+		SysNameAutoGenerateExtensionNumber:
 		value := SysValue(s.Value)
 		i := value.Int()
 
