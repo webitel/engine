@@ -62,10 +62,6 @@ func (api *member) CreateMember(ctx context.Context, in *engine.CreateMemberRequ
 		Skill:  GetLookup(in.Skill),
 	}
 
-	if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
-		return nil, err
-	}
-
 	if m, err = api.app.CreateMember(ctx, session.DomainId, m); err != nil {
 		return nil, err
 	}
@@ -114,10 +110,6 @@ func (api *member) CreateMemberBulk(ctx context.Context, in *engine.CreateMember
 			Bucket:         GetLookup(v.GetBucket()),
 			Agent:          GetLookup(v.Agent),
 			Skill:          GetLookup(v.Skill),
-		}
-
-		if err = m.IsValid(api.app.MaxMemberCommunications()); err != nil {
-			return nil, err
 		}
 
 		members = append(members, m)
@@ -598,8 +590,10 @@ func (api *member) DeleteMember(ctx context.Context, in *engine.DeleteMemberRequ
 		}
 	}
 
+	const force = false
+
 	var m *model.Member
-	m, err = api.app.RemoveMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId())
+	m, err = api.app.RemoveMember(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), in.GetId(), force)
 	if err != nil {
 		return nil, err
 	}

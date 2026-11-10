@@ -25,6 +25,7 @@ func (a *App) CreateSystemSetting(ctx context.Context, userId, domainId int64, s
 	if err != nil {
 		return nil, err
 	}
+	invalidateCachedSystemSetting(domainId, setting.Name)
 	// publish event
 	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventCreateAction, domainId, userId)
 	if err != nil {
@@ -48,13 +49,13 @@ func (a *App) GetSystemSetting(ctx context.Context, domainId int64, id int32) (*
 }
 
 func (a *App) GetCachedSystemSetting(ctx context.Context, domainId int64, name string) (model.SysValue, model.AppError) {
-	key := fmt.Sprintf("%d-%s", domainId, name)
+	key := model.SystemSettingCacheKey(domainId, name)
 	c, ok := systemCache.Get(key)
 	if ok {
 		return c.(model.SysValue), nil
 	}
 
-	v, err, share := systemGroup.Do(fmt.Sprintf("%d-%s", domainId, name), func() (any, error) {
+	v, err, share := systemGroup.Do(key, func() (any, error) {
 		res, err := a.Store.SystemSettings().ValueByName(ctx, domainId, name)
 		if err != nil {
 			return model.SysValue{}, err
@@ -95,6 +96,7 @@ func (a *App) UpdateSystemSetting(ctx context.Context, userId, domainId int64, s
 	if appErr != nil {
 		return nil, appErr
 	}
+	invalidateCachedSystemSetting(domainId, oldSetting.Name)
 	// publish event
 	appErr = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, domainId, userId)
 	if appErr != nil {
@@ -121,6 +123,7 @@ func (a *App) PatchSystemSetting(ctx context.Context, userId, domainId int64, id
 	if err != nil {
 		return nil, err
 	}
+	invalidateCachedSystemSetting(domainId, oldSetting.Name)
 	// publish event
 	err = a.PublishSysSettingEventContext(ctx, oldSetting, &oldSettingCopy, EventUpdateAction, domainId, userId)
 	if err != nil {
@@ -140,6 +143,7 @@ func (a *App) RemoveSystemSetting(ctx context.Context, userID, domainID int64, i
 	if err != nil {
 		return nil, err
 	}
+	invalidateCachedSystemSetting(domainID, setting.Name)
 
 	err = a.PublishSysSettingEventContext(ctx, setting, nil, EventDeleteAction, domainID, userID)
 	if err != nil {
@@ -147,6 +151,18 @@ func (a *App) RemoveSystemSetting(ctx context.Context, userID, domainID int64, i
 	}
 
 	return setting, nil
+}
+
+func (a *App) handleSystemSettingEvent(_ context.Context, e *model.SystemSettingEvent) error {
+	invalidateCachedSystemSetting(e.DomainID, e.Name)
+
+	return nil
+}
+
+func invalidateCachedSystemSetting(domainId int64, name string) {
+	key := model.SystemSettingCacheKey(domainId, name)
+	systemCache.Remove(key)
+	systemGroup.Forget(key)
 }
 
 func (a *App) GetAvailableSystemSetting(ctx context.Context, domainId int64, search *model.ListRequest) ([]string, model.AppError) {

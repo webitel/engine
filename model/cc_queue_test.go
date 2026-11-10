@@ -199,3 +199,40 @@ func TestQueue_IsValid(t *testing.T) {
 		})
 	}
 }
+
+func TestQueue_IsInbound(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		qType int8
+		want  bool
+	}{
+		{name: "inbound call", qType: model.QueueTypeInboundCall, want: true},
+		{name: "inbound chat", qType: model.QueueTypeInboundChat, want: true},
+		{name: "inbound im", qType: model.QueueTypeInboundIM, want: true},
+		{name: "offline call", qType: model.QueueTypeOfflineCall, want: false},
+		{name: "ivr call", qType: model.QueueTypeIVRCall, want: false},
+		{name: "preview call", qType: model.QueueTypePreviewCall, want: false},
+		{name: "progressive call", qType: model.QueueTypeProgressiveCall, want: false},
+		{name: "predict call", qType: model.QueueTypePredictCall, want: false},
+		{name: "agent task", qType: model.QueueTypeAgentTask, want: false},
+		{name: "outbound task", qType: model.QueueTypeOutboundTask, want: false},
+		{name: "outbound call", qType: model.QueueTypeOutboundCall, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			q := &model.Queue{Type: tt.qType}
+			if got := q.IsInbound(); got != tt.want {
+				t.Errorf("IsInbound() = %v, want %v", got, tt.want)
+			}
+
+			if got := q.RequireCalendar(); got == tt.want {
+				t.Errorf("RequireCalendar() = %v, want %v", got, !tt.want)
+			}
+		})
+	}
+}

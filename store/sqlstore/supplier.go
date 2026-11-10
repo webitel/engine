@@ -74,7 +74,6 @@ type SqlSupplierOldStores struct {
 	presetQuery             store.PresetQueryStore
 	systemSetting           store.SystemSettingsStore
 	webHook                 store.WebHookStore
-	schemeVersion           store.SchemeVersionsStore
 	schemeVariable          store.SchemeVariablesStore
 	socketSession           store.SocketSessionStore
 	feedback                store.FeedbackStore
@@ -141,7 +140,6 @@ func NewSqlSupplier(settings model.SqlSettings) *SqlSupplier {
 	supplier.oldStores.presetQuery = NewSqlPresetQueryStore(supplier)
 	supplier.oldStores.systemSetting = NewSqlSystemSettingsStore(supplier)
 	supplier.oldStores.webHook = NewSqlSqlWebHookStore(supplier)
-	supplier.oldStores.schemeVersion = NewSqlSchemeVersionsStore(supplier)
 	supplier.oldStores.schemeVariable = NewSqlSqlSchemeVariablesStore(supplier)
 	supplier.oldStores.socketSession = NewSqlSocketSessionStore(supplier)
 
@@ -449,10 +447,6 @@ func (ss *SqlSupplier) WebHook() store.WebHookStore {
 	return ss.oldStores.webHook
 }
 
-func (ss *SqlSupplier) SchemeVersion() store.SchemeVersionsStore {
-	return ss.oldStores.schemeVersion
-}
-
 func (ss *SqlSupplier) SchemeVariable() store.SchemeVariablesStore {
 	return ss.oldStores.schemeVariable
 }
@@ -528,9 +522,7 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 		*model.EavesdropInfo,
 		*model.Questions,
 		*model.QuestionAnswers,
-		**model.MailProfileParams,
 		*[]*model.BlindTransfer,
-		*model.MailProfileParams,
 		*[]*model.CallForm,
 		**model.QualityMetrics:
 		binder := func(holder, target any) error {
@@ -647,6 +639,26 @@ func (me typeConverter) FromDb(target any) (gorp.CustomScanner, bool) {
 			}
 		}
 		return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: binder}, true
+	// ----- ENCRYPTED ----- //
+	case *model.UserPassword:
+		{
+			cast := func(src, dst any) (err error) {
+				data := src.(*[]byte)
+				into := dst.(*model.UserPassword)
+				return decryptText(into).Scan(*data)
+			}
+			return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: cast}, true
+		}
+	case *model.MailProfileParams,
+			**model.MailProfileParams:
+		{
+			cast := func(src, dst any) (err error) {
+				data := src.(*[]byte)
+				into := dst // .(*model.MailProfileParams)
+				return decryptJSON(into).Scan(*data)
+			}
+			return gorp.CustomScanner{Holder: new([]byte), Target: target, Binder: cast}, true
+		}
 	}
 
 	return gorp.CustomScanner{}, false

@@ -65,6 +65,9 @@ func (s SqlCalendarStore) Create(ctx context.Context, calendar *model.Calendar) 
 			"Excepts":     calendar.ExceptsToJson(),
 			"Specials":    calendar.SpecialsToJson(),
 		}); err != nil {
+		if e, ok := err.(*pq.Error); ok && e.Constraint == "calendar_domain_id_name_uindex" {
+			return nil, model.NewBadRequestError("store.sql_calendar.save.valid.name", "Calendar with this name already exists.")
+		}
 		return nil, model.NewInternalError("store.sql_calendar.save.app_error", fmt.Sprintf("id=%v, %v", calendar.Id, err.Error()))
 	} else {
 		return out, nil
@@ -221,6 +224,9 @@ from c
 		"Specials":    calendar.SpecialsToJson(),
 	})
 	if err != nil {
+		if e, ok := err.(*pq.Error); ok && e.Constraint == "calendar_domain_id_name_uindex" {
+			return nil, model.NewBadRequestError("store.sql_calendar.update.valid.name", "Calendar with this name already exists.")
+		}
 		return nil, model.NewCustomCodeError("store.sql_calendar.update.app_error", fmt.Sprintf("Id=%v, %s", calendar.Id, err.Error()), extractCodeFromErr(err))
 	}
 	return calendar, nil

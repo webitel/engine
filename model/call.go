@@ -144,8 +144,9 @@ type OutboundCallRequest struct {
 }
 
 type RedialFrom struct {
-	Number  string     `json:"number" db:"number"`
-	UserIds Int64Array `json:"user_ids" db:"user_ids"`
+	Number     string     `json:"number" db:"number"`
+	UserIds    Int64Array `json:"user_ids" db:"user_ids"`
+	HideNumber bool       `json:"hide_number" db:"hide_number"`
 }
 
 type UserCallRequest struct {
@@ -360,6 +361,12 @@ type CCTask struct {
 	HasProlongation        bool    `json:"has_prolongation" db:"has_prolongation"`
 	RemainingProlongations *uint32 `json:"remaining_prolongations" db:"remaining_prolongations"`
 	ProlongationSec        *uint32 `json:"prolongation_sec" db:"prolongation_sec"`
+
+	// The agent must accept a task within TeamAcceptTimeout seconds (team
+	// task_accept_timeout, task channel only) counted from OfferingAt (epoch ms).
+	// Named like team_accept_timeout in the call_center distribute event.
+	OfferingAt        *int64 `json:"offering_at,omitempty" db:"offering_at"`
+	TeamAcceptTimeout *int   `json:"team_accept_timeout,omitempty" db:"team_accept_timeout"`
 }
 
 type CallAnnotation struct {
@@ -609,6 +616,7 @@ type HistoryCall struct {
 	MeetingId       *string          `json:"meeting_id" db:"meeting_id"`
 	QualityMetrics  *QualityMetrics  `json:"quality_metrics" db:"quality_metrics"`
 	UserAgent       string           `json:"user_agent" db:"user_agent"`
+	HideNumber      bool             `json:"hide_numer" db:"hide_number"`
 }
 
 type BlindTransfer struct {
@@ -636,7 +644,7 @@ func (c HistoryCall) AllowFields() []string {
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
 		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms", "conversation_id", "meeting_id", "quality_metrics",
-		"user_agent",
+		"user_agent", "hide_number",
 	}
 }
 

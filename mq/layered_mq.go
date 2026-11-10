@@ -77,3 +77,7 @@ func (l *LayeredMQ) SendStartFlow(ctx context.Context, domainId int64, schemaId 
 func (l *LayeredMQ) SetDomainsEventHandler(h DomainEventHandler) {
 	l.MQLayer.SetDomainsEventHandler(h)
 }
+
+func (l *LayeredMQ) SetSystemSettingsEventHandler(h SystemSettingsEventHandler) {
+	l.MQLayer.SetSystemSettingsEventHandler(h)
+}

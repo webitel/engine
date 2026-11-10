@@ -77,7 +77,6 @@ type Store interface {
 	PresetQuery() PresetQueryStore
 	SystemSettings() SystemSettingsStore
 	WebHook() WebHookStore
-	SchemeVersion() SchemeVersionsStore
 	SchemeVariable() SchemeVariablesStore
 	SocketSession() SocketSessionStore
 	Feedback() FeedbackStore
@@ -322,6 +321,7 @@ type CommunicationTypeStore interface {
 	Create(ctx context.Context, domainId int64, comm *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchCommunicationType) ([]*model.CommunicationType, model.AppError)
 	Get(ctx context.Context, domainId, id int64) (*model.CommunicationType, model.AppError)
+	GetDefault(ctx context.Context, domainID int64, channel string) (*model.CommunicationType, model.AppError)
 	Update(ctx context.Context, domainId int64, cType *model.CommunicationType) (*model.CommunicationType, model.AppError)
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 }
@@ -333,7 +333,7 @@ type MemberStore interface {
 	GetMaxCommunicationsCount(ctx context.Context, domainId int64, search *model.SearchMemberRequest) (int, model.AppError)
 	Get(ctx context.Context, domainId, queueId, id int64) (*model.Member, model.AppError)
 	Update(ctx context.Context, domainId int64, member *model.Member) (*model.Member, model.AppError)
-	Delete(ctx context.Context, queueId, id int64) model.AppError
+	Delete(ctx context.Context, queueId, id int64, force bool) model.AppError
 	MultiDelete(ctx context.Context, domainId int64, del *model.MultiDeleteMembers, withoutMembers bool) ([]*model.Member, model.AppError)
 	ResetMembers(ctx context.Context, domainId int64, req *model.ResetMembers) (int64, model.AppError)
 	ResetMembersCount(ctx context.Context, domainID int64, query *model.ResetMembersCountQuery) (int64, model.AppError)
@@ -526,6 +526,7 @@ type PresetQueryStore interface {
 
 type SystemSettingsStore interface {
 	Create(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
+	CreateDefaults(ctx context.Context, domainID int64) model.AppError
 	GetAllPage(ctx context.Context, domainId int64, search *model.SearchSystemSetting) ([]*model.SystemSetting, model.AppError)
 	Get(ctx context.Context, domainId int64, id int32) (*model.SystemSetting, model.AppError)
 	Update(ctx context.Context, domainId int64, setting *model.SystemSetting) (*model.SystemSetting, model.AppError)
@@ -540,10 +541,6 @@ type WebHookStore interface {
 	Get(ctx context.Context, domainId int64, id int32) (*model.WebHook, model.AppError)
 	Update(ctx context.Context, domainId int64, hook *model.WebHook) (*model.WebHook, model.AppError)
 	Delete(ctx context.Context, domainId int64, id int32) model.AppError
-}
-
-type SchemeVersionsStore interface {
-	Search(ctx context.Context, searchOpts *model.ListRequest, filters any) ([]*model.SchemeVersion, model.AppError)
 }
 
 type SchemeVariablesStore interface {

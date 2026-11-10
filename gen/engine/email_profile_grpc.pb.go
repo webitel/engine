@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	EmailProfileService_CreateEmailProfile_FullMethodName = "/engine.EmailProfileService/CreateEmailProfile"
 	EmailProfileService_SearchEmailProfile_FullMethodName = "/engine.EmailProfileService/SearchEmailProfile"
-	EmailProfileService_TestEmailProfile_FullMethodName   = "/engine.EmailProfileService/TestEmailProfile"
 	EmailProfileService_LoginEmailProfile_FullMethodName  = "/engine.EmailProfileService/LoginEmailProfile"
 	EmailProfileService_LogoutEmailProfile_FullMethodName = "/engine.EmailProfileService/LogoutEmailProfile"
 	EmailProfileService_ReadEmailProfile_FullMethodName   = "/engine.EmailProfileService/ReadEmailProfile"
@@ -38,8 +37,6 @@ type EmailProfileServiceClient interface {
 	CreateEmailProfile(ctx context.Context, in *CreateEmailProfileRequest, opts ...grpc.CallOption) (*EmailProfile, error)
 	// Search EmailProfile
 	SearchEmailProfile(ctx context.Context, in *SearchEmailProfileRequest, opts ...grpc.CallOption) (*ListEmailProfile, error)
-	// EmailProfile check login
-	TestEmailProfile(ctx context.Context, in *TestEmailProfileRequest, opts ...grpc.CallOption) (*TestEmailProfileResponse, error)
 	LoginEmailProfile(ctx context.Context, in *LoginEmailProfileRequest, opts ...grpc.CallOption) (*LoginEmailProfileResponse, error)
 	LogoutEmailProfile(ctx context.Context, in *LogoutEmailProfileRequest, opts ...grpc.CallOption) (*LogoutEmailProfileResponse, error)
 	// EmailProfile item
@@ -71,15 +68,6 @@ func (c *emailProfileServiceClient) CreateEmailProfile(ctx context.Context, in *
 func (c *emailProfileServiceClient) SearchEmailProfile(ctx context.Context, in *SearchEmailProfileRequest, opts ...grpc.CallOption) (*ListEmailProfile, error) {
 	out := new(ListEmailProfile)
 	err := c.cc.Invoke(ctx, EmailProfileService_SearchEmailProfile_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *emailProfileServiceClient) TestEmailProfile(ctx context.Context, in *TestEmailProfileRequest, opts ...grpc.CallOption) (*TestEmailProfileResponse, error) {
-	out := new(TestEmailProfileResponse)
-	err := c.cc.Invoke(ctx, EmailProfileService_TestEmailProfile_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -148,8 +136,6 @@ type EmailProfileServiceServer interface {
 	CreateEmailProfile(context.Context, *CreateEmailProfileRequest) (*EmailProfile, error)
 	// Search EmailProfile
 	SearchEmailProfile(context.Context, *SearchEmailProfileRequest) (*ListEmailProfile, error)
-	// EmailProfile check login
-	TestEmailProfile(context.Context, *TestEmailProfileRequest) (*TestEmailProfileResponse, error)
 	LoginEmailProfile(context.Context, *LoginEmailProfileRequest) (*LoginEmailProfileResponse, error)
 	LogoutEmailProfile(context.Context, *LogoutEmailProfileRequest) (*LogoutEmailProfileResponse, error)
 	// EmailProfile item
@@ -171,9 +157,6 @@ func (UnimplementedEmailProfileServiceServer) CreateEmailProfile(context.Context
 }
 func (UnimplementedEmailProfileServiceServer) SearchEmailProfile(context.Context, *SearchEmailProfileRequest) (*ListEmailProfile, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchEmailProfile not implemented")
-}
-func (UnimplementedEmailProfileServiceServer) TestEmailProfile(context.Context, *TestEmailProfileRequest) (*TestEmailProfileResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TestEmailProfile not implemented")
 }
 func (UnimplementedEmailProfileServiceServer) LoginEmailProfile(context.Context, *LoginEmailProfileRequest) (*LoginEmailProfileResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginEmailProfile not implemented")
@@ -238,24 +221,6 @@ func _EmailProfileService_SearchEmailProfile_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(EmailProfileServiceServer).SearchEmailProfile(ctx, req.(*SearchEmailProfileRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _EmailProfileService_TestEmailProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TestEmailProfileRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(EmailProfileServiceServer).TestEmailProfile(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: EmailProfileService_TestEmailProfile_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(EmailProfileServiceServer).TestEmailProfile(ctx, req.(*TestEmailProfileRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -382,10 +347,6 @@ var EmailProfileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchEmailProfile",
 			Handler:    _EmailProfileService_SearchEmailProfile_Handler,
-		},
-		{
-			MethodName: "TestEmailProfile",
-			Handler:    _EmailProfileService_TestEmailProfile_Handler,
 		},
 		{
 			MethodName: "LoginEmailProfile",

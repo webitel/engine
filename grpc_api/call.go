@@ -217,6 +217,10 @@ func (api *call) searchHistoryCall(ctx context.Context, in *engine.SearchHistory
 		}
 	}
 
+	if in.GetHideNumber() {
+		req.Fields = append(req.Fields, "hide_number")
+	}
+
 	if list, endList, err = api.ctrl.SearchHistoryCall(ctx, session, req); err != nil {
 		return nil, err
 	}
@@ -1012,7 +1016,13 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 		Schemas:          GetProtoLookups(src.Schemas),
 		QualityMetrics:   marshaProtoCallQualityMetrics(src.QualityMetrics),
 		UserAgent:        src.UserAgent,
+		HideNumber:       src.HideNumber,
 	}
+
+	if src.HideNumber {
+		item.Destination = model.HideString(item.Destination, 5, 0, 2)
+	}
+
 	if src.ParentId != nil {
 		item.ParentId = *src.ParentId
 	}
@@ -1047,6 +1057,14 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 			Id:     src.From.Id,
 			Name:   src.From.Name,
 		}
+
+		if src.HideNumber {
+			if src.From.Name == src.From.Number {
+				item.From.Name = model.HideString(item.From.Name, 5, 0, 2)
+			}
+
+			item.From.Number = model.HideString(item.From.Number, 5, 0, 2)
+		}
 	}
 
 	if src.To != nil {
@@ -1055,6 +1073,14 @@ func toEngineHistoryCall(src *model.HistoryCall, minHideString, pref, suff int, 
 			Number: setAccessString(src.To.Number, minHideString, pref, suff, hideNumbers),
 			Id:     src.To.Id,
 			Name:   src.To.Name,
+		}
+
+		if src.HideNumber {
+			if src.To.Name == src.To.Number {
+				item.To.Name = model.HideString(item.To.Name, 5, 0, 2)
+			}
+
+			item.To.Number = model.HideString(item.To.Number, 5, 0, 2)
 		}
 	}
 

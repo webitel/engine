@@ -37,6 +37,38 @@ func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
 	}
 }
 
+func TestSystemSetting_IsValid_LoginAttempts(t *testing.T) {
+	cases := []struct {
+		name    string
+		value   json.RawMessage
+		wantErr bool
+	}{
+		{name: "five", value: json.RawMessage(`5`), wantErr: false},
+		{name: "one", value: json.RawMessage(`1`), wantErr: false},
+		{name: "zero", value: json.RawMessage(`0`), wantErr: true},
+		{name: "negative", value: json.RawMessage(`-1`), wantErr: true},
+		{name: "string", value: json.RawMessage(`"5"`), wantErr: true},
+		{name: "bool", value: json.RawMessage(`true`), wantErr: true},
+	}
+
+	for _, setting := range []string{model.SysNameMaxLoginAttempts, model.SysNameBlockLoginTime} {
+		for _, tc := range cases {
+			t.Run(setting+"/"+tc.name, func(t *testing.T) {
+				s := &model.SystemSetting{Name: setting, Value: tc.value}
+				err := s.IsValid()
+
+				if tc.wantErr && err == nil {
+					t.Fatalf("expected error for value %s, got nil", tc.value)
+				}
+
+				if !tc.wantErr && err != nil {
+					t.Fatalf("expected no error for value %s, got %v", tc.value, err)
+				}
+			})
+		}
+	}
+}
+
 func TestSystemSetting_IsValid_AutoGenerateExtensionNumber(t *testing.T) {
 	cases := []struct {
 		name    string
@@ -124,7 +156,6 @@ func TestNewSystemSettingsNotification(t *testing.T) {
 		{"screenshot_interval is pushed", &model.SystemSetting{Name: model.SysNameScreenshotInterval, Value: json.RawMessage(`30`)}, false, true},
 		{"login_options is not pushed", &model.SystemSetting{Name: model.SysNameLoginOptions, Value: json.RawMessage(`{}`)}, true, false},
 		{"amd_cancel_not_human is not pushed", &model.SystemSetting{Name: model.SysNameAmdCancelNotHuman, Value: json.RawMessage(`true`)}, true, false},
-		{"scheme_version_limit is not pushed", &model.SystemSetting{Name: model.SysNameSchemeVersionLimit, Value: json.RawMessage(`10`)}, true, false},
 		{"sensitive setting is not pushed", &model.SystemSetting{Name: model.SysNameDefaultPassword, Value: json.RawMessage(`"x"`)}, true, false},
 		{"unknown setting is not pushed", &model.SystemSetting{Name: "brand_new_setting", Value: json.RawMessage(`1`)}, true, false},
 		{"nil setting", nil, true, false},
@@ -361,5 +392,41 @@ func TestPrepareDefaultMembersFilter_ThisMonth(t *testing.T) {
 			after.UnixMilli(),
 			result.To,
 		)
+	}
+}
+
+func TestNewSystemSettingEventFromRoutingKey(t *testing.T) {
+	tests := []struct {
+		name    string
+		rk      string
+		want    *model.SystemSettingEvent
+		wantErr bool
+	}{
+		{"update", "system_settings.period_to_playback_records.update.1.10", &model.SystemSettingEvent{Name: "period_to_playback_records", DomainID: 1}, false},
+		{"delete", "system_settings.enable_2fa.delete.25.3", &model.SystemSettingEvent{Name: "enable_2fa", DomainID: 25}, false},
+		{"without user", "system_settings.enable_2fa.create.7", &model.SystemSettingEvent{Name: "enable_2fa", DomainID: 7}, false},
+		{"too short", "system_settings.enable_2fa.update", nil, true},
+		{"wrong object", "domains.enable_2fa.update.1.1", nil, true},
+		{"empty name", "system_settings..update.1.1", nil, true},
+		{"domain not a number", "system_settings.enable_2fa.update.abc.1", nil, true},
+		{"domain zero", "system_settings.enable_2fa.update.0.1", nil, true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := model.NewSystemSettingEventFromRoutingKey(tc.rk)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("expected error, got %+v", got)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if *got != *tc.want {
+				t.Fatalf("got %+v, want %+v", got, tc.want)
+			}
+		})
 	}
 }
