@@ -583,13 +583,13 @@ with queues  as  (
         select distinct
                q.id queue_id,
                array_agg(distinct a.id) filter (
-                    where status = 'online'
+                    where a.status = 'online'
                     and (a.status_id is null or sp.is_system is true or spp.skill_id is not null)
                ) agent_on_ids,
-               array_agg(distinct a.id) filter ( where status = 'offline' ) agent_off_ids,
-               array_agg(distinct a.id) filter ( where status in ('pause', 'break_out') ) agent_p_ids,
+               array_agg(distinct a.id) filter ( where a.status = 'offline' ) agent_off_ids,
+               array_agg(distinct a.id) filter ( where a.status in ('pause', 'break_out') ) agent_p_ids,
                array_agg(distinct a.id) filter (
-                    where status = 'online'
+                    where a.status = 'online'
                     and (a.status_id is null or sp.is_system is true or spp.skill_id is not null)
                     and ac.state = 'waiting'
                ) free,
