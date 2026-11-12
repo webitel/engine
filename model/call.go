@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/pborman/uuid"
+	"github.com/webitel/engine/pkg/fsvar"
 )
 
 const (
@@ -166,8 +167,29 @@ type DtmfCall struct {
 
 type BlindTransferCall struct {
 	UserCallRequest
+
 	Destination string
 	Variables   map[string]string
+}
+
+func (bt *BlindTransferCall) Validate() AppError {
+	formatErr := func(idSuffix, detail string) AppError {
+		return NewBadRequestError("model.call.blind_transfer.validate."+idSuffix, detail)
+	}
+
+	if bt == nil {
+		return formatErr("nil", "received nil pointer call")
+	}
+
+	if err := fsvar.ValidateVariables(bt.Variables); err != nil {
+		return formatErr("variables", err.Error())
+	}
+
+	if err := fsvar.ValidateNumber(bt.Destination); err != nil {
+		return formatErr("destination", fmt.Sprintf("unsupported destination format %q", bt.Destination))
+	}
+
+	return nil
 }
 
 type BlindTransferCallToQueue struct {
@@ -178,8 +200,25 @@ type BlindTransferCallToQueue struct {
 
 type BlindTransferCallToDialplan struct {
 	UserCallRequest
+
 	DialplanId int
 	Variables  map[string]string
+}
+
+func (bt *BlindTransferCallToDialplan) Validate() AppError {
+	formatErr := func(idSuffix, details string) AppError {
+		return NewBadRequestError("model.call.blind_transfer_call_to_dialplan.validate."+idSuffix, details)
+	}
+
+	if bt == nil {
+		return formatErr("nil", "received nil pointer request call")
+	}
+
+	if err := fsvar.ValidateVariables(bt.Variables); err != nil {
+		return formatErr("variables", err.Error())
+	}
+
+	return nil
 }
 
 type BridgeCall struct {
@@ -253,6 +292,14 @@ type CallParameters struct {
 	ContactId         int
 }
 
+func (p *CallParameters) Validate() AppError {
+	if err := fsvar.ValidateVariables(p.Variables); err != nil {
+		return NewBadRequestError("model.call.parameters.validate.variables", err.Error())
+	}
+
+	return nil
+}
+
 // todo
 func (e *EavesdropCall) StateName() string {
 	if e.WhisperALeg && e.WhisperBLeg {
@@ -265,6 +312,21 @@ func (e *EavesdropCall) StateName() string {
 }
 
 func (r *OutboundCallRequest) IsValid() AppError {
+	if r == nil {
+		return NewBadRequestError("model.call.outbound_call_request.valid.nil", "received nil pointer request call")
+	}
+
+	if err := r.Params.Validate(); err != nil {
+		return err
+	}
+
+	if err := fsvar.ValidateNumber(r.Destination); err != nil {
+		return NewBadRequestError(
+			"model.call.outbound_call_request.valid.destination",
+			fmt.Sprintf("received unsupported destination format %q", r.Destination),
+		)
+	}
+
 	return nil
 }
 
@@ -814,8 +876,18 @@ func (cp *CallPayload) UnmarshalText(b []byte) error {
 	return json.Unmarshal(b, (*map[string]any)(cp))
 }
 
-func (cr *CallRequest) AddUserVariable(name, value string) {
-	cr.AddVariable(fmt.Sprintf("usr_%s", name), value)
+func (cr *CallRequest) AddUserVariable(name, value string) error {
+	if err := fsvar.ValidateUserVariableName(name); err != nil {
+		return err
+	}
+
+	if err := fsvar.ValidateValue(value); err != nil {
+		return err
+	}
+
+	cr.AddVariable("usr_"+name, value)
+
+	return nil
 }
 
 func (cr *CallRequest) AddVariable(name, value string) {

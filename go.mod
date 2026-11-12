@@ -1,8 +1,10 @@
 module github.com/webitel/engine
 
-go 1.26.0
+go 1.27.1
 
 replace github.com/webitel/engine/pkg/discovery => ./pkg/discovery
+
+replace github.com/webitel/engine/pkg/fsvar => ./pkg/fsvar
 
 replace github.com/webitel/engine/pkg/wbt/auth_manager => ./pkg/wbt/auth_manager
 
@@ -24,6 +26,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/webitel/crypto/cryptostore v0.3.0
 	github.com/webitel/engine/pkg/discovery v0.0.0-20250925090335-284caa978daa
+	github.com/webitel/engine/pkg/fsvar v0.0.0-00010101000000-000000000000
 	github.com/webitel/engine/pkg/presign v0.0.0-20250507123601-4e6943ad1e27
 	github.com/webitel/engine/pkg/wbt v0.0.0-20250801070656-122a5f61b06a
 	github.com/webitel/engine/pkg/werror v0.0.0-20250508121332-6ae1563235d8
