@@ -103,6 +103,7 @@ func (s OnlineSkills) DefaultFields() []string {
 }
 func (s OnlineSkills) EntityName() string   { return "cc_online_skills_list" }
 func (s OnlineSkills) DefaultOrder() string { return "is_system desc, name asc" }
+func (OnlineSkills) CustomSorts() []string  { return []string{"is_system desc, name asc"} }
 
 func (s *OnlineSkills) Validate() AppError {
 	if s == nil {
