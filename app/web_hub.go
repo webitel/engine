@@ -29,6 +29,7 @@ type Hub struct {
 	ExplicitStop     bool
 	domainQueue      mq.DomainQueue
 	lastUnregisterAt int64
+	emailOut         chan emailOut
 
 	log *wlog.Logger
 }
@@ -45,6 +46,7 @@ func (a *App) NewWebHub(name string, id int64) *Hub {
 		didStop:          make(chan struct{}),
 		lastUnregisterAt: model.GetMillis(),
 		invalidateUser:   make(chan string),
+		emailOut:         make(chan emailOut, emailOutSize),
 		ExplicitStop:     false,
 		log: a.Log.With(wlog.Namespace("context"),
 			wlog.String("scope", "wsHub"),
@@ -113,6 +115,9 @@ func (wh *Hub) start() {
 			atomic.StoreInt64(&wh.connectionCount, int64(len(connections.All())))
 			wh.lastUnregisterAt = model.GetMillis()
 
+			if sub := webCon.emailSub.Load(); sub != nil {
+				wh.endEmail(sub)
+			}
 			wh.domainQueue.BulkUnbind(webCon.GetAllBindings())
 
 			err := wh.app.MessageQueue.UnRegisterWebsocket(webCon.DomainId, &model.RegisterToWebsocketEvent{
@@ -164,6 +169,15 @@ func (wh *Hub) start() {
 					webCon.Log().Debug("send event "+ev.Event, wlog.String("event_type", "call"), wlog.String("event_name", ev.Event), wlog.String("event_id", ev.Id))
 				}
 			}
+
+		case e := <-wh.domainQueue.EmailEvents():
+			wh.dispatchEmail(connections, e)
+
+		case out := <-wh.emailOut:
+			wh.sendEmail(connections, out)
+
+		case <-wh.domainQueue.Rebound():
+			wh.emailRebound(connections)
 
 		case ev := <-wh.domainQueue.ChatEvents():
 			candidates := connections.ForUser(ev.UserId)

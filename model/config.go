@@ -59,6 +59,8 @@ type Config struct {
 	TriggersSettings        TriggersSettings `json:"triggers_settings"`
 	RTCConfiguration        string           `json:"rtc_configuration" flag:"rtc_configuration||RTCConfiguration" default:"" env:"RTC_CONFIGURATION"`
 	EmailCommandTimeout     int              `json:"email_command_timeout" flag:"email_command_timeout|10|Seconds an Email command waits for call_center" env:"EMAIL_COMMAND_TIMEOUT"`
+	// EmailWorkspace opens the Email subscription of WebSocket (stage 17.5).
+	EmailWorkspace bool `json:"email_workspace" flag:"email_workspace|false|Deliver Email events to WebSocket subscribers" env:"EMAIL_WORKSPACE"`
 }
 
 type PushConfig struct {

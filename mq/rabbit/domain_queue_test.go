@@ -102,6 +102,10 @@ func (f *fakeChannel) command(name string, noWait bool, refuse *amqp.Error, appl
 	return refuse
 }
 
+func (f *fakeChannel) ExchangeDeclare(_, _ string, _, _, _, noWait bool, _ amqp.Table) error {
+	return f.command("exchange.declare", noWait, nil, func() {})
+}
+
 func (f *fakeChannel) QueueDeclare(name string, _, _, _, noWait bool, _ amqp.Table) (amqp.Queue, error) {
 	err := f.command("queue.declare", noWait, f.broker.declareRefusal(), func() { f.queue = name })
 
@@ -110,6 +114,9 @@ func (f *fakeChannel) QueueDeclare(name string, _, _, _, noWait bool, _ amqp.Tab
 
 func (f *fakeChannel) QueueBind(_, key, exchange string, noWait bool, args amqp.Table) error {
 	sock, _ := args["x-sock-id"].(string)
+	if hold := f.broker.holding(); hold != nil {
+		<-hold // a slow broker: the bind is sent, its answer waits
+	}
 
 	return f.command("queue.bind", noWait, f.broker.bindRefusal(exchange, sock), func() {
 		f.binds = append(f.binds, fakeBind{exchange, key, sock, noWait})
@@ -237,9 +244,17 @@ type fakeBroker struct {
 	missing       map[string]bool // exchanges that do not exist
 	failReplay    int             // the next n socket binds die with the connection
 	channels      []*fakeChannel
-	overlap       bool // a channel was opened while an earlier one was still open
-	runaway       bool // the queue reconnected without end
-	budget        int  // channels it may still open
+	overlap       bool          // a channel was opened while an earlier one was still open
+	runaway       bool          // the queue reconnected without end
+	budget        int           // channels it may still open
+	hold          chan struct{} // while set, every bind waits until it is closed
+}
+
+func (b *fakeBroker) holding() chan struct{} {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	return b.hold
 }
 
 // More channels than any test needs: a queue that reconnects in a loop runs
