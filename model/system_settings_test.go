@@ -37,6 +37,38 @@ func TestSystemSetting_IsValid_RecordAllCalls(t *testing.T) {
 	}
 }
 
+func TestSystemSetting_IsValid_LoginAttempts(t *testing.T) {
+	cases := []struct {
+		name    string
+		value   json.RawMessage
+		wantErr bool
+	}{
+		{name: "five", value: json.RawMessage(`5`), wantErr: false},
+		{name: "one", value: json.RawMessage(`1`), wantErr: false},
+		{name: "zero", value: json.RawMessage(`0`), wantErr: true},
+		{name: "negative", value: json.RawMessage(`-1`), wantErr: true},
+		{name: "string", value: json.RawMessage(`"5"`), wantErr: true},
+		{name: "bool", value: json.RawMessage(`true`), wantErr: true},
+	}
+
+	for _, setting := range []string{model.SysNameMaxLoginAttempts, model.SysNameBlockLoginTime} {
+		for _, tc := range cases {
+			t.Run(setting+"/"+tc.name, func(t *testing.T) {
+				s := &model.SystemSetting{Name: setting, Value: tc.value}
+				err := s.IsValid()
+
+				if tc.wantErr && err == nil {
+					t.Fatalf("expected error for value %s, got nil", tc.value)
+				}
+
+				if !tc.wantErr && err != nil {
+					t.Fatalf("expected no error for value %s, got %v", tc.value, err)
+				}
+			})
+		}
+	}
+}
+
 func TestSystemSetting_Sanitized(t *testing.T) {
 	cases := []struct {
 		name      string
