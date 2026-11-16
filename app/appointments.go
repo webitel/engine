@@ -25,7 +25,7 @@ func init() {
 	cacheAppointmentDate = utils.NewLruWithParams(sizeCacheAppointments, "List appointment date", 60, "")
 }
 
-func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointment, model.AppError) {
+func (app *App) GetAppointment(ctx context.Context, key string, domainID, queueID int64) (*model.Appointment, model.AppError) {
 	if a, ok := cacheAppointments.Get(key); ok {
 		return a.(*model.Appointment), nil
 	}
@@ -35,8 +35,8 @@ func (app *App) GetAppointment(ctx context.Context, key string) (*model.Appointm
 		return nil, appErr
 	}
 
-	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("member-%d", memberId), func() (interface{}, error) {
-		a, err := app.Store.Member().GetAppointment(ctx, memberId)
+	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("member-%d", memberId), func() (any, error) {
+		a, err := app.Store.Member().GetAppointment(ctx, memberId, domainID, queueID)
 		if err != nil {
 			return nil, err
 		}
@@ -76,7 +76,6 @@ func (app *App) AppointmentWidget(ctx context.Context, widgetUri string) (*model
 }
 
 func (app *App) appointmentWidget(ctx context.Context, widgetUri string) (*model.AppointmentWidget, model.AppError) {
-
 	res, err, shared := appointmentGroupRequest.Do(fmt.Sprintf("list-%s", widgetUri), func() (interface{}, error) {
 		a, err := app.Store.Member().GetAppointmentWidget(ctx, widgetUri)
 		if err != nil {
@@ -146,7 +145,7 @@ func (app *App) CreateAppointment(ctx context.Context, widget *model.Appointment
 }
 
 func (app *App) CancelAppointment(ctx context.Context, widget *model.AppointmentWidget, key string) (*model.Appointment, model.AppError) {
-	appointment, err := app.GetAppointment(ctx, key)
+	appointment, err := app.GetAppointment(ctx, key, widget.Profile.DomainId, int64(widget.Profile.QueueId))
 	if err != nil {
 		return nil, err
 	}

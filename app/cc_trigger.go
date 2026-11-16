@@ -130,10 +130,9 @@ func (a *App) RemoveTrigger(ctx context.Context, domainId int64, id int32) (*mod
 }
 
 func (a *App) GetTriggerJobList(ctx context.Context, domainId int64, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, bool, model.AppError) {
-	var list []*model.TriggerJob
-	_, err := a.Store.Trigger().Get(ctx, domainId, triggerId)
+	search.DomainId = domainId
 
-	list, err = a.Store.Trigger().GetAllJobs(ctx, triggerId, search)
+	list, err := a.Store.Trigger().GetAllJobs(ctx, triggerId, search)
 	if err != nil {
 		return nil, false, err
 	}

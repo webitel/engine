@@ -956,3 +956,12 @@ type PatchHistoryAttemptResult struct {
 	Description string            `json:"description" db:"description"`
 	Variables   map[string]string `json:"variables" db:"variables"`
 }
+
+type CallExistsRequest struct {
+	ID       string
+	DomainID int64
+}
+
+type CallExistsResponse struct {
+	Exist bool `json:"exist" db:"exist"`
+}

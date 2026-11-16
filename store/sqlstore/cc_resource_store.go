@@ -23,15 +23,15 @@ func (s SqlOutboundResourceStore) Create(ctx context.Context, resource *model.Ou
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into call_center.cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
-                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description, patterns, 
+                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description, patterns,
 								failure_dial_delay, parameters)
 values (:Limit, :Enabled, :UpdatedAt, :Rps, :DomainId, :Reserve , :Variables, :Number,
-        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description, :Patterns, 
+        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description, :Patterns,
 		:FailureDialDelay, :Parameters)
 	returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
+      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors,
       s.last_error_at, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, call_center.cc_get_lookup(u.id, u.name) as updated_by,
 	  call_center.cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay, s.parameters
 from s
@@ -136,14 +136,14 @@ func (s SqlOutboundResourceStore) Get(ctx context.Context, domainId int64, id in
 	var resource *model.OutboundCallResource
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&resource, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
+				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors,
 				   s.last_error_at, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, call_center.cc_get_lookup(u.id, u.name) as updated_by,
 				  call_center.cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay, s.parameters
 			from call_center.cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
 				left join directory.sip_gateway gw on gw.id = s.gateway_id
-		where s.domain_id = :DomainId and s.id = :Id 	
+		where s.domain_id = :DomainId and s.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -176,7 +176,7 @@ with s as (
         returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
+      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors,
        s.last_error_at, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, call_center.cc_get_lookup(u.id, u.name) as updated_by,
 		call_center.cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay, s.parameters
 from s
@@ -234,24 +234,31 @@ returning *`, map[string]interface{}{
 	return out, nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
-	params := map[string]interface{}{
-		"ResourceId": resourceId,
+func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId, domainID int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
+	displaysValues := make([]string, 0, len(d))
+	for _, rd := range d {
+		displaysValues = append(displaysValues, rd.Display)
 	}
-	var (
-		name     string
-		displays []*model.ResourceDisplay
-	)
 
-	queryBase := "insert into call_center.cc_outbound_resource_display (resource_id, display) values"
-	for i, rd := range d {
-		name = fmt.Sprintf("Val%d", i)
-		queryBase += fmt.Sprintf(" (:ResourceId, :%s),", name)
-		params[name] = rd.Display
+	query := `
+		insert into call_center.cc_outbound_resource_display(resource_id, display)
+		select
+			r.id,
+			v.display
+		from call_center.cc_outbound_resource r
+		inner join unnest(:Displays::text[]) as v(display) on true
+		where (r.id, r.domain_id) = (:ResourceId, :DomainID)
+		returning id, display, resource_id
+	`
+
+	params := map[string]any{
+		"ResourceId": resourceId,
+		"DomainID":   domainID,
+		"Displays":   pq.StringArray(displaysValues),
 	}
-	queryBase = queryBase[:len(queryBase)-1] + " returning id, display, resource_id"
-	_, err := s.GetMaster().WithContext(ctx).Select(&displays, queryBase, params)
-	if err != nil {
+
+	var displays []*model.ResourceDisplay
+	if _, err := s.GetMaster().WithContext(ctx).Select(&displays, query, params); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.save_displays.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -288,7 +295,7 @@ func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, reso
 			select d.id, d.display, d.resource_id
 		from call_center.cc_outbound_resource_display d
 		where d.id = :Id and d.resource_id = :ResourceId and exists (select 1
-				from call_center.cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)	
+				from call_center.cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)
 		`, map[string]interface{}{"Id": id, "DomainId": domainId, "ResourceId": resourceId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.get_display.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -299,8 +306,8 @@ func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, reso
 func (s SqlOutboundResourceStore) UpdateDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&display, `
 		update call_center.cc_outbound_resource_display d
-set display = :Display 
-where d.id = :Id and d.resource_id = :ResourceId 
+set display = :Display
+where d.id = :Id and d.resource_id = :ResourceId
   and exists(select 1 from call_center.cc_outbound_resource r where r.id = d.resource_id and r.domain_id = :DomainId)
 returning *`, map[string]interface{}{
 		"Display":    display.Display,

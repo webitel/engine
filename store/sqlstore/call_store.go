@@ -378,6 +378,26 @@ func hasFileFilterSQL(alias string) string {
 	return fmt.Sprintf(`and (:HasFile::bool isnull or (case :HasFile::bool when true then %[1]s else not %[1]s end))`, recordingExists)
 }
 
+func (s SqlCallStore) Exists(ctx context.Context, req *model.CallExistsRequest) (*model.CallExistsResponse, model.AppError) {
+	query := `
+		select exists (
+			select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (:ID::uuid, :DomainID::int)
+		) as "exist";
+	`
+
+	args := map[string]any{
+		"ID":       req.ID,
+		"DomainID": req.DomainID,
+	}
+
+	exists := model.CallExistsResponse{}
+	if err := s.GetReplica().WithContext(ctx).SelectOne(&exists, query, args); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.exists.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return &exists, nil
+}
+
 func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError) {
 	whereQuery := `
 		domain_id = :Domain::int8

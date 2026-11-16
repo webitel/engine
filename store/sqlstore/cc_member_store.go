@@ -718,7 +718,7 @@ where m2.id = x.id`, map[string]any{
 	return cnt, nil
 }
 
-func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) {
+func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId, domainID int64) ([]*model.MemberAttempt, model.AppError) {
 	var attempts []*model.MemberAttempt
 	//FIXME
 	if _, err := s.GetMaster().WithContext(ctx).Select(&attempts, `with active as (
@@ -745,11 +745,10 @@ func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*mo
         left join call_center.cc_agent ca on a.agent_id = ca.id
         left join directory.wbt_user u on u.id = ca.user_id
         left join call_center.cc_bucket cb on a.bucket_id = cb.id
-    where a.member_id = :MemberId
+    where (a.member_id, a.domain_id) = (:MemberId, :DomainID)
     order by a.created_at
 ), log as (
     select a.id,
-          -- a.member_id,
            (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
            'TODO' as destination,
            a.weight,
@@ -771,14 +770,14 @@ func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId int64) ([]*mo
         left join call_center.cc_agent ca on a.agent_id = ca.id
         left join directory.wbt_user u on u.id = ca.user_id
         left join call_center.cc_bucket cb on a.bucket_id = cb.id
-    where a.member_id = :MemberId
+    where (a.member_id, a.domain_id) = (:MemberId, :DomainID)
     order by a.created_at
 )
 select *
 from active a
 union all
 select *
-from log a`, map[string]interface{}{"MemberId": memberId}); err != nil {
+from log a`, map[string]any{"MemberId": memberId, "DomainID": domainID}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_member.get_attempts_all.app_error", fmt.Sprintf("MemberId=%v, %s", memberId, err.Error()), extractCodeFromErr(err))
 	}
 
@@ -1059,7 +1058,7 @@ from call_center.appointment_widget(:Uri::varchar)`, map[string]interface{}{
 	return widget, nil
 }
 
-func (s SqlMemberStore) GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, model.AppError) {
+func (s SqlMemberStore) GetAppointment(ctx context.Context, memberId, domainID, queueID int64) (*model.Appointment, model.AppError) {
 	var res *model.Appointment
 
 	err := s.GetReplica().WithContext(ctx).SelectOne(&res, `select
@@ -1073,8 +1072,10 @@ func (s SqlMemberStore) GetAppointment(ctx context.Context, memberId int64) (*mo
 	tz.sys_name as timezone
 from call_center.cc_member m
 	left join flow.calendar_timezones tz on tz.id = m.timezone_id
-where m.id = :Id and m.stop_at isnull and m.stop_cause isnull`, map[string]interface{}{
-		"Id": memberId,
+where m.id = :Id and m.domain_id = :DomainID and m.queue_id = :QueueID and m.stop_at isnull and m.stop_cause isnull`, map[string]interface{}{
+		"Id":       memberId,
+		"DomainID": domainID,
+		"QueueID":  queueID,
 	})
 
 	if err != nil {

@@ -105,8 +105,12 @@ func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.
 	return a.Store.OutboundResource().SaveDisplay(ctx, display)
 }
 
-func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
-	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, displays)
+func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId, domainID int64, displays []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
+	if len(displays) == 0 {
+		return nil, model.NewBadRequestError("app.cc_resource.create_outbound_displays", "zero resource displays")
+	}
+
+	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, domainID, displays)
 }
 
 func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, model.AppError) {

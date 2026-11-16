@@ -224,7 +224,7 @@ type OutboundResourceStore interface {
 	Delete(ctx context.Context, domainId, id int64) model.AppError
 
 	SaveDisplay(ctx context.Context, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError)
-	SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError)
+	SaveDisplays(ctx context.Context, resourceId, domainID int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError)
 	GetDisplayAllPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, model.AppError)
 	GetDisplay(ctx context.Context, domainId, resourceId, id int64) (*model.ResourceDisplay, model.AppError)
 	UpdateDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError)
@@ -341,7 +341,7 @@ type MemberStore interface {
 	ResetMembersCount(ctx context.Context, domainID int64, query *model.ResetMembersCountQuery) (int64, model.AppError)
 
 	// Move to new store
-	AttemptsList(ctx context.Context, memberId int64) ([]*model.MemberAttempt, model.AppError) // FIXME
+	AttemptsList(ctx context.Context, memberId, domainID int64) ([]*model.MemberAttempt, model.AppError) // FIXME
 	SearchAttempts(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.Attempt, model.AppError)
 	SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, model.AppError)
 	ListOfflineQueueForAgent(ctx context.Context, domainId int64, search *model.SearchOfflineQueueMembers) ([]*model.OfflineMember, model.AppError)
@@ -349,7 +349,7 @@ type MemberStore interface {
 
 	// Appointments
 	GetAppointmentWidget(ctx context.Context, uri string) (*model.AppointmentWidget, model.AppError)
-	GetAppointment(ctx context.Context, memberId int64) (*model.Appointment, model.AppError)
+	GetAppointment(ctx context.Context, memberId, domainID, queueID int64) (*model.Appointment, model.AppError)
 	CreateAppointment(ctx context.Context, profile *model.AppointmentProfile, app *model.Appointment) (*model.Appointment, model.AppError)
 	CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError
 	QueueId(ctx context.Context, domainId, memberId int64) (int64, model.AppError)
@@ -385,7 +385,7 @@ type ListStore interface {
 
 	// Communications
 	CreateCommunication(ctx context.Context, comm *model.ListCommunication) (*model.ListCommunication, model.AppError)
-	BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError)
+	BulkCreateCommunication(ctx context.Context, listID, domainID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetAllPageCommunication(ctx context.Context, domainId, listId int64, search *model.SearchListCommunication) ([]*model.ListCommunication, model.AppError)
 	GetCommunication(ctx context.Context, domainId, listId, id int64) (*model.ListCommunication, model.AppError)
 	UpdateCommunication(ctx context.Context, domainId int64, communication *model.ListCommunication) (*model.ListCommunication, model.AppError)
@@ -429,6 +429,7 @@ type CallStore interface {
 	Prepare(ctx context.Context, id string, domainId, userId int64, appId string) model.AppError
 	DeleteIdle(ctx context.Context, id string) model.AppError
 	PatchHistoryCallAttempt(ctx context.Context, patch *model.PatchHistoryCallAttempt) (*model.PatchHistoryAttemptResult, model.AppError)
+	Exists(ctx context.Context, req *model.CallExistsRequest) (*model.CallExistsResponse, model.AppError)
 }
 
 type EmailProfileStore interface {

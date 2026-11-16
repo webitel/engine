@@ -322,7 +322,7 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 
 	var inserted []*model.ListCommunication
 	if len(valid) > 0 {
-		inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), valid)
+		inserted, err = api.app.BulkCreateListCommunication(ctx, in.GetListId(), session.Domain(0), valid)
 		if err != nil {
 			return nil, err
 		}

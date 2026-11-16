@@ -880,7 +880,7 @@ func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMe
 	}
 
 	var list []*model.MemberAttempt
-	if list, err = api.app.GetMemberAttempts(ctx, in.GetMemberId()); err != nil {
+	if list, err = api.app.GetMemberAttempts(ctx, in.GetMemberId(), session.Domain(0)); err != nil {
 		return nil, err
 	}
 

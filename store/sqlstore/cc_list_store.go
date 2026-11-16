@@ -140,7 +140,7 @@ func (s SqlListStore) Get(ctx context.Context, domainId int64, id int64) (*model
 			left join directory.wbt_user uc on uc.id = i.created_by
 			left join directory.wbt_user u on u.id = i.updated_by
 			left join call_center.cc_list_statistics cls on i.id = cls.list_id
-		where i.domain_id = :DomainId and i.id = :Id 	
+		where i.domain_id = :DomainId and i.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_list.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -211,7 +211,7 @@ returning id, list_id, number, description, expire_at`,
 	}
 }
 
-func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
+func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listID, domainID int64, communications []*model.ListCommunication) ([]*model.ListCommunication, model.AppError) {
 	numbers := make([]string, len(communications))
 	descriptions := make([]string, len(communications))
 	expireAt := make([]int64, len(communications))
@@ -223,13 +223,21 @@ func (s SqlListStore) BulkCreateCommunication(ctx context.Context, listID int64,
 	}
 
 	var inserted []*model.ListCommunication
-	if _, err := s.GetMaster().WithContext(ctx).Select(&inserted, `insert into call_center.cc_list_communications (list_id, number, description, expire_at)
-select :ListId, x.number, x.description, case when x.expire_at > 0 then to_timestamp(x.expire_at / 1000.0) end
-from unnest(:Numbers::varchar[], :Descriptions::varchar[], :ExpireAt::int8[]) as x(number, description, expire_at)
-on conflict (list_id, number) do nothing
-returning id, list_id, number, description, expire_at`,
+	if _, err := s.GetMaster().WithContext(ctx).Select(&inserted, `
+		insert into call_center.cc_list_communications (list_id, number, description, expire_at)
+		select
+			l.id,
+			x.number,
+			x.description,
+			case when x.expire_at > 0 then to_timestamp(x.expire_at / 1000.0) end
+		from call_center.cc_list l
+		inner join unnest(:Numbers::varchar[], :Descriptions::varchar[], :ExpireAt::int8[]) as x(number, description, expire_at) on true
+		where (l.id, l.domain_id) = (:ListID::int8, :DomainID::int8)
+		on conflict (list_id, number) do nothing
+		returning id, list_id, number, description, expire_at`,
 		map[string]any{
-			"ListId":       listID,
+			"DomainID":     domainID,
+			"ListID":       listID,
 			"Numbers":      pq.Array(numbers),
 			"Descriptions": pq.Array(descriptions),
 			"ExpireAt":     pq.Array(expireAt),
@@ -274,7 +282,7 @@ func (s SqlListStore) GetCommunication(ctx context.Context, domainId, listId int
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&communication, `
 			select i.id, i.number, i.description, i.list_id, i.expire_at
 from call_center.cc_list_communications i
-where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)	
+where i.id = :Id and i.list_id = :ListId  and exists(select 1 from call_center.cc_list l where l.id = i.list_id and l.domain_id = :DomainId)
 		`, map[string]interface{}{"ListId": listId, "Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_list.get_communication.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
