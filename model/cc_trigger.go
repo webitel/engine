@@ -55,6 +55,7 @@ type SearchTrigger struct {
 
 type SearchTriggerJob struct {
 	ListRequest
+
 	CreatedAt *FilterBetween
 	StartedAt *FilterBetween
 	State     []int

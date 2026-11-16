@@ -1,68 +1,69 @@
 package apis
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/web"
+	"github.com/webitel/wlog"
 )
 
-var (
-	appointmentHeader = "X-WBT-KEY"
+const appointmentHeader = "X-WBT-KEY"
 
+var (
 	errAllowOrigin = model.NewForbiddenError("api.valid.origin", "Not allow")
 )
 
 func (api *API) InitAppointments() {
-	api.Routes.Root.Handle("/appointments/{id}", api.ApiHandlerTrustRequester(getAppointments)).Methods("GET")
+	api.Routes.Root.Handle("/appointments/{id}", api.ApiHandlerTrustRequester(listAppointments)).Methods("GET")
 	api.Routes.Root.Handle("/appointments/{id}", api.ApiHandlerTrustRequester(createAppointments)).Methods("POST")
 	api.Routes.Root.Handle("/appointments/{id}", api.ApiHandlerTrustRequester(cancelAppointments)).Methods("DELETE")
 }
 
-/*
-list/get
+func listAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
+	uri := getIdFromRequest(r)
 
-add
-cancel
-*/
+	widget, err := c.App.AppointmentWidget(r.Context(), uri)
+	if err != nil {
+		c.Err = err
 
-func getAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
-
-	key, _ := getKeyFromRequest(r)
-
-	var appointment *model.Appointment
-
-	widgetUri := getIdFromRequest(r)
-	ctx := r.Context()
-
-	var widget *model.AppointmentWidget
-	if widget, c.Err = c.App.AppointmentWidget(ctx, widgetUri); c.Err != nil {
 		return
 	}
 
 	if !widget.AllowOrigin(c.IpAddress) {
 		c.Err = errAllowOrigin
+
 		return
 	}
 
-	if key != "" {
-		if appointment, c.Err = c.App.GetAppointment(ctx, key); c.Err != nil {
-			if c.Err.GetStatusCode() == http.StatusNotFound {
-				c.Err = nil
-			} else {
-				return
-			}
-
-		} else {
-			w.Write(appointment.Computed)
-			return
+	key, ok := getKeyFromRequest(r)
+	if !ok {
+		if _, err := web.WriteJSON(w, widget.ComputedList); err != nil {
+			c.Log.Error("writing appointments list response", wlog.Err(err))
 		}
+
+		return
 	}
 
-	w.Write(widget.ComputedList)
+	appointment, err := c.App.GetAppointment(r.Context(), key, widget)
+	if err != nil {
+		if err.GetStatusCode() == http.StatusNotFound {
+			if _, err := web.WriteJSON(w, widget.ComputedList); err != nil {
+				c.Log.Error("writing appointments list response", wlog.Err(err))
+			}
 
-	return
+			return
+		}
+
+		c.Err = err
+		return
+	}
+
+	if _, err := web.WriteJSON(w, appointment.Computed); err != nil {
+		c.Log.Error("writing appointment response", wlog.Err(err))
+	}
 }
 
 func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -72,11 +73,11 @@ func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 	key, _ := getKeyFromRequest(r)
 
 	if key != "" {
-		getAppointments(c, w, r)
+		listAppointments(c, w, r)
 		return
 	}
 
-	body, err = ioutil.ReadAll(r.Body)
+	body, err = io.ReadAll(r.Body)
 	if err != nil {
 		//todo error
 		w.WriteHeader(http.StatusInternalServerError)
@@ -142,8 +143,7 @@ func cancelAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getIdFromRequest(r *http.Request) string {
-	props := mux.Vars(r)
-	return "/" + props["id"]
+	return "/" + mux.Vars(r)["id"]
 }
 
 func getKeyFromRequest(r *http.Request) (string, bool) {

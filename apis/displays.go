@@ -97,7 +97,7 @@ func createDisplays(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	displays, appErr := c.App.CreateOutboundResourceDisplays(r.Context(), resourceId, mappedData)
+	displays, appErr := c.App.CreateOutboundResourceDisplays(r.Context(), resourceId, session.Domain(0), mappedData)
 	if appErr != nil {
 		c.Err = appErr
 		return
