@@ -818,61 +818,19 @@ func (app *App) GetLastCallFile(ctx context.Context, domainId int64, callId stri
 }
 
 func (app *App) CreateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
-	_, err := app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
-		Ids: []string{annotation.CallId},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return app.Store.Call().CreateAnnotation(ctx, annotation)
+	return app.Store.Call().CreateAnnotation(ctx, domainId, annotation)
 }
 
 func (app *App) UpdateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
-	_, err := app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
-		Ids: []string{annotation.CallId},
-	})
-	if err != nil {
-		return nil, err
-	}
-	var oldAnnotation *model.CallAnnotation
-	oldAnnotation, err = app.Store.Call().GetAnnotation(ctx, annotation.Id)
-	if err != nil {
+	if err := annotation.IsValid(); err != nil {
 		return nil, err
 	}
 
-	oldAnnotation.UpdatedAt = annotation.UpdatedAt
-	oldAnnotation.UpdatedBy = annotation.UpdatedBy
-	oldAnnotation.Note = annotation.Note
-	oldAnnotation.StartSec = annotation.StartSec
-	oldAnnotation.EndSec = annotation.EndSec
-
-	if err = oldAnnotation.IsValid(); err != nil {
-		return nil, err
-	}
-
-	return app.Store.Call().UpdateAnnotation(ctx, domainId, oldAnnotation)
+	return app.Store.Call().UpdateAnnotation(ctx, domainId, annotation)
 }
 
 func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, callId string) (*model.CallAnnotation, model.AppError) {
-	_, err := app.Store.Call().GetHistory(ctx, domainId, &model.SearchHistoryCall{
-		Ids: []string{callId},
-	})
-	if err != nil {
-		return nil, err
-	}
-	var annotation *model.CallAnnotation
-	annotation, err = app.Store.Call().GetAnnotation(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = app.Store.Call().DeleteAnnotation(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	return annotation, nil
+	return app.Store.Call().DeleteAnnotation(ctx, id, domainId, callId)
 }
 
 func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string, p *model.HistoryCallPatch) (*model.HistoryCall, model.AppError) {

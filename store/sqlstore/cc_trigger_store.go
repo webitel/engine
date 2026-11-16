@@ -3,8 +3,9 @@ package sqlstore
 import (
 	"context"
 	"fmt"
-	"github.com/webitel/engine/utils"
 	"strings"
+
+	"github.com/webitel/engine/utils"
 
 	"github.com/lib/pq"
 	"github.com/webitel/engine/model"
@@ -120,7 +121,7 @@ func (s SqlTriggerStore) GetAllPage(ctx context.Context, domainId int64, search 
 	}
 
 	err := s.ListQuery(ctx, &triggers, search.ListRequest,
-		`domain_id = :DomainId 
+		`domain_id = :DomainId
 			and ( (:Ids::int[] isnull or id = any(:Ids) )
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))`,
 		model.Trigger{}, f)
@@ -143,7 +144,7 @@ func (s SqlTriggerStore) GetAllPageByGroup(ctx context.Context, domainId int64, 
 	}
 
 	err := s.ListQuery(ctx, &triggers, search.ListRequest,
-		`domain_id = :DomainId 
+		`domain_id = :DomainId
 			and ( (:Ids::int[] isnull or id = any(:Ids) )
 			and (:Q::varchar isnull or (name ilike :Q::varchar or description ilike :Q::varchar ) ))
 			and  (
@@ -287,9 +288,8 @@ from j
 }
 
 func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search *model.SearchTriggerJob) ([]*model.TriggerJob, model.AppError) {
-	var jobs []*model.TriggerJob
-
-	f := map[string]interface{}{
+	f := map[string]any{
+		"DomainID":     search.DomainId,
 		"TriggerId":    triggerId,
 		"From":         model.GetBetweenFromTime(search.CreatedAt),
 		"To":           model.GetBetweenToTime(search.CreatedAt),
@@ -300,14 +300,15 @@ func (s SqlTriggerStore) GetAllJobs(ctx context.Context, triggerId int32, search
 		"DurationTo":   model.GetBetweenTo(search.Duration),
 	}
 
+	var jobs []*model.TriggerJob
 	err := s.ListQueryMaster(ctx, &jobs, search.ListRequest,
-		`trigger_id = :TriggerId
+		`domain_id = :DomainID
+				and trigger_id = :TriggerId
 				and ( :From::timestamptz isnull or created_at >= :From::timestamptz )
 				and ( :To::timestamptz isnull or created_at <= :To::timestamptz )
 				and ( :StartedFrom::timestamptz isnull or started_at >= :StartedFrom::timestamptz )
 				and ( :StartedTo::timestamptz isnull or started_at <= :StartedTo::timestamptz )
 				and ( :State::int[] isnull or state = any(:State::int[]) )
-
 				and ( :DurationFrom::int8 isnull or extract(epoch from coalesce(stopped_at, started_at, now()) - created_at)::int8 >= :DurationFrom::int8 )
 				and ( :DurationTo::int8 isnull or extract(epoch from coalesce(stopped_at, started_at, now()) - created_at)::int8 <= :DurationTo::int8 )
 			`,

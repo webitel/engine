@@ -856,42 +856,6 @@ func (api *member) ResetMembersCount(ctx context.Context, in *engine.ResetMember
 	return &engine.ResetMembersCountResponse{Count: count}, nil
 }
 
-func (api *member) SearchMemberAttempts(ctx context.Context, in *engine.SearchMemberAttemptsRequest) (*engine.ListMemberAttempt, error) {
-	session, err := api.app.GetSessionFromCtx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_QUEUE)
-	if !permission.CanRead() {
-		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)
-	}
-
-	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_READ, permission) {
-		var perm bool
-		if perm, err = api.app.QueueCheckAccess(ctx, session.Domain(in.GetDomainId()), in.GetQueueId(), session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_READ); err != nil {
-			return nil, err
-		} else if !perm {
-			return nil, api.app.MakeResourcePermissionError(session, in.GetQueueId(), permission, auth_manager.PERMISSION_ACCESS_READ)
-		}
-	}
-
-	var list []*model.MemberAttempt
-	if list, err = api.app.GetMemberAttempts(ctx, in.GetMemberId()); err != nil {
-		return nil, err
-	}
-
-	items := make([]*engine.MemberAttempt, 0, len(list))
-	for _, v := range list {
-		items = append(items, toEngineMemberAttempt(v))
-	}
-
-	return &engine.ListMemberAttempt{
-		Items: items,
-	}, nil
-}
-
 func (api *member) SearchAttempts(ctx context.Context, in *engine.SearchAttemptsRequest) (*engine.ListAttempt, error) {
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
@@ -1154,59 +1118,6 @@ func (api *member) SearchMembers(ctx context.Context, in *engine.SearchMembersRe
 		Next:  !endList,
 		Items: items,
 	}, nil
-}
-
-func toEngineMemberAttempt(src *model.MemberAttempt) *engine.MemberAttempt {
-	res := &engine.MemberAttempt{
-		Id:          src.Id,
-		CreatedAt:   src.CreatedAt,
-		Destination: src.Destination,
-		Weight:      int32(src.Weight),
-		OriginateAt: src.OriginateAt,
-		AnsweredAt:  src.AnsweredAt,
-		BridgedAt:   src.BridgedAt,
-		HangupAt:    src.HangupAt,
-		Resource: &engine.Lookup{
-			Id:   int64(src.Resource.Id),
-			Name: src.Resource.Name,
-		},
-		Logs:   UnmarshalJsonpb(src.Logs),
-		Active: src.Active,
-	}
-
-	if src.LegAId != nil {
-		res.LegAId = *src.LegAId
-	}
-	if src.LegBId != nil {
-		res.LegBId = *src.LegBId
-	}
-
-	if src.Node != nil {
-		res.Node = *src.Node
-	}
-
-	if src.Result != nil {
-		res.Result = *src.Result
-	}
-
-	if src.Agent != nil {
-		res.Agent = &engine.Lookup{
-			Id:   int64(src.Agent.Id),
-			Name: src.Agent.Name,
-		}
-	}
-	if src.Bucket != nil {
-		res.Bucket = &engine.Lookup{
-			Id:   int64(src.Bucket.Id),
-			Name: src.Bucket.Name,
-		}
-	}
-
-	if src.Attempts != nil {
-		res.Attempts = *src.Attempts
-	}
-
-	return res
 }
 
 func toEngineMember(src *model.Member) *engine.MemberInQueue {

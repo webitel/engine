@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt/auth_manager"
@@ -101,12 +102,20 @@ func (a *App) RemoveOutboundResource(ctx context.Context, domainId, id int64) (*
 	return resource, nil
 }
 
-func (a *App) CreateOutboundResourceDisplay(ctx context.Context, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
-	return a.Store.OutboundResource().SaveDisplay(ctx, display)
+func (a *App) CreateOutboundResourceDisplay(ctx context.Context, domainID int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
+	return a.Store.OutboundResource().SaveDisplay(ctx, domainID, display)
 }
 
-func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId int64, displays []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
-	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, displays)
+func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId, domainID int64, displays []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
+	if _, err := a.Store.OutboundResource().Get(ctx, domainID, resourceId); err != nil {
+		return nil, err
+	}
+
+	if len(displays) == 0 {
+		return nil, model.NewBadRequestError("app.cc_resource.create_outbound_displays", "zero resource displays")
+	}
+
+	return a.Store.OutboundResource().SaveDisplays(ctx, resourceId, domainID, displays)
 }
 
 func (a *App) GetOutboundResourceDisplayPage(ctx context.Context, domainId, resourceId int64, search *model.SearchResourceDisplay) ([]*model.ResourceDisplay, bool, model.AppError) {
@@ -152,6 +161,10 @@ func (a *App) RemoveOutboundResourceDisplay(ctx context.Context, domainId, resou
 	return display, nil
 }
 
-func (a *App) RemoveOutboundResourceDisplays(ctx context.Context, resourceId int64, ids []int64) model.AppError {
-	return a.Store.OutboundResource().DeleteDisplays(ctx, resourceId, ids)
+func (a *App) RemoveOutboundResourceDisplays(ctx context.Context, resourceId, domainID int64, ids []int64) model.AppError {
+	if resourceId <= 0 {
+		return model.NewBadRequestError("app.cc_resource.displays.validation.resource_id", fmt.Sprintf("resource_id is not greater than zero: %d", resourceId))
+	}
+
+	return a.Store.OutboundResource().DeleteDisplays(ctx, resourceId, domainID, ids)
 }

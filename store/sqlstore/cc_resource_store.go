@@ -23,15 +23,15 @@ func (s SqlOutboundResourceStore) Create(ctx context.Context, resource *model.Ou
 	var out *model.OutboundCallResource
 	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, `with s as (
     insert into call_center.cc_outbound_resource ("limit", enabled, updated_at, rps, domain_id, reserve, variables, number,
-                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description, patterns, 
+                                  max_successively_errors, name, error_ids, created_at, created_by, updated_by, gateway_id, description, patterns,
 								failure_dial_delay, parameters)
 values (:Limit, :Enabled, :UpdatedAt, :Rps, :DomainId, :Reserve , :Variables, :Number,
-        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description, :Patterns, 
+        :MaxSErrors, :Name, :ErrorIds, :CreatedAt, :CreatedBy, :UpdatedBy, :GatewayId, :Description, :Patterns,
 		:FailureDialDelay, :Parameters)
 	returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
+      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors,
       s.last_error_at, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, call_center.cc_get_lookup(u.id, u.name) as updated_by,
 	  call_center.cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay, s.parameters
 from s
@@ -136,14 +136,14 @@ func (s SqlOutboundResourceStore) Get(ctx context.Context, domainId int64, id in
 	var resource *model.OutboundCallResource
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&resource, `
 			select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
+				  s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors,
 				   s.last_error_at, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, call_center.cc_get_lookup(u.id, u.name) as updated_by,
 				  call_center.cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay, s.parameters
 			from call_center.cc_outbound_resource s
 				left join directory.wbt_user c on c.id = s.created_by
 				left join directory.wbt_user u on u.id = s.updated_by
 				left join directory.sip_gateway gw on gw.id = s.gateway_id
-		where s.domain_id = :DomainId and s.id = :Id 	
+		where s.domain_id = :DomainId and s.id = :Id
 		`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -176,7 +176,7 @@ with s as (
         returning *
 )
 select s.id, s."limit", s.enabled, s.updated_at, s.rps, s.domain_id, s.reserve, s.variables, s.number,
-      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors, 
+      s.max_successively_errors, s.name, s.error_ids, s.last_error_id, s.successively_errors,
        s.last_error_at, s.created_at, call_center.cc_get_lookup(c.id, c.name) as created_by, call_center.cc_get_lookup(u.id, u.name) as updated_by,
 		call_center.cc_get_lookup(gw.id, gw.name) as gateway, s.description, s.patterns, s.failure_dial_delay, s.parameters
 from s
@@ -218,40 +218,55 @@ func (s SqlOutboundResourceStore) Delete(ctx context.Context, domainId, id int64
 	return nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
-	var out *model.ResourceDisplay
-	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_outbound_resource_display (resource_id, display)
-values (:ResourceId, :Display)
-returning *`, map[string]interface{}{
-		"ResourceId": d.ResourceId,
+func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, domainID int64, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
+	const query = `
+		insert into call_center.cc_outbound_resource_display (resource_id, display)
+		select
+			r.id,
+			:Display
+		from call_center.cc_outbound_resource r
+		where (r.id, r.domain_id) = (:ResourceID, :DomainID)
+		returning *
+	`
+	args := map[string]any{
+		"DomainID":   domainID,
+		"ResourceID": d.ResourceId,
 		"Display":    d.Display,
-	})
+	}
 
-	if err != nil {
+	out := model.ResourceDisplay{}
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.save_display.app_error", fmt.Sprintf("name=%v, %v", d.Display, err.Error()), extractCodeFromErr(err))
 	}
 
-	return out, nil
+	return &out, nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
-	params := map[string]interface{}{
-		"ResourceId": resourceId,
+func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId, domainID int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
+	displaysValues := make([]string, 0, len(d))
+	for _, rd := range d {
+		displaysValues = append(displaysValues, rd.Display)
 	}
-	var (
-		name     string
-		displays []*model.ResourceDisplay
-	)
 
-	queryBase := "insert into call_center.cc_outbound_resource_display (resource_id, display) values"
-	for i, rd := range d {
-		name = fmt.Sprintf("Val%d", i)
-		queryBase += fmt.Sprintf(" (:ResourceId, :%s),", name)
-		params[name] = rd.Display
+	query := `
+		insert into call_center.cc_outbound_resource_display(resource_id, display)
+		select
+			r.id,
+			v.display
+		from call_center.cc_outbound_resource r
+		inner join unnest(:Displays::text[]) as v(display) on true
+		where (r.id, r.domain_id) = (:ResourceId, :DomainID)
+		returning id, display, resource_id
+	`
+
+	params := map[string]any{
+		"ResourceId": resourceId,
+		"DomainID":   domainID,
+		"Displays":   pq.StringArray(displaysValues),
 	}
-	queryBase = queryBase[:len(queryBase)-1] + " returning id, display, resource_id"
-	_, err := s.GetMaster().WithContext(ctx).Select(&displays, queryBase, params)
-	if err != nil {
+
+	var displays []*model.ResourceDisplay
+	if _, err := s.GetMaster().WithContext(ctx).Select(&displays, query, params); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.save_displays.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
@@ -288,7 +303,7 @@ func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, reso
 			select d.id, d.display, d.resource_id
 		from call_center.cc_outbound_resource_display d
 		where d.id = :Id and d.resource_id = :ResourceId and exists (select 1
-				from call_center.cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)	
+				from call_center.cc_outbound_resource r where r.id = :ResourceId and r.domain_id = :DomainId)
 		`, map[string]interface{}{"Id": id, "DomainId": domainId, "ResourceId": resourceId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.get_display.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
@@ -299,8 +314,8 @@ func (s SqlOutboundResourceStore) GetDisplay(ctx context.Context, domainId, reso
 func (s SqlOutboundResourceStore) UpdateDisplay(ctx context.Context, domainId int64, display *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&display, `
 		update call_center.cc_outbound_resource_display d
-set display = :Display 
-where d.id = :Id and d.resource_id = :ResourceId 
+set display = :Display
+where d.id = :Id and d.resource_id = :ResourceId
   and exists(select 1 from call_center.cc_outbound_resource r where r.id = d.resource_id and r.domain_id = :DomainId)
 returning *`, map[string]interface{}{
 		"Display":    display.Display,
@@ -324,22 +339,35 @@ func (s SqlOutboundResourceStore) DeleteDisplay(ctx context.Context, domainId, r
 	}
 	return nil
 }
-func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId int64, ids []int64) model.AppError {
-	if resourceId == 0 {
-		return model.NewBadRequestError("store.sql_out_resource.delete_displays.app_error", "resource id empty")
+func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId, domainID int64, ids []int64) model.AppError {
+	const query = `
+		delete from call_center.cc_outbound_resource_display
+		where id in (
+			select d.id
+			from call_center.cc_outbound_resource c
+			inner join call_center.cc_outbound_resource_display d on d.resource_id = c.id
+			where (c.id, c.domain_id) = (:ResourceID, :DomainID)
+				and (:IDs::int[] is null or d.id = any(:IDs::int[]))
+		)
+	`
+	args := map[string]any{
+		"DomainID":   domainID,
+		"ResourceID": resourceId,
+		"IDs":        pq.Array(ids),
 	}
-	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
-	from call_center.cc_outbound_resource_display d
-	where resource_id = :ResourceId
-	  and (:Ids::int[] isnull or id = any (:Ids))`, map[string]any{
-		"ResourceId": resourceId,
-		"Ids":        pq.Array(ids),
-	})
+
+	result, err := s.GetMaster().WithContext(ctx).Exec(query, args)
 	if err != nil {
-		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.app_error", err.Error(), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.query_error", err.Error(), extractCodeFromErr(err))
 	}
-	if rows, err := res.RowsAffected(); err == nil && rows == 0 {
-		return model.NewBadRequestError("store.sql_out_resource.delete_displays.app_error", "no numbers with given filters found")
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.rows_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if affected == 0 {
+		return model.NewNotFoundError("store.sql_out_resource.delete_displays.not_found", "no numbers with given filters found")
 	}
 
 	return nil
