@@ -14,6 +14,9 @@ const (
 )
 
 func (a *App) CreateRoutingSchema(ctx context.Context, scheme *model.RoutingSchema) (*model.RoutingSchema, model.AppError) {
+	if scheme.Payload == nil {
+		scheme.Payload = []byte("{}")
+	}
 	return a.Store.RoutingSchema().Create(ctx, scheme)
 }
 
@@ -40,7 +43,9 @@ func (a *App) UpdateRoutingSchema(ctx context.Context, scheme *model.RoutingSche
 	oldScheme.Type = scheme.Type
 	oldScheme.Debug = scheme.Debug
 	oldScheme.Description = scheme.Description
-	oldScheme.Payload = scheme.Payload
+	if scheme.Payload != nil {
+		oldScheme.Payload = scheme.Payload
+	}
 	oldScheme.Schema = scheme.Schema
 	oldScheme.Tags = scheme.Tags
 
