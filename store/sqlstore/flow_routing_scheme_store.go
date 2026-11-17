@@ -3,7 +3,9 @@ package sqlstore
 import (
 	"context"
 	"fmt"
+
 	"github.com/lib/pq"
+
 	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/store"
 )
@@ -29,7 +31,7 @@ select s.id, s.domain_id, s.name, s.created_at, call_center.cc_get_lookup(c.id, 
 from s
     left join directory.wbt_user c on c.id = s.created_by
     left join directory.wbt_user u on u.id = s.updated_by`,
-		map[string]interface{}{
+		map[string]any{
 			"DomainId":  scheme.DomainId,
 			"Name":      scheme.Name,
 			"Scheme":    scheme.Schema,
@@ -55,7 +57,7 @@ from s
 func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, search *model.SearchRoutingSchema) ([]*model.RoutingSchema, model.AppError) {
 	var schemes []*model.RoutingSchema
 
-	f := map[string]interface{}{
+	f := map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 		"Ids":      pq.Array(search.Ids),
@@ -83,7 +85,7 @@ func (s SqlRoutingSchemaStore) GetAllPage(ctx context.Context, domainId int64, s
 	}
 }
 
-func (s SqlRoutingSchemaStore) Get(ctx context.Context, domainId int64, id int64) (*model.RoutingSchema, model.AppError) {
+func (s SqlRoutingSchemaStore) Get(ctx context.Context, domainId, id int64) (*model.RoutingSchema, model.AppError) {
 	var rScheme *model.RoutingSchema
 	if err := s.GetReplica().WithContext(ctx).SelectOne(&rScheme, `select s.id,
        s.domain_id,
@@ -103,7 +105,7 @@ from flow.acr_routing_scheme s
          left join directory.wbt_user u on u.id = s.updated_by
 where s.id = :Id
   and s.domain_id = :DomainId
-order by s.id`, map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+order by s.id`, map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_routing_schema.get.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()), extractCodeFromErr(err))
 	} else {
 		return rScheme, nil
@@ -131,7 +133,7 @@ select s.id, s.domain_id, s.description, s.name, s.created_at, call_center.cc_ge
     s.updated_at, call_center.cc_get_lookup(u.id, u.name) as updated_by, s.scheme as schema, s.payload, s.debug, s.type, s.tags
 from s
     left join directory.wbt_user c on c.id = s.created_by
-    left join directory.wbt_user u on u.id = s.updated_by`, map[string]interface{}{
+    left join directory.wbt_user u on u.id = s.updated_by`, map[string]any{
 		"Name":        scheme.Name,
 		"Scheme":      scheme.Schema,
 		"Payload":     scheme.Payload,
@@ -157,7 +159,7 @@ from s
 
 func (s SqlRoutingSchemaStore) Delete(ctx context.Context, domainId, id int64) model.AppError {
 	if _, err := s.GetMaster().WithContext(ctx).Exec(`delete from flow.acr_routing_scheme c where c.id=:Id and c.domain_id = :DomainId`,
-		map[string]interface{}{"Id": id, "DomainId": domainId}); err != nil {
+		map[string]any{"Id": id, "DomainId": domainId}); err != nil {
 		return model.NewInternalError("store.sql_routing_schema.delete.app_error", fmt.Sprintf("Id=%v, %s", id, err.Error()))
 	}
 	return nil
@@ -186,14 +188,13 @@ from tags
 limit :Limit
 offset :Offset`
 
-	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]interface{}{
+	_, err := s.GetReplica().WithContext(ctx).Select(&res, fmt.Sprintf(q, sort), map[string]any{
 		"DomainId": domainId,
 		"Q":        search.GetQ(),
 		"Limit":    search.GetLimit(),
 		"Offset":   search.GetOffset(),
 		"Type":     pq.Array(search.Type),
 	})
-
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_routing_schema.tag_list.app_error", err.Error(), extractCodeFromErr(err))
 	}
