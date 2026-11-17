@@ -137,7 +137,7 @@ func (app *App) RateAuditForm(ctx context.Context, domainId int64, userId int64,
 	case rate.CallId != nil && rate.ConversationId != nil:
 		return nil, model.NewBadRequestError("app.audit.rate.valid.source", "only one of call_id or conversation_id may be set")
 	case rate.CallId != nil:
-		rateUserId, rateCreatedAt, err = app.Store.Call().GetOwnerUserCall(ctx, *rate.CallId)
+		rateUserId, rateCreatedAt, err = app.Store.AuditRate().ValidateCallRate(ctx, domainId, *rate.CallId)
 	case rate.ConversationId != nil:
 		rateUserId, rateCreatedAt, err = app.Store.AuditRate().ValidateChatRate(ctx, domainId, *rate.ConversationId)
 	default:

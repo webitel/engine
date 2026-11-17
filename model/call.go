@@ -594,11 +594,13 @@ type HistoryCall struct {
 	AmdAiResult *string           `json:"amd_ai_result" db:"amd_ai_result"`
 	AmdAiLogs   StringArray       `json:"amd_ai_logs" db:"amd_ai_logs"`
 
-	RateId        *int64   `json:"rate_id" db:"rate_id"`
-	RatedUser     *Lookup  `json:"rated_user" db:"rated_user"`
-	RatedBy       *Lookup  `json:"rated_by" db:"rated_by"`
-	ScoreOptional *float32 `json:"score_optional" db:"score_optional"`
-	ScoreRequired *float32 `json:"score_required" db:"score_required"`
+	RateId           *int64             `json:"rate_id" db:"rate_id"`
+	RatedUser        *Lookup            `json:"rated_user" db:"rated_user"`
+	RatedBy          *Lookup            `json:"rated_by" db:"rated_by"`
+	ScoreOptional    *float32           `json:"score_optional" db:"score_optional"`
+	ScoreRequired    *float32           `json:"score_required" db:"score_required"`
+	Rates            []*CallRate        `json:"rates" db:"rates"`
+	EvaluationAgents []*EvaluationAgent `json:"evaluation_agents" db:"evaluation_agents"`
 
 	AttemptId       *int64           `json:"attempt_id" db:"attempt_id"`
 	AllowEvaluation *bool            `json:"allow_evaluation" db:"allow_evaluation"`
@@ -625,6 +627,23 @@ type BlindTransfer struct {
 	User   *Lookup `json:"user"`
 }
 
+type CallRate struct {
+	Id            int64    `json:"id"`
+	CallId        string   `json:"call_id"`
+	RatedUser     *Lookup  `json:"rated_user"`
+	RatedBy       *Lookup  `json:"rated_by"`
+	ScoreRequired *float32 `json:"score_required"`
+	ScoreOptional *float32 `json:"score_optional"`
+	CreatedAt     int64    `json:"created_at"`
+}
+
+type EvaluationAgent struct {
+	CallId    string  `json:"call_id"`
+	User      *Lookup `json:"user"`
+	BridgedAt *int64  `json:"bridged_at"`
+	RateId    *int64  `json:"rate_id"`
+}
+
 type HistoryCallPatch struct {
 	Variables  *Variables `json:"variables" db:"variables"`
 	HideMissed *bool
@@ -644,7 +663,7 @@ func (c HistoryCall) AllowFields() []string {
 		"transcripts", "talk_sec", "grantee", "amd_ai_logs", "amd_ai_result", "rate_id", "rated_by", "rated_user", "score_optional", "score_required",
 		"attempt_id", "allow_evaluation", "form_fields", "bridged_id", "contact", "hide_missed", "redial_id", "schemas",
 		"hangup_phrase", "blind_transfers", "from_number", "to_number", "destination_name", "forms", "conversation_id", "meeting_id", "quality_metrics",
-		"user_agent", "hide_number",
+		"user_agent", "hide_number", "rates", "evaluation_agents",
 	}
 }
 
