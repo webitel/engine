@@ -2,7 +2,9 @@ package sqlstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -18,6 +20,10 @@ type Entity interface {
 	DefaultFields() []string
 	EntityName() string
 	DefaultOrder() string
+}
+
+type CustomSorter interface {
+	CustomSorts() []string
 }
 
 func GetFields(f []string, e Entity) []string {
@@ -62,7 +68,7 @@ func QuoteLiteral(name string) string {
 
 func isRawOrder(s string) bool {
 	ls := strings.ToLower(s)
-	// якщо це складний вираз або кілька полів — віддаємо як є
+
 	return strings.Contains(ls, "case ") ||
 		strings.Contains(s, "(") ||
 		strings.Contains(s, ")") ||
@@ -71,14 +77,30 @@ func isRawOrder(s string) bool {
 		strings.Contains(s, ",")
 }
 
-func GetOrderBy(t, s string) string {
+var ErrInvalidSortField = errors.New("invalid sort field")
+
+func GetOrderBy(t, s string, e ...Entity) (string, error) {
 	s = strings.TrimSpace(s)
 	if s == "" {
-		return ""
+		return "", nil
 	}
 
 	if isRawOrder(s) {
-		return "order by " + s
+		if len(e) == 0 || e[0] == nil {
+			return "", fmt.Errorf("%w: %s", ErrInvalidSortField, t)
+		}
+
+		customSorter, ok := e[0].(CustomSorter)
+		if !ok {
+			return "", fmt.Errorf("%w custom not allowed", ErrInvalidSortField, e[0])
+		}
+
+		ls := strings.ToLower(s)
+		if !slices.ContainsFunc(customSorter.CustomSorts(), func(f string) bool { return strings.ToLower(f) == ls }) {
+			return "", fmt.Errorf("%w %s", ErrInvalidSortField, ls)
+		}
+
+		return "order by " + s, nil
 	}
 
 	sort, field := orderBy(s)
@@ -91,12 +113,12 @@ func GetOrderBy(t, s string) string {
 	}
 
 	return fmt.Sprintf(
-		`order by 
+		`order by
            case when not call_center.cc_is_lookup(%s, %s) then %s end %s %s,
 		   case when     call_center.cc_is_lookup(%s, %s) then COALESCE(((%s::text)::json->>'name'), ((%s::text)::json->0->>'name')) end %s %s`,
 		QuoteLiteral(t), QuoteLiteral(field), fld, sort, nulls,
 		QuoteLiteral(t), QuoteLiteral(field), fld, fld, sort, nulls,
-	)
+	), nil
 }
 
 func orderBy(s string) (sort string, field string) {
@@ -118,7 +140,7 @@ func orderBy(s string) (sort string, field string) {
 }
 
 // TODO filter
-func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]interface{}) string {
+func Build(req *model.ListRequest, schema string, where string, e Entity, args map[string]any) (string, error) {
 	s := GetFields(req.Fields, e)
 	sort := ""
 
@@ -137,21 +159,29 @@ func Build(req *model.ListRequest, schema string, where string, e Entity, args m
 		t = pq.QuoteIdentifier(schema) + "." + t
 	}
 
-	query := fmt.Sprintf(`select %s 
+	order, err := GetOrderBy(e.EntityName(), sort, e)
+	if err != nil {
+		return "", err
+	}
+
+	query := fmt.Sprintf(`select %s
 	from %s as t
 	where %s
 	%s
 	offset :Offset
-	limit :Limit`, strings.Join(s, ", "), t, where, GetOrderBy(e.EntityName(), sort))
+	limit :Limit`, strings.Join(s, ", "), t, where, order)
 
-	return query
+	return query, nil
 }
 
 // fixme schema
 func (s *SqlSupplier) ListQuery(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	q := Build(&req, "call_center", where, e, params)
-	_, err := s.GetReplica().WithContext(ctx).Select(out, q, params)
+	q, err := Build(&req, "call_center", where, e, params)
 	if err != nil {
+		return err
+	}
+
+	if _, err = s.GetReplica().WithContext(ctx).Select(out, q, params); err != nil {
 		return err
 	}
 
@@ -160,9 +190,12 @@ func (s *SqlSupplier) ListQuery(ctx context.Context, out interface{}, req model.
 
 // fixme
 func (s *SqlSupplier) ListQueryMaster(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	q := Build(&req, "call_center", where, e, params)
-	_, err := s.GetMaster().WithContext(ctx).Select(out, q, params)
+	q, err := Build(&req, "call_center", where, e, params)
 	if err != nil {
+		return err
+	}
+
+	if _, err = s.GetMaster().WithContext(ctx).Select(out, q, params); err != nil {
 		return err
 	}
 
@@ -178,7 +211,7 @@ func (s *SqlSupplier) One(ctx context.Context, out interface{}, where string, e 
 
 	t := pq.QuoteIdentifier(e.EntityName())
 
-	query := fmt.Sprintf(`select %s 
+	query := fmt.Sprintf(`select %s
 	from call_center.%s as t
 	where %s
 	limit 1`, strings.Join(fields, ", "), t, where)
@@ -192,10 +225,15 @@ func (s *SqlSupplier) One(ctx context.Context, out interface{}, where string, e 
 }
 
 func (s *SqlSupplier) ListQueryTimeout(ctx context.Context, out interface{}, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	ctxTimeout, _ := context.WithTimeout(ctx, (time.Second * time.Duration(s.QueryTimeout())))
-	q := Build(&req, "call_center", where, e, params)
-	_, err := s.GetReplica().WithContext(ctxTimeout).Select(out, q, params)
+	q, err := Build(&req, "call_center", where, e, params)
 	if err != nil {
+		return err
+	}
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*time.Duration(s.QueryTimeout()))
+	defer cancel()
+
+	if _, err = s.GetReplica().WithContext(ctxTimeout).Select(out, q, params); err != nil {
 		return err
 	}
 
@@ -204,9 +242,12 @@ func (s *SqlSupplier) ListQueryTimeout(ctx context.Context, out interface{}, req
 
 // todo
 func (s *SqlSupplier) ListQueryFromSchema(ctx context.Context, out interface{}, schema string, req model.ListRequest, where string, e Entity, params map[string]interface{}) error {
-	q := Build(&req, schema, where, e, params)
-	_, err := s.GetReplica().WithContext(ctx).Select(out, q, params)
+	q, err := Build(&req, schema, where, e, params)
 	if err != nil {
+		return err
+	}
+
+	if _, err = s.GetReplica().WithContext(ctx).Select(out, q, params); err != nil {
 		return err
 	}
 
