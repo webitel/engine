@@ -359,7 +359,7 @@ func (api *outboundResource) CreateOutboundResourceDisplay(ctx context.Context, 
 		return nil, err
 	}
 
-	display, err = api.app.CreateOutboundResourceDisplay(ctx, display)
+	display, err = api.app.CreateOutboundResourceDisplay(ctx, session.Domain(0), display)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +552,6 @@ func (api *outboundResource) DeleteOutboundResourceDisplay(ctx context.Context, 
 }
 
 func (api *outboundResource) DeleteOutboundResourceDisplays(ctx context.Context, in *engine.DeleteOutboundResourceDisplaysRequest) (*engine.EmptyResponse, error) {
-	empty := &engine.EmptyResponse{}
 	session, err := api.app.GetSessionFromCtx(ctx)
 	if err != nil {
 		return nil, err
@@ -564,25 +563,25 @@ func (api *outboundResource) DeleteOutboundResourceDisplays(ctx context.Context,
 	}
 
 	if !permission.CanUpdate() {
-		return nil, nil
+		return nil, api.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 	}
+
 	if session.UseRBAC(auth_manager.PERMISSION_ACCESS_UPDATE, permission) {
-		var perm bool
-		if perm, err = api.app.OutboundResourceCheckAccess(ctx, session.DomainId, in.GetResourceId(), session.GetAclRoles(),
-			auth_manager.PERMISSION_ACCESS_UPDATE); err != nil {
+		perm, err := api.app.OutboundResourceCheckAccess(ctx, session.DomainId, in.GetResourceId(), session.GetAclRoles(), auth_manager.PERMISSION_ACCESS_UPDATE)
+		if err != nil {
 			return nil, err
-		} else if !perm {
+		}
+
+		if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetResourceId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
 	}
 
-	err = api.app.RemoveOutboundResourceDisplays(ctx, in.GetResourceId(), in.GetItems())
-
-	if err != nil {
+	if err := api.app.RemoveOutboundResourceDisplays(ctx, in.GetResourceId(), session.Domain(0), in.GetItems()); err != nil {
 		return nil, err
-	} else {
-		return empty, nil
 	}
+
+	return &engine.EmptyResponse{}, nil
 }
 
 func toEngineResourceDisplay(src *model.ResourceDisplay) *engine.ResourceDisplay {

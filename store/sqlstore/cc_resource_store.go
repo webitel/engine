@@ -218,20 +218,27 @@ func (s SqlOutboundResourceStore) Delete(ctx context.Context, domainId, id int64
 	return nil
 }
 
-func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
-	var out *model.ResourceDisplay
-	err := s.GetMaster().WithContext(ctx).SelectOne(&out, `insert into call_center.cc_outbound_resource_display (resource_id, display)
-values (:ResourceId, :Display)
-returning *`, map[string]interface{}{
-		"ResourceId": d.ResourceId,
+func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, domainID int64, d *model.ResourceDisplay) (*model.ResourceDisplay, model.AppError) {
+	const query = `
+		insert into call_center.cc_outbound_resource_display (resource_id, display)
+		select
+			r.id,
+			:Display
+		from call_center.cc_outbound_resource r
+		where (r.id, r.domain_id) = (:ResourceID, :DomainID)
+	`
+	args := map[string]any{
+		"DomainID":   domainID,
+		"ResourceID": d.ResourceId,
 		"Display":    d.Display,
-	})
+	}
 
-	if err != nil {
+	out := model.ResourceDisplay{}
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&out, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_out_resource.save_display.app_error", fmt.Sprintf("name=%v, %v", d.Display, err.Error()), extractCodeFromErr(err))
 	}
 
-	return out, nil
+	return &out, nil
 }
 
 func (s SqlOutboundResourceStore) SaveDisplays(ctx context.Context, resourceId, domainID int64, d []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
@@ -331,22 +338,35 @@ func (s SqlOutboundResourceStore) DeleteDisplay(ctx context.Context, domainId, r
 	}
 	return nil
 }
-func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId int64, ids []int64) model.AppError {
-	if resourceId == 0 {
-		return model.NewBadRequestError("store.sql_out_resource.delete_displays.app_error", "resource id empty")
+func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId, domainID int64, ids []int64) model.AppError {
+	const query = `
+		delete from call_center.cc_outbound_resource_display
+		where id in (
+			select d.id
+			from call_center.cc_outbound_resource c
+			inner join call_center.cc_outbound_resource_display d on d.resource_id = c.id
+			where (c.id, c.domain_id) = (:ResourceID, :DomainID)
+				and (:Ids::int[] is null or d.id = any(:IDs::int[]))
+		)
+	`
+	args := map[string]any{
+		"DomainID":   domainID,
+		"ResourceID": resourceId,
+		"IDs":        pq.Array(ids),
 	}
-	res, err := s.GetMaster().WithContext(ctx).Exec(`delete
-	from call_center.cc_outbound_resource_display d
-	where resource_id = :ResourceId
-	  and (:Ids::int[] isnull or id = any (:Ids))`, map[string]any{
-		"ResourceId": resourceId,
-		"Ids":        pq.Array(ids),
-	})
+
+	result, err := s.GetMaster().WithContext(ctx).Exec(query, args)
 	if err != nil {
-		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.app_error", err.Error(), extractCodeFromErr(err))
+		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.query_error", err.Error(), extractCodeFromErr(err))
 	}
-	if rows, err := res.RowsAffected(); err == nil && rows == 0 {
-		return model.NewBadRequestError("store.sql_out_resource.delete_displays.app_error", "no numbers with given filters found")
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return model.NewCustomCodeError("store.sql_out_resource.delete_displays.rows_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	if affected == 0 {
+		return model.NewNotFoundError("store.sql_out_resource.delete_displays.not_found", "no numbers with given filters found")
 	}
 
 	return nil

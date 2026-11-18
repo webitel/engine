@@ -817,75 +817,19 @@ func (app *App) GetLastCallFile(ctx context.Context, domainId int64, callId stri
 }
 
 func (app *App) CreateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
-	exists, err := app.Store.Call().Exists(ctx, &model.CallExistsRequest{ID: annotation.CallId, DomainID: domainId})
-	if err != nil {
-		return nil, err
-	}
-
-	if !exists.Exist {
-		return nil, model.NewNotFoundError(
-			"app.call.annotation.create.not_found",
-			fmt.Sprintf("call %q not found", annotation.CallId),
-		)
-	}
-
-	return app.Store.Call().CreateAnnotation(ctx, annotation)
+	return app.Store.Call().CreateAnnotation(ctx, domainId, annotation)
 }
 
 func (app *App) UpdateCallAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
-	exists, err := app.Store.Call().Exists(ctx, &model.CallExistsRequest{ID: annotation.CallId, DomainID: domainId})
-	if err != nil {
+	if err := annotation.IsValid(); err != nil {
 		return nil, err
 	}
 
-	if !exists.Exist {
-		return nil, model.NewNotFoundError(
-			"app.call.annotation.update.not_found",
-			fmt.Sprintf("call %q not found", annotation.CallId),
-		)
-	}
-
-	oldAnnotation, err := app.Store.Call().GetAnnotation(ctx, annotation.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	oldAnnotation.UpdatedAt = annotation.UpdatedAt
-	oldAnnotation.UpdatedBy = annotation.UpdatedBy
-	oldAnnotation.Note = annotation.Note
-	oldAnnotation.StartSec = annotation.StartSec
-	oldAnnotation.EndSec = annotation.EndSec
-
-	if err = oldAnnotation.IsValid(); err != nil {
-		return nil, err
-	}
-
-	return app.Store.Call().UpdateAnnotation(ctx, domainId, oldAnnotation)
+	return app.Store.Call().UpdateAnnotation(ctx, domainId, annotation)
 }
 
 func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, callId string) (*model.CallAnnotation, model.AppError) {
-	exists, err := app.Store.Call().Exists(ctx, &model.CallExistsRequest{ID: callId, DomainID: domainId})
-	if err != nil {
-		return nil, err
-	}
-
-	if !exists.Exist {
-		return nil, model.NewNotFoundError(
-			"app.call.annotation.delete.not_found",
-			fmt.Sprintf("call %q not found", callId),
-		)
-	}
-
-	annotation, err := app.Store.Call().GetAnnotation(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	if err = app.Store.Call().DeleteAnnotation(ctx, id); err != nil {
-		return nil, err
-	}
-
-	return annotation, nil
+	return app.Store.Call().DeleteAnnotation(ctx, id, domainId)
 }
 
 func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string, p *model.HistoryCallPatch) (*model.HistoryCall, model.AppError) {

@@ -39,6 +39,8 @@ func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.
 }
 
 func (c *Controller) LoginAgentFromRequest(ctx context.Context, session *auth_manager.Session, r *model.AgentLoginRequest) model.AppError {
+	r.UseDomain(session.Domain(0))
+
 	if err := r.Validate(); err != nil {
 		return err
 	}

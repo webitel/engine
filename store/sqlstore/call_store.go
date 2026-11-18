@@ -378,26 +378,6 @@ func hasFileFilterSQL(alias string) string {
 	return fmt.Sprintf(`and (:HasFile::bool isnull or (case :HasFile::bool when true then %[1]s else not %[1]s end))`, recordingExists)
 }
 
-func (s SqlCallStore) Exists(ctx context.Context, req *model.CallExistsRequest) (*model.CallExistsResponse, model.AppError) {
-	query := `
-		select exists (
-			select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (:ID::uuid, :DomainID::int)
-		) as "exist";
-	`
-
-	args := map[string]any{
-		"ID":       req.ID,
-		"DomainID": req.DomainID,
-	}
-
-	exists := model.CallExistsResponse{}
-	if err := s.GetReplica().WithContext(ctx).SelectOne(&exists, query, args); err != nil {
-		return nil, model.NewCustomCodeError("store.sql_call.exists.app_error", err.Error(), extractCodeFromErr(err))
-	}
-
-	return &exists, nil
-}
-
 func (s SqlCallStore) GetHistory(ctx context.Context, domainId int64, search *model.SearchHistoryCall, filterOptions ...sqloptions.HistoryCallSQLFilterOption) ([]*model.HistoryCall, model.AppError) {
 	whereQuery := `
 		domain_id = :Domain::int8
@@ -765,11 +745,22 @@ limit 1`, map[string]any{
 	return res, nil
 }
 
-func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
-	err := s.GetMaster().WithContext(ctx).SelectOne(&annotation, `
-		with a as (
+func (s SqlCallStore) CreateAnnotation(ctx context.Context, domainID int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
+	const query = `
+		with an_ins as (
 			insert into call_center.cc_calls_annotation (call_id, created_by, created_at, note, start_sec, end_sec, updated_by, updated_at, file_id)
-			values (:CallId, :CreatedBy, :CreatedAt, :Note, :StartSec, :EndSec, :UpdatedBy, :UpdatedAt, :FileId)
+			select
+				ch.id,
+				:CreatedBy,
+				:CreatedAt,
+				:Note,
+				:StartSec,
+				:EndSec,
+				:UpdatedBy,
+				:UpdatedAt,
+				:FileId
+			from call_center.cc_calls_history ch
+				where (ch.id, ch.domain_id) = (:CallID::uuid, :DomainID)
 			returning *
 		)
 		select
@@ -783,10 +774,12 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.Ca
 			a.start_sec,
 			a.end_sec,
 			a.file_id
-		from a
+		from an_ins a
 			left join directory.wbt_user cc on cc.id = a.created_by
 			left join directory.wbt_user uc on uc.id = a.updated_by;
-`, map[string]any{
+	`
+
+	args := map[string]any{
 		"CallId":    annotation.CallId,
 		"CreatedBy": annotation.CreatedBy.GetSafeId(),
 		"CreatedAt": annotation.CreatedAt,
@@ -796,15 +789,18 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, annotation *model.Ca
 		"UpdatedBy": annotation.UpdatedBy.GetSafeId(),
 		"UpdatedAt": annotation.UpdatedAt,
 		"FileId":    annotation.FileId,
-	})
-	if err != nil {
+		"DomainID":  domainID,
+	}
+
+	result := model.CallAnnotation{}
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&result, query, args); err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.create.app_error", err.Error(), extractCodeFromErr(err))
 	}
 
-	return annotation, nil
+	return &result, nil
 }
 
-func (s SqlCallStore) GetAnnotation(ctx context.Context, id int64) (*model.CallAnnotation, model.AppError) {
+func (s SqlCallStore) GetAnnotation(ctx context.Context, id, domainID int64, callID string) (*model.CallAnnotation, model.AppError) {
 	var annotation *model.CallAnnotation
 	err := s.GetReplica().WithContext(ctx).SelectOne(&annotation, `
 select
@@ -821,8 +817,14 @@ select
 from call_center.cc_calls_annotation a
     left join directory.wbt_user cc on cc.id = a.created_by
     left join directory.wbt_user uc on uc.id = a.updated_by
-where a.id = :Id`, map[string]any{
-		"Id": id,
+where a.id = :ID
+	and exists (
+		select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (:CallID::uuid, :DomainID)
+	)
+`, map[string]any{
+		"ID":       id,
+		"DomainID": domainID,
+		"CallID":   callID,
 	})
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.get.app_error", err.Error(), extractCodeFromErr(err))
@@ -834,13 +836,14 @@ where a.id = :Id`, map[string]any{
 func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError) {
 	err := s.GetMaster().WithContext(ctx).SelectOne(&annotation, `
 		with a as (
-			update call_center.cc_calls_annotation
+			update call_center.cc_calls_annotation ca
 				set updated_at = :UpdatedAt,
 					updated_by = :UpdatedBy,
 					note = :Note,
 					start_sec = :StartSec,
 					end_sec = :EndSec
-			where id = :Id
+			where ca.id = :Id
+				and (exists select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (ca.call_id, :DomainID))
 			returning *
 		)
 		select
@@ -864,7 +867,9 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 		"Note":      annotation.Note,
 		"StartSec":  annotation.StartSec,
 		"EndSec":    annotation.EndSec,
+		"DomainID":  domainId,
 	})
+
 	if err != nil {
 		return nil, model.NewCustomCodeError("store.sql_call.annotation.update.app_error", err.Error(), extractCodeFromErr(err))
 	}
@@ -872,15 +877,45 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 	return annotation, nil
 }
 
-func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id int64) model.AppError {
-	_, err := s.GetMaster().WithContext(ctx).Exec(`delete from call_center.cc_calls_annotation where id = :Id`, map[string]any{
-		"Id": id,
-	})
-	if err != nil {
-		return model.NewCustomCodeError("store.sql_call.annotation.delete.app_error", err.Error(), extractCodeFromErr(err))
+func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id, domainID int64) (*model.CallAnnotation, model.AppError) {
+	const query = `
+		with an_del as (
+			delete from call_center.cc_calls_annotation ca
+			where ca.id = :ID
+				and exists (
+					select 1
+					from call_center.cc_calls_history ch
+					where (ch.id, ch.domain_id) = (ca.call_id, :DomainID)
+				)
+			returning *
+		)
+		select
+			a.id,
+			a.call_id,
+			a.created_at,
+			call_center.cc_get_lookup(cc.id, coalesce(cc.name, cc.username)) created_by,
+			a.updated_at,
+			call_center.cc_get_lookup(uc.id, coalesce(uc.name, uc.username)) updated_by,
+			a.note,
+			a.start_sec,
+			a.end_sec,
+			a.file_id
+		from an_del a
+		left join directory.wbt_user cc on cc.id = a.created_by
+		left join directory.wbt_user uc on uc.id = a.updated_by;
+	`
+
+	args := map[string]any{
+		"ID":       id,
+		"DomainID": domainID,
 	}
 
-	return nil
+	annotation := model.CallAnnotation{}
+	if err := s.GetMaster().WithContext(ctx).SelectOne(&annotation, query, args); err != nil {
+		return nil, model.NewCustomCodeError("store.sql_call.annotation.delete.app_error", err.Error(), extractCodeFromErr(err))
+	}
+
+	return &annotation, nil
 }
 
 func AggregateField(group *model.AggregateGroup) string {

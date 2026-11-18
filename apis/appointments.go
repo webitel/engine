@@ -3,10 +3,11 @@ package apis
 import (
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/webitel/engine/model"
+	"github.com/webitel/engine/web"
+	"github.com/webitel/wlog"
 )
 
 const appointmentHeader = "X-WBT-KEY"
@@ -37,21 +38,21 @@ func listAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	key, _ := getKeyFromRequest(r)
-	if strings.TrimSpace(key) == "" {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Write(widget.ComputedList)
+	key, ok := getKeyFromRequest(r)
+	if !ok {
+		if _, err := web.WriteJSON(w, widget.ComputedList); err != nil {
+			c.Log.Error("writing appointments list response", wlog.Err(err))
+		}
 
 		return
 	}
 
-	appointment, err := c.App.GetAppointment(r.Context(), key, widget.Profile.DomainId, int64(widget.Profile.QueueId))
+	appointment, err := c.App.GetAppointment(r.Context(), key, widget)
 	if err != nil {
 		if err.GetStatusCode() == http.StatusNotFound {
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			w.Header().Set("X-Content-Type-Options", "nosniff")
-			w.Write(widget.ComputedList)
+			if _, err := web.WriteJSON(w, widget.ComputedList); err != nil {
+				c.Log.Error("writing appointments list response", wlog.Err(err))
+			}
 
 			return
 		}
@@ -60,9 +61,9 @@ func listAppointments(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Write(appointment.Computed)
+	if _, err := web.WriteJSON(w, appointment.Computed); err != nil {
+		c.Log.Error("writing appointment response", wlog.Err(err))
+	}
 }
 
 func createAppointments(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -306,10 +306,6 @@ func (app *App) ResetMembersCount(ctx context.Context, domainID int64, query *mo
 	return app.Store.Member().ResetMembersCount(ctx, domainID, query)
 }
 
-func (app *App) GetMemberAttempts(ctx context.Context, memberId, domainID int64) ([]*model.MemberAttempt, model.AppError) {
-	return app.Store.Member().AttemptsList(ctx, memberId, domainID)
-}
-
 func (app *App) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, bool, model.AppError) {
 	list, err := app.Store.Member().SearchAttemptsHistory(ctx, domainId, search)
 	if err != nil {

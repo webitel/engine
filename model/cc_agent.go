@@ -550,6 +550,14 @@ func (r *AgentLoginRequest) Validate() AppError {
 	return nil
 }
 
+func (r *AgentLoginRequest) UseDomain(domainID int64) {
+	if r == nil {
+		return
+	}
+
+	r.DomainID = domainID
+}
+
 func NewAgentLoginRequestFromSocketRequest(r *WebSocketRequest, sessionDomainID int64) *AgentLoginRequest {
 	req := new(AgentLoginRequest)
 

@@ -718,72 +718,6 @@ where m2.id = x.id`, map[string]any{
 	return cnt, nil
 }
 
-func (s SqlMemberStore) AttemptsList(ctx context.Context, memberId, domainID int64) ([]*model.MemberAttempt, model.AppError) {
-	var attempts []*model.MemberAttempt
-	//FIXME
-	if _, err := s.GetMaster().WithContext(ctx).Select(&attempts, `with active as (
-    select a.id,
-           --a.member_id,
-           (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
-           'TODO' as destination,
-           a.weight,
-           a.originate_at,
-           a.answered_at,
-           a.bridged_at,
-           a.hangup_at,
-           call_center.cc_get_lookup(cor.id, cor.name) as resource,
-           leg_a_id,
-           leg_b_id,
-           node_id as node,
-           result,
-           call_center.cc_get_lookup(u.id, u.name) as agent,
-           call_center.cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
-           logs,
-           false as active
-    from call_center.cc_member_attempt a
-        left join call_center.cc_outbound_resource cor on a.resource_id = cor.id
-        left join call_center.cc_agent ca on a.agent_id = ca.id
-        left join directory.wbt_user u on u.id = ca.user_id
-        left join call_center.cc_bucket cb on a.bucket_id = cb.id
-    where (a.member_id, a.domain_id) = (:MemberId, :DomainID)
-    order by a.created_at
-), log as (
-    select a.id,
-           (extract(EPOCH from a.created_at) * 1000)::int8 as created_at,
-           'TODO' as destination,
-           a.weight,
-           a.originate_at,
-           a.answered_at,
-           a.bridged_at,
-           a.hangup_at,
-           call_center.cc_get_lookup(cor.id, cor.name) as resource,
-           leg_a_id,
-           leg_b_id,
-           node_id as node,
-           result,
-           call_center.cc_get_lookup(u.id, u.name) as agent,
-           call_center.cc_get_lookup(cb.id::int8, cb.name::varchar) as bucket,
-           logs,
-           false as active
-    from call_center.cc_member_attempt_log a
-        left join call_center.cc_outbound_resource cor on a.resource_id = cor.id
-        left join call_center.cc_agent ca on a.agent_id = ca.id
-        left join directory.wbt_user u on u.id = ca.user_id
-        left join call_center.cc_bucket cb on a.bucket_id = cb.id
-    where (a.member_id, a.domain_id) = (:MemberId, :DomainID)
-    order by a.created_at
-)
-select *
-from active a
-union all
-select *
-from log a`, map[string]any{"MemberId": memberId, "DomainID": domainID}); err != nil {
-		return nil, model.NewCustomCodeError("store.sql_member.get_attempts_all.app_error", fmt.Sprintf("MemberId=%v, %s", memberId, err.Error()), extractCodeFromErr(err))
-	}
-
-	return attempts, nil
-}
-
 func (s SqlMemberStore) SearchAttemptsHistory(ctx context.Context, domainId int64, search *model.SearchAttempts) ([]*model.AttemptHistory, model.AppError) {
 	var att []*model.AttemptHistory
 
@@ -1131,13 +1065,14 @@ returning call_center.cc_member.id,
 	return app, nil
 }
 
-func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberId int64, reason string) model.AppError {
+func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberID, domainID int64, reason string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member
 set stop_at = now(),
     stop_cause = :Result
-where id = :Id`, map[string]interface{}{
-		"Id":     memberId,
-		"Result": reason,
+where (id, domain_id) = (:Id, :DomainID)`, map[string]any{
+		"Id":       memberID,
+		"DomainID": domainID,
+		"Result":   reason,
 	})
 
 	if err != nil {

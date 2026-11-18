@@ -258,7 +258,7 @@ func (api *list) CreateListCommunication(ctx context.Context, in *engine.CreateL
 		return nil, err
 	}
 
-	communication, err = api.app.CreateListCommunication(ctx, communication)
+	communication, err = api.app.CreateListCommunication(ctx, session.Domain(0), communication)
 
 	if err != nil {
 		return nil, err
@@ -292,6 +292,10 @@ func (api *list) CreateListCommunicationBulk(ctx context.Context, in *engine.Cre
 		} else if !perm {
 			return nil, api.app.MakeResourcePermissionError(session, in.GetListId(), permission, auth_manager.PERMISSION_ACCESS_UPDATE)
 		}
+	}
+
+	if _, err := api.app.GetListById(ctx, session.Domain(0), in.GetListId()); err != nil {
+		return nil, err
 	}
 
 	failures := make([]*engine.ListCommunicationBulkError, 0)
