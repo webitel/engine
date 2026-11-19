@@ -54,6 +54,7 @@ const (
 	SysNameAutoDeletionPeriod                = "auto_deletion_period"
 	SysNameMaxLoginAttempts                  = "max_login_attempts"
 	SysNameBlockLoginTime                    = "block_login_time"
+	SysNameAllowDesktracking                 = "allow_desktracking"
 )
 
 const (
@@ -177,7 +178,8 @@ func (s *SystemSetting) IsValid() AppError {
 		SysNameExpandContactTabs,
 		SysNameBlockAllMemberNumbers,
 		SysNameSelfAssignedCallSoundNotification,
-		SysNameRecordAllCalls:
+		SysNameRecordAllCalls,
+		SysNameAllowDesktracking:
 		value := SysValue(s.Value)
 		i := value.Bool()
 
