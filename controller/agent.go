@@ -43,6 +43,8 @@ func (c *Controller) LoginAgentFromRequest(ctx context.Context, session *auth_ma
 		return err
 	}
 
+	r.DomainID = session.Domain(0)
+
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {
 		return c.app.MakePermissionError(session, permission, auth_manager.PERMISSION_ACCESS_READ)

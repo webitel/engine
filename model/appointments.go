@@ -6,6 +6,10 @@ import (
 	"time"
 )
 
+const (
+	AppointmentCancelReason string = "cancel"
+)
+
 type AppointmentWidget struct {
 	Profile        AppointmentProfile `json:"profile" db:"profile"`
 	List           []AppointmentDate  `json:"list" db:"list"`

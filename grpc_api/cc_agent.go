@@ -1,7 +1,6 @@
 package grpc_api
 
 import (
-	"cmp"
 	"context"
 	"fmt"
 	"strconv"
@@ -432,7 +431,7 @@ func (api *agent) UpdateAgentStatus(ctx context.Context, in *engine.AgentStatusR
 			AgentID:      in.GetId(),
 			OnDemand:     in.GetOnDemand(),
 			OnlineStatus: onlineStatus,
-			DomainID:     cmp.Or(in.GetDomainId(), session.Domain(0)),
+			DomainID:     session.Domain(0),
 		})
 	case model.AgentStatusPause:
 		err = api.ctrl.PauseAgent(ctx, session, session.Domain(in.GetDomainId()), in.GetId(), in.GetPayload(), in.GetStatusComment(), 0)
