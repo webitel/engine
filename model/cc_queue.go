@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"maps"
+	"regexp"
 	"strconv"
 )
 
@@ -23,11 +24,16 @@ const (
 const (
 	QueuePayloadProgressiveCountKey string = "progressive_count"
 	QueuePayloadMaxAgentLineKey     string = "max_agent_line"
+	QueuePayloadAgentRingtoneKey    string = "agent_ringtone"
 )
+
+// agentRingtonePattern accepts a plain ringtone file name, without a path.
+var agentRingtonePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]*$`)
 
 const (
 	QueueDefaultProgressiveCountValue int = 1
 	QueueDefaultMaxAgentLine          int = 5
+	QueueAgentRingtoneMaxLength       int = 255
 )
 
 type Queue struct {
@@ -349,6 +355,10 @@ func (q *Queue) IsValid() AppError {
 		return err
 	}
 
+	if err := q.validateAgentRingtone(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -444,6 +454,28 @@ func (q *Queue) validateCalendar() AppError {
 		return NewBadRequestError(
 			"model.cc_queue.validate.calendar.required",
 			"A calendar is required for outbound or non-inbound queue types",
+		)
+	}
+
+	return nil
+}
+
+func (q *Queue) validateAgentRingtone() AppError {
+	value, exists := q.Payload[QueuePayloadAgentRingtoneKey]
+	if !exists || value == nil {
+		return nil
+	}
+
+	ringtone, ok := value.(string)
+	if ok && ringtone == "" {
+		return nil
+	}
+
+	if !ok || len(ringtone) > QueueAgentRingtoneMaxLength || !agentRingtonePattern.MatchString(ringtone) {
+		return NewBadRequestError(
+			"model.cc_queue.validate.payload.agent_ringtone.invalid",
+			fmt.Sprintf("Parameter '%s' must be a file name of letters, digits, dots, dashes or underscores, up to %d characters",
+				QueuePayloadAgentRingtoneKey, QueueAgentRingtoneMaxLength),
 		)
 	}
 
