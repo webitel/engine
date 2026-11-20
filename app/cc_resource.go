@@ -107,6 +107,10 @@ func (a *App) CreateOutboundResourceDisplay(ctx context.Context, domainID int64,
 }
 
 func (a *App) CreateOutboundResourceDisplays(ctx context.Context, resourceId, domainID int64, displays []*model.ResourceDisplay) ([]*model.ResourceDisplay, model.AppError) {
+	if _, err := a.Store.OutboundResource().Get(ctx, domainID, resourceId); err != nil {
+		return nil, err
+	}
+
 	if len(displays) == 0 {
 		return nil, model.NewBadRequestError("app.cc_resource.create_outbound_displays", "zero resource displays")
 	}

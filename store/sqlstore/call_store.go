@@ -844,7 +844,7 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 					end_sec = :EndSec
 			where ca.id = :Id
 				and ca.call_id = :CallID
-				and (exists select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (:CallID::uuid, :DomainID))
+				and exists (select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (:CallID::uuid, :DomainID))
 			returning *
 		)
 		select
@@ -911,6 +911,7 @@ func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id, domainID int64, 
 	args := map[string]any{
 		"ID":       id,
 		"DomainID": domainID,
+		"CallID":   callID,
 	}
 
 	annotation := model.CallAnnotation{}
