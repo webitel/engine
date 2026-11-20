@@ -829,7 +829,7 @@ func (app *App) UpdateCallAnnotation(ctx context.Context, domainId int64, annota
 }
 
 func (app *App) DeleteCallAnnotation(ctx context.Context, domainId, id int64, callId string) (*model.CallAnnotation, model.AppError) {
-	return app.Store.Call().DeleteAnnotation(ctx, id, domainId)
+	return app.Store.Call().DeleteAnnotation(ctx, id, domainId, callId)
 }
 
 func (app *App) UpdateHistoryCall(ctx context.Context, domainId int64, id string, p *model.HistoryCallPatch) (*model.HistoryCall, model.AppError) {

@@ -543,19 +543,7 @@ func (r *AgentLoginRequest) Validate() AppError {
 		return NewBadRequestError("model.cc_agent.validate.invalid_agent_login_id", "Agent login require agent id")
 	}
 
-	if r.DomainID <= 0 {
-		return NewBadRequestError("model.cc_agent.validate.invalid_agent_domain", "Agent login require domain id")
-	}
-
 	return nil
-}
-
-func (r *AgentLoginRequest) UseDomain(domainID int64) {
-	if r == nil {
-		return
-	}
-
-	r.DomainID = domainID
 }
 
 func NewAgentLoginRequestFromSocketRequest(r *WebSocketRequest, sessionDomainID int64) *AgentLoginRequest {

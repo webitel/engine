@@ -1067,9 +1067,9 @@ returning call_center.cc_member.id,
 
 func (s SqlMemberStore) CancelAppointment(ctx context.Context, memberID, domainID int64, reason string) model.AppError {
 	_, err := s.GetMaster().WithContext(ctx).Exec(`update call_center.cc_member
-set stop_at = now(),
-    stop_cause = :Result
-where (id, domain_id) = (:Id, :DomainID)`, map[string]any{
+		set stop_at = now(),
+    	stop_cause = :Result
+where (id, domain_id) = (:Id, :DomainID) and stop_at is null`, map[string]any{
 		"Id":       memberID,
 		"DomainID": domainID,
 		"Result":   reason,

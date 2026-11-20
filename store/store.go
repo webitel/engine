@@ -413,7 +413,7 @@ type CallStore interface {
 	CreateAnnotation(ctx context.Context, domainID int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError)
 	GetAnnotation(ctx context.Context, id, domainID int64, callID string) (*model.CallAnnotation, model.AppError)
 	UpdateAnnotation(ctx context.Context, domainId int64, annotation *model.CallAnnotation) (*model.CallAnnotation, model.AppError)
-	DeleteAnnotation(ctx context.Context, id, domainID int64) (*model.CallAnnotation, model.AppError)
+	DeleteAnnotation(ctx context.Context, id, domainID int64, callID string) (*model.CallAnnotation, model.AppError)
 	GetEavesdropInfo(ctx context.Context, domainId int64, id string) (*model.EavesdropInfo, model.AppError)
 
 	GetOwnerUserCall(ctx context.Context, id string) (*int64, time.Time, model.AppError)

@@ -780,7 +780,7 @@ func (s SqlCallStore) CreateAnnotation(ctx context.Context, domainID int64, anno
 	`
 
 	args := map[string]any{
-		"CallId":    annotation.CallId,
+		"CallID":    annotation.CallId,
 		"CreatedBy": annotation.CreatedBy.GetSafeId(),
 		"CreatedAt": annotation.CreatedAt,
 		"Note":      annotation.Note,
@@ -843,7 +843,8 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 					start_sec = :StartSec,
 					end_sec = :EndSec
 			where ca.id = :Id
-				and (exists select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (ca.call_id, :DomainID))
+				and ca.call_id = :CallID
+				and (exists select 1 from call_center.cc_calls_history ch where (ch.id, ch.domain_id) = (:CallID::uuid, :DomainID))
 			returning *
 		)
 		select
@@ -868,6 +869,7 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 		"StartSec":  annotation.StartSec,
 		"EndSec":    annotation.EndSec,
 		"DomainID":  domainId,
+		"CallID":    annotation.CallId,
 	})
 
 	if err != nil {
@@ -877,15 +879,16 @@ func (s SqlCallStore) UpdateAnnotation(ctx context.Context, domainId int64, anno
 	return annotation, nil
 }
 
-func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id, domainID int64) (*model.CallAnnotation, model.AppError) {
+func (s SqlCallStore) DeleteAnnotation(ctx context.Context, id, domainID int64, callID string) (*model.CallAnnotation, model.AppError) {
 	const query = `
 		with an_del as (
 			delete from call_center.cc_calls_annotation ca
 			where ca.id = :ID
+				and ca.call_id = :CallID
 				and exists (
 					select 1
 					from call_center.cc_calls_history ch
-					where (ch.id, ch.domain_id) = (ca.call_id, :DomainID)
+					where (ch.id, ch.domain_id) = (:CallID::uuid, :DomainID)
 				)
 			returning *
 		)

@@ -39,11 +39,11 @@ func (c *Controller) GetAgentSession(ctx context.Context, session *auth_manager.
 }
 
 func (c *Controller) LoginAgentFromRequest(ctx context.Context, session *auth_manager.Session, r *model.AgentLoginRequest) model.AppError {
-	r.UseDomain(session.Domain(0))
-
 	if err := r.Validate(); err != nil {
 		return err
 	}
+
+	r.DomainID = session.Domain(0)
 
 	permission := session.GetPermission(model.PERMISSION_SCOPE_CC_AGENT)
 	if !permission.CanRead() {

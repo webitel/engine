@@ -226,6 +226,7 @@ func (s SqlOutboundResourceStore) SaveDisplay(ctx context.Context, domainID int6
 			:Display
 		from call_center.cc_outbound_resource r
 		where (r.id, r.domain_id) = (:ResourceID, :DomainID)
+		returning *
 	`
 	args := map[string]any{
 		"DomainID":   domainID,
@@ -346,7 +347,7 @@ func (s SqlOutboundResourceStore) DeleteDisplays(ctx context.Context, resourceId
 			from call_center.cc_outbound_resource c
 			inner join call_center.cc_outbound_resource_display d on d.resource_id = c.id
 			where (c.id, c.domain_id) = (:ResourceID, :DomainID)
-				and (:Ids::int[] is null or d.id = any(:IDs::int[]))
+				and (:IDs::int[] is null or d.id = any(:IDs::int[]))
 		)
 	`
 	args := map[string]any{
