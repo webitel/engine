@@ -220,8 +220,7 @@ func (a *Agent) Patch(patch *AgentPatch) {
 	if patch.NoPostponedLimit {
 		a.EmailPostponedCount = nil
 	} else if patch.EmailPostponedCount != nil {
-		v := *patch.EmailPostponedCount
-		a.EmailPostponedCount = &v
+		a.EmailPostponedCount = NewUint32(*patch.EmailPostponedCount)
 	}
 
 	if patch.Supervisor != nil {
