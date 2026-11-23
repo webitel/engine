@@ -1,6 +1,7 @@
 package model_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/webitel/engine/model"
@@ -178,6 +179,80 @@ func TestQueue_IsValid(t *testing.T) {
 			},
 			wantErr: true,
 			errCode: "model.cc_queue.validate.calendar.required",
+		},
+		{
+			name: "inbound queue valid agent ringtone",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: "slow-ringtone.mp3",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "inbound queue empty agent ringtone",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: "",
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "inbound queue null agent ringtone",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: nil,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "agent ringtone with path rejected",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: "../x.mp3",
+				},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.payload.agent_ringtone.invalid",
+		},
+		{
+			name: "agent ringtone with url characters rejected",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: "x.mp3?a=1",
+				},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.payload.agent_ringtone.invalid",
+		},
+		{
+			name: "agent ringtone too long rejected",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: strings.Repeat("a", model.QueueAgentRingtoneMaxLength+1),
+				},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.payload.agent_ringtone.invalid",
+		},
+		{
+			name: "agent ringtone non string rejected",
+			queue: &model.Queue{
+				Type: model.QueueTypeInboundCall,
+				Payload: model.StringInterface{
+					model.QueuePayloadAgentRingtoneKey: 5,
+				},
+			},
+			wantErr: true,
+			errCode: "model.cc_queue.validate.payload.agent_ringtone.invalid",
 		},
 	}
 
