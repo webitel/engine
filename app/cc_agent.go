@@ -81,8 +81,7 @@ func (app *App) UpdateAgent(ctx context.Context, agent *model.Agent, limits mode
 	if limits.NoPostponedLimit {
 		oldAgent.EmailPostponedCount = nil
 	} else if limits.Postponed != nil {
-		v := *limits.Postponed
-		oldAgent.EmailPostponedCount = &v
+		oldAgent.EmailPostponedCount = model.NewUint32(*limits.Postponed)
 	}
 	oldAgent.Supervisor = agent.Supervisor
 	oldAgent.Team = agent.Team

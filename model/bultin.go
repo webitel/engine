@@ -5,6 +5,7 @@ func NewInt(n int) *int          { return &n }
 func NewInt8(n int8) *int8       { return &n }
 func NewInt32(n int32) *int32    { return &n }
 func NewInt64(n int64) *int64    { return &n }
+func NewUint32(n uint32) *uint32 { return &n }
 func NewString(s string) *string { return &s }
 
 func Int64PositionInSlice(a int64, list []int64) int {
