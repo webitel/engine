@@ -52,6 +52,8 @@ type WebConn struct {
 	endWritePump       chan struct{}
 	pumpFinished       chan struct{}
 	listenEvents       map[string]*model.BindQueueEvent
+	emailMx            sync.Mutex
+	emailSub           atomic.Pointer[emailSubscription]
 	createdAt          time.Time
 	applicationName    string
 	applicationVer     string

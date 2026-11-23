@@ -39,9 +39,13 @@ type DomainQueue interface {
 	UserStateEvents() <-chan *model.UserState
 	ChatEvents() <-chan *model.ChatEvent
 	NotificationEvents() <-chan *model.Notification
+	EmailEvents() <-chan *model.EmailEvent
 
 	BindUserCall(id string, userId int64) *model.BindQueueEvent
 	BindUserChat(id string, userId int64) *model.BindQueueEvent
+	BindUserEmailWait(ctx context.Context, id string, userId int64) (*model.BindQueueEvent, error)
+	UnbindEmail(b *model.BindQueueEvent)
+	Rebound() <-chan struct{}
 	BulkUnbind(b []*model.BindQueueEvent) model.AppError
 	Unbind(bind *model.BindQueueEvent) model.AppError
 
