@@ -2,7 +2,9 @@ package cc
 
 import (
 	"context"
+
 	"github.com/webitel/engine/gen/cc"
+	"github.com/webitel/engine/model"
 	"github.com/webitel/engine/pkg/wbt"
 )
 
@@ -133,4 +135,60 @@ func (api *memberApi) SaveFormFields(domainId, attemptId int64, fields map[strin
 	})
 
 	return err
+}
+
+func (api *memberApi) EmailAttemptTake(ctx context.Context, in *cc.EmailAttemptTakeRequest) (*cc.EmailAttemptResponse, model.AppError) {
+	out, err := api.Api.EmailAttemptTake(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
+}
+
+func (api *memberApi) EmailAttemptPostpone(ctx context.Context, in *cc.EmailAttemptPostponeRequest) (*cc.EmailAttemptResponse, model.AppError) {
+	out, err := api.Api.EmailAttemptPostpone(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
+}
+
+func (api *memberApi) EmailAttemptReturn(ctx context.Context, in *cc.EmailAttemptReturnRequest) (*cc.EmailAttemptResponse, model.AppError) {
+	out, err := api.Api.EmailAttemptReturn(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
+}
+
+func (api *memberApi) EmailAttemptComplete(ctx context.Context, in *cc.EmailAttemptCompleteRequest) (*cc.EmailAttemptResponse, model.AppError) {
+	out, err := api.Api.EmailAttemptComplete(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
+}
+
+func (api *memberApi) EmailAttemptResume(ctx context.Context, in *cc.ResumeAttemptRequest) (*cc.ResumeAttemptResponse, model.AppError) {
+	out, err := api.Api.ResumeAttempt(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
+}
+
+func (api *memberApi) EmailAttemptRenew(ctx context.Context, in *cc.AttemptRenewalResultRequest) (*cc.AttemptRenewalResultResponse, model.AppError) {
+	out, err := api.Api.AttemptRenewalResult(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
+}
+
+func (api *memberApi) EmailAttemptTransfer(ctx context.Context, in *cc.TransferRequest) (*cc.TransferResponse, model.AppError) {
+	out, err := api.Api.Transfer(ctx, in)
+	if err != nil {
+		return nil, emailGrpcError(ctx, err)
+	}
+	return out, nil
 }
